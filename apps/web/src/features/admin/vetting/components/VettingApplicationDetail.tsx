@@ -225,12 +225,15 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
           leftSection={<IconArrowLeft size={16} />}
           onClick={onBack}
           data-testid="back-to-applications-button"
-          style={{
-            minHeight: 40,
-            height: 'auto',
-            padding: '10px 20px',
-            lineHeight: 1.4,
-            color: '#880124'
+          styles={{
+            root: {
+              height: '44px',
+              paddingTop: '12px',
+              paddingBottom: '12px',
+              fontSize: '14px',
+              lineHeight: '1.2',
+              color: '#880124'
+            }
           }}
         >
           Back to Applications
@@ -260,7 +263,7 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
                 )}
               </Group>
             </Stack>
-            <VettingStatusBadge status={application.status} size="xl" data-testid="application-status-badge" />
+            <VettingStatusBadge status={application.status} size="xl" data-testid="status-badge" />
           </Group>
         </Stack>
       </Paper>
@@ -276,17 +279,17 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
               loading={isApprovingApplication}
               disabled={!availableActions.canApprove}
               data-testid="approve-application-button"
-              style={{
-                backgroundColor: availableActions.canApprove ? '#228B22' : undefined,
-                color: availableActions.canApprove ? '#FFF' : undefined,
-                minHeight: 56,
-                paddingTop: 12,
-                paddingBottom: 12,
-                paddingLeft: 24,
-                paddingRight: 24,
-                fontSize: 16,
-                fontWeight: 600,
-                lineHeight: 1.4
+              styles={{
+                root: {
+                  backgroundColor: availableActions.canApprove ? '#228B22' : undefined,
+                  color: availableActions.canApprove ? '#FFF' : undefined,
+                  height: '44px',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                  fontSize: '14px',
+                  lineHeight: '1.2',
+                  fontWeight: 600
+                }
               }}
             >
               Approve Application
@@ -296,16 +299,16 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
               color="yellow"
               onClick={handlePutOnHold}
               disabled={!availableActions.canHold}
-              data-testid="put-on-hold-button"
-              style={{
-                minHeight: 56,
-                paddingTop: 12,
-                paddingBottom: 12,
-                paddingLeft: 24,
-                paddingRight: 24,
-                fontSize: 16,
-                fontWeight: 600,
-                lineHeight: 1.4
+              data-testid="hold-button"
+              styles={{
+                root: {
+                  height: '44px',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                  fontSize: '14px',
+                  lineHeight: '1.2',
+                  fontWeight: 600
+                }
               }}
             >
               Put On Hold
@@ -316,15 +319,15 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
               onClick={handleDenyApplication}
               disabled={!availableActions.canDeny}
               data-testid="deny-application-button"
-              style={{
-                minHeight: 56,
-                paddingTop: 12,
-                paddingBottom: 12,
-                paddingLeft: 24,
-                paddingRight: 24,
-                fontSize: 16,
-                fontWeight: 600,
-                lineHeight: 1.4
+              styles={{
+                root: {
+                  height: '44px',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                  fontSize: '14px',
+                  lineHeight: '1.2',
+                  fontWeight: 600
+                }
               }}
             >
               Deny Application
@@ -336,15 +339,15 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
                 leftSection={<IconCalendarEvent size={16} />}
                 onClick={() => setScheduleInterviewModalOpen(true)}
                 data-testid="schedule-interview-button"
-                style={{
-                  minHeight: 56,
-                  paddingTop: 12,
-                  paddingBottom: 12,
-                  paddingLeft: 24,
-                  paddingRight: 24,
-                  fontSize: 16,
-                  fontWeight: 600,
-                  lineHeight: 1.4
+                styles={{
+                  root: {
+                    height: '44px',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    fontSize: '14px',
+                    lineHeight: '1.2',
+                    fontWeight: 600
+                  }
                 }}
               >
                 Schedule Interview
@@ -356,15 +359,15 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
               onClick={handleSendReminder}
               disabled={!availableActions.canRemind}
               data-testid="send-reminder-button"
-              style={{
-                minHeight: 56,
-                paddingTop: 12,
-                paddingBottom: 12,
-                paddingLeft: 24,
-                paddingRight: 24,
-                fontSize: 16,
-                fontWeight: 600,
-                lineHeight: 1.4
+              styles={{
+                root: {
+                  height: '44px',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                  fontSize: '14px',
+                  lineHeight: '1.2',
+                  fontWeight: 600
+                }
               }}
             >
               Send Reminder
@@ -496,18 +499,20 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
           </Title>
           <Button
             variant="filled"
-            size="sm"
             onClick={handleSaveNote}
             disabled={!newNote.trim()}
             data-testid="save-note-button"
-            style={{
-              backgroundColor: '#D4AF37',
-              color: '#000000',
-              minHeight: 40,
-              height: 'auto',
-              padding: '10px 20px',
-              lineHeight: 1.4,
-              fontWeight: 600
+            styles={{
+              root: {
+                backgroundColor: '#D4AF37',
+                color: '#000000',
+                height: '44px',
+                paddingTop: '12px',
+                paddingBottom: '12px',
+                fontSize: '14px',
+                lineHeight: '1.2',
+                fontWeight: 600
+              }
             }}
           >
             Save Note
@@ -585,11 +590,14 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
             <Button
               variant="light"
               onClick={() => setNotesModalOpen(false)}
-              style={{
-                minHeight: 40,
-                height: 'auto',
-                padding: '10px 20px',
-                lineHeight: 1.4
+              styles={{
+                root: {
+                  height: '44px',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                  fontSize: '14px',
+                  lineHeight: '1.2'
+                }
               }}
             >
               Cancel
@@ -601,11 +609,14 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
                 setNotesModalOpen(false);
               }}
               disabled={!newNote.trim()}
-              style={{
-                minHeight: 40,
-                height: 'auto',
-                padding: '10px 20px',
-                lineHeight: 1.4
+              styles={{
+                root: {
+                  height: '44px',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                  fontSize: '14px',
+                  lineHeight: '1.2'
+                }
               }}
             >
               Add Note
@@ -657,11 +668,14 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
           <Group justify="flex-end">
             <Button
               onClick={() => setScheduleInterviewModalOpen(false)}
-              style={{
-                minHeight: 40,
-                height: 'auto',
-                padding: '10px 20px',
-                lineHeight: 1.4
+              styles={{
+                root: {
+                  height: '44px',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                  fontSize: '14px',
+                  lineHeight: '1.2'
+                }
               }}
             >
               Close

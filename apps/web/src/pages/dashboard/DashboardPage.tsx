@@ -18,7 +18,6 @@ import {
 import {
   IconAlertCircle,
   IconRefresh,
-  IconCalendarEvent,
   IconHome
 } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
@@ -44,14 +43,6 @@ export const DashboardPage: React.FC = () => {
   
   const dashboardError = useDashboardError(error);
 
-  // Navigation handlers
-  const handleViewAllEvents = () => {
-    navigate('/events');
-  };
-
-  const handleGoToEvents = () => {
-    navigate('/events');
-  };
 
   // Global loading state
   if (isLoading) {
@@ -165,39 +156,6 @@ export const DashboardPage: React.FC = () => {
             <MembershipStatistics />
           </Box>
         </SimpleGrid>
-
-        {/* Quick actions */}
-        <Alert
-          color="blue"
-          variant="light"
-          styles={{
-            root: {
-              backgroundColor: 'var(--mantine-color-blue-0)',
-              border: '1px solid var(--mantine-color-blue-3)',
-            }
-          }}
-        >
-          <Group gap="md" justify="space-between" align="center">
-            <Box>
-              <Text size="sm" fw={500} mb="xs">
-                Looking for something to do?
-              </Text>
-              <Text size="xs" c="dimmed">
-                Browse our upcoming events and join the community!
-              </Text>
-            </Box>
-            
-            <Button
-              leftSection={<IconCalendarEvent size={16} />}
-              onClick={handleGoToEvents}
-              variant="filled"
-              color="blue"
-              size="sm"
-            >
-              Browse Events
-            </Button>
-          </Group>
-        </Alert>
 
         {/* Debug info (only in development) */}
         {import.meta.env.DEV && isSuccess && (

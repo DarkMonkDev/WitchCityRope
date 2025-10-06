@@ -1374,11 +1374,6 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<string>("FullName")
                         .HasColumnType("text");
 
-                    b.Property<string>("HowFoundUs")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
                     b.Property<DateTime?>("InterviewScheduledFor")
                         .HasColumnType("timestamp with time zone");
 
@@ -1421,9 +1416,6 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<string>("SkillsInterests")
                         .HasColumnType("text");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
                     b.Property<string>("StatusToken")
                         .IsRequired()
                         .HasColumnType("text");
@@ -1440,6 +1432,9 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<string>("WhyJoinCommunity")
                         .HasColumnType("text");
 
+                    b.Property<int>("WorkflowStatus")
+                        .HasColumnType("integer");
+
                     b.Property<int>("YearsExperience")
                         .HasColumnType("integer");
 
@@ -1448,15 +1443,15 @@ namespace WitchCityRope.Api.Migrations
                     b.HasIndex("Email")
                         .HasDatabaseName("IX_VettingApplications_Email");
 
-                    b.HasIndex("Status")
-                        .HasDatabaseName("IX_VettingApplications_Status");
-
                     b.HasIndex("SubmittedAt")
                         .HasDatabaseName("IX_VettingApplications_SubmittedAt");
 
                     b.HasIndex("UserId")
                         .IsUnique()
                         .HasDatabaseName("IX_VettingApplications_UserId");
+
+                    b.HasIndex("WorkflowStatus")
+                        .HasDatabaseName("IX_VettingApplications_WorkflowStatus");
 
                     b.ToTable("VettingApplications", (string)null);
                 });
@@ -2071,6 +2066,9 @@ namespace WitchCityRope.Api.Migrations
 
                     b.Property<string>("PricingTiers")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ShortDescription")
                         .HasColumnType("text");
 
                     b.Property<DateTime>("StartDate")

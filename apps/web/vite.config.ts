@@ -32,9 +32,12 @@ export default defineConfig(({ mode }) => {
       port: parseInt(process.env.VITE_PORT || '5173'), // Use environment variable
       strictPort: true, // ENFORCE port 5173 - fail if unavailable (prevents confusion)
       
-      // HMR Configuration - disabled due to WebSocket issues causing refresh loops
-      hmr: false, // Disable HMR to prevent constant refreshing
-      
+      // HMR Configuration - enabled for development
+      hmr: {
+        host: 'localhost',
+        port: 24678,
+      },
+
       // File watching configuration for containers
       watch: {
         usePolling: true, // Required for Docker volume mounts

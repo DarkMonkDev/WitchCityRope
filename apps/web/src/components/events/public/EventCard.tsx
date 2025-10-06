@@ -64,11 +64,19 @@ export const EventCard = memo<EventCardProps>(({
 
     if (!canViewFullDetails) {
       return (
-        <Button 
-          size="sm" 
-          variant="outline" 
+        <Button
+          variant="outline"
           color="burgundy"
           onClick={stopPropagation}
+          styles={{
+            root: {
+              height: '44px',
+              paddingTop: '12px',
+              paddingBottom: '12px',
+              fontSize: '14px',
+              lineHeight: '1.2'
+            }
+          }}
         >
           Login Required
         </Button>
@@ -77,11 +85,19 @@ export const EventCard = memo<EventCardProps>(({
 
     if (event.capacity.available === 0) {
       return (
-        <Button 
-          size="sm" 
-          variant="outline" 
+        <Button
+          variant="outline"
           color="red"
           onClick={stopPropagation}
+          styles={{
+            root: {
+              height: '44px',
+              paddingTop: '12px',
+              paddingBottom: '12px',
+              fontSize: '14px',
+              lineHeight: '1.2'
+            }
+          }}
         >
           Join Waitlist
         </Button>
@@ -91,21 +107,37 @@ export const EventCard = memo<EventCardProps>(({
     if (event.type === 'SOCIAL') {
       return (
         <Group gap="xs">
-          <Button 
-            size="sm" 
-            color="green" 
+          <Button
+            color="green"
             onClick={(e) => {
               stopPropagation(e);
               onRSVP(event.id);
             }}
+            styles={{
+              root: {
+                height: '44px',
+                paddingTop: '12px',
+                paddingBottom: '12px',
+                fontSize: '14px',
+                lineHeight: '1.2'
+              }
+            }}
           >
             RSVP Free
           </Button>
-          <Button 
-            size="sm" 
-            variant="outline" 
+          <Button
+            variant="outline"
             color="burgundy"
             onClick={stopPropagation}
+            styles={{
+              root: {
+                height: '44px',
+                paddingTop: '12px',
+                paddingBottom: '12px',
+                fontSize: '14px',
+                lineHeight: '1.2'
+              }
+            }}
           >
             Support Ticket
           </Button>
@@ -114,12 +146,20 @@ export const EventCard = memo<EventCardProps>(({
     }
 
     return (
-      <Button 
-        size="sm" 
+      <Button
         color="burgundy"
         onClick={(e) => {
           stopPropagation(e);
           onRegister(event.id);
+        }}
+        styles={{
+          root: {
+            height: '44px',
+            paddingTop: '12px',
+            paddingBottom: '12px',
+            fontSize: '14px',
+            lineHeight: '1.2'
+          }
         }}
       >
         Purchase Ticket

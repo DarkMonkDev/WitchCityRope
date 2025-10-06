@@ -74,29 +74,28 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
     #region UpdateApplicationStatusAsync - Valid Transitions
 
     [Fact]
-    public async Task UpdateApplicationStatusAsync_FromSubmittedToUnderReview_Succeeds()
+    public async Task UpdateApplicationStatusAsync_FromUnderReviewToInterviewApproved_Succeeds()
     {
         // Arrange
         var admin = await CreateTestAdminUser();
-        var application = await CreateTestVettingApplication(VettingStatus.Submitted);
-        var notes = "Starting review process";
+        var application = await CreateTestVettingApplication(VettingStatus.UnderReview);
+        var notes = "Application reviewed, ready for interview";
 
         // Act
         var result = await _service.UpdateApplicationStatusAsync(
             application.Id,
-            VettingStatus.UnderReview,
+            VettingStatus.InterviewApproved,
             notes,
             admin.Id);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value.Status.Should().Be("UnderReview");
+        result.Value.Status.Should().Be("InterviewApproved");
 
         // Verify database updated
         var updated = await _context.VettingApplications.FindAsync(application.Id);
-        updated!.Status.Should().Be(VettingStatus.UnderReview);
-        updated.ReviewStartedAt.Should().NotBeNull();
+        updated!.WorkflowStatus.Should().Be(VettingStatus.InterviewApproved);
         updated.AdminNotes.Should().Contain(notes);
 
         // Verify audit log created
@@ -104,46 +103,43 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
             .FirstOrDefaultAsync(a => a.ApplicationId == application.Id);
         auditLog.Should().NotBeNull();
         auditLog!.Action.Should().Be("Status Changed");
-        auditLog.OldValue.Should().Be("Submitted");
-        auditLog.NewValue.Should().Be("UnderReview");
+        auditLog.OldValue.Should().Be("UnderReview");
+        auditLog.NewValue.Should().Be("InterviewApproved");
     }
 
     [Fact]
-    public async Task UpdateApplicationStatusAsync_FromUnderReviewToInterviewApproved_Succeeds()
+    public async Task UpdateApplicationStatusAsync_FromInterviewApprovedToFinalReview_Succeeds()
     {
         // Arrange
         var admin = await CreateTestAdminUser();
-        var application = await CreateTestVettingApplication(VettingStatus.UnderReview);
-        var notes = "Approved for interview";
+        var application = await CreateTestVettingApplication(VettingStatus.InterviewScheduled);
+        var notes = "Interview complete, under final review";
 
         // Act
         var result = await _service.UpdateApplicationStatusAsync(
             application.Id,
-            VettingStatus.InterviewApproved,
+            VettingStatus.FinalReview,
             notes,
             admin.Id);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Status.Should().Be("InterviewApproved");
+        result.Value.Status.Should().Be("FinalReview");
 
-        // Verify email sent
-        _mockEmailService.Verify(x => x.SendStatusUpdateAsync(
-            It.Is<VettingApplication>(a => a.Id == application.Id),
-            It.IsAny<string>(),
-            It.IsAny<string>(),
-            VettingStatus.InterviewApproved,
-            It.IsAny<CancellationToken>()), Times.Once);
+        // Verify database updated
+        var updated = await _context.VettingApplications.FindAsync(application.Id);
+        updated!.WorkflowStatus.Should().Be(VettingStatus.FinalReview);
+        updated.AdminNotes.Should().Contain(notes);
     }
 
     [Fact]
-    public async Task UpdateApplicationStatusAsync_FromInterviewScheduledToApproved_GrantsVettedMemberRole()
+    public async Task UpdateApplicationStatusAsync_FromFinalReviewToApproved_GrantsVettedMemberRole()
     {
         // Arrange
         var admin = await CreateTestAdminUser();
         var user = await CreateTestUser("applicant@example.com", "Member");
-        var application = await CreateTestVettingApplication(VettingStatus.InterviewScheduled, user.Id);
-        var notes = "Interview passed - approved";
+        var application = await CreateTestVettingApplication(VettingStatus.FinalReview, user.Id);
+        var notes = "Final review complete - approved";
 
         // Act
         var result = await _service.ApproveApplicationAsync(application.Id, admin.Id, notes);
@@ -154,7 +150,7 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
 
         // Verify database updated
         var updatedApp = await _context.VettingApplications.FindAsync(application.Id);
-        updatedApp!.Status.Should().Be(VettingStatus.Approved);
+        updatedApp!.WorkflowStatus.Should().Be(VettingStatus.Approved);
         updatedApp.DecisionMadeAt.Should().NotBeNull();
 
         // CRITICAL: Verify user role updated to VettedMember
@@ -214,13 +210,13 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
     {
         // Arrange
         var admin = await CreateTestAdminUser();
-        var application = await CreateTestVettingApplication(VettingStatus.Submitted);
+        var application = await CreateTestVettingApplication(VettingStatus.UnderReview);
         var notes = "Test status change";
 
         // Act
         var result = await _service.UpdateApplicationStatusAsync(
             application.Id,
-            VettingStatus.UnderReview,
+            VettingStatus.InterviewApproved,
             notes,
             admin.Id);
 
@@ -232,8 +228,8 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
 
         auditLog.Should().NotBeNull();
         auditLog!.Action.Should().Be("Status Changed");
-        auditLog.OldValue.Should().Be("Submitted");
-        auditLog.NewValue.Should().Be("UnderReview");
+        auditLog.OldValue.Should().Be("UnderReview");
+        auditLog.NewValue.Should().Be("InterviewApproved");
         auditLog.PerformedBy.Should().Be(admin.Id);
         auditLog.PerformedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
         auditLog.Notes.Should().Be(notes);
@@ -282,17 +278,17 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task UpdateApplicationStatusAsync_FromSubmittedToApproved_Fails()
+    public async Task UpdateApplicationStatusAsync_FromUnderReviewToApproved_Fails()
     {
         // Arrange
         var admin = await CreateTestAdminUser();
-        var application = await CreateTestVettingApplication(VettingStatus.Submitted);
+        var application = await CreateTestVettingApplication(VettingStatus.UnderReview);
 
         // Act
         var result = await _service.UpdateApplicationStatusAsync(
             application.Id,
             VettingStatus.Approved,
-            "Skipping review - not allowed",
+            "Skipping interview and final review - not allowed",
             admin.Id);
 
         // Assert
@@ -305,12 +301,12 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
     {
         // Arrange
         var regularUser = await CreateTestUser("member@example.com", "Member");
-        var application = await CreateTestVettingApplication(VettingStatus.Submitted);
+        var application = await CreateTestVettingApplication(VettingStatus.UnderReview);
 
         // Act
         var result = await _service.UpdateApplicationStatusAsync(
             application.Id,
-            VettingStatus.UnderReview,
+            VettingStatus.InterviewApproved,
             "This should fail",
             regularUser.Id);
 
@@ -386,7 +382,7 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
     {
         // Arrange
         var admin = await CreateTestAdminUser();
-        var application = await CreateTestVettingApplication(VettingStatus.PendingInterview);
+        var application = await CreateTestVettingApplication(VettingStatus.InterviewApproved);
         var interviewDate = DateTime.UtcNow.AddDays(7);
         var location = "Community Center, Room 101";
 
@@ -402,7 +398,7 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
 
         var updated = await _context.VettingApplications.FindAsync(application.Id);
         updated!.InterviewScheduledFor.Should().Be(interviewDate);
-        updated.Status.Should().Be(VettingStatus.InterviewScheduled);
+        updated!.WorkflowStatus.Should().Be(VettingStatus.InterviewScheduled);
         updated.AdminNotes.Should().Contain(location);
 
         // Verify audit log
@@ -418,7 +414,7 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
     {
         // Arrange
         var admin = await CreateTestAdminUser();
-        var application = await CreateTestVettingApplication(VettingStatus.PendingInterview);
+        var application = await CreateTestVettingApplication(VettingStatus.InterviewApproved);
         var pastDate = DateTime.UtcNow.AddDays(-1);
 
         // Act
@@ -439,7 +435,7 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
     {
         // Arrange
         var admin = await CreateTestAdminUser();
-        var application = await CreateTestVettingApplication(VettingStatus.PendingInterview);
+        var application = await CreateTestVettingApplication(VettingStatus.InterviewApproved);
         var interviewDate = DateTime.UtcNow.AddDays(7);
 
         // Act
@@ -474,7 +470,7 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
         result.IsSuccess.Should().BeTrue();
 
         var updated = await _context.VettingApplications.FindAsync(application.Id);
-        updated!.Status.Should().Be(VettingStatus.OnHold);
+        updated!.WorkflowStatus.Should().Be(VettingStatus.OnHold);
         updated.AdminNotes.Should().Contain(reason);
         updated.AdminNotes.Should().Contain(requiredActions);
 
@@ -493,19 +489,19 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
         // Arrange
         var admin = await CreateTestAdminUser();
         var user = await CreateTestUser("applicant@example.com", "Member");
-        var application = await CreateTestVettingApplication(VettingStatus.InterviewScheduled, user.Id);
+        var application = await CreateTestVettingApplication(VettingStatus.FinalReview, user.Id);
 
         // Act
         var result = await _service.ApproveApplicationAsync(
             application.Id,
             admin.Id,
-            "Interview successful");
+            "Final review complete - interview successful");
 
         // Assert
         result.IsSuccess.Should().BeTrue();
 
         var updated = await _context.VettingApplications.FindAsync(application.Id);
-        updated!.Status.Should().Be(VettingStatus.Approved);
+        updated!.WorkflowStatus.Should().Be(VettingStatus.Approved);
         updated.DecisionMadeAt.Should().NotBeNull();
 
         // CRITICAL: Verify role granted
@@ -518,7 +514,7 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
     {
         // Arrange
         var admin = await CreateTestAdminUser();
-        var application = await CreateTestVettingApplication(VettingStatus.InterviewScheduled);
+        var application = await CreateTestVettingApplication(VettingStatus.FinalReview);
         var reason = "Did not meet safety requirements";
 
         // Act
@@ -531,7 +527,7 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
         result.IsSuccess.Should().BeTrue();
 
         var updated = await _context.VettingApplications.FindAsync(application.Id);
-        updated!.Status.Should().Be(VettingStatus.Denied);
+        updated!.WorkflowStatus.Should().Be(VettingStatus.Denied);
         updated.AdminNotes.Should().Contain(reason);
         updated.DecisionMadeAt.Should().NotBeNull();
 
@@ -549,7 +545,7 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
     {
         // Arrange
         var admin = await CreateTestAdminUser();
-        var application = await CreateTestVettingApplication(VettingStatus.InterviewScheduled);
+        var application = await CreateTestVettingApplication(VettingStatus.FinalReview);
 
         // Act
         var result = await _service.DenyApplicationAsync(
@@ -571,7 +567,7 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
     {
         // Arrange
         var admin = await CreateTestAdminUser();
-        var application = await CreateTestVettingApplication(VettingStatus.InterviewScheduled);
+        var application = await CreateTestVettingApplication(VettingStatus.FinalReview);
 
         // Act
         var result = await _service.UpdateApplicationStatusAsync(
@@ -597,7 +593,7 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
     {
         // Arrange
         var admin = await CreateTestAdminUser();
-        var application = await CreateTestVettingApplication(VettingStatus.InterviewScheduled);
+        var application = await CreateTestVettingApplication(VettingStatus.FinalReview);
 
         // Setup email service to fail
         _mockEmailService
@@ -620,33 +616,33 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
         result.IsSuccess.Should().BeTrue();
 
         var updated = await _context.VettingApplications.FindAsync(application.Id);
-        updated!.Status.Should().Be(VettingStatus.Approved);
+        updated!.WorkflowStatus.Should().Be(VettingStatus.Approved);
     }
 
     [Fact]
-    public async Task UpdateApplicationStatusAsync_ToSubmitted_DoesNotSendEmail()
+    public async Task UpdateApplicationStatusAsync_ToInterviewScheduled_SendsEmail()
     {
         // Arrange
         var admin = await CreateTestAdminUser();
-        var application = await CreateTestVettingApplication(VettingStatus.Draft);
+        var application = await CreateTestVettingApplication(VettingStatus.InterviewApproved);
 
         // Act
         var result = await _service.UpdateApplicationStatusAsync(
             application.Id,
-            VettingStatus.Submitted,
-            "Application submitted",
+            VettingStatus.InterviewScheduled,
+            "Interview scheduled",
             admin.Id);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
 
-        // Verify email service NOT called (Submitted status doesn't trigger email)
+        // Verify email service called for InterviewScheduled status
         _mockEmailService.Verify(x => x.SendStatusUpdateAsync(
-            It.IsAny<VettingApplication>(),
+            It.Is<VettingApplication>(a => a.Id == application.Id),
             It.IsAny<string>(),
             It.IsAny<string>(),
-            It.IsAny<VettingStatus>(),
-            It.IsAny<CancellationToken>()), Times.Never);
+            VettingStatus.InterviewScheduled,
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     #endregion
@@ -717,7 +713,7 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
             Email = $"test-{uniqueId}@example.com",
             ApplicationNumber = $"VET-{DateTime.UtcNow:yyyyMMdd}-{uniqueId}",
             StatusToken = Guid.NewGuid().ToString("N"),
-            Status = status,
+            WorkflowStatus = status,
             SubmittedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow

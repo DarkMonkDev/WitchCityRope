@@ -52,16 +52,12 @@ export const VettingApplicationPage: React.FC<VettingApplicationPageProps> = ({
       <Container size="md" py="xl" className={className}>
         <Paper p="xl" shadow="lg" ta="center">
           <Stack gap="xl">
-            <ThemeIcon size={80} color="green" variant="light" mx="auto">
-              <IconCheck size={40} />
-            </ThemeIcon>
-            
             <Box>
               <Title order={1} c="green.7" mb="md">
                 Application Submitted Successfully!
               </Title>
               <Text size="lg" c="dimmed">
-                Thank you for applying to join WitchCityRope
+                Your vetting application has been received and you should receive a confirmation email shortly.
               </Text>
             </Box>
 
@@ -70,42 +66,68 @@ export const VettingApplicationPage: React.FC<VettingApplicationPageProps> = ({
               color="blue"
               title="What happens next?"
             >
-              <Text size="sm" mb="md">
-                Your application <strong>#{submissionResult.applicationNumber}</strong> has been received 
-                and is now in our review queue.
-              </Text>
-              
-              <Timeline active={1} color="blue" bulletSize={24} lineWidth={2}>
-                <Timeline.Item bullet={<IconMail size={12} />} title="Email Confirmation">
-                  <Text size="xs" c="dimmed">
-                    You'll receive a confirmation email with your application details
-                  </Text>
-                </Timeline.Item>
+              <Stack gap="sm" align="flex-start" ta="left" maw={600} mx="auto">
+                <Group gap="sm" align="flex-start">
+                  <ThemeIcon size={24} color="blue" variant="light" mt={2}>
+                    <Text size="xs" fw={700}>1</Text>
+                  </ThemeIcon>
+                  <Text size="sm">Confirmation email sent - You'll receive an email confirming your submission</Text>
+                </Group>
 
-                <Timeline.Item bullet={<IconCalendar size={12} />} title="Review Process">
-                  <Text size="xs" c="dimmed">
-                    Our vetting team will review your application within 1-2 weeks
-                  </Text>
-                </Timeline.Item>
+                <Group gap="sm" align="flex-start">
+                  <ThemeIcon size={24} color="blue" variant="light" mt={2}>
+                    <Text size="xs" fw={700}>2</Text>
+                  </ThemeIcon>
+                  <Text size="sm">Application review - Our team reviews your application (typically 1-2 weeks)</Text>
+                </Group>
 
-                <Timeline.Item bullet={<IconCheck size={12} />} title="Decision Notification">
-                  <Text size="xs" c="dimmed">
-                    You'll receive an email with our decision and next steps
-                  </Text>
-                </Timeline.Item>
-              </Timeline>
+                <Group gap="sm" align="flex-start">
+                  <ThemeIcon size={24} color="blue" variant="light" mt={2}>
+                    <Text size="xs" fw={700}>3</Text>
+                  </ThemeIcon>
+                  <Text size="sm">Interview invitation - If approved to proceed, you'll receive an email to schedule your interview</Text>
+                </Group>
+
+                <Group gap="sm" align="flex-start">
+                  <ThemeIcon size={24} color="blue" variant="light" mt={2}>
+                    <Text size="xs" fw={700}>4</Text>
+                  </ThemeIcon>
+                  <Text size="sm">Interview scheduled - Schedule a time that works for you and our vetting team</Text>
+                </Group>
+
+                <Group gap="sm" align="flex-start">
+                  <ThemeIcon size={24} color="blue" variant="light" mt={2}>
+                    <Text size="xs" fw={700}>5</Text>
+                  </ThemeIcon>
+                  <Text size="sm">Interview completed - Meet with our vetting team to discuss your application</Text>
+                </Group>
+
+                <Group gap="sm" align="flex-start">
+                  <ThemeIcon size={24} color="blue" variant="light" mt={2}>
+                    <Text size="xs" fw={700}>6</Text>
+                  </ThemeIcon>
+                  <Text size="sm">Final decision - You'll receive an email with the outcome of your application</Text>
+                </Group>
+
+                <Group gap="sm" align="flex-start">
+                  <ThemeIcon size={24} color="blue" variant="light" mt={2}>
+                    <Text size="xs" fw={700}>7</Text>
+                  </ThemeIcon>
+                  <Text size="sm">Welcome to the community! - If approved, you'll gain full access to all events and resources</Text>
+                </Group>
+              </Stack>
             </Alert>
 
             <Group justify="center" gap="md">
               <Button
                 component={Link}
-                to="/vetting/status"
+                to="/dashboard"
                 color="blue"
                 size="lg"
               >
-                Check Application Status
+                Go to Dashboard
               </Button>
-              
+
               <Button
                 variant="outline"
                 color="wcr.7"
@@ -115,13 +137,6 @@ export const VettingApplicationPage: React.FC<VettingApplicationPageProps> = ({
                 Return to Home
               </Button>
             </Group>
-
-            <Paper p="md" bg="gray.0" withBorder>
-              <Text size="sm" c="dimmed" ta="left">
-                <strong>Important:</strong> Save your application number <strong>#{submissionResult.applicationNumber}</strong> 
-                and check your email for the status tracking link. You can use either to check your application progress at any time.
-              </Text>
-            </Paper>
           </Stack>
         </Paper>
       </Container>

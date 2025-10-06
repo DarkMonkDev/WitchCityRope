@@ -61,7 +61,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
     public async Task StatusUpdate_WithValidTransition_Succeeds()
     {
         // Arrange
-        var (client, applicationId) = await SetupApplicationAsync(VettingStatus.Submitted);
+        var (client, applicationId) = await SetupApplicationAsync(VettingStatus.UnderReview);
 
         var request = new StatusChangeRequest
         {
@@ -107,7 +107,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
     public async Task StatusUpdate_AsNonAdmin_Returns403()
     {
         // Arrange
-        var (_, applicationId) = await SetupApplicationAsync(VettingStatus.Submitted);
+        var (_, applicationId) = await SetupApplicationAsync(VettingStatus.UnderReview);
         var nonAdminClient = await CreateNonAdminClientAsync();
 
         var request = new StatusChangeRequest
@@ -127,7 +127,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
     public async Task StatusUpdate_CreatesAuditLog()
     {
         // Arrange
-        var (client, applicationId) = await SetupApplicationAsync(VettingStatus.Submitted);
+        var (client, applicationId) = await SetupApplicationAsync(VettingStatus.UnderReview);
 
         var request = new StatusChangeRequest
         {
@@ -158,7 +158,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
     public async Task StatusUpdate_SendsEmailNotification()
     {
         // Arrange
-        var (client, applicationId) = await SetupApplicationAsync(VettingStatus.Submitted);
+        var (client, applicationId) = await SetupApplicationAsync(VettingStatus.UnderReview);
 
         var request = new StatusChangeRequest
         {
@@ -389,7 +389,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
     public async Task StatusUpdate_WithDatabaseError_RollsBack()
     {
         // Arrange
-        var (client, applicationId) = await SetupApplicationAsync(VettingStatus.Submitted);
+        var (client, applicationId) = await SetupApplicationAsync(VettingStatus.UnderReview);
 
         // Force a database error by using an invalid status
         var request = new StatusChangeRequest
@@ -408,14 +408,14 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
         await using var context = CreateDbContext();
         var application = await context.VettingApplications.FindAsync(applicationId);
         application.Should().NotBeNull();
-        application!.Status.Should().Be(VettingStatus.Submitted, "Status should not have changed");
+        application!.Status.Should().Be(VettingStatus.UnderReview, "Status should not have changed");
     }
 
     [Fact]
     public async Task StatusUpdate_EmailFailureDoesNotPreventStatusChange()
     {
         // Arrange
-        var (client, applicationId) = await SetupApplicationAsync(VettingStatus.Submitted);
+        var (client, applicationId) = await SetupApplicationAsync(VettingStatus.UnderReview);
 
         var request = new StatusChangeRequest
         {
@@ -441,7 +441,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
     public async Task AuditLogCreation_IsTransactional()
     {
         // Arrange
-        var (client, applicationId) = await SetupApplicationAsync(VettingStatus.Submitted);
+        var (client, applicationId) = await SetupApplicationAsync(VettingStatus.UnderReview);
 
         var request = new StatusChangeRequest
         {

@@ -1,3 +1,5 @@
+using WitchCityRope.Api.Features.Vetting.Entities;
+
 namespace WitchCityRope.Api.Features.Dashboard.Models;
 
 /// <summary>
@@ -32,9 +34,9 @@ public class UserStatisticsResponse
     public DateTime JoinDate { get; set; }
 
     /// <summary>
-    /// Current vetting status (0 = Submitted, 1 = InReview, 2 = Approved, 3 = Rejected)
+    /// Current vetting status (Submitted, UnderReview, InterviewScheduled, Approved, Denied, Withdrawn)
     /// </summary>
-    public int VettingStatus { get; set; }
+    public VettingStatus VettingStatus { get; set; }
 
     /// <summary>
     /// Next interview date (if applicable and scheduled)

@@ -325,7 +325,6 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
             {/* Actions Column - Narrow and centered */}
             <Table.Td style={{ width: '150px', textAlign: '-webkit-center' as any }} onClick={(e) => e.stopPropagation()}>
               <Button
-                size="compact-sm"
                 variant="filled"
                 color="wcr.7"
                 data-testid="button-copy-event"
@@ -337,12 +336,10 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
                     fontSize: '14px',
                     paddingLeft: '10px',
                     paddingRight: '10px',
-                    paddingTop: '6px',
-                    paddingBottom: '6px',
-                    // Remove height constraints completely
-                    height: 'auto',
-                    minHeight: 'auto',
-                    lineHeight: '1.3',
+                    height: '44px',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    lineHeight: '1.2',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center'

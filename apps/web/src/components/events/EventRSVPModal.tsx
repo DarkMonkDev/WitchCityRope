@@ -242,9 +242,17 @@ export const EventRSVPModal: React.FC<EventRSVPModalProps> = ({
               <Button
                 variant="light"
                 color="yellow"
-                size="sm"
                 onClick={handleTicketPurchase}
                 leftSection={<IconTicket size={16} />}
+                styles={{
+                  root: {
+                    height: '44px',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    fontSize: '14px',
+                    lineHeight: '1.2'
+                  }
+                }}
               >
                 View Tickets
               </Button>
@@ -265,11 +273,18 @@ export const EventRSVPModal: React.FC<EventRSVPModalProps> = ({
           <Button
             onClick={handleRSVP}
             loading={isRSVPing}
-            style={{
-              background: willAttend ? '#880124' : '#6C757D',
-              color: 'white',
-            }}
             leftSection={<IconUsers size={20} />}
+            styles={{
+              root: {
+                background: willAttend ? '#880124' : '#6C757D',
+                color: 'white',
+                height: '44px',
+                paddingTop: '12px',
+                paddingBottom: '12px',
+                fontSize: '14px',
+                lineHeight: '1.2'
+              }
+            }}
           >
             {isUpdatingExistingRSVP ? 'Update' : 'Confirm'} RSVP
             {willAttend && alsoWantsToBuyTicket && ' & Buy Tickets'}

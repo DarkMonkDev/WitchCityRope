@@ -21,7 +21,12 @@ public class Event
     public string Title { get; set; } = string.Empty;
 
     /// <summary>
-    /// Event description
+    /// Brief summary for event cards and listings (max ~200 characters recommended)
+    /// </summary>
+    public string? ShortDescription { get; set; }
+
+    /// <summary>
+    /// Full detailed event description with complete information
     /// </summary>
     [Required]
     public string Description { get; set; } = string.Empty;

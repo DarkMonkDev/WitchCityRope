@@ -145,6 +145,25 @@ public static class VettingEndpoints
             .Produces<ApiResponse<object>>(401)
             .Produces<ApiResponse<object>>(404)
             .Produces<ApiResponse<object>>(500);
+
+        // POST: Submit simplified vetting application (authenticated user)
+        group.MapPost("/applications/simplified", SubmitSimplifiedApplication)
+            .WithName("SubmitSimplifiedApplication")
+            .WithSummary("Submit a simplified vetting application from authenticated user")
+            .Produces<ApiResponse<ApplicationSubmissionResponse>>(201)
+            .Produces<ApiResponse<object>>(400)
+            .Produces<ApiResponse<object>>(401)
+            .Produces<ApiResponse<object>>(409)
+            .Produces<ApiResponse<object>>(500);
+
+        // GET: Check if current user already has a submitted application
+        group.MapGet("/my-application", GetMyApplication)
+            .WithName("GetMyApplication")
+            .WithSummary("Check if current user has an existing application")
+            .Produces<ApiResponse<SimplifiedApplicationResponse>>(200)
+            .Produces<ApiResponse<object>>(401)
+            .Produces<ApiResponse<object>>(404)
+            .Produces<ApiResponse<object>>(500);
     }
 
     /// <summary>
@@ -1033,5 +1052,191 @@ public static class VettingEndpoints
                 Timestamp = DateTime.UtcNow
             }, statusCode: 500);
         }
+    }
+
+    /// <summary>
+    /// Submit simplified vetting application from authenticated user
+    /// POST /api/vetting/applications/simplified
+    /// </summary>
+    private static async Task<IResult> SubmitSimplifiedApplication(
+        SimplifiedApplicationRequest request,
+        ClaimsPrincipal user,
+        IVettingService vettingService,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Get user email from claims
+            var userEmail = user.FindFirst(ClaimTypes.Email)?.Value
+                ?? user.FindFirst("email")?.Value;
+
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return Results.Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Error = "User email not found",
+                    Details = "Unable to determine user email from authentication token",
+                    Timestamp = DateTime.UtcNow
+                }, statusCode: 401);
+            }
+
+            // Check for duplicate application by email
+            var existingAppResult = await vettingService.GetApplicationByEmailAsync(request.Email, cancellationToken);
+
+            if (existingAppResult.IsSuccess && existingAppResult.Value != null)
+            {
+                return Results.Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Error = "Duplicate application",
+                    Details = "You already have a submitted application. Only one application is allowed per person.",
+                    Timestamp = DateTime.UtcNow
+                }, statusCode: 409);
+            }
+
+            // Submit simplified application via service
+            var result = await vettingService.SubmitSimplifiedApplicationAsync(request, cancellationToken);
+
+            if (result.IsSuccess && result.Value != null)
+            {
+                return Results.Json(new ApiResponse<ApplicationSubmissionResponse>
+                {
+                    Success = true,
+                    Data = result.Value,
+                    Message = "Application submitted successfully",
+                    Timestamp = DateTime.UtcNow
+                }, statusCode: 201);
+            }
+
+            return Results.Json(new ApiResponse<object>
+            {
+                Success = false,
+                Error = result.Error,
+                Details = result.Details,
+                Timestamp = DateTime.UtcNow
+            }, statusCode: 400);
+        }
+        catch (Exception ex)
+        {
+            return Results.Json(new ApiResponse<object>
+            {
+                Success = false,
+                Error = "Failed to submit application",
+                Details = ex.Message,
+                Timestamp = DateTime.UtcNow
+            }, statusCode: 500);
+        }
+    }
+
+    /// <summary>
+    /// Get current user's application if it exists
+    /// GET /api/vetting/my-application
+    /// </summary>
+    private static async Task<IResult> GetMyApplication(
+        ClaimsPrincipal user,
+        IVettingService vettingService,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Get user email from claims
+            var userEmail = user.FindFirst(ClaimTypes.Email)?.Value
+                ?? user.FindFirst("email")?.Value;
+
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return Results.Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Error = "User email not found",
+                    Details = "Unable to determine user email from authentication token",
+                    Timestamp = DateTime.UtcNow
+                }, statusCode: 401);
+            }
+
+            // Get application by email
+            var result = await vettingService.GetApplicationByEmailAsync(userEmail, cancellationToken);
+
+            if (result.IsSuccess && result.Value != null)
+            {
+                // Map to simplified response
+                var application = result.Value;
+                var response = new SimplifiedApplicationResponse
+                {
+                    ApplicationId = application.Id,
+                    ApplicationNumber = application.ApplicationNumber ?? "N/A",
+                    SubmittedAt = application.SubmittedAt,
+                    ConfirmationMessage = GetStatusMessage(application.WorkflowStatus),
+                    EmailSent = false, // Not tracked in current implementation
+                    NextSteps = GetNextStepsMessage(application.WorkflowStatus),
+                    Pronouns = application.Pronouns,
+                    OtherNames = application.AboutYourself
+                };
+
+                return Results.Json(new ApiResponse<SimplifiedApplicationResponse>
+                {
+                    Success = true,
+                    Data = response,
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+
+            return Results.Json(new ApiResponse<object>
+            {
+                Success = false,
+                Error = "Application not found",
+                Details = "No application found for the current user",
+                Timestamp = DateTime.UtcNow
+            }, statusCode: 404);
+        }
+        catch (Exception ex)
+        {
+            return Results.Json(new ApiResponse<object>
+            {
+                Success = false,
+                Error = "Failed to retrieve application",
+                Details = ex.Message,
+                Timestamp = DateTime.UtcNow
+            }, statusCode: 500);
+        }
+    }
+
+    /// <summary>
+    /// Helper method to get user-friendly status messages
+    /// </summary>
+    private static string GetStatusMessage(VettingStatus status)
+    {
+        return status switch
+        {
+            VettingStatus.UnderReview => "Your application is currently being reviewed by our team.",
+            VettingStatus.InterviewApproved => "You have been approved for an interview! Please check your email for scheduling information.",
+            VettingStatus.InterviewScheduled => "Your interview has been scheduled. Please check your email for details.",
+            VettingStatus.FinalReview => "Your interview has been completed and your application is under final review.",
+            VettingStatus.Approved => "Congratulations! Your application has been approved.",
+            VettingStatus.Denied => "Unfortunately, your application was not approved at this time.",
+            VettingStatus.OnHold => "Your application is currently on hold. We will contact you with more information.",
+            VettingStatus.Withdrawn => "Your application has been withdrawn.",
+            _ => "Application status unknown."
+        };
+    }
+
+    /// <summary>
+    /// Helper method to get next steps information
+    /// </summary>
+    private static string GetNextStepsMessage(VettingStatus status)
+    {
+        return status switch
+        {
+            VettingStatus.UnderReview => "Our team is reviewing your application. We'll contact you soon.",
+            VettingStatus.InterviewApproved => "Please check your email for interview scheduling instructions.",
+            VettingStatus.InterviewScheduled => "Prepare for your scheduled interview.",
+            VettingStatus.FinalReview => "Your application is under final review. We'll contact you with a decision soon.",
+            VettingStatus.Approved => "Welcome to Witch City Rope! You can now access member features.",
+            VettingStatus.Denied => "You may reapply in the future.",
+            VettingStatus.OnHold => "Please address the items mentioned in your notification email.",
+            VettingStatus.Withdrawn => "Your application has been withdrawn.",
+            _ => "Please contact us for more information."
+        };
     }
 }

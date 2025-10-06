@@ -68,7 +68,7 @@ public class VettingEmailServiceTests : IAsyncLifetime
     public async Task SendApplicationConfirmationAsync_InMockMode_LogsEmailContent()
     {
         // Arrange
-        var application = await CreateTestVettingApplication(VettingStatus.Submitted);
+        var application = await CreateTestVettingApplication(VettingStatus.UnderReview);
         var email = "applicant@example.com";
         var name = "Test Applicant";
 
@@ -93,7 +93,7 @@ public class VettingEmailServiceTests : IAsyncLifetime
     public async Task SendApplicationConfirmationAsync_WithTemplate_RendersVariables()
     {
         // Arrange
-        var application = await CreateTestVettingApplication(VettingStatus.Submitted);
+        var application = await CreateTestVettingApplication(VettingStatus.UnderReview);
 
         // Create email template with variables
         var template = await CreateTestEmailTemplate(
@@ -122,7 +122,7 @@ public class VettingEmailServiceTests : IAsyncLifetime
     public async Task SendApplicationConfirmationAsync_WithoutTemplate_UsesFallback()
     {
         // Arrange
-        var application = await CreateTestVettingApplication(VettingStatus.Submitted);
+        var application = await CreateTestVettingApplication(VettingStatus.UnderReview);
         var email = "applicant@example.com";
         var name = "Test Applicant";
 
@@ -238,23 +238,23 @@ public class VettingEmailServiceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task SendStatusUpdateAsync_WithSubmittedStatus_NoEmailSent()
+    public async Task SendStatusUpdateAsync_WithUnderReviewStatus_NoEmailSent()
     {
         // Arrange
-        var application = await CreateTestVettingApplication(VettingStatus.Submitted);
+        var application = await CreateTestVettingApplication(VettingStatus.UnderReview);
         var email = "applicant@example.com";
         var name = "Test Applicant";
 
         var initialEmailCount = await _context.VettingEmailLogs.CountAsync();
 
         // Act
-        var result = await _service.SendStatusUpdateAsync(application, email, name, VettingStatus.Submitted);
+        var result = await _service.SendStatusUpdateAsync(application, email, name, VettingStatus.UnderReview);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
 
         var finalEmailCount = await _context.VettingEmailLogs.CountAsync();
-        finalEmailCount.Should().Be(initialEmailCount); // No email sent for Submitted status
+        finalEmailCount.Should().Be(initialEmailCount); // No email sent for UnderReview status (initial status)
     }
 
     [Fact]
@@ -392,7 +392,7 @@ public class VettingEmailServiceTests : IAsyncLifetime
     public async Task SendEmailAsync_AlwaysCreatesEmailLog()
     {
         // Arrange
-        var application = await CreateTestVettingApplication(VettingStatus.Submitted);
+        var application = await CreateTestVettingApplication(VettingStatus.UnderReview);
         var email = "applicant@example.com";
         var name = "Test Applicant";
 
@@ -420,7 +420,7 @@ public class VettingEmailServiceTests : IAsyncLifetime
     public async Task SendEmailAsync_InMockMode_SetsNullMessageId()
     {
         // Arrange
-        var application = await CreateTestVettingApplication(VettingStatus.Submitted);
+        var application = await CreateTestVettingApplication(VettingStatus.UnderReview);
         var email = "applicant@example.com";
         var name = "Test Applicant";
 
@@ -446,7 +446,7 @@ public class VettingEmailServiceTests : IAsyncLifetime
     public async Task SendEmailAsync_WhenDatabaseFails_LogsError()
     {
         // Arrange
-        var application = await CreateTestVettingApplication(VettingStatus.Submitted);
+        var application = await CreateTestVettingApplication(VettingStatus.UnderReview);
         var email = "applicant@example.com";
         var name = "Test Applicant";
 
@@ -478,7 +478,7 @@ public class VettingEmailServiceTests : IAsyncLifetime
         var prodConfig = SetupMockConfiguration(emailEnabled: true, apiKey: "test-api-key");
         var prodService = new VettingEmailService(_context, _logger, prodConfig.Object);
 
-        var application = await CreateTestVettingApplication(VettingStatus.Submitted);
+        var application = await CreateTestVettingApplication(VettingStatus.UnderReview);
         var email = "applicant@example.com";
         var name = "Test Applicant";
 
@@ -585,7 +585,7 @@ public class VettingEmailServiceTests : IAsyncLifetime
             Email = user.Email,
             ApplicationNumber = $"VET-{DateTime.UtcNow:yyyyMMdd}-{uniqueId}",
             StatusToken = Guid.NewGuid().ToString("N"),
-            Status = status,
+            WorkflowStatus = status,
             SubmittedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow

@@ -97,7 +97,70 @@
 **ALL NEW LESSONS**: Must go to Part 2 - `/docs/lessons-learned/react-developer-lessons-learned-part-2.md`
 **IF YOU ADD LESSONS HERE**: You are violating the split pattern!
 
-## 🚨 LATEST CRITICAL LESSON: ROUTING DEBUGGING PATTERN 🚨
+## 🚨 LATEST CRITICAL LESSON: REACT ROUTER NAVIGATION TIMING FIX 🚨
+
+### ⚠️ PROBLEM: navigate() changes URL but component doesn't re-render
+**DISCOVERED**: 2025-10-05 - Vetting application detail page navigation broken
+
+**SYMPTOMS**:
+- URL changes from `/admin/vetting` to `/admin/vetting/applications/123` ✅
+- Loader runs for new route ✅
+- BUT: New component never mounts ❌
+- Old component (table) remains visible ❌
+- Manual browser refresh required to see detail page ❌
+
+### 🛑 ROOT CAUSE:
+**React Router Outlet doesn't re-render when `navigate()` is called during event handler**
+
+When `navigate()` is called synchronously during a click event handler:
+1. URL updates immediately
+2. Loader runs successfully
+3. BUT React Router's internal state update gets "batched" with the current render cycle
+4. The `<Outlet />` component doesn't recognize it needs to unmount/mount new component
+5. Result: URL changes but UI doesn't update
+
+### ✅ SOLUTION: Defer navigation to next tick
+```typescript
+// ❌ WRONG: Synchronous navigation during event handler
+const handleRowClick = useCallback((applicationId: string) => {
+  navigate(`/admin/vetting/applications/${applicationId}`);
+}, [navigate]);
+
+// ✅ CORRECT: Defer navigation using setTimeout
+const handleRowClick = useCallback((applicationId: string) => {
+  // Use setTimeout to ensure navigation happens AFTER React finishes current render cycle
+  // This allows Outlet to properly unmount old component and mount new one
+  setTimeout(() => {
+    navigate(`/admin/vetting/applications/${applicationId}`);
+  }, 0);
+}, [navigate]);
+```
+
+### 📋 WHEN TO USE THIS PATTERN:
+**USE `setTimeout` wrapper when:**
+- Navigating from click event handlers
+- Navigating from table row clicks
+- Navigating from button click handlers
+- ANY programmatic navigation triggered by user events
+
+**DON'T NEED `setTimeout` when:**
+- Using `<Link>` components (React Router handles timing)
+- Navigating from useEffect (not in event handler context)
+- Navigating from async functions (already deferred)
+
+### 🔧 DEBUGGING CHECKLIST:
+If navigation appears broken:
+1. **Check URL** - Does it change? (If yes, routing config is correct)
+2. **Check loader** - Does it run? (If yes, route exists and is matched)
+3. **Check component mount** - Do component logs appear? (If no, timing issue)
+4. **Add setTimeout wrapper** to navigation call
+5. **Test** - Component should now mount correctly
+
+**FILE**: `/home/chad/repos/witchcityrope/apps/web/src/features/admin/vetting/components/VettingApplicationsList.tsx`
+
+---
+
+## 🚨 ROUTING DEBUGGING PATTERN 🚨
 
 ### ⚠️ PROBLEM: React Router pages appear "broken" with poor error feedback
 **DISCOVERED**: 2025-09-23 - Vetting application detail route navigation appears broken to users
@@ -679,6 +742,7 @@ console.log('Form validation debug:', {
 
 ### ⚠️ PROBLEM: Button text cut off, inconsistent styling when using custom CSS classes with Mantine
 **DISCOVERED**: 2025-09-22 - Buttons using `className="btn btn-primary"` have text cutoff and styling conflicts
+**RECURRING**: 2025-10-05 - **SAME ISSUE** in dashboard vetting button - THIS IS A SYSTEMIC PROBLEM
 
 ### 🛑 ROOT CAUSE:
 - Custom CSS classes from legacy codebase override Mantine component styling
@@ -686,13 +750,16 @@ console.log('Form validation debug:', {
 - Mantine Button components have their own styling that gets overridden
 - Text cutoff occurs due to conflicting line-height and padding values
 - **CRITICAL**: Even style props can cause text cutoff if height/padding not properly set
+- **CRITICAL**: Using `size="sm"` without explicit height/padding causes text cutoff
+- **SYSTEMIC ISSUE**: Every new button created without proper styling repeats this problem
 
 ### ✅ CRITICAL SOLUTION:
 1. **NEVER mix custom CSS classes with Mantine components** - use Mantine props only
-2. **USE Mantine Button component props** instead of CSS classes
-3. **REPLACE custom classes systematically** across all components
-4. **TEST button text visibility** after converting from custom styles
-5. **USE styles object with proper height/padding** for admin buttons
+2. **NEVER use size prop alone** - ALWAYS include explicit height/padding in styles object
+3. **USE Mantine Button component props** instead of CSS classes
+4. **REPLACE custom classes systematically** across all components
+5. **TEST button text visibility** after converting from custom styles
+6. **USE styles object with proper height/padding** for ALL buttons
 
 ```typescript
 // ❌ BROKEN: Custom CSS classes with Mantine Button
@@ -707,6 +774,16 @@ console.log('Form validation debug:', {
   style={{ borderColor: '#880124', color: '#880124' }}
 >
   Text still cuts off
+</Button>
+
+// ❌ BROKEN: Using size prop without explicit height/padding (Dashboard bug 2025-10-05)
+<Button
+  component="a"
+  href="/join"
+  color="blue"
+  size="sm"
+>
+  Submit Vetting Application  {/* Text gets cut off! */}
 </Button>
 
 // ✅ CORRECT: Pure Mantine Button with styles object
@@ -728,6 +805,25 @@ console.log('Form validation debug:', {
   }}
 >
   Text displays properly
+</Button>
+
+// ✅ CORRECT: Dashboard vetting button with proper styling (Fixed 2025-10-05)
+<Button
+  component="a"
+  href="/join"
+  color="blue"
+  styles={{
+    root: {
+      fontWeight: 600,
+      height: '44px',
+      paddingTop: '12px',
+      paddingBottom: '12px',
+      fontSize: '14px',
+      lineHeight: '1.2'
+    }
+  }}
+>
+  Submit Vetting Application  {/* Text displays properly! */}
 </Button>
 
 // ✅ CORRECT: Admin dashboard button pattern
@@ -760,11 +856,27 @@ console.log('Form validation debug:', {
 5. **APPLY admin button pattern** with height: '44px' and explicit padding
 6. **TEST all button states** (normal, hover, loading, disabled)
 
+### 🚨 CRITICAL PREVENTION FOR NEW BUTTONS:
+**THIS IS A RECURRING ISSUE - ENFORCE THESE RULES FOR EVERY NEW BUTTON:**
+
+1. **NEVER create a Mantine Button without the styles object pattern**
+2. **ALWAYS include these five properties in styles.root:**
+   - `height: '44px'` (explicit height)
+   - `paddingTop: '12px'` (explicit top padding)
+   - `paddingBottom: '12px'` (explicit bottom padding)
+   - `fontSize: '14px'` (consistent font size)
+   - `lineHeight: '1.2'` (prevent text cutoff)
+3. **DO NOT rely on size prop alone** (`size="sm"`, `size="md"`, etc.)
+4. **COPY the correct pattern from this lessons learned file**
+5. **TEST button text visibility immediately after creation**
+
 ### 💥 CONSEQUENCES OF IGNORING:
-- ❌ Button text gets cut off at top and bottom
+- ❌ Button text gets cut off at top and bottom (RECURRING ISSUE)
 - ❌ Inconsistent styling across the application
 - ❌ Poor user experience with unreadable buttons
 - ❌ Mantine design system benefits lost
+- ❌ Same bug reported multiple times by users
+- ❌ Developer time wasted fixing the same issue repeatedly
 
 ---
 

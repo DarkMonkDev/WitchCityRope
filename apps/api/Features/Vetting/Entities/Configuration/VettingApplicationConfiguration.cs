@@ -32,10 +32,6 @@ public class VettingApplicationConfiguration : IEntityTypeConfiguration<VettingA
             .IsRequired()
             .HasMaxLength(2000);
 
-        builder.Property(x => x.HowFoundUs)
-            .IsRequired()
-            .HasMaxLength(1000);
-
         // Optional fields
         builder.Property(x => x.FetLifeHandle)
             .HasMaxLength(100);
@@ -49,8 +45,8 @@ public class VettingApplicationConfiguration : IEntityTypeConfiguration<VettingA
         builder.Property(x => x.AdminNotes)
             .HasMaxLength(4000);
 
-        // Status enum
-        builder.Property(x => x.Status)
+        // Workflow status enum
+        builder.Property(x => x.WorkflowStatus)
             .IsRequired()
             .HasConversion<int>();
 
@@ -76,8 +72,8 @@ public class VettingApplicationConfiguration : IEntityTypeConfiguration<VettingA
             .IsUnique() // One application per user
             .HasDatabaseName("IX_VettingApplications_UserId");
 
-        builder.HasIndex(x => x.Status)
-            .HasDatabaseName("IX_VettingApplications_Status");
+        builder.HasIndex(x => x.WorkflowStatus)
+            .HasDatabaseName("IX_VettingApplications_WorkflowStatus");
 
         builder.HasIndex(x => x.SubmittedAt)
             .HasDatabaseName("IX_VettingApplications_SubmittedAt");

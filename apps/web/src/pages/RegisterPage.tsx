@@ -125,6 +125,15 @@ export const RegisterPage: React.FC = () => {
               loading={registerMutation.isPending}
               color="wcr.6"
               data-testid="register-button"
+              styles={{
+                root: {
+                  height: '44px',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                  fontSize: '14px',
+                  lineHeight: '1.2'
+                }
+              }}
             >
               {registerMutation.isPending ? 'Creating Account...' : 'Create Account'}
             </Button>

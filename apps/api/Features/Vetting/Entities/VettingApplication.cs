@@ -5,12 +5,23 @@ namespace WitchCityRope.Api.Features.Vetting.Entities;
 /// <summary>
 /// Simplified vetting application entity aligned with design specifications
 /// Represents a member application for vetting with basic audit trail support
+///
+/// VETTING WORKFLOW:
+/// 1. Application submitted → UnderReview (0) - Initial submission under review
+/// 2. Team reviews application → InterviewApproved (1) - Approved for interview scheduling
+/// 3. Interview scheduled → InterviewScheduled (2) - Interview date/time set
+/// 4. Interview completed → FinalReview (3) - Post-interview review before decision
+/// 5. Final decision → Approved (4), Denied (5), or OnHold (6)
+/// 6. User can withdraw anytime → Withdrawn (7)
+///
+/// Terminal states: Approved, Denied, Withdrawn (no further transitions allowed)
+/// Hold state: OnHold can return to UnderReview or InterviewApproved
 /// </summary>
 public class VettingApplication
 {
     public VettingApplication()
     {
-        Status = VettingStatus.Draft;
+        WorkflowStatus = VettingStatus.UnderReview;
         SubmittedAt = DateTime.UtcNow;
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
@@ -38,7 +49,6 @@ public class VettingApplication
     public string? Pronouns { get; set; }
     public string? OtherNames { get; set; }
     public string AboutYourself { get; set; } = string.Empty;
-    public string HowFoundUs { get; set; } = string.Empty;
 
     // Experience & Knowledge (from CreateApplicationRequest)
     public int ExperienceLevel { get; set; } // 1=Beginner, 2=Intermediate, 3=Advanced, 4=Expert
@@ -62,7 +72,12 @@ public class VettingApplication
     public bool ConsentToContact { get; set; }
 
     // Application Status and Management
-    public VettingStatus Status { get; set; }
+    /// <summary>
+    /// Workflow status tracking the application review process.
+    /// When this reaches a terminal state (Approved/Denied), it syncs to User.VettingStatus.
+    /// User.VettingStatus is the source of truth for permissions.
+    /// </summary>
+    public VettingStatus WorkflowStatus { get; set; }
     public DateTime SubmittedAt { get; set; }
     public string? AdminNotes { get; set; }  // Simple text field for admin notes
 
@@ -84,14 +99,12 @@ public class VettingApplication
 /// </summary>
 public enum VettingStatus
 {
-    Draft = 0,
-    Submitted = 1,
-    UnderReview = 2,
-    InterviewApproved = 3,
-    PendingInterview = 4,
-    InterviewScheduled = 5,
-    OnHold = 6,
-    Approved = 7,
-    Denied = 8,
-    Withdrawn = 9
+    UnderReview = 0,        // Application submitted and under initial review
+    InterviewApproved = 1,  // Approved to schedule interview
+    InterviewScheduled = 2, // Interview has been scheduled
+    FinalReview = 3,        // Post-interview final review before decision
+    Approved = 4,           // Final decision: Approved
+    Denied = 5,             // Final decision: Denied
+    OnHold = 6,             // Final decision: On hold
+    Withdrawn = 7           // Applicant withdrew their application
 }

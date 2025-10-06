@@ -39,13 +39,23 @@ apiClient.interceptors.response.use(
   },
   async (error) => {
     const { response, config } = error
-    
-    console.error(`API Error: ${config?.method?.toUpperCase()} ${config?.url}`, {
-      status: response?.status,
-      statusText: response?.statusText,
-      data: response?.data
-    })
-    
+
+    // Check if this is an expected 404 for vetting application check
+    // When a user visits /join without an existing application, the API returns 404
+    // This is EXPECTED behavior - it means "no application found, show the form"
+    const is404 = response?.status === 404
+    const isMyApplicationEndpoint = config?.url?.includes('/my-application')
+    const shouldSuppressLog = is404 && isMyApplicationEndpoint
+
+    // Only log actual errors, not expected 404s for application checks
+    if (!shouldSuppressLog) {
+      console.error(`API Error: ${config?.method?.toUpperCase()} ${config?.url}`, {
+        status: response?.status,
+        statusText: response?.statusText,
+        data: response?.data
+      })
+    }
+
     if (response?.status === 401) {
       // Check if this is a login page to avoid redirect loops
       const isOnLoginPage = window.location.pathname.includes('/login');

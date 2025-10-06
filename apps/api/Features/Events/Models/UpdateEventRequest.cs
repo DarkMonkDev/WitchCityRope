@@ -12,7 +12,13 @@ public class UpdateEventRequest
     public string? Title { get; set; }
 
     /// <summary>
-    /// Updated event description (optional)
+    /// Updated short description (optional)
+    /// Brief summary for event cards and listings
+    /// </summary>
+    public string? ShortDescription { get; set; }
+
+    /// <summary>
+    /// Updated full event description (optional)
     /// </summary>
     public string? Description { get; set; }
 

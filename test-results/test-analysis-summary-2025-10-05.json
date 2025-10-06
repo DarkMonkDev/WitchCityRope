@@ -1,0 +1,283 @@
+{
+  "executionDate": "2025-10-05",
+  "executor": "test-executor-agent",
+  "environment": {
+    "status": "healthy",
+    "containers": {
+      "web": "Up 6 hours (unhealthy but functional)",
+      "api": "Up 6 hours (healthy)",
+      "database": "Up 42 hours (healthy)"
+    },
+    "compilation": {
+      "errors": 0,
+      "warnings": 41,
+      "status": "clean"
+    },
+    "ports": {
+      "web": 5173,
+      "api": 5655,
+      "database": 5433
+    }
+  },
+  "testResults": {
+    "reactUnitTests": {
+      "total": 277,
+      "passed": 155,
+      "failed": 100,
+      "skipped": 22,
+      "passRate": "56%",
+      "duration": "71.23s",
+      "status": "mixed"
+    },
+    "dotnetIntegrationTests": {
+      "total": 31,
+      "passed": 17,
+      "failed": 14,
+      "passRate": "55%",
+      "duration": "19s",
+      "status": "poor"
+    },
+    "e2eEventsComprehensive": {
+      "total": 14,
+      "passed": 8,
+      "failed": 6,
+      "passRate": "57%",
+      "duration": "20s",
+      "status": "mixed"
+    },
+    "e2eEventsWorkflow": {
+      "total": 6,
+      "passed": 5,
+      "failed": 1,
+      "passRate": "83%",
+      "duration": "21.8s",
+      "status": "good"
+    },
+    "dotnetUnitTests": {
+      "status": "timeout",
+      "reason": "TestContainers too slow (>3 minutes)",
+      "note": "Infrastructure works but execution time excessive"
+    }
+  },
+  "failureCategories": {
+    "legitimateBugs": {
+      "count": 54,
+      "breakdown": {
+        "vettingSystemBackend": {
+          "count": 12,
+          "tests": [
+            "VettingEndpointsIntegrationTests.Approval_CreatesAuditLog",
+            "VettingEndpointsIntegrationTests.Approval_GrantsVettedMemberRole",
+            "VettingEndpointsIntegrationTests.StatusUpdate_AsNonAdmin_Returns403",
+            "VettingEndpointsIntegrationTests.StatusUpdate_WithValidTransition_Succeeds",
+            "VettingEndpointsIntegrationTests.AuditLogCreation_IsTransactional",
+            "VettingEndpointsIntegrationTests.OnHold_RequiresReasonAndActions",
+            "VettingEndpointsIntegrationTests.StatusUpdate_CreatesAuditLog",
+            "VettingEndpointsIntegrationTests.Approval_SendsApprovalEmail",
+            "VettingEndpointsIntegrationTests.StatusUpdate_EmailFailureDoesNotPreventStatusChange",
+            "VettingEndpointsIntegrationTests.StatusUpdate_WithInvalidTransition_Fails",
+            "ParticipationEndpointsAccessControlTests.RsvpEndpoint_WhenUserIsApproved_Returns201",
+            "ParticipationEndpointsAccessControlTests.RsvpEndpoint_WhenUserHasNoApplication_Succeeds"
+          ],
+          "suggestedAgent": "backend-developer",
+          "priority": "CRITICAL"
+        },
+        "frontendErrorHandling": {
+          "count": 40,
+          "examples": [
+            "Dashboard integration - network timeout handling",
+            "Dashboard integration - malformed API responses",
+            "Auth flow - login failure handling",
+            "Auth flow - logout API failure recovery",
+            "Query caching behavior"
+          ],
+          "suggestedAgent": "react-developer",
+          "priority": "HIGH"
+        },
+        "adminEventEditing": {
+          "count": 1,
+          "test": "events-complete-workflow Step 2: Admin Event Editing",
+          "issue": "Admin panel cannot find/edit events",
+          "suggestedAgent": "blazor-developer + backend-developer",
+          "priority": "HIGH"
+        },
+        "logoutNavigation": {
+          "count": 1,
+          "test": "events-comprehensive - different user roles",
+          "issue": "Logout doesn't redirect to /login",
+          "suggestedAgent": "react-developer",
+          "priority": "HIGH"
+        }
+      }
+    },
+    "unimplementedFeatures": {
+      "count": 15,
+      "breakdown": {
+        "eventCardInteraction": {
+          "count": 3,
+          "tests": [
+            "should display event details when clicking event card",
+            "should show event RSVP/ticket options for authenticated users",
+            "should handle event RSVP/ticket purchase flow"
+          ],
+          "reason": "Event detail view/modal not implemented",
+          "action": "Mark as test.skip() OR implement feature",
+          "suggestedAgent": "test-developer (skip) OR react-developer (implement)",
+          "priority": "MEDIUM"
+        },
+        "rsvpFunctionality": {
+          "count": 5,
+          "note": "RSVP buttons and purchase flow acknowledged as incomplete in test logs",
+          "action": "Skip tests until feature complete",
+          "suggestedAgent": "test-developer",
+          "priority": "MEDIUM"
+        },
+        "vettingUI": {
+          "count": 7,
+          "example": "VettingApplicationsList 'No applications' message",
+          "reason": "UI components not matching test expectations",
+          "suggestedAgent": "test-developer OR react-developer",
+          "priority": "MEDIUM"
+        }
+      }
+    },
+    "outdatedTests": {
+      "count": 35,
+      "breakdown": {
+        "componentStructureMismatches": {
+          "count": 30,
+          "examples": [
+            "Event card selectors (data-testid='event-title' not found)",
+            "VettingApplicationsList component structure",
+            "Event CRUD form validation"
+          ],
+          "action": "Update selectors and assertions to match current components",
+          "suggestedAgent": "test-developer",
+          "priority": "MEDIUM"
+        },
+        "publicEventsEndpoint": {
+          "count": 1,
+          "test": "should browse events without authentication",
+          "issue": "Returns 401 instead of allowing public access",
+          "possibleCause": "Test using wrong endpoint OR endpoint not public",
+          "suggestedAgent": "backend-developer OR test-developer",
+          "priority": "HIGH"
+        },
+        "eventPerformanceTest": {
+          "count": 1,
+          "test": "should handle large number of events efficiently",
+          "issue": "Generates events but UI shows 0",
+          "possibleCause": "Test data not persisting OR UI rendering issue",
+          "suggestedAgent": "test-developer",
+          "priority": "MEDIUM"
+        }
+      }
+    },
+    "testInfrastructure": {
+      "count": 2,
+      "tests": [
+        "Phase2ValidationIntegrationTests.DatabaseContainer_ShouldBeRunning_AndAccessible",
+        "Phase2ValidationIntegrationTests.ServiceProvider_ShouldBeConfigured"
+      ],
+      "reason": "Test setup issues, not production code bugs",
+      "suggestedAgent": "test-executor OR backend-developer",
+      "priority": "LOW"
+    }
+  },
+  "eventsFeatureAnalysis": {
+    "working": [
+      "Public event viewing (with fallback selectors)",
+      "Admin login/authentication",
+      "Member login/authentication",
+      "Responsive design (Mobile/Tablet/Desktop)",
+      "Performance (1.7s load, under 2s budget)",
+      "Error handling (graceful API error degradation)",
+      "Empty state display"
+    ],
+    "broken": [
+      "Event card click interaction (timeouts)",
+      "Event detail view/modal (component missing)",
+      "Admin event editing panel",
+      "RSVP functionality (acknowledged incomplete)",
+      "Ticket purchase flow (not implemented)",
+      "Event type filtering (not implemented)",
+      "Vetting system integration (all tests fail)",
+      "Public API access (returns 401, should be public)"
+    ],
+    "needsTestUpdates": [
+      "Event card selectors (data-testid mismatches)",
+      "Event detail navigation expectations",
+      "RSVP button selectors",
+      "Large event dataset rendering"
+    ]
+  },
+  "recommendations": {
+    "critical": [
+      {
+        "agent": "backend-developer",
+        "task": "Fix Vetting System (12 failed integration tests)",
+        "details": "Status transitions, audit logs, email notifications, access control all broken",
+        "estimatedEffort": "2-3 days",
+        "blocksFeatures": ["RSVP access control", "Event access based on vetting status"]
+      }
+    ],
+    "high": [
+      {
+        "agent": "react-developer",
+        "task": "Fix Dashboard & Auth Error Handling (40-50 failed unit tests)",
+        "details": "Network timeouts, malformed responses, login/logout errors, query caching",
+        "estimatedEffort": "1-2 days"
+      },
+      {
+        "agent": "backend-developer",
+        "task": "Fix Public Events Endpoint Authentication",
+        "details": "Public events returning 401 instead of allowing anonymous access",
+        "estimatedEffort": "4-6 hours"
+      },
+      {
+        "agent": "blazor-developer",
+        "task": "Fix Admin Event Editing UI",
+        "details": "Admin panel cannot find/edit events",
+        "estimatedEffort": "1 day"
+      }
+    ],
+    "medium": [
+      {
+        "agent": "test-developer",
+        "task": "Clean Up Test Suite",
+        "details": "Skip unimplemented features, update selectors, fix assertions",
+        "estimatedEffort": "1 day"
+      },
+      {
+        "agent": "react-developer",
+        "task": "Complete RSVP/Ticket Features (if in scope)",
+        "details": "Event card interaction, detail modal, RSVP button, ticket purchase",
+        "estimatedEffort": "3-5 days",
+        "note": "Only if required for Phase 4"
+      }
+    ],
+    "low": [
+      {
+        "agent": "test-executor",
+        "task": "Fix Phase 2 Validation Tests",
+        "details": "Database container and service provider validation",
+        "estimatedEffort": "2-4 hours"
+      },
+      {
+        "agent": "devops",
+        "task": "Optimize Unit Test Performance",
+        "details": "TestContainers taking 3+ minutes, consider caching",
+        "estimatedEffort": "4-8 hours"
+      }
+    ]
+  },
+  "artifacts": {
+    "screenshots": "/home/chad/repos/witchcityrope/apps/web/test-results/*.png",
+    "videos": "/home/chad/repos/witchcityrope/apps/web/test-results/**/*.webm",
+    "errorContexts": "/home/chad/repos/witchcityrope/apps/web/test-results/**/error-context.md",
+    "reports": [
+      "/home/chad/repos/witchcityrope/test-results/comprehensive-test-analysis-2025-10-05.md",
+      "/home/chad/repos/witchcityrope/test-results/test-analysis-summary-2025-10-05.json"
+    ]
+  }
+}

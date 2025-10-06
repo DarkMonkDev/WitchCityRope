@@ -1,0 +1,94 @@
+===================================================================================
+                    LOGIN ERROR MESSAGES - BEFORE vs AFTER FIX
+===================================================================================
+
+SCENARIO 1: Wrong Password with Valid Email
+-------------------------------------------
+BEFORE:  "Error Request failed with status code 401"
+AFTER:   "The email or password is incorrect. Please try again."
+
+Impact: Clear, actionable message helps users understand the issue
+
+
+SCENARIO 2: Non-Existent Email
+-------------------------------------------
+BEFORE:  "Error Request failed with status code 401"
+AFTER:   "The email or password is incorrect. Please try again."
+
+Impact: Generic message prevents account enumeration (security benefit)
+
+
+SCENARIO 3: Network Error (API Down)
+-------------------------------------------
+BEFORE:  "Error Network Error" or "ECONNABORTED"
+AFTER:   "Unable to connect to the server. Please check your internet connection and try again."
+
+Impact: Helps users distinguish between login failures and connectivity issues
+
+
+SCENARIO 4: Server Error (500)
+-------------------------------------------
+BEFORE:  "Error Request failed with status code 500"
+AFTER:   "An error occurred while processing your request. Please try again later."
+
+Impact: Polite message that doesn't expose technical details
+
+
+SCENARIO 5: Rate Limiting (429)
+-------------------------------------------
+BEFORE:  "Error Request failed with status code 429"
+AFTER:   "Too many login attempts. Please wait a few minutes and try again."
+
+Impact: Clear explanation with actionable guidance
+
+
+===================================================================================
+                            TECHNICAL IMPLEMENTATION
+===================================================================================
+
+Location:    /apps/web/src/features/auth/api/mutations.ts
+Function:    getErrorMessage(error: any): string
+Lines:       25-57 (new helper function)
+Modified:    useLogin() and useRegister() mutations
+
+Error Flow:
+1. Axios throws error with status code
+2. getErrorMessage() maps status to friendly message
+3. Enhanced error with friendly message is thrown
+4. React Query error state gets user-friendly message
+5. Component displays the message in Alert
+6. Original error logged to console for debugging
+
+===================================================================================
+                              TESTING CHECKLIST
+===================================================================================
+
+✅ Build Verification
+   - TypeScript compilation: PASSED
+   - Vite build: PASSED
+   - No type errors: CONFIRMED
+
+⏳ Manual Testing Required
+   1. Wrong password → See user-friendly message
+   2. Non-existent email → See user-friendly message
+   3. Network error → See connectivity message
+   4. Server error → See server error message
+   5. Rate limiting → See rate limit message
+
+===================================================================================
+                            DEPLOYMENT COMMANDS
+===================================================================================
+
+# Docker Deployment (Recommended)
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build web
+
+# Local Development
+cd /home/chad/repos/witchcityrope/apps/web
+npm run dev
+
+# Verify Changes
+- Navigate to: http://localhost:5173/login
+- Test with wrong password: admin@witchcityrope.com / WrongPassword123!
+- Expected: "The email or password is incorrect. Please try again."
+
+===================================================================================

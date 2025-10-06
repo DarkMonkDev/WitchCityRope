@@ -23,6 +23,40 @@ export interface RegisterCredentials {
 }
 
 /**
+ * Helper function to extract user-friendly error messages from API errors
+ */
+function getErrorMessage(error: any): string {
+  // Handle Axios errors
+  if (error.response) {
+    const status = error.response.status
+    const message = error.response.data?.message || error.response.data?.error
+
+    // Map status codes to user-friendly messages
+    switch (status) {
+      case 401:
+        return 'The email or password is incorrect. Please try again.'
+      case 429:
+        return 'Too many login attempts. Please wait a few minutes and try again.'
+      case 500:
+      case 502:
+      case 503:
+        return 'An error occurred while processing your request. Please try again later.'
+      default:
+        // Use server message if available, otherwise generic error
+        return message || 'An error occurred. Please try again.'
+    }
+  }
+
+  // Handle network errors
+  if (error.code === 'ECONNABORTED' || error.code === 'ERR_NETWORK' || !error.response) {
+    return 'Unable to connect to the server. Please check your internet connection and try again.'
+  }
+
+  // Generic fallback
+  return error.message || 'An error occurred. Please try again.'
+}
+
+/**
  * Login mutation using TanStack Query v5 + Zustand integration
  * Follows pattern from: /docs/functional-areas/api-integration-validation/requirements/functional-specification-v2.md
  * Section: "Mutation Pattern"
@@ -31,11 +65,20 @@ export function useLogin() {
   const queryClient = useQueryClient()
   const { login } = useAuthActions()
   const navigate = useNavigate()
-  
+
   return useMutation({
     mutationFn: async (credentials: LoginRequest): Promise<LoginResponseData> => {
-      const response = await api.post('/api/auth/login', credentials)
-      return response.data
+      try {
+        const response = await api.post('/api/auth/login', credentials)
+        return response.data
+      } catch (error: any) {
+        // Enhance error with user-friendly message
+        const userFriendlyMessage = getErrorMessage(error)
+        const enhancedError = new Error(userFriendlyMessage)
+        // Preserve original error for debugging
+        console.error('Login error:', error)
+        throw enhancedError
+      }
     },
     onSuccess: (data, variables, context) => {
       // Handle httpOnly cookie authentication - no tokens in response
@@ -78,11 +121,20 @@ export function useRegister() {
   const queryClient = useQueryClient()
   const { login } = useAuthActions()
   const navigate = useNavigate()
-  
+
   return useMutation({
     mutationFn: async (credentials: RegisterCredentials): Promise<UserDto> => {
-      const response = await api.post('/api/auth/register', credentials)
-      return response.data
+      try {
+        const response = await api.post('/api/auth/register', credentials)
+        return response.data
+      } catch (error: any) {
+        // Enhance error with user-friendly message
+        const userFriendlyMessage = getErrorMessage(error)
+        const enhancedError = new Error(userFriendlyMessage)
+        // Preserve original error for debugging
+        console.error('Registration error:', error)
+        throw enhancedError
+      }
     },
     onSuccess: (userData) => {
       // Handle flat response structure from API

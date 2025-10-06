@@ -177,5 +177,16 @@ public interface IVettingService
     Task<Result<VettingApplication?>> GetApplicationByEmailAsync(
         string email,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Submit simplified vetting application from authenticated user
+    /// Creates application using the streamlined form with required fields only
+    /// </summary>
+    /// <param name="request">Simplified application request</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Result containing application submission response</returns>
+    Task<Result<ApplicationSubmissionResponse>> SubmitSimplifiedApplicationAsync(
+        SimplifiedApplicationRequest request,
+        CancellationToken cancellationToken = default);
 }
 

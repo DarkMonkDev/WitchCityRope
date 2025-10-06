@@ -33,9 +33,5 @@ public class VettingApplicationRequest
     public string AboutYourself { get; set; } = string.Empty;
 
     [Required]
-    [StringLength(2000, MinimumLength = 20)]
-    public string HowFoundUs { get; set; } = string.Empty;
-
-    [Required]
     public bool AgreeToCommunityStandards { get; set; }
 }

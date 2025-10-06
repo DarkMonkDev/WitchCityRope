@@ -1,0 +1,96 @@
+# Page snapshot
+
+```yaml
+- text: Welcome, RopeMaster
+- link "Report an Incident":
+  - /url: /incident-report
+- link "Private Lessons":
+  - /url: /private-lessons
+- link "Contact":
+  - /url: /contact
+- button "Logout"
+- banner:
+  - link "WITCH CITY ROPE":
+    - /url: /
+  - link "Admin":
+    - /url: /admin
+  - link "Events & Classes":
+    - /url: /events
+  - link "Resources":
+    - /url: /resources
+  - link "Dashboard":
+    - /url: /dashboard
+- main:
+  - heading "Create New Event" [level=1]
+  - tablist:
+    - tab "Basic Info"
+    - tab "Setup" [selected]
+    - tab "Emails"
+    - tab "Volunteers"
+    - tab "RSVP/Tickets"
+    - tab "Attendees"
+  - tabpanel "Setup":
+    - heading "Event Sessions" [level=2]
+    - paragraph: Define the individual sessions for your event. Click Edit to modify session details. The system auto-detects single vs multi-day events based on session count.
+    - table:
+      - rowgroup:
+        - row "Actions S# Name Date Start Time End Time Capacity Sold Delete":
+          - cell "Actions"
+          - cell "S#"
+          - cell "Name"
+          - cell "Date"
+          - cell "Start Time"
+          - cell "End Time"
+          - cell "Capacity"
+          - cell "Sold"
+          - cell "Delete"
+      - rowgroup:
+        - row "No sessions created yet. Click \"Add Session\" to get started.":
+          - cell "No sessions created yet. Click \"Add Session\" to get started.":
+            - paragraph: No sessions created yet. Click "Add Session" to get started.
+    - button "Add Session"
+    - paragraph: "💡 Tip: Click Edit to modify session details in a modal dialog."
+    - heading "Ticket Types" [level=2]
+    - paragraph: Configure different ticket options for your event. Each ticket type can include multiple sessions. Click Edit to modify complex settings.
+    - table:
+      - rowgroup:
+        - row "Edit Ticket Name Type Sessions Included Price Range Quantity Sales End Delete":
+          - cell "Edit"
+          - cell "Ticket Name"
+          - cell "Type"
+          - cell "Sessions Included"
+          - cell "Price Range"
+          - cell "Quantity"
+          - cell "Sales End"
+          - cell "Delete"
+      - rowgroup:
+        - row "No ticket types created yet. Click \"Add Ticket Type\" to get started.":
+          - cell "No ticket types created yet. Click \"Add Ticket Type\" to get started.":
+            - paragraph: No ticket types created yet. Click "Add Ticket Type" to get started.
+    - button "Add Ticket Type" [disabled]
+    - paragraph: "💡 Tip: Click Edit for complex settings like session selection and sale periods. Simple fields can be edited inline."
+- button "Open Tanstack query devtools":
+  - img
+- dialog "Add Session":
+  - banner:
+    - heading "Add Session" [level=2]
+    - button:
+      - img
+  - text: Session Identifier
+  - textbox "Session Identifier": S1 - Session 1
+  - img
+  - text: Session Name
+  - textbox "Session Name"
+  - text: Date
+  - textbox "Date": October 5, 2025
+  - text: Start Time
+  - textbox "Start Time": 18:00
+  - text: End Time
+  - textbox "End Time": 21:00
+  - text: Capacity
+  - textbox "Capacity": "50"
+  - text: Already Registered
+  - textbox "Already Registered" [disabled]: "0"
+  - button "Cancel"
+  - button "Add Session"
+```

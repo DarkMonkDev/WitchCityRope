@@ -26,16 +26,16 @@ export const simplifiedApplicationSchema = z.object({
     .optional(),
 
   whyJoin: z.string()
-    .min(20, 'Please provide at least 20 characters explaining why you would like to join')
     .max(2000, 'Response must be less than 2000 characters')
-    .trim(),
+    .trim()
+    .refine(val => val.length > 0, 'This field is required'),
 
   experienceWithRope: z.string()
-    .min(50, 'Please provide at least 50 characters describing your experience')
     .max(2000, 'Experience description must be less than 2000 characters')
-    .trim(),
+    .trim()
+    .refine(val => val.length > 0, 'This field is required'),
 
-  agreesToCommunityStandards: z.boolean()
+  agreeToCommunityStandards: z.boolean()
     .refine(val => val === true, 'You must agree to the community standards'),
 });
 
@@ -51,7 +51,7 @@ export const defaultFormValues: SimplifiedApplicationFormData = {
   otherNames: '',
   whyJoin: '',
   experienceWithRope: '',
-  agreesToCommunityStandards: false,
+  agreeToCommunityStandards: false,
 };
 
 /**
@@ -77,17 +77,15 @@ export const fieldValidationMessages = {
   },
   whyJoin: {
     required: 'Please explain why you would like to join Witch City Rope',
-    minLength: 'Please provide at least 20 characters explaining why you would like to join',
     maxLength: 'Response must be less than 2000 characters',
     placeholder: 'Tell us why you would like to join Witch City Rope and what you hope to gain from being part of our community...',
   },
   experienceWithRope: {
     required: 'Please describe your experience with rope bondage',
-    minLength: 'Please provide at least 50 characters describing your experience',
     maxLength: 'Experience description must be less than 2000 characters',
     placeholder: 'Tell us about your experience with rope bondage, BDSM, or kink communities...',
   },
-  agreesToCommunityStandards: {
+  agreeToCommunityStandards: {
     required: 'You must agree to all community standards to submit your application',
   },
 } as const;

@@ -19,6 +19,10 @@ export function convertEventFormDataToUpdateDto(
     updateDto.title = formData.title.trim();
   }
 
+  if (formData.shortDescription?.trim()) {
+    updateDto.shortDescription = formData.shortDescription.trim();
+  }
+
   if (formData.fullDescription?.trim()) {
     updateDto.description = formData.fullDescription.trim();
   }
@@ -165,6 +169,10 @@ export function getChangedEventFields(
   // Check each field and only include if changed
   if (current.title?.trim() !== initial.title?.trim()) {
     changes.title = current.title?.trim();
+  }
+
+  if (current.shortDescription?.trim() !== initial.shortDescription?.trim()) {
+    changes.shortDescription = current.shortDescription?.trim();
   }
 
   if (current.fullDescription?.trim() !== initial.fullDescription?.trim()) {

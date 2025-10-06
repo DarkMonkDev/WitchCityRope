@@ -51,10 +51,6 @@ public class SimplifiedApplicationValidator : AbstractValidator<SimplifiedApplic
             .Equal(true)
             .WithMessage("You must agree to the community standards to submit an application");
 
-        RuleFor(x => x.HowFoundUs)
-            .MaximumLength(500)
-            .WithMessage("How found us description cannot exceed 500 characters");
-
         RuleFor(x => x.Pronouns)
             .MaximumLength(50)
             .WithMessage("Pronouns cannot exceed 50 characters");

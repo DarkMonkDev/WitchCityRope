@@ -25,11 +25,11 @@ export type {
   UserEventsResponse,
   DashboardEventDto,
   UserStatisticsResponse,
+  VettingStatus,
   VettingStatusDisplay,
   RegistrationStatusDisplay
 } from './types/dashboard.types';
 
 export {
-  VettingStatus,
   DashboardUtils
 } from './types/dashboard.types';

@@ -220,11 +220,18 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
             <Button
               type="submit"
               data-testid="button-save-session"
-              style={{
-                background: 'linear-gradient(135deg, var(--mantine-color-amber-6), #DAA520)',
-                border: 'none',
-                color: 'var(--mantine-color-dark-9)',
-                fontWeight: 600,
+              styles={{
+                root: {
+                  background: 'linear-gradient(135deg, var(--mantine-color-amber-6), #DAA520)',
+                  border: 'none',
+                  color: 'var(--mantine-color-dark-9)',
+                  fontWeight: 600,
+                  height: '44px',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                  fontSize: '14px',
+                  lineHeight: '1.2',
+                }
               }}
             >
               {session ? 'Update Session' : 'Add Session'}

@@ -14,12 +14,6 @@ export const VettingStatusBadge: React.FC<VettingStatusBadgeProps> = ({
 }) => {
   const getStatusConfig = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'draft':
-        return {
-          backgroundColor: '#1c7ed6',
-          color: 'white',
-          label: 'Draft'
-        };
       case 'underreview':
       case 'inreview':
       case 'in review':
@@ -29,20 +23,25 @@ export const VettingStatusBadge: React.FC<VettingStatusBadgeProps> = ({
           label: 'Under Review'
         };
       case 'interviewapproved':
-      case 'pendingreferences':
-      case 'pending references':
+      case 'interview approved':
         return {
           backgroundColor: '#D4AF37',
           color: 'white',
           label: 'Interview Approved'
         };
-      case 'pendinginterview':
       case 'interviewscheduled':
       case 'interview scheduled':
         return {
           backgroundColor: '#1c7ed6',
           color: 'white',
-          label: 'Pending Interview'
+          label: 'Interview Scheduled'
+        };
+      case 'finalreview':
+      case 'final review':
+        return {
+          backgroundColor: '#7950f2',
+          color: 'white',
+          label: 'Final Review'
         };
       case 'approved':
         return {
@@ -57,18 +56,18 @@ export const VettingStatusBadge: React.FC<VettingStatusBadgeProps> = ({
           color: 'white',
           label: 'Denied'
         };
+      case 'onhold':
+      case 'on hold':
+        return {
+          backgroundColor: '#fd7e14',
+          color: 'white',
+          label: 'On Hold'
+        };
       case 'withdrawn':
         return {
           backgroundColor: '#868e96',
           color: 'white',
           label: 'Withdrawn'
-        };
-      case 'on hold':
-      case 'onhold':
-        return {
-          backgroundColor: '#fd7e14',
-          color: 'white',
-          label: 'On Hold'
         };
       default:
         return {
@@ -96,30 +95,29 @@ export const VettingStatusBadge: React.FC<VettingStatusBadgeProps> = ({
   // Get CSS class for wireframe compatibility
   const getStatusCssClass = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'draft':
-        return 'status-draft';
       case 'underreview':
       case 'inreview':
       case 'in review':
         return 'status-under-review';
       case 'interviewapproved':
-      case 'pendingreferences':
-      case 'pending references':
+      case 'interview approved':
         return 'status-interview-approved';
-      case 'pendinginterview':
       case 'interviewscheduled':
       case 'interview scheduled':
-        return 'status-pending-interview';
+        return 'status-interview-scheduled';
+      case 'finalreview':
+      case 'final review':
+        return 'status-final-review';
       case 'approved':
         return 'status-approved';
       case 'denied':
       case 'rejected':
         return 'status-denied';
+      case 'onhold':
+      case 'on hold':
+        return 'status-on-hold';
       case 'withdrawn':
         return 'status-withdrawn';
-      case 'on hold':
-      case 'onhold':
-        return 'status-on-hold';
       default:
         return 'status-unknown';
     }

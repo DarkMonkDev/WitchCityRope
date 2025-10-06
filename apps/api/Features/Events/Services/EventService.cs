@@ -74,6 +74,7 @@ public class EventService
             {
                 Id = e.Id.ToString(),
                 Title = e.Title,
+                ShortDescription = e.ShortDescription,
                 Description = e.Description,
                 StartDate = e.StartDate,
                 EndDate = e.EndDate,
@@ -136,6 +137,7 @@ public class EventService
             {
                 Id = eventEntity.Id.ToString(),
                 Title = eventEntity.Title,
+                ShortDescription = eventEntity.ShortDescription,
                 Description = eventEntity.Description,
                 StartDate = eventEntity.StartDate,
                 EndDate = eventEntity.EndDate,
@@ -252,6 +254,13 @@ public class EventService
                 eventEntity.Title = request.Title.Trim();
             }
 
+            if (request.ShortDescription != null)
+            {
+                eventEntity.ShortDescription = string.IsNullOrWhiteSpace(request.ShortDescription)
+                    ? null
+                    : request.ShortDescription.Trim();
+            }
+
             if (!string.IsNullOrWhiteSpace(request.Description))
             {
                 eventEntity.Description = request.Description.Trim();
@@ -322,6 +331,7 @@ public class EventService
             {
                 Id = eventEntity.Id.ToString(),
                 Title = eventEntity.Title,
+                ShortDescription = eventEntity.ShortDescription,
                 Description = eventEntity.Description,
                 StartDate = eventEntity.StartDate,
                 EndDate = eventEntity.EndDate,

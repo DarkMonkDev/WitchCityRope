@@ -271,7 +271,7 @@ public class VettingServiceTests : IAsyncLifetime
 
         // Verify application status was updated in database
         var updatedApplication = await _context.VettingApplications.FindAsync(application.Id);
-        updatedApplication!.Status.Should().Be(VettingStatus.Approved);
+        updatedApplication!.WorkflowStatus.Should().Be(VettingStatus.Approved);
         updatedApplication.DecisionMadeAt.Should().NotBeNull();
     }
 
@@ -298,7 +298,7 @@ public class VettingServiceTests : IAsyncLifetime
 
         // Verify application status was updated
         var updatedApplication = await _context.VettingApplications.FindAsync(application.Id);
-        updatedApplication!.Status.Should().Be(VettingStatus.OnHold);
+        updatedApplication!.WorkflowStatus.Should().Be(VettingStatus.OnHold);
         updatedApplication.DecisionMadeAt.Should().BeNull(); // Not final decision
     }
 
@@ -351,7 +351,7 @@ public class VettingServiceTests : IAsyncLifetime
 
         var updatedApplication = await _context.VettingApplications.FindAsync(application.Id);
         updatedApplication!.InterviewScheduledFor.Should().Be(interviewTime);
-        updatedApplication.Status.Should().Be(VettingStatus.PendingInterview);
+        updatedApplication.WorkflowStatus.Should().Be(VettingStatus.InterviewScheduled);
     }
 
     [Fact]
@@ -483,12 +483,12 @@ public class VettingServiceTests : IAsyncLifetime
             RealName = $"Real Name {Guid.NewGuid():N}"[..10],
             Email = email,
             Pronouns = "they/them",
-            AboutYourself = "I am interested in rope bondage",
-            HowFoundUs = "Through a friend",
-            Status = status,
+            WorkflowStatus = status,
             SubmittedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            ApplicationNumber = $"VET-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}"[..20],
+            StatusToken = Guid.NewGuid().ToString("N")
         };
 
         _context.VettingApplications.Add(application);

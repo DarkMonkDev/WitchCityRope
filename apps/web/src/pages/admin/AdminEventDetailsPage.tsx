@@ -103,7 +103,7 @@ export const AdminEventDetailsPage: React.FC = () => {
     return {
       eventType,
       title: event.title || '',
-      shortDescription: event.description?.substring(0, 160) || '', // Take first 160 chars as short desc
+      shortDescription: event.shortDescription || '',
       fullDescription: event.description || '',
       policies: '', // EventDto doesn't have policies field - will be preserved from initial load
       venueId, // Now properly extracted from API location field

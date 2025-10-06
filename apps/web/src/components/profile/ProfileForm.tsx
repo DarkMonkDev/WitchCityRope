@@ -344,11 +344,18 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                   type="submit"
                   color="wcr"
                   loading={isLoading}
-                  style={{
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
+                  styles={{
+                    root: {
+                      fontFamily: "'Montserrat', sans-serif",
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      height: '44px',
+                      paddingTop: '12px',
+                      paddingBottom: '12px',
+                      fontSize: '14px',
+                      lineHeight: '1.2'
+                    }
                   }}
                 >
                   Save Personal Info
@@ -414,11 +421,18 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                   type="submit"
                   color="wcr"
                   loading={isLoading}
-                  style={{
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
+                  styles={{
+                    root: {
+                      fontFamily: "'Montserrat', sans-serif",
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      height: '44px',
+                      paddingTop: '12px',
+                      paddingBottom: '12px',
+                      fontSize: '14px',
+                      lineHeight: '1.2'
+                    }
                   }}
                 >
                   Save Privacy Settings
@@ -481,11 +495,18 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                   type="submit"
                   color="wcr"
                   loading={isLoading}
-                  style={{
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
+                  styles={{
+                    root: {
+                      fontFamily: "'Montserrat', sans-serif",
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      height: '44px',
+                      paddingTop: '12px',
+                      paddingBottom: '12px',
+                      fontSize: '14px',
+                      lineHeight: '1.2'
+                    }
                   }}
                 >
                   Save Preferences

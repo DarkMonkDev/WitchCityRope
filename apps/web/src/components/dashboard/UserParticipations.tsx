@@ -139,8 +139,16 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
               component={Link}
               to="/dashboard/events"
               variant="subtle"
-              size="sm"
               rightSection={<IconExternalLink size={14} />}
+              styles={{
+                root: {
+                  height: '44px',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                  fontSize: '14px',
+                  lineHeight: '1.2'
+                }
+              }}
             >
               View History
             </Button>
@@ -164,8 +172,16 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
               <Button
                 component={Link}
                 to="/events"
-                className="btn btn-primary"
                 leftSection={<IconCalendarEvent size={16} />}
+                styles={{
+                  root: {
+                    height: '44px',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    fontSize: '14px',
+                    lineHeight: '1.2'
+                  }
+                }}
               >
                 Browse Events
               </Button>

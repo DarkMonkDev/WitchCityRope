@@ -4,6 +4,7 @@ import type { PaginationParams } from './api.types'
 export interface EventDto {
   id: string
   title: string
+  shortDescription?: string
   description: string
   startDate: string // ISO date string
   endDate?: string | null
@@ -33,6 +34,7 @@ export interface CreateEventDto {
 export interface UpdateEventDto {
   id: string
   title?: string
+  shortDescription?: string
   description?: string
   startDate?: string    // Backend expects StartDate field
   endDate?: string      // Backend expects EndDate field

@@ -547,7 +547,7 @@ export interface paths {
         put?: never;
         /**
          * Create RSVP for social event
-         * @description Creates an RSVP for a social event. Only available to vetted members.
+         * @description Creates an RSVP for a social event. Blocked for users with OnHold, Denied, or Withdrawn vetting status.
          */
         post: operations["CreateRSVP"];
         /**
@@ -571,7 +571,7 @@ export interface paths {
         put?: never;
         /**
          * Purchase ticket for class event
-         * @description Purchases a ticket for a class event. Available to any authenticated user.
+         * @description Purchases a ticket for a class event. Blocked for users with OnHold, Denied, or Withdrawn vetting status.
          */
         post: operations["PurchaseTicket"];
         delete?: never;
@@ -1324,6 +1324,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/vetting/applications/simplified": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit a simplified vetting application from authenticated user */
+        post: operations["SubmitSimplifiedApplication"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vetting/my-application": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Check if current user has an existing application */
+        get: operations["GetMyApplication"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/vetting/public/applications": {
         parameters: {
             query?: never;
@@ -1333,8 +1367,25 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Submit a new vetting application */
-        post: operations["SubmitVettingApplication"];
+        /** Submit a simplified vetting application (public endpoint) */
+        post: operations["SubmitPublicVettingApplication"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vetting/public/applications/full": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit a complete vetting application with all fields */
+        post: operations["SubmitVettingApplicationFull"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1617,6 +1668,8 @@ export interface components {
         };
         ApplicationSubmissionResponse: {
             /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
             applicationId?: string;
             applicationNumber?: string | null;
             statusToken?: string | null;
@@ -1787,6 +1840,22 @@ export interface components {
             notes?: string | null;
             paymentMethodId?: string | null;
         };
+        DashboardEventDto: {
+            /** Format: uuid */
+            id?: string;
+            title?: string | null;
+            /** Format: date-time */
+            startDate?: string;
+            /** Format: date-time */
+            endDate?: string;
+            location?: string | null;
+            eventType?: string | null;
+            instructorName?: string | null;
+            registrationStatus?: string | null;
+            /** Format: uuid */
+            ticketId?: string;
+            confirmationCode?: string | null;
+        };
         DetailedHealthResponse: {
             status?: string | null;
             /** Format: date-time */
@@ -1803,6 +1872,7 @@ export interface components {
         EventDto: {
             id?: string | null;
             title?: string | null;
+            shortDescription?: string | null;
             description?: string | null;
             /** Format: date-time */
             startDate?: string;
@@ -2103,6 +2173,24 @@ export interface components {
             serverTime?: string;
             tokenClaims?: components["schemas"]["TokenClaims"];
         };
+        PublicApplicationSubmissionRequest: {
+            /** Format: email */
+            email: string;
+            sceneName: string;
+            realName: string;
+            /** Format: tel */
+            phoneNumber: string;
+            emergencyContactName: string;
+            /** Format: tel */
+            emergencyContactPhone: string;
+            experience: string;
+            interests: string;
+            references: string;
+            agreeToRules: boolean;
+            consentToBackground: boolean;
+            pronouns?: string | null;
+            additionalInfo?: string | null;
+        };
         ReferenceDetailDto: {
             /** Format: uuid */
             id?: string;
@@ -2277,16 +2365,49 @@ export interface components {
             registeredCount?: number;
         };
         SimpleNoteRequest: {
-            note?: string | null;
+            note: string;
             isPrivate?: boolean | null;
             tags?: string[] | null;
         };
         SimpleReasoningRequest: {
-            reasoning?: string | null;
+            reasoning: string;
+        };
+        SimplifiedApplicationRequest: {
+            realName: string;
+            preferredSceneName: string;
+            fetLifeHandle?: string | null;
+            /** Format: email */
+            email: string;
+            whyJoin: string;
+            experienceWithRope: string;
+            agreeToCommunityStandards: boolean;
+            pronouns?: string | null;
+            otherNames?: string | null;
+        };
+        SimplifiedApplicationResponse: {
+            /** Format: uuid */
+            applicationId?: string;
+            applicationNumber?: string | null;
+            /** Format: date-time */
+            submittedAt?: string;
+            confirmationMessage?: string | null;
+            emailSent?: boolean;
+            nextSteps?: string | null;
+            pronouns?: string | null;
+            otherNames?: string | null;
+        };
+        SimplifiedApplicationResponseApiResponse: {
+            success?: boolean;
+            data?: components["schemas"]["SimplifiedApplicationResponse"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
         };
         StatusChangeRequest: {
-            status?: string | null;
-            reasoning?: string | null;
+            status: string;
+            reasoning: string;
         };
         StatusUpdateSummary: {
             /** Format: date-time */
@@ -2326,6 +2447,7 @@ export interface components {
         };
         UpdateEventRequest: {
             title?: string | null;
+            shortDescription?: string | null;
             description?: string | null;
             /** Format: date-time */
             startDate?: string | null;
@@ -2355,6 +2477,17 @@ export interface components {
             /** Format: int32 */
             vettingStatus?: number | null;
         };
+        UserDashboardResponse: {
+            sceneName?: string | null;
+            role?: string | null;
+            vettingStatus?: components["schemas"]["VettingStatus"];
+            hasVettingApplication?: boolean;
+            isVetted?: boolean;
+            email?: string | null;
+            /** Format: date-time */
+            joinDate?: string;
+            pronouns?: string | null;
+        };
         UserDto: {
             /** Format: uuid */
             id?: string;
@@ -2371,6 +2504,9 @@ export interface components {
             lastLoginAt?: string | null;
             /** Format: int32 */
             vettingStatus?: number;
+        };
+        UserEventsResponse: {
+            upcomingEvents?: components["schemas"]["DashboardEventDto"][] | null;
         };
         UserListResponse: {
             users?: components["schemas"]["UserDto"][] | null;
@@ -2408,6 +2544,24 @@ export interface components {
             notes?: string | null;
             canCancel?: boolean;
         };
+        UserStatisticsResponse: {
+            isVerified?: boolean;
+            /** Format: int32 */
+            eventsAttended?: number;
+            /** Format: int32 */
+            monthsAsMember?: number;
+            /** Format: int32 */
+            recentEvents?: number;
+            /** Format: date-time */
+            joinDate?: string;
+            vettingStatus?: components["schemas"]["VettingStatus"];
+            /** Format: date-time */
+            nextInterviewDate?: string | null;
+            /** Format: int32 */
+            upcomingRegistrations?: number;
+            /** Format: int32 */
+            cancelledRegistrations?: number;
+        };
         ValidationProblemDetails: {
             type?: string | null;
             title?: string | null;
@@ -2421,6 +2575,8 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /** @enum {string} */
+        VettingStatus: "UnderReview" | "InterviewApproved" | "InterviewScheduled" | "FinalReview" | "Approved" | "Denied" | "OnHold" | "Withdrawn";
         VolunteerPositionDto: {
             id?: string | null;
             title?: string | null;
@@ -3089,7 +3245,36 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["UserDashboardResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -3109,7 +3294,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["UserEventsResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -3127,7 +3332,36 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["UserStatisticsResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -3467,6 +3701,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Not Found */
             404: {
                 headers: {
@@ -3566,6 +3807,13 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4535,7 +4783,165 @@ export interface operations {
             };
         };
     };
-    SubmitVettingApplication: {
+    SubmitSimplifiedApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SimplifiedApplicationRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationSubmissionResponseApiResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObjectApiResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObjectApiResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObjectApiResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObjectApiResponse"];
+                };
+            };
+        };
+    };
+    GetMyApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SimplifiedApplicationResponseApiResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObjectApiResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObjectApiResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObjectApiResponse"];
+                };
+            };
+        };
+    };
+    SubmitPublicVettingApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublicApplicationSubmissionRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationSubmissionResponseApiResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObjectApiResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObjectApiResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObjectApiResponse"];
+                };
+            };
+        };
+    };
+    SubmitVettingApplicationFull: {
         parameters: {
             query?: never;
             header?: never;

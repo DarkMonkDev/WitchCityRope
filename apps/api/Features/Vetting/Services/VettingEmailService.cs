@@ -382,7 +382,7 @@ public class VettingEmailService : IVettingEmailService
             .Replace("{{submission_date}}", application.SubmittedAt.ToString("MMMM dd, yyyy"))
             .Replace("{{status_change_date}}", DateTime.UtcNow.ToString("MMMM dd, yyyy"))
             .Replace("{{contact_email}}", "support@witchcityrope.com")
-            .Replace("{{current_status}}", application.Status.ToString());
+            .Replace("{{current_status}}", application.WorkflowStatus.ToString());
     }
 
     /// <summary>
@@ -395,9 +395,11 @@ public class VettingEmailService : IVettingEmailService
         {
             VettingStatus.InterviewApproved => EmailTemplateType.InterviewApproved,
             VettingStatus.InterviewScheduled => EmailTemplateType.InterviewScheduled,
+            VettingStatus.FinalReview => null, // No email for FinalReview (internal step)
             VettingStatus.OnHold => EmailTemplateType.OnHold,
             VettingStatus.Approved => EmailTemplateType.Approved,
             VettingStatus.Denied => EmailTemplateType.Denied,
+            VettingStatus.Withdrawn => null, // No email for withdrawn
             _ => null // No email needed for other statuses
         };
     }
@@ -431,7 +433,7 @@ public class VettingEmailService : IVettingEmailService
             <ul style=""list-style: none; padding: 0;"">
                 <li><strong>Application Number:</strong> {application.ApplicationNumber}</li>
                 <li><strong>Submitted:</strong> {application.SubmittedAt:MMMM dd, yyyy}</li>
-                <li><strong>Status:</strong> {application.Status}</li>
+                <li><strong>Status:</strong> {application.WorkflowStatus}</li>
             </ul>
         </div>
 
@@ -460,7 +462,7 @@ Thank you for submitting your vetting application to WitchCityRope.
 Application Details:
 - Application Number: {application.ApplicationNumber}
 - Submitted: {application.SubmittedAt:MMMM dd, yyyy}
-- Status: {application.Status}
+- Status: {application.WorkflowStatus}
 
 Our vetting team will review your application and contact you within the next few business days.
 
@@ -585,7 +587,7 @@ The WitchCityRope Team";
             <h3 style=""margin-top: 0; color: #2d3748;"">Application Details</h3>
             <ul style=""list-style: none; padding: 0;"">
                 <li><strong>Application Number:</strong> {application.ApplicationNumber}</li>
-                <li><strong>Current Status:</strong> {application.Status}</li>
+                <li><strong>Current Status:</strong> {application.WorkflowStatus}</li>
                 <li><strong>Submitted:</strong> {application.SubmittedAt:MMMM dd, yyyy}</li>
             </ul>
         </div>
@@ -622,7 +624,7 @@ This is a reminder regarding your vetting application with WitchCityRope.
 
 Application Details:
 - Application Number: {application.ApplicationNumber}
-- Current Status: {application.Status}
+- Current Status: {application.WorkflowStatus}
 - Submitted: {application.SubmittedAt:MMMM dd, yyyy}
 {customMessageText}
 
@@ -639,13 +641,14 @@ The WitchCityRope Team";
     {
         return status switch
         {
-            VettingStatus.Submitted => "Submitted",
             VettingStatus.UnderReview => "Under Review",
             VettingStatus.InterviewApproved => "Interview Approved",
             VettingStatus.InterviewScheduled => "Interview Scheduled",
+            VettingStatus.FinalReview => "Final Review",
             VettingStatus.OnHold => "On Hold",
             VettingStatus.Approved => "Approved",
             VettingStatus.Denied => "Denied",
+            VettingStatus.Withdrawn => "Withdrawn",
             _ => status.ToString()
         };
     }
@@ -658,16 +661,22 @@ The WitchCityRope Team";
     {
         return status switch
         {
+            VettingStatus.UnderReview =>
+                "Your application is being reviewed by our team. We will contact you with updates.",
             VettingStatus.InterviewApproved =>
                 "We will contact you soon to schedule your interview.",
             VettingStatus.InterviewScheduled =>
                 "Your interview is scheduled. Please check your email for details.",
+            VettingStatus.FinalReview =>
+                "Your interview has been completed and your application is under final review.",
             VettingStatus.OnHold =>
                 "We need additional information from you. Please check your email for details.",
             VettingStatus.Approved =>
                 "Welcome to WitchCityRope! You now have access to our community events and resources.",
             VettingStatus.Denied =>
                 "While your application was not approved at this time, you are welcome to reapply in the future.",
+            VettingStatus.Withdrawn =>
+                "Your application has been withdrawn.",
             _ => "We will contact you if any further action is needed."
         };
     }

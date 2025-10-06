@@ -319,11 +319,18 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
             onClick={handlePurchase}
             loading={isPurchasing}
             disabled={!isFormValid || !canPurchaseQuantity}
-            style={{
-              background: '#880124',
-              color: 'white',
-            }}
             leftSection={<IconTicket size={20} />}
+            styles={{
+              root: {
+                background: '#880124',
+                color: 'white',
+                height: '44px',
+                paddingTop: '12px',
+                paddingBottom: '12px',
+                fontSize: '14px',
+                lineHeight: '1.2'
+              }
+            }}
           >
             Purchase {quantity > 1 ? `${quantity} Tickets` : 'Ticket'} - ${totalAmount.toFixed(2)}
           </Button>

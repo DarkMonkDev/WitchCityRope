@@ -1,12 +1,15 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 using Respawn;
 using Testcontainers.PostgreSql;
 using WitchCityRope.Api.Data;
+using WitchCityRope.Api.Models;
 using WitchCityRope.Tests.Common.Cleanup;
 using Xunit;
 
@@ -92,6 +95,11 @@ namespace WitchCityRope.Tests.Common.Fixtures
                 await context.Database.MigrateAsync();
 
                 _logger.LogInformation("EF Core migrations applied successfully");
+
+                // Seed roles and users (ONE TIME - Respawn preserves these)
+                await SeedTestDataAsync();
+
+                _logger.LogInformation("Test seed data populated successfully");
 
                 // Setup Respawn for fast database cleanup between tests
                 await using var connection = new NpgsqlConnection(ConnectionString);
@@ -180,6 +188,103 @@ namespace WitchCityRope.Tests.Common.Fixtures
                 .Options;
 
             return new ApplicationDbContext(options);
+        }
+
+        /// <summary>
+        /// Seeds essential test data (roles and users) that Respawn will preserve.
+        /// Called ONCE during fixture initialization, not before each test.
+        /// </summary>
+        private async Task SeedTestDataAsync()
+        {
+            _logger.LogInformation("Seeding roles and test users for integration tests");
+
+            // Create temporary service provider with Identity services
+            var services = new ServiceCollection();
+
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseNpgsql(ConnectionString));
+
+            // Add Identity services (required for UserManager and RoleManager)
+            services.AddIdentity<ApplicationUser, IdentityRole<Guid>>()
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
+
+            services.AddLogging(builder =>
+                builder.AddConsole().SetMinimumLevel(LogLevel.Information));
+
+            await using var serviceProvider = services.BuildServiceProvider();
+            using var scope = serviceProvider.CreateScope();
+
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+            // Seed roles
+            var roles = new[] { "Administrator", "Teacher", "VettedMember", "Member", "Attendee" };
+            foreach (var roleName in roles)
+            {
+                if (!await roleManager.RoleExistsAsync(roleName))
+                {
+                    var role = new IdentityRole<Guid>(roleName);
+                    var result = await roleManager.CreateAsync(role);
+                    if (result.Succeeded)
+                    {
+                        _logger.LogInformation("Created role: {RoleName}", roleName);
+                    }
+                    else
+                    {
+                        _logger.LogError("Failed to create role {RoleName}: {Errors}",
+                            roleName, string.Join(", ", result.Errors.Select(e => e.Description)));
+                    }
+                }
+            }
+
+            // Seed test users (matching existing test accounts)
+            var testUsers = new[]
+            {
+                new { Email = "admin@witchcityrope.com", Role = "Administrator", SceneName = "Test Admin" },
+                new { Email = "teacher@witchcityrope.com", Role = "Teacher", SceneName = "Test Teacher" },
+                new { Email = "vetted@witchcityrope.com", Role = "VettedMember", SceneName = "Test Vetted" },
+                new { Email = "member@witchcityrope.com", Role = "Member", SceneName = "Test Member" },
+                new { Email = "guest@witchcityrope.com", Role = "Attendee", SceneName = "Test Guest" }
+            };
+
+            foreach (var userData in testUsers)
+            {
+                var existingUser = await userManager.FindByEmailAsync(userData.Email);
+                if (existingUser == null)
+                {
+                    var user = new ApplicationUser
+                    {
+                        Email = userData.Email,
+                        UserName = userData.Email,
+                        EmailConfirmed = true,
+                        SceneName = userData.SceneName,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    var createResult = await userManager.CreateAsync(user, "Test123!");
+                    if (createResult.Succeeded)
+                    {
+                        var roleResult = await userManager.AddToRoleAsync(user, userData.Role);
+                        if (roleResult.Succeeded)
+                        {
+                            _logger.LogInformation("Created test user {Email} with role {Role}", userData.Email, userData.Role);
+                        }
+                        else
+                        {
+                            _logger.LogError("Failed to assign role {Role} to user {Email}: {Errors}",
+                                userData.Role, userData.Email, string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogError("Failed to create user {Email}: {Errors}",
+                            userData.Email, string.Join(", ", createResult.Errors.Select(e => e.Description)));
+                    }
+                }
+            }
+
+            _logger.LogInformation("Test data seeding completed");
         }
 
         public async Task ResetDatabaseAsync()

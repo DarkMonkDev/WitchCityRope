@@ -131,9 +131,17 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
           <Button
             component="a"
             href="/login"
-            size="sm"
             variant="filled"
             color="blue"
+            styles={{
+              root: {
+                height: '44px',
+                paddingTop: '12px',
+                paddingBottom: '12px',
+                fontSize: '14px',
+                lineHeight: '1.2'
+              }
+            }}
           >
             Log In
           </Button>
@@ -260,9 +268,17 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
           <Button
             component="a"
             href="/vetting"
-            size="sm"
             variant="outline"
             color="orange"
+            styles={{
+              root: {
+                height: '44px',
+                paddingTop: '12px',
+                paddingBottom: '12px',
+                fontSize: '14px',
+                lineHeight: '1.2'
+              }
+            }}
           >
             Start Vetting Process
           </Button>
@@ -426,14 +442,14 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                   <Button
                     variant="light"
                     color="red"
-                    size="md"
                     onClick={() => handleCancelClick('rsvp')}
                     styles={{
                       root: {
-                        minHeight: '36px',
-                        height: 'auto',
-                        padding: '8px 16px',
-                        lineHeight: 1.4
+                        height: '44px',
+                        paddingTop: '12px',
+                        paddingBottom: '12px',
+                        fontSize: '14px',
+                        lineHeight: '1.2'
                       }
                     }}
                   >
@@ -463,14 +479,14 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                   <Button
                     variant="light"
                     color="red"
-                    size="md"
                     onClick={() => handleCancelClick('ticket')}
                     styles={{
                       root: {
-                        minHeight: '36px',
-                        height: 'auto',
-                        padding: '8px 16px',
-                        lineHeight: 1.4
+                        height: '44px',
+                        paddingTop: '12px',
+                        paddingBottom: '12px',
+                        fontSize: '14px',
+                        lineHeight: '1.2'
                       }
                     }}
                   >
@@ -521,13 +537,21 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                         <Button
                           onClick={handleRSVPClick}
                           fullWidth
-                          size="lg"
                           variant="filled"
                           color="green"
                           disabled={isLoading || isLoadingUser}
                           loading={isLoading || isLoadingUser}
                           mb="md"
                           data-testid="button-rsvp"
+                          styles={{
+                            root: {
+                              height: '44px',
+                              paddingTop: '12px',
+                              paddingBottom: '12px',
+                              fontSize: '14px',
+                              lineHeight: '1.2'
+                            }
+                          }}
                         >
                           RSVP Now (Free)
                         </Button>
@@ -547,12 +571,20 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                       <Button
                         onClick={handleTicketPurchase}
                         fullWidth
-                        size="lg"
                         variant="outline"
                         color="blue"
                         disabled={isLoading || isLoadingUser}
                         loading={isLoading || isLoadingUser}
                         data-testid="button-purchase-ticket"
+                        styles={{
+                          root: {
+                            height: '44px',
+                            paddingTop: '12px',
+                            paddingBottom: '12px',
+                            fontSize: '14px',
+                            lineHeight: '1.2'
+                          }
+                        }}
                       >
                         Purchase Ticket (${ticketPrice})
                       </Button>
@@ -584,11 +616,19 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                   <Button
                     onClick={handleTicketPurchase}
                     fullWidth
-                    size="lg"
                     variant="filled"
                     color="blue"
                     leftSection={<IconTicket size={18} />}
                     data-testid="button-purchase-ticket"
+                    styles={{
+                      root: {
+                        height: '44px',
+                        paddingTop: '12px',
+                        paddingBottom: '12px',
+                        fontSize: '14px',
+                        lineHeight: '1.2'
+                      }
+                    }}
                   >
                     Purchase Ticket
                   </Button>
@@ -602,9 +642,17 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
             <Button
               onClick={() => {/* TODO: Implement waitlist */}}
               fullWidth
-              size="lg"
               variant="outline"
               color="gray"
+              styles={{
+                root: {
+                  height: '44px',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                  fontSize: '14px',
+                  lineHeight: '1.2'
+                }
+              }}
             >
               Join Waitlist
             </Button>
@@ -639,14 +687,14 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
             <Button
               variant="outline"
               color="gray"
-              size="md"
               onClick={handleCancelModal}
               styles={{
                 root: {
-                  minHeight: '40px',
-                  height: 'auto',
-                  padding: '10px 20px',
-                  lineHeight: 1.4
+                  height: '44px',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                  fontSize: '14px',
+                  lineHeight: '1.2'
                 }
               }}
             >
@@ -655,14 +703,14 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
             <Button
               variant="filled"
               color="red"
-              size="md"
               onClick={handleConfirmCancel}
               styles={{
                 root: {
-                  minHeight: '40px',
-                  height: 'auto',
-                  padding: '10px 20px',
-                  lineHeight: 1.4
+                  height: '44px',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                  fontSize: '14px',
+                  lineHeight: '1.2'
                 }
               }}
             >

@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using WitchCityRope.Api.Features.Dashboard.Models;
 using WitchCityRope.Api.Features.Dashboard.Services;
 
 namespace WitchCityRope.Api.Features.Dashboard.Endpoints;
@@ -36,7 +39,7 @@ public static class DashboardEndpoints
 
                 var result = await dashboardService.GetUserDashboardAsync(userId, cancellationToken);
 
-                return result.IsSuccess 
+                return result.IsSuccess
                     ? Results.Ok(result.Value)
                     : Results.Problem(
                         title: "Get Dashboard Failed",
@@ -47,7 +50,11 @@ public static class DashboardEndpoints
             .WithName("GetUserDashboard")
             .WithSummary("Get current user's dashboard data")
             .WithDescription("Returns the current user's dashboard including profile info and vetting status")
-            .WithTags("Dashboard");
+            .WithTags("Dashboard")
+            .Produces<UserDashboardResponse>(200)
+            .Produces<ProblemDetails>(401)
+            .Produces<ProblemDetails>(404)
+            .Produces<ProblemDetails>(500);
 
         // Get current user's upcoming events
         app.MapGet("/api/dashboard/events", async (
@@ -75,7 +82,7 @@ public static class DashboardEndpoints
 
                 var result = await dashboardService.GetUserEventsAsync(userId, count, cancellationToken);
 
-                return result.IsSuccess 
+                return result.IsSuccess
                     ? Results.Ok(result.Value)
                     : Results.Problem(
                         title: "Get User Events Failed",
@@ -86,7 +93,10 @@ public static class DashboardEndpoints
             .WithName("GetUserEvents")
             .WithSummary("Get current user's upcoming events")
             .WithDescription("Returns the current user's upcoming events they are registered for")
-            .WithTags("Dashboard");
+            .WithTags("Dashboard")
+            .Produces<UserEventsResponse>(200)
+            .Produces<ProblemDetails>(401)
+            .Produces<ProblemDetails>(500);
 
         // Get current user's membership statistics
         app.MapGet("/api/dashboard/statistics", async (
@@ -107,7 +117,7 @@ public static class DashboardEndpoints
 
                 var result = await dashboardService.GetUserStatisticsAsync(userId, cancellationToken);
 
-                return result.IsSuccess 
+                return result.IsSuccess
                     ? Results.Ok(result.Value)
                     : Results.Problem(
                         title: "Get User Statistics Failed",
@@ -118,6 +128,10 @@ public static class DashboardEndpoints
             .WithName("GetUserStatistics")
             .WithSummary("Get current user's membership statistics")
             .WithDescription("Returns the current user's attendance history and membership metrics")
-            .WithTags("Dashboard");
+            .WithTags("Dashboard")
+            .Produces<UserStatisticsResponse>(200)
+            .Produces<ProblemDetails>(401)
+            .Produces<ProblemDetails>(404)
+            .Produces<ProblemDetails>(500);
     }
 }

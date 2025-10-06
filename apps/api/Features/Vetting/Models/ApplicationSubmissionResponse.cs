@@ -6,16 +6,30 @@ namespace WitchCityRope.Api.Features.Vetting.Models;
 /// </summary>
 public class ApplicationSubmissionResponse
 {
-    public Guid ApplicationId { get; set; }
+    /// <summary>
+    /// Application ID (primary identifier for API consistency)
+    /// </summary>
+    public Guid Id { get; set; }
+
+    /// <summary>
+    /// Application ID (legacy property for backward compatibility)
+    /// Maps to Id property
+    /// </summary>
+    public Guid ApplicationId
+    {
+        get => Id;
+        set => Id = value;
+    }
+
     public string ApplicationNumber { get; set; } = string.Empty;
     public string StatusToken { get; set; } = string.Empty;
     public DateTime SubmittedAt { get; set; }
     public string ConfirmationMessage { get; set; } = string.Empty;
-    
+
     // Expected timeline information
     public int EstimatedReviewDays { get; set; }
     public string NextSteps { get; set; } = string.Empty;
-    
+
     // Reference process status
     public List<ReferenceStatusSummary> ReferenceStatuses { get; set; } = new();
 }

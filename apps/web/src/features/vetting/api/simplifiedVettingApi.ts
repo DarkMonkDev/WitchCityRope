@@ -44,10 +44,21 @@ export const simplifiedVettingApi = {
    */
   async submitApplication(request: SimplifiedCreateApplicationRequest): Promise<SimplifiedApplicationSubmissionResponse> {
     try {
-      const { data } = await apiClient.post<ApiResponse<SimplifiedApplicationSubmissionResponse>>(
+      console.log('simplifiedVettingApi.submitApplication: Submitting application:', {
+        request,
+        requestStringified: JSON.stringify(request, null, 2),
+        url: '/api/vetting/applications/simplified'
+      });
+
+      const { data} = await apiClient.post<ApiResponse<SimplifiedApplicationSubmissionResponse>>(
         '/api/vetting/applications/simplified',
         request
       );
+
+      console.log('simplifiedVettingApi.submitApplication: API response:', {
+        hasData: !!data.data,
+        data: data.data
+      });
 
       if (!data.data) {
         throw new Error(data.error || 'Failed to submit application');
@@ -55,6 +66,18 @@ export const simplifiedVettingApi = {
 
       return data.data;
     } catch (error: any) {
+      console.error('simplifiedVettingApi.submitApplication: FULL ERROR DETAILS:', {
+        status: error.response?.status,
+        message: error.message,
+        responseData: error.response?.data,
+        fullError: error.response?.data?.error || error.response?.data?.Error,
+        details: error.response?.data?.details || error.response?.data?.Details,
+        validationErrors: error.response?.data?.errors || error.response?.data?.Errors,
+        title: error.response?.data?.title,
+        type: error.response?.data?.type,
+        allResponseData: JSON.stringify(error.response?.data, null, 2)
+      });
+
       // Add context to authentication errors
       if (error.response?.status === 401) {
         throw new Error('Authentication expired. Please login again and retry.');

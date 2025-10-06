@@ -3,6 +3,7 @@ using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Dashboard.Models;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Shared.Models;
+using WitchCityRope.Api.Features.Vetting.Entities;
 
 namespace WitchCityRope.Api.Features.Dashboard.Services;
 
@@ -46,18 +47,12 @@ public class UserDashboardService : IUserDashboardService
                 return Result<UserDashboardResponse>.Failure("User not found");
             }
 
-            // Get the user's latest vetting application status
-            var latestVettingApp = await _context.VettingApplications
-                .AsNoTracking()
-                .Where(v => v.UserId == userId)
-                .OrderByDescending(v => v.CreatedAt)
-                .FirstOrDefaultAsync(cancellationToken);
-
             var dashboard = new UserDashboardResponse
             {
                 SceneName = user.SceneName,
                 Role = user.Role,
-                VettingStatus = (int)(latestVettingApp?.Status ?? 0), // Default to Draft
+                VettingStatus = (VettingStatus)user.VettingStatus, // Cast int to VettingStatus enum
+                HasVettingApplication = user.VettingStatus > 0, // If VettingStatus > 0, user has submitted an application
                 IsVetted = user.IsVetted,
                 Email = user.Email ?? string.Empty,
                 JoinDate = user.CreatedAt,
@@ -164,7 +159,7 @@ public class UserDashboardService : IUserDashboardService
                 MonthsAsMember = monthsAsMember,
                 RecentEvents = 0, // Will implement later
                 JoinDate = user.CreatedAt,
-                VettingStatus = 0, // Will implement later
+                VettingStatus = (VettingStatus)user.VettingStatus, // Cast int to VettingStatus enum
                 NextInterviewDate = null,
                 UpcomingRegistrations = 0, // Will implement later
                 CancelledRegistrations = 0 // Will implement later

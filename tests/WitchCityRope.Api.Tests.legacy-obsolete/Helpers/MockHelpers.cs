@@ -181,7 +181,7 @@ public static class MockHelpers
             Id = id ?? Guid.NewGuid(),
             EventId = eventId ?? Guid.NewGuid(),
             UserId = userId ?? Guid.NewGuid(),
-            Status = status,
+            WorkflowStatus = status,
             ConfirmationCode = GenerateConfirmationCode(),
             RegisteredAt = DateTime.UtcNow
         };
@@ -198,7 +198,7 @@ public static class MockHelpers
             Id = id ?? Guid.NewGuid(),
             UserId = userId ?? Guid.NewGuid(),
             Amount = new Money(amount, "USD"),
-            Status = status,
+            WorkflowStatus = status,
             PaymentMethod = PaymentMethod.Stripe,
             TransactionId = Guid.NewGuid().ToString(),
             ProcessedAt = DateTime.UtcNow,
@@ -232,7 +232,7 @@ public static class MockHelpers
                     Relationship = "Event organizer"
                 }
             },
-            Status = status,
+            WorkflowStatus = status,
             SubmittedAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };

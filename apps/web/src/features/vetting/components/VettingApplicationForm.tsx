@@ -21,8 +21,8 @@ import {
   EnhancedTextInput,
   EnhancedTextarea
 } from '../../../components/forms/MantineFormInputs';
-import { useForm, zodResolver } from '@mantine/form';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useForm } from '@mantine/form';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconAlertCircle, IconShieldCheck, IconLogin } from '@tabler/icons-react';
 import { useAuthStore, useUserSceneName } from '../../../stores/authStore';
@@ -46,10 +46,10 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
   onSubmitError,
   className
 }) => {
+  const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const userSceneName = useUserSceneName();
-  const [showSuccess, setShowSuccess] = useState(false);
 
   // Check if user already has an application
   const { data: existingApplication, isLoading: isCheckingApplication, error: checkError } = useQuery({
@@ -64,12 +64,64 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
     }
   });
 
-  // Form setup with Mantine form + Zod validation
+  // Form setup with Mantine form validation
   const form = useForm<SimplifiedApplicationFormData>({
-    validate: zodResolver(simplifiedApplicationSchema as any),
     initialValues: {
       ...defaultFormValues,
       // Remove email and sceneName from form - they're shown at top but not editable
+    },
+    validate: {
+      realName: (value) => {
+        if (!value || value.trim().length < 2) {
+          return fieldValidationMessages.realName.minLength;
+        }
+        if (value.length > 100) {
+          return fieldValidationMessages.realName.maxLength;
+        }
+        return null;
+      },
+      pronouns: (value) => {
+        if (value && value.length > 50) {
+          return fieldValidationMessages.pronouns.maxLength;
+        }
+        return null;
+      },
+      fetLifeHandle: (value) => {
+        if (value && value.length > 50) {
+          return fieldValidationMessages.fetLifeHandle.maxLength;
+        }
+        return null;
+      },
+      otherNames: (value) => {
+        if (value && value.length > 500) {
+          return fieldValidationMessages.otherNames.maxLength;
+        }
+        return null;
+      },
+      whyJoin: (value) => {
+        if (!value || value.trim().length === 0) {
+          return fieldValidationMessages.whyJoin.required;
+        }
+        if (value.length > 2000) {
+          return fieldValidationMessages.whyJoin.maxLength;
+        }
+        return null;
+      },
+      experienceWithRope: (value) => {
+        if (!value || value.trim().length === 0) {
+          return fieldValidationMessages.experienceWithRope.required;
+        }
+        if (value.length > 2000) {
+          return fieldValidationMessages.experienceWithRope.maxLength;
+        }
+        return null;
+      },
+      agreeToCommunityStandards: (value) => {
+        if (value !== true) {
+          return fieldValidationMessages.agreeToCommunityStandards.required;
+        }
+        return null;
+      },
     },
     // Enable validation on value change for better UX
     validateInputOnChange: true,
@@ -89,28 +141,32 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
       const request: SimplifiedCreateApplicationRequest = {
         realName: formData.realName,
         pronouns: formData.pronouns || undefined,
-        sceneName: user?.sceneName || userSceneName, // Get from auth context
+        preferredSceneName: user?.sceneName || userSceneName, // Get from auth context
         fetLifeHandle: formData.fetLifeHandle || undefined,
         otherNames: formData.otherNames || undefined,
         email: user?.email || '', // Get from auth context
         whyJoin: formData.whyJoin,
         experienceWithRope: formData.experienceWithRope,
-        agreesToCommunityStandards: formData.agreesToCommunityStandards,
+        agreeToCommunityStandards: formData.agreeToCommunityStandards, // Match backend model
       };
 
       return simplifiedVettingApi.submitApplication(request);
     },
     onSuccess: (response) => {
-      setShowSuccess(true);
+      // Invalidate dashboard and vetting queries to refresh status
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['vetting', 'my-application'] });
 
+      // Show success notification
       notifications.show({
         title: 'Application Submitted Successfully!',
-        message: `Your application #${response.applicationNumber} has been submitted. Check your email for confirmation.`,
+        message: 'Check your email for confirmation.',
         color: 'green',
         autoClose: 10000,
         icon: <IconCheck />,
       });
 
+      // Trigger parent callback to show success screen
       onSubmitSuccess?.(response.applicationId, response.statusPageUrl);
     },
     onError: (error) => {
@@ -129,9 +185,16 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
   });
 
   // Handle form submission
-  const handleSubmit = form.onSubmit((values) => {
+  const handleFormSubmit = (values: SimplifiedApplicationFormData) => {
+    console.log('VettingApplicationForm: Form submitted with values:', {
+      ...values,
+      hasUser: !!user,
+      userEmail: user?.email,
+      userSceneName: user?.sceneName || userSceneName,
+      isAuthenticated
+    });
     submitMutation.mutate(values);
-  });
+  };
 
   // Loading state while checking for existing application
   if (isCheckingApplication) {
@@ -163,7 +226,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
             <Box>
               <Text size="sm" c="dimmed" mb="xs">Application Status:</Text>
               <Text size="lg" fw={600} tt="capitalize">
-                {app.status.replace('-', ' ')}
+                {app.status ? app.status.replace('-', ' ') : 'Pending'}
               </Text>
             </Box>
 
@@ -176,33 +239,6 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
 
             <Text c="dimmed">
               {app.statusMessage}
-            </Text>
-          </Stack>
-        </Paper>
-      </Box>
-    );
-  }
-
-  // Show success message after submission
-  if (showSuccess) {
-    return (
-      <Box className={className}>
-        <Paper p="xl" shadow="sm" ta="center">
-          <Stack gap="lg">
-            <ThemeIcon size={64} color="green" variant="light" mx="auto">
-              <IconCheck size={32} />
-            </ThemeIcon>
-
-            <Title order={2} c="green">
-              Application Submitted Successfully!
-            </Title>
-
-            <Text size="lg">
-              Your vetting application has been received and you should receive a confirmation email shortly.
-            </Text>
-
-            <Text c="dimmed">
-              Our team will review your application and contact you within 1-2 weeks with our decision.
             </Text>
           </Stack>
         </Paper>
@@ -339,7 +375,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
             </Stack>
           </Paper>
 
-          <form onSubmit={handleSubmit} data-testid="vetting-application-form">
+          <form onSubmit={form.onSubmit(handleFormSubmit)} data-testid="vetting-application-form">
             <Stack gap="lg">
               {/* Real Name */}
               <EnhancedTextInput
@@ -470,7 +506,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                     label={<Text fw={600}>I agree to all of the above items</Text>}
                     required
                     data-testid="community-standards-checkbox"
-                    {...form.getInputProps('agreesToCommunityStandards', { type: 'checkbox' })}
+                    {...form.getInputProps('agreeToCommunityStandards', { type: 'checkbox' })}
                     styles={{
                       label: {
                         fontFamily: 'var(--font-heading)',
@@ -490,7 +526,24 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                   type="submit"
                   size="lg"
                   loading={submitMutation.isPending}
-                  disabled={Object.keys(form.errors).length > 0 || !isAuthenticated || !form.values.realName || !form.values.whyJoin || !form.values.experienceWithRope || !form.values.agreesToCommunityStandards}
+                  disabled={
+                    Object.keys(form.errors).length > 0 ||
+                    !isAuthenticated ||
+                    !form.values.realName?.trim() ||
+                    !form.values.whyJoin?.trim() ||
+                    !form.values.experienceWithRope?.trim() ||
+                    form.values.agreeToCommunityStandards !== true
+                  }
+                  onClick={() => {
+                    console.log('VettingApplicationForm: Submit button clicked', {
+                      hasErrors: Object.keys(form.errors).length > 0,
+                      errors: form.errors,
+                      isAuthenticated,
+                      formValues: form.values,
+                      checkboxValue: form.values.agreeToCommunityStandards,
+                      isPending: submitMutation.isPending
+                    });
+                  }}
                   leftSection={<IconCheck />}
                   color="wcr"
                   data-testid="submit-application-button"

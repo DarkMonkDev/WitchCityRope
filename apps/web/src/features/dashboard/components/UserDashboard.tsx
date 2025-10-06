@@ -15,7 +15,8 @@ import {
   Divider,
   Box,
   ActionIcon,
-  Tooltip
+  Tooltip,
+  Button
 } from '@mantine/core';
 import {
   IconUser,
@@ -189,43 +190,114 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ className }) => {
           <Text size="sm" fw={500} c="dark" mb="xs">
             Vetting Status
           </Text>
-          <Alert
-            color={vettingDisplay.color}
-            variant="light"
-            styles={{
-              root: {
-                backgroundColor: 'var(--mantine-color-gray-0)',
-                border: `1px solid var(--mantine-color-${vettingDisplay.color}-3)`,
-              }
-            }}
-          >
-            <Group gap="sm" align="center">
-              <Badge color={vettingDisplay.color} variant="filled" size="sm">
-                {vettingDisplay.label}
-              </Badge>
-              <Text size="sm">
-                {vettingDisplay.description}
-              </Text>
-            </Group>
-            
-            {dashboard.isVetted && dashboard.vettingStatus !== 8 && dashboard.vettingStatus !== 6 && (
-              <Text size="xs" c="dimmed" mt="xs">
-                🎉 You have full access to all community events and resources.
-              </Text>
-            )}
 
-            {dashboard.vettingStatus === 8 && (
-              <Text size="xs" c="red" mt="xs" fw={500}>
-                ⚠️ Your vetting application was not approved. You have limited access to community events.
-              </Text>
-            )}
+          {!dashboard.hasVettingApplication ? (
+            // User has NOT submitted a vetting application yet
+            <Alert
+              color="blue"
+              variant="light"
+              styles={{
+                root: {
+                  backgroundColor: 'var(--mantine-color-blue-0)',
+                  border: '1px solid var(--mantine-color-blue-3)',
+                }
+              }}
+            >
+              <Stack gap="sm">
+                <Text size="sm" fw={500}>
+                  Ready to join our community?
+                </Text>
+                <Text size="sm">
+                  Submit a vetting application to gain full access to community events and resources.
+                </Text>
+                <Group gap="md">
+                  <Button
+                    component="a"
+                    href="/join"
+                    color="blue"
+                    styles={{
+                      root: {
+                        fontWeight: 600,
+                        height: '44px',
+                        paddingTop: '12px',
+                        paddingBottom: '12px',
+                        fontSize: '14px',
+                        lineHeight: '1.2'
+                      }
+                    }}
+                  >
+                    Submit Vetting Application
+                  </Button>
+                </Group>
+              </Stack>
+            </Alert>
+          ) : (
+            // User has a vetting application
+            <Alert
+              color={vettingDisplay.color}
+              variant="light"
+              styles={{
+                root: {
+                  backgroundColor: 'var(--mantine-color-gray-0)',
+                  border: `1px solid var(--mantine-color-${vettingDisplay.color}-3)`,
+                }
+              }}
+            >
+              <Stack gap="xs">
+                <Group gap="sm" align="center">
+                  <Badge color={vettingDisplay.color} variant="filled" size="sm">
+                    {vettingDisplay.label}
+                  </Badge>
+                  <Text size="sm" fw={500}>
+                    {vettingDisplay.description}
+                  </Text>
+                </Group>
 
-            {dashboard.vettingStatus === 6 && (
-              <Text size="xs" c="yellow" mt="xs" fw={500}>
-                ⏸️ Your vetting application is on hold. Please check for updates or contact an administrator.
-              </Text>
-            )}
-          </Alert>
+                {/* Next steps based on status */}
+                {dashboard.vettingStatus === 'UnderReview' && (
+                  <Text size="xs" c="dimmed" mt="xs">
+                    📋 Your application is being reviewed by our team. You'll receive an email within 1-2 weeks about next steps.
+                  </Text>
+                )}
+
+                {dashboard.vettingStatus === 'InterviewApproved' && (
+                  <Text size="xs" c="dimmed" mt="xs">
+                    📅 Great news! You've been approved for an interview. Check your email for scheduling instructions.
+                  </Text>
+                )}
+
+                {dashboard.vettingStatus === 'InterviewScheduled' && (
+                  <Text size="xs" c="dimmed" mt="xs">
+                    ✅ Your interview is scheduled. Check your email for details. We look forward to meeting you!
+                  </Text>
+                )}
+
+                {dashboard.vettingStatus === 'FinalReview' && (
+                  <Text size="xs" c="dimmed" mt="xs">
+                    🔍 Your application is in final review. You'll hear from us soon!
+                  </Text>
+                )}
+
+                {dashboard.vettingStatus === 'Approved' && (
+                  <Text size="xs" c="dimmed" mt="xs">
+                    🎉 You have full access to all community events and resources. Welcome!
+                  </Text>
+                )}
+
+                {dashboard.vettingStatus === 'Denied' && (
+                  <Text size="xs" c="red" mt="xs" fw={500}>
+                    ⚠️ Your application was not approved at this time. You have limited access to community events.
+                  </Text>
+                )}
+
+                {dashboard.vettingStatus === 'OnHold' && (
+                  <Text size="xs" c="yellow" mt="xs" fw={500}>
+                    ⏸️ Your application is on hold. Please check your email or contact an administrator for more information.
+                  </Text>
+                )}
+              </Stack>
+            </Alert>
+          )}
         </Box>
       </Stack>
     </Card>

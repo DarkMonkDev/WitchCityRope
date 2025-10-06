@@ -39,14 +39,14 @@ public class SimplifiedApplicationRequest
     /// Why would you like to join Witch City Rope (required text field)
     /// </summary>
     [Required]
-    [StringLength(2000, MinimumLength = 20)]
+    [StringLength(2000)]
     public string WhyJoin { get; set; } = string.Empty;
 
     /// <summary>
-    /// Description of rope experience (minimum 50 characters)
+    /// Description of rope experience
     /// </summary>
     [Required]
-    [StringLength(2000, MinimumLength = 50)]
+    [StringLength(2000)]
     public string ExperienceWithRope { get; set; } = string.Empty;
 
     /// <summary>
@@ -54,12 +54,6 @@ public class SimplifiedApplicationRequest
     /// </summary>
     [Required]
     public bool AgreeToCommunityStandards { get; set; }
-
-    /// <summary>
-    /// Optional field for how they found out about the community
-    /// </summary>
-    [StringLength(500)]
-    public string? HowFoundUs { get; set; }
 
     /// <summary>
     /// Optional pronouns field (e.g., "they/them", "she/her", "he/him")

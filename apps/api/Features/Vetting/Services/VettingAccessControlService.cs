@@ -168,7 +168,7 @@ public class VettingAccessControlService : IVettingAccessControlService
             .Select(v => new
             {
                 v.Id,
-                v.Status,
+                v.WorkflowStatus,
                 v.SubmittedAt,
                 v.UpdatedAt
             })
@@ -191,7 +191,7 @@ public class VettingAccessControlService : IVettingAccessControlService
         return new VettingStatusInfo
         {
             HasApplication = true,
-            Status = application.Status,
+            Status = application.WorkflowStatus,
             ApplicationId = application.Id,
             SubmittedAt = application.SubmittedAt,
             LastUpdated = application.UpdatedAt

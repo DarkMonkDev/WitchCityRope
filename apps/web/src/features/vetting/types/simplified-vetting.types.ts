@@ -12,24 +12,23 @@ export interface SimplifiedApplicationFormData {
   otherNames?: string; // Optional field
   whyJoin: string; // Required field
   experienceWithRope: string;
-  agreesToCommunityStandards: boolean;
+  agreeToCommunityStandards: boolean; // Matches backend AgreeToCommunityStandards
 }
 
 /**
  * Simplified application request for API
- * Maps to the simplified CreateApplicationRequest on backend
+ * Maps to SimplifiedApplicationRequest on backend
  */
 export interface SimplifiedCreateApplicationRequest {
   realName: string;
   pronouns?: string;
-  sceneName: string;
+  preferredSceneName: string; // Matches backend's PreferredSceneName
   fetLifeHandle?: string;
   otherNames?: string;
   email: string;
   whyJoin: string;
   experienceWithRope: string;
-  agreesToCommunityStandards: boolean;
-  howFoundUs?: string; // Optional field for tracking
+  agreeToCommunityStandards: boolean; // Matches backend's AgreeToCommunityStandards
 }
 
 /**

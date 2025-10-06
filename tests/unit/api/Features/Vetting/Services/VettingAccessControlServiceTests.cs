@@ -82,27 +82,10 @@ public class VettingAccessControlServiceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task CanUserRsvpAsync_WhenUserHasSubmittedStatus_ReturnsAllowed()
-    {
-        // Arrange
-        var user = await CreateTestUser("submitted@example.com", "Member");
-        await CreateTestVettingApplication(user.Id, VettingStatus.Submitted);
-        var eventId = Guid.NewGuid();
-
-        // Act
-        var result = await _service.CanUserRsvpAsync(user.Id, eventId);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.IsAllowed.Should().BeTrue();
-        result.Value.VettingStatus.Should().Be(VettingStatus.Submitted);
-    }
-
-    [Fact]
     public async Task CanUserRsvpAsync_WhenUserHasUnderReviewStatus_ReturnsAllowed()
     {
         // Arrange
-        var user = await CreateTestUser("review@example.com", "Member");
+        var user = await CreateTestUser("underreview@example.com", "Member");
         await CreateTestVettingApplication(user.Id, VettingStatus.UnderReview);
         var eventId = Guid.NewGuid();
 
@@ -232,11 +215,11 @@ public class VettingAccessControlServiceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task CanUserPurchaseTicketAsync_WhenUserHasSubmittedStatus_ReturnsAllowed()
+    public async Task CanUserPurchaseTicketAsync_WhenUserHasUnderReviewStatus_ReturnsAllowed()
     {
         // Arrange
-        var user = await CreateTestUser("ticket_submitted@example.com", "Member");
-        await CreateTestVettingApplication(user.Id, VettingStatus.Submitted);
+        var user = await CreateTestUser("ticket_underreview@example.com", "Member");
+        await CreateTestVettingApplication(user.Id, VettingStatus.UnderReview);
         var eventId = Guid.NewGuid();
 
         // Act
@@ -440,11 +423,11 @@ public class VettingAccessControlServiceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task CanUserRsvpAsync_WhenUserHasPendingInterviewStatus_ReturnsAllowed()
+    public async Task CanUserRsvpAsync_WhenUserHasFinalReviewStatus_ReturnsAllowed()
     {
         // Arrange
-        var user = await CreateTestUser("pending_interview@example.com", "Member");
-        await CreateTestVettingApplication(user.Id, VettingStatus.PendingInterview);
+        var user = await CreateTestUser("finalreview@example.com", "Member");
+        await CreateTestVettingApplication(user.Id, VettingStatus.FinalReview);
         var eventId = Guid.NewGuid();
 
         // Act
@@ -453,7 +436,7 @@ public class VettingAccessControlServiceTests : IAsyncLifetime
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.IsAllowed.Should().BeTrue();
-        result.Value.VettingStatus.Should().Be(VettingStatus.PendingInterview);
+        result.Value.VettingStatus.Should().Be(VettingStatus.FinalReview);
     }
 
     #endregion
@@ -493,7 +476,7 @@ public class VettingAccessControlServiceTests : IAsyncLifetime
             Email = $"test_{Guid.NewGuid():N}@example.com",
             ApplicationNumber = $"VET-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}"[..20],
             StatusToken = Guid.NewGuid().ToString("N"),
-            Status = status,
+            WorkflowStatus = status,
             SubmittedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow

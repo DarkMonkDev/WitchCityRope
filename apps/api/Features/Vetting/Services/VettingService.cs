@@ -61,7 +61,7 @@ public class VettingService : IVettingService
 
                 if (statusValues.Any())
                 {
-                    query = query.Where(v => statusValues.Contains(v.Status));
+                    query = query.Where(v => statusValues.Contains(v.WorkflowStatus));
                 }
             }
 
@@ -96,8 +96,8 @@ public class VettingService : IVettingService
                     ? query.OrderBy(v => v.SubmittedAt)
                     : query.OrderByDescending(v => v.SubmittedAt),
                 "status" => request.SortDirection.ToLower() == "asc"
-                    ? query.OrderBy(v => v.Status)
-                    : query.OrderByDescending(v => v.Status),
+                    ? query.OrderBy(v => v.WorkflowStatus)
+                    : query.OrderByDescending(v => v.WorkflowStatus),
                 "scenename" => request.SortDirection.ToLower() == "asc"
                     ? query.OrderBy(v => v.SceneName)
                     : query.OrderByDescending(v => v.SceneName),
@@ -115,7 +115,7 @@ public class VettingService : IVettingService
             {
                 Id = app.Id,
                 ApplicationNumber = app.Id.ToString()[..8], // Simple application number from ID
-                Status = app.Status.ToString(),
+                Status = app.WorkflowStatus.ToString(),
                 SubmittedAt = app.SubmittedAt,
                 LastActivityAt = app.UpdatedAt,
                 SceneName = app.SceneName,
@@ -134,7 +134,7 @@ public class VettingService : IVettingService
                     AllReferencesComplete = false
                 },
                 HasRecentNotes = false, // Default for now
-                HasPendingActions = app.Status == VettingStatus.UnderReview,
+                HasPendingActions = app.WorkflowStatus == VettingStatus.UnderReview,
                 InterviewScheduledFor = app.InterviewScheduledFor,
                 SkillsTags = new List<string>()
             }).ToList();
@@ -216,7 +216,7 @@ public class VettingService : IVettingService
             {
                 Id = application.Id,
                 ApplicationNumber = application.Id.ToString()[..8],
-                Status = application.Status.ToString(),
+                Status = application.WorkflowStatus.ToString(),
                 SubmittedAt = application.SubmittedAt,
                 LastActivityAt = application.UpdatedAt,
                 FullName = application.RealName,
@@ -230,7 +230,7 @@ public class VettingService : IVettingService
                 ConsentUnderstanding = "", // Not in simplified entity
                 WhyJoinCommunity = application.AboutYourself, // Using available field
                 SkillsInterests = new List<string>(),
-                ExpectationsGoals = application.HowFoundUs, // Using available field
+                ExpectationsGoals = "", // Field removed
                 AgreesToGuidelines = true, // Default
                 IsAnonymous = false,
                 AgreesToTerms = true,
@@ -297,19 +297,21 @@ public class VettingService : IVettingService
                     "approved" => VettingStatus.Approved,
                     "denied" => VettingStatus.Denied,
                     "onhold" => VettingStatus.OnHold,
-                    "pendinginterview" => VettingStatus.PendingInterview,
-                    _ => application.Status
+                    "interviewapproved" => VettingStatus.InterviewApproved,
+                    "interviewscheduled" => VettingStatus.InterviewScheduled,
+                    "finalreview" => VettingStatus.FinalReview,
+                    _ => application.WorkflowStatus
                 };
             }
             else if (request.DecisionType is int decisionInt)
             {
                 newStatus = decisionInt switch
                 {
-                    1 => VettingStatus.Approved, // Approve
+                    1 => VettingStatus.InterviewApproved, // Approve for interview
                     2 => VettingStatus.Denied,   // Deny
                     3 => VettingStatus.OnHold,   // Request additional info
-                    4 => VettingStatus.PendingInterview, // Schedule interview
-                    _ => application.Status // No change
+                    4 => VettingStatus.Approved, // Final approval
+                    _ => application.WorkflowStatus // No change
                 };
             }
             else
@@ -318,11 +320,11 @@ public class VettingService : IVettingService
                 var decisionValue = request.DecisionType?.ToString()?.ToLower() ?? "";
                 newStatus = decisionValue switch
                 {
-                    "approved" or "1" => VettingStatus.Approved,
+                    "approved" or "4" => VettingStatus.Approved,
                     "denied" or "2" => VettingStatus.Denied,
                     "onhold" or "3" => VettingStatus.OnHold,
-                    "pendinginterview" or "4" => VettingStatus.PendingInterview,
-                    _ => application.Status
+                    "interviewapproved" or "1" => VettingStatus.InterviewApproved,
+                    _ => application.WorkflowStatus
                 };
             }
 
@@ -335,8 +337,8 @@ public class VettingService : IVettingService
                     $"A reason must be provided when setting status to {newStatus}");
             }
 
-            var oldStatus = application.Status;
-            application.Status = newStatus;
+            var oldStatus = application.WorkflowStatus;
+            application.WorkflowStatus = newStatus;
             application.UpdatedAt = DateTime.UtcNow;
             application.DecisionMadeAt = request.IsFinalDecision ? DateTime.UtcNow : null;
             application.InterviewScheduledFor = request.ProposedInterviewTime;
@@ -500,12 +502,12 @@ public class VettingService : IVettingService
             {
                 ApplicationId = application.Id,
                 ApplicationNumber = application.Id.ToString("N")[..8],
-                Status = application.Status.ToString(),
-                StatusDescription = GetStatusDescription(application.Status),
+                Status = application.WorkflowStatus.ToString(),
+                StatusDescription = GetStatusDescription(application.WorkflowStatus),
                 SubmittedAt = application.SubmittedAt,
                 LastUpdated = application.UpdatedAt,
-                NextSteps = GetNextSteps(application.Status),
-                EstimatedDaysRemaining = GetEstimatedDaysRemaining(application.Status, application.SubmittedAt)
+                NextSteps = GetNextSteps(application.WorkflowStatus),
+                EstimatedDaysRemaining = GetEstimatedDaysRemaining(application.WorkflowStatus, application.SubmittedAt)
             };
 
             var responseWithApp = new MyApplicationStatusResponse
@@ -551,7 +553,7 @@ public class VettingService : IVettingService
             {
                 ApplicationId = application.Id,
                 ApplicationNumber = application.Id.ToString("N")[..8],
-                Status = application.Status.ToString(),
+                Status = application.WorkflowStatus.ToString(),
                 SceneName = application.SceneName ?? "Not provided",
                 Email = application.Email,
                 SubmittedAt = application.SubmittedAt,
@@ -588,13 +590,14 @@ public class VettingService : IVettingService
     {
         return status switch
         {
-            VettingStatus.Draft => "Application draft - not yet submitted",
             VettingStatus.UnderReview => "Application is being reviewed by our team",
             VettingStatus.InterviewApproved => "Approved for interview - someone will contact you soon",
-            VettingStatus.PendingInterview => "Interview scheduled - please check your email for details",
+            VettingStatus.InterviewScheduled => "Interview scheduled - please check your email for details",
+            VettingStatus.FinalReview => "Interview completed - application under final review",
             VettingStatus.Approved => "Application approved - welcome to the community!",
             VettingStatus.OnHold => "Application on hold - additional information may be needed",
             VettingStatus.Denied => "Application was not approved at this time",
+            VettingStatus.Withdrawn => "Application has been withdrawn",
             _ => "Unknown status"
         };
     }
@@ -606,13 +609,14 @@ public class VettingService : IVettingService
     {
         return status switch
         {
-            VettingStatus.Draft => "Complete and submit your vetting application",
             VettingStatus.UnderReview => "No action needed - we'll contact you with updates",
             VettingStatus.InterviewApproved => "Wait for interview scheduling email",
-            VettingStatus.PendingInterview => "Attend your scheduled interview",
+            VettingStatus.InterviewScheduled => "Attend your scheduled interview",
+            VettingStatus.FinalReview => "No action needed - final decision pending",
             VettingStatus.Approved => "You can now register for member events",
             VettingStatus.OnHold => "Check your email for requested information",
             VettingStatus.Denied => "You may reapply after 6 months",
+            VettingStatus.Withdrawn => null,
             _ => null
         };
     }
@@ -626,7 +630,8 @@ public class VettingService : IVettingService
         {
             VettingStatus.UnderReview => Math.Max(0, 14 - (DateTime.UtcNow - submittedAt).Days), // 2 week typical review
             VettingStatus.InterviewApproved => Math.Max(0, 7 - (DateTime.UtcNow - submittedAt).Days), // 1 week to schedule
-            VettingStatus.PendingInterview => Math.Max(0, 3 - (DateTime.UtcNow - submittedAt).Days), // 3 days after interview
+            VettingStatus.InterviewScheduled => Math.Max(0, 3 - (DateTime.UtcNow - submittedAt).Days), // 3 days after interview
+            VettingStatus.FinalReview => Math.Max(0, 7 - (DateTime.UtcNow - submittedAt).Days), // 1 week for final decision
             _ => null
         };
     }
@@ -697,7 +702,7 @@ public class VettingService : IVettingService
                 Email = request.Email,
                 ApplicationNumber = applicationNumber,
                 StatusToken = statusToken,
-                Status = VettingStatus.Submitted,
+                WorkflowStatus = VettingStatus.UnderReview, // Applications start in UnderReview status
                 SubmittedAt = DateTime.UtcNow,
 
                 // Personal information
@@ -736,7 +741,7 @@ public class VettingService : IVettingService
             // Build response
             var response = new ApplicationSubmissionResponse
             {
-                ApplicationId = application.Id,
+                Id = application.Id,
                 ApplicationNumber = applicationNumber,
                 StatusToken = statusToken,
                 SubmittedAt = application.SubmittedAt,
@@ -791,9 +796,9 @@ public class VettingService : IVettingService
             var response = new ApplicationStatusResponse
             {
                 ApplicationNumber = application.ApplicationNumber,
-                Status = application.Status.ToString(),
+                Status = application.WorkflowStatus.ToString(),
                 SubmittedAt = application.SubmittedAt,
-                StatusDescription = GetStatusDescription(application.Status),
+                StatusDescription = GetStatusDescription(application.WorkflowStatus),
                 LastUpdateAt = application.LastReviewedAt ?? application.SubmittedAt,
                 EstimatedDaysRemaining = CalculateEstimatedDaysRemaining(application),
                 Progress = progress,
@@ -819,20 +824,21 @@ public class VettingService : IVettingService
         var progress = new ApplicationProgressSummary
         {
             ApplicationSubmitted = true,
-            ReferencesContacted = application.Status >= VettingStatus.UnderReview,
-            ReferencesReceived = application.Status >= VettingStatus.UnderReview,
-            UnderReview = application.Status >= VettingStatus.UnderReview,
-            InterviewScheduled = application.Status == VettingStatus.InterviewScheduled,
-            DecisionMade = application.Status is VettingStatus.Approved or VettingStatus.Denied,
-            CurrentPhase = GetCurrentPhase(application.Status)
+            ReferencesContacted = application.WorkflowStatus >= VettingStatus.UnderReview,
+            ReferencesReceived = application.WorkflowStatus >= VettingStatus.UnderReview,
+            UnderReview = application.WorkflowStatus >= VettingStatus.UnderReview,
+            InterviewScheduled = application.WorkflowStatus == VettingStatus.InterviewScheduled,
+            DecisionMade = application.WorkflowStatus is VettingStatus.Approved or VettingStatus.Denied,
+            CurrentPhase = GetCurrentPhase(application.WorkflowStatus)
         };
 
         // Calculate progress percentage
-        progress.ProgressPercentage = application.Status switch
+        progress.ProgressPercentage = application.WorkflowStatus switch
         {
-            VettingStatus.Submitted => 20,
-            VettingStatus.UnderReview => 40,
-            VettingStatus.InterviewScheduled => 70,
+            VettingStatus.UnderReview => 20,
+            VettingStatus.InterviewApproved => 40,
+            VettingStatus.InterviewScheduled => 60,
+            VettingStatus.FinalReview => 80,
             VettingStatus.Approved => 100,
             VettingStatus.Denied => 100,
             VettingStatus.OnHold => 50,
@@ -850,9 +856,10 @@ public class VettingService : IVettingService
     {
         return status switch
         {
-            VettingStatus.Submitted => "Application Submitted",
             VettingStatus.UnderReview => "Under Review",
+            VettingStatus.InterviewApproved => "Interview Approved",
             VettingStatus.InterviewScheduled => "Interview Scheduled",
+            VettingStatus.FinalReview => "Final Review",
             VettingStatus.Approved => "Approved",
             VettingStatus.Denied => "Application Denied",
             VettingStatus.OnHold => "On Hold",
@@ -867,7 +874,7 @@ public class VettingService : IVettingService
     /// </summary>
     private int? CalculateEstimatedDaysRemaining(VettingApplication application)
     {
-        if (application.Status is VettingStatus.Approved or VettingStatus.Denied or VettingStatus.Withdrawn)
+        if (application.WorkflowStatus is VettingStatus.Approved or VettingStatus.Denied or VettingStatus.Withdrawn)
         {
             return null; // No remaining days for final statuses
         }
@@ -894,12 +901,12 @@ public class VettingService : IVettingService
             }
         };
 
-        if (application.LastReviewedAt.HasValue && application.Status >= VettingStatus.UnderReview)
+        if (application.LastReviewedAt.HasValue && application.WorkflowStatus >= VettingStatus.UnderReview)
         {
             updates.Add(new StatusUpdateSummary
             {
                 UpdatedAt = application.LastReviewedAt.Value,
-                Message = $"Application status changed to {application.Status}",
+                Message = $"Application status changed to {application.WorkflowStatus}",
                 Type = "StatusChange"
             });
         }
@@ -974,7 +981,7 @@ public class VettingService : IVettingService
                 Pronouns = request.Pronouns,
                 ApplicationNumber = applicationNumber,
                 StatusToken = statusToken,
-                Status = VettingStatus.Submitted,
+                WorkflowStatus = VettingStatus.UnderReview, // Applications start in UnderReview status
                 SubmittedAt = DateTime.UtcNow,
 
                 // Experience & knowledge (minimal for public submission)
@@ -1006,7 +1013,7 @@ public class VettingService : IVettingService
             // Build response
             var response = new ApplicationSubmissionResponse
             {
-                ApplicationId = application.Id,
+                Id = application.Id,
                 ApplicationNumber = applicationNumber,
                 StatusToken = statusToken,
                 SubmittedAt = application.SubmittedAt,
@@ -1021,6 +1028,104 @@ public class VettingService : IVettingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to submit public vetting application for {SceneName}", request.SceneName);
+            return Result<ApplicationSubmissionResponse>.Failure(
+                "Failed to submit application",
+                "An error occurred while processing your application. Please try again later.");
+        }
+    }
+
+    /// <summary>
+    /// Submit simplified vetting application from authenticated user
+    /// Uses the streamlined form with fewer required fields
+    /// </summary>
+    public async Task<Result<ApplicationSubmissionResponse>> SubmitSimplifiedApplicationAsync(
+        SimplifiedApplicationRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Submitting simplified vetting application for {SceneName} ({Email})",
+                request.PreferredSceneName, request.Email);
+
+            // Check for duplicate application by email
+            var existingApp = await _context.VettingApplications
+                .AsNoTracking()
+                .FirstOrDefaultAsync(v => v.Email == request.Email, cancellationToken);
+
+            if (existingApp != null)
+            {
+                return Result<ApplicationSubmissionResponse>.Failure(
+                    "Duplicate application",
+                    "An application already exists for this email address");
+            }
+
+            // Generate unique application number and status token
+            var applicationNumber = $"VET-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..8].ToUpper()}";
+            var statusToken = Guid.NewGuid().ToString("N"); // No hyphens for cleaner URLs
+
+            // Create vetting application entity
+            var application = new VettingApplication
+            {
+                SceneName = request.PreferredSceneName,
+                RealName = request.RealName,
+                Email = request.Email,
+                Pronouns = request.Pronouns,
+                FetLifeHandle = request.FetLifeHandle,
+                ApplicationNumber = applicationNumber,
+                StatusToken = statusToken,
+                WorkflowStatus = VettingStatus.UnderReview,
+                SubmittedAt = DateTime.UtcNow,
+
+                // Experience & knowledge
+                ExperienceLevel = 1, // Default to beginner for simplified form
+                YearsExperience = 0,
+                ExperienceDescription = request.ExperienceWithRope,
+
+                // Community understanding
+                WhyJoinCommunity = request.WhyJoin,
+                AgreesToGuidelines = request.AgreeToCommunityStandards,
+
+                // Other names/handles
+                AboutYourself = request.OtherNames ?? string.Empty,
+
+                // Terms
+                AgreesToTerms = request.AgreeToCommunityStandards,
+                ConsentToContact = true // Default for authenticated users
+            };
+
+            _context.VettingApplications.Add(application);
+
+            // Update user's VettingStatus so dashboard shows correct status
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
+            if (user != null)
+            {
+                user.VettingStatus = (int)VettingStatus.UnderReview;
+                _logger.LogInformation("Updated user {UserId} VettingStatus to UnderReview", user.Id);
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Simplified vetting application {ApplicationNumber} submitted successfully with ID {ApplicationId}",
+                applicationNumber, application.Id);
+
+            // Build response
+            var response = new ApplicationSubmissionResponse
+            {
+                Id = application.Id,
+                ApplicationNumber = applicationNumber,
+                StatusToken = statusToken,
+                SubmittedAt = application.SubmittedAt,
+                ConfirmationMessage = "Thank you for submitting your vetting application. You will receive updates via email.",
+                EstimatedReviewDays = 14,
+                NextSteps = "Your application will be reviewed by our vetting committee within 14 days.",
+                ReferenceStatuses = new List<ReferenceStatusSummary>()
+            };
+
+            return Result<ApplicationSubmissionResponse>.Success(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to submit simplified vetting application for {SceneName}", request.PreferredSceneName);
             return Result<ApplicationSubmissionResponse>.Failure(
                 "Failed to submit application",
                 "An error occurred while processing your application. Please try again later.");
@@ -1084,14 +1189,14 @@ public class VettingService : IVettingService
                     "Application not found", $"No application found with ID {applicationId}");
             }
 
-            var oldStatus = application.Status;
+            var oldStatus = application.WorkflowStatus;
 
             // Check if application is in terminal state FIRST - before any other validation
-            if (oldStatus == VettingStatus.Approved || oldStatus == VettingStatus.Denied)
+            if (oldStatus == VettingStatus.Approved || oldStatus == VettingStatus.Denied || oldStatus == VettingStatus.Withdrawn)
             {
                 return Result<ApplicationDetailResponse>.Failure(
                     "Cannot modify terminal state",
-                    "Approved and Denied applications cannot be modified.");
+                    "Approved, Denied, and Withdrawn applications cannot be modified.");
             }
 
             // Validate status transition
@@ -1111,8 +1216,8 @@ public class VettingService : IVettingService
                     $"Admin notes are required when changing status to {newStatus}");
             }
 
-            // Update application status
-            application.Status = newStatus;
+            // Update application workflow status
+            application.WorkflowStatus = newStatus;
             application.UpdatedAt = DateTime.UtcNow;
 
             // Update status-specific timestamps
@@ -1154,6 +1259,27 @@ public class VettingService : IVettingService
                 Notes = adminNotes
             };
             _context.VettingAuditLogs.Add(auditLog);
+
+            // Sync User.VettingStatus for terminal states (source of truth for permissions)
+            if (newStatus is VettingStatus.Approved or VettingStatus.Denied && application.UserId.HasValue)
+            {
+                var applicantUser = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Id == application.UserId.Value, cancellationToken);
+
+                if (applicantUser != null)
+                {
+                    applicantUser.VettingStatus = (int)newStatus;
+                    if (newStatus == VettingStatus.Approved)
+                    {
+                        applicantUser.IsVetted = true;
+                    }
+                    _context.Users.Update(applicantUser);
+
+                    _logger.LogInformation(
+                        "Synced User.VettingStatus to {VettingStatus} for user {UserId} (application {ApplicationId})",
+                        newStatus, application.UserId.Value, applicationId);
+                }
+            }
 
             await _context.SaveChangesAsync(cancellationToken);
 
@@ -1254,7 +1380,7 @@ public class VettingService : IVettingService
             }
 
             // Validate status transition to InterviewScheduled
-            var oldStatus = application.Status;
+            var oldStatus = application.WorkflowStatus;
             var transitionValidation = ValidateStatusTransition(oldStatus, VettingStatus.InterviewScheduled);
             if (!transitionValidation.IsSuccess)
             {
@@ -1263,7 +1389,7 @@ public class VettingService : IVettingService
             }
 
             // Update application
-            application.Status = VettingStatus.InterviewScheduled;
+            application.WorkflowStatus = VettingStatus.InterviewScheduled;
             application.InterviewScheduledFor = interviewDate;
             application.UpdatedAt = DateTime.UtcNow;
 
@@ -1375,27 +1501,27 @@ public class VettingService : IVettingService
                     "Application not found", $"No application found with ID {applicationId}");
             }
 
-            // Validate status - must be in UnderReview or later (but not already in terminal state)
+            // Validate workflow status - must be in UnderReview or later (but not already in terminal state)
             // Allow approval from UnderReview, InterviewApproved, PendingInterview, InterviewScheduled, or OnHold
-            if (application.Status < VettingStatus.UnderReview)
+            if (application.WorkflowStatus < VettingStatus.UnderReview)
             {
                 return Result<ApplicationDetailResponse>.Failure(
                     "Invalid status for approval",
-                    "Application must be in UnderReview status or later before approval. Current status: " + application.Status);
+                    "Application must be in UnderReview status or later before approval. Current status: " + application.WorkflowStatus);
             }
 
             // Check if already in terminal state
-            if (application.Status == VettingStatus.Approved || application.Status == VettingStatus.Denied || application.Status == VettingStatus.Withdrawn)
+            if (application.WorkflowStatus == VettingStatus.Approved || application.WorkflowStatus == VettingStatus.Denied || application.WorkflowStatus == VettingStatus.Withdrawn)
             {
                 return Result<ApplicationDetailResponse>.Failure(
                     "Cannot modify terminal state",
-                    $"Application is already in terminal state: {application.Status}");
+                    $"Application is already in terminal state: {application.WorkflowStatus}");
             }
 
-            var oldStatus = application.Status;
+            var oldStatus = application.WorkflowStatus;
 
-            // Update application status
-            application.Status = VettingStatus.Approved;
+            // Update application workflow status
+            application.WorkflowStatus = VettingStatus.Approved;
             application.DecisionMadeAt = DateTime.UtcNow;
             application.UpdatedAt = DateTime.UtcNow;
 
@@ -1407,7 +1533,7 @@ public class VettingService : IVettingService
                 ? newNote
                 : $"{existingNotes}\n\n{newNote}";
 
-            // Update user role if user is linked
+            // Update user role and vetting status if user is linked
             if (application.UserId.HasValue)
             {
                 // Load user explicitly (don't rely on navigation property which might not be tracked)
@@ -1422,11 +1548,14 @@ public class VettingService : IVettingService
                     // Update IsVetted flag (CRITICAL for RSVP access)
                     user.IsVetted = true;
 
+                    // Sync User.VettingStatus (source of truth for permissions/access control)
+                    user.VettingStatus = (int)VettingStatus.Approved;
+
                     // Explicitly mark user as modified to ensure EF tracks the change
                     _context.Users.Update(user);
 
                     _logger.LogInformation(
-                        "Set IsVetted=true and Role=VettedMember for user {UserId} for approved application {ApplicationId}",
+                        "Set IsVetted=true, Role=VettedMember, and VettingStatus=Approved for user {UserId} for approved application {ApplicationId}",
                         application.UserId.Value, applicationId);
 
                     // Get the VettedMember role from database
@@ -1540,19 +1669,57 @@ public class VettingService : IVettingService
     /// <returns>Result indicating if transition is valid</returns>
     private Result<bool> ValidateStatusTransition(VettingStatus currentStatus, VettingStatus newStatus)
     {
-        // Define valid transitions
+        // Define valid transitions based on new simplified workflow
+        // Workflow: UnderReview → InterviewApproved → InterviewScheduled → FinalReview → Approved/Denied/OnHold
         var validTransitions = new Dictionary<VettingStatus, List<VettingStatus>>
         {
-            [VettingStatus.Draft] = new() { VettingStatus.Submitted },
-            [VettingStatus.Submitted] = new() { VettingStatus.UnderReview, VettingStatus.Withdrawn },
-            [VettingStatus.UnderReview] = new() { VettingStatus.InterviewApproved, VettingStatus.OnHold, VettingStatus.Denied, VettingStatus.Withdrawn },
-            [VettingStatus.InterviewApproved] = new() { VettingStatus.PendingInterview, VettingStatus.OnHold, VettingStatus.Withdrawn },
-            [VettingStatus.PendingInterview] = new() { VettingStatus.InterviewScheduled, VettingStatus.OnHold, VettingStatus.Withdrawn },
-            [VettingStatus.InterviewScheduled] = new() { VettingStatus.Approved, VettingStatus.OnHold, VettingStatus.Denied, VettingStatus.Withdrawn },
-            [VettingStatus.OnHold] = new() { VettingStatus.UnderReview, VettingStatus.InterviewApproved, VettingStatus.Denied, VettingStatus.Withdrawn },
-            [VettingStatus.Approved] = new(), // Terminal state - no transitions
-            [VettingStatus.Denied] = new(),   // Terminal state - no transitions
-            [VettingStatus.Withdrawn] = new() // Terminal state - no transitions
+            // UnderReview can move to interview approval, be put on hold, denied, or withdrawn
+            [VettingStatus.UnderReview] = new()
+            {
+                VettingStatus.InterviewApproved,
+                VettingStatus.OnHold,
+                VettingStatus.Denied,
+                VettingStatus.Withdrawn
+            },
+
+            // InterviewApproved can schedule interview, go on hold, or be withdrawn
+            [VettingStatus.InterviewApproved] = new()
+            {
+                VettingStatus.InterviewScheduled,
+                VettingStatus.OnHold,
+                VettingStatus.Withdrawn
+            },
+
+            // InterviewScheduled can move to final review, be put on hold, or withdrawn
+            [VettingStatus.InterviewScheduled] = new()
+            {
+                VettingStatus.FinalReview,
+                VettingStatus.OnHold,
+                VettingStatus.Withdrawn
+            },
+
+            // FinalReview leads to final decision (Approved, Denied, or OnHold)
+            [VettingStatus.FinalReview] = new()
+            {
+                VettingStatus.Approved,
+                VettingStatus.Denied,
+                VettingStatus.OnHold,
+                VettingStatus.Withdrawn
+            },
+
+            // OnHold can return to review or interview stages, be denied, or withdrawn
+            [VettingStatus.OnHold] = new()
+            {
+                VettingStatus.UnderReview,
+                VettingStatus.InterviewApproved,
+                VettingStatus.Denied,
+                VettingStatus.Withdrawn
+            },
+
+            // Terminal states - no transitions allowed
+            [VettingStatus.Approved] = new(),
+            [VettingStatus.Denied] = new(),
+            [VettingStatus.Withdrawn] = new()
         };
 
         // Check if current status has valid transitions defined

@@ -276,9 +276,18 @@ export const UpcomingEvents: React.FC<UpcomingEventsProps> = ({
                   <Button
                     variant="light"
                     color="blue"
-                    size="sm"
                     rightSection={<IconArrowRight size={16} />}
                     onClick={onViewAllEvents}
+                    styles={{
+                      root: {
+                        fontWeight: 600,
+                        height: '44px',
+                        paddingTop: '12px',
+                        paddingBottom: '12px',
+                        fontSize: '14px',
+                        lineHeight: '1.2'
+                      }
+                    }}
                   >
                     View All My Events
                   </Button>

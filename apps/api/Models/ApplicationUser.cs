@@ -54,5 +54,11 @@ public class ApplicationUser : IdentityUser<Guid>
     public DateTime? LastPasswordChangeAt { get; set; }
     public string EmailVerificationToken { get; set; } = string.Empty;
     public DateTime? EmailVerificationTokenCreatedAt { get; set; }
+
+    /// <summary>
+    /// Current vetting status for permission/access control (SOURCE OF TRUTH)
+    /// This is the authoritative status used for checking user permissions.
+    /// Updated when VettingApplication reaches terminal states (Approved, Denied, etc.)
+    /// </summary>
     public int VettingStatus { get; set; } = 0;
 }

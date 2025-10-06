@@ -182,11 +182,18 @@ export const VolunteerPositionFormModal: React.FC<VolunteerPositionFormModalProp
             </Button>
             <Button
               type="submit"
-              style={{
-                background: 'linear-gradient(135deg, var(--mantine-color-amber-6), #DAA520)',
-                border: 'none',
-                color: 'var(--mantine-color-dark-9)',
-                fontWeight: 600,
+              styles={{
+                root: {
+                  background: 'linear-gradient(135deg, var(--mantine-color-amber-6), #DAA520)',
+                  border: 'none',
+                  color: 'var(--mantine-color-dark-9)',
+                  fontWeight: 600,
+                  height: '44px',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                  fontSize: '14px',
+                  lineHeight: '1.2',
+                }
               }}
               data-testid="button-save-volunteer-position"
             >

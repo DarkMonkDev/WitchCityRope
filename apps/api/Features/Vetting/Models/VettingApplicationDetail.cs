@@ -19,7 +19,6 @@ public class VettingApplicationDetail
     public string? Pronouns { get; set; }
     public string? OtherNames { get; set; }
     public string AboutYourself { get; set; } = string.Empty;
-    public string HowFoundUs { get; set; } = string.Empty;
     public bool AgreeToCommunityStandards { get; set; }
 
     // Admin information

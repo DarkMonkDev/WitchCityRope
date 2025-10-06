@@ -1,7 +1,8 @@
 import React from 'react';
-import { Modal, TextInput, NumberInput, Group, Button, Stack, MultiSelect, Textarea, Switch } from '@mantine/core';
+import { Modal, TextInput, NumberInput, Group, Button, Stack, MultiSelect, Textarea, Switch, Alert } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
+import { IconAlertCircle } from '@tabler/icons-react';
 // Define the modal's own EventTicketType interface
 export interface EventTicketType {
   id: string;
@@ -78,8 +79,17 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
   });
 
   // Create session options for MultiSelect with safety checks
+  // CRITICAL: Only show persisted sessions (those with valid IDs and complete date/time data)
+  // This prevents crashes when unsaved sessions are selected
   const sessionOptions = availableSessions
-    .filter(session => session?.sessionIdentifier && session?.name) // Filter out invalid sessions
+    .filter(session =>
+      session?.sessionIdentifier &&
+      session?.name &&
+      session?.id &&
+      session?.date &&
+      session?.startTime &&
+      !session.id.startsWith('temp-') // Exclude temporary IDs
+    )
     .map(session => ({
       value: session.sessionIdentifier,
       label: `${session.sessionIdentifier} - ${session.name}`,
@@ -106,44 +116,72 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
     updateSaleEndDate(value);
   };
 
-  // Smart sale end date defaults
+  // Smart sale end date defaults with crash protection
   const updateSaleEndDate = (selectedSessions: string[]) => {
     if (selectedSessions.length === 0 || !availableSessions.length) return;
-    
+
     let targetDate: Date | null = null;
-    
+
+    // Helper function to safely create date from session data
+    const createSafeDate = (session: EventSession): Date | null => {
+      try {
+        if (!session?.date || !session?.startTime) return null;
+        const dateStr = `${session.date}T${session.startTime}`;
+        const date = new Date(dateStr);
+        // Validate the date is actually valid
+        if (isNaN(date.getTime())) return null;
+        return date;
+      } catch (error) {
+        console.warn('Failed to create date from session:', session, error);
+        return null;
+      }
+    };
+
     if (selectedSessions.includes('ALL')) {
       // Use the earliest session start date/time
-      const validSessions = availableSessions.filter(session => session?.date && session?.startTime);
+      // CRITICAL: Only use persisted sessions with complete data
+      const validSessions = availableSessions.filter(session =>
+        session?.id &&
+        session?.date &&
+        session?.startTime &&
+        !session.id.startsWith('temp-')
+      );
       if (validSessions.length === 0) return;
 
       const earliestSession = validSessions.reduce((earliest, session) => {
-        const sessionDateTime = new Date(`${session.date}T${session.startTime}`);
-        const earliestDateTime = new Date(`${earliest.date}T${earliest.startTime}`);
-        return sessionDateTime < earliestDateTime ? session : earliest;
+        const sessionDate = createSafeDate(session);
+        const earliestDate = createSafeDate(earliest);
+        if (!sessionDate || !earliestDate) return earliest;
+        return sessionDate < earliestDate ? session : earliest;
       });
-      targetDate = new Date(`${earliestSession.date}T${earliestSession.startTime}`);
+      targetDate = createSafeDate(earliestSession);
     } else {
       // Find the selected session(s) and use the earliest
       const selectedSessionsData = availableSessions.filter(s =>
-        s?.sessionIdentifier && selectedSessions.includes(s.sessionIdentifier)
+        s?.sessionIdentifier &&
+        s?.id &&
+        !s.id.startsWith('temp-') &&
+        selectedSessions.includes(s.sessionIdentifier)
       );
-      
+
       if (selectedSessionsData.length > 0) {
-        const validSelectedSessions = selectedSessionsData.filter(session => session?.date && session?.startTime);
+        const validSelectedSessions = selectedSessionsData.filter(session =>
+          session?.date && session?.startTime
+        );
         if (validSelectedSessions.length === 0) return;
 
         const earliestSelected = validSelectedSessions.reduce((earliest, session) => {
-          const sessionDateTime = new Date(`${session.date}T${session.startTime}`);
-          const earliestDateTime = new Date(`${earliest.date}T${earliest.startTime}`);
-          return sessionDateTime < earliestDateTime ? session : earliest;
+          const sessionDate = createSafeDate(session);
+          const earliestDate = createSafeDate(earliest);
+          if (!sessionDate || !earliestDate) return earliest;
+          return sessionDate < earliestDate ? session : earliest;
         });
-        targetDate = new Date(`${earliestSelected.date}T${earliestSelected.startTime}`);
+        targetDate = createSafeDate(earliestSelected);
       }
     }
-    
-    // Only auto-set if no sale end date is currently set
-    if (targetDate && !form.values.saleEndDate) {
+
+    // Only auto-set if we have a valid date and no sale end date is currently set
+    if (targetDate && !isNaN(targetDate.getTime()) && !form.values.saleEndDate) {
       form.setFieldValue('saleEndDate', targetDate);
     }
   };
@@ -181,6 +219,13 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
     >
       <form onSubmit={handleSubmit}>
         <Stack gap="md">
+          {sessionOptions.length === 0 && (
+            <Alert icon={<IconAlertCircle />} color="orange" title="Save Event First">
+              Please save the event with your sessions before creating tickets.
+              Tickets can only be created for saved sessions with complete date and time information.
+            </Alert>
+          )}
+
           <TextInput
             label="Ticket Name"
             placeholder="e.g., General Admission, VIP Pass"
@@ -257,11 +302,19 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
             </Button>
             <Button
               type="submit"
-              style={{
-                background: 'linear-gradient(135deg, var(--mantine-color-amber-6), #DAA520)',
-                border: 'none',
-                color: 'var(--mantine-color-dark-9)',
-                fontWeight: 600,
+              disabled={sessionOptions.length === 0}
+              styles={{
+                root: {
+                  background: 'linear-gradient(135deg, var(--mantine-color-amber-6), #DAA520)',
+                  border: 'none',
+                  color: 'var(--mantine-color-dark-9)',
+                  fontWeight: 600,
+                  height: '44px',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                  fontSize: '14px',
+                  lineHeight: '1.2',
+                }
               }}
             >
               {ticketType ? 'Update Ticket Type' : 'Add Ticket Type'}

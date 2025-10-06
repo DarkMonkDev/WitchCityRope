@@ -1,3 +1,5 @@
+using WitchCityRope.Api.Features.Vetting.Entities;
+
 namespace WitchCityRope.Api.Features.Dashboard.Models;
 
 /// <summary>
@@ -17,9 +19,15 @@ public class UserDashboardResponse
     public string Role { get; set; } = string.Empty;
 
     /// <summary>
-    /// Current vetting status (0 = Submitted, 1 = InReview, 2 = Approved, 3 = Rejected)
+    /// Current vetting status
     /// </summary>
-    public int VettingStatus { get; set; }
+    public VettingStatus VettingStatus { get; set; }
+
+    /// <summary>
+    /// Whether the user has ever submitted a vetting application
+    /// Used to distinguish between "No application yet" vs "Draft in progress"
+    /// </summary>
+    public bool HasVettingApplication { get; set; }
 
     /// <summary>
     /// Whether the user is currently vetted

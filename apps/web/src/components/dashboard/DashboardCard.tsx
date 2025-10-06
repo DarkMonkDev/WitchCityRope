@@ -123,17 +123,23 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
           fullWidth
           onClick={onActionClick}
           loading={loading}
-          style={{
-            fontFamily: "'Montserrat', sans-serif",
-            fontWeight: 600,
-            fontSize: '14px',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-            background: 'rgba(136, 1, 36, 0.1)',
-            color: '#880124',
-            border: '1px solid rgba(136, 1, 36, 0.3)',
-            borderRadius: '6px',
-            transition: 'all 0.3s ease',
+          styles={{
+            root: {
+              fontFamily: "'Montserrat', sans-serif",
+              fontWeight: 600,
+              fontSize: '14px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              background: 'rgba(136, 1, 36, 0.1)',
+              color: '#880124',
+              border: '1px solid rgba(136, 1, 36, 0.3)',
+              borderRadius: '6px',
+              transition: 'all 0.3s ease',
+              height: '44px',
+              paddingTop: '12px',
+              paddingBottom: '12px',
+              lineHeight: '1.2'
+            }
           }}
           onMouseEnter={(e) => {
             if (!loading) {

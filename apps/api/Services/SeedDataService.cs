@@ -209,48 +209,63 @@ public class SeedDataService : ISeedDataService
         _logger.LogInformation("Starting test user account creation");
 
         // Define comprehensive test accounts per functional specification
+        // Expanded to support all vetting application test scenarios
         var testAccounts = new[]
         {
-            new { 
-                Email = "admin@witchcityrope.com", 
-                SceneName = "RopeMaster", 
+            // Core test accounts
+            new {
+                Email = "admin@witchcityrope.com",
+                SceneName = "RopeMaster",
                 Role = "Administrator",
                 PronouncedName = "Rope Master",
                 Pronouns = "they/them",
                 IsVetted = true
             },
-            new { 
-                Email = "teacher@witchcityrope.com", 
-                SceneName = "SafetyFirst", 
+            new {
+                Email = "teacher@witchcityrope.com",
+                SceneName = "SafetyFirst",
                 Role = "Teacher",
                 PronouncedName = "Safety First",
                 Pronouns = "she/her",
                 IsVetted = true
             },
-            new { 
-                Email = "vetted@witchcityrope.com", 
-                SceneName = "RopeEnthusiast", 
+            new {
+                Email = "vetted@witchcityrope.com",
+                SceneName = "RopeEnthusiast",
                 Role = "Member",
                 PronouncedName = "Rope Enthusiast",
                 Pronouns = "he/him",
                 IsVetted = true
             },
-            new { 
-                Email = "member@witchcityrope.com", 
-                SceneName = "Learning", 
+            new {
+                Email = "member@witchcityrope.com",
+                SceneName = "Learning",
                 Role = "Member",
                 PronouncedName = "Learning",
                 Pronouns = "they/them",
                 IsVetted = false
             },
-            new { 
-                Email = "guest@witchcityrope.com", 
-                SceneName = "Newcomer", 
+            new {
+                Email = "guest@witchcityrope.com",
+                SceneName = "Newcomer",
                 Role = "Attendee",
                 PronouncedName = "Newcomer",
                 Pronouns = "she/they",
                 IsVetted = false
-            }
+            },
+            // Additional users for vetting application testing (users 5-16)
+            new { Email = "applicant1@example.com", SceneName = "RopeNovice", Role = "Attendee", PronouncedName = "Rope Novice", Pronouns = "she/her", IsVetted = false },
+            new { Email = "applicant2@example.com", SceneName = "KnotLearner", Role = "Attendee", PronouncedName = "Knot Learner", Pronouns = "they/them", IsVetted = false },
+            new { Email = "applicant3@example.com", SceneName = "TrustBuilder", Role = "Attendee", PronouncedName = "Trust Builder", Pronouns = "he/him", IsVetted = false },
+            new { Email = "applicant4@example.com", SceneName = "SilkAndSteel", Role = "Attendee", PronouncedName = "Silk And Steel", Pronouns = "she/her", IsVetted = false },
+            new { Email = "applicant5@example.com", SceneName = "EagerLearner", Role = "Attendee", PronouncedName = "Eager Learner", Pronouns = "she/they", IsVetted = false },
+            new { Email = "applicant6@example.com", SceneName = "QuickLearner", Role = "Attendee", PronouncedName = "Quick Learner", Pronouns = "he/him", IsVetted = false },
+            new { Email = "applicant7@example.com", SceneName = "ThoughtfulRigger", Role = "Attendee", PronouncedName = "Thoughtful Rigger", Pronouns = "they/them", IsVetted = false },
+            new { Email = "applicant8@example.com", SceneName = "CommunityBuilder", Role = "Attendee", PronouncedName = "Community Builder", Pronouns = "she/her", IsVetted = false },
+            new { Email = "applicant9@example.com", SceneName = "NervousNewbie", Role = "Attendee", PronouncedName = "Nervous Newbie", Pronouns = "he/him", IsVetted = false },
+            new { Email = "applicant10@example.com", SceneName = "RopeBunny", Role = "Attendee", PronouncedName = "Rope Bunny", Pronouns = "she/her", IsVetted = false },
+            new { Email = "applicant11@example.com", SceneName = "SafetyConscious", Role = "Attendee", PronouncedName = "Safety Conscious", Pronouns = "they/them", IsVetted = false },
+            new { Email = "applicant12@example.com", SceneName = "PatientPractitioner", Role = "Attendee", PronouncedName = "Patient Practitioner", Pronouns = "he/him", IsVetted = false }
         };
 
         var createdCount = 0;
@@ -275,6 +290,7 @@ public class SeedDataService : ISeedDataService
                 Pronouns = account.Pronouns,
                 IsActive = true,
                 IsVetted = account.IsVetted,
+                VettingStatus = account.IsVetted ? 4 : 0, // 4 = Approved for vetted users, 0 = UnderReview for non-vetted
 
                 // Set required fields with placeholder data for development
                 EncryptedLegalName = $"TestUser_{account.SceneName}",
@@ -427,13 +443,24 @@ public class SeedDataService : ISeedDataService
         }
 
         // Get existing users to link applications to real users
-        var users = await _userManager.Users.ToListAsync(cancellationToken);
         var adminUser = await _userManager.FindByEmailAsync("admin@witchcityrope.com");
+        if (adminUser == null)
+        {
+            _logger.LogWarning("Admin user not found, cannot create vetting applications");
+            return;
+        }
+
+        // Get all users EXCEPT admin (to avoid duplicate applications for admin)
+        // Order by email for consistent indexing across multiple seed runs
+        var users = await _userManager.Users
+            .Where(u => u.Id != adminUser.Id)
+            .OrderBy(u => u.Email)
+            .ToListAsync(cancellationToken);
 
         // Ensure we have enough users for the applications we want to create
-        if (users.Count < 5 || adminUser == null)
+        if (users.Count < 4) // Need at least 4 non-admin users (plus admin = 5 total)
         {
-            _logger.LogWarning("Not enough users ({UserCount}) or missing admin user to create diverse vetting applications. Need at least 5 users and admin.", users.Count);
+            _logger.LogWarning("Not enough users ({UserCount}) to create diverse vetting applications. Need at least 4 non-admin users.", users.Count);
             return;
         }
 
@@ -453,19 +480,19 @@ public class SeedDataService : ISeedDataService
                 Pronouns = "they/them",
                 OtherNames = null,
                 AboutYourself = @"As an administrator and experienced practitioner, I've been involved in the rope bondage community for many years. I help manage the community and ensure a safe, welcoming environment for all members.",
-                HowFoundUs = "Community founder and administrator.",
-                Status = VettingStatus.Approved,
+                WorkflowStatus = VettingStatus.Approved, // Approved (4)
                 SubmittedAt = DateTime.UtcNow.AddDays(-365), // Applied a year ago
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-364),
+                InterviewScheduledFor = DateTime.UtcNow.AddDays(-362),
                 DecisionMadeAt = DateTime.UtcNow.AddDays(-360),
-                AdminNotes = "Community administrator - founding member with extensive experience."
+                AdminNotes = "Community administrator - founding member with extensive experience. Approved."
             },
 
             // Application 2: Under Review - recent submission
             new VettingApplication
             {
                 Id = Guid.NewGuid(),
-                UserId = users[1].Id, // Use second user (skip admin)
+                UserId = users[0].Id, // First non-admin user
                 SceneName = "RopeNovice",
                 RealName = "Alexandra Martinez",
                 Email = "alexandra.martinez@email.com",
@@ -473,8 +500,7 @@ public class SeedDataService : ISeedDataService
                 Pronouns = "she/her",
                 OtherNames = "Alex",
                 AboutYourself = @"I'm new to rope bondage but deeply interested in learning about the art and community. I've been reading extensively about rope safety and attending introductory workshops in other cities. I'm drawn to both the aesthetic beauty and the trust-building aspects of rope. I have experience in other BDSM practices and understand the importance of consent, communication, and safety. I'm looking for a supportive community where I can learn from experienced practitioners and contribute positively to the group dynamic.",
-                HowFoundUs = "Found your group through FetLife recommendations and online research about rope communities in the area.",
-                Status = VettingStatus.UnderReview,
+                WorkflowStatus = VettingStatus.UnderReview, // UnderReview (0)
                 SubmittedAt = DateTime.UtcNow.AddDays(-3),
                 AdminNotes = null
             },
@@ -483,7 +509,7 @@ public class SeedDataService : ISeedDataService
             new VettingApplication
             {
                 Id = Guid.NewGuid(),
-                UserId = users[2].Id, // Use third user
+                UserId = users[1].Id, // Second non-admin user
                 SceneName = "KnotLearner",
                 RealName = "Jordan Kim",
                 Email = "jordan.kim@email.com",
@@ -491,18 +517,17 @@ public class SeedDataService : ISeedDataService
                 Pronouns = "they/them",
                 OtherNames = null,
                 AboutYourself = @"I've been interested in rope bondage for over a year and have practiced with a partner at home. We've been focusing on safety and basic ties, but I want to expand my knowledge and learn from experienced riggers. I have a background in dance and appreciate the artistic and movement aspects of rope. I'm committed to ongoing education about consent, negotiation, and safety practices. I'm hoping to join a community where I can learn advanced techniques while building meaningful connections with like-minded people.",
-                HowFoundUs = "Recommended by a friend who's a member of your community.",
-                Status = VettingStatus.InterviewApproved,
+                WorkflowStatus = VettingStatus.InterviewApproved, // InterviewApproved (1)
                 SubmittedAt = DateTime.UtcNow.AddDays(-10),
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-7),
                 AdminNotes = "Good references and thoughtful application. Ready for interview to assess practical knowledge."
             },
 
-            // Application 4: Pending Interview - interview scheduled
+            // Application 4: Interview Scheduled - interview scheduled
             new VettingApplication
             {
                 Id = Guid.NewGuid(),
-                UserId = users[3].Id, // Use fourth user
+                UserId = users[2].Id, // Third non-admin user
                 SceneName = "TrustBuilder",
                 RealName = "Marcus Johnson",
                 Email = "marcus.johnson@email.com",
@@ -510,8 +535,7 @@ public class SeedDataService : ISeedDataService
                 Pronouns = "he/him",
                 OtherNames = "Marc, MJ",
                 AboutYourself = @"I'm a 28-year-old professional who discovered rope bondage through a partner. I've been practicing for six months and am passionate about the psychological and emotional aspects of rope. I have experience as a rigger and understand the responsibility that comes with restraining another person. I've completed online safety courses and practiced extensively with enthusiastic partners. I'm seeking a community where I can continue learning and share experiences with others who value both technical skill and emotional intelligence in rope work.",
-                HowFoundUs = "Found your group through local BDSM community recommendations.",
-                Status = VettingStatus.PendingInterview,
+                WorkflowStatus = VettingStatus.InterviewScheduled, // InterviewScheduled (2)
                 SubmittedAt = DateTime.UtcNow.AddDays(-14),
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-10),
                 InterviewScheduledFor = DateTime.UtcNow.AddDays(3), // Interview scheduled for 3 days from now
@@ -522,7 +546,7 @@ public class SeedDataService : ISeedDataService
             new VettingApplication
             {
                 Id = Guid.NewGuid(),
-                UserId = users[4].Id, // Use fifth user
+                UserId = users[3].Id, // Fourth non-admin user
                 SceneName = "SilkAndSteel",
                 RealName = "Sarah Chen",
                 Email = "sarah.chen@email.com",
@@ -530,8 +554,7 @@ public class SeedDataService : ISeedDataService
                 Pronouns = "she/her",
                 OtherNames = "Sarah C.",
                 AboutYourself = @"I'm an experienced practitioner with 3+ years of rope bondage experience, both as a rigger and rope bunny. I've taught workshops in my previous city and am looking to join the community here after relocating for work. I have extensive knowledge of safety protocols, medical considerations, and emergency procedures. I'm interested in both the technical aspects of rope work and the community building aspects. I'd love to contribute my knowledge while continuing to learn from other experienced practitioners.",
-                HowFoundUs = "Referred by a mutual friend in the rope community.",
-                Status = VettingStatus.Approved,
+                WorkflowStatus = VettingStatus.Approved, // Approved (4)
                 SubmittedAt = DateTime.UtcNow.AddDays(-21),
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-18),
                 DecisionMadeAt = DateTime.UtcNow.AddDays(-2),
@@ -540,8 +563,8 @@ public class SeedDataService : ISeedDataService
         };
 
         // Add additional applications if we have more users to prevent constraint violations
-        // Only add more applications if we have users beyond the first 5
-        if (users.Count >= 6)
+        // Only add more applications if we have users beyond the first 4 (admin is excluded from users list)
+        if (users.Count >= 5)
         {
             var additionalApplications = new List<VettingApplication>();
 
@@ -549,7 +572,7 @@ public class SeedDataService : ISeedDataService
             additionalApplications.Add(new VettingApplication
             {
                 Id = Guid.NewGuid(),
-                UserId = users[5].Id, // Use sixth user
+                UserId = users[4].Id, // Fifth non-admin user
                 SceneName = "EagerLearner",
                 RealName = "Taylor Rodriguez",
                 Email = "taylor.rodriguez@email.com",
@@ -557,20 +580,19 @@ public class SeedDataService : ISeedDataService
                 Pronouns = "she/they",
                 OtherNames = "Tay",
                 AboutYourself = @"I'm completely new to rope bondage but very eager to learn! I've watched videos online and read some books about safety. I don't have any hands-on experience yet but I'm excited to start learning with experienced people. I understand this is about more than just tying knots - it's about trust, communication, and building relationships. I'm committed to learning and following all safety guidelines.",
-                HowFoundUs = "Found your group through Google search for rope bondage communities.",
-                Status = VettingStatus.OnHold,
+                WorkflowStatus = VettingStatus.OnHold, // OnHold (6)
                 SubmittedAt = DateTime.UtcNow.AddDays(-12),
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-8),
                 AdminNotes = "Very enthusiastic but lacks practical experience. Recommended to attend beginner classes and gain basic experience before reapplying. On hold pending completion of safety course."
             });
 
             // Application 7: Denied - doesn't meet community standards
-            if (users.Count >= 7)
+            if (users.Count >= 6)
             {
                 additionalApplications.Add(new VettingApplication
                 {
                     Id = Guid.NewGuid(),
-                    UserId = users[6].Id,
+                    UserId = users[5].Id,
                     SceneName = "QuickLearner",
                     RealName = "Jamie Taylor",
                     Email = "jamie.taylor@email.com",
@@ -578,8 +600,7 @@ public class SeedDataService : ISeedDataService
                     Pronouns = "he/him",
                     OtherNames = "Jamie T",
                     AboutYourself = @"I've been interested in rope for a few months. I think I learn fast and want to get into the community quickly. I've watched some YouTube videos and practiced on myself. I'm ready to start tying people up and want to find partners to practice with.",
-                    HowFoundUs = "Found through social media posts about rope events.",
-                    Status = VettingStatus.Denied,
+                    WorkflowStatus = VettingStatus.Denied, // Denied (5)
                     SubmittedAt = DateTime.UtcNow.AddDays(-20),
                     ReviewStartedAt = DateTime.UtcNow.AddDays(-17),
                     DecisionMadeAt = DateTime.UtcNow.AddDays(-3),
@@ -588,12 +609,12 @@ public class SeedDataService : ISeedDataService
             }
 
             // Application 8: Recent submission - just submitted
-            if (users.Count >= 8)
+            if (users.Count >= 7)
             {
                 additionalApplications.Add(new VettingApplication
                 {
                     Id = Guid.NewGuid(),
-                    UserId = users[7].Id,
+                    UserId = users[6].Id,
                     SceneName = "ThoughtfulRigger",
                     RealName = "Alex Rivera",
                     Email = "alex.rivera@email.com",
@@ -601,20 +622,19 @@ public class SeedDataService : ISeedDataService
                     Pronouns = "they/them",
                     OtherNames = "Riv, AR",
                     AboutYourself = @"I've been practicing rope for about 8 months with a consistent partner. We've focused heavily on safety, communication, and building trust. I've completed several online courses about rope safety and anatomy. I'm particularly interested in the artistic and meditative aspects of rope bondage. I understand that joining a community is about contributing positively and learning from experienced practitioners, not just gaining access to events.",
-                    HowFoundUs = "Recommended by a trusted mentor in the rope community who suggested I apply when I felt ready.",
-                    Status = VettingStatus.UnderReview,
+                    WorkflowStatus = VettingStatus.UnderReview,
                     SubmittedAt = DateTime.UtcNow.AddDays(-1),
                     AdminNotes = null
                 });
             }
 
             // Application 9: Long-term member of another community
-            if (users.Count >= 9)
+            if (users.Count >= 8)
             {
                 additionalApplications.Add(new VettingApplication
                 {
                     Id = Guid.NewGuid(),
-                    UserId = users[8].Id,
+                    UserId = users[7].Id,
                     SceneName = "CommunityBuilder",
                     RealName = "Morgan Kim",
                     Email = "morgan.kim@email.com",
@@ -622,8 +642,7 @@ public class SeedDataService : ISeedDataService
                     Pronouns = "she/her",
                     OtherNames = "Mo",
                     AboutYourself = @"I'm relocating from another city where I was an active member of a rope community for 2+ years. I have experience both as a rigger and rope bunny, and I've helped organize events and workshops. I'm looking for a new community home where I can continue learning and contributing. I understand the importance of vetting processes and community standards, having helped with similar processes in my previous group.",
-                    HowFoundUs = "Researched rope communities in the area and was impressed by your group's focus on safety and education.",
-                    Status = VettingStatus.InterviewApproved,
+                    WorkflowStatus = VettingStatus.InterviewApproved,
                     SubmittedAt = DateTime.UtcNow.AddDays(-8),
                     ReviewStartedAt = DateTime.UtcNow.AddDays(-5),
                     AdminNotes = "Strong references from previous community leaders. Ready for interview to discuss integration into local group."
@@ -631,12 +650,12 @@ public class SeedDataService : ISeedDataService
             }
 
             // Application 10: Nervous but genuine applicant
-            if (users.Count >= 10)
+            if (users.Count >= 9)
             {
                 additionalApplications.Add(new VettingApplication
                 {
                     Id = Guid.NewGuid(),
-                    UserId = users[9].Id,
+                    UserId = users[8].Id,
                     SceneName = "NervousNewbie",
                     RealName = "Jordan Martinez",
                     Email = "jordan.martinez@email.com",
@@ -644,20 +663,19 @@ public class SeedDataService : ISeedDataService
                     Pronouns = "he/him",
                     OtherNames = "Jordy",
                     AboutYourself = @"I'm quite nervous about applying, but I've been interested in rope bondage for over a year. I've been reading extensively and watching educational content, but I haven't had practical experience yet. I'm drawn to the trust and communication aspects of rope, and I want to learn in a safe, supportive environment. I understand this is a serious community with high standards, and I'm committed to being a respectful and contributing member.",
-                    HowFoundUs = "Found through careful research of rope communities with good safety reputations.",
-                    Status = VettingStatus.UnderReview,
+                    WorkflowStatus = VettingStatus.UnderReview,
                     SubmittedAt = DateTime.UtcNow.AddDays(-5),
                     AdminNotes = null
                 });
             }
 
             // Application 11: RopeBunny - Someone new to rope looking to learn
-            if (users.Count >= 11)
+            if (users.Count >= 10)
             {
                 additionalApplications.Add(new VettingApplication
                 {
                     Id = Guid.NewGuid(),
-                    UserId = users[10].Id,
+                    UserId = users[9].Id,
                     SceneName = "RopeBunny",
                     RealName = "Riley Chen",
                     Email = "ropebunny@example.com",
@@ -665,20 +683,19 @@ public class SeedDataService : ISeedDataService
                     Pronouns = "she/her",
                     OtherNames = "Riley",
                     AboutYourself = @"I'm completely new to rope bondage but fascinated by the art form and the trust-building aspects. I've done extensive research online and read about safety practices, but I have no hands-on experience yet. I'm particularly drawn to the rope bunny role and want to learn from experienced riggers in a safe, educational environment. I understand the importance of consent, communication, and gradual skill building. I'm looking for a supportive community where I can learn the fundamentals and build meaningful connections with experienced practitioners.",
-                    HowFoundUs = "Discovered through FetLife rope education groups and local BDSM community recommendations.",
-                    Status = VettingStatus.UnderReview,
+                    WorkflowStatus = VettingStatus.UnderReview,
                     SubmittedAt = DateTime.UtcNow.AddDays(-2),
                     AdminNotes = null
                 });
             }
 
             // Application 12: SafetyFirst - An experienced rigger from another city
-            if (users.Count >= 12)
+            if (users.Count >= 11)
             {
                 additionalApplications.Add(new VettingApplication
                 {
                     Id = Guid.NewGuid(),
-                    UserId = users[11].Id,
+                    UserId = users[10].Id,
                     SceneName = "SafetyFirst",
                     RealName = "Sam Rodriguez",
                     Email = "safetyfirst@example.com",
@@ -686,8 +703,7 @@ public class SeedDataService : ISeedDataService
                     Pronouns = "they/them",
                     OtherNames = "Sam",
                     AboutYourself = @"I'm an experienced rigger relocating from Portland, where I was an active member of the rope community for 4+ years. I have extensive experience with both floor work and suspension, and I've completed multiple safety courses including basic first aid and rope-specific emergency procedures. In my previous community, I helped mentor newcomers and occasionally assisted with safety monitoring at events. I prioritize safety above all else in rope work and am committed to ongoing education. I'm seeking a new community home where I can contribute my knowledge while continuing to learn from other experienced practitioners.",
-                    HowFoundUs = "Researched rope communities in the Salem area through rope safety forums and FetLife groups.",
-                    Status = VettingStatus.UnderReview,
+                    WorkflowStatus = VettingStatus.UnderReview,
                     SubmittedAt = DateTime.UtcNow.AddDays(-1),
                     AdminNotes = null
                 });
@@ -700,6 +716,30 @@ public class SeedDataService : ISeedDataService
         }
 
         await _context.VettingApplications.AddRangeAsync(sampleApplications, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // Sync User.VettingStatus for applications in terminal states (Approved, Denied, OnHold)
+        // User.VettingStatus is the source of truth for permissions/access control
+        var applicationsToSync = sampleApplications.Where(app =>
+            app.UserId.HasValue &&
+            app.WorkflowStatus is VettingStatus.Approved or VettingStatus.Denied or VettingStatus.OnHold)
+            .ToList();
+
+        foreach (var application in applicationsToSync)
+        {
+            var user = await _context.Users.FindAsync(new object[] { application.UserId!.Value }, cancellationToken);
+            if (user != null)
+            {
+                user.VettingStatus = (int)application.WorkflowStatus;
+                if (application.WorkflowStatus == VettingStatus.Approved)
+                {
+                    user.IsVetted = true;
+                }
+                _logger.LogInformation(
+                    "Synced User.VettingStatus to {VettingStatus} for user {UserId} (application {ApplicationId})",
+                    application.WorkflowStatus, user.Id, application.Id);
+            }
+        }
         await _context.SaveChangesAsync(cancellationToken);
 
         // Create audit log entries that show the workflow progression for each application
@@ -752,6 +792,19 @@ If you have any questions, please don't hesitate to contact us.
 
 Best regards,
 The WitchCityRope Vetting Team",
+                PlainTextBody = @"Dear {{applicant_name}},
+
+Thank you for submitting your vetting application to WitchCityRope. We have received your application and it is now under review.
+
+Application Number: {{application_number}}
+Submission Date: {{submission_date}}
+
+Our vetting team will review your application and contact you within the next 7-10 business days with updates on your status.
+
+If you have any questions, please don't hesitate to contact us.
+
+Best regards,
+The WitchCityRope Vetting Team",
                 IsActive = true,
                 UpdatedBy = adminUser.Id,
                 CreatedAt = DateTime.UtcNow,
@@ -777,6 +830,20 @@ Please schedule your interview within the next 14 days.
 
 Best regards,
 The WitchCityRope Vetting Team",
+                PlainTextBody = @"Dear {{applicant_name}},
+
+Congratulations! Your vetting application has been approved for the interview stage.
+
+Application Number: {{application_number}}
+Next Steps: Please schedule your interview using the link below
+Interview Scheduling: {{interview_link}}
+
+During your interview, we will discuss your experience, interests, and answer any questions you may have about our community.
+
+Please schedule your interview within the next 14 days.
+
+Best regards,
+The WitchCityRope Vetting Team",
                 IsActive = true,
                 UpdatedBy = adminUser.Id,
                 CreatedAt = DateTime.UtcNow,
@@ -789,6 +856,25 @@ The WitchCityRope Vetting Team",
                 TemplateType = EmailTemplateType.Approved,
                 Subject = "Welcome to WitchCityRope - {{applicant_name}}",
                 HtmlBody = @"Dear {{applicant_name}},
+
+Congratulations! Your application has been approved and you are now a vetted member of WitchCityRope.
+
+Application Number: {{application_number}}
+Approval Date: {{approval_date}}
+
+Welcome to our community! You now have access to:
+- All member events and workshops
+- Our private community forums
+- Advanced classes and demonstrations
+- Volunteer opportunities
+
+Your member profile has been activated and you can now register for upcoming events.
+
+Welcome aboard!
+
+Best regards,
+The WitchCityRope Team",
+                PlainTextBody = @"Dear {{applicant_name}},
 
 Congratulations! Your application has been approved and you are now a vetted member of WitchCityRope.
 
@@ -834,6 +920,22 @@ If you have any questions about what's needed, please contact us.
 
 Best regards,
 The WitchCityRope Vetting Team",
+                PlainTextBody = @"Dear {{applicant_name}},
+
+Your vetting application is currently on hold as we need some additional information to proceed.
+
+Application Number: {{application_number}}
+Reason: {{hold_reason}}
+
+Required Actions:
+{{required_actions}}
+
+Please provide the requested information within 30 days to avoid application expiration.
+
+If you have any questions about what's needed, please contact us.
+
+Best regards,
+The WitchCityRope Vetting Team",
                 IsActive = true,
                 UpdatedBy = adminUser.Id,
                 CreatedAt = DateTime.UtcNow,
@@ -858,6 +960,19 @@ We appreciate your interest in our community.
 
 Best regards,
 The WitchCityRope Vetting Team",
+                PlainTextBody = @"Dear {{applicant_name}},
+
+Thank you for your interest in WitchCityRope. After careful review, we are unable to approve your application at this time.
+
+Application Number: {{application_number}}
+Review Date: {{review_date}}
+
+This decision is final for this application cycle. You are welcome to reapply in the future if your circumstances change.
+
+We appreciate your interest in our community.
+
+Best regards,
+The WitchCityRope Vetting Team",
                 IsActive = true,
                 UpdatedBy = adminUser.Id,
                 CreatedAt = DateTime.UtcNow,
@@ -870,6 +985,21 @@ The WitchCityRope Vetting Team",
                 TemplateType = EmailTemplateType.InterviewReminder,
                 Subject = "Interview Reminder - {{applicant_name}}",
                 HtmlBody = @"Dear {{applicant_name}},
+
+This is a friendly reminder about your upcoming vetting interview.
+
+Application Number: {{application_number}}
+Interview Date: {{interview_date}}
+Interview Time: {{interview_time}}
+Location: {{interview_location}}
+
+If you need to reschedule, please contact us at least 24 hours in advance.
+
+We look forward to meeting with you!
+
+Best regards,
+The WitchCityRope Vetting Team",
+                PlainTextBody = @"Dear {{applicant_name}},
 
 This is a friendly reminder about your upcoming vetting interview.
 
@@ -1624,7 +1754,7 @@ The WitchCityRope Vetting Team",
 
         foreach (var application in applications)
         {
-            // All applications start with initial submission
+            // All applications start with initial submission - goes directly to UnderReview
             auditLogs.Add(new VettingAuditLog
             {
                 Id = Guid.NewGuid(),
@@ -1633,42 +1763,19 @@ The WitchCityRope Vetting Team",
                 PerformedBy = application.UserId ?? Guid.Empty, // Use Empty for anonymous submissions
                 PerformedAt = application.SubmittedAt,
                 OldValue = null,
-                NewValue = "Draft",
-                Notes = $"Initial application submitted by {application.SceneName}"
+                NewValue = "UnderReview",
+                Notes = $"Initial application submitted by {application.SceneName} - automatically moved to review queue"
             });
 
-            // Create status progression based on current status
-            switch (application.Status)
+            // Create status progression based on current workflow status
+            switch (application.WorkflowStatus)
             {
                 case VettingStatus.UnderReview:
-                    // Just submitted, only has initial submission
-                    auditLogs.Add(new VettingAuditLog
-                    {
-                        Id = Guid.NewGuid(),
-                        ApplicationId = application.Id,
-                        Action = "Status Changed",
-                        PerformedBy = adminUserId,
-                        PerformedAt = application.SubmittedAt.AddHours(1),
-                        OldValue = "Draft",
-                        NewValue = "UnderReview",
-                        Notes = "Application moved to review queue"
-                    });
+                    // Just submitted, only has initial submission (already logged above)
                     break;
 
                 case VettingStatus.InterviewApproved:
-                    // Draft → UnderReview → InterviewApproved
-                    auditLogs.Add(new VettingAuditLog
-                    {
-                        Id = Guid.NewGuid(),
-                        ApplicationId = application.Id,
-                        Action = "Status Changed",
-                        PerformedBy = adminUserId,
-                        PerformedAt = application.SubmittedAt.AddHours(1),
-                        OldValue = "Draft",
-                        NewValue = "UnderReview",
-                        Notes = "Application moved to review queue"
-                    });
-
+                    // UnderReview → InterviewApproved
                     auditLogs.Add(new VettingAuditLog
                     {
                         Id = Guid.NewGuid(),
@@ -1682,20 +1789,8 @@ The WitchCityRope Vetting Team",
                     });
                     break;
 
-                case VettingStatus.PendingInterview:
-                    // Draft → UnderReview → InterviewApproved → PendingInterview
-                    auditLogs.Add(new VettingAuditLog
-                    {
-                        Id = Guid.NewGuid(),
-                        ApplicationId = application.Id,
-                        Action = "Status Changed",
-                        PerformedBy = adminUserId,
-                        PerformedAt = application.SubmittedAt.AddHours(1),
-                        OldValue = "Draft",
-                        NewValue = "UnderReview",
-                        Notes = "Application moved to review queue"
-                    });
-
+                case VettingStatus.InterviewScheduled:
+                    // UnderReview → InterviewApproved → InterviewScheduled
                     auditLogs.Add(new VettingAuditLog
                     {
                         Id = Guid.NewGuid(),
@@ -1716,25 +1811,13 @@ The WitchCityRope Vetting Team",
                         PerformedBy = adminUserId,
                         PerformedAt = application.InterviewScheduledFor?.AddDays(-1) ?? DateTime.UtcNow.AddDays(-1),
                         OldValue = "InterviewApproved",
-                        NewValue = "PendingInterview",
+                        NewValue = "InterviewScheduled",
                         Notes = $"Interview scheduled for {application.InterviewScheduledFor?.ToString("yyyy-MM-dd HH:mm") ?? "TBD"}"
                     });
                     break;
 
                 case VettingStatus.Approved:
-                    // Draft → UnderReview → InterviewApproved → PendingInterview → Approved
-                    auditLogs.Add(new VettingAuditLog
-                    {
-                        Id = Guid.NewGuid(),
-                        ApplicationId = application.Id,
-                        Action = "Status Changed",
-                        PerformedBy = adminUserId,
-                        PerformedAt = application.SubmittedAt.AddHours(1),
-                        OldValue = "Draft",
-                        NewValue = "UnderReview",
-                        Notes = "Application moved to review queue"
-                    });
-
+                    // UnderReview → InterviewApproved → InterviewScheduled → FinalReview → Approved
                     auditLogs.Add(new VettingAuditLog
                     {
                         Id = Guid.NewGuid(),
@@ -1751,12 +1834,24 @@ The WitchCityRope Vetting Team",
                     {
                         Id = Guid.NewGuid(),
                         ApplicationId = application.Id,
+                        Action = "Interview Scheduled",
+                        PerformedBy = adminUserId,
+                        PerformedAt = application.DecisionMadeAt?.AddDays(-8) ?? application.SubmittedAt.AddDays(10),
+                        OldValue = "InterviewApproved",
+                        NewValue = "InterviewScheduled",
+                        Notes = "Interview scheduled with applicant"
+                    });
+
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
                         Action = "Interview Completed",
                         PerformedBy = adminUserId,
                         PerformedAt = application.DecisionMadeAt?.AddDays(-5) ?? application.SubmittedAt.AddDays(15),
-                        OldValue = "InterviewApproved",
-                        NewValue = "PendingInterview",
-                        Notes = "Interview conducted - excellent candidate with strong community values"
+                        OldValue = "InterviewScheduled",
+                        NewValue = "FinalReview",
+                        Notes = "Interview conducted - excellent candidate with strong community values. Moving to final review."
                     });
 
                     auditLogs.Add(new VettingAuditLog
@@ -1766,26 +1861,14 @@ The WitchCityRope Vetting Team",
                         Action = "Application Approved",
                         PerformedBy = adminUserId,
                         PerformedAt = application.DecisionMadeAt ?? application.SubmittedAt.AddDays(18),
-                        OldValue = "PendingInterview",
+                        OldValue = "FinalReview",
                         NewValue = "Approved",
                         Notes = "Application approved for full membership - welcome to the community!"
                     });
                     break;
 
                 case VettingStatus.OnHold:
-                    // Draft → UnderReview → OnHold
-                    auditLogs.Add(new VettingAuditLog
-                    {
-                        Id = Guid.NewGuid(),
-                        ApplicationId = application.Id,
-                        Action = "Status Changed",
-                        PerformedBy = adminUserId,
-                        PerformedAt = application.SubmittedAt.AddHours(1),
-                        OldValue = "Draft",
-                        NewValue = "UnderReview",
-                        Notes = "Application moved to review queue"
-                    });
-
+                    // UnderReview → OnHold
                     auditLogs.Add(new VettingAuditLog
                     {
                         Id = Guid.NewGuid(),
@@ -1800,19 +1883,7 @@ The WitchCityRope Vetting Team",
                     break;
 
                 case VettingStatus.Denied:
-                    // Draft → UnderReview → Denied
-                    auditLogs.Add(new VettingAuditLog
-                    {
-                        Id = Guid.NewGuid(),
-                        ApplicationId = application.Id,
-                        Action = "Status Changed",
-                        PerformedBy = adminUserId,
-                        PerformedAt = application.SubmittedAt.AddHours(1),
-                        OldValue = "Draft",
-                        NewValue = "UnderReview",
-                        Notes = "Application moved to review queue"
-                    });
-
+                    // UnderReview → Denied
                     auditLogs.Add(new VettingAuditLog
                     {
                         Id = Guid.NewGuid(),

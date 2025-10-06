@@ -1,127 +1,49 @@
 // Dashboard TypeScript Types
-// Types that match the backend Dashboard API Response DTOs
+//
+// DTO ALIGNMENT STRATEGY - CRITICAL RULES:
+// ════════════════════════════════════════
+// 1. API DTOs (C#) are the SOURCE OF TRUTH
+// 2. TypeScript types are AUTO-GENERATED from OpenAPI spec via @witchcityrope/shared-types
+// 3. NEVER manually create TypeScript interfaces for API response data
+// 4. If a type is missing, expose it in the backend API (add .Produces<> to endpoint)
+// 5. Regenerate types: cd packages/shared-types && npm run generate
+//
+// WHY: Prevents type mismatches, ensures type safety, eliminates manual sync work
+// SEE: /docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md
+// ════════════════════════════════════════
+
+import type { components } from '@witchcityrope/shared-types';
 
 /**
  * User dashboard response from GET /api/dashboard
- * Contains basic user profile information and vetting status
+ * AUTO-GENERATED from backend UserDashboardResponse DTO
  */
-export interface UserDashboardResponse {
-  /** User's scene name for the rope bondage community */
-  sceneName: string;
-  
-  /** User's role in the system (Member, VettedMember, Teacher, Organizer, Administrator) */
-  role: string;
-  
-  /** Current vetting status (0 = Submitted, 1 = InReview, 2 = Approved, 3 = Rejected) */
-  vettingStatus: number;
-  
-  /** Whether the user is currently vetted */
-  isVetted: boolean;
-  
-  /** User's email address */
-  email: string;
-  
-  /** When the user joined the community */
-  joinDate: string; // ISO date string from API
-  
-  /** User's pronouns */
-  pronouns: string;
-}
+export type UserDashboardResponse = components['schemas']['UserDashboardResponse'];
+
+/**
+ * VettingStatus enum
+ * AUTO-GENERATED from backend VettingStatus enum
+ */
+export type VettingStatus = components['schemas']['VettingStatus'];
 
 /**
  * User events response from GET /api/dashboard/events
- * Contains upcoming events the user is registered for
+ * AUTO-GENERATED from backend UserEventsResponse DTO
  */
-export interface UserEventsResponse {
-  /** List of upcoming events the user is registered for */
-  upcomingEvents: DashboardEventDto[];
-}
+export type UserEventsResponse = components['schemas']['UserEventsResponse'];
 
 /**
  * Event information for dashboard display
- * Simplified event data focused on user's registration
+ * AUTO-GENERATED from backend DashboardEventDto DTO
  */
-export interface DashboardEventDto {
-  /** Event ID */
-  id: string;
-  
-  /** Event title */
-  title: string;
-  
-  /** Event start date and time */
-  startDate: string; // ISO date string from API
-  
-  /** Event end date and time */
-  endDate: string; // ISO date string from API
-  
-  /** Event location */
-  location: string;
-  
-  /** Type of event (Workshop, SkillShare, Social, Performance) */
-  eventType: string;
-  
-  /** Name of the instructor/organizer */
-  instructorName: string;
-  
-  /** User's registration status for this event (Registered, Waitlisted, etc.) */
-  registrationStatus: string;
-  
-  /** Registration/ticket ID */
-  ticketId: string;
-  
-  /** Confirmation code for the registration */
-  confirmationCode: string;
-}
+export type DashboardEventDto = components['schemas']['DashboardEventDto'];
 
 /**
  * User statistics response from GET /api/dashboard/statistics
- * Contains attendance history and membership metrics
+ * AUTO-GENERATED from backend UserStatisticsResponse DTO
  */
-export interface UserStatisticsResponse {
-  /** Whether the user is currently vetted */
-  isVerified: boolean;
-  
-  /** Total number of events the user has attended (checked in) */
-  eventsAttended: number;
-  
-  /** Number of months the user has been a member */
-  monthsAsMember: number;
-  
-  /** Number of events attended in the last 6 months (simplified consecutive metric) */
-  recentEvents: number;
-  
-  /** Date the user joined the community */
-  joinDate: string; // ISO date string from API
-  
-  /** Current vetting status (0 = Submitted, 1 = InReview, 2 = Approved, 3 = Rejected) */
-  vettingStatus: number;
-  
-  /** Next interview date (if applicable and scheduled) */
-  nextInterviewDate?: string; // ISO date string from API, nullable
-  
-  /** Total number of events the user is currently registered for (future events) */
-  upcomingRegistrations: number;
-  
-  /** Number of events the user has registered for but cancelled */
-  cancelledRegistrations: number;
-}
+export type UserStatisticsResponse = components['schemas']['UserStatisticsResponse'];
 
-/**
- * Helper type for vetting status values
- * MUST match VettingStatus enum in backend VettingApplication.cs
- */
-export enum VettingStatus {
-  Draft = 0,
-  Submitted = 1,
-  UnderReview = 2,
-  InterviewApproved = 3,
-  PendingInterview = 4,
-  InterviewScheduled = 5,
-  OnHold = 6,
-  Approved = 7,
-  Denied = 8,
-  Withdrawn = 9
-}
 
 /**
  * Helper type for vetting status display properties
@@ -147,64 +69,53 @@ export interface RegistrationStatusDisplay {
 export const DashboardUtils = {
   /**
    * Get display properties for vetting status
+   * Uses auto-generated VettingStatus type from backend
    */
-  getVettingStatusDisplay(status: number): VettingStatusDisplay {
+  getVettingStatusDisplay(status: VettingStatus): VettingStatusDisplay {
     switch (status) {
-      case VettingStatus.Draft:
-        return {
-          label: 'Draft',
-          color: 'gray',
-          description: 'Application in progress'
-        };
-      case VettingStatus.Submitted:
-        return {
-          label: 'Submitted',
-          color: 'blue',
-          description: 'Application submitted for review'
-        };
-      case VettingStatus.UnderReview:
+      case 'UnderReview':
         return {
           label: 'Under Review',
-          color: 'yellow',
-          description: 'Application being reviewed'
+          color: 'gray',
+          description: 'Application under review'
         };
-      case VettingStatus.InterviewApproved:
+      case 'InterviewApproved':
         return {
           label: 'Interview Approved',
-          color: 'teal',
-          description: 'Interview approved - waiting to schedule'
-        };
-      case VettingStatus.PendingInterview:
-        return {
-          label: 'Pending Interview',
           color: 'cyan',
-          description: 'Interview pending'
+          description: 'Approved for interview - waiting to schedule'
         };
-      case VettingStatus.InterviewScheduled:
+      case 'InterviewScheduled':
         return {
           label: 'Interview Scheduled',
-          color: 'green',
+          color: 'blue',
           description: 'Interview scheduled'
         };
-      case VettingStatus.OnHold:
+      case 'FinalReview':
         return {
-          label: 'On Hold',
-          color: 'yellow',
-          description: 'Application on hold'
+          label: 'Final Review',
+          color: 'violet',
+          description: 'Application in final review'
         };
-      case VettingStatus.Approved:
+      case 'Approved':
         return {
           label: 'Approved',
           color: 'green',
           description: 'Vetting approved - welcome to the community!'
         };
-      case VettingStatus.Denied:
+      case 'Denied':
         return {
           label: 'Denied',
           color: 'red',
           description: 'Application not approved at this time'
         };
-      case VettingStatus.Withdrawn:
+      case 'OnHold':
+        return {
+          label: 'On Hold',
+          color: 'yellow',
+          description: 'Application on hold'
+        };
+      case 'Withdrawn':
         return {
           label: 'Withdrawn',
           color: 'gray',
