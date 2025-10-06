@@ -339,60 +339,60 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
         </Stack>
       </Paper>
 
-      {/* Action Buttons Section - Three-Tier Visual Hierarchy */}
+      {/* Action Buttons Section - Two-Tier Visual Hierarchy */}
       <Paper p="md" radius="md">
         <Stack gap="lg">
           <Text fw={600} size="sm" c="dimmed">ACTIONS</Text>
 
-          {/* Tier 1: Primary Next Stage Action */}
-          {nextStageConfig && availableActions.canAdvanceStage && (
-            <Button
-              size="xl"
-              fullWidth
-              leftSection={React.createElement(nextStageConfig.icon, { size: 20 })}
-              onClick={handleAdvanceStage}
-              loading={isSubmittingDecision || isApprovingApplication}
-              disabled={!availableActions.canAdvanceStage}
-              data-testid="advance-stage-button"
-              styles={{
-                root: {
-                  background: 'linear-gradient(135deg, #9D4EDD, #7B2CBF)',
-                  height: '56px',
-                  fontSize: '16px',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '1.5px',
-                  borderRadius: '12px 6px 12px 6px',
-                  boxShadow: '0 4px 15px rgba(157, 78, 221, 0.4)',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    borderRadius: '6px 12px 6px 12px',
-                    boxShadow: '0 6px 20px rgba(157, 78, 221, 0.6)',
-                    transform: 'scale(1.02)'
-                  },
-                  '&:disabled': {
+          {/* TIER 1: PRIMARY ACTIONS (Auto-send email + immediate action) */}
+          <Stack gap="md">
+            {/* Primary Action: Advance to Next Stage (56px, most prominent) */}
+            {nextStageConfig && availableActions.canAdvanceStage && (
+              <Button
+                fullWidth
+                leftSection={React.createElement(nextStageConfig.icon, { size: 20 })}
+                onClick={handleAdvanceStage}
+                loading={isSubmittingDecision || isApprovingApplication}
+                disabled={!availableActions.canAdvanceStage}
+                data-testid="advance-stage-button"
+                styles={{
+                  root: {
                     background: 'linear-gradient(135deg, #9D4EDD, #7B2CBF)',
-                    opacity: 0.5
+                    height: '56px',
+                    fontSize: '16px',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '1.5px',
+                    borderRadius: '12px 6px 12px 6px',
+                    boxShadow: '0 4px 15px rgba(157, 78, 221, 0.4)',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      borderRadius: '6px 12px 6px 12px',
+                      boxShadow: '0 6px 20px rgba(157, 78, 221, 0.6)',
+                      transform: 'scale(1.02)'
+                    },
+                    '&:disabled': {
+                      background: 'linear-gradient(135deg, #9D4EDD, #7B2CBF)',
+                      opacity: 0.5
+                    }
                   }
-                }
-              }}
-            >
-              <Group justify="space-between" style={{ width: '100%' }}>
-                <Text fw={700} size="md">{nextStageConfig.label}</Text>
-                <Text size="sm" fw={400} style={{ opacity: 0.9, textTransform: 'none', letterSpacing: '0' }}>
-                  {nextStageConfig.description}
-                </Text>
-              </Group>
-            </Button>
-          )}
+                }}
+              >
+                <Group justify="space-between" style={{ width: '100%' }}>
+                  <Text fw={700} size="md">{nextStageConfig.label}</Text>
+                  <Text size="sm" fw={400} style={{ opacity: 0.9, textTransform: 'none', letterSpacing: '0' }}>
+                    Sends email & advances automatically
+                  </Text>
+                </Group>
+              </Button>
+            )}
 
-          {/* Tier 2: Secondary Important Actions */}
-          <Group gap="md" grow style={{ flexWrap: 'wrap' }}>
+            {/* Secondary Primary Action: Skip to Approved (48px, green, less prominent than advance) */}
             {availableActions.canSkipToApproved && (
               <Button
-                variant="outline"
+                fullWidth
+                variant="filled"
                 color="green"
-                size="md"
                 leftSection={<IconCheck size={18} />}
                 onClick={handleSkipToApproved}
                 loading={isApprovingApplication}
@@ -401,105 +401,97 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
                 styles={{
                   root: {
                     height: '48px',
-                    borderRadius: '12px 6px 12px 6px',
-                    borderWidth: '2px',
                     fontWeight: 600,
-                    transition: 'all 0.3s ease',
+                    borderRadius: '8px',
                     paddingTop: '12px',
                     paddingBottom: '12px',
                     fontSize: '14px',
-                    lineHeight: '1.2',
-                    '&:hover': {
-                      borderRadius: '6px 12px 6px 12px'
-                    }
+                    lineHeight: '1.2'
                   }
                 }}
               >
                 Skip to Approved
               </Button>
             )}
+          </Stack>
 
-            {availableActions.canHold && (
+          {/* TIER 2: SECONDARY ACTIONS (Open email modal for customization) */}
+          <Stack gap="xs">
+            <Text fw={500} size="xs" c="dimmed" tt="uppercase" style={{ letterSpacing: '0.5px' }}>
+              Secondary Actions (Customize Email)
+            </Text>
+            <Group gap="md">
+              {availableActions.canHold && (
+                <Button
+                  variant="outline"
+                  color="yellow"
+                  leftSection={<IconClock size={16} />}
+                  onClick={handlePutOnHold}
+                  disabled={!availableActions.canHold}
+                  data-testid="hold-button"
+                  styles={{
+                    root: {
+                      height: '40px',
+                      borderWidth: '1px',
+                      fontWeight: 500,
+                      paddingTop: '10px',
+                      paddingBottom: '10px',
+                      fontSize: '14px',
+                      lineHeight: '1.2'
+                    }
+                  }}
+                >
+                  On Hold
+                </Button>
+              )}
+
               <Button
                 variant="outline"
-                color="yellow"
-                size="md"
-                leftSection={<IconClock size={18} />}
-                onClick={handlePutOnHold}
-                disabled={!availableActions.canHold}
-                data-testid="hold-button"
+                color="gray"
+                leftSection={<IconMail size={16} />}
+                onClick={handleSendReminder}
+                disabled={!availableActions.canRemind}
+                data-testid="send-reminder-button"
                 styles={{
                   root: {
-                    height: '48px',
-                    borderRadius: '12px 6px 12px 6px',
-                    borderWidth: '2px',
-                    fontWeight: 600,
-                    transition: 'all 0.3s ease',
-                    paddingTop: '12px',
-                    paddingBottom: '12px',
-                    fontSize: '14px',
-                    lineHeight: '1.2',
-                    '&:hover': {
-                      borderRadius: '6px 12px 6px 12px'
-                    }
-                  }
-                }}
-              >
-                Put On Hold
-              </Button>
-            )}
-          </Group>
-
-          {/* Tier 3: Tertiary Actions (Text Links) */}
-          <Group gap="lg" justify="flex-start">
-            <Button
-              variant="subtle"
-              color="gray"
-              size="sm"
-              leftSection={<IconMail size={16} />}
-              onClick={handleSendReminder}
-              disabled={!availableActions.canRemind}
-              data-testid="send-reminder-button"
-              styles={{
-                root: {
-                  height: '36px',
-                  fontWeight: 500,
-                  textTransform: 'none',
-                  paddingTop: '8px',
-                  paddingBottom: '8px',
-                  fontSize: '14px',
-                  lineHeight: '1.2'
-                }
-              }}
-            >
-              Send Reminder
-            </Button>
-
-            {availableActions.canDeny && (
-              <Button
-                variant="subtle"
-                color="red"
-                size="sm"
-                leftSection={<IconX size={16} />}
-                onClick={handleDenyApplication}
-                disabled={!availableActions.canDeny}
-                data-testid="deny-application-button"
-                styles={{
-                  root: {
-                    height: '36px',
+                    height: '40px',
+                    borderWidth: '1px',
                     fontWeight: 500,
-                    textTransform: 'none',
-                    paddingTop: '8px',
-                    paddingBottom: '8px',
+                    paddingTop: '10px',
+                    paddingBottom: '10px',
                     fontSize: '14px',
                     lineHeight: '1.2'
                   }
                 }}
               >
-                Deny Application
+                Reminder
               </Button>
-            )}
-          </Group>
+
+              {availableActions.canDeny && (
+                <Button
+                  variant="outline"
+                  color="red"
+                  leftSection={<IconX size={16} />}
+                  onClick={handleDenyApplication}
+                  disabled={!availableActions.canDeny}
+                  data-testid="deny-application-button"
+                  styles={{
+                    root: {
+                      height: '40px',
+                      borderWidth: '1px',
+                      fontWeight: 500,
+                      paddingTop: '10px',
+                      paddingBottom: '10px',
+                      fontSize: '14px',
+                      lineHeight: '1.2'
+                    }
+                  }}
+                >
+                  Deny
+                </Button>
+              )}
+            </Group>
+          </Stack>
         </Stack>
       </Paper>
 
