@@ -617,3 +617,43 @@ await _context.SaveChangesAsync(cancellationToken);
 
 **Tags**: #critical #validation #debugging #early-return #unreachable-code
 
+---
+
+## Dashboard VettingStatus Logic Error - Enum Comparison Excludes Valid State
+
+**Problem**: Users with `VettingStatus = 0 (UnderReview)` incorrectly shown as NOT having a vetting application, causing dashboard to display "Submit Application" button instead of "Under Review" status badge.
+
+**Root Cause**: Flawed enum comparison logic in UserDashboardService line 55:
+```csharp
+// ❌ WRONG - Excludes VettingStatus = 0 (UnderReview)
+HasVettingApplication = user.VettingStatus > 0
+```
+
+This logic assumes `VettingStatus > 0` means "has application", but the `VettingStatus` enum starts at 0:
+- 0 = UnderReview (VALID state with application)
+- 1 = InterviewScheduled
+- 2 = Approved
+- 3 = Denied
+
+**Why It's Wrong**:
+- Relies on enum value instead of actual database data
+- Breaks when enum values change or start at 0
+- Violates single source of truth principle (database has the answer)
+
+**Solution**: Query the actual VettingApplications table:
+```csharp
+// ✅ CORRECT - Queries actual database table
+var hasVettingApplication = await _context.VettingApplications
+    .AnyAsync(va => va.UserId == userId, cancellationToken);
+```
+
+**Prevention**:
+1. **Never assume enum value ranges** - Enums can start at any value
+2. **Query source of truth** - Check database tables, not derived fields
+3. **Test edge cases** - Verify enum boundary values (0, first value, etc.)
+4. **Use meaningful checks** - `.AnyAsync()` clearly expresses "does record exist"
+
+**Pattern**: When checking "does user have X?", query the X table - don't infer from status fields.
+
+**Tags**: #critical #enum #database-query #dashboard #vetting
+

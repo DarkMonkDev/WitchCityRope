@@ -289,8 +289,8 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
 
   return (
     <Stack gap="xs">
-      {/* Breadcrumb Navigation */}
-      <Group>
+      {/* Breadcrumb Navigation with Status Badge */}
+      <Group justify="space-between" align="center">
         <Button
           variant="subtle"
           leftSection={<IconArrowLeft size={16} />}
@@ -309,16 +309,14 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
         >
           Back to Applications
         </Button>
+        <VettingStatusBadge status={application.status} size="xl" data-testid="status-badge" />
       </Group>
 
-      {/* Header Section */}
+      {/* Header Section - Just the name */}
       <Paper p="lg" radius="md" style={{ background: '#FFF8F0' }}>
-        <Group justify="space-between" align="center">
-          <Title order={1} style={{ color: '#880124', fontSize: '32px' }} data-testid="application-title">
-            {application.sceneName}
-          </Title>
-          <VettingStatusBadge status={application.status} size="xl" data-testid="status-badge" />
-        </Group>
+        <Title order={1} style={{ color: '#880124', fontSize: '32px' }} data-testid="application-title">
+          {application.sceneName}
+        </Title>
       </Paper>
 
       {/* Action Buttons - Single Horizontal Row */}

@@ -47,12 +47,17 @@ public class UserDashboardService : IUserDashboardService
                 return Result<UserDashboardResponse>.Failure("User not found");
             }
 
+            // Check if user actually has a vetting application in the database
+            // This is the CORRECT way - handles VettingStatus = 0 (UnderReview) properly
+            var hasVettingApplication = await _context.VettingApplications
+                .AnyAsync(va => va.UserId == userId, cancellationToken);
+
             var dashboard = new UserDashboardResponse
             {
                 SceneName = user.SceneName,
                 Role = user.Role,
                 VettingStatus = (VettingStatus)user.VettingStatus, // Cast int to VettingStatus enum
-                HasVettingApplication = user.VettingStatus > 0, // If VettingStatus > 0, user has submitted an application
+                HasVettingApplication = hasVettingApplication, // Use database query result
                 IsVetted = user.IsVetted,
                 Email = user.Email ?? string.Empty,
                 JoinDate = user.CreatedAt,
