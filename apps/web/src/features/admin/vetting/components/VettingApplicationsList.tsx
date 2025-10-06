@@ -99,19 +99,7 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
   }, [selectedApplications]);
 
   const handleRowClick = useCallback((applicationId: string) => {
-    console.log('VettingApplicationsList: Row click navigation:', {
-      applicationId,
-      url: `/admin/vetting/applications/${applicationId}`,
-      timestamp: new Date().toISOString()
-    });
-
-    try {
-      // Navigate to detail page instead of calling onViewItem callback
-      navigate(`/admin/vetting/applications/${applicationId}`);
-      console.log('VettingApplicationsList: Navigation called successfully');
-    } catch (error) {
-      console.error('VettingApplicationsList: Navigation failed:', error);
-    }
+    navigate(`/admin/vetting/applications/${applicationId}`);
   }, [navigate]);
 
   const formatDate = useCallback((dateString: string) => {
@@ -315,10 +303,7 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
                 onClick={(event) => {
                   // Only navigate if clicking on the row itself, not the checkbox
                   if (!(event.target as HTMLElement).closest('input[type="checkbox"]')) {
-                    console.log('Row clicked, initiating navigation:', application.id);
                     handleRowClick(application.id);
-                  } else {
-                    console.log('Checkbox clicked, skipping navigation');
                   }
                 }}
                 style={{

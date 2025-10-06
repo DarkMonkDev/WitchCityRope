@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Title, Text, Group, Button, Alert } from '@mantine/core';
 import { IconMail, IconClock, IconAlertTriangle, IconLock } from '@tabler/icons-react';
@@ -61,10 +61,10 @@ export const AdminVettingPage: React.FC = () => {
     setSendReminderModalOpen(true);
   };
 
-  const handleSelectionChange = (selectedIds: Set<string>, applicationsData: any[]) => {
+  const handleSelectionChange = useCallback((selectedIds: Set<string>, applicationsData: any[]) => {
     setSelectedApplications(selectedIds);
     setSelectedApplicationsData(applicationsData);
-  };
+  }, []);
 
   const hasSelectedApplications = selectedApplications.size > 0;
 

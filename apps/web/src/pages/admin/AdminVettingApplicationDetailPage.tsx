@@ -16,8 +16,6 @@ import { useUser } from '../../stores/authStore';
  * Following the wireframe specification, this is a SEPARATE PAGE (not a modal).
  *
  * Route: /admin/vetting/applications/:applicationId
- *
- * Enhanced with better error handling and debugging to identify routing issues.
  */
 export const AdminVettingApplicationDetailPage: React.FC = () => {
   const { applicationId } = useParams<{ applicationId: string }>();
@@ -36,23 +34,6 @@ export const AdminVettingApplicationDetailPage: React.FC = () => {
   const handleBackToList = () => {
     navigate('/admin/vetting');
   };
-
-  // Enhanced validation and debugging
-  console.log('AdminVettingApplicationDetailPage rendered:', {
-    applicationId,
-    pathname: location.pathname,
-    params: useParams(),
-    timestamp: new Date().toISOString()
-  });
-
-  // Add effect to track route changes
-  useEffect(() => {
-    console.log('AdminVettingApplicationDetailPage mounted/updated:', {
-      applicationId,
-      pathname: location.pathname,
-      timestamp: new Date().toISOString()
-    });
-  }, [applicationId, location.pathname]);
 
   // Show error if somehow accessed without proper role
   if (!user || user.role !== 'Administrator') {

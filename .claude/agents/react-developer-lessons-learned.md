@@ -1,5 +1,50 @@
 # React Developer - Lessons Learned
 
+## 🚨 REACT HOOKS & RE-RENDER LOOPS - CRITICAL 🚨
+
+### useCallback for Props Passed to Components with useEffect Dependencies (2025-10-06)
+**Problem**: Navigation completely broken on admin vetting page - URL changed but page didn't re-render. ALL navigation was blocked (table rows, nav menu, links). Had to manually refresh browser to see new pages.
+
+**Root Cause**: Callback function passed as prop was NOT wrapped in `useCallback`:
+```typescript
+// WRONG - Creates new function reference on every render
+const handleSelectionChange = (selectedIds: Set<string>, applicationsData: any[]) => {
+  setSelectedApplications(selectedIds);
+  setSelectedApplicationsData(applicationsData);
+};
+
+// Child component has this callback in useEffect dependency array
+React.useEffect(() => {
+  if (onSelectionChange && data?.items) {
+    onSelectionChange(selectedApplications, selectedData);
+  }
+}, [selectedApplications, data?.items, onSelectionChange]); // onSelectionChange changes every render!
+```
+
+**Result**: Infinite re-render loop that blocked ALL React Router navigation.
+
+**Solution**: Wrap callback in `useCallback` with empty dependency array:
+```typescript
+// CORRECT - Stable function reference
+const handleSelectionChange = useCallback((selectedIds: Set<string>, applicationsData: any[]) => {
+  setSelectedApplications(selectedIds);
+  setSelectedApplicationsData(applicationsData);
+}, []);
+```
+
+**Key Lessons**:
+1. **ALWAYS use `useCallback`** for functions passed as props to child components
+2. **ESPECIALLY CRITICAL** when child has that prop in useEffect dependency array
+3. **Symptom**: Navigation breaks, URL changes but component doesn't render
+4. **Debugging**: Comment out ALL components, add back one at a time to isolate
+5. **Prevention**: Use ESLint `react-hooks/exhaustive-deps` rule
+
+**Why This Took So Long To Debug**:
+- Tried fixing symptoms (route paths, key props, setTimeout workarounds) instead of root cause
+- Didn't test fixes before asking user to test
+- Should have immediately commented out components to isolate the problem
+- Should have searched for useEffect dependency arrays in child components
+
 ## 🚨 VITEST CONFIGURATION - PERFORMANCE CRITICAL 🚨
 
 ### Parallel Test Execution (2025-10-03)
