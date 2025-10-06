@@ -65,8 +65,8 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
 
         var request = new StatusChangeRequest
         {
-            Status = "UnderReview",
-            Reasoning = "Starting review process"
+            Status = "OnHold",
+            Reasoning = "Waiting for additional references"
         };
 
         // Act
@@ -79,7 +79,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
         await using var context = CreateDbContext();
         var application = await context.VettingApplications.FindAsync(applicationId);
         application.Should().NotBeNull();
-        application!.WorkflowStatus.Should().Be(VettingStatus.UnderReview);
+        application!.WorkflowStatus.Should().Be(VettingStatus.OnHold);
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
 
         var request = new StatusChangeRequest
         {
-            Status = "Submitted", // Cannot go back from Approved to Submitted
+            Status = "UnderReview", // Cannot go back from Approved (terminal state) to UnderReview
             Reasoning = "Attempting invalid transition"
         };
 
@@ -100,7 +100,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         var content = await response.Content.ReadAsStringAsync();
-        content.Should().Contain("transition", "Error should mention invalid transition");
+        content.Should().Contain("terminal state", "Error should mention terminal state protection");
     }
 
     [Fact]
@@ -131,8 +131,8 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
 
         var request = new StatusChangeRequest
         {
-            Status = "UnderReview",
-            Reasoning = "Starting review process"
+            Status = "InterviewApproved",
+            Reasoning = "Interview approved, scheduling next steps"
         };
 
         // Act
@@ -149,9 +149,9 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
             .FirstOrDefaultAsync();
 
         auditLog.Should().NotBeNull();
-        auditLog!.Action.Should().Contain("Status changed");
-        auditLog.NewValue.Should().Contain("UnderReview");
-        auditLog.OldValue.Should().Contain("Submitted");
+        auditLog!.Action.Should().Be("Status Changed");
+        auditLog.NewValue.Should().Contain("InterviewApproved");
+        auditLog.OldValue.Should().Contain("UnderReview");
     }
 
     [Fact]
@@ -162,8 +162,8 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
 
         var request = new StatusChangeRequest
         {
-            Status = "UnderReview",
-            Reasoning = "Starting review process"
+            Status = "InterviewApproved",
+            Reasoning = "Interview approved, scheduling next steps"
         };
 
         // Act
@@ -242,7 +242,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
         // Verify audit log
         await using var context = CreateDbContext();
         var auditLog = await context.VettingAuditLogs
-            .Where(log => log.ApplicationId == applicationId && log.Action.Contains("Approved"))
+            .Where(log => log.ApplicationId == applicationId && log.Action == "Approval")
             .OrderByDescending(log => log.PerformedAt)
             .FirstOrDefaultAsync();
 
@@ -419,8 +419,8 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
 
         var request = new StatusChangeRequest
         {
-            Status = "UnderReview",
-            Reasoning = "Starting review process"
+            Status = "Denied",
+            Reasoning = "Does not meet community standards"
         };
 
         // Act
@@ -434,7 +434,7 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
         await using var context = CreateDbContext();
         var application = await context.VettingApplications.FindAsync(applicationId);
         application.Should().NotBeNull();
-        application!.WorkflowStatus.Should().Be(VettingStatus.UnderReview);
+        application!.WorkflowStatus.Should().Be(VettingStatus.Denied);
     }
 
     [Fact]
@@ -445,8 +445,8 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
 
         var request = new StatusChangeRequest
         {
-            Status = "UnderReview",
-            Reasoning = "Starting review process"
+            Status = "Withdrawn",
+            Reasoning = "Applicant withdrew their application"
         };
 
         // Act
@@ -464,9 +464,9 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
             .FirstOrDefaultAsync();
 
         application.Should().NotBeNull();
-        application!.WorkflowStatus.Should().Be(VettingStatus.UnderReview);
+        application!.WorkflowStatus.Should().Be(VettingStatus.Withdrawn);
         auditLog.Should().NotBeNull("Audit log should be created with status update");
-        auditLog!.NewValue.Should().Contain("UnderReview");
+        auditLog!.NewValue.Should().Contain("Withdrawn");
     }
 
     #endregion

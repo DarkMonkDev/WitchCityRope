@@ -101,6 +101,111 @@
 
 ---
 
+## 🚨 NEW: VETTING INTEGRATION TESTS - VALID TRANSITIONS ONLY (2025-10-06) 🚨
+
+**VETTING INTEGRATION TESTS FIXED**: Updated 5 integration tests to use **VALID status transitions** after backend reverted same-state update allowance. All 15 vetting tests now passing (100%).
+
+### Task Summary:
+- **Phase**: Phase 2 - Test Fixes for Backend Changes
+- **Trigger**: Backend correctly rejects same-state updates (e.g., `UnderReview` → `UnderReview`)
+- **Goal**: Update tests to use valid workflow transitions
+- **Result**: 15/15 vetting tests passing, integration suite at 94% (29/31)
+
+### Backend Business Rule Change:
+**Status update endpoint enforces ACTUAL status transitions only**:
+- Same-state updates (e.g., `UnderReview` → `UnderReview`) now properly rejected
+- Error message: "Status is already set to the requested value. Use AddSimpleApplicationNote endpoint..."
+- Alternative: `AddSimpleApplicationNote` endpoint exists for notes without status changes
+- Reference: `/docs/functional-areas/vetting-system/handoffs/backend-developer-2025-10-06-phase2-backend-fixes.md`
+
+### Tests Updated (5 tests):
+
+**File**: `/tests/integration/api/Features/Vetting/VettingEndpointsIntegrationTests.cs`
+
+1. **StatusUpdate_WithValidTransition_Succeeds** (Lines 61-83)
+   - **Before**: `UnderReview` → `UnderReview` (INVALID - same-state)
+   - **After**: `UnderReview` → `OnHold` (VALID)
+   - **Reason**: Tests common workflow - putting application on hold for references
+
+2. **StatusUpdate_CreatesAuditLog** (Lines 127-155)
+   - **Before**: `UnderReview` → `UnderReview` (INVALID - same-state)
+   - **After**: `UnderReview` → `InterviewApproved` (VALID)
+   - **Reason**: Tests happy path - interview approval creates proper audit log
+
+3. **StatusUpdate_SendsEmailNotification** (Lines 158-180)
+   - **Before**: `UnderReview` → `UnderReview` (INVALID - same-state)
+   - **After**: `UnderReview` → `InterviewApproved` (VALID)
+   - **Reason**: Email notification for interview approval makes business sense
+
+4. **StatusUpdate_EmailFailureDoesNotPreventStatusChange** (Lines 415-438)
+   - **Before**: `UnderReview` → `UnderReview` (INVALID - same-state)
+   - **After**: `UnderReview` → `Denied` (VALID)
+   - **Reason**: Tests email failure handling with meaningful transition
+
+5. **AuditLogCreation_IsTransactional** (Lines 441-470)
+   - **Before**: `UnderReview` → `InterviewScheduled` (INVALID - not direct from UnderReview)
+   - **After**: `UnderReview` → `Withdrawn` (VALID)
+   - **Reason**: Tests transactional integrity with valid transition
+   - **Note**: First attempt used `InterviewScheduled` but discovered it's only valid from `InterviewApproved`
+
+### Valid Vetting Workflow Transitions:
+```
+UnderReview → InterviewApproved, OnHold, Denied, Withdrawn
+InterviewApproved → InterviewScheduled, FinalReview, OnHold, Denied, Withdrawn
+InterviewScheduled → FinalReview, OnHold, Denied, Withdrawn
+FinalReview → Approved, Denied, OnHold, Withdrawn
+OnHold → UnderReview, InterviewApproved, InterviewScheduled, FinalReview, Denied, Withdrawn
+Approved → (terminal, no transitions)
+Denied → (terminal, no transitions)
+Withdrawn → (terminal, no transitions)
+```
+
+### Test Results:
+
+**Before Changes**:
+- Vetting tests: Failing due to same-state updates
+- Integration suite: 22/31 passing (71%)
+
+**After Changes**:
+- Vetting tests: 15/15 passing (100%)
+- Integration suite: 29/31 passing (94%)
+- Remaining 2 failures: Pre-existing Participation tests (unrelated)
+
+### Transition Diversity Coverage:
+| Transition | Tests | Workflow Scenario |
+|------------|-------|-------------------|
+| `UnderReview → OnHold` | 1 | Waiting for references |
+| `UnderReview → InterviewApproved` | 2 | Happy path - interview approval |
+| `UnderReview → Denied` | 1 | Rejection scenario |
+| `UnderReview → Withdrawn` | 1 | Applicant withdrawal |
+| `Approved → UnderReview` | 1 | Invalid terminal state transition (existing test) |
+
+### Lesson Learned - Transition Validation:
+
+**Issue**: First attempt used `InterviewScheduled` from `UnderReview`, which failed with 400 Bad Request.
+
+**Discovery**: `InterviewScheduled` is only valid from `InterviewApproved`, NOT from `UnderReview`. The workflow has a specific order:
+1. `UnderReview` → Interview approved by admin
+2. `InterviewApproved` → Interview scheduled
+3. `InterviewScheduled` → Interview completed
+4. `FinalReview` → Final decision
+
+**Prevention**: Always verify transitions against workflow diagram before choosing test data.
+
+### Documentation:
+- **Handoff**: `/docs/functional-areas/vetting-system/handoffs/test-developer-2025-10-06-phase2-valid-transitions.md`
+- **Backend Reference**: `/docs/functional-areas/vetting-system/handoffs/backend-developer-2025-10-06-phase2-backend-fixes.md`
+
+### Success Criteria:
+- ✅ No tests use same-state updates
+- ✅ All tests use valid status transitions from workflow
+- ✅ Tests compile successfully
+- ✅ All 15 vetting integration tests passing
+- ✅ Test names still describe what they're testing
+- ✅ No regressions in other integration tests
+
+---
+
 ## 🚨 NEW: PHASE 1 TASK 3 - INFRASTRUCTURE TESTS VERIFIED (2025-10-06) 🚨
 
 **TESTING COMPLETION PLAN - PHASE 1 TASK 3 COMPLETE**: Investigated 2 Category D infrastructure tests that were reported as failing in baseline. Found tests are **ALREADY PASSING** and infrastructure is fully operational.

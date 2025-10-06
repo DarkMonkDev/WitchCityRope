@@ -657,3 +657,79 @@ var hasVettingApplication = await _context.VettingApplications
 
 **Tags**: #critical #enum #database-query #dashboard #vetting
 
+
+---
+
+## Vetting Same-State Updates - REVERTED: Strict Status-Change-Only Enforcement
+
+**Initial Implementation**: Allowed same-state updates (e.g., UnderReview → UnderReview) to enable adding notes.
+
+**Stakeholder Decision (REVERTED)**: Same-state updates should NOT be allowed. Status update endpoint is for ACTUAL status transitions only.
+
+**Current Implementation**: Reject same-state updates with clear error message:
+
+```csharp
+// ✅ CORRECT - Enforce strict status changes
+if (oldStatus == newStatus)
+{
+    _logger.LogWarning(
+        "Attempted same-state update for application {ApplicationId}: {Status}. " +
+        "Use AddSimpleApplicationNote endpoint for adding notes without status change.",
+        application.Id,
+        oldStatus);
+
+    return Result<ApplicationDetailResponse>.Failure(
+        "Invalid status update",
+        "Status is already set to the requested value. Use the AddSimpleApplicationNote endpoint to add notes without changing status.");
+}
+```
+
+**Business Rationale**:
+- Status update endpoint is for status CHANGES only (name reflects purpose)
+- Separate endpoint exists for adding notes: `AddSimpleApplicationNote`
+- Same-state "updates" don't make business sense
+- Logging helps detect bugs or API misuse
+
+**Prevention**:
+- Status endpoints should enforce actual state transitions
+- Provide separate endpoints for non-state-changing operations (notes, metadata)
+- Document API contract clearly in method comments
+- Use logging to detect incorrect API usage patterns
+
+**Tags**: #vetting #workflow #api-design #business-logic #reverted
+
+---
+
+## Test Failures From Obsolete Enum Values - Workflow Migration Issues
+
+**Problem**: Integration tests fail with errors like "'Submitted' is not a valid vetting status" even though backend code is correct.
+
+**Root Cause**: Tests written for old workflow where VettingStatus enum included "Submitted" status. Current workflow starts applications directly in "UnderReview" status, but tests still reference obsolete values.
+
+**Symptoms**:
+- Test creates application with status UnderReview
+- Test expects OldValue = "Submitted" in audit logs
+- Enum parsing fails for "Submitted" before business logic executes
+
+**Detection**:
+1. Check `.bak` files for evidence of old enum values
+2. Compare test expectations to current enum definition
+3. Verify all submission endpoints - what initial status do they set?
+
+**Solution**:
+- Backend code is correct - do NOT add obsolete enum values
+- Tests must be updated to match current workflow
+- Delegate test fixes to test-executor agent
+
+**Boundary Enforcement**:
+- Backend developer: Write code matching current domain model
+- Test developer: Update tests to match current workflow
+- Do NOT modify domain model to fix broken tests
+
+**Prevention**:
+- When enum values are removed, search entire codebase for string references
+- Update tests immediately when workflow changes
+- Document enum migrations in ADRs
+
+**Tags**: #critical #testing #enum-migration #workflow #delegation
+

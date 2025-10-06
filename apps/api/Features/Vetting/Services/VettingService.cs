@@ -1158,8 +1158,10 @@ public class VettingService : IVettingService
     #region Status Change Logic and Validation
 
     /// <summary>
-    /// Update application status with validation and audit logging
-    /// Validates status transitions, updates timestamps, creates audit log, and sends email notifications
+    /// Updates the status of a vetting application.
+    /// IMPORTANT: This endpoint is for STATUS CHANGES ONLY.
+    /// To add notes without changing status, use AddSimpleApplicationNote endpoint.
+    /// Same-state updates (e.g., UnderReview → UnderReview) are rejected.
     /// </summary>
     public async Task<Result<ApplicationDetailResponse>> UpdateApplicationStatusAsync(
         Guid applicationId,
@@ -1199,7 +1201,22 @@ public class VettingService : IVettingService
                     "Approved, Denied, and Withdrawn applications cannot be modified.");
             }
 
-            // Validate status transition
+            // Enforce strict status changes - reject same-state "updates"
+            if (oldStatus == newStatus)
+            {
+                // Log this as it may indicate a bug or misuse of the API
+                _logger.LogWarning(
+                    "Attempted same-state update for application {ApplicationId}: {Status}. " +
+                    "Use AddSimpleApplicationNote endpoint for adding notes without status change.",
+                    application.Id,
+                    oldStatus);
+
+                return Result<ApplicationDetailResponse>.Failure(
+                    "Invalid status update",
+                    "Status is already set to the requested value. Use the AddSimpleApplicationNote endpoint to add notes without changing status.");
+            }
+
+            // Validate status transition (now always executed for different statuses)
             var transitionValidation = ValidateStatusTransition(oldStatus, newStatus);
             if (!transitionValidation.IsSuccess)
             {
@@ -1246,7 +1263,7 @@ public class VettingService : IVettingService
                     : $"{existingNotes}\n\n{newNote}";
             }
 
-            // Create audit log entry
+            // Create audit log for status change (same-state updates are now rejected)
             var auditLog = new VettingAuditLog
             {
                 Id = Guid.NewGuid(),
@@ -1256,7 +1273,7 @@ public class VettingService : IVettingService
                 PerformedAt = DateTime.UtcNow,
                 OldValue = oldStatus.ToString(),
                 NewValue = newStatus.ToString(),
-                Notes = adminNotes
+                Notes = adminNotes ?? string.Empty
             };
             _context.VettingAuditLogs.Add(auditLog);
 

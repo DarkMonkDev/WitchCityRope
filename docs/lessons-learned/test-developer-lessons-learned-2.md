@@ -1250,4 +1250,290 @@ dotnet test tests/integration/ --filter "FullyQualifiedName~YourTestClass" --log
 
 **Status**: ✅ LESSON LEARNED - Always verify current state before fixing - 2025-10-06
 
+## Vetting Integration Test Data Alignment - Obsolete Status References - 2025-10-06
+
+### Critical Discovery: Test Failures from Outdated Domain Model
+
+**Problem**: Integration tests failed because they referenced obsolete "Submitted" status that no longer exists in VettingStatus enum.
+
+**Discovery**: Backend fixes completed successfully, but 3 tests failed due to test data using old workflow assumptions.
+
+**Root Cause**:
+- Tests written when vetting workflow had "Submitted" status
+- Current workflow starts directly in "UnderReview" status (VettingStatus = 0)
+- Tests never updated after domain model evolution
+
+### Tests Fixed
+
+**1. StatusUpdate_CreatesAuditLog** (Lines 127-155):
+```csharp
+// ❌ WRONG - Expected obsolete status
+auditLog!.Action.Should().Contain("Status changed");  // Wrong case
+auditLog.OldValue.Should().Contain("Submitted");      // Doesn't exist
+
+// ✅ CORRECT - Match actual backend behavior
+auditLog!.Action.Should().Be("Status Changed");       // Exact match
+auditLog.OldValue.Should().Contain("UnderReview");   // Current initial status
+```
+
+**2. StatusUpdate_WithInvalidTransition_Fails** (Lines 86-104):
+```csharp
+// ❌ WRONG - Test invalid status
+Status = "Submitted"  // Fails enum parsing, not transition validation
+content.Should().Contain("transition")  // Wrong error message
+
+// ✅ CORRECT - Test terminal state protection
+Status = "UnderReview"  // Try to reverse from Approved (terminal)
+content.Should().Contain("terminal state")  // Actual error message
+```
+
+**3. Approval_CreatesAuditLog** (Lines 221-252):
+```csharp
+// ❌ WRONG - Wrong audit log Action value
+log.Action.Contains("Approved")  // Backend uses "Approval"
+
+// ✅ CORRECT - Match backend implementation
+log.Action == "Approval"  // Exact match
+```
+
+### Action Items
+
+**When Domain Model Evolves**:
+1. Search for old enum values: `grep -r "Submitted" tests/`
+2. Update tests to use current values
+3. Verify against actual backend behavior (read source code)
+4. Don't assume test expectations are correct
+
+**Verification Pattern**:
+```bash
+# Always check actual backend implementation
+grep -n "Action =" /path/to/VettingService.cs | head -5
+# Example output: Action = "Approval" (not "Approved")
+
+# Update test to match reality
+log.Action == "Approval"  # Not .Contains("Approved")
+```
+
+**Backend-Test Alignment**:
+- Backend is source of truth for domain model
+- Tests must adapt to backend changes
+- Test failures from model evolution = test data issue, not code bug
+- Always read backend code to understand expected values
+
+### Impact of Fix
+
+**Before**:
+- 12/15 vetting tests passing (80%)
+- 3 tests failing with obsolete status references
+
+**After**:
+- 15/15 vetting tests passing (100%)
+- All tests aligned with current VettingStatus enum
+- Integration test suite: 29/31 passing (94%)
+
+**Files Modified**:
+- `/tests/integration/api/Features/Vetting/VettingEndpointsIntegrationTests.cs`
+- 5 line changes across 3 tests
+- 0 backend code changes (backend was correct)
+
+### Prevention Pattern
+
+**Problem**: Test data becomes outdated when domain models evolve.
+
+**Solution**: Regular test maintenance reviews aligned with domain changes.
+
+**Best Practices**:
+1. **Check backend first**: Read actual implementation before fixing tests
+2. **Exact matches**: Use `.Should().Be()` not `.Should().Contain()` for enum values
+3. **Document changes**: Update TEST_CATALOG.md when domain models change
+4. **Grep for old values**: Search codebase when removing enum values
+5. **Baseline verification**: Always re-run tests before starting fix work
+
+### Quality Improvement
+
+**Test Reliability**:
+- Tests now verify actual backend behavior
+- No false failures from outdated expectations
+- Clear test names reflect what's being tested
+
+**Diagnostic Value**:
+- Tests fail on real issues, not phantom issues
+- Error messages point to actual problems
+- Screenshots and logs show current state
+
+### Verification Method
+
+**Smoke Test Pattern**:
+```bash
+# Run tests to verify fix
+dotnet test tests/integration/ --filter "FullyQualifiedName~VettingEndpointsIntegrationTests"
+# Expected: Passed! - Failed: 0, Passed: 15, Skipped: 0, Total: 15
+
+# Run full suite to check for regressions
+dotnet test tests/integration/
+# Expected: 29/31 passing (2 pre-existing Participation failures)
+```
+
+### Tags
+`integration-testing` `test-maintenance` `domain-model` `vetting-system` `enum-alignment` `obsolete-data` `backend-alignment`
+
+**Status**: ✅ RESOLVED - All vetting tests passing with current domain model - 2025-10-06
+
+## Same-State Status Updates Now Rejected - Tests Must Use Valid Transitions - 2025-10-06
+
+### Backend Business Rule Enforcement
+
+**Problem**: Integration tests failed after backend correctly reverted same-state update allowance. Tests attempted invalid transitions (e.g., `UnderReview` → `UnderReview`).
+
+**Discovery**: Backend enforces **ACTUAL status transitions only**. Same-state updates are now properly rejected as they should be.
+
+**Root Cause**:
+- Backend initially allowed same-state updates (e.g., for adding notes with same status)
+- Business decision: Status update endpoint is for TRANSITIONS only
+- Alternative: `AddSimpleApplicationNote` endpoint exists for notes without status changes
+- Tests written during permissive period needed updating to match strict enforcement
+
+### Tests Fixed (5 tests)
+
+**File**: `/tests/integration/api/Features/Vetting/VettingEndpointsIntegrationTests.cs`
+
+1. **StatusUpdate_WithValidTransition_Succeeds** (Lines 61-83)
+   ```csharp
+   // ❌ WRONG - Same-state update (rejected)
+   Status = "UnderReview"  // App already in UnderReview
+
+   // ✅ CORRECT - Valid transition
+   Status = "OnHold"  // UnderReview → OnHold (valid per workflow)
+   ```
+
+2. **StatusUpdate_CreatesAuditLog** (Lines 127-155)
+   ```csharp
+   // ❌ WRONG - Same-state update
+   Status = "UnderReview"  // App already in UnderReview
+
+   // ✅ CORRECT - Valid transition
+   Status = "InterviewApproved"  // UnderReview → InterviewApproved (happy path)
+   ```
+
+3. **StatusUpdate_SendsEmailNotification** (Lines 158-180)
+   ```csharp
+   // ❌ WRONG - Same-state update
+   Status = "UnderReview"
+
+   // ✅ CORRECT - Valid transition
+   Status = "InterviewApproved"  // Email notification for interview approval
+   ```
+
+4. **StatusUpdate_EmailFailureDoesNotPreventStatusChange** (Lines 415-438)
+   ```csharp
+   // ❌ WRONG - Same-state update
+   Status = "UnderReview"
+
+   // ✅ CORRECT - Valid transition
+   Status = "Denied"  // UnderReview → Denied (rejection scenario)
+   ```
+
+5. **AuditLogCreation_IsTransactional** (Lines 441-470)
+   ```csharp
+   // ❌ WRONG - Invalid direct transition
+   Status = "InterviewScheduled"  // Can't go directly from UnderReview
+
+   // ✅ CORRECT - Valid transition
+   Status = "Withdrawn"  // UnderReview → Withdrawn (applicant withdrawal)
+   ```
+
+### Valid Vetting Workflow Transitions
+
+**CRITICAL**: Always verify transitions against this workflow diagram:
+
+```
+UnderReview → InterviewApproved, OnHold, Denied, Withdrawn
+InterviewApproved → InterviewScheduled, FinalReview, OnHold, Denied, Withdrawn
+InterviewScheduled → FinalReview, OnHold, Denied, Withdrawn
+FinalReview → Approved, Denied, OnHold, Withdrawn
+OnHold → UnderReview, InterviewApproved, InterviewScheduled, FinalReview, Denied, Withdrawn
+Approved → (terminal, no transitions)
+Denied → (terminal, no transitions)
+Withdrawn → (terminal, no transitions)
+```
+
+### Action Items
+
+**When Backend Enforces New Business Rules**:
+1. Check if tests use now-invalid transitions
+2. Replace with valid transitions from workflow diagram
+3. Preserve test purpose (what it validates), only change test data (which transition)
+4. Verify transitions are direct (can't skip steps)
+
+**Verification Pattern**:
+```bash
+# Always verify transitions against workflow diagram before choosing test data
+# Example: UnderReview → InterviewScheduled
+# Check: UnderReview can go to → InterviewApproved, OnHold, Denied, Withdrawn
+# Result: InterviewScheduled NOT in list - INVALID direct transition
+# Correct: UnderReview → InterviewApproved THEN InterviewApproved → InterviewScheduled
+```
+
+**Test Transition Selection**:
+```csharp
+// ✅ CORRECT - Choose meaningful transitions that match test purpose
+// Test: StatusUpdate_SendsEmailNotification
+Status = "InterviewApproved"  // Makes sense - email for interview approval
+
+// Test: StatusUpdate_EmailFailureDoesNotPreventStatusChange
+Status = "Denied"  // Makes sense - email failure during denial should not block status update
+
+// Test: AuditLogCreation_IsTransactional
+Status = "Withdrawn"  // Makes sense - transactional integrity for withdrawal
+```
+
+### Common Mistake: Invalid Direct Transitions
+
+**Problem**: Choosing a valid status that's not a valid DIRECT transition from current status.
+
+**Example**:
+```csharp
+// ❌ WRONG - InterviewScheduled is valid status, but not valid from UnderReview
+var (client, applicationId) = await SetupApplicationAsync(VettingStatus.UnderReview);
+Status = "InterviewScheduled"  // FAILS: Can only reach this from InterviewApproved
+// Error: 400 Bad Request - invalid transition
+
+// ✅ CORRECT - Withdrawn is valid DIRECT transition from UnderReview
+Status = "Withdrawn"  // SUCCEEDS: UnderReview → Withdrawn is in workflow
+```
+
+**Prevention**:
+- Check workflow diagram for CURRENT status
+- Verify target status is in the list of allowed transitions
+- Don't assume all statuses are reachable from any other status
+
+### Impact of Fix
+
+**Before**:
+- 5 tests failing with same-state updates
+- Integration suite: 22/31 passing (71%)
+
+**After**:
+- All vetting tests passing: 15/15 (100%)
+- Integration suite: 29/31 passing (94%)
+- Remaining 2 failures: Pre-existing Participation tests (unrelated)
+
+### Prevention Pattern
+
+**Problem**: Tests become invalid when backend correctly enforces business rules.
+
+**Solution**: Write tests using valid business workflows from the start.
+
+**Best Practices**:
+1. **Understand workflow**: Read workflow diagram before writing tests
+2. **Use realistic scenarios**: Choose transitions that make business sense
+3. **Preserve test purpose**: Change test data, not what test validates
+4. **Check direct transitions**: Verify target status is reachable in one step
+5. **Document workflow**: Include workflow diagram in test comments if complex
+
+### Tags
+`integration-testing` `vetting-system` `status-transitions` `business-rules` `workflow-validation` `test-maintenance`
+
+**Status**: ✅ RESOLVED - All vetting tests use valid transitions - 2025-10-06
+
 
