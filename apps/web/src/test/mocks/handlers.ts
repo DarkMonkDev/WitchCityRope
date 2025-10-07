@@ -629,4 +629,67 @@ export const handlers = [
       activeMembers: 42
     })
   }),
+
+  // Vetting Status endpoints
+  http.get('/api/vetting/status', () => {
+    return HttpResponse.json({
+      success: true,
+      data: {
+        hasApplication: false,
+        application: null
+      }
+    })
+  }),
+
+  http.get(`${API_BASE_URL}/api/vetting/status`, () => {
+    return HttpResponse.json({
+      success: true,
+      data: {
+        hasApplication: false,
+        application: null
+      }
+    })
+  }),
+
+  // User Participations endpoints
+  http.get('/api/user/participations', () => {
+    return HttpResponse.json([
+      {
+        id: 'participation-1',
+        eventId: '1',
+        eventTitle: 'Rope Bondage Fundamentals',
+        eventStartDate: '2025-08-20T19:00:00Z',
+        eventEndDate: '2025-08-20T21:00:00Z',
+        eventLocation: 'Salem Community Center',
+        participationType: 'RSVP',
+        status: 'Active',
+        participationDate: '2025-08-15T10:00:00Z',
+        notes: null,
+        canCancel: true
+      }
+    ])
+  }),
+
+  http.get(`${API_BASE_URL}/api/user/participations`, () => {
+    return HttpResponse.json([
+      {
+        id: 'participation-1',
+        eventId: '1',
+        eventTitle: 'Rope Bondage Fundamentals',
+        eventStartDate: '2025-08-20T19:00:00Z',
+        eventEndDate: '2025-08-20T21:00:00Z',
+        eventLocation: 'Salem Community Center',
+        participationType: 'RSVP',
+        status: 'Active',
+        participationDate: '2025-08-15T10:00:00Z',
+        notes: null,
+        canCancel: true
+      }
+    ])
+  }),
+
+  // OPTIONS preflight for participations (CORS)
+  http.options(`${API_BASE_URL}/api/user/participations`, () => {
+    return new HttpResponse(null, { status: 200 })
+  }),
 ]

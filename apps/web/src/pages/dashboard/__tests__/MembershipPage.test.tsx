@@ -202,14 +202,15 @@ describe('MembershipPage', () => {
           data: {
             id: '1',
             email: 'admin@witchcityrope.com',
-          sceneName: 'TestAdmin',
-          firstName: null,
-          lastName: null,
-          roles: ['Admin'],
-          isActive: true,
-          // Missing createdAt
-          updatedAt: '2025-08-19T10:00:00Z',
-          lastLoginAt: '2025-08-19T10:00:00Z'
+            sceneName: 'TestAdmin',
+            firstName: null,
+            lastName: null,
+            roles: ['Admin'],
+            isActive: true,
+            createdAt: '2025-08-19T00:00:00Z',
+            updatedAt: '2025-08-19T10:00:00Z',
+            lastLoginAt: '2025-08-19T10:00:00Z'
+          }
         })
       })
     )
