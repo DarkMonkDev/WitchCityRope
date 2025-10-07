@@ -154,9 +154,9 @@ describe('DashboardPage', () => {
   })
 
   it('should handle events loading error', async () => {
-    // Override MSW handler for events error
+    // Override MSW handler for participations error (UserParticipations component on dashboard)
     server.use(
-      http.get('/api/events', () => {
+      http.get('/api/user/participations', () => {
         return new HttpResponse('Server error', { status: 500 })
       })
     )
@@ -164,7 +164,8 @@ describe('DashboardPage', () => {
     render(<DashboardPage />, { wrapper: createWrapper() })
 
     await waitFor(() => {
-      expect(screen.getByText('Failed to load events. Please try refreshing the page.')).toBeInTheDocument()
+      // UserParticipations component shows this error message
+      expect(screen.getByText('Unable to Load Participations')).toBeInTheDocument()
     })
   })
 
