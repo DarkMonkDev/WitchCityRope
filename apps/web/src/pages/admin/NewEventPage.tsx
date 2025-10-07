@@ -50,7 +50,7 @@ export const NewEventPage: React.FC = () => {
         // these would come from the sessions data
         startDate: new Date().toISOString(),
         endDate: new Date(Date.now() + 86400000).toISOString(), // +1 day
-        maxAttendees: 100,
+        capacity: 100,
         location: formData.venueId,
       };
 

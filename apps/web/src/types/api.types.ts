@@ -24,8 +24,8 @@ export interface EventDto {
   description?: string;
   startDate?: string;
   endDate?: string;
-  maxAttendees?: number;
-  currentAttendees?: number;
+  capacity?: number;
+  registrationCount?: number;
 }
 
 export type EventType = 'Workshop' | 'Social' | 'Performance' | 'Other';
@@ -50,17 +50,14 @@ export interface Event {
   description: string
   startDate: string
   endDate: string
-  maxAttendees: number
-  currentAttendees: number
+  capacity: number
+  registrationCount?: number
   isRegistrationOpen: boolean
   instructorId: string
   instructor?: UserDto  // Made optional for compatibility
   attendees?: UserDto[] // Made optional for compatibility
   eventType?: 'class' | 'social' // Event type for determining UI logic
   status?: 'Draft' | 'Published' | 'Cancelled' | 'Completed' // Event status
-  startDateTime?: string // Alternative date field
-  endDateTime?: string // Alternative date field
-  capacity?: number // Alternative to maxAttendees
 }
 
 export interface EventRegistration {
@@ -88,7 +85,7 @@ export interface CreateEventData {
   description: string
   startDate: string
   endDate: string
-  maxAttendees: number
+  capacity: number
   location?: string
 }
 
@@ -97,7 +94,7 @@ export interface UpdateEventData {
   description?: string
   startDate?: string
   endDate?: string
-  maxAttendees?: number
+  capacity?: number
   location?: string
 }
 

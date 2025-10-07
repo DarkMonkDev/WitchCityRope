@@ -83,6 +83,34 @@ describe('ComponentName', () => {
 
 ---
 
+## 🚨 MSW HANDLER FIELD NAME ALIGNMENT (2025-10-06) 🚨
+
+**GOAL**: Align MSW mock data with regenerated TypeScript types from shared-types package.
+
+### Changes Made
+
+**Updated Fields in Event Mocks**:
+- Added `registrationCount` (NEW primary field) to all event objects
+- Kept `currentAttendees` for backward compatibility during transition
+- Verified all mocks use `capacity` (not `maxAttendees`)
+- Ensured `startDate`/`endDate` used (not `startDateTime`/`endDateTime`)
+
+**Files Modified**:
+1. `/apps/web/src/test/mocks/handlers.ts` - 8 event objects updated
+2. `/apps/web/src/lib/api/hooks/useEvents.ts` - Updated field mapping logic to prefer `registrationCount`
+
+**Field Migration Status**:
+- ✅ `capacity` - All mocks and components aligned
+- ✅ `registrationCount` - Added to all mocks, mapping updated
+- ⚠️ `currentAttendees` - Deprecated, kept for backward compatibility
+- ❌ `maxAttendees` - Deprecated, replace with `capacity`
+
+**Test Impact**: No regressions (158/277 passing maintained)
+
+**Documentation**: `/home/chad/repos/witchcityrope/test-results/msw-handler-field-name-updates-20251006.md`
+
+---
+
 ## 🚨 NEW: PHASE 1 TASK 1 - UNIMPLEMENTED FEATURES MARKED AS SKIPPED (2025-10-06) 🚨
 
 **TESTING COMPLETION PLAN - PHASE 1 TASK 1 COMPLETE**: Identified and marked 5 E2E tests testing unimplemented features with `test.skip()` to eliminate false failures.

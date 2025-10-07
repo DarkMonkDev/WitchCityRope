@@ -1893,6 +1893,8 @@ export interface components {
             ticketTypes?: components["schemas"]["TicketTypeDto"][] | null;
             volunteerPositions?: components["schemas"]["VolunteerPositionDto"][] | null;
             teacherIds?: string[] | null;
+            /** Format: int32 */
+            registrationCount?: number;
         };
         EventDtoApiResponse: {
             success?: boolean;
@@ -2363,6 +2365,8 @@ export interface components {
             capacity?: number;
             /** Format: int32 */
             registeredCount?: number;
+            /** Format: int32 */
+            registrationCount?: number;
         };
         SimpleNoteRequest: {
             note: string;

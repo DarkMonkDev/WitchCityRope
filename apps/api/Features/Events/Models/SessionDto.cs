@@ -42,9 +42,10 @@ public class SessionDto
     public int Capacity { get; set; }
 
     /// <summary>
-    /// Current number of confirmed attendees for this session
+    /// Current number of confirmed registrations for this session
+    /// Frontend expects this field name for consistency with EventDto.RegistrationCount
     /// </summary>
-    public int RegisteredCount { get; set; }
+    public int RegistrationCount { get; set; }
 
     /// <summary>
     /// Constructor to map from Session entity
@@ -58,7 +59,7 @@ public class SessionDto
         StartTime = session.StartTime;
         EndTime = session.EndTime;
         Capacity = session.Capacity;
-        RegisteredCount = session.CurrentAttendees;
+        RegistrationCount = session.CurrentAttendees;
     }
 
     /// <summary>

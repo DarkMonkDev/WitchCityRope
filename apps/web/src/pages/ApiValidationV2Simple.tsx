@@ -271,9 +271,9 @@ onMutate: async ({ eventId, action }) => {
   
   queryClient.setQueryData(queryKeys.event(eventId), (old: Event) => ({
     ...old,
-    currentAttendees: action === 'register' 
-      ? old.currentAttendees + 1 
-      : old.currentAttendees - 1,
+    registrationCount: action === 'register'
+      ? (old.registrationCount || 0) + 1
+      : Math.max(0, (old.registrationCount || 0) - 1),
   }))
   
   return { previousEvent, eventId }

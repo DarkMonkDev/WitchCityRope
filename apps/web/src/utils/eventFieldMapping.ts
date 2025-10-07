@@ -22,7 +22,7 @@ interface ApiEventResponse {
   endDate?: string;    // API uses this
   location?: string;
   capacity?: number;
-  currentAttendees?: number;
+  registrationCount?: number;
   currentRSVPs?: number;
   currentTickets?: number;
   status?: string;
@@ -54,7 +54,7 @@ export function mapApiEventToDto(apiEvent: ApiEventResponse): EventDto {
     eventType: apiEvent.eventType,
     capacity: apiEvent.capacity,
     // Preserve individual count fields from API - critical for RSVP/ticket display
-    currentAttendees: apiEvent.currentAttendees,
+    registrationCount: apiEvent.registrationCount,
     currentRSVPs: apiEvent.currentRSVPs,
     currentTickets: apiEvent.currentTickets,
     isPublished: apiEvent.isPublished,

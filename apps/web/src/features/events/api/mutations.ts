@@ -117,9 +117,9 @@ export function useEventRegistration() {
       if (previousEvent) {
         queryClient.setQueryData(queryKeys.event(eventId), (old: Event) => ({
           ...old,
-          currentAttendees: action === 'register' 
-            ? old.currentAttendees + 1
-            : old.currentAttendees - 1,
+          registrationCount: action === 'register'
+            ? (old.registrationCount || 0) + 1
+            : Math.max(0, (old.registrationCount || 0) - 1),
         }))
       }
       
@@ -164,7 +164,7 @@ export function usePurchaseTicket() {
       if (previousEvent) {
         queryClient.setQueryData(queryKeys.event(ticketData.eventId), (old: Event) => ({
           ...old,
-          currentAttendees: old.currentAttendees + ticketData.quantity,
+          registrationCount: (old.registrationCount || 0) + ticketData.quantity,
         }))
       }
       
@@ -209,7 +209,7 @@ export function useCancelTicket() {
       if (previousEvent) {
         queryClient.setQueryData(queryKeys.event(eventId), (old: Event) => ({
           ...old,
-          currentAttendees: Math.max(0, old.currentAttendees - 1),
+          registrationCount: Math.max(0, (old.registrationCount || 0) - 1),
         }))
       }
       
@@ -256,7 +256,7 @@ export function useRSVPForEvent() {
       // Snapshot previous value
       const previousEvent = queryClient.getQueryData(queryKeys.event(rsvpData.eventId)) as Event | undefined
       
-      // Note: RSVP doesn't affect currentAttendees (only paid tickets do)
+      // Note: RSVP doesn't affect registrationCount (only paid tickets do)
       // But we still want to track RSVP state
       
       // Return rollback context
@@ -297,7 +297,7 @@ export function useCancelRSVP() {
       // Snapshot previous value
       const previousEvent = queryClient.getQueryData(queryKeys.event(eventId)) as Event | undefined
       
-      // Note: Canceling RSVP doesn't affect currentAttendees (only paid tickets do)
+      // Note: Canceling RSVP doesn't affect registrationCount (only paid tickets do)
       
       // Return rollback context
       return { previousEvent, eventId }

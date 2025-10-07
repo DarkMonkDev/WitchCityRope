@@ -82,7 +82,7 @@ public class EventService
                 EventType = e.EventType,
                 Capacity = e.Capacity,
                 IsPublished = e.IsPublished,
-                CurrentAttendees = e.GetCurrentAttendeeCount(),
+                RegistrationCount = e.GetCurrentAttendeeCount(),
                 CurrentRSVPs = e.GetCurrentRSVPCount(),
                 CurrentTickets = e.GetCurrentTicketCount(),
                 Sessions = e.Sessions.Select(s => new SessionDto(s)).ToList(),
@@ -145,7 +145,7 @@ public class EventService
                 EventType = eventEntity.EventType,
                 Capacity = eventEntity.Capacity,
                 IsPublished = eventEntity.IsPublished,
-                CurrentAttendees = eventEntity.GetCurrentAttendeeCount(),
+                RegistrationCount = eventEntity.GetCurrentAttendeeCount(),
                 CurrentRSVPs = eventEntity.GetCurrentRSVPCount(),
                 CurrentTickets = eventEntity.GetCurrentTicketCount(),
                 Sessions = eventEntity.Sessions.Select(s => new SessionDto(s)).ToList(),
@@ -339,7 +339,7 @@ public class EventService
                 EventType = eventEntity.EventType,
                 Capacity = eventEntity.Capacity,
                 IsPublished = eventEntity.IsPublished,
-                CurrentAttendees = eventEntity.GetCurrentAttendeeCount(),
+                RegistrationCount = eventEntity.GetCurrentAttendeeCount(),
                 CurrentRSVPs = eventEntity.GetCurrentRSVPCount(),
                 CurrentTickets = eventEntity.GetCurrentTicketCount(),
                 Sessions = eventEntity.Sessions.Select(s => new SessionDto(s)).ToList(),
@@ -386,7 +386,7 @@ public class EventService
                 existingSession.StartTime = sessionDto.StartTime.ToUniversalTime();
                 existingSession.EndTime = sessionDto.EndTime.ToUniversalTime();
                 existingSession.Capacity = sessionDto.Capacity;
-                existingSession.CurrentAttendees = sessionDto.RegisteredCount;
+                existingSession.CurrentAttendees = sessionDto.RegistrationCount;
 
                 processedSessionIds.Add(sessionId);
             }
@@ -403,7 +403,7 @@ public class EventService
                     StartTime = sessionDto.StartTime.ToUniversalTime(),
                     EndTime = sessionDto.EndTime.ToUniversalTime(),
                     Capacity = sessionDto.Capacity,
-                    CurrentAttendees = sessionDto.RegisteredCount
+                    CurrentAttendees = sessionDto.RegistrationCount
                 };
 
                 // Let Entity Framework generate the ID for new sessions

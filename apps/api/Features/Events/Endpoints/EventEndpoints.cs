@@ -236,11 +236,11 @@ public static class EventEndpoints
                 EventType = "Class",
                 Capacity = 20,
                 IsPublished = true,
-                CurrentAttendees = 20,    // SOLD OUT
+                RegistrationCount = 20,    // SOLD OUT
                 CurrentRSVPs = 0,         // Class events don't have RSVPs
                 CurrentTickets = 20       // All attendees paid tickets
             },
-            
+
             // Nearly sold out Class event (87% capacity) - Green progress bar
             new EventDto
             {
@@ -253,11 +253,11 @@ public static class EventEndpoints
                 EventType = "Class",
                 Capacity = 15,
                 IsPublished = true,
-                CurrentAttendees = 13,    // 87% capacity - nearly sold out
+                RegistrationCount = 13,    // 87% capacity - nearly sold out
                 CurrentRSVPs = 0,         // Class events don't have RSVPs
                 CurrentTickets = 13       // All attendees paid tickets
             },
-            
+
             // Moderately filled Social event (60% capacity) - Yellow progress bar
             new EventDto
             {
@@ -270,11 +270,11 @@ public static class EventEndpoints
                 EventType = "Social",
                 Capacity = 30,
                 IsPublished = true,
-                CurrentAttendees = 18,    // 60% capacity - moderately filled
+                RegistrationCount = 18,    // 60% capacity - moderately filled
                 CurrentRSVPs = 13,        // Most people use free RSVP for social events (72%)
                 CurrentTickets = 5        // Some people buy tickets to support (28%)
             },
-            
+
             // Low attendance Social event (33% capacity) - Red progress bar
             new EventDto
             {
@@ -287,7 +287,7 @@ public static class EventEndpoints
                 EventType = "Social",
                 Capacity = 24,
                 IsPublished = true,
-                CurrentAttendees = 8,     // 33% capacity - needs more signups
+                RegistrationCount = 8,     // 33% capacity - needs more signups
                 CurrentRSVPs = 6,         // Most attendees use free RSVP (75%)
                 CurrentTickets = 2        // Few paid tickets (25%)
             }
@@ -313,7 +313,7 @@ public static class EventEndpoints
                 EventType = "Class",
                 Capacity = 12,
                 IsPublished = false,    // DRAFT - not visible to public
-                CurrentAttendees = 0,   // No registrations yet for draft
+                RegistrationCount = 0,   // No registrations yet for draft
                 CurrentRSVPs = 0,
                 CurrentTickets = 0
             },
@@ -330,7 +330,7 @@ public static class EventEndpoints
                 EventType = "Social",
                 Capacity = 40,
                 IsPublished = false,    // DRAFT - not visible to public
-                CurrentAttendees = 0,   // No RSVPs yet for draft
+                RegistrationCount = 0,   // No RSVPs yet for draft
                 CurrentRSVPs = 0,
                 CurrentTickets = 0
             }
