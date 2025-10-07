@@ -58,7 +58,7 @@ describe('MembershipPage', () => {
 
   it('should handle user loading error', async () => {
     server.use(
-      http.get('/api/auth/user', () => {
+      http.get('http://localhost:5655/api/auth/user', () => {
         return new HttpResponse('Server error', { status: 500 })
       })
     )
@@ -94,7 +94,7 @@ describe('MembershipPage', () => {
   it('should calculate and display membership duration correctly', async () => {
     // Mock user with specific creation date
     server.use(
-      http.get('/api/auth/user', () => {
+      http.get('http://localhost:5655/api/auth/user', () => {
         return HttpResponse.json({
           success: true,
           data: {
@@ -200,7 +200,7 @@ describe('MembershipPage', () => {
 
   it('should handle user with no creation date', async () => {
     server.use(
-      http.get('/api/auth/user', () => {
+      http.get('http://localhost:5655/api/auth/user', () => {
         return HttpResponse.json({
           success: true,
           data: {

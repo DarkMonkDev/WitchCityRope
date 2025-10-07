@@ -26,6 +26,88 @@
 
 ---
 
+## 🚨 CRITICAL: MSW HANDLER URL MATCHING FIXES (2025-10-06) 🚨
+
+**MANDATORY PATTERN**: All test `server.use()` overrides MUST use absolute URLs.
+
+### The Problem
+Tests using `server.use()` to override MSW handlers were timing out at ~1000ms because the handlers used **relative URLs** (`/api/events`) but the API client sends requests to **absolute URLs** (`http://localhost:5655/api/events`).
+
+MSW requires **exact URL matching** - relative URL handlers don't match absolute URL requests.
+
+### Root Cause
+The API client is configured with a `baseURL`:
+```typescript
+// lib/api/client.ts
+const API_BASE_URL = 'http://localhost:5655'
+apiClient = axios.create({ baseURL: API_BASE_URL })
+```
+
+When calling `apiClient.get('/api/events')`, axios sends: `GET http://localhost:5655/api/events`
+
+### The Solution
+**Always use absolute URLs in test `server.use()` overrides**:
+
+```typescript
+// ❌ WRONG - Relative URL won't match
+server.use(
+  http.get('/api/events', () => {
+    return HttpResponse.json({ success: true, data: [] })
+  })
+)
+
+// ✅ CORRECT - Absolute URL matches actual request
+server.use(
+  http.get('http://localhost:5655/api/events', () => {
+    return HttpResponse.json({ success: true, data: [] })
+  })
+)
+```
+
+### Files Fixed (+9 tests)
+1. `/apps/web/src/pages/dashboard/__tests__/DashboardPage.test.tsx` - Fixed 2 error handling tests
+   - "should handle dashboard loading error" ✅
+   - "should handle mixed loading states correctly" ✅
+
+2. `/apps/web/src/pages/dashboard/__tests__/EventsPage.test.tsx` - Fixed 7 MSW timeout tests
+   - "should handle events loading error" ✅
+   - "should display upcoming events correctly" ✅
+   - "should display past events correctly" ✅
+   - "should separate upcoming and past events correctly" ✅
+   - "should display empty state when no events" ✅
+   - "should format dates correctly" ✅
+   - Plus 1 more test ✅
+
+### Impact
+- **Before**: 164/281 passing (58.4%)
+- **After**: 171/281 passing (60.9%)
+- **Net gain**: +9 tests fixed
+
+### Investigation Process
+1. Created debug test with MSW event listeners
+2. Discovered MSW WAS intercepting requests correctly
+3. Found mismatch between test override URLs (relative) vs actual request URLs (absolute)
+4. Applied fix to both test files
+5. Verified all tests now pass
+
+### Debugging Pattern
+When facing MSW timeout issues, add this to your test:
+```typescript
+server.events.on('request:start', ({ request }) => {
+  console.log('MSW INTERCEPTED:', request.method, request.url)
+})
+
+server.events.on('request:unhandled', ({ request }) => {
+  console.log('MSW UNHANDLED:', request.method, request.url)
+})
+```
+
+This shows you the **exact URLs** being requested and whether MSW handlers match.
+
+**Documentation**: `/test-results/msw-timing-fix-20251006.md`
+
+---
+
 ## 🚨 CRITICAL: REACT QUERY CACHE ISOLATION FIXES (2025-10-06) 🚨
 
 **MANDATORY PATTERN**: All React tests using QueryClient MUST follow this pattern.

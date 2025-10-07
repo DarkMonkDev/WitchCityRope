@@ -12,14 +12,20 @@ describe('EventsPage', () => {
   let queryClient: QueryClient
 
   beforeEach(() => {
+    // Reset MSW handlers FIRST to ensure clean state
+    server.resetHandlers()
+
     // Create fresh QueryClient for EACH test to ensure cache isolation
     queryClient = new QueryClient({
       defaultOptions: {
-        queries: { retry: false },
+        queries: {
+          retry: false,
+          gcTime: 0,          // Disable garbage collection caching
+          staleTime: 0,       // Data immediately stale
+        },
         mutations: { retry: false },
       },
     })
-    server.resetHandlers()
   })
 
   afterEach(() => {
@@ -61,7 +67,7 @@ describe('EventsPage', () => {
 
   it('should handle events loading error', async () => {
     server.use(
-      http.get('/api/events', () => {
+      http.get('http://localhost:5655/api/events', () => {
         return new HttpResponse('Server error', { status: 500 })
       })
     )
@@ -75,7 +81,7 @@ describe('EventsPage', () => {
 
   it('should display note about future functionality', async () => {
     server.use(
-      http.get('/api/events', () => {
+      http.get('http://localhost:5655/api/events', () => {
         return HttpResponse.json({ success: true, data: [] })
       })
     )
@@ -115,7 +121,7 @@ describe('EventsPage', () => {
     ]
 
     server.use(
-      http.get('/api/events', () => {
+      http.get('http://localhost:5655/api/events', () => {
         return HttpResponse.json({ success: true, data: mockEvents })
       })
     )
@@ -162,7 +168,7 @@ describe('EventsPage', () => {
     ]
 
     server.use(
-      http.get('/api/events', () => {
+      http.get('http://localhost:5655/api/events', () => {
         return HttpResponse.json({ success: true, data: mockEvents })
       })
     )
@@ -217,7 +223,7 @@ describe('EventsPage', () => {
     ]
 
     server.use(
-      http.get('/api/events', () => {
+      http.get('http://localhost:5655/api/events', () => {
         return HttpResponse.json({ success: true, data: mockEvents })
       })
     )
@@ -236,7 +242,7 @@ describe('EventsPage', () => {
 
   it('should display empty state when no events', async () => {
     server.use(
-      http.get('/api/events', () => {
+      http.get('http://localhost:5655/api/events', () => {
         return HttpResponse.json({ success: true, data: [] })
       })
     )
@@ -267,7 +273,7 @@ describe('EventsPage', () => {
     ]
 
     server.use(
-      http.get('/api/events', () => {
+      http.get('http://localhost:5655/api/events', () => {
         return HttpResponse.json({ success: true, data: mockEvents })
       })
     )
@@ -312,7 +318,7 @@ describe('EventsPage', () => {
     ]
 
     server.use(
-      http.get('/api/events', () => {
+      http.get('http://localhost:5655/api/events', () => {
         return HttpResponse.json({ success: true, data: mockEvents })
       })
     )
@@ -344,7 +350,7 @@ describe('EventsPage', () => {
     ]
 
     server.use(
-      http.get('/api/events', () => {
+      http.get('http://localhost:5655/api/events', () => {
         return HttpResponse.json({ success: true, data: mockEvents })
       })
     )
@@ -407,7 +413,7 @@ describe('EventsPage', () => {
     ]
 
     server.use(
-      http.get('/api/events', () => {
+      http.get('http://localhost:5655/api/events', () => {
         return HttpResponse.json({ success: true, data: mockEvents })
       })
     )
@@ -423,7 +429,7 @@ describe('EventsPage', () => {
 
   it('should link to browse all events in empty state', async () => {
     server.use(
-      http.get('/api/events', () => {
+      http.get('http://localhost:5655/api/events', () => {
         return HttpResponse.json({ success: true, data: [] })
       })
     )
@@ -465,7 +471,7 @@ describe('EventsPage', () => {
     ]
 
     server.use(
-      http.get('/api/events', () => {
+      http.get('http://localhost:5655/api/events', () => {
         return HttpResponse.json({ success: true, data: mockEvents })
       })
     )

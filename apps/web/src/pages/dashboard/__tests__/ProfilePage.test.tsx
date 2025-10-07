@@ -60,7 +60,7 @@ describe('ProfilePage', () => {
 
   it('should handle user loading error', async () => {
     server.use(
-      http.get('/api/auth/user', () => {
+      http.get('http://localhost:5655/api/auth/user', () => {
         return new HttpResponse('Server error', { status: 500 })
       })
     )
@@ -342,7 +342,7 @@ describe('ProfilePage', () => {
     it('should handle missing optional user data gracefully', async () => {
       // Override MSW handler to return user with missing optional fields
       server.use(
-        http.get('/api/auth/user', () => {
+        http.get('http://localhost:5655/api/auth/user', () => {
           return HttpResponse.json({
             success: true,
             data: {
@@ -372,7 +372,7 @@ describe('ProfilePage', () => {
 
     it('should handle user with no ID or created date', async () => {
       server.use(
-        http.get('/api/auth/user', () => {
+        http.get('http://localhost:5655/api/auth/user', () => {
           return HttpResponse.json({
             success: true,
             data: {
@@ -409,7 +409,7 @@ describe('ProfilePage', () => {
 
       // Simulate user data update by overriding MSW handler
       server.use(
-        http.get('/api/auth/user', () => {
+        http.get('http://localhost:5655/api/auth/user', () => {
           return HttpResponse.json({
             success: true,
             data: {

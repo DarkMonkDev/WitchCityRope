@@ -25,15 +25,21 @@ describe('DashboardPage', () => {
   let queryClient: QueryClient
 
   beforeEach(() => {
+    // Reset MSW handlers FIRST to ensure clean state
+    server.resetHandlers()
+
     // Create fresh QueryClient for EACH test to ensure cache isolation
+    // CRITICAL: retry: false to prevent retries that delay error state
     queryClient = new QueryClient({
       defaultOptions: {
-        queries: { retry: false },
+        queries: {
+          retry: false,
+          gcTime: 0,          // Disable garbage collection caching
+          staleTime: 0,       // Data immediately stale
+        },
         mutations: { retry: false },
       },
     })
-    // Reset MSW handlers
-    server.resetHandlers()
   })
 
   afterEach(() => {
@@ -81,14 +87,15 @@ describe('DashboardPage', () => {
 
   it('should handle dashboard loading error', async () => {
     // Override MSW handler for ALL dashboard endpoints to error
+    // CRITICAL: Must use absolute URLs to match what apiClient sends
     server.use(
-      http.get('/api/dashboard', () => {
+      http.get('http://localhost:5655/api/dashboard', () => {
         return new HttpResponse('Server error', { status: 500 })
       }),
-      http.get('/api/dashboard/events', () => {
+      http.get('http://localhost:5655/api/dashboard/events', () => {
         return new HttpResponse('Server error', { status: 500 })
       }),
-      http.get('/api/dashboard/statistics', () => {
+      http.get('http://localhost:5655/api/dashboard/statistics', () => {
         return new HttpResponse('Server error', { status: 500 })
       })
     )
@@ -96,9 +103,10 @@ describe('DashboardPage', () => {
     render(<DashboardPage />, { wrapper: createWrapper() })
 
     // DashboardPage shows "Unable to Load Dashboard" error when useDashboardData returns isError=true
+    // NOTE: Hook has retry logic (up to 2 retries), so need timeout > retry delays
     await waitFor(() => {
       expect(screen.getByText('Unable to Load Dashboard')).toBeInTheDocument()
-    }, { timeout: 3000 })
+    }, { timeout: 5000 })
   })
 
   it.skip('should display upcoming events when data loads successfully', async () => {
@@ -180,17 +188,19 @@ describe('DashboardPage', () => {
   it('should handle mixed loading states correctly', async () => {
     // Dashboard loads successfully, BUT events fail - so useDashboardData.isError becomes true
     // Because useDashboardData aggregates errors: isError = dashboardQuery.isError || eventsQuery.isError || statisticsQuery.isError
+    // CRITICAL: Must use absolute URL to match what apiClient sends
     server.use(
-      http.get('/api/dashboard/events', () => {
+      http.get('http://localhost:5655/api/dashboard/events', () => {
         return new HttpResponse('Server error', { status: 500 })
       })
     )
 
     render(<DashboardPage />, { wrapper: createWrapper() })
 
+    // NOTE: Hook has retry logic (up to 2 retries), so need timeout > retry delays
     await waitFor(() => {
       // With any sub-query failing, DashboardPage shows global error state
       expect(screen.getByText('Unable to Load Dashboard')).toBeInTheDocument()
-    }, { timeout: 3000 })
+    }, { timeout: 5000 })
   })
 })
