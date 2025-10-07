@@ -8,33 +8,37 @@ import { ProfilePage } from '../ProfilePage'
 import { server } from '../../../test/setup'
 import { http, HttpResponse } from 'msw'
 
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false, refetchOnMount: false, refetchOnWindowFocus: false, staleTime: 0, gcTime: 0 },
-      mutations: { retry: false },
-    },
-  })
-  
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      <MantineProvider>
-        <BrowserRouter>
-          {children}
-        </BrowserRouter>
-      </MantineProvider>
-    </QueryClientProvider>
-  )
-}
-
 describe('ProfilePage', () => {
+  let queryClient: QueryClient
+
   beforeEach(() => {
+    // Create fresh QueryClient for EACH test to ensure cache isolation
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false, refetchOnMount: false, refetchOnWindowFocus: false, staleTime: 0, gcTime: 0 },
+        mutations: { retry: false },
+      },
+    })
     server.resetHandlers()
   })
 
   afterEach(() => {
+    // Clear all queries from cache to prevent test pollution
+    queryClient.clear()
     vi.clearAllMocks()
   })
+
+  const createWrapper = () => {
+    return ({ children }: { children: React.ReactNode }) => (
+      <QueryClientProvider client={queryClient}>
+        <MantineProvider>
+          <BrowserRouter>
+            {children}
+          </BrowserRouter>
+        </MantineProvider>
+      </QueryClientProvider>
+    )
+  }
 
   it('should render page title', async () => {
     render(<ProfilePage />, { wrapper: createWrapper() })
@@ -104,10 +108,10 @@ describe('ProfilePage', () => {
     await waitFor(() => {
       expect(screen.getByText('User ID')).toBeInTheDocument()
       expect(screen.getByText('1')).toBeInTheDocument() // User ID from MSW handler
-      
+
       expect(screen.getByText('Account Created')).toBeInTheDocument()
       expect(screen.getByText('August 19, 2025')).toBeInTheDocument()
-      
+
       expect(screen.getByText('Last Login')).toBeInTheDocument()
       expect(screen.getByText(/August 19, 2025/)).toBeInTheDocument()
     })

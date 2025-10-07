@@ -7,29 +7,33 @@ import { server } from '../setup'
 import { http, HttpResponse } from 'msw'
 import type { Event } from '../../types/api.types'
 
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-      mutations: { retry: false },
-    },
-  })
-  
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  )
-}
-
 describe('Dashboard Integration Tests', () => {
+  let queryClient: QueryClient
+
   beforeEach(() => {
+    // Create fresh QueryClient for EACH test to ensure cache isolation
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    })
     server.resetHandlers()
   })
 
   afterEach(() => {
+    // Clear all queries from cache to prevent test pollution
+    queryClient.clear()
     vi.clearAllMocks()
   })
+
+  const createWrapper = () => {
+    return ({ children }: { children: React.ReactNode }) => (
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    )
+  }
 
   describe('useCurrentUser Integration', () => {
     it('should fetch current user data successfully', async () => {

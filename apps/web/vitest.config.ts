@@ -9,6 +9,16 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    // Exclude Playwright E2E tests (they have their own runner)
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/cypress/**',
+      '**/.{idea,git,cache,output,temp}/**',
+      '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
+      '**/tests/playwright/**',  // Playwright E2E tests
+      '**/*.e2e.spec.ts',        // Any E2E test files
+    ],
     // Memory management optimized for performance while preventing crashes
     pool: 'forks',  // Use forks instead of threads for better isolation
     poolOptions: {

@@ -31,23 +31,18 @@ Object.defineProperty(window, 'location', {
   writable: true,
 })
 
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-      mutations: { retry: false },
-    },
-  })
-  
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  )
-}
-
 describe('useLogin', () => {
+  let queryClient: QueryClient
+
   beforeEach(() => {
+    // Create fresh QueryClient for EACH test to ensure cache isolation
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    })
+
     // Reset auth store
     useAuthStore.getState().actions.logout()
     mockNavigate.mockClear()
@@ -61,8 +56,18 @@ describe('useLogin', () => {
   })
 
   afterEach(() => {
+    // Clear all queries from cache to prevent test pollution
+    queryClient.clear()
     vi.clearAllMocks()
   })
+
+  const createWrapper = () => {
+    return ({ children }: { children: React.ReactNode }) => (
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    )
+  }
 
   it('should login successfully and update auth store', async () => {
     const { result } = renderHook(() => useLogin(), {
@@ -254,7 +259,17 @@ describe('useLogin', () => {
 })
 
 describe('useLogout', () => {
+  let queryClient: QueryClient
+
   beforeEach(() => {
+    // Create fresh QueryClient for EACH test to ensure cache isolation
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    })
+
     // Set up authenticated state - using NSwag UserDto structure
     const mockToken = 'test-jwt-token';
     const mockExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
@@ -278,8 +293,18 @@ describe('useLogout', () => {
   })
 
   afterEach(() => {
+    // Clear all queries from cache to prevent test pollution
+    queryClient.clear()
     vi.clearAllMocks()
   })
+
+  const createWrapper = () => {
+    return ({ children }: { children: React.ReactNode }) => (
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    )
+  }
 
   it('should logout successfully and clear auth store', async () => {
     const { result } = renderHook(() => useLogout(), {

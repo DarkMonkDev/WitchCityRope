@@ -12,11 +12,19 @@ import type { EventSessionDto, TicketTypeDto } from '@witchcityrope/shared-types
 describe.skip('EventSessionForm', () => {
   let queryClient: QueryClient;
 
-  const createWrapper = () => {
+  beforeEach(() => {
+    // Create fresh QueryClient for EACH test to ensure cache isolation
     queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false }, mutations: { retry: false } }
     });
-    
+  });
+
+  afterEach(() => {
+    // Clear all queries from cache to prevent test pollution
+    queryClient.clear();
+  });
+
+  const createWrapper = () => {
     return ({ children }: { children: React.ReactNode }) => (
       <QueryClientProvider client={queryClient}>
         <MantineProvider>

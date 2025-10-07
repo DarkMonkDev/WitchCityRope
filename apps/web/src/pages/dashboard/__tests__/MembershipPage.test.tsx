@@ -8,33 +8,37 @@ import { MembershipPage } from '../MembershipPage'
 import { server } from '../../../test/setup'
 import { http, HttpResponse } from 'msw'
 
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-      mutations: { retry: false },
-    },
-  })
-  
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      <MantineProvider>
-        <BrowserRouter>
-          {children}
-        </BrowserRouter>
-      </MantineProvider>
-    </QueryClientProvider>
-  )
-}
-
 describe('MembershipPage', () => {
+  let queryClient: QueryClient
+
   beforeEach(() => {
+    // Create fresh QueryClient for EACH test to ensure cache isolation
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    })
     server.resetHandlers()
   })
 
   afterEach(() => {
+    // Clear all queries from cache to prevent test pollution
+    queryClient.clear()
     vi.clearAllMocks()
   })
+
+  const createWrapper = () => {
+    return ({ children }: { children: React.ReactNode }) => (
+      <QueryClientProvider client={queryClient}>
+        <MantineProvider>
+          <BrowserRouter>
+            {children}
+          </BrowserRouter>
+        </MantineProvider>
+      </QueryClientProvider>
+    )
+  }
 
   it('should render page title', async () => {
     render(<MembershipPage />, { wrapper: createWrapper() })

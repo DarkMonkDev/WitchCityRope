@@ -241,8 +241,9 @@ export const handlers = [
         id: params.id,
         title: 'Test Event',
         description: 'A test event for API validation',
-        startDateTime: '2025-08-20T19:00:00Z',
-        endDateTime: '2025-08-20T21:00:00Z',
+        startDate: '2025-08-20T19:00:00Z',
+        endDate: '2025-08-20T21:00:00Z',
+        location: 'Test Location',
         capacity: 20,
         currentAttendees: 5,
         status: 'Published',
@@ -267,8 +268,9 @@ export const handlers = [
         id: params.id,
         title: 'Test Event',
         description: 'A test event for API validation',
-        startDateTime: '2025-08-20T19:00:00Z',
-        endDateTime: '2025-08-20T21:00:00Z',
+        startDate: '2025-08-20T19:00:00Z',
+        endDate: '2025-08-20T21:00:00Z',
+        location: 'Test Location',
         capacity: 20,
         currentAttendees: 5,
         status: 'Published',
@@ -291,14 +293,15 @@ export const handlers = [
     const url = new URL(request.url)
     const page = parseInt(url.searchParams.get('page') || '1')
     const pageSize = parseInt(url.searchParams.get('pageSize') || '20')
-    
+
     const events = [
       {
         id: '1',
         title: 'Rope Bondage Fundamentals',
         description: 'Learn the basics of safe rope bondage with experienced instructors',
-        startDateTime: '2025-08-20T19:00:00Z',
-        endDateTime: '2025-08-20T21:00:00Z',
+        startDate: '2025-08-20T19:00:00Z',
+        endDate: '2025-08-20T21:00:00Z',
+        location: 'Salem Community Center',
         capacity: 20,
         currentAttendees: 5,
         status: 'Published',
@@ -309,8 +312,9 @@ export const handlers = [
         id: '2',
         title: 'Community Social Night',
         description: 'Join fellow community members for socializing and light play',
-        startDateTime: '2025-08-21T19:00:00Z',
-        endDateTime: '2025-08-21T21:00:00Z',
+        startDate: '2025-08-21T19:00:00Z',
+        endDate: '2025-08-21T21:00:00Z',
+        location: 'Salem Community Center',
         capacity: 15,
         currentAttendees: 10,
         status: 'Published',
@@ -346,14 +350,15 @@ export const handlers = [
     const url = new URL(request.url)
     const page = parseInt(url.searchParams.get('page') || '1')
     const pageSize = parseInt(url.searchParams.get('pageSize') || '20')
-    
+
     const events = [
       {
         id: '1',
         title: 'Rope Bondage Fundamentals',
         description: 'Learn the basics of safe rope bondage with experienced instructors',
-        startDateTime: '2025-08-20T19:00:00Z',
-        endDateTime: '2025-08-20T21:00:00Z',
+        startDate: '2025-08-20T19:00:00Z',
+        endDate: '2025-08-20T21:00:00Z',
+        location: 'Salem Community Center',
         capacity: 20,
         currentAttendees: 5,
         status: 'Published',
@@ -364,8 +369,9 @@ export const handlers = [
         id: '2',
         title: 'Community Social Night',
         description: 'Join fellow community members for socializing and light play',
-        startDateTime: '2025-08-21T19:00:00Z',
-        endDateTime: '2025-08-21T21:00:00Z',
+        startDate: '2025-08-21T19:00:00Z',
+        endDate: '2025-08-21T21:00:00Z',
+        location: 'Salem Community Center',
         capacity: 15,
         currentAttendees: 10,
         status: 'Published',
@@ -540,93 +546,132 @@ export const handlers = [
   }),
 
   // Dashboard endpoints
+  // CRITICAL: Match actual backend structure - returns minimal dashboard DTO, not full UserDto
   http.get('/api/dashboard', () => {
     return HttpResponse.json({
-      id: '1',
-      email: 'admin@witchcityrope.com',
       sceneName: 'TestAdmin',
-      firstName: null,
-      lastName: null,
-      roles: ['Admin'],
-      isActive: true,
-      createdAt: '2025-08-19T00:00:00Z',
-      updatedAt: '2025-08-19T10:00:00Z',
-      lastLoginAt: '2025-08-19T10:00:00Z',
-      vettingStatus: 'Approved'
+      role: 'Administrator',
+      vettingStatus: 'Approved',
+      hasVettingApplication: true,
+      isVetted: true,
+      email: 'admin@witchcityrope.com',
+      joinDate: '2025-08-19T00:00:00Z',
+      pronouns: 'they/them'
     })
   }),
 
   http.get(`${API_BASE_URL}/api/dashboard`, () => {
     return HttpResponse.json({
-      id: '1',
-      email: 'admin@witchcityrope.com',
       sceneName: 'TestAdmin',
-      firstName: null,
-      lastName: null,
-      roles: ['Admin'],
-      isActive: true,
-      createdAt: '2025-08-19T00:00:00Z',
-      updatedAt: '2025-08-19T10:00:00Z',
-      lastLoginAt: '2025-08-19T10:00:00Z',
-      vettingStatus: 'Approved'
+      role: 'Administrator',
+      vettingStatus: 'Approved',
+      hasVettingApplication: true,
+      isVetted: true,
+      email: 'admin@witchcityrope.com',
+      joinDate: '2025-08-19T00:00:00Z',
+      pronouns: 'they/them'
     })
   }),
 
-  http.get('/api/dashboard/events', () => {
+  // CRITICAL: Match actual backend structure - returns dashboard event DTO with registration info
+  http.get('/api/dashboard/events', ({ request }) => {
+    const url = new URL(request.url)
+    const count = parseInt(url.searchParams.get('count') || '3')
+
     const events = [
       {
         id: '1',
         title: 'Upcoming Workshop',
-        description: 'Test workshop',
         startDate: new Date(Date.now() + 86400000).toISOString(),
         endDate: new Date(Date.now() + 90000000).toISOString(),
-        maxAttendees: 20,
-        currentAttendees: 5,
-        isRegistrationOpen: true,
-        instructorId: '1',
+        location: 'Main Workshop Room',
+        eventType: 'Class',
+        instructorName: 'TestInstructor',
+        registrationStatus: 'Ticket Purchased',
+        ticketId: 'ticket-1',
+        confirmationCode: 'TEST1234'
+      },
+      {
+        id: '2',
+        title: 'Community Social Night',
+        startDate: new Date(Date.now() + 172800000).toISOString(),
+        endDate: new Date(Date.now() + 176400000).toISOString(),
+        location: 'Community Space',
+        eventType: 'Social',
+        instructorName: '',
+        registrationStatus: 'RSVP Confirmed',
+        ticketId: 'rsvp-2',
+        confirmationCode: 'RSVP5678'
       }
-    ] as Event[]
+    ].slice(0, count)
 
     return HttpResponse.json({
-      upcomingEvents: events,
-      totalUpcoming: events.length
+      upcomingEvents: events
     })
   }),
 
-  http.get(`${API_BASE_URL}/api/dashboard/events`, () => {
+  http.get(`${API_BASE_URL}/api/dashboard/events`, ({ request }) => {
+    const url = new URL(request.url)
+    const count = parseInt(url.searchParams.get('count') || '3')
+
     const events = [
       {
         id: '1',
         title: 'Upcoming Workshop',
-        description: 'Test workshop',
         startDate: new Date(Date.now() + 86400000).toISOString(),
         endDate: new Date(Date.now() + 90000000).toISOString(),
-        maxAttendees: 20,
-        currentAttendees: 5,
-        isRegistrationOpen: true,
-        instructorId: '1',
+        location: 'Main Workshop Room',
+        eventType: 'Class',
+        instructorName: 'TestInstructor',
+        registrationStatus: 'Ticket Purchased',
+        ticketId: 'ticket-1',
+        confirmationCode: 'TEST1234'
+      },
+      {
+        id: '2',
+        title: 'Community Social Night',
+        startDate: new Date(Date.now() + 172800000).toISOString(),
+        endDate: new Date(Date.now() + 176400000).toISOString(),
+        location: 'Community Space',
+        eventType: 'Social',
+        instructorName: '',
+        registrationStatus: 'RSVP Confirmed',
+        ticketId: 'rsvp-2',
+        confirmationCode: 'RSVP5678'
       }
-    ] as Event[]
+    ].slice(0, count)
 
     return HttpResponse.json({
-      upcomingEvents: events,
-      totalUpcoming: events.length
+      upcomingEvents: events
     })
   }),
 
+  // CRITICAL: Match actual backend structure - returns user-centric statistics, not org-wide stats
   http.get('/api/dashboard/statistics', () => {
     return HttpResponse.json({
-      upcomingEvents: 3,
-      totalRegistrations: 5,
-      activeMembers: 42
+      isVerified: true,
+      eventsAttended: 2,
+      monthsAsMember: 1,
+      recentEvents: 3,
+      joinDate: '2025-08-19T00:00:00Z',
+      vettingStatus: 'Approved',
+      nextInterviewDate: null,
+      upcomingRegistrations: 5,
+      cancelledRegistrations: 0
     })
   }),
 
   http.get(`${API_BASE_URL}/api/dashboard/statistics`, () => {
     return HttpResponse.json({
-      upcomingEvents: 3,
-      totalRegistrations: 5,
-      activeMembers: 42
+      isVerified: true,
+      eventsAttended: 2,
+      monthsAsMember: 1,
+      recentEvents: 3,
+      joinDate: '2025-08-19T00:00:00Z',
+      vettingStatus: 'Approved',
+      nextInterviewDate: null,
+      upcomingRegistrations: 5,
+      cancelledRegistrations: 0
     })
   }),
 

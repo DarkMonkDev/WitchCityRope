@@ -30,25 +30,6 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-      mutations: { retry: false },
-    },
-  });
-  
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      <MantineProvider>
-        <BrowserRouter>
-          {children}
-        </BrowserRouter>
-      </MantineProvider>
-    </QueryClientProvider>
-  );
-};
-
 const mockApplications: ApplicationSummaryDto[] = [
   {
     id: 'app-1',
@@ -104,8 +85,17 @@ const mockApplications: ApplicationSummaryDto[] = [
 
 describe('VettingApplicationsList', () => {
   const user = userEvent.setup();
-  
+  let queryClient: QueryClient;
+
   beforeEach(() => {
+    // Create fresh QueryClient for EACH test to ensure cache isolation
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+
     vi.clearAllMocks();
     mockUseVettingApplications.mockReturnValue({
       data: {
@@ -126,8 +116,22 @@ describe('VettingApplicationsList', () => {
   });
 
   afterEach(() => {
+    // Clear all queries from cache to prevent test pollution
+    queryClient.clear();
     vi.clearAllMocks();
   });
+
+  const createWrapper = () => {
+    return ({ children }: { children: React.ReactNode }) => (
+      <QueryClientProvider client={queryClient}>
+        <MantineProvider>
+          <BrowserRouter>
+            {children}
+          </BrowserRouter>
+        </MantineProvider>
+      </QueryClientProvider>
+    );
+  };
 
   it('renders the applications table with correct columns', () => {
     render(<VettingApplicationsList />, { wrapper: createWrapper() });

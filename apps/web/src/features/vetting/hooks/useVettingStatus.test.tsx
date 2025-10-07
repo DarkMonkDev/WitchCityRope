@@ -18,31 +18,36 @@ vi.mock('../../../stores/authStore', () => ({
 const mockFetch = vi.fn();
 global.fetch = mockFetch as any;
 
-// Create wrapper for React Query
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false, // Disable retries in tests
-        gcTime: 0 // Disable caching between tests
-      }
-    }
-  });
-
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
-};
-
 describe('useVettingStatus', () => {
+  let queryClient: QueryClient;
+
   beforeEach(() => {
+    // Create fresh QueryClient for EACH test to ensure cache isolation
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false, // Disable retries in tests
+          gcTime: 0 // Disable caching between tests
+        }
+      }
+    });
+
     vi.clearAllMocks();
     mockFetch.mockReset();
   });
 
   afterEach(() => {
+    // Clear all queries from cache to prevent test pollution
+    queryClient.clear();
     vi.restoreAllMocks();
   });
+
+  // Create wrapper for React Query
+  const createWrapper = () => {
+    return ({ children }: { children: React.ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+  };
 
   describe('when user is not authenticated', () => {
     it('should not fetch status', async () => {
@@ -75,7 +80,7 @@ describe('useVettingStatus', () => {
         application: null
       };
 
-      mockFetch.mockResolvedValueOnce({
+      mockFetch.mockResolvedValue({
         ok: true,
         json: async () => ({
           success: true,
@@ -118,7 +123,7 @@ describe('useVettingStatus', () => {
         }
       };
 
-      mockFetch.mockResolvedValueOnce({
+      mockFetch.mockResolvedValue({
         ok: true,
         json: async () => ({
           success: true,
@@ -159,7 +164,7 @@ describe('useVettingStatus', () => {
         }
       };
 
-      mockFetch.mockResolvedValueOnce({
+      mockFetch.mockResolvedValue({
         ok: true,
         json: async () => ({
           success: true,
@@ -169,7 +174,7 @@ describe('useVettingStatus', () => {
       });
 
       // Act
-      const { result } = renderHook(() => useVettingStatus(), {
+      const { result} = renderHook(() => useVettingStatus(), {
         wrapper: createWrapper()
       });
 
@@ -327,7 +332,7 @@ describe('useVettingStatus', () => {
           }
         };
 
-        mockFetch.mockResolvedValueOnce({
+        mockFetch.mockResolvedValue({
           ok: true,
           json: async () => ({
             success: true,

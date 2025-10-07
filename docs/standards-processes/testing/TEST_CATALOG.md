@@ -1,6 +1,6 @@
 # WitchCityRope Test Catalog - PART 1 (Current/Recent Tests)
 <!-- Last Updated: 2025-10-06 -->
-<!-- Version: 2.3 -->
+<!-- Version: 2.4 -->
 <!-- Owner: Testing Team -->
 <!-- Status: SPLIT INTO MANAGEABLE PARTS FOR AGENT ACCESSIBILITY -->
 
@@ -23,6 +23,63 @@
 - **Recent fixes/patterns**: Add to PART 1 (this file)
 - **Old content**: Move to PART 2 when PART 1 exceeds 1000 lines
 - **Archive content**: Move to PART 3 when truly obsolete
+
+---
+
+## 🚨 CRITICAL: REACT QUERY CACHE ISOLATION FIXES (2025-10-06) 🚨
+
+**MANDATORY PATTERN**: All React tests using QueryClient MUST follow this pattern.
+
+### The Problem
+Tests were creating `QueryClient` inside `createWrapper()`, preventing proper cleanup and causing potential cache pollution between tests.
+
+### The Solution
+**Pattern to use** (from `/apps/web/src/test/integration/auth-flow-simplified.test.tsx`):
+
+```typescript
+describe('ComponentName', () => {
+  let queryClient: QueryClient
+
+  beforeEach(() => {
+    // Create fresh QueryClient for EACH test
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    })
+    server.resetHandlers()
+  })
+
+  afterEach(() => {
+    // Clear all queries from cache to prevent test pollution
+    queryClient.clear()
+    vi.clearAllMocks()
+  })
+
+  const createWrapper = () => {
+    return ({ children }: { children: React.ReactNode }) => (
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    )
+  }
+})
+```
+
+### Files Fixed (10 total)
+1. `/apps/web/src/pages/dashboard/__tests__/DashboardPage.test.tsx`
+2. `/apps/web/src/pages/dashboard/__tests__/EventsPage.test.tsx`
+3. `/apps/web/src/pages/dashboard/__tests__/MembershipPage.test.tsx`
+4. `/apps/web/src/pages/dashboard/__tests__/ProfilePage.test.tsx`
+5. `/apps/web/src/features/admin/vetting/components/__tests__/VettingApplicationsList.test.tsx`
+6. `/apps/web/src/features/vetting/hooks/useVettingStatus.test.tsx`
+7. `/apps/web/src/features/auth/api/__tests__/mutations.test.tsx`
+8. `/apps/web/src/test/integration/dashboard-integration.test.tsx`
+9. `/apps/web/src/test/integration/auth-flow-simplified.test.tsx` (already had correct pattern)
+10. `/apps/web/src/components/events/__tests__/EventSessionForm.test.tsx`
+
+**Documentation**: `/home/chad/repos/witchcityrope/test-results/react-query-cache-isolation-fixes-20251006.md`
 
 ---
 

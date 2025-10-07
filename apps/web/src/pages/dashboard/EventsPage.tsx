@@ -269,9 +269,9 @@ export const EventsPage: React.FC = () => {
                       {/* Capacity Info */}
                       <Box style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <Text style={{ fontSize: '12px', color: '#8B8680' }}>
-                          👥 {event.currentAttendees || 0}/{event.capacity || 0} attendees
+                          👥 {event.registrationCount || 0}/{event.capacity || 0} attendees
                         </Text>
-                        {event.status === 'Published' && (
+                        {event.registrationStatus === 'Open' && (
                           <Badge size="xs" color="green">Open</Badge>
                         )}
                       </Box>
