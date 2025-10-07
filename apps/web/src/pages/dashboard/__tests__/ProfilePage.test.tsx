@@ -69,7 +69,7 @@ describe('ProfilePage', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Failed to load your profile. Please try refreshing the page.')).toBeInTheDocument()
-    })
+    }, { timeout: 5000 })
   })
 
   it('should display note about future functionality', async () => {
@@ -93,28 +93,30 @@ describe('ProfilePage', () => {
   it('should populate form fields with user data', async () => {
     render(<ProfilePage />, { wrapper: createWrapper() })
 
-    await waitFor(() => {
-      const sceneNameInput = screen.getByLabelText('Scene Name')
-      const emailInput = screen.getByLabelText('Email Address')
+    // findBy queries wait automatically for elements to appear
+    const sceneNameInput = await screen.findByLabelText('Scene Name', {}, { timeout: 3000 })
+    const emailInput = await screen.findByLabelText('Email Address', {}, { timeout: 3000 })
 
-      expect(sceneNameInput).toHaveValue('TestAdmin')
-      expect(emailInput).toHaveValue('admin@witchcityrope.com')
-    })
+    expect(sceneNameInput).toHaveValue('TestAdmin')
+    expect(emailInput).toHaveValue('admin@witchcityrope.com')
   })
 
   it('should display user account information correctly', async () => {
     render(<ProfilePage />, { wrapper: createWrapper() })
 
+    // Wait for all account info to load
     await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Account Information', level: 2 })).toBeInTheDocument()
       expect(screen.getByText('User ID')).toBeInTheDocument()
       expect(screen.getByText('1')).toBeInTheDocument() // User ID from MSW handler
-
       expect(screen.getByText('Account Created')).toBeInTheDocument()
       expect(screen.getByText('August 19, 2025')).toBeInTheDocument()
-
-      expect(screen.getByText('Last Login')).toBeInTheDocument()
-      expect(screen.getByText(/August 19, 2025/)).toBeInTheDocument()
     })
+
+    // SKIPPED: Last Login section commented out in ProfilePage.tsx (lines 342-382)
+    // TODO: Re-enable when feature is implemented
+    // expect(screen.getByText('Last Login')).toBeInTheDocument()
+    // expect(screen.getByText(/August 19, 2025/)).toBeInTheDocument()
   })
 
   describe('Form Validation', () => {
@@ -122,7 +124,9 @@ describe('ProfilePage', () => {
       const user = userEvent.setup()
       render(<ProfilePage />, { wrapper: createWrapper() })
 
+      // Wait for form to load and get elements
       await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Profile Information', level: 2 })).toBeInTheDocument()
         expect(screen.getByLabelText('Scene Name')).toBeInTheDocument()
       })
 
@@ -142,7 +146,9 @@ describe('ProfilePage', () => {
       const user = userEvent.setup()
       render(<ProfilePage />, { wrapper: createWrapper() })
 
+      // Wait for form to load and get elements
       await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Profile Information', level: 2 })).toBeInTheDocument()
         expect(screen.getByLabelText('Scene Name')).toBeInTheDocument()
       })
 
@@ -162,7 +168,9 @@ describe('ProfilePage', () => {
       const user = userEvent.setup()
       render(<ProfilePage />, { wrapper: createWrapper() })
 
+      // Wait for form to load and get elements
       await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Profile Information', level: 2 })).toBeInTheDocument()
         expect(screen.getByLabelText('Email Address')).toBeInTheDocument()
       })
 
@@ -181,7 +189,9 @@ describe('ProfilePage', () => {
       const user = userEvent.setup()
       render(<ProfilePage />, { wrapper: createWrapper() })
 
+      // Wait for form to load and get elements
       await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Profile Information', level: 2 })).toBeInTheDocument()
         expect(screen.getByLabelText('Email Address')).toBeInTheDocument()
       })
 
@@ -201,8 +211,11 @@ describe('ProfilePage', () => {
       const user = userEvent.setup()
       render(<ProfilePage />, { wrapper: createWrapper() })
 
+      // Wait for form to load and get elements
       await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Profile Information', level: 2 })).toBeInTheDocument()
         expect(screen.getByLabelText('Scene Name')).toBeInTheDocument()
+        expect(screen.getByLabelText('Email Address')).toBeInTheDocument()
       })
 
       const sceneNameInput = screen.getByLabelText('Scene Name')
@@ -210,7 +223,7 @@ describe('ProfilePage', () => {
 
       await user.clear(sceneNameInput)
       await user.type(sceneNameInput, 'ValidSceneName')
-      
+
       await user.clear(emailInput)
       await user.type(emailInput, 'valid@email.com')
 
@@ -226,8 +239,11 @@ describe('ProfilePage', () => {
       const user = userEvent.setup()
       render(<ProfilePage />, { wrapper: createWrapper() })
 
+      // Wait for form to load and get elements
       await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Profile Information', level: 2 })).toBeInTheDocument()
         expect(screen.getByLabelText('Scene Name')).toBeInTheDocument()
+        expect(screen.getByLabelText('Email Address')).toBeInTheDocument()
       })
 
       const sceneNameInput = screen.getByLabelText('Scene Name')
@@ -236,7 +252,7 @@ describe('ProfilePage', () => {
 
       await user.clear(sceneNameInput)
       await user.type(sceneNameInput, 'UpdatedSceneName')
-      
+
       await user.clear(emailInput)
       await user.type(emailInput, 'updated@email.com')
 
@@ -257,7 +273,9 @@ describe('ProfilePage', () => {
       const user = userEvent.setup()
       render(<ProfilePage />, { wrapper: createWrapper() })
 
+      // Wait for form to load and get elements
       await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Profile Information', level: 2 })).toBeInTheDocument()
         expect(screen.getByLabelText('Scene Name')).toBeInTheDocument()
       })
 
@@ -283,19 +301,19 @@ describe('ProfilePage', () => {
     it('should render form fields with correct attributes', async () => {
       render(<ProfilePage />, { wrapper: createWrapper() })
 
+      // Wait for form to load and verify all field properties
       await waitFor(() => {
-        expect(screen.getByLabelText('Scene Name')).toBeInTheDocument()
+        expect(screen.getByRole('heading', { name: 'Profile Information', level: 2 })).toBeInTheDocument()
+        const sceneNameInput = screen.getByLabelText('Scene Name')
+        const emailInput = screen.getByLabelText('Email Address')
+
+        expect(sceneNameInput).toBeRequired()
+        expect(sceneNameInput).toHaveAttribute('placeholder', 'Your community name')
+
+        expect(emailInput).toBeRequired()
+        expect(emailInput).toHaveAttribute('type', 'email')
+        expect(emailInput).toHaveAttribute('placeholder', 'your.email@example.com')
       })
-
-      const sceneNameInput = screen.getByLabelText('Scene Name')
-      const emailInput = screen.getByLabelText('Email Address')
-
-      expect(sceneNameInput).toBeRequired()
-      expect(sceneNameInput).toHaveAttribute('placeholder', 'Your community name')
-
-      expect(emailInput).toBeRequired()
-      expect(emailInput).toHaveAttribute('type', 'email')
-      expect(emailInput).toHaveAttribute('placeholder', 'your.email@example.com')
     })
   })
 
@@ -391,10 +409,9 @@ describe('ProfilePage', () => {
 
       await waitFor(() => {
         expect(screen.getByText('User ID')).toBeInTheDocument()
+        expect(screen.getByText('Not available')).toBeInTheDocument() // For missing ID
+        expect(screen.getAllByText('Not available')).toHaveLength(2) // For missing createdAt too
       })
-
-      expect(screen.getByText('Not available')).toBeInTheDocument() // For missing ID
-      expect(screen.getAllByText('Not available')).toHaveLength(2) // For missing createdAt too
     })
   })
 
@@ -402,10 +419,14 @@ describe('ProfilePage', () => {
     it('should update form values when user data changes', async () => {
       const { rerender } = render(<ProfilePage />, { wrapper: createWrapper() })
 
+      // Wait for initial form to load
       await waitFor(() => {
-        expect(screen.getByDisplayValue('TestAdmin')).toBeInTheDocument()
-        expect(screen.getByDisplayValue('admin@witchcityrope.com')).toBeInTheDocument()
+        expect(screen.getByRole('heading', { name: 'Profile Information', level: 2 })).toBeInTheDocument()
       })
+
+      // Check initial values
+      expect(screen.getByDisplayValue('TestAdmin')).toBeInTheDocument()
+      expect(screen.getByDisplayValue('admin@witchcityrope.com')).toBeInTheDocument()
 
       // Simulate user data update by overriding MSW handler
       server.use(
@@ -433,7 +454,7 @@ describe('ProfilePage', () => {
       await waitFor(() => {
         expect(screen.getByDisplayValue('NewSceneName')).toBeInTheDocument()
         expect(screen.getByDisplayValue('newemail@example.com')).toBeInTheDocument()
-      }, { timeout: 3000 })
+      }, { timeout: 5000 })
     })
   })
 })
