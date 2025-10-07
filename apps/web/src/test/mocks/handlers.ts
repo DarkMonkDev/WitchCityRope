@@ -538,4 +538,95 @@ export const handlers = [
       lastLoginAt: new Date().toISOString()
     } as UserDto)
   }),
+
+  // Dashboard endpoints
+  http.get('/api/dashboard', () => {
+    return HttpResponse.json({
+      id: '1',
+      email: 'admin@witchcityrope.com',
+      sceneName: 'TestAdmin',
+      firstName: null,
+      lastName: null,
+      roles: ['Admin'],
+      isActive: true,
+      createdAt: '2025-08-19T00:00:00Z',
+      updatedAt: '2025-08-19T10:00:00Z',
+      lastLoginAt: '2025-08-19T10:00:00Z',
+      vettingStatus: 'Approved'
+    })
+  }),
+
+  http.get(`${API_BASE_URL}/api/dashboard`, () => {
+    return HttpResponse.json({
+      id: '1',
+      email: 'admin@witchcityrope.com',
+      sceneName: 'TestAdmin',
+      firstName: null,
+      lastName: null,
+      roles: ['Admin'],
+      isActive: true,
+      createdAt: '2025-08-19T00:00:00Z',
+      updatedAt: '2025-08-19T10:00:00Z',
+      lastLoginAt: '2025-08-19T10:00:00Z',
+      vettingStatus: 'Approved'
+    })
+  }),
+
+  http.get('/api/dashboard/events', () => {
+    const events = [
+      {
+        id: '1',
+        title: 'Upcoming Workshop',
+        description: 'Test workshop',
+        startDate: new Date(Date.now() + 86400000).toISOString(),
+        endDate: new Date(Date.now() + 90000000).toISOString(),
+        maxAttendees: 20,
+        currentAttendees: 5,
+        isRegistrationOpen: true,
+        instructorId: '1',
+      }
+    ] as Event[]
+
+    return HttpResponse.json({
+      upcomingEvents: events,
+      totalUpcoming: events.length
+    })
+  }),
+
+  http.get(`${API_BASE_URL}/api/dashboard/events`, () => {
+    const events = [
+      {
+        id: '1',
+        title: 'Upcoming Workshop',
+        description: 'Test workshop',
+        startDate: new Date(Date.now() + 86400000).toISOString(),
+        endDate: new Date(Date.now() + 90000000).toISOString(),
+        maxAttendees: 20,
+        currentAttendees: 5,
+        isRegistrationOpen: true,
+        instructorId: '1',
+      }
+    ] as Event[]
+
+    return HttpResponse.json({
+      upcomingEvents: events,
+      totalUpcoming: events.length
+    })
+  }),
+
+  http.get('/api/dashboard/statistics', () => {
+    return HttpResponse.json({
+      upcomingEvents: 3,
+      totalRegistrations: 5,
+      activeMembers: 42
+    })
+  }),
+
+  http.get(`${API_BASE_URL}/api/dashboard/statistics`, () => {
+    return HttpResponse.json({
+      upcomingEvents: 3,
+      totalRegistrations: 5,
+      activeMembers: 42
+    })
+  }),
 ]

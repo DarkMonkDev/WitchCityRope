@@ -54,7 +54,7 @@ describe('MembershipPage', () => {
 
   it('should handle user loading error', async () => {
     server.use(
-      http.get('http://localhost:5655/api/Protected/profile', () => {
+      http.get('/api/auth/user', () => {
         return new HttpResponse('Server error', { status: 500 })
       })
     )
@@ -90,18 +90,21 @@ describe('MembershipPage', () => {
   it('should calculate and display membership duration correctly', async () => {
     // Mock user with specific creation date
     server.use(
-      http.get('http://localhost:5655/api/Protected/profile', () => {
+      http.get('/api/auth/user', () => {
         return HttpResponse.json({
-          id: '1',
-          email: 'admin@witchcityrope.com',
-          sceneName: 'TestAdmin',
-          firstName: null,
-          lastName: null,
-          roles: ['Admin'],
-          isActive: true,
-          createdAt: '2025-08-01T00:00:00Z', // 21 days ago from 2025-08-22
-          updatedAt: '2025-08-19T10:00:00Z',
-          lastLoginAt: '2025-08-19T10:00:00Z'
+          success: true,
+          data: {
+            id: '1',
+            email: 'admin@witchcityrope.com',
+            sceneName: 'TestAdmin',
+            firstName: null,
+            lastName: null,
+            roles: ['Admin'],
+            isActive: true,
+            createdAt: '2025-08-01T00:00:00Z', // 21 days ago from 2025-08-22
+            updatedAt: '2025-08-19T10:00:00Z',
+            lastLoginAt: '2025-08-19T10:00:00Z'
+          }
         })
       })
     )
@@ -193,10 +196,12 @@ describe('MembershipPage', () => {
 
   it('should handle user with no creation date', async () => {
     server.use(
-      http.get('http://localhost:5655/api/Protected/profile', () => {
+      http.get('/api/auth/user', () => {
         return HttpResponse.json({
-          id: '1',
-          email: 'admin@witchcityrope.com',
+          success: true,
+          data: {
+            id: '1',
+            email: 'admin@witchcityrope.com',
           sceneName: 'TestAdmin',
           firstName: null,
           lastName: null,
