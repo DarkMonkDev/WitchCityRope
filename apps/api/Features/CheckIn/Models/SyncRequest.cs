@@ -9,10 +9,10 @@ public class SyncRequest
 {
     [Required]
     public string DeviceId { get; set; } = string.Empty;
-    
+
     [Required]
     public List<PendingCheckIn> PendingCheckIns { get; set; } = new();
-    
+
     [Required]
     public string LastSyncTimestamp { get; set; } = string.Empty;
 }
@@ -24,16 +24,16 @@ public class PendingCheckIn
 {
     [Required]
     public string LocalId { get; set; } = string.Empty;
-    
+
     [Required]
     public string AttendeeId { get; set; } = string.Empty;
-    
+
     [Required]
     public string CheckInTime { get; set; } = string.Empty;
-    
+
     [Required]
     public string StaffMemberId { get; set; } = string.Empty;
-    
+
     public string? Notes { get; set; }
     public bool IsManualEntry { get; set; }
     public ManualEntryData? ManualEntryData { get; set; }

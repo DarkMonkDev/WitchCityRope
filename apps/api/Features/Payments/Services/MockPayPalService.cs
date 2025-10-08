@@ -28,7 +28,7 @@ public class MockPayPalService : IPayPalService
         CancellationToken cancellationToken = default)
     {
         var orderId = $"MOCK-ORDER-{Guid.NewGuid():N}".ToUpper();
-        
+
         var order = new PayPalOrderResponse
         {
             OrderId = orderId,
@@ -43,8 +43,8 @@ public class MockPayPalService : IPayPalService
         };
 
         _orders[orderId] = order;
-        
-        _logger.LogInformation("Mock PayPal order created: {OrderId} for amount {Amount}", 
+
+        _logger.LogInformation("Mock PayPal order created: {OrderId} for amount {Amount}",
             orderId, amount.Amount);
 
         return Task.FromResult(Result<PayPalOrderResponse>.Success(order));
@@ -61,16 +61,16 @@ public class MockPayPalService : IPayPalService
         }
 
         var captureId = $"MOCK-CAPTURE-{Guid.NewGuid():N}".ToUpper();
-        
+
         var capture = new PayPalCaptureResponse
         {
             CaptureId = captureId,
             OrderId = orderId,
             Status = "COMPLETED",
-            Amount = new PayPalAmount 
-            { 
-                Value = "50.00", 
-                CurrencyCode = "USD" 
+            Amount = new PayPalAmount
+            {
+                Value = "50.00",
+                CurrencyCode = "USD"
             },
             CaptureTime = DateTime.UtcNow,
             PayerEmail = "test@example.com",
@@ -79,8 +79,8 @@ public class MockPayPalService : IPayPalService
 
         _captures[captureId] = capture;
         _orders[orderId].Status = "COMPLETED";
-        
-        _logger.LogInformation("Mock PayPal order captured: {OrderId} -> {CaptureId}", 
+
+        _logger.LogInformation("Mock PayPal order captured: {OrderId} -> {CaptureId}",
             orderId, captureId);
 
         return Task.FromResult(Result<PayPalCaptureResponse>.Success(capture));
@@ -113,16 +113,16 @@ public class MockPayPalService : IPayPalService
         }
 
         var refundId = $"MOCK-REFUND-{Guid.NewGuid():N}".ToUpper();
-        
+
         var refund = new PayPalRefundResponse
         {
             RefundId = refundId,
             CaptureId = captureId,
             Status = "COMPLETED",
-            Amount = new PayPalAmount 
-            { 
-                Value = refundAmount.ToPayPalAmount(), 
-                CurrencyCode = refundAmount.Currency 
+            Amount = new PayPalAmount
+            {
+                Value = refundAmount.ToPayPalAmount(),
+                CurrencyCode = refundAmount.Currency
             },
             RefundTime = DateTime.UtcNow,
             Reason = reason,
@@ -130,8 +130,8 @@ public class MockPayPalService : IPayPalService
         };
 
         _refunds[refundId] = refund;
-        
-        _logger.LogInformation("Mock PayPal refund created: {RefundId} for capture {CaptureId}", 
+
+        _logger.LogInformation("Mock PayPal refund created: {RefundId} for capture {CaptureId}",
             refundId, captureId);
 
         return Task.FromResult(Result<PayPalRefundResponse>.Success(refund));
@@ -157,7 +157,7 @@ public class MockPayPalService : IPayPalService
     {
         // Always return valid in mock mode
         _logger.LogInformation("Mock webhook signature validation - always returns valid");
-        
+
         var webhookData = new Dictionary<string, object>
         {
             ["verified"] = true,
@@ -180,7 +180,7 @@ public class MockPayPalService : IPayPalService
     {
         // Always return valid in mock mode
         _logger.LogInformation("Mock webhook signature validation (typed) - always returns valid");
-        
+
         var webhookEvent = new PayPalWebhookEvent
         {
             Id = $"MOCK-WEBHOOK-{Guid.NewGuid():N}".ToUpper(),
@@ -209,9 +209,9 @@ public class MockPayPalService : IPayPalService
         CancellationToken cancellationToken = default)
     {
         var eventType = webhookEvent.GetValueOrDefault("event_type")?.ToString() ?? "UNKNOWN";
-        
+
         _logger.LogInformation("Mock webhook event processed: {EventType}", eventType);
-        
+
         // Always return success in mock mode
         return Task.FromResult(Result.Success());
     }
@@ -220,9 +220,9 @@ public class MockPayPalService : IPayPalService
         PayPalWebhookEvent webhookEvent,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Mock webhook event processed (typed): {EventType}, ID: {EventId}", 
+        _logger.LogInformation("Mock webhook event processed (typed): {EventType}, ID: {EventId}",
             webhookEvent.EventType, webhookEvent.Id);
-        
+
         // Always return success in mock mode
         return Task.FromResult(Result.Success());
     }

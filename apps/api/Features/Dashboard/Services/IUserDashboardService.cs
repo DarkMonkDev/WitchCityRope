@@ -16,7 +16,7 @@ public interface IUserDashboardService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>User dashboard data including profile and vetting status</returns>
     Task<Result<UserDashboardResponse>> GetUserDashboardAsync(
-        Guid userId, 
+        Guid userId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -27,8 +27,8 @@ public interface IUserDashboardService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>List of user's upcoming events</returns>
     Task<Result<UserEventsResponse>> GetUserEventsAsync(
-        Guid userId, 
-        int count = 3, 
+        Guid userId,
+        int count = 3,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -38,6 +38,6 @@ public interface IUserDashboardService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>User's attendance and membership statistics</returns>
     Task<Result<UserStatisticsResponse>> GetUserStatisticsAsync(
-        Guid userId, 
+        Guid userId,
         CancellationToken cancellationToken = default);
 }

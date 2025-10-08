@@ -47,7 +47,7 @@ public class UserManagementService
             }
 
             var response = new UserDto(user);
-            
+
             _logger.LogDebug("User profile retrieved successfully: {UserId} ({SceneName})", userId, user.SceneName);
             return (true, response, string.Empty);
         }
@@ -82,7 +82,7 @@ public class UserManagementService
                 var existingSceneName = await _context.Users
                     .AsNoTracking()
                     .AnyAsync(u => u.SceneName == request.SceneName && u.Id != user.Id, cancellationToken);
-                
+
                 if (existingSceneName)
                 {
                     return (false, null, "Scene name is already taken");
@@ -104,7 +104,7 @@ public class UserManagementService
             await _context.SaveChangesAsync(cancellationToken);
 
             var response = new UserDto(user);
-            
+
             _logger.LogInformation("User profile updated successfully: {UserId} ({SceneName})", userId, user.SceneName);
             return (true, response, string.Empty);
         }
@@ -133,7 +133,7 @@ public class UserManagementService
             if (!string.IsNullOrWhiteSpace(request.SearchTerm))
             {
                 var searchTerm = request.SearchTerm.ToLower();
-                query = query.Where(u => 
+                query = query.Where(u =>
                     u.Email.ToLower().Contains(searchTerm) ||
                     u.SceneName.ToLower().Contains(searchTerm));
             }
@@ -162,19 +162,19 @@ public class UserManagementService
             // Apply sorting
             query = request.SortBy.ToLower() switch
             {
-                "email" => request.SortDescending 
+                "email" => request.SortDescending
                     ? query.OrderByDescending(u => u.Email)
                     : query.OrderBy(u => u.Email),
-                "role" => request.SortDescending 
+                "role" => request.SortDescending
                     ? query.OrderByDescending(u => u.Role)
                     : query.OrderBy(u => u.Role),
-                "createdat" => request.SortDescending 
+                "createdat" => request.SortDescending
                     ? query.OrderByDescending(u => u.CreatedAt)
                     : query.OrderBy(u => u.CreatedAt),
-                "lastloginat" => request.SortDescending 
+                "lastloginat" => request.SortDescending
                     ? query.OrderByDescending(u => u.LastLoginAt)
                     : query.OrderBy(u => u.LastLoginAt),
-                _ => request.SortDescending 
+                _ => request.SortDescending
                     ? query.OrderByDescending(u => u.SceneName)
                     : query.OrderBy(u => u.SceneName)
             };
@@ -194,9 +194,9 @@ public class UserManagementService
                 PageSize = request.PageSize
             };
 
-            _logger.LogInformation("Retrieved {UserCount} users from database (page {Page} of {TotalPages})", 
+            _logger.LogInformation("Retrieved {UserCount} users from database (page {Page} of {TotalPages})",
                 users.Count, request.Page, response.TotalPages);
-            
+
             return (true, response, string.Empty);
         }
         catch (Exception ex)
@@ -274,7 +274,7 @@ public class UserManagementService
                 var existingSceneName = await _context.Users
                     .AsNoTracking()
                     .AnyAsync(u => u.SceneName == request.SceneName && u.Id != user.Id, cancellationToken);
-                
+
                 if (existingSceneName)
                 {
                     return (false, null, "Scene name is already taken");
@@ -321,7 +321,7 @@ public class UserManagementService
             await _context.SaveChangesAsync(cancellationToken);
 
             var response = new UserDto(user);
-            
+
             _logger.LogInformation("User updated successfully by admin: {UserId} ({SceneName})", userId, user.SceneName);
             return (true, response, string.Empty);
         }

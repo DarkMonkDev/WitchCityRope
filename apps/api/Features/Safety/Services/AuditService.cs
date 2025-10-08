@@ -16,7 +16,7 @@ public class AuditService : IAuditService
     private readonly ILogger<AuditService> _logger;
 
     public AuditService(
-        ApplicationDbContext context, 
+        ApplicationDbContext context,
         IHttpContextAccessor httpContextAccessor,
         ILogger<AuditService> logger)
     {
@@ -25,7 +25,7 @@ public class AuditService : IAuditService
         _logger = logger;
     }
 
-    public async Task LogActionAsync(Guid incidentId, Guid? userId, string actionType, 
+    public async Task LogActionAsync(Guid incidentId, Guid? userId, string actionType,
         string description, object? oldValues = null, object? newValues = null,
         CancellationToken cancellationToken = default)
     {
@@ -56,7 +56,7 @@ public class AuditService : IAuditService
             _context.IncidentAuditLogs.Add(auditLog);
             await _context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogDebug("Audit log created: {ActionType} for incident {IncidentId} by user {UserId}", 
+            _logger.LogDebug("Audit log created: {ActionType} for incident {IncidentId} by user {UserId}",
                 actionType, incidentId, userId);
         }
         catch (Exception ex)
@@ -66,7 +66,7 @@ public class AuditService : IAuditService
         }
     }
 
-    public async Task<IEnumerable<AuditLogDto>> GetAuditTrailAsync(Guid incidentId, 
+    public async Task<IEnumerable<AuditLogDto>> GetAuditTrailAsync(Guid incidentId,
         CancellationToken cancellationToken = default)
     {
         return await _context.IncidentAuditLogs

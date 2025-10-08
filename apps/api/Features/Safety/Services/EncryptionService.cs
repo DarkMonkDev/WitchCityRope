@@ -13,7 +13,7 @@ public class EncryptionService : IEncryptionService
 
     public EncryptionService(IConfiguration configuration, ILogger<EncryptionService> logger)
     {
-        _encryptionKey = configuration["Safety:EncryptionKey"] 
+        _encryptionKey = configuration["Safety:EncryptionKey"]
             ?? throw new InvalidOperationException("Safety encryption key not configured");
         _logger = logger;
     }
@@ -32,7 +32,7 @@ public class EncryptionService : IEncryptionService
             using var encryptor = aes.CreateEncryptor();
             using var ms = new MemoryStream();
             using var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write);
-            
+
             var plainBytes = Encoding.UTF8.GetBytes(plainText);
             await cs.WriteAsync(plainBytes, 0, plainBytes.Length);
             await cs.FlushFinalBlockAsync();

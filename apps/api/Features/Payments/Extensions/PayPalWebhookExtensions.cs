@@ -56,7 +56,7 @@ public static class PayPalWebhookExtensions
         return value switch
         {
             JsonElement jsonElement when jsonElement.ValueKind == JsonValueKind.Number => jsonElement.GetDecimal(),
-            JsonElement jsonElement when jsonElement.ValueKind == JsonValueKind.String => 
+            JsonElement jsonElement when jsonElement.ValueKind == JsonValueKind.String =>
                 decimal.TryParse(jsonElement.GetString(), out var result) ? result : null,
             decimal decimalValue => decimalValue,
             string str => decimal.TryParse(str, out var result) ? result : null,
@@ -74,7 +74,7 @@ public static class PayPalWebhookExtensions
 
         return value switch
         {
-            JsonElement jsonElement when jsonElement.ValueKind == JsonValueKind.Object => 
+            JsonElement jsonElement when jsonElement.ValueKind == JsonValueKind.Object =>
                 System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(jsonElement.GetRawText()),
             Dictionary<string, object> dict => dict,
             _ => null

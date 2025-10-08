@@ -11,32 +11,32 @@ public class ApplicationDetailResponse
     public string Status { get; set; } = string.Empty;
     public DateTime SubmittedAt { get; set; }
     public DateTime? LastActivityAt { get; set; }
-    
+
     // Applicant Information (Decrypted)
     public string FullName { get; set; } = string.Empty;
     public string SceneName { get; set; } = string.Empty;
     public string? Pronouns { get; set; }
     public string Email { get; set; } = string.Empty;
     public string? Phone { get; set; }
-    
+
     // Experience Information
     public string ExperienceLevel { get; set; } = string.Empty;
     public int YearsExperience { get; set; }
     public string ExperienceDescription { get; set; } = string.Empty;
     public string SafetyKnowledge { get; set; } = string.Empty;
     public string ConsentUnderstanding { get; set; } = string.Empty;
-    
+
     // Community Information
     public string WhyJoinCommunity { get; set; } = string.Empty;
     public List<string> SkillsInterests { get; set; } = new();
     public string ExpectationsGoals { get; set; } = string.Empty;
     public bool AgreesToGuidelines { get; set; }
-    
+
     // Privacy Settings
     public bool IsAnonymous { get; set; }
     public bool AgreesToTerms { get; set; }
     public bool ConsentToContact { get; set; }
-    
+
     // Review Information
     public string? AssignedReviewerName { get; set; }
     public DateTime? ReviewStartedAt { get; set; }
@@ -75,7 +75,7 @@ public class ReferenceDetailDto
     public DateTime? ContactedAt { get; set; }
     public DateTime? RespondedAt { get; set; }
     public DateTime? FormExpiresAt { get; set; }
-    
+
     // Response data (if available)
     public ReferenceResponseDto? Response { get; set; }
 }

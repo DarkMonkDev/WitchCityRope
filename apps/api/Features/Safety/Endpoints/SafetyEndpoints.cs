@@ -35,7 +35,7 @@ public static class SafetyEndpoints
             }
 
             var result = await safetyService.SubmitIncidentAsync(request, cancellationToken);
-            
+
             return result.IsSuccess
                 ? Results.Ok(result.Value)
                 : Results.Problem(
@@ -57,7 +57,7 @@ public static class SafetyEndpoints
             CancellationToken cancellationToken) =>
         {
             var result = await safetyService.GetIncidentStatusAsync(referenceNumber, cancellationToken);
-            
+
             return result.IsSuccess
                 ? Results.Ok(result.Value)
                 : Results.NotFound(new { error = result.Error });
@@ -76,7 +76,7 @@ public static class SafetyEndpoints
         {
             var userId = Guid.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException());
             var result = await safetyService.GetDashboardDataAsync(userId, cancellationToken);
-            
+
             return result.IsSuccess
                 ? Results.Ok(result.Value)
                 : Results.Problem(
@@ -102,7 +102,7 @@ public static class SafetyEndpoints
         {
             var userId = Guid.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException());
             var result = await safetyService.GetIncidentDetailAsync(incidentId, userId, cancellationToken);
-            
+
             return result.IsSuccess
                 ? Results.Ok(result.Value)
                 : Results.Problem(
@@ -127,7 +127,7 @@ public static class SafetyEndpoints
         {
             var userId = Guid.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException());
             var result = await safetyService.GetUserReportsAsync(userId, cancellationToken);
-            
+
             return result.IsSuccess
                 ? Results.Ok(result.Value)
                 : Results.Problem(

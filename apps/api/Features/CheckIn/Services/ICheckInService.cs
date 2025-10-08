@@ -14,8 +14,8 @@ public interface ICheckInService
     /// Optimized for mobile display and search
     /// </summary>
     Task<Result<CheckInAttendeesResponse>> GetEventAttendeesAsync(
-        Guid eventId, 
-        string? search = null, 
+        Guid eventId,
+        string? search = null,
         string? status = null,
         int page = 1,
         int pageSize = 50,

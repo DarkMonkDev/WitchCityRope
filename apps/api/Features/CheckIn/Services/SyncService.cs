@@ -43,7 +43,7 @@ public class SyncService : ISyncService
             foreach (var pendingCheckIn in request.PendingCheckIns)
             {
                 var result = await ProcessPendingCheckInAsync(pendingCheckIn, cancellationToken);
-                
+
                 if (result.IsSuccess)
                 {
                     processedCount++;
@@ -97,7 +97,7 @@ public class SyncService : ISyncService
             _context.OfflineSyncQueues.Add(queueEntry);
             await _context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Queued offline action {ActionType} for user {UserId} on event {EventId}", 
+            _logger.LogInformation("Queued offline action {ActionType} for user {UserId} on event {EventId}",
                 actionType, userId, eventId);
 
             return Result<string>.Success(queueEntry.Id.ToString());
@@ -177,15 +177,17 @@ public class SyncService : ISyncService
                     LocalId = pending.LocalId,
                     AttendeeId = pending.AttendeeId,
                     ConflictType = "duplicate_checkin",
-                    ServerData = new { 
+                    ServerData = new
+                    {
                         checkInTime = existingCheckIn.CheckInTime,
                         staffMember = existingCheckIn.StaffMemberId
                     },
-                    LocalData = new {
+                    LocalData = new
+                    {
                         checkInTime = pending.CheckInTime,
                         staffMember = pending.StaffMemberId
                     },
-                    Resolution = DateTime.Parse(pending.CheckInTime) < existingCheckIn.CheckInTime ? 
+                    Resolution = DateTime.Parse(pending.CheckInTime) < existingCheckIn.CheckInTime ?
                         "auto_resolved" : "manual_required",
                     Message = "Attendee was already checked in online"
                 };
@@ -215,7 +217,8 @@ public class SyncService : ISyncService
                     AttendeeId = pending.AttendeeId,
                     ConflictType = "attendee_not_found",
                     ServerData = null,
-                    LocalData = new { 
+                    LocalData = new
+                    {
                         attendeeId = pending.AttendeeId,
                         isManualEntry = pending.IsManualEntry
                     },

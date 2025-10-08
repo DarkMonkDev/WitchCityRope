@@ -37,7 +37,7 @@ public static class AuthenticationEndpoints
 
                 var (success, response, error) = await authService.GetCurrentUserAsync(userId, cancellationToken);
 
-                return success 
+                return success
                     ? Results.Ok(response)
                     : Results.Problem(
                         title: "Get Current User Failed",
@@ -79,7 +79,8 @@ public static class AuthenticationEndpoints
                     context.Response.Cookies.Append("auth-token", response.Token, cookieOptions);
 
                     // Return user info without token (BFF pattern)
-                    return Results.Ok(new {
+                    return Results.Ok(new
+                    {
                         Success = true,
                         User = response.User,
                         Message = "Login successful"
@@ -107,7 +108,7 @@ public static class AuthenticationEndpoints
             {
                 var (success, response, error) = await authService.RegisterAsync(request, cancellationToken);
 
-                return success 
+                return success
                     ? Results.Created($"/api/auth/user/{response.Id}", response)
                     : Results.Problem(
                         title: "Registration Failed",
@@ -151,11 +152,11 @@ public static class AuthenticationEndpoints
                 }
 
                 var (success, response, error) = await authService.GetServiceTokenAsync(
-                    request.UserId, 
-                    request.Email, 
+                    request.UserId,
+                    request.Email,
                     cancellationToken);
 
-                return success 
+                return success
                     ? Results.Ok(response)
                     : Results.Problem(
                         title: "Service Token Generation Failed",
@@ -264,7 +265,8 @@ public static class AuthenticationEndpoints
 
                     logger.LogInformation("🔐 LOGOUT DEBUG: Logout completed successfully");
 
-                    return Results.Ok(new {
+                    return Results.Ok(new
+                    {
                         Success = true,
                         Message = "Logged out successfully"
                     });
@@ -273,7 +275,8 @@ public static class AuthenticationEndpoints
                 {
                     logger.LogError(ex, "🔐 LOGOUT DEBUG: Logout error occurred");
                     // Still return success - logout should always succeed from user perspective
-                    return Results.Ok(new {
+                    return Results.Ok(new
+                    {
                         Success = true,
                         Message = "Logged out successfully"
                     });
@@ -353,7 +356,7 @@ public static class AuthenticationEndpoints
 
                     var (success, response, error) = await authService.GetCurrentUserAsync(userId, cancellationToken);
 
-                    return success 
+                    return success
                         ? Results.Ok(response)
                         : Results.Problem(
                             title: "Get Current User Failed",
@@ -402,7 +405,7 @@ public static class AuthenticationEndpoints
                     // Validate current token structure (allow expired for refresh)
                     var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
                     System.IdentityModel.Tokens.Jwt.JwtSecurityToken jsonToken;
-                    
+
                     try
                     {
                         jsonToken = handler.ReadJwtToken(currentToken);
@@ -429,7 +432,7 @@ public static class AuthenticationEndpoints
 
                     // Generate new token for the user
                     var (success, response, error) = await authService.GetServiceTokenAsync(userId, email, cancellationToken);
-                    
+
                     if (success && response != null)
                     {
                         // Set new httpOnly cookie
@@ -445,8 +448,9 @@ public static class AuthenticationEndpoints
                         context.Response.Cookies.Append("auth-token", response.Token, cookieOptions);
 
                         logger.LogDebug("Token refreshed successfully for user {UserId}", userId);
-                        
-                        return Results.Ok(new { 
+
+                        return Results.Ok(new
+                        {
                             Success = true,
                             Message = "Token refreshed successfully",
                             ExpiresAt = response.ExpiresAt
@@ -493,7 +497,8 @@ public static class AuthenticationEndpoints
                         HasAuthCookie = !string.IsNullOrEmpty(authCookie),
                         CookieLength = authCookie?.Length ?? 0,
                         CookiePreview = authCookie?.Substring(0, Math.Min(authCookie.Length, 50)) + "...",
-                        AllCookies = context.Request.Cookies.Select(c => new {
+                        AllCookies = context.Request.Cookies.Select(c => new
+                        {
                             Name = c.Key,
                             ValueLength = c.Value?.Length ?? 0,
                             ValuePreview = c.Value?.Substring(0, Math.Min(c.Value.Length, 20)) + "..."

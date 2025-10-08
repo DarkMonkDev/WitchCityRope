@@ -10,61 +10,61 @@ public class PaymentFailure
     /// Failure record unique identifier
     /// </summary>
     public Guid Id { get; set; } = Guid.NewGuid();
-    
+
     /// <summary>
     /// Reference to the failed payment
     /// </summary>
     public Guid PaymentId { get; set; }
-    
+
     #region Failure Details
-    
+
     /// <summary>
     /// Error code from payment processor or system
     /// </summary>
     public string FailureCode { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Human-readable failure message
     /// </summary>
     public string FailureMessage { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Encrypted detailed error response from Stripe (for PCI compliance)
     /// </summary>
     public string? EncryptedStripeErrorDetails { get; set; }
-    
+
     #endregion
-    
+
     #region Retry Tracking
-    
+
     /// <summary>
     /// Number of times this payment has been retried
     /// </summary>
     public int RetryCount { get; set; } = 0;
-    
+
     /// <summary>
     /// When this failure occurred
     /// </summary>
     public DateTime FailedAt { get; set; } = DateTime.UtcNow;
-    
+
     /// <summary>
     /// When this failure record was created
     /// </summary>
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    
+
     #endregion
-    
+
     #region Navigation Properties
-    
+
     /// <summary>
     /// Navigation property to the failed payment
     /// </summary>
     public Payment? Payment { get; set; }
-    
+
     #endregion
-    
+
     #region Helper Methods
-    
+
     /// <summary>
     /// Check if this failure allows retries
     /// </summary>
@@ -79,10 +79,10 @@ public class PaymentFailure
             "network_error",
             "timeout"
         };
-        
+
         return retryableCodes.Contains(FailureCode.ToLower()) && RetryCount < 3;
     }
-    
+
     /// <summary>
     /// Check if this is a permanent failure
     /// </summary>
@@ -97,10 +97,10 @@ public class PaymentFailure
             "invalid_number",
             "incorrect_number"
         };
-        
+
         return permanentCodes.Contains(FailureCode.ToLower());
     }
-    
+
     /// <summary>
     /// Increment retry count
     /// </summary>
@@ -109,7 +109,7 @@ public class PaymentFailure
         RetryCount++;
         FailedAt = DateTime.UtcNow;
     }
-    
+
     /// <summary>
     /// Get user-friendly error message
     /// </summary>
@@ -129,7 +129,7 @@ public class PaymentFailure
             _ => "There was an issue processing your payment. Please try again or contact support."
         };
     }
-    
+
     /// <summary>
     /// Get suggested actions for the user
     /// </summary>
@@ -171,11 +171,11 @@ public class PaymentFailure
             }
         };
     }
-    
+
     #endregion
-    
+
     #region Static Factory Methods
-    
+
     /// <summary>
     /// Create failure record for Stripe errors
     /// </summary>
@@ -189,7 +189,7 @@ public class PaymentFailure
             EncryptedStripeErrorDetails = encryptedErrorDetails
         };
     }
-    
+
     /// <summary>
     /// Create failure record for system errors
     /// </summary>
@@ -202,7 +202,7 @@ public class PaymentFailure
             FailureMessage = errorMessage
         };
     }
-    
+
     /// <summary>
     /// Create failure record for validation errors
     /// </summary>
@@ -215,6 +215,6 @@ public class PaymentFailure
             FailureMessage = validationMessage
         };
     }
-    
+
     #endregion
 }

@@ -69,7 +69,7 @@ public static class EventEndpoints
                             Message = "Events retrieved from fallback data"
                         });
                     }
-                    
+
                     return Results.Ok(new ApiResponse<List<EventDto>>
                     {
                         Success = true,
@@ -132,7 +132,7 @@ public static class EventEndpoints
                 {
                     var fallbackEvents = GetFallbackEvents();
                     var fallbackEvent = fallbackEvents.FirstOrDefault(e => e.Id == id);
-                    
+
                     if (fallbackEvent != null)
                     {
                         return Results.Ok(new ApiResponse<EventDto>

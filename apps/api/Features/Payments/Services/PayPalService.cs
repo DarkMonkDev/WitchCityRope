@@ -25,12 +25,12 @@ public class PayPalService : IPayPalService
         // Initialize PayPal environment (sandbox vs live)
         var clientId = configuration["PayPal:ClientId"]
             ?? throw new InvalidOperationException("PayPal ClientId not configured");
-        
+
         var clientSecret = configuration["PayPal:Secret"]
             ?? throw new InvalidOperationException("PayPal Secret not configured");
 
         var mode = configuration["PayPal:Mode"] ?? "sandbox";
-        
+
         PayPalEnvironment environment = mode.ToLowerInvariant() switch
         {
             "live" => new LiveEnvironment(clientId, clientSecret),
@@ -39,7 +39,7 @@ public class PayPalService : IPayPalService
 
         _client = new PayPalHttpClient(environment);
         _logger = logger;
-        
+
         _webhookId = configuration["PayPal:WebhookId"] ?? string.Empty;
     }
 
@@ -58,7 +58,7 @@ public class PayPalService : IPayPalService
 
             var request = new OrdersCreateRequest();
             request.Prefer("return=representation");
-            
+
             // Create order with Venmo payment option included
             var orderRequest = new OrderRequest()
             {
@@ -101,11 +101,11 @@ public class PayPalService : IPayPalService
                 OrderId = order.Id,
                 Status = order.Status,
                 CreateTime = DateTime.Parse(order.CreateTime),
-                Links = order.Links?.Select(link => new PayPalLink 
-                { 
-                    Href = link.Href, 
-                    Rel = link.Rel, 
-                    Method = link.Method ?? "GET" 
+                Links = order.Links?.Select(link => new PayPalLink
+                {
+                    Href = link.Href,
+                    Rel = link.Rel,
+                    Method = link.Method ?? "GET"
                 }).ToList() ?? new List<PayPalLink>()
             };
 
@@ -117,7 +117,7 @@ public class PayPalService : IPayPalService
         }
         catch (HttpException ex)
         {
-            _logger.LogError(ex, "PayPal HTTP error creating order for customer {CustomerId}: {StatusCode}", 
+            _logger.LogError(ex, "PayPal HTTP error creating order for customer {CustomerId}: {StatusCode}",
                 customerId, ex.StatusCode);
             return Result<PayPalOrderResponse>.Failure($"PayPal error: {ex.Message}");
         }
@@ -174,7 +174,7 @@ public class PayPalService : IPayPalService
         }
         catch (HttpException ex)
         {
-            _logger.LogError(ex, "PayPal HTTP error capturing order {OrderId}: {StatusCode}", 
+            _logger.LogError(ex, "PayPal HTTP error capturing order {OrderId}: {StatusCode}",
                 orderId, ex.StatusCode);
             return Result<PayPalCaptureResponse>.Failure($"PayPal error: {ex.Message}");
         }
@@ -200,11 +200,11 @@ public class PayPalService : IPayPalService
                 OrderId = order.Id,
                 Status = order.Status,
                 CreateTime = DateTime.Parse(order.CreateTime),
-                Links = order.Links?.Select(link => new PayPalLink 
-                { 
-                    Href = link.Href, 
-                    Rel = link.Rel, 
-                    Method = link.Method ?? "GET" 
+                Links = order.Links?.Select(link => new PayPalLink
+                {
+                    Href = link.Href,
+                    Rel = link.Rel,
+                    Method = link.Method ?? "GET"
                 }).ToList() ?? new List<PayPalLink>()
             };
 
@@ -336,9 +336,9 @@ public class PayPalService : IPayPalService
             // PayPal webhook signature validation is more complex than Stripe
             // For now, we'll do basic JSON parsing and return the event data
             // In production, implement proper signature verification
-            
+
             var webhookEvent = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(payload);
-            
+
             if (webhookEvent == null)
             {
                 return Result<Dictionary<string, object>>.Failure("Invalid webhook payload");
@@ -366,7 +366,7 @@ public class PayPalService : IPayPalService
             // PayPal webhook signature validation is more complex than Stripe
             // For now, we'll do basic JSON parsing and return the event data
             // In production, implement proper signature verification
-            
+
             var jsonOptions = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
@@ -374,7 +374,7 @@ public class PayPalService : IPayPalService
             };
 
             var webhookEvent = System.Text.Json.JsonSerializer.Deserialize<PayPalWebhookEvent>(payload, jsonOptions);
-            
+
             if (webhookEvent == null)
             {
                 return Result<PayPalWebhookEvent>.Failure("Invalid webhook payload");
@@ -443,7 +443,7 @@ public class PayPalService : IPayPalService
         // Extract capture ID and update payment status in database
         // This would involve finding the payment by encrypted PayPal Order ID
         // and updating its status to Completed
-        
+
         _logger.LogInformation("PayPal capture completed");
         // TODO: Update payment status in database
         return Task.FromResult(Result.Success());
@@ -480,7 +480,7 @@ public class PayPalService : IPayPalService
     {
         try
         {
-            _logger.LogInformation("Processing PayPal webhook event: {EventType}, ID: {EventId}", 
+            _logger.LogInformation("Processing PayPal webhook event: {EventType}, ID: {EventId}",
                 webhookEvent.EventType, webhookEvent.Id);
 
             return webhookEvent.EventType switch
@@ -495,7 +495,7 @@ public class PayPalService : IPayPalService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing PayPal webhook event {EventId} of type {EventType}", 
+            _logger.LogError(ex, "Error processing PayPal webhook event {EventId} of type {EventType}",
                 webhookEvent.Id, webhookEvent.EventType);
             return Result.Failure($"Webhook processing error: {ex.Message}");
         }
@@ -512,8 +512,8 @@ public class PayPalService : IPayPalService
         // Extract capture ID and update payment status in database
         // This would involve finding the payment by encrypted PayPal Order ID
         // and updating its status to Completed
-        
-        _logger.LogInformation("PayPal capture completed: {EventId}, Summary: {Summary}", 
+
+        _logger.LogInformation("PayPal capture completed: {EventId}, Summary: {Summary}",
             webhookEvent.Id, webhookEvent.Summary);
         // TODO: Update payment status in database
         return Task.FromResult(Result.Success());
@@ -521,7 +521,7 @@ public class PayPalService : IPayPalService
 
     private Task<Result> HandleCaptureFailedTypedAsync(PayPalWebhookEvent webhookEvent, CancellationToken cancellationToken)
     {
-        _logger.LogWarning("PayPal capture failed: {EventId}, Summary: {Summary}", 
+        _logger.LogWarning("PayPal capture failed: {EventId}, Summary: {Summary}",
             webhookEvent.Id, webhookEvent.Summary);
         // TODO: Update payment status in database and log failure
         return Task.FromResult(Result.Success());
@@ -529,7 +529,7 @@ public class PayPalService : IPayPalService
 
     private Task<Result> HandleCapturePendingTypedAsync(PayPalWebhookEvent webhookEvent, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("PayPal capture pending: {EventId}, Summary: {Summary}", 
+        _logger.LogInformation("PayPal capture pending: {EventId}, Summary: {Summary}",
             webhookEvent.Id, webhookEvent.Summary);
         // TODO: Update payment status to pending
         return Task.FromResult(Result.Success());
@@ -537,7 +537,7 @@ public class PayPalService : IPayPalService
 
     private Task<Result> HandleDisputeCreatedTypedAsync(PayPalWebhookEvent webhookEvent, CancellationToken cancellationToken)
     {
-        _logger.LogWarning("PayPal dispute created: {EventId}, Summary: {Summary}", 
+        _logger.LogWarning("PayPal dispute created: {EventId}, Summary: {Summary}",
             webhookEvent.Id, webhookEvent.Summary);
         // TODO: Create notification for admin team about dispute
         return Task.FromResult(Result.Success());

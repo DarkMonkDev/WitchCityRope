@@ -17,7 +17,7 @@ public class Money : IEquatable<Money>, IComparable<Money>
     }
 
     public decimal Amount { get; }
-    
+
     public string Currency { get; }
 
     public static Money Create(decimal amount, string currency = "USD")
@@ -60,7 +60,7 @@ public class Money : IEquatable<Money>, IComparable<Money>
 
         var discountMultiplier = 1 - (discountPercentage / 100);
         var discountedAmount = Math.Round(Amount * discountMultiplier, 2, MidpointRounding.AwayFromZero);
-        
+
         return new Money(discountedAmount, Currency);
     }
 
@@ -156,7 +156,7 @@ public class Money : IEquatable<Money>, IComparable<Money>
     {
         if (other is null) return false;
         if (ReferenceEquals(this, other)) return true;
-        
+
         return Amount == other.Amount && Currency == other.Currency;
     }
 
@@ -168,7 +168,7 @@ public class Money : IEquatable<Money>, IComparable<Money>
     public int CompareTo(Money? other)
     {
         if (other == null) return 1;
-        
+
         if (Currency != other.Currency)
             throw new InvalidOperationException($"Cannot compare money with different currencies: {Currency} and {other.Currency}");
 
@@ -190,7 +190,7 @@ public class Money : IEquatable<Money>, IComparable<Money>
     {
         if (left is null) throw new ArgumentNullException(nameof(left));
         if (right is null) throw new ArgumentNullException(nameof(right));
-        
+
         return left.CompareTo(right) < 0;
     }
 
@@ -198,7 +198,7 @@ public class Money : IEquatable<Money>, IComparable<Money>
     {
         if (left is null) throw new ArgumentNullException(nameof(left));
         if (right is null) throw new ArgumentNullException(nameof(right));
-        
+
         return left.CompareTo(right) > 0;
     }
 
@@ -206,7 +206,7 @@ public class Money : IEquatable<Money>, IComparable<Money>
     {
         if (left is null) throw new ArgumentNullException(nameof(left));
         if (right is null) throw new ArgumentNullException(nameof(right));
-        
+
         return left.CompareTo(right) <= 0;
     }
 
@@ -214,7 +214,7 @@ public class Money : IEquatable<Money>, IComparable<Money>
     {
         if (left is null) throw new ArgumentNullException(nameof(left));
         if (right is null) throw new ArgumentNullException(nameof(right));
-        
+
         return left.CompareTo(right) >= 0;
     }
 

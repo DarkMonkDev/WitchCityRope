@@ -218,7 +218,7 @@ public class EventService
             // Business rule: Cannot update past events
             if (eventEntity.StartDate <= DateTime.UtcNow)
             {
-                _logger.LogWarning("Attempted to update past event: {EventId} (StartDate: {StartDate})", 
+                _logger.LogWarning("Attempted to update past event: {EventId} (StartDate: {StartDate})",
                     eventId, eventEntity.StartDate);
                 return (false, null, "Cannot update past events");
             }
@@ -240,7 +240,7 @@ public class EventService
             // Validate date range if either date is provided
             var startDate = request.StartDate?.ToUniversalTime() ?? eventEntity.StartDate;
             var endDate = request.EndDate?.ToUniversalTime() ?? eventEntity.EndDate;
-            
+
             if (startDate >= endDate)
             {
                 _logger.LogWarning("Invalid date range for event update: {EventId}, " +
@@ -348,7 +348,7 @@ public class EventService
                 TeacherIds = eventEntity.Organizers.Select(o => o.Id.ToString()).ToList()
             };
 
-            _logger.LogInformation("Event updated successfully: {EventId} ({Title})", 
+            _logger.LogInformation("Event updated successfully: {EventId} ({Title})",
                 eventId, eventEntity.Title);
             return (true, updatedEventDto, string.Empty);
         }

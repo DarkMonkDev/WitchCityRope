@@ -21,8 +21,8 @@ public static class HealthEndpoints
             CancellationToken cancellationToken) =>
             {
                 var (success, response, error) = await healthService.GetHealthAsync(cancellationToken);
-                
-                return success 
+
+                return success
                     ? Results.Ok(response)
                     : Results.Problem(
                         title: "Health Check Failed",
@@ -42,11 +42,11 @@ public static class HealthEndpoints
             CancellationToken cancellationToken) =>
             {
                 var (success, response, error) = await healthService.GetDetailedHealthAsync(cancellationToken);
-                
+
                 return success
                     ? Results.Ok(response)
                     : Results.Problem(
-                        title: "Detailed Health Check Failed", 
+                        title: "Detailed Health Check Failed",
                         detail: error,
                         statusCode: 503);
             })
@@ -63,9 +63,9 @@ public static class HealthEndpoints
             CancellationToken cancellationToken) =>
             {
                 var (success, response, error) = await healthService.GetHealthAsync(cancellationToken);
-                
+
                 // Return simple status for legacy health checks
-                return success 
+                return success
                     ? Results.Ok(new { status = "Healthy" })
                     : Results.Problem(
                         title: "Health Check Failed",

@@ -12,84 +12,84 @@ public class PaymentAuditLog
     /// Audit log unique identifier
     /// </summary>
     public Guid Id { get; set; } = Guid.NewGuid();
-    
+
     /// <summary>
     /// Reference to the payment being audited
     /// </summary>
     public Guid PaymentId { get; set; }
-    
+
     /// <summary>
     /// User who performed the action (null for system actions)
     /// </summary>
     public Guid? UserId { get; set; }
-    
+
     #region Action Details
-    
+
     /// <summary>
     /// Type of action performed
     /// </summary>
     public string ActionType { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Detailed description of the action
     /// </summary>
     public string ActionDescription { get; set; } = string.Empty;
-    
+
     #endregion
-    
+
     #region Change Tracking
-    
+
     /// <summary>
     /// Old values before the change (stored as JSONB)
     /// </summary>
     public Dictionary<string, object>? OldValues { get; set; }
-    
+
     /// <summary>
     /// New values after the change (stored as JSONB)
     /// </summary>
     public Dictionary<string, object>? NewValues { get; set; }
-    
+
     #endregion
-    
+
     #region Security Tracking
-    
+
     /// <summary>
     /// IP address of the user who performed the action
     /// </summary>
     public string? IpAddress { get; set; }
-    
+
     /// <summary>
     /// User agent of the client that performed the action
     /// </summary>
     public string? UserAgent { get; set; }
-    
+
     #endregion
-    
+
     #region Timing
-    
+
     /// <summary>
     /// When the action was performed
     /// </summary>
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    
+
     #endregion
-    
+
     #region Navigation Properties
-    
+
     /// <summary>
     /// Navigation property to the payment being audited
     /// </summary>
     public Payment? Payment { get; set; }
-    
+
     /// <summary>
     /// Navigation property to the user who performed the action
     /// </summary>
     public ApplicationUser? User { get; set; }
-    
+
     #endregion
-    
+
     #region Static Factory Methods
-    
+
     /// <summary>
     /// Create audit log for payment initiation
     /// </summary>
@@ -105,7 +105,7 @@ public class PaymentAuditLog
             UserAgent = userAgent
         };
     }
-    
+
     /// <summary>
     /// Create audit log for payment completion
     /// </summary>
@@ -126,7 +126,7 @@ public class PaymentAuditLog
             }
         };
     }
-    
+
     /// <summary>
     /// Create audit log for payment failure
     /// </summary>
@@ -147,7 +147,7 @@ public class PaymentAuditLog
             }
         };
     }
-    
+
     /// <summary>
     /// Create audit log for refund initiation
     /// </summary>
@@ -168,7 +168,7 @@ public class PaymentAuditLog
             IpAddress = ipAddress
         };
     }
-    
+
     /// <summary>
     /// Create audit log for refund completion
     /// </summary>
@@ -189,7 +189,7 @@ public class PaymentAuditLog
             }
         };
     }
-    
+
     /// <summary>
     /// Create audit log for status changes
     /// </summary>
@@ -205,7 +205,7 @@ public class PaymentAuditLog
             NewValues = new Dictionary<string, object> { ["status"] = newStatus }
         };
     }
-    
+
     /// <summary>
     /// Create audit log for metadata updates
     /// </summary>
@@ -221,11 +221,11 @@ public class PaymentAuditLog
             NewValues = newMetadata
         };
     }
-    
+
     #endregion
-    
+
     #region Helper Methods
-    
+
     /// <summary>
     /// Check if this is a user-initiated action
     /// </summary>
@@ -233,7 +233,7 @@ public class PaymentAuditLog
     {
         return UserId.HasValue;
     }
-    
+
     /// <summary>
     /// Check if this is a system-initiated action
     /// </summary>
@@ -241,7 +241,7 @@ public class PaymentAuditLog
     {
         return !UserId.HasValue;
     }
-    
+
     /// <summary>
     /// Get a summary of changes made
     /// </summary>
@@ -249,9 +249,9 @@ public class PaymentAuditLog
     {
         if (OldValues == null && NewValues == null)
             return "No changes recorded";
-            
+
         var changes = new List<string>();
-        
+
         if (NewValues != null)
         {
             foreach (var kvp in NewValues)
@@ -260,9 +260,9 @@ public class PaymentAuditLog
                 changes.Add($"{kvp.Key}: {oldValue} → {kvp.Value}");
             }
         }
-        
+
         return string.Join(", ", changes);
     }
-    
+
     #endregion
 }

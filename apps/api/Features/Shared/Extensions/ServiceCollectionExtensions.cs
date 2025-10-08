@@ -47,7 +47,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISafetyService, SafetyService>();
         services.AddScoped<IEncryptionService, EncryptionService>();
         services.AddScoped<IAuditService, AuditService>();
-        
+
         // FluentValidation for Safety feature
         services.AddValidatorsFromAssemblyContaining<CreateIncidentValidator>();
 
@@ -64,13 +64,13 @@ public static class ServiceCollectionExtensions
 
         // Payment feature services
         services.AddScoped<IPaymentService, PaymentService>();
-        
+
         // Conditionally register PayPal service based on configuration
         var useMockPayPal = configuration.GetValue<bool>("USE_MOCK_PAYMENT_SERVICE");
         if (useMockPayPal)
         {
             services.AddSingleton<IPayPalService, MockPayPalService>();
-            
+
             // Log warning in development/test environments
             services.AddSingleton<ILogger<MockPayPalService>>(provider =>
             {
@@ -83,9 +83,9 @@ public static class ServiceCollectionExtensions
         {
             services.AddScoped<IPayPalService, PayPalService>();
         }
-        
+
         services.AddScoped<IRefundService, RefundService>();
-        
+
         // FluentValidation for Payment feature
         services.AddValidatorsFromAssemblyContaining<ProcessPaymentApiRequestValidator>();
 

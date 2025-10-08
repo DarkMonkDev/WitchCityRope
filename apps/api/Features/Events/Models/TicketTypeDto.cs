@@ -58,7 +58,7 @@ public class TicketTypeDto
         MaxPrice = ticketType.Price; // For now, same as min price
         QuantityAvailable = ticketType.Available;
         SalesEndDate = null; // Not currently tracked in the entity
-        
+
         // Determine session identifiers based on the session relationship
         if (ticketType.Session != null)
         {

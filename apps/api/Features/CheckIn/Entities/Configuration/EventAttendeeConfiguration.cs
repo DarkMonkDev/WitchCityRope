@@ -80,7 +80,7 @@ public class EventAttendeeConfiguration : IEntityTypeConfiguration<EventAttendee
                .OnDelete(DeleteBehavior.SetNull);
 
         // Constraints
-        builder.HasCheckConstraint("CHK_EventAttendees_WaitlistPosition", 
+        builder.HasCheckConstraint("CHK_EventAttendees_WaitlistPosition",
                 "\"WaitlistPosition\" > 0 OR \"WaitlistPosition\" IS NULL");
 
         builder.HasCheckConstraint("CHK_EventAttendees_RegistrationStatus",

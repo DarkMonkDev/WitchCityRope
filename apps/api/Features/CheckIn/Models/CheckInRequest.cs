@@ -9,13 +9,13 @@ public class CheckInRequest
 {
     [Required]
     public string AttendeeId { get; set; } = string.Empty;
-    
+
     [Required]
     public string CheckInTime { get; set; } = string.Empty;
-    
+
     [Required]
     public string StaffMemberId { get; set; } = string.Empty;
-    
+
     public string? Notes { get; set; }
     public bool OverrideCapacity { get; set; } = false;
     public bool IsManualEntry { get; set; } = false;
@@ -29,15 +29,15 @@ public class ManualEntryData
 {
     [Required]
     public string Name { get; set; } = string.Empty;
-    
+
     [Required]
     [EmailAddress]
     public string Email { get; set; } = string.Empty;
-    
+
     [Required]
     [Phone]
     public string Phone { get; set; } = string.Empty;
-    
+
     public string? DietaryRestrictions { get; set; }
     public string? AccessibilityNeeds { get; set; }
     public bool HasCompletedWaiver { get; set; } = false;

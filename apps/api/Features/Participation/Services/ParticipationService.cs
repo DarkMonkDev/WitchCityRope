@@ -142,7 +142,8 @@ public class ParticipationService : IParticipationService
             // Create audit history
             var history = new ParticipationHistory(participation.Id, "Created")
             {
-                NewValues = System.Text.Json.JsonSerializer.Serialize(new {
+                NewValues = System.Text.Json.JsonSerializer.Serialize(new
+                {
                     EventId = participation.EventId,
                     UserId = participation.UserId,
                     ParticipationType = participation.ParticipationType,
@@ -247,7 +248,8 @@ public class ParticipationService : IParticipationService
             // Create audit history
             var history = new ParticipationHistory(participation.Id, "Created")
             {
-                NewValues = System.Text.Json.JsonSerializer.Serialize(new {
+                NewValues = System.Text.Json.JsonSerializer.Serialize(new
+                {
                     EventId = participation.EventId,
                     UserId = participation.UserId,
                     ParticipationType = participation.ParticipationType,

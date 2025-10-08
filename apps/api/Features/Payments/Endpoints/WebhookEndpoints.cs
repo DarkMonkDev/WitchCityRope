@@ -126,9 +126,9 @@ public class WebhookEndpoints : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult HealthCheck()
     {
-        return Ok(new 
-        { 
-            status = "healthy", 
+        return Ok(new
+        {
+            status = "healthy",
             service = "paypal-webhooks",
             timestamp = DateTime.UtcNow.ToString("O")
         });

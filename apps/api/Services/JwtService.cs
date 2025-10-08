@@ -140,7 +140,7 @@ public class JwtService : IJwtService
             var jsonToken = _tokenHandler.ReadJwtToken(token);
             var expiry = jsonToken.ValidTo;
             var now = DateTime.UtcNow;
-            
+
             // Token is near expiry if it expires within the next 30 minutes
             return expiry.Subtract(now).TotalMinutes <= 30;
         }

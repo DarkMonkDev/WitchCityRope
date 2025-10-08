@@ -9,57 +9,57 @@ public class PayPalCaptureResponse
     /// PayPal capture ID
     /// </summary>
     public string CaptureId { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Capture status (COMPLETED, PENDING, DECLINED)
     /// </summary>
     public string Status { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Amount captured
     /// </summary>
     public PayPalAmount Amount { get; set; } = new();
-    
+
     /// <summary>
     /// Final capture flag
     /// </summary>
     public bool FinalCapture { get; set; }
-    
+
     /// <summary>
     /// Capture creation timestamp
     /// </summary>
     public DateTime CreateTime { get; set; }
-    
+
     /// <summary>
     /// Capture update timestamp
     /// </summary>
     public DateTime UpdateTime { get; set; }
-    
+
     /// <summary>
     /// PayPal transaction ID
     /// </summary>
     public string? TransactionId { get; set; }
-    
+
     /// <summary>
     /// Payer ID (customer identification)
     /// </summary>
     public string? PayerId { get; set; }
-    
+
     /// <summary>
     /// Order ID associated with this capture
     /// </summary>
     public string OrderId { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Capture completion timestamp
     /// </summary>
     public DateTime CaptureTime { get; set; }
-    
+
     /// <summary>
     /// Payer email address
     /// </summary>
     public string? PayerEmail { get; set; }
-    
+
     /// <summary>
     /// Payer full name
     /// </summary>
@@ -75,12 +75,12 @@ public class PayPalAmount
     /// Currency code (USD, EUR, etc.)
     /// </summary>
     public string CurrencyCode { get; set; } = "USD";
-    
+
     /// <summary>
     /// Amount value as string
     /// </summary>
     public string Value { get; set; } = "0.00";
-    
+
     /// <summary>
     /// Get decimal amount value
     /// </summary>

@@ -40,7 +40,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     // Use environment-aware connection string (container-friendly)
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
         ?? "Host=postgres;Port=5432;Database=witchcityrope_dev;Username=postgres;Password=WitchCity2024!";
     options.UseNpgsql(connectionString);
 });
@@ -165,7 +165,7 @@ builder.Services.AddFeatureServices(builder.Configuration);
 
 // Health checks for database monitoring
 builder.Services.AddHealthChecks()
-    .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection") 
+    .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")
         ?? "Host=postgres;Port=5432;Database=witchcityrope_dev;Username=postgres;Password=WitchCity2024!");
 
 // Configure CORS for React development

@@ -38,7 +38,7 @@ public class HealthService
         {
             // Simple database connectivity check using direct Entity Framework
             var canConnect = await _context.Database.CanConnectAsync(cancellationToken);
-            
+
             if (!canConnect)
             {
                 return (false, null, "Database connection failed");
@@ -58,7 +58,7 @@ public class HealthService
                 Version = "1.0.0"
             };
 
-            _logger.LogDebug("Health check completed successfully - Database: {DatabaseConnected}, Users: {UserCount}", 
+            _logger.LogDebug("Health check completed successfully - Database: {DatabaseConnected}, Users: {UserCount}",
                 canConnect, userCount);
 
             return (true, response, string.Empty);
@@ -81,7 +81,7 @@ public class HealthService
         {
             // Direct Entity Framework queries - SIMPLE approach
             var canConnect = await _context.Database.CanConnectAsync(cancellationToken);
-            
+
             if (!canConnect)
             {
                 return (false, null, "Database connection failed");
@@ -112,7 +112,7 @@ public class HealthService
                 Environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Unknown"
             };
 
-            _logger.LogInformation("Detailed health check completed - DB: {DatabaseConnected}, Users: {UserCount}/{ActiveUsers}", 
+            _logger.LogInformation("Detailed health check completed - DB: {DatabaseConnected}, Users: {UserCount}/{ActiveUsers}",
                 canConnect, userCount, activeUserCount);
 
             return (true, response, string.Empty);

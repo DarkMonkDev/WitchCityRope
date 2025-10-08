@@ -29,7 +29,7 @@ public class UserDashboardService : IUserDashboardService
     /// Get basic dashboard data for a user
     /// </summary>
     public async Task<Result<UserDashboardResponse>> GetUserDashboardAsync(
-        Guid userId, 
+        Guid userId,
         CancellationToken cancellationToken = default)
     {
         try
@@ -64,9 +64,9 @@ public class UserDashboardService : IUserDashboardService
                 Pronouns = user.Pronouns
             };
 
-            _logger.LogDebug("Dashboard data retrieved successfully for user: {UserId} ({SceneName})", 
+            _logger.LogDebug("Dashboard data retrieved successfully for user: {UserId} ({SceneName})",
                 userId, user.SceneName);
-            
+
             return Result<UserDashboardResponse>.Success(dashboard);
         }
         catch (Exception ex)
@@ -190,7 +190,7 @@ public class UserDashboardService : IUserDashboardService
         return paymentStatus switch
         {
             "Completed" => "Registered",
-            "Confirmed" => "Registered", 
+            "Confirmed" => "Registered",
             "Pending" => "Payment Pending",
             "Failed" => "Payment Failed",
             "Cancelled" => "Cancelled",

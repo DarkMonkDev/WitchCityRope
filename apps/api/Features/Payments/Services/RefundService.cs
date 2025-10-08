@@ -108,7 +108,7 @@ public class RefundService : IRefundService
                 {
                     // Decrypt PayPal Order ID
                     var paypalOrderId = await _encryptionService.DecryptAsync(payment.EncryptedPayPalOrderId);
-                    
+
                     // For PayPal refunds, we need the capture ID, not the order ID
                     // In a real implementation, we would need to get the capture from the order
                     // For now, we'll assume the order ID is the capture ID for simplicity
@@ -130,7 +130,7 @@ public class RefundService : IRefundService
 
                         // Update payment status based on refund amount
                         var totalRefunded = payment.Refunds.Where(r => r.IsCompleted()).Sum(r => r.RefundAmountValue) + request.RefundAmount.Amount;
-                        
+
                         if (totalRefunded >= payment.AmountValue)
                         {
                             payment.Status = PaymentStatus.Refunded;
@@ -154,7 +154,7 @@ public class RefundService : IRefundService
                     else
                     {
                         refund.MarkFailed($"PayPal refund failed: {paypalRefundResult.ErrorMessage}");
-                        
+
                         _logger.LogError("PayPal refund failed for payment {PaymentId}: {Error}",
                             request.PaymentId, paypalRefundResult.ErrorMessage);
                     }
@@ -169,7 +169,7 @@ public class RefundService : IRefundService
             {
                 // Manual refund (no Stripe processing needed)
                 refund.MarkCompleted();
-                
+
                 // Update payment status
                 payment.Status = PaymentStatus.Refunded;
                 payment.SetRefundAmount(request.RefundAmount);
@@ -260,7 +260,7 @@ public class RefundService : IRefundService
         try
         {
             var payment = await _context.Payments.FindAsync(new object[] { paymentId }, cancellationToken);
-            
+
             if (payment == null)
             {
                 return Result<bool>.Failure("Payment not found.");

@@ -38,7 +38,7 @@ public class DatabaseInitializationService : BackgroundService
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
-        
+
         // Bind configuration options with defaults
         _options = new DbInitializationOptions();
         configuration.GetSection("DatabaseInitialization").Bind(_options);
@@ -55,7 +55,7 @@ public class DatabaseInitializationService : BackgroundService
         await _initializationSemaphore.WaitAsync(stoppingToken);
         try
         {
-            if (_initializationCompleted) 
+            if (_initializationCompleted)
             {
                 _logger.LogInformation("Database initialization already completed, skipping");
                 return;
@@ -81,7 +81,7 @@ public class DatabaseInitializationService : BackgroundService
     {
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         var correlationId = Guid.NewGuid();
-        
+
         using var scope = _logger.BeginScope(new Dictionary<string, object>
         {
             ["CorrelationId"] = correlationId,
@@ -112,13 +112,13 @@ public class DatabaseInitializationService : BackgroundService
                 _logger.LogInformation("Phase 2: Populating seed data [{CorrelationId}]", correlationId);
                 var seedService = serviceScope.ServiceProvider.GetRequiredService<ISeedDataService>();
                 var seedResult = await seedService.SeedAllDataAsync(cts.Token);
-                
+
                 if (!seedResult.Success)
                 {
                     var errorMessage = $"Seed data creation failed: {string.Join(", ", seedResult.Errors)}";
-                    _logger.LogError("Seed data operation failed [{CorrelationId}]: {Errors}", 
+                    _logger.LogError("Seed data operation failed [{CorrelationId}]: {Errors}",
                         correlationId, string.Join(", ", seedResult.Errors));
-                    
+
                     if (_options.FailOnSeedDataError)
                     {
                         throw new InvalidOperationException(errorMessage);
@@ -158,7 +158,7 @@ public class DatabaseInitializationService : BackgroundService
             stopwatch.Stop();
             _logger.LogCritical(ex, "Database initialization failed after {Duration}ms [{CorrelationId}]",
                 stopwatch.ElapsedMilliseconds, correlationId);
-            
+
             var errorType = ClassifyError(ex);
             await HandleInitializationError(ex, errorType, correlationId);
         }
@@ -174,21 +174,21 @@ public class DatabaseInitializationService : BackgroundService
     {
         var retryCount = 0;
         var maxRetries = _options.MaxRetryAttempts;
-        
+
         while (retryCount <= maxRetries)
         {
             try
             {
                 var pendingMigrations = await context.Database.GetPendingMigrationsAsync(cancellationToken);
                 var migrationsList = pendingMigrations.ToList();
-                
+
                 if (migrationsList.Count > 0)
                 {
                     _logger.LogInformation("Applying {Count} pending migrations: {Migrations}",
                         migrationsList.Count, string.Join(", ", migrationsList));
-                    
+
                     await context.Database.MigrateAsync(cancellationToken);
-                    
+
                     _logger.LogInformation("Successfully applied {Count} migrations", migrationsList.Count);
                     return migrationsList.Count;
                 }
@@ -202,14 +202,14 @@ public class DatabaseInitializationService : BackgroundService
             {
                 retryCount++;
                 var delay = TimeSpan.FromSeconds(_options.RetryDelaySeconds * Math.Pow(2, retryCount - 1));
-                
+
                 _logger.LogWarning("Migration attempt {RetryCount} of {MaxRetries} failed, retrying in {Delay}ms: {Error}",
                     retryCount, maxRetries, delay.TotalMilliseconds, ex.Message);
-                
+
                 await Task.Delay(delay, cancellationToken);
             }
         }
-        
+
         // If we get here, all retry attempts failed
         throw new InvalidOperationException($"Migration failed after {maxRetries} retry attempts");
     }
@@ -230,7 +230,7 @@ public class DatabaseInitializationService : BackgroundService
 
         var environmentName = hostEnvironment.EnvironmentName;
         var isExcluded = _options.ExcludedEnvironments.Contains(environmentName, StringComparer.OrdinalIgnoreCase);
-        
+
         if (isExcluded)
         {
             _logger.LogInformation("Seed data excluded for {Environment} environment", environmentName);
@@ -298,8 +298,8 @@ public class DatabaseInitializationService : BackgroundService
     private static bool IsConnectionException(Exception ex)
     {
         var message = ex.Message.ToLowerInvariant();
-        return message.Contains("connection") || 
-               message.Contains("network") || 
+        return message.Contains("connection") ||
+               message.Contains("network") ||
                message.Contains("timeout") ||
                message.Contains("host") ||
                ex is System.Net.NetworkInformation.NetworkInformationException ||

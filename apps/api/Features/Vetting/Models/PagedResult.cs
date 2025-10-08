@@ -13,11 +13,11 @@ public class PagedResult<T>
     public int TotalPages { get; set; }
     public bool HasPreviousPage { get; set; }
     public bool HasNextPage { get; set; }
-    
+
     public PagedResult()
     {
     }
-    
+
     public PagedResult(List<T> items, int totalCount, int page, int pageSize)
     {
         Items = items;

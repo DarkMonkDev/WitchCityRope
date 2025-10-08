@@ -109,7 +109,7 @@ public static class UserEndpoints
 
                 var (success, response, error) = await userService.UpdateProfileAsync(userId, request, cancellationToken);
 
-                return success 
+                return success
                     ? Results.Ok(response)
                     : Results.Problem(
                         title: "Update Profile Failed",
@@ -134,7 +134,7 @@ public static class UserEndpoints
             {
                 var (success, response, error) = await userService.GetUsersAsync(request, cancellationToken);
 
-                return success 
+                return success
                     ? Results.Ok(response)
                     : Results.Problem(
                         title: "Get Users Failed",
@@ -159,7 +159,7 @@ public static class UserEndpoints
             {
                 var (success, response, error) = await userService.GetUserAsync(id, cancellationToken);
 
-                return success 
+                return success
                     ? Results.Ok(response)
                     : Results.Problem(
                         title: "Get User Failed",

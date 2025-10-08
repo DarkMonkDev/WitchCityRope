@@ -13,35 +13,35 @@ public interface ISafetyService
     /// Submit new safety incident report (anonymous or identified)
     /// </summary>
     Task<Result<SubmissionResponse>> SubmitIncidentAsync(
-        CreateIncidentRequest request, 
+        CreateIncidentRequest request,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get incident status for anonymous tracking
     /// </summary>
     Task<Result<IncidentStatusResponse>> GetIncidentStatusAsync(
-        string referenceNumber, 
+        string referenceNumber,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get detailed incident information for safety team
     /// </summary>
     Task<Result<IncidentResponse>> GetIncidentDetailAsync(
-        Guid incidentId, 
-        Guid userId, 
+        Guid incidentId,
+        Guid userId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get safety dashboard data for admin interface
     /// </summary>
     Task<Result<AdminDashboardResponse>> GetDashboardDataAsync(
-        Guid userId, 
+        Guid userId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get user's own incident reports
     /// </summary>
     Task<Result<IEnumerable<IncidentSummaryResponse>>> GetUserReportsAsync(
-        Guid userId, 
+        Guid userId,
         CancellationToken cancellationToken = default);
 }

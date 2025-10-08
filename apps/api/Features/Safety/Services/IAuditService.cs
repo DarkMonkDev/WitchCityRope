@@ -7,10 +7,10 @@ namespace WitchCityRope.Api.Features.Safety.Services;
 /// </summary>
 public interface IAuditService
 {
-    Task LogActionAsync(Guid incidentId, Guid? userId, string actionType, 
+    Task LogActionAsync(Guid incidentId, Guid? userId, string actionType,
         string description, object? oldValues = null, object? newValues = null,
         CancellationToken cancellationToken = default);
 
-    Task<IEnumerable<AuditLogDto>> GetAuditTrailAsync(Guid incidentId, 
+    Task<IEnumerable<AuditLogDto>> GetAuditTrailAsync(Guid incidentId,
         CancellationToken cancellationToken = default);
 }

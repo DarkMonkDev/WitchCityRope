@@ -10,14 +10,14 @@ public class ApplicationStatusResponse
     public string Status { get; set; } = string.Empty;
     public DateTime SubmittedAt { get; set; }
     public string StatusDescription { get; set; } = string.Empty;
-    
+
     // Timeline information
     public DateTime? LastUpdateAt { get; set; }
     public int? EstimatedDaysRemaining { get; set; }
-    
+
     // Progress indicators
     public ApplicationProgressSummary Progress { get; set; } = new();
-    
+
     // Communication history (limited)
     public List<StatusUpdateSummary> RecentUpdates { get; set; } = new();
 }
@@ -33,7 +33,7 @@ public class ApplicationProgressSummary
     public bool UnderReview { get; set; }
     public bool InterviewScheduled { get; set; }
     public bool DecisionMade { get; set; }
-    
+
     // Progress percentage (0-100)
     public int ProgressPercentage { get; set; }
     public string CurrentPhase { get; set; } = string.Empty;

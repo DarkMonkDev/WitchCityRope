@@ -54,7 +54,7 @@ public class AuthenticationService
             }
 
             var response = new AuthUserResponse(user);
-            
+
             _logger.LogDebug("Current user retrieved successfully: {UserId} ({SceneName})", userId, user.SceneName);
             return (true, response, string.Empty);
         }
@@ -134,7 +134,7 @@ public class AuthenticationService
             var existingUser = await _context.Users
                 .AsNoTracking()
                 .AnyAsync(u => u.Email == request.Email, cancellationToken);
-            
+
             if (existingUser)
             {
                 return (false, null, "Email address is already registered");
@@ -144,7 +144,7 @@ public class AuthenticationService
             var existingSceneName = await _context.Users
                 .AsNoTracking()
                 .AnyAsync(u => u.SceneName == request.SceneName, cancellationToken);
-            
+
             if (existingSceneName)
             {
                 return (false, null, "Scene name is already taken");
@@ -173,7 +173,7 @@ public class AuthenticationService
             await _context.SaveChangesAsync(cancellationToken);
 
             var response = new AuthUserResponse(user);
-            
+
             _logger.LogInformation("User registered successfully: {Email} ({SceneName})", user.Email, user.SceneName);
             return (true, response, string.Empty);
         }

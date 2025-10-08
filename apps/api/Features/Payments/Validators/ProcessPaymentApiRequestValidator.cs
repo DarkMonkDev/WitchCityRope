@@ -63,8 +63,8 @@ public class ProcessPaymentApiRequestValidator : AbstractValidator<ProcessPaymen
     {
         if (string.IsNullOrEmpty(url))
             return true; // Optional URLs are valid when empty
-            
-        return Uri.TryCreate(url, UriKind.Absolute, out var validUri) 
+
+        return Uri.TryCreate(url, UriKind.Absolute, out var validUri)
                && (validUri.Scheme == Uri.UriSchemeHttp || validUri.Scheme == Uri.UriSchemeHttps);
     }
 }

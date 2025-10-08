@@ -32,8 +32,8 @@ public class CheckInService : ICheckInService
     /// Get attendees with optimized queries for mobile performance
     /// </summary>
     public async Task<Result<CheckInAttendeesResponse>> GetEventAttendeesAsync(
-        Guid eventId, 
-        string? search = null, 
+        Guid eventId,
+        string? search = null,
         string? status = null,
         int page = 1,
         int pageSize = 50,
@@ -55,7 +55,7 @@ public class CheckInService : ICheckInService
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var searchTerm = search.ToLower();
-                query = query.Where(ea => 
+                query = query.Where(ea =>
                     ea.User.SceneName.ToLower().Contains(searchTerm) ||
                     ea.User.Email.ToLower().Contains(searchTerm) ||
                     (ea.TicketNumber != null && ea.TicketNumber.ToLower().Contains(searchTerm)));
@@ -191,7 +191,7 @@ public class CheckInService : ICheckInService
                 Notes = request.Notes,
                 OverrideCapacity = request.OverrideCapacity,
                 IsManualEntry = request.IsManualEntry,
-                ManualEntryData = request.ManualEntryData != null ? 
+                ManualEntryData = request.ManualEntryData != null ?
                     JsonSerializer.Serialize(request.ManualEntryData) : null
             };
 
@@ -210,8 +210,9 @@ public class CheckInService : ICheckInService
                 Guid.Parse(request.StaffMemberId))
             {
                 EventAttendeeId = attendee.Id,
-                NewValues = JsonSerializer.Serialize(new { 
-                    status = "checked-in", 
+                NewValues = JsonSerializer.Serialize(new
+                {
+                    status = "checked-in",
                     checkInTime = checkIn.CheckInTime,
                     staffMember = request.StaffMemberId,
                     overrideCapacity = request.OverrideCapacity
@@ -239,7 +240,7 @@ public class CheckInService : ICheckInService
                 AuditLogId = auditLog.Id.ToString()
             };
 
-            _logger.LogInformation("Successful check-in for attendee {AttendeeId} by staff {StaffId}", 
+            _logger.LogInformation("Successful check-in for attendee {AttendeeId} by staff {StaffId}",
                 attendee.Id, request.StaffMemberId);
 
             return Result<CheckInResponse>.Success(response);
@@ -294,7 +295,7 @@ public class CheckInService : ICheckInService
 
             // Determine event status
             var now = DateTime.UtcNow;
-            var eventStatus = now < eventInfo.StartDate ? "upcoming" : 
+            var eventStatus = now < eventInfo.StartDate ? "upcoming" :
                              now > eventInfo.EndDate ? "ended" : "active";
 
             var response = new DashboardResponse
@@ -354,10 +355,10 @@ public class CheckInService : ICheckInService
 
             // For now, we'll create a manual entry record without creating a full user
             // In a full implementation, this would create a temporary user or work with the registration system
-            
+
             // TODO: Implement proper manual entry user creation
             // This is a simplified implementation for the initial version
-            
+
             return Result<CheckInResponse>.Failure("Manual entry not yet fully implemented");
         }
         catch (Exception ex)
@@ -373,7 +374,7 @@ public class CheckInService : ICheckInService
     private async Task<CapacityInfo> GetEventCapacityAsync(Guid eventId, CancellationToken cancellationToken)
     {
         var cacheKey = $"event_capacity_{eventId}";
-        
+
         if (_cache.TryGetValue(cacheKey, out CapacityInfo? cachedCapacity) && cachedCapacity != null)
         {
             return cachedCapacity;

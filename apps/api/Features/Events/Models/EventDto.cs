@@ -33,12 +33,12 @@ public class EventDto
     /// Frontend expects this field for displaying event capacity/availability
     /// </summary>
     public int RegistrationCount { get; set; }
-    
+
     /// <summary>
     /// Number of free RSVPs (only for Social events, 0 for Class events)
     /// </summary>
     public int CurrentRSVPs { get; set; }
-    
+
     /// <summary>
     /// Number of paid ticket registrations
     /// - For Class events: equals RegistrationCount (all paid)

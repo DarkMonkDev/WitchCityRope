@@ -51,13 +51,13 @@ public class SafetyService : ISafetyService
                 IncidentDate = request.IncidentDate.ToUniversalTime(),
                 Location = request.Location,
                 EncryptedDescription = await _encryptionService.EncryptAsync(request.Description),
-                EncryptedInvolvedParties = !string.IsNullOrEmpty(request.InvolvedParties) 
+                EncryptedInvolvedParties = !string.IsNullOrEmpty(request.InvolvedParties)
                     ? await _encryptionService.EncryptAsync(request.InvolvedParties) : null,
-                EncryptedWitnesses = !string.IsNullOrEmpty(request.Witnesses) 
+                EncryptedWitnesses = !string.IsNullOrEmpty(request.Witnesses)
                     ? await _encryptionService.EncryptAsync(request.Witnesses) : null,
-                EncryptedContactEmail = !string.IsNullOrEmpty(request.ContactEmail) 
+                EncryptedContactEmail = !string.IsNullOrEmpty(request.ContactEmail)
                     ? await _encryptionService.EncryptAsync(request.ContactEmail) : null,
-                EncryptedContactPhone = !string.IsNullOrEmpty(request.ContactPhone) 
+                EncryptedContactPhone = !string.IsNullOrEmpty(request.ContactPhone)
                     ? await _encryptionService.EncryptAsync(request.ContactPhone) : null,
                 IsAnonymous = request.IsAnonymous,
                 RequestFollowUp = request.RequestFollowUp,
@@ -71,9 +71,9 @@ public class SafetyService : ISafetyService
 
             // Log incident creation
             await _auditService.LogActionAsync(
-                incident.Id, 
-                request.IsAnonymous ? null : request.ReporterId, 
-                "Created", 
+                incident.Id,
+                request.IsAnonymous ? null : request.ReporterId,
+                "Created",
                 "Safety incident report submitted",
                 cancellationToken: cancellationToken);
 
@@ -84,7 +84,7 @@ public class SafetyService : ISafetyService
                 SubmittedAt = incident.CreatedAt
             };
 
-            _logger.LogInformation("Safety incident submitted successfully: {ReferenceNumber}, Severity: {Severity}, Anonymous: {IsAnonymous}", 
+            _logger.LogInformation("Safety incident submitted successfully: {ReferenceNumber}, Severity: {Severity}, Anonymous: {IsAnonymous}",
                 referenceNumber, incident.Severity, incident.IsAnonymous);
 
             return Result<SubmissionResponse>.Success(response);
@@ -174,13 +174,13 @@ public class SafetyService : ISafetyService
                 ReportedAt = incident.ReportedAt,
                 Location = incident.Location,
                 Description = await _encryptionService.DecryptAsync(incident.EncryptedDescription),
-                InvolvedParties = !string.IsNullOrEmpty(incident.EncryptedInvolvedParties) 
+                InvolvedParties = !string.IsNullOrEmpty(incident.EncryptedInvolvedParties)
                     ? await _encryptionService.DecryptAsync(incident.EncryptedInvolvedParties) : null,
-                Witnesses = !string.IsNullOrEmpty(incident.EncryptedWitnesses) 
+                Witnesses = !string.IsNullOrEmpty(incident.EncryptedWitnesses)
                     ? await _encryptionService.DecryptAsync(incident.EncryptedWitnesses) : null,
-                ContactEmail = !string.IsNullOrEmpty(incident.EncryptedContactEmail) 
+                ContactEmail = !string.IsNullOrEmpty(incident.EncryptedContactEmail)
                     ? await _encryptionService.DecryptAsync(incident.EncryptedContactEmail) : null,
-                ContactPhone = !string.IsNullOrEmpty(incident.EncryptedContactPhone) 
+                ContactPhone = !string.IsNullOrEmpty(incident.EncryptedContactPhone)
                     ? await _encryptionService.DecryptAsync(incident.EncryptedContactPhone) : null,
                 IsAnonymous = incident.IsAnonymous,
                 RequestFollowUp = incident.RequestFollowUp,
@@ -201,7 +201,7 @@ public class SafetyService : ISafetyService
             };
 
             // Log access to incident
-            await _auditService.LogActionAsync(incidentId, userId, "Viewed", 
+            await _auditService.LogActionAsync(incidentId, userId, "Viewed",
                 "Incident details accessed by safety team member", cancellationToken: cancellationToken);
 
             return Result<IncidentResponse>.Success(response);
@@ -231,7 +231,7 @@ public class SafetyService : ISafetyService
 
             // Get statistics
             var statistics = new SafetyStatistics();
-            
+
             var severityCounts = await _context.SafetyIncidents
                 .GroupBy(i => i.Severity)
                 .Select(g => new { Severity = g.Key, Count = g.Count() })
@@ -363,7 +363,7 @@ public class SafetyService : ISafetyService
         // Use EF Core 9 compatible syntax for raw SQL
         var connection = _context.Database.GetDbConnection();
         await _context.Database.OpenConnectionAsync(cancellationToken);
-        
+
         try
         {
             using var command = connection.CreateCommand();

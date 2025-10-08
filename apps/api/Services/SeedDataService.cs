@@ -100,11 +100,11 @@ public class SeedDataService : ISeedDataService
             // Calculate records created
             var finalUserCount = await _userManager.Users.CountAsync(cancellationToken);
             var finalEventCount = await _context.Events.CountAsync(cancellationToken);
-            
+
             result.SeedRecordsCreated = (finalUserCount - initialUserCount) + (finalEventCount - initialEventCount);
 
             await transaction.CommitAsync(cancellationToken);
-            
+
             result.Success = true;
             stopwatch.Stop();
             result.Duration = stopwatch.Elapsed;
@@ -119,14 +119,14 @@ public class SeedDataService : ISeedDataService
         catch (Exception ex)
         {
             await transaction.RollbackAsync(cancellationToken);
-            
+
             result.Success = false;
             result.Errors.Add(ex.Message);
             result.Duration = stopwatch.Elapsed;
-            
+
             _logger.LogError(ex, "Seed data population failed after {Duration}ms",
                 stopwatch.Elapsed.TotalMilliseconds);
-            
+
             throw;
         }
     }
@@ -1093,7 +1093,7 @@ The WitchCityRope Vetting Team",
         await _context.TicketTypes.AddRangeAsync(ticketTypesToAdd, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Sessions and ticket types creation completed. Created: {SessionCount} sessions, {TicketCount} ticket types", 
+        _logger.LogInformation("Sessions and ticket types creation completed. Created: {SessionCount} sessions, {TicketCount} ticket types",
             sessionsToAdd.Count, ticketTypesToAdd.Count);
     }
 
@@ -1116,7 +1116,7 @@ The WitchCityRope Vetting Team",
         var ticketTypes = await _context.TicketTypes
             .Include(t => t.Event)
             .ToListAsync(cancellationToken);
-        
+
         var users = await _userManager.Users.ToListAsync(cancellationToken);
         var purchasesToAdd = new List<TicketPurchase>();
 
@@ -1124,12 +1124,12 @@ The WitchCityRope Vetting Team",
         foreach (var ticketType in ticketTypes)
         {
             var purchaseCount = Math.Min(ticketType.Sold, users.Count);
-            
+
             for (int i = 0; i < purchaseCount; i++)
             {
                 var user = users[i % users.Count];
                 var isRSVP = ticketType.IsRsvpMode;
-                
+
                 var purchase = new TicketPurchase
                 {
                     TicketTypeId = ticketType.Id,
@@ -1243,7 +1243,7 @@ The WitchCityRope Vetting Team",
         var events = await _context.Events
             .Include(e => e.Sessions)
             .ToListAsync(cancellationToken);
-        
+
         var volunteerPositionsToAdd = new List<VolunteerPosition>();
 
         foreach (var eventItem in events)
@@ -1296,7 +1296,7 @@ The WitchCityRope Vetting Team",
     /// 
     /// Creates realistic event data with proper scheduling, capacity, and pricing information.
     /// </summary>
-    private Event CreateSeedEvent(string title, int daysFromNow, int startHour, int capacity, 
+    private Event CreateSeedEvent(string title, int daysFromNow, int startHour, int capacity,
         EventType eventType, decimal price, string description)
     {
         // Calculate UTC dates following ApplicationDbContext patterns
@@ -1333,7 +1333,7 @@ The WitchCityRope Vetting Team",
         var slidingMin = Math.Round(basePrice * 0.25m, 2); // 75% discount maximum
         var slidingMax = basePrice;
 
-        return eventType == EventType.Social 
+        return eventType == EventType.Social
             ? $"${slidingMin:F0}-${slidingMax:F0} (pay what you can)"
             : $"${slidingMin:F0}-${slidingMax:F0} (sliding scale)";
     }
@@ -1555,7 +1555,7 @@ The WitchCityRope Vetting Team",
         // Simple parsing for seed data - extract numeric values from pricing string
         var price = pricingTiers.Replace("$", "").Replace("-", " ").Replace("(", " ").Replace(")", " ");
         var parts = price.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        
+
         foreach (var part in parts)
         {
             if (decimal.TryParse(part, out var result) && result > 0)

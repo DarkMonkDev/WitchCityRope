@@ -35,7 +35,7 @@ public static class CheckInEndpoints
             var result = await checkInService.GetEventAttendeesAsync(
                 eventId, search, status, page, pageSize, cancellationToken);
 
-            return result.IsSuccess 
+            return result.IsSuccess
                 ? Results.Ok(result.Value)
                 : Results.Problem(
                     title: "Get Attendees Failed",
@@ -75,12 +75,12 @@ public static class CheckInEndpoints
 
             var result = await checkInService.CheckInAttendeeAsync(request, cancellationToken);
 
-            return result.IsSuccess 
+            return result.IsSuccess
                 ? Results.Ok(result.Value)
                 : Results.Problem(
                     title: "Check-in Failed",
                     detail: result.Error,
-                    statusCode: result.Error.Contains("not found") ? 404 : 
+                    statusCode: result.Error.Contains("not found") ? 404 :
                                result.Error.Contains("capacity") ? 409 : 500);
         })
         .RequireAuthorization(policy => policy.RequireRole("CheckInStaff", "EventOrganizer", "Administrator"))
@@ -96,7 +96,7 @@ public static class CheckInEndpoints
         {
             var result = await checkInService.GetEventDashboardAsync(eventId, cancellationToken);
 
-            return result.IsSuccess 
+            return result.IsSuccess
                 ? Results.Ok(result.Value)
                 : Results.Problem(
                     title: "Get Dashboard Failed",
@@ -126,7 +126,7 @@ public static class CheckInEndpoints
 
             var result = await syncService.ProcessOfflineSyncAsync(request, cancellationToken);
 
-            return result.IsSuccess 
+            return result.IsSuccess
                 ? Results.Ok(result.Value)
                 : Results.Problem(
                     title: "Sync Failed",
@@ -166,7 +166,7 @@ public static class CheckInEndpoints
 
             var result = await checkInService.CreateManualEntryAsync(eventId, request, staffMemberId, cancellationToken);
 
-            return result.IsSuccess 
+            return result.IsSuccess
                 ? Results.Ok(result.Value)
                 : Results.Problem(
                     title: "Manual Entry Failed",
@@ -196,7 +196,7 @@ public static class CheckInEndpoints
 
             var result = await syncService.GetPendingSyncCountAsync(userGuid, cancellationToken);
 
-            return result.IsSuccess 
+            return result.IsSuccess
                 ? Results.Ok(new { pendingCount = result.Value })
                 : Results.Problem(
                     title: "Get Pending Count Failed",
