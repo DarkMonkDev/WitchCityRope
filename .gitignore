@@ -59,3 +59,18 @@ tests/**/obj/
 tests/WitchCityRope.E2E.Tests/bin/
 tests/WitchCityRope.E2E.Tests/obj/
 */.playwright/
+
+# Playwright test artifacts
+playwright-report/
+**/playwright-report/data/
+test-results/
+**/test-results/
+apps/web/test-results/
+*.png
+*.webm
+
+# Temporary session work
+session-work/
+
+# Temporary test files in root
+/test-*.spec.ts
