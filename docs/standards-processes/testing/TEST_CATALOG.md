@@ -1,6 +1,6 @@
 # WitchCityRope Test Catalog - PART 1 (Current/Recent Tests)
-<!-- Last Updated: 2025-10-06 -->
-<!-- Version: 2.4 -->
+<!-- Last Updated: 2025-10-08 -->
+<!-- Version: 2.5 -->
 <!-- Owner: Testing Team -->
 <!-- Status: SPLIT INTO MANAGEABLE PARTS FOR AGENT ACCESSIBILITY -->
 
@@ -23,6 +23,83 @@
 - **Recent fixes/patterns**: Add to PART 1 (this file)
 - **Old content**: Move to PART 2 when PART 1 exceeds 1000 lines
 - **Archive content**: Move to PART 3 when truly obsolete
+
+---
+
+## 🚨 NEW: TIPTAP EDITOR TEST MIGRATION COMPLETE (2025-10-08) 🚨
+
+**MIGRATION STATUS**: TinyMCE → @mantine/tiptap migration Phase 4 (Testing) complete.
+
+### Migration Summary:
+- **Tests Deleted**: 4 TinyMCE-specific E2E test files
+- **Tests Updated**: 1 test file (events-management-e2e.spec.ts)
+- **Tests Created**: 1 comprehensive Tiptap test suite (10 tests)
+- **Net Change**: +6 tests (10 new - 4 deleted)
+
+### Files Deleted:
+1. `/apps/web/tests/playwright/tinymce-visual-verification.spec.ts` ✅
+2. `/apps/web/tests/playwright/tinymce-editor.spec.ts` ✅
+3. `/apps/web/tests/playwright/tinymce-debug.spec.ts` ✅
+4. `/apps/web/tests/playwright/tinymce-basic-check.spec.ts` ✅
+
+### Files Updated:
+**events-management-e2e.spec.ts**:
+- Updated "should verify TinyMCE editors load" → "should verify Tiptap rich text editors load"
+- Replaced TinyMCE selectors:
+  - `.tox-tinymce`, `iframe[id*="tiny"]` → `.mantine-RichTextEditor-root`
+  - Removed iframe detection → Direct ProseMirror element detection
+  - Updated to test Mantine/Tiptap components
+
+### New Test Suite Created:
+**tiptap-editor.spec.ts** (10 comprehensive tests):
+1. ✅ renders editor with correct structure
+2. ✅ allows text input and formatting
+3. ✅ shows variable insertion autocomplete
+4. ✅ inserts variables via autocomplete
+5. ✅ updates form value on content change
+6. ✅ toolbar buttons apply correct formatting
+7. ✅ supports programmatic content updates
+8. ✅ handles lists correctly
+9. ✅ supports undo and redo
+10. ✅ maintains content after navigation
+
+### Test Coverage:
+- **Editor Rendering**: Verifies Mantine RichTextEditor structure
+- **Text Formatting**: Bold, italic, underline via toolbar
+- **Variable Insertion**: Custom autocomplete extension with `{{` trigger
+- **Form Integration**: State management and value updates
+- **Rich Content**: Lists, formatting, undo/redo
+- **Persistence**: Content maintained during session
+
+### Selector Migration:
+| Old (TinyMCE) | New (Tiptap/Mantine) | Purpose |
+|---------------|---------------------|---------|
+| `.tox-tinymce` | `.mantine-RichTextEditor-root` | Editor container |
+| `.tox-edit-area` | `.ProseMirror` | Content area |
+| `.tox-toolbar` | `.mantine-RichTextEditor-toolbar` | Toolbar |
+| `.tox-toolbar-button` | `.mantine-RichTextEditor-control` | Toolbar buttons |
+| `iframe[id*="tiny"]` | *(removed)* | No iframe in Tiptap |
+
+### TypeScript Compilation:
+- ✅ No TypeScript errors in updated tests
+- ✅ No TypeScript errors in new test suite
+- ✅ All Playwright types resolved correctly
+
+### Verification:
+- ✅ No `.tox-` selectors remain in test suite
+- ✅ No TinyMCE-specific test files exist
+- ✅ New Tiptap test suite created with 10 tests
+- ✅ events-management-e2e.spec.ts updated for Tiptap
+
+### Documentation:
+- **Migration Guide**: `/docs/functional-areas/html-editor-migration/testing-migration-guide.md`
+- **Component Guide**: `/docs/functional-areas/html-editor-migration/component-implementation-guide.md`
+- **Phase 4 Complete**: Test suite updates finished
+
+### Next Steps:
+- Phase 5: Test Execution (test-executor agent)
+- Verify all Tiptap tests pass against Docker environment
+- Update TEST_CATALOG with test execution results
 
 ---
 

@@ -178,7 +178,7 @@ services:
     
     # Override health check for development
     healthcheck:
-      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:5173 || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:5173 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3

@@ -906,6 +906,215 @@ var upcomingEvents = new List<DashboardEventDto>(); // Placeholder!
 
 ---
 
+## 🚨 CRITICAL: MANTINE TIPTAP SETUP REQUIRES TWO FIXES 🚨
+
+### ⚠️ PROBLEM: Tiptap editors not rendering on page - blank spaces where editors should be
+**DISCOVERED**: 2025-10-08 - Admin events details page showing no rich text editors after TinyMCE migration
+
+### 🛑 ROOT CAUSES (TWO CRITICAL ISSUES):
+
+#### Issue 1: Incorrect Import for Link Extension
+**File**: `MantineTiptapEditor.tsx`
+**Problem**: Importing `Link` from wrong package
+
+```typescript
+// ❌ BROKEN: Link is not exported from @mantine/tiptap
+import { RichTextEditor, Link } from '@mantine/tiptap'
+```
+
+**Why This Breaks**:
+- `@mantine/tiptap` only exports React components (`RichTextEditor`, `Link` as a toolbar control)
+- Tiptap extensions come from `@tiptap/extension-*` packages
+- Import error prevents component from loading entirely
+
+#### Issue 2: Missing Mantine Tiptap CSS
+**File**: `main.tsx`
+**Problem**: Tiptap styles not imported in main entry point
+
+```typescript
+// ❌ BROKEN: Missing Tiptap CSS import
+import '@mantine/core/styles.css'
+import '@mantine/notifications/styles.css'
+// Missing: @mantine/tiptap/styles.css
+import './index.css'
+```
+
+**Why This Breaks**:
+- Without CSS, editor renders but is invisible or improperly styled
+- Toolbar buttons don't display correctly
+- Content area has no visual styling
+
+### ✅ CRITICAL SOLUTION (BOTH FIXES REQUIRED):
+
+#### Fix 1: Correct Import Statement
+```typescript
+// ✅ CORRECT: Import Link extension from correct package
+import { RichTextEditor } from '@mantine/tiptap'
+import Link from '@tiptap/extension-link'
+import { useEditor } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+import Underline from '@tiptap/extension-underline'
+import TextAlign from '@tiptap/extension-text-align'
+// ... other extensions
+```
+
+#### Fix 2: Add Tiptap CSS Import
+```typescript
+// ✅ CORRECT: Import all required Mantine CSS files
+import '@mantine/core/styles.css'
+import '@mantine/notifications/styles.css'
+import '@mantine/tiptap/styles.css'  // ← CRITICAL: Must add this
+import './index.css'
+```
+
+### 🏗️ COMPLETE MANTINE TIPTAP COMPONENT PATTERN:
+
+```typescript
+// MantineTiptapEditor.tsx - Complete working pattern
+import React, { useEffect, useImperativeHandle, forwardRef } from 'react'
+import { RichTextEditor } from '@mantine/tiptap'
+import { useEditor } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+import Underline from '@tiptap/extension-underline'
+import Link from '@tiptap/extension-link'
+import TextAlign from '@tiptap/extension-text-align'
+import Superscript from '@tiptap/extension-superscript'
+import Subscript from '@tiptap/extension-subscript'
+import Highlight from '@tiptap/extension-highlight'
+
+export interface MantineTiptapEditorProps {
+  value?: string
+  onChange?: (content: string) => void
+  placeholder?: string
+  minRows?: number
+}
+
+export const MantineTiptapEditor = forwardRef<any, MantineTiptapEditorProps>(
+  ({ value = '', onChange, placeholder = 'Enter text...', minRows = 4 }, ref) => {
+    const editor = useEditor({
+      extensions: [
+        StarterKit,
+        Underline,
+        Link,
+        Superscript,
+        Subscript,
+        Highlight,
+        TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      ],
+      content: value,
+      onUpdate: ({ editor }) => {
+        const html = editor.getHTML()
+        onChange?.(html)
+      },
+    })
+
+    // Sync external value changes to editor
+    useEffect(() => {
+      if (editor && value !== editor.getHTML()) {
+        editor.commands.setContent(value)
+      }
+    }, [value, editor])
+
+    if (!editor) {
+      return null
+    }
+
+    return (
+      <RichTextEditor editor={editor}>
+        <RichTextEditor.Toolbar sticky stickyOffset={60}>
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.Bold />
+            <RichTextEditor.Italic />
+            <RichTextEditor.Underline />
+            <RichTextEditor.Strikethrough />
+          </RichTextEditor.ControlsGroup>
+
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.H1 />
+            <RichTextEditor.H2 />
+            <RichTextEditor.H3 />
+            <RichTextEditor.H4 />
+          </RichTextEditor.ControlsGroup>
+
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.Link />
+            <RichTextEditor.Unlink />
+          </RichTextEditor.ControlsGroup>
+        </RichTextEditor.Toolbar>
+
+        <RichTextEditor.Content />
+      </RichTextEditor>
+    )
+  }
+)
+```
+
+### 🔧 MANDATORY SETUP CHECKLIST FOR TIPTAP:
+
+1. **INSTALL packages** in package.json:
+   ```json
+   "@mantine/tiptap": "^7.17.8",
+   "@tiptap/react": "^3.6.5",
+   "@tiptap/starter-kit": "^3.3.0",
+   "@tiptap/extension-link": "^3.3.0",
+   "@tiptap/extension-underline": "^3.3.0",
+   "@tiptap/extension-text-align": "^3.3.0",
+   "tippy.js": "^6.3.7"
+   ```
+
+2. **IMPORT CSS** in main.tsx:
+   ```typescript
+   import '@mantine/tiptap/styles.css'
+   ```
+
+3. **CORRECT imports** in editor component:
+   - Import `RichTextEditor` from `@mantine/tiptap`
+   - Import extensions from `@tiptap/extension-*` packages
+   - Import `useEditor` from `@tiptap/react`
+
+4. **VERIFY build** succeeds after changes
+
+5. **CHECK browser console** for import/CSS errors
+
+### 💥 SYMPTOMS WHEN TIPTAP SETUP IS WRONG:
+
+#### Missing Link Import Fix:
+- Console error: "Link is not exported from @mantine/tiptap"
+- Component fails to render entirely
+- Blank space where editor should be
+- Build may succeed but runtime fails
+
+#### Missing CSS Import:
+- No console errors
+- Editor HTML elements render but are invisible
+- Toolbar buttons don't display
+- Content area has no styling
+- White background missing
+- Placeholder text doesn't show
+
+### 🎯 PREVENTION RULES:
+
+1. **ALWAYS import Mantine Tiptap CSS** in main entry point
+2. **NEVER import Tiptap extensions from @mantine/tiptap** - use @tiptap/extension-* packages
+3. **VERIFY all required packages installed** before using editor
+4. **TEST editor rendering** after setup changes
+5. **CHECK browser DevTools** for missing CSS or import errors
+
+### 📋 DEBUGGING CHECKLIST:
+
+If Tiptap editor doesn't render:
+1. **Check main.tsx** - Is `@mantine/tiptap/styles.css` imported?
+2. **Check component imports** - Are extensions imported from correct packages?
+3. **Check browser console** - Any import or module errors?
+4. **Check Network tab** - Is tiptap CSS file loading?
+5. **Check React DevTools** - Is MantineTiptapEditor component mounting?
+6. **Verify build** - Run `npm run build` and check for errors
+
+### Tags
+#critical #tiptap #mantine #rich-text-editor #css #imports #migration #tinymce
+
+---
+
 ## 🚨 NAVIGATION TO PART 2 - MORE LESSONS LEARNED 🚨
 
 **PART 1 COMPLETE** - You have read the startup procedures and critical patterns.

@@ -32,7 +32,6 @@
     "@tabler/icons-react": "^3.34.1",
     "@tanstack/react-query": "^5.85.3",
     "@tanstack/react-query-devtools": "^5.85.5",
-    "@tinymce/tinymce-react": "^6.3.0",
     "@tiptap/extension-highlight": "^3.3.0",
     "@tiptap/extension-link": "^3.3.0",
     "@tiptap/extension-subscript": "^3.3.0",
@@ -41,6 +40,7 @@
     "@tiptap/extension-underline": "^3.3.0",
     "@tiptap/react": "^3.3.0",
     "@tiptap/starter-kit": "^3.3.0",
+    "@tiptap/suggestion": "^3.6.5",
     "@witchcityrope/shared-types": "file:../../packages/shared-types",
     "autoprefixer": "^10.4.21",
     "axios": "^1.11.0",
@@ -57,6 +57,7 @@
     "react-hook-form": "^7.62.0",
     "react-router-dom": "^7.8.1",
     "tailwindcss": "^4.1.12",
+    "tippy.js": "^6.3.7",
     "zod": "^4.0.17",
     "zustand": "^5.0.7"
   },

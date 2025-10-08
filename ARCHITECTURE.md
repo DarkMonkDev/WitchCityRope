@@ -1,7 +1,7 @@
 # 🏗️ WitchCityRope Architecture Documentation
 
 > **⚠️ CRITICAL FOR ALL DEVELOPERS: READ THIS FIRST!**
-> 
+>
 > This document describes the Web+API architecture pattern used by WitchCityRope. WitchCityRope is **migrating from Blazor Server to React** while maintaining the proven API backend architecture. Understanding this is essential to avoid architectural mistakes that could break the entire application.
 
 ---
@@ -9,7 +9,7 @@
 ## 📋 Table of Contents
 
 1. [Architecture Overview](#-architecture-overview)
-2. [Service Communication](#-service-communication)  
+2. [Service Communication](#-service-communication)
 3. [Port Configuration](#-port-configuration)
 4. [Authentication Flow](#-authentication-flow)
 5. [Database Access Patterns](#-database-access-patterns)
@@ -49,6 +49,11 @@ WitchCityRope uses a **Web+API microservices architecture** with the following s
    - **Database Access**: None (calls API for all data)
    - **Port**: 5173 (HTTP) - Development and Docker
    - **UI Framework**: Mantine v7 (ADR-004) - TypeScript-first, WCAG compliant
+   - **Rich Text Editor**: @mantine/tiptap (Tiptap v2 with Mantine integration)
+     - Replaced TinyMCE on October 8, 2025
+     - 100% client-side, no API keys or usage quotas
+     - ~70% smaller bundle size than TinyMCE
+     - Variable insertion support for email templates
 
 2. **API Service (apps/api)**
    - **Technology**: ASP.NET Core Minimal API (.NET 9)
@@ -95,7 +100,7 @@ The API service exposes RESTful endpoints under `/api/v1/`:
 
 **Key Endpoints:**
 - `GET /api/v1/events` - List events
-- `POST /api/v1/auth/login` - User authentication  
+- `POST /api/v1/auth/login` - User authentication
 - `GET /api/v1/users/profile` - User profile
 - `POST /api/v1/events/{id}/register` - Event registration
 
@@ -157,7 +162,7 @@ The application uses a **secure BFF authentication pattern** with httpOnly cooki
    - Silent token refresh prevents authentication timeouts
    - **📖 See detailed implementation**: `/session-work/2025-09-12/bff-authentication-implementation-summary.md`
 
-3. **API Service Authentication**  
+3. **API Service Authentication**
    - Validates JWT tokens from httpOnly cookies for all protected endpoints
    - Automatic token refresh mechanism prevents user interruption
    - Dual authentication support (Bearer tokens + cookies) for backwards compatibility
@@ -178,14 +183,14 @@ export const authService = {
     // Cookie set automatically, no token in response body
     return response.ok;
   },
-  
+
   async getCurrentUser() {
     const response = await fetch('/api/auth/user', {
       credentials: 'include'
     });
     return response.ok ? response.json() : null;
   },
-  
+
   async refresh() {
     const response = await fetch('/api/auth/refresh', {
       method: 'POST',
@@ -201,7 +206,7 @@ export const authService = {
 // Program.cs (lines 46-50)
 - Jwt__Secret=${JWT_SECRET:-YourSuperSecretKeyForDevelopmentPurposesOnly!123}
 - Jwt__Issuer=WitchCityRope
-- Jwt__Audience=WitchCityRopeUsers  
+- Jwt__Audience=WitchCityRopeUsers
 - Jwt__ExpiresInMinutes=60
 ```
 
@@ -233,7 +238,7 @@ Both services access the **same PostgreSQL database** but with different respons
 - **Tables**: AspNetUsers, AspNetRoles, etc.
 
 **API Service Database Access:**
-- **Scope**: All business logic (events, registrations, payments)  
+- **Scope**: All business logic (events, registrations, payments)
 - **Context**: `WitchCityRopeIdentityDbContext` (same context, full access)
 - **Tables**: Events, Registrations, Tickets, etc.
 
@@ -290,6 +295,7 @@ builder.Services.AddDbContext<WitchCityRopeIdentityDbContext>(options =>
 | `/apps/web/src/contexts/AuthContext.tsx` | React authentication context | Global auth state management |
 | `/apps/web/src/App.tsx` | Root React component | Router setup, layout, Mantine theme |
 | `/apps/web/vite.config.ts` | Vite configuration | Dev server, API proxy, build settings |
+| `/apps/web/src/components/forms/MantineTiptapEditor.tsx` | Rich text editor component | Tiptap editor with variable insertion support |
 
 ### API Service Key Files
 
@@ -348,7 +354,7 @@ cd apps/api
 dotnet run
 
 # Terminal 2: Start React
-cd apps/web  
+cd apps/web
 npm run dev
 ```
 
@@ -398,7 +404,7 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 # ❌ WRONG - Uses production build, will fail
 docker-compose up
 
-# ✅ CORRECT - Uses development build with hot reload  
+# ✅ CORRECT - Uses development build with hot reload
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ```
 
@@ -569,6 +575,7 @@ docker ps --format "table {{.Names}}\t{{.Ports}}"
 - **Docker Development Guide**: `/docs/guides-setup/docker-operations-guide.md`
 - **API Documentation**: Auto-generated Swagger at http://localhost:5655/swagger
 - **React Testing Guide**: `/tests/README.md`
+- **HTML Editor Migration**: `/docs/functional-areas/html-editor-migration/` - TinyMCE to @mantine/tiptap migration documentation
 
 ---
 

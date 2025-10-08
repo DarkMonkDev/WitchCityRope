@@ -41,9 +41,6 @@ export interface EnvironmentConfig {
     cookieDomain: string;
     cookieSecure: boolean;
   };
-  external: {
-    tinyMceApiKey: string;
-  };
 }
 
 /**
@@ -81,9 +78,6 @@ function loadEnvironmentConfig(): EnvironmentConfig {
       cookieName: env.VITE_AUTH_COOKIE_NAME || 'WitchCityRope.Auth',
       cookieDomain: env.VITE_AUTH_COOKIE_DOMAIN || 'localhost',
       cookieSecure: env.VITE_AUTH_COOKIE_SECURE === 'true',
-    },
-    external: {
-      tinyMceApiKey: env.VITE_TINYMCE_API_KEY || '',
     },
   };
 }

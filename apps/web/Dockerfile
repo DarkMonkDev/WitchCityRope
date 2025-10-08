@@ -30,6 +30,9 @@ RUN npm install
 ###########################################
 FROM base AS development
 
+# Install curl for healthcheck
+RUN apk add --no-cache curl
+
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 
