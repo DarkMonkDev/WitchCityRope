@@ -44,12 +44,12 @@ public class AuthenticationServiceTests : IAsyncLifetime
         // Setup mocked dependencies for AuthenticationService
         var userStore = new Mock<IUserStore<ApplicationUser>>();
         _mockUserManager = new Mock<UserManager<ApplicationUser>>(
-            userStore.Object, null, null, null, null, null, null, null, null);
+            userStore.Object, null!, null!, null!, null!, null!, null!, null!, null!);
 
         var contextAccessor = new Mock<Microsoft.AspNetCore.Http.IHttpContextAccessor>();
         var userPrincipalFactory = new Mock<IUserClaimsPrincipalFactory<ApplicationUser>>();
         _mockSignInManager = new Mock<SignInManager<ApplicationUser>>(
-            _mockUserManager.Object, contextAccessor.Object, userPrincipalFactory.Object, null, null, null, null);
+            _mockUserManager.Object, contextAccessor.Object, userPrincipalFactory.Object, null!, null!, null!, null!);
 
         _mockJwtService = new Mock<IJwtService>();
         _mockLogger = new Mock<ILogger<AuthenticationService>>();

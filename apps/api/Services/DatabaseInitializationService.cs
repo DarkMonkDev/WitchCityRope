@@ -275,9 +275,9 @@ public class DatabaseInitializationService : BackgroundService
             $"Database initialization failed [{correlationId}]: {ex.Message}. {guidance}", ex);
 
         // Note: The throw above makes this unreachable, but we must return Task for compiler
-        #pragma warning disable CS0162 // Unreachable code
+#pragma warning disable CS0162 // Unreachable code
         return Task.CompletedTask;
-        #pragma warning restore CS0162
+#pragma warning restore CS0162
     }
 
     /// <summary>

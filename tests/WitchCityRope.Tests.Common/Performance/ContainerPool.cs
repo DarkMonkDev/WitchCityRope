@@ -128,10 +128,10 @@ namespace WitchCityRope.Tests.Common.Performance
 
             try
             {
-                PooledContainer container;
+                PooledContainer? container;
 
                 // Try to get container from available pool
-                if (AvailableContainers.TryDequeue(out container))
+                if (AvailableContainers.TryDequeue(out container!))
                 {
                     Logger.LogInformation("Retrieved pooled container {ContainerId} for {RequesterId}",
                         container.Container.Id, requesterId);

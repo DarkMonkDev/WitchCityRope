@@ -17,7 +17,6 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
     private string _eventType;
     private int _capacity;
     private decimal[]? _pricingTiers;
-    private bool _isPublished;
 
     public CreateEventRequestBuilder()
     {
@@ -30,7 +29,6 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
         _eventType = "Workshop";
         _capacity = 20;
         _pricingTiers = new decimal[] { 20m }; // Default single pricing tier
-        _isPublished = false; // Default to unpublished
     }
 
     public CreateEventRequestBuilder WithTitle(string title)
@@ -99,17 +97,6 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
         return This;
     }
 
-    public CreateEventRequestBuilder AsPublished()
-    {
-        _isPublished = true;
-        return This;
-    }
-
-    public CreateEventRequestBuilder AsDraft()
-    {
-        _isPublished = false;
-        return This;
-    }
 
     /// <summary>
     /// Creates a valid workshop event for testing
