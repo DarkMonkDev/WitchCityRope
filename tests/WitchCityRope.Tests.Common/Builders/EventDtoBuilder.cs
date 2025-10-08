@@ -223,7 +223,7 @@ public class EventDtoBuilder : TestDataBuilder<EventDto, EventDtoBuilder>
             Location = _location,
             EventType = _eventType,
             Capacity = _capacity,
-            CurrentAttendees = _currentAttendees,
+            RegistrationCount = _currentAttendees,
             CurrentRSVPs = _currentRSVPs,
             CurrentTickets = _currentTickets,
             Sessions = _sessions,
