@@ -13,8 +13,38 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
 {
     public void Configure(EntityTypeBuilder<Payment> builder)
     {
-        // Table configuration
-        builder.ToTable("Payments", "public");
+        // Table configuration with check constraints
+        builder.ToTable("Payments", "public", t =>
+        {
+            // Amount must be non-negative
+            t.HasCheckConstraint("CHK_Payments_AmountValue_NonNegative",
+                "\"AmountValue\" >= 0");
+
+            // Sliding scale percentage must be between 0 and 75
+            t.HasCheckConstraint("CHK_Payments_SlidingScalePercentage_Range",
+                "\"SlidingScalePercentage\" >= 0 AND \"SlidingScalePercentage\" <= 75.00");
+
+            // Currency must be valid
+            t.HasCheckConstraint("CHK_Payments_Currency_Valid",
+                "\"Currency\" IN ('USD', 'EUR', 'GBP', 'CAD')");
+
+            // Refund currency consistency
+            t.HasCheckConstraint("CHK_Payments_RefundCurrency_Valid",
+                "\"RefundCurrency\" IS NULL OR \"RefundCurrency\" IN ('USD', 'EUR', 'GBP', 'CAD')");
+
+            // Refund amount cannot exceed original payment
+            t.HasCheckConstraint("CHK_Payments_RefundAmount_NotExceedOriginal",
+                "\"RefundAmountValue\" IS NULL OR \"RefundAmountValue\" <= \"AmountValue\"");
+
+            // Refund consistency - if refund amount exists, refunded date must exist
+            t.HasCheckConstraint("CHK_Payments_RefundRequiresOriginalPayment",
+                "(\"RefundAmountValue\" IS NULL AND \"RefundedAt\" IS NULL) OR (\"RefundAmountValue\" IS NOT NULL AND \"RefundedAt\" IS NOT NULL)");
+
+            // Currency consistency between original and refund
+            t.HasCheckConstraint("CHK_Payments_CurrencyConsistency",
+                "(\"RefundCurrency\" IS NULL) OR (\"RefundCurrency\" = \"Currency\")");
+        });
+
         builder.HasKey(p => p.Id);
 
         // ID initialization to prevent duplicate key violations
@@ -212,38 +242,6 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
                .IsUnique()
                .HasDatabaseName("UX_Payments_EventRegistration_Completed")
                .HasFilter("\"Status\" = 1"); // Only one completed payment per registration
-
-        #endregion
-
-        #region Business Rule Constraints
-
-        // Amount must be non-negative
-        builder.HasCheckConstraint("CHK_Payments_AmountValue_NonNegative",
-            "\"AmountValue\" >= 0");
-
-        // Sliding scale percentage must be between 0 and 75
-        builder.HasCheckConstraint("CHK_Payments_SlidingScalePercentage_Range",
-            "\"SlidingScalePercentage\" >= 0 AND \"SlidingScalePercentage\" <= 75.00");
-
-        // Currency must be valid
-        builder.HasCheckConstraint("CHK_Payments_Currency_Valid",
-            "\"Currency\" IN ('USD', 'EUR', 'GBP', 'CAD')");
-
-        // Refund currency consistency
-        builder.HasCheckConstraint("CHK_Payments_RefundCurrency_Valid",
-            "\"RefundCurrency\" IS NULL OR \"RefundCurrency\" IN ('USD', 'EUR', 'GBP', 'CAD')");
-
-        // Refund amount cannot exceed original payment
-        builder.HasCheckConstraint("CHK_Payments_RefundAmount_NotExceedOriginal",
-            "\"RefundAmountValue\" IS NULL OR \"RefundAmountValue\" <= \"AmountValue\"");
-
-        // Refund consistency - if refund amount exists, refunded date must exist
-        builder.HasCheckConstraint("CHK_Payments_RefundRequiresOriginalPayment",
-            "(\"RefundAmountValue\" IS NULL AND \"RefundedAt\" IS NULL) OR (\"RefundAmountValue\" IS NOT NULL AND \"RefundedAt\" IS NOT NULL)");
-
-        // Currency consistency between original and refund
-        builder.HasCheckConstraint("CHK_Payments_CurrencyConsistency",
-            "(\"RefundCurrency\" IS NULL) OR (\"RefundCurrency\" = \"Currency\")");
 
         #endregion
     }

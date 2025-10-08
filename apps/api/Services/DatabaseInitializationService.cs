@@ -246,7 +246,7 @@ public class DatabaseInitializationService : BackgroundService
     /// Provides detailed diagnostic information and guidance for resolution.
     /// Always terminates the application on critical initialization failures.
     /// </summary>
-    private async Task HandleInitializationError(Exception ex, InitializationErrorType errorType, Guid correlationId)
+    private Task HandleInitializationError(Exception ex, InitializationErrorType errorType, Guid correlationId)
     {
         _logger.LogCritical(
             "Database initialization failure [{CorrelationId}] - Type: {ErrorType}, " +
@@ -273,6 +273,11 @@ public class DatabaseInitializationService : BackgroundService
         // Milan Jovanovic's fail-fast pattern - no recovery attempts
         throw new InvalidOperationException(
             $"Database initialization failed [{correlationId}]: {ex.Message}. {guidance}", ex);
+
+        // Note: The throw above makes this unreachable, but we must return Task for compiler
+        #pragma warning disable CS0162 // Unreachable code
+        return Task.CompletedTask;
+        #pragma warning restore CS0162
     }
 
     /// <summary>

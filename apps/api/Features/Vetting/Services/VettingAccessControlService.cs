@@ -45,7 +45,7 @@ public class VettingAccessControlService : IVettingAccessControlService
         {
             // Check cache first for performance
             var cacheKey = $"{CacheKeyPrefix}rsvp_{userId}";
-            if (_cache.TryGetValue<VettingStatusInfo>(cacheKey, out var cachedStatus))
+            if (_cache.TryGetValue<VettingStatusInfo>(cacheKey, out var cachedStatus) && cachedStatus != null)
             {
                 var cachedResult = EvaluateRsvpAccess(cachedStatus, userId, eventId);
                 _logger.LogDebug("RSVP access check for user {UserId} served from cache: {IsAllowed}",
@@ -95,7 +95,7 @@ public class VettingAccessControlService : IVettingAccessControlService
         {
             // Check cache first for performance
             var cacheKey = $"{CacheKeyPrefix}ticket_{userId}";
-            if (_cache.TryGetValue<VettingStatusInfo>(cacheKey, out var cachedStatus))
+            if (_cache.TryGetValue<VettingStatusInfo>(cacheKey, out var cachedStatus) && cachedStatus != null)
             {
                 var cachedResult = EvaluateTicketPurchaseAccess(cachedStatus, userId, eventId);
                 _logger.LogDebug("Ticket purchase access check for user {UserId} served from cache: {IsAllowed}",

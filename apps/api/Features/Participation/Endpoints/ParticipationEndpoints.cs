@@ -79,13 +79,13 @@ public static class ParticipationEndpoints
                         statusCode: 500);
                 }
 
-                var accessControl = accessCheckResult.Value;
+                var accessControl = accessCheckResult.Value!;
 
                 if (!accessControl.IsAllowed)
                 {
                     logger.LogWarning(
                         "User {UserId} denied RSVP access to event {EventId}. Reason: {Reason}, Status: {VettingStatus}",
-                        userId, eventId, accessControl.DenialReason, accessControl.VettingStatus);
+                        userId, eventId, accessControl.DenialReason ?? "Unknown", accessControl.VettingStatus);
 
                     return Results.Json(new
                     {
@@ -162,13 +162,13 @@ public static class ParticipationEndpoints
                         statusCode: 500);
                 }
 
-                var accessControl = accessCheckResult.Value;
+                var accessControl = accessCheckResult.Value!;
 
                 if (!accessControl.IsAllowed)
                 {
                     logger.LogWarning(
                         "User {UserId} denied ticket purchase access to event {EventId}. Reason: {Reason}, Status: {VettingStatus}",
-                        userId, eventId, accessControl.DenialReason, accessControl.VettingStatus);
+                        userId, eventId, accessControl.DenialReason ?? "Unknown", accessControl.VettingStatus);
 
                     return Results.Json(new
                     {

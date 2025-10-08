@@ -10,8 +10,23 @@ public class OfflineSyncQueueConfiguration : IEntityTypeConfiguration<OfflineSyn
 {
     public void Configure(EntityTypeBuilder<OfflineSyncQueue> builder)
     {
-        // Table mapping
-        builder.ToTable("OfflineSyncQueue", "public");
+        // Table mapping with check constraints
+        builder.ToTable("OfflineSyncQueue", "public", t =>
+        {
+            t.HasCheckConstraint("CHK_OfflineSyncQueue_ActionType",
+                    "\"ActionType\" IN ('check-in', 'manual-entry', 'status-update', 'capacity-override')");
+
+            t.HasCheckConstraint("CHK_OfflineSyncQueue_SyncStatus",
+                    "\"SyncStatus\" IN ('pending', 'syncing', 'completed', 'failed', 'conflict')");
+
+            t.HasCheckConstraint("CHK_OfflineSyncQueue_RetryCount",
+                    "\"RetryCount\" >= 0 AND \"RetryCount\" <= 10");
+
+            t.HasCheckConstraint("CHK_OfflineSyncQueue_SyncedAt",
+                    "(\"SyncStatus\" = 'completed' AND \"SyncedAt\" IS NOT NULL) OR " +
+                    "(\"SyncStatus\" != 'completed' AND \"SyncedAt\" IS NULL)");
+        });
+
         builder.HasKey(o => o.Id);
 
         // Property configurations
@@ -53,20 +68,6 @@ public class OfflineSyncQueueConfiguration : IEntityTypeConfiguration<OfflineSyn
                .WithMany()
                .HasForeignKey(o => o.UserId)
                .OnDelete(DeleteBehavior.Cascade);
-
-        // Constraints
-        builder.HasCheckConstraint("CHK_OfflineSyncQueue_ActionType",
-                "\"ActionType\" IN ('check-in', 'manual-entry', 'status-update', 'capacity-override')");
-
-        builder.HasCheckConstraint("CHK_OfflineSyncQueue_SyncStatus",
-                "\"SyncStatus\" IN ('pending', 'syncing', 'completed', 'failed', 'conflict')");
-
-        builder.HasCheckConstraint("CHK_OfflineSyncQueue_RetryCount",
-                "\"RetryCount\" >= 0 AND \"RetryCount\" <= 10");
-
-        builder.HasCheckConstraint("CHK_OfflineSyncQueue_SyncedAt",
-                "(\"SyncStatus\" = 'completed' AND \"SyncedAt\" IS NOT NULL) OR " +
-                "(\"SyncStatus\" != 'completed' AND \"SyncedAt\" IS NULL)");
 
         // Indexes
         builder.HasIndex(o => o.SyncStatus)

@@ -12,8 +12,26 @@ public class PaymentMethodConfiguration : IEntityTypeConfiguration<PaymentMethod
 {
     public void Configure(EntityTypeBuilder<PaymentMethod> builder)
     {
-        // Table configuration
-        builder.ToTable("PaymentMethods", "public");
+        // Table configuration with check constraints
+        builder.ToTable("PaymentMethods", "public", t =>
+        {
+            // Card brand validation
+            t.HasCheckConstraint("CHK_PaymentMethods_CardBrand",
+                "\"CardBrand\" IN ('Visa', 'MasterCard', 'American Express', 'Discover', 'JCB', 'Diners Club')");
+
+            // Last four digits validation (must be 4 digits)
+            t.HasCheckConstraint("CHK_PaymentMethods_LastFourDigits",
+                "\"LastFourDigits\" ~ '^\\d{4}$'");
+
+            // Expiry month validation (1-12)
+            t.HasCheckConstraint("CHK_PaymentMethods_ExpiryMonth_Range",
+                "\"ExpiryMonth\" >= 1 AND \"ExpiryMonth\" <= 12");
+
+            // Expiry year validation (current year or future)
+            t.HasCheckConstraint("CHK_PaymentMethods_ExpiryYear_Future",
+                "\"ExpiryYear\" >= EXTRACT(YEAR FROM NOW())");
+        });
+
         builder.HasKey(pm => pm.Id);
 
         // ID initialization
@@ -103,26 +121,6 @@ public class PaymentMethodConfiguration : IEntityTypeConfiguration<PaymentMethod
                .IsUnique()
                .HasDatabaseName("UX_PaymentMethods_UserDefault")
                .HasFilter("\"IsDefault\" = true AND \"IsActive\" = true");
-
-        #endregion
-
-        #region Business Rule Constraints
-
-        // Card brand validation
-        builder.HasCheckConstraint("CHK_PaymentMethods_CardBrand",
-            "\"CardBrand\" IN ('Visa', 'MasterCard', 'American Express', 'Discover', 'JCB', 'Diners Club')");
-
-        // Last four digits validation (must be 4 digits)
-        builder.HasCheckConstraint("CHK_PaymentMethods_LastFourDigits",
-            "\"LastFourDigits\" ~ '^\\d{4}$'");
-
-        // Expiry month validation (1-12)
-        builder.HasCheckConstraint("CHK_PaymentMethods_ExpiryMonth_Range",
-            "\"ExpiryMonth\" >= 1 AND \"ExpiryMonth\" <= 12");
-
-        // Expiry year validation (current year or future)
-        builder.HasCheckConstraint("CHK_PaymentMethods_ExpiryYear_Future",
-            "\"ExpiryYear\" >= EXTRACT(YEAR FROM NOW())");
 
         #endregion
     }

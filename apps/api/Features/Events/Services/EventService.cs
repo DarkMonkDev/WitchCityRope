@@ -363,7 +363,7 @@ public class EventService
     /// Updates the sessions for an event with proper EF Core change tracking
     /// Handles updates, additions, and deletions correctly
     /// </summary>
-    private async Task UpdateEventSessionsAsync(
+    private Task UpdateEventSessionsAsync(
         WitchCityRope.Api.Models.Event eventEntity,
         List<SessionDto> newSessions,
         CancellationToken cancellationToken)
@@ -424,13 +424,15 @@ public class EventService
         {
             eventEntity.Sessions.Remove(sessionToRemove);
         }
+
+        return Task.CompletedTask;
     }
 
     /// <summary>
     /// Updates the ticket types for an event with proper EF Core change tracking
     /// Handles updates, additions, and deletions correctly
     /// </summary>
-    private async Task UpdateEventTicketTypesAsync(
+    private Task UpdateEventTicketTypesAsync(
         WitchCityRope.Api.Models.Event eventEntity,
         List<TicketTypeDto> newTicketTypes,
         CancellationToken cancellationToken)
@@ -506,6 +508,8 @@ public class EventService
         {
             eventEntity.TicketTypes.Remove(ticketTypeToRemove);
         }
+
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -584,7 +588,7 @@ public class EventService
     /// Updates the volunteer positions for an event with proper EF Core change tracking
     /// Handles updates, additions, and deletions correctly
     /// </summary>
-    private async Task UpdateEventVolunteerPositionsAsync(
+    private Task UpdateEventVolunteerPositionsAsync(
         WitchCityRope.Api.Models.Event eventEntity,
         List<VolunteerPositionDto> newPositions,
         CancellationToken cancellationToken)
@@ -657,5 +661,7 @@ public class EventService
         {
             eventEntity.VolunteerPositions.Remove(positionToRemove);
         }
+
+        return Task.CompletedTask;
     }
 }

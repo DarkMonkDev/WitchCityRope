@@ -10,8 +10,16 @@ public class EventAttendeeConfiguration : IEntityTypeConfiguration<EventAttendee
 {
     public void Configure(EntityTypeBuilder<EventAttendee> builder)
     {
-        // Table mapping
-        builder.ToTable("EventAttendees", "public");
+        // Table mapping with check constraints
+        builder.ToTable("EventAttendees", "public", t =>
+        {
+            t.HasCheckConstraint("CHK_EventAttendees_WaitlistPosition",
+                    "\"WaitlistPosition\" > 0 OR \"WaitlistPosition\" IS NULL");
+
+            t.HasCheckConstraint("CHK_EventAttendees_RegistrationStatus",
+                    "\"RegistrationStatus\" IN ('confirmed', 'waitlist', 'checked-in', 'no-show', 'cancelled')");
+        });
+
         builder.HasKey(e => e.Id);
 
         // Property configurations
@@ -78,13 +86,6 @@ public class EventAttendeeConfiguration : IEntityTypeConfiguration<EventAttendee
                .WithOne(a => a.EventAttendee)
                .HasForeignKey(a => a.EventAttendeeId)
                .OnDelete(DeleteBehavior.SetNull);
-
-        // Constraints
-        builder.HasCheckConstraint("CHK_EventAttendees_WaitlistPosition",
-                "\"WaitlistPosition\" > 0 OR \"WaitlistPosition\" IS NULL");
-
-        builder.HasCheckConstraint("CHK_EventAttendees_RegistrationStatus",
-                "\"RegistrationStatus\" IN ('confirmed', 'waitlist', 'checked-in', 'no-show', 'cancelled')");
 
         // Indexes
         builder.HasIndex(e => e.EventId)

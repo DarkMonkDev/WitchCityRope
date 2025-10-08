@@ -134,8 +134,8 @@ public class UserManagementService
             {
                 var searchTerm = request.SearchTerm.ToLower();
                 query = query.Where(u =>
-                    u.Email.ToLower().Contains(searchTerm) ||
-                    u.SceneName.ToLower().Contains(searchTerm));
+                    (u.Email != null && u.Email.ToLower().Contains(searchTerm)) ||
+                    (u.SceneName != null && u.SceneName.ToLower().Contains(searchTerm)));
             }
 
             // Apply role filter

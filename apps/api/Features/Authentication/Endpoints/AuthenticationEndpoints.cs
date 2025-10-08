@@ -109,7 +109,7 @@ public static class AuthenticationEndpoints
                 var (success, response, error) = await authService.RegisterAsync(request, cancellationToken);
 
                 return success
-                    ? Results.Created($"/api/auth/user/{response.Id}", response)
+                    ? Results.Created($"/api/auth/user/{response!.Id}", response)
                     : Results.Problem(
                         title: "Registration Failed",
                         detail: error,
@@ -174,7 +174,7 @@ public static class AuthenticationEndpoints
             .Produces(404);
 
         // Logout endpoint with cookie clearing and token blacklisting
-        app.MapPost("/api/auth/logout", async (
+        app.MapPost("/api/auth/logout", (
             HttpContext context,
             ILogger<AuthenticationService> logger,
             IJwtService jwtService,
@@ -482,7 +482,7 @@ public static class AuthenticationEndpoints
             .Produces(500);
 
         // DEBUG: Authentication status endpoint for debugging logout issues
-        app.MapGet("/api/auth/debug-status", async (
+        app.MapGet("/api/auth/debug-status", (
             HttpContext context,
             IJwtService jwtService,
             ITokenBlacklistService tokenBlacklistService,

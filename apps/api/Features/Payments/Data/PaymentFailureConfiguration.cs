@@ -12,8 +12,14 @@ public class PaymentFailureConfiguration : IEntityTypeConfiguration<PaymentFailu
 {
     public void Configure(EntityTypeBuilder<PaymentFailure> builder)
     {
-        // Table configuration
-        builder.ToTable("PaymentFailures", "public");
+        // Table configuration with check constraints
+        builder.ToTable("PaymentFailures", "public", t =>
+        {
+            // Retry count must be non-negative
+            t.HasCheckConstraint("CHK_PaymentFailures_RetryCount_NonNegative",
+                "\"RetryCount\" >= 0");
+        });
+
         builder.HasKey(f => f.Id);
 
         // ID initialization
@@ -85,14 +91,6 @@ public class PaymentFailureConfiguration : IEntityTypeConfiguration<PaymentFailu
         builder.HasIndex(f => f.RetryCount)
                .HasDatabaseName("IX_PaymentFailures_RetryCount")
                .HasFilter("\"RetryCount\" > 0");
-
-        #endregion
-
-        #region Business Rule Constraints
-
-        // Retry count must be non-negative
-        builder.HasCheckConstraint("CHK_PaymentFailures_RetryCount_NonNegative",
-            "\"RetryCount\" >= 0");
 
         #endregion
     }

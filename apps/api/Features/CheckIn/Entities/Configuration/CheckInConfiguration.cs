@@ -10,8 +10,14 @@ public class CheckInConfiguration : IEntityTypeConfiguration<CheckIn>
 {
     public void Configure(EntityTypeBuilder<CheckIn> builder)
     {
-        // Table mapping
-        builder.ToTable("CheckIns", "public");
+        // Table mapping with check constraints
+        builder.ToTable("CheckIns", "public", t =>
+        {
+            t.HasCheckConstraint("CHK_CheckIns_ManualEntryData",
+                    "(\"IsManualEntry\" = true AND \"ManualEntryData\" IS NOT NULL) OR " +
+                    "(\"IsManualEntry\" = false AND \"ManualEntryData\" IS NULL)");
+        });
+
         builder.HasKey(c => c.Id);
 
         // Property configurations
@@ -49,11 +55,6 @@ public class CheckInConfiguration : IEntityTypeConfiguration<CheckIn>
                .WithMany()
                .HasForeignKey(c => c.CreatedBy)
                .OnDelete(DeleteBehavior.Restrict);
-
-        // Constraints
-        builder.HasCheckConstraint("CHK_CheckIns_ManualEntryData",
-                "(\"IsManualEntry\" = true AND \"ManualEntryData\" IS NOT NULL) OR " +
-                "(\"IsManualEntry\" = false AND \"ManualEntryData\" IS NULL)");
 
         // Unique constraint - one check-in per attendee
         builder.HasIndex(c => c.EventAttendeeId)

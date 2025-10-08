@@ -13,8 +13,22 @@ public class PaymentRefundConfiguration : IEntityTypeConfiguration<PaymentRefund
 {
     public void Configure(EntityTypeBuilder<PaymentRefund> builder)
     {
-        // Table configuration
-        builder.ToTable("PaymentRefunds", "public");
+        // Table configuration with check constraints
+        builder.ToTable("PaymentRefunds", "public", t =>
+        {
+            // Refund amount must be positive
+            t.HasCheckConstraint("CHK_PaymentRefunds_RefundAmountValue_Positive",
+                "\"RefundAmountValue\" > 0");
+
+            // Currency validation
+            t.HasCheckConstraint("CHK_PaymentRefunds_Currency",
+                "\"RefundCurrency\" IN ('USD', 'EUR', 'GBP', 'CAD')");
+
+            // Refund reason minimum length (for audit compliance)
+            t.HasCheckConstraint("CHK_PaymentRefunds_ReasonRequired",
+                "LENGTH(TRIM(\"RefundReason\")) >= 10");
+        });
+
         builder.HasKey(r => r.Id);
 
         // ID initialization
@@ -126,22 +140,6 @@ public class PaymentRefundConfiguration : IEntityTypeConfiguration<PaymentRefund
         builder.HasIndex(r => r.Metadata)
                .HasDatabaseName("IX_PaymentRefunds_Metadata_Gin")
                .HasMethod("gin");
-
-        #endregion
-
-        #region Business Rule Constraints
-
-        // Refund amount must be positive
-        builder.HasCheckConstraint("CHK_PaymentRefunds_RefundAmountValue_Positive",
-            "\"RefundAmountValue\" > 0");
-
-        // Currency validation
-        builder.HasCheckConstraint("CHK_PaymentRefunds_Currency",
-            "\"RefundCurrency\" IN ('USD', 'EUR', 'GBP', 'CAD')");
-
-        // Refund reason minimum length (for audit compliance)
-        builder.HasCheckConstraint("CHK_PaymentRefunds_ReasonRequired",
-            "LENGTH(TRIM(\"RefundReason\")) >= 10");
 
         #endregion
     }

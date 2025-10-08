@@ -34,7 +34,7 @@ public class ProcessPaymentApiRequestValidator : AbstractValidator<ProcessPaymen
             .WithMessage("Sliding scale percentage cannot be negative")
             .LessThanOrEqualTo(75)
             .WithMessage("Sliding scale percentage cannot exceed 75% (community guideline)")
-            .ScalePrecision(2, 5)
+            .PrecisionScale(5, 2, true)
             .WithMessage("Sliding scale percentage can have at most 2 decimal places");
 
         RuleFor(x => x.PaymentMethodType)
@@ -85,7 +85,7 @@ public class ProcessRefundApiRequestValidator : AbstractValidator<ProcessRefundA
             .WithMessage("Refund amount must be greater than zero")
             .LessThanOrEqualTo(10000)
             .WithMessage("Refund amount cannot exceed $10,000")
-            .ScalePrecision(2, 10)
+            .PrecisionScale(10, 2, true)
             .WithMessage("Refund amount can have at most 2 decimal places");
 
         RuleFor(x => x.Currency)

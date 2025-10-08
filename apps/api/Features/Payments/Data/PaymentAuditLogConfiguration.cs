@@ -12,8 +12,14 @@ public class PaymentAuditLogConfiguration : IEntityTypeConfiguration<PaymentAudi
 {
     public void Configure(EntityTypeBuilder<PaymentAuditLog> builder)
     {
-        // Table configuration
-        builder.ToTable("PaymentAuditLog", "public");
+        // Table configuration with check constraints
+        builder.ToTable("PaymentAuditLog", "public", t =>
+        {
+            // Action type validation
+            t.HasCheckConstraint("CHK_PaymentAuditLog_ActionType",
+                "\"ActionType\" IN ('PaymentInitiated', 'PaymentProcessed', 'PaymentCompleted', 'PaymentFailed', 'PaymentRetried', 'RefundInitiated', 'RefundCompleted', 'RefundFailed', 'StatusChanged', 'MetadataUpdated', 'SystemAction')");
+        });
+
         builder.HasKey(a => a.Id);
 
         // ID initialization
@@ -128,14 +134,6 @@ public class PaymentAuditLogConfiguration : IEntityTypeConfiguration<PaymentAudi
         builder.HasIndex(a => a.CreatedAt)
                .HasDatabaseName("IX_PaymentAuditLog_FailedActions")
                .HasFilter("\"ActionType\" IN ('PaymentFailed', 'RefundFailed')");
-
-        #endregion
-
-        #region Business Rule Constraints
-
-        // Action type validation
-        builder.HasCheckConstraint("CHK_PaymentAuditLog_ActionType",
-            "\"ActionType\" IN ('PaymentInitiated', 'PaymentProcessed', 'PaymentCompleted', 'PaymentFailed', 'PaymentRetried', 'RefundInitiated', 'RefundCompleted', 'RefundFailed', 'StatusChanged', 'MetadataUpdated', 'SystemAction')");
 
         #endregion
     }

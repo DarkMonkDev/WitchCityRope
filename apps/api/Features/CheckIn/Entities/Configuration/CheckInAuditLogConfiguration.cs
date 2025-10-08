@@ -10,8 +10,13 @@ public class CheckInAuditLogConfiguration : IEntityTypeConfiguration<CheckInAudi
 {
     public void Configure(EntityTypeBuilder<CheckInAuditLog> builder)
     {
-        // Table mapping
-        builder.ToTable("CheckInAuditLog", "public");
+        // Table mapping with check constraints
+        builder.ToTable("CheckInAuditLog", "public", t =>
+        {
+            t.HasCheckConstraint("CHK_CheckInAuditLog_ActionType",
+                    "\"ActionType\" IN ('check-in', 'manual-entry', 'capacity-override', 'status-change', 'data-update')");
+        });
+
         builder.HasKey(a => a.Id);
 
         // Property configurations
@@ -54,10 +59,6 @@ public class CheckInAuditLogConfiguration : IEntityTypeConfiguration<CheckInAudi
                .WithMany()
                .HasForeignKey(a => a.CreatedBy)
                .OnDelete(DeleteBehavior.Restrict);
-
-        // Constraints
-        builder.HasCheckConstraint("CHK_CheckInAuditLog_ActionType",
-                "\"ActionType\" IN ('check-in', 'manual-entry', 'capacity-override', 'status-change', 'data-update')");
 
         // Indexes
         builder.HasIndex(a => a.EventId)

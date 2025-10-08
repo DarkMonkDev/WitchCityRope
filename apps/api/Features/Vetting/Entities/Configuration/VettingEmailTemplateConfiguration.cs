@@ -100,6 +100,9 @@ public class VettingEmailTemplateConfiguration : IEntityTypeConfiguration<Vettin
         ));
 
         // Ignore obsolete Body property - it's just a getter/setter for HtmlBody
+        // Suppress obsolete warning since we're intentionally ignoring the property
+#pragma warning disable CS0618 // Type or member is obsolete
         builder.Ignore(e => e.Body);
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 }

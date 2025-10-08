@@ -56,8 +56,8 @@ public class CheckInService : ICheckInService
             {
                 var searchTerm = search.ToLower();
                 query = query.Where(ea =>
-                    ea.User.SceneName.ToLower().Contains(searchTerm) ||
-                    ea.User.Email.ToLower().Contains(searchTerm) ||
+                    (ea.User.SceneName != null && ea.User.SceneName.ToLower().Contains(searchTerm)) ||
+                    (ea.User.Email != null && ea.User.Email.ToLower().Contains(searchTerm)) ||
                     (ea.TicketNumber != null && ea.TicketNumber.ToLower().Contains(searchTerm)));
             }
 
@@ -97,8 +97,8 @@ public class CheckInService : ICheckInService
             {
                 AttendeeId = ea.Id.ToString(),
                 UserId = ea.UserId.ToString(),
-                SceneName = ea.User.SceneName,
-                Email = ea.User.Email,
+                SceneName = ea.User.SceneName ?? string.Empty,
+                Email = ea.User.Email ?? string.Empty,
                 RegistrationStatus = ea.RegistrationStatus,
                 TicketNumber = ea.TicketNumber,
                 CheckInTime = ea.CheckIns.FirstOrDefault()?.CheckInTime.ToString("O"),
