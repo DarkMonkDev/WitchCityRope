@@ -71,7 +71,7 @@ export const UtilityBar: React.FC = () => {
         {/* LEFT: User greeting */}
         {isAuthenticated && user ? (
           <Box
-            data-testid="user-greeting"
+            data-testid="user-menu"
             style={{
               color: 'var(--color-taupe)',
               fontFamily: 'var(--font-heading)',
@@ -81,7 +81,9 @@ export const UtilityBar: React.FC = () => {
               fontWeight: 500,
             }}
           >
-            Welcome, {user.sceneName}
+            <Box data-testid="user-greeting">
+              Welcome, {user.sceneName}
+            </Box>
           </Box>
         ) : (
           <Box /> // Empty spacer when logged out
