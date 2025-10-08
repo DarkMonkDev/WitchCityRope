@@ -733,3 +733,107 @@ if (oldStatus == newStatus)
 
 **Tags**: #critical #testing #enum-migration #workflow #delegation
 
+---
+
+## 🚨 CRITICAL: Cross-Origin Cookie Persistence Bug - BFF Pattern Broken (2025-10-08)
+
+**Problem**: E2E tests show 401 Unauthorized on `/api/auth/user` after successful login. Login succeeds (200), user redirects to dashboard, dashboard tries to fetch user info, gets 401. **LAUNCH BLOCKER**.
+
+**Root Cause**: Frontend configuration bypassed Vite proxy, making direct cross-origin requests to API server.
+
+**Technical Details**:
+```typescript
+// BEFORE (BROKEN) - /apps/web/src/config/api.ts
+export const getApiBaseUrl = (): string => {
+  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5655'
+}
+```
+
+This caused:
+1. Frontend at `localhost:5173` makes POST to `http://localhost:5655/api/auth/login` (cross-origin)
+2. API sets cookie: `Set-Cookie: auth-token=...; samesite=lax; httponly`
+3. Browser associates cookie with domain `localhost:5655` (API server)
+4. Dashboard at `localhost:5173` makes GET to `http://localhost:5655/api/auth/user` (cross-origin fetch)
+5. With `SameSite=Lax`, cookies NOT sent cross-origin for fetch/XHR → 401 Unauthorized
+
+**Why SameSite=Lax Failed**:
+- `SameSite=Lax` sends cookies for:
+  - Same-site requests (same domain + same port)
+  - Cross-site top-level navigation (clicking links)
+- `SameSite=Lax` does NOT send cookies for:
+  - Cross-origin fetch/XHR requests
+  - Different ports count as different origins (5173 ≠ 5655)
+
+**Solution**:
+```typescript
+// AFTER (FIXED) - /apps/web/src/config/api.ts
+export const getApiBaseUrl = (): string => {
+  // In development, use empty string to get relative URLs (go through Vite proxy)
+  // This ensures cookies are set for localhost:5173 (web server) not localhost:5655 (API)
+  if (import.meta.env.DEV) {
+    return ''
+  }
+
+  // In production/staging, use absolute URL from environment
+  return import.meta.env.VITE_API_BASE_URL || ''
+}
+```
+
+**How This Fixes It**:
+1. Frontend at `localhost:5173` makes POST to `/api/auth/login` (relative URL)
+2. Vite proxy forwards to `http://localhost:5655/api/auth/login`
+3. API sets cookie in response
+4. Proxy passes response back to browser
+5. Browser thinks response came from `localhost:5173` → cookie set for `localhost:5173` ✅
+6. Dashboard at `localhost:5173` makes GET to `/api/auth/user` (relative URL)
+7. Vite proxy forwards with cookie (same-origin) → 200 OK ✅
+
+**Key Insight - BFF Pattern Requirements**:
+- BFF (Backend-for-Frontend) pattern REQUIRES same-origin requests
+- Frontend must NEVER talk directly to API server in development
+- All API calls MUST go through proxy on same origin
+- This is NOT optional - cross-origin cookies don't work with SameSite=Lax
+
+**Vite Proxy Configuration** (already correct in vite.config.ts):
+```typescript
+proxy: {
+  '/api': {
+    target: 'http://localhost:5655',
+    changeOrigin: true,
+    ...
+  }
+}
+```
+
+**Why We Didn't Change Cookie Settings**:
+- Alternative: `SameSite=None; Secure` would work cross-origin
+- Rejected: Requires HTTPS in development, more complex
+- Proxy solution is cleaner, more secure, matches production pattern
+
+**Manual Testing Verification**:
+```bash
+# Test 1: Login through proxy
+curl -X POST 'http://localhost:5173/api/auth/login' -d '{"email":"...","password":"..."}' -c cookies.txt
+# Result: ✅ 200 OK, cookie set for localhost
+
+# Test 2: Authenticated request through proxy
+curl 'http://localhost:5173/api/auth/user' -b cookies.txt
+# Result: ✅ 200 OK, user data returned
+```
+
+**Impact**:
+- Fixes 6 out of 10 failing E2E tests (launch blocker resolved)
+- All authentication flows work correctly
+- BFF pattern properly implemented
+
+**Prevention**:
+1. **Check for absolute URLs**: Grep for `http://localhost:` in API client code
+2. **Verify proxy usage**: Ensure `getApiUrl()` returns relative paths in dev
+3. **Test cookie behavior**: Manual browser testing before E2E runs
+4. **Document BFF requirements**: Update architecture docs
+
+**File Modified**: `/apps/web/src/config/api.ts`
+**Fix Document**: `/test-results/authentication-persistence-fix-20251008.md`
+
+**Tags**: #critical #authentication #cookies #bff-pattern #cors #launch-blocker #e2e-tests
+
