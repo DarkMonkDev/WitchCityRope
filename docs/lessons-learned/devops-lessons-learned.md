@@ -41,6 +41,46 @@
 - **CHECK container health before deployments**
 - **MONITOR memory usage and performance**
 
+## Prevention Pattern: Test Artifact Management
+
+**Problem**: Hundreds of test artifacts (playwright reports, screenshots, videos, session work) clutter git status and accidentally get committed.
+
+**Solution**: Maintain comprehensive .gitignore entries for test artifacts and perform cleanup after testing sessions.
+
+**Required .gitignore Entries**:
+```
+# Playwright test artifacts
+playwright-report/
+**/playwright-report/data/
+test-results/
+**/test-results/
+apps/web/test-results/
+*.png
+*.webm
+
+# Temporary session work
+session-work/
+
+# Temporary test files in root
+/test-*.spec.ts
+```
+
+**Cleanup Procedure After Testing**:
+1. Review uncommitted changes: `git status` and `git diff`
+2. Delete test artifacts: `rm -rf apps/web/playwright-report/data/*`, `rm -rf test-results/*`
+3. Delete session work: `rm -rf session-work/[date]/`
+4. Delete temporary specs: `rm -f test-*.spec.ts`, `rm -f tests/playwright/temp-*.spec.ts`
+5. Update .gitignore if new patterns emerge
+6. Stage cleanup: `git add -u && git add .gitignore`
+7. Commit: `git commit -m "chore: Clean up test artifacts and update .gitignore"`
+
+**Example Cleanup Session (Oct 8, 2025)**:
+- Deleted 200+ Playwright videos (.webm) and screenshots (.png)
+- Removed test-results directories from Oct 6-8
+- Cleaned temporary test specs in root
+- Updated .gitignore to prevent recurrence
+- Result: Clean working tree with 55 files removed
+
 ## Prevention Pattern: Silent Fallback Data Anti-Pattern
 
 **Problem**: Code using fallback/mock data that silently masks API failures, allowing bugs to persist undetected.
