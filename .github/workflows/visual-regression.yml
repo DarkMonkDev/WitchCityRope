@@ -18,41 +18,44 @@ on:
 jobs:
   visual-tests:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '9.0.x'
-    
+
     - name: Restore dependencies
       run: dotnet restore
-    
+
     - name: Build application
       run: dotnet build --no-restore --configuration Release
-    
+
+    - name: Install EF Core tools
+      run: dotnet tool restore
+
     - name: Setup test database
       run: |
         cd src/WitchCityRope.Infrastructure
         dotnet ef database update -s ../WitchCityRope.Web
-    
+
     - name: Seed test data
       run: |
         cd src/WitchCityRope.Web
         dotnet run -- --seed-data &
         sleep 10
         pkill -f "dotnet run"
-    
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '18'
-    
+
     - name: Install Playwright
       run: |
         cd visual-tests
@@ -60,7 +63,7 @@ jobs:
         npm install -D @playwright/test
         npx playwright install chromium firefox webkit
         npx playwright install-deps
-    
+
     - name: Start application
       run: |
         cd src/WitchCityRope.Web
@@ -68,7 +71,7 @@ jobs:
         echo $! > app.pid
         sleep 30
         curl -k https://localhost:5652 || exit 1
-    
+
     - name: Run visual tests
       id: visual-tests
       run: |
@@ -79,7 +82,7 @@ jobs:
           npx playwright test
         fi
       continue-on-error: true
-    
+
     - name: Upload test results
       if: always()
       uses: actions/upload-artifact@v4
@@ -87,7 +90,7 @@ jobs:
         name: playwright-report
         path: visual-tests/playwright-report/
         retention-days: 30
-    
+
     - name: Upload snapshots
       if: failure() && steps.visual-tests.outcome == 'failure'
       uses: actions/upload-artifact@v4
@@ -95,7 +98,7 @@ jobs:
         name: visual-test-failures
         path: visual-tests/test-results/
         retention-days: 30
-    
+
     - name: Comment PR with results
       if: github.event_name == 'pull_request' && always()
       uses: actions/github-script@v7
@@ -103,45 +106,45 @@ jobs:
         script: |
           const fs = require('fs');
           const testResults = JSON.parse(fs.readFileSync('visual-tests/test-results/results.json', 'utf8'));
-          
-          const passed = testResults.suites.reduce((acc, suite) => 
+
+          const passed = testResults.suites.reduce((acc, suite) =>
             acc + suite.specs.filter(spec => spec.ok).length, 0);
-          const failed = testResults.suites.reduce((acc, suite) => 
+          const failed = testResults.suites.reduce((acc, suite) =>
             acc + suite.specs.filter(spec => !spec.ok).length, 0);
-          
+
           const comment = `## 📸 Visual Regression Test Results
-          
+
           ${failed === 0 ? '✅ All visual tests passed!' : '❌ Some visual tests failed'}
-          
+
           - **Passed:** ${passed}
           - **Failed:** ${failed}
           - **Total:** ${passed + failed}
-          
+
           ${failed > 0 ? `
           ### Failed Tests:
-          ${testResults.suites.flatMap(suite => 
-            suite.specs.filter(spec => !spec.ok).map(spec => 
+          ${testResults.suites.flatMap(suite =>
+            suite.specs.filter(spec => !spec.ok).map(spec =>
               `- ${spec.title}`
             )
           ).join('\n')}
-          
+
           [View full report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
           ` : ''}`;
-          
+
           github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
             body: comment
           });
-    
+
     - name: Stop application
       if: always()
       run: |
         if [ -f src/WitchCityRope.Web/app.pid ]; then
           kill $(cat src/WitchCityRope.Web/app.pid) || true
         fi
-    
+
     - name: Check test results
       if: steps.visual-tests.outcome == 'failure'
       run: exit 1
@@ -150,19 +153,19 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.inputs.update-snapshots == 'true'
     needs: visual-tests
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-    
+
     - name: Download new snapshots
       uses: actions/download-artifact@v4
       with:
         name: playwright-report
         path: visual-tests/playwright-report/
-    
+
     - name: Commit updated snapshots
       run: |
         git config --local user.email "action@github.com"
