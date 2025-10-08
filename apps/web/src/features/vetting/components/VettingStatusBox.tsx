@@ -63,8 +63,8 @@ const statusConfig: Record<
     color: 'cyan',
     icon: Calendar
   },
-  InterviewScheduled: {
-    displayName: 'Interview Scheduled',
+  InterviewCompleted: {
+    displayName: 'Interview Completed',
     color: 'green',
     icon: Calendar
   },

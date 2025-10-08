@@ -1210,9 +1210,9 @@ public static class VettingEndpoints
         return status switch
         {
             VettingStatus.UnderReview => "Your application is currently being reviewed by our team.",
-            VettingStatus.InterviewApproved => "You have been approved for an interview! Please check your email for scheduling information.",
-            VettingStatus.InterviewScheduled => "Your interview has been scheduled. Please check your email for details.",
-            VettingStatus.FinalReview => "Your interview has been completed and your application is under final review.",
+            VettingStatus.InterviewApproved => "You have been approved for an interview! Please check your email for the Calendly link to schedule.",
+            VettingStatus.InterviewCompleted => "Your interview has been completed and your application is under final review.",
+            VettingStatus.FinalReview => "Your application is under final review. We will contact you with a decision soon.",
             VettingStatus.Approved => "Congratulations! Your application has been approved.",
             VettingStatus.Denied => "Unfortunately, your application was not approved at this time.",
             VettingStatus.OnHold => "Your application is currently on hold. We will contact you with more information.",
@@ -1229,8 +1229,8 @@ public static class VettingEndpoints
         return status switch
         {
             VettingStatus.UnderReview => "Our team is reviewing your application. We'll contact you soon.",
-            VettingStatus.InterviewApproved => "Please check your email for interview scheduling instructions.",
-            VettingStatus.InterviewScheduled => "Prepare for your scheduled interview.",
+            VettingStatus.InterviewApproved => "Please check your email for the Calendly link to schedule your interview.",
+            VettingStatus.InterviewCompleted => "Your interview is complete. Your application is under final review.",
             VettingStatus.FinalReview => "Your application is under final review. We'll contact you with a decision soon.",
             VettingStatus.Approved => "Welcome to Witch City Rope! You can now access member features.",
             VettingStatus.Denied => "You may reapply in the future.",

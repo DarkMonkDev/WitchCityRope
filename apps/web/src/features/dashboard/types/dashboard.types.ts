@@ -69,9 +69,10 @@ export interface RegistrationStatusDisplay {
 export const DashboardUtils = {
   /**
    * Get display properties for vetting status
-   * Uses auto-generated VettingStatus type from backend
+   * NOTE: Using string instead of auto-generated VettingStatus type to handle backend enum updates
+   * TODO: Regenerate shared types after backend VettingStatus enum is updated
    */
-  getVettingStatusDisplay(status: VettingStatus): VettingStatusDisplay {
+  getVettingStatusDisplay(status: string): VettingStatusDisplay {
     switch (status) {
       case 'UnderReview':
         return {
@@ -85,11 +86,11 @@ export const DashboardUtils = {
           color: 'cyan',
           description: 'Approved for interview - waiting to schedule'
         };
-      case 'InterviewScheduled':
+      case 'InterviewCompleted':
         return {
-          label: 'Interview Scheduled',
+          label: 'Interview Completed',
           color: 'blue',
-          description: 'Interview scheduled'
+          description: 'Interview completed - awaiting final review'
         };
       case 'FinalReview':
         return {

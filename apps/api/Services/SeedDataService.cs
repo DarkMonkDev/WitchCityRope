@@ -422,7 +422,7 @@ public class SeedDataService : ISeedDataService
     /// Includes variety of application statuses, realistic user data, and proper audit trails.
     ///
     /// Applications created:
-    /// - Up to 11 sample applications with different statuses (UnderReview, InterviewApproved, InterviewScheduled, Approved, OnHold, Denied)
+    /// - Up to 11 sample applications with different statuses (UnderReview, InterviewApproved, InterviewCompleted, Approved, OnHold, Denied)
     /// - Realistic names, scene names, FetLife handles, and application text
     /// - Proper pronoun representation (she/her, he/him, they/them, etc.)
     /// - Links to existing seeded users where appropriate
@@ -535,11 +535,11 @@ public class SeedDataService : ISeedDataService
                 Pronouns = "he/him",
                 OtherNames = "Marc, MJ",
                 AboutYourself = @"I'm a 28-year-old professional who discovered rope bondage through a partner. I've been practicing for six months and am passionate about the psychological and emotional aspects of rope. I have experience as a rigger and understand the responsibility that comes with restraining another person. I've completed online safety courses and practiced extensively with enthusiastic partners. I'm seeking a community where I can continue learning and share experiences with others who value both technical skill and emotional intelligence in rope work.",
-                WorkflowStatus = VettingStatus.InterviewScheduled, // InterviewScheduled (2)
+                WorkflowStatus = VettingStatus.InterviewCompleted, // InterviewCompleted (2) - Renamed from InterviewScheduled
                 SubmittedAt = DateTime.UtcNow.AddDays(-14),
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-10),
-                InterviewScheduledFor = DateTime.UtcNow.AddDays(3), // Interview scheduled for 3 days from now
-                AdminNotes = "Interview scheduled for Saturday 2 PM. Applicant shows good understanding of consent and safety principles."
+                InterviewScheduledFor = DateTime.UtcNow.AddDays(-3), // Interview completed 3 days ago
+                AdminNotes = "Interview completed on Saturday. Applicant showed good understanding of consent and safety principles."
             },
 
             // Application 5: Approved - recently approved member
@@ -1789,8 +1789,8 @@ The WitchCityRope Vetting Team",
                     });
                     break;
 
-                case VettingStatus.InterviewScheduled:
-                    // UnderReview → InterviewApproved → InterviewScheduled
+                case VettingStatus.InterviewCompleted:
+                    // UnderReview → InterviewApproved → InterviewCompleted (renamed from InterviewScheduled)
                     auditLogs.Add(new VettingAuditLog
                     {
                         Id = Guid.NewGuid(),
@@ -1807,17 +1807,17 @@ The WitchCityRope Vetting Team",
                     {
                         Id = Guid.NewGuid(),
                         ApplicationId = application.Id,
-                        Action = "Interview Scheduled",
+                        Action = "Interview Completed",
                         PerformedBy = adminUserId,
                         PerformedAt = application.InterviewScheduledFor?.AddDays(-1) ?? DateTime.UtcNow.AddDays(-1),
                         OldValue = "InterviewApproved",
-                        NewValue = "InterviewScheduled",
-                        Notes = $"Interview scheduled for {application.InterviewScheduledFor?.ToString("yyyy-MM-dd HH:mm") ?? "TBD"}"
+                        NewValue = "InterviewCompleted",
+                        Notes = $"Interview completed on {application.InterviewScheduledFor?.ToString("yyyy-MM-dd HH:mm") ?? "TBD"}"
                     });
                     break;
 
                 case VettingStatus.Approved:
-                    // UnderReview → InterviewApproved → InterviewScheduled → FinalReview → Approved
+                    // UnderReview → InterviewApproved → InterviewCompleted → FinalReview → Approved
                     auditLogs.Add(new VettingAuditLog
                     {
                         Id = Guid.NewGuid(),
@@ -1834,12 +1834,12 @@ The WitchCityRope Vetting Team",
                     {
                         Id = Guid.NewGuid(),
                         ApplicationId = application.Id,
-                        Action = "Interview Scheduled",
+                        Action = "Interview Completed",
                         PerformedBy = adminUserId,
                         PerformedAt = application.DecisionMadeAt?.AddDays(-8) ?? application.SubmittedAt.AddDays(10),
                         OldValue = "InterviewApproved",
-                        NewValue = "InterviewScheduled",
-                        Notes = "Interview scheduled with applicant"
+                        NewValue = "InterviewCompleted",
+                        Notes = "Interview completed with applicant"
                     });
 
                     auditLogs.Add(new VettingAuditLog
@@ -1849,7 +1849,7 @@ The WitchCityRope Vetting Team",
                         Action = "Interview Completed",
                         PerformedBy = adminUserId,
                         PerformedAt = application.DecisionMadeAt?.AddDays(-5) ?? application.SubmittedAt.AddDays(15),
-                        OldValue = "InterviewScheduled",
+                        OldValue = "InterviewCompleted",
                         NewValue = "FinalReview",
                         Notes = "Interview conducted - excellent candidate with strong community values. Moving to final review."
                     });

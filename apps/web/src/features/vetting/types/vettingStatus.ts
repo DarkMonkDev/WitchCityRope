@@ -15,7 +15,7 @@ export enum VettingStatus {
   UnderReview = 2,
   InterviewApproved = 3,
   PendingInterview = 4,
-  InterviewScheduled = 5,
+  InterviewCompleted = 5,
   OnHold = 6,
   Approved = 7,
   Denied = 8,
@@ -32,7 +32,7 @@ export type VettingStatusString =
   | 'UnderReview'
   | 'InterviewApproved'
   | 'PendingInterview'
-  | 'InterviewScheduled'
+  | 'InterviewCompleted'
   | 'OnHold'
   | 'Approved'
   | 'Denied'
@@ -107,7 +107,7 @@ export const statusStringToEnum = (status: VettingStatusString): VettingStatus =
     UnderReview: VettingStatus.UnderReview,
     InterviewApproved: VettingStatus.InterviewApproved,
     PendingInterview: VettingStatus.PendingInterview,
-    InterviewScheduled: VettingStatus.InterviewScheduled,
+    InterviewCompleted: VettingStatus.InterviewCompleted,
     OnHold: VettingStatus.OnHold,
     Approved: VettingStatus.Approved,
     Denied: VettingStatus.Denied,
@@ -126,7 +126,7 @@ export const statusEnumToString = (status: VettingStatus): VettingStatusString =
     [VettingStatus.UnderReview]: 'UnderReview',
     [VettingStatus.InterviewApproved]: 'InterviewApproved',
     [VettingStatus.PendingInterview]: 'PendingInterview',
-    [VettingStatus.InterviewScheduled]: 'InterviewScheduled',
+    [VettingStatus.InterviewCompleted]: 'InterviewCompleted',
     [VettingStatus.OnHold]: 'OnHold',
     [VettingStatus.Approved]: 'Approved',
     [VettingStatus.Denied]: 'Denied',

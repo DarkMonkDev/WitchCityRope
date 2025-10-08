@@ -90,23 +90,8 @@ public interface IVettingService
         Guid adminUserId,
         CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Schedule interview for an application
-    /// Moves status to InterviewScheduled and sets interview date
-    /// Sends interview scheduled email notification
-    /// </summary>
-    /// <param name="applicationId">ID of the application</param>
-    /// <param name="interviewDate">Date and time of the interview (must be UTC)</param>
-    /// <param name="interviewLocation">Location or instructions for the interview</param>
-    /// <param name="adminUserId">ID of the administrator scheduling the interview</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Result indicating success or failure</returns>
-    Task<Result<ApplicationDetailResponse>> ScheduleInterviewAsync(
-        Guid applicationId,
-        DateTime interviewDate,
-        string interviewLocation,
-        Guid adminUserId,
-        CancellationToken cancellationToken = default);
+    // REMOVED: ScheduleInterviewAsync - interviews are now scheduled externally via Calendly
+    // Use UpdateApplicationStatusAsync with InterviewCompleted status to mark interview as completed
 
     /// <summary>
     /// Put application on hold with required reason and actions

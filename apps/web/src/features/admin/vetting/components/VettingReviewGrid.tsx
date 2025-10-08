@@ -83,7 +83,7 @@ export const VettingReviewGrid: React.FC<VettingReviewGridProps> = ({
     { value: 'UnderReview', label: 'Under Review' },
     { value: 'InterviewApproved', label: 'Interview Approved' },
     { value: 'PendingInterview', label: 'Pending Interview' },
-    { value: 'InterviewScheduled', label: 'Interview Scheduled' },
+    { value: 'InterviewCompleted', label: 'Interview Completed' },
     { value: 'OnHold', label: 'On Hold' },
     { value: 'Approved', label: 'Approved' },
     { value: 'Denied', label: 'Denied' },

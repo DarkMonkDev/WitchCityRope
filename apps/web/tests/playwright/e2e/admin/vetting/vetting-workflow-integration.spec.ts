@@ -337,7 +337,7 @@ test.describe('Vetting Workflow Integration', () => {
    * Validates: Reminder modal, custom message, email trigger
    */
   test('admin can send reminder email to applicant', async () => {
-    // Arrange - Navigate to application in InterviewScheduled or OnHold status
+    // Arrange - Navigate to application in InterviewCompleted or OnHold status
     await AuthHelpers.loginAs(page, 'admin');
     await page.goto('/admin/vetting');
 
@@ -379,7 +379,7 @@ test.describe('Vetting Workflow Integration', () => {
         console.log('Send reminder button not found');
       }
     } else {
-      console.log('No applications in OnHold or InterviewScheduled status');
+      console.log('No applications in OnHold or InterviewCompleted status');
     }
   });
 });

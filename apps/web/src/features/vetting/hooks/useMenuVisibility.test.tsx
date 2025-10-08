@@ -66,7 +66,7 @@ describe('useMenuVisibility', () => {
       'UnderReview',
       'InterviewApproved',
       'PendingInterview',
-      'InterviewScheduled',
+      'InterviewCompleted',
       'Withdrawn'
     ];
 

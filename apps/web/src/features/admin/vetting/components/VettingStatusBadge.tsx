@@ -29,12 +29,12 @@ export const VettingStatusBadge: React.FC<VettingStatusBadgeProps> = ({
           color: 'white',
           label: 'Interview Approved'
         };
-      case 'interviewscheduled':
-      case 'interview scheduled':
+      case 'interviewcompleted':
+      case 'interview completed':
         return {
           backgroundColor: '#1c7ed6',
           color: 'white',
-          label: 'Interview Scheduled'
+          label: 'Interview Completed'
         };
       case 'finalreview':
       case 'final review':
@@ -102,9 +102,9 @@ export const VettingStatusBadge: React.FC<VettingStatusBadgeProps> = ({
       case 'interviewapproved':
       case 'interview approved':
         return 'status-interview-approved';
-      case 'interviewscheduled':
-      case 'interview scheduled':
-        return 'status-interview-scheduled';
+      case 'interviewcompleted':
+      case 'interview completed':
+        return 'status-interview-completed';
       case 'finalreview':
       case 'final review':
         return 'status-final-review';

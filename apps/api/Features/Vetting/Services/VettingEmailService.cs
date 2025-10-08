@@ -388,13 +388,14 @@ public class VettingEmailService : IVettingEmailService
     /// <summary>
     /// Map application status to email template type
     /// Only certain status changes trigger email notifications
+    /// Updated for Calendly external interview scheduling workflow
     /// </summary>
     private static EmailTemplateType? GetTemplateTypeForStatus(VettingStatus status)
     {
         return status switch
         {
             VettingStatus.InterviewApproved => EmailTemplateType.InterviewApproved,
-            VettingStatus.InterviewScheduled => EmailTemplateType.InterviewScheduled,
+            VettingStatus.InterviewCompleted => EmailTemplateType.InterviewCompleted, // Renamed from InterviewScheduled
             VettingStatus.FinalReview => null, // No email for FinalReview (internal step)
             VettingStatus.OnHold => EmailTemplateType.OnHold,
             VettingStatus.Approved => EmailTemplateType.Approved,
@@ -636,6 +637,7 @@ The WitchCityRope Team";
 
     /// <summary>
     /// Get user-friendly status description for display in emails
+    /// Updated for Calendly external interview scheduling workflow
     /// </summary>
     private static string GetStatusDescription(VettingStatus status)
     {
@@ -643,7 +645,7 @@ The WitchCityRope Team";
         {
             VettingStatus.UnderReview => "Under Review",
             VettingStatus.InterviewApproved => "Interview Approved",
-            VettingStatus.InterviewScheduled => "Interview Scheduled",
+            VettingStatus.InterviewCompleted => "Interview Completed", // Renamed from InterviewScheduled
             VettingStatus.FinalReview => "Final Review",
             VettingStatus.OnHold => "On Hold",
             VettingStatus.Approved => "Approved",
@@ -656,6 +658,7 @@ The WitchCityRope Team";
     /// <summary>
     /// Get next steps message based on application status
     /// Provides clear guidance to applicants on what to expect
+    /// Updated for Calendly external interview scheduling workflow
     /// </summary>
     private static string GetNextStepsForStatus(VettingStatus status)
     {
@@ -664,11 +667,11 @@ The WitchCityRope Team";
             VettingStatus.UnderReview =>
                 "Your application is being reviewed by our team. We will contact you with updates.",
             VettingStatus.InterviewApproved =>
-                "We will contact you soon to schedule your interview.",
-            VettingStatus.InterviewScheduled =>
-                "Your interview is scheduled. Please check your email for details.",
-            VettingStatus.FinalReview =>
+                "Please check your email for the Calendly link to schedule your interview.",
+            VettingStatus.InterviewCompleted => // Renamed from InterviewScheduled
                 "Your interview has been completed and your application is under final review.",
+            VettingStatus.FinalReview =>
+                "Your application is under final review. We will contact you with a decision soon.",
             VettingStatus.OnHold =>
                 "We need additional information from you. Please check your email for details.",
             VettingStatus.Approved =>

@@ -31,15 +31,17 @@ Use the orchestrator command when testing reveals missing functionality:
 | Category | Total Items | Complete | In Progress | Blocked | Not Started | % Complete |
 |----------|-------------|----------|-------------|---------|-------------|------------|
 | **Core Authentication & Authorization** | 2 | 1 | 1 | 0 | 0 | 50% |
-| **Event Management & RSVP** | 8 | 3 | 2 | 0 | 3 | 38% |
-| **Vetting System** | 6 | 3 | 2 | 0 | 1 | 50% |
+| **Event Management & RSVP** | 9 | 3 | 2 | 0 | 4 | 33% |
+| **Vetting System** | 8 | 3 | 2 | 0 | 3 | 38% |
 | **Payment Processing** | 3 | 1 | 1 | 0 | 1 | 33% |
-| **Admin Tools** | 4 | 1 | 1 | 0 | 2 | 25% |
+| **Admin Tools** | 5 | 1 | 1 | 0 | 3 | 20% |
 | **User Dashboard** | 3 | 2 | 0 | 0 | 1 | 67% |
 | **Public Pages** | 2 | 1 | 0 | 0 | 1 | 50% |
+| **Content Management** | 2 | 0 | 0 | 0 | 2 | 0% |
+| **Infrastructure & Deployment** | 7 | 0 | 0 | 0 | 7 | 0% |
 | **Testing & Quality** | 4 | 0 | 1 | 0 | 3 | 0% |
 | **Documentation** | 2 | 1 | 0 | 0 | 1 | 50% |
-| **TOTAL** | 34 | 13 | 8 | 0 | 13 | 38% |
+| **TOTAL** | 47 | 13 | 8 | 0 | 26 | 28% |
 
 ---
 
@@ -129,6 +131,14 @@ Use the orchestrator command when testing reveals missing functionality:
   - **Status**: In Progress
   - **Notes**: E2E test Step 2 failing - admin cannot find/edit events in admin panel. UI incomplete or broken.
 
+- [ ] **Event Volunteer Applications Display** (Priority: High)
+  - **Description**: Grid table on Event Details Volunteers tab showing who volunteered for each task
+  - **Business Value**: Event management - admins need to see volunteer signups and assign positions
+  - **Effort**: Medium (1-2 days)
+  - **Dependencies**: Event volunteer positions system
+  - **Status**: Not Started
+  - **Notes**: Need sortable grid showing volunteer name, email, selected position, application date. Should appear below volunteer tasks table.
+
 ---
 
 ## Vetting System
@@ -186,6 +196,22 @@ Use the orchestrator command when testing reveals missing functionality:
     - DTOs ready: BulkReminderRequest, BulkStatusChangeRequest, BulkOperationResult
     - Need: Backend service methods, API endpoints (/api/vetting/bulk/*), audit trail integration
     - Estimated effort: 2-3 days backend + 1 day frontend updates + 1 day testing = 4-5 days total
+
+- [ ] **Vetting Email Template Management** (Priority: High)
+  - **Description**: Admin UI to create and edit vetting email templates (6 template types)
+  - **Business Value**: Email customization - admins need to customize vetting notification emails
+  - **Effort**: Medium (1-2 days)
+  - **Dependencies**: Vetting workflow backend
+  - **Status**: Not Started
+  - **Notes**: Email template button exists on vetting admin screen but leads nowhere. Need full CRUD interface for templates. 6 template types: Application Received, Interview Request, Approved, Rejected, Status Update, Reminder.
+
+- [ ] **Vetting Modal Wireframe Compliance** (Priority: Medium)
+  - **Description**: Fix modal popup on vetting applications admin screen to match approved wireframes
+  - **Business Value**: UX consistency - UI should match approved designs
+  - **Effort**: Small (4-6 hours)
+  - **Dependencies**: Admin vetting review grid
+  - **Status**: Not Started
+  - **Notes**: One of the buttons on all vetting applications admin screen shows modal that doesn't match wireframes. Need to identify which button and fix modal content/layout.
 
 ---
 
@@ -251,6 +277,14 @@ Use the orchestrator command when testing reveals missing functionality:
   - **Status**: Not Started
   - **Notes**: Not critical for launch. Use external service initially if needed.
 
+- [ ] **Admin Members Management Section** (Priority: High)
+  - **Description**: Admin section with grid table of all members and member detail pages
+  - **Business Value**: User management - admins need to view and manage member accounts
+  - **Effort**: Medium (1-2 days)
+  - **Dependencies**: Authentication, RBAC
+  - **Status**: Not Started
+  - **Notes**: Grid table should show: Name, Email, Role, Vetting Status, Join Date, Last Login. Member detail page should show full profile, vetting history, event participation, payment history, notes. Similar to existing user management but more comprehensive.
+
 ---
 
 ## User Dashboard
@@ -295,9 +329,89 @@ Use the orchestrator command when testing reveals missing functionality:
   - **Description**: Information about WitchCityRope, community values, safety practices
   - **Business Value**: Trust building - new members need to understand community
   - **Effort**: Small (4-6 hours)
+  - **Dependencies**: CMS implementation (or hardcoded content)
+  - **Status**: Not Started
+  - **Notes**: Content needs to be written. Requires CMS or hardcoded text.
+
+---
+
+## Content Management
+
+- [ ] **CMS Implementation** (Priority: High)
+  - **Description**: Content Management System for managing text-only pages (About, FAQ, Policies, etc.)
+  - **Business Value**: Administrative efficiency - admins need to update page content without developer intervention
+  - **Effort**: Large (3-5 days)
   - **Dependencies**: None
   - **Status**: Not Started
-  - **Notes**: Content needs to be written. May exist from Blazor version.
+  - **Notes**: Need to select CMS approach: 1) Custom admin UI + database tables, 2) TinyMCE/Tiptap with database, 3) Markdown files + admin editor, or 4) Third-party headless CMS (Strapi, Contentful). Decision needed. Should support: rich text editing, page versioning, publish/draft states, multiple text pages (About, FAQ, Terms, Privacy, Safety Guidelines, Code of Conduct).
+
+- [ ] **Text-Only Pages Creation** (Priority: High)
+  - **Description**: Create and populate core text pages: About Us, FAQ, Community Guidelines, Safety Practices, Terms of Service, Privacy Policy, Code of Conduct
+  - **Business Value**: Legal compliance and user information - required for launch
+  - **Effort**: Medium (2-3 days for content + implementation)
+  - **Dependencies**: CMS implementation
+  - **Status**: Not Started
+  - **Notes**: Content writing required. Some content may exist from Blazor version. Each page needs SEO metadata, proper navigation, and responsive design.
+
+---
+
+## Infrastructure & Deployment
+
+- [ ] **Staging Environment Setup** (Priority: High)
+  - **Description**: Configure staging environment on DigitalOcean (or chosen provider) with full infrastructure
+  - **Business Value**: Pre-production testing - catch deployment issues before production
+  - **Effort**: Large (3-5 days)
+  - **Dependencies**: None
+  - **Status**: Not Started
+  - **Notes**: Requirements: Docker host (Droplet/VM), PostgreSQL database, SSL certificates, domain/subdomain (staging.witchcityrope.com), environment variables, monitoring/logging, backup system. Should mirror production configuration. Need to decide: DigitalOcean vs AWS vs Azure. Recommend DigitalOcean for simplicity and cost.
+
+- [ ] **Production Environment Setup** (Priority: High)
+  - **Description**: Configure production environment with high availability and security
+  - **Business Value**: Production readiness - where users actually access the platform
+  - **Effort**: Large (3-5 days)
+  - **Dependencies**: Staging environment validated
+  - **Status**: Not Started
+  - **Notes**: Requirements: Scaled infrastructure, load balancing (if needed), SSL certificates (Let's Encrypt), production domain (witchcityrope.com), secure secrets management, monitoring/alerting (UptimeRobot, DataDog, or similar), backup automation, disaster recovery plan. Consider: CDN for static assets, Redis for caching, managed PostgreSQL for HA.
+
+- [ ] **CI/CD Pipeline - Staging Deployment** (Priority: High)
+  - **Description**: Automate deployment from main branch to staging environment
+  - **Business Value**: Faster deployment cycles - automatic staging deployments on merge to main
+  - **Effort**: Medium (2-3 days)
+  - **Dependencies**: Staging environment setup
+  - **Status**: Not Started
+  - **Notes**: GitHub Actions workflow: Build Docker images → Push to registry (Docker Hub/GHCR) → Deploy to staging via SSH/API → Run smoke tests → Notify team. Should include: database migrations, environment variable injection, rollback capability, deployment notifications (Slack/Discord). Need to secure: deployment keys, registry credentials, server access.
+
+- [ ] **Production Deployment Process** (Priority: High)
+  - **Description**: Document and implement staging → production promotion process
+  - **Business Value**: Controlled releases - ensure only tested code reaches production
+  - **Effort**: Medium (1-2 days)
+  - **Dependencies**: Staging CI/CD working
+  - **Status**: Not Started
+  - **Notes**: Manual promotion from staging to production with approval gates. Process: 1) Validate staging deployment, 2) Run full test suite, 3) Create production release tag, 4) Manual approval (owner/admin), 5) Deploy to production, 6) Run post-deployment verification, 7) Monitor for issues. Should include: blue-green deployment or rolling updates, database migration strategy, rollback plan, health checks, smoke tests.
+
+- [ ] **Database Backup & Recovery** (Priority: High)
+  - **Description**: Automated PostgreSQL backups with tested recovery procedures
+  - **Business Value**: Data protection - prevent catastrophic data loss
+  - **Effort**: Medium (1-2 days)
+  - **Dependencies**: Production environment setup
+  - **Status**: Not Started
+  - **Notes**: Requirements: Daily automated backups (pg_dump), Retention policy (30 days minimum), Offsite storage (S3/DigitalOcean Spaces), Encrypted backups, Point-in-time recovery capability, Tested restore procedures, Recovery time objective (RTO) < 4 hours, Recovery point objective (RPO) < 24 hours. Consider: DigitalOcean Managed Database with automatic backups, or custom backup scripts with cron.
+
+- [ ] **File Storage Configuration** (Priority: Medium)
+  - **Description**: Configure persistent storage for user uploads (profile pictures, event images, documents)
+  - **Business Value**: Data persistence - user-uploaded content survives container restarts
+  - **Effort**: Medium (1-2 days)
+  - **Dependencies**: Environment setup
+  - **Status**: Not Started
+  - **Notes**: Options: 1) DigitalOcean Spaces (S3-compatible object storage) - RECOMMENDED, 2) Docker volumes with host backups, 3) AWS S3, 4) Azure Blob Storage. Need to implement: Upload API endpoints, Image resizing/optimization, CDN integration, Access control/signed URLs, Storage quotas, Backup strategy. Current file upload needs: Profile pictures, Event images, Vetting documents (optional), Payment receipts.
+
+- [ ] **Environment Configuration Management** (Priority: High)
+  - **Description**: Secure management of environment variables and secrets for staging and production
+  - **Business Value**: Security - prevent secret leakage and simplify configuration
+  - **Effort**: Small (1 day)
+  - **Dependencies**: None
+  - **Status**: Not Started
+  - **Notes**: Requirements: Separate .env files for staging/production (NOT in git), GitHub Secrets for CI/CD, Secure secret injection during deployment, Configuration validation on startup, Documented environment variables with examples. Secrets to manage: Database credentials, JWT secret keys, PayPal API credentials, Email service credentials (SendGrid/Mailgun), Cloudflare tunnel tokens, Encryption keys. Consider: HashiCorp Vault or AWS Secrets Manager for advanced needs.
 
 ---
 
@@ -361,18 +475,33 @@ Use the orchestrator command when testing reveals missing functionality:
 
 ### 🔴 CRITICAL (Must Fix Before Launch)
 
+**Application Features:**
 1. **Vetting Workflow Backend** - 12 integration tests failing, blocks RSVP access control
 2. **Complete Test Suite** - Cannot launch with 56% React unit pass rate
 3. **Dashboard Error Handling** - 40-50 tests failing, poor user experience
 4. **Public Events Anonymous Access** - New visitors cannot see events (returns 401)
 5. **Event Detail View** - Users cannot see full event details
+6. **CMS Implementation** - Required for text-only pages (Terms, Privacy, etc.)
+7. **Text-Only Pages** - Legal compliance requirement (Terms of Service, Privacy Policy)
+
+**Infrastructure & Deployment:**
+8. **Staging Environment Setup** - Pre-production testing environment required
+9. **Production Environment Setup** - Live deployment infrastructure required
+10. **CI/CD Pipeline - Staging** - Automated deployments to staging
+11. **Production Deployment Process** - Controlled release process required
+12. **Database Backup & Recovery** - Data protection mandatory before launch
+13. **Environment Configuration Management** - Secure secrets management required
 
 ### 🟠 HIGH Priority (Strongly Recommended)
 
+**Application Features:**
 1. **Event Card Click Interaction** - Navigation broken for event details
 2. **Admin Event Editing** - Admins cannot update events
 3. **Ticket Purchase Flow** - Revenue generation requires this
 4. **Security Audit** - Risk mitigation before public launch
+5. **Event Volunteer Applications Display** - Admins need to see volunteer signups
+6. **Vetting Email Template Management** - Email customization for vetting process
+7. **Admin Members Management Section** - Core admin functionality for user management
 
 ### 🟡 MEDIUM Priority (Nice to Have)
 
@@ -380,52 +509,98 @@ Use the orchestrator command when testing reveals missing functionality:
 2. **User Profile Editing** - Users can contact admin for changes
 3. **Event Attendance Tracking** - Manual tracking possible
 4. **Payment Confirmation Emails** - PayPal sends receipt, our email is bonus
+5. **Vetting Modal Wireframe Compliance** - UX consistency improvement
+6. **About/Community Information Page** - Can use placeholder initially
+7. **File Storage Configuration** - User uploads less critical initially
 
 ### 🟢 LOW Priority (Post-Launch)
 
 1. **Admin Dashboard Analytics** - Can use database queries initially
 2. **Payment History Access** - PayPal provides this, our UI is convenience
 3. **Bulk Email System** - Can use MailChimp or similar externally
-4. **About Page** - Can use placeholder content
-5. **Bulk Vetting Operations** - Current parallel call approach works, true bulk endpoints are optimization
+4. **Bulk Vetting Operations** - Current parallel call approach works, true bulk endpoints are optimization
 
 ---
 
 ## Estimated Time to Launch
 
 **Critical Path (Absolute Minimum)**:
+
+*Application Features:*
 - Vetting workflow backend: 2-3 days
-- Test suite completion: 4-5 days (per testing completion plan)
+- Test suite completion: 4-5 days
 - Dashboard error handling: 1-2 days
 - Public events access: 4-6 hours
 - Event detail view: 1-2 days
-- **Total**: ~10-13 days (2-3 weeks)
+- CMS implementation: 3-5 days
+- Text-only pages creation: 2-3 days
+
+*Infrastructure & Deployment:*
+- Staging environment setup: 3-5 days
+- Production environment setup: 3-5 days
+- CI/CD pipeline - staging: 2-3 days
+- Production deployment process: 1-2 days
+- Database backup & recovery: 1-2 days
+- Environment configuration: 1 day
+
+**Total**: ~29-43 days (6-9 weeks)
 
 **Recommended Path (Reduced Risk)**:
-- Critical items above: 10-13 days
+- Critical items above: 29-43 days
 - Event card interaction: 4-6 hours
 - Admin event editing: 1 day
 - Ticket purchase flow: 2-3 days
 - Security audit: 1-2 days
-- **Total**: ~16-21 days (3-4 weeks)
+- Event volunteer applications display: 1-2 days
+- Vetting email template management: 1-2 days
+- Admin members management section: 1-2 days
+- **Total**: ~37-56 days (7-11 weeks)
 
 **Full Feature Path (Complete Product)**:
-- Recommended items above: 16-21 days
+- Recommended items above: 37-56 days
 - Medium priority items: 5-7 days
 - Bulk vetting operations: 4-5 days
-- **Total**: ~25-33 days (5-7 weeks)
+- **Total**: ~46-68 days (9-14 weeks)
+
+---
+
+## Infrastructure Work Breakdown
+
+**Phase 1: Environment Setup** (6-10 days)
+- Day 1-2: Environment configuration management
+- Day 3-5: Staging environment setup
+- Day 6-10: Production environment setup (parallel with staging validation)
+
+**Phase 2: CI/CD Automation** (3-5 days)
+- Day 1-3: CI/CD pipeline for staging
+- Day 4-5: Production deployment process documentation
+
+**Phase 3: Data Protection** (1-2 days)
+- Database backup & recovery implementation
+
+**Phase 4: File Storage** (1-2 days - Medium Priority)
+- User upload storage configuration
+
+**Total Infrastructure Time**: 10-17 days (can overlap with application development)
 
 ---
 
 ## Notes
 
-- **Updated**: 2025-10-06 - Added bulk vetting operations based on codebase investigation
+- **Updated**: 2025-10-08 - Added 13 new items (6 features + 7 infrastructure)
 - **Source**: `/home/chad/repos/witchcityrope/test-results/comprehensive-test-analysis-2025-10-05.md`
 - **Testing Plan**: `/home/chad/repos/witchcityrope/session-work/2025-10-06/testing-completion-plan.md`
 - **Bulk Ops Investigation**: `/home/chad/repos/witchcityrope/session-work/2025-10-06/bulk-validation-investigation.md`
 - **Add Items**: Use `/orchestrate Add [feature] to pre-launch punch list` during testing
 - **Review Frequency**: Update weekly or after major feature completions
 - **Priority Changes**: Adjust priorities based on user feedback and business needs
+
+**Infrastructure Decision Points:**
+- **Cloud Provider**: Recommend DigitalOcean for simplicity and cost
+- **File Storage**: Recommend DigitalOcean Spaces (S3-compatible)
+- **Database**: Consider DigitalOcean Managed PostgreSQL for automatic backups
+- **Monitoring**: Recommend UptimeRobot (free tier) or DataDog
+- **Secrets**: GitHub Secrets sufficient initially, consider Vault for scale
 
 ---
 
@@ -435,3 +610,5 @@ Use the orchestrator command when testing reveals missing functionality:
 |------|---------|---------|--------|
 | 2025-10-06 | 1.0 | Initial creation with comprehensive test analysis integration | Librarian Agent |
 | 2025-10-06 | 1.1 | Added bulk vetting operations work item after codebase investigation | Librarian Agent |
+| 2025-10-08 | 1.2 | Added 6 feature items: CMS implementation, text-only pages, event volunteer display, vetting email templates, vetting modal fix, admin members section | Claude Code |
+| 2025-10-08 | 1.3 | Added 7 infrastructure items: staging/production environment setup, CI/CD pipeline for staging, production deployment process, database backup/recovery, file storage, environment configuration management - total now 47 items | Claude Code |

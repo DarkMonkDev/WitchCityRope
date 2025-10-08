@@ -189,17 +189,24 @@ public class VettingService : IVettingService
             // Parse AdminNotes into ApplicationNoteDto array
             var notes = ParseAdminNotesToDto(application.AdminNotes);
 
+            // FIX 1: Get audit logs with User navigation property to access reviewer's SceneName
+            var auditLogsWithUsers = await _context.VettingAuditLogs
+                .Where(log => log.ApplicationId == applicationId)
+                .Include(log => log.PerformedByUser)
+                .OrderByDescending(log => log.PerformedAt)
+                .ToListAsync(cancellationToken);
+
             // Convert audit logs to workflow history
-            var workflowHistory = application.AuditLogs?.Select(log => new WorkflowHistoryDto
+            var workflowHistory = auditLogsWithUsers.Select(log => new WorkflowHistoryDto
             {
                 Action = log.Action,
                 PerformedAt = log.PerformedAt,
                 PerformedBy = log.PerformedBy.ToString(),
                 Notes = log.Notes
-            }).OrderByDescending(h => h.PerformedAt).ToList() ?? new List<WorkflowHistoryDto>();
+            }).ToList();
 
-            // Create decisions from audit logs
-            var decisions = application.AuditLogs?
+            // Create decisions from audit logs with actual reviewer SceneName
+            var decisions = auditLogsWithUsers
                 .Where(log => log.Action.Contains("Status Changed") || log.Action.Contains("Decision"))
                 .Select(log => new ReviewDecisionDto
                 {
@@ -207,9 +214,9 @@ public class VettingService : IVettingService
                     DecisionType = log.NewValue ?? "Unknown",
                     Reasoning = log.Notes ?? "",
                     IsFinalDecision = log.Action.Contains("Approved") || log.Action.Contains("Denied"),
-                    ReviewerName = "Administrator", // Simplified
+                    ReviewerName = log.PerformedByUser?.SceneName ?? "System", // FIX 1: Use actual reviewer's SceneName
                     CreatedAt = log.PerformedAt
-                }).OrderByDescending(d => d.CreatedAt).ToList() ?? new List<ReviewDecisionDto>();
+                }).ToList();
 
             // Map to detailed response
             var response = new ApplicationDetailResponse
@@ -298,7 +305,7 @@ public class VettingService : IVettingService
                     "denied" => VettingStatus.Denied,
                     "onhold" => VettingStatus.OnHold,
                     "interviewapproved" => VettingStatus.InterviewApproved,
-                    "interviewscheduled" => VettingStatus.InterviewScheduled,
+                    "interviewcompleted" => VettingStatus.InterviewCompleted,
                     "finalreview" => VettingStatus.FinalReview,
                     _ => application.WorkflowStatus
                 };
@@ -591,8 +598,8 @@ public class VettingService : IVettingService
         return status switch
         {
             VettingStatus.UnderReview => "Application is being reviewed by our team",
-            VettingStatus.InterviewApproved => "Approved for interview - someone will contact you soon",
-            VettingStatus.InterviewScheduled => "Interview scheduled - please check your email for details",
+            VettingStatus.InterviewApproved => "Approved for interview - Calendly link will be sent to schedule",
+            VettingStatus.InterviewCompleted => "Interview completed - application under final review",
             VettingStatus.FinalReview => "Interview completed - application under final review",
             VettingStatus.Approved => "Application approved - welcome to the community!",
             VettingStatus.OnHold => "Application on hold - additional information may be needed",
@@ -610,8 +617,8 @@ public class VettingService : IVettingService
         return status switch
         {
             VettingStatus.UnderReview => "No action needed - we'll contact you with updates",
-            VettingStatus.InterviewApproved => "Wait for interview scheduling email",
-            VettingStatus.InterviewScheduled => "Attend your scheduled interview",
+            VettingStatus.InterviewApproved => "Check your email for Calendly link to schedule your interview",
+            VettingStatus.InterviewCompleted => "No action needed - application under final review",
             VettingStatus.FinalReview => "No action needed - final decision pending",
             VettingStatus.Approved => "You can now register for member events",
             VettingStatus.OnHold => "Check your email for requested information",
@@ -629,8 +636,8 @@ public class VettingService : IVettingService
         return status switch
         {
             VettingStatus.UnderReview => Math.Max(0, 14 - (DateTime.UtcNow - submittedAt).Days), // 2 week typical review
-            VettingStatus.InterviewApproved => Math.Max(0, 7 - (DateTime.UtcNow - submittedAt).Days), // 1 week to schedule
-            VettingStatus.InterviewScheduled => Math.Max(0, 3 - (DateTime.UtcNow - submittedAt).Days), // 3 days after interview
+            VettingStatus.InterviewApproved => Math.Max(0, 7 - (DateTime.UtcNow - submittedAt).Days), // 1 week to schedule via Calendly
+            VettingStatus.InterviewCompleted => Math.Max(0, 7 - (DateTime.UtcNow - submittedAt).Days), // 1 week for final decision
             VettingStatus.FinalReview => Math.Max(0, 7 - (DateTime.UtcNow - submittedAt).Days), // 1 week for final decision
             _ => null
         };
@@ -827,7 +834,7 @@ public class VettingService : IVettingService
             ReferencesContacted = application.WorkflowStatus >= VettingStatus.UnderReview,
             ReferencesReceived = application.WorkflowStatus >= VettingStatus.UnderReview,
             UnderReview = application.WorkflowStatus >= VettingStatus.UnderReview,
-            InterviewScheduled = application.WorkflowStatus == VettingStatus.InterviewScheduled,
+            InterviewScheduled = application.WorkflowStatus == VettingStatus.InterviewCompleted, // Tracks interview completion
             DecisionMade = application.WorkflowStatus is VettingStatus.Approved or VettingStatus.Denied,
             CurrentPhase = GetCurrentPhase(application.WorkflowStatus)
         };
@@ -837,7 +844,7 @@ public class VettingService : IVettingService
         {
             VettingStatus.UnderReview => 20,
             VettingStatus.InterviewApproved => 40,
-            VettingStatus.InterviewScheduled => 60,
+            VettingStatus.InterviewCompleted => 60, // Interview completed
             VettingStatus.FinalReview => 80,
             VettingStatus.Approved => 100,
             VettingStatus.Denied => 100,
@@ -858,7 +865,7 @@ public class VettingService : IVettingService
         {
             VettingStatus.UnderReview => "Under Review",
             VettingStatus.InterviewApproved => "Interview Approved",
-            VettingStatus.InterviewScheduled => "Interview Scheduled",
+            VettingStatus.InterviewCompleted => "Interview Completed", // Renamed from InterviewScheduled
             VettingStatus.FinalReview => "Final Review",
             VettingStatus.Approved => "Approved",
             VettingStatus.Denied => "Application Denied",
@@ -1244,8 +1251,9 @@ public class VettingService : IVettingService
                     if (!application.ReviewStartedAt.HasValue)
                         application.ReviewStartedAt = DateTime.UtcNow;
                     break;
-                case VettingStatus.InterviewScheduled:
-                    // InterviewScheduledFor should be set separately via ScheduleInterviewAsync
+                case VettingStatus.InterviewCompleted:
+                    // Mark interview as completed - store timestamp in InterviewScheduledFor field
+                    application.InterviewScheduledFor = DateTime.UtcNow;
                     break;
                 case VettingStatus.Approved:
                 case VettingStatus.Denied:
@@ -1301,9 +1309,9 @@ public class VettingService : IVettingService
             await _context.SaveChangesAsync(cancellationToken);
 
             // Send email notification for status changes (failures should not prevent status change)
-            // Only send emails for these statuses: InterviewApproved, InterviewScheduled, Approved, OnHold, Denied
+            // Only send emails for these statuses: InterviewApproved, InterviewCompleted, Approved, OnHold, Denied
             if (newStatus == VettingStatus.InterviewApproved ||
-                newStatus == VettingStatus.InterviewScheduled ||
+                newStatus == VettingStatus.InterviewCompleted ||
                 newStatus == VettingStatus.Approved ||
                 newStatus == VettingStatus.OnHold ||
                 newStatus == VettingStatus.Denied)
@@ -1351,105 +1359,8 @@ public class VettingService : IVettingService
         }
     }
 
-    /// <summary>
-    /// Schedule interview for an application
-    /// Moves status to InterviewScheduled, sets interview date, and sends notification
-    /// </summary>
-    public async Task<Result<ApplicationDetailResponse>> ScheduleInterviewAsync(
-        Guid applicationId,
-        DateTime interviewDate,
-        string interviewLocation,
-        Guid adminUserId,
-        CancellationToken cancellationToken = default)
-    {
-        using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
-        try
-        {
-            // Check user authorization
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == adminUserId, cancellationToken);
-            if (user == null || user.Role != "Administrator")
-            {
-                return Result<ApplicationDetailResponse>.Failure(
-                    "Access denied", "Only administrators can schedule interviews.");
-            }
-
-            // Get application
-            var application = await _context.VettingApplications
-                .FirstOrDefaultAsync(v => v.Id == applicationId, cancellationToken);
-
-            if (application == null)
-            {
-                return Result<ApplicationDetailResponse>.Failure(
-                    "Application not found", $"No application found with ID {applicationId}");
-            }
-
-            // Validate input
-            if (string.IsNullOrWhiteSpace(interviewLocation))
-            {
-                return Result<ApplicationDetailResponse>.Failure(
-                    "Interview location required", "Interview location or instructions must be provided");
-            }
-
-            if (interviewDate <= DateTime.UtcNow)
-            {
-                return Result<ApplicationDetailResponse>.Failure(
-                    "Invalid interview date", "Interview date must be in the future.");
-            }
-
-            // Validate status transition to InterviewScheduled
-            var oldStatus = application.WorkflowStatus;
-            var transitionValidation = ValidateStatusTransition(oldStatus, VettingStatus.InterviewScheduled);
-            if (!transitionValidation.IsSuccess)
-            {
-                return Result<ApplicationDetailResponse>.Failure(
-                    "Invalid status transition", transitionValidation.Error);
-            }
-
-            // Update application
-            application.WorkflowStatus = VettingStatus.InterviewScheduled;
-            application.InterviewScheduledFor = interviewDate;
-            application.UpdatedAt = DateTime.UtcNow;
-
-            // Add note about interview scheduling
-            var noteText = $"Interview scheduled for {interviewDate:yyyy-MM-dd HH:mm} UTC. Location: {interviewLocation}";
-            var existingNotes = application.AdminNotes ?? "";
-            var newNote = $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm}] {noteText}";
-            application.AdminNotes = string.IsNullOrEmpty(existingNotes)
-                ? newNote
-                : $"{existingNotes}\n\n{newNote}";
-
-            // Create audit log entry
-            var auditLog = new VettingAuditLog
-            {
-                Id = Guid.NewGuid(),
-                ApplicationId = application.Id,
-                Action = "Interview Scheduled",
-                PerformedBy = adminUserId,
-                PerformedAt = DateTime.UtcNow,
-                OldValue = oldStatus.ToString(),
-                NewValue = VettingStatus.InterviewScheduled.ToString(),
-                Notes = noteText
-            };
-            _context.VettingAuditLogs.Add(auditLog);
-
-            await _context.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-
-            _logger.LogInformation(
-                "Interview scheduled for application {ApplicationId} at {InterviewDate} by admin {AdminUserId}",
-                applicationId, interviewDate, adminUserId);
-
-            // Get updated application details to return
-            return await GetApplicationDetailAsync(applicationId, adminUserId, cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            _logger.LogError(ex, "Error scheduling interview for application {ApplicationId}", applicationId);
-            return Result<ApplicationDetailResponse>.Failure(
-                "Failed to schedule interview", ex.Message);
-        }
-    }
+    // REMOVED: ScheduleInterviewAsync method - interviews are now scheduled externally via Calendly
+    // Use UpdateApplicationStatusAsync with InterviewCompleted status to mark interview as completed
 
     /// <summary>
     /// Put application on hold with required reason and actions
@@ -1519,7 +1430,7 @@ public class VettingService : IVettingService
             }
 
             // Validate workflow status - must be in UnderReview or later (but not already in terminal state)
-            // Allow approval from UnderReview, InterviewApproved, PendingInterview, InterviewScheduled, or OnHold
+            // Allow approval from UnderReview, InterviewApproved, InterviewCompleted, FinalReview, or OnHold
             if (application.WorkflowStatus < VettingStatus.UnderReview)
             {
                 return Result<ApplicationDetailResponse>.Failure(
@@ -1686,8 +1597,8 @@ public class VettingService : IVettingService
     /// <returns>Result indicating if transition is valid</returns>
     private Result<bool> ValidateStatusTransition(VettingStatus currentStatus, VettingStatus newStatus)
     {
-        // Define valid transitions based on new simplified workflow
-        // Workflow: UnderReview → InterviewApproved → InterviewScheduled → FinalReview → Approved/Denied/OnHold
+        // Define valid transitions based on Calendly external interview scheduling workflow
+        // Workflow: UnderReview → InterviewApproved → InterviewCompleted → FinalReview → Approved/Denied/OnHold
         var validTransitions = new Dictionary<VettingStatus, List<VettingStatus>>
         {
             // UnderReview can move to interview approval, be put on hold, denied, or withdrawn
@@ -1699,16 +1610,16 @@ public class VettingService : IVettingService
                 VettingStatus.Withdrawn
             },
 
-            // InterviewApproved can schedule interview, go on hold, or be withdrawn
+            // InterviewApproved can mark interview complete, go on hold, or be withdrawn
             [VettingStatus.InterviewApproved] = new()
             {
-                VettingStatus.InterviewScheduled,
+                VettingStatus.InterviewCompleted, // Renamed from InterviewScheduled
                 VettingStatus.OnHold,
                 VettingStatus.Withdrawn
             },
 
-            // InterviewScheduled can move to final review, be put on hold, or withdrawn
-            [VettingStatus.InterviewScheduled] = new()
+            // InterviewCompleted can move to final review, be put on hold, or withdrawn
+            [VettingStatus.InterviewCompleted] = new()
             {
                 VettingStatus.FinalReview,
                 VettingStatus.OnHold,

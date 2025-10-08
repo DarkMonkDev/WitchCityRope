@@ -90,17 +90,17 @@ describe('VettingStatusBox', () => {
       expect(screen.getByText('Waiting for interview scheduling')).toBeInTheDocument();
     });
 
-    it('renders InterviewScheduled status correctly', () => {
+    it('renders InterviewCompleted status correctly', () => {
       renderWithMantine(
         <VettingStatusBox
           {...baseProps}
-          status="InterviewScheduled"
-          nextSteps="Interview scheduled for October 15, 2025"
+          status="InterviewCompleted"
+          nextSteps="Interview completed - awaiting final review"
         />
       );
 
-      expect(screen.getByText('Interview Scheduled')).toBeInTheDocument();
-      expect(screen.getByText('Interview scheduled for October 15, 2025')).toBeInTheDocument();
+      expect(screen.getByText('Interview Completed')).toBeInTheDocument();
+      expect(screen.getByText('Interview completed - awaiting final review')).toBeInTheDocument();
     });
 
     it('renders OnHold status correctly', () => {

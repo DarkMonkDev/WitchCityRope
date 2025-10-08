@@ -121,13 +121,13 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
         icon: IconCheck
       },
       InterviewApproved: {
-        label: 'Schedule Interview',
-        nextStatus: 'InterviewScheduled',
-        description: 'Set interview date',
+        label: 'Mark Interview Complete',
+        nextStatus: 'InterviewCompleted',
+        description: 'Interview completed via Calendly',
         icon: IconCalendarEvent
       },
-      InterviewScheduled: {
-        label: 'Mark Interview Complete',
+      InterviewCompleted: {
+        label: 'Advance to Final Review',
         nextStatus: 'FinalReview',
         description: 'Move to final review',
         icon: IconCheck
@@ -169,8 +169,11 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
       // Intermediate stage advancement
       submitDecision({
         applicationId: application.id,
-        decisionType: nextStageConfig.nextStatus,
-        reasoning
+        decision: {
+          decisionType: nextStageConfig.nextStatus,
+          reasoning,
+          isFinalDecision: false
+        }
       });
     }
   };

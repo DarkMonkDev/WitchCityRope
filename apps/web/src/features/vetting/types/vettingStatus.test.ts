@@ -37,9 +37,9 @@ describe('VettingStatus Types', () => {
       expect(statusStringToEnum('PendingInterview')).toBe(4);
     });
 
-    it('should convert InterviewScheduled string to enum', () => {
-      expect(statusStringToEnum('InterviewScheduled')).toBe(VettingStatus.InterviewScheduled);
-      expect(statusStringToEnum('InterviewScheduled')).toBe(5);
+    it('should convert InterviewCompleted string to enum', () => {
+      expect(statusStringToEnum('InterviewCompleted')).toBe(VettingStatus.InterviewCompleted);
+      expect(statusStringToEnum('InterviewCompleted')).toBe(5);
     });
 
     it('should convert OnHold string to enum', () => {
@@ -89,9 +89,9 @@ describe('VettingStatus Types', () => {
       expect(statusEnumToString(4)).toBe('PendingInterview');
     });
 
-    it('should convert InterviewScheduled enum to string', () => {
-      expect(statusEnumToString(VettingStatus.InterviewScheduled)).toBe('InterviewScheduled');
-      expect(statusEnumToString(5)).toBe('InterviewScheduled');
+    it('should convert InterviewCompleted enum to string', () => {
+      expect(statusEnumToString(VettingStatus.InterviewCompleted)).toBe('InterviewCompleted');
+      expect(statusEnumToString(5)).toBe('InterviewCompleted');
     });
 
     it('should convert OnHold enum to string', () => {
@@ -148,8 +148,8 @@ describe('VettingStatus Types', () => {
       expect(shouldHideMenuForStatus('PendingInterview')).toBe(false);
     });
 
-    it('should return false for InterviewScheduled status', () => {
-      expect(shouldHideMenuForStatus('InterviewScheduled')).toBe(false);
+    it('should return false for InterviewCompleted status', () => {
+      expect(shouldHideMenuForStatus('InterviewCompleted')).toBe(false);
     });
 
     it('should return false for Withdrawn status', () => {
@@ -165,7 +165,7 @@ describe('VettingStatus Types', () => {
         VettingStatus.UnderReview,
         VettingStatus.InterviewApproved,
         VettingStatus.PendingInterview,
-        VettingStatus.InterviewScheduled,
+        VettingStatus.InterviewCompleted,
         VettingStatus.OnHold,
         VettingStatus.Approved,
         VettingStatus.Denied,
@@ -186,7 +186,7 @@ describe('VettingStatus Types', () => {
         'UnderReview',
         'InterviewApproved',
         'PendingInterview',
-        'InterviewScheduled',
+        'InterviewCompleted',
         'OnHold',
         'Approved',
         'Denied',

@@ -308,7 +308,7 @@ describe('useVettingStatus', () => {
       'UnderReview',
       'InterviewApproved',
       'PendingInterview',
-      'InterviewScheduled',
+      'InterviewCompleted',
       'OnHold',
       'Approved',
       'Denied',

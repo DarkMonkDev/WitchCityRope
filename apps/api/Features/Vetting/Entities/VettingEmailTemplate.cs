@@ -57,6 +57,7 @@ public class VettingEmailTemplate
 
 /// <summary>
 /// Email template types for vetting notifications
+/// Updated for Calendly external interview scheduling workflow
 /// </summary>
 public enum EmailTemplateType
 {
@@ -66,5 +67,5 @@ public enum EmailTemplateType
     OnHold = 3,
     Denied = 4,
     InterviewReminder = 5,
-    InterviewScheduled = 6
+    InterviewCompleted = 6  // Renamed from InterviewScheduled - tracks interview completion, not scheduling
 }

@@ -6,14 +6,15 @@ namespace WitchCityRope.Api.Features.Vetting.Entities;
 /// Simplified vetting application entity aligned with design specifications
 /// Represents a member application for vetting with basic audit trail support
 ///
-/// VETTING WORKFLOW:
+/// VETTING WORKFLOW (Updated for Calendly External Scheduling):
 /// 1. Application submitted → UnderReview (0) - Initial submission under review
-/// 2. Team reviews application → InterviewApproved (1) - Approved for interview scheduling
-/// 3. Interview scheduled → InterviewScheduled (2) - Interview date/time set
-/// 4. Interview completed → FinalReview (3) - Post-interview review before decision
+/// 2. Team reviews application → InterviewApproved (1) - Approved for interview (Calendly link sent)
+/// 3. Interview completed → InterviewCompleted (2) - Interview has been completed (marked manually)
+/// 4. Interview completed automatically triggers → FinalReview (3) - Post-interview review before decision
 /// 5. Final decision → Approved (4), Denied (5), or OnHold (6)
 /// 6. User can withdraw anytime → Withdrawn (7)
 ///
+/// NOTE: Interviews are scheduled externally via Calendly. The system tracks completion, not scheduling.
 /// Terminal states: Approved, Denied, Withdrawn (no further transitions allowed)
 /// Hold state: OnHold can return to UnderReview or InterviewApproved
 /// </summary>
@@ -96,12 +97,13 @@ public class VettingApplication
 
 /// <summary>
 /// Simplified vetting status enum aligned with wireframe requirements
+/// Updated for Calendly external interview scheduling workflow
 /// </summary>
 public enum VettingStatus
 {
     UnderReview = 0,        // Application submitted and under initial review
-    InterviewApproved = 1,  // Approved to schedule interview
-    InterviewScheduled = 2, // Interview has been scheduled
+    InterviewApproved = 1,  // Approved for interview - Calendly link sent to applicant
+    InterviewCompleted = 2, // Interview has been completed (marked manually after Calendly session)
     FinalReview = 3,        // Post-interview final review before decision
     Approved = 4,           // Final decision: Approved
     Denied = 5,             // Final decision: Denied
