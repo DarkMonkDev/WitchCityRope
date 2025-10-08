@@ -186,10 +186,7 @@ public class VettingService : IVettingService
                     "Application not found", $"No application found with ID {applicationId}");
             }
 
-            // Parse AdminNotes into ApplicationNoteDto array
-            var notes = ParseAdminNotesToDto(application.AdminNotes);
-
-            // FIX 1: Get audit logs with User navigation property to access reviewer's SceneName
+            // FIX: Get audit logs with User navigation property to access reviewer's SceneName
             var auditLogsWithUsers = await _context.VettingAuditLogs
                 .Where(log => log.ApplicationId == applicationId)
                 .Include(log => log.PerformedByUser)
@@ -205,6 +202,23 @@ public class VettingService : IVettingService
                 Notes = log.Notes
             }).ToList();
 
+            // Create notes from audit logs with actual reviewer SceneName
+            var notes = auditLogsWithUsers
+                .Where(log => log.Action == "Note Added" || !string.IsNullOrWhiteSpace(log.Notes))
+                .Select(log => new ApplicationNoteDto
+                {
+                    Id = log.Id,
+                    Content = log.Notes ?? "",
+                    Type = log.Action == "Note Added" ? "Note" : "Decision",
+                    IsPrivate = true,
+                    Tags = new List<string>(),
+                    ReviewerName = log.PerformedByUser?.SceneName ?? "System",
+                    CreatedAt = log.PerformedAt,
+                    UpdatedAt = log.PerformedAt
+                })
+                .OrderByDescending(n => n.CreatedAt)
+                .ToList();
+
             // Create decisions from audit logs with actual reviewer SceneName
             var decisions = auditLogsWithUsers
                 .Where(log => log.Action.Contains("Status Changed") || log.Action.Contains("Decision"))
@@ -214,7 +228,7 @@ public class VettingService : IVettingService
                     DecisionType = log.NewValue ?? "Unknown",
                     Reasoning = log.Notes ?? "",
                     IsFinalDecision = log.Action.Contains("Approved") || log.Action.Contains("Denied"),
-                    ReviewerName = log.PerformedByUser?.SceneName ?? "System", // FIX 1: Use actual reviewer's SceneName
+                    ReviewerName = log.PerformedByUser?.SceneName ?? "System",
                     CreatedAt = log.PerformedAt
                 }).ToList();
 
@@ -247,8 +261,8 @@ public class VettingService : IVettingService
                 Priority = 1,
                 InterviewScheduledFor = application.InterviewScheduledFor,
                 References = new List<ReferenceDetailDto>(), // Not implemented yet
-                Notes = notes, // Parsed from AdminNotes
-                Decisions = decisions, // Parsed from audit logs
+                Notes = notes, // Created from audit logs with reviewer SceneName
+                Decisions = decisions, // Created from audit logs with reviewer SceneName
                 WorkflowHistory = workflowHistory // Audit logs as workflow history
             };
 

@@ -202,7 +202,7 @@ export interface ReviewDecisionRequest {
 export interface ReviewDecisionResponse {
   success: boolean;
   message: string;
-  updatedStatus: string;
+  newApplicationStatus: string;  // Changed from updatedStatus to match backend DTO
 }
 
 // API Error types

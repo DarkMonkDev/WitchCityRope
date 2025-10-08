@@ -27,7 +27,7 @@ export function useSubmitReviewDecision(onSuccess?: () => void) {
       // Show success notification
       notifications.show({
         title: 'Decision Submitted',
-        message: `Application status updated to: ${data.updatedStatus}`,
+        message: `Application status updated to: ${data.newApplicationStatus}`,
         color: 'green',
       });
 
