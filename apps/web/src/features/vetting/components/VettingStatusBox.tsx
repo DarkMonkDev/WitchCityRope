@@ -38,16 +38,6 @@ const statusConfig: Record<
     icon: React.ElementType;
   }
 > = {
-  Draft: {
-    displayName: 'Draft',
-    color: 'gray',
-    icon: FileText
-  },
-  Submitted: {
-    displayName: 'Submitted',
-    color: 'blue',
-    icon: Clock
-  },
   UnderReview: {
     displayName: 'Under Review',
     color: 'indigo',
@@ -58,20 +48,10 @@ const statusConfig: Record<
     color: 'teal',
     icon: CheckCircle
   },
-  PendingInterview: {
-    displayName: 'Pending Interview',
-    color: 'cyan',
-    icon: Calendar
-  },
-  InterviewCompleted: {
-    displayName: 'Interview Completed',
-    color: 'green',
-    icon: Calendar
-  },
-  OnHold: {
-    displayName: 'On Hold',
-    color: 'yellow',
-    icon: Pause
+  FinalReview: {
+    displayName: 'Final Review',
+    color: 'blue',
+    icon: FileText
   },
   Approved: {
     displayName: 'Approved',
@@ -82,6 +62,11 @@ const statusConfig: Record<
     displayName: 'Denied',
     color: 'red',
     icon: XCircle
+  },
+  OnHold: {
+    displayName: 'On Hold',
+    color: 'yellow',
+    icon: Pause
   },
   Withdrawn: {
     displayName: 'Withdrawn',
@@ -99,7 +84,7 @@ const statusConfig: Record<
  * @example
  * ```typescript
  * <VettingStatusBox
- *   status="Submitted"
+ *   status="UnderReview"
  *   applicationNumber="V-2025-001"
  *   submittedAt={new Date()}
  *   lastUpdated={new Date()}

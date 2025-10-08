@@ -66,6 +66,5 @@ public enum EmailTemplateType
     Approved = 2,
     OnHold = 3,
     Denied = 4,
-    InterviewReminder = 5,
-    InterviewCompleted = 6  // Renamed from InterviewScheduled - tracks interview completion, not scheduling
+    InterviewReminder = 5
 }

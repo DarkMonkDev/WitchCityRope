@@ -12,106 +12,76 @@ import {
 
 describe('VettingStatus Types', () => {
   describe('statusStringToEnum', () => {
-    it('should convert Draft string to enum', () => {
-      expect(statusStringToEnum('Draft')).toBe(VettingStatus.Draft);
-      expect(statusStringToEnum('Draft')).toBe(0);
-    });
-
-    it('should convert Submitted string to enum', () => {
-      expect(statusStringToEnum('Submitted')).toBe(VettingStatus.Submitted);
-      expect(statusStringToEnum('Submitted')).toBe(1);
-    });
-
     it('should convert UnderReview string to enum', () => {
       expect(statusStringToEnum('UnderReview')).toBe(VettingStatus.UnderReview);
-      expect(statusStringToEnum('UnderReview')).toBe(2);
+      expect(statusStringToEnum('UnderReview')).toBe(0);
     });
 
     it('should convert InterviewApproved string to enum', () => {
       expect(statusStringToEnum('InterviewApproved')).toBe(VettingStatus.InterviewApproved);
-      expect(statusStringToEnum('InterviewApproved')).toBe(3);
+      expect(statusStringToEnum('InterviewApproved')).toBe(1);
     });
 
-    it('should convert PendingInterview string to enum', () => {
-      expect(statusStringToEnum('PendingInterview')).toBe(VettingStatus.PendingInterview);
-      expect(statusStringToEnum('PendingInterview')).toBe(4);
-    });
-
-    it('should convert InterviewCompleted string to enum', () => {
-      expect(statusStringToEnum('InterviewCompleted')).toBe(VettingStatus.InterviewCompleted);
-      expect(statusStringToEnum('InterviewCompleted')).toBe(5);
-    });
-
-    it('should convert OnHold string to enum', () => {
-      expect(statusStringToEnum('OnHold')).toBe(VettingStatus.OnHold);
-      expect(statusStringToEnum('OnHold')).toBe(6);
+    it('should convert FinalReview string to enum', () => {
+      expect(statusStringToEnum('FinalReview')).toBe(VettingStatus.FinalReview);
+      expect(statusStringToEnum('FinalReview')).toBe(2);
     });
 
     it('should convert Approved string to enum', () => {
       expect(statusStringToEnum('Approved')).toBe(VettingStatus.Approved);
-      expect(statusStringToEnum('Approved')).toBe(7);
+      expect(statusStringToEnum('Approved')).toBe(3);
     });
 
     it('should convert Denied string to enum', () => {
       expect(statusStringToEnum('Denied')).toBe(VettingStatus.Denied);
-      expect(statusStringToEnum('Denied')).toBe(8);
+      expect(statusStringToEnum('Denied')).toBe(4);
+    });
+
+    it('should convert OnHold string to enum', () => {
+      expect(statusStringToEnum('OnHold')).toBe(VettingStatus.OnHold);
+      expect(statusStringToEnum('OnHold')).toBe(5);
     });
 
     it('should convert Withdrawn string to enum', () => {
       expect(statusStringToEnum('Withdrawn')).toBe(VettingStatus.Withdrawn);
-      expect(statusStringToEnum('Withdrawn')).toBe(9);
+      expect(statusStringToEnum('Withdrawn')).toBe(6);
     });
   });
 
   describe('statusEnumToString', () => {
-    it('should convert Draft enum to string', () => {
-      expect(statusEnumToString(VettingStatus.Draft)).toBe('Draft');
-      expect(statusEnumToString(0)).toBe('Draft');
-    });
-
-    it('should convert Submitted enum to string', () => {
-      expect(statusEnumToString(VettingStatus.Submitted)).toBe('Submitted');
-      expect(statusEnumToString(1)).toBe('Submitted');
-    });
-
     it('should convert UnderReview enum to string', () => {
       expect(statusEnumToString(VettingStatus.UnderReview)).toBe('UnderReview');
-      expect(statusEnumToString(2)).toBe('UnderReview');
+      expect(statusEnumToString(0)).toBe('UnderReview');
     });
 
     it('should convert InterviewApproved enum to string', () => {
       expect(statusEnumToString(VettingStatus.InterviewApproved)).toBe('InterviewApproved');
-      expect(statusEnumToString(3)).toBe('InterviewApproved');
+      expect(statusEnumToString(1)).toBe('InterviewApproved');
     });
 
-    it('should convert PendingInterview enum to string', () => {
-      expect(statusEnumToString(VettingStatus.PendingInterview)).toBe('PendingInterview');
-      expect(statusEnumToString(4)).toBe('PendingInterview');
-    });
-
-    it('should convert InterviewCompleted enum to string', () => {
-      expect(statusEnumToString(VettingStatus.InterviewCompleted)).toBe('InterviewCompleted');
-      expect(statusEnumToString(5)).toBe('InterviewCompleted');
-    });
-
-    it('should convert OnHold enum to string', () => {
-      expect(statusEnumToString(VettingStatus.OnHold)).toBe('OnHold');
-      expect(statusEnumToString(6)).toBe('OnHold');
+    it('should convert FinalReview enum to string', () => {
+      expect(statusEnumToString(VettingStatus.FinalReview)).toBe('FinalReview');
+      expect(statusEnumToString(2)).toBe('FinalReview');
     });
 
     it('should convert Approved enum to string', () => {
       expect(statusEnumToString(VettingStatus.Approved)).toBe('Approved');
-      expect(statusEnumToString(7)).toBe('Approved');
+      expect(statusEnumToString(3)).toBe('Approved');
     });
 
     it('should convert Denied enum to string', () => {
       expect(statusEnumToString(VettingStatus.Denied)).toBe('Denied');
-      expect(statusEnumToString(8)).toBe('Denied');
+      expect(statusEnumToString(4)).toBe('Denied');
+    });
+
+    it('should convert OnHold enum to string', () => {
+      expect(statusEnumToString(VettingStatus.OnHold)).toBe('OnHold');
+      expect(statusEnumToString(5)).toBe('OnHold');
     });
 
     it('should convert Withdrawn enum to string', () => {
       expect(statusEnumToString(VettingStatus.Withdrawn)).toBe('Withdrawn');
-      expect(statusEnumToString(9)).toBe('Withdrawn');
+      expect(statusEnumToString(6)).toBe('Withdrawn');
     });
   });
 
@@ -128,14 +98,6 @@ describe('VettingStatus Types', () => {
       expect(shouldHideMenuForStatus('Denied')).toBe(true);
     });
 
-    it('should return false for Draft status', () => {
-      expect(shouldHideMenuForStatus('Draft')).toBe(false);
-    });
-
-    it('should return false for Submitted status', () => {
-      expect(shouldHideMenuForStatus('Submitted')).toBe(false);
-    });
-
     it('should return false for UnderReview status', () => {
       expect(shouldHideMenuForStatus('UnderReview')).toBe(false);
     });
@@ -144,12 +106,8 @@ describe('VettingStatus Types', () => {
       expect(shouldHideMenuForStatus('InterviewApproved')).toBe(false);
     });
 
-    it('should return false for PendingInterview status', () => {
-      expect(shouldHideMenuForStatus('PendingInterview')).toBe(false);
-    });
-
-    it('should return false for InterviewCompleted status', () => {
-      expect(shouldHideMenuForStatus('InterviewCompleted')).toBe(false);
+    it('should return false for FinalReview status', () => {
+      expect(shouldHideMenuForStatus('FinalReview')).toBe(false);
     });
 
     it('should return false for Withdrawn status', () => {
@@ -160,15 +118,12 @@ describe('VettingStatus Types', () => {
   describe('Round-trip conversions', () => {
     it('should convert enum to string and back', () => {
       const allStatuses = [
-        VettingStatus.Draft,
-        VettingStatus.Submitted,
         VettingStatus.UnderReview,
         VettingStatus.InterviewApproved,
-        VettingStatus.PendingInterview,
-        VettingStatus.InterviewCompleted,
-        VettingStatus.OnHold,
+        VettingStatus.FinalReview,
         VettingStatus.Approved,
         VettingStatus.Denied,
+        VettingStatus.OnHold,
         VettingStatus.Withdrawn
       ];
 
@@ -181,15 +136,12 @@ describe('VettingStatus Types', () => {
 
     it('should convert string to enum and back', () => {
       const allStatusStrings: VettingStatusString[] = [
-        'Draft',
-        'Submitted',
         'UnderReview',
         'InterviewApproved',
-        'PendingInterview',
-        'InterviewCompleted',
-        'OnHold',
+        'FinalReview',
         'Approved',
         'Denied',
+        'OnHold',
         'Withdrawn'
       ];
 

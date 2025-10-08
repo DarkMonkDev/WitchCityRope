@@ -7,19 +7,17 @@ import type { components } from '@witchcityrope/shared-types';
 
 /**
  * Vetting status enum matching backend exactly
- * Based on VettingApplication.cs enum values (0-9)
+ * Based on VettingApplication.cs enum values
+ * Interview completion moves directly to FinalReview (no InterviewCompleted intermediate state)
  */
 export enum VettingStatus {
-  Draft = 0,
-  Submitted = 1,
-  UnderReview = 2,
-  InterviewApproved = 3,
-  PendingInterview = 4,
-  InterviewCompleted = 5,
-  OnHold = 6,
-  Approved = 7,
-  Denied = 8,
-  Withdrawn = 9
+  UnderReview = 0,
+  InterviewApproved = 1,
+  FinalReview = 2,
+  Approved = 3,
+  Denied = 4,
+  OnHold = 5,
+  Withdrawn = 6
 }
 
 /**
@@ -27,15 +25,12 @@ export enum VettingStatus {
  * Backend returns status as string in API responses
  */
 export type VettingStatusString =
-  | 'Draft'
-  | 'Submitted'
   | 'UnderReview'
   | 'InterviewApproved'
-  | 'PendingInterview'
-  | 'InterviewCompleted'
-  | 'OnHold'
+  | 'FinalReview'
   | 'Approved'
   | 'Denied'
+  | 'OnHold'
   | 'Withdrawn';
 
 /**
@@ -102,15 +97,12 @@ export interface StatusBoxProps {
  */
 export const statusStringToEnum = (status: VettingStatusString): VettingStatus => {
   const mapping: Record<VettingStatusString, VettingStatus> = {
-    Draft: VettingStatus.Draft,
-    Submitted: VettingStatus.Submitted,
     UnderReview: VettingStatus.UnderReview,
     InterviewApproved: VettingStatus.InterviewApproved,
-    PendingInterview: VettingStatus.PendingInterview,
-    InterviewCompleted: VettingStatus.InterviewCompleted,
-    OnHold: VettingStatus.OnHold,
+    FinalReview: VettingStatus.FinalReview,
     Approved: VettingStatus.Approved,
     Denied: VettingStatus.Denied,
+    OnHold: VettingStatus.OnHold,
     Withdrawn: VettingStatus.Withdrawn
   };
   return mapping[status];
@@ -121,15 +113,12 @@ export const statusStringToEnum = (status: VettingStatusString): VettingStatus =
  */
 export const statusEnumToString = (status: VettingStatus): VettingStatusString => {
   const mapping: Record<VettingStatus, VettingStatusString> = {
-    [VettingStatus.Draft]: 'Draft',
-    [VettingStatus.Submitted]: 'Submitted',
     [VettingStatus.UnderReview]: 'UnderReview',
     [VettingStatus.InterviewApproved]: 'InterviewApproved',
-    [VettingStatus.PendingInterview]: 'PendingInterview',
-    [VettingStatus.InterviewCompleted]: 'InterviewCompleted',
-    [VettingStatus.OnHold]: 'OnHold',
+    [VettingStatus.FinalReview]: 'FinalReview',
     [VettingStatus.Approved]: 'Approved',
     [VettingStatus.Denied]: 'Denied',
+    [VettingStatus.OnHold]: 'OnHold',
     [VettingStatus.Withdrawn]: 'Withdrawn'
   };
   return mapping[status];

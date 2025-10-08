@@ -32,11 +32,14 @@ export default defineConfig(({ mode }) => {
       port: parseInt(process.env.VITE_PORT || '5173'), // Use environment variable
       strictPort: true, // ENFORCE port 5173 - fail if unavailable (prevents confusion)
       
-      // HMR Configuration - enabled for development
-      hmr: {
-        host: 'localhost',
-        port: 24678,
-      },
+      // HMR Configuration - use same port as dev server when in Docker
+      hmr: process.env.DOCKER_ENV === 'true'
+        ? {
+            host: 'localhost',
+            port: parseInt(process.env.VITE_PORT || '5173'),
+            protocol: 'ws',
+          }
+        : true, // Use default HMR for local dev
 
       // File watching configuration for containers
       watch: {

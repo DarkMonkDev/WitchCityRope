@@ -98,15 +98,15 @@ public class VettingApplication
 /// <summary>
 /// Simplified vetting status enum aligned with wireframe requirements
 /// Updated for Calendly external interview scheduling workflow
+/// Interview completion automatically moves to FinalReview (no intermediate InterviewCompleted state)
 /// </summary>
 public enum VettingStatus
 {
     UnderReview = 0,        // Application submitted and under initial review
     InterviewApproved = 1,  // Approved for interview - Calendly link sent to applicant
-    InterviewCompleted = 2, // Interview has been completed (marked manually after Calendly session)
-    FinalReview = 3,        // Post-interview final review before decision
-    Approved = 4,           // Final decision: Approved
-    Denied = 5,             // Final decision: Denied
-    OnHold = 6,             // Final decision: On hold
-    Withdrawn = 7           // Applicant withdrew their application
+    FinalReview = 2,        // Post-interview final review before decision (after interview completed)
+    Approved = 3,           // Final decision: Approved
+    Denied = 4,             // Final decision: Denied
+    OnHold = 5,             // Final decision: On hold
+    Withdrawn = 6           // Applicant withdrew their application
 }

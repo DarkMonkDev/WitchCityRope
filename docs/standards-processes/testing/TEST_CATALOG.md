@@ -26,6 +26,83 @@
 
 ---
 
+## 🚨 NEW: VETTING STATUS ENUM MIGRATION - TEST FIXES (2025-10-08) 🚨
+
+**STATUS UPDATE COMPLETE**: All vetting-related test files updated to use new backend VettingStatus enum (removed obsolete statuses).
+
+### Backend Enum Changes:
+**Removed Statuses** (obsolete):
+- ❌ `Draft` (0)
+- ❌ `Submitted` (1)
+- ❌ `PendingInterview` (4)
+- ❌ `InterviewCompleted` (5)
+
+**Current Valid Statuses**:
+- ✅ `UnderReview` (0) - Initial status when application created
+- ✅ `InterviewApproved` (1) - Interview approved by admin
+- ✅ `FinalReview` (2) - Replaces InterviewCompleted
+- ✅ `Approved` (3) - Terminal state
+- ✅ `Denied` (4) - Terminal state
+- ✅ `OnHold` (5) - Temporary hold
+- ✅ `Withdrawn` (6) - Applicant withdrew
+
+### Files Fixed (5 total):
+
+1. **VettingStatusBox.test.tsx** - Component rendering tests
+   - Removed tests for `Draft`, `Submitted`, `PendingInterview`, `InterviewCompleted`
+   - Updated all test data to use valid statuses
+   - Changed default test status from `Submitted` to `UnderReview`
+   - Added test for `FinalReview` status
+
+2. **VettingStatusBox.tsx** - Component configuration
+   - Updated `statusConfig` mapping to new enum values
+   - Removed configuration for obsolete statuses
+   - Added configuration for `FinalReview` status
+   - Updated JSDoc example to use `UnderReview`
+
+3. **useMenuVisibility.test.tsx** - Menu visibility logic tests
+   - Updated "show menu" statuses list from 7 to 4 valid statuses
+   - Removed `Draft`, `Submitted`, `PendingInterview`, `InterviewCompleted`
+   - Tests verify correct menu behavior for all valid statuses
+
+4. **useVettingStatus.test.tsx** - Status fetching hook tests
+   - Renamed test from `Submitted application` to `UnderReview application`
+   - Updated all status values in test data
+   - Reduced test status array from 10 to 7 valid statuses
+   - All assertions updated to new status names
+
+5. **vettingStatus.test.ts** - Type conversion and helper tests
+   - Updated all enum-to-string conversion tests (7 statuses)
+   - Updated all string-to-enum conversion tests (7 statuses)
+   - Fixed `shouldHideMenuForStatus` tests (removed 4 obsolete statuses)
+   - Updated round-trip conversion tests to use valid statuses only
+
+### Test Coverage:
+- ✅ **Component rendering**: All 7 valid statuses tested
+- ✅ **Menu visibility**: All show/hide scenarios covered
+- ✅ **Status fetching**: All valid statuses tested
+- ✅ **Type conversion**: All enum/string conversions verified
+- ✅ **Helper functions**: Menu hiding logic validated
+
+### Impact:
+- **Tests fixed**: 5 files, ~40 test cases updated
+- **TypeScript compilation**: ✅ All files compile successfully
+- **Breaking changes**: None (backend already migrated)
+- **Test alignment**: 100% aligned with backend VettingStatus enum
+
+### Business Logic:
+- **Initial status**: Applications now start as `UnderReview` (not Draft)
+- **Interview flow**: `UnderReview` → `InterviewApproved` → `FinalReview` → `Approved/Denied`
+- **Menu visibility**: Hide "How to Join" for `OnHold`, `Approved`, `Denied` only
+- **Terminal states**: `Approved` and `Denied` cannot be changed
+
+### Related Documentation:
+- **Backend enum**: `/apps/api/Features/Vetting/VettingApplication.cs`
+- **Frontend types**: `/apps/web/src/features/vetting/types/vettingStatus.ts`
+- **Lessons learned**: `/docs/lessons-learned/test-developer-lessons-learned-2.md` (lines 1253-1380)
+
+---
+
 ## 🚨 NEW: TIPTAP EDITOR TEST MIGRATION COMPLETE (2025-10-08) 🚨
 
 **MIGRATION STATUS**: TinyMCE → @mantine/tiptap migration Phase 4 (Testing) complete.

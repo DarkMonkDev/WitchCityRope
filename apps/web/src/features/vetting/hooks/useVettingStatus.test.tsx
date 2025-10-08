@@ -107,14 +107,14 @@ describe('useVettingStatus', () => {
       });
     });
 
-    it('should fetch status successfully for user with Submitted application', async () => {
+    it('should fetch status successfully for user with UnderReview application', async () => {
       // Arrange
       const mockResponse: MyApplicationStatusResponse = {
         hasApplication: true,
         application: {
           applicationId: '123e4567-e89b-12d3-a456-426614174000',
           applicationNumber: 'a1b2c3d4',
-          status: 'Submitted',
+          status: 'UnderReview',
           statusDescription: 'Application submitted, awaiting review',
           submittedAt: '2025-10-04T12:00:00Z',
           lastUpdated: '2025-10-04T12:00:00Z',
@@ -144,7 +144,7 @@ describe('useVettingStatus', () => {
 
       expect(result.current.data).toEqual(mockResponse);
       expect(result.current.data?.hasApplication).toBe(true);
-      expect(result.current.data?.application?.status).toBe('Submitted');
+      expect(result.current.data?.application?.status).toBe('UnderReview');
       expect(result.current.data?.application?.estimatedDaysRemaining).toBe(14);
     });
 
@@ -303,15 +303,12 @@ describe('useVettingStatus', () => {
     });
 
     const testStatuses = [
-      'Draft',
-      'Submitted',
       'UnderReview',
       'InterviewApproved',
-      'PendingInterview',
-      'InterviewCompleted',
-      'OnHold',
+      'FinalReview',
       'Approved',
       'Denied',
+      'OnHold',
       'Withdrawn'
     ] as const;
 

@@ -319,7 +319,6 @@ public class VettingService : IVettingService
                     "denied" => VettingStatus.Denied,
                     "onhold" => VettingStatus.OnHold,
                     "interviewapproved" => VettingStatus.InterviewApproved,
-                    "interviewcompleted" => VettingStatus.InterviewCompleted,
                     "finalreview" => VettingStatus.FinalReview,
                     _ => application.WorkflowStatus
                 };
@@ -329,22 +328,24 @@ public class VettingService : IVettingService
                 newStatus = decisionInt switch
                 {
                     1 => VettingStatus.InterviewApproved, // Approve for interview
-                    2 => VettingStatus.Denied,   // Deny
-                    3 => VettingStatus.OnHold,   // Request additional info
-                    4 => VettingStatus.Approved, // Final approval
-                    _ => application.WorkflowStatus // No change
+                    2 => VettingStatus.FinalReview,       // Final review
+                    3 => VettingStatus.Approved,          // Final approval
+                    4 => VettingStatus.Denied,            // Deny
+                    5 => VettingStatus.OnHold,            // Request additional info
+                    _ => application.WorkflowStatus       // No change
                 };
             }
             else
             {
-                // Try to parse as string or int from JSON
+                // Try to parse as string or int from JSON (handles JsonElement type)
                 var decisionValue = request.DecisionType?.ToString()?.ToLower() ?? "";
                 newStatus = decisionValue switch
                 {
-                    "approved" or "4" => VettingStatus.Approved,
-                    "denied" or "2" => VettingStatus.Denied,
-                    "onhold" or "3" => VettingStatus.OnHold,
+                    "approved" or "3" => VettingStatus.Approved,
+                    "denied" or "4" => VettingStatus.Denied,
+                    "onhold" or "5" => VettingStatus.OnHold,
                     "interviewapproved" or "1" => VettingStatus.InterviewApproved,
+                    "finalreview" or "2" => VettingStatus.FinalReview,
                     _ => application.WorkflowStatus
                 };
             }

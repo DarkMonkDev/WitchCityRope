@@ -395,7 +395,6 @@ public class VettingEmailService : IVettingEmailService
         return status switch
         {
             VettingStatus.InterviewApproved => EmailTemplateType.InterviewApproved,
-            VettingStatus.InterviewCompleted => EmailTemplateType.InterviewCompleted, // Renamed from InterviewScheduled
             VettingStatus.FinalReview => null, // No email for FinalReview (internal step)
             VettingStatus.OnHold => EmailTemplateType.OnHold,
             VettingStatus.Approved => EmailTemplateType.Approved,
@@ -645,7 +644,6 @@ The WitchCityRope Team";
         {
             VettingStatus.UnderReview => "Under Review",
             VettingStatus.InterviewApproved => "Interview Approved",
-            VettingStatus.InterviewCompleted => "Interview Completed", // Renamed from InterviewScheduled
             VettingStatus.FinalReview => "Final Review",
             VettingStatus.OnHold => "On Hold",
             VettingStatus.Approved => "Approved",
@@ -668,10 +666,8 @@ The WitchCityRope Team";
                 "Your application is being reviewed by our team. We will contact you with updates.",
             VettingStatus.InterviewApproved =>
                 "Please check your email for the Calendly link to schedule your interview.",
-            VettingStatus.InterviewCompleted => // Renamed from InterviewScheduled
-                "Your interview has been completed and your application is under final review.",
             VettingStatus.FinalReview =>
-                "Your application is under final review. We will contact you with a decision soon.",
+                "Your interview has been completed and your application is under final review.",
             VettingStatus.OnHold =>
                 "We need additional information from you. Please check your email for details.",
             VettingStatus.Approved =>

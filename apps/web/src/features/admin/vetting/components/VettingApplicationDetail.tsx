@@ -122,15 +122,9 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
       },
       InterviewApproved: {
         label: 'Mark Interview Complete',
-        nextStatus: 'InterviewCompleted',
-        description: 'Interview completed via Calendly',
-        icon: IconCalendarEvent
-      },
-      InterviewCompleted: {
-        label: 'Advance to Final Review',
         nextStatus: 'FinalReview',
-        description: 'Move to final review',
-        icon: IconCheck
+        description: 'Interview completed, move to final review',
+        icon: IconCalendarEvent
       },
       FinalReview: {
         label: 'Approve Application',

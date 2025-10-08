@@ -422,7 +422,7 @@ public class SeedDataService : ISeedDataService
     /// Includes variety of application statuses, realistic user data, and proper audit trails.
     ///
     /// Applications created:
-    /// - Up to 11 sample applications with different statuses (UnderReview, InterviewApproved, InterviewCompleted, Approved, OnHold, Denied)
+    /// - Up to 11 sample applications with different statuses (UnderReview, InterviewApproved, FinalReview, Approved, OnHold, Denied)
     /// - Realistic names, scene names, FetLife handles, and application text
     /// - Proper pronoun representation (she/her, he/him, they/them, etc.)
     /// - Links to existing seeded users where appropriate
@@ -535,7 +535,7 @@ public class SeedDataService : ISeedDataService
                 Pronouns = "he/him",
                 OtherNames = "Marc, MJ",
                 AboutYourself = @"I'm a 28-year-old professional who discovered rope bondage through a partner. I've been practicing for six months and am passionate about the psychological and emotional aspects of rope. I have experience as a rigger and understand the responsibility that comes with restraining another person. I've completed online safety courses and practiced extensively with enthusiastic partners. I'm seeking a community where I can continue learning and share experiences with others who value both technical skill and emotional intelligence in rope work.",
-                WorkflowStatus = VettingStatus.InterviewCompleted, // InterviewCompleted (2) - Renamed from InterviewScheduled
+                WorkflowStatus = VettingStatus.FinalReview, // FinalReview (2) - Interview complete, awaiting decision
                 SubmittedAt = DateTime.UtcNow.AddDays(-14),
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-10),
                 InterviewScheduledFor = DateTime.UtcNow.AddDays(-3), // Interview completed 3 days ago
@@ -1789,8 +1789,8 @@ The WitchCityRope Vetting Team",
                     });
                     break;
 
-                case VettingStatus.InterviewCompleted:
-                    // UnderReview → InterviewApproved → InterviewCompleted (renamed from InterviewScheduled)
+                case VettingStatus.FinalReview:
+                    // UnderReview → InterviewApproved → FinalReview (interview completion moves directly to final review)
                     auditLogs.Add(new VettingAuditLog
                     {
                         Id = Guid.NewGuid(),
@@ -1811,13 +1811,13 @@ The WitchCityRope Vetting Team",
                         PerformedBy = adminUserId,
                         PerformedAt = application.InterviewScheduledFor?.AddDays(-1) ?? DateTime.UtcNow.AddDays(-1),
                         OldValue = "InterviewApproved",
-                        NewValue = "InterviewCompleted",
-                        Notes = $"Interview completed on {application.InterviewScheduledFor?.ToString("yyyy-MM-dd HH:mm") ?? "TBD"}"
+                        NewValue = "FinalReview",
+                        Notes = $"Interview completed on {application.InterviewScheduledFor?.ToString("yyyy-MM-dd HH:mm") ?? "TBD"}, moved to final review"
                     });
                     break;
 
                 case VettingStatus.Approved:
-                    // UnderReview → InterviewApproved → InterviewCompleted → FinalReview → Approved
+                    // UnderReview → InterviewApproved → FinalReview → Approved
                     auditLogs.Add(new VettingAuditLog
                     {
                         Id = Guid.NewGuid(),
@@ -1836,22 +1836,10 @@ The WitchCityRope Vetting Team",
                         ApplicationId = application.Id,
                         Action = "Interview Completed",
                         PerformedBy = adminUserId,
-                        PerformedAt = application.DecisionMadeAt?.AddDays(-8) ?? application.SubmittedAt.AddDays(10),
-                        OldValue = "InterviewApproved",
-                        NewValue = "InterviewCompleted",
-                        Notes = "Interview completed with applicant"
-                    });
-
-                    auditLogs.Add(new VettingAuditLog
-                    {
-                        Id = Guid.NewGuid(),
-                        ApplicationId = application.Id,
-                        Action = "Interview Completed",
-                        PerformedBy = adminUserId,
                         PerformedAt = application.DecisionMadeAt?.AddDays(-5) ?? application.SubmittedAt.AddDays(15),
-                        OldValue = "InterviewCompleted",
+                        OldValue = "InterviewApproved",
                         NewValue = "FinalReview",
-                        Notes = "Interview conducted - excellent candidate with strong community values. Moving to final review."
+                        Notes = "Interview completed with applicant - excellent candidate with strong community values. Moving to final review."
                     });
 
                     auditLogs.Add(new VettingAuditLog

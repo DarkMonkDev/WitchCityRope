@@ -61,12 +61,9 @@ describe('useMenuVisibility', () => {
 
   describe('authenticated users with applications - show menu statuses', () => {
     const showStatuses: VettingStatusString[] = [
-      'Draft',
-      'Submitted',
       'UnderReview',
       'InterviewApproved',
-      'PendingInterview',
-      'InterviewCompleted',
+      'FinalReview',
       'Withdrawn'
     ];
 

@@ -22,46 +22,33 @@ describe('VettingStatusBox', () => {
   };
 
   describe('status variant rendering', () => {
-    it('renders Draft status correctly', () => {
-      renderWithMantine(
-        <VettingStatusBox
-          {...baseProps}
-          status="Draft"
-          nextSteps="Complete and submit your application"
-        />
-      );
-
-      expect(screen.getByText('Draft')).toBeInTheDocument();
-      expect(screen.getByText('V-2025-001')).toBeInTheDocument();
-      expect(screen.getByText('Complete and submit your application')).toBeInTheDocument();
-    });
-
-    it('renders Submitted status correctly', () => {
-      renderWithMantine(
-        <VettingStatusBox
-          {...baseProps}
-          status="Submitted"
-          nextSteps="Waiting for initial review"
-          estimatedDaysRemaining={7}
-        />
-      );
-
-      expect(screen.getByText('Submitted')).toBeInTheDocument();
-      expect(screen.getByText('Waiting for initial review')).toBeInTheDocument();
-      expect(screen.getByText(/Estimated: 7 days remaining/)).toBeInTheDocument();
-    });
-
-    it('renders UnderReview status correctly', () => {
+    it('renders UnderReview status correctly (initial status)', () => {
       renderWithMantine(
         <VettingStatusBox
           {...baseProps}
           status="UnderReview"
-          nextSteps="Review in progress"
+          nextSteps="Your application is being reviewed"
+          estimatedDaysRemaining={7}
         />
       );
 
       expect(screen.getByText('Under Review')).toBeInTheDocument();
-      expect(screen.getByText('Review in progress')).toBeInTheDocument();
+      expect(screen.getByText('V-2025-001')).toBeInTheDocument();
+      expect(screen.getByText('Your application is being reviewed')).toBeInTheDocument();
+      expect(screen.getByText(/Estimated: 7 days remaining/)).toBeInTheDocument();
+    });
+
+    it('renders FinalReview status correctly', () => {
+      renderWithMantine(
+        <VettingStatusBox
+          {...baseProps}
+          status="FinalReview"
+          nextSteps="Final review in progress"
+        />
+      );
+
+      expect(screen.getByText('Final Review')).toBeInTheDocument();
+      expect(screen.getByText('Final review in progress')).toBeInTheDocument();
     });
 
     it('renders InterviewApproved status correctly', () => {
@@ -77,31 +64,6 @@ describe('VettingStatusBox', () => {
       expect(screen.getByText('Schedule your interview')).toBeInTheDocument();
     });
 
-    it('renders PendingInterview status correctly', () => {
-      renderWithMantine(
-        <VettingStatusBox
-          {...baseProps}
-          status="PendingInterview"
-          nextSteps="Waiting for interview scheduling"
-        />
-      );
-
-      expect(screen.getByText('Pending Interview')).toBeInTheDocument();
-      expect(screen.getByText('Waiting for interview scheduling')).toBeInTheDocument();
-    });
-
-    it('renders InterviewCompleted status correctly', () => {
-      renderWithMantine(
-        <VettingStatusBox
-          {...baseProps}
-          status="InterviewCompleted"
-          nextSteps="Interview completed - awaiting final review"
-        />
-      );
-
-      expect(screen.getByText('Interview Completed')).toBeInTheDocument();
-      expect(screen.getByText('Interview completed - awaiting final review')).toBeInTheDocument();
-    });
 
     it('renders OnHold status correctly', () => {
       renderWithMantine(
@@ -161,7 +123,7 @@ describe('VettingStatusBox', () => {
   describe('optional fields', () => {
     it('renders without nextSteps', () => {
       renderWithMantine(
-        <VettingStatusBox {...baseProps} status="Submitted" nextSteps={undefined} />
+        <VettingStatusBox {...baseProps} status="UnderReview" nextSteps={undefined} />
       );
 
       expect(screen.getByText('V-2025-001')).toBeInTheDocument();
@@ -172,7 +134,7 @@ describe('VettingStatusBox', () => {
       renderWithMantine(
         <VettingStatusBox
           {...baseProps}
-          status="Submitted"
+          status="UnderReview"
           estimatedDaysRemaining={undefined}
         />
       );
@@ -187,7 +149,7 @@ describe('VettingStatusBox', () => {
       renderWithMantine(
         <VettingStatusBox
           {...baseProps}
-          status="Submitted"
+          status="UnderReview"
           submittedAt={new Date('2025-10-01T12:00:00Z')}
           lastUpdated={new Date('2025-10-03T12:00:00Z')}
         />
@@ -202,9 +164,9 @@ describe('VettingStatusBox', () => {
   describe('required fields', () => {
     it('always renders application number', () => {
       const statuses: VettingStatusString[] = [
-        'Draft',
-        'Submitted',
         'UnderReview',
+        'InterviewApproved',
+        'FinalReview',
         'Approved'
       ];
 
@@ -220,7 +182,7 @@ describe('VettingStatusBox', () => {
 
     it('always renders status description', () => {
       renderWithMantine(
-        <VettingStatusBox {...baseProps} status="Submitted" statusDescription="Test description" />
+        <VettingStatusBox {...baseProps} status="UnderReview" statusDescription="Test description" />
       );
 
       expect(screen.getByText('Test description')).toBeInTheDocument();
