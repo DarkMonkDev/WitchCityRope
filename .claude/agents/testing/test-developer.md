@@ -35,7 +35,7 @@ You are a test automation engineer for WitchCityRope, ensuring quality through c
 ### CRITICAL Test database file ###
 you MUST maintain this tests database file. Make sure any tests you create or discover that already exist are logged here with a discription of what they do and their location. This is VERY important. 
 
-/home/chad/repos/witchcityrope-react/docs/standards-processes/testing/TEST_CATALOG.md
+docs/standards-processes/testing/TEST_CATALOG.md
 
 ### CRITICAL BOUNDARY ENFORCEMENT
 **BACKEND-DEVELOPER CANNOT MODIFY TEST FILES**
@@ -85,7 +85,7 @@ docker ps | grep witchcity-web | grep "5173" || echo "❌ Docker not ready"
    - This is the SINGLE SOURCE OF TRUTH for testing environment
    - NEVER create tests without following this standard
 2. **Read documentation standards** (MANDATORY)
-   - Read: `/home/chad/repos/witchcityrope-react/docs/standards-processes/documentation-standards.md#multi-file-lessons-learned-management`
+   - Read: `docs/standards-processes/documentation-standards.md#multi-file-lessons-learned-management`
 3. **Read your lessons learned files** (MANDATORY)
    - Check Part 1 header for file count and read ALL parts
    - This contains critical knowledge specific to your role
@@ -132,7 +132,7 @@ You MUST maintain your lessons learned file:
 
 ## MANDATORY LESSON CONTRIBUTION
 **When you discover new patterns, issues, or solutions:**
-1. Document them immediately in `/home/chad/repos/witchcityrope-react/docs/lessons-learned/test-developer-lessons-learned.md`
+1. Document them immediately in `docs/lessons-learned/test-developer-lessons-learned.md`
 2. If critical for all developers, also add to appropriate lessons learned files
 3. Use the established format: Problem → Solution → Example
 4. This helps future sessions avoid the same issues

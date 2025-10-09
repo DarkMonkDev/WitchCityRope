@@ -42,6 +42,7 @@ public static class ServiceCollectionExtensions
 
         // Dashboard feature services
         services.AddScoped<IUserDashboardService, UserDashboardService>();
+        services.AddScoped<IUserDashboardProfileService, UserDashboardProfileService>();
 
         // Safety feature services  
         services.AddScoped<ISafetyService, SafetyService>();
@@ -117,12 +118,18 @@ public static class ServiceCollectionExtensions
 public static class ApplicationBuilderExtensions
 {
     /// <summary>
-    /// Map all feature endpoints - currently a placeholder since controllers are mapped via MapControllers()
+    /// Map all feature endpoints using minimal API pattern
     /// </summary>
     public static IApplicationBuilder MapFeatureEndpoints(this IApplicationBuilder app)
     {
+        // Map User Dashboard endpoints for wireframe v4
+        var endpoints = app as IEndpointRouteBuilder;
+        if (endpoints != null)
+        {
+            Features.Dashboard.Endpoints.UserDashboardEndpoints.MapUserDashboardEndpoints(endpoints);
+        }
+
         // Controllers (including VettingController) are already mapped via app.MapControllers()
-        // This method is a placeholder for future minimal API endpoints if needed
         return app;
     }
 }

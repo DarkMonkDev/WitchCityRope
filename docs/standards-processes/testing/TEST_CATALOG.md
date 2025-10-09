@@ -26,6 +26,104 @@
 
 ---
 
+## 🚨 NEW: USER DASHBOARD WIREFRAME VALIDATION E2E TESTS (2025-10-09) 🚨
+
+**STATUS**: ✅ COMPLETE - Comprehensive E2E tests created for User Dashboard redesign v4
+
+### Test File Created:
+- **File**: `/apps/web/tests/playwright/e2e/dashboard/user-dashboard-wireframe-validation.spec.ts`
+- **Test Count**: 39 comprehensive test scenarios
+- **Framework**: Playwright
+- **Purpose**: Validate implementation matches approved wireframe v4 exactly
+
+### Test Categories:
+
+**1. Navigation Structure Tests (5 tests)**
+- Edit Profile link in utility bar positioning
+- Dashboard page title format validation
+- Edit Profile button presence on dashboard
+- Profile Settings navigation from Edit Profile links
+- Dashboard navigation from main nav
+
+**2. Vetting Alert Box Tests (5 tests)**
+- NO alert for Vetted users (critical validation)
+- Blue Pending alert with correct message
+- Green Approved alert with interview link
+- Amber On Hold alert with correct message
+- Red Denied alert with reapply link
+
+**3. Event Display - Grid View Tests (6 tests)**
+- NO pricing information (critical sales element removal)
+- NO capacity/spots available (critical sales element removal)
+- "View Details" button NOT "Learn More" (critical button validation)
+- Event cards with status badges
+- Grid layout pattern validation
+- Social event "Ticket Purchased (Social Event)" badge
+
+**4. Event Display - Table View Tests (5 tests)**
+- View toggle functionality
+- Table columns validation (Date, Time, Title, Status, Action)
+- "View Details" in Action column NOT "Learn More"
+- Status badges in Status column
+- Sortable Date column
+
+**5. Filter Controls Tests (5 tests)**
+- "Show Past Events" checkbox unchecked by default
+- Past events hidden when checkbox unchecked
+- Past events shown when checkbox checked
+- Grid/Table view toggle display
+- Search input for filtering events
+
+**6. Profile Settings Tests (3 tests)**
+- 4 tabs: Personal, Social, Security, Vetting
+- Profile fields in Personal tab
+- Change Password form in Security tab
+
+**7. Responsive Design Tests (2 tests)**
+- Mobile display at 768px
+- Event cards stack vertically on mobile (375px)
+
+**8. CRITICAL Sales Elements Removal Tests (4 tests)**
+- NO pricing anywhere on dashboard (comprehensive pattern check)
+- NO capacity information anywhere (comprehensive pattern check)
+- NO "Learn More" buttons anywhere (zero tolerance)
+- ONLY "View Details" buttons for events (no registration CTAs)
+
+### Key Features:
+- **Flexible Selectors**: Tests adapt to multiple UI implementations
+- **Graceful Feature Detection**: Tests skip features not yet implemented
+- **Comprehensive Validation**: Critical business rules thoroughly tested
+- **Screenshot Capture**: Violations captured for debugging
+- **User Dashboard Context**: Tests verify NO sales elements present
+
+### Test Accounts Used:
+- `vetted@witchcityrope.com` - Primary test account (Vetted status, no alert)
+- `member@witchcityrope.com` - Vetting status variations testing
+- All accounts use password: `Test123!`
+
+### Critical Validations:
+1. ❌ NO pricing information anywhere
+2. ❌ NO capacity/availability information
+3. ❌ NO "Learn More" buttons
+4. ❌ NO "Register Now" buttons
+5. ✅ YES "View Details" buttons
+6. ✅ YES status badges (RSVP Confirmed, Ticket Purchased, Attended)
+7. ✅ YES user's registered events ONLY
+8. ✅ YES vetting alerts for non-vetted users
+
+### Design Documentation References:
+- **Approved Design**: `/docs/functional-areas/user-dashboard/new-work/2025-08-22-user-dashboard-redesign/APPROVED-DESIGN.md`
+- **Functional Spec**: `/docs/functional-areas/user-dashboard/new-work/2025-08-22-user-dashboard-redesign/specifications/functional-specifications-v2.md`
+- **Business Requirements**: `/docs/functional-areas/user-dashboard/new-work/2025-08-22-user-dashboard-redesign/requirements/business-requirements.md`
+
+### Success Criteria:
+- All tests pass = Implementation matches approved wireframe v4
+- Any pricing/capacity found = CRITICAL VIOLATION
+- Any "Learn More" found = CRITICAL VIOLATION
+- Tests serve as acceptance criteria for feature completion
+
+---
+
 ## 🚨 NEW: VETTING STATUS LABEL CHANGES - MINIMAL TEST UPDATES (2025-10-08) 🚨
 
 **STATUS**: ✅ COMPLETE - Display label changes required minimal test updates due to proper DTO alignment strategy

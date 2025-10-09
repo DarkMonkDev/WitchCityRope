@@ -25,7 +25,7 @@
 
 ### ⛔ WRONG - NEVER DO THIS:
 ```
-/home/chad/repos/witchcityrope-react/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md
+docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md
 ```
 
 ### ✅ CORRECT - ALWAYS DO THIS:
@@ -36,7 +36,7 @@
 ### ENFORCEMENT RULES:
 1. **ALL PATHS MUST START WITH /** (slash) but NOT the full system path
 2. **REPO ROOT PATHS**: `/docs/`, `/apps/`, `/tests/`, `/ARCHITECTURE.md`, etc.
-3. **NEVER INCLUDE**: `/home/chad/repos/witchcityrope-react/` prefix
+3. **NEVER INCLUDE**: Absolute path prefix (use relative paths from repo root)
 4. **IF YOU SEE FULL PATH**: STOP and convert to repo-relative
 5. **FILE READ FAILURES**: Usually caused by using wrong path format
 6. **WHEN READ FAILS**: Check if you're using full path instead of repo-relative

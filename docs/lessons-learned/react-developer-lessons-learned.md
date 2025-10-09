@@ -156,7 +156,7 @@ If navigation appears broken:
 4. **Add setTimeout wrapper** to navigation call
 5. **Test** - Component should now mount correctly
 
-**FILE**: `/home/chad/repos/witchcityrope/apps/web/src/features/admin/vetting/components/VettingApplicationsList.tsx`
+**FILE**: `apps/web/src/features/admin/vetting/components/VettingApplicationsList.tsx`
 
 ---
 

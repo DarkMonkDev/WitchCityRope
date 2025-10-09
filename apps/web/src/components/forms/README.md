@@ -41,7 +41,6 @@ FormField (Mantine Stack wrapper)
 - **PasswordInput** - Password input with strength indicator and visibility toggle
 - **SceneNameInput** - Scene name validation with async uniqueness check
 - **PhoneInput** - Phone number input with formatting
-- **EmergencyContactGroup** - Complete emergency contact fieldset
 
 ## Business Rule Implementation
 
@@ -184,39 +183,6 @@ export const RegistrationForm = () => {
     </form>
   );
 };
-```
-
-### Emergency Contact Form
-
-```tsx
-import { Stack, Group, TextInput } from '@mantine/core';
-import { PhoneInput } from '@/components/forms';
-
-<Stack gap="sm">
-  <TextInput
-    label="Emergency contact name"
-    placeholder="Jane Smith"
-    required
-    {...form.getInputProps('emergencyContact.name')}
-    data-testid="emergency-contact-name"
-  />
-  
-  <PhoneInput
-    label="Emergency contact phone"
-    placeholder="(555) 123-4567"
-    required
-    {...form.getInputProps('emergencyContact.phone')}
-    data-testid="emergency-contact-phone"
-  />
-  
-  <TextInput
-    label="Relationship to emergency contact"
-    placeholder="Spouse, Partner, Friend, etc."
-    required
-    {...form.getInputProps('emergencyContact.relationship')}
-    data-testid="emergency-contact-relationship"
-  />
-</Stack>
 ```
 
 ## Component Props Interface
@@ -587,7 +553,6 @@ function App() {
 - [x] Loading states and async validation
 - [x] Testing utilities and data-testid attributes
 - [ ] Specialized components (EmailInput, SceneNameInput, PasswordInput)
-- [ ] Emergency contact component group
 - [ ] Phone number input with formatting
 - [ ] Advanced form patterns (multi-step, conditional fields)
 - [ ] Performance optimization implementation

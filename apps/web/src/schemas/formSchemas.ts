@@ -89,19 +89,12 @@ export const userProfileSchema = z.object({
   interests: z.array(z.string()).optional()
 });
 
-export const emergencyContactSchema = z.object({
-  name: z.string().min(1, 'Emergency contact name is required'),
-  phone: phonePattern,
-  relationship: z.string().min(1, 'Relationship is required')
-});
-
 // Event schemas
 export const eventRegistrationSchema = z.object({
   eventId: z.string().uuid('Invalid event ID'),
   attendeeType: z.enum(['member', 'guest'], {
     message: 'Please select attendee type'
   }),
-  emergencyContact: emergencyContactSchema,
   medicalInfo: z.string().max(500, 'Medical info must not exceed 500 characters').optional(),
   dietaryRestrictions: z.string().max(500, 'Dietary restrictions must not exceed 500 characters').optional(),
   accessibilityNeeds: z.string().max(500, 'Accessibility needs must not exceed 500 characters').optional(),
@@ -241,7 +234,6 @@ export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
 export type UserProfileFormData = z.infer<typeof userProfileSchema>;
-export type EmergencyContactFormData = z.infer<typeof emergencyContactSchema>;
 export type EventRegistrationFormData = z.infer<typeof eventRegistrationSchema>;
 export type CreateEventFormData = z.infer<typeof createEventSchema>;
 export type ContactFormData = z.infer<typeof contactFormSchema>;

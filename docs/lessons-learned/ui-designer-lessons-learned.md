@@ -4,29 +4,29 @@
 
 ### 🚨 ULTRA CRITICAL UI/UX DOCUMENTS (MUST READ): 🚨
 1. **Design System v7** - **CURRENT DESIGN STANDARDS**
-`/docs/design/current/design-system-v7.md`
+`docs/design/current/design-system-v7.md`
 
 2. **Button Style Guide** - **COMPLETE BUTTON IMPLEMENTATION GUIDE**
-`/docs/design/current/button-style-guide.md`
+`docs/design/current/button-style-guide.md`
 
 3. **UI Implementation Standards** - **COMPONENT PATTERNS**
-`/docs/standards-processes/ui-implementation-standards.md`
+`docs/standards-processes/ui-implementation-standards.md`
 
 4. **React Patterns** - **REACT COMPONENT STANDARDS**
-`/docs/standards-processes/development-standards/react-patterns.md`
+`docs/standards-processes/development-standards/react-patterns.md`
 
 5. **Project Architecture** - **MANTINE UI FRAMEWORK**
-`/ARCHITECTURE.md`
+`ARCHITECTURE.md`
 
 ### 📚 DOCUMENT DISCOVERY RESOURCES:
-- **File Registry** - `/docs/architecture/file-registry.md` - Find any document
-- **Functional Areas Index** - `/docs/architecture/functional-area-master-index.md` - Navigate features
-- **Key Documents List** - `/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+- **File Registry** - `docs/architecture/file-registry.md` - Find any document
+- **Functional Areas Index** - `docs/architecture/functional-area-master-index.md` - Navigate features
+- **Key Documents List** - `docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
 
 ### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
-- **Forms Standardization** - `/docs/standards-processes/forms-standardization.md` - Form patterns
-- **Workflow Process** - `/docs/standards-processes/workflow-orchestration-process.md` - Handoff procedures
-- **Agent Boundaries** - `/docs/standards-processes/agent-boundaries.md` - What each agent does
+- **Forms Standardization** - `docs/standards-processes/forms-standardization.md` - Form patterns
+- **Workflow Process** - `docs/standards-processes/workflow-orchestration-process.md` - Handoff procedures
+- **Agent Boundaries** - `docs/standards-processes/agent-boundaries.md` - What each agent does
 
 ### Validation Gates (MUST COMPLETE):
 - [ ] **Read Design System v7 FIRST** - Current design language and components
@@ -47,9 +47,9 @@
 - **DISCOVERY of UX constraints** - Share immediately
 
 ### 📁 WHERE TO SAVE HANDOFFS
-**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Location**: `docs/functional-areas/[feature]/handoffs/`
 **Naming**: `ui-designer-YYYY-MM-DD-handoff.md`
-**Template**: `/docs/standards-processes/agent-handoff-template.md`
+**Template**: `docs/standards-processes/agent-handoff-template.md`
 
 ### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
 1. **Design Decisions**: Component choices and patterns
@@ -66,7 +66,7 @@
 
 ### ⚠️ MANDATORY READING BEFORE STARTING
 **ALWAYS READ EXISTING HANDOFFS FIRST**:
-1. Check `/docs/functional-areas/[feature]/handoffs/` for requirements
+1. Check `docs/functional-areas/[feature]/handoffs/` for requirements
 2. Read business requirements handoff FIRST
 3. Review existing wireframes and patterns
 4. Maintain design system consistency
@@ -94,7 +94,7 @@
   - CTA Secondary: #9D4EDD (electric purple)
   - Background: #FAF6F2 (cream)
   - Cards: #FFF8F0 (ivory)
-- Always copy header/footer exactly from `/docs/design/current/homepage-template-v7.html`
+- Always copy header/footer exactly from `docs/design/current/homepage-template-v7.html`
 - Apply signature animations consistently across all pages
 
 ### MANDATORY: Floating Label Animation for ALL Form Inputs
@@ -141,7 +141,7 @@
 - **Secondary**: Burgundy outline with fill animation
 - **Disabled**: Gray background (#8B8680), no animations, cursor: not-allowed
 
-**Reference**: See complete button implementation guide at `/docs/design/current/button-style-guide.md`
+**Reference**: See complete button implementation guide at `docs/design/current/button-style-guide.md`
 
 ### Button States Documentation - October 2025
 **Problem**: Discovered Primary CTA button (Dashboard button) was gold/amber gradient but not properly documented
@@ -152,9 +152,9 @@
 - Added disabled state CSS to `/apps/web/src/index.css`
 
 **Key Files Updated**:
-- `/docs/design/current/design-system-v7.md` - v7.1 with corrected button descriptions
-- `/docs/design/current/button-style-guide.md` - New comprehensive button guide
-- `/apps/web/src/index.css` - Added `.btn:disabled` styles (lines 627-648)
+- `docs/design/current/design-system-v7.md` - v7.1 with corrected button descriptions
+- `docs/design/current/button-style-guide.md` - New comprehensive button guide
+- `apps/web/src/index.css` - Added `.btn:disabled` styles (lines 627-648)
 
 **Button Type Summary**:
 1. **Primary CTA** (.btn-primary): Gold gradient, shimmer, Dashboard button
@@ -1055,28 +1055,28 @@ This systematic approach to stakeholder corrections ensures rapid response while
 ## File Organization
 
 ### Wireframe Storage Pattern
-**Location**: `/docs/functional-areas/[feature]/new-work/[date]/design/wireframes/`
+**Location**: `docs/functional-areas/[feature]/new-work/[date]/design/wireframes/`
 **Naming**: Descriptive names like `admin-events-dashboard.html`
 **Structure**: Each wireframe is complete standalone HTML with embedded CSS
 
 ### Design System Reference
-**Source of Truth**: `/docs/design/current/design-system-v7.md`
-**Button Guide**: `/docs/design/current/button-style-guide.md`
-**Template**: `/docs/design/current/homepage-template-v7.html`
+**Source of Truth**: `docs/design/current/design-system-v7.md`
+**Button Guide**: `docs/design/current/button-style-guide.md`
+**Template**: `docs/design/current/homepage-template-v7.html`
 **Always verify against these files before finalizing designs**
 
 ### Admin Dashboard Documentation
-**Location**: `/docs/functional-areas/events/admin-activation/`
+**Location**: `docs/functional-areas/events/admin-activation/`
 **Naming**: Date-stamped design documents
 **Include**: ASCII wireframes, component specs, navigation flows, implementation priorities
 
 ### Safety System Documentation
-**Location**: `/docs/functional-areas/api-cleanup/new-work/[date]/design/`
+**Location**: `docs/functional-areas/api-cleanup/new-work/[date]/design/`
 **Naming**: `safety-system-ui-design.md`
 **Include**: Complete UI specifications, privacy requirements, legal compliance notes
 
 ### CheckIn System Documentation
-**Location**: `/docs/functional-areas/api-cleanup/new-work/[date]/design/`
+**Location**: `docs/functional-areas/api-cleanup/new-work/[date]/design/`
 **Naming**: `checkin-system-ui-design.md`
 **Include**: Mobile-first wireframes, touch optimization, offline capability, volunteer workflow design
 

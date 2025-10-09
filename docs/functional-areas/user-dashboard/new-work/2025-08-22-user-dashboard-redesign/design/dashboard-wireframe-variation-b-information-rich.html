@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Wireframe - Variation B: Information Rich</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@400;700;900&family=Montserrat:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;600;700&family=Satisfy&display=swap" rel="stylesheet">
+    <style>
+        /* Design System v7 Variables */
+        :root {
+            --color-burgundy: #880124;
+            --color-rose-gold: #B76D75;
+            --color-amber: #FFBF00;
+            --color-amber-dark: #FF8C00;
+            --color-electric: #9D4EDD;
+            --color-electric-dark: #7B2CBF;
+            --color-charcoal: #2B2B2B;
+            --color-smoke: #4A4A4A;
+            --color-stone: #8B8680;
+            --color-ivory: #FFF8F0;
+            --color-cream: #FAF6F2;
+            --color-success: #228B22;
+            --color-warning: #DAA520;
+            --color-error: #DC143C;
+            --space-xs: 8px;
+            --space-sm: 16px;
+            --space-md: 24px;
+            --space-lg: 32px;
+            --space-xl: 40px;
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--color-cream);
+            color: var(--color-charcoal);
+        }
+
+        /* Existing Navigation Pattern */
+        .header {
+            background: rgba(250, 246, 242, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 3px solid rgba(183, 109, 117, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .utility-bar {
+            background: var(--color-burgundy);
+            padding: var(--space-xs) var(--space-xl);
+            font-size: 12px;
+            color: var(--color-ivory);
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--space-md);
+        }
+
+        .utility-bar a {
+            color: var(--color-ivory);
+            text-decoration: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .utility-bar a:hover {
+            opacity: 0.8;
+        }
+
+        .main-nav {
+            padding: var(--space-md) var(--space-xl);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--color-burgundy);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: var(--space-lg);
+            align-items: center;
+        }
+
+        .nav-links a {
+            font-family: var(--font-heading);
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--color-charcoal);
+            text-decoration: none;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--color-burgundy), transparent);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* Signature Button Styling */
+        .btn {
+            padding: 14px 32px;
+            border-radius: 12px 6px 12px 6px;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%);
+            color: #1A1A2E;
+            box-shadow: 0 4px 15px rgba(255, 191, 0, 0.4);
+        }
+
+        .btn-primary:hover {
+            border-radius: 6px 12px 6px 12px;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--color-burgundy);
+            color: var(--color-burgundy);
+        }
+
+        .btn-secondary:hover {
+            border-radius: 6px 12px 6px 12px;
+            background: var(--color-burgundy);
+            color: var(--color-ivory);
+        }
+
+        /* Dashboard Layout - 3 Column Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr 280px;
+            gap: var(--space-lg);
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--space-xl);
+        }
+
+        /* Left Column - Recent Activity */
+        .activity-feed {
+            background: var(--color-ivory);
+            padding: var(--space-md);
+            border-radius: 12px;
+            height: fit-content;
+        }
+
+        .activity-feed h2 {
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-md);
+        }
+
+        .activity-item {
+            padding: var(--space-sm);
+            margin-bottom: var(--space-sm);
+            border-left: 3px solid var(--color-rose-gold);
+            background: white;
+            border-radius: 8px;
+        }
+
+        .activity-item .time {
+            font-size: 11px;
+            color: var(--color-stone);
+            margin-bottom: var(--space-xs);
+        }
+
+        .activity-item .text {
+            font-size: 13px;
+            color: var(--color-charcoal);
+        }
+
+        /* Center Column - Upcoming Events */
+        .main-column {
+            min-height: 600px;
+        }
+
+        .welcome-header {
+            background: linear-gradient(135deg, var(--color-burgundy), var(--color-rose-gold));
+            color: var(--color-ivory);
+            padding: var(--space-lg);
+            border-radius: 12px;
+            margin-bottom: var(--space-lg);
+        }
+
+        .welcome-header h1 {
+            font-family: var(--font-heading);
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: var(--space-xs);
+        }
+
+        .welcome-header .status {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--space-md);
+        }
+
+        .event-card {
+            background: var(--color-ivory);
+            border-radius: 12px;
+            padding: var(--space-md);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .event-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            border-color: var(--color-rose-gold);
+        }
+
+        .event-card h3 {
+            font-family: var(--font-heading);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-sm);
+        }
+
+        .event-meta {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xs);
+            margin-bottom: var(--space-sm);
+            font-size: 13px;
+            color: var(--color-smoke);
+        }
+
+        .event-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            width: fit-content;
+        }
+
+        .status-available {
+            background: rgba(34, 139, 34, 0.1);
+            color: var(--color-success);
+        }
+
+        .status-limited {
+            background: rgba(218, 165, 32, 0.1);
+            color: var(--color-warning);
+        }
+
+        /* Right Column - Stats and Quick Actions */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        .stats-widget {
+            background: var(--color-ivory);
+            padding: var(--space-md);
+            border-radius: 12px;
+        }
+
+        .stats-widget h2 {
+            font-family: var(--font-heading);
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-md);
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-sm);
+            margin-bottom: var(--space-xs);
+            background: white;
+            border-radius: 8px;
+        }
+
+        .stat-item .label {
+            font-size: 12px;
+            color: var(--color-smoke);
+        }
+
+        .stat-item .value {
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--color-burgundy);
+        }
+
+        .quick-actions-widget {
+            background: var(--color-ivory);
+            padding: var(--space-md);
+            border-radius: 12px;
+        }
+
+        .quick-actions-widget h2 {
+            font-family: var(--font-heading);
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-md);
+        }
+
+        .action-btn {
+            display: block;
+            width: 100%;
+            padding: var(--space-sm);
+            margin-bottom: var(--space-xs);
+            text-align: left;
+            background: white;
+            border: 2px solid var(--color-rose-gold);
+            color: var(--color-charcoal);
+            border-radius: 8px;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: var(--color-burgundy);
+            color: var(--color-ivory);
+            border-color: var(--color-burgundy);
+        }
+
+        /* Profile Settings - Tabbed Interface */
+        .profile-settings {
+            display: none;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: var(--space-xl);
+        }
+
+        .profile-settings.active {
+            display: block;
+        }
+
+        .profile-tabs {
+            display: flex;
+            gap: var(--space-md);
+            margin-bottom: var(--space-lg);
+            border-bottom: 3px solid var(--color-rose-gold);
+        }
+
+        .profile-tabs button {
+            padding: var(--space-md) var(--space-lg);
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: var(--color-charcoal);
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            cursor: pointer;
+            margin-bottom: -3px;
+            transition: all 0.3s ease;
+        }
+
+        .profile-tabs button.active {
+            border-bottom-color: var(--color-burgundy);
+            color: var(--color-burgundy);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-section {
+            background: var(--color-ivory);
+            padding: var(--space-lg);
+            border-radius: 12px;
+            margin-bottom: var(--space-lg);
+        }
+
+        .form-section h2 {
+            font-family: var(--font-heading);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--color-burgundy);
+            margin-bottom: var(--space-md);
+        }
+
+        /* Group grow pattern for side-by-side inputs */
+        .input-group {
+            display: flex;
+            gap: var(--space-md);
+            margin-bottom: var(--space-md);
+        }
+
+        .input-group .form-field {
+            flex: 1;
+        }
+
+        .form-field {
+            margin-bottom: var(--space-md);
+        }
+
+        .form-field label {
+            display: block;
+            font-family: var(--font-heading);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--color-charcoal);
+            margin-bottom: var(--space-xs);
+        }
+
+        .form-field input,
+        .form-field select,
+        .form-field textarea {
+            width: 100%;
+            padding: var(--space-sm);
+            border: 2px solid var(--color-rose-gold);
+            border-radius: 12px;
+            background: var(--color-cream);
+            font-family: var(--font-body);
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-field input:focus,
+        .form-field select:focus,
+        .form-field textarea:focus {
+            outline: none;
+            border-color: var(--color-burgundy);
+            box-shadow: 0 0 0 3px rgba(136, 1, 36, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .readonly-field {
+            background: rgba(139, 134, 128, 0.1);
+            color: var(--color-stone);
+            cursor: not-allowed;
+        }
+
+        /* Page Navigation */
+        .page-nav {
+            display: flex;
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+            justify-content: center;
+            padding: var(--space-md);
+        }
+
+        .page-nav button {
+            padding: var(--space-sm) var(--space-md);
+            background: transparent;
+            border: 2px solid var(--color-rose-gold);
+            color: var(--color-charcoal);
+            border-radius: 8px;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .page-nav button.active {
+            background: var(--color-burgundy);
+            color: var(--color-ivory);
+            border-color: var(--color-burgundy);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                padding: var(--space-md);
+            }
+
+            .activity-feed,
+            .sidebar {
+                order: 2;
+            }
+
+            .main-column {
+                order: 1;
+            }
+
+            .events-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            .profile-tabs {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Existing Navigation Pattern -->
+    <header class="header">
+        <div class="utility-bar">
+            <a href="#">Contact</a>
+            <a href="#">Help</a>
+            <a href="#">Logout</a>
+        </div>
+        <nav class="main-nav">
+            <div class="logo">WitchCityRope</div>
+            <div class="nav-links">
+                <a href="#">Events & Classes</a>
+                <a href="#">How to Join</a>
+                <a href="#">Resources</a>
+                <a class="btn btn-primary" href="#">Dashboard</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Page Navigation -->
+    <div class="page-nav">
+        <button class="active" onclick="showPage('dashboard')">Dashboard</button>
+        <button onclick="showPage('profile')">Profile Settings</button>
+    </div>
+
+    <!-- DASHBOARD PAGE - 3 Column Grid -->
+    <div id="dashboard-page" class="dashboard-page">
+        <div class="dashboard-grid">
+            <!-- Left: Recent Activity Feed -->
+            <aside class="activity-feed">
+                <h2>Recent Activity</h2>
+                <div class="activity-item">
+                    <div class="time">2 hours ago</div>
+                    <div class="text">Registered for <strong>Introduction to Shibari</strong></div>
+                </div>
+                <div class="activity-item">
+                    <div class="time">1 day ago</div>
+                    <div class="text">Completed <strong>Basic Rope Safety</strong></div>
+                </div>
+                <div class="activity-item">
+                    <div class="time">3 days ago</div>
+                    <div class="text">Profile updated</div>
+                </div>
+                <div class="activity-item">
+                    <div class="time">5 days ago</div>
+                    <div class="text">Registered for <strong>Community Social</strong></div>
+                </div>
+                <div class="activity-item">
+                    <div class="time">1 week ago</div>
+                    <div class="text">Attended <strong>Advanced Suspension</strong></div>
+                </div>
+            </aside>
+
+            <!-- Center: Upcoming Events -->
+            <main class="main-column">
+                <div class="welcome-header">
+                    <h1>Welcome back, Shadow</h1>
+                    <div class="status">Vetted Member • 12 Events Attended</div>
+                </div>
+
+                <h2 style="font-family: var(--font-heading); font-size: 24px; margin-bottom: var(--space-md);">
+                    Upcoming Events
+                </h2>
+
+                <div class="events-grid">
+                    <div class="event-card">
+                        <h3>Introduction to Shibari</h3>
+                        <div class="event-meta">
+                            <span>📅 Nov 15, 2025 at 7:00 PM</span>
+                            <span>👥 20 capacity</span>
+                            <span class="event-status status-available">8 spots left</span>
+                        </div>
+                        <p style="font-size: 14px; color: var(--color-smoke); margin-bottom: var(--space-sm);">
+                            Learn the fundamentals of Japanese rope bondage.
+                        </p>
+                        <button class="btn btn-primary" style="width: 100%; padding: 10px;">Register</button>
+                    </div>
+
+                    <div class="event-card">
+                        <h3>Advanced Suspension</h3>
+                        <div class="event-meta">
+                            <span>📅 Nov 22, 2025 at 6:30 PM</span>
+                            <span>👥 12 capacity</span>
+                            <span class="event-status status-limited">3 spots left</span>
+                        </div>
+                        <p style="font-size: 14px; color: var(--color-smoke); margin-bottom: var(--space-sm);">
+                            Advanced suspension techniques workshop.
+                        </p>
+                        <button class="btn btn-primary" style="width: 100%; padding: 10px;">Register</button>
+                    </div>
+
+                    <div class="event-card">
+                        <h3>Community Social</h3>
+                        <div class="event-meta">
+                            <span>📅 Nov 29, 2025 at 8:00 PM</span>
+                            <span>👥 50 capacity</span>
+                            <span class="event-status status-available">20 spots left</span>
+                        </div>
+                        <p style="font-size: 14px; color: var(--color-smoke); margin-bottom: var(--space-sm);">
+                            Relaxed social gathering for members.
+                        </p>
+                        <button class="btn btn-secondary" style="width: 100%; padding: 10px;">Details</button>
+                    </div>
+
+                    <div class="event-card">
+                        <h3>Rope Maintenance 101</h3>
+                        <div class="event-meta">
+                            <span>📅 Dec 6, 2025 at 7:30 PM</span>
+                            <span>👥 15 capacity</span>
+                            <span class="event-status status-available">12 spots left</span>
+                        </div>
+                        <p style="font-size: 14px; color: var(--color-smoke); margin-bottom: var(--space-sm);">
+                            Learn proper rope care and maintenance.
+                        </p>
+                        <button class="btn btn-primary" style="width: 100%; padding: 10px;">Register</button>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Right: Stats and Quick Actions -->
+            <aside class="sidebar">
+                <div class="stats-widget">
+                    <h2>Your Stats</h2>
+                    <div class="stat-item">
+                        <span class="label">Events Attended</span>
+                        <span class="value">12</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Upcoming Events</span>
+                        <span class="value">3</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Member Since</span>
+                        <span class="value" style="font-size: 14px;">Aug 2025</span>
+                    </div>
+                </div>
+
+                <div class="quick-actions-widget">
+                    <h2>Quick Actions</h2>
+                    <button class="action-btn">📝 Update Profile</button>
+                    <button class="action-btn">📋 My Registrations</button>
+                    <button class="action-btn">💳 Payment Info</button>
+                    <button class="action-btn">📅 Browse All Events</button>
+                    <button class="action-btn">⚙️ Account Settings</button>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- PROFILE SETTINGS PAGE - Tabbed Interface -->
+    <div id="profile-page" class="profile-settings">
+        <h1 style="font-family: var(--font-heading); font-size: 36px; color: var(--color-burgundy); margin-bottom: var(--space-lg);">
+            Profile Settings
+        </h1>
+
+        <!-- Tabs -->
+        <div class="profile-tabs">
+            <button class="active" onclick="showTab('personal')">Personal</button>
+            <button onclick="showTab('social')">Social Connections</button>
+            <button onclick="showTab('security')">Security</button>
+            <button onclick="showTab('vetting')">Vetting Status</button>
+        </div>
+
+        <!-- Personal Tab -->
+        <div id="tab-personal" class="tab-content active">
+            <div class="form-section">
+                <h2>Personal Information</h2>
+
+                <!-- Side-by-side: Scene Name / Email -->
+                <div class="input-group">
+                    <div class="form-field">
+                        <label>Scene Name</label>
+                        <input type="text" value="Shadow" placeholder="Your scene name">
+                    </div>
+                    <div class="form-field">
+                        <label>Email</label>
+                        <input type="email" value="shadow@example.com" placeholder="your@email.com">
+                    </div>
+                </div>
+
+                <!-- Side-by-side: First Name / Last Name -->
+                <div class="input-group">
+                    <div class="form-field">
+                        <label>First Name</label>
+                        <input type="text" value="Alex" placeholder="First name">
+                    </div>
+                    <div class="form-field">
+                        <label>Last Name</label>
+                        <input type="text" value="Morgan" placeholder="Last name">
+                    </div>
+                </div>
+
+                <!-- Single field: Pronouns -->
+                <div class="form-field">
+                    <label>Pronouns</label>
+                    <input type="text" value="they/them" placeholder="Your pronouns">
+                </div>
+
+                <!-- Single field: Bio -->
+                <div class="form-field">
+                    <label>Bio</label>
+                    <textarea rows="4" placeholder="Tell us about yourself...">Passionate about rope bondage and community building. Been practicing for 3 years and love learning new techniques.</textarea>
+                </div>
+
+                <button class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+
+        <!-- Social Connections Tab -->
+        <div id="tab-social" class="tab-content">
+            <div class="form-section">
+                <h2>Social Connections</h2>
+
+                <!-- Side-by-side: Discord / FetLife -->
+                <div class="input-group">
+                    <div class="form-field">
+                        <label>Discord Name</label>
+                        <input type="text" value="Shadow#1234" placeholder="Discord username">
+                    </div>
+                    <div class="form-field">
+                        <label>FetLife Name</label>
+                        <input type="text" value="ShadowRope" placeholder="FetLife username">
+                    </div>
+                </div>
+
+                <!-- Single field: Phone -->
+                <div class="form-field">
+                    <label>Phone Number (Optional)</label>
+                    <input type="tel" value="(555) 123-4567" placeholder="Your phone number">
+                </div>
+
+                <button class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+
+        <!-- Security Tab -->
+        <div id="tab-security" class="tab-content">
+            <div class="form-section">
+                <h2>Change Password</h2>
+
+                <div class="form-field">
+                    <label>Current Password</label>
+                    <input type="password" placeholder="Enter current password">
+                </div>
+
+                <div class="input-group">
+                    <div class="form-field">
+                        <label>New Password</label>
+                        <input type="password" placeholder="New password">
+                    </div>
+                    <div class="form-field">
+                        <label>Confirm Password</label>
+                        <input type="password" placeholder="Confirm new password">
+                    </div>
+                </div>
+
+                <button class="btn btn-primary">Update Password</button>
+            </div>
+
+            <div class="form-section">
+                <h2>Account Management</h2>
+                <button class="btn btn-secondary">Put Membership On Hold</button>
+            </div>
+        </div>
+
+        <!-- Vetting Tab -->
+        <div id="tab-vetting" class="tab-content">
+            <div class="form-section">
+                <h2>Vetting Status</h2>
+
+                <!-- Side-by-side: Status / Last Updated -->
+                <div class="input-group">
+                    <div class="form-field">
+                        <label>Current Status</label>
+                        <input type="text" class="readonly-field" value="Vetted Member" readonly>
+                    </div>
+                    <div class="form-field">
+                        <label>Last Updated</label>
+                        <input type="text" class="readonly-field" value="Aug 15, 2025" readonly>
+                    </div>
+                </div>
+
+                <div style="background: rgba(34, 139, 34, 0.1); padding: var(--space-md); border-radius: 8px; border-left: 4px solid var(--color-success);">
+                    <p style="color: var(--color-success); font-weight: 600; margin-bottom: var(--space-xs);">
+                        ✓ Vetting Complete
+                    </p>
+                    <p style="font-size: 14px; color: var(--color-charcoal);">
+                        You have full access to all community events and resources.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showPage(page) {
+            document.getElementById('dashboard-page').style.display = 'none';
+            document.getElementById('profile-page').style.display = 'none';
+
+            if (page === 'dashboard') {
+                document.getElementById('dashboard-page').style.display = 'block';
+            } else {
+                document.getElementById('profile-page').style.display = 'block';
+            }
+
+            document.querySelectorAll('.page-nav button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.profile-tabs button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            document.getElementById('tab-' + tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

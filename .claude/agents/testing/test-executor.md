@@ -375,7 +375,7 @@ docker ps | grep witchcity | grep -E "5173|5655|5433" || echo "❌ Docker contai
    - This is the SINGLE SOURCE OF TRUTH for test environment
    - NEVER execute tests without following this standard
 2. **Read documentation standards** (MANDATORY)
-   - Read: `/home/chad/repos/witchcityrope-react/docs/standards-processes/documentation-standards.md#multi-file-lessons-learned-management`
+   - Read: `docs/standards-processes/documentation-standards.md#multi-file-lessons-learned-management`
 3. **Read your lessons learned files** (MANDATORY)
    - Check Part 1 header for file count and read ALL parts
    - This contains critical knowledge specific to your role

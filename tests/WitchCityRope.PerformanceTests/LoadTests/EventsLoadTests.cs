@@ -67,8 +67,6 @@ namespace WitchCityRope.PerformanceTests.LoadTests
                     UserId: Guid.NewGuid(), // Simulated user ID
                     DietaryRestrictions: null,
                     AccessibilityNeeds: null,
-                    EmergencyContactName: "Test Contact",
-                    EmergencyContactPhone: "555-0123",
                     PaymentMethod: WitchCityRope.Api.Features.Events.Models.PaymentMethod.PayPal,
                     PaymentToken: null
                 );
@@ -163,8 +161,6 @@ namespace WitchCityRope.PerformanceTests.LoadTests
                     UserId: Guid.NewGuid(), // Simulated user ID
                     DietaryRestrictions: null,
                     AccessibilityNeeds: null,
-                    EmergencyContactName: "Test Contact",
-                    EmergencyContactPhone: "555-0123",
                     PaymentMethod: WitchCityRope.Api.Features.Events.Models.PaymentMethod.PayPal,
                     PaymentToken: null
                 );

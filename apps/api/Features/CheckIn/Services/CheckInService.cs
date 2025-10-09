@@ -105,8 +105,6 @@ public class CheckInService : ICheckInService
                 IsFirstTime = ea.IsFirstTime,
                 DietaryRestrictions = ea.DietaryRestrictions,
                 AccessibilityNeeds = ea.AccessibilityNeeds,
-                EmergencyContactName = ea.EmergencyContactName,
-                EmergencyContactPhone = ea.EmergencyContactPhone,
                 Pronouns = ea.User.Pronouns,
                 HasCompletedWaiver = ea.HasCompletedWaiver,
                 WaitlistPosition = ea.WaitlistPosition

@@ -71,11 +71,6 @@ export interface UserProfileFormData {
 export interface EventRegistrationFormData {
   eventId: string;
   attendeeType: 'member' | 'guest';
-  emergencyContact: {
-    name: string;
-    phone: string;
-    relationship: string;
-  };
   medicalInfo?: string;
   dietaryRestrictions?: string;
   accessibilityNeeds?: string;
@@ -140,14 +135,6 @@ export const experienceLevelOptions: SelectOption[] = [
   { value: 'intermediate', label: 'Intermediate', description: 'Some experience' },
   { value: 'advanced', label: 'Advanced', description: 'Experienced practitioner' },
   { value: 'expert', label: 'Expert', description: 'Teaching level expertise' }
-];
-
-export const relationshipOptions: SelectOption[] = [
-  { value: 'spouse', label: 'Spouse/Partner' },
-  { value: 'parent', label: 'Parent' },
-  { value: 'sibling', label: 'Sibling' },
-  { value: 'friend', label: 'Friend' },
-  { value: 'other', label: 'Other' }
 ];
 
 export const contactTypeOptions: SelectOption[] = [

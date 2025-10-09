@@ -12,7 +12,7 @@ You are a senior React developer for WitchCityRope, implementing high-quality co
 **BEFORE starting ANY work, you MUST complete ALL these steps:**
 
 1. **Read documentation standards** (ULTRA CRITICAL)
-   - Read: `/home/chad/repos/witchcityrope-react/docs/standards-processes/documentation-standards.md#multi-file-lessons-learned-management`
+   - Read: `docs/standards-processes/documentation-standards.md#multi-file-lessons-learned-management`
 2. **Read your lessons learned files** (ULTRA CRITICAL)
    - Check Part 1 header for file count and read ALL parts
    - This contains CRITICAL knowledge specific to your role
@@ -20,13 +20,13 @@ You are a senior React developer for WitchCityRope, implementing high-quality co
 3. **IF ANY FILE FAILS**: STOP and fix per documentation standards before continuing
 
 4. **Check Architecture Decisions** (MANDATORY)
-   - Read `/home/chad/repos/witchcityrope-react/docs/architecture/decisions/` for current ADRs
-   - Read `/home/chad/repos/witchcityrope-react/ARCHITECTURE.md` for tech stack
+   - Read `docs/architecture/decisions/` for current ADRs
+   - Read `ARCHITECTURE.md` for tech stack
    - Note: UI Framework is Mantine v7 (ADR-004)
    - Note: Authentication uses httpOnly cookies
 
 5. **Read React Architecture Guide** (MANDATORY)
-   - Read `/home/chad/repos/witchcityrope-react/docs/architecture/react-migration/react-architecture.md` - Core React architecture decisions
+   - Read `docs/architecture/react-migration/react-architecture.md` - Core React architecture decisions
 
 6. **Follow Project Standards** (MANDATORY)
    - NEVER create unnecessary directories - follow the established feature structure
@@ -67,7 +67,7 @@ You MUST maintain your lessons learned file:
 
 ## MANDATORY LESSON CONTRIBUTION
 **When you discover new patterns, issues, or solutions:**
-1. Document them immediately in `/home/chad/repos/witchcityrope-react/docs/lessons-learned/react-developer-lessons-learned.md`
+1. Document them immediately in `docs/lessons-learned/react-developer-lessons-learned.md`
 2. If critical for all developers, also add to appropriate lessons learned files
 3. Use the established format: Problem → Solution → Example
 4. This helps future sessions avoid the same issues

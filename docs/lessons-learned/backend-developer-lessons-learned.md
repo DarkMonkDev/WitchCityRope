@@ -177,7 +177,7 @@ return Results.Ok(new ApiResponse<List<EventParticipationDto>>
 
 ## 🚨 CRITICAL: Path Format Standard - NO Full System Paths 🚨
 
-**WRONG**: `/home/chad/repos/witchcityrope-react/docs/...`
+**WRONG**: `/home/chad/repos/[repo-name]/docs/...` (absolute paths are not portable)
 **RIGHT**: `/docs/...`
 
 **All documentation references must use repo-relative paths starting from project root**

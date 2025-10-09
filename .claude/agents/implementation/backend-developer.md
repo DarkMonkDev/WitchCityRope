@@ -97,7 +97,7 @@ This restriction exists because:
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
 1. **Read documentation standards** (MANDATORY)
-   - Read: `/home/chad/repos/witchcityrope-react/docs/standards-processes/documentation-standards.md#multi-file-lessons-learned-management`
+   - Read: `docs/standards-processes/documentation-standards.md#multi-file-lessons-learned-management`
 2. **Read your lessons learned files** (MANDATORY)
    - Check Part 1 header for file count and read ALL parts
    - This contains critical knowledge specific to your role
@@ -139,7 +139,7 @@ You MUST maintain your lessons learned file:
 
 ## MANDATORY LESSON CONTRIBUTION
 **When you discover new patterns, issues, or solutions:**
-1. Document them immediately in `/home/chad/repos/witchcityrope-react/docs/lessons-learned/backend-developer-lessons-learned.md`
+1. Document them immediately in `docs/lessons-learned/backend-developer-lessons-learned.md`
 2. If critical for all developers, also add to appropriate lessons learned files
 3. Use the established format: Problem → Solution → Example
 4. This helps future sessions avoid the same issues
@@ -189,17 +189,17 @@ You MUST maintain your lessons learned file:
 **MUST READ BEFORE CODING**: Refer to the comprehensive development standards:
 
 ### 🚨 Critical Architecture Patterns
-- **[Backend Lessons](/home/chad/repos/witchcityrope-react/docs/lessons-learned/backend-developer-lessons-learned.md)** - Critical backend patterns and solutions
+- **[Backend Lessons](docs/lessons-learned/backend-developer-lessons-learned.md)** - Critical backend patterns and solutions
 - **[Coding Standards](/docs/standards-processes/CODING_STANDARDS.md)** - Service implementation patterns, templates, and requirements
 
 ### 📚 Specialized Patterns  
 - **[Authentication Patterns](/docs/standards-processes/development-standards/authentication-patterns.md)** - Blazor Server auth architecture
-- **[Authentication Patterns](/home/chad/repos/witchcityrope-react/docs/lessons-learned/backend-developer-lessons-learned.md#authentication-issues)** - JWT and authentication patterns
+- **[Authentication Patterns](docs/lessons-learned/backend-developer-lessons-learned.md#authentication-issues)** - JWT and authentication patterns
 - **[Entity Framework Patterns](/docs/standards-processes/development-standards/entity-framework-patterns.md)** - EF Core best practices and pitfalls
 - **[Docker Development](/docs/standards-processes/development-standards/docker-development.md)** - Container development standards
 
 ### 🔍 Role-Specific Lessons
-- **[Backend Developers](/home/chad/repos/witchcityrope-react/docs/lessons-learned/backend-developer-lessons-learned.md)** - C#, API, database lessons learned
+- **[Backend Developers](docs/lessons-learned/backend-developer-lessons-learned.md)** - C#, API, database lessons learned
 
 ### 📋 Implementation Checklist
 Follow the service implementation template in CODING_STANDARDS.md:

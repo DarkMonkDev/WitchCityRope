@@ -63,8 +63,6 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
                     UserId: user.Id,
                     DietaryRestrictions: null,
                     AccessibilityNeeds: null,
-                    EmergencyContactName: "Contact",
-                    EmergencyContactPhone: "555-0100",
                     PaymentMethod: PaymentMethod.Cash,
                     PaymentToken: null
                 );
@@ -149,8 +147,6 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
                 UserId = user.Id,
                 PaymentMethod = PaymentMethod.Stripe,
                 PaymentToken = $"tok_{user.Id}",
-                EmergencyContactName = "Contact",
-                EmergencyContactPhone = "555-0100"
             };
             return await eventServiceWithPaymentDelay.RegisterForEventAsync(request);
         })).ToArray();
@@ -223,9 +219,7 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
         var request = new RegisterForEventRequest
         {
             EventId = @event.Id,
-            UserId = user.Id,
-            EmergencyContactName = "Contact",
-            EmergencyContactPhone = "555-0100"
+            UserId = user.Id
         };
 
         // Act - Cancel event during registration
@@ -323,9 +317,7 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
             EventId = @event.Id,
             UserId = user.Id,
             DietaryRestrictions = "Nuts & dairy; gluten-free",
-            AccessibilityNeeds = "Wheelchair accessible, can't use stairs",
-            EmergencyContactName = "O'Brien-Smith, Jr.",
-            EmergencyContactPhone = "+1 (555) 123-4567"
+            AccessibilityNeeds = "Wheelchair accessible, can't use stairs"
         };
 
         // Act
@@ -340,8 +332,6 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
         
         registration!.DietaryRestrictions.Should().Be(request.DietaryRestrictions);
         registration.AccessibilityNeeds.Should().Be(request.AccessibilityNeeds);
-        registration.EmergencyContactName.Should().Be(request.EmergencyContactName);
-        registration.EmergencyContactPhone.Should().Be(request.EmergencyContactPhone);
     }
 
     [Fact]
@@ -409,17 +399,13 @@ public class ConcurrencyAndEdgeCaseTests : IDisposable
         var task1 = _eventService.RegisterForEventAsync(new RegisterForEventRequest
         {
             EventId = @event.Id,
-            UserId = user2.Id,
-            EmergencyContactName = "Contact",
-            EmergencyContactPhone = "555-0100"
+            UserId = user2.Id
         });
 
         var task2 = _eventService.RegisterForEventAsync(new RegisterForEventRequest
         {
             EventId = @event.Id,
-            UserId = user3.Id,
-            EmergencyContactName = "Contact",
-            EmergencyContactPhone = "555-0100"
+            UserId = user3.Id
         });
 
         var results = await Task.WhenAll(task1, task2);

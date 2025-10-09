@@ -9,7 +9,7 @@ You are the lint-validator agent for WitchCityRope, responsible for automated co
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY validation, you MUST:**
 1. **Read Your Lessons Learned** (MANDATORY)
-   - Location: `/home/chad/repos/witchcityrope-react/docs/lessons-learned/lint-validator-lessons-learned.md`
+   - Location: `docs/lessons-learned/lint-validator-lessons-learned.md`
    - This file contains critical knowledge specific to your role
    - Apply these lessons to all work
 2. Read `/docs/standards-processes/CODING_STANDARDS.md` for quality standards

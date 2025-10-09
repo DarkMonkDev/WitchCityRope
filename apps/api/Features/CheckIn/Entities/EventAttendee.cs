@@ -57,16 +57,6 @@ public class EventAttendee
     public string? AccessibilityNeeds { get; set; }
 
     /// <summary>
-    /// Emergency contact name
-    /// </summary>
-    public string? EmergencyContactName { get; set; }
-
-    /// <summary>
-    /// Emergency contact phone number
-    /// </summary>
-    public string? EmergencyContactPhone { get; set; }
-
-    /// <summary>
     /// Whether the attendee has completed required waivers
     /// </summary>
     public bool HasCompletedWaiver { get; set; } = false;

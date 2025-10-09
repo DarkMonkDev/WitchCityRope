@@ -63,12 +63,6 @@ test.describe('Vetting Application Submission Success Screen', () => {
     const phoneFilled = await page.fill('input[name="phone"], input[type="tel"], input[placeholder*="phone" i]', '555-123-4567').catch(() => false);
     console.log(`${phoneFilled !== false ? '✅' : '⚠️'} Filled phone`);
 
-    const emergencyNameFilled = await page.fill('input[name="emergencyContactName"], input[placeholder*="emergency" i]', 'Emergency Contact').catch(() => false);
-    console.log(`${emergencyNameFilled !== false ? '✅' : '⚠️'} Filled emergency contact name`);
-
-    const emergencyPhoneFilled = await page.fill('input[name="emergencyContactPhone"], input[placeholder*="emergency" i][type="tel"]', '555-987-6543').catch(() => false);
-    console.log(`${emergencyPhoneFilled !== false ? '✅' : '⚠️'} Filled emergency contact phone`);
-
     // Experience Level - try different selector patterns
     const experienceSelectors = [
       'input[value="beginner"]',

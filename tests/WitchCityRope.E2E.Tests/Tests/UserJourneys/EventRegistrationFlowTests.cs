@@ -73,8 +73,6 @@ public class EventRegistrationFlowTests : BaseE2ETest
             var registrationData = new Dictionary<string, string>
             {
                 ["dietaryRestrictions"] = "None",
-                ["emergencyContact"] = "Emergency Contact Name",
-                ["emergencyPhone"] = "555-0123",
                 ["agreeToTerms"] = "true"
             };
 

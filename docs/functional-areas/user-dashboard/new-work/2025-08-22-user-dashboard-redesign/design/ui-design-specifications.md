@@ -1,41 +1,72 @@
-# UI Design Specifications: User Dashboard v7 (CONSOLIDATED)
+# UI Design Specifications: User Dashboard v7 (PROFILE CONSOLIDATION & HORIZONTAL NAV)
 <!-- Last Updated: 2025-10-09 -->
-<!-- Version: 2.0 - CONSOLIDATION UPDATE -->
+<!-- Version: 3.0 - PROFILE CONSOLIDATION & HORIZONTAL NAV -->
 <!-- Owner: UI Designer Agent -->
 <!-- Status: Ready for Implementation -->
 
-## 🚨 CONSOLIDATION UPDATE 🚨
+## 🚨 VERSION 3.0 UPDATES 🚨
 
-**Major simplification based on October 2025 stakeholder feedback:**
-- **REMOVED**: Right-side menu/status area entirely
-- **TWO PRIMARY PAGES**: Dashboard Landing (`/dashboard`) + Events Page (`/dashboard/events`)
-- **Dashboard Landing**: Welcome message, upcoming events preview (3-5 cards), quick shortcuts
-- **Events Page**: Full event history with tabs (Upcoming/Past/Cancelled)
-- **Integration**: Uses existing EventDetailPage for all event actions
-- **Layout**: Edge-to-edge, left nav, full-width content area
-- **Design System v7**: ALL colors, typography, and animations maintained
+**Major navigation and profile simplification based on October 2025 research:**
+
+### 1. **HORIZONTAL TAB NAVIGATION** (replaces left sidebar)
+- **Space Savings**: 280px sidebar → 60px tabs = 78% more screen real estate
+- **Three Tabs Only**: Dashboard | Events | Profile Settings
+- **Mobile-First**: Tabs naturally scroll on mobile (Material Design pattern)
+- **Modern 2024-2025**: Aligns with Stripe, Airbnb, Google Admin patterns
+- **Layout**: Top of page, full-width, ~60px height
+- **Active Indicator**: 3px bottom border (burgundy)
+
+### 2. **PROFILE SETTINGS CONSOLIDATION** (single page)
+- **Merged Pages**: Profile + Security + Membership → ONE page
+- **Three Sections**: Profile Information, Change Password, Vetting Status
+- **Single Page**: All sections visible without navigation
+- **Section Buttons**: Each section has its own action button (Save Profile, Change Password, Put On Hold)
+- **Vertical Layout**: Sections stack vertically on scrolling page
+
+### 3. **SOCIAL EVENT TICKET INDICATORS** (PROMINENT)
+- **Ticket Purchased Badge**: LARGE green indicator (larger than other badges)
+- **Purchase Ticket Button**: LARGE amber/gold gradient button (larger than View Details)
+- **Direct Checkout**: Purchase button navigates to checkout (skips EventDetailPage)
+- **Visual Hierarchy**: Ticket status is PRIMARY element on social event cards
+
+### 4. **WAITLIST REMOVAL**
+- **No Waitlist Status**: Removed from participation status enum
+- **No Waitlist Tab**: Events page has only Upcoming/Past/Cancelled
+- **No Waitlist Badges**: All waitlist indicators deleted
+- **Simplified Status**: Only "Registered" and "Ticketed" statuses
+
+### 5. **MEMBERSHIP HOLD MODAL**
+- **Trigger**: "Put Membership On Hold" button in Profile Settings
+- **Modal Title**: "Put Membership On Hold"
+- **Warning**: "You can apply to take it off hold later, but while on hold you can't attend any social events."
+- **Required Field**: "Reason for hold" textarea (minimum 10 characters)
+- **Buttons**: "Confirm" (primary) + "Cancel" (secondary)
 
 ## Design Overview
 
-This document defines the complete UI design specifications for the WitchCityRope User Dashboard redesign using Design System v7. The consolidated design focuses on **two primary pages** with clear purpose separation: a welcoming dashboard landing for quick overview, and a comprehensive events page for full history management. All designs maintain the sophisticated Design System v7 aesthetic while simplifying the layout structure.
+This document defines the complete UI design specifications for the WitchCityRope User Dashboard redesign using Design System v7. Version 3.0 introduces **horizontal tab navigation** for dramatically improved screen space efficiency, **consolidated Profile Settings** merging three pages into one, and **prominent social event ticket indicators** with direct checkout flow. All designs maintain the sophisticated Design System v7 aesthetic while implementing modern 2024-2025 navigation patterns.
 
 ## Design Authority & Sources
 
 ### Primary Authority
-- **Design System v7**: Single source of truth for all visual patterns
+- **Design System v7.1**: Single source of truth for all visual patterns
 - **Mantine v7 Framework**: Component library and responsive patterns
-- **Business Requirements v4.0**: Consolidated two-page structure
+- **Business Requirements v5.0**: Profile consolidation and navigation simplification
+- **Navigation Research**: `/docs/functional-areas/user-management/research/2025-10-09-simple-dashboard-navigation-patterns.md`
 
 ### Reference Materials
 - **Button Style Guide**: Complete button implementation patterns
 - **Homepage Template v7**: Header/footer reference patterns
-- **Stakeholder Feedback**: Simplified functionality over complex design
+- **Material Design Tabs**: Industry standard tab navigation patterns
+- **Stakeholder Feedback**: Simple functionality over complex design
 
 ## Design Philosophy
 
 ### Core Principles
-- **Simple Functionality**: Two focused pages, no over-engineering
+- **Maximum Screen Space**: Horizontal tabs reclaim 78% of sidebar space
+- **Simple Functionality**: Three tabs, three profile sections, clear purpose
 - **Event-Centric UX**: Dashboard preview + comprehensive events page
+- **Social Event Focus**: Ticket purchase is CRITICAL user journey
 - **Warm Sophistication**: Burgundy, rose-gold, and amber create premium feel
 - **Signature Animations**: v7 corner morphing and center-outward underlines
 - **Accessibility First**: WCAG 2.1 AA compliance throughout
@@ -46,6 +77,142 @@ This document defines the complete UI design specifications for the WitchCityRop
 - **Typography Hierarchy**: Clear information architecture with consistent scales
 - **Interactive Feedback**: Subtle hover states and morphing animations
 - **Spatial Design**: Edge-to-edge layout with intentional information density
+- **Prominent CTAs**: Social event ticket actions are LARGEST elements
+
+## Navigation Architecture (NEW)
+
+### Horizontal Tab Navigation Pattern
+
+**Layout Structure**:
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Header (Sticky) - 80px height                             │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─ Dashboard ─┬─ Events ─┬─ Profile Settings ─┐          │
+│  │  (active)   │           │                     │  ~60px  │
+│  └─────────────┴───────────┴─────────────────────┘          │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Main Content Area (FULL WIDTH edge-to-edge)                │
+│  - No left sidebar                                          │
+│  - No right sidebar                                         │
+│  - Content spans entire page width                          │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Visual Design**:
+- **Tab Container**: Full-width bar below header
+- **Tab Height**: ~60px (desktop), ~56px (mobile)
+- **Tab Spacing**: 32px gap between tabs
+- **Active Tab**:
+  - Border bottom: 3px solid var(--color-burgundy)
+  - Font weight: 700
+  - Color: var(--color-burgundy)
+  - Background: transparent
+- **Inactive Tab**:
+  - Border bottom: none
+  - Font weight: 500
+  - Color: var(--color-charcoal)
+  - Background: transparent
+  - Hover: Color changes to var(--color-burgundy) with 0.3s transition
+- **Tab Typography**:
+  - Font: Montserrat, sans-serif
+  - Size: 14px
+  - Transform: uppercase
+  - Letter spacing: 0.5px
+
+**Mantine Implementation**:
+```typescript
+import { Tabs } from '@mantine/core';
+import { useNavigate, useLocation } from 'react-router-dom';
+
+function DashboardNavigation() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Determine active tab from current route
+  const getActiveTab = () => {
+    if (location.pathname === '/dashboard') return 'dashboard';
+    if (location.pathname.startsWith('/dashboard/events')) return 'events';
+    if (location.pathname === '/dashboard/profile-settings') return 'settings';
+    return 'dashboard';
+  };
+
+  const handleTabChange = (value: string) => {
+    switch(value) {
+      case 'dashboard':
+        navigate('/dashboard');
+        break;
+      case 'events':
+        navigate('/dashboard/events');
+        break;
+      case 'settings':
+        navigate('/dashboard/profile-settings');
+        break;
+    }
+  };
+
+  return (
+    <Tabs
+      value={getActiveTab()}
+      onChange={handleTabChange}
+      styles={{
+        root: {
+          borderBottom: '1px solid rgba(183, 109, 117, 0.2)',
+        },
+        tab: {
+          fontFamily: 'Montserrat, sans-serif',
+          fontWeight: 500,
+          fontSize: '14px',
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px',
+          padding: '20px 32px',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            color: 'var(--color-burgundy)',
+            backgroundColor: 'transparent',
+          },
+          '&[data-active]': {
+            borderBottomWidth: '3px',
+            borderBottomColor: 'var(--color-burgundy)',
+            color: 'var(--color-burgundy)',
+            fontWeight: 700,
+            backgroundColor: 'transparent',
+          }
+        }
+      }}
+    >
+      <Tabs.List>
+        <Tabs.Tab value="dashboard">Dashboard</Tabs.Tab>
+        <Tabs.Tab value="events">Events</Tabs.Tab>
+        <Tabs.Tab value="settings">Profile Settings</Tabs.Tab>
+      </Tabs.List>
+    </Tabs>
+  );
+}
+```
+
+**Mobile Responsive Behavior**:
+- **Desktop (>768px)**: Horizontal tabs with equal spacing
+- **Tablet (768px)**: Tabs remain horizontal, may reduce padding
+- **Mobile (<768px)**:
+  - Tabs remain horizontal with scrollable overflow
+  - Partial visibility hint (last tab partially visible) indicates scrollability
+  - Native horizontal scroll with momentum
+  - Same visual styling maintained
+
+**Benefits**:
+1. **Space Efficiency**: 280px (sidebar) → 60px (tabs) = 220px reclaimed
+2. **Familiarity**: Universal pattern users recognize immediately
+3. **Mobile-First**: Tabs are native mobile pattern (Airbnb, Revolut proven)
+4. **Visual Hierarchy**: Navigation doesn't dominate interface
+5. **Accessibility**: Keyboard navigable, ARIA-compliant
+
+**Research Validation**:
+- Material Design: "Fixed tabs work best with a small number of options (ideally four or fewer)"
+- Nielsen Norman Group: "Tabs are used right when they simplify navigation in a complex application"
+- Real-world examples: Stripe, Airbnb, Google Admin all use tabs for 3-5 item navigation
 
 ## Page Specifications
 
@@ -53,21 +220,27 @@ This document defines the complete UI design specifications for the WitchCityRop
 **Path**: `/dashboard`
 **Purpose**: Welcome message + upcoming events preview + quick shortcuts
 
-#### Layout Architecture
+#### Layout Architecture (NEW - No Sidebar)
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  Header (Sticky) - 80px height                             │
 ├─────────────────────────────────────────────────────────────┤
-│  ┌──────────┐  ┌──────────────────────────────────────────┐ │
-│  │ Left Nav │  │  Main Content Area (FULL WIDTH)          │ │
-│  │ 280px    │  │  - Welcome Section                        │ │
-│  │          │  │  - My Upcoming Events (3-5 cards max)    │ │
-│  │ Dashboard│  │  - Quick Actions (shortcuts)             │ │
-│  │ Events   │  │                                          │ │
-│  │ Profile  │  │  NO RIGHT SIDEBAR                        │ │
-│  │ Security │  │  NO STATUS AREA                          │ │
-│  │ Membersh │  │                                          │ │
-│  └──────────┘  └──────────────────────────────────────────┘ │
+│  ┌─ Dashboard ─┬─ Events ─┬─ Profile Settings ─┐          │
+│  │  (active)   │           │                     │  ~60px  │
+│  └─────────────┴───────────┴─────────────────────┘          │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Main Content Area (FULL WIDTH edge-to-edge)                │
+│                                                             │
+│  - Welcome Section: "Welcome back, [Scene Name]"            │
+│  - My Upcoming Events (3-5 cards max)                       │
+│    ✓ Social events show PROMINENT ticket indicators         │
+│    ✓ "Purchase Ticket" button LARGER than other elements    │
+│  - Quick Actions (shortcuts)                                │
+│                                                             │
+│  NO LEFT SIDEBAR                                           │
+│  NO RIGHT SIDEBAR                                          │
+│                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -87,53 +260,52 @@ This document defines the complete UI design specifications for the WitchCityRop
 - Each event card:
   - Date badge: Gradient background (burgundy → plum)
   - Event title, time, location
-  - Participation status badge (color-coded)
+  - **NEW: Social Event Ticket Indicators** (see component spec below)
+  - Participation status badge (color-coded) - SMALLER than ticket indicators
   - "View Details" button → navigates to EventDetailPage
   - Hover: translateY(-4px) with shadow
 
 **Quick Actions Section**
 - Section title: "Quick Actions"
-- Three shortcut buttons:
-  - "Edit Profile" → `/dashboard/profile`
-  - "Security Settings" → `/dashboard/security`
-  - "Membership Status" → `/dashboard/membership`
-- Layout: Simple row or grid (edge-to-edge)
+- ONE shortcut button:
+  - "Profile Settings" → `/dashboard/profile-settings`
+- Layout: Simple centered button
 - Button style: Secondary button pattern (burgundy outline)
-- Icons: Simple emoji-style for clarity
-
-**Left Navigation**
-- 5 sections exactly: Dashboard, Events, Profile, Security, Membership
-- Active state: Gradient background (burgundy → plum) with shadow
-- Hover effect: Background change + translateX(4px)
-- Icons: Simple emoji-style
-- Active page clearly highlighted
+- Icon: Simple emoji-style for clarity
 
 ### 2. Events Page
 **Path**: `/dashboard/events`
-**Purpose**: Full event history with tab-based filtering
+**Purpose**: Full event history with tab-based filtering (NO WAITLIST)
 
-#### Layout Architecture
+#### Layout Architecture (NEW - No Sidebar)
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  Header (Sticky) - 80px height                             │
 ├─────────────────────────────────────────────────────────────┤
-│  ┌──────────┐  ┌──────────────────────────────────────────┐ │
-│  │ Left Nav │  │  Main Content Area (FULL WIDTH)          │ │
-│  │ 280px    │  │  - Page Title: "My Events"               │ │
-│  │          │  │  - Tab Navigation (Upcoming|Past|Cancel) │ │
-│  │ Dashboard│  │  - Event Cards (all history)             │ │
-│  │ Events   │  │                                          │ │
-│  │ Profile  │  │  NO RIGHT SIDEBAR                        │ │
-│  │ Security │  │  NO STATUS AREA                          │ │
-│  │ Membersh │  │                                          │ │
-│  └──────────┘  └──────────────────────────────────────────┘ │
+│  ┌─ Dashboard ─┬─ Events ─┬─ Profile Settings ─┐          │
+│  │             │ (active) │                     │  ~60px  │
+│  └─────────────┴───────────┴─────────────────────┘          │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Main Content Area (FULL WIDTH edge-to-edge)                │
+│                                                             │
+│  - Page Title: "My Events"                                  │
+│  - Tab Navigation (Upcoming | Past | Cancelled)             │
+│    NOTE: NO WAITLIST TAB                                    │
+│  - Event Cards (all history)                                │
+│    ✓ Social events show PROMINENT ticket indicators         │
+│    ✓ NO "Waitlisted" status badges                          │
+│                                                             │
+│  NO LEFT SIDEBAR                                           │
+│  NO RIGHT SIDEBAR                                          │
+│                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 #### Key Components
 
-**Tab Navigation (Mantine Tabs)**
-- Three tabs: "Upcoming" | "Past" | "Cancelled"
+**Tab Navigation (Mantine Tabs) - NO WAITLIST**
+- **Three tabs only**: "Upcoming" | "Past" | "Cancelled"
 - Default active: "Upcoming"
 - Active tab styling:
   - Border bottom: 3px solid var(--color-burgundy)
@@ -141,19 +313,27 @@ This document defines the complete UI design specifications for the WitchCityRop
   - Color: var(--color-burgundy)
 - Inactive tab: Color var(--color-charcoal)
 - Tab switching: No full page reload (client-side filtering)
+- **REMOVED**: "Waitlisted" tab completely deleted
 
-**Event Cards (Same as Dashboard)**
+**Event Cards (Same as Dashboard with Social Ticket Indicators)**
 - Display ALL events matching tab filter
 - Sort order:
   - Upcoming: Soonest first (ascending date)
   - Past: Most recent first (descending date)
   - Cancelled: Most recent first (descending date)
 - Each event card identical to dashboard preview cards
+- **Social Event Ticket Indicators**: See component spec below
 - "View Details" button → EventDetailPage
 - Empty states:
   - "No upcoming events"
   - "No past events"
   - "No cancelled events"
+- **REMOVED**: All "Waitlisted" status badges
+
+**Participation Status Values (SIMPLIFIED)**:
+- "Registered" - User has RSVP'd
+- "Ticketed" - User has purchased ticket
+- **REMOVED**: "Waitlisted" status completely eliminated
 
 **EventDetailPage Integration**
 - All "View Details" buttons navigate to existing EventDetailPage
@@ -167,26 +347,775 @@ This document defines the complete UI design specifications for the WitchCityRop
 - No duplication of event action logic
 - Browser back returns to context (dashboard or events page)
 
-### 3. Profile Settings Page
-**Path**: `/dashboard/profile`
-**Purpose**: User profile editing (simplified)
+### 3. Profile Settings Page (NEW - CONSOLIDATED)
+**Path**: `/dashboard/profile-settings`
+**Purpose**: ALL user settings on single page (Profile + Security + Vetting)
 
-#### Layout
-Same left nav structure, main content area for profile form.
+#### Layout Architecture (NEW - Single Page with Three Sections)
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Header (Sticky) - 80px height                             │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─ Dashboard ─┬─ Events ─┬─ Profile Settings ─┐          │
+│  │             │           │      (active)       │  ~60px  │
+│  └─────────────┴───────────┴─────────────────────┘          │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Main Content Area (FULL WIDTH edge-to-edge)                │
+│                                                             │
+│  Page Title: "Profile Settings"                             │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ SECTION 1: Profile Information                      │   │
+│  │ - Scene Name (editable)                             │   │
+│  │ - Email (editable)                                  │   │
+│  │ - Pronouns (editable)                               │   │
+│  │ - Bio (editable textarea)                           │   │
+│  │ [Save Profile] button                               │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ SECTION 2: Change Password                          │   │
+│  │ - Current Password (password input)                 │   │
+│  │ - New Password (password input)                     │   │
+│  │ - Confirm Password (password input)                 │   │
+│  │ [Change Password] button                            │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ SECTION 3: Vetting Status                           │   │
+│  │ - Current Status: "Vetted" (read-only)              │   │
+│  │ - Last Updated: "January 15, 2025" (read-only)      │   │
+│  │ [Put Membership On Hold] button (if not on hold)    │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  NO LEFT SIDEBAR                                           │
+│  NO RIGHT SIDEBAR                                          │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
 
-### 4. Security Settings Page
-**Path**: `/dashboard/security`
-**Purpose**: Security management (simplified)
+#### Section 1: Profile Information
 
-#### Layout
-Same left nav structure, main content area for security settings.
+**Fields**:
+- **Scene Name**: TextInput (required, 3-50 characters)
+- **Email**: TextInput (required, valid email format)
+- **Pronouns**: TextInput or Select (optional, max 50 characters)
+- **Bio**: Textarea (optional, max 500 characters, 4-5 rows)
 
-### 5. Membership Status Page
-**Path**: `/dashboard/membership`
-**Purpose**: Membership information and management
+**Action Button**:
+- "Save Profile" button
+- Style: Primary CTA button (gold/amber gradient)
+- Position: Below bio field
+- Validation: Client-side validation before submit
 
-#### Layout
-Same left nav structure, main content area for membership details.
+**Mantine Implementation**:
+```typescript
+<Box className="profile-section" p="xl" mb="xl" bg="var(--color-ivory)" style={{ borderRadius: '12px' }}>
+  <Title order={3} mb="lg" color="var(--color-burgundy)">Profile Information</Title>
+  <Stack spacing="md">
+    <TextInput
+      label="Scene Name"
+      placeholder="Enter your scene name"
+      required
+      minLength={3}
+      maxLength={50}
+    />
+    <TextInput
+      label="Email"
+      placeholder="your.email@example.com"
+      type="email"
+      required
+    />
+    <TextInput
+      label="Pronouns"
+      placeholder="they/them, she/her, etc."
+      maxLength={50}
+    />
+    <Textarea
+      label="Bio"
+      placeholder="Tell us about yourself..."
+      maxLength={500}
+      rows={5}
+    />
+    <Button
+      className="btn btn-primary"
+      size="lg"
+      style={{
+        borderRadius: '12px 6px 12px 6px',
+        transition: 'all 0.3s ease',
+      }}
+      styles={{
+        root: {
+          '&:hover': {
+            borderRadius: '6px 12px 6px 12px',
+          }
+        }
+      }}
+    >
+      Save Profile
+    </Button>
+  </Stack>
+</Box>
+```
+
+#### Section 2: Change Password
+
+**Fields**:
+- **Current Password**: PasswordInput (required)
+- **New Password**: PasswordInput (required, min 8 characters, complexity rules)
+- **Confirm Password**: PasswordInput (required, must match new password)
+
+**Action Button**:
+- "Change Password" button
+- Style: Primary Alt CTA button (electric purple gradient)
+- Position: Below confirm password field
+- Validation: Password complexity + match validation
+
+**Password Requirements** (displayed below New Password field):
+- Minimum 8 characters
+- At least 1 uppercase letter
+- At least 1 lowercase letter
+- At least 1 number
+
+**Mantine Implementation**:
+```typescript
+<Box className="password-section" p="xl" mb="xl" bg="var(--color-ivory)" style={{ borderRadius: '12px' }}>
+  <Title order={3} mb="lg" color="var(--color-burgundy)">Change Password</Title>
+  <Stack spacing="md">
+    <PasswordInput
+      label="Current Password"
+      placeholder="Enter current password"
+      required
+    />
+    <PasswordInput
+      label="New Password"
+      placeholder="Enter new password"
+      required
+      minLength={8}
+      description="Minimum 8 characters with uppercase, lowercase, and number"
+    />
+    <PasswordInput
+      label="Confirm Password"
+      placeholder="Confirm new password"
+      required
+    />
+    <Button
+      className="btn btn-primary-alt"
+      size="lg"
+      style={{
+        borderRadius: '12px 6px 12px 6px',
+        transition: 'all 0.3s ease',
+        background: 'linear-gradient(135deg, #9D4EDD 0%, #7B2CBF 100%)',
+      }}
+      styles={{
+        root: {
+          '&:hover': {
+            borderRadius: '6px 12px 6px 12px',
+          }
+        }
+      }}
+    >
+      Change Password
+    </Button>
+  </Stack>
+</Box>
+```
+
+#### Section 3: Vetting Status
+
+**Display Fields** (read-only):
+- **Current Status**: Text display showing vetting status enum value
+  - "Pending" | "Vetted" | "On Hold" | "Denied"
+  - Color-coded: Success (green) for Vetted, Warning (amber) for Pending/On Hold, Error (red) for Denied
+- **Last Updated**: Formatted date display (e.g., "January 15, 2025")
+
+**Action Button** (conditional):
+- "Put Membership On Hold" button
+- **Visibility**: Only shown if current status is NOT "On Hold"
+- Style: Secondary button (burgundy outline)
+- Position: Below status display
+- Action: Opens Membership Hold Modal (see component spec below)
+
+**Mantine Implementation**:
+```typescript
+<Box className="vetting-section" p="xl" mb="xl" bg="var(--color-ivory)" style={{ borderRadius: '12px' }}>
+  <Title order={3} mb="lg" color="var(--color-burgundy)">Vetting Status</Title>
+  <Stack spacing="md">
+    <Group spacing="sm">
+      <Text weight={600}>Current Status:</Text>
+      <Badge
+        color={vettingStatus === 'Vetted' ? 'green' : vettingStatus === 'Denied' ? 'red' : 'yellow'}
+        size="lg"
+      >
+        {vettingStatus}
+      </Badge>
+    </Group>
+    <Group spacing="sm">
+      <Text weight={600}>Last Updated:</Text>
+      <Text>{new Date(statusUpdatedAt).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })}</Text>
+    </Group>
+    {vettingStatus !== 'On Hold' && (
+      <Button
+        className="btn btn-secondary"
+        variant="outline"
+        color="var(--color-burgundy)"
+        onClick={openMembershipHoldModal}
+        style={{
+          borderRadius: '12px 6px 12px 6px',
+          transition: 'all 0.3s ease',
+        }}
+        styles={{
+          root: {
+            '&:hover': {
+              borderRadius: '6px 12px 6px 12px',
+              backgroundColor: 'var(--color-burgundy)',
+              color: 'var(--color-ivory)',
+            }
+          }
+        }}
+      >
+        Put Membership On Hold
+      </Button>
+    )}
+  </Stack>
+</Box>
+```
+
+**Layout Notes**:
+- All three sections visible on same page (no navigation required)
+- Sections stack vertically with spacing between
+- User can scroll smoothly between sections
+- Each section is visually distinct with ivory background and rounded corners
+- No multi-page navigation complexity
+
+## Component Specifications (NEW & UPDATED)
+
+### Social Event Ticket Indicators (NEW - PROMINENT)
+
+**Purpose**: Make social event ticketing the PRIMARY call-to-action
+
+**Visual Hierarchy Rule**: Ticket status indicators must be **LARGER and MORE PROMINENT** than all other event card elements
+
+#### Ticket Purchased State (Social Event with Ticket)
+
+**Visual Design**:
+- **Badge Size**: LARGE (height: 48px, padding: 12px 24px)
+- **Background**: Success gradient (linear-gradient(135deg, #228B22 0%, #2F8B2F 100%))
+- **Text**: "✓ Ticket Purchased" in white
+- **Font**: Montserrat 700, 16px (LARGER than other text)
+- **Border Radius**: 12px 6px 12px 6px (signature asymmetric)
+- **Position**: Prominent position on event card (top right or center)
+- **Shadow**: 0 4px 15px rgba(34, 139, 34, 0.4)
+
+**Mantine Implementation**:
+```typescript
+<Badge
+  size="xl"
+  style={{
+    height: '48px',
+    padding: '12px 24px',
+    background: 'linear-gradient(135deg, #228B22 0%, #2F8B2F 100%)',
+    color: '#FFF8F0',
+    fontFamily: 'Montserrat, sans-serif',
+    fontWeight: 700,
+    fontSize: '16px',
+    borderRadius: '12px 6px 12px 6px',
+    boxShadow: '0 4px 15px rgba(34, 139, 34, 0.4)',
+    textTransform: 'uppercase',
+    letterSpacing: '1px',
+  }}
+>
+  ✓ Ticket Purchased
+</Badge>
+```
+
+#### Purchase Ticket State (Social Event without Ticket)
+
+**Visual Design**:
+- **Button Size**: LARGE (height: 56px, padding: 18px 40px)
+- **Background**: Primary CTA gradient (linear-gradient(135deg, #FFBF00 0%, #FF8C00 100%))
+- **Text**: "Purchase Ticket" in midnight (#1A1A2E)
+- **Font**: Montserrat 700, 16px
+- **Border Radius**: 12px 6px 12px 6px (default), morphs on hover
+- **Position**: Prominent position on event card (center or bottom)
+- **Shadow**: 0 4px 15px rgba(255, 191, 0, 0.4)
+- **Hover**: Corner morph to 6px 12px 6px 12px + shimmer effect
+- **Action**: Navigate directly to checkout with 1 ticket pre-selected (skip EventDetailPage)
+
+**Mantine Implementation**:
+```typescript
+<Button
+  size="xl"
+  onClick={() => navigate(`/checkout?eventId=${eventId}&quantity=1`)}
+  style={{
+    height: '56px',
+    padding: '18px 40px',
+    background: 'linear-gradient(135deg, #FFBF00 0%, #FF8C00 100%)',
+    color: '#1A1A2E',
+    fontFamily: 'Montserrat, sans-serif',
+    fontWeight: 700,
+    fontSize: '16px',
+    borderRadius: '12px 6px 12px 6px',
+    boxShadow: '0 4px 15px rgba(255, 191, 0, 0.4)',
+    border: 'none',
+    textTransform: 'uppercase',
+    letterSpacing: '1.5px',
+    transition: 'all 0.3s ease',
+    position: 'relative',
+    overflow: 'hidden',
+  }}
+  styles={{
+    root: {
+      '&:hover': {
+        borderRadius: '6px 12px 6px 12px',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: '-100%',
+          width: '100%',
+          height: '100%',
+          background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
+          animation: 'shimmer 0.6s',
+        }
+      }
+    }
+  }}
+>
+  Purchase Ticket
+</Button>
+```
+
+**Shimmer Animation CSS**:
+```css
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+```
+
+#### Non-Social Event Cards (Standard)
+
+**Visual Design**:
+- No special ticket indicators
+- Standard "View Details" button (secondary style)
+- Participation status badge (Registered/Ticketed) - standard size
+- No direct checkout option
+
+**Conditional Rendering Logic**:
+```typescript
+interface EventCardProps {
+  event: {
+    id: string;
+    title: string;
+    date: Date;
+    location: string;
+    isSocialEvent: boolean;
+    hasTicket: boolean;
+    participationStatus: 'Registered' | 'Ticketed';
+  };
+}
+
+function EventCard({ event }: EventCardProps) {
+  return (
+    <Card>
+      {/* Event details */}
+
+      {event.isSocialEvent ? (
+        // SOCIAL EVENT - Prominent ticket indicators
+        <>
+          {event.hasTicket ? (
+            <Badge /* Ticket Purchased - LARGE green badge */ />
+          ) : (
+            <Button /* Purchase Ticket - LARGE amber button */ />
+          )}
+          <Button variant="outline" size="sm">View Details</Button>
+        </>
+      ) : (
+        // NON-SOCIAL EVENT - Standard button
+        <Button variant="outline">View Details</Button>
+      )}
+    </Card>
+  );
+}
+```
+
+**Design Rationale**:
+- Social event ticket purchase is CRITICAL business goal
+- Visual hierarchy makes ticket status impossible to miss
+- Direct checkout reduces friction and increases conversion
+- Prominent CTAs align with business requirements for ticket sales
+
+### Membership Hold Modal (NEW)
+
+**Purpose**: Capture reason for membership hold with clear warning message
+
+**Trigger**: User clicks "Put Membership On Hold" button in Profile Settings Section 3
+
+**Modal Specifications**:
+
+**Visual Design**:
+- **Modal Width**: 500px (desktop), 90% viewport width (mobile)
+- **Title**: "Put Membership On Hold"
+  - Font: Montserrat 800, 24px
+  - Color: var(--color-burgundy)
+- **Warning Message**:
+  - Text: "You can apply to take it off hold later, but while on hold you can't attend any social events."
+  - Font: Source Sans 3 400, 16px
+  - Color: var(--color-charcoal)
+  - Background: Warning color with low opacity (rgba(218, 165, 32, 0.1))
+  - Padding: 16px
+  - Border-left: 4px solid var(--color-warning)
+  - Margin: 16px 0
+- **Required Field**:
+  - Label: "Reason for hold"
+  - Component: Textarea
+  - Placeholder: "Please provide a brief reason for putting your membership on hold..."
+  - Validation: Minimum 10 characters, maximum 1000 characters
+  - Required indicator: Red asterisk
+  - Rows: 5
+- **Buttons**:
+  - "Confirm" - Primary CTA (gold/amber gradient)
+  - "Cancel" - Secondary (burgundy outline)
+  - Spacing: 16px gap between buttons
+  - Alignment: Right-aligned in modal footer
+
+**Mantine Implementation**:
+```typescript
+import { Modal, Textarea, Button, Alert, Group } from '@mantine/core';
+import { useForm } from '@mantine/form';
+
+function MembershipHoldModal({ opened, onClose, onConfirm }) {
+  const form = useForm({
+    initialValues: {
+      holdReason: '',
+    },
+    validate: {
+      holdReason: (value) =>
+        value.length < 10
+          ? 'Reason must be at least 10 characters'
+          : value.length > 1000
+          ? 'Reason must be less than 1000 characters'
+          : null,
+    },
+  });
+
+  const handleSubmit = form.onSubmit((values) => {
+    onConfirm(values.holdReason);
+    onClose();
+  });
+
+  return (
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      title="Put Membership On Hold"
+      size="lg"
+      centered
+      styles={{
+        title: {
+          fontFamily: 'Montserrat, sans-serif',
+          fontWeight: 800,
+          fontSize: '24px',
+          color: 'var(--color-burgundy)',
+        }
+      }}
+    >
+      <form onSubmit={handleSubmit}>
+        <Alert
+          color="yellow"
+          icon={<span>⚠️</span>}
+          mb="md"
+          styles={{
+            root: {
+              backgroundColor: 'rgba(218, 165, 32, 0.1)',
+              borderLeft: '4px solid var(--color-warning)',
+            }
+          }}
+        >
+          You can apply to take it off hold later, but while on hold you can't attend any social events.
+        </Alert>
+
+        <Textarea
+          label="Reason for hold"
+          placeholder="Please provide a brief reason for putting your membership on hold..."
+          required
+          minLength={10}
+          maxLength={1000}
+          rows={5}
+          {...form.getInputProps('holdReason')}
+          styles={{
+            label: {
+              fontFamily: 'Montserrat, sans-serif',
+              fontWeight: 600,
+              marginBottom: '8px',
+            }
+          }}
+        />
+
+        <Group position="right" mt="xl" spacing="md">
+          <Button
+            variant="outline"
+            color="burgundy"
+            onClick={onClose}
+            style={{
+              borderRadius: '12px 6px 12px 6px',
+              transition: 'all 0.3s ease',
+            }}
+            styles={{
+              root: {
+                '&:hover': {
+                  borderRadius: '6px 12px 6px 12px',
+                }
+              }
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            style={{
+              borderRadius: '12px 6px 12px 6px',
+              background: 'linear-gradient(135deg, #FFBF00 0%, #FF8C00 100%)',
+              color: '#1A1A2E',
+              transition: 'all 0.3s ease',
+            }}
+            styles={{
+              root: {
+                '&:hover': {
+                  borderRadius: '6px 12px 6px 12px',
+                }
+              }
+            }}
+          >
+            Confirm
+          </Button>
+        </Group>
+      </form>
+    </Modal>
+  );
+}
+```
+
+**Workflow**:
+1. User clicks "Put Membership On Hold" button → Modal opens
+2. User sees warning message prominently displayed
+3. User enters reason in textarea (minimum 10 characters required)
+4. User clicks "Confirm" → Form validates → API call to update vetting status
+5. API appends reason to vetting notes with timestamp
+6. Modal closes → Section 3 refreshes to show "On Hold" status
+7. "Put Membership On Hold" button is hidden (status already on hold)
+
+**Alternative Flow**:
+- User clicks "Cancel" → Modal closes → No changes saved
+
+### Event Cards (Mantine Card) - UPDATED
+
+**Updated to include social event ticket indicators and NO waitlist**
+
+```typescript
+interface EventCardProps {
+  id: string;
+  title: string;
+  date: Date;
+  location: string;
+  status: 'confirmed' | 'pending';  // REMOVED 'waitlisted'
+  isSocialEvent: boolean;  // NEW
+  hasTicket: boolean;  // NEW
+  time: string;
+  onViewDetails: (id: string) => void;
+  onPurchaseTicket?: (id: string) => void;  // NEW
+}
+
+// Mantine v7 implementation approach
+<Card
+  radius="md"
+  withBorder
+  shadow="sm"
+  style={{
+    borderLeft: '3px solid var(--color-burgundy)',
+    background: 'var(--color-ivory)',
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      transform: 'translateY(-4px)',
+      boxShadow: '0 8px 30px rgba(0,0,0,0.12)',
+    }
+  }}
+>
+  <Group align="flex-start" spacing="lg">
+    <Box /* Date badge */>
+      <Text size="xl" weight={800}>{day}</Text>
+      <Text size="xs" transform="uppercase">{month}</Text>
+    </Box>
+    <Box style={{ flex: 1 }}>
+      <Text size="lg" weight={700}>{title}</Text>
+      <Group spacing="md">
+        <Text size="sm">{location}</Text>
+        <Text size="sm">{time}</Text>
+        {!isSocialEvent && (
+          <Badge color={statusColor} size="sm">{status}</Badge>
+        )}
+      </Group>
+    </Box>
+
+    {/* NEW: Social Event Ticket Indicators */}
+    {isSocialEvent ? (
+      <Stack spacing="sm" align="flex-end">
+        {hasTicket ? (
+          <Badge /* LARGE Ticket Purchased badge */
+            size="xl"
+            style={{
+              height: '48px',
+              padding: '12px 24px',
+              background: 'linear-gradient(135deg, #228B22 0%, #2F8B2F 100%)',
+              // ... (see Social Event Ticket Indicators spec)
+            }}
+          >
+            ✓ Ticket Purchased
+          </Badge>
+        ) : (
+          <Button /* LARGE Purchase Ticket button */
+            size="xl"
+            onClick={() => onPurchaseTicket(id)}
+            style={{
+              height: '56px',
+              padding: '18px 40px',
+              background: 'linear-gradient(135deg, #FFBF00 0%, #FF8C00 100%)',
+              // ... (see Social Event Ticket Indicators spec)
+            }}
+          >
+            Purchase Ticket
+          </Button>
+        )}
+        <Button
+          variant="outline"
+          color="burgundy"
+          size="sm"
+          onClick={() => onViewDetails(id)}
+        >
+          View Details
+        </Button>
+      </Stack>
+    ) : (
+      <Button
+        variant="outline"
+        color="burgundy"
+        onClick={() => onViewDetails(id)}
+      >
+        View Details
+      </Button>
+    )}
+  </Group>
+</Card>
+```
+
+### Tab Navigation (Mantine Tabs) - UPDATED (NO WAITLIST)
+
+```typescript
+interface EventsTabsProps {
+  activeTab: 'upcoming' | 'past' | 'cancelled';  // REMOVED 'waitlisted'
+  onTabChange: (tab: string) => void;
+  upcomingCount: number;
+  pastCount: number;
+  cancelledCount: number;
+  // REMOVED: waitlistedCount
+}
+
+// Mantine v7 implementation
+<Tabs
+  value={activeTab}
+  onTabChange={onTabChange}
+  styles={{
+    tab: {
+      fontFamily: 'Montserrat, sans-serif',
+      fontWeight: 500,
+      fontSize: '14px',
+      textTransform: 'uppercase',
+      letterSpacing: '0.5px',
+      '&[data-active]': {
+        borderBottomColor: 'var(--color-burgundy)',
+        borderBottomWidth: '3px',
+        color: 'var(--color-burgundy)',
+        fontWeight: 700,
+      }
+    }
+  }}
+>
+  <Tabs.List>
+    <Tabs.Tab value="upcoming">
+      Upcoming ({upcomingCount})
+    </Tabs.Tab>
+    <Tabs.Tab value="past">
+      Past ({pastCount})
+    </Tabs.Tab>
+    <Tabs.Tab value="cancelled">
+      Cancelled ({cancelledCount})
+    </Tabs.Tab>
+    {/* REMOVED: Waitlisted tab */}
+  </Tabs.List>
+
+  <Tabs.Panel value="upcoming">
+    <EventsList events={upcomingEvents} />
+  </Tabs.Panel>
+
+  <Tabs.Panel value="past">
+    <EventsList events={pastEvents} />
+  </Tabs.Panel>
+
+  <Tabs.Panel value="cancelled">
+    <EventsList events={cancelledEvents} />
+  </Tabs.Panel>
+
+  {/* REMOVED: Waitlisted panel */}
+</Tabs>
+```
+
+### Quick Actions Section - UPDATED
+
+```typescript
+interface QuickAction {
+  icon: string;
+  label: string;
+  href: string;
+}
+
+const quickActions: QuickAction[] = [
+  { icon: '⚙️', label: 'Profile Settings', href: '/dashboard/profile-settings' }
+  // REMOVED: Security Settings, Membership Status (now consolidated into Profile Settings)
+];
+
+// Mantine v7 implementation
+<Box className="quick-actions" mt="xl">
+  <Title order={3}>Quick Actions</Title>
+  <Group spacing="md" mt="md" position="center">
+    {quickActions.map(action => (
+      <Button
+        key={action.href}
+        variant="outline"
+        color="burgundy"
+        leftIcon={<Text>{action.icon}</Text>}
+        onClick={() => navigate(action.href)}
+        styles={{
+          root: {
+            borderRadius: '12px 6px 12px 6px',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              borderRadius: '6px 12px 6px 12px',
+            }
+          }
+        }}
+      >
+        {action.label}
+      </Button>
+    ))}
+  </Group>
+</Box>
+```
 
 ## Design System v7 Implementation
 
@@ -228,7 +1157,7 @@ font-size: 20px;
 text-transform: uppercase;
 letter-spacing: 0.5px;
 
-/* Navigation items - clean readability */
+/* Tab navigation - clean readability */
 font-family: 'Montserrat', sans-serif;
 font-weight: 500;
 font-size: 14px;
@@ -268,22 +1197,13 @@ font-size: 16px;
 }
 ```
 
-#### 2. Navigation Underline (Center Outward)
+#### 2. Tab Active Indicator
 ```css
-.nav-item::after {
-    content: '';
-    position: absolute;
-    bottom: -4px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--color-burgundy), transparent);
-    transition: width 0.3s ease;
-}
-
-.nav-item:hover::after {
-    width: 100%;
+.tab[data-active] {
+    border-bottom: 3px solid var(--color-burgundy);
+    color: var(--color-burgundy);
+    font-weight: 700;
+    transition: all 0.3s ease;
 }
 ```
 
@@ -312,27 +1232,41 @@ font-size: 16px;
         gap: var(--space-lg);
     }
 
-    .left-nav {
-        order: 2;                      /* Below main content */
-        border-right: none;
-        border-top: 2px solid rgba(183, 109, 117, 0.1);
+    .horizontal-tabs {
+        overflow-x: auto;              /* Scrollable tabs */
+        scrollbar-width: none;         /* Hide scrollbar */
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .horizontal-tabs::-webkit-scrollbar {
+        display: none;                 /* Hide scrollbar */
+    }
+
+    .tab {
+        flex-shrink: 0;                /* Prevent tab compression */
+        min-width: fit-content;
     }
 
     .main-content {
-        order: 1;                      /* Above navigation */
         padding: var(--space-lg) 20px;
     }
 
     .events-list {
         gap: var(--space-md);
     }
+
+    .profile-sections {
+        padding: var(--space-md);
+    }
 }
 ```
 
 #### Component Adaptations
+- **Horizontal Tabs**: Scrollable on mobile with partial visibility hint
 - **Event Cards**: Grid → Single column stack
+- **Social Ticket Buttons**: Full-width on mobile
+- **Profile Settings Sections**: Increased padding, full-width fields
 - **Quick Actions**: Row → Vertical stack
-- **Tab Navigation**: Scrollable on mobile if needed
 - **Button Groups**: Horizontal → Vertical stack
 - **Touch Targets**: Minimum 44px × 44px
 
@@ -340,201 +1274,7 @@ font-size: 16px;
 - **Minimum Touch Targets**: 44px × 44px
 - **Button Padding**: Increased on mobile
 - **Scroll Areas**: Native momentum scrolling
-
-## Component Specifications
-
-### Event Cards (Mantine Card)
-```typescript
-interface EventCardProps {
-  id: string;
-  title: string;
-  date: Date;
-  location: string;
-  status: 'confirmed' | 'pending' | 'waitlisted';
-  time: string;
-  onViewDetails: (id: string) => void;
-}
-
-// Mantine v7 implementation approach
-<Card
-  radius="md"
-  withBorder
-  shadow="sm"
-  style={{
-    borderLeft: '3px solid var(--color-burgundy)',
-    background: 'var(--color-ivory)',
-    transition: 'all 0.3s ease',
-    '&:hover': {
-      transform: 'translateY(-4px)',
-      boxShadow: '0 8px 30px rgba(0,0,0,0.12)',
-    }
-  }}
->
-  <Group align="flex-start" spacing="lg">
-    <Box /* Date badge */>
-      <Text size="xl" weight={800}>{day}</Text>
-      <Text size="xs" transform="uppercase">{month}</Text>
-    </Box>
-    <Box style={{ flex: 1 }}>
-      <Text size="lg" weight={700}>{title}</Text>
-      <Group spacing="md">
-        <Text size="sm">{location}</Text>
-        <Text size="sm">{time}</Text>
-        <Badge color={statusColor}>{status}</Badge>
-      </Group>
-    </Box>
-    <Button
-      variant="outline"
-      color="burgundy"
-      onClick={() => onViewDetails(id)}
-    >
-      View Details
-    </Button>
-  </Group>
-</Card>
-```
-
-### Left Navigation (Mantine NavLink)
-```typescript
-interface NavItem {
-  icon: string;
-  label: string;
-  href: string;
-  active?: boolean;
-}
-
-const navItems: NavItem[] = [
-  { icon: '📊', label: 'Dashboard', href: '/dashboard', active: true },
-  { icon: '📅', label: 'Events', href: '/dashboard/events' },
-  { icon: '👤', label: 'Profile', href: '/dashboard/profile' },
-  { icon: '🔒', label: 'Security', href: '/dashboard/security' },
-  { icon: '🎯', label: 'Membership', href: '/dashboard/membership' }
-];
-
-// Mantine v7 implementation approach
-<Stack spacing="xs">
-  {navItems.map(item => (
-    <NavLink
-      key={item.href}
-      label={item.label}
-      icon={<Text>{item.icon}</Text>}
-      active={item.active}
-      onClick={() => navigate(item.href)}
-      styles={{
-        root: {
-          borderRadius: 0,
-          '&[data-active]': {
-            background: 'linear-gradient(135deg, var(--color-burgundy), var(--color-plum))',
-            color: 'var(--color-ivory)',
-          },
-          '&:hover:not([data-active])': {
-            background: 'rgba(183, 109, 117, 0.1)',
-            transform: 'translateX(4px)',
-          }
-        }
-      }}
-    />
-  ))}
-</Stack>
-```
-
-### Tab Navigation (Mantine Tabs)
-```typescript
-interface EventsTabsProps {
-  activeTab: 'upcoming' | 'past' | 'cancelled';
-  onTabChange: (tab: string) => void;
-  upcomingCount: number;
-  pastCount: number;
-  cancelledCount: number;
-}
-
-// Mantine v7 implementation
-<Tabs
-  value={activeTab}
-  onTabChange={onTabChange}
-  styles={{
-    tab: {
-      fontFamily: 'Montserrat, sans-serif',
-      fontWeight: 500,
-      fontSize: '14px',
-      textTransform: 'uppercase',
-      letterSpacing: '0.5px',
-      '&[data-active]': {
-        borderBottomColor: 'var(--color-burgundy)',
-        borderBottomWidth: '3px',
-        color: 'var(--color-burgundy)',
-        fontWeight: 700,
-      }
-    }
-  }}
->
-  <Tabs.List>
-    <Tabs.Tab value="upcoming">
-      Upcoming ({upcomingCount})
-    </Tabs.Tab>
-    <Tabs.Tab value="past">
-      Past ({pastCount})
-    </Tabs.Tab>
-    <Tabs.Tab value="cancelled">
-      Cancelled ({cancelledCount})
-    </Tabs.Tab>
-  </Tabs.List>
-
-  <Tabs.Panel value="upcoming">
-    <EventsList events={upcomingEvents} />
-  </Tabs.Panel>
-
-  <Tabs.Panel value="past">
-    <EventsList events={pastEvents} />
-  </Tabs.Panel>
-
-  <Tabs.Panel value="cancelled">
-    <EventsList events={cancelledEvents} />
-  </Tabs.Panel>
-</Tabs>
-```
-
-### Quick Actions Section
-```typescript
-interface QuickAction {
-  icon: string;
-  label: string;
-  href: string;
-}
-
-const quickActions: QuickAction[] = [
-  { icon: '👤', label: 'Edit Profile', href: '/dashboard/profile' },
-  { icon: '🔒', label: 'Security Settings', href: '/dashboard/security' },
-  { icon: '🎯', label: 'Membership Status', href: '/dashboard/membership' }
-];
-
-// Mantine v7 implementation
-<Box className="quick-actions" mt="xl">
-  <Title order={3}>Quick Actions</Title>
-  <Group spacing="md" mt="md">
-    {quickActions.map(action => (
-      <Button
-        key={action.href}
-        variant="outline"
-        color="burgundy"
-        leftIcon={<Text>{action.icon}</Text>}
-        onClick={() => navigate(action.href)}
-        styles={{
-          root: {
-            borderRadius: '12px 6px 12px 6px',
-            transition: 'all 0.3s ease',
-            '&:hover': {
-              borderRadius: '6px 12px 6px 12px',
-            }
-          }
-        }}
-      >
-        {action.label}
-      </Button>
-    ))}
-  </Group>
-</Box>
-```
+- **Tab Scrolling**: Horizontal scroll with partial visibility hint
 
 ## Accessibility Implementation
 
@@ -545,15 +1285,22 @@ const quickActions: QuickAction[] = [
 - **Secondary text**: 4.5:1 ratio (stone on ivory)
 - **Interactive elements**: 4.5:1 minimum
 - **Status indicators**: Color + text/icon combinations
+- **Tab active state**: 3px bottom border ensures visibility
 
 #### Keyboard Navigation
 ```css
 /* Focus states for all interactive elements */
-.nav-link:focus,
-.btn:focus,
-.tab:focus {
+.tab:focus,
+.btn:focus {
     outline: 3px solid rgba(136, 1, 36, 0.5);
     outline-offset: 2px;
+}
+
+/* Tab keyboard navigation */
+.tab-list[role="tablist"] {
+    /* Arrow keys for tab navigation */
+    /* Tab key to exit tab list */
+    /* Enter/Space to select tab */
 }
 
 /* Skip links for screen readers */
@@ -580,9 +1327,22 @@ const quickActions: QuickAction[] = [
 <nav aria-label="Dashboard navigation">
 <article aria-labelledby="event-title-1">
 
-<!-- Tab navigation -->
-<Tabs aria-label="Event filtering tabs">
-  <Tabs.Tab value="upcoming" aria-controls="upcoming-panel">
+<!-- Horizontal tabs with ARIA -->
+<Tabs aria-label="Dashboard sections" role="tablist">
+  <Tabs.Tab value="dashboard" aria-controls="dashboard-panel" role="tab">
+    Dashboard
+  </Tabs.Tab>
+</Tabs>
+
+<!-- Profile Settings sections with clear headings -->
+<section aria-labelledby="profile-info-heading">
+  <h2 id="profile-info-heading">Profile Information</h2>
+  <!-- Fields -->
+</section>
+
+<!-- Event filtering tabs -->
+<Tabs aria-label="Event filtering tabs" role="tablist">
+  <Tabs.Tab value="upcoming" aria-controls="upcoming-panel" role="tab">
     Upcoming Events
   </Tabs.Tab>
 </Tabs>
@@ -592,6 +1352,15 @@ const quickActions: QuickAction[] = [
   <h3 id="event-title-1">Rope Fundamentals Workshop</h3>
   <!-- Event details -->
 </article>
+
+<!-- Membership hold modal with ARIA -->
+<Modal
+  aria-labelledby="hold-modal-title"
+  aria-describedby="hold-modal-description"
+>
+  <h2 id="hold-modal-title">Put Membership On Hold</h2>
+  <p id="hold-modal-description">Warning text...</p>
+</Modal>
 ```
 
 #### Reduced Motion Support
@@ -632,66 +1401,130 @@ const quickActions: QuickAction[] = [
 ### Data Fetching Strategy
 - **Dashboard Landing**: Fetch only 5 most recent upcoming events
 - **Events Page**: Fetch all events, filter client-side by tab
+- **Profile Settings**: Single fetch for all user data
 - **TanStack Query**: Cache events data, invalidate on mutations
 - **Optimistic Updates**: Update UI immediately, rollback on error
 
 ## Implementation Roadmap
 
-### Phase 1: Dashboard Landing Page (Week 1)
+### Phase 1: Horizontal Tab Navigation (Week 1)
+- [ ] Replace left sidebar with horizontal tabs component
+- [ ] Implement tab navigation with React Router integration
+- [ ] Setup active tab state management
+- [ ] Create mobile scrollable tabs behavior
+- [ ] Test keyboard navigation and ARIA compliance
+- [ ] Verify accessibility with screen readers
+
+### Phase 2: Dashboard Landing Page (Week 1-2)
 - [ ] Setup Design System v7 CSS variables
-- [ ] Implement basic layout with left navigation
 - [ ] Create welcome section with underline
-- [ ] Build event card component
+- [ ] Build event card component with social ticket indicators
 - [ ] Implement upcoming events preview (max 5)
-- [ ] Add quick actions section
+- [ ] Add prominent "Purchase Ticket" buttons for social events
+- [ ] Update quick actions section (single button)
 - [ ] Setup responsive grid system
 
-### Phase 2: Events Page (Week 2)
-- [ ] Create tab navigation component
+### Phase 3: Events Page (Week 2)
+- [ ] Create tab filtering component (3 tabs only - NO waitlist)
 - [ ] Implement event filtering logic
 - [ ] Build full event history display
+- [ ] Add prominent social event ticket indicators
 - [ ] Add empty states for each tab
 - [ ] Connect "View All Events" link from dashboard
 - [ ] Test tab switching performance
 
-### Phase 3: EventDetailPage Integration (Week 3)
+### Phase 4: Profile Settings Consolidation (Week 3)
+- [ ] Create single Profile Settings page layout
+- [ ] Implement Section 1: Profile Information with Save button
+- [ ] Implement Section 2: Change Password with validation
+- [ ] Implement Section 3: Vetting Status (read-only display)
+- [ ] Add "Put Membership On Hold" button (conditional visibility)
+- [ ] Create Membership Hold Modal component
+- [ ] Implement hold workflow with API integration
+- [ ] Test section scrolling and form submissions
+
+### Phase 5: EventDetailPage Integration (Week 3)
 - [ ] Implement navigation to EventDetailPage
+- [ ] Setup direct checkout navigation for social events
 - [ ] Pass event ID correctly in URL
 - [ ] Test browser back button behavior
 - [ ] Verify state preservation (active tab)
 - [ ] Ensure no duplicate event actions
 
-### Phase 4: Additional Pages (Week 4)
-- [ ] Profile settings page (simplified)
-- [ ] Security settings page (simplified)
-- [ ] Membership status page
-- [ ] Left nav state management across pages
-
-### Phase 5: Polish & Testing (Week 5)
+### Phase 6: Polish & Testing (Week 4)
 - [ ] Animation refinements
 - [ ] Accessibility testing with screen readers
 - [ ] Cross-browser testing
 - [ ] Performance optimization
 - [ ] Mobile device testing
 - [ ] Load testing with many events
+- [ ] Social ticket indicator prominence verification
+- [ ] Hold modal UX testing
 
 ## Quality Assurance Checklist
+
+### Navigation Design
+- [ ] Horizontal tabs implemented correctly (3 tabs only)
+- [ ] 280px sidebar removed completely
+- [ ] Tab navigation uses React Router
+- [ ] Active tab clearly indicated with 3px bottom border
+- [ ] Mobile scrollable tabs working smoothly
+- [ ] Keyboard navigation functional
+- [ ] ARIA attributes correct for tabs
 
 ### Visual Design
 - [ ] Design System v7 colors used consistently
 - [ ] Typography hierarchy clear and readable
-- [ ] Signature animations implemented correctly (corner morphing, underlines)
+- [ ] Signature animations implemented correctly (corner morphing)
 - [ ] Responsive design works on all target devices
 - [ ] Brand consistency maintained throughout
-- [ ] No right sidebar or status area
+- [ ] No left sidebar or right sidebar
 - [ ] Edge-to-edge layout implemented
+
+### Social Event Ticket Indicators
+- [ ] "Ticket Purchased" badge LARGER than other badges
+- [ ] "Purchase Ticket" button LARGER than "View Details"
+- [ ] Ticket indicators more prominent than participation status
+- [ ] Direct checkout flow working (skips EventDetailPage)
+- [ ] Checkout opens with 1 ticket pre-selected
+- [ ] Visual hierarchy clearly prioritizes ticket actions
+- [ ] High-contrast colors for ticket CTAs
+
+### Profile Settings Consolidation
+- [ ] All three sections visible on single page
+- [ ] Section 1 (Profile Information) with Save button
+- [ ] Section 2 (Change Password) with validation
+- [ ] Section 3 (Vetting Status) read-only display
+- [ ] "Put Membership On Hold" button conditional visibility
+- [ ] Each section has distinct visual separation
+- [ ] No multi-page navigation required
+
+### Membership Hold Workflow
+- [ ] Modal opens on button click
+- [ ] Warning message prominently displayed
+- [ ] Reason textarea required (min 10 chars)
+- [ ] Form validation working correctly
+- [ ] API saves reason to vetting notes
+- [ ] Status updates to "On Hold" on confirmation
+- [ ] Button disappears after hold confirmed
+- [ ] Cancel button closes modal without changes
+
+### Waitlist Removal
+- [ ] "Waitlisted" status removed from all event cards
+- [ ] Waitlist tab removed from Events page (3 tabs only)
+- [ ] No waitlist badges anywhere in UI
+- [ ] Participation status only "Registered" or "Ticketed"
+- [ ] Empty states updated (no waitlist references)
 
 ### User Experience
 - [ ] Dashboard shows welcome + preview (3-5 events max)
-- [ ] Events page shows full history with tabs
+- [ ] Events page shows full history with 3 tabs
 - [ ] Tab filtering works without page reload
 - [ ] "View Details" navigates to EventDetailPage correctly
-- [ ] Quick actions shortcuts work
+- [ ] Social events skip detail page for ticket purchase
+- [ ] Profile settings accessible without navigation
+- [ ] Membership hold workflow clear and intuitive
+- [ ] Quick actions shortcut works
 - [ ] Empty states clear and helpful
 - [ ] Loading states and error handling implemented
 - [ ] Browser back button works correctly
@@ -709,19 +1542,23 @@ const quickActions: QuickAction[] = [
 ### Accessibility
 - [ ] WCAG 2.1 AA compliance verified
 - [ ] Keyboard navigation functional throughout
+- [ ] Tab navigation ARIA-compliant
 - [ ] Screen reader testing completed
 - [ ] Color contrast ratios verified
 - [ ] Focus management implemented
 - [ ] Skip links available
 - [ ] Reduced motion support
+- [ ] Modal accessibility correct
 
 ### Integration
 - [ ] EventDetailPage integration tested
+- [ ] Direct checkout navigation working
 - [ ] Event ID passing verified
 - [ ] Navigation context preserved
 - [ ] No duplicate event action logic
 - [ ] API endpoints correct
 - [ ] Error handling complete
+- [ ] Hold reason saves to vetting notes
 
 ## Maintenance Guidelines
 
@@ -745,6 +1582,14 @@ const quickActions: QuickAction[] = [
 
 ---
 
-**Implementation Notes**: These consolidated designs provide a complete foundation for the WitchCityRope User Dashboard using Design System v7. The focus on two primary pages (Dashboard Landing + Events Page) with clear purpose separation creates a simple, functional experience. The removal of the right sidebar and integration with existing EventDetailPage maintains simplicity while leveraging proven patterns. All Design System v7 standards are maintained for color, typography, and animations.
+**Implementation Notes**: These Version 3.0 designs provide a complete foundation for the WitchCityRope User Dashboard using Design System v7 with modern horizontal tab navigation. The horizontal tabs reclaim 78% of screen space previously used by the left sidebar, aligning with industry best practices for simple 3-item navigation. The consolidated Profile Settings page merges three separate pages into one, eliminating unnecessary navigation complexity. Prominent social event ticket indicators with direct checkout flow prioritize the critical business goal of ticket sales. All Design System v7 standards are maintained for color, typography, and animations.
 
-**Next Steps**: Begin Phase 1 implementation with Mantine v7 component setup and Dashboard Landing page. All designs are ready for developer handoff with complete specifications and implementation guidance.
+**Navigation Research**: Horizontal tab pattern validated by Material Design, Nielsen Norman Group research, and real-world examples from Stripe, Airbnb, and Google Admin. Tabs are the recommended pattern for 2-5 navigation items with excellent mobile responsiveness.
+
+**Profile Consolidation**: Single-page settings approach reduces cognitive load and eliminates multi-page navigation friction. All user settings accessible with simple scrolling instead of multiple clicks.
+
+**Social Event Focus**: Ticket indicators designed as PRIMARY visual elements, significantly larger than other badges and buttons, with direct checkout reducing conversion friction.
+
+**Waitlist Removal**: Complete elimination of waitlist complexity simplifies event participation to two clear states: Registered and Ticketed.
+
+**Next Steps**: Begin Phase 1 implementation with horizontal tab navigation and Mantine v7 component setup. All designs are ready for developer handoff with complete specifications and implementation guidance.

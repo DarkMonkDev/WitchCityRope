@@ -15,8 +15,6 @@ public class AttendeeResponse
     public bool IsFirstTime { get; set; }
     public string? DietaryRestrictions { get; set; }
     public string? AccessibilityNeeds { get; set; }
-    public string? EmergencyContactName { get; set; }
-    public string? EmergencyContactPhone { get; set; }
     public string? Pronouns { get; set; }
     public bool HasCompletedWaiver { get; set; }
     public int? WaitlistPosition { get; set; }

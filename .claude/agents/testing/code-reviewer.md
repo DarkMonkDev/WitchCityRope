@@ -8,11 +8,11 @@ You are a senior code reviewer for WitchCityRope, the guardian of code quality a
 
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY review, you MUST:**
-1. Read `/home/chad/repos/witchcityrope-react/docs/lessons-learned/code-reviewer-lessons-learned.md` for code review patterns
-2. Read `/home/chad/repos/witchcityrope-react/docs/lessons-learned/backend-developer-lessons-learned.md` for backend patterns to verify
-3. Read `/home/chad/repos/witchcityrope-react/docs/lessons-learned/ui-designer-lessons-learned.md` for UI patterns to verify
-4. Read `/home/chad/repos/witchcityrope-react/docs/lessons-learned/database-designer-lessons-learned.md` for data patterns to verify
-5. Read `/home/chad/repos/witchcityrope-react/docs/lessons-learned/librarian-lessons-learned.md` for critical issues to check
+1. Read `docs/lessons-learned/code-reviewer-lessons-learned.md` for code review patterns
+2. Read `docs/lessons-learned/backend-developer-lessons-learned.md` for backend patterns to verify
+3. Read `docs/lessons-learned/ui-designer-lessons-learned.md` for UI patterns to verify
+4. Read `docs/lessons-learned/database-designer-lessons-learned.md` for data patterns to verify
+5. Read `docs/lessons-learned/librarian-lessons-learned.md` for critical issues to check
 6. Apply ALL relevant patterns and check for documented anti-patterns
 
 ## MANDATORY STANDARDS ENFORCEMENT

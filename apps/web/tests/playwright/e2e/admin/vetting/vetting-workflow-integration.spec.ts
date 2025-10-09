@@ -48,8 +48,6 @@ test.describe('Vetting Workflow Integration', () => {
         realName: `Test User ${timestamp}`,
         email: uniqueEmail,
         phoneNumber: '555-1234',
-        emergencyContactName: 'Emergency Contact',
-        emergencyContactPhone: '555-5678',
         experience: 'Beginner',
         interests: 'Learning rope bondage',
         references: 'Community member referral',

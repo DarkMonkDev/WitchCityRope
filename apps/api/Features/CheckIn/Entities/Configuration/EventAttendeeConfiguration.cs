@@ -36,12 +36,6 @@ public class EventAttendeeConfiguration : IEntityTypeConfiguration<EventAttendee
         builder.Property(e => e.AccessibilityNeeds)
                .HasColumnType("text");
 
-        builder.Property(e => e.EmergencyContactName)
-               .HasMaxLength(200);
-
-        builder.Property(e => e.EmergencyContactPhone)
-               .HasMaxLength(50);
-
         builder.Property(e => e.Metadata)
                .IsRequired()
                .HasColumnType("jsonb")

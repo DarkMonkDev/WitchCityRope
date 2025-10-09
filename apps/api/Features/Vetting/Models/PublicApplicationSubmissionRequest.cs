@@ -24,13 +24,6 @@ public class PublicApplicationSubmissionRequest
     [Phone(ErrorMessage = "Valid phone number is required")]
     public string PhoneNumber { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Emergency contact name is required")]
-    public string EmergencyContactName { get; set; } = string.Empty;
-
-    [Required(ErrorMessage = "Emergency contact phone is required")]
-    [Phone(ErrorMessage = "Valid emergency contact phone is required")]
-    public string EmergencyContactPhone { get; set; } = string.Empty;
-
     [Required(ErrorMessage = "Experience level is required")]
     public string Experience { get; set; } = string.Empty;
 

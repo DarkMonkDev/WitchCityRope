@@ -1065,9 +1065,6 @@ public class VettingService : IVettingService
                 WhyJoinCommunity = request.Interests,
                 AgreesToGuidelines = request.AgreeToRules,
 
-                // Store emergency contact in AboutYourself field (temporary)
-                AboutYourself = $"Emergency Contact: {request.EmergencyContactName}, Phone: {request.EmergencyContactPhone}",
-
                 // References (simple string format)
                 References = request.References,
 

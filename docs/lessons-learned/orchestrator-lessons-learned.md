@@ -42,7 +42,7 @@
 EVERY delegation MUST include:
 ```
 MANDATORY: Before ANY work, you MUST:
-1. Read documentation standards: /home/chad/repos/witchcityrope-react/docs/standards-processes/documentation-standards.md#multi-file-lessons-learned-management
+1. Read documentation standards: docs/standards-processes/documentation-standards.md#multi-file-lessons-learned-management
 2. Read your lessons learned file(s) and any other documents stated in the lesson's learned files as must read. There may be more than one lesson's learned file which will be stated at the top of the first file.
 3. IF ANY FILE FAILS: STOP and fix per documentation standards (this is CRITICAL)
 4. Confirm you have read all files
@@ -569,7 +569,7 @@ Relative file paths in documentation break when viewed from different contexts o
 
 #### What We Learned
 - All file references in summaries and documents must use full absolute paths
-- Paths must start with /home/chad/repos/witchcityrope-react/ for this project
+- Use relative paths from repo root (e.g., docs/..., apps/...) for portability
 - Clickable links improve stakeholder experience and reduce confusion
 - Broken links in handoff documents cause workflow disruption
 

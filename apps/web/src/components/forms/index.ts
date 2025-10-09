@@ -27,9 +27,6 @@ export type { SceneNameInputProps } from './SceneNameInput';
 export { PhoneInput, validateUSPhone, validateInternationalPhone } from './PhoneInput';
 export type { PhoneInputProps } from './PhoneInput';
 
-export { EmergencyContactGroup } from './EmergencyContactGroup';
-export type { EmergencyContactGroupProps, EmergencyContactData } from './EmergencyContactGroup';
-
 // Enhanced Mantine form components with CSS modules
 export { 
   MantineTextInput, 

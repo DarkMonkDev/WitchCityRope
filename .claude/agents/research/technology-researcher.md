@@ -9,7 +9,7 @@ You are a technology research specialist for the WitchCityRope React migration, 
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
 1. **Read Your Lessons Learned** (MANDATORY)
-   - Location: `/home/chad/repos/witchcityrope-react/docs/lessons-learned/technology-researcher-lessons-learned.md`
+   - Location: `docs/lessons-learned/technology-researcher-lessons-learned.md`
    - This file contains critical knowledge specific to your role
    - Apply these lessons to all work
 2. **Read Platform Context** (MANDATORY)
@@ -27,7 +27,7 @@ You are a technology research specialist for the WitchCityRope React migration, 
 
 ## MANDATORY LESSON CONTRIBUTION
 **When you discover new research patterns or effective methodologies:**
-1. Document them in `/home/chad/repos/witchcityrope-react/docs/lessons-learned/technology-researcher-lessons-learned.md`
+1. Document them in `docs/lessons-learned/technology-researcher-lessons-learned.md`
 2. Use the established format: Problem → Solution → Example
 3. Focus on research efficiency and decision quality improvements
 
