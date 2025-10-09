@@ -1100,6 +1100,9 @@ The WitchCityRope Vetting Team",
     /// <summary>
     /// Creates sample ticket purchases for realistic data testing
     /// Includes mix of completed purchases, pending payments, and free RSVPs
+    ///
+    /// CRITICAL: Creates specific test purchases for vetted@witchcityrope.com user
+    /// to enable E2E testing of user dashboard event display functionality
     /// </summary>
     public async Task SeedTicketPurchasesAsync(CancellationToken cancellationToken = default)
     {
@@ -1147,10 +1150,199 @@ The WitchCityRope Vetting Team",
             }
         }
 
+        // Create specific ticket purchases for vetted test user for E2E dashboard testing
+        await CreateVettedUserTicketPurchasesAsync(purchasesToAdd, cancellationToken);
+
         await _context.TicketPurchases.AddRangeAsync(purchasesToAdd, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Ticket purchases creation completed. Created: {PurchaseCount} purchases", purchasesToAdd.Count);
+    }
+
+    /// <summary>
+    /// Creates specific ticket purchases for the vetted test user (vetted@witchcityrope.com)
+    /// to provide realistic data for E2E testing of user dashboard functionality.
+    ///
+    /// Creates 3-5 ticket purchases covering different scenarios:
+    /// - Upcoming paid event (workshop)
+    /// - Upcoming free event (social RSVP)
+    /// - Past attended event
+    /// - Optional social event with ticket
+    /// - Optional additional event for search/filter testing
+    /// </summary>
+    private async Task CreateVettedUserTicketPurchasesAsync(
+        List<TicketPurchase> purchasesToAdd,
+        CancellationToken cancellationToken)
+    {
+        // Get the vetted test user
+        var vettedUser = await _userManager.FindByEmailAsync("vetted@witchcityrope.com");
+        if (vettedUser == null)
+        {
+            _logger.LogWarning("Vetted test user not found, skipping dashboard test data creation");
+            return;
+        }
+
+        // Check if vetted user already has ticket purchases
+        var existingPurchases = await _context.TicketPurchases
+            .Where(tp => tp.UserId == vettedUser.Id)
+            .CountAsync(cancellationToken);
+
+        if (existingPurchases > 0)
+        {
+            _logger.LogInformation("Vetted test user already has {Count} ticket purchases, skipping seed", existingPurchases);
+            return;
+        }
+
+        _logger.LogInformation("Creating ticket purchases for vetted test user dashboard E2E testing");
+
+        // Find events to register for
+        var upcomingWorkshop = await _context.Events
+            .Include(e => e.TicketTypes)
+            .Where(e => (e.EventType == "Class" || e.EventType.Contains("Workshop")) &&
+                       e.StartDate > DateTime.UtcNow &&
+                       e.TicketTypes.Any())
+            .OrderBy(e => e.StartDate)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var upcomingSocial = await _context.Events
+            .Include(e => e.TicketTypes)
+            .Where(e => e.EventType.Contains("Social") &&
+                       e.StartDate > DateTime.UtcNow &&
+                       e.TicketTypes.Any())
+            .OrderBy(e => e.StartDate)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var pastEvent = await _context.Events
+            .Include(e => e.TicketTypes)
+            .Where(e => e.EndDate < DateTime.UtcNow &&
+                       e.TicketTypes.Any())
+            .OrderByDescending(e => e.EndDate)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        // Additional upcoming events for comprehensive testing
+        var additionalUpcomingEvents = await _context.Events
+            .Include(e => e.TicketTypes)
+            .Where(e => e.StartDate > DateTime.UtcNow &&
+                       e.TicketTypes.Any() &&
+                       e.Id != (upcomingWorkshop != null ? upcomingWorkshop.Id : Guid.Empty) &&
+                       e.Id != (upcomingSocial != null ? upcomingSocial.Id : Guid.Empty))
+            .OrderBy(e => e.StartDate)
+            .Take(2)
+            .ToListAsync(cancellationToken);
+
+        // Scenario 1: Upcoming Paid Event (Workshop/Class)
+        if (upcomingWorkshop != null)
+        {
+            var paidTicket = upcomingWorkshop.TicketTypes
+                .Where(tt => tt.Price > 0 && !tt.IsRsvpMode)
+                .OrderBy(tt => tt.Price)
+                .FirstOrDefault();
+
+            if (paidTicket != null)
+            {
+                purchasesToAdd.Add(new TicketPurchase
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = vettedUser.Id,
+                    TicketTypeId = paidTicket.Id,
+                    PurchaseDate = DateTime.UtcNow.AddDays(-5),
+                    Quantity = 1,
+                    TotalPrice = paidTicket.Price * 0.75m, // Sliding scale discount
+                    PaymentStatus = "Completed",
+                    PaymentMethod = "PayPal",
+                    PaymentReference = $"SEED_ORDER_{Guid.NewGuid().ToString()[..8]}",
+                    Notes = "Sliding scale pricing applied"
+                });
+
+                _logger.LogInformation("Created paid workshop ticket purchase for event: {EventTitle}", upcomingWorkshop.Title);
+            }
+        }
+
+        // Scenario 2: Upcoming Free Event (Social RSVP)
+        if (upcomingSocial != null)
+        {
+            var freeTicket = upcomingSocial.TicketTypes
+                .Where(tt => tt.IsRsvpMode || tt.Price == 0)
+                .FirstOrDefault();
+
+            if (freeTicket != null)
+            {
+                purchasesToAdd.Add(new TicketPurchase
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = vettedUser.Id,
+                    TicketTypeId = freeTicket.Id,
+                    PurchaseDate = DateTime.UtcNow.AddDays(-3),
+                    Quantity = 1,
+                    TotalPrice = 0,
+                    PaymentStatus = "Completed",
+                    PaymentMethod = "RSVP",
+                    PaymentReference = null!,
+                    Notes = "Free RSVP - looking forward to this!"
+                });
+
+                _logger.LogInformation("Created free social RSVP for event: {EventTitle}", upcomingSocial.Title);
+            }
+        }
+
+        // Scenario 3: Past Attended Event
+        if (pastEvent != null)
+        {
+            var pastTicketType = pastEvent.TicketTypes.FirstOrDefault();
+
+            if (pastTicketType != null)
+            {
+                var purchaseDate = pastEvent.StartDate.AddDays(-7);
+                var totalPrice = pastTicketType.Price > 0 ? pastTicketType.Price * 0.5m : 0; // Sliding scale if paid
+
+                purchasesToAdd.Add(new TicketPurchase
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = vettedUser.Id,
+                    TicketTypeId = pastTicketType.Id,
+                    PurchaseDate = purchaseDate,
+                    Quantity = 1,
+                    TotalPrice = totalPrice,
+                    PaymentStatus = "Completed",
+                    PaymentMethod = pastTicketType.Price > 0 ? "Stripe" : "RSVP",
+                    PaymentReference = pastTicketType.Price > 0 ? $"SEED_ORDER_{Guid.NewGuid().ToString()[..8]}" : null!,
+                    Notes = "Attended - great event!"
+                });
+
+                _logger.LogInformation("Created past event attendance for event: {EventTitle}", pastEvent.Title);
+            }
+        }
+
+        // Scenario 4 & 5: Additional upcoming events for comprehensive testing (search, filters, etc.)
+        foreach (var additionalEvent in additionalUpcomingEvents.Take(2))
+        {
+            var ticketType = additionalEvent.TicketTypes.FirstOrDefault();
+
+            if (ticketType != null)
+            {
+                var isSocialEvent = additionalEvent.EventType.Contains("Social");
+                var price = isSocialEvent ? 0 : ticketType.Price * 0.6m; // Sliding scale
+
+                purchasesToAdd.Add(new TicketPurchase
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = vettedUser.Id,
+                    TicketTypeId = ticketType.Id,
+                    PurchaseDate = DateTime.UtcNow.AddDays(-Random.Shared.Next(2, 10)),
+                    Quantity = 1,
+                    TotalPrice = price,
+                    PaymentStatus = "Completed",
+                    PaymentMethod = isSocialEvent ? "RSVP" : "Venmo",
+                    PaymentReference = isSocialEvent ? null! : $"SEED_ORDER_{Guid.NewGuid().ToString()[..8]}",
+                    Notes = isSocialEvent ? null! : "Can't wait for this class!"
+                });
+
+                _logger.LogInformation("Created additional event registration for event: {EventTitle}", additionalEvent.Title);
+            }
+        }
+
+        var createdCount = purchasesToAdd.Count(p => p.UserId == vettedUser.Id);
+        _logger.LogInformation("Created {Count} ticket purchases for vetted test user", createdCount);
     }
 
     /// <summary>
