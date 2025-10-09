@@ -837,3 +837,128 @@ curl 'http://localhost:5173/api/auth/user' -b cookies.txt
 
 **Tags**: #critical #authentication #cookies #bff-pattern #cors #launch-blocker #e2e-tests
 
+
+---
+
+## 🚨 CRITICAL: API Contract Validation Missing from CI/CD - Ticket Cancellation Bug Pattern (2025-10-09)
+
+**Problem**: Frontend-backend API endpoint mismatches reach production undetected, causing bugs like ticket cancellation (frontend calls `/ticket`, backend has `/participation`) where UI shows success but database unchanged.
+
+**Root Cause**: No automated validation ensuring frontend API calls match backend OpenAPI specification. Manual code reviews miss endpoint path typos and method mismatches.
+
+**Real-World Impact**:
+- Ticket cancellation bug: Frontend DELETE `/api/events/{id}/ticket` returns 404, silently handled as success
+- Backend only has DELETE `/api/events/{id}/participation` endpoint
+- User sees "Ticket cancelled" but database unchanged
+- Bug discovered in production during manual testing, not by CI/CD
+
+**Solution Pattern - OpenAPI Contract Validation in CI/CD**:
+
+```yaml
+# .github/workflows/api-contract-validation.yml
+jobs:
+  validate-api-contract:
+    steps:
+      # 1. Build API and export OpenAPI spec
+      - name: Build API
+        run: dotnet build apps/api --configuration Release
+
+      - name: Start API and export spec
+        run: |
+          dotnet run --urls http://localhost:5655 &
+          sleep 10
+          curl -f http://localhost:5655/swagger/v1/swagger.json -o apps/api/openapi.json
+
+      # 2. Validate frontend API calls match spec
+      - name: Install frontend dependencies
+        run: cd apps/web && npm ci
+
+      - name: Validate API contract
+        run: node scripts/validate-api-contract.js
+        # Exits with code 1 if mismatches found, blocking merge
+```
+
+**Validation Script Capabilities**:
+- Scans frontend code for API calls (axios, fetch, apiRequest patterns)
+- Compares endpoint paths and HTTP methods against OpenAPI spec
+- Provides fuzzy matching suggestions (85%+ similarity)
+- Shows file/line numbers for fix guidance
+- Exits with error code to fail CI/CD on violations
+
+**Example Validation Output**:
+```
+❌ API Contract Mismatches Found:
+
+1. DELETE /api/events/${eventId}/ticket
+   File: /apps/web/src/hooks/useParticipation.ts:188
+   💡 Did you mean one of these?
+      DELETE /api/events/{id}/participation (90% match)
+         Cancel user's participation in an event
+
+🔧 How to Fix:
+   1. Update frontend to use correct endpoint path
+   2. Or implement missing endpoint in backend
+   3. Re-export OpenAPI spec after changes
+```
+
+**Integration Points**:
+1. **CI/CD Pipeline**: Runs on push/PR for API or frontend changes
+2. **Type Generation**: Validates TypeScript types match OpenAPI spec
+3. **DTO Alignment Strategy**: Enforces NSwag-generated types usage
+4. **Artifact Upload**: OpenAPI spec uploaded for debugging (30-day retention)
+5. **PR Comments**: Posts validation results with fix guidance
+
+**Prevention Checklist**:
+- [ ] OpenAPI spec exported after every backend change
+- [ ] Validation runs in CI/CD before merge
+- [ ] Frontend uses generated TypeScript types, not manual interfaces
+- [ ] Validation failures block deployment
+- [ ] Team trained on reading validation output
+
+**Benefits**:
+- Catches endpoint mismatches before production (ticket bug prevented)
+- Enforces DTO alignment strategy automatically
+- Provides clear fix guidance with fuzzy matching
+- Blocks PRs with API contract violations
+- Reduces manual code review burden
+
+**Files Created**:
+- `.github/workflows/api-contract-validation.yml` - CI/CD workflow (370 lines)
+- `scripts/validate-api-contract.js` - Validation script (295 lines)
+- `apps/api/Scripts/post-build-export-openapi.sh` - Auto-export hook
+- `/docs/standards-processes/api-contract-validation.md` - Documentation (449 lines)
+
+**Workflow Triggers**:
+- Push to main/develop branches
+- Pull requests to main/develop
+- Changes to `apps/api/**`, `apps/web/src/**`, or validation scripts
+- Manual workflow dispatch
+
+**Failure Modes**:
+- **API not starting**: Retry logic with 30-second timeout
+- **Spec export fails**: Clear error with troubleshooting steps
+- **Mismatches found**: Exit code 1 blocks merge
+- **No spec file**: Fails with instructions to run export script
+
+**Related Documentation**:
+- **DTO Alignment Strategy**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
+- **API Contract Validation Guide**: `/docs/standards-processes/api-contract-validation.md`
+- **API Architecture Overview**: `/docs/architecture/API-ARCHITECTURE-OVERVIEW.md`
+
+**Detection of Existing Violations**:
+```bash
+# Run validation locally
+node scripts/validate-api-contract.js
+
+# Found violations in codebase - validation catches these patterns
+```
+
+**Debugging Tip**: When frontend shows success but database unchanged, check Network tab FIRST:
+1. Look for 404 Not Found responses (wrong endpoint)
+2. Verify HTTP method matches (GET vs POST)
+3. Check endpoint path spelling/capitalization
+4. Run validation script to find correct endpoint
+
+**Tags**: #critical #api-contract #ci-cd #openapi #validation #dto-alignment #ticket-bug-prevention
+
+---

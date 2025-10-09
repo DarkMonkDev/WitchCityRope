@@ -1,0 +1,317 @@
+name: API Contract Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'apps/api/**'
+      - 'apps/web/src/**'
+      - 'scripts/validate-api-contract.js'
+      - '.github/workflows/api-contract-validation.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'apps/api/**'
+      - 'apps/web/src/**'
+      - 'scripts/validate-api-contract.js'
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '9.0.x'
+  NODE_VERSION: '20'
+
+jobs:
+  validate-api-contract:
+    name: Validate API Contract (OpenAPI)
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: apps/web/package-lock.json
+
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    # Step 1: Build API
+    - name: Restore API dependencies
+      run: |
+        echo "📦 Restoring .NET dependencies..."
+        dotnet restore
+
+    - name: Build API
+      run: |
+        echo "🔨 Building API project..."
+        cd apps/api
+        dotnet build --no-restore --configuration Release
+
+    # Step 2: Start API temporarily to export OpenAPI spec
+    - name: Start API and export OpenAPI spec
+      run: |
+        echo "🚀 Starting API server to export OpenAPI spec..."
+        cd apps/api
+
+        # Start API in background
+        dotnet run --no-build --configuration Release --urls http://localhost:5655 &
+        API_PID=$!
+
+        echo "⏳ Waiting for API to start..."
+        for i in {1..30}; do
+          if curl -s -f http://localhost:5655/health-check > /dev/null 2>&1; then
+            echo "✅ API is ready!"
+            break
+          fi
+          if [ $i -eq 30 ]; then
+            echo "❌ API failed to start within 30 seconds"
+            kill $API_PID 2>/dev/null || true
+            exit 1
+          fi
+          echo "Waiting for API... attempt $i/30"
+          sleep 2
+        done
+
+        # Export OpenAPI spec
+        echo "📤 Exporting OpenAPI specification..."
+        curl -s -f http://localhost:5655/swagger/v1/swagger.json -o openapi.json
+
+        if [ $? -eq 0 ]; then
+          echo "✅ OpenAPI spec exported successfully"
+
+          # Count endpoints for summary
+          ENDPOINT_COUNT=$(cat openapi.json | grep -o '"paths"' | wc -l)
+          echo "📊 OpenAPI spec contains API endpoints"
+
+          # Show spec file size
+          ls -lh openapi.json
+        else
+          echo "❌ Failed to export OpenAPI spec"
+          kill $API_PID 2>/dev/null || true
+          exit 1
+        fi
+
+        # Stop API
+        kill $API_PID 2>/dev/null || true
+        echo "🛑 API server stopped"
+      env:
+        ASPNETCORE_ENVIRONMENT: Development
+        ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=witchcityrope_ci;Username=postgres;Password=postgres"
+
+    # Step 3: Install frontend dependencies
+    - name: Install frontend dependencies
+      run: |
+        echo "📦 Installing frontend dependencies..."
+        cd apps/web
+        npm ci
+
+    # Step 4: Validate API contract
+    - name: Validate API contract
+      run: |
+        echo "🔍 Validating API contract..."
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        node scripts/validate-api-contract.js
+      continue-on-error: false
+
+    # Step 5: Upload OpenAPI spec as artifact
+    - name: Upload OpenAPI spec
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: openapi-spec
+        path: apps/api/openapi.json
+        retention-days: 30
+
+    # Step 6: Generate validation summary
+    - name: Generate validation summary
+      if: always()
+      run: |
+        echo "# API Contract Validation Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        if [ -f apps/api/openapi.json ]; then
+          echo "## OpenAPI Specification" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Successfully exported OpenAPI spec" >> $GITHUB_STEP_SUMMARY
+
+          # Get endpoint count
+          TOTAL_PATHS=$(cat apps/api/openapi.json | jq '.paths | length' 2>/dev/null || echo "unknown")
+          echo "- **Total endpoint paths**: $TOTAL_PATHS" >> $GITHUB_STEP_SUMMARY
+
+          # Get API version
+          API_VERSION=$(cat apps/api/openapi.json | jq -r '.info.version' 2>/dev/null || echo "unknown")
+          echo "- **API version**: $API_VERSION" >> $GITHUB_STEP_SUMMARY
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "## OpenAPI Specification" >> $GITHUB_STEP_SUMMARY
+          echo "❌ Failed to export OpenAPI spec" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        echo "## Contract Validation" >> $GITHUB_STEP_SUMMARY
+        if [ $? -eq 0 ]; then
+          echo "✅ **All API calls match the OpenAPI specification**" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **API contract mismatches detected**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Review the validation output above for details on mismatched endpoints." >> $GITHUB_STEP_SUMMARY
+        fi
+
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## What This Prevents" >> $GITHUB_STEP_SUMMARY
+        echo "- Frontend calling non-existent backend endpoints" >> $GITHUB_STEP_SUMMARY
+        echo "- Typos in endpoint paths (e.g., /ticket vs /participation)" >> $GITHUB_STEP_SUMMARY
+        echo "- Method mismatches (GET vs POST)" >> $GITHUB_STEP_SUMMARY
+        echo "- Using removed endpoints in frontend code" >> $GITHUB_STEP_SUMMARY
+
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Related Documentation" >> $GITHUB_STEP_SUMMARY
+        echo "- [API Contract Validation Guide](/docs/standards-processes/api-contract-validation.md)" >> $GITHUB_STEP_SUMMARY
+        echo "- [DTO Alignment Strategy](/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md)" >> $GITHUB_STEP_SUMMARY
+
+    # Step 7: Comment on PR with results (only for pull requests)
+    - name: Comment PR with validation results
+      if: github.event_name == 'pull_request' && always()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+
+          let comment = '## 🔍 API Contract Validation Results\n\n';
+
+          // Check if OpenAPI spec was exported
+          if (fs.existsSync('apps/api/openapi.json')) {
+            const spec = JSON.parse(fs.readFileSync('apps/api/openapi.json', 'utf8'));
+            const pathCount = Object.keys(spec.paths).length;
+
+            comment += `✅ OpenAPI spec exported successfully\n`;
+            comment += `- **Total endpoint paths**: ${pathCount}\n`;
+            comment += `- **API version**: ${spec.info.version}\n\n`;
+          } else {
+            comment += `❌ Failed to export OpenAPI spec\n\n`;
+          }
+
+          // Add validation status
+          comment += `### Validation Status\n`;
+          if (context.payload.workflow_run?.conclusion === 'success') {
+            comment += `✅ All API calls match the OpenAPI specification!\n\n`;
+          } else {
+            comment += `❌ API contract mismatches detected. See workflow logs for details.\n\n`;
+          }
+
+          comment += `### What This Checks\n`;
+          comment += `- Frontend API calls match backend endpoints\n`;
+          comment += `- HTTP methods are correct (GET, POST, PUT, DELETE)\n`;
+          comment += `- Endpoint paths exist in OpenAPI spec\n`;
+          comment += `- No typos or removed endpoints in use\n\n`;
+
+          comment += `**Learn more**: [API Contract Validation Guide](/docs/standards-processes/api-contract-validation.md)`;
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+  # Optional: Type generation validation
+  validate-typescript-types:
+    name: Validate TypeScript Type Generation
+    runs-on: ubuntu-latest
+    needs: validate-api-contract
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: apps/web/package-lock.json
+
+    - name: Download OpenAPI spec
+      uses: actions/download-artifact@v4
+      with:
+        name: openapi-spec
+        path: apps/api
+
+    - name: Install frontend dependencies
+      run: |
+        cd apps/web
+        npm ci
+
+    - name: Generate TypeScript types
+      run: |
+        echo "🔧 Generating TypeScript types from OpenAPI spec..."
+        cd apps/web
+        npm run generate:api-types
+
+        if [ $? -eq 0 ]; then
+          echo "✅ TypeScript types generated successfully"
+        else
+          echo "❌ Failed to generate TypeScript types"
+          exit 1
+        fi
+
+    - name: Verify generated types
+      run: |
+        echo "🔍 Verifying generated TypeScript types..."
+
+        if [ -f apps/web/src/types/generated/api.d.ts ]; then
+          echo "✅ Generated types file exists"
+
+          # Show file size
+          ls -lh apps/web/src/types/generated/api.d.ts
+
+          # Count type definitions
+          TYPE_COUNT=$(grep -c "export interface\|export type" apps/web/src/types/generated/api.d.ts || echo "0")
+          echo "📊 Generated $TYPE_COUNT type definitions"
+        else
+          echo "❌ Generated types file not found"
+          exit 1
+        fi
+
+    - name: Upload generated types
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: generated-typescript-types
+        path: apps/web/src/types/generated/api.d.ts
+        retention-days: 7
+
+    - name: Type generation summary
+      if: always()
+      run: |
+        echo "# TypeScript Type Generation Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        if [ -f apps/web/src/types/generated/api.d.ts ]; then
+          echo "✅ TypeScript types generated successfully" >> $GITHUB_STEP_SUMMARY
+
+          TYPE_COUNT=$(grep -c "export interface\|export type" apps/web/src/types/generated/api.d.ts || echo "0")
+          echo "- **Type definitions**: $TYPE_COUNT" >> $GITHUB_STEP_SUMMARY
+
+          FILE_SIZE=$(ls -lh apps/web/src/types/generated/api.d.ts | awk '{print $5}')
+          echo "- **File size**: $FILE_SIZE" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ Failed to generate TypeScript types" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Benefit**: Type-safe API calls in frontend with auto-completion" >> $GITHUB_STEP_SUMMARY

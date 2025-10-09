@@ -25,15 +25,24 @@
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,md,json}\"",
     "generate:types": "cd packages/shared-types && npm run generate",
-    "generate:types:watch": "cd packages/shared-types && npm run generate:watch"
+    "generate:types:watch": "cd packages/shared-types && npm run generate:watch",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@playwright/test": "^1.54.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-react": "^7.37.5",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.3",
     "prettier": "^3.6.2",
     "turbo": "latest"
   },
-  "packageManager": "npm@10.2.4"
+  "packageManager": "npm@10.2.4",
+  "lint-staged": {
+    "apps/web/src/**/*.{ts,tsx}": [
+      "bash -c 'cd apps/web && eslint --fix --max-warnings 0 \"$@\"' _",
+      "prettier --write"
+    ]
+  }
 }
