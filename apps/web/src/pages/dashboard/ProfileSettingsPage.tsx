@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
-import { Container, Title, Tabs, TextInput, Textarea, Button, Group, Stack, Box, Text } from '@mantine/core';
+import { Container, Title, Tabs, TextInput, Textarea, Button, Group, Stack, Box, Text, Loader, Center, Alert } from '@mantine/core';
 import { useForm } from '@mantine/form';
+import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
+import { notifications } from '@mantine/notifications';
+import { useProfile, useUpdateProfile, useChangePassword } from '../../hooks/useDashboard';
 import type { UpdateProfileDto, ChangePasswordDto, UserProfileDto } from '../../types/dashboard.types';
 
 /**
@@ -13,20 +16,46 @@ import type { UpdateProfileDto, ChangePasswordDto, UserProfileDto } from '../../
 export const ProfileSettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string | null>('personal');
 
-  // Mock data - replace with actual API call
-  const mockProfile: UserProfileDto = {
-    userId: '1',
-    sceneName: 'ShadowKnot',
-    firstName: 'Shadow',
-    lastName: 'Knot',
-    email: 'shadowknot@example.com',
-    pronouns: 'they/them',
-    bio: 'Rope enthusiast since 2023',
-    discordName: 'ShadowKnot#1234',
-    fetLifeName: 'ShadowKnot',
-    phoneNumber: '555-123-4567',
-    vettingStatus: 'Pending',
-  };
+  // Fetch profile data using TanStack Query
+  const { data: profile, isLoading, error } = useProfile();
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <Box style={{ background: 'var(--color-cream)', minHeight: '100vh' }} pb="xl">
+        <Container size="xl" py="xl">
+          <Center py="xl">
+            <Stack align="center" gap="md">
+              <Loader size="lg" color="burgundy" />
+              <Text>Loading profile...</Text>
+            </Stack>
+          </Center>
+        </Container>
+      </Box>
+    );
+  }
+
+  // Show error state
+  if (error || !profile) {
+    return (
+      <Box style={{ background: 'var(--color-cream)', minHeight: '100vh' }} pb="xl">
+        <Container size="xl" py="xl">
+          <Alert
+            icon={<IconAlertCircle />}
+            color="red"
+            title="Error Loading Profile"
+            mb="lg"
+          >
+            <Text>
+              {error instanceof Error
+                ? error.message
+                : 'Failed to load your profile. Please try again.'}
+            </Text>
+          </Alert>
+        </Container>
+      </Box>
+    );
+  }
 
   return (
     <Box style={{ background: 'var(--color-cream)', minHeight: '100vh' }} pb="xl">
@@ -74,11 +103,11 @@ export const ProfileSettingsPage: React.FC = () => {
           </Tabs.List>
 
           <Tabs.Panel value="personal">
-            <PersonalInfoForm profile={mockProfile} />
+            <PersonalInfoForm profile={profile} />
           </Tabs.Panel>
 
           <Tabs.Panel value="social">
-            <SocialLinksForm profile={mockProfile} />
+            <SocialLinksForm profile={profile} />
           </Tabs.Panel>
 
           <Tabs.Panel value="security">
@@ -86,7 +115,7 @@ export const ProfileSettingsPage: React.FC = () => {
           </Tabs.Panel>
 
           <Tabs.Panel value="vetting">
-            <VettingStatusDisplay profile={mockProfile} />
+            <VettingStatusDisplay profile={profile} />
           </Tabs.Panel>
         </Tabs>
       </Container>
@@ -96,6 +125,8 @@ export const ProfileSettingsPage: React.FC = () => {
 
 // Personal Info Form Component
 const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) => {
+  const updateProfileMutation = useUpdateProfile();
+
   const form = useForm<UpdateProfileDto>({
     initialValues: {
       sceneName: profile.sceneName,
@@ -111,9 +142,28 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
   });
 
   const handleSubmit = (values: UpdateProfileDto) => {
-    console.log('Update profile:', values);
-    // TODO: Implement actual API call
+    updateProfileMutation.mutate(values);
   };
+
+  // Handle success/error with useEffect or mutation state
+  React.useEffect(() => {
+    if (updateProfileMutation.isSuccess) {
+      notifications.show({
+        title: 'Success',
+        message: 'Profile updated successfully',
+        color: 'green',
+        icon: <IconCheck />,
+      });
+    }
+    if (updateProfileMutation.isError) {
+      notifications.show({
+        title: 'Error',
+        message: updateProfileMutation.error instanceof Error ? updateProfileMutation.error.message : 'Failed to update profile',
+        color: 'red',
+        icon: <IconAlertCircle />,
+      });
+    }
+  }, [updateProfileMutation.isSuccess, updateProfileMutation.isError, updateProfileMutation.error]);
 
   return (
     <Box
@@ -217,11 +267,22 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
           <Button
             type="submit"
             color="burgundy"
-            style={{
-              borderRadius: '12px 6px 12px 6px',
-              fontFamily: 'var(--font-heading)',
-              fontWeight: 600,
-              textTransform: 'uppercase',
+            loading={updateProfileMutation.isPending}
+            styles={{
+              root: {
+                borderRadius: '12px 6px 12px 6px',
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                height: 'auto',
+                paddingTop: '12px',
+                paddingBottom: '12px',
+                paddingLeft: '24px',
+                paddingRight: '24px',
+                lineHeight: '1.2',
+                display: 'flex',
+                alignItems: 'center',
+              },
             }}
           >
             Save Changes
@@ -234,6 +295,8 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
 
 // Social Links Form Component
 const SocialLinksForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) => {
+  const updateProfileMutation = useUpdateProfile();
+
   const form = useForm<Pick<UpdateProfileDto, 'discordName' | 'fetLifeName' | 'phoneNumber'>>({
     initialValues: {
       discordName: profile.discordName || '',
@@ -243,9 +306,39 @@ const SocialLinksForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) => 
   });
 
   const handleSubmit = (values: Pick<UpdateProfileDto, 'discordName' | 'fetLifeName' | 'phoneNumber'>) => {
-    console.log('Update social links:', values);
-    // TODO: Implement actual API call
+    // Merge with other required fields from profile
+    const updateData: UpdateProfileDto = {
+      sceneName: profile.sceneName,
+      firstName: profile.firstName || '',
+      lastName: profile.lastName || '',
+      email: profile.email,
+      pronouns: profile.pronouns || '',
+      bio: profile.bio || '',
+      ...values,
+    };
+
+    updateProfileMutation.mutate(updateData);
   };
+
+  // Handle success/error
+  React.useEffect(() => {
+    if (updateProfileMutation.isSuccess) {
+      notifications.show({
+        title: 'Success',
+        message: 'Social links updated successfully',
+        color: 'green',
+        icon: <IconCheck />,
+      });
+    }
+    if (updateProfileMutation.isError) {
+      notifications.show({
+        title: 'Error',
+        message: updateProfileMutation.error instanceof Error ? updateProfileMutation.error.message : 'Failed to update social links',
+        color: 'red',
+        icon: <IconAlertCircle />,
+      });
+    }
+  }, [updateProfileMutation.isSuccess, updateProfileMutation.isError, updateProfileMutation.error]);
 
   return (
     <Box
@@ -303,11 +396,22 @@ const SocialLinksForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) => 
           <Button
             type="submit"
             color="burgundy"
-            style={{
-              borderRadius: '12px 6px 12px 6px',
-              fontFamily: 'var(--font-heading)',
-              fontWeight: 600,
-              textTransform: 'uppercase',
+            loading={updateProfileMutation.isPending}
+            styles={{
+              root: {
+                borderRadius: '12px 6px 12px 6px',
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                height: 'auto',
+                paddingTop: '12px',
+                paddingBottom: '12px',
+                paddingLeft: '24px',
+                paddingRight: '24px',
+                lineHeight: '1.2',
+                display: 'flex',
+                alignItems: 'center',
+              },
             }}
           >
             Save Changes
@@ -320,6 +424,8 @@ const SocialLinksForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) => 
 
 // Change Password Form Component
 const ChangePasswordForm: React.FC = () => {
+  const changePasswordMutation = useChangePassword();
+
   const form = useForm<ChangePasswordDto>({
     initialValues: {
       currentPassword: '',
@@ -348,10 +454,29 @@ const ChangePasswordForm: React.FC = () => {
   });
 
   const handleSubmit = (values: ChangePasswordDto) => {
-    console.log('Change password');
-    // TODO: Implement actual API call
-    form.reset();
+    changePasswordMutation.mutate(values);
   };
+
+  // Handle success/error
+  React.useEffect(() => {
+    if (changePasswordMutation.isSuccess) {
+      notifications.show({
+        title: 'Success',
+        message: 'Password changed successfully',
+        color: 'green',
+        icon: <IconCheck />,
+      });
+      form.reset();
+    }
+    if (changePasswordMutation.isError) {
+      notifications.show({
+        title: 'Error',
+        message: changePasswordMutation.error instanceof Error ? changePasswordMutation.error.message : 'Failed to change password',
+        color: 'red',
+        icon: <IconAlertCircle />,
+      });
+    }
+  }, [changePasswordMutation.isSuccess, changePasswordMutation.isError, changePasswordMutation.error, form]);
 
   return (
     <Box
@@ -415,11 +540,22 @@ const ChangePasswordForm: React.FC = () => {
           <Button
             type="submit"
             color="burgundy"
-            style={{
-              borderRadius: '12px 6px 12px 6px',
-              fontFamily: 'var(--font-heading)',
-              fontWeight: 600,
-              textTransform: 'uppercase',
+            loading={changePasswordMutation.isPending}
+            styles={{
+              root: {
+                borderRadius: '12px 6px 12px 6px',
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                height: 'auto',
+                paddingTop: '12px',
+                paddingBottom: '12px',
+                paddingLeft: '24px',
+                paddingRight: '24px',
+                lineHeight: '1.2',
+                display: 'flex',
+                alignItems: 'center',
+              },
             }}
           >
             Change Password
@@ -468,15 +604,28 @@ const VettingStatusDisplay: React.FC<{ profile: UserProfileDto }> = ({ profile }
           <Button
             variant="outline"
             color="burgundy"
-            style={{
-              borderRadius: '12px 6px 12px 6px',
-              fontFamily: 'var(--font-heading)',
-              fontWeight: 600,
-              textTransform: 'uppercase',
+            styles={{
+              root: {
+                borderRadius: '12px 6px 12px 6px',
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                height: 'auto',
+                paddingTop: '12px',
+                paddingBottom: '12px',
+                paddingLeft: '24px',
+                paddingRight: '24px',
+                lineHeight: '1.2',
+                display: 'flex',
+                alignItems: 'center',
+              },
             }}
             onClick={() => {
-              console.log('Put membership on hold');
-              // TODO: Implement membership hold functionality
+              notifications.show({
+                title: 'Coming Soon',
+                message: 'Membership hold functionality will be available soon',
+                color: 'blue',
+              });
             }}
           >
             Put Membership On Hold

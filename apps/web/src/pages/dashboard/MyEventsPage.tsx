@@ -1,10 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { Container, Title, Button, Group, Box, Text, Center, Stack } from '@mantine/core';
+import { Container, Title, Button, Group, Box, Text, Center, Stack, Loader, Alert } from '@mantine/core';
 import { Link } from 'react-router-dom';
+import { IconAlertCircle } from '@tabler/icons-react';
 import { VettingAlertBox } from './components/VettingAlertBox';
 import { FilterBar } from './components/FilterBar';
 import { EventCard } from './components/EventCard';
 import { EventTable } from './components/EventTable';
+import { useUserEvents, useVettingStatus } from '../../hooks/useDashboard';
+import { useUser } from '../../stores/authStore';
 import type { UserEventDto, VettingStatusDto } from '../../types/dashboard.types';
 
 /**
@@ -22,72 +25,20 @@ export const MyEventsPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // TODO: Replace with actual API calls using TanStack Query
-  // const { data: events, isLoading, error } = useQuery({
-  //   queryKey: ['user-events', showPast],
-  //   queryFn: () => dashboardService.getUserEvents(user.id, showPast)
-  // });
-  // const { data: vettingStatus } = useQuery({
-  //   queryKey: ['vetting-status'],
-  //   queryFn: () => dashboardService.getVettingStatus(user.id)
-  // });
+  // Fetch user from auth store
+  const user = useUser();
 
-  // Mock data for development - replace with actual API data
-  const mockEvents: UserEventDto[] = [
-    {
-      id: '1',
-      title: 'Halloween Rope Social',
-      startDate: new Date(2025, 9, 31, 19, 0).toISOString(),
-      endDate: new Date(2025, 9, 31, 22, 0).toISOString(),
-      location: 'Salem Community Center',
-      description: 'Join us for a spooky evening of rope bondage and Halloween fun!',
-      registrationStatus: 'RSVP Confirmed',
-      isSocialEvent: true,
-      hasTicket: false,
-      isPastEvent: false,
-    },
-    {
-      id: '2',
-      title: 'Single Column Ties Workshop',
-      startDate: new Date(2025, 10, 8, 14, 0).toISOString(),
-      endDate: new Date(2025, 10, 8, 17, 0).toISOString(),
-      location: 'Rope Studio',
-      description: 'Learn fundamental single column tie techniques for rope bondage.',
-      registrationStatus: 'Ticket Purchased',
-      isSocialEvent: false,
-      hasTicket: true,
-      isPastEvent: false,
-    },
-    {
-      id: '3',
-      title: 'Suspension Safety Workshop',
-      startDate: new Date(2025, 8, 15, 15, 0).toISOString(),
-      endDate: new Date(2025, 8, 15, 18, 0).toISOString(),
-      location: 'Rope Studio',
-      description: 'Comprehensive safety training for rope suspension.',
-      registrationStatus: 'Attended',
-      isSocialEvent: false,
-      hasTicket: true,
-      isPastEvent: true,
-    },
-  ];
-
-  const mockVettingStatus: VettingStatusDto = {
-    status: 'Pending',
-    lastUpdatedAt: new Date().toISOString(),
-    message: '',
-    interviewScheduleUrl: null,
-    reapplyInfoUrl: null,
-  };
-
-  // Mock user data - replace with actual auth context
-  const mockUser = {
-    firstName: 'ShadowKnot',
-  };
+  // Fetch data using TanStack Query hooks
+  const { data: events, isLoading: eventsLoading, error: eventsError } = useUserEvents(showPast);
+  const { data: vettingStatus, isLoading: vettingLoading } = useVettingStatus();
 
   // Filter events
   const filteredEvents = useMemo(() => {
-    let filtered = mockEvents;
+    if (!events || events.length === 0) {
+      return [];
+    }
+
+    let filtered = events;
 
     // Filter past events
     if (!showPast) {
@@ -106,7 +57,45 @@ export const MyEventsPage: React.FC = () => {
     }
 
     return filtered;
-  }, [mockEvents, showPast, searchQuery]);
+  }, [events, showPast, searchQuery]);
+
+  // Show loading state
+  if (eventsLoading || vettingLoading) {
+    return (
+      <Box style={{ background: 'var(--color-cream)', minHeight: '100vh' }} pb="xl">
+        <Container size="xl" py="xl">
+          <Center py="xl">
+            <Stack align="center" gap="md">
+              <Loader size="lg" color="burgundy" />
+              <Text>Loading your dashboard...</Text>
+            </Stack>
+          </Center>
+        </Container>
+      </Box>
+    );
+  }
+
+  // Show error state
+  if (eventsError) {
+    return (
+      <Box style={{ background: 'var(--color-cream)', minHeight: '100vh' }} pb="xl">
+        <Container size="xl" py="xl">
+          <Alert
+            icon={<IconAlertCircle />}
+            color="red"
+            title="Error Loading Events"
+            mb="lg"
+          >
+            <Text>
+              {eventsError instanceof Error
+                ? eventsError.message
+                : 'Failed to load your events. Please try again.'}
+            </Text>
+          </Alert>
+        </Container>
+      </Box>
+    );
+  }
 
   return (
     <Box style={{ background: 'var(--color-cream)', minHeight: '100vh' }} pb="xl">
@@ -122,23 +111,29 @@ export const MyEventsPage: React.FC = () => {
               fontSize: '2rem',
             }}
           >
-            {mockUser.firstName} Dashboard
+            {user?.sceneName || 'Your'} Dashboard
           </Title>
           <Button
             component={Link}
             to="/dashboard/profile-settings"
             variant="outline"
             color="rose-gold"
-            style={{
-              borderRadius: '12px 6px 12px 6px',
-              fontFamily: 'var(--font-heading)',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '1px',
-              transition: 'all 0.3s ease',
-            }}
             styles={{
               root: {
+                borderRadius: '12px 6px 12px 6px',
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                transition: 'all 0.3s ease',
+                height: 'auto',
+                paddingTop: '10px',
+                paddingBottom: '10px',
+                paddingLeft: '20px',
+                paddingRight: '20px',
+                lineHeight: '1.2',
+                display: 'flex',
+                alignItems: 'center',
                 '&:hover': {
                   borderRadius: '6px 12px 6px 12px',
                 },
@@ -150,7 +145,9 @@ export const MyEventsPage: React.FC = () => {
         </Group>
 
         {/* Conditional Vetting Alert */}
-        <VettingAlertBox status={mockVettingStatus} />
+        {vettingStatus && vettingStatus.status !== 'Vetted' && (
+          <VettingAlertBox status={vettingStatus} />
+        )}
 
         {/* Filter Bar */}
         <FilterBar
@@ -231,11 +228,21 @@ const EmptyEventsState: React.FC = () => (
         to="/events"
         variant="outline"
         color="burgundy"
-        style={{
-          borderRadius: '12px 6px 12px 6px',
-          fontFamily: 'var(--font-heading)',
-          fontWeight: 600,
-          textTransform: 'uppercase',
+        styles={{
+          root: {
+            borderRadius: '12px 6px 12px 6px',
+            fontFamily: 'var(--font-heading)',
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            height: 'auto',
+            paddingTop: '12px',
+            paddingBottom: '12px',
+            paddingLeft: '24px',
+            paddingRight: '24px',
+            lineHeight: '1.2',
+            display: 'flex',
+            alignItems: 'center',
+          },
         }}
       >
         Browse Events
