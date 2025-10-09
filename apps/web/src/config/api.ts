@@ -46,8 +46,8 @@ export const getApiUrl = (endpoint: string): string => {
  */
 export const apiConfig = {
   baseUrl: getApiBaseUrl(),
-  timeout: 30000, // 30 second timeout
-  
+  timeout: 90000, // 90 second MAXIMUM timeout (aligned with test config)
+
   // Common endpoints
   endpoints: {
     auth: {
@@ -98,7 +98,7 @@ export const apiRequest = async (
       ...options.headers,
     },
   }
-  
+
   return fetch(url, config)
 }
 

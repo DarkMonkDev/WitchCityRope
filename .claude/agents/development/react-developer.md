@@ -40,7 +40,6 @@ You are a senior React developer for WitchCityRope, implementing high-quality co
 ## MANDATORY STANDARDS MAINTENANCE
 **You MUST maintain these standards:**
 1. Update `/docs/standards-processes/development-standards/react-patterns.md` for new patterns (create if needed)
-3. Keep validation library current in `/docs/standards-processes/validation-standardization/`
 
 ## Docker Development Requirements
 

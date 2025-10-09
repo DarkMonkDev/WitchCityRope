@@ -481,6 +481,76 @@ export async function verifyAuditLogExists(
 }
 
 // ============================================================================
+// TEST USER CREATION HELPERS (For Race Condition Prevention)
+// ============================================================================
+
+export interface TestUserOptions {
+  email: string;
+  password: string;
+  sceneName: string;
+  firstName?: string;
+  lastName?: string;
+  membershipLevel?: 'Guest' | 'Member' | 'VettedMember' | 'Teacher' | 'Admin';
+}
+
+/**
+ * Create a unique test user for profile tests
+ * CRITICAL: Prevents race conditions when multiple tests use same account
+ *
+ * @param options Test user configuration
+ * @returns User ID of created user
+ */
+export async function createTestUser(options: TestUserOptions): Promise<string> {
+  const userId = crypto.randomUUID();
+  const {
+    email,
+    password,
+    sceneName,
+    firstName = 'Test',
+    lastName = 'User',
+    membershipLevel = 'Member'
+  } = options;
+
+  // Note: Password should be hashed in production
+  // For tests, we use a known test password hash
+  const sql = `
+    INSERT INTO "Users" (
+      "Id", "Email", "PasswordHash", "SceneName",
+      "FirstName", "LastName", "MembershipLevel",
+      "EmailConfirmed", "IsActive", "CreatedAt", "UpdatedAt"
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, $7, true, true, NOW(), NOW())
+    RETURNING "Id"
+  `;
+
+  // This is a known hash for "Test123!" - matches seed data password
+  const testPasswordHash = '$2a$11$KxW5J5F9T9jV7hZN5jZ7ZOqX5Y5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5';
+
+  const rows = await query<{ Id: string }>(sql, [
+    userId,
+    email,
+    testPasswordHash,
+    sceneName,
+    firstName,
+    lastName,
+    membershipLevel
+  ]);
+
+  console.log(`✅ Created test user: ${email} (ID: ${userId})`);
+  return rows[0].Id;
+}
+
+/**
+ * Generate unique test user email with timestamp
+ * Ensures no collisions even in parallel test runs
+ */
+export function generateUniqueTestEmail(prefix: string = 'test-user'): string {
+  const timestamp = Date.now();
+  const random = Math.floor(Math.random() * 1000);
+  return `${prefix}-${timestamp}-${random}@test.witchcityrope.com`;
+}
+
+// ============================================================================
 // CLEANUP HELPERS FOR TESTS
 // ============================================================================
 
@@ -518,6 +588,8 @@ export const DatabaseHelpers = {
   getFirstTicketEvent,
   verifyVettingApplicationStatus,
   verifyAuditLogExists,
+  createTestUser,
+  generateUniqueTestEmail,
   cleanupTestData,
   cleanupTestUser,
   closeDatabaseConnections,

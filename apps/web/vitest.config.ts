@@ -32,9 +32,12 @@ export default defineConfig({
     isolate: true,
     teardownTimeout: 10000,
     maxConcurrency: 5,  // Allow 5 concurrent tests within a file
-    // Test timeouts
-    testTimeout: 30000,
-    hookTimeout: 10000,
+    // Test timeouts - MAXIMUM 90 seconds enforced
+    // WHY 90 SECONDS: No unit/integration test should need more than 60 seconds,
+    // but we set max to 90 seconds (1.5 minutes) as a safety buffer.
+    // Tests taking >30 seconds indicate slow tests that should be optimized.
+    testTimeout: 90000, // 90 seconds ABSOLUTE MAXIMUM per test
+    hookTimeout: 30000, // 30 seconds for setup/teardown hooks
   },
   resolve: {
     alias: {

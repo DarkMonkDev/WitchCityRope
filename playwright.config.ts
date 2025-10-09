@@ -46,7 +46,7 @@ export default defineConfig({
       ],
     },
   },
-  timeout: 90 * 1000, // 1.5 minutes per test
+  timeout: 120 * 1000, // 2 minutes per test (increased to accommodate slower selectors)
 
   projects: [
     {

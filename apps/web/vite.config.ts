@@ -58,7 +58,7 @@ export default defineConfig(({ mode }) => {
             : (process.env.VITE_API_BASE_URL || 'http://localhost:5655'), // Host communication (API port)
           changeOrigin: true,
           secure: false,
-          timeout: 30000, // 30 second timeout for API calls
+          timeout: 90000, // 90 second MAXIMUM timeout (aligned with test config)
           configure: (proxy, options) => {
             // Enhanced proxy logging for containers
             proxy.on('error', (err, req, res) => {

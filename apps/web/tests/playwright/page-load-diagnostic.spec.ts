@@ -178,9 +178,10 @@ test('can the fucking page even load', async ({ page }) => {
     
     // Basic functionality test - can we click on things?
     if (buttons > 0) {
-      console.log('\n🖱️  Testing first button click...');
+      console.log('\n🖱️  Testing first visible button click...');
       try {
-        await page.locator('button').first().click({ timeout: 2000 });
+        // Exclude mobile menu and find first visible button
+        await page.locator('button:visible:not(.mobile-menu-toggle)').first().click({ timeout: 2000 });
         console.log('✅ Button click succeeded');
       } catch (error) {
         console.log('❌ Button click failed:', error);

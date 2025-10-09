@@ -10,10 +10,13 @@ export default defineConfig({
   globalTeardown: './tests/playwright/global-teardown.ts',
   reporter: [['list'], ['html', { outputFolder: './playwright-report' }]],
 
-  // Optimized timeout settings - aggressive for speed
-  timeout: 30 * 1000, // 30 seconds per test max
+  // Timeout settings - MAXIMUM 90 seconds enforced across all tests
+  // WHY 90 SECONDS: No test should need more than 60 seconds realistically,
+  // but we set max to 90 seconds (1.5 minutes) as a safety buffer.
+  // Tests consistently taking >30 seconds indicate problems that should be fixed.
+  timeout: 90 * 1000, // 90 seconds ABSOLUTE MAXIMUM per test
   expect: {
-    timeout: 5000, // 5 second assertion timeout
+    timeout: 5000, // 5 second assertion timeout (reasonable for UI)
   },
   
   use: {

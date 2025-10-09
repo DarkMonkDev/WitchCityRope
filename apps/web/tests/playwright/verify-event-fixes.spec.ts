@@ -10,9 +10,10 @@ test.describe('Event System Verification After Fixes', () => {
   ];
 
   test.beforeEach(async ({ page }) => {
-    // Add timeout for network requests
+    // Add timeout for network requests (10 seconds is reasonable)
+    // NOTE: Global max is 90 seconds in playwright.config.ts
     page.setDefaultTimeout(10000);
-    
+
     // Wait for services to be ready
     await page.waitForTimeout(1000);
   });

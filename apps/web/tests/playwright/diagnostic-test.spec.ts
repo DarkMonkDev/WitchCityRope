@@ -20,13 +20,13 @@ test.describe('Diagnostic Test', () => {
       navigations.push(`Navigation at ${new Date().toISOString()}`);
     });
 
-    console.log('Navigating to http://localhost:5175');
-    
+    console.log('Navigating to http://localhost:5173');
+
     // Go to the page with timeout
     try {
-      await page.goto('http://localhost:5175', { 
+      await page.goto('http://localhost:5173', {
         waitUntil: 'networkidle',
-        timeout: 10000 
+        timeout: 10000
       });
     } catch (error) {
       console.log('Error during navigation:', error);
@@ -68,9 +68,9 @@ test.describe('Diagnostic Test', () => {
     // Try to go to events page
     console.log('\nNavigating to /events');
     try {
-      await page.goto('http://localhost:5175/events', { 
+      await page.goto('http://localhost:5173/events', {
         waitUntil: 'networkidle',
-        timeout: 10000 
+        timeout: 10000
       });
       
       await page.waitForTimeout(2000);

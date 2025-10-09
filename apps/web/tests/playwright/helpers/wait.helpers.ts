@@ -1,15 +1,20 @@
 import { Page, expect, Response } from '@playwright/test';
 
 // Timeout configurations for consistent test execution
+// ABSOLUTE MAXIMUM: 90 seconds (enforced in playwright.config.ts)
+// WHY 90 SECONDS: No test should need more than 60 seconds realistically,
+// but we use 90 seconds as a safety buffer. Tests consistently hitting these
+// limits indicate problems (slow backend, infinite loops, etc.) that should be fixed.
 export const TIMEOUTS = {
-  SHORT: 5000,
-  MEDIUM: 10000,
-  LONG: 30000,
-  NAVIGATION: 30000,
-  API_RESPONSE: 10000,
-  AUTHENTICATION: 15000,
-  FORM_SUBMISSION: 20000,
-  PAGE_LOAD: 30000
+  SHORT: 5000,        // 5 seconds - Quick UI interactions
+  MEDIUM: 10000,      // 10 seconds - Standard waits
+  LONG: 30000,        // 30 seconds - Complex operations (DO NOT INCREASE)
+  NAVIGATION: 30000,  // 30 seconds - Page navigation
+  API_RESPONSE: 10000,// 10 seconds - API calls (should be fast)
+  AUTHENTICATION: 15000, // 15 seconds - Auth flows
+  FORM_SUBMISSION: 20000, // 20 seconds - Form processing
+  PAGE_LOAD: 30000,   // 30 seconds - Full page load
+  ABSOLUTE_MAX: 90000 // 90 seconds - NEVER EXCEED THIS
 };
 
 /**

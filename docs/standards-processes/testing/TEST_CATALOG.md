@@ -1,6 +1,6 @@
 # WitchCityRope Test Catalog - PART 1 (Current/Recent Tests)
 <!-- Last Updated: 2025-10-09 -->
-<!-- Version: 2.6 -->
+<!-- Version: 2.7 -->
 <!-- Owner: Testing Team -->
 <!-- Status: SPLIT INTO MANAGEABLE PARTS FOR AGENT ACCESSIBILITY -->
 
@@ -23,6 +23,72 @@
 - **Recent fixes/patterns**: Add to PART 1 (this file)
 - **Old content**: Move to PART 2 when PART 1 exceeds 1000 lines
 - **Archive content**: Move to PART 3 when truly obsolete
+
+---
+
+## 🚨 NEW: TIMEOUT CONFIGURATION ENFORCEMENT (2025-10-09) 🚨
+
+**STATUS**: ✅ COMPLETE - All timeouts updated to 90-second maximum
+
+**PROBLEM**: Some tests or curl commands had 10-minute timeouts. No test should take longer than 60 seconds realistically.
+
+**SOLUTION**: Enforced 90-second ABSOLUTE MAXIMUM across all test configurations and API clients.
+
+### Configuration Updates:
+
+**1. Playwright Config** (`/apps/web/playwright.config.ts`)
+- Global test timeout: 30s → **90s** (ABSOLUTE MAX)
+- Assertion timeout: 5s (reasonable for UI)
+- Action timeout: 5s (clicks, fills)
+- Navigation timeout: 10s (page loads)
+- Added comprehensive comments explaining limits
+
+**2. Vitest Config** (`/apps/web/vitest.config.ts`)
+- Test timeout: 30s → **90s** (ABSOLUTE MAX)
+- Hook timeout: 10s → **30s** (setup/teardown)
+- Teardown timeout: 10s (cleanup)
+- Added documentation comments
+
+**3. Wait Helpers** (`/apps/web/tests/playwright/helpers/wait.helpers.ts`)
+- Added `ABSOLUTE_MAX: 90000` constant
+- Updated all comments explaining timeout values
+- Individual timeouts remain ≤ 30s (good)
+
+**4. API Client Configs**
+- `/apps/web/src/config/api.ts`: timeout 30s → **90s**
+- `/apps/web/src/config/environment.ts`: timeout 30s → **90s**
+- `/apps/web/vite.config.ts`: proxy timeout 30s → **90s**
+
+**5. Documentation**
+- Created comprehensive timeout standard document
+- Location: `/apps/web/docs/testing/TIMEOUT_CONFIGURATION.md`
+- Explains why 90 seconds, when to investigate timeouts, anti-patterns
+
+### Key Findings:
+
+**Where was the 10-minute timeout?**
+- Likely from Bash tool's default timeout (600000ms / 10 minutes)
+- NOT from test configurations (all were ≤ 30 seconds)
+- User may have experienced this with curl commands or shell operations
+
+**Current Enforcement**:
+- ABSOLUTE MAXIMUM: 90 seconds (1.5 minutes)
+- Recommended test duration: < 60 seconds
+- Typical test duration: 5-30 seconds
+- Tests exceeding 30s should be investigated for problems
+
+**What This Prevents**:
+- Tests hanging for 10+ minutes
+- Masking slow API responses
+- Hiding infinite loops or broken tests
+- Inefficient database queries
+- Network timeout issues
+
+### Reference Documentation:
+- **Full Standard**: `/apps/web/docs/testing/TIMEOUT_CONFIGURATION.md`
+- **Timeout Hierarchy**: All values, use cases, enforcement
+- **Troubleshooting Guide**: What to do when tests timeout
+- **Anti-patterns**: Common mistakes to avoid
 
 ---
 

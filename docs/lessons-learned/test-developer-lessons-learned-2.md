@@ -513,6 +513,104 @@ grep -rn "emergency_contact"  # snake_case (if used)
 5. Verify tests still compile (TypeScript and C#)
 6. Document removal in test catalog
 
+## E2E Test Selector Anti-Patterns (October 2025)
+
+### Invisible Element Timeout Pattern
+**Problem**: Generic selectors matching invisible mobile menu buttons causing 30-second timeouts.
+**Discovery**: Tests using `button.first()` or `[role="tab"].first()` match mobile menu buttons that exist in DOM but are NOT VISIBLE on desktop.
+**Impact**: 20-30 tests timing out, wasting 15 minutes per test run.
+
+```typescript
+// ❌ WRONG - Matches invisible mobile menu button
+await page.locator('button').first().click();
+await page.locator('[role="tab"]').first().click();
+
+// ✅ CORRECT - Exclude mobile elements and ensure visibility
+await page.locator('button:visible:not(.mobile-menu-toggle)').first().click();
+await page.locator('[role="tab"]:visible:not(.mobile-menu-toggle)').first().click();
+
+// ✅ BEST - Use specific data-test attributes
+await page.locator('[data-testid="submit-button"]').click();
+```
+
+**Critical Insights**:
+1. Playwright's auto-wait does NOT check visibility with `.first()` - it just waits for element to exist
+2. Mobile menu buttons are ALWAYS in DOM (for responsive design) but hidden on desktop
+3. Generic selectors match mobile elements first, causing invisible element timeouts
+4. 30-second timeout = default action timeout trying to click invisible element
+
+**Prevention**:
+- Always use `:visible` pseudo-selector with `.first()`
+- Exclude mobile-specific classes: `:not(.mobile-menu-toggle)`
+- Add explicit visibility check before clicking
+- Use specific data-test attributes instead of generic selectors
+
+### Wrong Port Hardcoded URLs
+**Problem**: Tests hardcoding wrong ports (5175, 5174) causing ERR_CONNECTION_REFUSED.
+**Solution**: Always use Docker ports (5173 for web, 5655 for API) or relative URLs with baseURL.
+
+```typescript
+// ❌ WRONG - Hardcoded wrong port
+await page.goto('http://localhost:5175/login');
+
+// ✅ CORRECT - Use Docker port
+await page.goto('http://localhost:5173/login');
+
+// ✅ BEST - Use relative URL (baseURL from config)
+await page.goto('/login');
+```
+
+**Docker Port Reference** (MANDATORY):
+- Web (React): http://localhost:5173 (Docker container)
+- API (.NET): http://localhost:5655 (Docker container)
+- Database: localhost:5433 (Docker container)
+
+### Profile Test Race Conditions
+**Problem**: Multiple tests using shared `member@witchcityrope.com` account causing data conflicts and flaky tests.
+**Solution**: Create unique test user per test using database helpers.
+
+```typescript
+// ❌ WRONG - Shared account (race condition)
+await testProfileUpdatePersistence(page, {
+  userEmail: 'member@witchcityrope.com',
+  userPassword: 'Test123!',
+  updatedFields: { firstName: `Test${Date.now()}` }
+});
+
+// ✅ CORRECT - Unique user per test
+import { createTestUser, generateUniqueTestEmail, cleanupTestUser } from './utils/database-helpers';
+
+const uniqueEmail = generateUniqueTestEmail('profile-test');
+await createTestUser({
+  email: uniqueEmail,
+  password: 'Test123!',
+  sceneName: 'Test User',
+  membershipLevel: 'Member'
+});
+
+try {
+  await testProfileUpdatePersistence(page, {
+    userEmail: uniqueEmail,
+    userPassword: 'Test123!',
+    updatedFields: { firstName: 'Updated Name' }
+  });
+} finally {
+  await cleanupTestUser(uniqueEmail);
+}
+```
+
+**Database Helper Functions**:
+- `createTestUser(options)` - Create unique test user with proper password hash
+- `generateUniqueTestEmail(prefix)` - Generate unique email with timestamp
+- `cleanupTestUser(email)` - Delete test user after test completes
+
+**Why This Matters**:
+1. Parallel test runs: Multiple tests updating same user data simultaneously
+2. Test A updates firstName to "Test1728502345"
+3. Test B updates firstName to "Test1728502346" (overwrites Test A)
+4. Test A refresh verification fails (expects different firstName)
+5. Result: Flaky tests that fail randomly
+
 ## Quick Reference
 
 **Essential Commands**:

@@ -245,8 +245,8 @@ test.describe('Events Management System E2E Tests', () => {
       // Wait for page load
       await page.waitForTimeout(2000)
 
-      // Get all clickable elements that might be tabs
-      const clickableElements = page.locator('[role="tab"], .tab, button, [data-testid*="tab"]')
+      // Get all clickable elements that might be tabs (exclude mobile menu)
+      const clickableElements = page.locator('[role="tab"]:visible:not(.mobile-menu-toggle), .tab:visible, [data-testid*="tab"]:visible')
       const elementCount = await clickableElements.count()
 
       console.log(`Found ${elementCount} potentially clickable tab elements`)
@@ -255,6 +255,13 @@ test.describe('Events Management System E2E Tests', () => {
       for (let i = 0; i < Math.min(elementCount, 4); i++) {
         try {
           const element = clickableElements.nth(i)
+          // Check if element is visible before trying to click
+          const isVisible = await element.isVisible()
+          if (!isVisible) {
+            console.log(`Skipping element ${i}: not visible`)
+            continue
+          }
+
           const text = await element.textContent()
           console.log(`Trying to click element ${i}: "${text}"`)
 
