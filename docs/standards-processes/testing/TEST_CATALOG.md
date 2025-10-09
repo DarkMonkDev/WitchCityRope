@@ -1,6 +1,6 @@
 # WitchCityRope Test Catalog - PART 1 (Current/Recent Tests)
-<!-- Last Updated: 2025-10-08 -->
-<!-- Version: 2.5 -->
+<!-- Last Updated: 2025-10-09 -->
+<!-- Version: 2.6 -->
 <!-- Owner: Testing Team -->
 <!-- Status: SPLIT INTO MANAGEABLE PARTS FOR AGENT ACCESSIBILITY -->
 
@@ -23,6 +23,193 @@
 - **Recent fixes/patterns**: Add to PART 1 (this file)
 - **Old content**: Move to PART 2 when PART 1 exceeds 1000 lines
 - **Archive content**: Move to PART 3 when truly obsolete
+
+---
+
+## 🚨 NEW: E2E PERSISTENCE TEST TEMPLATES AND UTILITIES (2025-10-09) 🚨
+
+**STATUS**: ✅ COMPLETE - Comprehensive persistence testing framework created
+
+**CRITICAL CONTEXT**: Created in response to two production bugs:
+1. **Profile Update Bug**: UI showed success, database NOT updated (backend ignored fields)
+2. **Ticket Cancellation Bug**: UI showed success, database NOT updated (frontend called wrong endpoint)
+
+Both bugs would have been caught by following the persistence testing pattern.
+
+### Persistence Test Templates Created:
+
+**1. Base Persistence Template**
+- **File**: `/apps/web/tests/playwright/templates/persistence-test-template.ts`
+- **Purpose**: Reusable framework for all persistence tests
+- **Pattern**: Action → Verify UI → Verify API → **Verify Database** → Refresh → **Verify Persistence**
+- **Key Feature**: Direct database verification catches bugs UI testing misses
+
+**2. Profile Update Persistence Template**
+- **File**: `/apps/web/tests/playwright/templates/profile-update-persistence-template.ts`
+- **Purpose**: Test profile field updates persist to database
+- **Catches**: Backend ignoring fields, validation failures, mapping errors
+- **Functions**: `testProfileUpdatePersistence()`, `testCompleteProfileUpdate()`, `testSingleFieldUpdate()`
+
+**3. Ticket Cancellation Persistence Template**
+- **File**: `/apps/web/tests/playwright/templates/ticket-cancellation-persistence-template.ts`
+- **Purpose**: Test ticket cancellations persist to database
+- **Catches**: Wrong endpoint calls, 404 errors ignored, status not updated
+- **Functions**: `testTicketCancellationPersistence()`, `testTicketLifecycle()`
+
+**4. RSVP Persistence Template**
+- **File**: `/apps/web/tests/playwright/templates/rsvp-persistence-template.ts`
+- **Purpose**: Test RSVP and cancellation persistence
+- **Functions**: `testRsvpPersistence()`, `testCancelRsvpPersistence()`, `testRsvpLifecycle()`
+
+**5. Event Creation Persistence Template**
+- **File**: `/apps/web/tests/playwright/templates/event-creation-persistence-template.ts`
+- **Purpose**: Test admin event creation persists all fields
+- **Functions**: `testEventCreationPersistence()`, `testEventUpdatePersistence()`
+
+### Database Helpers Created:
+
+**File**: `/apps/web/tests/playwright/utils/database-helpers.ts`
+
+**Profile Verification**:
+- `verifyProfileFields(userId, expectedFields)` - Verify profile fields match database
+- `getUserIdFromEmail(email)` - Get user ID from email
+
+**Event Participation Verification**:
+- `verifyEventParticipation(userId, eventId, expectedStatus)` - Verify participation status
+- `verifyNoEventParticipation(userId, eventId)` - Verify NO participation exists
+
+**Event Verification**:
+- `verifyEventExists(eventId)` - Verify event exists in database
+- `getEventsByCreator(userId)` - Get events created by user
+
+**Audit Log Verification**:
+- `verifyAuditLogExists(tableName, entityId, action)` - Verify audit log entry
+
+**Cleanup**:
+- `cleanupTestData(tableName, ids)` - Delete test data
+- `closeDatabaseConnections()` - Close pool connections
+
+### Real Test Files Created:
+
+**1. Profile Update Full Persistence**
+- **File**: `/apps/web/tests/playwright/profile-update-full-persistence.spec.ts`
+- **Tests**: 13 test scenarios
+- **Coverage**: Complete profile update, single fields, special characters, edge cases
+- **Critical Test**: Detects profile update showing success but NOT persisting to database
+
+**2. Ticket Lifecycle Persistence**
+- **File**: `/apps/web/tests/playwright/ticket-lifecycle-persistence.spec.ts`
+- **Tests**: 7 test scenarios
+- **Coverage**: Purchase → Cancel → Re-purchase lifecycle
+- **Critical Test**: Detects ticket cancellation showing success but NOT persisting to database
+- **Validates**: Correct API endpoint called (/participation NOT /ticket)
+
+**3. RSVP Lifecycle Persistence**
+- **File**: `/apps/web/tests/playwright/rsvp-lifecycle-persistence.spec.ts`
+- **Tests**: 10 test scenarios
+- **Coverage**: RSVP → Cancel → Re-RSVP lifecycle
+- **Validates**: Participation type is RSVP, audit logs created, separate state per user
+
+### Documentation Created:
+
+**File**: `/docs/functional-areas/testing/e2e-persistence-testing-guide.md`
+
+**Contents**:
+- Overview of persistence testing pattern
+- Why it catches UI-shows-success-but-DB-not-updated bugs
+- How to use each template
+- Database helper functions reference
+- When to add persistence tests
+- Best practices
+- Example: Creating new persistence test
+- Debugging failed persistence tests
+- CI/CD integration
+- Real-world bug examples
+
+### Dependencies Required:
+
+**NPM Package** (needs installation):
+```bash
+npm install --save-dev pg @types/pg
+```
+
+**Purpose**: PostgreSQL client for direct database verification in tests
+
+### How to Use:
+
+**Example 1: Test Profile Update Persistence**
+```typescript
+import { testProfileUpdatePersistence } from './templates/profile-update-persistence-template';
+
+await testProfileUpdatePersistence(page, {
+  userEmail: 'test@example.com',
+  userPassword: 'password',
+  updatedFields: {
+    firstName: 'NewFirst',
+    lastName: 'NewLast',
+    bio: 'Updated bio',
+  },
+});
+```
+
+**Example 2: Test Ticket Cancellation Persistence**
+```typescript
+import { testTicketCancellationPersistence } from './templates/ticket-cancellation-persistence-template';
+
+await testTicketCancellationPersistence(page, {
+  userEmail: 'test@example.com',
+  userPassword: 'password',
+  eventId: 'event-id-here',
+  cancellationReason: 'Test reason',
+});
+```
+
+### Key Innovation:
+
+**The Persistence Pattern Catches What UI Testing Misses**:
+
+Traditional E2E test:
+```typescript
+// ❌ INCOMPLETE - Can miss bugs
+1. Perform action
+2. Verify UI shows success ✅
+3. Test passes ✅
+// Bug: Database not updated, page refresh shows old values ❌
+```
+
+Persistence template:
+```typescript
+// ✅ COMPLETE - Catches database persistence bugs
+1. Perform action
+2. Verify UI shows success ✅
+3. Verify API returns 200 ✅
+4. Verify DATABASE has correct data ✅ (CRITICAL)
+5. Refresh page
+6. Verify UI STILL shows changes ✅ (CRITICAL)
+7. Verify DATABASE still correct ✅
+```
+
+### Impact:
+
+**Bugs This Framework Catches**:
+1. ✅ Backend silently ignoring fields
+2. ✅ Frontend calling wrong endpoints
+3. ✅ API returning 200 but not saving data
+4. ✅ Database transactions rolling back silently
+5. ✅ Client-side caching masking backend failures
+6. ✅ Validation failures not reported to UI
+
+**Production Bugs Prevented**:
+- Profile update bug: Would have been caught by `verifyProfileFields()`
+- Ticket cancellation bug: Would have been caught by `verifyEventParticipation()` after refresh
+
+### Next Steps for Using Templates:
+
+1. **Install pg dependency**: `npm install --save-dev pg @types/pg`
+2. **Read the guide**: `/docs/functional-areas/testing/e2e-persistence-testing-guide.md`
+3. **Use templates for new features**: Any CRUD operation needs persistence test
+4. **Add to CI/CD**: Run persistence tests on all PRs
+5. **Update templates**: As new patterns discovered, add to templates
 
 ---
 

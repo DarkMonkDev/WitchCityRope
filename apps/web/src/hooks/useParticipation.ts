@@ -19,51 +19,16 @@ export function useParticipation(eventId: string, enabled = true) {
   return useQuery<ParticipationStatusDto>({
     queryKey: participationKeys.eventStatus(eventId),
     queryFn: async (): Promise<ParticipationStatusDto> => {
-      try {
-        console.log('🔍 useParticipation: Fetching participation for event:', eventId);
-        const { data } = await apiClient.get(`/api/events/${eventId}/participation`);
-        console.log('🔍 useParticipation: API response:', data);
+      console.log('🔍 useParticipation: Fetching participation for event:', eventId);
+      const { data } = await apiClient.get(`/api/events/${eventId}/participation`);
+      console.log('🔍 useParticipation: API response:', data);
 
-        // If API returns empty string or invalid data, return mock
-        if (!data || typeof data === 'string') {
-          console.warn('🔍 useParticipation: Invalid API response, using mock data');
-          return {
-            hasRSVP: false,
-            hasTicket: false,
-            rsvp: null,
-            ticket: null,
-            canRSVP: true,
-            canPurchaseTicket: true,
-            capacity: {
-              total: 20,
-              current: 5,
-              available: 15
-            }
-          };
-        }
-
-        return data;
-      } catch (error: any) {
-        // If endpoint doesn't exist yet, return mock data for development
-        if (error.response?.status === 404) {
-          console.warn('🔍 useParticipation: 404 - Participation endpoint not found, using mock data');
-          return {
-            hasRSVP: false,
-            hasTicket: false,
-            rsvp: null,
-            ticket: null,
-            canRSVP: true,
-            canPurchaseTicket: true,
-            capacity: {
-              total: 20,
-              current: 5,
-              available: 15
-            }
-          };
-        }
-        console.error('🔍 useParticipation: Error fetching participation:', error);
-        throw error;
+      // Validate API response
+      if (!data || typeof data === 'string') {
+        throw new Error('Invalid API response: participation endpoint returned unexpected data format');
       }
+
+      return data;
     },
     enabled: enabled && !!eventId,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -77,34 +42,8 @@ export function useCreateRSVP() {
 
   return useMutation({
     mutationFn: async (request: CreateRSVPRequest): Promise<ParticipationStatusDto> => {
-      try {
-        const { data } = await apiClient.post(`/api/events/${request.eventId}/rsvp`, request);
-        return data;
-      } catch (error: any) {
-        // Mock response for development
-        if (error.response?.status === 404) {
-          console.warn('RSVP endpoint not found, using mock response');
-          // Return updated participation status showing user is now RSVP'd
-          return {
-            hasRSVP: true,
-            hasTicket: false,
-            rsvp: {
-              id: `rsvp-${Date.now()}`,
-              status: 'Active' as any,
-              createdAt: new Date().toISOString()
-            },
-            ticket: null,
-            canRSVP: false,  // Can't RSVP again
-            canPurchaseTicket: true,  // Can still purchase ticket
-            capacity: {
-              total: 20,
-              current: 6,
-              available: 14
-            }
-          };
-        }
-        throw error;
-      }
+      const { data } = await apiClient.post(`/api/events/${request.eventId}/rsvp`, request);
+      return data;
     },
     onSuccess: (data, variables) => {
       // Update the participation status cache
@@ -130,18 +69,9 @@ export function useCancelRSVP() {
 
   return useMutation({
     mutationFn: async ({ eventId, reason }: { eventId: string; reason?: string }): Promise<void> => {
-      try {
-        await apiClient.delete(`/api/events/${eventId}/rsvp`, {
-          params: { reason }
-        });
-      } catch (error: any) {
-        // Mock response for development
-        if (error.response?.status === 404) {
-          console.warn('Cancel RSVP endpoint not found, using mock response');
-          return;
-        }
-        throw error;
-      }
+      await apiClient.delete(`/api/events/${eventId}/rsvp`, {
+        params: { reason }
+      });
     },
     onSuccess: (_, variables) => {
       // Update the participation status cache to reflect cancellation
@@ -184,18 +114,9 @@ export function useCancelTicket() {
 
   return useMutation({
     mutationFn: async ({ eventId, reason }: { eventId: string; reason?: string }): Promise<void> => {
-      try {
-        await apiClient.delete(`/api/events/${eventId}/participation`, {
-          params: { reason }
-        });
-      } catch (error: any) {
-        // Only use mock response in development mode
-        if (import.meta.env.DEV && error.response?.status === 404) {
-          console.warn('[DEV ONLY] Cancel ticket endpoint not found, using mock response');
-          return;
-        }
-        throw error;
-      }
+      await apiClient.delete(`/api/events/${eventId}/participation`, {
+        params: { reason }
+      });
     },
     onSuccess: (_, variables) => {
       // Update the participation status cache to reflect ticket cancellation
@@ -237,44 +158,8 @@ export function useUserParticipations(enabled = true) {
   return useQuery<UserParticipationDto[]>({
     queryKey: participationKeys.userParticipations(),
     queryFn: async (): Promise<UserParticipationDto[]> => {
-      try {
-        const { data } = await apiClient.get('/api/user/participations');
-        return data;
-      } catch (error: any) {
-        // Mock data for development - endpoint should exist now
-        if (error.response?.status === 404) {
-          console.warn('User participations endpoint not found, using mock data (THIS SHOULD NOT HAPPEN IN PRODUCTION)');
-          return [
-            {
-              id: 'participation-1',
-              eventId: 'event-1',
-              eventTitle: 'Introduction to Rope Bondage',
-              eventStartDate: '2025-02-15T19:00:00Z',
-              eventEndDate: '2025-02-15T21:00:00Z',
-              eventLocation: 'WitchCityRope Studio',
-              participationType: 'RSVP' as any,
-              status: 'Active' as any,
-              participationDate: '2025-01-19T10:00:00Z',
-              notes: null,
-              canCancel: true
-            },
-            {
-              id: 'participation-2',
-              eventId: 'event-2',
-              eventTitle: 'Advanced Suspension Techniques',
-              eventStartDate: '2025-03-01T18:00:00Z',
-              eventEndDate: '2025-03-01T20:00:00Z',
-              eventLocation: 'WitchCityRope Studio',
-              participationType: 'Ticket' as any,
-              status: 'Active' as any,
-              participationDate: '2025-01-18T15:30:00Z',
-              notes: null,
-              canCancel: true
-            }
-          ];
-        }
-        throw error;
-      }
+      const { data } = await apiClient.get('/api/user/participations');
+      return data;
     },
     enabled,
     staleTime: 10 * 60 * 1000, // 10 minutes

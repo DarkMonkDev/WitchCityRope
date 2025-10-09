@@ -15,17 +15,26 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.6" />
     <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
-    
+
     <!-- Authentication packages -->
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.6" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.6" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.3.1" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
-    
+
     <!-- Validation packages -->
     <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.1" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
+
+    <!-- OpenAPI generation and export -->
+    <PackageReference Include="NSwag.AspNetCore" Version="14.2.0" />
   </ItemGroup>
 
+  <!-- Post-build: Export OpenAPI specification -->
+  <Target Name="ExportOpenAPI" AfterTargets="Build">
+    <Exec Command="bash Scripts/post-build-export-openapi.sh"
+          Condition="Exists('Scripts/post-build-export-openapi.sh')"
+          ContinueOnError="true" />
+  </Target>
 
 </Project>

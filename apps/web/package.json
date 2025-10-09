@@ -17,7 +17,9 @@
     "test:e2e:safe": "./scripts/monitor-test-memory.sh playwright",
     "test:all:safe": "./scripts/monitor-test-memory.sh all",
     "test:cleanup": "./scripts/cleanup-test-processes.sh",
-    "test:verify": "./scripts/verify-test-config.sh"
+    "test:verify": "./scripts/verify-test-config.sh",
+    "generate:api-types": "openapi-typescript ../../apps/api/openapi.json -o ./src/types/generated/api.d.ts",
+    "validate:api-contract": "node ../../scripts/validate-api-contract.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
@@ -78,6 +80,7 @@
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "^0.4.7",
     "jsdom": "^26.1.0",
+    "openapi-typescript": "^7.4.4",
     "postcss-preset-mantine": "^1.18.0",
     "typescript": "^5.2.2",
     "typescript-eslint": "^8.39.1",

@@ -5,6 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import react from 'eslint-plugin-react'
 import tseslint from 'typescript-eslint'
 import prettier from 'eslint-config-prettier'
+import noSilentApiErrors from './eslint-rules/no-silent-api-errors.js'
 
 export default tseslint.config([
   { ignores: ['dist'] },
@@ -23,6 +24,11 @@ export default tseslint.config([
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
       react,
+      'local': {
+        rules: {
+          'no-silent-api-errors': noSilentApiErrors,
+        },
+      },
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
@@ -34,6 +40,21 @@ export default tseslint.config([
       'react/prop-types': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
+      // Custom project rules
+      'local/no-silent-api-errors': [
+        'error',
+        {
+          // Functions allowed to return null/empty on 404 (existence checks)
+          allowedFunctions: [
+            'checkExistingApplication',
+            'getVettingStatus',
+            'checkUserExists',
+            'findOptionalResource',
+          ],
+          // Don't allow console.warn in catch blocks even in dev
+          allowConsoleInDev: false,
+        },
+      ],
     },
     settings: {
       react: {
