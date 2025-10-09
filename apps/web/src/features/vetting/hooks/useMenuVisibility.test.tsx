@@ -5,7 +5,7 @@
 import { renderHook } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useMenuVisibility } from './useMenuVisibility';
-import type { MyApplicationStatusResponse, VettingStatusString } from '../types/vettingStatus';
+import type { MyApplicationStatusResponse, VettingStatus } from '../types/vettingStatus';
 
 // Mock dependencies
 vi.mock('./useVettingStatus', () => ({
@@ -60,7 +60,7 @@ describe('useMenuVisibility', () => {
   });
 
   describe('authenticated users with applications - show menu statuses', () => {
-    const showStatuses: VettingStatusString[] = [
+    const showStatuses: VettingStatus[] = [
       'UnderReview',
       'InterviewApproved',
       'FinalReview',
@@ -97,7 +97,7 @@ describe('useMenuVisibility', () => {
   });
 
   describe('authenticated users with applications - hide menu statuses', () => {
-    const hideStatuses: VettingStatusString[] = ['OnHold', 'Approved', 'Denied'];
+    const hideStatuses: VettingStatus[] = ['OnHold', 'Approved', 'Denied'];
 
     hideStatuses.forEach((status) => {
       it(`should hide menu for status: ${status}`, () => {

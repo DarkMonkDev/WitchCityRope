@@ -11,25 +11,22 @@ export const vettingKeys = {
     [...vettingKeys.applications(), 'detail', id] as const,
 };
 
-export function useVettingApplications(filters: ApplicationFilterRequest) {
+interface UseVettingApplicationsOptions {
+  enabled?: boolean;
+}
+
+export function useVettingApplications(
+  filters: ApplicationFilterRequest,
+  options?: UseVettingApplicationsOptions
+) {
   return useQuery<PagedResult<ApplicationSummaryDto>>({
     queryKey: vettingKeys.applicationsList(filters),
     queryFn: async () => {
-      console.log('useVettingApplications: Fetching applications with filters:', filters);
-
       try {
         const result = await vettingAdminApi.getApplicationsForReview(filters);
 
-        console.log('useVettingApplications: API response received:', {
-          hasResult: !!result,
-          hasItems: !!result?.items,
-          itemCount: result?.items?.length || 0,
-          totalCount: result?.totalCount || 0
-        });
-
         // Return actual API result or proper empty result
         if (!result) {
-          console.warn('useVettingApplications: API returned null/undefined result');
           return {
             items: [],
             totalCount: 0,
@@ -74,5 +71,7 @@ export function useVettingApplications(filters: ApplicationFilterRequest) {
     placeholderData: (previousData) => previousData,
     // Ensure errors are thrown instead of silently returning fallback data
     throwOnError: true,
+    // Allow component to override with custom options (e.g., enabled: false)
+    ...options,
   });
 }

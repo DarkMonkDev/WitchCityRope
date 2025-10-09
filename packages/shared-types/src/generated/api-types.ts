@@ -1884,7 +1884,7 @@ export interface components {
             capacity?: number;
             isPublished?: boolean;
             /** Format: int32 */
-            currentAttendees?: number;
+            registrationCount?: number;
             /** Format: int32 */
             currentRSVPs?: number;
             /** Format: int32 */
@@ -1893,8 +1893,6 @@ export interface components {
             ticketTypes?: components["schemas"]["TicketTypeDto"][] | null;
             volunteerPositions?: components["schemas"]["VolunteerPositionDto"][] | null;
             teacherIds?: string[] | null;
-            /** Format: int32 */
-            registrationCount?: number;
         };
         EventDtoApiResponse: {
             success?: boolean;
@@ -2364,8 +2362,6 @@ export interface components {
             /** Format: int32 */
             capacity?: number;
             /** Format: int32 */
-            registeredCount?: number;
-            /** Format: int32 */
             registrationCount?: number;
         };
         SimpleNoteRequest: {
@@ -2580,7 +2576,7 @@ export interface components {
             [key: string]: unknown;
         };
         /** @enum {string} */
-        VettingStatus: "UnderReview" | "InterviewApproved" | "InterviewScheduled" | "FinalReview" | "Approved" | "Denied" | "OnHold" | "Withdrawn";
+        VettingStatus: "UnderReview" | "InterviewApproved" | "FinalReview" | "Approved" | "Denied" | "OnHold" | "Withdrawn";
         VolunteerPositionDto: {
             id?: string | null;
             title?: string | null;

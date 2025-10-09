@@ -100,7 +100,6 @@ test.describe('User Dashboard - Vetting Status Display', () => {
     const validStatuses = [
       'UnderReview',
       'InterviewApproved',
-      'InterviewCompleted',
       'FinalReview',
       'Approved',
       'Denied',

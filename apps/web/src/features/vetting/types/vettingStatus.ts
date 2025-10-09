@@ -1,74 +1,44 @@
 /**
- * Vetting Status Types for Conditional Menu Visibility
- * Matches backend VettingStatus enum (0-9)
+ * Vetting Status Types - Using Auto-Generated Types
+ *
+ * DTO ALIGNMENT STRATEGY - CRITICAL RULES:
+ * ════════════════════════════════════════
+ * 1. API DTOs (C#) are the SOURCE OF TRUTH
+ * 2. TypeScript types are AUTO-GENERATED from OpenAPI spec via @witchcityrope/shared-types
+ * 3. NEVER manually create TypeScript interfaces for API response data
+ * 4. If a type is missing, expose it in the backend API (add .Produces<> to endpoint)
+ * 5. Regenerate types: cd packages/shared-types && npm run generate
+ *
+ * WHY: Prevents type mismatches, ensures type safety, eliminates manual sync work
+ * SEE: /docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md
+ * ════════════════════════════════════════
  */
 
 import type { components } from '@witchcityrope/shared-types';
 
 /**
- * Vetting status enum matching backend exactly
- * Based on VettingApplication.cs enum values
- * Interview completion moves directly to FinalReview (no InterviewCompleted intermediate state)
+ * VettingStatus enum - AUTO-GENERATED from backend
+ * String union type from OpenAPI spec
  */
-export enum VettingStatus {
-  UnderReview = 0,
-  InterviewApproved = 1,
-  FinalReview = 2,
-  Approved = 3,
-  Denied = 4,
-  OnHold = 5,
-  Withdrawn = 6
-}
+export type VettingStatus = components['schemas']['VettingStatus'];
 
 /**
- * String representation of vetting statuses
- * Backend returns status as string in API responses
+ * Application status information from API - AUTO-GENERATED
+ * Matches ApplicationStatusInfo C# DTO
  */
-export type VettingStatusString =
-  | 'UnderReview'
-  | 'InterviewApproved'
-  | 'FinalReview'
-  | 'Approved'
-  | 'Denied'
-  | 'OnHold'
-  | 'Withdrawn';
+export type ApplicationStatusInfo = components['schemas']['ApplicationStatusInfo'];
 
 /**
- * Application status information from API
- * Matches ApplicationStatusInfo C# model from generated types
+ * My application status response from GET /api/vetting/status - AUTO-GENERATED
+ * Matches MyApplicationStatusResponse C# DTO
  */
-export interface ApplicationStatusInfo {
-  applicationId: string;
-  applicationNumber: string | null;
-  status: VettingStatusString;
-  statusDescription: string | null;
-  submittedAt: string; // ISO 8601 timestamp
-  lastUpdated: string; // ISO 8601 timestamp
-  nextSteps: string | null;
-  estimatedDaysRemaining: number | null;
-}
+export type MyApplicationStatusResponse = components['schemas']['MyApplicationStatusResponse'];
 
 /**
- * My application status response from GET /api/vetting/status
- * Matches MyApplicationStatusResponse C# model from generated types
+ * API response wrapper for vetting status - AUTO-GENERATED
+ * Matches MyApplicationStatusResponseApiResponse from backend
  */
-export interface MyApplicationStatusResponse {
-  hasApplication: boolean;
-  application: ApplicationStatusInfo | null;
-}
-
-/**
- * API response wrapper
- * Matches ApiResponse<T> pattern used by backend
- */
-export interface VettingStatusApiResponse {
-  success: boolean;
-  data: MyApplicationStatusResponse | null;
-  error?: string | null;
-  details?: string | null;
-  message?: string | null;
-  timestamp: string; // ISO 8601 timestamp
-}
+export type VettingStatusApiResponse = components['schemas']['MyApplicationStatusResponseApiResponse'];
 
 /**
  * Menu visibility decision result
@@ -83,7 +53,7 @@ export interface MenuVisibilityResult {
  * Status box props for VettingStatusBox component
  */
 export interface StatusBoxProps {
-  status: VettingStatusString;
+  status: VettingStatus;
   applicationNumber: string;
   submittedAt: Date;
   lastUpdated: Date;
@@ -93,42 +63,10 @@ export interface StatusBoxProps {
 }
 
 /**
- * Helper to convert status string to enum value
+ * Helper: Check if status should hide "How to Join" menu item
+ * Business rule: Hide for OnHold, Approved, Denied
  */
-export const statusStringToEnum = (status: VettingStatusString): VettingStatus => {
-  const mapping: Record<VettingStatusString, VettingStatus> = {
-    UnderReview: VettingStatus.UnderReview,
-    InterviewApproved: VettingStatus.InterviewApproved,
-    FinalReview: VettingStatus.FinalReview,
-    Approved: VettingStatus.Approved,
-    Denied: VettingStatus.Denied,
-    OnHold: VettingStatus.OnHold,
-    Withdrawn: VettingStatus.Withdrawn
-  };
-  return mapping[status];
-};
-
-/**
- * Helper to convert enum value to status string
- */
-export const statusEnumToString = (status: VettingStatus): VettingStatusString => {
-  const mapping: Record<VettingStatus, VettingStatusString> = {
-    [VettingStatus.UnderReview]: 'UnderReview',
-    [VettingStatus.InterviewApproved]: 'InterviewApproved',
-    [VettingStatus.FinalReview]: 'FinalReview',
-    [VettingStatus.Approved]: 'Approved',
-    [VettingStatus.Denied]: 'Denied',
-    [VettingStatus.OnHold]: 'OnHold',
-    [VettingStatus.Withdrawn]: 'Withdrawn'
-  };
-  return mapping[status];
-};
-
-/**
- * Check if status should hide "How to Join" menu item
- * Business rule: Hide for OnHold (6), Approved (7), Denied (8)
- */
-export const shouldHideMenuForStatus = (status: VettingStatusString): boolean => {
-  const hideStatuses: VettingStatusString[] = ['OnHold', 'Approved', 'Denied'];
+export const shouldHideMenuForStatus = (status: VettingStatus): boolean => {
+  const hideStatuses: VettingStatus[] = ['OnHold', 'Approved', 'Denied'];
   return hideStatuses.includes(status);
 };

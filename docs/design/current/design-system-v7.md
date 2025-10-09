@@ -1,5 +1,5 @@
-<!-- Last Updated: 2025-08-20 -->
-<!-- Version: v7.0 -->
+<!-- Last Updated: 2025-10-08 -->
+<!-- Version: v7.1 -->
 <!-- Owner: Design Team -->
 <!-- Status: Active Authority -->
 
@@ -63,10 +63,10 @@ This document defines the complete v7 design system extracted from the approved 
 
 ### CTA Colors
 ```css
---color-electric: #9D4EDD;      /* Primary CTA background */
---color-electric-dark: #7B2CBF; /* Primary CTA hover */
---color-amber: #FFBF00;          /* Secondary CTA background */
---color-amber-dark: #FF8C00;     /* Secondary CTA hover */
+--color-electric: #9D4EDD;      /* Primary CTA Alt background */
+--color-electric-dark: #7B2CBF; /* Primary CTA Alt hover */
+--color-amber: #FFBF00;         /* Primary CTA background (gold) */
+--color-amber-dark: #FF8C00;    /* Primary CTA hover (dark gold) */
 ```
 
 ### Supporting Colors
@@ -80,7 +80,7 @@ This document defines the complete v7 design system extracted from the approved 
 ```css
 --color-charcoal: #2B2B2B;  /* Primary text */
 --color-smoke: #4A4A4A;     /* Secondary text */
---color-stone: #8B8680;     /* Tertiary text */
+--color-stone: #8B8680;     /* Tertiary text, disabled states */
 --color-taupe: #B8B0A8;     /* Light text on dark */
 --color-ivory: #FFF8F0;     /* Light text, card text */
 --color-cream: #FAF6F2;     /* Body background */
@@ -96,8 +96,8 @@ This document defines the complete v7 design system extracted from the approved 
 ### Color Usage Guidelines
 - Use burgundy for primary brand elements and main navigation
 - Rose gold for accents, underlines, and interactive highlights
-- Electric purple for primary action buttons
-- Amber for secondary actions and login buttons
+- **Gold/amber gradient for primary action buttons (Dashboard button)**
+- Electric purple for alternative primary action buttons
 - Midnight for dark sections and backgrounds
 - Cream for main page background
 
@@ -122,23 +122,38 @@ This document defines the complete v7 design system extracted from the approved 
 
 ### Button Types
 
-#### Primary Button (Amber)
-- **Use**: Main actions, login, join community
-- **Background**: `linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%)`
-- **Text**: `var(--color-midnight)`
+#### Primary CTA Button (Gold/Amber Gradient)
+- **Use**: Main actions, Dashboard CTA, highest priority actions
+- **Background**: `linear-gradient(135deg, #FFBF00 0%, #FF8C00 100%)`
+- **Text**: `#1A1A2E` (midnight)
 - **Shadow**: `0 4px 15px rgba(255, 191, 0, 0.4)`
+- **Font Weight**: 700
+- **Shimmer Effect**: White gradient shimmer on hover
+- **Example**: Dashboard button in navigation
 
-#### Primary Alt Button (Electric)
+#### Primary Alt CTA Button (Electric Purple)
 - **Use**: Secondary important actions
-- **Background**: `linear-gradient(135deg, var(--color-electric) 0%, var(--color-electric-dark) 100%)`
-- **Text**: `var(--color-ivory)`
+- **Background**: `linear-gradient(135deg, #9D4EDD 0%, #7B2CBF 100%)`
+- **Text**: `#FFF8F0` (ivory)
 - **Shadow**: `0 4px 15px rgba(157, 78, 221, 0.4)`
+- **Font Weight**: 700
 
-#### Secondary Button
-- **Use**: Less important actions, navigation
+#### Secondary Button (Burgundy Outline)
+- **Use**: Less important actions, navigation, cancel actions
 - **Background**: `transparent`
-- **Border**: `2px solid var(--color-burgundy)`
-- **Text**: `var(--color-burgundy)`
+- **Border**: `2px solid #880124`
+- **Text**: `#880124` (burgundy)
+- **Fill Animation**: Burgundy fills from left to right on hover
+
+#### Disabled Button State
+- **Use**: Unavailable actions, loading states, validation failures
+- **Background**: `#8B8680` (stone gray)
+- **Text**: `#FFF8F0` (ivory)
+- **Border**: None
+- **Shadow**: None
+- **Cursor**: `not-allowed`
+- **Opacity**: 0.6
+- **Animations**: All animations disabled (no shimmer, no corner morphing)
 
 ### Button Styling
 ```css
@@ -159,6 +174,13 @@ This document defines the complete v7 design system extracted from the approved 
     padding: 18px 40px;
     font-size: 16px;
 }
+
+.btn:disabled {
+    background: #8B8680;
+    color: #FFF8F0;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
 ```
 
 ### Signature Corner Animation
@@ -167,6 +189,7 @@ This document defines the complete v7 design system extracted from the approved 
 - **Hover**: `border-radius: 6px 12px 6px 12px`
 - **Transition**: `all 0.3s ease`
 - **NO vertical movement** (no translateY)
+- **Disabled**: Corner morphing animation is disabled
 
 ## Signature Animations
 
@@ -214,7 +237,8 @@ This document defines the complete v7 design system extracted from the approved 
 - NEVER add translateY (no vertical movement)
 - Always reverse gradients on hover
 - Maintain 0.3s timing
-- Apply to ALL button types
+- Apply to ALL button types (except disabled)
+- Disabled buttons have NO corner morphing
 
 ### 3. Feature Icon Shape-Shifting
 **Implementation**:
@@ -394,6 +418,7 @@ body::before {
 
 ## Version History
 
+- **v7.1** (2025-10-08): Added disabled button state specification and corrected Primary CTA description to gold/amber gradient
 - **v7.0** (2025-08-20): Initial comprehensive design system
 - Extracted from approved Final Design v7 template
 - Established as single source of truth

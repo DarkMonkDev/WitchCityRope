@@ -28,18 +28,10 @@ export class VettingAdminApiService {
   async getApplicationDetail(
     applicationId: string
   ): Promise<ApplicationDetailResponse> {
-    console.log('VettingAdminApi.getApplicationDetail called with ID:', applicationId);
-
     try {
       const response = await apiClient.get<{ success: boolean; data: ApplicationDetailResponse }>(
         `/api/vetting/reviewer/applications/${applicationId}`
       );
-
-      console.log('API response received:', {
-        status: response.status,
-        success: response.data.success,
-        hasData: !!response.data.data
-      });
 
       if (!response.data.success) {
         throw new Error(`API returned success: false for application ${applicationId}`);
@@ -162,8 +154,6 @@ export class VettingAdminApiService {
   ): Promise<{ success: boolean; message: string }> {
     // TODO: Implement when API endpoint is available
     // For now, simulate the API call
-    console.log('Reminder would be sent:', { applicationId, message });
-
     // Simulate delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 

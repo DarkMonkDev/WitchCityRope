@@ -11,23 +11,23 @@
   --color-burgundy: #880124;
   --color-burgundy-dark: #660018;
   --color-burgundy-light: #9F1D35;
-  
+
   /* Warm Metallics */
   --color-rose-gold: #B76D75;
   --color-copper: #B87333;
   --color-brass: #C9A961;
-  
+
   /* CTA Accent Colors */
   --color-electric: #9D4EDD;
   --color-electric-dark: #7B2CBF;
   --color-amber: #FFBF00;
   --color-amber-dark: #FF8C00;
-  
+
   /* Supporting Tones */
   --color-dusty-rose: #D4A5A5;
   --color-plum: #614B79;
   --color-midnight: #1A1A2E;
-  
+
   /* Warm Neutrals */
   --color-charcoal: #2B2B2B;
   --color-smoke: #4A4A4A;
@@ -35,7 +35,7 @@
   --color-taupe: #B8B0A8;
   --color-ivory: #FFF8F0;
   --color-cream: #FAF6F2;
-  
+
   /* Status Colors */
   --color-success: #228B22;
   --color-warning: #DAA520;
@@ -47,13 +47,13 @@
   --color-warning-light: #FFF4CC;
   --color-error-light: #FFE5EC;
   --color-info-light: #F0EDFF;
-  
+
   /* Typography */
   --font-display: 'Bodoni Moda', serif;
   --font-heading: 'Montserrat', sans-serif;
   --font-body: 'Source Sans 3', sans-serif;
   --font-accent: 'Satisfy', cursive;
-  
+
   /* Spacing */
   --space-xs: 8px;
   --space-sm: 16px;
@@ -347,11 +347,11 @@ html {
 
 /* v7 Feature Icon Shape-Shifting Animation */
 @keyframes iconMorph {
-  0%, 100% { 
+  0%, 100% {
     border-radius: 50% 20% 50% 20%;
     transform: rotate(0deg) scale(1);
   }
-  50% { 
+  50% {
     border-radius: 20% 50% 20% 50%;
     transform: rotate(5deg) scale(1.1);
   }
@@ -457,19 +457,19 @@ html {
     padding: 10px 20px !important;
     font-size: 11px !important;
   }
-  
+
   .header {
     padding: var(--space-sm) 20px !important;
   }
-  
+
   .logo {
     font-size: 28px !important;
   }
-  
+
   .nav {
     display: none !important;
   }
-  
+
   .mobile-menu-toggle {
     display: block !important;
   }
@@ -477,46 +477,46 @@ html {
   .hero-section {
     padding: var(--space-xl) 20px !important;
   }
-  
+
   .hero-section h1 {
     font-size: 40px !important;
   }
-  
+
   .hero-section .hero-tagline {
     font-size: 22px !important;
   }
-  
+
   .hero-section p {
     font-size: 18px !important;
   }
-  
+
   .hero-buttons {
     flex-direction: column !important;
     align-items: center !important;
   }
-  
+
   .section {
     padding: var(--space-xl) 20px !important;
   }
-  
+
   .classes-events {
     padding: var(--space-xl) 20px !important;
     margin-top: var(--space-xl) !important;
   }
-  
+
   .section-title,
   .classes-events .section-title {
     font-size: 36px !important;
   }
-  
+
   .cta-section h2 {
     font-size: 32px !important;
   }
-  
+
   .cta-subtitle {
     font-size: 22px !important;
   }
-  
+
   .feature-icon-animation {
     width: 80px !important;
     height: 80px !important;
@@ -546,7 +546,7 @@ html {
   text-align: center;
 }
 
-/* Primary CTA Button - Amber/Yellow Gradient */
+/* Primary CTA Button - Gold/Amber Gradient (Dashboard Button) */
 .btn-primary {
   background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%);
   color: var(--color-midnight);
@@ -593,7 +593,7 @@ html {
   text-decoration: none;
 }
 
-/* Secondary Button - Outline Style */
+/* Secondary Button - Burgundy Outline with Fill Animation */
 .btn-secondary {
   background: transparent;
   color: var(--color-burgundy);
@@ -622,6 +622,29 @@ html {
 
 .btn-secondary:hover::before {
   width: 100%;
+}
+
+/* Disabled Button State - All Button Types */
+.btn:disabled,
+.btn-primary:disabled,
+.btn-primary-alt:disabled,
+.btn-secondary:disabled,
+.btn-wcr-primary:disabled,
+.btn-wcr-secondary:disabled {
+  background: var(--color-stone) !important;
+  color: var(--color-ivory) !important;
+  border: none !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.btn:disabled::before,
+.btn-primary:disabled::before,
+.btn-primary-alt:disabled::before,
+.btn-secondary:disabled::before {
+  display: none;
 }
 
 /* Large button size modifier */

@@ -15,8 +15,7 @@ import {
   Box,
   Alert,
   ActionIcon,
-  Card,
-  Timeline
+  Card
 } from '@mantine/core';
 import {
   IconArrowLeft,
@@ -147,10 +146,45 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
     return new Date(dateString).toLocaleDateString();
   };
 
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const dateStr = date.toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+    const timeStr = date.toLocaleTimeString(undefined, {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+    return `${dateStr} - ${timeStr}`;
+  };
+
+  // Helper to detect system-generated notes and extract status
+  const isSystemGeneratedNote = (noteText: string): { isSystem: boolean; status?: string } => {
+    // Map system-generated note text to corresponding status values
+    // These match the simplified descriptions from backend GetSimplifiedActionDescription()
+    const systemNotes: Record<string, string> = {
+      'Approved for interview': 'InterviewApproved',
+      'Interview completed': 'FinalReview',
+      'Application approved': 'Approved',
+      'Application denied': 'Denied',
+      'Application placed on hold': 'OnHold',
+      'Returned to review': 'UnderReview',
+      'Application withdrawn': 'Withdrawn'
+    };
+
+    const status = systemNotes[noteText];
+    return { isSystem: !!status, status };
+  };
+
   const handleAdvanceStage = () => {
     if (!application || !nextStageConfig) return;
 
-    const reasoning = `Advanced to ${nextStageConfig.label}: ${nextStageConfig.description}`;
+    // Don't auto-generate verbose reasoning - let backend create simplified text
+    // Only send reasoning when admin manually enters notes
+    const reasoning = undefined;
 
     // Use the appropriate mutation based on the next status
     if (nextStageConfig.nextStatus === 'Approved') {
@@ -174,7 +208,9 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
 
   const handleSkipToApproved = () => {
     if (application) {
-      const reasoning = 'Application approved - skipped to final approval';
+      // Don't auto-generate verbose reasoning - let backend create simplified text
+      // Only send reasoning when admin manually enters notes
+      const reasoning = undefined;
 
       approveApplication({
         applicationId: application.id,
@@ -213,16 +249,6 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
       // Error notification will be shown by the API service
     }
   };
-
-  // Enhanced debugging for the application detail
-  console.log('VettingApplicationDetail render:', {
-    applicationId,
-    isLoading,
-    error: error?.message || error,
-    hasApplication: !!application,
-    applicationStatus: application?.status,
-    timestamp: new Date().toISOString()
-  });
 
   if (isLoading) {
     return (
@@ -285,8 +311,8 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
 
 
   return (
-    <Stack gap="xs">
-      {/* Breadcrumb Navigation with Status Badge */}
+    <Stack gap="xs" mt={0}>
+      {/* Breadcrumb Navigation with Status Badge - FIRST */}
       <Group justify="space-between" align="center">
         <Button
           variant="subtle"
@@ -306,148 +332,106 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
         >
           Back to Applications
         </Button>
-        <VettingStatusBadge status={application.status} size="xl" data-testid="status-badge" />
+        <VettingStatusBadge status={application.status} size="lg" data-testid="status-badge" />
       </Group>
 
-      {/* Header Section - Just the name */}
-      <Paper p="lg" radius="md" style={{ background: '#FFF8F0' }}>
-        <Title order={1} style={{ color: '#880124', fontSize: '32px' }} data-testid="application-title">
+      {/* Header Section - Person's name - SECOND with reduced padding */}
+      <Paper p="sm" radius="md" pt={0} style={{ background: '#FFF8F0' }}>
+        <Title order={1} mt={0} style={{ color: '#880124', paddingLeft: '16px' }} data-testid="application-title">
           {application.sceneName}
         </Title>
       </Paper>
 
-      {/* Action Buttons - Single Horizontal Row */}
-      <Group gap="md" wrap="nowrap">
-        {/* Primary Action 1: Advance to Next Stage */}
-        {nextStageConfig && availableActions.canAdvanceStage && (
-          <Button
-            leftSection={React.createElement(nextStageConfig.icon, { size: 20 })}
-            onClick={handleAdvanceStage}
-            loading={isSubmittingDecision || isApprovingApplication}
-            disabled={!availableActions.canAdvanceStage}
-            data-testid="advance-stage-button"
-            styles={{
-              root: {
-                background: 'linear-gradient(135deg, #9D4EDD, #7B2CBF)',
-                height: '48px',
-                fontSize: '14px',
-                fontWeight: 600,
-                borderRadius: '8px',
-                boxShadow: '0 4px 15px rgba(157, 78, 221, 0.4)',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  boxShadow: '0 6px 20px rgba(157, 78, 221, 0.6)',
-                  transform: 'scale(1.02)'
-                },
-                '&:disabled': {
-                  background: 'linear-gradient(135deg, #9D4EDD, #7B2CBF)',
-                  opacity: 0.5
-                }
-              }
-            }}
-          >
-            {nextStageConfig.label}
-          </Button>
-        )}
+      {/* Action Buttons - Split Layout: Primary CTAs Left, Tertiary Actions Right */}
+      <Group justify="space-between" gap="md" wrap="nowrap" mb="sm">
+        {/* Left Side: Primary CTAs */}
+        <Group gap="md" wrap="nowrap">
+          {/* Primary Action 1: Advance to Next Stage */}
+          {nextStageConfig && availableActions.canAdvanceStage && (
+            <button
+              className="btn btn-primary"
+              onClick={handleAdvanceStage}
+              disabled={!availableActions.canAdvanceStage || isSubmittingDecision || isApprovingApplication}
+              data-testid="advance-stage-button"
+              type="button"
+            >
+              {nextStageConfig.label}
+            </button>
+          )}
 
-        {/* Primary Action 2: Skip to Approved */}
-        {availableActions.canSkipToApproved && (
-          <Button
-            variant="filled"
-            color="green"
-            leftSection={<IconCheck size={18} />}
-            onClick={handleSkipToApproved}
-            loading={isApprovingApplication}
-            disabled={!availableActions.canSkipToApproved}
-            data-testid="skip-to-approved-button"
-            styles={{
-              root: {
-                height: '48px',
-                fontWeight: 600,
-                borderRadius: '8px',
-                fontSize: '14px'
-              }
-            }}
-          >
-            Skip to Approved
-          </Button>
-        )}
+          {/* Primary Action 2: Skip to Approved */}
+          {availableActions.canSkipToApproved && (
+            <button
+              className="btn btn-secondary"
+              onClick={handleSkipToApproved}
+              disabled={!availableActions.canSkipToApproved || isApprovingApplication}
+              data-testid="skip-to-approved-button"
+              type="button"
+            >
+              Skip to Approved
+            </button>
+          )}
+        </Group>
 
-        {/* Secondary Action: On Hold */}
-        {availableActions.canHold && (
-          <Button
-            variant="outline"
-            color="yellow"
-            leftSection={<IconClock size={16} />}
-            onClick={handlePutOnHold}
-            disabled={!availableActions.canHold}
-            data-testid="hold-button"
-            styles={{
-              root: {
-                height: '48px',
-                borderWidth: '1px',
-                fontWeight: 500,
-                fontSize: '14px'
-              }
-            }}
-          >
-            On Hold
-          </Button>
-        )}
+        {/* Right Side: Tertiary Actions */}
+        <Group gap="md" wrap="nowrap">
+          {/* Tertiary Action: Reminder - Hide when application is approved */}
+          {application.status !== 'Approved' && (
+            <button
+              className="btn btn-secondary"
+              onClick={handleSendReminder}
+              disabled={!availableActions.canRemind}
+              data-testid="send-reminder-button"
+              type="button"
+              style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
+              <IconMail size={16} />
+              <span>Reminder</span>
+            </button>
+          )}
 
-        {/* Secondary Action: Reminder */}
-        <Button
-          variant="outline"
-          color="gray"
-          leftSection={<IconMail size={16} />}
-          onClick={handleSendReminder}
-          disabled={!availableActions.canRemind}
-          data-testid="send-reminder-button"
-          styles={{
-            root: {
-              height: '48px',
-              borderWidth: '1px',
-              fontWeight: 500,
-              fontSize: '14px'
-            }
-          }}
-        >
-          Reminder
-        </Button>
+          {/* Tertiary Action: On Hold */}
+          {availableActions.canHold && (
+            <button
+              className="btn btn-secondary"
+              onClick={handlePutOnHold}
+              disabled={!availableActions.canHold}
+              data-testid="hold-button"
+              type="button"
+              style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
+              <IconClock size={16} />
+              <span>On Hold</span>
+            </button>
+          )}
 
-        {/* Secondary Action: Deny */}
-        {availableActions.canDeny && (
-          <Button
-            variant="outline"
-            color="red"
-            leftSection={<IconX size={16} />}
-            onClick={handleDenyApplication}
-            disabled={!availableActions.canDeny}
-            data-testid="deny-application-button"
-            styles={{
-              root: {
-                height: '48px',
-                borderWidth: '1px',
-                fontWeight: 500,
-                fontSize: '14px'
-              }
-            }}
-          >
-            Deny
-          </Button>
-        )}
+          {/* Tertiary Action: Deny */}
+          {availableActions.canDeny && (
+            <button
+              className="btn btn-secondary"
+              onClick={handleDenyApplication}
+              disabled={!availableActions.canDeny}
+              data-testid="deny-application-button"
+              type="button"
+              style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
+              <IconX size={16} />
+              <span>Deny</span>
+            </button>
+          )}
+        </Group>
       </Group>
 
       {/* Single Column Layout - Removed right sidebar as per requirements */}
       <Grid>
         <Grid.Col span={12}>
           <Stack gap="md">
+            {/* Application Details Section */}
             {/* Application Information - Inline layout for short answers, long answers at bottom */}
-            <Card data-testid="application-information-section">
+            <Card p="xl" data-testid="application-information-section">
               <Title order={3} mb="md" style={{ color: '#880124' }}>
-                Application Information
+                Application Details
               </Title>
-
               {/* Short answers - inline layout */}
               <Grid mb="xl">
                 {/* Left Column */}
@@ -514,71 +498,21 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
         </Grid.Col>
       </Grid>
 
-      {/* Status History Timeline Section */}
-      <Card>
-        <Title order={3} mb="md" style={{ color: '#880124' }}>
-          Status History
-        </Title>
-        <Timeline active={application.decisions.length - 1} bulletSize={24} lineWidth={2}>
-          {application.decisions.length > 0 ? (
-            application.decisions
-              .slice()
-              .reverse()
-              .map((decision, index) => (
-                <Timeline.Item
-                  key={decision.id}
-                  bullet={<IconClock size={12} />}
-                  title={
-                    <Group gap="sm">
-                      <VettingStatusBadge status={decision.decisionType} size="sm" />
-                      <Text fw={600}>{decision.decisionType}</Text>
-                    </Group>
-                  }
-                >
-                  <Text size="xs" c="dimmed" mt={4}>
-                    {formatDate(decision.createdAt)} - By {decision.reviewerName}
-                  </Text>
-                  {decision.reasoning && (
-                    <Text size="sm" mt="xs" style={{ whiteSpace: 'pre-wrap' }}>
-                      {decision.reasoning}
-                    </Text>
-                  )}
-                </Timeline.Item>
-              ))
-          ) : (
-            <Text c="dimmed" size="sm">
-              No status changes yet
-            </Text>
-          )}
-        </Timeline>
-      </Card>
-
       {/* Admin Notes Section */}
-      <Card>
+      <Card p="xl">
         <Group justify="space-between" align="center" mb="md">
           <Title order={3} style={{ color: '#880124' }}>
-            Admin Notes
+            Notes
           </Title>
-          <Button
-            variant="filled"
+          <button
+            className={newNote.trim() ? "btn btn-primary" : "btn"}
             onClick={handleSaveNote}
             disabled={!newNote.trim()}
             data-testid="save-note-button"
-            styles={{
-              root: {
-                backgroundColor: '#D4AF37',
-                color: '#000000',
-                height: '44px',
-                paddingTop: '12px',
-                paddingBottom: '12px',
-                fontSize: '14px',
-                lineHeight: '1.2',
-                fontWeight: 600
-              }
-            }}
+            type="button"
           >
             Save Note
-          </Button>
+          </button>
         </Group>
 
         <Stack gap="md">
@@ -600,31 +534,41 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
           {/* Notes List */}
           {application.notes.length > 0 ? (
             <Stack gap="sm">
-              {application.notes.map((note) => (
-                <Paper key={note.id} p="md" style={{ background: '#F5F5F5', borderRadius: '8px' }}>
-                  <Group justify="space-between" mb="xs">
-                    <Group gap="xs">
-                      <IconNotes size={16} style={{ color: '#880124' }} />
-                      <Text fw={600} size="sm">{note.reviewerName}</Text>
+              {application.notes.map((note) => {
+                // Check if this is a system-generated status change note
+                const { isSystem, status } = isSystemGeneratedNote(note.content);
+
+                return (
+                  <Paper key={note.id} p="md" style={{ background: '#F5F5F5', borderRadius: '8px' }}>
+                    <Group justify="space-between" mb="xs">
+                      <Group gap="xs">
+                        {/* Show status badge for system-generated notes */}
+                        {isSystem && status ? (
+                          <VettingStatusBadge status={status} size="sm" />
+                        ) : (
+                          <IconNotes size={16} style={{ color: '#880124' }} />
+                        )}
+                        <Text fw={600} size="sm">{note.reviewerName}</Text>
+                      </Group>
+                      <Text size="sm" c="dimmed">
+                        {formatTime(note.createdAt)}
+                      </Text>
                     </Group>
-                    <Text size="sm" c="dimmed">
-                      {formatDate(note.createdAt)}
+                    <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
+                      {note.content}
                     </Text>
-                  </Group>
-                  <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
-                    {note.content}
-                  </Text>
-                  {note.tags && note.tags.length > 0 && (
-                    <Group gap="xs" mt="xs">
-                      {note.tags.map((tag, idx) => (
-                        <Badge key={idx} size="sm" variant="light" color="gray">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </Group>
-                  )}
-                </Paper>
-              ))}
+                    {note.tags && note.tags.length > 0 && (
+                      <Group gap="xs" mt="xs">
+                        {note.tags.map((tag, idx) => (
+                          <Badge key={idx} size="sm" variant="light" color="gray">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </Group>
+                    )}
+                  </Paper>
+                );
+              })}
             </Stack>
           ) : (
             <Text c="dimmed" size="sm" ta="center" py="md">

@@ -6,13 +6,16 @@
 1. **Design System v7** - **CURRENT DESIGN STANDARDS**
 `/docs/design/current/design-system-v7.md`
 
-2. **UI Implementation Standards** - **COMPONENT PATTERNS**
+2. **Button Style Guide** - **COMPLETE BUTTON IMPLEMENTATION GUIDE**
+`/docs/design/current/button-style-guide.md`
+
+3. **UI Implementation Standards** - **COMPONENT PATTERNS**
 `/docs/standards-processes/ui-implementation-standards.md`
 
-3. **React Patterns** - **REACT COMPONENT STANDARDS**
+4. **React Patterns** - **REACT COMPONENT STANDARDS**
 `/docs/standards-processes/development-standards/react-patterns.md`
 
-4. **Project Architecture** - **MANTINE UI FRAMEWORK**
+5. **Project Architecture** - **MANTINE UI FRAMEWORK**
 `/ARCHITECTURE.md`
 
 ### 📚 DOCUMENT DISCOVERY RESOURCES:
@@ -27,6 +30,7 @@
 
 ### Validation Gates (MUST COMPLETE):
 - [ ] **Read Design System v7 FIRST** - Current design language and components
+- [ ] **Read Button Style Guide** - Complete button implementation patterns
 - [ ] Review UI Implementation Standards for component patterns
 - [ ] Check React Patterns for React-specific guidelines
 - [ ] Verify Mantine v7 component library usage
@@ -86,7 +90,7 @@
 - Use EXACT colors from approved design system:
   - Primary: #880124 (burgundy)
   - Accent: #B76D75 (rose-gold)
-  - CTA Primary: #FFBF00 (amber)
+  - CTA Primary: #FFBF00 (amber/gold)
   - CTA Secondary: #9D4EDD (electric purple)
   - Background: #FAF6F2 (cream)
   - Cards: #FFF8F0 (ivory)
@@ -126,14 +130,39 @@
 - Body: 'Source Sans 3', sans-serif
 - Taglines: 'Satisfy', cursive
 
-### Button Styling - Signature Corner Morphing
+### Button Styling - Signature Corner Morphing (Updated October 2025)
+**CRITICAL**: Primary CTA buttons use GOLD/AMBER gradient (like Dashboard button)
 **Implementation**:
 - Default: `border-radius: 12px 6px 12px 6px` (asymmetric)
 - Hover: `border-radius: 6px 12px 6px 12px` (reverse)
 - NO vertical movement (no translateY)
-- Primary buttons use amber gradient (#FFBF00 to #DAA520)
-- Secondary buttons use burgundy border
-- NO PURPLE BUTTONS - Only amber/burgundy colors allowed
+- **Primary CTA**: Gold/amber gradient (#FFBF00 → #FF8C00) with shimmer effect
+- **Primary Alt CTA**: Electric purple gradient (#9D4EDD → #7B2CBF)
+- **Secondary**: Burgundy outline with fill animation
+- **Disabled**: Gray background (#8B8680), no animations, cursor: not-allowed
+
+**Reference**: See complete button implementation guide at `/docs/design/current/button-style-guide.md`
+
+### Button States Documentation - October 2025
+**Problem**: Discovered Primary CTA button (Dashboard button) was gold/amber gradient but not properly documented
+**Solution**:
+- Updated Design System v7 to v7.1 with correct Primary CTA description
+- Added disabled button state specification to design system
+- Created comprehensive Button Style Guide with all button types and states
+- Added disabled state CSS to `/apps/web/src/index.css`
+
+**Key Files Updated**:
+- `/docs/design/current/design-system-v7.md` - v7.1 with corrected button descriptions
+- `/docs/design/current/button-style-guide.md` - New comprehensive button guide
+- `/apps/web/src/index.css` - Added `.btn:disabled` styles (lines 627-648)
+
+**Button Type Summary**:
+1. **Primary CTA** (.btn-primary): Gold gradient, shimmer, Dashboard button
+2. **Primary Alt** (.btn-primary-alt): Purple gradient, secondary CTAs
+3. **Secondary** (.btn-secondary): Burgundy outline, fill animation
+4. **Disabled** (:disabled): Gray, no animations, not-allowed cursor
+
+**Always Reference**: Check Button Style Guide for visual examples, code snippets, and usage patterns
 
 ### Rich Text Editor Standard
 **Required**: Use Tiptap v2 (not basic @mantine/tiptap)
@@ -916,20 +945,26 @@ This systematic approach to stakeholder corrections ensures rapid response while
 - [ ] Typography uses correct font families
 - [ ] ALL form inputs use floating label animation
 - [ ] Rich text areas use Tiptap v2 with full toolbar
-- [ ] NO purple buttons - only amber/burgundy
+- [ ] Primary CTA buttons use gold/amber gradient (NOT purple)
+- [ ] Secondary buttons use burgundy outline
+- [ ] Disabled buttons show gray background with no animations
 - [ ] Input styling matches approved patterns
 - [ ] Mobile responsive at 768px breakpoint
 - [ ] No vertical button movement (translateY)
 - [ ] Rose-gold bottom border on header
 - [ ] Consistent spacing using CSS variables
+- [ ] Button Style Guide reviewed for all button implementations
 
 ### Animation Requirements
 - [ ] Navigation center-outward underline animation
 - [ ] Button asymmetric corner morphing (no translateY)
+- [ ] Primary button shimmer effect on hover
+- [ ] Secondary button fill animation on hover
 - [ ] Card hover elevation (-4px translateY)
 - [ ] Input focus animations (translateY + glow)
 - [ ] Logo hover scale + underline
 - [ ] Floating labels on ALL text inputs
+- [ ] Disabled buttons have NO animations
 
 ### Complex Form Validation
 - [ ] Event Session Matrix pattern correctly implemented
@@ -1008,6 +1043,15 @@ This systematic approach to stakeholder corrections ensures rapid response while
 - [ ] Documents marked as APPROVED after corrections
 - [ ] Correction summary included in all updated documents
 
+### Button Implementation Validation (Added 2025-10-08)
+- [ ] Primary CTA uses gold/amber gradient (#FFBF00 → #FF8C00)
+- [ ] Primary Alt uses electric purple gradient (#9D4EDD → #7B2CBF)
+- [ ] Secondary uses burgundy outline with fill animation
+- [ ] Disabled state shows gray background, no animations, not-allowed cursor
+- [ ] All button states have correct corner morphing animation
+- [ ] Button Style Guide referenced for implementation
+- [ ] Visual examples match design system documentation
+
 ## File Organization
 
 ### Wireframe Storage Pattern
@@ -1017,6 +1061,7 @@ This systematic approach to stakeholder corrections ensures rapid response while
 
 ### Design System Reference
 **Source of Truth**: `/docs/design/current/design-system-v7.md`
+**Button Guide**: `/docs/design/current/button-style-guide.md`
 **Template**: `/docs/design/current/homepage-template-v7.html`
 **Always verify against these files before finalizing designs**
 
@@ -1044,7 +1089,7 @@ This systematic approach to stakeholder corrections ensures rapid response while
 5. **DON'T** forget mobile responsive breakpoints
 6. **DON'T** use wrong typography - each element has specific font family
 7. **DON'T** redesign when asked to preserve existing functionality
-8. **DON'T** use purple buttons - amber and burgundy only
+8. **DON'T** use purple for primary CTA buttons - gold/amber gradient only
 9. **DON'T** skip floating label animations on form inputs
 10. **DON'T** use basic text editors - require Tiptap v2 with full features
 11. **DON'T** forget sticky positioning for capacity overview sidebars
@@ -1079,6 +1124,8 @@ This systematic approach to stakeholder corrections ensures rapid response while
 40. **DON'T** create "RSVP only" flows - ticket purchase must always be available
 41. **DON'T** use custom Mantine Button styling - use standard CSS classes
 42. **DON'T** assume event types have same UI - social events and classes are different
+43. **DON'T** forget disabled button state - gray background, no animations
+44. **DON'T** implement buttons without checking Button Style Guide first
 
 ## Stakeholder Communication
 
@@ -1155,4 +1202,15 @@ This systematic approach to stakeholder corrections ensures rapid response while
 5. Update version numbers and approval status
 6. Follow up to ensure corrections meet expectations
 
-This comprehensive approach ensures all future wireframes will be consistent with the approved Design System v7, meet stakeholder expectations, support critical legal compliance requirements for community safety, provide mobile-first experiences optimized for volunteer staff operations, and respond effectively to stakeholder feedback and corrections.
+### Documentation Standards Communication
+**Lesson**: Design documentation must be accurate and up-to-date or developers implement wrong patterns
+**Solution**: Regular documentation audits and immediate updates when discrepancies found
+**Process**:
+1. Review CSS implementation against design system documentation
+2. Identify any mismatches between docs and actual code
+3. Update documentation to reflect actual implementation
+4. Create comprehensive guides for complex patterns (like Button Style Guide)
+5. Cross-reference related documentation
+6. Increment version numbers to indicate updates
+
+This comprehensive approach ensures all future wireframes will be consistent with the approved Design System v7, meet stakeholder expectations, support critical legal compliance requirements for community safety, provide mobile-first experiences optimized for volunteer staff operations, respond effectively to stakeholder feedback and corrections, and maintain accurate documentation that matches actual implementation.

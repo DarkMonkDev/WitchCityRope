@@ -27,7 +27,7 @@ export const VettingStatusBadge: React.FC<VettingStatusBadgeProps> = ({
         return {
           backgroundColor: '#D4AF37',
           color: 'white',
-          label: 'Interview Approved'
+          label: 'Awaiting Interview'
         };
       case 'interviewcompleted':
       case 'interview completed':

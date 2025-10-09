@@ -65,7 +65,16 @@ export const useMenuVisibility = (): MenuVisibilityResult => {
 
   // Rule 5: Check application status against hide rules
   const status = statusData.application.status;
-  const shouldHide = shouldHideMenuForStatus(status);
+
+  // Type guard: Ensure status is a valid VettingStatus string
+  if (!status) {
+    return {
+      shouldShow: true,
+      reason: 'No status on application - show menu (fail-open)'
+    };
+  }
+
+  const shouldHide = shouldHideMenuForStatus(status as import('../types/vettingStatus').VettingStatus);
 
   if (shouldHide) {
     return {

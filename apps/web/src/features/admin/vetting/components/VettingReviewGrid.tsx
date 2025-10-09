@@ -137,27 +137,22 @@ export const VettingReviewGrid: React.FC<VettingReviewGridProps> = ({
   // Quick action handlers (TODO: Implement modals)
   const handleApprove = useCallback((applicationId: string) => {
     // TODO: Open approval modal
-    console.log('Approve:', applicationId);
   }, []);
 
   const handleDeny = useCallback((applicationId: string) => {
     // TODO: Open deny modal
-    console.log('Deny:', applicationId);
   }, []);
 
   const handlePutOnHold = useCallback((applicationId: string) => {
     // TODO: Open on-hold modal
-    console.log('Put On Hold:', applicationId);
   }, []);
 
   const handleScheduleInterview = useCallback((applicationId: string) => {
     // TODO: Open schedule interview modal
-    console.log('Schedule Interview:', applicationId);
   }, []);
 
   const handleSendReminder = useCallback((applicationId: string) => {
     // TODO: Open send reminder modal
-    console.log('Send Reminder:', applicationId);
   }, []);
 
   // Date formatter

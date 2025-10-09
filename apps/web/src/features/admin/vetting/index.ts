@@ -11,6 +11,7 @@ export { useVettingApplicationDetail } from './hooks/useVettingApplicationDetail
 export { useSubmitReviewDecision } from './hooks/useSubmitReviewDecision';
 export { useApproveApplication } from './hooks/useApproveApplication';
 export { useSendReminder } from './hooks/useSendReminder';
+export { useVettingStats } from './hooks/useVettingStats';
 
 // Services
 export { vettingAdminApi } from './services/vettingAdminApi';

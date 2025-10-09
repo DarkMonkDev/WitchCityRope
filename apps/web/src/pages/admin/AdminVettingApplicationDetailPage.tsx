@@ -110,7 +110,7 @@ export const AdminVettingApplicationDetailPage: React.FC = () => {
   }
 
   return (
-    <Container size="xl" py="xl">
+    <Container size="xl" pt="sm" pb="xl">
       {/* Application Detail Component */}
       <VettingApplicationDetail
         applicationId={applicationId}

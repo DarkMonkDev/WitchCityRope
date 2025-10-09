@@ -3,6 +3,7 @@ import { Container, Title, Text, Grid, Paper, Box, Group, Badge, Button } from '
 import { IconCalendarEvent, IconUsers, IconSettings, IconChartBar, IconPlus, IconArrowRight, IconClipboardCheck } from '@tabler/icons-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../stores/authStore';
+import { useVettingStats } from '../../features/admin/vetting/hooks/useVettingStats';
 
 interface DashboardCard {
   title: string;
@@ -18,6 +19,7 @@ interface DashboardCard {
 export const AdminDashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { data: vettingStats } = useVettingStats();
 
   const dashboardCards: DashboardCard[] = [
     {
@@ -28,7 +30,6 @@ export const AdminDashboardPage: React.FC = () => {
       countLabel: 'Active Events',
       link: '/admin/events',
       color: '#880124',
-      badge: 'Primary'
     },
     {
       title: 'Member Management',
@@ -43,11 +44,10 @@ export const AdminDashboardPage: React.FC = () => {
       title: 'Vetting Applications',
       description: 'Review and manage member vetting applications',
       icon: <IconClipboardCheck size={32} />,
-      count: 8,
-      countLabel: 'Pending Review',
+      count: vettingStats?.underReviewCount ?? 0,
+      countLabel: 'Under Review',
       link: '/admin/vetting',
       color: '#9b4a75',
-      badge: 'New'
     },
     {
       title: 'Analytics',

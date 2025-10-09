@@ -6,7 +6,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { MantineProvider } from '@mantine/core';
 import { VettingStatusBox } from './VettingStatusBox';
-import type { VettingStatusString } from '../types/vettingStatus';
+import type { VettingStatus } from '../types/vettingStatus';
 
 // Wrapper for Mantine components
 const renderWithMantine = (component: React.ReactElement) => {
@@ -163,7 +163,7 @@ describe('VettingStatusBox', () => {
 
   describe('required fields', () => {
     it('always renders application number', () => {
-      const statuses: VettingStatusString[] = [
+      const statuses: VettingStatus[] = [
         'UnderReview',
         'InterviewApproved',
         'FinalReview',

@@ -39,7 +39,9 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
     sortDirection: 'Desc'
   };
 
-  const { data: applicationsData } = useVettingApplications(filters);
+  const { data: applicationsData } = useVettingApplications(filters, {
+    enabled: opened // Only fetch when modal is open
+  });
   const applications = applicationsData?.items || [];
 
   const handleSubmit = async () => {
@@ -105,7 +107,12 @@ export const SendReminderModal: React.FC<SendReminderModalProps> = ({
         `Thank you,\nWitchCityRope Vetting Team`
       );
     }
-  }, [opened, message]);
+
+    // Cleanup function to prevent memory leaks
+    return () => {
+      // No cleanup needed for this effect, but including for best practice
+    };
+  }, [opened]); // Remove 'message' from dependencies to prevent circular dependency
 
   return (
     <Modal

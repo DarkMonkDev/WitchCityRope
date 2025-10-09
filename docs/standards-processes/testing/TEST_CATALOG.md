@@ -26,6 +26,54 @@
 
 ---
 
+## 🚨 NEW: VETTING STATUS LABEL CHANGES - MINIMAL TEST UPDATES (2025-10-08) 🚨
+
+**STATUS**: ✅ COMPLETE - Display label changes required minimal test updates due to proper DTO alignment strategy
+
+### Backend Display Changes:
+1. **Status Label**: "InterviewApproved" now displays as "Awaiting Interview" (was "Interview Approved")
+2. **Auto-Notes**: Simplified to actions only ("Approved for Interview" vs long descriptive text)
+3. **Timestamps**: Removed seconds (7:20 PM instead of 7:20:45 PM)
+4. **Status History**: Single line format "Badge - ReviewerName    Time"
+
+### Test Update Summary:
+**Files Modified**: 1 file (Playwright E2E test)
+**Tests Updated**: 1 test case (enum validation)
+**Tests Reviewed**: 6 files (confirmed no changes needed)
+**Test Execution**: ✅ All tests passing
+
+### Why So Few Changes?
+**Architecture Win**: Tests use enum values (`'InterviewApproved'`), NOT display text ("Interview Approved")
+- Frontend components map enum → display label
+- Tests verify behavior, not presentation
+- Display text can change without breaking tests
+
+### File Changes:
+
+**1. Playwright E2E Test - Enum Validation**
+- **File**: `/apps/web/tests/playwright/user-dashboard-vetting-status.spec.ts`
+- **Change**: Removed obsolete `InterviewCompleted` from valid status enum array
+- **Result**: ✅ All 4 tests passing
+
+### Files Confirmed Not Needing Updates:
+- VettingApplicationsList.test.tsx - Uses enum values, no display text assertions
+- VettingApplicationDetail.test.tsx - Tests button text, not status labels
+- VettingStatusBox tests - Already updated in earlier session (removed obsolete enums)
+- Backend integration tests - No hardcoded display text found
+
+### Success Metrics:
+- ✅ Zero timestamp format expectations found in tests
+- ✅ Zero auto-note text hardcoded in tests
+- ✅ Zero status display label assertions found
+- ✅ All tests verify behavior/presence, not presentation
+
+### Related Documentation:
+- **Backend Changes**: `/docs/functional-areas/vetting/vetting-status-display-updates-20251008.md`
+- **Test Report**: `/test-results/vetting-status-label-test-update-report-20251008.md`
+- **Lessons Learned**: Updated in test-developer-lessons-learned-2.md
+
+---
+
 ## 🚨 NEW: VETTING STATUS ENUM MIGRATION - TEST FIXES (2025-10-08) 🚨
 
 **STATUS UPDATE COMPLETE**: All vetting-related test files updated to use new backend VettingStatus enum (removed obsolete statuses).

@@ -15,10 +15,10 @@ import {
   FileText,
   Pause
 } from 'lucide-react';
-import type { VettingStatusString } from '../types/vettingStatus';
+import type { VettingStatus } from '../types/vettingStatus';
 
 export interface VettingStatusBoxProps {
-  status: VettingStatusString;
+  status: VettingStatus;
   applicationNumber: string;
   submittedAt: Date;
   lastUpdated: Date;
@@ -31,7 +31,7 @@ export interface VettingStatusBoxProps {
  * Status configuration for visual styling
  */
 const statusConfig: Record<
-  VettingStatusString,
+  VettingStatus,
   {
     displayName: string;
     color: string;
@@ -44,7 +44,7 @@ const statusConfig: Record<
     icon: Clock
   },
   InterviewApproved: {
-    displayName: 'Interview Approved',
+    displayName: 'Awaiting Interview',
     color: 'teal',
     icon: CheckCircle
   },
