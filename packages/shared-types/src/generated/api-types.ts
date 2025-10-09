@@ -2180,9 +2180,6 @@ export interface components {
             realName: string;
             /** Format: tel */
             phoneNumber: string;
-            emergencyContactName: string;
-            /** Format: tel */
-            emergencyContactPhone: string;
             experience: string;
             interests: string;
             references: string;
