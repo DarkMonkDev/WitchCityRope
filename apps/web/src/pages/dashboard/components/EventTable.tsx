@@ -204,28 +204,53 @@ export const EventTable: React.FC<EventTableProps> = ({ events }) => {
                 <Button
                   size="xs"
                   variant="outline"
-                  color="rose-gold"
+                  color="burgundy"
                   onClick={(e) => {
                     e.stopPropagation();
                     navigate(`/events/${event.id}`);
                   }}
-                  style={{
-                    borderRadius: '8px 4px 8px 4px',
-                    fontFamily: 'var(--font-heading)',
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    fontSize: '0.85rem',
-                    transition: 'all 0.3s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderRadius = '4px 8px 4px 8px';
-                    e.currentTarget.style.background = 'var(--color-burgundy)';
-                    e.currentTarget.style.color = 'white';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderRadius = '8px 4px 8px 4px';
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = 'var(--color-burgundy)';
+                  styles={{
+                    root: {
+                      borderRadius: '12px 6px 12px 6px',
+                      fontFamily: 'var(--font-heading)',
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      letterSpacing: '1.5px',
+                      fontSize: '14px',
+                      transition: 'all 0.3s ease',
+                      height: 'auto',
+                      minHeight: '44px',
+                      padding: '14px 32px',
+                      lineHeight: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: '2px solid var(--color-burgundy)',
+                      background: 'transparent',
+                      color: 'var(--color-burgundy)',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      zIndex: 1,
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: 0,
+                        height: '100%',
+                        background: 'var(--color-burgundy)',
+                        transition: 'width 0.4s ease',
+                        zIndex: -1,
+                      },
+                      '&:hover': {
+                        borderRadius: '6px 12px 6px 12px',
+                        color: 'var(--color-ivory)',
+                        borderColor: 'var(--color-burgundy)',
+                      },
+                      '&:hover::before': {
+                        width: '100%',
+                      },
+                    },
                   }}
                 >
                   View Details

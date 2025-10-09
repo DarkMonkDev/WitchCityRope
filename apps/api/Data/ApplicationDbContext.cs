@@ -181,6 +181,22 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
                 .IsRequired()
                 .HasMaxLength(50);
 
+            // Profile fields - Added for profile management
+            entity.Property(e => e.FirstName)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.LastName)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.Bio)
+                .HasColumnType("text");
+
+            entity.Property(e => e.DiscordName)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.FetLifeName)
+                .HasMaxLength(100);
+
             entity.Property(e => e.CreatedAt)
                 .IsRequired()
                 .HasColumnType("timestamptz");

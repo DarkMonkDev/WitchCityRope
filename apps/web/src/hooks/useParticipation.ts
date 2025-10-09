@@ -185,13 +185,13 @@ export function useCancelTicket() {
   return useMutation({
     mutationFn: async ({ eventId, reason }: { eventId: string; reason?: string }): Promise<void> => {
       try {
-        await apiClient.delete(`/api/events/${eventId}/ticket`, {
+        await apiClient.delete(`/api/events/${eventId}/participation`, {
           params: { reason }
         });
       } catch (error: any) {
-        // Mock response for development
-        if (error.response?.status === 404) {
-          console.warn('Cancel ticket endpoint not found, using mock response');
+        // Only use mock response in development mode
+        if (import.meta.env.DEV && error.response?.status === 404) {
+          console.warn('[DEV ONLY] Cancel ticket endpoint not found, using mock response');
           return;
         }
         throw error;

@@ -2,8 +2,6 @@
 # WitchCityRope Multi-Environment Docker Compose
 # Base layer shared across all environments (development, test, production)
 
-version: '3.8'
-
 # ============================================================================
 # NETWORKS
 # ============================================================================

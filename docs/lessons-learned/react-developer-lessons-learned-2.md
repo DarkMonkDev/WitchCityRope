@@ -1562,3 +1562,116 @@ export function useConfirmPayPalPayment() {
 #critical #mantine #buttons #text-cutoff #solved #ui-components #styling #design-system
 
 ---
+
+## 🚨 CRITICAL: REACT QUERY CACHE INVALIDATION MUST MATCH QUERY KEY 🚨
+**Date**: 2025-10-09
+**Category**: React Query Cache Management
+**Severity**: CRITICAL - DATA PERSISTENCE BUG
+
+### What We Learned
+**FORM DATA NOT PERSISTING**: Profile settings form shows success notification but changes don't persist after page refresh.
+
+**ROOT CAUSE**: React Query cache invalidation queryKey doesn't match the queryKey used in the query hook.
+
+### The Problem Pattern:
+```typescript
+// ❌ BROKEN: Query key includes user.id, but invalidation doesn't
+export const useProfile = () => {
+  const user = useUser();
+
+  return useQuery<UserProfileDto, Error>({
+    queryKey: ['user-profile', user?.id],  // ← Query key with user ID
+    queryFn: () => dashboardService.getProfile(user!.id),
+    enabled: !!user?.id,
+  });
+};
+
+export const useUpdateProfile = () => {
+  const user = useUser();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UpdateProfileDto) => dashboardService.updateProfile(user!.id, data),
+    onSuccess: () => {
+      // ❌ WRONG: Missing user?.id in queryKey!
+      queryClient.invalidateQueries({ queryKey: ['user-profile'] });
+    },
+  });
+};
+```
+
+**Why This Breaks**:
+- Query hook caches data at `['user-profile', '123abc']` (with user ID)
+- Mutation invalidates at `['user-profile']` (without user ID)
+- Cache keys don't match → cache doesn't refresh → stale data shown
+- User sees success notification but changes vanish on refresh
+
+### ✅ CORRECT SOLUTION:
+```typescript
+export const useUpdateProfile = () => {
+  const user = useUser();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UpdateProfileDto) => dashboardService.updateProfile(user!.id, data),
+    onSuccess: () => {
+      // ✅ CORRECT: Include user?.id to match query key
+      queryClient.invalidateQueries({ queryKey: ['user-profile', user?.id] });
+    },
+  });
+};
+```
+
+### CRITICAL DEBUGGING PATTERN:
+When form shows success but changes don't persist:
+1. **CHECK query queryKey** in the hook that fetches data
+2. **CHECK invalidation queryKey** in the mutation onSuccess
+3. **VERIFY keys match EXACTLY** including all parameters
+4. **USE React Query DevTools** to inspect cache keys
+
+### PREVENTION RULES:
+1. ✅ **ALWAYS match invalidation keys to query keys** - include ALL parameters
+2. ✅ **USE variables consistently** - if query uses `user?.id`, invalidation must too
+3. ✅ **TEST cache invalidation** - verify data refreshes after mutation success
+4. ✅ **ENABLE React Query DevTools** in development to inspect cache keys
+5. ✅ **DOCUMENT query key patterns** in comments for complex keys
+
+### COMMON INVALIDATION PATTERNS:
+```typescript
+// ✅ CORRECT: Invalidate specific item
+queryClient.invalidateQueries({ queryKey: ['user-profile', user?.id] });
+
+// ✅ CORRECT: Invalidate all user profiles
+queryClient.invalidateQueries({ queryKey: ['user-profile'] });
+
+// ✅ CORRECT: Invalidate multiple related caches
+queryClient.invalidateQueries({ queryKey: ['user-profile', user?.id] });
+queryClient.invalidateQueries({ queryKey: ['user-events', user?.id] });
+
+// ❌ WRONG: Partial key when query uses full key
+// Query: ['user-profile', userId]
+// Invalidation: ['user-profile'] ← MISMATCH!
+```
+
+### FILES AFFECTED:
+- `/apps/web/src/hooks/useDashboard.ts` - Lines 72-84 (useUpdateProfile hook)
+- Any mutation hook that invalidates queries with parameters
+
+### VERIFICATION CHECKLIST:
+1. **COMPARE query and invalidation keys** side-by-side
+2. **CHECK all query parameters** are included in invalidation
+3. **TEST mutation success** and verify UI updates immediately
+4. **REFRESH page** after mutation and verify changes persist
+5. **USE React Query DevTools** to confirm cache invalidation
+
+### 💥 CONSEQUENCES OF IGNORING:
+- ❌ Forms show success but changes don't save (user confusion)
+- ❌ Stale data displayed after successful mutations
+- ❌ Users lose trust in application reliability
+- ❌ Difficult to debug - no console errors, just wrong data
+- ❌ Page refresh required to see actual saved data
+
+### Tags
+#critical #react-query #cache-invalidation #data-persistence #form-submission #query-keys #stale-data
+
+---

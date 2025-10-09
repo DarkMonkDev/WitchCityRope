@@ -2,8 +2,6 @@
 # WitchCityRope Development Configuration
 # Extends base configuration with development-specific settings
 
-version: '3.8'
-
 # ============================================================================
 # DEVELOPMENT-SPECIFIC VOLUMES
 # ============================================================================

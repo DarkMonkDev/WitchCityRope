@@ -1,8 +1,6 @@
 # Docker Compose Override for Development
 # This file is automatically loaded by docker-compose and overrides settings for development
 
-version: '3.8'
-
 services:
   # PostgreSQL Development Overrides
   postgres:

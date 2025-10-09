@@ -5,7 +5,7 @@ namespace WitchCityRope.Api.Models;
 /// <summary>
 /// Application user entity matching existing database schema in auth.Users
 /// For authentication vertical slice test - throwaway implementation
-/// 
+///
 /// This model matches the existing Users table structure which has been enhanced
 /// with ASP.NET Core Identity fields through EF migration
 /// </summary>
@@ -18,6 +18,31 @@ public class ApplicationUser : IdentityUser<Guid>
     /// Required field, must be unique
     /// </summary>
     public string SceneName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// User's first name (optional)
+    /// </summary>
+    public string? FirstName { get; set; }
+
+    /// <summary>
+    /// User's last name (optional)
+    /// </summary>
+    public string? LastName { get; set; }
+
+    /// <summary>
+    /// User's bio/description (optional, max 500 characters)
+    /// </summary>
+    public string? Bio { get; set; }
+
+    /// <summary>
+    /// Discord username for community communication (optional)
+    /// </summary>
+    public string? DiscordName { get; set; }
+
+    /// <summary>
+    /// FetLife username/profile for community verification (optional)
+    /// </summary>
+    public string? FetLifeName { get; set; }
 
     /// <summary>
     /// When the user account was created

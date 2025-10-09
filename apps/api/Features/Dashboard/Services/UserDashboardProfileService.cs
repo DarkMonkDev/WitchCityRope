@@ -189,8 +189,13 @@ public class UserDashboardProfileService : IUserDashboardProfileService
             {
                 UserId = user.Id,
                 SceneName = user.SceneName,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
                 Email = user.Email ?? string.Empty,
                 Pronouns = user.Pronouns,
+                Bio = user.Bio,
+                DiscordName = user.DiscordName,
+                FetLifeName = user.FetLifeName,
                 PhoneNumber = user.PhoneNumber,
                 VettingStatus = ((VettingStatus)user.VettingStatus).ToString()
             };
@@ -221,9 +226,14 @@ public class UserDashboardProfileService : IUserDashboardProfileService
 
             // Update user properties
             user.SceneName = request.SceneName;
+            user.FirstName = request.FirstName;
+            user.LastName = request.LastName;
             user.Email = request.Email;
             user.UserName = request.Email; // Keep UserName in sync with Email
             user.Pronouns = request.Pronouns ?? string.Empty;
+            user.Bio = request.Bio;
+            user.DiscordName = request.DiscordName;
+            user.FetLifeName = request.FetLifeName;
             user.PhoneNumber = request.PhoneNumber;
             user.UpdatedAt = DateTime.UtcNow;
 
@@ -239,8 +249,13 @@ public class UserDashboardProfileService : IUserDashboardProfileService
             {
                 UserId = user.Id,
                 SceneName = user.SceneName,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
                 Email = user.Email ?? string.Empty,
                 Pronouns = user.Pronouns,
+                Bio = user.Bio,
+                DiscordName = user.DiscordName,
+                FetLifeName = user.FetLifeName,
                 PhoneNumber = user.PhoneNumber,
                 VettingStatus = ((VettingStatus)user.VettingStatus).ToString()
             };

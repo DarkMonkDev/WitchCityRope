@@ -450,6 +450,9 @@ public class SeedDataService : ISeedDataService
             return;
         }
 
+        // Get the vetted test user for their specific application
+        var vettedUser = await _userManager.FindByEmailAsync("vetted@witchcityrope.com");
+
         // Get all users EXCEPT admin (to avoid duplicate applications for admin)
         // Order by email for consistent indexing across multiple seed runs
         var users = await _userManager.Users
@@ -486,8 +489,35 @@ public class SeedDataService : ISeedDataService
                 InterviewScheduledFor = DateTime.UtcNow.AddDays(-362),
                 DecisionMadeAt = DateTime.UtcNow.AddDays(-360),
                 AdminNotes = "Community administrator - founding member with extensive experience. Approved."
-            },
+            }
+        };
 
+        // Add vetted test user application if user exists (for dashboard E2E testing)
+        if (vettedUser != null)
+        {
+            sampleApplications.Add(new VettingApplication
+            {
+                Id = Guid.NewGuid(),
+                UserId = vettedUser.Id,
+                SceneName = vettedUser.SceneName ?? "RopeEnthusiast",
+                RealName = "Vetted Test User",
+                Email = vettedUser.Email!,
+                FetLifeHandle = "RopeEnthusiast_Test",
+                Pronouns = "he/him",
+                OtherNames = null,
+                AboutYourself = @"I'm a passionate rope enthusiast with 2+ years of experience in rope bondage. I've completed several safety courses and have been an active participant in rope communities in other cities. I'm knowledgeable about consent practices, risk management, and safety protocols. I'm excited to join this community and continue learning from experienced practitioners while sharing my own knowledge.",
+                WorkflowStatus = VettingStatus.Approved, // Approved (4)
+                SubmittedAt = DateTime.UtcNow.AddDays(-180), // Applied 6 months ago
+                ReviewStartedAt = DateTime.UtcNow.AddDays(-178),
+                InterviewScheduledFor = DateTime.UtcNow.AddDays(-175),
+                DecisionMadeAt = DateTime.UtcNow.AddDays(-170),
+                AdminNotes = "Experienced practitioner with excellent references. Strong understanding of safety and consent. Approved for full membership."
+            });
+        }
+
+        // Add remaining applications using existing users
+        var remainingApplications = new List<VettingApplication>
+        {
             // Application 2: Under Review - recent submission
             new VettingApplication
             {
@@ -561,6 +591,9 @@ public class SeedDataService : ISeedDataService
                 AdminNotes = "Excellent references from previous community. Strong technical knowledge and teaching experience. Approved for full membership."
             }
         };
+
+        // Add remaining applications to main list
+        sampleApplications.AddRange(remainingApplications);
 
         // Add additional applications if we have more users to prevent constraint violations
         // Only add more applications if we have users beyond the first 4 (admin is excluded from users list)

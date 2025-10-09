@@ -34,8 +34,8 @@ public static class WebApplicationExtensions
         // Users feature endpoints
         app.MapUserEndpoints();
 
-        // Dashboard feature endpoints
-        app.MapDashboardEndpoints();
+        // User Dashboard endpoints (wireframe v4 implementation)
+        app.MapUserDashboardEndpoints();
 
         // Safety feature endpoints
         app.MapSafetyEndpoints();

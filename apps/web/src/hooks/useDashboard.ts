@@ -15,9 +15,23 @@ import type { UpdateProfileDto, ChangePasswordDto, UserEventDto, VettingStatusDt
 export const useUserEvents = (includePast = false) => {
   const user = useUser();
 
+  console.log('🔍 useUserEvents - user:', user);
+  console.log('🔍 useUserEvents - user.id:', user?.id);
+  console.log('🔍 useUserEvents - includePast:', includePast);
+
   return useQuery<UserEventDto[], Error>({
     queryKey: ['user-events', user?.id, includePast],
-    queryFn: () => dashboardService.getUserEvents(user!.id, includePast),
+    queryFn: async () => {
+      console.log('🔍 Calling dashboardService.getUserEvents with userId:', user!.id);
+      try {
+        const result = await dashboardService.getUserEvents(user!.id, includePast);
+        console.log('✅ getUserEvents result:', result);
+        return result;
+      } catch (error) {
+        console.error('❌ getUserEvents error:', error);
+        throw error;
+      }
+    },
     enabled: !!user?.id,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -63,7 +77,8 @@ export const useUpdateProfile = () => {
     mutationFn: (data: UpdateProfileDto) => dashboardService.updateProfile(user!.id, data),
     onSuccess: () => {
       // Invalidate profile cache to refetch fresh data
-      queryClient.invalidateQueries({ queryKey: ['user-profile'] });
+      // CRITICAL: Must include user.id in queryKey to match the query key used in useProfile
+      queryClient.invalidateQueries({ queryKey: ['user-profile', user?.id] });
     },
   });
 };

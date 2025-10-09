@@ -40,11 +40,10 @@ public static class ServiceCollectionExtensions
         // Users feature services
         services.AddScoped<UserManagementService>();
 
-        // Dashboard feature services
-        services.AddScoped<IUserDashboardService, UserDashboardService>();
+        // Dashboard feature services (wireframe v4)
         services.AddScoped<IUserDashboardProfileService, UserDashboardProfileService>();
 
-        // Safety feature services  
+        // Safety feature services
         services.AddScoped<ISafetyService, SafetyService>();
         services.AddScoped<IEncryptionService, EncryptionService>();
         services.AddScoped<IAuditService, AuditService>();
@@ -119,17 +118,13 @@ public static class ApplicationBuilderExtensions
 {
     /// <summary>
     /// Map all feature endpoints using minimal API pattern
+    /// DEPRECATED: This method is not used. Endpoints are registered via WebApplicationExtensions.
+    /// Keeping for backward compatibility but should be removed in future cleanup.
     /// </summary>
+    [Obsolete("Use WebApplicationExtensions.MapFeatureEndpoints instead")]
     public static IApplicationBuilder MapFeatureEndpoints(this IApplicationBuilder app)
     {
-        // Map User Dashboard endpoints for wireframe v4
-        var endpoints = app as IEndpointRouteBuilder;
-        if (endpoints != null)
-        {
-            Features.Dashboard.Endpoints.UserDashboardEndpoints.MapUserDashboardEndpoints(endpoints);
-        }
-
-        // Controllers (including VettingController) are already mapped via app.MapControllers()
+        // This method is no longer used - WebApplicationExtensions.MapFeatureEndpoints is called instead
         return app;
     }
 }

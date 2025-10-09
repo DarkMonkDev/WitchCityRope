@@ -21,10 +21,10 @@ public static class UserDashboardEndpoints
         // ========== ENDPOINT 1: Get User Events ==========
         app.MapGet("/api/users/{userId:guid}/events", async (
             Guid userId,
-            [FromQuery] bool includePast,
-            IUserDashboardProfileService service,
-            ClaimsPrincipal user,
-            CancellationToken cancellationToken) =>
+            [FromQuery] bool includePast = false,
+            IUserDashboardProfileService service = null!,
+            ClaimsPrincipal user = null!,
+            CancellationToken cancellationToken = default) =>
             {
                 // Verify user is accessing their own data
                 var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -53,7 +53,7 @@ public static class UserDashboardEndpoints
                 });
             })
             .RequireAuthorization()
-            .WithName("GetUserEvents")
+            .WithName("GetUserRegisteredEvents")
             .WithSummary("Get user's registered events")
             .WithDescription("Returns list of events the user has registered for or purchased tickets for. Excludes past events by default.")
             .WithTags("Dashboard")
@@ -95,7 +95,7 @@ public static class UserDashboardEndpoints
                 });
             })
             .RequireAuthorization()
-            .WithName("GetUserVettingStatus")
+            .WithName("GetUserDashboardVettingStatus")
             .WithSummary("Get user's vetting status")
             .WithDescription("Returns the user's current vetting status with display message for alert box")
             .WithTags("Dashboard")
@@ -150,7 +150,7 @@ public static class UserDashboardEndpoints
                 });
             })
             .RequireAuthorization()
-            .WithName("GetUserProfile")
+            .WithName("GetUserDashboardProfile")
             .WithSummary("Get user profile")
             .WithDescription("Returns the user's profile information for settings page")
             .WithTags("Dashboard")
@@ -206,7 +206,7 @@ public static class UserDashboardEndpoints
                 });
             })
             .RequireAuthorization()
-            .WithName("UpdateUserProfile")
+            .WithName("UpdateUserDashboardProfile")
             .WithSummary("Update user profile")
             .WithDescription("Updates the user's profile information")
             .WithTags("Dashboard")
@@ -264,7 +264,7 @@ public static class UserDashboardEndpoints
                 });
             })
             .RequireAuthorization()
-            .WithName("ChangeUserPassword")
+            .WithName("ChangeUserDashboardPassword")
             .WithSummary("Change user password")
             .WithDescription("Changes the user's password after verifying current password")
             .WithTags("Dashboard")
