@@ -7,6 +7,8 @@ import { EventsPage } from '../pages/dashboard/EventsPage'
 import { ProfilePage } from '../pages/dashboard/ProfilePage'
 import { SecurityPage } from '../pages/dashboard/SecurityPage'
 import { MembershipPage } from '../pages/dashboard/MembershipPage'
+import { MyEventsPage } from '../pages/dashboard/MyEventsPage'
+import { ProfileSettingsPage } from '../pages/dashboard/ProfileSettingsPage'
 import { FormComponentsTest } from '../pages/FormComponentsTest'
 import MantineFormTest from '../pages/MantineFormTest'
 // TODO: Fix TypeScript errors in API validation pages before uncommenting
@@ -196,6 +198,17 @@ export const router = createBrowserRouter([
       // All dashboard routes use DashboardLayout in each page component
       {
         path: 'dashboard',
+        element: <MyEventsPage />,
+        loader: authLoader,
+      },
+      {
+        path: 'dashboard/profile-settings',
+        element: <ProfileSettingsPage />,
+        loader: authLoader,
+      },
+      // Legacy dashboard routes (keep for backwards compatibility)
+      {
+        path: 'dashboard/old',
         element: <DashboardPage />,
         loader: authLoader,
       },

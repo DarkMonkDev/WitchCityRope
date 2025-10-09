@@ -129,6 +129,23 @@ export const UtilityBar: React.FC = () => {
             Contact
           </Box>
 
+          {/* Edit Profile link - only for authenticated users */}
+          {isAuthenticated && (
+            <Box
+              component={Link}
+              to="/dashboard/profile-settings"
+              data-testid="link-edit-profile"
+              style={{
+                color: 'var(--color-taupe)',
+                textDecoration: 'none',
+                transition: 'all 0.3s ease',
+              }}
+              className="utility-bar-link"
+            >
+              Edit Profile
+            </Box>
+          )}
+
           {/* Logout link - only for authenticated users */}
           {isAuthenticated && (
             <Box
