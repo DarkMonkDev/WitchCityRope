@@ -1,10 +1,28 @@
-import React, { useState } from 'react';
-import { Container, Title, Tabs, TextInput, Textarea, Button, Group, Stack, Box, Text, Loader, Center, Alert } from '@mantine/core';
-import { useForm } from '@mantine/form';
-import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
-import { notifications } from '@mantine/notifications';
-import { useProfile, useUpdateProfile, useChangePassword } from '../../hooks/useDashboard';
-import type { UpdateProfileDto, ChangePasswordDto, UserProfileDto } from '../../types/dashboard.types';
+import React, { useState } from 'react'
+import {
+  Container,
+  Title,
+  Tabs,
+  TextInput,
+  Textarea,
+  Button,
+  Group,
+  Stack,
+  Box,
+  Text,
+  Loader,
+  Center,
+  Alert,
+} from '@mantine/core'
+import { useForm } from '@mantine/form'
+import { IconAlertCircle, IconCheck } from '@tabler/icons-react'
+import { notifications } from '@mantine/notifications'
+import { useProfile, useUpdateProfile, useChangePassword } from '../../hooks/useDashboard'
+import type {
+  UpdateProfileDto,
+  ChangePasswordDto,
+  UserProfileDto,
+} from '../../types/dashboard.types'
 
 /**
  * Profile Settings Page with 4 tabs
@@ -14,10 +32,10 @@ import type { UpdateProfileDto, ChangePasswordDto, UserProfileDto } from '../../
  * - Vetting: Read-only vetting status with membership hold option
  */
 export const ProfileSettingsPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<string | null>('personal');
+  const [activeTab, setActiveTab] = useState<string | null>('personal')
 
   // Fetch profile data using TanStack Query
-  const { data: profile, isLoading, error } = useProfile();
+  const { data: profile, isLoading, error } = useProfile()
 
   // Show loading state
   if (isLoading) {
@@ -32,7 +50,7 @@ export const ProfileSettingsPage: React.FC = () => {
           </Center>
         </Container>
       </Box>
-    );
+    )
   }
 
   // Show error state
@@ -40,12 +58,7 @@ export const ProfileSettingsPage: React.FC = () => {
     return (
       <Box style={{ background: 'var(--color-cream)', minHeight: '100vh' }} pb="xl">
         <Container size="xl" py="xl">
-          <Alert
-            icon={<IconAlertCircle />}
-            color="red"
-            title="Error Loading Profile"
-            mb="lg"
-          >
+          <Alert icon={<IconAlertCircle />} color="red" title="Error Loading Profile" mb="lg">
             <Text>
               {error instanceof Error
                 ? error.message
@@ -54,7 +67,7 @@ export const ProfileSettingsPage: React.FC = () => {
           </Alert>
         </Container>
       </Box>
-    );
+    )
   }
 
   return (
@@ -120,17 +133,19 @@ export const ProfileSettingsPage: React.FC = () => {
         </Tabs>
       </Container>
     </Box>
-  );
-};
+  )
+}
 
 // Personal Info Form Component
 const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) => {
-  const updateProfileMutation = useUpdateProfile();
+  const updateProfileMutation = useUpdateProfile()
 
   // CRITICAL FIX: Only include fields that are displayed in this form
   // DO NOT include social fields (discordName, fetLifeName, phoneNumber)
   // Those are managed by the SocialLinksForm component
-  const form = useForm<Pick<UpdateProfileDto, 'sceneName' | 'firstName' | 'lastName' | 'email' | 'pronouns' | 'bio'>>({
+  const form = useForm<
+    Pick<UpdateProfileDto, 'sceneName' | 'firstName' | 'lastName' | 'email' | 'pronouns' | 'bio'>
+  >({
     initialValues: {
       sceneName: profile.sceneName,
       firstName: profile.firstName || '',
@@ -139,20 +154,33 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
       pronouns: profile.pronouns || '',
       bio: profile.bio || '',
     },
-  });
+  })
 
-  const handleSubmit = (values: Pick<UpdateProfileDto, 'sceneName' | 'firstName' | 'lastName' | 'email' | 'pronouns' | 'bio'>) => {
-    // Merge with existing social fields from profile to prevent overwriting
+  const handleSubmit = (
+    values: Pick<
+      UpdateProfileDto,
+      'sceneName' | 'firstName' | 'lastName' | 'email' | 'pronouns' | 'bio'
+    >
+  ) => {
+    // CRITICAL FIX: Preserve empty strings from form values
+    // Don't merge with profile props - use form state directly
+    // Only add social fields from profile (not managed by this form)
     const updateData: UpdateProfileDto = {
-      ...values,
+      sceneName: values.sceneName,
+      firstName: values.firstName, // Keep empty string if user cleared it
+      lastName: values.lastName, // Keep empty string if user cleared it
+      email: values.email,
+      pronouns: values.pronouns, // Keep empty string if user cleared it
+      bio: values.bio, // Keep empty string if user cleared it
+      // Social fields from profile (managed by separate form)
       discordName: profile.discordName || '',
       fetLifeName: profile.fetLifeName || '',
       phoneNumber: profile.phoneNumber || '',
-    };
+    }
 
-    console.log('🔍 PersonalInfoForm - Submitting with merged data:', updateData);
-    updateProfileMutation.mutate(updateData);
-  };
+    console.log('🔍 PersonalInfoForm - Submitting with merged data:', updateData)
+    updateProfileMutation.mutate(updateData)
+  }
 
   // Handle success/error with useEffect or mutation state
   React.useEffect(() => {
@@ -162,17 +190,20 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
         message: 'Profile updated successfully',
         color: 'green',
         icon: <IconCheck />,
-      });
+      })
     }
     if (updateProfileMutation.isError) {
       notifications.show({
         title: 'Error',
-        message: updateProfileMutation.error instanceof Error ? updateProfileMutation.error.message : 'Failed to update profile',
+        message:
+          updateProfileMutation.error instanceof Error
+            ? updateProfileMutation.error.message
+            : 'Failed to update profile',
         color: 'red',
         icon: <IconAlertCircle />,
-      });
+      })
     }
-  }, [updateProfileMutation.isSuccess, updateProfileMutation.isError, updateProfileMutation.error]);
+  }, [updateProfileMutation.isSuccess, updateProfileMutation.isError, updateProfileMutation.error])
 
   return (
     <Box
@@ -305,12 +336,12 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
         </Group>
       </Stack>
     </Box>
-  );
-};
+  )
+}
 
 // Social Links Form Component
 const SocialLinksForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) => {
-  const updateProfileMutation = useUpdateProfile();
+  const updateProfileMutation = useUpdateProfile()
 
   const form = useForm<Pick<UpdateProfileDto, 'discordName' | 'fetLifeName' | 'phoneNumber'>>({
     initialValues: {
@@ -318,9 +349,11 @@ const SocialLinksForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) => 
       fetLifeName: profile.fetLifeName || '',
       phoneNumber: profile.phoneNumber || '',
     },
-  });
+  })
 
-  const handleSubmit = (values: Pick<UpdateProfileDto, 'discordName' | 'fetLifeName' | 'phoneNumber'>) => {
+  const handleSubmit = (
+    values: Pick<UpdateProfileDto, 'discordName' | 'fetLifeName' | 'phoneNumber'>
+  ) => {
     // Merge with other required fields from profile
     const updateData: UpdateProfileDto = {
       sceneName: profile.sceneName,
@@ -330,10 +363,10 @@ const SocialLinksForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) => 
       pronouns: profile.pronouns || '',
       bio: profile.bio || '',
       ...values,
-    };
+    }
 
-    updateProfileMutation.mutate(updateData);
-  };
+    updateProfileMutation.mutate(updateData)
+  }
 
   // Handle success/error
   React.useEffect(() => {
@@ -343,17 +376,20 @@ const SocialLinksForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) => 
         message: 'Social links updated successfully',
         color: 'green',
         icon: <IconCheck />,
-      });
+      })
     }
     if (updateProfileMutation.isError) {
       notifications.show({
         title: 'Error',
-        message: updateProfileMutation.error instanceof Error ? updateProfileMutation.error.message : 'Failed to update social links',
+        message:
+          updateProfileMutation.error instanceof Error
+            ? updateProfileMutation.error.message
+            : 'Failed to update social links',
         color: 'red',
         icon: <IconAlertCircle />,
-      });
+      })
     }
-  }, [updateProfileMutation.isSuccess, updateProfileMutation.isError, updateProfileMutation.error]);
+  }, [updateProfileMutation.isSuccess, updateProfileMutation.isError, updateProfileMutation.error])
 
   return (
     <Box
@@ -437,12 +473,12 @@ const SocialLinksForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) => 
         </Group>
       </Stack>
     </Box>
-  );
-};
+  )
+}
 
 // Change Password Form Component
 const ChangePasswordForm: React.FC = () => {
-  const changePasswordMutation = useChangePassword();
+  const changePasswordMutation = useChangePassword()
 
   const form = useForm<ChangePasswordDto>({
     initialValues: {
@@ -453,27 +489,27 @@ const ChangePasswordForm: React.FC = () => {
     validate: {
       newPassword: (value) => {
         if (value.length < 8) {
-          return 'Password must be at least 8 characters';
+          return 'Password must be at least 8 characters'
         }
         if (!/(?=.*[a-z])/.test(value)) {
-          return 'Password must contain lowercase letter';
+          return 'Password must contain lowercase letter'
         }
         if (!/(?=.*[A-Z])/.test(value)) {
-          return 'Password must contain uppercase letter';
+          return 'Password must contain uppercase letter'
         }
         if (!/(?=.*\d)/.test(value)) {
-          return 'Password must contain number';
+          return 'Password must contain number'
         }
-        return null;
+        return null
       },
       confirmPassword: (value, values) =>
         value !== values.newPassword ? 'Passwords do not match' : null,
     },
-  });
+  })
 
   const handleSubmit = (values: ChangePasswordDto) => {
-    changePasswordMutation.mutate(values);
-  };
+    changePasswordMutation.mutate(values)
+  }
 
   // Handle success/error
   React.useEffect(() => {
@@ -483,18 +519,26 @@ const ChangePasswordForm: React.FC = () => {
         message: 'Password changed successfully',
         color: 'green',
         icon: <IconCheck />,
-      });
-      form.reset();
+      })
+      form.reset()
     }
     if (changePasswordMutation.isError) {
       notifications.show({
         title: 'Error',
-        message: changePasswordMutation.error instanceof Error ? changePasswordMutation.error.message : 'Failed to change password',
+        message:
+          changePasswordMutation.error instanceof Error
+            ? changePasswordMutation.error.message
+            : 'Failed to change password',
         color: 'red',
         icon: <IconAlertCircle />,
-      });
+      })
     }
-  }, [changePasswordMutation.isSuccess, changePasswordMutation.isError, changePasswordMutation.error, form]);
+  }, [
+    changePasswordMutation.isSuccess,
+    changePasswordMutation.isError,
+    changePasswordMutation.error,
+    form,
+  ])
 
   return (
     <Box
@@ -581,8 +625,8 @@ const ChangePasswordForm: React.FC = () => {
         </Group>
       </Stack>
     </Box>
-  );
-};
+  )
+}
 
 // Vetting Status Display Component
 const VettingStatusDisplay: React.FC<{ profile: UserProfileDto }> = ({ profile }) => {
@@ -614,8 +658,8 @@ const VettingStatusDisplay: React.FC<{ profile: UserProfileDto }> = ({ profile }
         />
 
         <Text size="sm" c="dimmed">
-          Your vetting status is managed by administrators. If you have questions about your status, please contact
-          us.
+          Your vetting status is managed by administrators. If you have questions about your status,
+          please contact us.
         </Text>
 
         <Group justify="flex-end">
@@ -643,7 +687,7 @@ const VettingStatusDisplay: React.FC<{ profile: UserProfileDto }> = ({ profile }
                 title: 'Coming Soon',
                 message: 'Membership hold functionality will be available soon',
                 color: 'blue',
-              });
+              })
             }}
           >
             Put Membership On Hold
@@ -651,5 +695,5 @@ const VettingStatusDisplay: React.FC<{ profile: UserProfileDto }> = ({ profile }
         </Group>
       </Stack>
     </Box>
-  );
-};
+  )
+}

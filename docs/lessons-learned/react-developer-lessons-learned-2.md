@@ -19,6 +19,31 @@
 
 ---
 
+## 🚨 REQUIRED READING FOR SPECIFIC TASKS 🚨
+
+### Before Writing Error Handling Code
+**MUST READ**: `/apps/web/eslint-rules/README.md`
+- Documents 37 silent error patterns to avoid
+- Correct error handling patterns with examples
+- ESLint rule configuration and exceptions
+**CRITICAL**: Not following these patterns caused ticket cancellation bug where UI showed success but database wasn't updated
+
+### Before Adding/Modifying API Calls
+**MUST READ**: `/docs/standards-processes/api-contract-validation.md`
+- OpenAPI contract validation process
+- How to avoid endpoint mismatches
+- TypeScript type generation from backend spec
+**CRITICAL**: Prevents calling non-existent endpoints like `/api/events/{id}/ticket` instead of `/participation`
+
+### Before Adding Test IDs to Components
+**MUST READ**: `/apps/web/E2E_TEST_RELIABILITY_REPORT.md`
+- data-testid naming conventions
+- Which elements need test IDs
+- Common E2E test selector issues
+**CRITICAL**: Missing test IDs cause E2E tests to hang for 30 seconds with confusing timeout errors
+
+---
+
 ## 🚨🚨🚨 ULTRA CRITICAL: NEVER USE FULL PATHS - ALWAYS USE REPO-RELATIVE PATHS 🚨🚨🚨
 **PROBLEM**: Agent keeps using full paths instead of repo-relative paths - CAUSES READ FAILURES
 **DISCOVERED**: 2025-09-23 - Agent used full path and failed to read critical startup file

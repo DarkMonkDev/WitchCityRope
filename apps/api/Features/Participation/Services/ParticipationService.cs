@@ -70,7 +70,8 @@ public class ParticipationService : IParticipationService
     }
 
     /// <summary>
-    /// Create an RSVP for a social event (vetted members only)
+    /// Create an RSVP for a social event (any authenticated user allowed)
+    /// Business Rule: Social events are open to all authenticated users, regardless of vetting status
     /// </summary>
     public async Task<Result<ParticipationStatusDto>> CreateRSVPAsync(
         CreateRSVPRequest request,
@@ -81,7 +82,7 @@ public class ParticipationService : IParticipationService
         {
             _logger.LogInformation("Creating RSVP for user {UserId} in event {EventId}", userId, request.EventId);
 
-            // Check if user is vetted
+            // Check if user exists (authentication verified by endpoint authorization)
             var user = await _context.Users
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
@@ -91,10 +92,9 @@ public class ParticipationService : IParticipationService
                 return Result<ParticipationStatusDto>.Failure("User not found");
             }
 
-            if (!user.IsVetted)
-            {
-                return Result<ParticipationStatusDto>.Failure("Only vetted members can RSVP for events");
-            }
+            // REMOVED: Vetting requirement - Social events are open to all authenticated users
+            // Previous restrictive validation: if (!user.IsVetted) return Failure("Only vetted members...")
+            // New business rule: Allow any authenticated user to RSVP for social events
 
             // Check if event exists and is a social event
             var eventEntity = await _context.Events

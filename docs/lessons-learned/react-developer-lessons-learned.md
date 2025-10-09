@@ -86,7 +86,7 @@
 ## 📚 MULTI-FILE LESSONS LEARNED
 **Files**: 2 total
 **Part 1**: `/docs/lessons-learned/react-developer-lessons-learned.md` (THIS FILE - STARTUP ONLY)
-**Part 2**: `/docs/lessons-learned/react-developer-lessons-learned-part-2.md` (MAIN LESSONS FILE)
+**Part 2**: `/docs/lessons-learned/react-developer-lessons-learned-2.md` (MAIN LESSONS FILE)
 **Read ALL**: Both Part 1 AND Part 2 are MANDATORY
 **Write to**: Part 2 ONLY - **NEVER ADD NEW LESSONS TO THIS FILE (PART 1)**
 **Maximum file size**: 1700 lines (to stay under token limits). Both Part 1 and Part 2 files can be up to 1700 lines each
@@ -94,7 +94,7 @@
 
 ## 🚨 ULTRA CRITICAL: NEW LESSONS GO TO PART 2, NOT HERE! 🚨
 **PART 1 PURPOSE**: Startup procedures and critical navigation ONLY
-**ALL NEW LESSONS**: Must go to Part 2 - `/docs/lessons-learned/react-developer-lessons-learned-part-2.md`
+**ALL NEW LESSONS**: Must go to Part 2 - `/docs/lessons-learned/react-developer-lessons-learned-2.md`
 **IF YOU ADD LESSONS HERE**: You are violating the split pattern!
 
 ## 🚨 LATEST CRITICAL LESSON: REACT ROUTER NAVIGATION TIMING FIX 🚨
@@ -1119,7 +1119,7 @@ If Tiptap editor doesn't render:
 
 **PART 1 COMPLETE** - You have read the startup procedures and critical patterns.
 
-**CONTINUE READING**: `/docs/lessons-learned/react-developer-lessons-learned-part-2.md`
+**CONTINUE READING**: `/docs/lessons-learned/react-developer-lessons-learned-2.md`
 **CONTAINS**: Additional lessons learned, more patterns, and detailed solutions
 **MANDATORY**: You MUST read Part 2 for complete React developer knowledge
 **SIZE**: Part 2 contains up to 1700 additional lines of critical lessons

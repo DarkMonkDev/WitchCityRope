@@ -101,45 +101,101 @@ export async function testProfileUpdatePersistence(
 
     // STEP 2: Action - Update profile fields and save
     action: async (page: Page) => {
-      // Fill in updated fields
+      // Define which fields belong to which tabs
+      const personalFields = ['firstName', 'lastName', 'bio', 'pronouns'];
+      const socialFields = ['discordName', 'fetLifeName', 'phoneNumber'];
+
+      // Separate fields by tab
+      const personalUpdates: Record<string, string> = {};
+      const socialUpdates: Record<string, string> = {};
+      let lastTabUsed: 'personal' | 'social' = 'personal';
+
       for (const [field, value] of Object.entries(updatedFields)) {
         if (value === null || value === undefined) continue;
 
-        // Map field names to form input selectors
-        const selectorMap: Record<string, string> = {
-          firstName: '[data-testid="first-name-input"], input[name="firstName"], #firstName',
-          lastName: '[data-testid="last-name-input"], input[name="lastName"], #lastName',
-          bio: '[data-testid="bio-input"], textarea[name="bio"], #bio',
-          pronouns: '[data-testid="pronouns-input"], input[name="pronouns"], #pronouns',
-          discordName: '[data-testid="discord-name-input"], input[name="discordName"], #discordName',
-          fetLifeName: '[data-testid="fetlife-name-input"], input[name="fetLifeName"], #fetLifeName',
-        };
-
-        const selector = selectorMap[field];
-        if (!selector) {
-          console.warn(`Unknown field: ${field}`);
-          continue;
+        if (socialFields.includes(field)) {
+          socialUpdates[field] = value;
+          lastTabUsed = 'social';
+        } else if (personalFields.includes(field)) {
+          personalUpdates[field] = value;
+          if (Object.keys(socialUpdates).length === 0) {
+            lastTabUsed = 'personal';
+          }
         }
-
-        const input = page.locator(selector).first();
-        if (await input.count() === 0) {
-          console.warn(`Input not found for ${field} with selector ${selector}`);
-          continue;
-        }
-
-        await input.clear();
-        await input.fill(value);
-        console.log(`✅ Updated ${field} to "${value}"`);
       }
 
-      // Click Save button
-      const saveButton = page.locator(
-        '[data-testid="save-profile-button"], button[type="submit"], button:has-text("Save")'
-      ).first();
+      // Update personal fields if any
+      if (Object.keys(personalUpdates).length > 0) {
+        const personalTab = page.locator('button:has-text("Personal"), [data-value="personal"]').first();
+        if (await personalTab.count() > 0) {
+          await personalTab.click();
+          await page.waitForTimeout(500);
+          console.log('✅ Switched to Personal tab');
+        }
 
-      await expect(saveButton).toBeVisible({ timeout: 5000 });
-      await saveButton.click();
-      console.log('✅ Clicked Save button');
+        for (const [field, value] of Object.entries(personalUpdates)) {
+          const selectorMap: Record<string, string> = {
+            firstName: '[data-testid="first-name-input"], input[name="firstName"], #firstName',
+            lastName: '[data-testid="last-name-input"], input[name="lastName"], #lastName',
+            bio: '[data-testid="bio-input"], textarea[name="bio"], #bio',
+            pronouns: '[data-testid="pronouns-input"], input[name="pronouns"], #pronouns',
+          };
+
+          const selector = selectorMap[field];
+          if (!selector) continue;
+
+          const input = page.locator(selector).first();
+          if (await input.count() === 0) continue;
+
+          await input.waitFor({ state: 'visible', timeout: 5000 });
+          await input.clear();
+          await input.fill(value);
+          console.log(`✅ Updated ${field} to "${value}"`);
+        }
+
+        // Click save for personal tab
+        const personalSaveButton = page.locator('button[type="submit"]:visible').first();
+        await personalSaveButton.waitFor({ state: 'visible', timeout: 5000 });
+        await personalSaveButton.click();
+        console.log('✅ Clicked Save button on Personal tab');
+        await page.waitForTimeout(1500); // Wait for save to complete
+      }
+
+      // Update social fields if any
+      if (Object.keys(socialUpdates).length > 0) {
+        const socialTab = page.locator('button:has-text("Social"), [data-value="social"]').first();
+        if (await socialTab.count() > 0) {
+          await socialTab.click();
+          await page.waitForTimeout(500);
+          console.log('✅ Switched to Social tab');
+        }
+
+        for (const [field, value] of Object.entries(socialUpdates)) {
+          const selectorMap: Record<string, string> = {
+            discordName: '[data-testid="discord-name-input"], input[name="discordName"], #discordName',
+            fetLifeName: '[data-testid="fetlife-name-input"], input[name="fetLifeName"], #fetLifeName',
+            phoneNumber: '[data-testid="phone-number-input"], input[name="phoneNumber"], #phoneNumber',
+          };
+
+          const selector = selectorMap[field];
+          if (!selector) continue;
+
+          const input = page.locator(selector).first();
+          if (await input.count() === 0) continue;
+
+          await input.waitFor({ state: 'visible', timeout: 5000 });
+          await input.clear();
+          await input.fill(value);
+          console.log(`✅ Updated ${field} to "${value}"`);
+        }
+
+        // Click save for social tab
+        const socialSaveButton = page.locator('button[type="submit"]:visible').first();
+        await socialSaveButton.waitFor({ state: 'visible', timeout: 5000 });
+        await socialSaveButton.click();
+        console.log('✅ Clicked Save button on Social tab');
+        await page.waitForTimeout(1500); // Wait for save to complete
+      }
     },
 
     // STEP 3: Verify UI shows success
@@ -162,9 +218,30 @@ export async function testProfileUpdatePersistence(
 
     // STEP 6: Verify persistence after refresh (CRITICAL)
     verifyPersistence: async (page: Page) => {
+      // Define which fields belong to which tabs
+      const personalFields = ['firstName', 'lastName', 'bio', 'pronouns'];
+      const socialFields = ['discordName', 'fetLifeName', 'phoneNumber'];
+
       // Verify form fields still show updated values
       for (const [field, expectedValue] of Object.entries(updatedFields)) {
         if (expectedValue === null || expectedValue === undefined) continue;
+
+        // Navigate to correct tab based on field
+        if (socialFields.includes(field)) {
+          // Switch to Social tab
+          const socialTab = page.locator('button:has-text("Social"), [data-value="social"]').first();
+          if (await socialTab.count() > 0) {
+            await socialTab.click();
+            await page.waitForTimeout(500); // Wait for tab transition
+          }
+        } else if (personalFields.includes(field)) {
+          // Switch to Personal tab
+          const personalTab = page.locator('button:has-text("Personal"), [data-value="personal"]').first();
+          if (await personalTab.count() > 0) {
+            await personalTab.click();
+            await page.waitForTimeout(500); // Wait for tab transition
+          }
+        }
 
         const selectorMap: Record<string, string> = {
           firstName: '[data-testid="first-name-input"], input[name="firstName"], #firstName',
@@ -173,6 +250,7 @@ export async function testProfileUpdatePersistence(
           pronouns: '[data-testid="pronouns-input"], input[name="pronouns"], #pronouns',
           discordName: '[data-testid="discord-name-input"], input[name="discordName"], #discordName',
           fetLifeName: '[data-testid="fetlife-name-input"], input[name="fetLifeName"], #fetLifeName',
+          phoneNumber: '[data-testid="phone-number-input"], input[name="phoneNumber"], #phoneNumber',
         };
 
         const selector = selectorMap[field];
@@ -180,6 +258,9 @@ export async function testProfileUpdatePersistence(
 
         const input = page.locator(selector).first();
         if (await input.count() === 0) continue;
+
+        // Wait for input to be visible
+        await input.waitFor({ state: 'visible', timeout: 5000 });
 
         const actualValue = await input.inputValue();
         if (actualValue !== expectedValue) {

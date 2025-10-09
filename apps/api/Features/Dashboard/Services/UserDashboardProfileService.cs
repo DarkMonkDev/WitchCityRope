@@ -218,51 +218,85 @@ public class UserDashboardProfileService : IUserDashboardProfileService
         {
             _logger.LogInformation("Updating profile for user {UserId}", userId);
 
-            var user = await _userManager.FindByIdAsync(userId.ToString());
-            if (user == null)
+            // Use a retry loop to handle optimistic concurrency conflicts
+            const int maxRetries = 3;
+            for (int attempt = 0; attempt < maxRetries; attempt++)
             {
-                return Result<UserProfileDto>.Failure("User not found");
-            }
+                // Fetch fresh user data for each attempt to ensure we have latest ConcurrencyStamp
+                var user = await _userManager.FindByIdAsync(userId.ToString());
+                if (user == null)
+                {
+                    return Result<UserProfileDto>.Failure("User not found");
+                }
 
-            // Update user properties
-            user.SceneName = request.SceneName;
-            user.FirstName = request.FirstName;
-            user.LastName = request.LastName;
-            user.Email = request.Email;
-            user.UserName = request.Email; // Keep UserName in sync with Email
-            user.Pronouns = request.Pronouns ?? string.Empty;
-            user.Bio = request.Bio;
-            user.DiscordName = request.DiscordName;
-            user.FetLifeName = request.FetLifeName;
-            user.PhoneNumber = request.PhoneNumber;
-            user.UpdatedAt = DateTime.UtcNow;
+                // Store the original concurrency stamp for logging
+                var originalStamp = user.ConcurrencyStamp;
 
-            var updateResult = await _userManager.UpdateAsync(user);
-            if (!updateResult.Succeeded)
-            {
+                // Update user properties
+                user.SceneName = request.SceneName;
+                user.FirstName = request.FirstName;
+                user.LastName = request.LastName;
+                user.Email = request.Email;
+                user.UserName = request.Email; // Keep UserName in sync with Email
+                user.Pronouns = request.Pronouns ?? string.Empty;
+                user.Bio = request.Bio;
+                user.DiscordName = request.DiscordName;
+                user.FetLifeName = request.FetLifeName;
+                user.PhoneNumber = request.PhoneNumber;
+                user.UpdatedAt = DateTime.UtcNow;
+
+                // UserManager.UpdateAsync handles optimistic concurrency automatically via ConcurrencyStamp
+                var updateResult = await _userManager.UpdateAsync(user);
+
+                if (updateResult.Succeeded)
+                {
+                    // Success - return updated profile
+                    var profile = new UserProfileDto
+                    {
+                        UserId = user.Id,
+                        SceneName = user.SceneName,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        Email = user.Email ?? string.Empty,
+                        Pronouns = user.Pronouns,
+                        Bio = user.Bio,
+                        DiscordName = user.DiscordName,
+                        FetLifeName = user.FetLifeName,
+                        PhoneNumber = user.PhoneNumber,
+                        VettingStatus = ((VettingStatus)user.VettingStatus).ToString()
+                    };
+
+                    _logger.LogInformation("Successfully updated profile for user {UserId} on attempt {Attempt}", userId, attempt + 1);
+                    return Result<UserProfileDto>.Success(profile);
+                }
+
+                // Check if the failure is due to concurrency conflict
+                var concurrencyError = updateResult.Errors.FirstOrDefault(e =>
+                    e.Code == "ConcurrencyFailure" || e.Description.Contains("concurrency", StringComparison.OrdinalIgnoreCase));
+
+                if (concurrencyError != null && attempt < maxRetries - 1)
+                {
+                    // Concurrency conflict detected - retry with fresh data
+                    _logger.LogWarning(
+                        "Concurrency conflict updating user {UserId} (attempt {Attempt}/{MaxRetries}). " +
+                        "Original stamp: {OriginalStamp}. Retrying...",
+                        userId, attempt + 1, maxRetries, originalStamp);
+
+                    // Small delay before retry to reduce contention
+                    await Task.Delay(50 * (attempt + 1), cancellationToken);
+                    continue;
+                }
+
+                // Non-concurrency error or final retry exhausted
                 var errors = string.Join(", ", updateResult.Errors.Select(e => e.Description));
+                _logger.LogError(
+                    "Failed to update profile for user {UserId} after {Attempt} attempts. Errors: {Errors}",
+                    userId, attempt + 1, errors);
                 return Result<UserProfileDto>.Failure("Failed to update profile", errors);
             }
 
-            // Return updated profile
-            var profile = new UserProfileDto
-            {
-                UserId = user.Id,
-                SceneName = user.SceneName,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email ?? string.Empty,
-                Pronouns = user.Pronouns,
-                Bio = user.Bio,
-                DiscordName = user.DiscordName,
-                FetLifeName = user.FetLifeName,
-                PhoneNumber = user.PhoneNumber,
-                VettingStatus = ((VettingStatus)user.VettingStatus).ToString()
-            };
-
-            _logger.LogInformation("Successfully updated profile for user {UserId}", userId);
-
-            return Result<UserProfileDto>.Success(profile);
+            // Should never reach here, but just in case
+            return Result<UserProfileDto>.Failure("Failed to update profile after multiple attempts");
         }
         catch (Exception ex)
         {

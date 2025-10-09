@@ -2,37 +2,41 @@
 
 <!-- STRICT FORMAT: Only prevention patterns and mistakes. NO status reports, NO project history, NO celebrations. See LESSONS-LEARNED-TEMPLATE.md -->
 
-## 🚨 MANDATORY STARTUP PROCEDURE - CONTINUATION FROM PART 1 🚨
+## 🚨 MANDATORY STARTUP PROCEDURE IS IN PART 1 🚨
+**CRITICAL**: Read Part 1 FIRST for ULTRA CRITICAL startup procedure and architecture documents.
 
-### 🚨 ULTRA CRITICAL TESTING DOCUMENTS (MUST READ FIRST): 🚨
-1. **🛑 DOCKER-ONLY TESTING STANDARD**: `docs/standards-processes/testing/docker-only-testing-standard.md` - **MANDATORY FOR ALL TESTING**
-2. **Testing Prerequisites**: `docs/standards-processes/testing/testing-prerequisites.md`
-3. **Test Architecture**: `docs/architecture/testing-architecture.md`
-4. **Entity Framework Test Patterns**: `docs/standards-processes/testing/entity-framework-testing.md`
-5. **Project Architecture**: `ARCHITECTURE.md` - **TECH STACK AND STANDARDS**
-
-### Validation Gates (MUST COMPLETE):
-- [ ] **Read Docker-Only Testing Standard FIRST** - Prevents test environment failures
-- [ ] Review Testing Prerequisites for mandatory health checks
-- [ ] Check Test Architecture for patterns and standards
-- [ ] Review Entity Framework testing patterns
-- [ ] Verify Docker containers running before ANY test work
-
-## 📚 MULTI-FILE LESSONS LEARNED - PART 2
-**Files**: 2 total
-**This is**: Part 2 of 2
-**Read Part 1**: `/docs/lessons-learned/test-developer-lessons-learned.md` FIRST
-**Write to**: This file ONLY for new lessons
-**Max size**: 1,700 lines per file
+## 📚 MULTI-FILE LESSONS LEARNED
+**This is Part 2 of 2**
+**Read Part 1 first**: test-developer-lessons-learned.md - **CONTAINS MANDATORY STARTUP PROCEDURE**
+**Write to**: Part 2 ONLY
+**Max size**: 2,000 lines per file (NOT 2,500)
 **IF READ FAILS**: STOP and fix per documentation-standards.md
 
-## 🚨 HARD BLOCK ENFORCEMENT (CRITICAL)
-If you cannot read ANY part of these lessons learned:
-1. **STOP ALL WORK IMMEDIATELY**
-2. **DO NOT PROCEED** with any task or request
-3. **FIX THE PROBLEM** using procedure in documentation-standards.md
-4. **ONLY PROCEED** when all files read successfully
-5. These files contain critical knowledge - **NO EXCEPTIONS**
+## ⛔ CRITICAL: HARD BLOCK - DO NOT PROCEED IF FILES UNREADABLE
+If you cannot read ANY file:
+1. STOP ALL WORK
+2. Fix using procedure in documentation-standards.md
+3. Set LESSONS_LEARNED_READABLE=false until fixed
+4. NO WORK until LESSONS_LEARNED_READABLE=true
+
+---
+
+## 🚨 REQUIRED READING FOR SPECIFIC TASKS 🚨
+
+### Before Creating E2E Persistence Tests
+**MUST READ**: `/docs/functional-areas/testing/e2e-persistence-testing-guide.md` (618 lines)
+- Complete persistence test pattern (UI + API + Database verification)
+- Database verification helpers
+- How to use test templates
+**TEMPLATES**: `/apps/web/tests/playwright/templates/` - 5 reusable templates
+**CRITICAL**: Tests that only verify UI updates miss bugs where database doesn't update (profile bug, ticket cancellation bug)
+
+### Before Creating Backend Integration Tests
+**MUST READ**: `/docs/functional-areas/testing/backend-integration-testing-guide.md`
+- DTO/Entity mapping validation patterns
+- TestContainers setup
+- Database persistence verification
+**CRITICAL**: Integration tests must verify all DTO fields map to entity properties
 
 ---
 

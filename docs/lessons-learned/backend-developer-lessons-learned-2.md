@@ -21,6 +21,16 @@ If you cannot read ANY file:
 
 ---
 
+## 🚨 REQUIRED READING FOR SPECIFIC TASKS 🚨
+
+### Before Creating/Modifying API Endpoints
+**MUST READ**: `/docs/standards-processes/api-contract-validation.md`
+- OpenAPI spec generation and validation
+- CI/CD integration for contract validation
+- How frontend validates against backend spec
+**CRITICAL**: Frontend calls must match backend endpoints exactly (path, method, case)
+
+
 ## Service Initialization Order
 
 **Problem**: Services using DbContext fail with NullReferenceException when created in base class constructor before DbContext initialized.
@@ -962,3 +972,172 @@ node scripts/validate-api-contract.js
 **Tags**: #critical #api-contract #ci-cd #openapi #validation #dto-alignment #ticket-bug-prevention
 
 ---
+
+## 🚨 CRITICAL: Profile Update Race Conditions - Optimistic Concurrency Required (2025-10-09)
+
+**Problem**: Rapid successive profile updates overwrite each other incorrectly. E2E test shows bio = "First update" after applying "Second update", indicating last write was lost.
+
+**Root Cause**: `UpdateUserProfileAsync` had no concurrency control - `UserManager.UpdateAsync()` uses optimistic concurrency via `ConcurrencyStamp` but original code didn't handle conflicts or retry.
+
+**Race Condition Scenario**:
+1. Thread A reads user with `ConcurrencyStamp = "abc123"`
+2. Thread B reads same user with `ConcurrencyStamp = "abc123"`
+3. Thread A updates bio to "First update" → `UpdateAsync` succeeds, stamp → "xyz789"
+4. Thread B updates bio to "Second update" → `UpdateAsync` fails (stamp mismatch: "abc123" vs "xyz789")
+5. Without retry, Thread B returns error or silently fails
+
+**Solution Pattern - Retry Loop with Optimistic Concurrency**:
+
+```csharp
+// ❌ BEFORE (NO CONCURRENCY CONTROL)
+var user = await _userManager.FindByIdAsync(userId.ToString());
+// ... update properties ...
+var updateResult = await _userManager.UpdateAsync(user);
+if (!updateResult.Succeeded) return Failure(...);
+
+// ✅ AFTER (WITH RETRY AND CONCURRENCY HANDLING)
+const int maxRetries = 3;
+for (int attempt = 0; attempt < maxRetries; attempt++)
+{
+    // Fetch FRESH user data on each retry (gets latest ConcurrencyStamp)
+    var user = await _userManager.FindByIdAsync(userId.ToString());
+    var originalStamp = user.ConcurrencyStamp;
+
+    // ... update properties ...
+
+    var updateResult = await _userManager.UpdateAsync(user);
+
+    if (updateResult.Succeeded)
+    {
+        _logger.LogInformation("Updated user {UserId} on attempt {Attempt}", userId, attempt + 1);
+        return Success(profile);
+    }
+
+    // Detect concurrency conflicts
+    var concurrencyError = updateResult.Errors.FirstOrDefault(e =>
+        e.Code == "ConcurrencyFailure" || e.Description.Contains("concurrency"));
+
+    if (concurrencyError != null && attempt < maxRetries - 1)
+    {
+        _logger.LogWarning("Concurrency conflict for user {UserId} (attempt {Attempt}/{MaxRetries}). Retrying...",
+            userId, attempt + 1, maxRetries);
+
+        // Exponential backoff: 50ms, 100ms, 150ms
+        await Task.Delay(50 * (attempt + 1), cancellationToken);
+        continue; // Retry with fresh data
+    }
+
+    // Non-concurrency error or final retry exhausted
+    return Failure("Failed to update profile", errors);
+}
+```
+
+**How Optimistic Concurrency Works**:
+- `IdentityUser<Guid>` includes `ConcurrencyStamp` property (GUID string)
+- `UserManager.UpdateAsync()` executes: `UPDATE Users SET ... WHERE Id = @id AND ConcurrencyStamp = @originalStamp`
+- If `ConcurrencyStamp` changed (concurrent update), WHERE clause fails → 0 rows affected
+- UserManager detects mismatch and returns error with `Code = "ConcurrencyFailure"`
+- Retry fetches fresh user with new stamp and applies changes again
+
+**Benefits**:
+- **Last write wins correctly** - Most recent update preserved
+- **Automatic retry** on conflicts (transparent to API consumers)
+- **No database locks** - Optimistic concurrency = better performance
+- **Detailed diagnostics** - Structured logging shows contention patterns
+- **Exponential backoff** - Reduces retry contention (50ms, 100ms, 150ms)
+
+**Testing**:
+```bash
+cd /home/chad/repos/witchcityrope/apps/web
+npm run test:e2e:playwright -- profile-update-full-persistence.spec.ts --grep "rapid successive"
+```
+
+**Prevention**:
+1. **Always use retry loops** for operations with optimistic concurrency
+2. **ASP.NET Identity provides ConcurrencyStamp** - leverage it, don't ignore errors
+3. **Test concurrent updates** in E2E/integration tests
+4. **Log concurrency conflicts** to monitor contention patterns
+5. **Exponential backoff** prevents retry storms
+
+**File Modified**: `/apps/api/Features/Dashboard/Services/UserDashboardProfileService.cs:212-306`
+
+**Tags**: #critical #concurrency #race-condition #optimistic-concurrency #retry-logic #profile-updates
+
+---
+
+## 🚨 CRITICAL: Overly Restrictive RSVP Validation - Business Logic Mismatch (2025-10-09)
+
+**Problem**: 7 integration tests failing with 400 Bad Request for RSVP and ticket purchases. Code enforced vetting requirement but business rules allow ANY authenticated user.
+
+**Root Cause**: Service validation required `user.IsVetted = true` but integration tests (the specification) expect users without vetting applications to succeed.
+
+**Failed Validation**:
+```csharp
+// ❌ TOO RESTRICTIVE - Blocks non-vetted users
+if (!user.IsVetted)
+{
+    return Result<ParticipationStatusDto>.Failure("Only vetted members can RSVP for events");
+}
+```
+
+**Business Logic Clarification**:
+- **Social Events (RSVP)**: Open to ALL authenticated users
+- **Class Events (Tickets)**: Open to ALL authenticated users
+- **Vetting Status**: Used for vetted-member-only areas, NOT event participation
+
+**Integration Test as Specification** (line 154-155):
+```csharp
+response.StatusCode.Should().Be(HttpStatusCode.Created,
+    "Users without vetting applications should be allowed to RSVP");
+```
+
+**Solution - Remove Vetting Requirement**:
+```csharp
+/// <summary>
+/// Create an RSVP for a social event (any authenticated user allowed)
+/// Business Rule: Social events are open to all authenticated users, regardless of vetting status
+/// </summary>
+public async Task<Result<ParticipationStatusDto>> CreateRSVPAsync(...)
+{
+    // Check if user exists (authentication verified by endpoint authorization)
+    var user = await _context.Users...;
+
+    if (user == null) return Failure("User not found");
+
+    // REMOVED: Vetting requirement - Social events open to all authenticated users
+    // Previous restrictive validation: if (!user.IsVetted) return Failure("Only vetted members...")
+    // New business rule: Allow any authenticated user to RSVP for social events
+
+    // ... rest of logic (event type validation, capacity checks, etc.)
+}
+```
+
+**Remaining Validations** (still enforced):
+- ✅ Authentication required (`[Authorize]` on endpoint)
+- ✅ Event type validation (RSVP only for Social, Ticket only for Class)
+- ✅ Capacity checks (prevent over-booking)
+- ✅ Duplicate participation prevention (1 active participation per user per event)
+- ✅ User exists check
+
+**Testing**:
+```bash
+cd /home/chad/repos/witchcityrope
+dotnet test tests/integration/WitchCityRope.IntegrationTests.csproj --filter "ParticipationEndpointsAccessControlTests"
+# Expected: 10/10 tests pass (5 RSVP + 5 Ticket tests)
+```
+
+**Prevention**:
+1. **Document business rules explicitly** in XML comments and code comments
+2. **Integration tests ARE the specification** - they define expected behavior
+3. **Question validation before adding** - Is it required by business rules?
+4. **Vetting status ≠ event access** in this domain model
+5. **Authentication ≠ Authorization** - Different concerns, don't conflate
+
+**Lesson**: When validation blocks legitimate use cases, check the business rules FIRST. Tests represent real user requirements.
+
+**File Modified**: `/apps/api/Features/Participation/Services/ParticipationService.cs:72-97`
+
+**Tags**: #critical #validation #business-logic #rsvp #integration-tests #over-engineering
+
+---
+
