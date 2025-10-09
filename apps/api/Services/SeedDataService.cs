@@ -1277,7 +1277,7 @@ The WitchCityRope Vetting Team",
                     TotalPrice = 0,
                     PaymentStatus = "Completed",
                     PaymentMethod = "RSVP",
-                    PaymentReference = null!,
+                    PaymentReference = $"RSVP_{Guid.NewGuid().ToString()[..8]}",
                     Notes = "Free RSVP - looking forward to this!"
                 });
 
@@ -1305,7 +1305,7 @@ The WitchCityRope Vetting Team",
                     TotalPrice = totalPrice,
                     PaymentStatus = "Completed",
                     PaymentMethod = pastTicketType.Price > 0 ? "Stripe" : "RSVP",
-                    PaymentReference = pastTicketType.Price > 0 ? $"SEED_ORDER_{Guid.NewGuid().ToString()[..8]}" : null!,
+                    PaymentReference = pastTicketType.Price > 0 ? $"SEED_ORDER_{Guid.NewGuid().ToString()[..8]}" : $"RSVP_{Guid.NewGuid().ToString()[..8]}",
                     Notes = "Attended - great event!"
                 });
 
@@ -1333,7 +1333,7 @@ The WitchCityRope Vetting Team",
                     TotalPrice = price,
                     PaymentStatus = "Completed",
                     PaymentMethod = isSocialEvent ? "RSVP" : "Venmo",
-                    PaymentReference = isSocialEvent ? null! : $"SEED_ORDER_{Guid.NewGuid().ToString()[..8]}",
+                    PaymentReference = isSocialEvent ? $"RSVP_{Guid.NewGuid().ToString()[..8]}" : $"SEED_ORDER_{Guid.NewGuid().ToString()[..8]}",
                     Notes = isSocialEvent ? null! : "Can't wait for this class!"
                 });
 
