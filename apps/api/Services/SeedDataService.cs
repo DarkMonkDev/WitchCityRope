@@ -1473,11 +1473,12 @@ The WitchCityRope Vetting Team",
         var userCount = await _userManager.Users.CountAsync(cancellationToken);
         var eventCount = await _context.Events.CountAsync(cancellationToken);
         var vettingApplicationCount = await _context.VettingApplications.CountAsync(cancellationToken);
+        var ticketPurchaseCount = await _context.TicketPurchases.CountAsync(cancellationToken);
 
-        var isRequired = userCount == 0 || eventCount == 0 || vettingApplicationCount == 0;
+        var isRequired = userCount == 0 || eventCount == 0 || vettingApplicationCount == 0 || ticketPurchaseCount == 0;
 
-        _logger.LogDebug("Seed data check: Users={UserCount}, Events={EventCount}, VettingApplications={VettingApplicationCount}, Required={IsRequired}",
-            userCount, eventCount, vettingApplicationCount, isRequired);
+        _logger.LogDebug("Seed data check: Users={UserCount}, Events={EventCount}, VettingApplications={VettingApplicationCount}, TicketPurchases={TicketPurchaseCount}, Required={IsRequired}",
+            userCount, eventCount, vettingApplicationCount, ticketPurchaseCount, isRequired);
 
         return isRequired;
     }
