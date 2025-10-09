@@ -127,7 +127,10 @@ export const ProfileSettingsPage: React.FC = () => {
 const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) => {
   const updateProfileMutation = useUpdateProfile();
 
-  const form = useForm<UpdateProfileDto>({
+  // CRITICAL FIX: Only include fields that are displayed in this form
+  // DO NOT include social fields (discordName, fetLifeName, phoneNumber)
+  // Those are managed by the SocialLinksForm component
+  const form = useForm<Pick<UpdateProfileDto, 'sceneName' | 'firstName' | 'lastName' | 'email' | 'pronouns' | 'bio'>>({
     initialValues: {
       sceneName: profile.sceneName,
       firstName: profile.firstName || '',
@@ -135,14 +138,20 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
       email: profile.email,
       pronouns: profile.pronouns || '',
       bio: profile.bio || '',
-      discordName: profile.discordName || '',
-      fetLifeName: profile.fetLifeName || '',
-      phoneNumber: profile.phoneNumber || '',
     },
   });
 
-  const handleSubmit = (values: UpdateProfileDto) => {
-    updateProfileMutation.mutate(values);
+  const handleSubmit = (values: Pick<UpdateProfileDto, 'sceneName' | 'firstName' | 'lastName' | 'email' | 'pronouns' | 'bio'>) => {
+    // Merge with existing social fields from profile to prevent overwriting
+    const updateData: UpdateProfileDto = {
+      ...values,
+      discordName: profile.discordName || '',
+      fetLifeName: profile.fetLifeName || '',
+      phoneNumber: profile.phoneNumber || '',
+    };
+
+    console.log('🔍 PersonalInfoForm - Submitting with merged data:', updateData);
+    updateProfileMutation.mutate(updateData);
   };
 
   // Handle success/error with useEffect or mutation state
@@ -183,6 +192,7 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
             label="Scene Name"
             placeholder="Your scene name"
             required
+            data-testid="scene-name-input"
             {...form.getInputProps('sceneName')}
             styles={{
               label: {
@@ -197,6 +207,7 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
             placeholder="your@email.com"
             type="email"
             required
+            data-testid="email-input"
             {...form.getInputProps('email')}
             styles={{
               label: {
@@ -212,6 +223,7 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
           <TextInput
             label="First Name"
             placeholder="Optional"
+            data-testid="first-name-input"
             {...form.getInputProps('firstName')}
             styles={{
               label: {
@@ -224,6 +236,7 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
           <TextInput
             label="Last Name"
             placeholder="Optional"
+            data-testid="last-name-input"
             {...form.getInputProps('lastName')}
             styles={{
               label: {
@@ -238,6 +251,7 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
         <TextInput
           label="Pronouns"
           placeholder="e.g., they/them, she/her, he/him"
+          data-testid="pronouns-input"
           {...form.getInputProps('pronouns')}
           styles={{
             label: {
@@ -253,6 +267,7 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
           placeholder="Tell us about yourself..."
           rows={4}
           maxLength={500}
+          data-testid="bio-input"
           {...form.getInputProps('bio')}
           styles={{
             label: {
@@ -355,6 +370,7 @@ const SocialLinksForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) => 
         <TextInput
           label="Discord Username"
           placeholder="Username#1234"
+          data-testid="discord-name-input"
           {...form.getInputProps('discordName')}
           styles={{
             label: {
@@ -368,6 +384,7 @@ const SocialLinksForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) => 
         <TextInput
           label="FetLife Username"
           placeholder="Your FetLife username"
+          data-testid="fetlife-name-input"
           {...form.getInputProps('fetLifeName')}
           styles={{
             label: {
@@ -382,6 +399,7 @@ const SocialLinksForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) => 
           label="Phone Number"
           placeholder="555-123-4567"
           type="tel"
+          data-testid="phone-number-input"
           {...form.getInputProps('phoneNumber')}
           styles={{
             label: {

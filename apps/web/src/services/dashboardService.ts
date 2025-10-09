@@ -70,7 +70,22 @@ export const dashboardService = {
   updateProfile: async (userId: string, data: UpdateProfileDto): Promise<UserProfileDto> => {
     const url = `/api/users/${userId}/profile`;
 
+    // DEBUG: Log the exact payload being sent to API
+    console.log('🔍 UPDATE PROFILE REQUEST:', {
+      url,
+      userId,
+      payload: data,
+      payloadKeys: Object.keys(data),
+      payloadValues: JSON.stringify(data, null, 2)
+    });
+
     const response = await apiClient.put<{ success: boolean; data: UserProfileDto }>(url, data);
+
+    console.log('✅ UPDATE PROFILE RESPONSE:', {
+      status: response.status,
+      data: response.data
+    });
+
     return response.data.data;
   },
 
