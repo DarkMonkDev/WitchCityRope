@@ -306,6 +306,91 @@ export async function getEventsByCreator(userId: string): Promise<EventRecord[]>
   return await query<EventRecord>(sql, [userId]);
 }
 
+/**
+ * Get events suitable for testing (published, in future)
+ *
+ * CRITICAL: Use this to find test events instead of scraping UI.
+ * Provides reliable event IDs for persistence tests.
+ */
+export async function getTestableEvents(): Promise<EventRecord[]> {
+  const sql = `
+    SELECT
+      "Id" as "id",
+      "Title" as "title",
+      "Description" as "description",
+      "EventType" as "eventType",
+      "StartDate" as "startDate",
+      "EndDate" as "endDate",
+      "IsPublished" as "isPublished",
+      "Capacity" as "capacity"
+    FROM "Events"
+    WHERE "IsPublished" = true
+      AND "StartDate" > NOW()
+    ORDER BY "StartDate" ASC
+    LIMIT 10
+  `;
+
+  return await query<EventRecord>(sql);
+}
+
+/**
+ * Get first RSVP-type event for testing
+ *
+ * Use for RSVP lifecycle tests that need a free event.
+ */
+export async function getFirstRsvpEvent(): Promise<EventRecord | null> {
+  const sql = `
+    SELECT DISTINCT
+      e."Id" as "id",
+      e."Title" as "title",
+      e."Description" as "description",
+      e."EventType" as "eventType",
+      e."StartDate" as "startDate",
+      e."EndDate" as "endDate",
+      e."IsPublished" as "isPublished",
+      e."Capacity" as "capacity"
+    FROM "Events" e
+    INNER JOIN "EventTicketTypes" ett ON e."Id" = ett."EventId"
+    WHERE e."IsPublished" = true
+      AND e."StartDate" > NOW()
+      AND ett."Type" = 'rsvp'
+    ORDER BY e."StartDate" ASC
+    LIMIT 1
+  `;
+
+  const rows = await query<EventRecord>(sql);
+  return rows.length > 0 ? rows[0] : null;
+}
+
+/**
+ * Get first paid ticket event for testing
+ *
+ * Use for ticket purchase/cancellation tests that need a paid event.
+ */
+export async function getFirstTicketEvent(): Promise<EventRecord | null> {
+  const sql = `
+    SELECT DISTINCT
+      e."Id" as "id",
+      e."Title" as "title",
+      e."Description" as "description",
+      e."EventType" as "eventType",
+      e."StartDate" as "startDate",
+      e."EndDate" as "endDate",
+      e."IsPublished" as "isPublished",
+      e."Capacity" as "capacity"
+    FROM "Events" e
+    INNER JOIN "EventTicketTypes" ett ON e."Id" = ett."EventId"
+    WHERE e."IsPublished" = true
+      AND e."StartDate" > NOW()
+      AND ett."Type" = 'paid'
+    ORDER BY e."StartDate" ASC
+    LIMIT 1
+  `;
+
+  const rows = await query<EventRecord>(sql);
+  return rows.length > 0 ? rows[0] : null;
+}
+
 // ============================================================================
 // VETTING APPLICATION VERIFICATION HELPERS
 // ============================================================================
@@ -428,6 +513,9 @@ export const DatabaseHelpers = {
   verifyNoEventParticipation,
   verifyEventExists,
   getEventsByCreator,
+  getTestableEvents,
+  getFirstRsvpEvent,
+  getFirstTicketEvent,
   verifyVettingApplicationStatus,
   verifyAuditLogExists,
   cleanupTestData,

@@ -50,7 +50,26 @@ test.describe.serial('Ticket Lifecycle Persistence Tests', () => {
   });
 
   test('should find a test event for ticket lifecycle tests', async ({ page }) => {
-    // Login and navigate to events page to find a test event
+    console.log('🔍 Finding suitable test event...');
+
+    // STRATEGY 1: Try to get event directly from database (faster, more reliable)
+    try {
+      const ticketEvent = await DatabaseHelpers.getFirstTicketEvent();
+
+      if (ticketEvent) {
+        TEST_EVENT_ID = ticketEvent.id;
+        console.log(`✅ Found ticket event via database: ${TEST_EVENT_ID}`);
+        console.log(`   Event: "${ticketEvent.title}" (${ticketEvent.eventType})`);
+        expect(TEST_EVENT_ID).toBeTruthy();
+        return;
+      }
+    } catch (error) {
+      console.log('⚠️  Could not query database directly, falling back to UI discovery');
+    }
+
+    // STRATEGY 2: Fallback to UI-based discovery with improved waiting
+    console.log('📍 Using UI-based event discovery...');
+
     await page.goto('http://localhost:5173/login');
     await page.waitForLoadState('networkidle');
 
@@ -65,17 +84,72 @@ test.describe.serial('Ticket Lifecycle Persistence Tests', () => {
     await page.goto('http://localhost:5173/events');
     await page.waitForLoadState('networkidle');
 
-    // Find first event link
-    const firstEventLink = page.locator('a[href*="/events/"]').first();
+    // ✅ NEW: Wait for event cards to render with explicit timeout
+    console.log('⏳ Waiting for event cards to render...');
 
-    if (await firstEventLink.count() > 0) {
-      const href = await firstEventLink.getAttribute('href');
-      TEST_EVENT_ID = href?.split('/events/')[1] || '';
+    const eventCards = page.locator('[data-testid="event-card"]');
 
-      console.log(`✅ Found test event ID: ${TEST_EVENT_ID}`);
+    try {
+      // Wait up to 10 seconds for at least one event card
+      await eventCards.first().waitFor({
+        state: 'visible',
+        timeout: 10000
+      });
+
+      const cardCount = await eventCards.count();
+      console.log(`✅ Found ${cardCount} event cards`);
+
+      // Find first event link within event cards
+      const firstEventCard = eventCards.first();
+      const eventLink = firstEventCard.locator('a[href*="/events/"]');
+
+      const href = await eventLink.getAttribute('href');
+
+      if (!href) {
+        throw new Error('Event card found but has no link');
+      }
+
+      TEST_EVENT_ID = href.split('/events/')[1];
+
+      console.log(`✅ Found test event ID via UI: ${TEST_EVENT_ID}`);
       expect(TEST_EVENT_ID).toBeTruthy();
-    } else {
-      throw new Error('No events found - please seed database with test events');
+
+    } catch (error) {
+      // Provide detailed diagnostic information
+      const currentUrl = page.url();
+      const pageTitle = await page.title();
+
+      console.error('❌ Failed to find events on page');
+      console.error(`   Current URL: ${currentUrl}`);
+      console.error(`   Page title: ${pageTitle}`);
+
+      // Check if page shows error or empty state
+      const errorAlert = page.locator('[role="alert"]');
+      const hasError = await errorAlert.count() > 0;
+
+      if (hasError) {
+        const errorText = await errorAlert.textContent();
+        console.error(`   Error on page: ${errorText}`);
+      }
+
+      const emptyState = page.locator('[data-testid="events-empty-state"]');
+      const hasEmptyState = await emptyState.count() > 0;
+
+      if (hasEmptyState) {
+        console.error('   Page shows empty state (no events available)');
+      }
+
+      throw new Error(
+        'No events found on events page.\n' +
+        '\n' +
+        'Troubleshooting steps:\n' +
+        '1. Check if database has events: curl http://localhost:5655/api/events\n' +
+        '2. Verify user is authenticated and can view events\n' +
+        '3. Check browser console for JavaScript errors\n' +
+        '4. Ensure events page component is rendering correctly\n' +
+        '\n' +
+        'To seed events: npm run db:seed'
+      );
     }
   });
 

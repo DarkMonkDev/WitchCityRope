@@ -49,6 +49,26 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
   });
 
   test('should find a Social event for RSVP tests', async ({ page }) => {
+    console.log('🔍 Finding suitable RSVP event...');
+
+    // STRATEGY 1: Try to get RSVP event directly from database (faster, more reliable)
+    try {
+      const rsvpEvent = await DatabaseHelpers.getFirstRsvpEvent();
+
+      if (rsvpEvent) {
+        RSVP_EVENT_ID = rsvpEvent.id;
+        console.log(`✅ Found RSVP event via database: ${RSVP_EVENT_ID}`);
+        console.log(`   Event: "${rsvpEvent.title}" (${rsvpEvent.eventType})`);
+        expect(RSVP_EVENT_ID).toBeTruthy();
+        return;
+      }
+    } catch (error) {
+      console.log('⚠️  Could not query database directly, falling back to UI discovery');
+    }
+
+    // STRATEGY 2: Fallback to UI-based discovery with improved waiting
+    console.log('📍 Using UI-based event discovery...');
+
     // Login and navigate to events page
     await page.goto('http://localhost:5173/login');
     await page.waitForLoadState('networkidle');
@@ -64,27 +84,46 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
     await page.goto('http://localhost:5173/events');
     await page.waitForLoadState('networkidle');
 
-    // Find a Social event (free RSVP events)
-    // Look for event with RSVP button or Social event type
-    const socialEventLink = page.locator('a[href*="/events/"]:has-text("Social")').first();
+    // Wait for event cards to render
+    console.log('⏳ Waiting for event cards to render...');
+    const eventCards = page.locator('[data-testid="event-card"]');
 
-    if (await socialEventLink.count() > 0) {
-      const href = await socialEventLink.getAttribute('href');
-      RSVP_EVENT_ID = href?.split('/events/')[1] || '';
-      console.log(`✅ Found Social event ID: ${RSVP_EVENT_ID}`);
-    } else {
-      // Fallback: Use any event
-      const anyEventLink = page.locator('a[href*="/events/"]').first();
-      if (await anyEventLink.count() > 0) {
-        const href = await anyEventLink.getAttribute('href');
+    try {
+      await eventCards.first().waitFor({
+        state: 'visible',
+        timeout: 10000
+      });
+
+      const cardCount = await eventCards.count();
+      console.log(`✅ Found ${cardCount} event cards`);
+
+      // Find a Social event (free RSVP events)
+      // Look for event with RSVP button or Social event type
+      const socialEventCard = eventCards.filter({ hasText: 'Social' }).first();
+
+      if (await socialEventCard.count() > 0) {
+        const socialLink = socialEventCard.locator('a[href*="/events/"]');
+        const href = await socialLink.getAttribute('href');
+        RSVP_EVENT_ID = href?.split('/events/')[1] || '';
+        console.log(`✅ Found Social event ID: ${RSVP_EVENT_ID}`);
+      } else {
+        // Fallback: Use first event (may not be Social)
+        const firstEventCard = eventCards.first();
+        const firstLink = firstEventCard.locator('a[href*="/events/"]');
+        const href = await firstLink.getAttribute('href');
         RSVP_EVENT_ID = href?.split('/events/')[1] || '';
         console.log(`✅ Found event ID: ${RSVP_EVENT_ID} (may not be Social)`);
-      } else {
-        throw new Error('No events found - please seed database with test events');
       }
-    }
 
-    expect(RSVP_EVENT_ID).toBeTruthy();
+      expect(RSVP_EVENT_ID).toBeTruthy();
+
+    } catch (error) {
+      throw new Error(
+        'No events found on events page.\n' +
+        'Check database has events: curl http://localhost:5655/api/events\n' +
+        'To seed events: npm run db:seed'
+      );
+    }
   });
 
   test('should persist RSVP to database', async ({ page }) => {
