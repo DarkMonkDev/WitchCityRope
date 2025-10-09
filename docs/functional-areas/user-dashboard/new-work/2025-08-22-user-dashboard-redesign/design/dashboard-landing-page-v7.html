@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Witch City Rope (Final Simplified)</title>
+    <title>Dashboard - Witch City Rope (v2.0 CONSOLIDATION)</title>
     <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,700;6..96,900&family=Montserrat:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;600&family=Satisfy&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -27,19 +27,19 @@
             --color-taupe: #B8B0A8;
             --color-ivory: #FFF8F0;
             --color-cream: #FAF6F2;
-            
+
             /* Status colors */
             --color-success: #228B22;
             --color-warning: #DAA520;
             --color-error: #DC143C;
-            
+
             /* Typography */
             --font-display: 'Bodoni Moda', serif;
             --font-heading: 'Montserrat', sans-serif;
             --font-body: 'Source Sans 3', sans-serif;
             --font-accent: 'Satisfy', cursive;
-            
-            /* Spacing - Compressed */
+
+            /* Spacing */
             --space-xs: 4px;
             --space-sm: 8px;
             --space-md: 12px;
@@ -48,13 +48,13 @@
             --space-2xl: 24px;
             --space-3xl: 32px;
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: var(--font-body);
             line-height: 1.4;
@@ -62,7 +62,7 @@
             background: var(--color-cream);
             font-size: 16px;
         }
-        
+
         /* Header - Same as homepage */
         .header {
             background: rgba(255, 248, 240, 0.95);
@@ -74,7 +74,7 @@
             z-index: 100;
             transition: all 0.3s ease;
         }
-        
+
         .header-content {
             max-width: 1400px;
             margin: 0 auto;
@@ -82,7 +82,7 @@
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .logo {
             font-family: var(--font-heading);
             font-size: 28px;
@@ -92,18 +92,18 @@
             letter-spacing: -0.5px;
             transition: all 0.3s ease;
         }
-        
+
         .logo:hover {
             color: var(--color-burgundy-light);
             transform: scale(1.02);
         }
-        
+
         .nav-menu {
             display: flex;
             list-style: none;
             gap: var(--space-2xl);
         }
-        
+
         .nav-menu a {
             font-family: var(--font-heading);
             font-weight: 500;
@@ -116,7 +116,7 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        
+
         /* Signature underline animation - center outward */
         .nav-menu a::before {
             content: '';
@@ -129,23 +129,23 @@
             background: linear-gradient(90deg, transparent, var(--color-burgundy), transparent);
             transition: width 0.3s ease;
         }
-        
+
         .nav-menu a:hover,
         .nav-menu a.active {
             color: var(--color-burgundy);
         }
-        
+
         .nav-menu a:hover::before,
         .nav-menu a.active::before {
             width: 100%;
         }
-        
+
         .user-menu {
             display: flex;
             align-items: center;
             gap: var(--space-md);
         }
-        
+
         .user-avatar {
             width: 36px;
             height: 36px;
@@ -160,13 +160,13 @@
             box-shadow: 0 2px 8px rgba(136, 1, 36, 0.3);
             transition: all 0.3s ease;
         }
-        
+
         .user-avatar:hover {
             transform: scale(1.05);
             box-shadow: 0 4px 12px rgba(136, 1, 36, 0.4);
         }
-        
-        /* COMPRESSED Main Layout - Edge to Edge */
+
+        /* Main Layout - CONSOLIDATED: No Right Sidebar */
         .main-layout {
             display: grid;
             grid-template-columns: 200px 1fr;
@@ -174,21 +174,21 @@
             margin: 0 auto;
             min-height: calc(100vh - 70px);
         }
-        
-        /* COMPRESSED Left Navigation - Flush left, no padding */
+
+        /* Left Navigation */
         .left-nav {
             background: var(--color-cream);
             padding: var(--space-lg) 0 var(--space-lg) 0;
             border-right: 2px solid rgba(183, 109, 117, 0.1);
         }
-        
+
         .nav-list {
             list-style: none;
             display: flex;
             flex-direction: column;
             gap: var(--space-xs);
         }
-        
+
         .nav-link {
             display: flex;
             align-items: center;
@@ -205,36 +205,35 @@
             transition: all 0.3s ease;
             position: relative;
         }
-        
+
         .nav-link.active {
             background: linear-gradient(135deg, var(--color-burgundy), var(--color-plum));
             color: var(--color-ivory);
         }
-        
+
         .nav-link:not(.active):hover {
             background: rgba(183, 109, 117, 0.1);
             color: var(--color-burgundy);
             transform: translateX(4px);
         }
-        
+
         .nav-icon {
             font-size: 16px;
             width: 20px;
             text-align: center;
         }
-        
-        /* COMPRESSED Main Content - Dramatically reduced spacing */
+
+        /* Main Content - FULL WIDTH */
         .main-content {
             background: var(--color-cream);
             padding: var(--space-lg) var(--space-2xl);
-            border-left: none;
         }
-        
-        /* COMPRESSED Welcome - No underline */
+
+        /* Welcome Section */
         .welcome-header {
             margin-bottom: var(--space-xl);
         }
-        
+
         .welcome-title {
             font-family: var(--font-heading);
             font-size: 28px;
@@ -243,20 +242,20 @@
             text-transform: uppercase;
             letter-spacing: -0.5px;
         }
-        
-        /* FULL WIDTH Underline - extends to right edge */
+
+        /* Full Width Underline */
         .section-divider {
             width: calc(100% + var(--space-2xl));
             height: 2px;
             background: linear-gradient(90deg, var(--color-burgundy), rgba(183, 109, 117, 0.3));
             margin: var(--space-lg) calc(-1 * var(--space-2xl)) var(--space-xl) 0;
         }
-        
-        /* COMPRESSED Events Section */
+
+        /* Events Section */
         .events-section {
             margin-bottom: var(--space-xl);
         }
-        
+
         .section-title {
             font-family: var(--font-heading);
             font-size: 20px;
@@ -266,14 +265,14 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        
+
         .events-list {
             display: flex;
             flex-direction: column;
             gap: var(--space-sm);
         }
-        
-        /* TABLE-LIKE Event Items - Horizontal layout */
+
+        /* Event Items - Horizontal Layout */
         .event-item {
             background: var(--color-ivory);
             padding: var(--space-md) var(--space-lg);
@@ -285,12 +284,12 @@
             transition: all 0.3s ease;
             min-height: 60px;
         }
-        
+
         .event-item:hover {
             transform: translateX(2px);
             box-shadow: 0 1px 8px rgba(0,0,0,0.1);
         }
-        
+
         .event-date {
             background: linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%);
             color: var(--color-ivory);
@@ -301,35 +300,35 @@
             flex-direction: column;
             justify-content: center;
         }
-        
+
         .event-date-day {
             font-family: var(--font-heading);
             font-size: 18px;
             font-weight: 800;
             line-height: 1;
         }
-        
+
         .event-date-month {
             font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-top: 2px;
         }
-        
+
         .event-title {
             font-family: var(--font-heading);
             font-size: 16px;
             font-weight: 700;
             color: var(--color-charcoal);
         }
-        
+
         .event-time {
             font-size: 14px;
             color: var(--color-stone);
             font-family: var(--font-heading);
             font-weight: 500;
         }
-        
+
         .event-status {
             padding: 4px 10px;
             border-radius: 16px;
@@ -339,23 +338,23 @@
             letter-spacing: 0.5px;
             text-align: center;
         }
-        
+
         .event-status.confirmed {
             background: rgba(34, 139, 34, 0.1);
             color: var(--color-success);
             border: 1px solid var(--color-success);
         }
-        
+
         .event-status.pending {
             background: rgba(218, 165, 32, 0.1);
             color: var(--color-warning);
             border: 1px solid var(--color-warning);
         }
-        
+
         .event-action {
             text-align: center;
         }
-        
+
         .details-link {
             font-size: 12px;
             color: var(--color-burgundy);
@@ -365,52 +364,45 @@
             letter-spacing: 0.5px;
             padding: 4px 8px;
             border: 1px solid var(--color-burgundy);
-            border-radius: 4px;
+            border-radius: 12px 6px 12px 6px;
             transition: all 0.3s ease;
+            display: inline-block;
         }
-        
+
         .details-link:hover {
             background: var(--color-burgundy);
             color: var(--color-ivory);
+            border-radius: 6px 12px 6px 12px;
         }
-        
-        /* COMPRESSED Empty State */
-        .empty-state {
-            text-align: center;
-            padding: var(--space-2xl) var(--space-lg);
-            color: var(--color-stone);
-            background: var(--color-ivory);
-            border-radius: 6px;
-        }
-        
-        .empty-icon {
-            font-size: 36px;
-            margin-bottom: var(--space-md);
-            opacity: 0.5;
-        }
-        
-        .empty-title {
+
+        /* View All Events Link */
+        .view-all-link {
+            display: inline-block;
+            margin-top: var(--space-md);
             font-family: var(--font-heading);
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--color-smoke);
-            margin-bottom: var(--space-sm);
-        }
-        
-        .empty-text {
             font-size: 14px;
-            margin-bottom: var(--space-lg);
+            font-weight: 600;
+            color: var(--color-burgundy);
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
         }
-        
-        /* RETURNED Quick Links Box at bottom */
-        .quick-links {
+
+        .view-all-link:hover {
+            color: var(--color-burgundy-dark);
+            transform: translateX(4px);
+        }
+
+        /* Quick Actions Section */
+        .quick-actions {
             background: var(--color-ivory);
             border-left: 3px solid var(--color-burgundy);
             padding: var(--space-lg);
             margin-top: var(--space-2xl);
         }
-        
-        .quick-links-title {
+
+        .quick-actions-title {
             font-family: var(--font-heading);
             font-size: 16px;
             font-weight: 700;
@@ -419,64 +411,99 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        
-        .quick-links-grid {
+
+        .quick-actions-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: var(--space-md);
         }
-        
-        .quick-link-item {
+
+        .quick-action-btn {
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: var(--space-sm);
-            padding: var(--space-sm);
+            padding: var(--space-md);
             color: var(--color-burgundy);
+            background: transparent;
+            border: 2px solid var(--color-burgundy);
             text-decoration: none;
-            border-radius: 4px;
+            border-radius: 12px 6px 12px 6px;
             transition: all 0.3s ease;
+            font-family: var(--font-heading);
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        
-        .quick-link-item:hover {
-            background: rgba(136, 1, 36, 0.05);
-            transform: translateX(2px);
+
+        .quick-action-btn:hover {
+            background: var(--color-burgundy);
+            color: var(--color-ivory);
+            border-radius: 6px 12px 6px 12px;
         }
-        
-        /* Mobile Responsive - SIMPLE */
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: var(--space-2xl) var(--space-lg);
+            color: var(--color-stone);
+            background: var(--color-ivory);
+            border-radius: 6px;
+        }
+
+        .empty-icon {
+            font-size: 36px;
+            margin-bottom: var(--space-md);
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-family: var(--font-heading);
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--color-smoke);
+            margin-bottom: var(--space-sm);
+        }
+
+        .empty-text {
+            font-size: 14px;
+            margin-bottom: var(--space-lg);
+        }
+
+        /* Mobile Responsive */
         @media (max-width: 768px) {
             .header {
                 padding: var(--space-sm) 20px;
             }
-            
+
             .main-layout {
                 grid-template-columns: 1fr;
                 gap: 0;
             }
-            
+
             .left-nav {
                 order: 2;
                 border-right: none;
                 border-top: 2px solid rgba(183, 109, 117, 0.1);
                 padding: var(--space-lg) 20px;
             }
-            
+
             .main-content {
                 order: 1;
                 padding: var(--space-lg) 20px;
             }
-            
+
             .nav-menu {
                 display: none;
             }
-            
+
             .event-item {
                 grid-template-columns: 1fr;
                 gap: var(--space-sm);
                 text-align: left;
             }
-            
+
             .event-date {
                 flex-direction: row;
                 justify-content: flex-start;
@@ -484,17 +511,17 @@
                 align-self: flex-start;
                 width: fit-content;
             }
-            
+
             .section-divider {
                 width: calc(100% + 40px);
                 margin: var(--space-lg) -20px var(--space-xl) 0;
             }
-            
-            .quick-links-grid {
+
+            .quick-actions-grid {
                 grid-template-columns: 1fr;
             }
         }
-        
+
         /* Accessibility */
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
@@ -503,11 +530,12 @@
                 transition-duration: 0.01ms !important;
             }
         }
-        
+
         /* Focus states */
         .nav-link:focus,
         .details-link:focus,
-        .quick-link-item:focus {
+        .quick-action-btn:focus,
+        .view-all-link:focus {
             outline: 3px solid rgba(136, 1, 36, 0.5);
             outline-offset: 2px;
         }
@@ -518,7 +546,7 @@
     <header class="header">
         <div class="header-content">
             <a href="#" class="logo">Witch City Rope</a>
-            
+
             <nav>
                 <ul class="nav-menu">
                     <li><a href="#" class="active">Dashboard</a></li>
@@ -528,22 +556,22 @@
                     <li><a href="#">About</a></li>
                 </ul>
             </nav>
-            
+
             <div class="user-menu">
                 <div class="user-avatar">JS</div>
                 <span style="font-weight: 600; color: var(--color-charcoal);">Jane Smith</span>
             </div>
         </div>
     </header>
-    
-    <!-- COMPRESSED Main Layout - Edge to Edge -->
+
+    <!-- Main Layout - CONSOLIDATED: No Right Sidebar -->
     <div class="main-layout">
-        <!-- FLUSH LEFT Navigation - No "Menu" text -->
-        <aside class="left-nav">
+        <!-- Left Navigation -->
+        <aside class="left-nav" aria-label="Dashboard navigation">
             <nav>
                 <ul class="nav-list">
                     <li class="nav-item">
-                        <a href="#" class="nav-link active">
+                        <a href="#" class="nav-link active" aria-current="page">
                             <span class="nav-icon">📊</span>
                             <span>Dashboard</span>
                         </a>
@@ -575,55 +603,55 @@
                 </ul>
             </nav>
         </aside>
-        
-        <!-- COMPRESSED Main Content -->
-        <main class="main-content">
-            <!-- SIMPLIFIED Welcome - No underline -->
+
+        <!-- Main Content - FULL WIDTH -->
+        <main class="main-content" role="main" aria-label="User Dashboard">
+            <!-- Welcome Section -->
             <div class="welcome-header">
                 <h1 class="welcome-title">Welcome back, Jane</h1>
             </div>
-            
-            <!-- FULL WIDTH Underline extending to right edge -->
+
+            <!-- Full Width Underline -->
             <div class="section-divider"></div>
-            
-            <!-- COMPRESSED Events Section - Table-like layout -->
-            <section class="events-section">
-                <h2 class="section-title">Your Upcoming Events</h2>
-                
-                <!-- TABLE-LIKE events list - horizontal format -->
+
+            <!-- Events Section - Preview (Max 5) -->
+            <section class="events-section" aria-labelledby="upcoming-events-title">
+                <h2 id="upcoming-events-title" class="section-title">My Upcoming Events</h2>
+
+                <!-- Events list -->
                 <div class="events-list">
-                    <article class="event-item">
-                        <div class="event-date">
+                    <article class="event-item" aria-labelledby="event-1-title">
+                        <div class="event-date" aria-label="Event date">
                             <div class="event-date-day">28</div>
                             <div class="event-date-month">Aug</div>
                         </div>
-                        <div class="event-title">Rope Fundamentals Workshop</div>
+                        <h3 id="event-1-title" class="event-title">Rope Fundamentals Workshop</h3>
                         <div class="event-time">7:00 PM - 9:30 PM</div>
                         <div class="event-status confirmed">Confirmed</div>
                         <div class="event-action">
                             <a href="#" class="details-link">Details</a>
                         </div>
                     </article>
-                    
-                    <article class="event-item">
-                        <div class="event-date">
+
+                    <article class="event-item" aria-labelledby="event-2-title">
+                        <div class="event-date" aria-label="Event date">
                             <div class="event-date-day">02</div>
                             <div class="event-date-month">Sep</div>
                         </div>
-                        <div class="event-title">Community Rope Jam</div>
+                        <h3 id="event-2-title" class="event-title">Community Rope Jam</h3>
                         <div class="event-time">6:00 PM - 9:00 PM</div>
                         <div class="event-status confirmed">RSVP'd</div>
                         <div class="event-action">
                             <a href="#" class="details-link">Details</a>
                         </div>
                     </article>
-                    
-                    <article class="event-item">
-                        <div class="event-date">
+
+                    <article class="event-item" aria-labelledby="event-3-title">
+                        <div class="event-date" aria-label="Event date">
                             <div class="event-date-day">15</div>
                             <div class="event-date-month">Sep</div>
                         </div>
-                        <div class="event-title">Advanced Suspension Class</div>
+                        <h3 id="event-3-title" class="event-title">Advanced Suspension Class</h3>
                         <div class="event-time">2:00 PM - 6:00 PM</div>
                         <div class="event-status pending">Payment Pending</div>
                         <div class="event-action">
@@ -631,39 +659,42 @@
                         </div>
                     </article>
                 </div>
+
+                <!-- View All Events Link (shown when more than 5 events) -->
+                <a href="#" class="view-all-link">→ View All Events (8 total)</a>
             </section>
-            
-            <!-- RETURNED Quick Links Box -->
-            <section class="quick-links">
-                <h3 class="quick-links-title">Quick Actions</h3>
-                <div class="quick-links-grid">
-                    <a href="#" class="quick-link-item">
-                        <span>📅</span>
-                        <span>Browse All Events</span>
-                    </a>
-                    <a href="#" class="quick-link-item">
+
+            <!-- Quick Actions Section -->
+            <section class="quick-actions" aria-labelledby="quick-actions-title">
+                <h3 id="quick-actions-title" class="quick-actions-title">Quick Actions</h3>
+                <div class="quick-actions-grid">
+                    <a href="#" class="quick-action-btn">
                         <span>👤</span>
-                        <span>Update Profile</span>
+                        <span>Edit Profile</span>
                     </a>
-                    <a href="#" class="quick-link-item">
-                        <span>🎯</span>
-                        <span>Membership Status</span>
-                    </a>
-                    <a href="#" class="quick-link-item">
+                    <a href="#" class="quick-action-btn">
                         <span>🔒</span>
                         <span>Security Settings</span>
                     </a>
+                    <a href="#" class="quick-action-btn">
+                        <span>🎯</span>
+                        <span>Membership Status</span>
+                    </a>
                 </div>
             </section>
-            
-            <!-- Empty state for users with no events -->
-            <!-- 
+
+            <!-- Empty state example (hidden by default, shown when no events) -->
+            <!--
             <section class="events-section">
-                <h2 class="section-title">Your Upcoming Events</h2>
+                <h2 class="section-title">My Upcoming Events</h2>
                 <div class="empty-state">
                     <div class="empty-icon">📅</div>
                     <h3 class="empty-title">No upcoming events</h3>
                     <p class="empty-text">Browse our events and sign up for classes and community gatherings.</p>
+                    <a href="#" class="quick-action-btn" style="display: inline-flex; margin-top: 12px;">
+                        <span>📅</span>
+                        <span>Browse Events</span>
+                    </a>
                 </div>
             </section>
             -->
