@@ -533,18 +533,19 @@ export async function createTestUser(options: TestUserOptions): Promise<TestUser
   } = options;
 
   try {
-    // Use registration API to create user with proper password hashing
-    const response = await fetch('http://localhost:5655/auth/register', {
+    // Use TestHelpers API to create user (Development/Test environment only)
+    const response = await fetch('http://localhost:5655/api/test-helpers/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email,
         password,
         sceneName,
+        firstName: firstName || 'Test',
+        lastName: lastName || 'User',
         dateOfBirth: '1990-01-01',
-        // Required fields for registration
         role: membershipLevel,
-        agreeToTerms: true
+        isVetted: membershipLevel === 'VettedMember' || false
       })
     });
 
@@ -554,13 +555,13 @@ export async function createTestUser(options: TestUserOptions): Promise<TestUser
     }
 
     const result = await response.json();
-    const userId = result.data?.id || result.data?.userId || result.userId;
+    const userId = result.userId;
 
     if (!userId) {
-      throw new Error(`No user ID returned from registration: ${JSON.stringify(result)}`);
+      throw new Error(`No user ID returned from TestHelpers API: ${JSON.stringify(result)}`);
     }
 
-    console.log(`✅ Created test user via API: ${email} (ID: ${userId})`);
+    console.log(`✅ Created test user via TestHelpers API: ${email} (ID: ${userId})`);
 
     return {
       id: userId,
