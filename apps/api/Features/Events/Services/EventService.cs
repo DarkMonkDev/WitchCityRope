@@ -270,9 +270,21 @@ public class EventService
 
             if (request.Policies != null)
             {
+                _logger.LogInformation("🔍 Policies field received: IsNull={IsNull}, IsEmpty={IsEmpty}, Length={Length}, Value=[{Value}]",
+                    request.Policies == null,
+                    string.IsNullOrWhiteSpace(request.Policies),
+                    request.Policies?.Length ?? 0,
+                    request.Policies);
+
                 eventEntity.Policies = string.IsNullOrWhiteSpace(request.Policies)
                     ? null
                     : request.Policies.Trim();
+
+                _logger.LogInformation("🔍 Policies after processing: [{ProcessedValue}]", eventEntity.Policies);
+            }
+            else
+            {
+                _logger.LogWarning("⚠️ Policies field was NULL in request - not included in update");
             }
 
             if (request.StartDate.HasValue)
@@ -331,6 +343,11 @@ public class EventService
 
             // Update the UpdatedAt timestamp
             eventEntity.UpdatedAt = DateTime.UtcNow;
+
+            // Log what we're about to save
+            _logger.LogInformation("🔍 About to save event. ShortDescription=[{Short}], Policies=[{Policies}]",
+                eventEntity.ShortDescription,
+                eventEntity.Policies);
 
             // CRITICAL: Explicitly mark entity as modified to ensure EF Core tracks the change
             // This is required when modifying properties directly (not through navigation properties)
