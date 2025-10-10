@@ -329,6 +329,9 @@ public class ParticipationService : IParticipationService
             participation.Cancel(reason);
             participation.UpdatedBy = userId;
 
+            // Explicitly mark entity as modified to ensure EF Core tracks the change
+            _context.EventParticipations.Update(participation);
+
             // Create audit history
             var history = new ParticipationHistory(participation.Id, "Cancelled")
             {

@@ -152,24 +152,60 @@ test.describe.serial('Ticket Lifecycle Persistence Tests', () => {
     // First, ensure user has a ticket to cancel
     console.log('Setting up: Ensuring user has active ticket...');
 
-    // Check if user already has ticket
+    // Check if user already has active ticket
+    let hasActiveTicket = false;
     try {
-      await DatabaseHelpers.verifyEventParticipation(userId, TEST_EVENT_ID, 'Registered');
+      await DatabaseHelpers.verifyEventParticipation(userId, TEST_EVENT_ID, 1); // 1 = Active
       console.log('✅ User already has active ticket');
-    } catch {
-      // User doesn't have ticket, purchase one
+      hasActiveTicket = true;
+    } catch (error) {
+      // User might have cancelled ticket - check if cancelled
+      try {
+        await DatabaseHelpers.verifyEventParticipation(userId, TEST_EVENT_ID, 2); // 2 = Cancelled
+        console.log('⚠️  User has cancelled ticket from previous test, need to purchase new ticket');
+      } catch {
+        console.log('User has no ticket, need to purchase one');
+      }
+    }
+
+    // If no active ticket, purchase one
+    if (!hasActiveTicket) {
       console.log('Purchasing ticket for test...');
+
+      // Navigate and login first
+      await page.goto('http://localhost:5173/login');
+      await page.waitForLoadState('networkidle');
+
+      await page.locator('[data-testid="email-input"]').fill(AuthHelpers.accounts.vetted.email);
+      await page.locator('[data-testid="password-input"]').fill(AuthHelpers.accounts.vetted.password);
+      await page.locator('[data-testid="login-button"]').click();
+      await page.waitForURL('**/dashboard', { timeout: 10000 });
+
       await page.goto(`http://localhost:5173/events/${TEST_EVENT_ID}`);
       await page.waitForLoadState('networkidle');
+
+      // Wait for loading overlay to disappear
+      const loadingOverlay = page.locator('.mantine-LoadingOverlay-overlay');
+      if (await loadingOverlay.count() > 0) {
+        await loadingOverlay.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {
+          console.log('⚠️  Loading overlay did not disappear, continuing anyway');
+        });
+      }
 
       const purchaseButton = page.locator(
         'button:has-text("Purchase Ticket"), button:has-text("Register")'
       ).first();
 
       if (await purchaseButton.count() > 0) {
-        await purchaseButton.click();
+        // Use force click to bypass any overlay issues
+        await purchaseButton.click({ timeout: 10000, force: true });
         await page.waitForLoadState('networkidle');
         console.log('✅ Purchased ticket for test');
+
+        // Verify purchase succeeded
+        await DatabaseHelpers.verifyEventParticipation(userId, TEST_EVENT_ID, 1); // 1 = Active
+      } else {
+        throw new Error('Could not find purchase button - unable to set up test');
       }
     }
 
@@ -217,7 +253,7 @@ test.describe.serial('Ticket Lifecycle Persistence Tests', () => {
 
     // Ensure user has ticket
     try {
-      await DatabaseHelpers.verifyEventParticipation(userId, TEST_EVENT_ID, 'Registered');
+      await DatabaseHelpers.verifyEventParticipation(userId, TEST_EVENT_ID, 1); // 1 = Active
     } catch {
       // Purchase ticket if needed
       await page.goto(`http://localhost:5173/events/${TEST_EVENT_ID}`);
@@ -243,7 +279,7 @@ test.describe.serial('Ticket Lifecycle Persistence Tests', () => {
     const participation = await DatabaseHelpers.verifyEventParticipation(
       userId,
       TEST_EVENT_ID,
-      'Cancelled'
+      2 // 2 = Cancelled
     );
 
     const historyExists = await DatabaseHelpers.verifyAuditLogExists(
@@ -263,7 +299,7 @@ test.describe.serial('Ticket Lifecycle Persistence Tests', () => {
 
     // Ensure ticket is already cancelled
     try {
-      await DatabaseHelpers.verifyEventParticipation(userId, TEST_EVENT_ID, 'Cancelled');
+      await DatabaseHelpers.verifyEventParticipation(userId, TEST_EVENT_ID, 2); // 2 = Cancelled
       console.log('✅ Ticket already cancelled');
     } catch {
       // Cancel ticket first
@@ -311,7 +347,7 @@ test.describe('Ticket Persistence Edge Cases', () => {
 
     // Ensure user has ticket
     try {
-      await DatabaseHelpers.verifyEventParticipation(userId, TEST_EVENT_ID, 'Registered');
+      await DatabaseHelpers.verifyEventParticipation(userId, TEST_EVENT_ID, 1); // 1 = Active
     } catch {
       await page.goto(`http://localhost:5173/events/${TEST_EVENT_ID}`);
       await page.waitForLoadState('networkidle');

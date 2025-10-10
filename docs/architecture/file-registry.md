@@ -7,6 +7,14 @@
 ## Registry Table
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
+| 2025-10-10 | /test-results/enum-mapping-fix-2025-10-10.md | CREATED | ENUM FIX VERIFIED - Test infrastructure enum mapping fix complete documentation | Test Infrastructure Enum Fix | ACTIVE | Keep permanently |
+| 2025-10-10 | /apps/web/tests/playwright/verify-enum-mapping-fix.spec.ts | CREATED | Verification test for enum mapping fix - confirms numeric values work correctly | Test Infrastructure Enum Fix | ACTIVE | Never |
+| 2025-10-10 | /apps/web/tests/playwright/templates/ticket-cancellation-persistence-template.ts | MODIFIED | Updated to use numeric ParticipationStatus enum values (1=Active, 2=Cancelled, etc) | Test Infrastructure Enum Fix | ACTIVE | Never |
+| 2025-10-10 | /apps/web/tests/playwright/ticket-lifecycle-persistence.spec.ts | MODIFIED | Updated to use numeric ParticipationStatus enum values matching database | Test Infrastructure Enum Fix | ACTIVE | Never |
+| 2025-10-10 | /apps/web/tests/playwright/utils/database-helpers.ts | MODIFIED | CRITICAL FIX - Added numeric enum support and getParticipationStatusName() helper | Test Infrastructure Enum Fix | ACTIVE | Never |
+| 2025-10-10 | /test-results/ticket-cancellation-verification-2025-10-10.md | CREATED | Ticket cancellation bug fix verification - FIX VERIFIED, test infrastructure needs update | Ticket Cancellation Verification | ACTIVE | Keep permanently |
+| 2025-10-10 | /apps/api/Features/Participation/Services/ParticipationService.cs | MODIFIED | CRITICAL BUG FIX - Added explicit Update() call for ticket cancellation persistence | Ticket Cancellation Bug Fix | ACTIVE | Never |
+| 2025-10-10 | /docs/lessons-learned/backend-developer-lessons-learned-2.md | MODIFIED | Added lesson on EF Core change tracking failures with domain methods | Backend Lessons Update | ACTIVE | Never |
 | 2025-10-10 | /session-work/2025-10-10/safety-reference-number-column-size-fix.md | CREATED | Column size increase fix for SafetyIncident.ReferenceNumber (20→30 chars) | Phase 1.5.4 Column Fix | ACTIVE | Never |
 | 2025-10-10 | /apps/api/Features/Safety/Entities/SafetyIncident.cs | MODIFIED | Increased ReferenceNumber MaxLength from 20 to 30 characters | Phase 1.5.4 Entity Update | ACTIVE | Never |
 | 2025-10-10 | /apps/api/Data/ApplicationDbContext.cs | MODIFIED | Updated FluentAPI ReferenceNumber HasMaxLength from 20 to 30 | Phase 1.5.4 DbContext Update | ACTIVE | Never |

@@ -97,7 +97,7 @@ export async function testTicketCancellationPersistence(
       const participation = await DatabaseHelpers.verifyEventParticipation(
         userId,
         eventId,
-        'Registered'
+        1 // 1 = Active
       );
       console.log(`✅ User has active ${participation.participationType} for event`);
 
@@ -211,7 +211,7 @@ export async function testTicketCancellationPersistence(
       const participation = await DatabaseHelpers.verifyEventParticipation(
         userId,
         eventId,
-        'Cancelled'
+        2 // 2 = Cancelled
       );
 
       console.log('✅ Database shows participation status: Cancelled');
@@ -316,7 +316,7 @@ export async function testTicketLifecycle(
     await page.waitForLoadState('networkidle');
 
     // Verify ticket in database
-    await DatabaseHelpers.verifyEventParticipation(userId, eventId, 'Registered');
+    await DatabaseHelpers.verifyEventParticipation(userId, eventId, 1); // 1 = Active
     console.log('✅ Ticket purchased and persisted to database');
   } else {
     console.log('⚠️  User already has ticket, skipping purchase');
@@ -348,7 +348,7 @@ export async function testTicketLifecycle(
   const newParticipation = await DatabaseHelpers.verifyEventParticipation(
     userId,
     eventId,
-    'Registered'
+    1 // 1 = Active
   );
 
   console.log('✅ Ticket re-purchased successfully');

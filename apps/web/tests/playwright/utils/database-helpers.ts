@@ -153,9 +153,20 @@ export interface EventParticipationRecord {
   userId: string;
   eventId: string;
   participationType: 'Ticket' | 'RSVP';
-  status: 'Registered' | 'Confirmed' | 'Cancelled' | 'NoShow';
+  status: 1 | 2 | 3 | 4; // ParticipationStatus enum: 1=Active, 2=Cancelled, 3=Refunded, 4=Waitlisted
   createdAt: Date;
   updatedAt: Date;
+}
+
+// Helper to convert numeric status to readable name
+export function getParticipationStatusName(status: number): string {
+  const statusMap: Record<number, string> = {
+    1: 'Active',
+    2: 'Cancelled',
+    3: 'Refunded',
+    4: 'Waitlisted'
+  };
+  return statusMap[status] || `Unknown(${status})`;
 }
 
 /**
@@ -166,13 +177,13 @@ export interface EventParticipationRecord {
  *
  * @param userId User ID
  * @param eventId Event ID
- * @param expectedStatus Expected participation status
+ * @param expectedStatus Expected participation status (1=Active, 2=Cancelled, 3=Refunded, 4=Waitlisted)
  * @returns Participation record from database
  */
 export async function verifyEventParticipation(
   userId: string,
   eventId: string,
-  expectedStatus: 'Registered' | 'Confirmed' | 'Cancelled' | 'NoShow'
+  expectedStatus: 1 | 2 | 3 | 4
 ): Promise<EventParticipationRecord | null> {
   const sql = `
     SELECT
@@ -192,7 +203,7 @@ export async function verifyEventParticipation(
   const rows = await query<EventParticipationRecord>(sql, [userId, eventId]);
 
   if (rows.length === 0) {
-    if (expectedStatus === 'Cancelled') {
+    if (expectedStatus === 2) { // Cancelled
       // If we expect cancelled, check if record was deleted
       // (some systems delete instead of soft-delete)
       return null;
@@ -205,10 +216,14 @@ export async function verifyEventParticipation(
   const actual = rows[0];
 
   if (actual.status !== expectedStatus) {
+    const expectedName = getParticipationStatusName(expectedStatus);
+    const actualName = getParticipationStatusName(actual.status);
     throw new Error(
-      `Participation status mismatch: expected "${expectedStatus}" but got "${actual.status}"`
+      `Participation status mismatch: expected ${expectedStatus} (${expectedName}) but got ${actual.status} (${actualName})`
     );
   }
+
+  console.log(`✅ Database verification: Status is ${actual.status} (${getParticipationStatusName(actual.status)})`);
 
   return actual;
 }

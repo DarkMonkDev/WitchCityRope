@@ -1208,3 +1208,115 @@ TYPE character varying(30);
 
 ---
 
+## 🚨 CRITICAL: Entity Framework Change Tracking Not Detecting Property Modifications (2025-10-10)
+
+**Problem**: Ticket cancellations appeared successful in UI (200/204 responses) but did NOT persist to database. After refresh, cancelled tickets still showed as active. Critical data integrity issue - users charged for "cancelled" tickets.
+
+**Root Cause**: Entity Framework Core change tracking was not detecting property modifications made by the `Cancel()` method on `EventParticipation` entity. When `participation.Cancel(reason)` was called, it modified multiple properties (Status, CancelledAt, UpdatedAt), but EF Core's automatic change detection didn't pick up these changes in all scenarios, causing `SaveChangesAsync()` to execute without persisting modifications.
+
+**Investigation Process**:
+1. ✅ Endpoint calling service method correctly
+2. ✅ Service method executing `participation.Cancel(reason)`
+3. ✅ `Cancel()` method updating Status to `ParticipationStatus.Cancelled`
+4. ✅ Service calling `await _context.SaveChangesAsync(cancellationToken)`
+5. ❌ Changes NOT persisting to database despite no errors
+
+**Why Automatic Change Tracking Failed**:
+- Entity loaded with tracked query (no `.AsNoTracking()`)
+- `Cancel()` method modified properties via domain logic method
+- EF Core's snapshot-based change detection didn't trigger before SaveChanges
+- No explicit `Update()` call to force change tracking
+
+**Solution - Explicit Update Call**:
+
+```csharp
+// ❌ BEFORE (IMPLICIT CHANGE TRACKING)
+participation.Cancel(reason);
+participation.UpdatedBy = userId;
+
+// Create audit history...
+_context.ParticipationHistory.Add(history);
+
+await _context.SaveChangesAsync(cancellationToken);
+
+// ✅ AFTER (EXPLICIT CHANGE TRACKING)
+participation.Cancel(reason);
+participation.UpdatedBy = userId;
+
+// Explicitly mark entity as modified to ensure EF Core tracks the change
+_context.EventParticipations.Update(participation);
+
+// Create audit history...
+_context.ParticipationHistory.Add(history);
+
+await _context.SaveChangesAsync(cancellationToken);
+```
+
+**When to Use Explicit Update()**:
+1. Entity loaded from database with tracking query
+2. Properties modified via domain logic methods (not direct property setters)
+3. Changes made outside EF Core's automatic change detection window
+4. Working with detached entities that need to be reattached
+5. Ensuring changes persist even if change tracking is unreliable
+
+**Pattern - Explicit Update for Domain Methods**:
+```csharp
+// Load entity (tracked by default)
+var entity = await _context.Entities
+    .Where(e => e.Id == id)
+    .FirstOrDefaultAsync(cancellationToken);
+
+// Modify via domain logic method
+entity.DomainMethod(parameters);
+
+// Explicitly mark as modified (CRITICAL for domain methods)
+_context.Entities.Update(entity);
+
+// Save changes
+await _context.SaveChangesAsync(cancellationToken);
+```
+
+**Related Pattern from Lessons Learned**:
+Similar to "Early Return Validation" lesson (line 555-629) which also required:
+- Explicitly load and track user entity
+- Use `.Update()` on entity to ensure EF Core tracks changes
+- Pattern: `_context.Users.Update(user);`
+
+**Testing Verification**:
+```bash
+# Manual test - Cancel ticket and verify database
+curl -X DELETE 'http://localhost:5173/api/events/{eventId}/participation' -b cookies.txt
+
+# Query database to verify Status = Cancelled
+docker exec -it witchcity-postgres psql -U postgres -d witchcitydb \
+  -c "SELECT \"Id\", \"Status\", \"CancelledAt\" FROM \"EventParticipations\" WHERE \"UserId\" = '{userId}' ORDER BY \"CreatedAt\" DESC LIMIT 1;"
+```
+
+**Prevention**:
+1. **Always use `.Update()`** when modifying entities via domain methods
+2. **Don't rely on automatic change tracking** for domain logic methods
+3. **Test database persistence** after implementing cancellation/update logic
+4. **Add logging** before SaveChanges to verify entity state is Modified
+5. **Check entity tracking state** in debugger: `_context.Entry(entity).State`
+
+**Debugging Checklist When Changes Don't Persist**:
+- [ ] Verify entity loaded with tracking (no `.AsNoTracking()`)
+- [ ] Check if domain method modifies properties
+- [ ] Add explicit `_context.Update(entity)` after modifications
+- [ ] Verify `SaveChangesAsync()` is actually called
+- [ ] Check for exceptions being swallowed
+- [ ] Query database directly to confirm persistence failure
+- [ ] Review entity tracking state before SaveChanges
+
+**File Modified**: `/apps/api/Features/Participation/Services/ParticipationService.cs:332-333`
+
+**Success Criteria**:
+- API builds with 0 errors ✅
+- Ticket cancellations persist to database ✅
+- Refresh page shows correct cancelled status ✅
+- Audit trail created for cancellation ✅
+
+**Tags**: #critical #entity-framework #change-tracking #domain-methods #persistence #ticket-cancellation #data-integrity
+
+---
+

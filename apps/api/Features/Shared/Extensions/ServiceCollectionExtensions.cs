@@ -12,6 +12,7 @@ using WitchCityRope.Api.Features.Vetting.Services;
 using WitchCityRope.Api.Features.Payments.Services;
 using WitchCityRope.Api.Features.Payments.Validators;
 using WitchCityRope.Api.Features.Participation.Services;
+using WitchCityRope.Api.Features.TestHelpers.Services;
 using WitchCityRope.Api.Services;
 
 namespace WitchCityRope.Api.Features.Shared.Extensions;
@@ -95,6 +96,9 @@ public static class ServiceCollectionExtensions
         // Database initialization services
         services.AddScoped<ISeedDataService, SeedDataService>();
         services.AddHostedService<DatabaseInitializationService>();
+
+        // Test Helper services (Development/Test only)
+        services.AddScoped<ITestHelperService, TestHelperService>();
 
         return services;
     }
