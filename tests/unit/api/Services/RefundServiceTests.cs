@@ -293,11 +293,17 @@ public class RefundServiceTests : IAsyncLifetime
             ProcessedByUserId = _testAdminId,
             RefundReason = "First partial refund"
         };
-        payment.Refunds.Add(existingRefund);
+
+        // Update payment status and refund amount
         payment.Status = PaymentStatus.PartiallyRefunded;
         payment.RefundAmountValue = 60.00m;
+        payment.RefundedAt = DateTime.UtcNow;
 
-        _context.Payments.Add(payment);
+        // Save payment changes first
+        await _context.SaveChangesAsync();
+
+        // Add refund to database (payment already exists from CreateCompletedPaymentWithEntities)
+        _context.PaymentRefunds.Add(existingRefund);
         await _context.SaveChangesAsync();
 
         // Try to refund $50 more (total would be $110, exceeding $100)
@@ -518,7 +524,8 @@ public class RefundServiceTests : IAsyncLifetime
             RefundReason = "Failed refund attempt"
         };
 
-        payment.Refunds.AddRange(new[] { refund1, refund2, failedRefund });
+        // Add refunds to database (not just the collection)
+        _context.PaymentRefunds.AddRange(refund1, refund2, failedRefund);
         await _context.SaveChangesAsync();
 
         // Act

@@ -208,10 +208,12 @@ public class Payment
 
     /// <summary>
     /// Check if payment is eligible for refund
+    /// Allows refunds on Completed payments (first refund) and PartiallyRefunded payments (subsequent refunds)
     /// </summary>
     public bool IsRefundEligible()
     {
-        return Status == PaymentStatus.Completed && ProcessedAt.HasValue;
+        return (Status == PaymentStatus.Completed || Status == PaymentStatus.PartiallyRefunded)
+               && ProcessedAt.HasValue;
     }
 
     /// <summary>
