@@ -83,6 +83,7 @@ export const SecurityPage: React.FC = () => {
       <Stack gap="lg">
         {/* Change Password Section */}
         <Paper
+          data-testid="password-change-section"
           style={{
             background: '#FFF8F0',
             padding: '16px',
@@ -294,6 +295,7 @@ export const SecurityPage: React.FC = () => {
 
           <Stack gap="md">
             <Paper
+              data-testid="profile-visibility-card"
               style={{
                 background: '#FAF6F2',
                 padding: '16px',
