@@ -677,3 +677,4 @@
 /home/chad/repos/witchcityrope/tests/WitchCityRope.Tests.Common/obj/Debug/net9.0/WitchCityRope.Tests.Common.pdb
 /home/chad/repos/witchcityrope/tests/WitchCityRope.Tests.Common/obj/Debug/net9.0/WitchCityRope.Tests.Common.genruntimeconfig.cache
 /home/chad/repos/witchcityrope/tests/WitchCityRope.Tests.Common/obj/Debug/net9.0/ref/WitchCityRope.Tests.Common.dll
+/home/chad/repos/witchcityrope/tests/WitchCityRope.Tests.Common/bin/Debug/net9.0/openapi.json
