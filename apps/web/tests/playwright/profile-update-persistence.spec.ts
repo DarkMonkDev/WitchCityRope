@@ -1,4 +1,10 @@
 import { test, expect } from '@playwright/test';
+import {
+  createTestUser,
+  generateUniqueTestEmail,
+  cleanupTestUser,
+  type TestUser
+} from './utils/database-helpers';
 
 /**
  * Profile Update Persistence Test
@@ -15,20 +21,31 @@ import { test, expect } from '@playwright/test';
  * - PUT request sent to /api/users/{userId}/profile
  * - Database updated with ALL new values including firstName, lastName, bio, discordName, fetLifeName
  * - Changes persist after page refresh
+ *
+ * RACE CONDITION FIX: Uses unique test user to prevent interference from other tests
  */
 
 test.describe('Profile Update Persistence', () => {
   test('should persist profile changes after save and page refresh', async ({ page }) => {
     console.log('🚀 Starting profile update persistence test...');
 
-    // Step 1: Login as admin user
-    console.log('📍 Step 1: Navigating to login page...');
-    await page.goto('http://localhost:5173/login');
+    // Create unique test user to prevent race conditions
+    const testUser = await createTestUser({
+      email: generateUniqueTestEmail('profile-persist'),
+      password: 'Test123!',
+      sceneName: `TestUser${Date.now()}`,
+      membershipLevel: 'Admin'
+    });
 
-    // Fill in login form
-    console.log('📍 Step 2: Filling login form...');
-    await page.locator('[data-testid="email-input"]').fill('admin@witchcityrope.com');
-    await page.locator('[data-testid="password-input"]').fill('Test123!');
+    try {
+      // Step 1: Login with test user
+      console.log('📍 Step 1: Navigating to login page...');
+      await page.goto('http://localhost:5173/login');
+
+      // Fill in login form
+      console.log('📍 Step 2: Filling login form...');
+      await page.locator('[data-testid="email-input"]').fill(testUser.email);
+      await page.locator('[data-testid="password-input"]').fill(testUser.password);
 
     // Submit login
     console.log('📍 Step 3: Submitting login...');
@@ -195,26 +212,39 @@ test.describe('Profile Update Persistence', () => {
       bio: persistedBio
     });
 
-    // CRITICAL ASSERTIONS: These verify the database migration fix worked
-    console.log('📍 Step 16: Asserting persistence of all fields...');
-    expect(persistedSceneName).toBe(newSceneName);
-    expect(persistedFirstName).toBe(newFirstName);
-    expect(persistedLastName).toBe(newLastName);
-    expect(persistedPronouns).toBe(newPronouns);
-    expect(persistedBio).toBe(newBio);
+      // CRITICAL ASSERTIONS: These verify the database migration fix worked
+      console.log('📍 Step 16: Asserting persistence of all fields...');
+      expect(persistedSceneName).toBe(newSceneName);
+      expect(persistedFirstName).toBe(newFirstName);
+      expect(persistedLastName).toBe(newLastName);
+      expect(persistedPronouns).toBe(newPronouns);
+      expect(persistedBio).toBe(newBio);
 
-    console.log('🎉 TEST PASSED: All profile changes persisted successfully!');
-    console.log('✅ Database migration fix verified: firstName, lastName, bio now persist correctly');
+      console.log('🎉 TEST PASSED: All profile changes persisted successfully!');
+      console.log('✅ Database migration fix verified: firstName, lastName, bio now persist correctly');
+    } finally {
+      // Always cleanup test user, even if test fails
+      await cleanupTestUser(testUser.id);
+    }
   });
 
   test('should verify database was actually updated', async ({ page, request }) => {
     console.log('🚀 Starting database update verification test...');
 
-    // Step 1: Login to get authentication
-    console.log('📍 Step 1: Logging in...');
-    await page.goto('http://localhost:5173/login');
-    await page.locator('[data-testid="email-input"]').fill('admin@witchcityrope.com');
-    await page.locator('[data-testid="password-input"]').fill('Test123!');
+    // Create unique test user to prevent race conditions
+    const testUser = await createTestUser({
+      email: generateUniqueTestEmail('profile-db-verify'),
+      password: 'Test123!',
+      sceneName: `DbVerifyTest${Date.now()}`,
+      membershipLevel: 'Admin'
+    });
+
+    try {
+      // Step 1: Login to get authentication
+      console.log('📍 Step 1: Logging in...');
+      await page.goto('http://localhost:5173/login');
+      await page.locator('[data-testid="email-input"]').fill(testUser.email);
+      await page.locator('[data-testid="password-input"]').fill(testUser.password);
     await page.locator('[data-testid="login-button"]').click();
     await page.waitForURL('**/dashboard', { timeout: 10000 });
 
@@ -239,29 +269,33 @@ test.describe('Profile Update Persistence', () => {
 
     console.log('👤 User ID:', userId);
 
-    if (userId) {
-      // Make direct API call to verify database state
-      const apiResponse = await request.get(`http://localhost:5655/api/users/${userId}/profile`, {
-        headers: {
-          'Cookie': cookies.map(c => `${c.name}=${c.value}`).join('; ')
+      if (userId) {
+        // Make direct API call to verify database state
+        const apiResponse = await request.get(`http://localhost:5655/api/users/${userId}/profile`, {
+          headers: {
+            'Cookie': cookies.map(c => `${c.name}=${c.value}`).join('; ')
+          }
+        });
+
+        const apiData = await apiResponse.json();
+        console.log('📡 Direct API response:', JSON.stringify(apiData, null, 2));
+
+        expect(apiResponse.status()).toBe(200);
+        console.log('✅ Direct API call successful');
+
+        // Verify the response has the new fields
+        if (apiData.data) {
+          console.log('📊 Profile data fields present:');
+          console.log('  - firstName:', apiData.data.firstName ?? '(not set)');
+          console.log('  - lastName:', apiData.data.lastName ?? '(not set)');
+          console.log('  - bio:', apiData.data.bio ?? '(not set)');
+          console.log('  - discordName:', apiData.data.discordName ?? '(not set)');
+          console.log('  - fetLifeName:', apiData.data.fetLifeName ?? '(not set)');
         }
-      });
-
-      const apiData = await apiResponse.json();
-      console.log('📡 Direct API response:', JSON.stringify(apiData, null, 2));
-
-      expect(apiResponse.status()).toBe(200);
-      console.log('✅ Direct API call successful');
-
-      // Verify the response has the new fields
-      if (apiData.data) {
-        console.log('📊 Profile data fields present:');
-        console.log('  - firstName:', apiData.data.firstName ?? '(not set)');
-        console.log('  - lastName:', apiData.data.lastName ?? '(not set)');
-        console.log('  - bio:', apiData.data.bio ?? '(not set)');
-        console.log('  - discordName:', apiData.data.discordName ?? '(not set)');
-        console.log('  - fetLifeName:', apiData.data.fetLifeName ?? '(not set)');
       }
+    } finally {
+      // Always cleanup test user, even if test fails
+      await cleanupTestUser(testUser.id);
     }
   });
 });

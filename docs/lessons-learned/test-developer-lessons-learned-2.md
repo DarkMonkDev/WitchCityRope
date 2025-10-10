@@ -565,44 +565,57 @@ await page.goto('/login');
 - API (.NET): http://localhost:5655 (Docker container)
 - Database: localhost:5433 (Docker container)
 
-### Profile Test Race Conditions
+### Profile Test Race Conditions (MIGRATED - October 2025)
 **Problem**: Multiple tests using shared `member@witchcityrope.com` account causing data conflicts and flaky tests.
 **Solution**: Create unique test user per test using database helpers.
+
+**STATUS**: ✅ **ALL 16 PROFILE TESTS MIGRATED** to use unique users (October 9, 2025)
+- profile-update-full-persistence.spec.ts: 14 tests migrated
+- profile-update-persistence.spec.ts: 2 tests migrated
 
 ```typescript
 // ❌ WRONG - Shared account (race condition)
 await testProfileUpdatePersistence(page, {
-  userEmail: 'member@witchcityrope.com',
+  userEmail: 'member@witchcityrope.com',  // SHARED - causes race conditions
   userPassword: 'Test123!',
   updatedFields: { firstName: `Test${Date.now()}` }
 });
 
-// ✅ CORRECT - Unique user per test
-import { createTestUser, generateUniqueTestEmail, cleanupTestUser } from './utils/database-helpers';
+// ✅ CORRECT - Unique user per test (October 2025 pattern)
+import { createTestUser, generateUniqueTestEmail, cleanupTestUser, type TestUser } from './utils/database-helpers';
 
-const uniqueEmail = generateUniqueTestEmail('profile-test');
-await createTestUser({
-  email: uniqueEmail,
-  password: 'Test123!',
-  sceneName: 'Test User',
-  membershipLevel: 'Member'
-});
-
-try {
-  await testProfileUpdatePersistence(page, {
-    userEmail: uniqueEmail,
-    userPassword: 'Test123!',
-    updatedFields: { firstName: 'Updated Name' }
+test('should persist profile update', async ({ page }) => {
+  const testUser = await createTestUser({
+    email: generateUniqueTestEmail('profile-test'),
+    password: 'Test123!',
+    sceneName: `TestUser${Date.now()}`,
+    membershipLevel: 'Member'
   });
-} finally {
-  await cleanupTestUser(uniqueEmail);
-}
+
+  try {
+    await testProfileUpdatePersistence(page, {
+      userEmail: testUser.email,
+      userPassword: testUser.password,
+      updatedFields: { firstName: 'Updated Name' }
+    });
+  } finally {
+    // Always cleanup, even if test fails
+    await cleanupTestUser(testUser.id);
+  }
+});
 ```
 
-**Database Helper Functions**:
-- `createTestUser(options)` - Create unique test user with proper password hash
+**Database Helper Functions** (Updated October 2025):
+- `createTestUser(options): Promise<TestUser>` - Returns `{id, email, password, sceneName}`
 - `generateUniqueTestEmail(prefix)` - Generate unique email with timestamp
-- `cleanupTestUser(email)` - Delete test user after test completes
+- `cleanupTestUser(emailOrId)` - Accepts either email OR user ID for cleanup
+- `TestUser` interface - Type-safe user object
+
+**CRITICAL: ASP.NET Core Identity Password Hashing**:
+- Password hashes are unique per user (includes salt in hash)
+- Cannot reuse password hash from one user for another
+- Use registration API OR ASP.NET Core PasswordHasher for proper hashing
+- Direct database insertion requires SecurityStamp and ConcurrencyStamp
 
 **Why This Matters**:
 1. Parallel test runs: Multiple tests updating same user data simultaneously
@@ -610,6 +623,8 @@ try {
 3. Test B updates firstName to "Test1728502346" (overwrites Test A)
 4. Test A refresh verification fails (expects different firstName)
 5. Result: Flaky tests that fail randomly
+
+**Migration Complete**: All profile tests now use unique users, eliminating race conditions.
 
 ## Quick Reference
 

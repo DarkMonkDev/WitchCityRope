@@ -493,15 +493,21 @@ export interface TestUserOptions {
   membershipLevel?: 'Guest' | 'Member' | 'VettedMember' | 'Teacher' | 'Admin';
 }
 
+export interface TestUser {
+  id: string;
+  email: string;
+  password: string;
+  sceneName: string;
+}
+
 /**
- * Create a unique test user for profile tests
+ * Create a unique test user for profile tests via registration API
  * CRITICAL: Prevents race conditions when multiple tests use same account
  *
  * @param options Test user configuration
- * @returns User ID of created user
+ * @returns Test user object with id, email, password
  */
-export async function createTestUser(options: TestUserOptions): Promise<string> {
-  const userId = crypto.randomUUID();
+export async function createTestUser(options: TestUserOptions): Promise<TestUser> {
   const {
     email,
     password,
@@ -511,33 +517,46 @@ export async function createTestUser(options: TestUserOptions): Promise<string> 
     membershipLevel = 'Member'
   } = options;
 
-  // Note: Password should be hashed in production
-  // For tests, we use a known test password hash
-  const sql = `
-    INSERT INTO "Users" (
-      "Id", "Email", "PasswordHash", "SceneName",
-      "FirstName", "LastName", "MembershipLevel",
-      "EmailConfirmed", "IsActive", "CreatedAt", "UpdatedAt"
-    )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, true, true, NOW(), NOW())
-    RETURNING "Id"
-  `;
+  try {
+    // Use registration API to create user with proper password hashing
+    const response = await fetch('http://localhost:5655/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        password,
+        sceneName,
+        dateOfBirth: '1990-01-01',
+        // Required fields for registration
+        role: membershipLevel,
+        agreeToTerms: true
+      })
+    });
 
-  // This is a known hash for "Test123!" - matches seed data password
-  const testPasswordHash = '$2a$11$KxW5J5F9T9jV7hZN5jZ7ZOqX5Y5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5';
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to create test user: ${response.status} ${errorText}`);
+    }
 
-  const rows = await query<{ Id: string }>(sql, [
-    userId,
-    email,
-    testPasswordHash,
-    sceneName,
-    firstName,
-    lastName,
-    membershipLevel
-  ]);
+    const result = await response.json();
+    const userId = result.data?.id || result.data?.userId || result.userId;
 
-  console.log(`✅ Created test user: ${email} (ID: ${userId})`);
-  return rows[0].Id;
+    if (!userId) {
+      throw new Error(`No user ID returned from registration: ${JSON.stringify(result)}`);
+    }
+
+    console.log(`✅ Created test user via API: ${email} (ID: ${userId})`);
+
+    return {
+      id: userId,
+      email,
+      password,
+      sceneName
+    };
+  } catch (error) {
+    console.error(`❌ Failed to create test user:`, error);
+    throw error;
+  }
 }
 
 /**
@@ -569,10 +588,18 @@ export async function cleanupTestData(tableName: string, ids: string[]): Promise
 
 /**
  * Cleanup test user profile data
+ * Accepts either email or user ID for flexible cleanup
  */
-export async function cleanupTestUser(email: string): Promise<void> {
-  const sql = `DELETE FROM "Users" WHERE "Email" = $1`;
-  await query(sql, [email]);
+export async function cleanupTestUser(emailOrId: string): Promise<void> {
+  // Check if it's a UUID (user ID) or email
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(emailOrId);
+
+  const sql = isUuid
+    ? `DELETE FROM "Users" WHERE "Id" = $1`
+    : `DELETE FROM "Users" WHERE "Email" = $1`;
+
+  await query(sql, [emailOrId]);
+  console.log(`🗑️ Cleaned up test user: ${emailOrId}`);
 }
 
 // Export all helper functions

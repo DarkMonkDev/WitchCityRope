@@ -1,36 +1,14 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 test.describe('Admin Events Management Workflow', () => {
   test('Complete admin events management workflow test', async ({ page }) => {
     console.log('🚀 Starting comprehensive admin events workflow test...');
-    
-    // Step 1: Navigate to login page and capture screenshot
-    await page.goto('http://localhost:5173/login');
-    await page.waitForLoadState('networkidle');
-    await page.screenshot({ path: 'test-results/01-login-page.png', fullPage: true });
-    console.log('✅ Login page loaded and captured');
-    
-    // Step 2: Verify login form elements exist
-    const emailInput = page.locator('[data-testid="email-input"]');
-    const passwordInput = page.locator('[data-testid="password-input"]');
-    const loginButton = page.locator('[data-testid="login-button"]');
-    
-    await expect(emailInput).toBeVisible();
-    await expect(passwordInput).toBeVisible(); 
-    await expect(loginButton).toBeVisible();
-    console.log('✅ All login form elements visible');
-    
-    // Step 3: Login as admin user
-    await emailInput.fill('admin@witchcityrope.com');
-    await passwordInput.fill('Test123!');
-    await page.screenshot({ path: 'test-results/02-login-filled.png', fullPage: true });
-    
-    await loginButton.click();
-    console.log('✅ Login form submitted');
-    
-    // Step 4: Wait for navigation and check for admin navigation
-    await page.waitForURL('**/dashboard', { timeout: 10000 });
-    await page.waitForLoadState('networkidle');
+
+    // Step 1: Login as admin using AuthHelpers
+    await AuthHelpers.loginAs(page, 'admin');
+    console.log('✅ Logged in as admin successfully');
+
     await page.screenshot({ path: 'test-results/03-dashboard-after-login.png', fullPage: true });
     
     // Check if Admin link appears in navigation

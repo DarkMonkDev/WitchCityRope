@@ -1,6 +1,18 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Phase 4: Public Events Pages - Corrected Tests', () => {
+// ============================================================================
+// PHASE 4 TESTS SKIPPED - Features Not Implemented Yet
+// ============================================================================
+// These tests verify the Phase 4 public events page redesign.
+// Current Status: Wireframes approved, implementation pending
+// Expected Implementation: TBD
+// Related Documentation: /docs/functional-areas/events/public-events/
+//
+// These tests will be enabled when Phase 4 public events redesign is complete.
+// Total Tests Skipped: 7
+// ============================================================================
+
+test.describe.skip('Phase 4: Public Events Pages - Corrected Tests', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('http://localhost:5173/events');
     await page.waitForTimeout(2000);

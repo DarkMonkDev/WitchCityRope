@@ -1,7 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 test.describe('Admin Events Table UI Check', () => {
   test('verify admin events table layout fixes', async ({ page }) => {
+    // Login as admin using AuthHelpers
+    await AuthHelpers.loginAs(page, 'admin');
+    console.log('✅ Logged in as admin successfully');
+
     // Navigate to admin events page
     await page.goto('http://localhost:5173/admin/events');
 

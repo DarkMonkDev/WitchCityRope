@@ -1,23 +1,13 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 test.describe('Event Session Matrix System Test', () => {
   test('Test complete Event Session Matrix functionality', async ({ page }) => {
     console.log('🚀 Testing Event Session Matrix system...');
-    
-    // Step 1: Login as admin
-    await page.goto('http://localhost:5173/login');
-    await page.waitForLoadState('networkidle');
-    
-    const emailInput = page.locator('[data-testid="email-input"]');
-    const passwordInput = page.locator('[data-testid="password-input"]');
-    const loginButton = page.locator('[data-testid="login-button"]');
-    
-    await emailInput.fill('admin@witchcityrope.com');
-    await passwordInput.fill('Test123!');
-    await loginButton.click();
-    await page.waitForURL('**/dashboard', { timeout: 10000 });
-    await page.waitForLoadState('networkidle');
-    console.log('✅ Logged in successfully');
+
+    // Step 1: Login as admin using AuthHelpers
+    await AuthHelpers.loginAs(page, 'admin');
+    console.log('✅ Logged in as admin successfully');
     
     // Step 2: Navigate to admin events page
     await page.goto('http://localhost:5173/admin/events');

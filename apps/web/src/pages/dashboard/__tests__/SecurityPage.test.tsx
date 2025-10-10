@@ -8,9 +8,7 @@ import { SecurityPage } from '../SecurityPage'
 const createWrapper = () => {
   return ({ children }: { children: React.ReactNode }) => (
     <MantineProvider>
-      <BrowserRouter>
-        {children}
-      </BrowserRouter>
+      <BrowserRouter>{children}</BrowserRouter>
     </MantineProvider>
   )
 }
@@ -52,7 +50,9 @@ describe('SecurityPage', () => {
       expect(screen.getByText('At least 8 characters long')).toBeInTheDocument()
       expect(screen.getByText('Include uppercase and lowercase letters')).toBeInTheDocument()
       expect(screen.getByText('Include at least one number')).toBeInTheDocument()
-      expect(screen.getByText('Include at least one special character (!@#$%^&*)')).toBeInTheDocument()
+      expect(
+        screen.getByText('Include at least one special character (!@#$%^&*)')
+      ).toBeInTheDocument()
     })
 
     it('should validate current password is required', async () => {
@@ -100,7 +100,9 @@ describe('SecurityPage', () => {
       await user.click(submitButton)
 
       await waitFor(() => {
-        expect(screen.getByText('Password must contain uppercase and lowercase letters')).toBeInTheDocument()
+        expect(
+          screen.getByText('Password must contain uppercase and lowercase letters')
+        ).toBeInTheDocument()
       })
 
       // Test missing number
@@ -118,7 +120,9 @@ describe('SecurityPage', () => {
       await user.click(submitButton)
 
       await waitFor(() => {
-        expect(screen.getByText('Password must contain at least one special character')).toBeInTheDocument()
+        expect(
+          screen.getByText('Password must contain at least one special character')
+        ).toBeInTheDocument()
       })
     })
 
@@ -177,7 +181,9 @@ describe('SecurityPage', () => {
       render(<SecurityPage />, { wrapper: createWrapper() })
 
       expect(screen.getByText('Two-Factor Authentication Enabled')).toBeInTheDocument()
-      expect(screen.getByText('Your account is protected with 2FA using your authenticator app')).toBeInTheDocument()
+      expect(
+        screen.getByText('Your account is protected with 2FA using your authenticator app')
+      ).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Disable 2FA' })).toBeInTheDocument()
     })
 
@@ -194,7 +200,9 @@ describe('SecurityPage', () => {
       })
 
       // Should switch to disabled state
-      expect(screen.getByText('Two-Factor Authentication is disabled. Enable it for better security.')).toBeInTheDocument()
+      expect(
+        screen.getByText('Two-Factor Authentication is disabled. Enable it for better security.')
+      ).toBeInTheDocument()
       expect(screen.queryByText('Two-Factor Authentication Enabled')).not.toBeInTheDocument()
 
       consoleSpy.mockRestore()
@@ -206,26 +214,32 @@ describe('SecurityPage', () => {
       render(<SecurityPage />, { wrapper: createWrapper() })
 
       // Profile Visibility - should be enabled by default
-      const profileToggle = screen.getByRole('checkbox', { name: /Profile Visibility/ })
+      const profileToggle = screen.getByRole('switch', { name: /Profile Visibility/ })
       expect(profileToggle).toBeChecked()
-      expect(screen.getByText('Make your profile visible to other community members')).toBeInTheDocument()
+      expect(
+        screen.getByText('Make your profile visible to other community members')
+      ).toBeInTheDocument()
 
-      // Event Attendance Visibility - should be disabled by default  
-      const eventToggle = screen.getByRole('checkbox', { name: /Event Attendance Visibility/ })
+      // Event Attendance Visibility - should be disabled by default
+      const eventToggle = screen.getByRole('switch', { name: /Event Attendance Visibility/ })
       expect(eventToggle).not.toBeChecked()
-      expect(screen.getByText('Show which events you\'re attending to other members')).toBeInTheDocument()
+      expect(
+        screen.getByText("Show which events you're attending to other members")
+      ).toBeInTheDocument()
 
       // Contact Information - should be disabled by default
-      const contactToggle = screen.getByRole('checkbox', { name: /Contact Information/ })
+      const contactToggle = screen.getByRole('switch', { name: /Contact Information/ })
       expect(contactToggle).not.toBeChecked()
-      expect(screen.getByText('Allow other vetted members to see your contact details')).toBeInTheDocument()
+      expect(
+        screen.getByText('Allow other vetted members to see your contact details')
+      ).toBeInTheDocument()
     })
 
     it('should toggle profile visibility setting', async () => {
       const user = userEvent.setup()
       render(<SecurityPage />, { wrapper: createWrapper() })
 
-      const profileToggle = screen.getByRole('checkbox', { name: /Profile Visibility/ })
+      const profileToggle = screen.getByRole('switch', { name: /Profile Visibility/ })
       expect(profileToggle).toBeChecked()
 
       await user.click(profileToggle)
@@ -239,7 +253,7 @@ describe('SecurityPage', () => {
       const user = userEvent.setup()
       render(<SecurityPage />, { wrapper: createWrapper() })
 
-      const eventToggle = screen.getByRole('checkbox', { name: /Event Attendance Visibility/ })
+      const eventToggle = screen.getByRole('switch', { name: /Event Attendance Visibility/ })
       expect(eventToggle).not.toBeChecked()
 
       await user.click(eventToggle)
@@ -253,7 +267,7 @@ describe('SecurityPage', () => {
       const user = userEvent.setup()
       render(<SecurityPage />, { wrapper: createWrapper() })
 
-      const contactToggle = screen.getByRole('checkbox', { name: /Contact Information/ })
+      const contactToggle = screen.getByRole('switch', { name: /Contact Information/ })
       expect(contactToggle).not.toBeChecked()
 
       await user.click(contactToggle)
@@ -267,9 +281,9 @@ describe('SecurityPage', () => {
       const user = userEvent.setup()
       render(<SecurityPage />, { wrapper: createWrapper() })
 
-      const profileToggle = screen.getByRole('checkbox', { name: /Profile Visibility/ })
-      const eventToggle = screen.getByRole('checkbox', { name: /Event Attendance Visibility/ })
-      const contactToggle = screen.getByRole('checkbox', { name: /Contact Information/ })
+      const profileToggle = screen.getByRole('switch', { name: /Profile Visibility/ })
+      const eventToggle = screen.getByRole('switch', { name: /Event Attendance Visibility/ })
+      const contactToggle = screen.getByRole('switch', { name: /Contact Information/ })
 
       // Toggle each one individually
       await user.click(eventToggle)
@@ -318,7 +332,9 @@ describe('SecurityPage', () => {
       render(<SecurityPage />, { wrapper: createWrapper() })
 
       // Get one of the paper sections (password change section)
-      const passwordSection = screen.getByText('Change Password').closest('div[style*="background: #FFF8F0"]')
+      const passwordSection = screen
+        .getByText('Change Password')
+        .closest('div[style*="background: #FFF8F0"]')
       expect(passwordSection).toBeInTheDocument()
 
       // Fire mouse events to test hover behavior
@@ -334,7 +350,9 @@ describe('SecurityPage', () => {
       render(<SecurityPage />, { wrapper: createWrapper() })
 
       // Get one of the privacy setting cards
-      const profileCard = screen.getByText('Profile Visibility').closest('div[style*="background: #FAF6F2"]')
+      const profileCard = screen
+        .getByText('Profile Visibility')
+        .closest('div[style*="background: #FAF6F2"]')
       expect(profileCard).toBeInTheDocument()
 
       // Fire mouse events to test hover behavior
@@ -357,9 +375,11 @@ describe('SecurityPage', () => {
       expect(screen.getByLabelText('Confirm New Password')).toBeInTheDocument()
 
       // All toggle switches should have accessible names
-      expect(screen.getByRole('checkbox', { name: /Profile Visibility/ })).toBeInTheDocument()
-      expect(screen.getByRole('checkbox', { name: /Event Attendance Visibility/ })).toBeInTheDocument()
-      expect(screen.getByRole('checkbox', { name: /Contact Information/ })).toBeInTheDocument()
+      expect(screen.getByRole('switch', { name: /Profile Visibility/ })).toBeInTheDocument()
+      expect(
+        screen.getByRole('switch', { name: /Event Attendance Visibility/ })
+      ).toBeInTheDocument()
+      expect(screen.getByRole('switch', { name: /Contact Information/ })).toBeInTheDocument()
     })
 
     it('should have required attributes on password inputs', () => {

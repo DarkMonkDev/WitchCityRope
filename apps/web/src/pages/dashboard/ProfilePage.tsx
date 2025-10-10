@@ -1,16 +1,16 @@
-import React from 'react';
-import { Box, Title, Text, Paper, TextInput, Group, Stack, Alert, Loader } from '@mantine/core';
-import { useForm } from '@mantine/form';
-import { useCurrentUser } from '../../features/auth/api/queries';
-import { DashboardLayout } from '../../components/dashboard/DashboardLayout';
-import type { UserDto } from '@witchcityrope/shared-types';
+import React from 'react'
+import { Box, Title, Text, Paper, TextInput, Group, Stack, Alert, Loader } from '@mantine/core'
+import { useForm } from '@mantine/form'
+import { useCurrentUser } from '../../features/auth/api/queries'
+import { DashboardLayout } from '../../components/dashboard/DashboardLayout'
+import type { UserDto } from '@witchcityrope/shared-types'
 
 /**
  * Profile Page - User profile management with API integration
  * Uses real API data via TanStack Query hooks
  */
 export const ProfilePage: React.FC = () => {
-  const { data: user, isLoading, error } = useCurrentUser();
+  const { data: user, isLoading, error } = useCurrentUser()
 
   // Form for profile updates - prepopulated with user data
   const profileForm = useForm<Partial<UserDto>>({
@@ -21,17 +21,17 @@ export const ProfilePage: React.FC = () => {
     },
     validate: {
       sceneName: (value) => {
-        if (!value || value.length < 2) return 'Scene name must be at least 2 characters';
-        if (value.length > 50) return 'Scene name must be less than 50 characters';
-        return null;
+        if (!value || value.length < 2) return 'Scene name must be at least 2 characters'
+        if (value.length > 50) return 'Scene name must be less than 50 characters'
+        return null
       },
       email: (value) => {
-        if (!value) return 'Email is required';
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Invalid email format';
-        return null;
+        if (!value) return 'Email is required'
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Invalid email format'
+        return null
       },
     },
-  });
+  })
 
   // Update form when user data loads
   React.useEffect(() => {
@@ -39,15 +39,16 @@ export const ProfilePage: React.FC = () => {
       profileForm.setValues({
         sceneName: user.sceneName || '',
         email: user.email || '',
-      });
+      })
     }
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user])
 
   const handleProfileSubmit = (values: Partial<UserDto>) => {
     // TODO: Implement profile update API call using mutation
-    console.log('Profile update submitted:', values);
+    console.log('Profile update submitted:', values)
     // For now, just show the data that would be submitted
-  };
+  }
 
   if (isLoading) {
     return (
@@ -67,14 +68,14 @@ export const ProfilePage: React.FC = () => {
           >
             Profile
           </Title>
-          
+
           <Box style={{ textAlign: 'center', padding: '40px' }}>
             <Loader size="lg" color="#880124" data-testid="profile-loader" />
             <Text style={{ marginTop: '16px', color: '#8B8680' }}>Loading your profile...</Text>
           </Box>
         </Box>
       </DashboardLayout>
-    );
+    )
   }
 
   if (error) {
@@ -95,13 +96,19 @@ export const ProfilePage: React.FC = () => {
           >
             Profile
           </Title>
-          
-          <Alert color="red" style={{ background: 'rgba(220, 20, 60, 0.1)', border: '1px solid rgba(220, 20, 60, 0.3)' }}>
+
+          <Alert
+            color="red"
+            style={{
+              background: 'rgba(220, 20, 60, 0.1)',
+              border: '1px solid rgba(220, 20, 60, 0.3)',
+            }}
+          >
             Failed to load your profile. Please try refreshing the page.
           </Alert>
         </Box>
       </DashboardLayout>
-    );
+    )
   }
 
   return (
@@ -123,17 +130,18 @@ export const ProfilePage: React.FC = () => {
         </Title>
 
         {/* Note about future functionality */}
-        <Alert 
-          color="blue" 
-          mb="xl" 
-          style={{ 
-            background: 'rgba(59, 130, 246, 0.1)', 
+        <Alert
+          color="blue"
+          mb="xl"
+          style={{
+            background: 'rgba(59, 130, 246, 0.1)',
             border: '1px solid rgba(59, 130, 246, 0.3)',
-            borderRadius: '6px'
+            borderRadius: '6px',
           }}
         >
           <Text style={{ fontSize: '14px' }}>
-            <strong>Note:</strong> Profile updates are not yet connected to the API. Form validation is active, but changes won't be saved until the update mutation is implemented.
+            <strong>Note:</strong> Profile updates are not yet connected to the API. Form validation
+            is active, but changes won't be saved until the update mutation is implemented.
           </Text>
         </Alert>
 
@@ -146,12 +154,12 @@ export const ProfilePage: React.FC = () => {
               transition: 'all 0.3s ease',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.05)';
-              e.currentTarget.style.transform = 'translateX(2px)';
+              e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.05)'
+              e.currentTarget.style.transform = 'translateX(2px)'
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = 'none';
-              e.currentTarget.style.transform = 'translateX(0)';
+              e.currentTarget.style.boxShadow = 'none'
+              e.currentTarget.style.transform = 'translateX(0)'
             }}
           >
             <Title
@@ -173,6 +181,7 @@ export const ProfilePage: React.FC = () => {
               <Stack gap="md">
                 <Group grow>
                   <TextInput
+                    id="scene-name-input"
                     label="Scene Name"
                     placeholder="Your community name"
                     required
@@ -202,6 +211,7 @@ export const ProfilePage: React.FC = () => {
                   />
 
                   <TextInput
+                    id="email-address-input"
                     label="Email Address"
                     placeholder="your.email@example.com"
                     type="email"
@@ -251,12 +261,12 @@ export const ProfilePage: React.FC = () => {
               transition: 'all 0.3s ease',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.05)';
-              e.currentTarget.style.transform = 'translateX(2px)';
+              e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.05)'
+              e.currentTarget.style.transform = 'translateX(2px)'
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = 'none';
-              e.currentTarget.style.transform = 'translateX(0)';
+              e.currentTarget.style.boxShadow = 'none'
+              e.currentTarget.style.transform = 'translateX(0)'
             }}
           >
             <Title
@@ -329,11 +339,13 @@ export const ProfilePage: React.FC = () => {
                         color: '#8B8680',
                       }}
                     >
-                      {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      }) : 'Not available'}
+                      {user?.createdAt
+                        ? new Date(user.createdAt).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          })
+                        : 'Not available'}
                     </Text>
                   </Box>
                 </Group>
@@ -391,12 +403,12 @@ export const ProfilePage: React.FC = () => {
               transition: 'all 0.3s ease',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.05)';
-              e.currentTarget.style.transform = 'translateX(2px)';
+              e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.05)'
+              e.currentTarget.style.transform = 'translateX(2px)'
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = 'none';
-              e.currentTarget.style.transform = 'translateX(0)';
+              e.currentTarget.style.boxShadow = 'none'
+              e.currentTarget.style.transform = 'translateX(0)'
             }}
           >
             <Title
@@ -430,14 +442,23 @@ export const ProfilePage: React.FC = () => {
                   marginBottom: '16px',
                 }}
               >
-                Your scene name is how other community members will know you. Please choose something that:
+                Your scene name is how other community members will know you. Please choose
+                something that:
               </Text>
-              
+
               <Box component="ul" style={{ margin: 0, paddingLeft: '20px', color: '#4A4A4A' }}>
-                <li style={{ marginBottom: '8px', fontSize: '14px' }}>Represents you authentically in the rope community</li>
-                <li style={{ marginBottom: '8px', fontSize: '14px' }}>Respects our community values and guidelines</li>
-                <li style={{ marginBottom: '8px', fontSize: '14px' }}>Is appropriate for all community events and interactions</li>
-                <li style={{ marginBottom: '8px', fontSize: '14px' }}>Does not impersonate others or organizations</li>
+                <li style={{ marginBottom: '8px', fontSize: '14px' }}>
+                  Represents you authentically in the rope community
+                </li>
+                <li style={{ marginBottom: '8px', fontSize: '14px' }}>
+                  Respects our community values and guidelines
+                </li>
+                <li style={{ marginBottom: '8px', fontSize: '14px' }}>
+                  Is appropriate for all community events and interactions
+                </li>
+                <li style={{ marginBottom: '8px', fontSize: '14px' }}>
+                  Does not impersonate others or organizations
+                </li>
               </Box>
 
               <Text
@@ -455,5 +476,5 @@ export const ProfilePage: React.FC = () => {
         </Stack>
       </Box>
     </DashboardLayout>
-  );
-};
+  )
+}

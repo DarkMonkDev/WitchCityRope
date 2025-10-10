@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { Box, Title, Text, Paper, Group, Stack, Switch, Alert } from '@mantine/core';
-import { useForm } from '@mantine/form';
-import { MantineTextInput, MantinePasswordInput } from '../../components/forms/MantineFormInputs';
-import { DashboardLayout } from '../../components/dashboard/DashboardLayout';
+import React, { useState } from 'react'
+import { Box, Title, Text, Paper, Group, Stack, Switch, Alert } from '@mantine/core'
+import { useForm } from '@mantine/form'
+import { MantinePasswordInput } from '../../components/forms/MantineFormInputs'
+import { DashboardLayout } from '../../components/dashboard/DashboardLayout'
 
 /**
  * Security Settings Page
@@ -10,10 +10,10 @@ import { DashboardLayout } from '../../components/dashboard/DashboardLayout';
  * Follows the simplified design requirements
  */
 export const SecurityPage: React.FC = () => {
-  const [is2FAEnabled, setIs2FAEnabled] = useState(true);
-  const [profileVisibility, setProfileVisibility] = useState(true);
-  const [eventVisibility, setEventVisibility] = useState(false);
-  const [contactVisibility, setContactVisibility] = useState(false);
+  const [is2FAEnabled, setIs2FAEnabled] = useState(true)
+  const [profileVisibility, setProfileVisibility] = useState(true)
+  const [eventVisibility, setEventVisibility] = useState(false)
+  const [contactVisibility, setContactVisibility] = useState(false)
 
   const passwordForm = useForm({
     initialValues: {
@@ -24,16 +24,18 @@ export const SecurityPage: React.FC = () => {
     validate: {
       currentPassword: (value) => (value.length < 1 ? 'Current password is required' : null),
       newPassword: (value) => {
-        if (value.length < 8) return 'Password must be at least 8 characters';
-        if (!/(?=.*[a-z])(?=.*[A-Z])/.test(value)) return 'Password must contain uppercase and lowercase letters';
-        if (!/(?=.*\d)/.test(value)) return 'Password must contain at least one number';
-        if (!/(?=.*[!@#$%^&*])/.test(value)) return 'Password must contain at least one special character';
-        return null;
+        if (value.length < 8) return 'Password must be at least 8 characters'
+        if (!/(?=.*[a-z])(?=.*[A-Z])/.test(value))
+          return 'Password must contain uppercase and lowercase letters'
+        if (!/(?=.*\d)/.test(value)) return 'Password must contain at least one number'
+        if (!/(?=.*[!@#$%^&*])/.test(value))
+          return 'Password must contain at least one special character'
+        return null
       },
       confirmPassword: (value, values) =>
         value !== values.newPassword ? 'Passwords do not match' : null,
     },
-  });
+  })
 
   const handlePasswordSubmit = (values: typeof passwordForm.values) => {
     // TODO: Implement password change API call using useMutation hook
@@ -41,23 +43,23 @@ export const SecurityPage: React.FC = () => {
     console.log('Password change submitted:', {
       currentPassword: values.currentPassword,
       newPassword: values.newPassword,
-    });
+    })
     // Reset form after successful submission
-    passwordForm.reset();
-  };
+    passwordForm.reset()
+  }
 
   const handleDisable2FA = () => {
     // TODO: Implement 2FA disable API call using useMutation hook
     // Example: useDisable2FA() mutation that calls /api/auth/disable-2fa
-    console.log('Disabling 2FA...');
-    setIs2FAEnabled(false);
-  };
+    console.log('Disabling 2FA...')
+    setIs2FAEnabled(false)
+  }
 
   const handleDataDownload = () => {
-    // TODO: Implement data download API call using useMutation hook  
+    // TODO: Implement data download API call using useMutation hook
     // Example: useRequestDataDownload() mutation that calls /api/auth/request-data-download
-    console.log('Requesting data download...');
-  };
+    console.log('Requesting data download...')
+  }
 
   return (
     <DashboardLayout>
@@ -87,12 +89,12 @@ export const SecurityPage: React.FC = () => {
             transition: 'all 0.3s ease',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.boxShadow = '0 1px 8px rgba(0,0,0,0.05)';
-            e.currentTarget.style.transform = 'translateX(2px)';
+            e.currentTarget.style.boxShadow = '0 1px 8px rgba(0,0,0,0.05)'
+            e.currentTarget.style.transform = 'translateX(2px)'
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.boxShadow = 'none';
-            e.currentTarget.style.transform = 'translateX(0)';
+            e.currentTarget.style.boxShadow = 'none'
+            e.currentTarget.style.transform = 'translateX(0)'
           }}
         >
           <Box mb="lg">
@@ -143,10 +145,7 @@ export const SecurityPage: React.FC = () => {
                 />
               </Group>
 
-              <button
-                type="submit"
-                className="btn btn-secondary"
-              >
+              <button type="submit" className="btn btn-secondary">
                 Update Password
               </button>
 
@@ -173,11 +172,16 @@ export const SecurityPage: React.FC = () => {
                 >
                   Password Requirements:
                 </Title>
-                <Box component="ul" style={{ margin: 0, paddingLeft: '16px', color: '#4A4A4A', fontSize: '14px' }}>
+                <Box
+                  component="ul"
+                  style={{ margin: 0, paddingLeft: '16px', color: '#4A4A4A', fontSize: '14px' }}
+                >
                   <li style={{ marginBottom: '4px' }}>At least 8 characters long</li>
                   <li style={{ marginBottom: '4px' }}>Include uppercase and lowercase letters</li>
                   <li style={{ marginBottom: '4px' }}>Include at least one number</li>
-                  <li style={{ marginBottom: '4px' }}>Include at least one special character (!@#$%^&*)</li>
+                  <li style={{ marginBottom: '4px' }}>
+                    Include at least one special character (!@#$%^&*)
+                  </li>
                 </Box>
               </Paper>
             </Stack>
@@ -192,12 +196,12 @@ export const SecurityPage: React.FC = () => {
             transition: 'all 0.3s ease',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.boxShadow = '0 1px 8px rgba(0,0,0,0.05)';
-            e.currentTarget.style.transform = 'translateX(2px)';
+            e.currentTarget.style.boxShadow = '0 1px 8px rgba(0,0,0,0.05)'
+            e.currentTarget.style.transform = 'translateX(2px)'
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.boxShadow = 'none';
-            e.currentTarget.style.transform = 'translateX(0)';
+            e.currentTarget.style.boxShadow = 'none'
+            e.currentTarget.style.transform = 'translateX(0)'
           }}
         >
           <Box mb="lg">
@@ -263,12 +267,12 @@ export const SecurityPage: React.FC = () => {
             transition: 'all 0.3s ease',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.boxShadow = '0 1px 8px rgba(0,0,0,0.05)';
-            e.currentTarget.style.transform = 'translateX(2px)';
+            e.currentTarget.style.boxShadow = '0 1px 8px rgba(0,0,0,0.05)'
+            e.currentTarget.style.transform = 'translateX(2px)'
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.boxShadow = 'none';
-            e.currentTarget.style.transform = 'translateX(0)';
+            e.currentTarget.style.boxShadow = 'none'
+            e.currentTarget.style.transform = 'translateX(0)'
           }}
         >
           <Box mb="lg">
@@ -299,12 +303,12 @@ export const SecurityPage: React.FC = () => {
                 transition: 'all 0.3s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateX(2px)';
-                e.currentTarget.style.boxShadow = '0 1px 6px rgba(0,0,0,0.05)';
+                e.currentTarget.style.transform = 'translateX(2px)'
+                e.currentTarget.style.boxShadow = '0 1px 6px rgba(0,0,0,0.05)'
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateX(0)';
-                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.transform = 'translateX(0)'
+                e.currentTarget.style.boxShadow = 'none'
               }}
             >
               <Box>
@@ -319,6 +323,7 @@ export const SecurityPage: React.FC = () => {
                 checked={profileVisibility}
                 onChange={(event) => setProfileVisibility(event.currentTarget.checked)}
                 color="green"
+                aria-label="Profile Visibility"
               />
             </Paper>
 
@@ -332,12 +337,12 @@ export const SecurityPage: React.FC = () => {
                 transition: 'all 0.3s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateX(2px)';
-                e.currentTarget.style.boxShadow = '0 1px 6px rgba(0,0,0,0.05)';
+                e.currentTarget.style.transform = 'translateX(2px)'
+                e.currentTarget.style.boxShadow = '0 1px 6px rgba(0,0,0,0.05)'
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateX(0)';
-                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.transform = 'translateX(0)'
+                e.currentTarget.style.boxShadow = 'none'
               }}
             >
               <Box>
@@ -352,6 +357,7 @@ export const SecurityPage: React.FC = () => {
                 checked={eventVisibility}
                 onChange={(event) => setEventVisibility(event.currentTarget.checked)}
                 color="green"
+                aria-label="Event Attendance Visibility"
               />
             </Paper>
 
@@ -365,12 +371,12 @@ export const SecurityPage: React.FC = () => {
                 transition: 'all 0.3s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateX(2px)';
-                e.currentTarget.style.boxShadow = '0 1px 6px rgba(0,0,0,0.05)';
+                e.currentTarget.style.transform = 'translateX(2px)'
+                e.currentTarget.style.boxShadow = '0 1px 6px rgba(0,0,0,0.05)'
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateX(0)';
-                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.transform = 'translateX(0)'
+                e.currentTarget.style.boxShadow = 'none'
               }}
             >
               <Box>
@@ -385,6 +391,7 @@ export const SecurityPage: React.FC = () => {
                 checked={contactVisibility}
                 onChange={(event) => setContactVisibility(event.currentTarget.checked)}
                 color="green"
+                aria-label="Contact Information"
               />
             </Paper>
           </Stack>
@@ -398,12 +405,12 @@ export const SecurityPage: React.FC = () => {
             transition: 'all 0.3s ease',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.boxShadow = '0 1px 8px rgba(0,0,0,0.05)';
-            e.currentTarget.style.transform = 'translateX(2px)';
+            e.currentTarget.style.boxShadow = '0 1px 8px rgba(0,0,0,0.05)'
+            e.currentTarget.style.transform = 'translateX(2px)'
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.boxShadow = 'none';
-            e.currentTarget.style.transform = 'translateX(0)';
+            e.currentTarget.style.boxShadow = 'none'
+            e.currentTarget.style.transform = 'translateX(0)'
           }}
         >
           <Box mb="lg">
@@ -440,10 +447,7 @@ export const SecurityPage: React.FC = () => {
               <Text style={{ color: '#8B8680', marginBottom: '12px', fontSize: '13px' }}>
                 Get a copy of your profile and event history
               </Text>
-              <button
-                onClick={handleDataDownload}
-                className="btn btn-secondary"
-              >
+              <button onClick={handleDataDownload} className="btn btn-secondary">
                 Request Data Download
               </button>
             </Box>
@@ -451,5 +455,5 @@ export const SecurityPage: React.FC = () => {
         </Paper>
       </Stack>
     </DashboardLayout>
-  );
-};
+  )
+}

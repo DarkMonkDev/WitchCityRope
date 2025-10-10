@@ -1700,3 +1700,249 @@ queryClient.invalidateQueries({ queryKey: ['user-events', user?.id] });
 #critical #react-query #cache-invalidation #data-persistence #form-submission #query-keys #stale-data
 
 ---
+
+## 🚨 CRITICAL: MSW TESTING PATTERNS - NEVER MOCK GLOBAL.FETCH WITH MSW ENABLED 🚨
+**Date**: 2025-10-09
+**Category**: Testing with MSW (Mock Service Worker)
+**Severity**: CRITICAL - TEST FAILURES
+
+### What We Learned
+**TESTS RETURN WRONG DATA**: Hook tests that mock `global.fetch` fail when MSW is globally enabled because MSW intercepts requests BEFORE mocked fetch.
+
+**ROOT CAUSE**: MSW intercepts HTTP requests at the network layer before they reach the fetch API, so `global.fetch` mocks never execute.
+
+### The Problem Pattern:
+```typescript
+// ❌ BROKEN: Mocking fetch when MSW is globally enabled
+import { vi } from 'vitest';
+
+const mockFetch = vi.fn();
+global.fetch = mockFetch as any;
+
+describe('useCustomHook', () => {
+  it('should fetch data successfully', async () => {
+    // Set up mock response
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        data: { hasApplication: false }
+      })
+    });
+
+    // Hook calls fetch
+    const { result } = renderHook(() => useCustomHook());
+
+    // ❌ FAILS: MSW intercepts request BEFORE mockFetch is called
+    // Test gets MSW's default response instead of mock
+    await waitFor(() => {
+      expect(result.current.data).toEqual({ hasApplication: false });
+      // Error: expected undefined to deeply equal { hasApplication: false }
+    });
+  });
+});
+```
+
+**Why This Breaks**:
+1. MSW server runs globally in test setup (`beforeAll(() => server.listen())`)
+2. MSW intercepts ALL HTTP requests at network level
+3. `global.fetch` mock never executes because MSW handles request first
+4. Tests get MSW's default handler response, not the test-specific mock
+5. All tests fail with "expected undefined" or wrong data
+
+### ✅ CORRECT SOLUTION: Use server.use() to Override MSW Handlers
+```typescript
+import { http, HttpResponse } from 'msw';
+import { server } from '../../../test/setup';
+
+describe('useCustomHook', () => {
+  it('should fetch data successfully', async () => {
+    // ✅ CORRECT: Override MSW handler for this specific test
+    server.use(
+      http.get('/api/endpoint', () => {
+        return HttpResponse.json({
+          success: true,
+          data: { hasApplication: false }
+        });
+      })
+    );
+
+    const { result } = renderHook(() => useCustomHook());
+
+    // ✅ WORKS: MSW uses test-specific handler
+    await waitFor(() => {
+      expect(result.current.data).toEqual({ hasApplication: false });
+    });
+  });
+});
+```
+
+### CRITICAL PATTERNS FOR MSW TESTING:
+
+#### 1. **Success Response Pattern**:
+```typescript
+server.use(
+  http.get('/api/vetting/status', () => {
+    return HttpResponse.json({
+      success: true,
+      data: {
+        hasApplication: true,
+        application: {
+          status: 'UnderReview',
+          applicationNumber: 'a1b2c3d4'
+        }
+      }
+    });
+  })
+);
+```
+
+#### 2. **Error Response Pattern (401, 500, etc.)**:
+```typescript
+server.use(
+  http.get('/api/vetting/status', () => {
+    return new HttpResponse(
+      JSON.stringify({
+        success: false,
+        error: 'Unauthorized'
+      }),
+      { status: 401 }
+    );
+  })
+);
+```
+
+#### 3. **Network Error Pattern**:
+```typescript
+server.use(
+  http.get('/api/vetting/status', () => {
+    return HttpResponse.error();
+  })
+);
+```
+
+#### 4. **Request Counting Pattern (for cache testing)**:
+```typescript
+let requestCount = 0;
+server.use(
+  http.get('/api/endpoint', () => {
+    requestCount++;
+    return HttpResponse.json({ data: 'test' });
+  })
+);
+
+// Later in test
+expect(requestCount).toBe(1); // Verify cache hit
+```
+
+### PREVENTION RULES:
+1. ✅ **NEVER mock `global.fetch`** when MSW is globally enabled
+2. ✅ **ALWAYS use `server.use()`** to override MSW handlers per-test
+3. ✅ **IMPORT MSW utilities** (`http`, `HttpResponse`, `server`) in test files
+4. ✅ **REMOVE `mockFetch` patterns** from tests in MSW-enabled environments
+5. ✅ **CHECK test setup** - if MSW is global, ALL tests need `server.use()`
+
+### DETECTION CHECKLIST:
+If hook tests are failing with "expected undefined":
+1. **CHECK test setup** - Is MSW globally enabled in `setup.ts`?
+2. **SEARCH for `mockFetch`** - Remove fetch mocking code
+3. **REPLACE with `server.use()`** - Override MSW handlers instead
+4. **VERIFY imports** - Add `http`, `HttpResponse`, `server` from MSW
+5. **TEST all scenarios** - Success, errors, network failures
+
+### COMMON TEST SETUP:
+```typescript
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { renderHook, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { http, HttpResponse } from 'msw';
+import { server } from '../../../test/setup';
+import { useCustomHook } from './useCustomHook';
+import * as authStore from '../../../stores/authStore';
+
+// Mock the auth store
+vi.mock('../../../stores/authStore', () => ({
+  useIsAuthenticated: vi.fn()
+}));
+
+describe('useCustomHook', () => {
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+          gcTime: 0
+        }
+      }
+    });
+
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    queryClient.clear();
+    vi.restoreAllMocks();
+  });
+
+  const createWrapper = () => {
+    return ({ children }: { children: React.ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+  };
+
+  it('should fetch data successfully', async () => {
+    // Override MSW handler
+    server.use(
+      http.get('/api/endpoint', () => {
+        return HttpResponse.json({ data: 'test' });
+      })
+    );
+
+    const { result } = renderHook(() => useCustomHook(), {
+      wrapper: createWrapper()
+    });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(result.current.data).toEqual({ data: 'test' });
+  });
+});
+```
+
+### FILES AFFECTED BY THIS FIX:
+- `/apps/web/src/features/vetting/hooks/useVettingStatus.test.tsx` - Converted from mockFetch to server.use()
+- Any hook test that mocks fetch in MSW-enabled environment
+
+### VERIFICATION RESULTS:
+**Before Fix**: 13/15 tests failing (86.7% failure rate)
+**After Fix**: 15/15 tests passing (100% pass rate)
+**Fix Time**: ~30 minutes to understand pattern and update all tests
+
+### 💥 CONSEQUENCES OF IGNORING:
+- ❌ All hook tests fail with "expected undefined" errors
+- ❌ Mock responses never used, MSW defaults interfere
+- ❌ Cannot test error scenarios properly
+- ❌ Cache testing impossible without request counting
+- ❌ Developer confusion about why mocks don't work
+
+### 🎯 WHEN TO USE THIS PATTERN:
+**USE `server.use()` when:**
+- Testing React Query hooks in MSW-enabled environment
+- Need to override default MSW handlers per-test
+- Testing different API response scenarios
+- Counting requests for cache validation
+- Testing error handling (401, 500, network errors)
+
+**DON'T NEED `server.use()` when:**
+- MSW is not globally enabled in test setup
+- Testing components without API calls
+- Using only default MSW handlers from `handlers.ts`
+
+### Tags
+#critical #msw #testing #mock-service-worker #react-query #hooks #fetch-mocking #test-failures
+
+---
