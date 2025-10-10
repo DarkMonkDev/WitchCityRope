@@ -230,6 +230,82 @@ console.log('✅ Logged in as admin successfully');
 - **Troubleshooting Guide**: What to do when tests timeout
 - **Anti-patterns**: Common mistakes to avoid
 
+
+## ⛔ CRITICAL: TIMEOUT POLICY - NEVER SUGGEST 10+ MINUTE TIMEOUTS
+
+**USER REQUIREMENT**: "NO TEST should ever take 10 minutes"
+
+**ABSOLUTE RULES**:
+- Maximum timeout: **90 seconds** (preferably 60 seconds)
+- Most tests: **30 seconds or less** is normal
+- If test takes >90s: **It's stalled/broken, fix the test, don't increase timeout**
+- Applies to: **Playwright tests, Vitest tests, bash commands, ALL test execution**
+
+### Why This Matters
+
+**User's Exact Words**:
+> "Most will not take more than 30 seconds, but giving them 1 minute maybe 1.5 at the absolute most is plenty. If it takes longer than that, then something has failed and the test is stalled forever. This is VERY important that you set the bash commands to have this time out limit as well as the other tests."
+
+### Common Mistakes to NEVER Make
+
+❌ **WRONG - 10 Minute Timeout**:
+```bash
+# DO NOT DO THIS - Test is stalled, not slow
+npx playwright test --timeout=600000  # 10 minutes - NO!
+timeout 600 npm run test:e2e         # 10 minutes - NO!
+```
+
+✅ **CORRECT - 90 Second Maximum**:
+```bash
+# Fix stalled tests instead of increasing timeout
+npx playwright test --timeout=90000   # 90 seconds - ABSOLUTE MAX
+timeout 90 npm run test:e2e          # 90 seconds - ABSOLUTE MAX
+```
+
+### When Tests Take >90 Seconds
+
+**DO NOT increase timeout - The test is broken, not slow.**
+
+**Investigate**:
+1. Test stuck waiting for element that never appears
+2. Infinite loop in test logic
+3. Backend service not running
+4. Database missing test data
+5. Network connectivity issues
+
+**Fix the underlying issue, don't mask it with longer timeouts.**
+
+### Bash Command Standards
+
+**CRITICAL**: When using Bash tool, ALWAYS specify timeout parameter:
+- **Maximum**: 90000ms (90 seconds)
+- **Typical**: 60000ms (60 seconds) for test execution
+- **Never**: 600000ms (10 minutes) or longer
+
+```typescript
+// ✅ CORRECT Bash tool usage
+await bash({
+  command: 'npx playwright test',
+  timeout: 90000  // 90 seconds ABSOLUTE MAX
+});
+
+// ❌ WRONG Bash tool usage
+await bash({
+  command: 'npx playwright test',
+  timeout: 600000  // 10 minutes - NO!
+});
+```
+
+### Reference Documentation
+
+**Complete timeout standard**: `/apps/web/docs/testing/TIMEOUT_CONFIGURATION.md`
+
+**Key sections**:
+- Timeout hierarchy (Playwright, Vitest, bash commands)
+- When tests exceed limits (investigation steps)
+- Common anti-patterns to avoid
+- Enforcement and code review checklist
+
 ---
 
 ## 🚨 NEW: E2E PERSISTENCE TEST TEMPLATES AND UTILITIES (2025-10-09) 🚨

@@ -18,6 +18,51 @@ As of January 2025, all 180 E2E tests have been successfully migrated from Puppe
 ```
 /tests/playwright/
 ├── specs/                    # Test files (.spec.ts)
+
+## ⛔ CRITICAL: Timeout Policy - NEVER Use 10+ Minute Timeouts
+
+**ABSOLUTE MAXIMUM**: 90 seconds for ANY timeout configuration
+
+**User Requirement**:
+> "NO TEST should ever take 10 minutes. Most will not take more than 30 seconds, but giving them 1 minute maybe 1.5 at the absolute most is plenty. If it takes longer than that, then something has failed and the test is stalled forever."
+
+### Timeout Configuration Limits
+
+**Playwright Config** (`/apps/web/playwright.config.ts`):
+- Global test timeout: **90 seconds MAXIMUM** (90000ms)
+- Assertion timeout: 5 seconds (5000ms)
+- Action timeout: 5 seconds (5000ms)  
+- Navigation timeout: 10 seconds (10000ms)
+
+**DO NOT increase these values above 90 seconds - tests are stalled, not slow.**
+
+### Realistic Timeout Expectations
+
+| Operation | Typical | Maximum | If Exceeded |
+|-----------|---------|---------|-------------|
+| Most tests | 30s | 60s | Test is broken |
+| Complex E2E | 60s | 90s | Fix the test |
+| Element wait | 5s | 10s | Wrong selector |
+| Navigation | 10s | 30s | Service issue |
+| API call | 5s | 10s | Backend slow |
+
+### When Tests Timeout: Fix the Test
+
+Tests taking >90 seconds are **STALLED**, not legitimately slow.
+
+**Common Causes**:
+1. Element selector never matches (wrong selector, feature not implemented)
+2. Infinite loop in test logic (missing await, broken while loop)
+3. Backend service not running (Docker containers down)
+4. Database missing test data (seeding failed)
+5. Network connectivity issues (firewall, proxy)
+
+**DO NOT** increase timeout - **FIX** the underlying issue.
+
+### Reference
+
+**Complete Timeout Standard**: `/apps/web/docs/testing/TIMEOUT_CONFIGURATION.md`
+
 │   ├── auth/                # Authentication tests (4 files)
 │   ├── events/              # Event management tests (3 files)
 │   ├── admin/               # Admin functionality tests (5 files)

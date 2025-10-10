@@ -4,11 +4,31 @@
 **Status**: Active Standard
 **Enforcement**: Mandatory across all tests and API clients
 
+## ⛔ CRITICAL WARNING: NEVER USE 10+ MINUTE TIMEOUTS
+
+**ABSOLUTE RULE**: NO TEST SHOULD EVER TAKE 10 MINUTES
+
+**User's Exact Requirements**:
+> "NO TEST should ever take 10 minutes. Most will not take more than 30 seconds, but giving them 1 minute maybe 1.5 at the absolute most is plenty. If it takes longer than that, then something has failed and the test is stalled forever. This is VERY important that you set the bash commands to have this time out limit as well as the other tests."
+
+**This means**:
+- Tests taking >90 seconds are **BROKEN/STALLED**, not slow
+- Fix the test, don't increase the timeout
+- This applies to ALL tests AND bash commands
+
+---
+
 ## 🚨 ABSOLUTE MAXIMUM: 90 SECONDS
 
-**NO timeout in any test or API client should exceed 90 seconds (90000ms).**
+**NO timeout in any test, API client, or bash command should exceed 90 seconds (90000ms).**
 
-## Why 90 Seconds?
+### Realistic Timeout Expectations:
+- **Most tests**: 30 seconds or less (this is normal)
+- **Complex tests**: 60 seconds (1 minute)
+- **Absolute maximum**: 90 seconds (1.5 minutes) - NEVER EXCEED
+- **Tests >90s**: STALLED - fix the underlying issue, don't increase timeout
+
+## Why 90 Seconds Maximum?
 
 1. **Realistic Upper Bound**: No test should legitimately need more than 60 seconds
 2. **Safety Buffer**: 90 seconds provides a 1.5x safety buffer for edge cases
@@ -18,6 +38,7 @@
    - Network issues
    - Missing data or broken dependencies
    - Inefficient queries or operations
+   - **Test is stalled/broken** - fix the test logic
 
 ## Timeout Hierarchy
 
@@ -52,6 +73,7 @@ teardownTimeout: 10000 // 10 seconds for cleanup
 - Unit tests: Should complete in <5 seconds
 - Integration tests: Should complete in <30 seconds
 - Tests taking >30 seconds: Investigate and optimize
+- Tests taking >90 seconds: Test is STALLED/BROKEN - fix it
 
 ### Wait Helper Constants
 
@@ -70,6 +92,20 @@ export const TIMEOUTS = {
   ABSOLUTE_MAX: 90000    // 90 seconds - NEVER EXCEED THIS
 }
 ```
+
+### Bash Command Timeouts
+
+**CRITICAL**: Bash commands MUST also use the 90-second maximum timeout.
+
+```bash
+# ❌ WRONG - 10 minute timeout
+timeout 600 npm run test:e2e
+
+# ✅ CORRECT - 90 second maximum
+timeout 90 npm run test:e2e
+```
+
+**When using Bash tool**: Always specify timeout parameter (max 90000ms = 90 seconds)
 
 ### API Client Configuration
 
@@ -92,10 +128,20 @@ All API timeouts are set to 90 seconds maximum to align with test configuration.
 | Form submission | 20 seconds | 30 seconds |
 | Full page load | 30 seconds | 60 seconds |
 | Complete test | 30 seconds | 90 seconds |
+| Bash commands | 60 seconds | 90 seconds |
 
 ## When Tests Exceed Limits
 
-If a test is consistently timing out or approaching the 90-second limit:
+⚠️ **CRITICAL**: If a test is consistently timing out or approaching the 90-second limit, **DO NOT simply increase the timeout**.
+
+### The Problem is NOT the Timeout
+
+Tests taking >90 seconds are **stalled or broken**:
+- Infinite loops waiting for conditions that never happen
+- Missing data or broken test setup
+- Backend services not running
+- Network configuration issues
+- Race conditions or deadlocks
 
 ### Immediate Actions
 1. **Check logs**: Look for actual errors before timeout
@@ -110,17 +156,18 @@ If a test is consistently timing out or approaching the 90-second limit:
 4. **Infinite loops**: Check for missing await, broken conditions
 5. **Test isolation**: Are tests conflicting with each other?
 
-### DO NOT Simply Increase Timeout
+### Fix the Root Cause - DO NOT Increase Timeout
 - Increasing timeout masks the real problem
 - Fix the root cause instead
-- Only increase if legitimately necessary (rare)
+- Only increase if legitimately necessary (rare - and NEVER above 90s)
 
 ## Common Anti-Patterns to Avoid
 
 ### ❌ BAD: Arbitrary large timeouts
 ```typescript
-await page.waitForTimeout(600000); // 10 minutes - NO!
+await page.waitForTimeout(600000); // 10 minutes - ABSOLUTELY NO!
 test.setTimeout(300000); // 5 minutes - NO!
+test.setTimeout(120000); // 2 minutes - NO! (exceeds 90s max)
 ```
 
 ### ✅ GOOD: Reasonable timeouts with explanation
@@ -141,6 +188,18 @@ while (!(await element.isVisible())) {
 await expect(element).toBeVisible({ timeout: 10000 }); // 10 second max
 ```
 
+### ❌ BAD: Long bash command timeouts
+```bash
+# In Bash tool with timeout parameter
+timeout: 600000  // 10 minutes - NO!
+```
+
+### ✅ GOOD: Reasonable bash command timeouts
+```bash
+# In Bash tool with timeout parameter
+timeout: 90000  // 90 seconds - ABSOLUTE MAX
+```
+
 ## Enforcement
 
 ### Pre-commit Checks
@@ -149,12 +208,14 @@ The following will be checked in CI:
 - No test.setTimeout() > 90000ms
 - No page.setDefaultTimeout() > 90000ms
 - All API clients use ≤ 90000ms timeout
+- Bash tool calls use ≤ 90000ms timeout
 
 ### Code Review Checklist
 - [ ] All timeouts documented with reason
 - [ ] No timeout exceeds 90 seconds
 - [ ] Timeouts appropriate for operation type
 - [ ] No arbitrary large timeouts without justification
+- [ ] Bash commands include timeout limits ≤ 90s
 
 ## Configuration Locations
 
@@ -173,6 +234,8 @@ All timeout configurations have been centralized and documented:
 
 **Rationale**: Provide safety buffer while preventing excessively long test runs. The previous 30-second limit was too aggressive for some integration tests, but 90 seconds is the absolute maximum.
 
+**CRITICAL UPDATE - October 9, 2025**: Added explicit warnings against 10+ minute timeouts after user feedback that we kept suggesting incorrect timeout values.
+
 **Changes Made**:
 - Updated Playwright global test timeout: 30s → 90s
 - Updated Vitest test timeout: 30s → 90s
@@ -180,6 +243,8 @@ All timeout configurations have been centralized and documented:
 - Updated all API client timeouts: 30s → 90s
 - Added ABSOLUTE_MAX constant to wait helpers
 - Added comprehensive documentation and comments
+- **Added critical warnings against 10+ minute timeouts**
+- **Documented bash command timeout requirements**
 
 ## Related Documentation
 

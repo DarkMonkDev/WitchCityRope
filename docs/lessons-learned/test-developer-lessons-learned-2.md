@@ -40,6 +40,70 @@ If you cannot read ANY file:
 
 ---
 
+## ⛔ NEVER Suggest Long Timeouts (10+ Minutes)
+
+**Problem**: Agents repeatedly suggest 10-minute or longer timeouts for tests, masking stalled/broken tests.
+**User Feedback**: "NO TEST should ever take 10 minutes. Most will not take more than 30 seconds, but giving them 1 minute maybe 1.5 at the absolute most is plenty. If it takes longer than that, then something has failed and the test is stalled forever."
+
+**Why This is Wrong**:
+- Tests taking >90 seconds are **STALLED or BROKEN**, not slow
+- Long timeouts mask underlying problems (infinite loops, missing data, service failures)
+- User explicitly stated: "This is VERY important that you set the bash commands to have this time out limit as well as the other tests"
+
+**Correct Approach**:
+
+```typescript
+// ❌ WRONG - 10 minute timeout masks stalled test
+test.setTimeout(600000); // 10 minutes - ABSOLUTELY NO!
+await page.waitForSelector('.element', { timeout: 600000 });
+
+// ❌ WRONG - 5 minute timeout still too long
+test.setTimeout(300000); // 5 minutes - NO!
+
+// ❌ WRONG - 2 minute timeout exceeds maximum
+test.setTimeout(120000); // 2 minutes - NO! (exceeds 90s max)
+
+// ✅ CORRECT - 90 second ABSOLUTE MAXIMUM
+test.setTimeout(90000); // 90 seconds - ABSOLUTE MAX
+await page.waitForSelector('.element', { timeout: 30000 }); // 30 seconds typical
+```
+
+**Bash Command Timeouts**:
+
+```typescript
+// ❌ WRONG - 10 minute bash timeout
+bash({ command: 'npm run test', timeout: 600000 }); // NO!
+
+// ✅ CORRECT - 90 second maximum for bash commands
+bash({ command: 'npm run test', timeout: 90000 }); // ABSOLUTE MAX
+bash({ command: 'npx playwright test', timeout: 60000 }); // Typical
+```
+
+**Realistic Timeout Expectations**:
+- **Most tests**: 30 seconds or less (normal)
+- **Complex tests**: 60 seconds (1 minute)
+- **Absolute maximum**: 90 seconds (1.5 minutes) - NEVER EXCEED
+- **Tests >90s**: Stalled/broken - fix the test, don't increase timeout
+
+**What to Do When Tests Timeout**:
+1. **DO NOT** increase timeout above 90 seconds
+2. **Investigate** why test is taking so long:
+   - Element never appears (wrong selector, feature not implemented)
+   - Infinite loop in test logic
+   - Backend service not running
+   - Database missing test data
+   - Network connectivity issues
+3. **Fix the underlying issue**, don't mask it with longer timeouts
+
+**Prevention**:
+- ALWAYS check `/apps/web/docs/testing/TIMEOUT_CONFIGURATION.md` before suggesting timeouts
+- Default to 30-60 seconds for test execution
+- Use 90 seconds ONLY as absolute maximum safety buffer
+- Apply same limits to bash commands, Playwright tests, Vitest tests, ALL test execution
+
+**Reference Documentation**: `/apps/web/docs/testing/TIMEOUT_CONFIGURATION.md` - Complete timeout standard
+
+
 ## TestContainers Integration Patterns
 
 ### PostgreSQL TestContainers Shared Fixture
