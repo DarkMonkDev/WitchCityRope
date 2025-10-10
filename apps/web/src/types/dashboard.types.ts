@@ -16,7 +16,10 @@ export interface UserEventDto {
   startDate: string // ISO 8601 date string
   endDate: string // ISO 8601 date string
   location: string
-  shortDescription?: string | null // Brief summary for card displays
+  /**
+   * Event description (corresponds to C# Description property)
+   * MAPS FROM: Event.ShortDescription in database via backend UserEventDto.Description
+   */
   description?: string | null
   /**
    * Registration status: "RSVP Confirmed", "Ticket Purchased", "Attended"

@@ -120,9 +120,9 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className }) => {
         </Text>
 
         {/* Description */}
-        {(event.shortDescription || event.description) && (
+        {event.description && (
           <Text size="sm" c="dimmed" style={{ flex: 1 }}>
-            {event.shortDescription || event.description}
+            {event.description}
           </Text>
         )}
 

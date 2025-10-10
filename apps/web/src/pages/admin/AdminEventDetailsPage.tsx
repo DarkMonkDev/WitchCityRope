@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useCallback } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import {
   Container,
   Stack,
@@ -11,24 +11,23 @@ import {
   LoadingOverlay,
   Group,
   Modal,
-  SegmentedControl
-} from '@mantine/core';
+  SegmentedControl,
+} from '@mantine/core'
+import { IconArrowLeft } from '@tabler/icons-react'
+import { notifications } from '@mantine/notifications'
+import { useEvent, useUpdateEvent } from '../../lib/api/hooks/useEvents'
+import { useQueryClient } from '@tanstack/react-query'
+import { eventKeys } from '../../lib/api/utils/cache'
+import { EventForm, EventFormData } from '../../components/events/EventForm'
+import { WCRButton } from '../../components/ui'
 import {
-  IconArrowLeft,
-  IconEdit
-} from '@tabler/icons-react';
-import { notifications } from '@mantine/notifications';
-import { useEvent, useUpdateEvent } from '../../lib/api/hooks/useEvents';
-import { useQueryClient } from '@tanstack/react-query';
-import { eventKeys } from '../../lib/api/utils/cache';
-import { EventForm, EventFormData } from '../../components/events/EventForm';
-import { WCRButton } from '../../components/ui';
-import { convertEventFormDataToUpdateDto, hasEventFormDataChanged, getChangedEventFields } from '../../utils/eventDataTransformation';
-import type { EventDto } from '@witchcityrope/shared-types';
-import type { components } from '@witchcityrope/shared-types';
+  convertEventFormDataToUpdateDto,
+  getChangedEventFields,
+} from '../../utils/eventDataTransformation'
+import type { components } from '@witchcityrope/shared-types'
 
 // Type alias for cleaner usage
-type EventDtoType = components['schemas']['EventDto'];
+type EventDtoType = components['schemas']['EventDto']
 
 /**
  * AdminEventDetailsPage - Combined view/edit page for events
@@ -64,88 +63,97 @@ type EventDtoType = components['schemas']['EventDto'];
  * - Look for EventForm component, not [role="dialog"]
  */
 export const AdminEventDetailsPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [isEditMode, setIsEditMode] = useState(false); // NOTE: Currently unused - form always editable
-  const [publishStatus, setPublishStatus] = useState<string>('published');
-  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
-  const [pendingStatus, setPendingStatus] = useState<string>('');
-  const [formDirty, setFormDirty] = useState(false);
-  const [initialFormData, setInitialFormData] = useState<EventFormData | null>(null);
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const [isEditMode, setIsEditMode] = useState(false) // NOTE: Currently unused - form always editable
+  const [publishStatus, setPublishStatus] = useState<string>('published')
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false)
+  const [pendingStatus, setPendingStatus] = useState<string>('')
+  const [formDirty, setFormDirty] = useState(false)
+  const [initialFormData, setInitialFormData] = useState<EventFormData | null>(null)
 
   // Always call hooks unconditionally - use empty string if no id
-  const { data: event, isLoading, error } = useEvent(id || '', !!id);
-  const updateEventMutation = useUpdateEvent();
-  
+  const { data: event, isLoading, error } = useEvent(id || '', !!id)
+  const updateEventMutation = useUpdateEvent()
+
   // Convert EventDto to EventFormData - defined as a callback to use in effects
   const convertEventToFormData = useCallback((event: EventDtoType): EventFormData => {
     // Extract venue from location field (API returns location as string)
-    const venueId = event.location || '';
-    
+    const venueId = event.location || ''
+
     // Map eventType from API response
-    const eventType = event.eventType === 'Class' ? 'class' as const : 
-                     event.eventType === 'Social' ? 'social' as const : 
-                     'class' as const; // Default fallback
+    const eventType =
+      event.eventType === 'Class'
+        ? ('class' as const)
+        : event.eventType === 'Social'
+          ? ('social' as const)
+          : ('class' as const) // Default fallback
 
     // Map volunteer positions from API response - now using consistent field names
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const volunteerPositions = ((event as any)?.volunteerPositions || []).map((vp: any) => ({
       id: vp.id || '',
       title: vp.title || '',
       description: vp.description || '',
       sessions: vp.sessionId ? `Session ${vp.sessionId}` : 'All Sessions',
       startTime: '18:00', // Default as API doesn't include these
-      endTime: '21:00',   // Default as API doesn't include these
+      endTime: '21:00', // Default as API doesn't include these
       slotsNeeded: vp.slotsNeeded || 0,
       slotsFilled: vp.slotsFilled || 0,
-    }));
+    }))
 
     return {
       eventType,
       title: event.title || '',
       shortDescription: event.shortDescription || '',
       fullDescription: event.description || '',
-      policies: '', // EventDto doesn't have policies field - will be preserved from initial load
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      policies: (event as any).policies || '', // Policies field from EventDto (not yet in generated types)
       venueId, // Now properly extracted from API location field
       teacherIds: event.teacherIds || [], // Now maps from API response
-      status: ((event as any)?.status as 'Draft' | 'Published' | 'Cancelled' | 'Completed') || 'Draft', // Map API status to form status
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      status:
+        ((event as any)?.status as 'Draft' | 'Published' | 'Cancelled' | 'Completed') || 'Draft', // Map API status to form status
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       sessions: (event.sessions as any) || [], // Now maps from API response
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ticketTypes: (event.ticketTypes as any) || [], // Now maps from API response
       volunteerPositions, // Now properly mapped from API response
-    };
-  }, []);
+    }
+  }, [])
 
   // Memoized form change handler to prevent unnecessary re-renders
   const handleFormChange = useCallback(() => {
-    setFormDirty(true);
-  }, []);
-  
+    setFormDirty(true)
+  }, [])
+
   // Initialize publish status and form data from event
   React.useEffect(() => {
     if (event && !initialFormData) {
       // Use isPublished field from API response
-      const status = (event as any)?.isPublished !== false ? 'published' : 'draft';
-      setPublishStatus(status);
-
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const status = (event as any)?.isPublished !== false ? 'published' : 'draft'
+      setPublishStatus(status)
 
       // Store initial form data for change tracking
       // Only set this once when event data first loads
-      const initialData = convertEventToFormData(event as EventDtoType);
+      const initialData = convertEventToFormData(event as EventDtoType)
 
-
-      setInitialFormData(initialData);
+      setInitialFormData(initialData)
     }
-  }, [event, convertEventToFormData]); // Remove initialFormData from dependencies to prevent re-initialization  
-  
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [event, convertEventToFormData]) // initialFormData intentionally excluded - set once on load
+
   if (!id) {
     return (
       <Container size="xl" py="xl">
         <Alert color="red" title="Invalid Event ID">
           <Text>No event ID provided in the URL.</Text>
-          <WCRButton 
+          <WCRButton
             leftSection={<IconArrowLeft size={16} />}
-            onClick={() => navigate('/admin/events')} 
-            mt="md" 
+            onClick={() => navigate('/admin/events')}
+            mt="md"
             size="sm"
             variant="outline"
           >
@@ -153,17 +161,17 @@ export const AdminEventDetailsPage: React.FC = () => {
           </WCRButton>
         </Alert>
       </Container>
-    );
+    )
   }
-  
+
   if (isLoading) {
     return (
       <Container size="xl" py="xl" data-testid="page-admin-event-details">
         <LoadingOverlay visible />
       </Container>
-    );
+    )
   }
-  
+
   if (error || !event) {
     return (
       <Container size="xl" py="xl" data-testid="page-admin-event-details">
@@ -171,10 +179,10 @@ export const AdminEventDetailsPage: React.FC = () => {
           <Text>
             Sorry, we couldn't find this event. It may have been removed or the link is incorrect.
           </Text>
-          <WCRButton 
+          <WCRButton
             leftSection={<IconArrowLeft size={16} />}
-            onClick={() => navigate('/admin/events')} 
-            mt="md" 
+            onClick={() => navigate('/admin/events')}
+            mt="md"
             size="sm"
             variant="outline"
           >
@@ -182,134 +190,125 @@ export const AdminEventDetailsPage: React.FC = () => {
           </WCRButton>
         </Alert>
       </Container>
-    );
+    )
   }
 
-  const handleEdit = () => {
-    setIsEditMode(true);
-  };
-
   const handleGoBack = () => {
-    navigate('/admin/events');
-  };
+    navigate('/admin/events')
+  }
 
   const handleFormSubmit = async (data: EventFormData) => {
-    if (!event || !id) return;
+    if (!event || !id) return
 
     try {
-
-
       // Get only changed fields for partial update
       const changedFields = initialFormData
         ? getChangedEventFields(id, data, initialFormData)
-        : convertEventFormDataToUpdateDto(id, data);
-
+        : convertEventFormDataToUpdateDto(id, data)
 
       // Only proceed if there are changes
 
-      if (Object.keys(changedFields).length <= 1) { // Only id field means no changes
+      if (Object.keys(changedFields).length <= 1) {
+        // Only id field means no changes
         notifications.show({
           title: 'No Changes',
           message: 'No changes detected to save.',
-          color: 'blue'
-        });
-        return;
+          color: 'blue',
+        })
+        return
       }
 
-
       // Perform the API update
-      const updatedEvent = await updateEventMutation.mutateAsync(changedFields);
-
+      await updateEventMutation.mutateAsync(changedFields)
 
       // Update initial form data to new values for next change detection
-      setInitialFormData(data);
-      setIsEditMode(false);
-      setFormDirty(false);
+      setInitialFormData(data)
+      setIsEditMode(false)
+      setFormDirty(false)
 
       notifications.show({
         title: 'Event Updated',
         message: 'Event details have been saved successfully.',
-        color: 'green'
-      });
+        color: 'green',
+      })
 
       // Force a refresh of the event data to verify persistence
-      queryClient.invalidateQueries({ queryKey: eventKeys.detail(id) });
-
+      queryClient.invalidateQueries({ queryKey: eventKeys.detail(id) })
     } catch (error) {
-
       // Enhanced error reporting
-      let errorMessage = 'Failed to update event. Please try again.';
+      let errorMessage = 'Failed to update event. Please try again.'
       if (error instanceof Error) {
-        errorMessage = error.message;
+        errorMessage = error.message
       }
 
       notifications.show({
         title: 'Update Failed',
         message: errorMessage,
-        color: 'red'
-      });
+        color: 'red',
+      })
     }
-  };
+  }
 
   const handleFormCancel = () => {
-    setIsEditMode(false);
-    setFormDirty(false);
-  };
+    setIsEditMode(false)
+    setFormDirty(false)
+  }
 
   const handleStatusChange = (value: string) => {
     if (value !== publishStatus) {
-      setPendingStatus(value);
-      setConfirmModalOpen(true);
+      setPendingStatus(value)
+      setConfirmModalOpen(true)
     }
-  };
+  }
 
   const confirmStatusChange = async () => {
-    if (!event || !id) return;
+    if (!event || !id) return
 
-    const action = pendingStatus === 'published' ? 'publish' : 'unpublish';
-    const isPublished = pendingStatus === 'published';
+    const action = pendingStatus === 'published' ? 'publish' : 'unpublish'
+    const isPublished = pendingStatus === 'published'
 
     try {
       // Update only the isPublished field
       await updateEventMutation.mutateAsync({
         id,
-        isPublished
-      });
+        isPublished,
+      })
 
-      setPublishStatus(pendingStatus);
-      setConfirmModalOpen(false);
+      setPublishStatus(pendingStatus)
+      setConfirmModalOpen(false)
 
       notifications.show({
         title: `Event ${isPublished ? 'Published' : 'Unpublished'}`,
         message: `Event has been ${isPublished ? 'published and is now visible to the public' : 'moved to draft and is no longer visible publicly'}.`,
-        color: isPublished ? 'green' : 'blue'
-      });
+        color: isPublished ? 'green' : 'blue',
+      })
     } catch (error) {
       notifications.show({
         title: `${action.charAt(0).toUpperCase() + action.slice(1)} Failed`,
-        message: error instanceof Error ? error.message : `Failed to ${action} event. Please try again.`,
-        color: 'red'
-      });
+        message:
+          error instanceof Error ? error.message : `Failed to ${action} event. Please try again.`,
+        color: 'red',
+      })
       // Reset pending status on error
-      setPendingStatus('');
+      setPendingStatus('')
     }
-  };
+  }
 
   const cancelStatusChange = () => {
-    setConfirmModalOpen(false);
-    setPendingStatus('');
-  };
+    setConfirmModalOpen(false)
+    setPendingStatus('')
+  }
 
   return (
     <Container size="xl" py="md" data-testid="page-admin-event-details">
       {/* Breadcrumbs */}
       <Breadcrumbs separator="/" mb="md">
-        <Anchor 
+        <Anchor
           onClick={handleGoBack}
-          style={{ 
+          style={{
             color: 'var(--mantine-color-wcr-7)',
             cursor: 'pointer',
-            textDecoration: 'none'
+            textDecoration: 'none',
           }}
         >
           Admin Events
@@ -319,46 +318,47 @@ export const AdminEventDetailsPage: React.FC = () => {
 
       {/* Page Header */}
       <Group justify="space-between" align="center" mb="md">
-        <Title 
-          order={1} 
+        <Title
+          order={1}
           size="h1"
           ff="Source Sans 3, sans-serif"
           c="wcr.7"
           style={{ fontSize: '2.5rem', fontWeight: 700 }}
         >
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           {(event as any)?.title || 'New Event'}
         </Title>
-        
+
         {!isEditMode && (
           <SegmentedControl
             value={publishStatus}
             onChange={handleStatusChange}
             data={[
               { label: 'DRAFT', value: 'draft' },
-              { label: 'PUBLISHED', value: 'published' }
+              { label: 'PUBLISHED', value: 'published' },
             ]}
             size="lg"
             styles={{
               root: {
-                backgroundColor: 'var(--mantine-color-gray-1)'
+                backgroundColor: 'var(--mantine-color-gray-1)',
               },
               control: {
-                fontFamily: "Source Sans 3, sans-serif",
+                fontFamily: 'Source Sans 3, sans-serif',
                 fontSize: '1.5rem',
                 fontWeight: 700,
                 textTransform: 'uppercase',
                 letterSpacing: '1px',
                 padding: '12px 24px',
-                height: 'auto'
+                height: 'auto',
               },
               label: {
-                fontFamily: "Source Sans 3, sans-serif",
+                fontFamily: 'Source Sans 3, sans-serif',
                 fontSize: '1.5rem',
                 fontWeight: 700,
                 textTransform: 'uppercase',
                 letterSpacing: '1px',
-                color: 'var(--mantine-color-wcr-7)'
-              }
+                color: 'var(--mantine-color-wcr-7)',
+              },
             }}
           />
         )}
@@ -378,7 +378,7 @@ export const AdminEventDetailsPage: React.FC = () => {
       ) : (
         <LoadingOverlay visible />
       )}
-      
+
       {/* Status Change Confirmation Modal */}
       <Modal
         opened={confirmModalOpen}
@@ -388,25 +388,21 @@ export const AdminEventDetailsPage: React.FC = () => {
       >
         <Stack>
           <Text>
-            Are you sure you want to {pendingStatus === 'published' ? 'publish' : 'unpublish'} this event?
+            Are you sure you want to {pendingStatus === 'published' ? 'publish' : 'unpublish'} this
+            event?
           </Text>
-          
+
           <Text size="sm" c="dimmed">
             {pendingStatus === 'published'
               ? 'This event will become visible to the public and members can participate.'
-              : 'This event will be hidden from the public and no new participation will be accepted.'
-            }
+              : 'This event will be hidden from the public and no new participation will be accepted.'}
           </Text>
-          
+
           <Group justify="flex-end" mt="md">
-            <WCRButton
-              variant="outline"
-              onClick={cancelStatusChange}
-              size="sm"
-            >
+            <WCRButton variant="outline" onClick={cancelStatusChange} size="sm">
               Cancel
             </WCRButton>
-            
+
             <WCRButton
               variant={pendingStatus === 'published' ? 'primary' : 'secondary'}
               onClick={confirmStatusChange}
@@ -418,6 +414,5 @@ export const AdminEventDetailsPage: React.FC = () => {
         </Stack>
       </Modal>
     </Container>
-  );
-};
-
+  )
+}

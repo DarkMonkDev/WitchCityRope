@@ -6,6 +6,7 @@ export interface EventDto {
   title: string
   shortDescription?: string
   description: string
+  policies?: string
   startDate: string // ISO date string
   endDate?: string | null
   location: string
@@ -36,8 +37,8 @@ export interface UpdateEventDto {
   title?: string
   shortDescription?: string
   description?: string
-  startDate?: string    // Backend expects StartDate field
-  endDate?: string      // Backend expects EndDate field
+  startDate?: string // Backend expects StartDate field
+  endDate?: string // Backend expects EndDate field
   location?: string
   capacity?: number
   price?: number
@@ -53,13 +54,13 @@ export interface UpdateEventDto {
 // Supporting interfaces for complex fields
 export interface EventSessionDto {
   id: string
-  sessionIdentifier: string  // Required by API (e.g., "S1", "S2")
+  sessionIdentifier: string // Required by API (e.g., "S1", "S2")
   name: string
-  date: string              // Required by API (date portion for display)
+  date: string // Required by API (date portion for display)
   startTime: string
   endTime: string
   capacity: number
-  registeredCount?: number  // Current number of registered attendees
+  registeredCount?: number // Current number of registered attendees
   description?: string
 }
 
@@ -102,9 +103,9 @@ export interface RegistrationDto {
 }
 
 // Query keys for type safety
-export type EventQueryKey = 
+export type EventQueryKey =
   | ['events']
-  | ['events', 'list'] 
+  | ['events', 'list']
   | ['events', 'list', EventFilters]
   | ['events', 'detail']
   | ['events', 'detail', string]
