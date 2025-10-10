@@ -7,15 +7,12 @@ import {
   Text,
   Radio,
   Select,
-  Textarea,
   Stack,
   Title,
-  Divider,
   MultiSelect,
   Badge,
   Table,
   ActionIcon,
-  Switch,
   Alert,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
@@ -43,7 +40,7 @@ const extractAmountFromMetadata = (metadata?: string): number => {
     // Check for different possible field names in the metadata
     return parsed.purchaseAmount || parsed.amount || parsed.ticketAmount || 0
   } catch (error) {
-    console.warn('Failed to parse participation metadata:', metadata, error)
+    console.error('Failed to parse participation metadata:', metadata, error)
     return 0
   }
 }
@@ -139,12 +136,12 @@ export const EventForm: React.FC<EventFormProps> = ({
   })
 
   // Update form values when initialData changes (for loading from API)
-  // Use a ref to track if we've already initialized to prevent overriding user changes
-  const hasInitialized = useRef(false)
-
+  // Check if form values differ from initialData to prevent unnecessary updates
   useEffect(() => {
-    if (initialData && Object.keys(initialData).length > 0 && !hasInitialized.current) {
-      form.setValues({
+    if (initialData && Object.keys(initialData).length > 0) {
+      // Only update if initialData is different from current form values
+      const currentValues = JSON.stringify(form.values)
+      const newValues = JSON.stringify({
         eventType: 'class',
         title: '',
         shortDescription: '',
@@ -158,8 +155,25 @@ export const EventForm: React.FC<EventFormProps> = ({
         volunteerPositions: [],
         ...initialData,
       })
-      hasInitialized.current = true
+
+      if (currentValues !== newValues) {
+        form.setValues({
+          eventType: 'class',
+          title: '',
+          shortDescription: '',
+          fullDescription: '',
+          policies: '',
+          venueId: '',
+          teacherIds: [],
+          status: 'Draft',
+          sessions: [],
+          ticketTypes: [],
+          volunteerPositions: [],
+          ...initialData,
+        })
+      }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData])
 
   // Track form changes
@@ -975,7 +989,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                 <TextInput
                   label="Subject Line"
                   value={getTemplateSubject()}
-                  onChange={(event) => {
+                  onChange={() => {
                     // Update subject logic
                   }}
                   mb="md"
