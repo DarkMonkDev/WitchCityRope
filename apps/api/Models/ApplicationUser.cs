@@ -30,7 +30,7 @@ public class ApplicationUser : IdentityUser<Guid>
     public string? LastName { get; set; }
 
     /// <summary>
-    /// User's bio/description (optional, max 500 characters)
+    /// User's bio/description (optional, max 2000 characters)
     /// </summary>
     public string? Bio { get; set; }
 

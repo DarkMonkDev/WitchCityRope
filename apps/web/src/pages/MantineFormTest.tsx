@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'
 import {
   Container,
   Title,
@@ -12,27 +12,27 @@ import {
   Badge,
   Box,
   SimpleGrid,
-  ActionIcon
-} from '@mantine/core';
-import { IconSun, IconMoon } from '@tabler/icons-react';
-import { useMantineColorScheme } from '@mantine/core';
-import { useForm } from '@mantine/form';
+  ActionIcon,
+} from '@mantine/core'
+import { IconSun, IconMoon } from '@tabler/icons-react'
+import { useMantineColorScheme } from '@mantine/core'
+import { useForm } from '@mantine/form'
 import {
   MantineTextInput,
   MantinePasswordInput,
   MantineTextarea,
-  MantineSelect
-} from '../components/forms/MantineFormInputs';
+  MantineSelect,
+} from '../components/forms/MantineFormInputs'
 
 interface FormData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-  bio: string;
-  country: string;
-  experienceLevel: string;
+  firstName: string
+  lastName: string
+  email: string
+  password: string
+  confirmPassword: string
+  bio: string
+  country: string
+  experienceLevel: string
 }
 
 const COUNTRY_OPTIONS = [
@@ -43,21 +43,21 @@ const COUNTRY_OPTIONS = [
   { value: 'de', label: 'Germany' },
   { value: 'fr', label: 'France' },
   { value: 'jp', label: 'Japan' },
-  { value: 'other', label: 'Other' }
-];
+  { value: 'other', label: 'Other' },
+]
 
 const EXPERIENCE_OPTIONS = [
   { value: 'beginner', label: 'Beginner (0-1 years)' },
   { value: 'intermediate', label: 'Intermediate (1-3 years)' },
   { value: 'advanced', label: 'Advanced (3-5 years)' },
-  { value: 'expert', label: 'Expert (5+ years)' }
-];
+  { value: 'expert', label: 'Expert (5+ years)' },
+]
 
 export const MantineFormTest: React.FC = () => {
-  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
-  const [showPasswordStrength, setShowPasswordStrength] = useState(true);
-  const [simulateLoading, setSimulateLoading] = useState(false);
-  const [simulateErrors, setSimulateErrors] = useState(false);
+  const { colorScheme, toggleColorScheme } = useMantineColorScheme()
+  const [showPasswordStrength, setShowPasswordStrength] = useState(true)
+  const [simulateLoading, setSimulateLoading] = useState(false)
+  const [simulateErrors, setSimulateErrors] = useState(false)
 
   const form = useForm<FormData>({
     initialValues: {
@@ -68,50 +68,50 @@ export const MantineFormTest: React.FC = () => {
       confirmPassword: '',
       bio: '',
       country: '',
-      experienceLevel: ''
+      experienceLevel: '',
     },
     validate: {
       firstName: (value) => (!value ? 'First name is required' : null),
       lastName: (value) => (!value ? 'Last name is required' : null),
       email: (value) => {
-        if (!value) return 'Email is required';
-        if (!/^\S+@\S+$/.test(value)) return 'Invalid email format';
-        return null;
+        if (!value) return 'Email is required'
+        if (!/^\S+@\S+$/.test(value)) return 'Invalid email format'
+        return null
       },
       password: (value) => {
-        if (!value) return 'Password is required';
-        if (value.length < 8) return 'Password must be at least 8 characters';
-        return null;
+        if (!value) return 'Password is required'
+        if (value.length < 8) return 'Password must be at least 8 characters'
+        return null
       },
       confirmPassword: (value, values) => {
-        if (!value) return 'Please confirm your password';
-        if (value !== values.password) return 'Passwords do not match';
-        return null;
+        if (!value) return 'Please confirm your password'
+        if (value !== values.password) return 'Passwords do not match'
+        return null
       },
       bio: (value) => {
-        if (value && value.length > 500) return 'Bio must be less than 500 characters';
-        return null;
+        if (value && value.length > 2000) return 'Bio must be less than 2000 characters'
+        return null
       },
       country: (value) => (!value ? 'Please select your country' : null),
-      experienceLevel: (value) => (!value ? 'Please select your experience level' : null)
-    }
-  });
+      experienceLevel: (value) => (!value ? 'Please select your experience level' : null),
+    },
+  })
 
   const handleSubmit = (values: FormData) => {
-    console.log('Form submitted:', values);
+    console.log('Form submitted:', values)
     // In a real app, you would send this to your API
-  };
+  }
 
   const getError = (field: keyof FormData) => {
-    if (!simulateErrors) return form.errors[field];
+    if (!simulateErrors) return form.errors[field]
     // Simulate some errors for testing
     const errorMap: Partial<Record<keyof FormData, string>> = {
       firstName: 'This field has an error',
       email: 'This email is already taken',
-      password: 'Password is too weak'
-    };
-    return form.errors[field] || errorMap[field];
-  };
+      password: 'Password is too weak',
+    }
+    return form.errors[field] || errorMap[field]
+  }
 
   return (
     <Container size="lg" py="xl">
@@ -122,7 +122,8 @@ export const MantineFormTest: React.FC = () => {
               Mantine v7 Form Components Demo
             </Title>
             <Text c="dimmed" size="lg">
-              Enhanced Mantine form components with floating labels as standard and consistent styling
+              Enhanced Mantine form components with floating labels as standard and consistent
+              styling
             </Text>
           </Box>
           <ActionIcon
@@ -132,11 +133,7 @@ export const MantineFormTest: React.FC = () => {
             aria-label="Toggle color scheme"
             data-testid="color-scheme-toggle"
           >
-            {colorScheme === 'dark' ? (
-              <IconSun size={24} />
-            ) : (
-              <IconMoon size={24} />
-            )}
+            {colorScheme === 'dark' ? <IconSun size={24} /> : <IconMoon size={24} />}
           </ActionIcon>
         </Group>
 
@@ -177,11 +174,7 @@ export const MantineFormTest: React.FC = () => {
               onChange={(event) => setSimulateErrors(event.currentTarget.checked)}
               data-testid="simulate-errors-switch"
             />
-            <Button
-              variant="outline"
-              onClick={() => form.reset()}
-              data-testid="reset-form-button"
-            >
+            <Button variant="outline" onClick={() => form.reset()} data-testid="reset-form-button">
               Reset Form
             </Button>
             <Button
@@ -195,8 +188,8 @@ export const MantineFormTest: React.FC = () => {
                   confirmPassword: 'SecurePass123!',
                   bio: 'I am passionate about rope bondage and looking to learn more techniques.',
                   country: 'us',
-                  experienceLevel: 'intermediate'
-                });
+                  experienceLevel: 'intermediate',
+                })
               }}
               data-testid="populate-form-button"
             >
@@ -280,9 +273,9 @@ export const MantineFormTest: React.FC = () => {
                 loading={simulateLoading}
                 error={getError('bio')}
                 rows={4}
-                maxLength={500}
+                maxLength={2000}
                 data-testid="bio-textarea"
-                description="Optional: Share your experience and interests (max 500 characters)"
+                description="Optional: Share your experience and interests (max 2000 characters)"
                 {...form.getInputProps('bio')}
               />
 
@@ -339,19 +332,30 @@ export const MantineFormTest: React.FC = () => {
                   </Badge>
                 </Group>
                 <Text size="sm" c="dimmed">
-                  • Uses Mantine's built-in props like label, description, error<br />
-                  • Centralized CSS module classes for consistent styling<br />
-                  • Floating labels as the default and only behavior for all inputs<br />
-                  • Tapered underline effect as optional enhancement<br />
-                  • Underline colors match input border colors for consistency<br />
-                  • Mantine's CSS variables for theming<br />
-                  • Built-in dark theme support with proper contrast<br />
-                  • Password strength meter with customizable requirements<br />
-                  • Loading states with visual feedback<br />
-                  • Enhanced validation states with improved error styling<br />
-                  • Properly positioned helper text and error messages<br />
-                  • Professional error state design with background colors<br />
-                  • Placeholder visibility on focus when field is empty
+                  • Uses Mantine's built-in props like label, description, error
+                  <br />
+                  • Centralized CSS module classes for consistent styling
+                  <br />
+                  • Floating labels as the default and only behavior for all inputs
+                  <br />
+                  • Tapered underline effect as optional enhancement
+                  <br />
+                  • Underline colors match input border colors for consistency
+                  <br />
+                  • Mantine's CSS variables for theming
+                  <br />
+                  • Built-in dark theme support with proper contrast
+                  <br />
+                  • Password strength meter with customizable requirements
+                  <br />
+                  • Loading states with visual feedback
+                  <br />
+                  • Enhanced validation states with improved error styling
+                  <br />
+                  • Properly positioned helper text and error messages
+                  <br />
+                  • Professional error state design with background colors
+                  <br />• Placeholder visibility on focus when field is empty
                 </Text>
               </Box>
 
@@ -381,7 +385,7 @@ export const MantineFormTest: React.FC = () => {
         </Paper>
       </Stack>
     </Container>
-  );
-};
+  )
+}
 
-export default MantineFormTest;
+export default MantineFormTest

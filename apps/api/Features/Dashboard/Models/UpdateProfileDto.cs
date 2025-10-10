@@ -40,9 +40,9 @@ public class UpdateProfileDto
     public string? Pronouns { get; set; }
 
     /// <summary>
-    /// User's bio (optional, max 500 characters)
+    /// User's bio (optional, max 2000 characters)
     /// </summary>
-    [StringLength(500, ErrorMessage = "Bio cannot exceed 500 characters")]
+    [StringLength(2000, ErrorMessage = "Bio cannot exceed 2000 characters")]
     public string? Bio { get; set; }
 
     /// <summary>

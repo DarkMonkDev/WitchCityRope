@@ -1,7 +1,7 @@
-import React from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import React from 'react'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import {
   Box,
   TextInput,
@@ -17,20 +17,21 @@ import {
   Text,
   Progress,
   Divider,
-} from '@mantine/core';
-import type { UserDto } from '@witchcityrope/shared-types';
+} from '@mantine/core'
+import type { UserDto } from '@witchcityrope/shared-types'
 
 // Validation schemas for different tabs
 const personalInfoSchema = z.object({
-  sceneName: z.string()
+  sceneName: z
+    .string()
     .min(2, 'Scene name must be at least 2 characters')
     .max(50, 'Scene name cannot exceed 50 characters'),
   firstName: z.string().min(1, 'First name is required').max(50),
   lastName: z.string().min(1, 'Last name is required').max(50),
   pronouns: z.string().optional(),
-  bio: z.string().max(500, 'Bio must be less than 500 characters').optional(),
+  bio: z.string().max(2000, 'Bio must be less than 2000 characters').optional(),
   phoneNumber: z.string().optional(),
-});
+})
 
 const privacySchema = z.object({
   profileVisibility: z.enum(['public', 'members', 'vetted', 'private']),
@@ -38,7 +39,7 @@ const privacySchema = z.object({
   showPhone: z.boolean(),
   showEventHistory: z.boolean(),
   allowMessages: z.boolean(),
-});
+})
 
 const preferencesSchema = z.object({
   emailNotifications: z.boolean(),
@@ -46,17 +47,22 @@ const preferencesSchema = z.object({
   communityUpdates: z.boolean(),
   marketingEmails: z.boolean(),
   notificationFrequency: z.enum(['immediate', 'daily', 'weekly']),
-});
+})
 
-type PersonalInfoData = z.infer<typeof personalInfoSchema>;
-type PrivacyData = z.infer<typeof privacySchema>;
-type PreferencesData = z.infer<typeof preferencesSchema>;
+type PersonalInfoData = z.infer<typeof personalInfoSchema>
+type PrivacyData = z.infer<typeof privacySchema>
+type PreferencesData = z.infer<typeof preferencesSchema>
+
+type ProfileFormSubmitData =
+  | { type: 'personal'; data: PersonalInfoData & { profilePhoto: File | null } }
+  | { type: 'privacy'; data: PrivacyData }
+  | { type: 'preferences'; data: PreferencesData }
 
 interface ProfileFormProps {
-  user?: UserDto | null;
-  onSubmit: (data: any) => void;
-  isLoading?: boolean;
-  error?: string | null;
+  user?: UserDto | null
+  onSubmit: (data: ProfileFormSubmitData) => void
+  isLoading?: boolean
+  error?: string | null
 }
 
 /**
@@ -68,10 +74,10 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   user,
   onSubmit,
   isLoading = false,
-  error = null
+  error = null,
 }) => {
-  const [activeTab, setActiveTab] = React.useState<string>('personal');
-  const [profilePhoto, setProfilePhoto] = React.useState<File | null>(null);
+  const [activeTab, setActiveTab] = React.useState<string>('personal')
+  const [profilePhoto, setProfilePhoto] = React.useState<File | null>(null)
 
   // Personal Info Form
   const personalForm = useForm<PersonalInfoData>({
@@ -79,12 +85,12 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
     defaultValues: {
       sceneName: user?.sceneName || '',
       firstName: '', // Note: UserDto doesn't have firstName field
-      lastName: '', // Note: UserDto doesn't have lastName field  
+      lastName: '', // Note: UserDto doesn't have lastName field
       pronouns: user?.pronouns || '',
       bio: '', // Note: UserDto doesn't have bio field
       phoneNumber: '', // Note: UserDto doesn't have phoneNumber field
-    }
-  });
+    },
+  })
 
   // Privacy Settings Form
   const privacyForm = useForm<PrivacyData>({
@@ -95,8 +101,8 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
       showPhone: false,
       showEventHistory: true,
       allowMessages: true,
-    }
-  });
+    },
+  })
 
   // Preferences Form
   const preferencesForm = useForm<PreferencesData>({
@@ -107,26 +113,26 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
       communityUpdates: true,
       marketingEmails: false,
       notificationFrequency: 'daily',
-    }
-  });
+    },
+  })
 
   // Calculate profile completion
   const calculateCompletion = () => {
-    const personalData = personalForm.watch();
-    let completed = 0;
-    const totalFields = 6;
+    const personalData = personalForm.watch()
+    let completed = 0
+    const totalFields = 6
 
-    if (personalData.sceneName) completed++;
-    if (personalData.firstName) completed++;
-    if (personalData.lastName) completed++;
-    if (personalData.pronouns) completed++;
-    if (personalData.bio) completed++;
-    if (personalData.phoneNumber) completed++;
+    if (personalData.sceneName) completed++
+    if (personalData.firstName) completed++
+    if (personalData.lastName) completed++
+    if (personalData.pronouns) completed++
+    if (personalData.bio) completed++
+    if (personalData.phoneNumber) completed++
 
-    return Math.round((completed / totalFields) * 100);
-  };
+    return Math.round((completed / totalFields) * 100)
+  }
 
-  const profileCompletion = calculateCompletion();
+  const profileCompletion = calculateCompletion()
 
   const handlePersonalInfoSubmit = (data: PersonalInfoData) => {
     onSubmit({
@@ -134,33 +140,33 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
       data: {
         ...data,
         profilePhoto,
-      }
-    });
-  };
+      },
+    })
+  }
 
   const handlePrivacySubmit = (data: PrivacyData) => {
     onSubmit({
       type: 'privacy',
-      data
-    });
-  };
+      data,
+    })
+  }
 
   const handlePreferencesSubmit = (data: PreferencesData) => {
     onSubmit({
       type: 'preferences',
-      data
-    });
-  };
+      data,
+    })
+  }
 
   return (
     <Box>
       {error && (
-        <Alert 
-          color="red" 
+        <Alert
+          color="red"
           mb="md"
-          style={{ 
-            background: 'rgba(220, 20, 60, 0.05)', 
-            border: '1px solid rgba(220, 20, 60, 0.2)' 
+          style={{
+            background: 'rgba(220, 20, 60, 0.05)',
+            border: '1px solid rgba(220, 20, 60, 0.2)',
           }}
         >
           {error}
@@ -203,9 +209,10 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
           radius="md"
           style={{
             '& .mantine-Progress-bar': {
-              background: profileCompletion >= 80 
-                ? 'linear-gradient(90deg, #228B22, #32CD32)'
-                : 'linear-gradient(90deg, #DAA520, #FFD700)',
+              background:
+                profileCompletion >= 80
+                  ? 'linear-gradient(90deg, #228B22, #32CD32)'
+                  : 'linear-gradient(90deg, #DAA520, #FFD700)',
             },
           }}
         />
@@ -325,7 +332,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                 maxRows={6}
                 {...personalForm.register('bio')}
                 error={personalForm.formState.errors.bio?.message}
-                description={`${personalForm.watch('bio')?.length || 0}/500 characters`}
+                description={`${personalForm.watch('bio')?.length || 0}/2000 characters`}
               />
 
               <FileInput
@@ -354,8 +361,8 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                       paddingTop: '12px',
                       paddingBottom: '12px',
                       fontSize: '14px',
-                      lineHeight: '1.2'
-                    }
+                      lineHeight: '1.2',
+                    },
                   }}
                 >
                   Save Personal Info
@@ -431,8 +438,8 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                       paddingTop: '12px',
                       paddingBottom: '12px',
                       fontSize: '14px',
-                      lineHeight: '1.2'
-                    }
+                      lineHeight: '1.2',
+                    },
                   }}
                 >
                   Save Privacy Settings
@@ -505,8 +512,8 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                       paddingTop: '12px',
                       paddingBottom: '12px',
                       fontSize: '14px',
-                      lineHeight: '1.2'
-                    }
+                      lineHeight: '1.2',
+                    },
                   }}
                 >
                   Save Preferences
@@ -517,5 +524,5 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
         </Tabs.Panel>
       </Tabs>
     </Box>
-  );
-};
+  )
+}
