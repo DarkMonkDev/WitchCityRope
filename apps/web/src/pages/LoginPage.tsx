@@ -1,11 +1,9 @@
-import React, { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import React from 'react'
+import { Link } from 'react-router-dom'
 import { useForm } from '@mantine/form'
 import { zodResolver } from 'mantine-form-zod-resolver'
 import { z } from 'zod'
 import {
-  Container,
-  Paper,
   Title,
   TextInput,
   PasswordInput,
@@ -15,11 +13,10 @@ import {
   Stack,
   Checkbox,
   Box,
-  Flex
+  Flex,
 } from '@mantine/core'
 import { IconAlertCircle } from '@tabler/icons-react'
 import { useLogin } from '../features/auth/api/mutations'
-import { useIsAuthenticated } from '../stores/authStore'
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email format'),
@@ -30,8 +27,6 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>
 
 export const LoginPage: React.FC = () => {
-  const location = useLocation()
-  const isAuthenticated = useIsAuthenticated();
   const loginMutation = useLogin()
 
   // Mantine form with Zod validation
@@ -52,13 +47,13 @@ export const LoginPage: React.FC = () => {
   }
 
   return (
-    <Flex 
-      align="center" 
-      justify="center" 
+    <Flex
+      align="center"
+      justify="center"
       data-testid="page-login"
-      style={{ 
-        minHeight: 'calc(100vh - 120px)', 
-        padding: 'var(--space-xl) var(--space-md)'
+      style={{
+        minHeight: 'calc(100vh - 120px)',
+        padding: 'var(--space-xl) var(--space-md)',
       }}
     >
       {/* Auth Card matching wireframe design */}
@@ -70,7 +65,7 @@ export const LoginPage: React.FC = () => {
           width: '100%',
           maxWidth: '480px',
           overflow: 'hidden',
-          position: 'relative'
+          position: 'relative',
         }}
       >
         {/* Decorative header band with burgundy gradient */}
@@ -80,7 +75,7 @@ export const LoginPage: React.FC = () => {
             padding: 'var(--space-2xl) var(--space-xl) var(--space-xl)',
             textAlign: 'center',
             position: 'relative',
-            overflow: 'hidden'
+            overflow: 'hidden',
           }}
         >
           {/* Subtle radial overlay effect */}
@@ -93,10 +88,10 @@ export const LoginPage: React.FC = () => {
               height: '200%',
               background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
               transform: 'rotate(45deg)',
-              pointerEvents: 'none'
+              pointerEvents: 'none',
             }}
           />
-          
+
           <Title
             style={{
               fontFamily: 'var(--font-heading)',
@@ -104,17 +99,17 @@ export const LoginPage: React.FC = () => {
               fontWeight: 800,
               color: 'var(--color-ivory)',
               marginBottom: 'var(--space-xs)',
-              position: 'relative'
+              position: 'relative',
             }}
           >
             Welcome Back
           </Title>
-          
+
           <Text
             style={{
               color: 'var(--color-dusty-rose)',
               fontSize: '16px',
-              position: 'relative'
+              position: 'relative',
             }}
           >
             Join Salem's premier rope education community
@@ -124,13 +119,14 @@ export const LoginPage: React.FC = () => {
         {/* Age verification notice */}
         <Box
           style={{
-            background: 'linear-gradient(135deg, var(--color-burgundy-light) 0%, var(--color-burgundy) 100%)',
+            background:
+              'linear-gradient(135deg, var(--color-burgundy-light) 0%, var(--color-burgundy) 100%)',
             color: 'var(--color-ivory)',
             padding: 'var(--space-sm) var(--space-md)',
             textAlign: 'center',
             fontSize: '14px',
             fontWeight: 600,
-            letterSpacing: '0.5px'
+            letterSpacing: '0.5px',
           }}
         >
           21+ COMMUNITY • AGE VERIFICATION REQUIRED
@@ -141,11 +137,7 @@ export const LoginPage: React.FC = () => {
           <form onSubmit={form.onSubmit(handleSubmit)} data-testid="login-form">
             <Stack gap="md">
               {loginMutation.error && (
-                <Alert
-                  icon={<IconAlertCircle />}
-                  color="red"
-                  data-testid="login-error"
-                >
+                <Alert icon={<IconAlertCircle />} color="red" data-testid="login-error">
                   {loginMutation.error.message || 'Login failed. Please try again.'}
                 </Alert>
               )}
@@ -161,12 +153,13 @@ export const LoginPage: React.FC = () => {
                     color: 'var(--color-smoke)',
                     marginBottom: 'var(--space-xs)',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.5px'
+                    letterSpacing: '0.5px',
                   }}
                 >
                   Email Address
                 </Text>
                 <TextInput
+                  type="email"
                   placeholder="your@email.com"
                   required
                   data-testid="email-input"
@@ -183,12 +176,12 @@ export const LoginPage: React.FC = () => {
                       padding: 'var(--space-sm) var(--space-md)',
                       '&:focus': {
                         borderColor: 'var(--color-burgundy)',
-                        boxShadow: '0 0 0 3px rgba(136, 1, 36, 0.1)'
+                        boxShadow: '0 0 0 3px rgba(136, 1, 36, 0.1)',
                       },
                       '&::placeholder': {
-                        color: 'var(--color-stone)'
-                      }
-                    }
+                        color: 'var(--color-stone)',
+                      },
+                    },
                   }}
                 />
               </Box>
@@ -204,7 +197,7 @@ export const LoginPage: React.FC = () => {
                     color: 'var(--color-smoke)',
                     marginBottom: 'var(--space-xs)',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.5px'
+                    letterSpacing: '0.5px',
                   }}
                 >
                   Password
@@ -226,12 +219,12 @@ export const LoginPage: React.FC = () => {
                       padding: 'var(--space-sm) var(--space-md)',
                       '&:focus': {
                         borderColor: 'var(--color-burgundy)',
-                        boxShadow: '0 0 0 3px rgba(136, 1, 36, 0.1)'
+                        boxShadow: '0 0 0 3px rgba(136, 1, 36, 0.1)',
                       },
                       '&::placeholder': {
-                        color: 'var(--color-stone)'
-                      }
-                    }
+                        color: 'var(--color-stone)',
+                      },
+                    },
                   }}
                 />
               </Box>
@@ -246,8 +239,8 @@ export const LoginPage: React.FC = () => {
                       width: '20px',
                       height: '20px',
                       marginTop: '2px',
-                      accentColor: 'var(--color-burgundy)'
-                    }
+                      accentColor: 'var(--color-burgundy)',
+                    },
                   }}
                   data-testid="remember-me-checkbox"
                 />
@@ -255,7 +248,7 @@ export const LoginPage: React.FC = () => {
                   style={{
                     fontSize: '14px',
                     color: 'var(--color-smoke)',
-                    lineHeight: 1.4
+                    lineHeight: 1.4,
                   }}
                 >
                   Keep me signed in for 30 days
@@ -273,7 +266,7 @@ export const LoginPage: React.FC = () => {
                   width: '100%',
                   marginTop: 'var(--space-lg)',
                   opacity: loginMutation.isPending ? 0.7 : 1,
-                  cursor: loginMutation.isPending ? 'not-allowed' : 'pointer'
+                  cursor: loginMutation.isPending ? 'not-allowed' : 'pointer',
                 }}
               >
                 {loginMutation.isPending ? 'Signing In...' : 'Sign In'}
@@ -288,50 +281,56 @@ export const LoginPage: React.FC = () => {
             textAlign: 'center',
             padding: 'var(--space-md)',
             background: 'var(--color-cream)',
-            borderTop: '1px solid var(--color-taupe)'
+            borderTop: '1px solid var(--color-taupe)',
           }}
         >
-          <Text style={{ fontSize: '14px', color: 'var(--color-stone)', marginBottom: 'var(--space-sm)' }}>
-            <Link 
-              to="/forgot-password" 
+          <Text
+            style={{
+              fontSize: '14px',
+              color: 'var(--color-stone)',
+              marginBottom: 'var(--space-sm)',
+            }}
+          >
+            <Link
+              to="/forgot-password"
               data-testid="link-forgot-password"
-              style={{ 
-                color: 'var(--color-burgundy)', 
-                textDecoration: 'none', 
+              style={{
+                color: 'var(--color-burgundy)',
+                textDecoration: 'none',
                 fontWeight: 600,
-                transition: 'color 0.3s ease'
+                transition: 'color 0.3s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'var(--color-burgundy-dark)';
-                e.currentTarget.style.textDecoration = 'underline';
+                e.currentTarget.style.color = 'var(--color-burgundy-dark)'
+                e.currentTarget.style.textDecoration = 'underline'
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'var(--color-burgundy)';
-                e.currentTarget.style.textDecoration = 'none';
+                e.currentTarget.style.color = 'var(--color-burgundy)'
+                e.currentTarget.style.textDecoration = 'none'
               }}
             >
               Forgot your password?
             </Link>
           </Text>
-          
+
           <Text style={{ fontSize: '14px', color: 'var(--color-stone)' }}>
             New to Witch City Rope?{' '}
-            <Link 
-              to="/register" 
+            <Link
+              to="/register"
               data-testid="link-register"
-              style={{ 
-                color: 'var(--color-burgundy)', 
-                textDecoration: 'none', 
+              style={{
+                color: 'var(--color-burgundy)',
+                textDecoration: 'none',
                 fontWeight: 600,
-                transition: 'color 0.3s ease'
+                transition: 'color 0.3s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'var(--color-burgundy-dark)';
-                e.currentTarget.style.textDecoration = 'underline';
+                e.currentTarget.style.color = 'var(--color-burgundy-dark)'
+                e.currentTarget.style.textDecoration = 'underline'
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'var(--color-burgundy)';
-                e.currentTarget.style.textDecoration = 'none';
+                e.currentTarget.style.color = 'var(--color-burgundy)'
+                e.currentTarget.style.textDecoration = 'none'
               }}
             >
               Create an account
