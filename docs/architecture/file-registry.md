@@ -7,6 +7,7 @@
 ## Registry Table
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
+| 2025-10-10 | /apps/web/src/pages/admin/AdminEventDetailsPage.tsx | MODIFIED | CRITICAL BUG FIX - Form data not refreshing after save: removed !initialFormData condition, added JSON.stringify comparison | Form Data Refresh Bug Fix | ACTIVE | Never |
 | 2025-10-10 | /apps/api/Features/Dashboard/Services/UserDashboardProfileService.cs | MODIFIED | CRITICAL BUG FIX - Changed query from TicketPurchases to EventParticipations to show BOTH RSVPs and tickets | Dashboard Events Bug Fix | ACTIVE | Never |
 | 2025-10-10 | /docs/lessons-learned/backend-developer-lessons-learned-2.md | MODIFIED | Added lesson on dashboard query using wrong table (TicketPurchases vs EventParticipations) | Backend Lessons Update | ACTIVE | Never |
 | 2025-10-10 | /session-work/2025-10-10/dashboard-events-bug-fix.md | CREATED | Dashboard events bug fix comprehensive analysis and solution documentation | Dashboard Bug Analysis | ACTIVE | Never |
