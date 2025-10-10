@@ -129,9 +129,9 @@ test.describe('Profile Update Persistence', () => {
       { timeout: 10000 }
     );
 
-    // Step 7: Click Save Changes button
+    // Step 7: Click Save Changes button (use .first() to avoid strict mode violation)
     console.log('📍 Step 6: Clicking Save Changes button...');
-    const saveButton = page.getByRole('button', { name: /Save Changes/i });
+    const saveButton = page.getByRole('button', { name: /Save Changes/i }).first();
     await saveButton.click();
 
     // Step 8: Wait for and capture the PUT request

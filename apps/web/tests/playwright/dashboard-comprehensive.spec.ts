@@ -186,8 +186,8 @@ test.describe('Dashboard - Profile Management', () => {
 
     expect(formElementsFound).toBeGreaterThan(0);
 
-    // Should have save/update button
-    const saveButton = page.locator('[data-testid="save-profile"], button:has-text("Save"), button:has-text("Update")');
+    // Should have save/update button (use .first() to avoid strict mode violation)
+    const saveButton = page.locator('[data-testid="save-profile"], button:has-text("Save"), button:has-text("Update")').first();
     if (await saveButton.count() > 0) {
       await expect(saveButton).toBeVisible();
       console.log('✅ Profile save button available');
@@ -204,7 +204,7 @@ test.describe('Dashboard - Profile Management', () => {
       await emailField.clear();
       await emailField.fill('invalid-email');
       
-      const saveButton = page.locator('[data-testid="save-profile"], button:has-text("Save")');
+      const saveButton = page.locator('[data-testid="save-profile"], button:has-text("Save")').first();
       if (await saveButton.count() > 0) {
         await saveButton.click();
         
@@ -221,7 +221,7 @@ test.describe('Dashboard - Profile Management', () => {
       await sceneNameField.clear();
       await sceneNameField.fill('ab'); // Too short
       
-      const saveButton = page.locator('[data-testid="save-profile"], button:has-text("Save")');
+      const saveButton = page.locator('[data-testid="save-profile"], button:has-text("Save")').first();
       if (await saveButton.count() > 0) {
         await saveButton.click();
         await page.waitForTimeout(500);
@@ -252,7 +252,7 @@ test.describe('Dashboard - Profile Management', () => {
       await sceneNameField.clear();
       await sceneNameField.fill(newSceneName);
 
-      const saveButton = page.locator('[data-testid="save-profile"], button:has-text("Save")');
+      const saveButton = page.locator('[data-testid="save-profile"], button:has-text("Save")').first();
       if (await saveButton.count() > 0) {
         await saveButton.click();
 

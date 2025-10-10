@@ -35,6 +35,7 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 ### Current Test Status (October 2025)
 
 **Latest Updates**:
+- ✅ **Form Button Strict Mode Fix** (2025-10-10): Fixed strict mode violations in profile/dashboard tests by adding .first() to "Save Changes" button selectors
 - ✅ **Profile Test Notification Fix** (2025-10-10): Fixed strict mode violation in 5 profile tests by adding .first() to handle multiple notifications
 - ✅ **Phase 1 Unit Test Recovery** (2025-10-09): 79% pass rate achieved (was 68%)
 - ✅ **AuthHelpers Migration** (2025-10-09): All admin event tests now use proven AuthHelpers.loginAs() pattern
