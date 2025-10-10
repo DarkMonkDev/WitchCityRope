@@ -191,15 +191,8 @@ test.describe('Events - Authenticated Access', () => {
   // TODO: Unskip when event detail view with RSVP/ticket buttons is implemented
   // Feature incomplete - event cards not clickable and RSVP buttons not in event detail view
   test.skip('should show event RSVP/ticket options for authenticated users', async ({ page }) => {
-    // Login inline (not in beforeEach) to ensure cookies persist - MUST use full URLs
-    await page.goto('http://localhost:5173/login');
-    await page.waitForLoadState('networkidle');
-
-    await page.locator('[data-testid="email-input"]').fill('member@witchcityrope.com');
-    await page.locator('[data-testid="password-input"]').fill('Test123!');
-    await page.locator('[data-testid="login-button"]').click();
-    await page.waitForURL('**/dashboard', { timeout: 10000 });
-    await page.waitForLoadState('networkidle');
+    // Login using AuthHelpers
+    await AuthHelpers.loginAs(page, 'member');
 
     await page.goto('http://localhost:5173/events');
     await WaitHelpers.waitForDataLoad(page, 'events-list');
@@ -236,15 +229,8 @@ test.describe('Events - Authenticated Access', () => {
   });
 
   test('should show different content for different user roles', async ({ page }) => {
-    // Login as member first - MUST use full URLs
-    await page.goto('http://localhost:5173/login');
-    await page.waitForLoadState('networkidle');
-
-    await page.locator('[data-testid="email-input"]').fill('member@witchcityrope.com');
-    await page.locator('[data-testid="password-input"]').fill('Test123!');
-    await page.locator('[data-testid="login-button"]').click();
-    await page.waitForURL('**/dashboard', { timeout: 10000 });
-    await page.waitForLoadState('networkidle');
+    // Login as member first using AuthHelpers
+    await AuthHelpers.loginAs(page, 'member');
 
     // Test as regular member
     await page.goto('http://localhost:5173/events');
@@ -254,15 +240,7 @@ test.describe('Events - Authenticated Access', () => {
 
     // Logout and login as admin
     await AuthHelpers.logout(page);
-
-    await page.goto('http://localhost:5173/login');
-    await page.waitForLoadState('networkidle');
-
-    await page.locator('[data-testid="email-input"]').fill('admin@witchcityrope.com');
-    await page.locator('[data-testid="password-input"]').fill('Test123!');
-    await page.locator('[data-testid="login-button"]').click();
-    await page.waitForURL('**/dashboard', { timeout: 10000 });
-    await page.waitForLoadState('networkidle');
+    await AuthHelpers.loginAs(page, 'admin');
 
     await page.goto('http://localhost:5173/events');
     await WaitHelpers.waitForDataLoad(page, 'events-list');
@@ -295,15 +273,8 @@ test.describe('Events - Authenticated Access', () => {
   // TODO: Unskip when full RSVP/ticket purchase flow is implemented
   // Feature incomplete - RSVP flow not fully implemented per test logs
   test.skip('should handle event RSVP/ticket purchase flow', async ({ page }) => {
-    // Login inline to ensure cookies persist - MUST use full URLs
-    await page.goto('http://localhost:5173/login');
-    await page.waitForLoadState('networkidle');
-
-    await page.locator('[data-testid="email-input"]').fill('member@witchcityrope.com');
-    await page.locator('[data-testid="password-input"]').fill('Test123!');
-    await page.locator('[data-testid="login-button"]').click();
-    await page.waitForURL('**/dashboard', { timeout: 10000 });
-    await page.waitForLoadState('networkidle');
+    // Login using AuthHelpers
+    await AuthHelpers.loginAs(page, 'member');
 
     await page.goto('http://localhost:5173/events');
     await WaitHelpers.waitForDataLoad(page, 'events-list');
@@ -372,15 +343,8 @@ test.describe('Events - Authenticated Access', () => {
     // This is NOT "RSVP with optional upgrade" - they are independent actions
     // BUSINESS RULE: If user purchases ticket without RSVP, system auto-creates RSVP
 
-    // Login inline to ensure cookies persist - MUST use full URLs
-    await page.goto('http://localhost:5173/login');
-    await page.waitForLoadState('networkidle');
-
-    await page.locator('[data-testid="email-input"]').fill('member@witchcityrope.com');
-    await page.locator('[data-testid="password-input"]').fill('Test123!');
-    await page.locator('[data-testid="login-button"]').click();
-    await page.waitForURL('**/dashboard', { timeout: 10000 });
-    await page.waitForLoadState('networkidle');
+    // Login using AuthHelpers
+    await AuthHelpers.loginAs(page, 'member');
 
     await page.goto('http://localhost:5173/events');
     await WaitHelpers.waitForDataLoad(page, 'events-list');

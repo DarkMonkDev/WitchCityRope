@@ -5,6 +5,7 @@ import {
   cleanupTestUser,
   type TestUser
 } from './utils/database-helpers';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 /**
  * Profile Update Persistence Test
@@ -39,31 +40,18 @@ test.describe('Profile Update Persistence', () => {
 
     try {
       // Step 1: Login with test user
-      console.log('📍 Step 1: Navigating to login page...');
-      await page.goto('http://localhost:5173/login');
-
-      // Fill in login form
-      console.log('📍 Step 2: Filling login form...');
-      await page.locator('[data-testid="email-input"]').fill(testUser.email);
-      await page.locator('[data-testid="password-input"]').fill(testUser.password);
-
-    // Submit login
-    console.log('📍 Step 3: Submitting login...');
-    await page.locator('[data-testid="login-button"]').click();
-
-    // Wait for navigation to dashboard
-    console.log('📍 Step 4: Waiting for dashboard...');
-    await page.waitForURL('**/dashboard', { timeout: 10000 });
-    console.log('✅ Successfully logged in and navigated to dashboard');
+      console.log('📍 Step 1: Logging in with test user...');
+      await AuthHelpers.loginWith(page, { email: testUser.email, password: testUser.password });
+      console.log('✅ Successfully logged in and navigated to dashboard');
 
     // Step 2: Navigate to Profile Settings
-    console.log('📍 Step 5: Navigating to Profile Settings...');
+    console.log('📍 Step 2: Navigating to Profile Settings...');
     await page.goto('http://localhost:5173/dashboard/profile-settings');
     await page.waitForLoadState('networkidle');
     console.log('✅ Profile Settings page loaded');
 
     // Step 3: Capture current profile values using getByPlaceholder and getByRole
-    console.log('📍 Step 6: Capturing current profile values...');
+    console.log('📍 Step 3: Capturing current profile values...');
     const sceneNameInput = page.getByPlaceholder('Your scene name');
     const bioInput = page.getByPlaceholder('Tell us about yourself...');
     const pronounsInput = page.getByPlaceholder(/they\/them, she\/her, he\/him/);
@@ -101,7 +89,7 @@ test.describe('Profile Update Persistence', () => {
     });
 
     // Step 5: Update profile fields
-    console.log('📍 Step 7: Updating profile fields...');
+    console.log('📍 Step 4: Updating profile fields...');
 
     // Clear and fill scene name
     await sceneNameInput.clear();
@@ -126,7 +114,7 @@ test.describe('Profile Update Persistence', () => {
     console.log('✅ Profile fields updated');
 
     // Step 6: Set up network request monitoring BEFORE clicking save
-    console.log('📍 Step 8: Setting up network monitoring...');
+    console.log('📍 Step 5: Setting up network monitoring...');
     const updateRequestPromise = page.waitForRequest(
       request => request.url().includes('/api/users/') &&
                  request.url().includes('/profile') &&
@@ -142,12 +130,12 @@ test.describe('Profile Update Persistence', () => {
     );
 
     // Step 7: Click Save Changes button
-    console.log('📍 Step 9: Clicking Save Changes button...');
+    console.log('📍 Step 6: Clicking Save Changes button...');
     const saveButton = page.getByRole('button', { name: /Save Changes/i });
     await saveButton.click();
 
     // Step 8: Wait for and capture the PUT request
-    console.log('📍 Step 10: Waiting for PUT request...');
+    console.log('📍 Step 7: Waiting for PUT request...');
     const updateRequest = await updateRequestPromise;
     const updateResponse = await updateResponsePromise;
 
@@ -166,12 +154,12 @@ test.describe('Profile Update Persistence', () => {
     console.log('  Response Body:', JSON.stringify(responseBody, null, 2));
 
     // Step 9: Verify response is successful
-    console.log('📍 Step 11: Verifying response status...');
+    console.log('📍 Step 8: Verifying response status...');
     expect(updateResponse.status()).toBe(200);
     console.log('✅ PUT request returned 200 OK');
 
     // Verify request body contains all fields
-    console.log('📍 Step 11a: Verifying request contains all fields...');
+    console.log('📍 Step 9: Verifying request contains all fields...');
     expect(requestBody).toHaveProperty('sceneName', newSceneName);
     expect(requestBody).toHaveProperty('firstName', newFirstName);
     expect(requestBody).toHaveProperty('lastName', newLastName);
@@ -179,25 +167,25 @@ test.describe('Profile Update Persistence', () => {
     console.log('✅ Request body contains all required fields');
 
     // Step 10: Wait for success notification
-    console.log('📍 Step 12: Waiting for success notification...');
+    console.log('📍 Step 10: Waiting for success notification...');
     const successNotification = page.locator('.mantine-Notification-root:has-text("Success")');
     await expect(successNotification).toBeVisible({ timeout: 5000 });
     console.log('✅ Success notification appeared');
 
     // Step 11: Verify response contains updated data
-    console.log('📍 Step 13: Verifying response data...');
+    console.log('📍 Step 11: Verifying response data...');
     expect(responseBody.success).toBe(true);
     expect(responseBody.data).toBeDefined();
     console.log('✅ Response indicates success with data');
 
     // Step 12: Refresh the page to verify persistence
-    console.log('📍 Step 14: Refreshing page to verify persistence...');
+    console.log('📍 Step 12: Refreshing page to verify persistence...');
     await page.reload();
     await page.waitForLoadState('networkidle');
     console.log('✅ Page refreshed');
 
     // Step 13: Verify changes persisted
-    console.log('📍 Step 15: Checking if changes persisted...');
+    console.log('📍 Step 13: Checking if changes persisted...');
     const persistedSceneName = await sceneNameInput.inputValue();
     const persistedFirstName = await firstNameInput.inputValue();
     const persistedLastName = await lastNameInput.inputValue();
@@ -213,7 +201,7 @@ test.describe('Profile Update Persistence', () => {
     });
 
       // CRITICAL ASSERTIONS: These verify the database migration fix worked
-      console.log('📍 Step 16: Asserting persistence of all fields...');
+      console.log('📍 Step 14: Asserting persistence of all fields...');
       expect(persistedSceneName).toBe(newSceneName);
       expect(persistedFirstName).toBe(newFirstName);
       expect(persistedLastName).toBe(newLastName);
@@ -242,11 +230,7 @@ test.describe('Profile Update Persistence', () => {
     try {
       // Step 1: Login to get authentication
       console.log('📍 Step 1: Logging in...');
-      await page.goto('http://localhost:5173/login');
-      await page.locator('[data-testid="email-input"]').fill(testUser.email);
-      await page.locator('[data-testid="password-input"]').fill(testUser.password);
-    await page.locator('[data-testid="login-button"]').click();
-    await page.waitForURL('**/dashboard', { timeout: 10000 });
+      await AuthHelpers.loginWith(page, { email: testUser.email, password: testUser.password });
 
     // Step 2: Get current user ID from page context
     console.log('📍 Step 2: Fetching current user profile...');

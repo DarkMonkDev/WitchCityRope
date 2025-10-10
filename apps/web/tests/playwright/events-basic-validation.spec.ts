@@ -1,14 +1,15 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 /**
  * Basic Events System Validation Test
- * 
+ *
  * This test validates the basic functionality of the Events system without
  * complex localStorage cleanup that can cause security errors in Playwright.
- * 
+ *
  * Test Flow:
  * 1. Check if Events page loads
- * 2. Verify login functionality  
+ * 2. Verify login functionality
  * 3. Check admin access to events
  * 4. Validate basic event data display
  */
@@ -18,19 +19,6 @@ const testUrls = {
   adminEvents: 'http://localhost:5173/admin/events',
   login: 'http://localhost:5173/login',
   home: 'http://localhost:5173/'
-};
-
-const testAccounts = {
-  admin: {
-    email: 'admin@witchcityrope.com',
-    password: 'Test123!',
-    role: 'admin'
-  },
-  member: {
-    email: 'member@witchcityrope.com', 
-    password: 'Test123!',
-    role: 'member'
-  }
 };
 
 test.describe('Events System Basic Validation', () => {
@@ -138,56 +126,39 @@ test.describe('Events System Basic Validation', () => {
     const loginFormExists = emailInputs > 0 && passwordInputs > 0 && submitButtons > 0;
     console.log(`✅ Login form complete: ${loginFormExists}`);
 
-    // If login form exists, try to test it
+    // If login form exists, try to test it using AuthHelpers
     if (loginFormExists) {
       try {
-        // Fill login form
-        const emailInput = page.locator('input[type="email"], input[name="email"]').first();
-        const passwordInput = page.locator('input[type="password"], input[name="password"]').first();
-        const submitButton = page.locator('button[type="submit"], button:has-text("Login")').first();
+        // Login using AuthHelpers
+        await AuthHelpers.loginAs(page, 'admin');
 
-        await emailInput.fill(testAccounts.admin.email);
-        await passwordInput.fill(testAccounts.admin.password);
-        
-        await page.screenshot({ path: 'test-results/login-form-filled.png' });
-        
-        // Submit form and wait for response
-        await submitButton.click();
-        await page.waitForTimeout(3000);
-        
         await page.screenshot({ path: 'test-results/after-login-attempt.png' });
-        
-        // Check if login was successful (URL change, no error messages)
-        const currentUrl = page.url();
-        const hasErrorMessages = await page.locator('*:has-text("Invalid"), *:has-text("Error"), *:has-text("failed")').count();
-        
-        console.log(`🔗 URL after login: ${currentUrl}`);
-        console.log(`❌ Error messages: ${hasErrorMessages}`);
-        
-        const loginSuccessful = !currentUrl.includes('/login') && hasErrorMessages === 0;
+
+        console.log('🔗 URL after login:', page.url());
+        const loginSuccessful = !page.url().includes('/login');
         console.log(`✅ Login appears successful: ${loginSuccessful}`);
-        
+
         // If login successful, check admin access
         if (loginSuccessful) {
           console.log('🔑 Testing admin access to events...');
-          
+
           try {
             await page.goto(testUrls.adminEvents);
             await page.waitForTimeout(2000);
-            
+
             await page.screenshot({ path: 'test-results/admin-events-page.png' });
-            
+
             const adminEventElements = await page.locator('*:has-text("event"), *:has-text("Event"), button, table, .admin').count();
             console.log(`⚙️ Admin event management elements found: ${adminEventElements}`);
-            
+
             const adminAccessWorking = adminEventElements > 0;
             console.log(`🛠️ Admin events access working: ${adminAccessWorking}`);
-            
+
           } catch (error) {
             console.log(`⚠️ Admin events access error: ${error.message}`);
           }
         }
-        
+
       } catch (error) {
         console.log(`⚠️ Login test error: ${error.message}`);
       }
@@ -284,11 +255,8 @@ test.describe('Events System Basic Validation', () => {
       // 4. Admin access exists (basic check)
       if (systemStatus.loginFormExists) {
         try {
-          await page.fill('input[type="email"]', testAccounts.admin.email);
-          await page.fill('input[type="password"]', testAccounts.admin.password);
-          await page.click('button[type="submit"]');
-          await page.waitForTimeout(3000);
-          
+          await AuthHelpers.loginAs(page, 'admin');
+
           const adminResponse = await page.goto(testUrls.adminEvents);
           systemStatus.adminAccessExists = adminResponse?.status() === 200;
         } catch (error) {

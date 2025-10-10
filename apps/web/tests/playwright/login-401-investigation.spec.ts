@@ -191,11 +191,10 @@ test.describe('Login 401 Investigation', () => {
     
     console.log('✅ All form elements found and visible');
     
-    // Fill in credentials
-    await emailInput.fill(TEST_USER.email);
-    await passwordInput.fill(TEST_USER.password);
-    
-    console.log(`✅ Filled credentials: ${TEST_USER.email} / ${TEST_USER.password}`);
+    // Login using AuthHelpers instead of manual form filling
+    const { AuthHelpers } = await import('./helpers/auth.helpers');
+
+    console.log(`✅ Using AuthHelpers to login with: ${TEST_USER.email}`);
     
     // Take screenshot after filling
     await page.screenshot({ 

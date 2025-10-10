@@ -1,19 +1,15 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 test('debug dashboard vetting status for test users', async ({ page, context }) => {
-  const testUsers = [
-    { email: 'vetted@witchcityrope.com', password: 'Test123!', name: 'Vetted' },
-    { email: 'member@witchcityrope.com', password: 'Test123!', name: 'Member' },
-    { email: 'guest@witchcityrope.com', password: 'Test123!', name: 'Guest' }
+  const testUsers: Array<{ role: keyof typeof AuthHelpers.accounts; name: string }> = [
+    { role: 'vetted', name: 'Vetted' },
+    { role: 'member', name: 'Member' },
+    { role: 'guest', name: 'Guest' }
   ];
 
   for (const user of testUsers) {
-    console.log(`\n=== Testing ${user.name} (${user.email}) ===`);
-
-    // Login
-    await page.goto('http://localhost:5173/login');
-    await page.locator('[data-testid="email-input"]').fill(user.email);
-    await page.locator('[data-testid="password-input"]').fill(user.password);
+    console.log(`\n=== Testing ${user.name} ===`);
 
     // Intercept API calls
     const apiCalls: any[] = [];
@@ -32,7 +28,8 @@ test('debug dashboard vetting status for test users', async ({ page, context }) 
       }
     });
 
-    await page.locator('[data-testid="login-button"]').click();
+    // Login using AuthHelpers
+    await AuthHelpers.loginAs(page, user.role);
     await page.waitForTimeout(2000);
 
     // Take screenshot of dashboard

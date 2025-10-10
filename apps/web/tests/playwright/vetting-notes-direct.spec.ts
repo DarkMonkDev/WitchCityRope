@@ -1,21 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 test('Verify notes appear after stage advancement - Direct navigation', async ({ page }) => {
-  // Direct navigation to application detail
-  await page.goto('http://localhost:5173');
-  await page.waitForLoadState('networkidle');
-
-  // Login as admin if needed
-  const loginButton = page.locator('[data-testid="login-button"]');
-  if (await loginButton.isVisible()) {
-    await page.locator('[data-testid="email-input"]').fill('admin@witchcityrope.com');
-    await page.locator('[data-testid="password-input"]').fill('Test123!');
-    await loginButton.click();
-    await page.waitForLoadState('networkidle');
-  }
-
-  // Wait a moment for login to complete
-  await page.waitForTimeout(2000);
+  // Login as admin using AuthHelpers
+  await AuthHelpers.loginAs(page, 'admin');
 
   // Navigate directly to vetting application detail
   await page.goto('http://localhost:5173/admin/vetting/0199c639-c0bb-75b0-a215-5afd4f725900');

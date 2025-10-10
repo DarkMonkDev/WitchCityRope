@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 /**
- * Simple login attempt test - bypasses problematic helpers
- * to see what actually happens during login
+ * Simple login attempt test - uses AuthHelpers for reliable login
  */
 test.describe('Simple Login Attempt', () => {
   test('should attempt login and capture results', async ({ page }) => {
@@ -24,31 +24,15 @@ test.describe('Simple Login Attempt', () => {
       }
     });
 
-    // Clear cookies first
-    await page.context().clearCookies();
-    
-    // Navigate to login page
-    await page.goto('http://localhost:5173/login');
-    await page.waitForLoadState('domcontentloaded');
-    
-    // Fill form with admin credentials
-    await page.locator('[data-testid="email-input"]').fill('admin@witchcityrope.com');
-    await page.locator('[data-testid="password-input"]').fill('Test123!');
-    
-    // Take screenshot before submission
-    await page.screenshot({ path: 'test-results/before-login-submission.png' });
-    
-    console.log('🔄 Submitting login form...');
-    
-    // Click login button and wait for any navigation
-    const navigationPromise = page.waitForURL('**', { timeout: 10000 }).catch(() => null);
-    await page.locator('[data-testid="login-button"]').click();
-    
-    // Wait a moment for any response
-    await page.waitForTimeout(2000);
-    
+    // Login using AuthHelpers
+    console.log('🔄 Logging in with AuthHelpers...');
+    await AuthHelpers.loginAs(page, 'admin');
+
+    // Take screenshot after login
+    await page.screenshot({ path: 'test-results/after-login-submission.png' });
+
     const currentUrl = page.url();
-    console.log(`📍 Current URL after login attempt: ${currentUrl}`);
+    console.log(`📍 Current URL after login: ${currentUrl}`);
     
     // Take screenshot after submission
     await page.screenshot({ path: 'test-results/after-login-submission.png' });

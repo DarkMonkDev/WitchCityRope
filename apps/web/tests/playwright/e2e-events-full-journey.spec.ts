@@ -1,11 +1,12 @@
 import { test, expect, Page, BrowserContext } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 /**
  * Comprehensive E2E Test Suite: Events System Full User Journey
- * 
+ *
  * This test validates the complete TDD user story from event discovery to registration management.
  * It tests the REAL user journey without mocks - this is true E2E testing.
- * 
+ *
  * Test Flow:
  * 1. User discovers events on public page
  * 2. User views event details
@@ -15,19 +16,10 @@ import { test, expect, Page, BrowserContext } from '@playwright/test';
  * 6. User views RSVP/ticket in dashboard
  * 7. User cancels RSVP
  * 8. Admin views event management
- * 
+ *
  * CRITICAL: This test uses real API calls (port 5655 Docker) and real database data.
  * No mocks or stubs - this validates the complete integration.
  */
-
-// Test accounts from CLAUDE.md
-const TEST_ACCOUNTS = {
-  admin: { email: 'admin@witchcityrope.com', password: 'Test123!' },
-  teacher: { email: 'teacher@witchcityrope.com', password: 'Test123!' },
-  vetted: { email: 'vetted@witchcityrope.com', password: 'Test123!' },
-  member: { email: 'member@witchcityrope.com', password: 'Test123!' },
-  guest: { email: 'guest@witchcityrope.com', password: 'Test123!' }
-};
 
 test.describe('Events System - Complete User Journey E2E Tests', () => {
   
@@ -137,39 +129,12 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
   });
 
   test('4. User logs in successfully', async ({ page }) => {
-    // Navigate to login page
-    await page.goto('http://localhost:5173/login');
-    await page.waitForLoadState('networkidle');
-    
-    // Fill login form with member account
-    const emailInput = page.locator('[data-testid="email-input"]');
-    const passwordInput = page.locator('[data-testid="password-input"]');
-    const loginButton = page.locator('[data-testid="login-button"]');
-    
-    await expect(emailInput).toBeVisible({ timeout: 10000 });
-    await expect(passwordInput).toBeVisible();
-    await expect(loginButton).toBeVisible();
-    
-    await emailInput.fill(TEST_ACCOUNTS.member.email);
-    await passwordInput.fill(TEST_ACCOUNTS.member.password);
-    
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/login-form-filled.png' });
-    
-    // Submit login form
-    await loginButton.click();
-    
-    // Should redirect to dashboard or intended page
-    await page.waitForURL(/dashboard|events/, { timeout: 15000 });
-    
-    // Should see user-specific content (not login form)
-    await expect(page.locator('[data-testid="login-form"]')).not.toBeVisible();
-    
-    // Should see user menu or profile indicator
-    await expect(page.locator('[data-testid="user-menu"]')).toBeVisible({ timeout: 10000 });
-    
+    // Login using AuthHelpers
+    await AuthHelpers.loginAs(page, 'member');
+
     await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/successful-login.png' });
-    
-    console.log(`✅ Login successful: User ${TEST_ACCOUNTS.member.email} logged in successfully`);
+
+    console.log('✅ Login successful: User member@witchcityrope.com logged in successfully');
   });
 
   test.skip('5. User completes RSVP/ticket purchase for event', async ({ page, context }) => {
@@ -178,8 +143,8 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     // Reference: /docs/functional-areas/events/rsvp-ticketing-workflow.md
     // Expected: Fill RSVP/ticket form → submit → see success confirmation
 
-    // Login first
-    await loginUser(page, TEST_ACCOUNTS.member);
+    // Login first using AuthHelpers
+    await AuthHelpers.loginAs(page, 'member');
 
     // Navigate to events and select an event
     await page.goto('http://localhost:5173/events');
@@ -223,8 +188,8 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     // Reference: /docs/functional-areas/events/dashboard-registrations.md
     // Expected: Navigate to dashboard → see list of user's RSVPs and tickets
 
-    // Login and RSVP for an event first
-    await loginUser(page, TEST_ACCOUNTS.member);
+    // Login using AuthHelpers
+    await AuthHelpers.loginAs(page, 'member');
 
     // Navigate to dashboard
     await page.goto('http://localhost:5173/dashboard');
@@ -254,7 +219,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     // This test assumes user has an existing RSVP
     // In a real scenario, we'd create an RSVP first
 
-    await loginUser(page, TEST_ACCOUNTS.member);
+    await AuthHelpers.loginAs(page, 'member');
 
     // Navigate to dashboard
     await page.goto('http://localhost:5173/dashboard');
@@ -286,8 +251,8 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
   });
 
   test('8. Admin views event management', async ({ page }) => {
-    // Login as admin
-    await loginUser(page, TEST_ACCOUNTS.admin);
+    // Login as admin using AuthHelpers
+    await AuthHelpers.loginAs(page, 'admin');
     
     // Navigate to admin/events management
     await page.goto('http://localhost:5173/admin/events');
@@ -342,10 +307,8 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     await page.waitForURL('**/login**');
     console.log('   🔐 Redirected to login as expected');
 
-    // Step 4: Login
-    await fillLoginForm(page, TEST_ACCOUNTS.member);
-    await page.locator('[data-testid="login-button"]').click();
-    await page.waitForURL(/dashboard|events/, { timeout: 15000 });
+    // Step 4: Login using AuthHelpers
+    await AuthHelpers.loginAs(page, 'member');
     console.log('   ✅ Successfully logged in');
 
     // Step 5: Navigate back to event and complete RSVP/ticket purchase
@@ -410,20 +373,16 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
 
   test('11. Error Handling - Invalid Login', async ({ page }) => {
     console.log('🚨 Testing error handling...');
-    
-    await page.goto('http://localhost:5173/login');
-    await page.waitForLoadState('networkidle');
-    
-    // Try invalid login
-    await fillLoginForm(page, { email: 'invalid@test.com', password: 'wrongpassword' });
-    await page.locator('[data-testid="login-button"]').click();
-    
-    // Should show error message
-    await expect(page.locator('[data-testid="login-error"]')).toBeVisible({ timeout: 10000 });
-    
+
+    // Try invalid login using AuthHelpers
+    await AuthHelpers.loginExpectingError(
+      page,
+      { email: 'invalid@test.com', password: 'wrongpassword' }
+    );
+
     // Should still be on login page
     expect(page.url()).toContain('login');
-    
+
     console.log('✅ Error handling test PASSED!');
   });
 
@@ -452,31 +411,6 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
   });
 
 });
-
-// Helper Functions
-async function loginUser(page: Page, account: { email: string; password: string }) {
-  await page.goto('http://localhost:5173/login');
-  await page.waitForLoadState('networkidle');
-  
-  await fillLoginForm(page, account);
-  
-  await page.locator('[data-testid="login-button"]').click();
-  await page.waitForURL(/dashboard|events/, { timeout: 15000 });
-  
-  // Verify login success
-  await expect(page.locator('[data-testid="user-menu"]')).toBeVisible({ timeout: 10000 });
-}
-
-async function fillLoginForm(page: Page, credentials: { email: string; password: string }) {
-  const emailInput = page.locator('[data-testid="email-input"]');
-  const passwordInput = page.locator('[data-testid="password-input"]');
-  
-  await expect(emailInput).toBeVisible({ timeout: 10000 });
-  await expect(passwordInput).toBeVisible();
-  
-  await emailInput.fill(credentials.email);
-  await passwordInput.fill(credentials.password);
-}
 
 // Test Data Validation
 test.describe('Test Environment Validation', () => {

@@ -20,17 +20,7 @@ import {
 } from './templates/ticket-cancellation-persistence-template';
 import { DatabaseHelpers } from './utils/database-helpers';
 import { globalCleanup } from './templates/persistence-test-template';
-
-// Test accounts
-const VETTED_USER = {
-  email: 'vetted@witchcityrope.com',
-  password: 'Test123!',
-};
-
-const MEMBER_USER = {
-  email: 'member@witchcityrope.com',
-  password: 'Test123!',
-};
+import { AuthHelpers } from './helpers/auth.helpers';
 
 // Test event IDs - These should exist in seeded data
 // In production, we'd create test events via API
@@ -70,15 +60,7 @@ test.describe.serial('Ticket Lifecycle Persistence Tests', () => {
     // STRATEGY 2: Fallback to UI-based discovery with improved waiting
     console.log('📍 Using UI-based event discovery...');
 
-    await page.goto('http://localhost:5173/login');
-    await page.waitForLoadState('networkidle');
-
-    await page.locator('[data-testid="email-input"]').fill(VETTED_USER.email);
-    await page.locator('[data-testid="password-input"]').fill(VETTED_USER.password);
-    await page.locator('[data-testid="login-button"]').click();
-
-    await page.waitForURL('**/dashboard', { timeout: 10000 });
-    await page.waitForLoadState('networkidle');
+    await AuthHelpers.loginAs(page, 'vetted');
 
     // Navigate to events page
     await page.goto('http://localhost:5173/events');
@@ -165,7 +147,7 @@ test.describe.serial('Ticket Lifecycle Persistence Tests', () => {
     // - Database NOT updated
     // - Page refresh shows ticket still active
 
-    const userId = await DatabaseHelpers.getUserIdFromEmail(VETTED_USER.email);
+    const userId = await DatabaseHelpers.getUserIdFromEmail(AuthHelpers.accounts.vetted.email);
 
     // First, ensure user has a ticket to cancel
     console.log('Setting up: Ensuring user has active ticket...');
@@ -194,8 +176,8 @@ test.describe.serial('Ticket Lifecycle Persistence Tests', () => {
     // Now test cancellation persistence
     try {
       await testTicketCancellationPersistence(page, {
-        userEmail: VETTED_USER.email,
-        userPassword: VETTED_USER.password,
+        userEmail: AuthHelpers.accounts.vetted.email,
+        userPassword: AuthHelpers.accounts.vetted.password,
         eventId: TEST_EVENT_ID,
         cancellationReason: 'E2E persistence test',
         successMessage: 'Ticket cancelled successfully',
@@ -222,8 +204,8 @@ test.describe.serial('Ticket Lifecycle Persistence Tests', () => {
     // Each step verifies database persistence
     await testTicketLifecycle(
       page,
-      MEMBER_USER.email,
-      MEMBER_USER.password,
+      AuthHelpers.accounts.member.email,
+      AuthHelpers.accounts.member.password,
       TEST_EVENT_ID
     );
   });
@@ -231,7 +213,7 @@ test.describe.serial('Ticket Lifecycle Persistence Tests', () => {
   test('should persist cancellation reason to database', async ({ page }) => {
     test.skip(!TEST_EVENT_ID, 'No test event available');
 
-    const userId = await DatabaseHelpers.getUserIdFromEmail(MEMBER_USER.email);
+    const userId = await DatabaseHelpers.getUserIdFromEmail(AuthHelpers.accounts.member.email);
 
     // Ensure user has ticket
     try {
@@ -251,8 +233,8 @@ test.describe.serial('Ticket Lifecycle Persistence Tests', () => {
     const cancellationReason = `Cancellation reason test ${Date.now()}`;
 
     await testTicketCancellationPersistence(page, {
-      userEmail: MEMBER_USER.email,
-      userPassword: MEMBER_USER.password,
+      userEmail: AuthHelpers.accounts.member.email,
+      userPassword: AuthHelpers.accounts.member.password,
       eventId: TEST_EVENT_ID,
       cancellationReason,
     });
@@ -277,7 +259,7 @@ test.describe.serial('Ticket Lifecycle Persistence Tests', () => {
   test('should prevent duplicate cancellations', async ({ page }) => {
     test.skip(!TEST_EVENT_ID, 'No test event available');
 
-    const userId = await DatabaseHelpers.getUserIdFromEmail(VETTED_USER.email);
+    const userId = await DatabaseHelpers.getUserIdFromEmail(AuthHelpers.accounts.vetted.email);
 
     // Ensure ticket is already cancelled
     try {
@@ -286,8 +268,8 @@ test.describe.serial('Ticket Lifecycle Persistence Tests', () => {
     } catch {
       // Cancel ticket first
       await testTicketCancellationPersistence(page, {
-        userEmail: VETTED_USER.email,
-        userPassword: VETTED_USER.password,
+        userEmail: AuthHelpers.accounts.vetted.email,
+        userPassword: AuthHelpers.accounts.vetted.password,
         eventId: TEST_EVENT_ID,
       });
     }
@@ -325,7 +307,7 @@ test.describe('Ticket Persistence Edge Cases', () => {
   test('should verify endpoint called is correct', async ({ page }) => {
     test.skip(!TEST_EVENT_ID, 'No test event available');
 
-    const userId = await DatabaseHelpers.getUserIdFromEmail(MEMBER_USER.email);
+    const userId = await DatabaseHelpers.getUserIdFromEmail(AuthHelpers.accounts.member.email);
 
     // Ensure user has ticket
     try {

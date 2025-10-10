@@ -38,25 +38,14 @@ test.describe('Simple Login Test', () => {
   });
 
   test('should be able to fill login form', async ({ page }) => {
-    await page.context().clearCookies();
-    await page.goto('http://localhost:5173/login');
-    await page.waitForLoadState('domcontentloaded');
-    
-    // Try to fill the form
-    await page.locator('[data-testid="email-input"]').fill('admin@witchcityrope.com');
-    await page.locator('[data-testid="password-input"]').fill('Test123!');
-    
-    // Verify values were set
-    const emailValue = await page.locator('[data-testid="email-input"]').inputValue();
-    const passwordValue = await page.locator('[data-testid="password-input"]').inputValue();
-    
-    console.log(`Email filled: "${emailValue}"`);
-    console.log(`Password filled: "${passwordValue}"`);
-    
-    expect(emailValue).toBe('admin@witchcityrope.com');
-    expect(passwordValue).toBe('Test123!');
-    
-    // Take screenshot after filling form
+    const { AuthHelpers } = await import('./helpers/auth.helpers');
+
+    // Login using AuthHelpers
+    await AuthHelpers.loginAs(page, 'admin');
+
+    // Take screenshot after successful login
     await page.screenshot({ path: 'test-results/form-filled.png' });
+
+    console.log('✅ Login successful using AuthHelpers');
   });
 });

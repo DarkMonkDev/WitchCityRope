@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 test.describe('Vetting Application Complete Flow', () => {
   const timestamp = Date.now();
@@ -28,32 +29,15 @@ test.describe('Vetting Application Complete Flow', () => {
     await page.waitForTimeout(2000);
     console.log(`✅ Registration completed for ${testEmail}`);
 
-    // Step 2: Navigate to login page
-    console.log('Step 2: Navigating to login page...');
-    await page.goto('http://localhost:5173/login');
-    await page.waitForLoadState('networkidle');
-
-    // Step 3: Login with newly created credentials
-    console.log('Step 3: Logging in...');
-    await page.locator('[data-testid="email-input"]').fill(testEmail);
-    await page.locator('[data-testid="password-input"]').fill(testPassword);
-
-    await page.screenshot({ path: `${screenshotDir}/01-login-filled.png`, fullPage: true });
-
-    await page.locator('[data-testid="login-button"]').click();
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
-
-    // Verify successful login (should redirect to dashboard)
-    const currentUrl = page.url();
-    console.log(`Current URL after login: ${currentUrl}`);
-    expect(currentUrl).toContain('/dashboard');
+    // Step 2: Login with newly created credentials
+    console.log('Step 2: Logging in with new credentials...');
+    await AuthHelpers.loginWith(page, { email: testEmail, password: testPassword });
 
     await page.screenshot({ path: `${screenshotDir}/02-dashboard-after-login.png`, fullPage: true });
     console.log('✅ Login successful, redirected to dashboard');
 
-    // Step 4: Navigate to vetting application
-    console.log('Step 4: Navigating to vetting application...');
+    // Step 3: Navigate to vetting application
+    console.log('Step 3: Navigating to vetting application...');
     await page.goto('http://localhost:5173/join');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
@@ -65,8 +49,8 @@ test.describe('Vetting Application Complete Flow', () => {
     expect(pageContent).not.toContain('Login Required');
     expect(pageContent).not.toContain('Please log in');
 
-    // Step 5: Fill out vetting application with actual form fields
-    console.log('Step 5: Filling out vetting application...');
+    // Step 4: Fill out vetting application with actual form fields
+    console.log('Step 4: Filling out vetting application...');
 
     // Real Name (required)
     await page.locator('[data-testid="real-name-input"]').fill('Test User');
@@ -104,8 +88,8 @@ test.describe('Vetting Application Complete Flow', () => {
 
     await page.screenshot({ path: `${screenshotDir}/04-vetting-form-filled.png`, fullPage: true });
 
-    // Step 6: Submit the form
-    console.log('Step 6: Submitting vetting application...');
+    // Step 5: Submit the form
+    console.log('Step 5: Submitting vetting application...');
     const submitButton = page.locator('[data-testid="submit-application-button"]');
     await submitButton.scrollIntoViewIfNeeded();
 
@@ -121,8 +105,8 @@ test.describe('Vetting Application Complete Flow', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(3000);
 
-    // Step 7: CRITICAL - Verify success screen
-    console.log('Step 7: Verifying success screen...');
+    // Step 6: CRITICAL - Verify success screen
+    console.log('Step 6: Verifying success screen...');
     await page.screenshot({ path: `${screenshotDir}/05-success-screen-CRITICAL.png`, fullPage: true });
 
     // Get full page content for detailed analysis
@@ -172,8 +156,8 @@ test.describe('Vetting Application Complete Flow', () => {
     // Verify buttons - Note: The buttons might be in the Paper component, not necessarily at bottom
     // According to the code, there should be navigation buttons but let me check what's actually rendered
 
-    // Step 8: Navigate back to dashboard to verify vetting status
-    console.log('Step 8: Navigating to dashboard to verify vetting status...');
+    // Step 7: Navigate back to dashboard to verify vetting status
+    console.log('Step 7: Navigating to dashboard to verify vetting status...');
     await page.goto('http://localhost:5173/dashboard');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);

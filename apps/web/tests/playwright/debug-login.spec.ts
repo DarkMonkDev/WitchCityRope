@@ -102,65 +102,15 @@ test('debug login issue', async ({ page }) => {
     }
   }
 
-  if (emailInput && passwordInput) {
-    console.log('📝 Filling in credentials...');
-    await emailInput.fill('admin@witchcityrope.com');
-    await passwordInput.fill('Test123!');
+  // Use AuthHelpers for login instead of manual form filling
+  console.log('📝 Using AuthHelpers to login...');
+  const { AuthHelpers } = await import('./helpers/auth.helpers');
 
-    // Look for submit button
-    console.log('🔍 Looking for submit button...');
-    const submitSelectors = [
-      'button[type="submit"]',
-      'button:has-text("Login")',
-      'button:has-text("Sign In")',
-      '[data-testid="login-button"]',
-      '[data-testid="submit"]',
-      'form button'
-    ];
-    
-    let submitButton;
-    for (const selector of submitSelectors) {
-      const element = page.locator(selector);
-      if (await element.count() > 0) {
-        console.log(`✅ Found submit button with selector: ${selector}`);
-        submitButton = element.first();
-        break;
-      }
-    }
-
-    if (submitButton) {
-      // Intercept the login API call
-      console.log('🔍 Setting up API call interception...');
-      const responsePromise = page.waitForResponse(
-        response => response.url().includes('/auth/login') || response.url().includes('/api/auth'),
-        { timeout: 10000 }
-      ).catch(() => null);
-
-      // Click login
-      console.log('🔘 Clicking login button...');
-      await submitButton.click();
-
-      // Wait for response
-      console.log('⏳ Waiting for API response...');
-      const response = await responsePromise;
-      if (response) {
-        console.log('✅ API Status:', response.status());
-        try {
-          const body = await response.json();
-          console.log('📝 API Response:', JSON.stringify(body, null, 2));
-        } catch (e) {
-          console.log('📝 API Response (text):', await response.text().catch(() => 'Could not read response'));
-        }
-      } else {
-        console.log('❌ No API response intercepted');
-      }
-    } else {
-      console.log('❌ Could not find submit button');
-    }
-  } else {
-    console.log('❌ Could not find email or password fields');
-    console.log(`Email field found: ${!!emailInput}`);
-    console.log(`Password field found: ${!!passwordInput}`);
+  try {
+    await AuthHelpers.loginAs(page, 'admin');
+    console.log('✅ Login successful using AuthHelpers');
+  } catch (error) {
+    console.log('❌ Login failed:', error);
   }
 
   // Wait a bit for any errors

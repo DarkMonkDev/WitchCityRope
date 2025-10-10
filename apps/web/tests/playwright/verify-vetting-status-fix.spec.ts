@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 /**
  * Test to verify VettingStatus enum fix
@@ -14,33 +15,8 @@ import { test, expect } from '@playwright/test';
 
 test.describe('VettingStatus Enum Fix Verification', () => {
   test('should display correct vetting status for admin user', async ({ page }) => {
-    // Navigate to the application
-    await page.goto('http://localhost:5173');
-
-    // Wait for the page to load
-    await page.waitForLoadState('networkidle');
-
-    // Click LOGIN button in header (visible text)
-    const loginButton = page.getByRole('button', { name: /login/i });
-    await expect(loginButton).toBeVisible({ timeout: 10000 });
-    await loginButton.click();
-
-    // Wait for login form
-    await page.waitForSelector('[data-testid="email-input"]', { timeout: 10000 });
-
-    // Fill in credentials
-    await page.locator('[data-testid="email-input"]').fill('admin@witchcityrope.com');
-    await page.locator('[data-testid="password-input"]').fill('Test123!');
-
-    // Take screenshot before login
-    await page.screenshot({ path: '/tmp/before-admin-login.png', fullPage: true });
-
-    // Click sign in
-    const signInButton = page.locator('button[type="submit"]').filter({ hasText: /sign in/i });
-    await signInButton.click();
-
-    // Wait for navigation to dashboard
-    await page.waitForURL(/\/(dashboard|admin)/, { timeout: 15000 });
+    // Login using AuthHelpers
+    await AuthHelpers.loginAs(page, 'admin');
 
     // Take screenshot after login
     await page.screenshot({ path: '/tmp/after-admin-login.png', fullPage: true });
@@ -77,17 +53,6 @@ test.describe('VettingStatus Enum Fix Verification', () => {
   });
 
   test('should make successful API call to get user info', async ({ page }) => {
-    // Navigate to the application
-    await page.goto('http://localhost:5173');
-    await page.waitForLoadState('networkidle');
-
-    // Login
-    const loginButton = page.getByRole('button', { name: /login/i });
-    await loginButton.click();
-    await page.waitForSelector('[data-testid="email-input"]');
-    await page.locator('[data-testid="email-input"]').fill('admin@witchcityrope.com');
-    await page.locator('[data-testid="password-input"]').fill('Test123!');
-
     // Set up API response monitoring
     const apiResponses: any[] = [];
     page.on('response', async (response) => {
@@ -116,12 +81,8 @@ test.describe('VettingStatus Enum Fix Verification', () => {
       }
     });
 
-    // Submit login
-    const signInButton = page.locator('button[type="submit"]').filter({ hasText: /sign in/i });
-    await signInButton.click();
-
-    // Wait for navigation
-    await page.waitForURL(/\/(dashboard|admin)/, { timeout: 15000 });
+    // Login using AuthHelpers
+    await AuthHelpers.loginAs(page, 'admin');
 
     // Give API calls time to complete
     await page.waitForTimeout(2000);
