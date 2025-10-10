@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Dashboard.Models;
+using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Shared.Models;
 using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Models;
@@ -36,30 +37,39 @@ public class UserDashboardProfileService : IUserDashboardProfileService
         {
             _logger.LogInformation("Fetching events for user {UserId}, includePast={IncludePast}", userId, includePast);
 
-            // Get user's registered events from TicketPurchases
-            var query = _context.TicketPurchases
-                .Include(tp => tp.TicketType)
-                    .ThenInclude(tt => tt!.Event)
-                .Where(tp => tp.UserId == userId)
+            // FIXED: Query EventParticipations instead of TicketPurchases to get BOTH RSVPs and tickets
+            // Bug: Original query only looked at TicketPurchases, missing all RSVPs
+            // EventParticipations is the central table for both participation types
+            var query = _context.EventParticipations
+                .Include(ep => ep.Event)
+                .Where(ep => ep.UserId == userId)
+                .Where(ep => ep.Status == ParticipationStatus.Active) // Only active participations (not cancelled)
                 .AsQueryable();
 
             // Filter by date if not including past events
             if (!includePast)
             {
-                query = query.Where(tp => tp.TicketType!.Event!.EndDate >= DateTime.UtcNow);
+                query = query.Where(ep => ep.Event.EndDate >= DateTime.UtcNow);
             }
 
-            var tickets = await query
-                .OrderBy(tp => tp.TicketType!.Event!.StartDate)
+            var participations = await query
+                .OrderBy(ep => ep.Event.StartDate)
                 .ToListAsync(cancellationToken);
 
-            var events = tickets
-                .Where(tp => tp.TicketType?.Event != null)
-                .GroupBy(tp => tp.TicketType!.Event!.Id)
-                .Select(g =>
+            _logger.LogInformation(
+                "Found {ParticipationCount} active participations for user {UserId}: {RSVPCount} RSVPs, {TicketCount} tickets",
+                participations.Count,
+                userId,
+                participations.Count(p => p.ParticipationType == ParticipationType.RSVP),
+                participations.Count(p => p.ParticipationType == ParticipationType.Ticket));
+
+            var events = participations
+                .Where(ep => ep.Event != null)
+                .Select(ep =>
                 {
-                    var evt = g.First().TicketType!.Event!;
-                    var hasTicket = g.Any(tp => tp.TicketType != null && tp.TicketType.Price > 0);
+                    var evt = ep.Event;
+                    var isTicket = ep.ParticipationType == ParticipationType.Ticket;
+                    var isRsvp = ep.ParticipationType == ParticipationType.RSVP;
                     var isSocialEvent = evt.EventType.ToLower().Contains("social");
 
                     // Determine registration status
@@ -68,11 +78,11 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                     {
                         registrationStatus = "Attended";
                     }
-                    else if (hasTicket)
+                    else if (isTicket)
                     {
                         registrationStatus = isSocialEvent ? "Ticket Purchased (Social Event)" : "Ticket Purchased";
                     }
-                    else
+                    else // isRsvp
                     {
                         registrationStatus = "RSVP Confirmed";
                     }
@@ -87,12 +97,12 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                         Description = evt.ShortDescription,
                         RegistrationStatus = registrationStatus,
                         IsSocialEvent = isSocialEvent,
-                        HasTicket = hasTicket
+                        HasTicket = isTicket
                     };
                 })
                 .ToList();
 
-            _logger.LogInformation("Found {EventCount} events for user {UserId}", new object[] { events.Count, userId });
+            _logger.LogInformation("Returning {EventCount} events for user {UserId}", events.Count, userId);
 
             return Result<List<UserEventDto>>.Success(events);
         }

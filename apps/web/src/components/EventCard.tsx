@@ -26,7 +26,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
         {event.title}
       </h3>
       <p className="text-gray-600 mb-4" data-testid="event-description">
-        {event.description}
+        {event.shortDescription || event.description}
       </p>
       <div className="text-sm text-gray-500" data-testid="event-meta">
         <p>📅 {formatDate(event.startDate)}</p>

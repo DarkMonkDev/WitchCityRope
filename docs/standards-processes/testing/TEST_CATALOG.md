@@ -57,10 +57,10 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 - `admin-events-detailed-test.spec.ts` - ✅ Fixed with AuthHelpers
 - `admin-events-table-ui-check.spec.ts` - ✅ Fixed with AuthHelpers
 - `event-session-matrix-test.spec.ts` - ✅ Login fixed (unrelated button issue remains)
+- `e2e/tiptap-editors.spec.ts` - ✅ Fixed with AuthHelpers (2025-10-10) - 7/7 tests passing
 
 **Still Using Manual Login** (High Priority to update):
 - `events-comprehensive.spec.ts` - Line 261
-- `e2e/tiptap-editors.spec.ts` - Line 19
 - `vetting-notes-direct.spec.ts` - Line 11
 - `vetting-notes-display.spec.ts` - Line 11
 

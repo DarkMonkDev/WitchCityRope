@@ -11,19 +11,20 @@
  * This is for the user's own events dashboard, NOT public sales page
  */
 export interface UserEventDto {
-  id: string;
-  title: string;
-  startDate: string; // ISO 8601 date string
-  endDate: string; // ISO 8601 date string
-  location: string;
-  description?: string | null;
+  id: string
+  title: string
+  startDate: string // ISO 8601 date string
+  endDate: string // ISO 8601 date string
+  location: string
+  shortDescription?: string | null // Brief summary for card displays
+  description?: string | null
   /**
    * Registration status: "RSVP Confirmed", "Ticket Purchased", "Attended"
    */
-  registrationStatus: 'RSVP Confirmed' | 'Ticket Purchased' | 'Attended';
-  isSocialEvent: boolean;
-  hasTicket: boolean;
-  isPastEvent: boolean;
+  registrationStatus: 'RSVP Confirmed' | 'Ticket Purchased' | 'Attended'
+  isSocialEvent: boolean
+  hasTicket: boolean
+  isPastEvent: boolean
   // NO pricing fields - this is user dashboard, not sales page
   // NO capacity fields - user doesn't need to see event capacity
 }
@@ -35,50 +36,50 @@ export interface VettingStatusDto {
   /**
    * Vetting status: "Pending", "ApprovedForInterview", "OnHold", "Denied", "Vetted"
    */
-  status: 'Pending' | 'ApprovedForInterview' | 'OnHold' | 'Denied' | 'Vetted';
-  lastUpdatedAt: string; // ISO 8601 date string
-  message: string;
-  interviewScheduleUrl?: string | null;
-  reapplyInfoUrl?: string | null;
+  status: 'Pending' | 'ApprovedForInterview' | 'OnHold' | 'Denied' | 'Vetted'
+  lastUpdatedAt: string // ISO 8601 date string
+  message: string
+  interviewScheduleUrl?: string | null
+  reapplyInfoUrl?: string | null
 }
 
 /**
  * User profile information for settings page
  */
 export interface UserProfileDto {
-  userId: string;
-  sceneName: string;
-  firstName?: string | null;
-  lastName?: string | null;
-  email: string;
-  pronouns?: string | null;
-  bio?: string | null;
-  discordName?: string | null;
-  fetLifeName?: string | null;
-  phoneNumber?: string | null;
-  vettingStatus: string;
+  userId: string
+  sceneName: string
+  firstName?: string | null
+  lastName?: string | null
+  email: string
+  pronouns?: string | null
+  bio?: string | null
+  discordName?: string | null
+  fetLifeName?: string | null
+  phoneNumber?: string | null
+  vettingStatus: string
 }
 
 /**
  * Update profile request DTO
  */
 export interface UpdateProfileDto {
-  sceneName: string;
-  firstName?: string | null;
-  lastName?: string | null;
-  email: string;
-  pronouns?: string | null;
-  bio?: string | null;
-  discordName?: string | null;
-  fetLifeName?: string | null;
-  phoneNumber?: string | null;
+  sceneName: string
+  firstName?: string | null
+  lastName?: string | null
+  email: string
+  pronouns?: string | null
+  bio?: string | null
+  discordName?: string | null
+  fetLifeName?: string | null
+  phoneNumber?: string | null
 }
 
 /**
  * Change password request DTO
  */
 export interface ChangePasswordDto {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
+  currentPassword: string
+  newPassword: string
+  confirmPassword: string
 }

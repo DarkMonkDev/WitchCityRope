@@ -1,24 +1,24 @@
-import React from 'react';
-import { Box, Text, Group, Anchor } from '@mantine/core';
-import { EventDto } from '@witchcityrope/shared-types';
+import React from 'react'
+import { Box, Text, Group, Anchor } from '@mantine/core'
+import { EventDto } from '@witchcityrope/shared-types'
 
 interface EventCardProps {
-  event: EventDto;
+  event: EventDto
   /** Custom pricing display */
-  price?: string;
+  price?: string
   /** Availability status */
   status?: {
-    type: 'available' | 'limited' | 'full';
-    text: string;
-  };
+    type: 'available' | 'limited' | 'full'
+    text: string
+  }
   /** Additional event details */
   details?: {
-    duration?: string;
-    level?: string;
-    spots?: string;
-  };
+    duration?: string
+    level?: string
+    spots?: string
+  }
   /** Click handler for the card */
-  onClick?: () => void;
+  onClick?: () => void
 }
 
 export const EventCard: React.FC<EventCardProps> = ({
@@ -28,77 +28,77 @@ export const EventCard: React.FC<EventCardProps> = ({
   details = {
     duration: '2.5 hours',
     level: 'Beginner',
-    spots: 'Salem Studio'
+    spots: 'Salem Studio',
   },
-  onClick
+  onClick,
 }) => {
   // Calculate status dynamically based on event data
   const calculateStatus = () => {
     if (!status) {
       // Calculate based on event type and actual data
-      const capacity = event.capacity || 0;
-      const isSocialEvent = event.eventType?.toLowerCase() === 'social';
-      const currentCount = isSocialEvent ? (event.currentRSVPs || 0) : (event.currentTickets || 0);
-      const available = capacity - currentCount;
+      const capacity = event.capacity || 0
+      const isSocialEvent = event.eventType?.toLowerCase() === 'social'
+      const currentCount = isSocialEvent ? event.currentRSVPs || 0 : event.currentTickets || 0
+      const available = capacity - currentCount
 
       // Determine status type
-      let statusType: 'available' | 'limited' | 'full' = 'available';
+      let statusType: 'available' | 'limited' | 'full' = 'available'
       if (available <= 0) {
-        statusType = 'full';
+        statusType = 'full'
       } else if (available <= 3) {
-        statusType = 'limited';
+        statusType = 'limited'
       }
 
       // Generate status text
-      let statusText = '';
+      let statusText = ''
       if (isSocialEvent) {
         if (available <= 0) {
-          statusText = 'RSVPs Full';
+          statusText = 'RSVPs Full'
         } else if (available <= 3) {
-          statusText = `Only ${available} RSVP${available !== 1 ? 's' : ''} left!`;
+          statusText = `Only ${available} RSVP${available !== 1 ? 's' : ''} left!`
         } else {
-          statusText = `${currentCount}/${capacity} RSVPs`;
+          statusText = `${currentCount}/${capacity} RSVPs`
         }
       } else {
         if (available <= 0) {
-          statusText = 'Sold Out';
+          statusText = 'Sold Out'
         } else if (available <= 3) {
-          statusText = `Only ${available} ticket${available !== 1 ? 's' : ''} left!`;
+          statusText = `Only ${available} ticket${available !== 1 ? 's' : ''} left!`
         } else {
-          statusText = `${available} of ${capacity} tickets`;
+          statusText = `${available} of ${capacity} tickets`
         }
       }
 
-      return { type: statusType, text: statusText };
+      return { type: statusType, text: statusText }
     }
-    return status;
-  };
+    return status
+  }
 
-  const finalStatus = calculateStatus();
+  const finalStatus = calculateStatus()
   const formatDate = (isoString?: string) => {
-    if (!isoString) return 'TBD';
-    const date = new Date(isoString);
+    if (!isoString) return 'TBD'
+    const date = new Date(isoString)
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
       month: 'long',
       day: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
-    });
-  };
+    })
+  }
 
   const getStatusColor = (type: string) => {
     switch (type) {
       case 'available':
-        return 'var(--color-success)';
+        return 'var(--color-success)'
       case 'limited':
-        return 'var(--color-warning)';
+        return 'var(--color-warning)'
       case 'full':
-        return 'var(--color-error)';
+        return 'var(--color-error)'
       default:
-        return 'var(--color-success)';
+        return 'var(--color-success)'
     }
-  };
+  }
 
   return (
     <Anchor
@@ -139,7 +139,8 @@ export const EventCard: React.FC<EventCardProps> = ({
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10,50 Q30,20 50,50 T90,50' stroke='%23FFFFFF' stroke-width='0.5' fill='none' opacity='0.2'/%3E%3C/svg%3E\")",
+            backgroundImage:
+              "url(\"data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10,50 Q30,20 50,50 T90,50' stroke='%23FFFFFF' stroke-width='0.5' fill='none' opacity='0.2'/%3E%3C/svg%3E\")",
             backgroundSize: '200px 200px',
           }}
         />
@@ -187,7 +188,7 @@ export const EventCard: React.FC<EventCardProps> = ({
           }}
           data-testid="event-description"
         >
-          {event.description || 'No description available'}
+          {event.shortDescription || event.description || 'No description available'}
         </Text>
 
         <Group
@@ -249,5 +250,5 @@ export const EventCard: React.FC<EventCardProps> = ({
         </Group>
       </Box>
     </Anchor>
-  );
-};
+  )
+}

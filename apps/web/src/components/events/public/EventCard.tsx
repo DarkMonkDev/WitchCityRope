@@ -1,16 +1,16 @@
 import React, { memo, useMemo } from 'react';
-import { 
-  Paper, Badge, Title, Text, Group, Stack, Progress, 
-  Button, Box, Anchor, Alert 
+import {
+  Paper, Badge, Title, Text, Group, Stack, Progress,
+  Button, Anchor, Alert
 } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import { formatPrice, getCapacityColor } from '../../../utils/eventUtils';
-import type { EventDto } from '../../../lib/api/types/events.types';
 
 interface EventCardProps {
   event: {
     id: string;
     title: string;
+    shortDescription?: string; // Brief summary for card displays
     description: string;
     startDate: string;
     endDate?: string;
@@ -174,6 +174,7 @@ export const EventCard = memo<EventCardProps>(({
       p="md"
       radius="md"
       data-testid="event-card"
+      data-event-link={`event-link-${event.id}`}
       style={{
         transition: 'all 200ms ease',
         cursor: 'pointer',
@@ -200,6 +201,7 @@ export const EventCard = memo<EventCardProps>(({
               variant="light"
               color={event.type === 'CLASS' ? 'green' : event.type === 'SOCIAL' ? 'orange' : 'grape'}
               size="sm"
+              data-testid="event-type"
             >
               {event.type}
             </Badge>
@@ -230,12 +232,12 @@ export const EventCard = memo<EventCardProps>(({
         {/* Description */}
         {canViewFullDetails ? (
           <Text size="sm" c="dimmed" lineClamp={2}>
-            {event.description}
+            {event.shortDescription || event.description}
           </Text>
         ) : (
           <Stack gap="sm">
             <Text size="sm" c="dimmed" lineClamp={1} style={{ opacity: 0.7 }}>
-              {event.description.substring(0, 50)}...
+              {(event.shortDescription || event.description).substring(0, 50)}...
             </Text>
             <Alert color="orange" p="xs">
               <Text size="sm">

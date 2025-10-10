@@ -1391,3 +1391,284 @@ expect(eventsResponse.data.length).toBeGreaterThan(0);
 
 ---
 
+## 🚨 CRITICAL: Event Edit Persistence Failures - Missing Properties and Explicit Update (2025-10-10)
+
+**Problem**: Event edit form shows successful save (200 OK) but ShortDescription and Policies fields don't persist to database. After page refresh, both fields empty despite user entering text.
+
+**Root Cause #1 - ShortDescription**: Property existed in entity, DTO, and mapping code BUT missing explicit `.Update()` call before SaveChanges. EF Core change tracking not detecting modifications (same pattern as ticket cancellation bug - lines 1211-1320).
+
+**Root Cause #2 - Policies**: Property completely missing - no database column, no entity property, no DTO property, no mapping code.
+
+**Investigation Process**:
+1. ✅ Entity has `ShortDescription` property (line 26)
+2. ✅ UpdateEventRequest DTO has `ShortDescription` property (line 18)
+3. ✅ Service maps `ShortDescription` correctly (lines 257-262)
+4. ❌ Database has `Policies` column? NO - missing entirely
+5. ❌ Explicit `.Update()` call before SaveChanges? NO - relying on automatic change tracking
+
+**Why This is the SAME Bug Pattern as Ticket Cancellation**:
+- Entity loaded with tracking query (no `.AsNoTracking()`)
+- Properties modified directly via property setters
+- EF Core automatic change detection failed
+- No explicit `Update()` call to force tracking
+- SaveChangesAsync executes without persisting changes
+
+**Solution - Add Missing Policies Property and Explicit Update**:
+
+**Step 1: Add Policies to Event Entity**:
+```csharp
+// /apps/api/Models/Event.cs
+public string? Policies { get; set; }
+```
+
+**Step 2: Add Policies to UpdateEventRequest DTO**:
+```csharp
+// /apps/api/Features/Events/Models/UpdateEventRequest.cs
+public string? Policies { get; set; }
+```
+
+**Step 3: Add Policies Mapping in Service**:
+```csharp
+// /apps/api/Features/Events/Services/EventService.cs
+if (request.Policies != null)
+{
+    eventEntity.Policies = string.IsNullOrWhiteSpace(request.Policies)
+        ? null
+        : request.Policies.Trim();
+}
+```
+
+**Step 4: Add Policies to EventDto for Responses**:
+```csharp
+// /apps/api/Features/Events/Models/EventDto.cs
+public string? Policies { get; set; }
+```
+
+**Step 5: Add Explicit Update Call (CRITICAL)**:
+```csharp
+// /apps/api/Features/Events/Services/EventService.cs:333-336
+// Update the UpdatedAt timestamp
+eventEntity.UpdatedAt = DateTime.UtcNow;
+
+// CRITICAL: Explicitly mark entity as modified to ensure EF Core tracks the change
+// This is required when modifying properties directly (not through navigation properties)
+// Similar to ticket cancellation fix - see backend-developer-lessons-learned-2.md lines 1211-1320
+_context.Events.Update(eventEntity);
+
+// Save changes to database
+await _context.SaveChangesAsync(cancellationToken);
+```
+
+**Step 6: Create Database Migration**:
+```bash
+cd /home/chad/repos/witchcityrope/apps/api
+dotnet ef migrations add AddPoliciesFieldToEvents
+```
+
+**Migration Generated**:
+```sql
+ALTER TABLE "Events"
+ADD COLUMN "Policies" text NULL;
+```
+
+**Files Modified**:
+- `/apps/api/Models/Event.cs` - Added Policies property
+- `/apps/api/Features/Events/Models/UpdateEventRequest.cs` - Added Policies to DTO
+- `/apps/api/Features/Events/Models/EventDto.cs` - Added Policies to response DTO
+- `/apps/api/Features/Events/Services/EventService.cs` - Added Policies mapping + explicit Update() call
+- `/apps/api/Migrations/20251010155339_AddPoliciesFieldToEvents.cs` - Database migration
+
+**Why Both Bugs Occurred**:
+1. **ShortDescription**: Relied on EF Core automatic change tracking (unreliable for direct property modifications)
+2. **Policies**: Never implemented - missing from entire stack (database → entity → DTO → mapping)
+
+**Prevention Checklist**:
+- [ ] **ALWAYS use `.Update()`** after modifying entity properties directly
+- [ ] **Never rely on automatic change tracking** - explicit is better than implicit
+- [ ] **When adding new fields**: Update entity → DTO → mapping → migration → response DTO
+- [ ] **Test persistence**: Verify database has value after SaveChanges, not just API response
+- [ ] **Check database schema**: Confirm column exists before writing mapping code
+- [ ] **Apply ticket cancellation lesson**: All entity modifications need explicit Update()
+
+**Testing Verification**:
+```bash
+# 1. Apply migration (via test-executor agent)
+cd /home/chad/repos/witchcityrope/apps/api
+dotnet ef database update
+
+# 2. Test via UI:
+# - Edit event in admin interface
+# - Add text to ShortDescription field
+# - Add text to Policies field
+# - Click Save
+# - Refresh page
+# - Verify both fields still contain text
+
+# 3. Test via API:
+curl -X PUT 'http://localhost:5173/api/events/{id}' \
+  -H 'Content-Type: application/json' \
+  -b cookies.txt \
+  -d '{"shortDescription":"Brief summary","policies":"Safety rules here"}'
+
+# Query database to verify persistence
+docker exec witchcity-postgres psql -U postgres -d witchcitydb \
+  -c "SELECT \"Id\", \"Title\", \"ShortDescription\", \"Policies\" FROM \"Events\" WHERE \"Id\" = '{id}';"
+```
+
+**Success Criteria**:
+- ✅ API builds with 0 errors
+- ✅ Migration created successfully
+- ✅ ShortDescription persists to database after save
+- ✅ Policies persist to database after save
+- ✅ Both fields survive page refresh
+- ✅ GET /api/events/{id} returns both fields in response
+- ✅ Explicit Update() call ensures EF Core change tracking
+
+**Related Lessons**:
+- **Ticket Cancellation Bug** (lines 1211-1320): Same root cause - missing explicit Update()
+- **Early Return Validation** (lines 555-629): Also required explicit Update() for user entity
+
+**Pattern**: When modifying entity properties in service layer, ALWAYS call `_context.Entities.Update(entity)` before SaveChangesAsync. EF Core automatic change tracking is unreliable for direct property modifications.
+
+**Tags**: #critical #entity-framework #change-tracking #persistence #event-editing #data-integrity #explicit-update
+
+---
+
+## Dashboard Events Query Using Wrong Table - Missing RSVPs (2025-10-10)
+
+**Problem**: Admin dashboard shows NO events despite admin having RSVP'd or purchased tickets. Event details page correctly shows admin has tickets (data exists in database), but dashboard returns empty list.
+
+**Root Cause**: Dashboard query only looked at `TicketPurchases` table, completely missing all RSVPs stored in `EventParticipations` table. The query was:
+```csharp
+// ❌ WRONG - Only queries TicketPurchases, missing all RSVPs
+var query = _context.TicketPurchases
+    .Include(tp => tp.TicketType)
+        .ThenInclude(tt => tt!.Event)
+    .Where(tp => tp.UserId == userId)
+```
+
+**Why This is Wrong**:
+- `EventParticipations` is the central table for BOTH RSVPs and ticket purchases
+- `TicketPurchases` is a legacy/supplementary table (not the source of truth)
+- Query missed ALL RSVP-only participations (social events)
+- Query potentially missed ticket purchases tracked in `EventParticipations`
+
+**Architecture Context**:
+- `EventParticipations` table has:
+  - `ParticipationType` enum: RSVP = 1, Ticket = 2
+  - `ParticipationStatus` enum: Active = 1, Cancelled = 2, Refunded = 3, Waitlisted = 4
+  - Both types of participation stored in ONE table
+- EventParticipations is the SOURCE OF TRUTH for all event participation
+
+**Solution - Query EventParticipations Table**:
+```csharp
+// ✅ CORRECT - Queries EventParticipations for BOTH RSVPs and tickets
+var query = _context.EventParticipations
+    .Include(ep => ep.Event)
+    .Where(ep => ep.UserId == userId)
+    .Where(ep => ep.Status == ParticipationStatus.Active) // Only active (not cancelled)
+    .AsQueryable();
+
+// Filter by date if not including past events
+if (!includePast)
+{
+    query = query.Where(ep => ep.Event.EndDate >= DateTime.UtcNow);
+}
+
+var participations = await query
+    .OrderBy(ep => ep.Event.StartDate)
+    .ToListAsync(cancellationToken);
+
+// Map to DTOs using ParticipationType to distinguish
+var events = participations
+    .Select(ep =>
+    {
+        var isTicket = ep.ParticipationType == ParticipationType.Ticket;
+        var isRsvp = ep.ParticipationType == ParticipationType.RSVP;
+
+        string registrationStatus;
+        if (ep.Event.EndDate < DateTime.UtcNow)
+            registrationStatus = "Attended";
+        else if (isTicket)
+            registrationStatus = "Ticket Purchased";
+        else // isRsvp
+            registrationStatus = "RSVP Confirmed";
+
+        return new UserEventDto
+        {
+            Id = ep.Event.Id,
+            Title = ep.Event.Title,
+            RegistrationStatus = registrationStatus,
+            HasTicket = isTicket,
+            // ... other fields
+        };
+    })
+    .ToList();
+```
+
+**Key Filtering**:
+- ✅ `Status == ParticipationStatus.Active` - Excludes cancelled, refunded, waitlisted
+- ✅ Works for BOTH RSVPs and tickets (single query)
+- ✅ No role filtering - All authenticated users can have participations
+- ✅ Date filtering optional (includePast parameter)
+
+**Enhanced Logging**:
+```csharp
+_logger.LogInformation(
+    "Found {ParticipationCount} active participations for user {UserId}: {RSVPCount} RSVPs, {TicketCount} tickets",
+    participations.Count,
+    userId,
+    participations.Count(p => p.ParticipationType == ParticipationType.RSVP),
+    participations.Count(p => p.ParticipationType == ParticipationType.Ticket));
+```
+
+**Testing Verification**:
+```bash
+# 1. Login as admin
+curl -X POST 'http://localhost:5173/api/auth/login' \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"admin@witchcityrope.com","password":"Test123!"}' \
+  -c cookies.txt
+
+# 2. Get dashboard events
+curl 'http://localhost:5173/api/dashboard/events' -b cookies.txt
+
+# Should return:
+# {
+#   "success": true,
+#   "data": [
+#     { "id": "...", "title": "Event Title", "registrationStatus": "RSVP Confirmed", ... }
+#   ]
+# }
+
+# 3. Verify database has participations
+docker exec witchcity-postgres psql -U postgres -d witchcitydb \
+  -c "SELECT \"UserId\", \"EventId\", \"ParticipationType\", \"Status\" FROM \"EventParticipations\" WHERE \"UserId\" = '{adminUserId}';"
+```
+
+**Prevention**:
+1. **Always check table relationships** - Which table is the source of truth?
+2. **Review entity documentation** - EventParticipations entity clearly states it's for BOTH types
+3. **Test with both participation types** - Verify query returns RSVPs AND tickets
+4. **Check enum values** - Understand ParticipationType and ParticipationStatus
+5. **Use proper includes** - `.Include(ep => ep.Event)` for navigation properties
+
+**Common Mistake Pattern**:
+- Querying detail/child tables (TicketPurchases) instead of parent/central tables (EventParticipations)
+- Forgetting that modern architecture consolidated participation tracking
+- Not considering all enum values when filtering
+
+**File Modified**: `/apps/api/Features/Dashboard/Services/UserDashboardProfileService.cs:30-113`
+
+**Success Criteria**:
+- ✅ API builds with 0 errors
+- ✅ Dashboard shows events where user has RSVP'd
+- ✅ Dashboard shows events where user has tickets
+- ✅ Query includes Active status participations only
+- ✅ Works for all user roles (admin, member, etc.)
+- ✅ Enhanced logging shows RSVP/ticket breakdown
+
+**Tags**: #critical #database-query #dashboard #event-participation #rsvp #tickets #table-relationships
+
+---
+

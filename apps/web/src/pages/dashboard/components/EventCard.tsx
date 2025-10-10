@@ -1,11 +1,11 @@
-import React from 'react';
-import { Card, Text, Badge, Button, Box, Stack } from '@mantine/core';
-import { Link } from 'react-router-dom';
-import type { UserEventDto } from '../../../types/dashboard.types';
+import React from 'react'
+import { Card, Text, Badge, Button, Box, Stack } from '@mantine/core'
+import { Link } from 'react-router-dom'
+import type { UserEventDto } from '../../../types/dashboard.types'
 
 interface EventCardProps {
-  event: UserEventDto;
-  className?: string;
+  event: UserEventDto
+  className?: string
 }
 
 /**
@@ -22,27 +22,27 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className }) => {
   const statusColors: Record<string, string> = {
     'RSVP Confirmed': 'blue',
     'Ticket Purchased': 'green',
-    'Attended': 'grape',
-  };
+    Attended: 'grape',
+  }
 
   const formatEventDate = (dateString: string) => {
-    const date = new Date(dateString);
+    const date = new Date(dateString)
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-    });
-  };
+    })
+  }
 
   const formatEventTime = (dateString: string) => {
-    const date = new Date(dateString);
+    const date = new Date(dateString)
     return date.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
-    });
-  };
+    })
+  }
 
   return (
     <Card
@@ -51,6 +51,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className }) => {
       radius="md"
       withBorder
       className={className}
+      data-testid="event-card"
       style={{
         height: '100%',
         display: 'flex',
@@ -60,14 +61,14 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className }) => {
         transition: 'all 0.3s ease',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-4px)';
-        e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)';
-        e.currentTarget.style.borderColor = 'var(--color-rose-gold)';
+        e.currentTarget.style.transform = 'translateY(-4px)'
+        e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)'
+        e.currentTarget.style.borderColor = 'var(--color-rose-gold)'
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)';
-        e.currentTarget.style.borderColor = 'rgba(183, 109, 117, 0.1)';
+        e.currentTarget.style.transform = 'translateY(0)'
+        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'
+        e.currentTarget.style.borderColor = 'rgba(183, 109, 117, 0.1)'
       }}
     >
       {/* Gradient Header */}
@@ -87,6 +88,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className }) => {
           size="lg"
           ta="center"
           px="md"
+          data-testid="event-title"
           style={{
             fontFamily: 'var(--font-heading)',
             lineHeight: 1.3,
@@ -118,9 +120,9 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className }) => {
         </Text>
 
         {/* Description */}
-        {event.description && (
+        {(event.shortDescription || event.description) && (
           <Text size="sm" c="dimmed" style={{ flex: 1 }}>
-            {event.description}
+            {event.shortDescription || event.description}
           </Text>
         )}
 
@@ -185,5 +187,5 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className }) => {
         </Button>
       </Stack>
     </Card>
-  );
-};
+  )
+}

@@ -23,6 +23,11 @@ public class UpdateEventRequest
     public string? Description { get; set; }
 
     /// <summary>
+    /// Updated event policies and safety guidelines (optional)
+    /// </summary>
+    public string? Policies { get; set; }
+
+    /// <summary>
     /// Updated event start date/time in UTC (optional)
     /// CRITICAL: Must be UTC for PostgreSQL TIMESTAMPTZ compatibility
     /// </summary>

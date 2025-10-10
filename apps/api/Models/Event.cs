@@ -32,6 +32,12 @@ public class Event
     public string Description { get; set; } = string.Empty;
 
     /// <summary>
+    /// Event policies, safety guidelines, and rules (optional)
+    /// Contains important information about event policies, safety requirements, etc.
+    /// </summary>
+    public string? Policies { get; set; }
+
+    /// <summary>
     /// Event start date/time in UTC
     /// CRITICAL: Must be UTC for PostgreSQL TIMESTAMPTZ compatibility
     /// </summary>

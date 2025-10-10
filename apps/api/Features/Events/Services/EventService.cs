@@ -76,6 +76,7 @@ public class EventService
                 Title = e.Title,
                 ShortDescription = e.ShortDescription,
                 Description = e.Description,
+                Policies = e.Policies,
                 StartDate = e.StartDate,
                 EndDate = e.EndDate,
                 Location = e.Location,
@@ -139,6 +140,7 @@ public class EventService
                 Title = eventEntity.Title,
                 ShortDescription = eventEntity.ShortDescription,
                 Description = eventEntity.Description,
+                Policies = eventEntity.Policies,
                 StartDate = eventEntity.StartDate,
                 EndDate = eventEntity.EndDate,
                 Location = eventEntity.Location,
@@ -266,6 +268,13 @@ public class EventService
                 eventEntity.Description = request.Description.Trim();
             }
 
+            if (request.Policies != null)
+            {
+                eventEntity.Policies = string.IsNullOrWhiteSpace(request.Policies)
+                    ? null
+                    : request.Policies.Trim();
+            }
+
             if (request.StartDate.HasValue)
             {
                 eventEntity.StartDate = startDate;
@@ -323,6 +332,11 @@ public class EventService
             // Update the UpdatedAt timestamp
             eventEntity.UpdatedAt = DateTime.UtcNow;
 
+            // CRITICAL: Explicitly mark entity as modified to ensure EF Core tracks the change
+            // This is required when modifying properties directly (not through navigation properties)
+            // Similar to ticket cancellation fix - see backend-developer-lessons-learned-2.md lines 1211-1320
+            _context.Events.Update(eventEntity);
+
             // Save changes to database
             await _context.SaveChangesAsync(cancellationToken);
 
@@ -333,6 +347,7 @@ public class EventService
                 Title = eventEntity.Title,
                 ShortDescription = eventEntity.ShortDescription,
                 Description = eventEntity.Description,
+                Policies = eventEntity.Policies,
                 StartDate = eventEntity.StartDate,
                 EndDate = eventEntity.EndDate,
                 Location = eventEntity.Location,
