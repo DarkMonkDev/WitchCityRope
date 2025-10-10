@@ -1320,3 +1320,74 @@ docker exec -it witchcity-postgres psql -U postgres -d witchcitydb \
 
 ---
 
+## E2E Test Expecting Direct Array Response vs ApiResponse Wrapper - Test Contract Mismatch (2025-10-10)
+
+**Problem**: E2E test "API Events Data Availability" expects `/api/events` to return direct array format `EventDto[]`, but API returns `ApiResponse<List<EventDto>>` wrapper. Test fails with `Array.isArray(eventsData) is false`.
+
+**Root Cause**: E2E test written expecting direct array response, violating established API contract standard documented in backend lessons learned (Part 1, lines 154-176): "MANDATORY: ALL API endpoints must return consistent `ApiResponse<T>` wrapper format".
+
+**Test Expectations (INCORRECT)**:
+```typescript
+const eventsData = await eventsApiResponse.json();
+expect(Array.isArray(eventsData)).toBe(true); // ❌ Expects direct array
+expect(eventsData.length).toBeGreaterThan(0);
+```
+
+**Actual API Response (CORRECT)**:
+```json
+{
+  "success": true,
+  "data": [
+    { "id": "...", "title": "Event 1", ... },
+    { "id": "...", "title": "Event 2", ... }
+  ],
+  "error": null,
+  "message": "Events retrieved successfully",
+  "timestamp": "2025-10-10T12:34:56.789Z"
+}
+```
+
+**Why API is Correct**:
+1. Follows documented `ApiResponse<T>` standard (backend lessons learned Part 1:154-176)
+2. Consistent with all other endpoints (auth, participation, vetting, etc.)
+3. Provides error handling context (success, error, message fields)
+4. Frontend React code correctly consumes wrapper format
+5. Enables better debugging with timestamps and error messages
+
+**Solution - Update E2E Test (NOT Backend)**:
+```typescript
+// ✅ CORRECT - Handle ApiResponse wrapper
+const eventsResponse = await eventsApiResponse.json();
+expect(eventsResponse.success).toBe(true);
+expect(Array.isArray(eventsResponse.data)).toBe(true);
+expect(eventsResponse.data.length).toBeGreaterThan(0);
+```
+
+**Why Changing API is Wrong**:
+1. Violates documented API standards
+2. Creates inconsistency across endpoints
+3. Frontend would need updates
+4. Loses error handling context
+5. Creates technical debt
+
+**Delegation**:
+- **Backend**: API is CORRECT - document finding, no code changes needed
+- **Test-Executor**: Update E2E test to handle `ApiResponse<T>` wrapper format
+
+**Prevention**:
+1. **Test developers MUST read backend lessons learned** before writing API tests
+2. **Validate response structure** against documented API contracts
+3. **Use generated TypeScript types** from OpenAPI spec (enforces wrapper)
+4. **API contract validation workflow** (implemented 2025-10-09) catches these mismatches
+5. **All endpoints use same wrapper** - tests should expect consistent format
+
+**Pattern**: E2E tests must validate ACTUAL API contracts, not assumed formats. API standards are documented in backend lessons learned - tests must comply.
+
+**File Analyzed**: `/apps/api/Features/Events/Endpoints/EventEndpoints.cs:73-78`
+**Test File**: `/apps/web/tests/playwright/events-actual-routes-test.spec.ts:35-65`
+**Analysis Document**: `/test-results/api-events-response-format-analysis-20251010.md`
+
+**Tags**: #e2e-testing #api-contract #test-expectations #apiresponse-wrapper #delegation
+
+---
+

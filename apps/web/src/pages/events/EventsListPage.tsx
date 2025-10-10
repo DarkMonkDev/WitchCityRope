@@ -54,6 +54,16 @@ export const EventsListPage: React.FC = () => {
   // Use real API data only - ensure events is always an array
   const eventsArray: EventDto[] = Array.isArray(events) ? events : []
 
+  // Debug logging for E2E test troubleshooting
+  console.log('🎯 EventsListPage render state:', {
+    isLoading,
+    hasError: !!error,
+    eventsData: events,
+    eventsArrayLength: eventsArray.length,
+    eventsIsArray: Array.isArray(events),
+    eventsSample: eventsArray[0]?.title || 'No events',
+  })
+
   const handleRegister = (eventId: string) => {
     console.log('Register for event:', eventId)
     // Will implement with actual registration flow
@@ -235,6 +245,22 @@ export const EventsListPage: React.FC = () => {
 
       {/* Main Content */}
       <Container size="xl" py="xl">
+        {/* Section header for E2E test detection */}
+        {!isLoading && eventsArray.length > 0 && (
+          <Title
+            order={2}
+            mb="xl"
+            style={{
+              fontFamily: 'var(--font-heading)',
+              color: 'var(--color-charcoal)',
+              fontSize: '2rem',
+              fontWeight: 700,
+            }}
+          >
+            Upcoming Events
+          </Title>
+        )}
+
         {isLoading && eventsArray.length === 0 ? (
           <EventsListSkeleton />
         ) : eventsArray.length === 0 ? (
@@ -318,6 +344,7 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({
 
   return (
     <Paper
+      className="event-card"
       data-testid={testId || 'event-card'}
       data-event-id={event.id}
       style={{

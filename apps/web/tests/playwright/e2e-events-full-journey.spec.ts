@@ -1,6 +1,13 @@
 import { test, expect, Page, BrowserContext } from '@playwright/test';
 import { AuthHelpers } from './helpers/auth.helpers';
 
+const TEST_ACCOUNTS = {
+  member: {
+    email: 'member@witchcityrope.com',
+    password: 'Test123!'
+  }
+};
+
 /**
  * Comprehensive E2E Test Suite: Events System Full User Journey
  *
@@ -349,24 +356,28 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     // Test events API
     const eventsResponse = await request.get('http://localhost:5655/api/events');
     expect(eventsResponse.status()).toBe(200);
+
+    const eventsApiResponse = await eventsResponse.json();
+    expect(eventsApiResponse.success).toBe(true);
+    expect(eventsApiResponse.error).toBeNull();
+    expect(Array.isArray(eventsApiResponse.data)).toBe(true);
+    expect(eventsApiResponse.data.length).toBeGreaterThan(0);
+    console.log(`   📅 Events API returned ${eventsApiResponse.data.length} events`);
     
-    const eventsData = await eventsResponse.json();
-    expect(Array.isArray(eventsData)).toBe(true);
-    expect(eventsData.length).toBeGreaterThan(0);
-    console.log(`   📅 Events API returned ${eventsData.length} events`);
-    
-    // Test login API  
+    // Test login API
     const loginResponse = await request.post('http://localhost:5655/api/auth/login', {
       data: {
         email: TEST_ACCOUNTS.member.email,
         password: TEST_ACCOUNTS.member.password
       }
     });
-    
+
     expect(loginResponse.status()).toBe(200);
     const loginData = await loginResponse.json();
-    expect(loginData).toHaveProperty('token');
-    console.log('   🔐 Login API working correctly');
+    expect(loginData.success).toBe(true);
+    expect(loginData.user).toBeDefined();
+    expect(loginData.user.email).toBe(TEST_ACCOUNTS.member.email);
+    console.log('   🔐 Login API working correctly (cookie-based auth)');
     
     console.log('✅ API integration verification PASSED!');
   });

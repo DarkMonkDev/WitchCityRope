@@ -34,29 +34,38 @@ test.describe('Events System - Actual Routes Validation', () => {
   
   test('API Events Data Availability', async ({ page }) => {
     console.log('🧪 Testing Events API data availability...');
-    
+
     // Direct API test
     try {
       const eventsApiResponse = await page.request.get('http://localhost:5655/api/events');
       console.log(`📅 Events API status: ${eventsApiResponse.status()}`);
-      
+
       if (eventsApiResponse.ok()) {
-        const eventsData = await eventsApiResponse.json();
+        const eventsResponse = await eventsApiResponse.json();
         console.log(`📊 Events API returned:`, {
-          dataType: typeof eventsData,
-          isArray: Array.isArray(eventsData),
-          count: Array.isArray(eventsData) ? eventsData.length : 'N/A',
-          sampleData: Array.isArray(eventsData) && eventsData.length > 0 ? eventsData[0] : null
+          success: eventsResponse.success,
+          hasData: eventsResponse.data !== null,
+          dataType: typeof eventsResponse.data,
+          isArray: Array.isArray(eventsResponse.data),
+          count: Array.isArray(eventsResponse.data) ? eventsResponse.data.length : 'N/A',
+          message: eventsResponse.message,
+          sampleData: Array.isArray(eventsResponse.data) && eventsResponse.data.length > 0 ? eventsResponse.data[0] : null
         });
-        
+
+        // Validate ApiResponse<List<EventDto>> wrapper format
         expect(eventsApiResponse.status()).toBe(200);
-        expect(Array.isArray(eventsData)).toBe(true);
-        expect(eventsData.length).toBeGreaterThan(0);
-        
-        console.log('✅ Events API: Working perfectly');
-        
+        expect(eventsResponse.success).toBe(true);
+        expect(eventsResponse.error).toBeNull();
+        expect(Array.isArray(eventsResponse.data)).toBe(true);
+        expect(eventsResponse.data.length).toBeGreaterThan(0);
+
+        console.log('✅ Events API: Working perfectly with ApiResponse wrapper');
+
       } else {
         console.log('❌ Events API failed');
+        const errorResponse = await eventsApiResponse.json();
+        console.log(`Error: ${errorResponse.error || errorResponse.message}`);
+        expect(eventsApiResponse.ok()).toBe(true); // Fail with proper message
       }
     } catch (error) {
       console.log(`⚠️ Events API error: ${error.message}`);
@@ -218,7 +227,10 @@ test.describe('Events System - Actual Routes Validation', () => {
     try {
       // 1. Check API data
       const eventsApi = await page.request.get('http://localhost:5655/api/events');
-      assessment.apiDataAvailable = eventsApi.ok() && (await eventsApi.json()).length > 0;
+      if (eventsApi.ok()) {
+        const eventsResponse = await eventsApi.json();
+        assessment.apiDataAvailable = eventsResponse.success && Array.isArray(eventsResponse.data) && eventsResponse.data.length > 0;
+      }
 
       // 2. Check demo routes
       const demoResponse = await page.goto(testUrls.adminEventsDemo);

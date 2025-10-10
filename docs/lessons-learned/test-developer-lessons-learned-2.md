@@ -791,3 +791,59 @@ _context.Payments.Add(payment);
 ```
 
 **Reference**: `/home/chad/repos/witchcityrope/tests/unit/api/Services/RefundServiceTests.cs` (lines 95, 142, 221, 251, 296, 331, 375, 445, 523)
+
+## E2E Test API Response Format Expectations (October 2025)
+
+### E2E Tests Must Handle ApiResponse<T> Wrapper Format
+**Problem**: E2E tests expected direct array responses from API endpoints, failing because all endpoints return `ApiResponse<T>` wrapper.
+**Root Cause**: Tests written before API standards were fully documented, not reviewing backend lessons learned.
+**Impact**: Tests fail with "expected array, got object" errors despite API working correctly.
+
+```typescript
+// ❌ WRONG - Expects direct array response
+const eventsApiResponse = await page.request.get('http://localhost:5655/api/events');
+const eventsData = await eventsApiResponse.json();
+expect(Array.isArray(eventsData)).toBe(true); // ❌ FAILS - eventsData is ApiResponse object
+expect(eventsData.length).toBeGreaterThan(0);
+
+// ✅ CORRECT - Handles ApiResponse<List<EventDto>> wrapper
+const eventsApiResponse = await page.request.get('http://localhost:5655/api/events');
+const eventsResponse = await eventsApiResponse.json();
+expect(eventsResponse.success).toBe(true);
+expect(eventsResponse.error).toBeNull();
+expect(Array.isArray(eventsResponse.data)).toBe(true); // ✅ Access array via .data
+expect(eventsResponse.data.length).toBeGreaterThan(0);
+```
+
+**API Response Standard** (ALL endpoints):
+```typescript
+interface ApiResponse<T> {
+  success: boolean;      // Operation success indicator
+  data: T | null;       // Actual response data (array, object, etc.)
+  error: string | null;  // Error message if success=false
+  message: string | null; // Human-readable message
+  timestamp: string;     // ISO 8601 timestamp
+}
+```
+
+**Why This Standard Exists**:
+1. **Consistency**: All endpoints use same wrapper format
+2. **Error Handling**: Provides structured error information
+3. **Metadata**: Includes timestamps and messages for debugging
+4. **Frontend Compatibility**: React app expects and handles this format
+5. **Backend Compliance**: Documented in backend lessons learned (lines 154-176)
+
+**Prevention**:
+- **Read backend lessons learned** before writing API tests
+- **Validate response structure** against documented API contracts
+- **Test wrapper properties** (success, data, error, message, timestamp)
+- **Access data via `.data` property** for all API responses
+
+**Fixed Files** (October 10, 2025):
+- `/apps/web/tests/playwright/events-actual-routes-test.spec.ts` (lines 35-65, 220-233)
+- `/apps/web/tests/playwright/e2e-events-full-journey.spec.ts` (lines 349-358)
+
+**Reference Documentation**:
+- Backend Lessons Learned Part 1 (lines 154-176): ApiResponse<T> standard
+- Backend Lessons Learned Part 2 (lines 1323-1392): E2E test contract mismatch lesson
+- API Response Analysis: `/test-results/api-events-response-format-analysis-20251010.md`
