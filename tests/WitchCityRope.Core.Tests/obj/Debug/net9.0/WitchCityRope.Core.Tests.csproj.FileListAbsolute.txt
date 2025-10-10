@@ -1380,3 +1380,15 @@
 /home/chad/repos/witchcityrope/tests/WitchCityRope.Core.Tests/obj/Debug/net9.0/WitchCit.4757D9D6.Up2Date
 /home/chad/repos/witchcityrope/tests/WitchCityRope.Core.Tests/obj/Debug/net9.0/WitchCityRope.Core.Tests.genruntimeconfig.cache
 /home/chad/repos/witchcityrope/tests/WitchCityRope.Core.Tests/obj/Debug/net9.0/ref/WitchCityRope.Core.Tests.dll
+/home/chad/repos/witchcityrope/tests/WitchCityRope.Core.Tests/bin/Debug/net9.0/Namotion.Reflection.dll
+/home/chad/repos/witchcityrope/tests/WitchCityRope.Core.Tests/bin/Debug/net9.0/NJsonSchema.dll
+/home/chad/repos/witchcityrope/tests/WitchCityRope.Core.Tests/bin/Debug/net9.0/NJsonSchema.Annotations.dll
+/home/chad/repos/witchcityrope/tests/WitchCityRope.Core.Tests/bin/Debug/net9.0/NJsonSchema.NewtonsoftJson.dll
+/home/chad/repos/witchcityrope/tests/WitchCityRope.Core.Tests/bin/Debug/net9.0/NJsonSchema.Yaml.dll
+/home/chad/repos/witchcityrope/tests/WitchCityRope.Core.Tests/bin/Debug/net9.0/NSwag.Annotations.dll
+/home/chad/repos/witchcityrope/tests/WitchCityRope.Core.Tests/bin/Debug/net9.0/NSwag.AspNetCore.dll
+/home/chad/repos/witchcityrope/tests/WitchCityRope.Core.Tests/bin/Debug/net9.0/NSwag.Core.dll
+/home/chad/repos/witchcityrope/tests/WitchCityRope.Core.Tests/bin/Debug/net9.0/NSwag.Core.Yaml.dll
+/home/chad/repos/witchcityrope/tests/WitchCityRope.Core.Tests/bin/Debug/net9.0/NSwag.Generation.dll
+/home/chad/repos/witchcityrope/tests/WitchCityRope.Core.Tests/bin/Debug/net9.0/NSwag.Generation.AspNetCore.dll
+/home/chad/repos/witchcityrope/tests/WitchCityRope.Core.Tests/bin/Debug/net9.0/YamlDotNet.dll
