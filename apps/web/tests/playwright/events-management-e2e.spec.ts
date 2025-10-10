@@ -54,7 +54,7 @@ test.describe('Events Management System E2E Tests', () => {
       await page.waitForTimeout(3000)
 
       // Check if events loaded from API
-      const eventCards = page.locator('[role="gridcell"]')
+      const eventCards = page.locator('.mantine-Card-root')
       const eventCardCount = await eventCards.count()
 
       if (eventCardCount > 0) {
@@ -64,7 +64,7 @@ test.describe('Events Management System E2E Tests', () => {
       } else {
         // If no events from API, verify the "no events" message or loading state
         console.log('⚠️ No events loaded from API - checking for empty state')
-        const loader = page.locator('text=Loading events')
+        const loader = page.locator('text=Loading events...')
         const noEventsMessage = page.locator('text=No events, text=No published events')
         const hasLoader = (await loader.count()) > 0
         const hasNoEvents = (await noEventsMessage.count()) > 0

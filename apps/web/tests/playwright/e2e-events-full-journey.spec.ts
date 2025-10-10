@@ -264,19 +264,19 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     // Navigate to admin/events management
     await page.goto('http://localhost:5173/admin/events');
     await page.waitForLoadState('networkidle');
-    
-    // Should see admin events page
-    await expect(page.locator('[data-testid="admin-events"]')).toBeVisible({ timeout: 10000 });
-    
+
+    // Should see admin events page (events table)
+    await expect(page.locator('[data-testid="events-table"]')).toBeVisible({ timeout: 10000 });
+
     // Should see events management controls
-    await expect(page.locator('[data-testid="create-event-button"]')).toBeVisible();
-    
+    await expect(page.locator('[data-testid="button-create-event"]')).toBeVisible();
+
     // Should see list of events with admin controls
-    const eventRows = page.locator('[data-testid="admin-event-row"]');
+    const eventRows = page.locator('[data-testid="event-row"]');
     await expect(eventRows.first()).toBeVisible();
-    
-    // Should see edit and delete buttons
-    await expect(page.locator('[data-testid="edit-event"]').first()).toBeVisible();
+
+    // Should see copy event button (admin uses row-click for editing)
+    await expect(page.locator('[data-testid="button-copy-event"]').first()).toBeVisible();
     
     await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/admin-event-management.png' });
     
