@@ -194,6 +194,21 @@ export const router = createBrowserRouter([
         element: <PaymentTestPage />,
       },
 
+      // Demo routes - no authentication required for demos
+      // IMPORTANT: These MUST come BEFORE protected admin routes to avoid route matching issues
+      {
+        path: 'admin/event-session-matrix-demo',
+        element: <EventSessionMatrixDemo />,
+      },
+      {
+        path: 'admin/events-management-api-demo',
+        element: <EventsManagementApiDemo />,
+      },
+      {
+        path: 'event-form-test',
+        element: <EventFormTestPage />,
+      },
+
       // Protected routes - authentication required
       // All dashboard routes use DashboardLayout in each page component
       {
@@ -274,20 +289,6 @@ export const router = createBrowserRouter([
         path: 'admin/vetting/email-templates',
         element: <EmailTemplates />,
         loader: adminLoader,
-      },
-
-      // Demo routes - no authentication required for demos
-      {
-        path: 'admin/event-session-matrix-demo',
-        element: <EventSessionMatrixDemo />,
-      },
-      {
-        path: 'admin/events-management-api-demo',
-        element: <EventsManagementApiDemo />,
-      },
-      {
-        path: 'event-form-test',
-        element: <EventFormTestPage />,
       },
     ],
   },

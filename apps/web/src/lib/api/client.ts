@@ -31,9 +31,9 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => {
     console.debug(`API Response: ${response.status} ${response.config.url}`, {
-      duration: response.config.metadata?.requestStartTime 
-        ? Date.now() - response.config.metadata.requestStartTime 
-        : undefined
+      duration: response.config.metadata?.requestStartTime
+        ? Date.now() - response.config.metadata.requestStartTime
+        : undefined,
     })
     return response
   },
@@ -52,33 +52,42 @@ apiClient.interceptors.response.use(
       console.error(`API Error: ${config?.method?.toUpperCase()} ${config?.url}`, {
         status: response?.status,
         statusText: response?.statusText,
-        data: response?.data
+        data: response?.data,
       })
     }
 
     if (response?.status === 401) {
-      // Check if this is a login page to avoid redirect loops
-      const isOnLoginPage = window.location.pathname.includes('/login');
-      
-      console.warn(`🚫 401 Unauthorized: ${config?.method?.toUpperCase()} ${config?.url}`);
-      
-      if (!isOnLoginPage) {
+      // Check if this is a login page or demo/test page to avoid redirect loops
+      const currentPath = window.location.pathname
+      const isOnLoginPage = currentPath.includes('/login')
+      const isDemoPage = currentPath.includes('-demo') || currentPath.includes('/test')
+      const isPublicRoute =
+        currentPath === '/' || currentPath.startsWith('/events') || currentPath.startsWith('/join')
+
+      console.warn(`🚫 401 Unauthorized: ${config?.method?.toUpperCase()} ${config?.url}`)
+
+      // Only redirect if NOT on login, demo, test, or public pages
+      if (!isOnLoginPage && !isDemoPage && !isPublicRoute) {
         // Clear auth store if available
-        const authStore = (window as any).__AUTH_STORE__;
+        const authStore = (
+          window as unknown as {
+            __AUTH_STORE__?: { getState: () => { actions: { logout: () => void } } }
+          }
+        ).__AUTH_STORE__
         try {
           if (authStore?.getState) {
-            authStore.getState().actions.logout();
+            authStore.getState().actions.logout()
           }
         } catch (error) {
-          console.warn('Could not clear auth store:', error);
+          console.warn('Could not clear auth store:', error)
         }
-        
+
         // Clear query cache and redirect to login
-        queryClient.clear();
-        window.location.href = '/login';
+        queryClient.clear()
+        window.location.href = '/login'
       }
     }
-    
+
     return Promise.reject(error)
   }
 )
