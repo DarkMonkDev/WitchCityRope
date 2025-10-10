@@ -168,7 +168,7 @@ test.describe('Profile Update Persistence', () => {
 
     // Step 10: Wait for success notification
     console.log('📍 Step 10: Waiting for success notification...');
-    const successNotification = page.locator('.mantine-Notification-root:has-text("Success")');
+    const successNotification = page.locator('.mantine-Notification-root:has-text("Success")').first();
     await expect(successNotification).toBeVisible({ timeout: 5000 });
     console.log('✅ Success notification appeared');
 

@@ -847,3 +847,58 @@ interface ApiResponse<T> {
 - Backend Lessons Learned Part 1 (lines 154-176): ApiResponse<T> standard
 - Backend Lessons Learned Part 2 (lines 1323-1392): E2E test contract mismatch lesson
 - API Response Analysis: `/test-results/api-events-response-format-analysis-20251010.md`
+
+## E2E Test Multiple Notification Handling (October 2025)
+
+### Strict Mode Violation with Multiple Notifications
+**Problem**: Profile tests failing with "strict mode violation: locator resolved to 2 elements" when checking success notifications.
+**Root Cause**: Multi-tab profile updates create multiple notification elements simultaneously (one per tab save action).
+**Impact**: 5 profile tests failing despite successful profile updates.
+
+```typescript
+// ❌ WRONG - Strict mode violation when 2+ notifications exist
+const successAlert = page.locator('[role="alert"]');
+await expect(successAlert).toBeVisible(); // Fails: resolved to 2 elements
+
+// ❌ WRONG - Alternative selector, same issue
+const notification = page.locator('.mantine-Notification-root:has-text("Success")');
+await expect(notification).toBeVisible(); // Fails: resolved to 2 elements
+
+// ✅ CORRECT - Use .first() to handle multiple notifications
+const successAlert = page.locator('[role="alert"]').first();
+await expect(successAlert).toBeVisible(); // Passes: checks first notification
+
+// ✅ CORRECT - Alternative selector with .first()
+const notification = page.locator('.mantine-Notification-root:has-text("Success")').first();
+await expect(notification).toBeVisible(); // Passes: checks first notification
+```
+
+**Why Multiple Notifications Appear**:
+1. Profile page has multiple tabs (Personal, Social, etc.)
+2. Each tab has its own save button
+3. Clicking save on one tab creates a success notification
+4. If test updates multiple tabs, multiple notifications stack up
+5. Playwright's strict mode requires exactly 1 element match
+
+**When to Use .first()**:
+- Notification checking (may have multiple stacked notifications)
+- Success/error message verification (can have multiple alerts)
+- Any element that may appear multiple times simultaneously
+- Generic selectors that might match multiple visible elements
+
+**When NOT to Use .first()**:
+- Unique form inputs (should only have 1)
+- Buttons with specific data-testid attributes (should be unique)
+- Elements where multiple instances indicate a bug
+
+**Fixed Files** (October 10, 2025):
+- `/apps/web/tests/playwright/templates/persistence-test-template.ts` (line 227)
+- `/apps/web/tests/playwright/profile-update-persistence.spec.ts` (line 171)
+
+**Tests Fixed**: 5 profile persistence tests now handle multiple notifications correctly
+
+**Prevention**:
+- Always consider if element selector might match multiple visible elements
+- Add .first() when checking notifications, alerts, or success messages
+- Use more specific selectors (data-testid) when element should be unique
+- Test with multiple rapid actions to catch multi-element scenarios

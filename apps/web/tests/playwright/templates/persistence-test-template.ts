@@ -224,7 +224,7 @@ export async function verifySuccessMessage(
 ): Promise<void> {
   const successAlert = page.locator(
     '[role="alert"], .alert-success, .success, [data-testid*="success"]'
-  );
+  ).first();
 
   await expect(successAlert).toBeVisible({ timeout: 5000 });
 
