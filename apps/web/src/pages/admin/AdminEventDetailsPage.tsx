@@ -130,20 +130,21 @@ export const AdminEventDetailsPage: React.FC = () => {
 
   // Initialize publish status and form data from event
   React.useEffect(() => {
-    if (event && !initialFormData) {
+    if (event) {
       // Use isPublished field from API response
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const status = (event as any)?.isPublished !== false ? 'published' : 'draft'
       setPublishStatus(status)
 
-      // Store initial form data for change tracking
-      // Only set this once when event data first loads
-      const initialData = convertEventToFormData(event as EventDtoType)
+      // Convert event to form data
+      const newFormData = convertEventToFormData(event as EventDtoType)
 
-      setInitialFormData(initialData)
+      // Only update if form data has actually changed (prevents unnecessary re-renders)
+      if (JSON.stringify(newFormData) !== JSON.stringify(initialFormData)) {
+        setInitialFormData(newFormData)
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [event, convertEventToFormData]) // initialFormData intentionally excluded - set once on load
+  }, [event, convertEventToFormData, initialFormData])
 
   if (!id) {
     return (
