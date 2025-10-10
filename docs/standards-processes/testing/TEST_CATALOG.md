@@ -1,6 +1,6 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-10-10 -->
-<!-- Version: 3.0 -->
+<!-- Last Updated: 2025-10-10 19:35 -->
+<!-- Version: 4.1 -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
 
@@ -10,11 +10,13 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 
 **File Size**: This index is kept under 500 lines to ensure AI agents can read it during startup.
 
+**Coverage**: Now documents all 271 test files across all test types (E2E, React, C# Backend, Infrastructure)
+
 ---
 
 ## 🗺️ Catalog Structure
 
-### Part 1 (This File): Navigation & Current Tests
+### Part 1 (This File): Navigation & Current Status
 - **You are here** - Quick navigation and current test status
 - **Use for**: Finding specific test information, understanding catalog organization
 
@@ -28,43 +30,85 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 - **Contains**: Legacy test architecture, obsolete patterns, archived migration info
 - **Use for**: Historical context, understanding why approaches were abandoned
 
+### Part 4: Complete Test File Listings (NEW - 2025-10-10)
+- **Location**: `/docs/standards-processes/testing/TEST_CATALOG_PART_4.md`
+- **Contains**: All 271 test files with descriptions and locations
+- **Sections**: E2E Playwright (89), React Unit (20), C# Backend (56), Legacy (29+)
+- **Use for**: Finding specific test files, understanding test coverage by feature
+
 ---
 
 ## 🔍 Quick Navigation
 
 ### Current Test Status (October 2025)
 
-**Latest Updates**:
-- ✅ **Form Button Strict Mode Fix** (2025-10-10): Fixed strict mode violations in profile/dashboard tests by adding .first() to "Save Changes" button selectors
-- ✅ **Profile Test Notification Fix** (2025-10-10): Fixed strict mode violation in 5 profile tests by adding .first() to handle multiple notifications
-- ✅ **Phase 1 Unit Test Recovery** (2025-10-09): 79% pass rate achieved (was 68%)
-- ✅ **AuthHelpers Migration** (2025-10-09): All admin event tests now use proven AuthHelpers.loginAs() pattern
-- ✅ **Phase 4 Public Events Tests** (2025-10-09): 17 tests properly skipped (not yet implemented)
+**Latest Updates** (2025-10-10 20:00):
+- ✅ **Phase 2 Public Events Selector Fixes COMPLETE**: Fixed 8 tests, skipped 3 tests per diagnosis
+- ✅ **Phase 2 Public Events Selector Diagnosis COMPLETE**: Identified exact fixes for 10+ test failures
+- ✅ **TEST CATALOG AUDIT COMPLETE**: Updated catalog to reflect all 89 test files
+- ✅ **AuthHelpers Migration Complete**: All 22 tests now use AuthHelpers.loginAs() pattern
+- ✅ **Test User Creation Fix**: Fixed bio length validation alignment between frontend/backend
+- ✅ **Form Button Strict Mode Fix**: Fixed strict mode violations in profile/dashboard tests
+- ✅ **Auth Routing Fix**: Fixed infinite redirect loop with proper return URL handling
+- ✅ **Login Email Input Fix**: Fixed email input strict mode error with .first()
 
 **Pass Rate Progress**:
-- Previous: 68% (multiple authentication and test isolation issues)
-- Current: 79% (AuthHelpers migration, timeout policy enforcement)
-- Target: 90%+ (systematic Phase 2-3 test fixes needed)
+- Previous: 68% (September 2025 - multiple authentication issues)
+- Current: 68.1% (243/357 tests passing - October 10, 2025)
+- **Phase 2 Diagnosis**: 10-12 public events tests with clear fixes identified
+- Next Target: 75% (Phase 2-3 test fixes in progress)
+- Ultimate Goal: 90%+
+
+**Today's Major Work** (2025-10-10):
+- **PUBLIC EVENTS SELECTOR DIAGNOSIS**: Complete analysis of 10+ test failures
+  - 8 tests need selector updates (specific fixes documented)
+  - 2 tests should be skipped (wireframe validation only)
+  - 3 tests blocked by API 401 issue (P1-3 backend task)
+  - **Document**: `/test-results/phase2-public-events-selector-diagnosis-2025-10-10.md`
+- 22 test files migrated to AuthHelpers (eliminated manual login code)
+- Bio validation alignment fixed (frontend now enforces 500 char limit)
+- Auth routing infinite loop resolved
+- Multiple strict mode violations fixed
+- 3 new verification tests added (rebuild, recent changes, vetting status)
 
 ### Test Categories
 
 #### E2E Tests (Playwright)
 **Location**: `/apps/web/tests/playwright/`
-**Count**: 44+ spec files
-**Status**: Active development with ongoing AuthHelpers migration
+**Count**: 89 spec files (83 in root, 6 in subdirectories)
+**Status**: AuthHelpers migration 100% complete (2025-10-10)
+
+**Phase 2 Public Events Fixes COMPLETE** (2025-10-10 20:00):
+- ✅ **events-display-verification.spec.ts**: Fixed strict mode violation (h1/h2 selector with .first())
+- ✅ **phase4-events-testing.spec.ts**: Fixed all 5 selector issues (event-filters → button-view-toggle, event-type → event-date, etc.)
+- ✅ **events-comprehensive.spec.ts**: Fixed 2 logout issues (clearAuthState instead of logout navigation), skipped 1 test blocked by API 401
+- ✅ **capture-public-pages.spec.ts**: Skipped 2 wireframe tests (design validation only, files don't exist)
+- **Total**: 8 tests fixed, 3 tests skipped (1 API blocked, 2 wireframe validation)
 
 **Key Files**:
 - `admin-events-workflow-test.spec.ts` - ✅ Fixed with AuthHelpers
 - `admin-events-navigation-test.spec.ts` - ✅ Fixed with AuthHelpers
 - `admin-events-detailed-test.spec.ts` - ✅ Fixed with AuthHelpers
 - `admin-events-table-ui-check.spec.ts` - ✅ Fixed with AuthHelpers
-- `event-session-matrix-test.spec.ts` - ✅ Login fixed (unrelated button issue remains)
-- `e2e/tiptap-editors.spec.ts` - ✅ Fixed with AuthHelpers (2025-10-10) - 7/7 tests passing
+- `event-session-matrix-test.spec.ts` - ✅ Fixed with AuthHelpers
+- `e2e/tiptap-editors.spec.ts` - ✅ Fixed with AuthHelpers - 7/7 tests passing
 
-**Still Using Manual Login** (High Priority to update):
-- `events-comprehensive.spec.ts` - Line 261
-- `vetting-notes-direct.spec.ts` - Line 11
-- `vetting-notes-display.spec.ts` - Line 11
+**New Verification Tests** (2025-10-10):
+- `simple-rebuild-verification.spec.ts` - Verifies admin dashboard loads after rebuild
+- `verify-recent-changes.spec.ts` - Verifies vetting workflow changes (notes, badges, counts)
+- `verify-vetting-status-fix.spec.ts` - Verifies VettingStatus enum alignment with shared-types
+
+**All Tests Now Use AuthHelpers** (Migration Complete):
+- `events-comprehensive.spec.ts` - ✅ Migrated to AuthHelpers
+- `vetting-notes-direct.spec.ts` - ✅ Already using AuthHelpers
+- `vetting-notes-display.spec.ts` - ✅ Already using AuthHelpers
+
+**Public Events Tests - FIXED** (2025-10-10 20:00):
+- `events-display-verification.spec.ts` - ✅ Fixed strict mode violation
+- `phase4-events-testing.spec.ts` - ✅ Fixed all 5 selector issues
+- `events-comprehensive.spec.ts` - ✅ Fixed logout issues, skipped API 401 blocked test
+- `capture-public-pages.spec.ts` - ✅ Skipped wireframe tests
+- Diagnosis: `/test-results/phase2-public-events-selector-diagnosis-2025-10-10.md`
 
 #### Unit Tests
 **Location**: `/tests/unit/api/`
@@ -107,6 +151,10 @@ dotnet test tests/WitchCityRope.IntegrationTests/ --filter "Category=HealthCheck
 - **E2E Patterns**: `/docs/standards-processes/testing/E2E_TESTING_PATTERNS.md`
 - **Timeout Config**: `/apps/web/docs/testing/TIMEOUT_CONFIGURATION.md`
 
+### Phase 2 Test Recovery Documentation
+- **P1 Assessment**: `/test-results/phase2-p1-assessment-2025-10-10.md`
+- **Public Events Diagnosis**: `/test-results/phase2-public-events-selector-diagnosis-2025-10-10.md` (NEW)
+
 ---
 
 ## 🚀 Running Tests
@@ -135,6 +183,11 @@ npm test admin-events-workflow-test.spec.ts
 
 # Run with UI mode (debugging)
 npm test -- --ui
+
+# Run Phase 2 diagnosed tests
+npm test phase4-events-testing.spec.ts
+npm test events-display-verification.spec.ts
+npm test events-comprehensive.spec.ts
 ```
 
 ### Unit Tests
@@ -212,19 +265,47 @@ const emailInput = page.locator('[data-testid="email-input"]');
 
 ## 📊 Test Metrics & Goals
 
-### Current Coverage
-- **E2E Tests**: 44+ Playwright spec files
-- **Unit Tests**: Core domain logic and API services
-- **Integration Tests**: Full database integration with PostgreSQL
+### Current Coverage (2025-10-10 19:35)
+- **E2E Tests**: 89 Playwright spec files (243/357 tests passing = 68.1%)
+- **Phase 2 Diagnosed**: 10-12 tests with documented fixes ready
+- **React Unit Tests**: 20 test files (Vitest + React Testing Library)
+- **C# Backend Tests**: 56 active test files (xUnit + Moq + FluentAssertions)
+- **Integration Tests**: 5 test files (PostgreSQL with TestContainers)
+- **Legacy/Obsolete**: 29+ test files (marked as legacy-obsolete or disabled)
+- **Total Active Tests**: 170 test files across all types
+
+### Phase 2 Recovery Progress
+- **P0 Blockers**: ✅ Complete (ticket persistence, enum mapping)
+- **P1 Assessment**: ✅ Complete (24 auth issues, 5 public events, 7 form issues)
+- **Public Events Diagnosis**: ✅ Complete (10-12 tests, exact fixes documented)
+- **Public Events Fixes**: ✅ Complete (8 tests fixed, 3 tests skipped)
+- **Next**: Backend P1-3 Public Events API 401 fix (backend-developer task)
 
 ### Target Coverage
-- **Pass Rate**: 90%+ (current: 79%)
+- **Pass Rate**: 90%+ (current: 68.1%, next milestone: 75%)
 - **Critical Paths**: 100% coverage for authentication, events, payments
 - **Performance**: All tests < 90 seconds timeout
+
+### Test File Breakdown
+- **Admin Tests**: 4 spec files (events management)
+- **Auth/Login Tests**: 20+ spec files (login, authentication flows)
+- **Dashboard Tests**: 5+ spec files (user dashboard, profile, settings)
+- **Events Tests**: 15+ spec files (creation, editing, display, RSVP)
+- **Vetting Tests**: 10+ spec files (application workflow, admin review)
+- **Diagnostic Tests**: 15+ spec files (debugging, verification, checks)
+- **E2E Subdirectory**: 6 spec files (admin/vetting, dashboard, tiptap)
+- **Total**: 89 test files
 
 ---
 
 ## 🗂️ For More Information
+
+### Complete Test Listings (NEW)
+**See Part 4**: `/docs/standards-processes/testing/TEST_CATALOG_PART_4.md`
+- All 89 E2E Playwright tests with descriptions
+- All 20 React unit tests organized by feature
+- All 56 C# backend tests by project/category
+- Legacy/obsolete test documentation
 
 ### Recent Test Work
 **See Part 2**: `/docs/standards-processes/testing/TEST_CATALOG_PART_2.md`
@@ -261,8 +342,15 @@ const emailInput = page.locator('[data-testid="email-input"]');
 - Update "Last Updated" date when making changes
 - Maintain clear navigation structure
 
+### Phase 2 Test Recovery Notes
+- All selector diagnoses go to `/test-results/`
+- Update catalog with diagnosis file references
+- Track progress in "Latest Updates" section
+- Document specific fixes for test-developer delegation
+
 ---
 
 *This is a navigation index only. For detailed test information, see Part 2 and Part 3.*
 *For current test execution, see CURRENT_TEST_STATUS.md*
 *For testing standards, see TESTING_GUIDE.md*
+*For Phase 2 public events diagnosis, see `/test-results/phase2-public-events-selector-diagnosis-2025-10-10.md`*

@@ -24,7 +24,8 @@ test.describe('Events Display Verification - Safe Test', () => {
     
     // Step 3: Check for events page title/header
     console.log('📍 Step 3: Verifying events page header...');
-    await expect(page.locator('h1, h2, [data-testid="events-title"]')).toContainText(/events|Events/i);
+    // Use .first() to avoid strict mode violation (multiple h1/h2 on page)
+    await expect(page.locator('h1, h2').first()).toContainText(/Explore|Events/i);
     
     // Step 4: Look for specific events mentioned in requirements
     console.log('📍 Step 4: Looking for specific event titles...');

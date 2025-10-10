@@ -7,6 +7,12 @@
 ## Registry Table
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
+| 2025-10-10 | /apps/web/tests/playwright/phase4-events-testing.spec.ts | MODIFIED | Fixed 5 selector issues per Phase 2 diagnosis (event-filters→button-view-toggle, event-type→event-date, etc.) | Phase 2 Public Events Fixes | ACTIVE | Never |
+| 2025-10-10 | /apps/web/tests/playwright/events-display-verification.spec.ts | MODIFIED | Fixed strict mode violation (h1/h2 selector with .first()) | Phase 2 Public Events Fixes | ACTIVE | Never |
+| 2025-10-10 | /apps/web/tests/playwright/events-comprehensive.spec.ts | MODIFIED | Fixed logout issues (clearAuthState instead of logout navigation), skipped API 401 blocked test | Phase 2 Public Events Fixes | ACTIVE | Never |
+| 2025-10-10 | /apps/web/tests/playwright/capture-public-pages.spec.ts | MODIFIED | Skipped 2 wireframe tests (design validation only, files don't exist) | Phase 2 Public Events Fixes | ACTIVE | Never |
+| 2025-10-10 | /test-results/phase2-public-events-selector-fixes-summary-2025-10-10.md | CREATED | Comprehensive summary of Phase 2 public events selector fixes - 8 tests fixed, 3 skipped | Phase 2 Public Events Fixes | ACTIVE | Keep permanently |
+| 2025-10-10 | /docs/standards-processes/testing/TEST_CATALOG.md | MODIFIED | Updated with Phase 2 public events fixes completion status | Phase 2 Public Events Fixes | ACTIVE | Never |
 | 2025-10-10 | /apps/web/src/pages/admin/AdminEventDetailsPage.tsx | MODIFIED | CRITICAL BUG FIX - Form data not refreshing after save: removed !initialFormData condition, added JSON.stringify comparison | Form Data Refresh Bug Fix | ACTIVE | Never |
 | 2025-10-10 | /apps/api/Features/Dashboard/Services/UserDashboardProfileService.cs | MODIFIED | CRITICAL BUG FIX - Changed query from TicketPurchases to EventParticipations to show BOTH RSVPs and tickets | Dashboard Events Bug Fix | ACTIVE | Never |
 | 2025-10-10 | /docs/lessons-learned/backend-developer-lessons-learned-2.md | MODIFIED | Added lesson on dashboard query using wrong table (TicketPurchases vs EventParticipations) | Backend Lessons Update | ACTIVE | Never |
@@ -146,3 +152,9 @@
 | 2025-10-10 | /apps/web/test-results/form-fields-diagnostic-report.md | CREATED | Comprehensive diagnostic analysis - fields render but data not transferred from API | Diagnostic Report | ACTIVE | Keep permanently |
 | 2025-10-10 | /apps/web/test-results/CRITICAL-BUG-REPORT-SHORTDESCRIPTION.md | CREATED | CRITICAL BUG CONFIRMED - Save button clears fields, form state not updated from API | Critical Bug Report | ACTIVE | Keep permanently |
 | 2025-10-10 | /test-results/phase2-p1-assessment-2025-10-10.md | CREATED | Phase 2 P1 priority assessment - 63.6% pass rate, authentication persistence identified as highest impact | Phase 2 P1 Assessment | ACTIVE | Keep permanently |
+| 2025-10-10 | /docs/standards-processes/testing/TEST_AUDIT_REPORT_2025-10-10.md | CREATED | Complete audit of all 271 test files to address 520+ vs 89 documented discrepancy. Documents all E2E, React unit, and C# backend tests with recommendations for catalog expansion | Test audit requested by user to document all test files | ACTIVE | N/A - permanent documentation |
+| 2025-10-10 | /docs/standards-processes/testing/TEST_CATALOG.md | MODIFIED | Updated to version 4.0 - Added Part 4 reference, updated coverage metrics to show all 271 test files | TEST_CATALOG Expansion - Part 1 | ACTIVE | Never |
+| 2025-10-10 | /docs/standards-processes/testing/TEST_CATALOG_PART_4.md | CREATED | Complete test file listings - All 271 tests documented: E2E (89), React (20), C# Backend (56), Integration (5), Performance (3), Legacy (29+) | TEST_CATALOG Expansion - Part 4 | ACTIVE | N/A - permanent documentation |
+| 2025-10-10 | /.claude/agents/testing/test-developer.md | MODIFIED | CRITICAL ENFORCEMENT - Added mandatory TEST_CATALOG maintenance section at top of agent definition | TEST_CATALOG Enforcement | ACTIVE | Never |
+| 2025-10-10 | /.claude/agents/testing/test-executor.md | MODIFIED | CRITICAL ENFORCEMENT - Added mandatory TEST_CATALOG maintenance section with test metrics responsibilities | TEST_CATALOG Enforcement | ACTIVE | Never |
+| 2025-10-10 | /session-work/2025-10-10/test-catalog-enforcement-update.md | CREATED | Comprehensive summary of TEST_CATALOG enforcement updates to both test agent definitions | TEST_CATALOG Enforcement Summary | ACTIVE | Keep permanently |
