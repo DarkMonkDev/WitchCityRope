@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 test('debug login issue', async ({ page }) => {
   // Listen for console errors
@@ -102,9 +103,8 @@ test('debug login issue', async ({ page }) => {
     }
   }
 
-  // Use AuthHelpers for login instead of manual form filling
+  // Use AuthHelpers for login
   console.log('📝 Using AuthHelpers to login...');
-  const { AuthHelpers } = await import('./helpers/auth.helpers');
 
   try {
     await AuthHelpers.loginAs(page, 'admin');

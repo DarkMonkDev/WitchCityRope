@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 test.describe('Login Fix Verification', () => {
   test('admin can successfully login after API response fix', async ({ page }) => {
@@ -37,20 +38,11 @@ test.describe('Login Fix Verification', () => {
     // Take before screenshot
     await page.screenshot({ path: 'test-results/login-page-before-fix-verification.png' });
 
-    // Fill credentials
-    await page.fill('[data-testid="email-input"]', 'admin@witchcityrope.com');
-    await page.fill('[data-testid="password-input"]', 'Test123!');
-    
-    console.log('✅ Filled in credentials');
-    
-    // Submit form
-    await page.click('button[type="submit"]');
-    
-    console.log('✅ Clicked login button');
-    
-    // Wait for some response (either success or failure)
-    await page.waitForTimeout(5000);
-    
+    // Use AuthHelpers for login
+    await AuthHelpers.loginAs(page, 'admin');
+
+    console.log('✅ Login completed using AuthHelpers');
+
     // Take after screenshot
     await page.screenshot({ path: 'test-results/after-login-attempt-fix-verification.png' });
     
@@ -107,23 +99,21 @@ test.describe('Login Fix Verification', () => {
   });
 
   test('login shows error with invalid credentials', async ({ page }) => {
-    await page.goto('http://localhost:5173/login');
-    
     console.log('Testing invalid credentials...');
-    
-    // Try invalid credentials
-    await page.fill('[data-testid="email-input"]', 'invalid@example.com');
-    await page.fill('[data-testid="password-input"]', 'wrongpassword');
-    await page.click('button[type="submit"]');
-    
-    // Should stay on login page
-    await page.waitForTimeout(3000);
-    const currentUrl = page.url();
-    console.log('URL after invalid login:', currentUrl);
-    
+
+    // Use AuthHelpers for invalid login
+    await AuthHelpers.loginExpectingError(
+      page,
+      { email: 'invalid@example.com', password: 'wrongpassword' }
+    );
+
     // Take screenshot
     await page.screenshot({ path: 'test-results/invalid-login-attempt.png' });
-    
+
+    // Should stay on login page
+    const currentUrl = page.url();
+    console.log('URL after invalid login:', currentUrl);
+
     expect(currentUrl).toContain('/login');
     console.log('✅ Correctly stayed on login page with invalid credentials');
   });

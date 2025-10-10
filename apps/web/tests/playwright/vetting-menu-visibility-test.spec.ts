@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 /**
  * Vetting Menu Visibility Test Suite
@@ -220,16 +221,11 @@ test.describe('Vetting Menu Visibility Feature', () => {
 
 // Helper function to login
 async function loginAsUser(page: Page, email: string, password: string) {
-  await page.goto('/login');
-  await page.waitForLoadState('networkidle');
+  // Determine role from email
+  const role = email.includes('admin') ? 'admin' : 'member';
 
-  await page.fill('[data-testid="email-input"]', email);
-  await page.fill('[data-testid="password-input"]', password);
-  await page.click('[data-testid="login-button"]');
-
-  // Wait for successful login and redirect
-  await page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 10000 });
-  await page.waitForLoadState('networkidle');
+  // Use AuthHelpers for consistent authentication
+  await AuthHelpers.loginAs(page, role);
 
   // Navigate back to homepage to check navigation
   await page.goto('/');

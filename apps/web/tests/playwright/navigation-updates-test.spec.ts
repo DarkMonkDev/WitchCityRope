@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 /**
  * Navigation Updates Test Suite
@@ -170,15 +171,14 @@ test.describe('Navigation Updates for Logged-in Users', () => {
 
 // Helper functions
 async function loginAsUser(page: Page, email: string, password: string) {
-  await page.goto('/login');
-  await page.waitForLoadState('networkidle');
-  
-  await page.fill('[data-testid="email-input"]', email);
-  await page.fill('[data-testid="password-input"]', password);
-  await page.click('[data-testid="login-button"]');
-  
-  // Wait for successful login and redirect
-  await page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 10000 });
+  // Determine role from email
+  const role = email.includes('admin') ? 'admin' : 'member';
+
+  // Use AuthHelpers for consistent authentication
+  await AuthHelpers.loginAs(page, role);
+
+  // Navigate back to homepage to verify navigation
+  await page.goto('/');
   await page.waitForLoadState('networkidle');
 }
 

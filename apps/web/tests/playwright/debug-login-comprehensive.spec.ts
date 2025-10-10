@@ -1,9 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-
-const TEST_USER = {
-  email: 'admin@witchcityrope.com',
-  password: 'Test123!'
-};
+import { AuthHelpers } from './helpers/auth.helpers';
 
 const API_BASE_URL = 'http://localhost:5655';
 
@@ -302,7 +298,7 @@ test.describe('Comprehensive Login Debugging', () => {
       } catch (error) {
         return { error: error.toString() };
       }
-    }, API_BASE_URL, TEST_USER);
+    }, API_BASE_URL, AuthHelpers.accounts.admin);
     
     console.log('=== DIRECT LOGIN API CALL RESULT ===');
     console.log('Status:', loginResponse.status);

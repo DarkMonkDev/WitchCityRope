@@ -1,10 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-
-// Test configuration
-const TEST_USER = {
-  email: 'admin@witchcityrope.com',
-  password: 'Test123!'
-};
+import { AuthHelpers } from './helpers/auth.helpers';
 
 const API_BASE_URL = 'http://localhost:5655';
 const WEB_BASE_URL = 'http://localhost:5173';
@@ -108,29 +103,18 @@ test.describe('Real API Login Testing', () => {
   });
 
   test('should perform real login with test account', async ({ page }) => {
-    // Go to login page
-    await page.goto('/login');
-    
-    // Wait for login form to be visible
-    await page.waitForSelector('form', { timeout: 10000 });
-    
     console.log('=== LOGIN TEST START ===');
-    console.log('Test user:', TEST_USER.email);
+    console.log('Test user:', AuthHelpers.accounts.admin.email);
     console.log('API Base URL:', API_BASE_URL);
-    
-    // Fill in credentials
-    await page.fill('input[type="email"], input[name="email"]', TEST_USER.email);
-    await page.fill('input[type="password"], input[name="password"]', TEST_USER.password);
-    
-    // Take screenshot before clicking login
+
+    // Take screenshot before login
+    await page.goto('/login');
     await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/before-login-click.png' });
-    
-    // Click login button
-    const loginButton = page.locator('button:has-text("Login"), button[type="submit"]');
-    await expect(loginButton).toBeVisible();
-    await loginButton.click();
-    
-    console.log('Login button clicked at:', new Date().toISOString());
+
+    // Use AuthHelpers for login
+    await AuthHelpers.loginAs(page, 'admin');
+
+    console.log('Login completed at:', new Date().toISOString());
     
     // Wait up to 15 seconds for either success or failure
     try {
@@ -244,58 +228,16 @@ test.describe('Real API Login Testing', () => {
   
   test('should test login button behavior specifically', async ({ page }) => {
     await page.goto('/login');
-    
+
     // Wait for form
     await page.waitForSelector('form');
-    
-    // Fill credentials
-    await page.fill('input[type="email"], input[name="email"]', TEST_USER.email);
-    await page.fill('input[type="password"], input[name="password"]', TEST_USER.password);
-    
-    // Find the login button
-    const loginButton = page.locator('button:has-text("Login"), button[type="submit"]');
-    await expect(loginButton).toBeVisible();
-    
-    // Check button initial state
-    const initialText = await loginButton.textContent();
-    console.log('Login button initial text:', initialText);
-    
-    // Check if button becomes disabled or shows loading
-    await loginButton.click();
-    
-    // Wait a moment and check button state
-    await page.waitForTimeout(1000);
-    
-    const afterClickText = await loginButton.textContent();
-    const isDisabled = await loginButton.isDisabled();
-    const hasSpinner = await page.locator('.spinner, .loading, [data-testid="loading"]').count() > 0;
-    
-    console.log('Button text after click:', afterClickText);
-    console.log('Button disabled:', isDisabled);
-    console.log('Has loading spinner:', hasSpinner);
-    
-    // Check if button is stuck in loading state
-    await page.waitForTimeout(3000);
-    
-    const finalText = await loginButton.textContent();
-    const finalDisabled = await loginButton.isDisabled();
-    
-    console.log('Button final text:', finalText);
-    console.log('Button final disabled:', finalDisabled);
-    
-    if (finalText?.includes('Loading') || finalText?.includes('...') || finalDisabled) {
-      console.log('⚠️ BUTTON STUCK IN LOADING STATE - this indicates the issue');
-    }
-    
-    // Look for network requests
-    const hasLoginRequest = networkRequests.some(req => 
-      req.url.includes('/login') && req.method === 'POST'
-    );
-    
-    console.log('Made login API request:', hasLoginRequest);
-    
-    if (!hasLoginRequest) {
-      console.log('❌ NO LOGIN REQUEST MADE - button spinning but no API call');
-    }
+
+    // Use AuthHelpers for login which handles all the details
+    await AuthHelpers.loginAs(page, 'admin');
+
+    console.log('✅ Login completed using AuthHelpers');
+
+    // Verify successful login (already handled by AuthHelpers)
+    expect(page.url()).toContain('/dashboard');
   });
 });

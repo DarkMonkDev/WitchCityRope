@@ -1,15 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 test.describe('Simple Rebuild Verification', () => {
   test('Check admin dashboard loads after rebuild', async ({ page }) => {
-    // Login as admin
-    await page.goto('http://localhost:5173/login');
-    await page.fill('[data-testid="email-input"]', 'admin@witchcityrope.com');
-    await page.fill('[data-testid="password-input"]', 'Test123!');
-    await page.click('[data-testid="login-button"]');
-
-    // Wait for dashboard
-    await page.waitForURL('**/dashboard', { timeout: 15000 });
+    // Login as admin using AuthHelpers
+    await AuthHelpers.loginAs(page, 'admin');
 
     // Take screenshot of user dashboard
     await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/user-dashboard-after-rebuild.png', fullPage: true });
@@ -36,13 +31,8 @@ test.describe('Simple Rebuild Verification', () => {
   });
 
   test('Direct navigation to admin dashboard', async ({ page }) => {
-    // Login as admin
-    await page.goto('http://localhost:5173/login');
-    await page.fill('[data-testid="email-input"]', 'admin@witchcityrope.com');
-    await page.fill('[data-testid="password-input"]', 'Test123!');
-    await page.click('[data-testid="login-button"]');
-
-    await page.waitForURL('**/dashboard', { timeout: 15000 });
+    // Login as admin using AuthHelpers
+    await AuthHelpers.loginAs(page, 'admin');
 
     // Try direct navigation
     console.log('Trying direct navigation to admin dashboard...');
@@ -68,10 +58,7 @@ test.describe('Simple Rebuild Verification', () => {
   test('API vetting endpoint check', async ({ request }) => {
     // Login first to get cookies
     const loginResponse = await request.post('http://localhost:5655/api/auth/login', {
-      data: {
-        email: 'admin@witchcityrope.com',
-        password: 'Test123!'
-      }
+      data: AuthHelpers.accounts.admin
     });
 
     console.log('Login response status:', loginResponse.status());

@@ -1,13 +1,14 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 /**
  * Events Actual Routes Test
- * 
+ *
  * Testing the ACTUAL routes that exist based on the router configuration:
  * - /dashboard/events (protected, requires login)
  * - /admin/events-management-api-demo (demo route)
  * - /admin/event-session-matrix-demo (demo route)
- * 
+ *
  * NOT testing /events (doesn't exist, causes 404)
  */
 
@@ -17,17 +18,6 @@ const testUrls = {
   adminEventsDemo: 'http://localhost:5173/admin/events-management-api-demo',
   adminSessionDemo: 'http://localhost:5173/admin/event-session-matrix-demo',
   home: 'http://localhost:5173/'
-};
-
-const testAccounts = {
-  admin: {
-    email: 'admin@witchcityrope.com',
-    password: 'Test123!'
-  },
-  member: {
-    email: 'member@witchcityrope.com', 
-    password: 'Test123!'
-  }
 };
 
 test.describe('Events System - Actual Routes Validation', () => {
@@ -162,20 +152,14 @@ test.describe('Events System - Actual Routes Validation', () => {
     expect(loginResponse?.status()).toBe(200);
     expect(emailExists && passwordExists && submitExists).toBe(true);
     
-    // Attempt login
+    // Attempt login using AuthHelpers
     if (emailExists && passwordExists && submitExists) {
       console.log('🔑 Attempting login...');
-      
-      await emailField.fill(testAccounts.admin.email);
-      await passwordField.fill(testAccounts.admin.password);
-      
-      await page.screenshot({ path: 'test-results/login-form-filled-events.png' });
-      
-      await submitButton.click();
-      await page.waitForTimeout(5000); // Wait for login processing
-      
+
+      await AuthHelpers.loginAs(page, 'admin');
+
       await page.screenshot({ path: 'test-results/after-login-events.png' });
-      
+
       const currentUrl = page.url();
       const loginSuccessful = !currentUrl.includes('/login');
       console.log(`🎯 Login result - URL: ${currentUrl}, Success: ${loginSuccessful}`);
@@ -243,13 +227,11 @@ test.describe('Events System - Actual Routes Validation', () => {
       const emailField = page.locator('input[name="email"], input[type="email"], input[placeholder*="email" i]').first();
       const passwordField = page.locator('input[name="password"], input[type="password"]').first();
       const submitButton = page.locator('button[type="submit"], button:has-text("Sign In")').first();
-      
+
       if (await emailField.count() > 0 && await passwordField.count() > 0) {
-        await emailField.fill(testAccounts.admin.email);
-        await passwordField.fill(testAccounts.admin.password);
-        await submitButton.click();
+        await AuthHelpers.loginAs(page, 'admin');
         await page.waitForTimeout(3000);
-        
+
         assessment.authenticationWorking = !page.url().includes('/login');
         
         // 4. Check protected events route

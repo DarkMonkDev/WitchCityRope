@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 /**
  * Verification Test for Recent Changes
@@ -11,14 +12,8 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Verify Recent Changes Applied', () => {
   test('Admin Dashboard - Verify vetting count and no badges', async ({ page }) => {
-    // Login as admin
-    await page.goto('http://localhost:5173/login');
-    await page.fill('[data-testid="email-input"]', 'admin@witchcityrope.com');
-    await page.fill('[data-testid="password-input"]', 'Test123!');
-    await page.click('[data-testid="login-button"]');
-
-    // Wait for dashboard
-    await page.waitForURL('**/dashboard');
+    // Login as admin using AuthHelpers
+    await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to admin dashboard
     await page.click('text=Admin');
@@ -51,14 +46,8 @@ test.describe('Verify Recent Changes Applied', () => {
   });
 
   test('Vetting Application Detail - Verify status badges on system notes', async ({ page }) => {
-    // Login as admin
-    await page.goto('http://localhost:5173/login');
-    await page.fill('[data-testid="email-input"]', 'admin@witchcityrope.com');
-    await page.fill('[data-testid="password-input"]', 'Test123!');
-    await page.click('[data-testid="login-button"]');
-
-    // Navigate to vetting applications
-    await page.waitForURL('**/dashboard');
+    // Login as admin using AuthHelpers
+    await AuthHelpers.loginAs(page, 'admin');
     await page.click('text=Admin');
     await page.waitForURL('**/admin/dashboard');
 
@@ -101,14 +90,8 @@ test.describe('Verify Recent Changes Applied', () => {
   });
 
   test('Backend API - Verify simplified auto-notes text', async ({ page }) => {
-    // Login as admin
-    await page.goto('http://localhost:5173/login');
-    await page.fill('[data-testid="email-input"]', 'admin@witchcityrope.com');
-    await page.fill('[data-testid="password-input"]', 'Test123!');
-    await page.click('[data-testid="login-button"]');
-
-    // Navigate to vetting applications API
-    await page.waitForURL('**/dashboard');
+    // Login as admin using AuthHelpers
+    await AuthHelpers.loginAs(page, 'admin');
 
     // Make API call to get vetting applications
     const response = await page.request.get('http://localhost:5655/api/admin/vetting/applications');

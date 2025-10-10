@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 test.describe('Comprehensive Application State Report', () => {
   test('generate comprehensive application status report', async ({ page }) => {
@@ -148,26 +149,20 @@ test.describe('Comprehensive Application State Report', () => {
 
     // Test 6: Login form submission test
     try {
-      await page.goto('http://localhost:5173/login', { waitUntil: 'domcontentloaded', timeout: 10000 });
-      
-      await page.fill('[data-testid="email-input"]', 'admin@witchcityrope.com');
-      await page.fill('[data-testid="password-input"]', 'Test123!');
-      
-      // Click login but don't wait for navigation (might fail due to API issues)
-      await page.click('[data-testid="login-button"]');
-      await page.waitForTimeout(2000); // Wait for any API response
-      
+      // Use AuthHelpers for consistent login
+      await AuthHelpers.loginAs(page, 'admin');
+
       const currentUrl = page.url();
       const pageContent = await page.textContent('body');
       const hasError = pageContent.includes('error') || pageContent.includes('Error');
-      
+
       report.functionality.loginSubmission = {
         status: 'COMPLETED',
         finalUrl: currentUrl,
         hasError: hasError,
         screenshot: 'test-results/report-login-attempt.png'
       };
-      
+
       await page.screenshot({ path: 'test-results/report-login-attempt.png', fullPage: true });
       console.log('📝 LOGIN SUBMISSION: Completed - Final URL:', currentUrl);
       console.log('   Has error messages:', hasError);

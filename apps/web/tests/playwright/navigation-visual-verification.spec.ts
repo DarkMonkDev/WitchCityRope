@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 /**
  * Visual verification test for navigation updates
@@ -23,17 +24,8 @@ test.describe('Navigation Visual Verification', () => {
   });
   
   test('capture member user navigation state', async ({ page }) => {
-    // Login as member
-    await page.goto('/login');
-    await page.waitForLoadState('networkidle');
-    
-    await page.fill('[data-testid="email-input"]', 'member@witchcityrope.com');
-    await page.fill('[data-testid="password-input"]', 'Test123!');
-    await page.click('[data-testid="login-button"]');
-    
-    // Wait for login success and navigation
-    await page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 10000 });
-    await page.waitForLoadState('networkidle');
+    // Login as member using AuthHelpers
+    await AuthHelpers.loginAs(page, 'member');
     
     // Navigate to homepage to see full navigation
     await page.goto('/');
@@ -67,15 +59,9 @@ test.describe('Navigation Visual Verification', () => {
   });
   
   test('capture utility bar close-up', async ({ page }) => {
-    // Login first to show utility bar with user info
-    await page.goto('/login');
-    await page.waitForLoadState('networkidle');
-    
-    await page.fill('[data-testid="email-input"]', 'member@witchcityrope.com');
-    await page.fill('[data-testid="password-input"]', 'Test123!');
-    await page.click('[data-testid="login-button"]');
-    
-    await page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 10000 });
+    // Login using AuthHelpers to show utility bar with user info
+    await AuthHelpers.loginAs(page, 'member');
+
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     

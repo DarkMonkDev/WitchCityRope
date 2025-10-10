@@ -1,9 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-
-const TEST_USER = {
-  email: 'admin@witchcityrope.com',
-  password: 'Test123!'
-};
+import { AuthHelpers } from './helpers/auth.helpers';
 
 const API_BASE_URL = 'http://localhost:5655';
 
@@ -95,7 +91,7 @@ test.describe('Login 401 Investigation', () => {
 
   test('should test direct API login call to identify 401 cause', async ({ page }) => {
     console.log('=== TESTING DIRECT API LOGIN ===');
-    console.log(`Testing login for: ${TEST_USER.email} with password: ${TEST_USER.password}`);
+    console.log(`Testing login for: ${AuthHelpers.accounts.admin.email}`);
     
     // Test API health first
     const healthResponse = await page.evaluate(async (apiUrl) => {
@@ -143,7 +139,7 @@ test.describe('Login 401 Investigation', () => {
       } catch (error) {
         return { error: error.toString() };
       }
-    }, { apiUrl: API_BASE_URL, credentials: TEST_USER });
+    }, { apiUrl: API_BASE_URL, credentials: AuthHelpers.accounts.admin });
     
     console.log('=== DIRECT LOGIN API CALL RESULT ===');
     console.log('Status:', loginResponse.status);
@@ -190,11 +186,11 @@ test.describe('Login 401 Investigation', () => {
     await expect(loginButton).toBeVisible();
     
     console.log('✅ All form elements found and visible');
-    
-    // Login using AuthHelpers instead of manual form filling
-    const { AuthHelpers } = await import('./helpers/auth.helpers');
 
-    console.log(`✅ Using AuthHelpers to login with: ${TEST_USER.email}`);
+    // Login using AuthHelpers
+    await AuthHelpers.loginAs(page, 'admin');
+
+    console.log(`✅ Login attempt completed`);
     
     // Take screenshot after filling
     await page.screenshot({ 
@@ -258,7 +254,7 @@ test.describe('Login 401 Investigation', () => {
     // Save all data for analysis
     const finalReport = {
       timestamp: new Date().toISOString(),
-      testUser: TEST_USER,
+      testUser: AuthHelpers.accounts.admin,
       apiBaseUrl: API_BASE_URL,
       networkRequests: networkRequests,
       consoleMessages: consoleMessages,

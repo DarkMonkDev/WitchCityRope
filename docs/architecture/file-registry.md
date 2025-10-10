@@ -138,3 +138,11 @@
 | 2025-10-10 | /tmp/payment-tests-unblocked.log | CREATED | Detailed payment test execution log - 305KB detailed output | Payment Test Detailed Log | TEMPORARY | Delete after review |
 | 2025-10-10 | /test-results/phase-1.5.4-final-execution-report.md | CREATED | Phase 1.5.4 final test execution report - 100% pass rate (48/48 tests) | Phase 1.5.4 Complete | ACTIVE | Keep permanently |
 | 2025-10-10 | /test-results/events-e2e-p1-fixes-verification-2025-10-10.md | CREATED | Events E2E P1 fixes verification - 57.7% pass rate (82/142), P2 issues identified | Events E2E P1 Verification | ACTIVE | Keep permanently |
+| 2025-10-10 | /apps/web/tests/playwright/debug-form-fields.spec.ts | CREATED | Diagnostic test to investigate why shortDescription and policies fields not displaying | Form Fields Debug Test | ACTIVE | Delete after bug fixed |
+| 2025-10-10 | /apps/web/tests/playwright/debug-save-button-regression.spec.ts | CREATED | Regression test confirming Save button clears shortDescription field | Save Button Regression Test | ACTIVE | Delete after bug fixed |
+| 2025-10-10 | /apps/web/test-results/form-fields-debug.png | CREATED | Screenshot evidence of form with empty shortDescription and policies fields | Form Bug Visual Evidence | ACTIVE | Delete after bug fixed |
+| 2025-10-10 | /apps/web/test-results/before-save-button.png | CREATED | Screenshot before clicking Save button showing filled shortDescription | Pre-Save Screenshot | ACTIVE | Delete after bug fixed |
+| 2025-10-10 | /apps/web/test-results/after-save-button.png | CREATED | Screenshot after clicking Save button showing CLEARED shortDescription | Post-Save Screenshot | ACTIVE | Delete after bug fixed |
+| 2025-10-10 | /apps/web/test-results/form-fields-diagnostic-report.md | CREATED | Comprehensive diagnostic analysis - fields render but data not transferred from API | Diagnostic Report | ACTIVE | Keep permanently |
+| 2025-10-10 | /apps/web/test-results/CRITICAL-BUG-REPORT-SHORTDESCRIPTION.md | CREATED | CRITICAL BUG CONFIRMED - Save button clears fields, form state not updated from API | Critical Bug Report | ACTIVE | Keep permanently |
+| 2025-10-10 | /test-results/phase2-p1-assessment-2025-10-10.md | CREATED | Phase 2 P1 priority assessment - 63.6% pass rate, authentication persistence identified as highest impact | Phase 2 P1 Assessment | ACTIVE | Keep permanently |

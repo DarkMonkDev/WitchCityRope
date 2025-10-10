@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 test.describe('Debug Login Issue', () => {
   test('should verify MSW status and basic page functionality', async ({ page }) => {
@@ -78,17 +79,19 @@ test.describe('Debug Login Issue', () => {
         console.log('Submit buttons found:', submitButton);
         
         if (emailInput > 0 && passwordInput > 0 && submitButton > 0) {
-          console.log('✅ LOGIN FORM COMPLETE - trying to fill');
-          
-          // Try to fill the form
-          await page.fill('input[type="email"], input[name="email"]', 'admin@witchcityrope.com');
-          await page.fill('input[type="password"], input[name="password"]', 'Test123!');
-          
-          console.log('✅ Form filled successfully');
-          
-          // Take screenshot of filled form
-          await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/debug-form-filled.png' });
-          
+          console.log('✅ LOGIN FORM COMPLETE - using AuthHelpers');
+
+          // Use AuthHelpers for consistent login
+          try {
+            await AuthHelpers.loginAs(page, 'admin');
+            console.log('✅ Login successful using AuthHelpers');
+
+            // Take screenshot after login
+            await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/debug-form-filled.png' });
+          } catch (error) {
+            console.log('❌ Login failed:', error);
+          }
+
         } else {
           console.log('❌ LOGIN FORM INCOMPLETE');
         }
@@ -124,14 +127,14 @@ test.describe('Debug Login Issue', () => {
           text: await healthResponse.text()
         };
         
-        // Test login endpoint
+        // Test login endpoint using test credentials
         const loginResponse = await fetch('http://localhost:5655/api/auth/login', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            email: 'admin@witchcityrope.com',
+            email: 'admin@witchcityrope.com', // Using known test account
             password: 'Test123!'
           })
         });

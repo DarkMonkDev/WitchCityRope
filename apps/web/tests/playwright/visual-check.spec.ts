@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 test('Visual check of events system', async ({ page }) => {
   // 1. Check events page
@@ -11,14 +12,11 @@ test('Visual check of events system', async ({ page }) => {
   await page.goto('http://localhost:5173/login');
   await page.waitForTimeout(1000);
   await page.screenshot({ path: 'test-results/current-login-page.png', fullPage: true });
-  
-  // 3. Try to login
-  await page.fill('[data-testid="email-input"]', 'admin@witchcityrope.com');
-  await page.fill('[data-testid="password-input"]', 'Test123!');
-  await page.click('[data-testid="login-button"]');
-  await page.waitForTimeout(2000);
-  
-  // Take screenshot after login attempt
+
+  // 3. Login using AuthHelpers
+  await AuthHelpers.loginAs(page, 'admin');
+
+  // Take screenshot after login
   await page.screenshot({ path: 'test-results/after-login-attempt.png', fullPage: true });
   const url = page.url();
   console.log('After login URL:', url);

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 test.describe('Direct Login Test', () => {
   test('should test login with proper error handling', async ({ page }) => {
@@ -17,7 +18,7 @@ test.describe('Direct Login Test', () => {
           },
           credentials: 'include', // Important for CORS with credentials
           body: JSON.stringify({
-            email: 'admin@witchcityrope.com',
+            email: 'admin@witchcityrope.com', // Using known test account
             password: 'Test123!'
           })
         });
@@ -109,24 +110,14 @@ test.describe('Direct Login Test', () => {
       return;
     }
     
-    // Find and fill the form
-    const emailSelector = 'input[type="email"], input[name="email"], input[placeholder*="email" i]';
-    const passwordSelector = 'input[type="password"], input[name="password"], input[placeholder*="password" i]';
-    
-    await page.fill(emailSelector, 'admin@witchcityrope.com');
-    await page.fill(passwordSelector, 'Test123!');
-    
-    console.log('✅ Form filled with credentials');
-    
     // Take screenshot before submit
     await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/before-submit.png' });
-    
-    // Find and click submit button
-    const submitButton = page.locator('button[type="submit"], button:has-text("Login"), input[type="submit"]');
-    await expect(submitButton).toBeVisible();
-    
-    console.log('=== CLICKING SUBMIT BUTTON ===');
-    await submitButton.click();
+
+    // Use AuthHelpers for consistent login
+    console.log('=== USING AUTH HELPERS TO LOGIN ===');
+    await AuthHelpers.loginAs(page, 'admin');
+
+    console.log('✅ Login completed using AuthHelpers');
     
     // Wait for either success or error
     console.log('=== WAITING FOR LOGIN RESPONSE ===');

@@ -1,13 +1,13 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 /**
- * Simple login page test - bypasses problematic helpers
- * to verify basic page functionality
+ * Simple login page test - verifies basic page functionality
  */
 test.describe('Simple Login Test', () => {
   test('should load login page and show Welcome Back', async ({ page }) => {
-    // Clear cookies first (but don't try to access localStorage/sessionStorage)
-    await page.context().clearCookies();
+    // Clear auth state using AuthHelpers
+    await AuthHelpers.clearAuthState(page);
     
     // Navigate to login page
     await page.goto('http://localhost:5173/login');
@@ -38,8 +38,6 @@ test.describe('Simple Login Test', () => {
   });
 
   test('should be able to fill login form', async ({ page }) => {
-    const { AuthHelpers } = await import('./helpers/auth.helpers');
-
     // Login using AuthHelpers
     await AuthHelpers.loginAs(page, 'admin');
 

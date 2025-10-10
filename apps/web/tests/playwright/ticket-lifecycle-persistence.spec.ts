@@ -172,14 +172,8 @@ test.describe.serial('Ticket Lifecycle Persistence Tests', () => {
     if (!hasActiveTicket) {
       console.log('Purchasing ticket for test...');
 
-      // Navigate and login first
-      await page.goto('http://localhost:5173/login');
-      await page.waitForLoadState('networkidle');
-
-      await page.locator('[data-testid="email-input"]').fill(AuthHelpers.accounts.vetted.email);
-      await page.locator('[data-testid="password-input"]').fill(AuthHelpers.accounts.vetted.password);
-      await page.locator('[data-testid="login-button"]').click();
-      await page.waitForURL('**/dashboard', { timeout: 10000 });
+      // Login using AuthHelpers
+      await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`http://localhost:5173/events/${TEST_EVENT_ID}`);
       await page.waitForLoadState('networkidle');
