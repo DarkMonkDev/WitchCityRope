@@ -129,7 +129,7 @@ public class RefundService : IRefundService
                         refund.RefundStatus = RefundStatus.Completed;
 
                         // Update payment status based on refund amount
-                        var totalRefunded = payment.Refunds.Where(r => r.IsCompleted()).Sum(r => r.RefundAmountValue) + request.RefundAmount.Amount;
+                        var totalRefunded = payment.Refunds.Where(r => r.IsCompleted()).Sum(r => r.RefundAmountValue);
 
                         if (totalRefunded >= payment.AmountValue)
                         {

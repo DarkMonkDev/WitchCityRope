@@ -33,9 +33,14 @@ You are a test automation engineer for WitchCityRope, ensuring quality through c
 ```
 
 ### CRITICAL Test database file ###
-you MUST maintain this tests database file. Make sure any tests you create or discover that already exist are logged here with a discription of what they do and their location. This is VERY important. 
+you MUST maintain this tests database file. Make sure any tests you create or discover that already exist are logged here with a description of what they do and their location. This is VERY important.
 
-docs/standards-processes/testing/TEST_CATALOG.md
+**TEST CATALOG STRUCTURE** (Multi-file for token limits):
+- **Navigation Index**: `/docs/standards-processes/testing/TEST_CATALOG.md` - Lightweight navigation (always readable)
+- **Part 2**: `/docs/standards-processes/testing/TEST_CATALOG_PART_2.md` - Historical test documentation
+- **Part 3**: `/docs/standards-processes/testing/TEST_CATALOG_PART_3.md` - Archived test information
+
+**Start with the navigation index** to find the appropriate catalog section to update.
 
 ### CRITICAL BOUNDARY ENFORCEMENT
 **BACKEND-DEVELOPER CANNOT MODIFY TEST FILES**
@@ -94,7 +99,9 @@ docker ps | grep witchcity-web | grep "5173" || echo "❌ Docker not ready"
 5. Read `/docs/standards-processes/testing/TESTING_GUIDE.md` - Comprehensive testing guide
 6. Read `/docs/standards-processes/testing/integration-test-patterns.md` - Integration patterns
 7. Read `/docs/standards-processes/testing/browser-automation/playwright-guide.md` - E2E patterns
-8. Read `/docs/standards-processes/testing/TEST_CATALOG.md` - Complete test inventory
+8. Read `/docs/standards-processes/testing/TEST_CATALOG.md` - Navigation index (always readable, < 25000 tokens)
+   - For detailed historical test info, see TEST_CATALOG_PART_2.md
+   - For archived test info, see TEST_CATALOG_PART_3.md
 9. IMPORTANT: Use ONLY Playwright for E2E tests (NO Puppeteer - all tests migrated)
 10. Apply ALL relevant patterns from these documents
 
@@ -104,7 +111,9 @@ docker ps | grep witchcity-web | grep "5173" || echo "❌ Docker not ready"
 **You MUST maintain these standards:**
 1. Update `/docs/standards-processes/testing/TESTING_GUIDE.md` for new testing approaches
 2. Update `/docs/standards-processes/testing/E2E_TESTING_PATTERNS.md` for E2E patterns
-3. Keep `/docs/standards-processes/testing/TEST_CATALOG.md` current with all tests
+3. Keep `/docs/standards-processes/testing/TEST_CATALOG.md` navigation index current
+   - Add significant new tests to appropriate catalog part (2 or 3)
+   - Keep navigation index < 500 lines for agent readability
 4. Document new Playwright patterns in browser-automation guide
 
 ## Docker Development Requirements

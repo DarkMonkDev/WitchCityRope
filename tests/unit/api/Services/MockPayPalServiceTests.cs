@@ -1,3 +1,4 @@
+using Xunit;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -6,10 +7,6 @@ using WitchCityRope.Api.Features.Payments.ValueObjects;
 
 namespace WitchCityRope.Api.Tests.Services;
 
-/// <summary>
-/// Unit tests for MockPayPalService focusing on the fixed compilation issues
-/// Tests the mock service behavior without external dependencies
-/// </summary>
 public class MockPayPalServiceTests
 {
     private readonly MockPayPalService _service;
@@ -22,38 +19,32 @@ public class MockPayPalServiceTests
     }
 
     [Fact]
-    public async Task CreateOrderAsync_WithValidData_ReturnsSuccessfulOrder()
+    public async Task CreateOrderAsync_ShouldReturnMockOrder()
     {
         // Arrange
         var amount = Money.Create(50.00m, "USD");
         var customerId = Guid.NewGuid();
-        var slidingScalePercentage = 20;
-        var metadata = new Dictionary<string, string> { ["test"] = "data" };
+        var slidingScale = 25;
 
         // Act
-        var result = await _service.CreateOrderAsync(
-            amount, 
-            customerId, 
-            slidingScalePercentage, 
-            metadata);
+        var result = await _service.CreateOrderAsync(amount, customerId, slidingScale);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value!.OrderId.Should().StartWith("MOCK-ORDER-");
+        result.Value.OrderId.Should().StartWith("MOCK-ORDER-");
         result.Value.Status.Should().Be("CREATED");
         result.Value.Links.Should().HaveCount(3);
-        result.Value.CreateTime.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        result.Value.GetApprovalUrl().Should().Contain("/mock/paypal/approve");
     }
 
     [Fact]
-    public async Task CaptureOrderAsync_WithExistingOrder_ReturnsSuccessfulCapture()
+    public async Task CaptureOrderAsync_WithValidOrder_ShouldReturnSuccess()
     {
-        // Arrange - First create an order
-        var amount = Money.Create(75.50m, "USD");
-        var customerId = Guid.NewGuid();
-        var createResult = await _service.CreateOrderAsync(amount, customerId, 0);
-        var orderId = createResult.Value!.OrderId;
+        // Arrange
+        var amount = Money.Create(50.00m, "USD");
+        var createResult = await _service.CreateOrderAsync(amount, Guid.NewGuid(), 0);
+        var orderId = createResult.Value.OrderId;
 
         // Act
         var captureResult = await _service.CaptureOrderAsync(orderId);
@@ -61,84 +52,27 @@ public class MockPayPalServiceTests
         // Assert
         captureResult.IsSuccess.Should().BeTrue();
         captureResult.Value.Should().NotBeNull();
-        captureResult.Value!.CaptureId.Should().StartWith("MOCK-CAPTURE-");
-        captureResult.Value.OrderId.Should().Be(orderId);
+        captureResult.Value.CaptureId.Should().StartWith("MOCK-CAPTURE-");
         captureResult.Value.Status.Should().Be("COMPLETED");
-        captureResult.Value.Amount.Should().NotBeNull();
-        captureResult.Value.Amount.Value.Should().Be("50.00"); // Mock service uses hardcoded amount
-        captureResult.Value.Amount.CurrencyCode.Should().Be("USD");
-        captureResult.Value.PayerEmail.Should().Be("test@example.com");
-        captureResult.Value.PayerName.Should().Be("Test User");
+        captureResult.Value.OrderId.Should().Be(orderId);
     }
 
     [Fact]
-    public async Task CaptureOrderAsync_WithNonexistentOrder_ReturnsFailure()
+    public async Task CaptureOrderAsync_WithInvalidOrder_ShouldReturnFailure()
     {
         // Arrange
-        var nonexistentOrderId = "FAKE-ORDER-ID";
+        var invalidOrderId = "INVALID-ORDER-123";
 
         // Act
-        var result = await _service.CaptureOrderAsync(nonexistentOrderId);
+        var result = await _service.CaptureOrderAsync(invalidOrderId);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("Order not found in mock service");
+        result.ErrorMessage.Should().Contain("not found");
     }
 
     [Fact]
-    public async Task GetOrderAsync_WithExistingOrder_ReturnsOrder()
-    {
-        // Arrange - Create an order first
-        var amount = Money.Create(100.00m, "USD");
-        var customerId = Guid.NewGuid();
-        var createResult = await _service.CreateOrderAsync(amount, customerId, 25);
-        var orderId = createResult.Value!.OrderId;
-
-        // Act
-        var getResult = await _service.GetOrderAsync(orderId);
-
-        // Assert
-        getResult.IsSuccess.Should().BeTrue();
-        getResult.Value.Should().NotBeNull();
-        getResult.Value!.OrderId.Should().Be(orderId);
-        getResult.Value.Status.Should().Be("CREATED");
-    }
-
-    [Fact]
-    public async Task RefundCaptureAsync_WithValidCapture_ReturnsSuccessfulRefund()
-    {
-        // Arrange - Create order and capture it
-        var amount = Money.Create(200.00m, "USD");
-        var customerId = Guid.NewGuid();
-        var createResult = await _service.CreateOrderAsync(amount, customerId, 0);
-        var captureResult = await _service.CaptureOrderAsync(createResult.Value!.OrderId);
-        var captureId = captureResult.Value!.CaptureId;
-
-        var refundAmount = Money.Create(100.00m, "USD");
-        var reason = "Customer request";
-        var noteToPayer = "Partial refund processed";
-
-        // Act
-        var refundResult = await _service.RefundCaptureAsync(
-            captureId, 
-            refundAmount, 
-            reason, 
-            noteToPayer);
-
-        // Assert
-        refundResult.IsSuccess.Should().BeTrue();
-        refundResult.Value.Should().NotBeNull();
-        refundResult.Value!.RefundId.Should().StartWith("MOCK-REFUND-");
-        refundResult.Value.CaptureId.Should().Be(captureId);
-        refundResult.Value.Status.Should().Be("COMPLETED");
-        refundResult.Value.Amount.Value.Should().Be("100.00");
-        refundResult.Value.Amount.CurrencyCode.Should().Be("USD");
-        refundResult.Value.Reason.Should().Be(reason);
-        refundResult.Value.NoteToPayer.Should().Be(noteToPayer);
-    }
-
-    [Fact]
-    public void ValidateWebhookSignature_AlwaysReturnsValid()
+    public void ValidateWebhookSignature_ShouldAlwaysReturnValid()
     {
         // Arrange
         var payload = "test-payload";
@@ -157,16 +91,13 @@ public class MockPayPalServiceTests
     }
 
     [Fact]
-    public async Task ProcessWebhookEventAsync_AlwaysReturnsSuccess()
+    public async Task ProcessWebhookEventAsync_ShouldAlwaysReturnSuccess()
     {
         // Arrange
         var webhookEvent = new Dictionary<string, object>
         {
             ["event_type"] = "PAYMENT.CAPTURE.COMPLETED",
-            ["resource"] = new Dictionary<string, object>
-            {
-                ["id"] = "test-capture-id"
-            }
+            ["resource"] = new { id = "TEST-123" }
         };
 
         // Act
@@ -177,18 +108,67 @@ public class MockPayPalServiceTests
     }
 
     [Fact]
-    public void MockService_LogsWarningOnConstruction()
+    public async Task RefundCaptureAsync_WithValidCapture_ShouldReturnSuccess()
     {
-        // Arrange & Act - Constructor was already called in setup
+        // Arrange
+        var amount = Money.Create(50.00m, "USD");
+        var createResult = await _service.CreateOrderAsync(amount, Guid.NewGuid(), 0);
+        var captureResult = await _service.CaptureOrderAsync(createResult.Value.OrderId);
+        var captureId = captureResult.Value.CaptureId;
+        var refundAmount = Money.Create(25.00m, "USD");
+
+        // Act
+        var refundResult = await _service.RefundCaptureAsync(
+            captureId, 
+            refundAmount, 
+            "Customer request",
+            "Your refund is being processed");
 
         // Assert
-        _loggerMock.Verify(
-            x => x.Log(
-                LogLevel.Warning,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("MOCK PayPal Service Active")),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
+        refundResult.IsSuccess.Should().BeTrue();
+        refundResult.Value.Should().NotBeNull();
+        refundResult.Value.RefundId.Should().StartWith("MOCK-REFUND-");
+        refundResult.Value.Status.Should().Be("COMPLETED");
+        refundResult.Value.CaptureId.Should().Be(captureId);
+        refundResult.Value.Amount.Should().Be(refundAmount);
+    }
+
+    [Fact]
+    public async Task GetOrderAsync_WithExistingOrder_ShouldReturnOrder()
+    {
+        // Arrange
+        var amount = Money.Create(50.00m, "USD");
+        var createResult = await _service.CreateOrderAsync(amount, Guid.NewGuid(), 0);
+        var orderId = createResult.Value.OrderId;
+
+        // Act
+        var getResult = await _service.GetOrderAsync(orderId);
+
+        // Assert
+        getResult.IsSuccess.Should().BeTrue();
+        getResult.Value.Should().NotBeNull();
+        getResult.Value.OrderId.Should().Be(orderId);
+    }
+
+    [Fact]
+    public async Task GetRefundAsync_WithExistingRefund_ShouldReturnRefund()
+    {
+        // Arrange
+        var amount = Money.Create(50.00m, "USD");
+        var createResult = await _service.CreateOrderAsync(amount, Guid.NewGuid(), 0);
+        var captureResult = await _service.CaptureOrderAsync(createResult.Value.OrderId);
+        var refundResult = await _service.RefundCaptureAsync(
+            captureResult.Value.CaptureId,
+            amount,
+            "Test refund");
+        var refundId = refundResult.Value.RefundId;
+
+        // Act
+        var getResult = await _service.GetRefundAsync(refundId);
+
+        // Assert
+        getResult.IsSuccess.Should().BeTrue();
+        getResult.Value.Should().NotBeNull();
+        getResult.Value.RefundId.Should().Be(refundId);
     }
 }

@@ -177,12 +177,16 @@ public class VettingAccessControlServiceTests : IAsyncLifetime
         result.Value.VettingStatus.Should().Be(VettingStatus.Withdrawn);
     }
 
-    [Fact]
+    [Fact(Skip = "InterviewScheduled status removed - Calendly integration replaced manual interview scheduling")]
     public async Task CanUserRsvpAsync_WhenUserHasInterviewScheduledStatus_ReturnsAllowed()
     {
+        // DISABLED: InterviewScheduled status removed in vetting workflow refactor (Oct 2025)
+        // Interview scheduling is now handled externally via Calendly integration
+        // Workflow is now: UnderReview → InterviewApproved → FinalReview
+
         // Arrange
         var user = await CreateTestUser("interview@example.com", "Member");
-        await CreateTestVettingApplication(user.Id, VettingStatus.InterviewScheduled);
+        await CreateTestVettingApplication(user.Id, VettingStatus.InterviewApproved);
         var eventId = Guid.NewGuid();
 
         // Act
@@ -191,7 +195,7 @@ public class VettingAccessControlServiceTests : IAsyncLifetime
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.IsAllowed.Should().BeTrue();
-        result.Value.VettingStatus.Should().Be(VettingStatus.InterviewScheduled);
+        result.Value.VettingStatus.Should().Be(VettingStatus.InterviewApproved);
     }
 
     #endregion

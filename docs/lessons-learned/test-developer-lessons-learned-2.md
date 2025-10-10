@@ -715,3 +715,79 @@ test('should persist profile update', async ({ page }) => {
 4. **Fixed test data** - Always use unique identifiers
 5. **Thread.Sleep/waitForTimeout** - Use proper wait conditions
 6. **Generic selectors** - Use data-testid attributes for reliable element selection
+
+## Unit Test Helper Method Entity Persistence (October 2025)
+
+### Test Helper Methods Must Add Entities to DbContext
+**Problem**: Helper methods create entities but don't add them to DbContext, causing "entity not found" test failures.
+**Root Cause**: Separation between entity creation and DbContext tracking - `SaveChangesAsync()` with no tracked entities saves nothing.
+**Impact**: 9 RefundServiceTests failed because Payment entities weren't added to context before saving.
+
+```csharp
+// ❌ WRONG - Helper creates entity but doesn't track it
+private Payment CreateCompletedPayment(decimal amount)
+{
+    return new Payment
+    {
+        EventRegistrationId = Guid.NewGuid(),
+        UserId = _testUserId,
+        AmountValue = amount,
+        Currency = "USD",
+        Status = PaymentStatus.Completed,
+        ProcessedAt = DateTime.UtcNow,
+        EncryptedPayPalOrderId = "encrypted-paypal-order-id"
+    };
+}
+
+// ❌ WRONG - Test doesn't add entity before saving
+var payment = CreateCompletedPayment(100.00m);
+await _context.SaveChangesAsync();  // Nothing to save - no tracked entities!
+
+// ✅ CORRECT - Test adds entity to context before saving
+var payment = CreateCompletedPayment(100.00m);
+_context.Payments.Add(payment);  // ← Track entity in DbContext
+await _context.SaveChangesAsync();  // Now there's something to save
+```
+
+**Alternative Pattern** - Helper handles persistence:
+```csharp
+// ✅ CORRECT - Helper creates AND tracks entity
+private async Task<Payment> CreateAndSaveCompletedPayment(decimal amount)
+{
+    var payment = new Payment
+    {
+        EventRegistrationId = Guid.NewGuid(),
+        UserId = _testUserId,
+        AmountValue = amount,
+        Currency = "USD",
+        Status = PaymentStatus.Completed,
+        ProcessedAt = DateTime.UtcNow,
+        EncryptedPayPalOrderId = "encrypted-paypal-order-id"
+    };
+    _context.Payments.Add(payment);
+    await _context.SaveChangesAsync();
+    return payment;
+}
+
+// ✅ Test just awaits the helper
+var payment = await CreateAndSaveCompletedPayment(100.00m);
+// Payment already saved to database
+```
+
+**When to Use Each Pattern**:
+1. **Helper creates only** - When test needs to modify entity before saving, or test multiple creation scenarios without persistence
+2. **Helper creates and saves** - When all tests need entity persisted immediately, simplifies test code
+
+**Prevention Checklist**:
+- [ ] Helper method creates entity → Test must call `_context.EntitySet.Add(entity)`
+- [ ] Helper method creates and saves → Helper must call `Add()` and `SaveChangesAsync()`
+- [ ] Verify `SaveChangesAsync()` is called AFTER entities are tracked
+- [ ] Never call `SaveChangesAsync()` when DbContext has no tracked changes
+
+**Real-World Example** (RefundServiceTests fix - October 2025):
+```csharp
+// Fixed 9 failing tests by adding this line before SaveChangesAsync():
+_context.Payments.Add(payment);
+```
+
+**Reference**: `/home/chad/repos/witchcityrope/tests/unit/api/Services/RefundServiceTests.cs` (lines 95, 142, 221, 251, 296, 331, 375, 445, 523)

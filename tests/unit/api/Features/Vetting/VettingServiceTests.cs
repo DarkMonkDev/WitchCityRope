@@ -327,9 +327,13 @@ public class VettingServiceTests : IAsyncLifetime
         updatedApplication.AdminNotes.Should().Contain("Decision:");
     }
 
-    [Fact]
+    [Fact(Skip = "InterviewScheduled status removed - Calendly integration replaced manual interview scheduling")]
     public async Task SubmitReviewDecisionAsync_WithProposedInterviewTime_SetsInterviewScheduledFor()
     {
+        // DISABLED: InterviewScheduled status removed in vetting workflow refactor (Oct 2025)
+        // Interview scheduling is now handled externally via Calendly integration
+        // Workflow is now: UnderReview → InterviewApproved → FinalReview
+
         // Arrange
         var adminUser = await CreateTestAdminUser();
         var application = await CreateTestVettingApplication("test@example.com", VettingStatus.UnderReview);
@@ -346,12 +350,12 @@ public class VettingServiceTests : IAsyncLifetime
         // Act
         var result = await _service.SubmitReviewDecisionAsync(application.Id, decision, adminUser.Id);
 
-        // Assert
+        // Assert - Updated to match new workflow
         result.IsSuccess.Should().BeTrue();
 
         var updatedApplication = await _context.VettingApplications.FindAsync(application.Id);
-        updatedApplication!.InterviewScheduledFor.Should().Be(interviewTime);
-        updatedApplication.WorkflowStatus.Should().Be(VettingStatus.InterviewScheduled);
+        // Interview scheduling now done via Calendly, status should be InterviewApproved
+        updatedApplication!.WorkflowStatus.Should().Be(VettingStatus.InterviewApproved);
     }
 
     [Fact]

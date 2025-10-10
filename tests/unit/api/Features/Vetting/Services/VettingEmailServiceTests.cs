@@ -284,11 +284,14 @@ public class VettingEmailServiceTests : IAsyncLifetime
 
     #region SendReminderAsync Tests
 
-    [Fact]
+    [Fact(Skip = "InterviewScheduled status removed - Calendly integration replaced manual interview scheduling")]
     public async Task SendReminderAsync_WithCustomMessage_IncludesMessage()
     {
+        // DISABLED: InterviewScheduled status removed in vetting workflow refactor (Oct 2025)
+        // Interview reminders are now handled by Calendly
+
         // Arrange
-        var application = await CreateTestVettingApplication(VettingStatus.InterviewScheduled);
+        var application = await CreateTestVettingApplication(VettingStatus.InterviewApproved);
 
         var template = await CreateTestEmailTemplate(
             EmailTemplateType.InterviewReminder,
@@ -313,11 +316,14 @@ public class VettingEmailServiceTests : IAsyncLifetime
         emailLog.Should().NotBeNull();
     }
 
-    [Fact]
+    [Fact(Skip = "InterviewScheduled status removed - Calendly integration replaced manual interview scheduling")]
     public async Task SendReminderAsync_WithoutCustomMessage_SendsStandardReminder()
     {
+        // DISABLED: InterviewScheduled status removed in vetting workflow refactor (Oct 2025)
+        // Interview reminders are now handled by Calendly
+
         // Arrange
-        var application = await CreateTestVettingApplication(VettingStatus.InterviewScheduled);
+        var application = await CreateTestVettingApplication(VettingStatus.InterviewApproved);
         var email = "applicant@example.com";
         var name = "Test Applicant";
 
@@ -333,11 +339,14 @@ public class VettingEmailServiceTests : IAsyncLifetime
         emailLog.Should().NotBeNull();
     }
 
-    [Fact]
+    [Fact(Skip = "InterviewScheduled status removed - Calendly integration replaced manual interview scheduling")]
     public async Task SendReminderAsync_WithTemplate_RendersCorrectly()
     {
+        // DISABLED: InterviewScheduled status removed in vetting workflow refactor (Oct 2025)
+        // Interview reminders are now handled by Calendly
+
         // Arrange
-        var application = await CreateTestVettingApplication(VettingStatus.InterviewScheduled);
+        var application = await CreateTestVettingApplication(VettingStatus.InterviewApproved);
 
         var template = await CreateTestEmailTemplate(
             EmailTemplateType.InterviewReminder,
@@ -361,11 +370,14 @@ public class VettingEmailServiceTests : IAsyncLifetime
         emailLog!.Subject.Should().Contain(application.ApplicationNumber);
     }
 
-    [Fact]
+    [Fact(Skip = "InterviewScheduled status removed - Calendly integration replaced manual interview scheduling")]
     public async Task SendReminderAsync_InMockMode_LogsReminder()
     {
+        // DISABLED: InterviewScheduled status removed in vetting workflow refactor (Oct 2025)
+        // Interview reminders are now handled by Calendly
+
         // Arrange
-        var application = await CreateTestVettingApplication(VettingStatus.InterviewScheduled);
+        var application = await CreateTestVettingApplication(VettingStatus.InterviewApproved);
         var email = "applicant@example.com";
         var name = "Test Applicant";
         var customMessage = "Test reminder";

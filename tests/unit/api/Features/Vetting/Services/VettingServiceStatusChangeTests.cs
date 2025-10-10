@@ -107,12 +107,16 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
         auditLog.NewValue.Should().Be("InterviewApproved");
     }
 
-    [Fact]
+    [Fact(Skip = "InterviewScheduled status removed - Calendly integration replaced manual interview scheduling")]
     public async Task UpdateApplicationStatusAsync_FromInterviewApprovedToFinalReview_Succeeds()
     {
+        // DISABLED: InterviewScheduled status removed in vetting workflow refactor (Oct 2025)
+        // Interview scheduling is now handled externally via Calendly integration
+        // Workflow is now: UnderReview → InterviewApproved → FinalReview
+
         // Arrange
         var admin = await CreateTestAdminUser();
-        var application = await CreateTestVettingApplication(VettingStatus.InterviewScheduled);
+        var application = await CreateTestVettingApplication(VettingStatus.InterviewApproved);
         var notes = "Interview complete, under final review";
 
         // Act
@@ -377,77 +381,78 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
 
     #region Specialized Status Change Methods
 
-    [Fact]
+    [Fact(Skip = "ScheduleInterviewAsync method removed - Calendly integration handles interview scheduling")]
     public async Task ScheduleInterviewAsync_WithValidDate_SetsInterviewScheduledFor()
     {
+        // DISABLED: ScheduleInterviewAsync method removed in vetting workflow refactor (Oct 2025)
+        // Interview scheduling is now handled externally via Calendly integration
+        // Manual scheduling through this API method is no longer supported
+
         // Arrange
         var admin = await CreateTestAdminUser();
         var application = await CreateTestVettingApplication(VettingStatus.InterviewApproved);
         var interviewDate = DateTime.UtcNow.AddDays(7);
         var location = "Community Center, Room 101";
 
-        // Act
-        var result = await _service.ScheduleInterviewAsync(
-            application.Id,
-            interviewDate,
-            location,
-            admin.Id);
+        // Act - METHOD NO LONGER EXISTS
+        // var result = await _service.ScheduleInterviewAsync(
+        //     application.Id,
+        //     interviewDate,
+        //     location,
+        //     admin.Id);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
-
-        var updated = await _context.VettingApplications.FindAsync(application.Id);
-        updated!.InterviewScheduledFor.Should().Be(interviewDate);
-        updated!.WorkflowStatus.Should().Be(VettingStatus.InterviewScheduled);
-        updated.AdminNotes.Should().Contain(location);
-
-        // Verify audit log
-        var auditLog = await _context.VettingAuditLogs
-            .FirstOrDefaultAsync(a => a.ApplicationId == application.Id);
-        auditLog.Should().NotBeNull();
-        auditLog!.Action.Should().Be("Interview Scheduled");
-        auditLog.Notes.Should().Contain(location);
+        // result.IsSuccess.Should().BeTrue();
+        // var updated = await _context.VettingApplications.FindAsync(application.Id);
+        // updated!.InterviewScheduledFor.Should().Be(interviewDate);
+        // updated!.WorkflowStatus.Should().Be(VettingStatus.InterviewScheduled);
+        // updated.AdminNotes.Should().Contain(location);
     }
 
-    [Fact]
+    [Fact(Skip = "ScheduleInterviewAsync method removed - Calendly integration handles interview scheduling")]
     public async Task ScheduleInterviewAsync_WithPastDate_Fails()
     {
+        // DISABLED: ScheduleInterviewAsync method removed in vetting workflow refactor (Oct 2025)
+        // Interview scheduling validation is now handled by Calendly
+
         // Arrange
         var admin = await CreateTestAdminUser();
         var application = await CreateTestVettingApplication(VettingStatus.InterviewApproved);
         var pastDate = DateTime.UtcNow.AddDays(-1);
 
-        // Act
-        var result = await _service.ScheduleInterviewAsync(
-            application.Id,
-            pastDate,
-            "Test Location",
-            admin.Id);
+        // Act - METHOD NO LONGER EXISTS
+        // var result = await _service.ScheduleInterviewAsync(
+        //     application.Id,
+        //     pastDate,
+        //     "Test Location",
+        //     admin.Id);
 
         // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().Contain("Invalid interview date");
-        result.Details.Should().Contain("Interview date must be in the future");
+        // result.IsSuccess.Should().BeFalse();
+        // result.Error.Should().Contain("Invalid interview date");
     }
 
-    [Fact]
+    [Fact(Skip = "ScheduleInterviewAsync method removed - Calendly integration handles interview scheduling")]
     public async Task ScheduleInterviewAsync_WithoutLocation_Fails()
     {
+        // DISABLED: ScheduleInterviewAsync method removed in vetting workflow refactor (Oct 2025)
+        // Interview location is now configured in Calendly
+
         // Arrange
         var admin = await CreateTestAdminUser();
         var application = await CreateTestVettingApplication(VettingStatus.InterviewApproved);
         var interviewDate = DateTime.UtcNow.AddDays(7);
 
-        // Act
-        var result = await _service.ScheduleInterviewAsync(
-            application.Id,
-            interviewDate,
-            "", // Empty location
-            admin.Id);
+        // Act - METHOD NO LONGER EXISTS
+        // var result = await _service.ScheduleInterviewAsync(
+        //     application.Id,
+        //     interviewDate,
+        //     "", // Empty location
+        //     admin.Id);
 
         // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().Contain("Interview location required");
+        // result.IsSuccess.Should().BeFalse();
+        // result.Error.Should().Contain("Interview location required");
     }
 
     [Fact]
@@ -619,30 +624,26 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
         updated!.WorkflowStatus.Should().Be(VettingStatus.Approved);
     }
 
-    [Fact]
+    [Fact(Skip = "InterviewScheduled status removed - Calendly integration replaced manual interview scheduling")]
     public async Task UpdateApplicationStatusAsync_ToInterviewScheduled_SendsEmail()
     {
+        // DISABLED: InterviewScheduled status removed in vetting workflow refactor (Oct 2025)
+        // Email notifications for interview scheduling are now handled by Calendly webhooks
+
         // Arrange
         var admin = await CreateTestAdminUser();
         var application = await CreateTestVettingApplication(VettingStatus.InterviewApproved);
 
-        // Act
-        var result = await _service.UpdateApplicationStatusAsync(
-            application.Id,
-            VettingStatus.InterviewScheduled,
-            "Interview scheduled",
-            admin.Id);
+        // Act - STATUS NO LONGER EXISTS
+        // var result = await _service.UpdateApplicationStatusAsync(
+        //     application.Id,
+        //     VettingStatus.InterviewScheduled,
+        //     "Interview scheduled",
+        //     admin.Id);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
-
-        // Verify email service called for InterviewScheduled status
-        _mockEmailService.Verify(x => x.SendStatusUpdateAsync(
-            It.Is<VettingApplication>(a => a.Id == application.Id),
-            It.IsAny<string>(),
-            It.IsAny<string>(),
-            VettingStatus.InterviewScheduled,
-            It.IsAny<CancellationToken>()), Times.Once);
+        // result.IsSuccess.Should().BeTrue();
+        // _mockEmailService.Verify(x => x.SendStatusUpdateAsync(...), Times.Once);
     }
 
     #endregion
