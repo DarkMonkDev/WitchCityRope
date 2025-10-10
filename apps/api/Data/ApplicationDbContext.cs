@@ -525,7 +525,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             // String properties
             entity.Property(e => e.ReferenceNumber)
                   .IsRequired()
-                  .HasMaxLength(20);
+                  .HasMaxLength(30);
 
             entity.Property(e => e.Location)
                   .IsRequired()

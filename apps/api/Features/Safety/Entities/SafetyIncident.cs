@@ -33,7 +33,7 @@ public class SafetyIncident
     /// Unique reference number for tracking (SAF-YYYYMMDD-NNNN)
     /// </summary>
     [Required]
-    [MaxLength(20)]
+    [MaxLength(30)]
     public string ReferenceNumber { get; set; }
 
     /// <summary>

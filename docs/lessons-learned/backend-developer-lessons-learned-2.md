@@ -1141,3 +1141,70 @@ dotnet test tests/integration/WitchCityRope.IntegrationTests.csproj --filter "Pa
 
 ---
 
+## Database Column Size vs Test Helper Format Mismatch - Safety Reference Number (2025-10-10)
+
+**Problem**: SafetyServiceTests failing with `Npgsql.PostgresException: 22001: value too long for type character varying(20)`. Test helper generates 21-character reference numbers but database column limited to 20 characters.
+
+**Root Cause**: Mismatch between test helper format and database schema:
+- Test helper: `SAF-{DateTime.UtcNow:yyyyMMdd}-{uniqueId}` generates `SAF-20251010-12345678` (21 chars)
+- Database column: `ReferenceNumber VARCHAR(20)` (20 chars max)
+- Production function: `SR-2025-000001` generates 15-character references (15 chars)
+
+**Why This Happened**:
+- Test helper created independently without checking column constraints
+- Database function uses different format (shorter) than test helper
+- Column size chosen for production format, not test format
+
+**Solution - Increase Column Size to 30**:
+
+```csharp
+// 1. Update entity attribute
+[MaxLength(30)] // Changed from 20
+public string ReferenceNumber { get; set; }
+
+// 2. Update FluentAPI configuration
+entity.Property(e => e.ReferenceNumber)
+      .IsRequired()
+      .HasMaxLength(30); // Changed from 20
+
+// 3. Create migration
+dotnet ef migrations add IncreaseSafetyReferenceNumberLength --project apps/api
+```
+
+**Migration Generated**:
+```sql
+ALTER TABLE "SafetyIncidents"
+ALTER COLUMN "ReferenceNumber"
+TYPE character varying(30);
+```
+
+**Alternative Solutions Considered**:
+1. **Shorten test format** - `SAF-{yyMM}-{uniqueId.Substring(0,6)}` (17 chars)
+   - Rejected: Less readable, loses date precision
+2. **Use database function in tests** - Let `generate_safety_reference_number()` assign
+   - Rejected: Tests should be independent of database functions
+
+**Prevention**:
+1. **Check column constraints BEFORE writing test helpers** - grep for `MaxLength` in entity
+2. **Use consistent format** between test helpers and production code
+3. **Future-proof column sizes** - Allow headroom for format changes (30 vs 20)
+4. **Test data generation** should reference actual database schema limits
+5. **Database migration** required when changing string column sizes
+
+**Pattern**: When test data generation fails with "value too long", increase column size rather than constrain test format (tests should test realistic data).
+
+**Files Modified**:
+- `/apps/api/Features/Safety/Entities/SafetyIncident.cs` - MaxLength attribute
+- `/apps/api/Data/ApplicationDbContext.cs` - FluentAPI configuration
+- `/apps/api/Migrations/20251010064435_IncreaseSafetyReferenceNumberLength.cs` - Database migration
+
+**Success Criteria**:
+- Build succeeds ✅
+- Migration created ✅
+- Column size increased from 20 to 30 characters ✅
+- Test helper format (21 chars) now fits within limit ✅
+
+**Tags**: #database-schema #column-constraints #migration #test-data #string-length
+
+---
+

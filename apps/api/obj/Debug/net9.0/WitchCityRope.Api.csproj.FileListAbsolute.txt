@@ -156,3 +156,16 @@
 /home/chad/repos/witchcityrope/apps/api/bin/Debug/net9.0/Newtonsoft.Json.dll
 /home/chad/repos/witchcityrope/apps/api/bin/Debug/net9.0/SendGrid.dll
 /home/chad/repos/witchcityrope/apps/api/bin/Debug/net9.0/StarkbankEcdsa.dll
+/home/chad/repos/witchcityrope/apps/api/bin/Debug/net9.0/openapi.json
+/home/chad/repos/witchcityrope/apps/api/bin/Debug/net9.0/Namotion.Reflection.dll
+/home/chad/repos/witchcityrope/apps/api/bin/Debug/net9.0/NJsonSchema.dll
+/home/chad/repos/witchcityrope/apps/api/bin/Debug/net9.0/NJsonSchema.Annotations.dll
+/home/chad/repos/witchcityrope/apps/api/bin/Debug/net9.0/NJsonSchema.NewtonsoftJson.dll
+/home/chad/repos/witchcityrope/apps/api/bin/Debug/net9.0/NJsonSchema.Yaml.dll
+/home/chad/repos/witchcityrope/apps/api/bin/Debug/net9.0/NSwag.Annotations.dll
+/home/chad/repos/witchcityrope/apps/api/bin/Debug/net9.0/NSwag.AspNetCore.dll
+/home/chad/repos/witchcityrope/apps/api/bin/Debug/net9.0/NSwag.Core.dll
+/home/chad/repos/witchcityrope/apps/api/bin/Debug/net9.0/NSwag.Core.Yaml.dll
+/home/chad/repos/witchcityrope/apps/api/bin/Debug/net9.0/NSwag.Generation.dll
+/home/chad/repos/witchcityrope/apps/api/bin/Debug/net9.0/NSwag.Generation.AspNetCore.dll
+/home/chad/repos/witchcityrope/apps/api/bin/Debug/net9.0/YamlDotNet.dll

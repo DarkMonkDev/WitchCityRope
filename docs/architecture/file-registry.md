@@ -7,6 +7,14 @@
 ## Registry Table
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
+| 2025-10-10 | /session-work/2025-10-10/safety-reference-number-column-size-fix.md | CREATED | Column size increase fix for SafetyIncident.ReferenceNumber (20→30 chars) | Phase 1.5.4 Column Fix | ACTIVE | Never |
+| 2025-10-10 | /apps/api/Features/Safety/Entities/SafetyIncident.cs | MODIFIED | Increased ReferenceNumber MaxLength from 20 to 30 characters | Phase 1.5.4 Entity Update | ACTIVE | Never |
+| 2025-10-10 | /apps/api/Data/ApplicationDbContext.cs | MODIFIED | Updated FluentAPI ReferenceNumber HasMaxLength from 20 to 30 | Phase 1.5.4 DbContext Update | ACTIVE | Never |
+| 2025-10-10 | /apps/api/Migrations/20251010064435_IncreaseSafetyReferenceNumberLength.cs | CREATED | EF Core migration to alter ReferenceNumber column to VARCHAR(30) | Phase 1.5.4 Migration | ACTIVE | Never |
+| 2025-10-10 | /docs/lessons-learned/backend-developer-lessons-learned-2.md | MODIFIED | Added lesson on database column size vs test helper format mismatch | Backend Lessons Update | ACTIVE | Never |
+| 2025-10-10 | /session-work/2025-10-10/safety-reference-number-function-implementation.md | CREATED | Implementation summary for safety reference number function | Phase 1.5.4 Documentation | ACTIVE | Never |
+| 2025-10-10 | /apps/api/Migrations/20251010063756_AddSafetyReferenceNumberFunction.cs | CREATED | PostgreSQL function for generating unique safety reference numbers (SR-YYYY-NNNNNN) | Phase 1.5.4 Safety Function | ACTIVE | Never |
+| 2025-10-10 | /apps/api/Migrations/20251010063756_AddSafetyReferenceNumberFunction.Designer.cs | CREATED | EF Core migration designer for safety reference number function | Phase 1.5.4 Safety Function | ACTIVE | Never |
 | 2025-10-10 | /tests/unit/api/Features/Vetting/Services/VettingPublicServiceTests.cs | CREATED | 15 comprehensive tests for public/user-facing vetting methods | Vetting Public Service Tests | ACTIVE | Never |
 | 2025-10-10 | /docs/standards-processes/testing/TEST_CATALOG.md | MODIFIED | Added VettingPublicServiceTests entry with test breakdown | TEST_CATALOG Update | ACTIVE | Never |
 | 2025-10-09 | /docs/guides-setup/docker-operations-guide.md | MODIFIED | Condensed from 2,064 to 580 lines (72% reduction) - meets 2,000 line standard | Documentation Condensing | ACTIVE | Never |
@@ -108,3 +116,4 @@
 - **DETAILED INFO** belongs in the file itself, not the registry
 | 2025-10-10 | /test-results/payment-tests-results-2025-10-10.md | CREATED | Payment API test execution results - 23/30 passing (76.7%), refund issues identified | Payment Test Execution | ACTIVE | Keep permanently |
 | 2025-10-10 | /tmp/payment-tests-unblocked.log | CREATED | Detailed payment test execution log - 305KB detailed output | Payment Test Detailed Log | TEMPORARY | Delete after review |
+| 2025-10-10 | /test-results/phase-1.5.4-final-execution-report.md | CREATED | Phase 1.5.4 final test execution report - 100% pass rate (48/48 tests) | Phase 1.5.4 Complete | ACTIVE | Keep permanently |

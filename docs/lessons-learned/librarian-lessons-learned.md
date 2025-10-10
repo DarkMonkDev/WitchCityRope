@@ -641,3 +641,23 @@
 
 **Problem**: Development sessions create extensive temporary files, test outputs, and debugging artifacts that accumulate without systematic cleanup.
 **Solution**: Implement structured end-of-session cleanup process maintaining important documentation while removing temporary artifacts.
+## Documentation Standards Update Pattern
+
+**Problem**: User feedback that agents keep suggesting incorrect values (10-minute timeouts) despite documentation existing.
+**Solution**: Update ALL relevant documentation files with prominent warnings, user quotes, and clear examples showing wrong vs correct approaches.
+
+**Comprehensive Update Pattern**:
+1. Primary reference document (complete standard)
+2. Quick reference catalog (critical section for visibility)
+3. Agent lessons learned (prevents repeated mistakes)
+4. Tool-specific guides (operational guidance)
+
+**Success Factors**:
+- Include user's exact requirements as direct quotes
+- Provide clear WRONG vs CORRECT code examples
+- Explain WHY the wrong approach is problematic
+- Cross-reference between documents
+- Update file registry with all changes
+
+**Pattern Applied**: Timeout policy documentation update (October 9, 2025) - 4 files updated with consistent messaging preventing future 10-minute timeout suggestions.
+
