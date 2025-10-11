@@ -155,9 +155,23 @@ public class ParticipationService : IParticipationService
 
             _context.ParticipationHistory.Add(history);
 
+            // CRITICAL: Save changes to persist RSVP to database
             await _context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Successfully created RSVP for user {UserId} in event {EventId}", userId, request.EventId);
+            // Verify persistence (defensive check)
+            var savedParticipation = await _context.EventParticipations
+                .AsNoTracking()
+                .FirstOrDefaultAsync(ep => ep.Id == participation.Id, cancellationToken);
+
+            if (savedParticipation == null)
+            {
+                _logger.LogError("CRITICAL: RSVP {ParticipationId} for user {UserId} in event {EventId} failed to persist to database",
+                    participation.Id, userId, request.EventId);
+                return Result<ParticipationStatusDto>.Failure("Failed to save RSVP to database");
+            }
+
+            _logger.LogInformation("Successfully created and verified RSVP {ParticipationId} for user {UserId} in event {EventId} (Status: {Status})",
+                savedParticipation.Id, userId, request.EventId, savedParticipation.Status);
 
             var dto = new ParticipationStatusDto
             {
@@ -262,9 +276,23 @@ public class ParticipationService : IParticipationService
 
             _context.ParticipationHistory.Add(history);
 
+            // CRITICAL: Save changes to persist ticket purchase to database
             await _context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Successfully created ticket purchase for user {UserId} in event {EventId}", userId, request.EventId);
+            // Verify persistence (defensive check)
+            var savedParticipation = await _context.EventParticipations
+                .AsNoTracking()
+                .FirstOrDefaultAsync(ep => ep.Id == participation.Id, cancellationToken);
+
+            if (savedParticipation == null)
+            {
+                _logger.LogError("CRITICAL: Ticket purchase {ParticipationId} for user {UserId} in event {EventId} failed to persist to database",
+                    participation.Id, userId, request.EventId);
+                return Result<ParticipationStatusDto>.Failure("Failed to save ticket purchase to database");
+            }
+
+            _logger.LogInformation("Successfully created and verified ticket purchase {ParticipationId} for user {UserId} in event {EventId} (Status: {Status})",
+                savedParticipation.Id, userId, request.EventId, savedParticipation.Status);
 
             var dto = new ParticipationStatusDto
             {
@@ -348,9 +376,30 @@ public class ParticipationService : IParticipationService
 
             _context.ParticipationHistory.Add(history);
 
+            // CRITICAL: Save changes to persist cancellation to database
             await _context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Successfully cancelled participation for user {UserId} in event {EventId}", userId, eventId);
+            // Verify persistence (defensive check)
+            var cancelledParticipation = await _context.EventParticipations
+                .AsNoTracking()
+                .FirstOrDefaultAsync(ep => ep.Id == participation.Id, cancellationToken);
+
+            if (cancelledParticipation == null)
+            {
+                _logger.LogError("CRITICAL: Participation {ParticipationId} disappeared after cancellation for user {UserId} in event {EventId}",
+                    participation.Id, userId, eventId);
+                return Result.Failure("Failed to verify cancellation in database");
+            }
+
+            if (cancelledParticipation.Status != ParticipationStatus.Cancelled)
+            {
+                _logger.LogError("CRITICAL: Participation {ParticipationId} cancellation not persisted - Status is {Status} instead of Cancelled",
+                    participation.Id, cancelledParticipation.Status);
+                return Result.Failure("Cancellation did not persist to database");
+            }
+
+            _logger.LogInformation("Successfully cancelled and verified participation {ParticipationId} for user {UserId} in event {EventId} (Status: {Status}, CancelledAt: {CancelledAt})",
+                cancelledParticipation.Id, userId, eventId, cancelledParticipation.Status, cancelledParticipation.CancelledAt);
 
             return Result.Success();
         }

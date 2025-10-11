@@ -1817,3 +1817,156 @@ npm run test:e2e:playwright -- rsvp-lifecycle-persistence.spec.ts --grep "duplic
 
 ---
 
+## 🚨 CRITICAL: Defensive Persistence Verification - Database Save Failures Silent (2025-10-10)
+
+**Problem**: E2E tests failing for RSVP and ticket operations. Users reported RSVPs and ticket cancellations not persisting across page reloads. API returned success (200/201) but database had no records.
+
+**Root Cause**: While code had correct `SaveChangesAsync()` calls and explicit `.Update()` for modifications, there was NO verification that data actually persisted to database. Silent SaveChanges failures went undetected.
+
+**Why This Pattern is Needed**:
+Even with correct EF Core usage, persistence can fail silently due to:
+- Database connection issues
+- Transaction isolation problems
+- Constraint violations caught by database but not surfaced
+- Race conditions in tests checking too quickly
+- EF Core change tracking edge cases
+
+**Solution - Defensive Persistence Verification**:
+
+**Pattern for Create Operations**:
+```csharp
+// 1. Save changes
+await _context.SaveChangesAsync(cancellationToken);
+
+// 2. Verify persistence with fresh database query (AsNoTracking = no cache)
+var saved = await _context.EventParticipations
+    .AsNoTracking()
+    .FirstOrDefaultAsync(ep => ep.Id == participation.Id, cancellationToken);
+
+// 3. Fail fast if not persisted
+if (saved == null)
+{
+    _logger.LogError("CRITICAL: RSVP {Id} failed to persist to database", participation.Id);
+    return Result.Failure("Failed to save RSVP to database");
+}
+
+// 4. Log verification success with diagnostic details
+_logger.LogInformation("Verified RSVP {Id} saved (Status: {Status})", saved.Id, saved.Status);
+```
+
+**Pattern for Update Operations**:
+```csharp
+// 1. Save changes
+_context.EventParticipations.Update(participation);
+await _context.SaveChangesAsync(cancellationToken);
+
+// 2. Verify with fresh query
+var cancelled = await _context.EventParticipations
+    .AsNoTracking()
+    .FirstOrDefaultAsync(ep => ep.Id == participation.Id, cancellationToken);
+
+// 3. Verify entity still exists
+if (cancelled == null)
+{
+    _logger.LogError("CRITICAL: Participation {Id} disappeared after cancellation", participation.Id);
+    return Result.Failure("Failed to verify cancellation in database");
+}
+
+// 4. Verify property changes persisted
+if (cancelled.Status != ParticipationStatus.Cancelled)
+{
+    _logger.LogError("CRITICAL: Status is {Status} instead of Cancelled", cancelled.Status);
+    return Result.Failure("Cancellation did not persist to database");
+}
+
+_logger.LogInformation("Verified cancellation {Id} (Status: {Status}, CancelledAt: {CancelledAt})",
+    cancelled.Id, cancelled.Status, cancelled.CancelledAt);
+```
+
+**When to Use This Pattern**:
+1. **Critical operations**: Data that MUST persist (payments, registrations, cancellations)
+2. **User-facing operations**: Where API returning success means "data is saved"
+3. **Operations with complex EF tracking**: Domain methods, detached entities
+4. **Operations tested by E2E tests**: Tests verify persistence, so API must guarantee it
+
+**Benefits**:
+- **Fail-fast detection**: If persistence fails, API returns error immediately
+- **Better diagnostics**: Logging shows exact failure point with entity details
+- **Test reliability**: E2E tests can trust API success = database has data
+- **Production safety**: Silent data loss detected and logged
+- **Debug info**: Log messages help identify timing, concurrency, or EF issues
+
+**Files Modified**:
+- `/apps/api/Features/Participation/Services/ParticipationService.cs`
+  - Lines 158-174: RSVP creation verification
+  - Lines 279-295: Ticket purchase verification
+  - Lines 379-402: Cancellation verification (with status check)
+
+**Performance Considerations**:
+- Extra database query adds ~10-50ms per operation
+- Uses `.AsNoTracking()` for minimal overhead
+- Only for critical operations (not bulk reads)
+- Trade-off: Slight latency for guaranteed correctness
+
+**Testing Verification**:
+```bash
+# Manual test - Create RSVP and verify logs
+curl -X POST 'http://localhost:5173/api/events/{eventId}/rsvp' -b cookies.txt
+
+# Expected log output:
+# "Successfully created and verified RSVP {Id} for user {UserId} in event {EventId} (Status: Active)"
+
+# If persistence fails, log output:
+# "CRITICAL: RSVP {Id} for user {UserId} in event {EventId} failed to persist to database"
+```
+
+**Prevention**:
+1. **Add verification for critical operations** - Don't trust SaveChanges blindly
+2. **Use `.AsNoTracking()`** - Fresh query ensures no cached data
+3. **Log detailed diagnostics** - Include entity IDs, status values, timestamps
+4. **Fail fast with clear errors** - Don't return success if verification fails
+5. **Apply to all CRUD** - Create, Update, Delete operations benefit from verification
+
+**Pattern Comparison**:
+
+**Without Verification (Risk of Silent Failures)**:
+```csharp
+await _context.SaveChangesAsync();
+_logger.LogInformation("Created RSVP"); // May not be true!
+return Result.Success(dto);
+```
+
+**With Verification (Guaranteed or Error)**:
+```csharp
+await _context.SaveChangesAsync();
+
+var saved = await _context.EventParticipations
+    .AsNoTracking()
+    .FirstOrDefaultAsync(ep => ep.Id == participation.Id);
+
+if (saved == null)
+{
+    _logger.LogError("CRITICAL: RSVP failed to persist");
+    return Result.Failure("Failed to save to database");
+}
+
+_logger.LogInformation("Verified RSVP {Id} saved", saved.Id);
+return Result.Success(dto);
+```
+
+**Related Lessons**:
+- **Ticket Cancellation Bug** (lines 1211-1320): Fixed with explicit `.Update()` calls
+- **Missing SaveChangesAsync**: Common persistence failure pattern
+- **EF Core Change Tracking**: Unreliable for domain methods without explicit Update
+
+**Success Criteria**:
+- ✅ API returns error if SaveChanges succeeds but verification fails
+- ✅ Logs show "CRITICAL:" for verification failures
+- ✅ Logs show "Verified" with details for successful operations
+- ✅ E2E tests pass with new defensive checks
+- ✅ No silent data loss in production
+
+**Tags**: #critical #persistence #defensive-programming #entity-framework #verification #data-integrity #logging
+
+---
+

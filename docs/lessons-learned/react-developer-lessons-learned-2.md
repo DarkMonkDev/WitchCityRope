@@ -2073,3 +2073,95 @@ describe('useCustomHook', () => {
 #critical #msw #testing #mock-service-worker #react-query #hooks #fetch-mocking #test-failures
 
 ---
+
+## 🚨 CRITICAL: FRONTEND MAXLENGTH VALIDATION MUST MATCH BACKEND LIMITS 🚨
+**Date**: 2025-10-10
+**Category**: Form Validation Alignment
+**Severity**: CRITICAL - DATA TRUNCATION BUG
+
+### What We Learned
+**PROFILE BIO TRUNCATION**: Profile bio field truncated to 500 characters due to frontend Textarea maxLength limit, while backend supported 2000 characters.
+
+**ROOT CAUSE**: Frontend validation more restrictive than backend capacity causes silent data truncation in browser before API call.
+
+### The Problem Pattern:
+```typescript
+// ❌ BROKEN: Frontend limits to 500 characters
+<Textarea
+  label="Bio"
+  maxLength={500}  // ← Truncates in browser
+  {...form.getInputProps('bio')}
+/>
+
+// Backend ApplicationUser.cs:
+// /// <summary>
+// /// User's bio/description (optional, max 2000 characters)
+// /// </summary>
+// public string? Bio { get; set; }  // ← Supports 2000 characters
+```
+
+**Why This Breaks**:
+1. User types 1,250 character bio
+2. Textarea's `maxLength={500}` truncates to 500 chars **in browser**
+3. Only 500 characters sent to API (user doesn't see truncation)
+4. API saves truncated 500 characters
+5. User's full bio content is lost
+6. E2E tests fail expecting full 1,250 characters but get 500
+
+### ✅ CORRECT SOLUTION:
+```typescript
+// ✅ CORRECT: Frontend maxLength matches backend limit
+<Textarea
+  label="Bio"
+  maxLength={2000}  // ← Matches backend ApplicationUser.cs limit
+  {...form.getInputProps('bio')}
+/>
+```
+
+### CRITICAL DEBUGGING CHECKLIST:
+When form data appears truncated:
+1. **CHECK backend model** - What's the actual database column/property limit?
+2. **CHECK frontend validation** - Does Textarea/TextInput maxLength match backend?
+3. **CHECK API DTO validation** - Any [MaxLength] attributes limiting data?
+4. **VERIFY test expectations** - Are tests using realistic data sizes?
+5. **TEST edge cases** - Try submitting max-length + 1 characters
+
+### PREVENTION RULES:
+1. ✅ **ALWAYS check backend limits** before setting frontend maxLength
+2. ✅ **MATCH frontend maxLength to backend limits** exactly
+3. ✅ **DOCUMENT limits** in both frontend and backend code comments
+4. ✅ **TEST with maximum-length data** in E2E tests
+5. ✅ **COORDINATE validation** between frontend and backend teams
+
+### COMMON VALIDATION ALIGNMENT PATTERNS:
+```typescript
+// ✅ CORRECT: Aligned validation limits
+// Backend: public string? Bio { get; set; }  // Max 2000 chars
+// Frontend:
+<Textarea maxLength={2000} />
+
+// ✅ CORRECT: Bio, Discord name, FetLife name limits from backend
+<Textarea label="Bio" maxLength={2000} />
+<TextInput label="Discord" maxLength={100} />
+<TextInput label="FetLife" maxLength={100} />
+```
+
+### FILES AFFECTED:
+- `/apps/web/src/pages/dashboard/ProfileSettingsPage.tsx` - Line 300 (Fixed: 500 → 2000)
+- Backend: `/apps/api/Models/ApplicationUser.cs` - Line 33 (Bio property documentation)
+
+### VERIFICATION RESULTS:
+**Before Fix**: Bio truncated to 500 characters, E2E test failed
+**After Fix**: Full 1,250+ character bio persists correctly, E2E test passes ✅
+
+### 💥 CONSEQUENCES OF IGNORING:
+- ❌ User data silently truncated without warning
+- ❌ Users lose content they typed
+- ❌ Poor user experience - form appears to save but data is lost
+- ❌ E2E tests fail with confusing "expected X but got Y" errors
+- ❌ Support tickets about "profile not saving correctly"
+
+### Tags
+#critical #form-validation #maxlength #data-truncation #backend-alignment #profile-bio #textarea-limits
+
+---

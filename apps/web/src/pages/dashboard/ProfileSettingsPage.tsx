@@ -297,7 +297,7 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
           label="Bio"
           placeholder="Tell us about yourself..."
           rows={4}
-          maxLength={500}
+          maxLength={2000}
           data-testid="bio-input"
           {...form.getInputProps('bio')}
           styles={{
