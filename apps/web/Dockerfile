@@ -69,6 +69,9 @@ COPY --from=deps /app/packages ./packages
 # Copy app source code
 COPY apps/web ./apps/web
 
+# Symlink node_modules to apps/web so binaries are accessible
+RUN ln -s /app/node_modules /app/apps/web/node_modules
+
 # Use container-specific tsconfig for builds if it exists (from app directory)
 RUN if [ -f apps/web/tsconfig.container.json ]; then cp apps/web/tsconfig.container.json apps/web/tsconfig.json; fi
 
@@ -83,11 +86,12 @@ ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 ENV VITE_APP_TITLE=$VITE_APP_TITLE
 ENV VITE_APP_VERSION=$VITE_APP_VERSION
 
-# Build application using npm workspace command from root
-RUN npm run build --workspace=@witchcityrope/web
+# Build application from web app directory
+WORKDIR /app/apps/web
+RUN npm run build
 
 # Verify build output
-RUN ls -la apps/web/dist/
+RUN ls -la dist/
 
 ###########################################
 # Production Stage
@@ -100,7 +104,7 @@ RUN apk add --no-cache curl
 # Copy custom nginx configuration from web app directory
 COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy built application from builder stage
+# Copy built application from builder stage (workdir is /app/apps/web now)
 COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
 
 # Create nginx user for security
