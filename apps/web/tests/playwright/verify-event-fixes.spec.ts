@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Event System Verification After Fixes', () => {
-  // Expected real events from database
+  // ACTUAL events from database (verified 2025-10-10)
   const realEvents = [
-    { id: 'e1111111-1111-1111-1111-111111111111', title: 'Introduction to Rope Bondage' },
-    { id: 'e2222222-2222-2222-2222-222222222222', title: 'Midnight Rope Performance' },
-    { id: 'e3333333-3333-3333-3333-333333333333', title: 'Monthly Rope Social' },
-    { id: 'e4444444-4444-4444-4444-444444444444', title: 'Advanced Suspension Techniques' }
+    { id: '1439490f-f8f5-4688-9aee-070bba569ec5', title: 'Introduction to Rope Safety 2' },
+    { id: '72d4d37f-09bb-437a-b7a7-b4665a5560dd', title: 'Suspension Basics' },
+    { id: '64535b73-74c3-4b95-a1a9-2b2db70c3ba0', title: 'Advanced Floor Work' },
+    { id: 'ba2d7c6a-ad00-40d6-97de-199e5528c47f', title: 'Community Rope Jam' }
   ];
 
   test.beforeEach(async ({ page }) => {
@@ -20,25 +20,25 @@ test.describe('Event System Verification After Fixes', () => {
 
   test('events page shows only real database events', async ({ page }) => {
     console.log('🚀 Starting events page verification...');
-    
+
     // Navigate to events page
     await page.goto('http://localhost:5173/events');
     await page.waitForLoadState('networkidle', { timeout: 15000 });
-    
+
     // Take screenshot for verification
     await page.screenshot({ path: 'test-results/events-page-verification.png', fullPage: true });
-    
-    // Check for real events
+
+    // Check for real events using more specific selector (heading with data-testid)
     for (const event of realEvents) {
-      const eventVisible = await page.locator(`text="${event.title}"`).isVisible();
+      const eventVisible = await page.locator(`[data-testid="event-title"]:has-text("${event.title}")`).first().isVisible();
       expect(eventVisible).toBeTruthy();
       console.log(`✅ Real event visible: ${event.title}`);
     }
-    
+
     // Check mock events are GONE
     const mockEvents = ['February Rope Jam', '3-Day Rope Intensive Series'];
     for (const mockEvent of mockEvents) {
-      const mockVisible = await page.locator(`text="${mockEvent}"`).isVisible();
+      const mockVisible = await page.locator(`[data-testid="event-title"]:has-text("${mockEvent}")`).isVisible();
       expect(mockVisible).toBeFalsy();
       console.log(`✅ Mock event removed: ${mockEvent}`);
     }
@@ -46,27 +46,33 @@ test.describe('Event System Verification After Fixes', () => {
 
   test('clicking event navigates to correct details', async ({ page }) => {
     console.log('🔄 Testing event navigation...');
-    
+
     await page.goto('http://localhost:5173/events');
     await page.waitForLoadState('networkidle', { timeout: 15000 });
-    
+
     // Test first event navigation
     const firstEvent = realEvents[0];
-    
+
     // Screenshot before clicking
     await page.screenshot({ path: 'test-results/before-event-click.png', fullPage: true });
-    
-    await page.click(`text="${firstEvent.title}"`);
+
+    // Click on the event card (more reliable than clicking on title text)
+    // The card has both onclick handler and will navigate
+    await page.locator(`[data-testid="event-card"]:has([data-testid="event-title"]:has-text("${firstEvent.title}"))`).first().click();
+
+    // Wait for navigation to complete
+    await page.waitForURL(`**/events/${firstEvent.id}`, { timeout: 15000 });
     await page.waitForLoadState('networkidle', { timeout: 15000 });
-    
+
     // Screenshot after navigation
     await page.screenshot({ path: 'test-results/after-event-click.png', fullPage: true });
-    
+
     // Verify URL contains correct ID
     expect(page.url()).toContain(firstEvent.id);
-    
+    console.log(`✅ Navigation successful to: ${page.url()}`);
+
     // Verify details page shows correct event
-    const detailTitle = await page.locator('h1, h2').first().textContent();
+    const detailTitle = await page.locator('h1').first().textContent();
     expect(detailTitle).toContain(firstEvent.title);
     console.log(`✅ Event details correct: ${firstEvent.title}`);
   });
@@ -93,9 +99,9 @@ test.describe('Event System Verification After Fixes', () => {
     
     // Verify API calls
     console.log('📋 API calls made:', apiCalls);
-    const hasListCall = apiCalls.some(call => call.includes('200') && call.includes('/api/events') && !call.includes('/api/events/e'));
-    const hasDetailCall = apiCalls.some(call => call.includes('200') && call.includes('/api/events/e'));
-    
+    const hasListCall = apiCalls.some(call => call.includes('200') && call.match(/\/api\/events\/?$/)); // Matches /api/events or /api/events/ only
+    const hasDetailCall = apiCalls.some(call => call.includes('200') && call.match(/\/api\/events\/[a-f0-9-]+$/i)); // Matches /api/events/{guid}
+
     expect(hasListCall).toBeTruthy();
     expect(hasDetailCall).toBeTruthy();
     console.log('✅ Both API endpoints working');

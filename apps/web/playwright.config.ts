@@ -8,7 +8,11 @@ export default defineConfig({
   maxFailures: process.env.CI ? 2 : undefined, // No limit in dev - let all tests run
   workers: process.env.CI ? 1 : 6,
   globalTeardown: './tests/playwright/global-teardown.ts',
-  reporter: [['list'], ['html', { outputFolder: './playwright-report' }]],
+  reporter: [
+    ['list'],
+    ['json', { outputFile: './playwright-report/test-results.json' }],
+    ['html', { outputFolder: './playwright-report/html-report' }]
+  ],
 
   // Timeout settings - MAXIMUM 90 seconds enforced across all tests
   // WHY 90 SECONDS: No test should need more than 60 seconds realistically,

@@ -366,30 +366,671 @@ public class SeedDataService : ISeedDataService
         var sampleEvents = new[]
         {
             // Upcoming Events (3 classes and 3 social events)
-            CreateSeedEvent("Introduction to Rope Safety", 7, 18, 20, EventType.Class, 25.00m,
-                "Learn the fundamentals of safe rope bondage practices in this comprehensive beginner workshop."),
+            CreateSeedEvent(
+                title: "Introduction to Rope Safety",
+                daysFromNow: 7,
+                startHour: 18,
+                capacity: 20,
+                eventType: EventType.Class,
+                price: 25.00m,
+                shortDescription: "Learn the fundamentals of safe rope bondage practices in this comprehensive beginner workshop.",
+                longDescription: @"This comprehensive introduction to rope safety is designed for absolute beginners and those looking to refresh their fundamental knowledge.
 
-            CreateSeedEvent("Suspension Basics", 14, 18, 12, EventType.Class, 65.00m,
-                "Introduction to suspension techniques with emphasis on safety and proper rigging."),
+In this 3-hour workshop, you'll learn:
+- Essential safety principles and risk awareness for rope bondage
+- Communication techniques including consent negotiation and safe words
+- Basic rope handling skills and material selection (jute, hemp, synthetic)
+- Recognition of nerve compression and circulation issues
+- Emergency release procedures and safety protocols
+- How to create a safe practice environment
 
-            CreateSeedEvent("Advanced Floor Work", 21, 18, 10, EventType.Class, 55.00m,
-                "Explore complex floor-based rope bondage techniques for experienced practitioners."),
+Prerequisites: None - this is a beginner-friendly class designed for people with no prior rope experience.
 
-            CreateSeedEvent("Community Rope Jam", 28, 19, 40, EventType.Social, 15.00m,
-                "Casual practice session for all skill levels. Bring your rope and practice with the community."),
+Materials:
+- Two 30-foot lengths of 6mm rope will be provided (jute or hemp)
+- You may bring your own rope if preferred
+- Comfortable clothing that allows movement is required
 
-            CreateSeedEvent("Rope Social & Discussion", 35, 19, 30, EventType.Social, 10.00m,
-                "Monthly social gathering for community connection and discussion of rope topics."),
+Class Structure:
+- 45 minutes: Safety theory and communication fundamentals
+- 90 minutes: Hands-on practice with instructor guidance
+- 30 minutes: Q&A and resource sharing
+- 15 minutes: Community discussion and next steps
 
-            CreateSeedEvent("New Members Meetup", 42, 18, 25, EventType.Social, 5.00m,
-                "Welcome gathering for new community members to meet established practitioners and learn about upcoming events."),
+This class emphasizes building a strong foundation in safety practices that will serve you throughout your rope journey. We focus on understanding risks, developing good habits, and creating positive experiences for all participants.",
+                policies: @"Event Policies and Safety Guidelines:
+
+Attendance Requirements:
+- All participants must be 18+ years old with valid government-issued photo ID
+- Advance registration and payment required (no walk-ins)
+- Arrive 15 minutes early for check-in and orientation
+
+Consent and Communication:
+- Enthusiastic consent is required for all activities and interactions
+- Respect all safe words, boundaries, and limits without question
+- ""No"" means no - immediately stop any activity when requested
+- Ask before touching others or their belongings
+
+Photography and Recording:
+- Absolutely no photography, video, or audio recording without explicit written permission from all participants
+- Cell phones must be on silent and stored during class
+- Violations will result in immediate removal without refund
+
+Appropriate Conduct and Attire:
+- Professional and respectful behavior expected at all times
+- Wear comfortable, non-restrictive clothing suitable for movement
+- Remove jewelry that may interfere with rope work
+- Closed-toe shoes recommended for safety
+
+Health and Safety:
+- Inform instructor of any medical conditions, injuries, or mobility limitations
+- Practice good hygiene - shower before attending
+- Do not attend if you are ill or contagious
+- Report any injuries or safety concerns immediately to staff
+
+Scent-Free Environment:
+- Please avoid strong perfumes, colognes, or scented products
+- Some community members have chemical sensitivities
+
+Zero Tolerance Policies:
+- No harassment, discrimination, or predatory behavior of any kind
+- No drugs or alcohol on premises
+- Violation of policies may result in permanent ban from all community events
+
+By attending, you agree to abide by all policies and accept responsibility for your own safety and well-being."
+            ),
+
+            CreateSeedEvent(
+                title: "Suspension Basics",
+                daysFromNow: 14,
+                startHour: 18,
+                capacity: 12,
+                eventType: EventType.Class,
+                price: 65.00m,
+                shortDescription: "Introduction to suspension techniques with emphasis on safety and proper rigging.",
+                longDescription: @"Take your rope skills to the next level with this comprehensive introduction to suspension bondage. This intermediate-level workshop covers the essential techniques, safety considerations, and rigging fundamentals needed to begin exploring suspension safely.
+
+What You'll Learn:
+- Suspension safety principles and risk mitigation strategies
+- Proper rigging setup and equipment requirements (hard points, rigging plates, carabiners)
+- Load-bearing tie techniques and weight distribution
+- Hip harness construction with emphasis on safety and comfort
+- Partial suspension techniques for beginners
+- How to assess and monitor your partner during suspension
+- Safe descent and emergency procedures
+- Common mistakes and how to avoid them
+
+Prerequisites:
+- REQUIRED: Strong foundation in floor bondage techniques
+- REQUIRED: Completion of 'Introduction to Rope Safety' or equivalent
+- Recommended: 6+ months of regular rope practice
+- You must be comfortable tying basic harnesses and understand rope safety fundamentals
+
+Equipment Provided:
+- Suspension rigging equipment (hard points, carabiners, etc.)
+- Practice rope if needed
+
+What to Bring:
+- 4-6 lengths of rope (30 feet each, 6mm diameter)
+- Comfortable, form-fitting clothing (leggings, fitted shirt)
+- Water bottle and snacks
+- Notebook for taking notes (optional)
+
+Class Format:
+- 30 minutes: Suspension theory, safety review, and equipment overview
+- 2 hours: Hands-on practice with instructor supervision
+- 30 minutes: Q&A, troubleshooting, and safety discussion
+
+Safety Note: Suspension carries inherent risks including nerve damage, circulation issues, and injury from falls. This class emphasizes conservative, safety-first approaches suitable for beginners. You will learn to recognize warning signs and respond appropriately.
+
+Limited to 12 participants to ensure personalized instruction and adequate safety supervision.",
+                policies: @"Event Policies and Safety Guidelines:
+
+Attendance Requirements:
+- All participants must be 18+ years old with valid government-issued photo ID
+- Advance registration and payment required (no walk-ins)
+- Prerequisite: Completion of rope safety fundamentals course or instructor approval
+- Arrive 15 minutes early for safety briefing and equipment setup
+
+Medical and Physical Requirements:
+- You must disclose any medical conditions, injuries, or physical limitations to instructor before class
+- Certain conditions may prevent safe participation in suspension activities
+- You are responsible for knowing your own health status and limitations
+- Sign medical waiver acknowledging suspension risks before participating
+
+Consent and Communication:
+- Enthusiastic consent required for all activities and physical contact
+- Active communication expected throughout suspension scenes
+- Immediate stop on any safe word or request to stop
+- Check-ins required at regular intervals during suspension
+
+Equipment and Safety:
+- Do not touch or adjust rigging equipment without instructor permission
+- Inspect all equipment before use and report any damage or concerns
+- Follow all instructor directions regarding equipment usage
+- Spotter required for all suspension activities
+
+Photography and Recording:
+- Absolutely no photography, video, or audio recording without explicit written permission from all participants and instructor
+- Cell phones must be on silent and stored during class
+
+Appropriate Conduct:
+- Professional behavior required at all times
+- Wear appropriate athletic/practice clothing (no loose garments)
+- Remove all jewelry before participating in suspension
+- Notify instructor immediately of any discomfort, numbness, tingling, or other concerns
+
+Zero Tolerance:
+- No harassment, discrimination, or boundary violations
+- No drugs or alcohol - immediate removal and ban
+- Suspension is an advanced skill requiring focus and sobriety
+
+Risk Acknowledgment:
+- Suspension bondage carries inherent risks including nerve damage, circulation issues, rope burns, bruising, and injury from falls
+- By attending, you acknowledge these risks and accept responsibility for your participation
+- You agree to follow all safety protocols and instructor guidance"
+            ),
+
+            CreateSeedEvent(
+                title: "Advanced Floor Work",
+                daysFromNow: 21,
+                startHour: 18,
+                capacity: 10,
+                eventType: EventType.Class,
+                price: 55.00m,
+                shortDescription: "Explore complex floor-based rope bondage techniques for experienced practitioners.",
+                longDescription: @"This advanced workshop is designed for experienced rope practitioners looking to expand their floor bondage repertoire with complex ties, creative positions, and artistic expression. We'll explore sophisticated techniques that challenge both rigger and model while maintaining safety and comfort.
+
+Workshop Topics:
+- Complex multi-point ties and connection techniques
+- Asymmetrical and artistic floor positions
+- Creative use of space and body positioning
+- Transitions between positions while maintaining tie integrity
+- Strappado, hogtie, and other challenging positions
+- Decorative elements and aesthetic considerations
+- Managing longer scenes and endurance considerations
+- Troubleshooting common issues with complex ties
+
+Prerequisites:
+- REQUIRED: Extensive floor bondage experience (1+ years regular practice)
+- REQUIRED: Strong foundation in safety, communication, and basic ties
+- Must be proficient in single column, double column, chest harnesses, and hip harnesses
+- Experience with multi-limb ties and transitions
+- This is NOT a beginner class
+
+What to Bring:
+- 6-8 lengths of rope (30 feet each, 6mm diameter) - quality rope recommended
+- Comfortable form-fitting practice clothing
+- Knee pads optional but recommended
+- Water and snacks
+- Notebook for notes and sketches
+
+Class Structure:
+- 20 minutes: Demonstration of key concepts and techniques
+- 2 hours: Hands-on practice with instructor feedback
+- 20 minutes: Sharing, feedback, and Q&A
+
+Teaching Philosophy:
+This class emphasizes creative exploration within safe parameters. We'll focus on developing your personal style while respecting the fundamentals that keep everyone safe. Expect to be challenged and to learn from both successes and mistakes.
+
+Small class size (limited to 10 participants) ensures individualized attention and the ability to work at your own pace.
+
+Note: Partners/models welcome but not required. Solo practitioners can focus on learning tie techniques and theory.",
+                policies: @"Event Policies and Safety Guidelines:
+
+Attendance Requirements:
+- All participants must be 18+ years old with valid government-issued photo ID
+- Advance registration and payment required
+- Prerequisite: Extensive rope experience and instructor approval
+- Late arrival may result in denied entry for safety reasons
+
+Experience Verification:
+- This is an advanced class - beginners will not be admitted
+- Instructor reserves right to assess skill level and decline participation
+- If your experience level is uncertain, contact instructor before registering
+
+Safety and Communication:
+- Expert-level communication and consent skills expected
+- Proactive monitoring of partner required throughout scenes
+- Immediate stop on any safe word, numbness, tingling, or discomfort
+- Report all safety concerns to instructor immediately
+
+Equipment Requirements:
+- Bring your own quality rope in good condition
+- Inspect rope before use and remove any damaged rope from rotation
+- Recommended: natural fiber rope (jute/hemp) for better grip and control
+
+Photography and Recording:
+- Absolutely no photography, video, or audio recording without explicit written permission from all participants
+- This is a closed, private workshop
+- Cell phones must be stored during practice sessions
+
+Professional Conduct:
+- Respectful, professional behavior required at all times
+- Appropriate practice attire (form-fitting, allows movement)
+- Practice good hygiene
+- No unsolicited advice or critique of other participants
+
+Health and Disclosure:
+- Disclose relevant medical conditions, injuries, or limitations
+- You are responsible for your own physical and mental well-being
+- Take breaks as needed
+- Stay hydrated
+
+Zero Tolerance Policies:
+- No harassment, boundary violations, or predatory behavior
+- No drugs or alcohol
+- Violations result in immediate removal and permanent ban
+
+Assumption of Risk:
+- Advanced rope work carries increased risk of injury
+- By participating, you acknowledge these risks and accept responsibility
+- You agree to practice safely and follow all instructor guidance
+- Nerve damage, bruising, rope burns, and other injuries are possible"
+            ),
+
+            CreateSeedEvent(
+                title: "Community Rope Jam",
+                daysFromNow: 28,
+                startHour: 19,
+                capacity: 40,
+                eventType: EventType.Social,
+                price: 15.00m,
+                shortDescription: "Casual practice session for all skill levels. Bring your rope and practice with the community.",
+                longDescription: @"Join us for our monthly Community Rope Jam - a relaxed, social practice session where rope enthusiasts of all skill levels can come together to practice, learn, and connect with fellow community members.
+
+What to Expect:
+- Open practice space with supportive atmosphere
+- Practice your existing skills or try new techniques
+- Ask questions and learn from experienced practitioners
+- Make new friends and connections in the community
+- Casual, judgment-free environment
+
+Who Should Attend:
+- ALL SKILL LEVELS welcome from absolute beginners to advanced practitioners
+- Solo practitioners welcome - you don't need to bring a partner
+- People interested in learning more about rope bondage
+- Experienced rope artists looking to practice and share knowledge
+- Anyone seeking community connection
+
+Facilitators Present:
+- Experienced community members available to answer questions
+- Safety monitors on site
+- Not a formal class, but informal guidance available
+
+What to Bring:
+- Your own rope (if you have it) - we'll have some available to borrow
+- Comfortable clothing suitable for movement
+- Water bottle
+- Positive attitude and respect for all participants
+
+Activities:
+- Self-directed practice at your own pace
+- Informal peer learning and knowledge sharing
+- Socializing and community building
+- Optional: Share what you're working on with supportive feedback
+
+Perfect For:
+- Practicing ties you've learned in classes
+- Experimenting with new ideas in a safe environment
+- Meeting practice partners
+- Building confidence in your rope skills
+- Connecting with the local rope community
+
+No pressure, no judgment - just a welcoming space to explore rope at your own comfort level. Whether you tie for 5 minutes or the whole session, you're welcome here.
+
+Optional donation-based entry - pay what you can to help cover venue costs.",
+                policies: @"Event Policies and Safety Guidelines:
+
+Attendance Requirements:
+- All participants must be 18+ years old with valid government-issued photo ID
+- RSVP required for space planning
+- Sliding scale pricing ($5-15) - pay what you can
+- All skill levels welcome
+
+Safety First:
+- Practice safely within your skill level
+- Do not attempt techniques beyond your current abilities
+- Ask for help if you're unsure about safety
+- Safety monitors present to assist with concerns
+
+Consent and Boundaries:
+- Enthusiastic consent required for all interactions
+- Ask before approaching others or touching their belongings
+- Respect everyone's boundaries and personal space
+- ""No"" means no - respect it immediately
+
+Photography and Recording:
+- Absolutely no photography, video, or audio recording without explicit written permission from ALL people who might appear in the shot
+- Ask permission EACH time before taking photos
+- Respect others' privacy and anonymity
+
+Respectful Environment:
+- Treat all participants with respect regardless of experience level
+- No unsolicited critique or advice
+- Keep coaching to your own partner unless specifically invited to help
+- Welcoming, judgment-free atmosphere
+
+Appropriate Conduct:
+- Professional behavior expected
+- Comfortable, appropriate clothing for rope practice
+- Practice good hygiene
+- No drugs or alcohol on premises
+
+Space Sharing:
+- Be mindful of shared space - keep practice areas compact
+- Clean up your area when finished
+- Return borrowed equipment to proper location
+- Help maintain welcoming environment for all
+
+Bring Your Own Equipment:
+- Bring your own rope if possible (limited rope available to borrow)
+- Bring water and any personal items needed
+- Label your belongings
+
+Zero Tolerance:
+- No harassment, discrimination, or predatory behavior
+- Violations result in immediate removal and permanent ban
+- Community safety is our top priority
+
+Practice at Your Own Risk:
+- This is not a supervised class
+- You are responsible for your own safety
+- Practice within your abilities and knowledge
+- Ask for help when needed"
+            ),
+
+            CreateSeedEvent(
+                title: "Rope Social & Discussion",
+                daysFromNow: 35,
+                startHour: 19,
+                capacity: 30,
+                eventType: EventType.Social,
+                price: 10.00m,
+                shortDescription: "Monthly social gathering for community connection and discussion of rope topics.",
+                longDescription: @"Join us for our monthly Rope Social & Discussion - a casual gathering focused on community building, conversation, and connection. This is a chance to meet fellow rope enthusiasts, discuss topics of interest, and strengthen our community bonds.
+
+Event Format:
+- Social hour: Mingle and meet community members
+- Discussion circle: Structured conversation on a monthly topic
+- Q&A and open discussion
+- Resource sharing and announcements
+
+Monthly Discussion Topics (rotating):
+- Rope philosophy and personal practice
+- Navigating consent and communication
+- Building a sustainable rope practice
+- Rope community culture and values
+- Safety deep dives on specific topics
+- Artistic expression through rope
+- And more based on community interest
+
+Who Should Attend:
+- Anyone interested in rope bondage at any skill level
+- People curious about the rope community
+- Experienced practitioners looking to connect
+- Those seeking a thoughtful, discussion-oriented space
+- Community members interested in building connections
+
+What Makes This Different:
+- TALKING focused, not practice focused
+- Emphasis on community and connection over techniques
+- Safe space to ask questions and share experiences
+- Opportunity to learn from others' perspectives
+- Building friendships and support networks
+
+Topics Covered (examples from past months):
+- How do you maintain work-life-rope balance?
+- What does ethical rope practice mean to you?
+- How do you handle rope injuries and recovery?
+- Building diverse and inclusive community spaces
+- Your questions and topics welcome!
+
+Atmosphere:
+- Relaxed and welcoming
+- Judgment-free zone for all questions
+- Respectful discussion and active listening
+- Building understanding across experience levels
+
+No rope practice at this event - this is purely social and discussion-based. Bring your curiosity, questions, and openness to connect with others.
+
+Light refreshments provided. Optional sliding scale donation to support community programming.",
+                policies: @"Event Policies and Safety Guidelines:
+
+Attendance Requirements:
+- All participants must be 18+ years old with valid government-issued photo ID
+- RSVP requested for space planning and refreshment prep
+- Sliding scale pricing ($5-10) - pay what you can
+- All backgrounds and experience levels welcome
+
+Respectful Discussion:
+- This is a conversation-based event, not a practice session
+- Respect all perspectives and experiences shared
+- No interrupting or talking over others
+- Active listening encouraged
+- Disagree respectfully if you have different views
+
+Confidentiality:
+- What's shared in the discussion circle stays in the discussion circle
+- Don't repeat personal stories or identifying information shared by others
+- Respect privacy and anonymity of all participants
+
+Safe Space Guidelines:
+- No judgment for questions asked or experiences shared
+- Create welcoming environment for all experience levels
+- Step up/step back - make room for quieter voices
+- Assume good intent while allowing for mistakes and learning
+
+Photography and Recording:
+- Absolutely no photography, video, or audio recording without explicit permission from ALL participants
+- This is a private gathering
+- Respect attendees' privacy and anonymity
+
+Appropriate Conduct:
+- Professional, respectful behavior required
+- No recruitment for personal relationships or services
+- No sales pitches or self-promotion
+- Focus on community building and authentic connection
+
+Accessibility:
+- We strive to create accessible, welcoming space
+- Let organizers know if you have accessibility needs
+- Gender-neutral restrooms available
+- Scent-free preferred (some members have sensitivities)
+
+Food and Beverages:
+- Light refreshments provided
+- Let us know of any allergies or dietary restrictions
+- Clean up after yourself
+- No alcohol served
+
+Zero Tolerance:
+- No harassment, discrimination, or boundary violations
+- No drugs or alcohol
+- Violations result in removal and ban from community events
+
+Community Care:
+- Look out for each other
+- Let organizers know if someone seems in distress
+- This is a community space - we all contribute to making it safe and welcoming"
+            ),
+
+            CreateSeedEvent(
+                title: "New Members Meetup",
+                daysFromNow: 42,
+                startHour: 18,
+                capacity: 25,
+                eventType: EventType.Social,
+                price: 5.00m,
+                shortDescription: "Welcome gathering for new community members to meet established practitioners and learn about upcoming events.",
+                longDescription: @"Welcome to the WitchCityRope community! This special meetup is designed specifically for new members to get oriented, meet friendly faces, and learn about all the opportunities our community offers.
+
+Event Overview:
+This casual, welcoming gathering helps new members feel comfortable and connected from day one. Whether you're brand new to rope or experienced but new to our community, this event is your gateway to getting involved.
+
+What We'll Cover:
+- Welcome and community overview
+- Introduction to our values, culture, and code of conduct
+- Overview of upcoming classes, events, and programming
+- How to get the most out of your membership
+- Q&A about the community, practices, and events
+- Meet established community members who can offer guidance
+- Connect with other new members
+
+Who Should Attend:
+- New community members (joined within last 3 months)
+- People considering membership and want to learn more
+- Anyone who feels new and wants to build connections
+- Established members welcome to attend as greeters/mentors
+
+What to Expect:
+- Friendly, welcoming atmosphere designed to reduce ""new person"" anxiety
+- Structured introductions to break the ice
+- Small group discussions to meet others
+- Resource sharing (calendars, communication channels, etc.)
+- Opportunity to ask all your questions in a supportive environment
+
+You'll Learn About:
+- Different types of events (classes, practice jams, socials, performances)
+- How to register for events and manage your membership
+- Community communication channels and staying connected
+- Finding practice partners and building connections
+- Volunteer opportunities and community involvement
+- Vetting process and member-only events
+- Resources for continued learning
+
+Meet Our Community:
+- Greeters assigned to help new members feel welcome
+- Experienced members available to answer questions
+- Other new members to connect with
+- Leadership and event organizers
+
+No Rope Required:
+This is a social and informational event - no rope practice or experience necessary. Just bring yourself and your curiosity!
+
+Light refreshments provided. Suggested $5 donation (free for those experiencing financial hardship).",
+                policies: @"Event Policies and Safety Guidelines:
+
+Attendance Requirements:
+- All participants must be 18+ years old with valid government-issued photo ID
+- RSVP requested for name tags and refreshment planning
+- Sliding scale pricing ($0-5) - pay what you can
+- Both prospective and current members welcome
+
+Welcoming Environment:
+- This is explicitly a beginner-friendly, judgment-free space
+- All questions are welcome and encouraged
+- No experience with rope bondage required
+- Focus on building community connections
+
+Confidentiality and Privacy:
+- Respect privacy of all attendees
+- Don't share identifying information about who attended
+- What's discussed stays within the community
+- Use scene names if preferred for anonymity
+
+Respectful Interaction:
+- Treat all attendees with respect and kindness
+- No recruitment for personal relationships
+- Professional boundaries maintained
+- This is about community building, not dating
+
+Getting to Know You:
+- We'll do brief introductions (optional to share or pass)
+- Share whatever you're comfortable with
+- Use scene name or first name only if preferred
+- No pressure to share personal details
+
+Photography and Recording:
+- Absolutely no photography, video, or audio recording without explicit permission from ALL participants
+- Name tags available but optional
+- Respect wishes of those who prefer anonymity
+
+Accessibility:
+- Please let organizers know of any accessibility needs
+- We strive to create welcoming space for all
+- Gender-neutral restrooms available
+- Scent-free environment preferred
+
+Food and Beverages:
+- Light refreshments provided
+- Let us know of allergies or dietary restrictions
+- Clean up after yourself
+- No alcohol served
+
+Information Sharing:
+- Feel free to ask questions about community
+- Event organizers available to discuss programming
+- Take informational materials and resources
+- Connect via official community channels only
+
+Zero Tolerance:
+- No harassment, discrimination, or predatory behavior
+- No boundary violations or inappropriate advances
+- Violations result in removal and ban from all events
+- Community safety is our highest priority
+
+Community Values:
+- Consent, respect, and safety above all
+- Inclusive and welcoming to all backgrounds
+- Support for learning and growth
+- Building authentic connections and friendships"
+            ),
 
             // Past Events (2 events) for testing historical data
-            CreateSeedEvent("Beginner Rope Circle", -7, 18, 20, EventType.Social, 10.00m,
-                "Past event: Introductory session for newcomers to rope bondage."),
+            CreateSeedEvent(
+                title: "Beginner Rope Circle",
+                daysFromNow: -7,
+                startHour: 18,
+                capacity: 20,
+                eventType: EventType.Social,
+                price: 10.00m,
+                shortDescription: "Past event: Introductory session for newcomers to rope bondage.",
+                longDescription: @"This past event was an introductory practice session designed for absolute beginners and those new to the rope community.
 
-            CreateSeedEvent("Rope Fundamentals Series", -14, 17, 15, EventType.Class, 40.00m,
-                "Past event: Multi-session fundamentals course for serious students.")
+Past attendees learned:
+- Basic rope handling techniques
+- Simple single column ties
+- Introduction to safety principles
+- Communication fundamentals
+- How to get started with rope practice
+
+This was a supportive, beginner-friendly environment where participants could ask questions, meet fellow newcomers, and start their rope journey in a welcoming space.",
+                policies: @"Standard event policies applied:
+- 18+ with ID required
+- Consent and communication required
+- No photography without permission
+- Respectful conduct expected
+- Zero tolerance for harassment"
+            ),
+
+            CreateSeedEvent(
+                title: "Rope Fundamentals Series",
+                daysFromNow: -14,
+                startHour: 17,
+                capacity: 15,
+                eventType: EventType.Class,
+                price: 40.00m,
+                shortDescription: "Past event: Multi-session fundamentals course for serious students.",
+                longDescription: @"This past 4-week course provided comprehensive instruction in rope bondage fundamentals for dedicated students.
+
+Course Covered:
+Week 1: Safety, consent, and communication foundations
+Week 2: Single column ties and basic cuffs
+Week 3: Double column ties and connecting techniques
+Week 4: Basic chest harnesses and body ties
+
+Prerequisites: Commitment to attend all 4 sessions
+
+Past participants built a strong foundation in rope fundamentals with structured curriculum and progressive skill development.",
+                policies: @"Standard class policies applied:
+- 18+ with ID required
+- All 4 sessions attendance required
+- Safety assessment and medical waiver
+- Consent protocols mandatory
+- No photography without permission
+- Professional conduct required"
+            )
         };
 
         await _context.Events.AddRangeAsync(sampleEvents, cancellationToken);
@@ -1519,11 +2160,20 @@ The WitchCityRope Vetting Team",
     /// <summary>
     /// Helper method to create sample events with proper UTC DateTime handling.
     /// Follows ApplicationDbContext patterns for UTC date storage and audit fields.
-    /// 
-    /// Creates realistic event data with proper scheduling, capacity, and pricing information.
+    ///
+    /// Creates realistic event data with proper scheduling, capacity, pricing information,
+    /// and complete descriptive fields (short description, long description, policies).
     /// </summary>
-    private Event CreateSeedEvent(string title, int daysFromNow, int startHour, int capacity,
-        EventType eventType, decimal price, string description)
+    private Event CreateSeedEvent(
+        string title,
+        int daysFromNow,
+        int startHour,
+        int capacity,
+        EventType eventType,
+        decimal price,
+        string shortDescription,
+        string longDescription,
+        string policies)
     {
         // Calculate UTC dates following ApplicationDbContext patterns
         var startDate = DateTime.UtcNow.AddDays(daysFromNow).Date.AddHours(startHour);
@@ -1533,7 +2183,9 @@ The WitchCityRope Vetting Team",
         {
             Id = Guid.NewGuid(),
             Title = title,
-            Description = description,
+            ShortDescription = shortDescription,      // Brief summary for cards/listings
+            Description = longDescription,             // Full detailed description
+            Policies = policies,                       // Event policies and safety guidelines
             StartDate = DateTime.SpecifyKind(startDate, DateTimeKind.Utc),
             EndDate = DateTime.SpecifyKind(endDate, DateTimeKind.Utc),
             Capacity = capacity,
