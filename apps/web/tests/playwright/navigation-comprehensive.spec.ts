@@ -422,12 +422,12 @@ test.describe('Navigation System - Comprehensive Testing', () => {
 
       const navItems = page.locator('[data-testid="nav-main"] .nav a, [data-testid="nav-main"] .nav .btn');
 
-      // Expected order: Admin, Events & Classes, How to Join, Resources, Dashboard
+      // Expected order for admin users: Admin, Events & Classes, Resources, Dashboard
+      // Note: "How to Join" is conditionally hidden for vetted members/admins
       await expect(navItems.nth(0)).toContainText('Admin');
       await expect(navItems.nth(1)).toContainText('Events & Classes');
-      await expect(navItems.nth(2)).toContainText('How to Join');
-      await expect(navItems.nth(3)).toContainText('Resources');
-      await expect(navItems.nth(4)).toContainText('Dashboard');
+      await expect(navItems.nth(2)).toContainText('Resources');
+      await expect(navItems.nth(3)).toContainText('Dashboard');
 
       console.log('✅ Navigation order correct on all screen sizes');
     });

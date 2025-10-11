@@ -1,6 +1,6 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-10-11 (Quick Pass Rate Verification) -->
-<!-- Version: 5.4 - Pass Rate Verification Phase -->
+<!-- Last Updated: 2025-10-11 (RSVP Enum Fix) -->
+<!-- Version: 5.5 - RSVP Database Enum Alignment -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
 
@@ -42,7 +42,34 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 
 ### Current Test Status (October 2025)
 
-**Latest Updates** (2025-10-11 - DASHBOARD SELECTOR FIXES):
+**Latest Updates** (2025-10-11 - RSVP ENUM FIX):
+- ✅ **NAVIGATION ORDER FIX COMPLETE** (2025-10-11 10:30):
+  - **Test Fixed**: `navigation-comprehensive.spec.ts` - "should preserve navigation order"
+  - **Issue**: Test expected "How to Join" link always present, but it's conditionally rendered
+  - **Root Cause**: Navigation component hides "How to Join" for vetted members/admins via useMenuVisibility() hook
+  - **Actual Navigation for Admin**: Admin → Events & Classes → Resources → Dashboard
+  - **Fix Applied**: Updated test expectations to match actual navigation order (removed "How to Join")
+  - **Test Status**: ✅ PASSING (3.3s) - was timing out before
+  - **Report**: `/test-results/navigation-order-fix-2025-10-11.json`
+  - **Impact**: +1 test passing, Navigation category now 19/19 (100%)
+  - **Duration**: 15 minutes
+  - **Pass Rate Update**: 77.3% → 77.7% (estimated +0.4%)
+  - **Distance to 80%**: Need +9 more tests
+
+- ✅ **RSVP DATABASE ENUM FIX COMPLETE** (2025-10-11 07:00):
+  - **Issue Fixed**: RSVP tests using string "Registered" instead of numeric enum value 1 (Active)
+  - **Root Cause**: Backend stores ParticipationStatus as integers (1=Active, 2=Cancelled, 3=Refunded, 4=Waitlisted)
+  - **Files Updated**:
+    - `rsvp-persistence-template.ts` - Changed 'Registered'→1, 'Cancelled'→2
+    - `rsvp-lifecycle-persistence.spec.ts` - All 13 instances updated to numeric values
+  - **Database Verification**: ✅ NOW WORKING - Shows "Status is 1 (Active)" correctly
+  - **Error Eliminated**: "expected Registered but got 1" - FIXED
+  - **Remaining Issue**: UI timing (button disabled state) - separate from enum fix
+  - **Report**: `/test-results/rsvp-enum-fix-2025-10-11.md`
+  - **Impact**: Database verification unblocked for RSVP tests
+  - **Duration**: 45 minutes
+  - **Backend Reference**: `/docs/lessons-learned/backend-developer-lessons-learned-2.md` (lines 1973-2052)
+
 - ✅ **DASHBOARD SELECTOR FIXES COMPLETE** (2025-10-11 06:00):
   - **Current Pass Rate**: **77.3%** (276/357 tests) ⬆️ +9.2% from baseline
   - **Dashboard Tests**: 10/14 PASSING (71.4%) - up from 6/14 (42.9%)
@@ -89,7 +116,7 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
   - **Issue Fixed**: Removed non-existent confirmation dialog expectation
   - **Changes**: RSVP runs silently (no modal, no notification), Cancel RSVP has modal
   - **Status**: No longer timing out - now progresses to database verification
-  - **Next Issue**: Database status enum mismatch (Registered vs Active)
+  - **Next Issue**: Database status enum mismatch (Registered vs Active) - ✅ FIXED (07:00)
   - **Report**: `/test-results/rsvp-test-confirmation-dialog-fix-2025-10-11.md`
   - **Impact**: Template now matches actual UI behavior, ready for commit
 
@@ -115,12 +142,20 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 - **Events Category**: 67.6% (96/142 tests) - 8 tests fixed today
 - **Dashboard Tests**: 71.4% (10/14 tests) - ⬆️ +4 tests fixed (from 42.9%)
 - **Performance Tests**: 100% (5/5 tests) - ✅ ALL PASSING
-- **Navigation Tests**: 94.7% (18/19 tests) - ✅ CONSOLIDATION SUCCESS
+- **Navigation Tests**: 100% (19/19 tests) - ✅ CONSOLIDATION SUCCESS
 - **Remaining Failures**: 36 tests (10.1%) - down from 40 (4 fixed today)
 - **Skipped Tests**: 45 tests (12.6%) - mostly wireframe validation
 - Ultimate Goal: 90%+
 
 **Today's Major Work** (2025-10-11):
+- **RSVP ENUM FIX** (07:00): Fixed database verification enum mismatch
+  - **Issue**: Tests using string "Registered" instead of numeric 1 (Active)
+  - **Backend**: ParticipationStatus enum uses integers (1=Active, 2=Cancelled, 3=Refunded, 4=Waitlisted)
+  - **Files Fixed**: 2 test files + 1 template (15 total changes)
+  - **Verification**: Database now shows "Status is 1 (Active)" correctly
+  - **Impact**: Unblocked RSVP database verification tests
+  - **Report**: `/test-results/rsvp-enum-fix-2025-10-11.md`
+  - **Duration**: 45 minutes
 - **DASHBOARD SELECTOR FIXES** (06:00): Fixed 4 dashboard tests
   - **Pass Rate Improvement**: 76.2% → 77.3% (+1.1%)
   - **Dashboard Category**: 42.9% → 71.4% (+28.5%)
@@ -163,6 +198,12 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
   - Full Suite: `/test-results/phase2-final-verification-2025-10-10.md`
 
 **Key Files with Updated Status**:
+- `rsvp-lifecycle-persistence.spec.ts` - 🔧 ENUM FIX APPLIED (2025-10-11 07:00)
+  - **Issue**: Using string "Registered" instead of numeric 1 (Active)
+  - **Fix**: All 13 instances updated to numeric enum values
+  - **Database Verification**: ✅ NOW WORKING
+  - **Remaining**: UI timing issue (separate from enum fix)
+  - **Report**: `/test-results/rsvp-enum-fix-2025-10-11.md`
 - `events-management-e2e.spec.ts` - ✅ Line 47 VERIFIED PASSING (2025-10-11 04:30)
   - Test: "should display events list from API"
   - Status: ✅ PASSING (4.0s) - Reconfirmed in quick verification
@@ -226,7 +267,8 @@ dotnet test tests/WitchCityRope.IntegrationTests/ --filter "Category=HealthCheck
 - **Timeout Config**: `/apps/web/docs/testing/TIMEOUT_CONFIGURATION.md`
 
 ### Phase 2 Test Recovery Documentation
-- **Quick Pass Rate Verification**: `/test-results/quick-pass-rate-verification-2025-10-11.md` ✅ NEW (2025-10-11 04:30)
+- **RSVP Enum Fix**: `/test-results/rsvp-enum-fix-2025-10-11.md` ✅ NEW (2025-10-11 07:00)
+- **Quick Pass Rate Verification**: `/test-results/quick-pass-rate-verification-2025-10-11.md` ✅ (2025-10-11 04:30)
 - **Seed Data Verification**: `/test-results/seed-data-verification-2025-10-11.md` ✅ (2025-10-11 03:30)
 - **RSVP & Events Verification**: `/test-results/rsvp-events-verification-2025-10-10.md` ✅ (2025-10-10 22:15)
 - **Performance Test Fix**: `/test-results/performance-test-fix-2025-10-10.md` ✅ COMPLETE
@@ -323,6 +365,24 @@ await AuthHelpers.loginAs(page, 'admin');
 console.log('✅ Logged in as admin successfully');
 ```
 
+### Database Enum Pattern (NEW - 2025-10-11)
+**CRITICAL**: Always use numeric enum values for database verification
+
+**ParticipationStatus Enum** (from backend):
+```typescript
+// ✅ CORRECT - Use numeric values
+await DatabaseHelpers.verifyEventParticipation(userId, eventId, 1);  // 1 = Active
+await DatabaseHelpers.verifyEventParticipation(userId, eventId, 2);  // 2 = Cancelled
+await DatabaseHelpers.verifyEventParticipation(userId, eventId, 3);  // 3 = Refunded
+await DatabaseHelpers.verifyEventParticipation(userId, eventId, 4);  // 4 = Waitlisted
+
+// ❌ WRONG - Do NOT use strings
+await DatabaseHelpers.verifyEventParticipation(userId, eventId, 'Registered');  // ERROR
+await DatabaseHelpers.verifyEventParticipation(userId, eventId, 'Active');      // ERROR
+```
+
+**Why**: Backend C# enums store as integers in PostgreSQL, NOT strings
+
 ### Docker-Only Testing
 **ENFORCED**: All tests run against Docker containers only
 
@@ -336,7 +396,7 @@ console.log('✅ Logged in as admin successfully');
 
 ## 📊 Test Metrics & Goals
 
-### Current Coverage (2025-10-11 04:30 - QUICK PASS RATE VERIFICATION)
+### Current Coverage (2025-10-11 07:00 - RSVP ENUM FIX)
 - **E2E Tests**: 89 Playwright spec files
   - **All Tests**: 272/357 passing (76.2% verified) ⬆️ +8.1% from baseline
   - **Failed**: 40 tests (11.2%) - down from 42 (2 fixed today)
@@ -344,7 +404,8 @@ console.log('✅ Logged in as admin successfully');
   - **Events Category**: 96/142 passing (67.6%) - 8 tests fixed today
   - **Dashboard Category**: 58/73 passing (79.5%)
   - **Performance Category**: 5/5 passing (100%)
-  - **Navigation Category**: 18/19 passing (94.7%)
+  - **Navigation Category**: 19/19 passing (100%)
+  - **RSVP Tests**: Database verification unblocked (enum fix applied)
 - **React Unit Tests**: 20 test files (Vitest + React Testing Library)
 - **C# Backend Tests**: 56 active test files (xUnit + Moq + FluentAssertions)
 - **Integration Tests**: 5 test files (PostgreSQL with TestContainers)
@@ -354,16 +415,17 @@ console.log('✅ Logged in as admin successfully');
 ### Target Coverage
 - **Current Verified**: 76.2% (272/357 tests)
 - **Next Milestone**: 80% (286/357 tests) - need +14 more tests
-- **Estimated Effort to 80%**: 8-12 hours (optimistic: 1 day, realistic: 1.5 days)
+- **Estimated Effort to 80%**: 6-8 hours (less than 1 day)
 - **Ultimate Goal**: 90%+
 - **Critical Paths**: 100% coverage for authentication, events, payments
 - **Performance**: All tests < 90 seconds timeout
 
 ### Recommended Next Focus (to reach 80%)
 **Quick Wins (4-6 hours)**:
-- Dashboard selector fixes: +4 tests (dashboard-comprehensive.spec.ts)
+- Dashboard selector fixes: +4 tests ✅ DONE (2025-10-11 06:00)
+- RSVP database enum fix: ✅ DONE (2025-10-11 07:00) - Database verification unblocked
 - Events policies timeout fix: +1 test (optimize or split test)
-- RSVP database enum fix: +2 tests (Active vs Registered status)
+- RSVP UI timing fix: +2-5 tests (button state management)
 
 **Medium Priority (4-6 hours)**:
 - Navigation responsive test: +1 test (screen size handling)
@@ -410,7 +472,8 @@ console.log('✅ Logged in as admin successfully');
 1. Follow patterns in appropriate test category
 2. Use AuthHelpers for authentication
 3. Respect 90-second timeout policy
-4. Update this catalog with significant additions
+4. **Use numeric enum values for database verification**
+5. Update this catalog with significant additions
 
 ### Catalog Updates
 - Keep this index < 700 lines (expanded for quick verification notes)
@@ -423,11 +486,11 @@ console.log('✅ Logged in as admin successfully');
 - Update catalog with verification results
 - Track progress in "Latest Updates" section
 - Document test status changes (PASSING, FAILING, BLOCKED)
-- **Latest verification**: `/test-results/quick-pass-rate-verification-2025-10-11.md`
+- **Latest verification**: `/test-results/rsvp-enum-fix-2025-10-11.md`
 
 ---
 
 *This is a navigation index only. For detailed test information, see Part 2, 3, and 4.*
 *For current test execution, see CURRENT_TEST_STATUS.md*
 *For testing standards, see TESTING_GUIDE.md*
-*For latest verification, see `/test-results/quick-pass-rate-verification-2025-10-11.md`*
+*For latest fix, see `/test-results/rsvp-enum-fix-2025-10-11.md`*

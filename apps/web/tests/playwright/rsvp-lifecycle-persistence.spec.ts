@@ -113,7 +113,7 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
       const participation = await DatabaseHelpers.verifyEventParticipation(
         userId,
         RSVP_EVENT_ID,
-        'Registered'
+        1  // 1 = Active (ParticipationStatus enum)
       );
 
       // Cancel existing RSVP
@@ -146,7 +146,7 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
 
     // Ensure user HAS an RSVP to cancel
     try {
-      await DatabaseHelpers.verifyEventParticipation(userId, RSVP_EVENT_ID, 'Registered');
+      await DatabaseHelpers.verifyEventParticipation(userId, RSVP_EVENT_ID, 1);  // 1 = Active
       console.log('✅ User has active RSVP');
     } catch {
       // RSVP first
@@ -192,7 +192,7 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
 
     // Ensure user has RSVP
     try {
-      await DatabaseHelpers.verifyEventParticipation(userId, RSVP_EVENT_ID, 'Registered');
+      await DatabaseHelpers.verifyEventParticipation(userId, RSVP_EVENT_ID, 1);  // 1 = Active
     } catch {
       // Create RSVP
       await testRsvpPersistence(page, {
@@ -206,7 +206,7 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
     const participation = await DatabaseHelpers.verifyEventParticipation(
       userId,
       RSVP_EVENT_ID,
-      'Registered'
+      1  // 1 = Active
     );
 
     // Verify participation type is RSVP (not Ticket)
@@ -241,7 +241,7 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
     const participation = await DatabaseHelpers.verifyEventParticipation(
       userId,
       RSVP_EVENT_ID,
-      'Registered'
+      1  // 1 = Active
     );
 
     const auditLogExists = await DatabaseHelpers.verifyAuditLogExists(
@@ -261,7 +261,7 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
 
     // Ensure user has RSVP
     try {
-      await DatabaseHelpers.verifyEventParticipation(userId, RSVP_EVENT_ID, 'Registered');
+      await DatabaseHelpers.verifyEventParticipation(userId, RSVP_EVENT_ID, 1);  // 1 = Active
     } catch {
       await testRsvpPersistence(page, {
         userEmail: AuthHelpers.accounts.guest.email,
@@ -281,7 +281,7 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
     const participation = await DatabaseHelpers.verifyEventParticipation(
       userId,
       RSVP_EVENT_ID,
-      'Cancelled'
+      2  // 2 = Cancelled
     );
 
     const auditLogExists = await DatabaseHelpers.verifyAuditLogExists(
@@ -301,7 +301,7 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
 
     // Ensure user has RSVP
     try {
-      await DatabaseHelpers.verifyEventParticipation(userId, RSVP_EVENT_ID, 'Registered');
+      await DatabaseHelpers.verifyEventParticipation(userId, RSVP_EVENT_ID, 1);  // 1 = Active
     } catch {
       await testRsvpPersistence(page, {
         userEmail: AuthHelpers.accounts.member.email,
@@ -388,13 +388,13 @@ test.describe('RSVP Persistence Edge Cases', () => {
     const rsvp1 = await DatabaseHelpers.verifyEventParticipation(
       userId1,
       RSVP_EVENT_ID,
-      'Registered'
+      1  // 1 = Active
     );
 
     const rsvp2 = await DatabaseHelpers.verifyEventParticipation(
       userId2,
       RSVP_EVENT_ID,
-      'Registered'
+      1  // 1 = Active
     );
 
     expect(rsvp1.id).not.toBe(rsvp2.id);

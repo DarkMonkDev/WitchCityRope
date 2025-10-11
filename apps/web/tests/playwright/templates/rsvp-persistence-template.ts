@@ -113,7 +113,7 @@ export async function testRsvpPersistence(
       const participation = await DatabaseHelpers.verifyEventParticipation(
         userId,
         eventId,
-        'Registered'
+        1  // 1 = Active (ParticipationStatus enum)
       );
 
       // Verify participation type is RSVP
@@ -188,7 +188,7 @@ export async function testCancelRsvpPersistence(
       const participation = await DatabaseHelpers.verifyEventParticipation(
         userId,
         eventId,
-        'Registered'
+        1  // 1 = Active (ParticipationStatus enum)
       );
       console.log(`✅ User has active ${participation.participationType}`);
 
@@ -244,7 +244,7 @@ export async function testCancelRsvpPersistence(
       await DatabaseHelpers.verifyEventParticipation(
         userId,
         eventId,
-        'Cancelled'
+        2  // 2 = Cancelled (ParticipationStatus enum)
       );
       console.log('✅ Database shows RSVP cancelled');
     },
