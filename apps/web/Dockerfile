@@ -25,8 +25,8 @@ COPY packages/ ./packages/
 ###########################################
 FROM base AS deps
 
-# Install all workspace dependencies (including monorepo packages)
-RUN npm install
+# Install all workspace dependencies including devDependencies (needed for build tools)
+RUN npm install --include=dev --workspaces
 
 ###########################################
 # Development Stage (used by ./dev.sh and docker-compose.dev.yml)
