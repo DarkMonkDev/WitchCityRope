@@ -86,7 +86,7 @@ jobs:
           cache-to: type=registry,ref=${{ env.DOCKER_REGISTRY }}/web:buildcache,mode=max
           target: production
           build-args: |
-            VITE_API_BASE_URL=/api
+            VITE_API_BASE_URL=
             VITE_APP_TITLE=WitchCityRope
             VITE_APP_VERSION=${{ env.SHORT_SHA }}
 
