@@ -47,7 +47,36 @@ describe('EventsList Component - Vertical Slice Home Page Tests', () => {
   })
 
   it('displays events when data loads successfully', async () => {
-    // Use default MSW handler which returns real event names
+    // Arrange - Provide mock events for this unit test
+    server.use(
+      http.get('/api/events', () => {
+        return HttpResponse.json({
+          success: true,
+          data: [
+            {
+              id: '1',
+              title: 'Rope Bondage Fundamentals',
+              description: 'Learn the basics of safe rope bondage with experienced instructors',
+              startDate: '2025-08-20T19:00:00Z',
+              endDate: '2025-08-20T21:00:00Z',
+              capacity: 20,
+              registrationCount: 5,
+              eventType: 'class',
+            },
+            {
+              id: '2',
+              title: 'Community Social Night',
+              description: 'Join fellow community members for socializing and light play',
+              startDate: '2025-08-21T19:00:00Z',
+              endDate: '2025-08-21T21:00:00Z',
+              capacity: 15,
+              registrationCount: 10,
+              eventType: 'social',
+            },
+          ],
+        })
+      })
+    )
 
     // Act
     render(<EventsList />)
@@ -58,7 +87,6 @@ describe('EventsList Component - Vertical Slice Home Page Tests', () => {
     })
 
     expect(screen.getAllByTestId('event-card')).toHaveLength(2)
-    // FIXED: Updated to match MSW handler data (real event names)
     expect(screen.getByText('Rope Bondage Fundamentals')).toBeInTheDocument()
     expect(screen.getByText('Community Social Night')).toBeInTheDocument()
   })
@@ -138,8 +166,30 @@ describe('EventsList Component - Vertical Slice Home Page Tests', () => {
   })
 
   it('calls correct API endpoint for events', async () => {
-    // This test is implicit with MSW - if the request reaches the right endpoint,
-    // the handler will be triggered and return data
+    // Arrange - Provide mock events for this unit test
+    server.use(
+      http.get('/api/events', () => {
+        return HttpResponse.json({
+          success: true,
+          data: [
+            {
+              id: '1',
+              title: 'Test Event 1',
+              description: 'Description 1',
+              startDate: '2025-08-20T19:00:00Z',
+              eventType: 'class',
+            },
+            {
+              id: '2',
+              title: 'Test Event 2',
+              description: 'Description 2',
+              startDate: '2025-08-21T19:00:00Z',
+              eventType: 'social',
+            },
+          ],
+        })
+      })
+    )
 
     // Act
     render(<EventsList />)
@@ -153,7 +203,25 @@ describe('EventsList Component - Vertical Slice Home Page Tests', () => {
   })
 
   it('proves React + API stack integration works', async () => {
-    // Act - Use default MSW handler
+    // Arrange - Provide mock events for this unit test
+    server.use(
+      http.get('/api/events', () => {
+        return HttpResponse.json({
+          success: true,
+          data: [
+            {
+              id: '1',
+              title: 'Rope Bondage Fundamentals',
+              description: 'Learn the basics of safe rope bondage with experienced instructors',
+              startDate: '2025-08-20T19:00:00Z',
+              eventType: 'class',
+            },
+          ],
+        })
+      })
+    )
+
+    // Act
     render(<EventsList />)
 
     // Assert
@@ -161,7 +229,7 @@ describe('EventsList Component - Vertical Slice Home Page Tests', () => {
       expect(screen.getByTestId('events-grid')).toBeInTheDocument()
     })
 
-    // FIXED: Verify React received and displayed the actual MSW mock data
+    // Verify React received and displayed the MSW mock data
     expect(screen.getByText('Rope Bondage Fundamentals')).toBeInTheDocument()
     expect(
       screen.getByText('Learn the basics of safe rope bondage with experienced instructors')

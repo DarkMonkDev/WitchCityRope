@@ -1701,6 +1701,133 @@ queryClient.invalidateQueries({ queryKey: ['user-events', user?.id] });
 
 ---
 
+## 🚨 CRITICAL: MSW GLOBAL HANDLERS BREAK E2E TESTS - USE PASSTHROUGH FOR REAL API 🚨
+**Date**: 2025-10-10
+**Category**: MSW Configuration
+**Severity**: CRITICAL - E2E TEST FAILURES
+
+### What We Learned
+**MSW GLOBAL HANDLERS INTERCEPTING E2E TESTS**: Global MSW handlers in `/src/test/mocks/handlers.ts` were returning hardcoded mock events instead of allowing API calls to pass through to real database during Playwright E2E tests.
+
+**ROOT CAUSE**: MSW is initialized in `main.tsx` and runs in browser during E2E tests. Global handlers with hardcoded mock data prevent real API integration testing.
+
+### The Problem Pattern:
+```typescript
+// ❌ BROKEN: Global handler with hardcoded mock data
+export const handlers = [
+  http.get('/api/events', () => {
+    return HttpResponse.json({
+      success: true,
+      data: [
+        { id: '1', title: 'Rope Bondage Fundamentals' },  // ← Mock event blocks real API
+        { id: '2', title: 'Community Social Night' }
+      ]
+    })
+  })
+]
+```
+
+**Why This Breaks E2E Tests**:
+1. Playwright navigates to `http://localhost:5173/events`
+2. React app loads and initializes MSW from `main.tsx`
+3. Component calls `/api/events` expecting real database data
+4. MSW intercepts and returns hardcoded mock events
+5. E2E test expects real event "Introduction to Rope Bondage" but gets mock "Rope Bondage Fundamentals"
+6. Test fails with "element not found" timeout error
+
+### ✅ CORRECT SOLUTION: Remove Global Handlers for E2E-Tested Endpoints
+```typescript
+// ✅ CORRECT: No global handlers for endpoints tested by E2E
+export const handlers = [
+  // Auth handlers OK - E2E tests don't rely on specific auth data
+  http.get('/api/auth/user', () => { /* ... */ }),
+
+  // REMOVED: /api/events handlers
+  // E2E tests need real database events
+  // Unit tests should use server.use() for test-specific mocks
+]
+```
+
+### ✅ CORRECT: Unit Tests Use server.use() for Test-Specific Mocks
+```typescript
+// ✅ CORRECT: Unit test provides its own mock data
+import { server } from '../../test/setup'
+import { http, HttpResponse } from 'msw'
+
+it('displays events when data loads successfully', async () => {
+  // Provide mock data for THIS TEST ONLY
+  server.use(
+    http.get('/api/events', () => {
+      return HttpResponse.json({
+        success: true,
+        data: [
+          { id: '1', title: 'Test Event', /* ... */ }
+        ]
+      })
+    })
+  )
+
+  render(<EventsList />)
+
+  await waitFor(() => {
+    expect(screen.getByText('Test Event')).toBeInTheDocument()
+  })
+})
+```
+
+### CRITICAL DECISION TREE: When to Use MSW Handlers
+
+**Global Handlers (`/src/test/mocks/handlers.ts`)**:
+- ✅ **USE**: For endpoints NOT tested by E2E tests (auth, dashboard, admin-only)
+- ✅ **USE**: For default "happy path" data in development mode
+- ❌ **DON'T USE**: For endpoints verified by E2E tests expecting real database data
+- ❌ **DON'T USE**: For endpoints with dynamic test data requirements
+
+**Test-Specific Handlers (`server.use()` in test files)**:
+- ✅ **ALWAYS USE**: For unit tests needing specific mock data
+- ✅ **ALWAYS USE**: For error scenarios (401, 500, network failures)
+- ✅ **ALWAYS USE**: When E2E tests exist for the same endpoint
+
+### PREVENTION RULES:
+1. ✅ **CHECK E2E tests** before adding global MSW handlers
+2. ✅ **DOCUMENT in handler file** which endpoints have E2E tests
+3. ✅ **USE passthrough** (no handler) for E2E-tested endpoints
+4. ✅ **UPDATE unit tests** to use `server.use()` when removing global handlers
+5. ✅ **RUN both unit AND E2E tests** after handler changes
+
+### FILES TO UPDATE WHEN REMOVING HANDLERS:
+1. `/src/test/mocks/handlers.ts` - Remove or comment out global handler
+2. Search for tests using removed mock data: `grep -r "Mock Event Title"`
+3. Update each test to use `server.use()` with test-specific data
+4. Verify: `npm run test` (unit tests) AND `npm run test:e2e` (E2E tests)
+
+### VERIFICATION CHECKLIST:
+1. **REMOVE global handler** from handlers.ts
+2. **SEARCH for dependent tests**: `grep -r "MockEventTitle" apps/web/src`
+3. **UPDATE each test** to use `server.use()` with inline mock data
+4. **RUN unit tests**: `npm run test -- EventsList.test.tsx`
+5. **RUN E2E tests**: `npm run test:e2e -- verify-event-fixes.spec.ts`
+6. **VERIFY both pass** before committing
+
+### 💥 CONSEQUENCES OF IGNORING:
+- ❌ E2E tests fail with "element not found" - can't find real database events
+- ❌ Tests show mock data instead of real data
+- ❌ Integration testing becomes impossible
+- ❌ False confidence - unit tests pass but E2E tests fail
+- ❌ Difficult debugging - no errors, just wrong data
+
+### Real-World Fix Example (2025-10-10):
+**Problem**: E2E test expected real event "Introduction to Rope Bondage" but got mock "Rope Bondage Fundamentals"
+**Solution**:
+1. Removed `/api/events` handlers from `handlers.ts` (lines 237-404)
+2. Updated `EventsList.test.tsx` - added `server.use()` to 3 tests
+3. **Result**: Unit tests pass (8/8), E2E tests now get real database events
+
+### Tags
+#critical #msw #e2e-testing #mock-service-worker #global-handlers #passthrough #real-api-testing
+
+---
+
 ## 🚨 CRITICAL: MSW TESTING PATTERNS - NEVER MOCK GLOBAL.FETCH WITH MSW ENABLED 🚨
 **Date**: 2025-10-09
 **Category**: Testing with MSW (Mock Service Worker)
