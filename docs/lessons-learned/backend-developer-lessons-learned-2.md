@@ -1970,3 +1970,84 @@ return Result.Success(dto);
 
 ---
 
+## Test Expectations Must Match Database Reality - Enum String vs Numeric Values (2025-10-11)
+
+**Problem**: RSVP tests failing with status mismatch errors. Tests expected "Registered" (string) but database had 1 (Active enum value). Root cause analysis showed +2-10 tests blocked by this mismatch.
+
+**Root Cause**: Tests written with semantic string expectations ("Registered") but database uses numeric enum values (1 = Active, 2 = Cancelled, 3 = Refunded, 4 = Waitlisted). No "Registered" status exists in ParticipationStatus enum.
+
+**Investigation Pattern**:
+1. **Check enum definition** → Found `Active=1, Cancelled=2, Refunded=3, Waitlisted=4` (no "Registered")
+2. **Check database reality** → Status column contains numeric values 1, 2, 3, 4
+3. **Check entity default** → `Status = ParticipationStatus.Active` (line 40 of EventParticipation.cs)
+4. **Check test helper signature** → Expects numeric codes `1 | 2 | 3 | 4`, NOT strings
+5. **Compare with working tests** → Ticket tests already use numeric codes correctly (line 158: `verifyEventParticipation(userId, eventId, 1)`)
+
+**Why Backend is Correct**:
+- "Active" is semantically correct for existing, non-cancelled participation
+- Database stores enum numeric values (standard EF Core practice)
+- API returns numeric values for type safety and consistency
+- Matches patterns in ticket purchase tests (already using numeric codes)
+- DTO alignment strategy: Backend enums are source of truth
+
+**Why Tests are Wrong**:
+- Outdated expectations from non-existent "Registered" status
+- Type mismatch: Tests pass string but helper expects numbers
+- Inconsistent with ticket tests (which correctly use numeric codes)
+- Database helper already updated to use numeric enum values (lines 183-229)
+
+**Solution Pattern**:
+```typescript
+// ❌ WRONG - String expectation for non-existent status
+await DatabaseHelpers.verifyEventParticipation(userId, eventId, 'Registered');
+
+// ✅ CORRECT - Numeric enum value matching database
+await DatabaseHelpers.verifyEventParticipation(userId, eventId, 1); // 1 = Active
+```
+
+**Files Requiring Test Updates** (delegated to test-executor):
+1. `/apps/web/tests/playwright/rsvp-lifecycle-persistence.spec.ts` (9 occurrences of 'Registered')
+2. `/apps/web/tests/playwright/templates/rsvp-persistence-template.ts` (2 occurrences)
+3. Change `'Registered'` → `1` with comment `// 1 = Active`
+
+**Database Helper Signature** (already correct):
+```typescript
+// /apps/web/tests/playwright/utils/database-helpers.ts:183-229
+export async function verifyEventParticipation(
+  userId: string,
+  eventId: string,
+  expectedStatus: 1 | 2 | 3 | 4  // ✅ Numeric, not string
+): Promise<EventParticipationRecord | null>
+```
+
+**Status Mapping Reference**:
+```typescript
+function getParticipationStatusName(status: number): string {
+  return {
+    1: 'Active',      // New RSVPs
+    2: 'Cancelled',   // User cancelled
+    3: 'Refunded',    // Payment refunded
+    4: 'Waitlisted'   // Event full
+  }[status] || `Unknown(${status})`;
+}
+```
+
+**Prevention Checklist**:
+1. **Check backend enum definitions BEFORE writing test expectations**
+2. **Use numeric enum values** in test assertions, not semantic string names
+3. **Verify database helper signatures** match test usage (numbers vs strings)
+4. **Pattern-match with existing working tests** (ticket tests had it right)
+5. **Query database directly** to verify actual stored values before blaming backend
+
+**Delegation**: Backend analysis complete. No backend changes needed. Test updates delegated to test-executor agent to update RSVP tests with numeric status codes.
+
+**Expected Impact**: +2-10 tests passing (entire RSVP lifecycle suite unblocked)
+
+**Analysis Document**: `/test-results/rsvp-status-enum-analysis-2025-10-11.md`
+
+**Pattern**: Database enums are stored as numbers. Tests must expect numeric values, not invented string names. Always verify database reality before assuming backend is wrong.
+
+**Tags**: #enum-mismatch #test-expectations #database-reality #delegation #rsvp-tests #investigation-pattern
+
+---
+
