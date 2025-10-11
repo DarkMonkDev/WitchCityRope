@@ -339,7 +339,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       if (await eventCards.count() > 0) {
         // Verify first card has status badge
         const firstCard = eventCards.first();
-        const statusBadge = firstCard.locator('[data-testid="status-badge"], .badge, [class*="Badge"]');
+        const statusBadge = firstCard.locator('[data-testid="status-badge"], .badge, [class*="Badge"]').first();
 
         await expect(statusBadge).toBeVisible({ timeout: 5000 });
 

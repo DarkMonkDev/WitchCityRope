@@ -1,6 +1,6 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-10-10 21:45 -->
-<!-- Version: 4.3 -->
+<!-- Last Updated: 2025-10-10 23:45 -->
+<!-- Version: 4.7 -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
 
@@ -42,7 +42,27 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 
 ### Current Test Status (October 2025)
 
-**Latest Updates** (2025-10-10 22:30):
+**Latest Updates** (2025-10-10 23:45):
+- ✅ **STATUS BADGES TEST FIXED**: Strict mode violation resolved with `.first()` selector
+  - **Test**: `user-dashboard-wireframe-validation.spec.ts:330` - Status badges display
+  - **Fix Applied**: Added `.first()` to line 342 to handle nested Badge elements
+  - **Impact**: Test now passes - badges ARE rendering perfectly (TICKET PURCHASED, RSVP CONFIRMED visible)
+  - **Report**: `/test-results/status-badges-diagnosis-2025-10-10.md`
+  - **Actual Effort**: 30 seconds (diagnosis took longer than fix!)
+- ✅ **EVENTS LIST DISPLAY DIAGNOSIS COMPLETE**: API data structure mismatch identified
+  - **Test**: `events-management-e2e.spec.ts:47` - "should display events list from API"
+  - **Issue**: API returns `{ success: true, data: [...] }` but component expects array
+  - **Impact**: Admin demo page shows blank instead of 6 events from API
+  - **Fix**: React Developer needs to unwrap `response.data.data` in service
+  - **Report**: `/test-results/events-list-display-diagnosis-2025-10-10.md`
+  - **Effort**: 15-30 minutes (simple data structure fix)
+- ✅ **ADMIN EVENT EDITING DIAGNOSIS COMPLETE**: Root cause identified for workflow failure
+  - **Test**: `events-complete-workflow.spec.ts:189` - Admin Event Editing
+  - **Issue**: Events Dashboard table has NO Edit buttons (only COPY buttons)
+  - **Impact**: Admins cannot edit existing events through UI
+  - **Fix**: React Developer needs to add Edit button to Actions column
+  - **Report**: `/test-results/admin-event-editing-diagnosis-2025-10-10.md`
+  - **Effort**: 2-4 hours (straightforward UI fix)
 - ✅ **EVENT SESSION MATRIX TESTS FIXED**: 2 failing tests now passing
   - **event-session-matrix-test.spec.ts**: Updated selectors to match modal-based UI (was looking for inline forms)
   - **events-management-e2e.spec.ts**: Added Setup tab navigation, fixed session grid test
@@ -54,38 +74,35 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
   - **Critical Failures**: RSVP duplicate prevention, event click navigation
   - **Priority Fix Order**: 3 CRITICAL, 3 HIGH, 2 MEDIUM, 1 LOW
   - **Effort to 80%**: 14-21 hours across React + Backend developers
-- ✅ **Event Session Matrix Demo Test Skipped**: 1 test skipped pending P1 post-login redirect feature
-- ✅ **Phase 2 Public Events Selector Fixes COMPLETE**: Fixed 8 tests, skipped 3 tests per diagnosis
-- ✅ **Phase 2 Public Events Selector Diagnosis COMPLETE**: Identified exact fixes for 10+ test failures
-- ✅ **TEST CATALOG AUDIT COMPLETE**: Updated catalog to reflect all 89 test files
-- ✅ **AuthHelpers Migration Complete**: All 22 tests now use AuthHelpers.loginAs() pattern
 
 **Pass Rate Progress**:
 - Previous: 68% (September 2025 - multiple authentication issues)
 - Current: 66.9% (95/142 events tests) - Full suite: 68.1% (243/357 tests)
-- **Events Category**: 11 failures identified with specific fix priorities
+- **Events Category**: 11 failures diagnosed with specific fixes identified
 - Next Target: 75% (CRITICAL + HIGH priority fixes)
 - Ultimate Goal: 90%+
 
 **Today's Major Work** (2025-10-10):
-- **EVENTS CATEGORY DIAGNOSIS**: Complete analysis of 142 events tests
-  - 11 specific failures categorized and prioritized
-  - 4 UI/component issues (React Developer)
-  - 2 backend/API issues (Backend Developer)
-  - 3 workflow/integration issues (React + Test Developer)
-  - 1 performance issue (adjust test expectations)
-  - **Document**: `/test-results/events-category-diagnosis-2025-10-10.md`
-- **PUBLIC EVENTS SELECTOR DIAGNOSIS**: Complete analysis of 10+ test failures
-  - 8 tests need selector updates (specific fixes documented)
-  - 2 tests should be skipped (wireframe validation only)
-  - 3 tests blocked by API 401 issue (P1-3 backend task)
-  - **Document**: `/test-results/phase2-public-events-selector-diagnosis-2025-10-10.md`
-- Fixed syntax error in capture-public-pages.spec.ts (missing closing brace)
-- 22 test files migrated to AuthHelpers (eliminated manual login code)
-- Bio validation alignment fixed (frontend now enforces 500 char limit)
-- Auth routing infinite loop resolved
-- Multiple strict mode violations fixed
-- 3 new verification tests added (rebuild, recent changes, vetting status)
+- **STATUS BADGES DIAGNOSIS**: Confirmed badges render correctly, test selector too broad
+  - Badges visible: "TICKET PURCHASED" (green), "RSVP CONFIRMED" (blue) ✅
+  - Selector `[class*="Badge"]` matches both container AND label ❌
+  - Playwright strict mode violation (2 elements matched)
+  - Quick fix: Add `.first()` to selector
+  - Best fix: Add `data-testid="status-badge"` to Badge component
+  - **Document**: `/test-results/status-badges-diagnosis-2025-10-10.md`
+- **EVENTS LIST DISPLAY DIAGNOSIS**: Identified API response structure mismatch
+  - API returns: `{ success: true, data: [...] }` ✅
+  - Service returns: `response.data` (whole object) ❌
+  - Component expects: array with `.length` property ❌
+  - Fix: Change service to return `response.data.data` ✅
+  - **Document**: `/test-results/events-list-display-diagnosis-2025-10-10.md`
+- **ADMIN EVENT EDITING DIAGNOSIS**: Identified missing Edit buttons in Events Dashboard
+  - Test successfully authenticates as admin ✅
+  - Test successfully navigates to `/admin/events` ✅
+  - Events Dashboard loads with table ✅
+  - **NO Edit buttons found** (only COPY buttons) ❌
+  - Cannot complete event editing workflow
+  - **Document**: `/test-results/admin-event-editing-diagnosis-2025-10-10.md`
 
 ### Test Categories
 
@@ -107,43 +124,41 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 3. **Event Session Matrix Incomplete** - 4/9 features working (React + Backend Developer)
 
 **High Priority Events Test Failures** (FIX NEXT):
-4. **Admin Event Editing Workflow** - Admin functionality broken (React Developer)
-5. **Events List Display** - Admin demo page not working (React Developer)
+4. **Admin Event Editing Workflow** - ✅ DIAGNOSED - Missing Edit buttons in table (React Developer)
+   - **Diagnosis**: `/test-results/admin-event-editing-diagnosis-2025-10-10.md`
+   - **Root Cause**: Events Dashboard Actions column only has COPY buttons, no EDIT buttons
+   - **Fix Required**: Add Edit button with `data-testid="edit-event"` to table row actions
+   - **Estimated Effort**: 2-4 hours
+5. **Events List Display** - ✅ DIAGNOSED - API response structure mismatch (React Developer)
+   - **Diagnosis**: `/test-results/events-list-display-diagnosis-2025-10-10.md`
+   - **Root Cause**: Service returns `{ success, data }` object but component expects array
+   - **Fix Required**: Change `legacyEventsApiService.getEvents()` to return `response.data.data`
+   - **Estimated Effort**: 15-30 minutes
 6. **Mock Events Cleanup** - Still showing fake data (React Developer)
+
+**Low Priority Test Failures** (Fix When Time Permits):
+7. **Status Badges Display** - ✅ FIXED (2025-10-10 23:45)
+   - **Diagnosis**: `/test-results/status-badges-diagnosis-2025-10-10.md`
+   - **Root Cause**: Selector `[class*="Badge"]` matches both Mantine Badge container AND label
+   - **Fix Applied**: Added `.first()` to selector in `user-dashboard-wireframe-validation.spec.ts:342`
+   - **Feature Status**: ✅ WORKING PERFECTLY (badges visible: "TICKET PURCHASED", "RSVP CONFIRMED")
+   - **Test Status**: ✅ FIXED - No longer violates strict mode
+   - **Actual Effort**: 30 seconds
 
 **Phase 2 Public Events Fixes COMPLETE** (2025-10-10 20:00):
 - ✅ **events-display-verification.spec.ts**: Fixed strict mode violation (h1/h2 selector with .first())
-- ✅ **phase4-events-testing.spec.ts**: Fixed all 5 selector issues (event-filters → button-view-toggle, event-type → event-date, etc.)
-- ✅ **events-comprehensive.spec.ts**: Fixed 2 logout issues (clearAuthState instead of logout navigation), skipped 1 test blocked by API 401
-- ✅ **capture-public-pages.spec.ts**: Fixed syntax error, skipped 2 wireframe tests (design validation only, files don't exist)
+- ✅ **phase4-events-testing.spec.ts**: Fixed all 5 selector issues
+- ✅ **events-comprehensive.spec.ts**: Fixed 2 logout issues, skipped 1 test blocked by API 401
+- ✅ **capture-public-pages.spec.ts**: Fixed syntax error, skipped 2 wireframe tests
 - **Total**: 8 tests fixed, 3 tests skipped (1 API blocked, 2 wireframe validation)
 
 **Key Files**:
 - `admin-events-workflow-test.spec.ts` - ✅ Fixed with AuthHelpers
 - `admin-events-navigation-test.spec.ts` - ✅ Fixed with AuthHelpers
-- `admin-events-detailed-test.spec.ts` - ✅ Fixed with AuthHelpers
-- `admin-events-table-ui-check.spec.ts` - ✅ Fixed with AuthHelpers
-- `event-session-matrix-test.spec.ts` - ✅ PASSING - Updated selectors for modal-based UI (2025-10-10)
-- `events-management-e2e.spec.ts` - ✅ PASSING - Session grid test fixed with Setup tab navigation (2025-10-10)
-- `e2e/tiptap-editors.spec.ts` - ✅ Fixed with AuthHelpers - 7/7 tests passing
-
-**New Verification Tests** (2025-10-10):
-- `simple-rebuild-verification.spec.ts` - Verifies admin dashboard loads after rebuild
-- `verify-recent-changes.spec.ts` - Verifies vetting workflow changes (notes, badges, counts)
-- `verify-vetting-status-fix.spec.ts` - Verifies VettingStatus enum alignment with shared-types
-
-**All Tests Now Use AuthHelpers** (Migration Complete):
-- `events-comprehensive.spec.ts` - ✅ Migrated to AuthHelpers
-- `vetting-notes-direct.spec.ts` - ✅ Already using AuthHelpers
-- `vetting-notes-display.spec.ts` - ✅ Already using AuthHelpers
-
-**Tests Pending P1 Features** (2025-10-10 20:30):
-- `events-management-e2e.spec.ts` - 1 test skipped: "should load Event Session Matrix demo page"
-  - Blocked by: Post-login return-to-page feature (P1 CRITICAL)
-  - Reference: `/docs/standards-processes/PRE_LAUNCH_PUNCH_LIST.md` lines 58-64
-  - Current: Login from demo page redirects to dashboard
-  - Expected: Return to `/admin/event-session-matrix-demo` after login
-  - Will re-enable when feature implemented
+- `events-complete-workflow.spec.ts` - ❌ FAILING - Step 2 (Admin Event Editing) - DIAGNOSED
+- `event-session-matrix-test.spec.ts` - ✅ PASSING - Updated selectors for modal-based UI
+- `events-management-e2e.spec.ts` - ❌ FAILING - Events list display - DIAGNOSED
+- `user-dashboard-wireframe-validation.spec.ts` - ✅ PASSING - Status badges test FIXED (2025-10-10 23:45)
 
 #### Unit Tests
 **Location**: `/tests/unit/api/`
@@ -153,14 +168,6 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 **Key Projects**:
 - `WitchCityRope.Api.Tests` - API service layer tests
 - `WitchCityRope.Core.Tests` - Core domain logic tests
-
-**Latest Additions** (2025-10-10):
-- `VettingPublicServiceTests.cs` - 15 tests for public/user-facing vetting methods
-  - Public application submission (4 tests)
-  - Public status checks (3 tests)
-  - User self-service (2 tests)
-  - Duplicate prevention (2 tests)
-  - User status tests (4 tests)
 
 #### Integration Tests
 **Location**: `/tests/integration/`
@@ -189,7 +196,10 @@ dotnet test tests/WitchCityRope.IntegrationTests/ --filter "Category=HealthCheck
 ### Phase 2 Test Recovery Documentation
 - **P1 Assessment**: `/test-results/phase2-p1-assessment-2025-10-10.md`
 - **Public Events Diagnosis**: `/test-results/phase2-public-events-selector-diagnosis-2025-10-10.md`
-- **Events Category Diagnosis**: `/test-results/events-category-diagnosis-2025-10-10.md` (NEW)
+- **Events Category Diagnosis**: `/test-results/events-category-diagnosis-2025-10-10.md`
+- **Admin Event Editing Diagnosis**: `/test-results/admin-event-editing-diagnosis-2025-10-10.md`
+- **Events List Display Diagnosis**: `/test-results/events-list-display-diagnosis-2025-10-10.md`
+- **Status Badges Diagnosis**: `/test-results/status-badges-diagnosis-2025-10-10.md` (NEW)
 
 ---
 
@@ -215,7 +225,7 @@ npm run test:e2e
 npm run test:e2e -- --grep "event"
 
 # Run specific test file
-npm run test:e2e admin-events-workflow-test.spec.ts
+npm run test:e2e events-complete-workflow.spec.ts
 
 # Run with UI mode (debugging)
 npm run test:e2e -- --ui
@@ -274,15 +284,6 @@ await AuthHelpers.loginAs(page, 'admin');
 console.log('✅ Logged in as admin successfully');
 ```
 
-**Wrong Pattern (DO NOT USE)**:
-```typescript
-// ❌ WRONG - 90% more code, unreliable
-await page.goto('http://localhost:5173/login');
-await page.waitForLoadState('networkidle');
-const emailInput = page.locator('[data-testid="email-input"]');
-// ... 25 more lines of manual login code
-```
-
 ### Docker-Only Testing
 **ENFORCED**: All tests run against Docker containers only
 
@@ -296,7 +297,7 @@ const emailInput = page.locator('[data-testid="email-input"]');
 
 ## 📊 Test Metrics & Goals
 
-### Current Coverage (2025-10-10 21:45)
+### Current Coverage (2025-10-10 23:30)
 - **E2E Tests**: 89 Playwright spec files
   - **All Tests**: 243/357 passing (68.1%)
   - **Events Category**: 95/142 passing (66.9%) - 11 failures diagnosed
@@ -312,7 +313,10 @@ const emailInput = page.locator('[data-testid="email-input"]');
 - **Public Events Diagnosis**: ✅ Complete (10-12 tests, exact fixes documented)
 - **Public Events Fixes**: ✅ Complete (8 tests fixed, 3 tests skipped)
 - **Events Category Diagnosis**: ✅ Complete (11 failures, prioritized fix order)
-- **Next**: CRITICAL events fixes (RSVP, navigation, Event Session Matrix)
+- **Admin Event Editing Diagnosis**: ✅ Complete (missing Edit buttons identified)
+- **Events List Display Diagnosis**: ✅ Complete (API data structure mismatch identified)
+- **Status Badges Diagnosis**: ✅ Complete (test selector issue, badges render correctly)
+- **Next**: CRITICAL events fixes (RSVP, navigation, Event Session Matrix, Edit buttons, API data)
 
 ### Target Coverage
 - **Pass Rate**: 90%+ (current: 66.9% events, 68.1% overall, next milestone: 75%)
@@ -321,21 +325,10 @@ const emailInput = page.locator('[data-testid="email-input"]');
 
 ### Events Category Breakdown (2025-10-10)
 - **Total Events Tests**: 142 tests
-- **UI/Component Failures**: 4 tests (React Developer)
+- **UI/Component Failures**: 5 tests (React Developer) - includes diagnosed Edit button + API data issues
 - **Backend/API Failures**: 2 tests (Backend Developer)
 - **Workflow/Integration Failures**: 3 tests (React + Test Developer)
-- **Performance Failures**: 1 test (adjust expectations)
-- **Data Display Failures**: 1 test (React Developer)
-
-### Test File Breakdown
-- **Admin Tests**: 4 spec files (events management)
-- **Auth/Login Tests**: 20+ spec files (login, authentication flows)
-- **Dashboard Tests**: 5+ spec files (user dashboard, profile, settings)
-- **Events Tests**: 15+ spec files (creation, editing, display, RSVP)
-- **Vetting Tests**: 10+ spec files (application workflow, admin review)
-- **Diagnostic Tests**: 15+ spec files (debugging, verification, checks)
-- **E2E Subdirectory**: 6 spec files (admin/vetting, dashboard, tiptap)
-- **Total**: 89 test files
+- **Test Selector Issues**: 1 test (Test Developer) - Status badges (feature works, selector wrong)
 
 ---
 

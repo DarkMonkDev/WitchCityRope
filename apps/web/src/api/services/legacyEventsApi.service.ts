@@ -5,17 +5,17 @@
  * @created 2025-09-06
  */
 
-import { apiClient } from '../../lib/api/client';
+import { apiClient } from '../../lib/api/client'
 
 /**
  * Legacy Event DTO (current API format)
  */
 export interface LegacyEventDto {
-  id: string;
-  title: string;
-  description: string;
-  startDate: string;
-  location: string;
+  id: string
+  title: string
+  description: string
+  startDate: string
+  location: string
 }
 
 /**
@@ -29,13 +29,18 @@ export class LegacyEventsApiService {
    */
   async getEvents(): Promise<LegacyEventDto[]> {
     try {
-      console.log('🔍 LegacyEventsApiService.getEvents() called');
-      const response = await apiClient.get('/api/events');
-      console.log('🔍 API response received:', response.status, response.data?.length, 'events');
-      return response.data || [];
+      console.log('🔍 LegacyEventsApiService.getEvents() called')
+      const response = await apiClient.get('/api/events')
+      console.log(
+        '🔍 API response received:',
+        response.status,
+        response.data?.data?.length,
+        'events'
+      )
+      return response.data?.data || []
     } catch (error) {
-      console.error('🔍 Failed to fetch events:', error);
-      throw new Error('Failed to fetch events');
+      console.error('🔍 Failed to fetch events:', error)
+      throw new Error('Failed to fetch events')
     }
   }
 
@@ -45,22 +50,22 @@ export class LegacyEventsApiService {
    */
   async getEventDetails(eventId: string): Promise<LegacyEventDto | null> {
     try {
-      const events = await this.getEvents();
-      const event = events.find(e => e.id === eventId);
+      const events = await this.getEvents()
+      const event = events.find((e) => e.id === eventId)
       if (!event) {
-        throw new Error('Event not found');
+        throw new Error('Event not found')
       }
-      return event;
-    } catch (error: any) {
-      if (error.message === 'Event not found') {
-        throw error;
+      return event
+    } catch (error: unknown) {
+      if (error instanceof Error && error.message === 'Event not found') {
+        throw error
       }
-      console.error('Failed to fetch event details:', error);
-      throw new Error('Failed to fetch event details');
+      console.error('Failed to fetch event details:', error)
+      throw new Error('Failed to fetch event details')
     }
   }
 }
 
 // Export singleton instance
-export const legacyEventsApiService = new LegacyEventsApiService();
-export default legacyEventsApiService;
+export const legacyEventsApiService = new LegacyEventsApiService()
+export default legacyEventsApiService
