@@ -79,6 +79,7 @@ jobs:
           context: .
           file: ./apps/web/Dockerfile
           push: true
+          no-cache: true
           tags: |
             ${{ env.DOCKER_REGISTRY }}/web:${{ env.IMAGE_TAG }}
             ${{ env.DOCKER_REGISTRY }}/web:${{ env.SHORT_SHA }}
