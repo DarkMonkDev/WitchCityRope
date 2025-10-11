@@ -231,9 +231,29 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
 ### Environment
 - **OS**: Ubuntu 24.04 (Native Linux - NOT WSL)
-- **Project Path**: `/home/chad/repos/witchcityrope-react`
+- **Project Path**: `/home/chad/repos/witchcityrope` ⚠️ **CRITICAL: NOT witchcityrope-react**
 - **MCP Servers**: `/home/chad/mcp-servers/`
 - **GitHub**: https://github.com/DarkMonkDev/WitchCityRope.git
+
+### 🚨 CRITICAL: Test Results Standardization
+**MANDATORY**: All test outputs MUST use standardized paths and folders.
+
+**SINGLE TEST RESULTS FOLDER**: `/test-results/`
+- ✅ **ONLY location** for ALL test artifacts (Playwright, Jest, screenshots, reports)
+- ✅ **Configured** in `playwright.config.ts` and all test files
+- ❌ **NEVER** use `/playwright-results/` or `/playwright-report/` (removed)
+- ❌ **NEVER** hardcode absolute paths in test files (use relative: `./test-results/`)
+
+**Path Standards for Tests**:
+- ✅ **Screenshots**: `./test-results/[descriptive-name].png`
+- ✅ **JSON Reports**: `./test-results/test-results.json`
+- ✅ **HTML Reports**: `./test-results/html-report/`
+- ✅ **Markdown Reports**: `./test-results/[feature]-report.md`
+
+**CRITICAL PATH RULE**:
+- Project path is `/home/chad/repos/witchcityrope` (NO `-react` suffix)
+- Using old path `/home/chad/repos/witchcityrope-react` = WRONG COMPUTER
+- All agents and tests MUST use current project path only
 
 ### Available Tools
 1. **TodoWrite**: Track multi-step tasks

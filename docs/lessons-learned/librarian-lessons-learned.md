@@ -661,3 +661,37 @@
 
 **Pattern Applied**: Timeout policy documentation update (October 9, 2025) - 4 files updated with consistent messaging preventing future 10-minute timeout suggestions.
 
+
+## 🚨 CRITICAL: Agent Definition Enforcement Pattern (2025-10-10) 🚨
+
+**Problem**: Critical requirements (TEST_CATALOG maintenance) were only documented in lessons learned files, which can get too large and be skipped by agents.
+
+**Root Cause**: Lessons learned files can exceed size limits, get split, or be overlooked during startup procedures. Critical operational requirements need more permanent enforcement.
+
+**Solution Applied**: Add CRITICAL requirements directly to agent definition files (`.md` files in `/.claude/agents/`) at the TOP, immediately after agent description.
+
+**Pattern for Critical Enforcement**:
+1. **Placement**: Right after agent description, BEFORE other instructions
+2. **Visual Markers**: Use `🚨 CRITICAL:` with aggressive emoji markers
+3. **Clear Rules**: Bullet-pointed, actionable requirements with ✅/❌ examples
+4. **Why It Matters**: Explain impact if requirement is ignored
+5. **Enforcement Statement**: "This requirement is in your agent definition file so it cannot be ignored"
+
+**Example Application - TEST_CATALOG**:
+- Added to `test-developer.md`: BEFORE creating/AFTER creating test requirements
+- Added to `test-executor.md`: Test metrics update responsibilities after every execution
+- Both include catalog structure, location, and specific responsibilities
+
+**Benefits**:
+- **Permanent**: Agent definition files don't get split or archived
+- **Visible**: Read during agent initialization every time
+- **Prioritized**: Positioned at top before other instructions
+- **Unmissable**: Ultra-aggressive visual markers prevent skipping
+
+**When to Use This Pattern**:
+- Requirements that MUST happen for system integrity (file tracking, catalog maintenance)
+- Operations that affect other agents (documentation, test metrics)
+- Critical procedures that prevent duplicate work or data loss
+- Zero-tolerance policies (no commits without documentation, etc.)
+
+**Tags**: #critical #agent-enforcement #definition-files #permanent-requirements #test-catalog

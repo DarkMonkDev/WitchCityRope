@@ -121,6 +121,17 @@ For complete development history, see:
 5. **Verification Before Fixing**: Some "issues" are already working (public events)
 6. **Incremental Iteration**: Small focused fixes > large comprehensive attempts
 
+### Test Suite Discovery Investigation
+
+**Issue**: Test-executor reported "88 discovered tests" causing confusion
+**Finding**: Grep pattern error - used `--grep "event"` (142 tests) instead of category-specific filter
+**Reality**: Core Events category unchanged at ~54-80 tests
+**Action Items Identified**:
+- Test suite has no tagging system (`@events`, `@vetting`, etc.)
+- 23 debug/diagnostic test files should be archived
+- 18 events test files could be consolidated to 10
+**Documentation**: `/test-results/TEST-SUITE-DISCOVERY-ANALYSIS-2025-10-10.md`
+
 **✅ SUCCESS CRITERIA MET:**
 - [x] Profile tests unblocked (0% → 87.5%)
 - [x] AuthHelpers standardized across test suite

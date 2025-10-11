@@ -11,18 +11,18 @@ The `/orchestrate` command implements the complete AI workflow orchestration sys
 **BEFORE orchestrating ANY work, the orchestrator MUST:**
 
 1. **Read Orchestrator Lessons Learned** (MANDATORY)
-   - Location: `/home/chad/repos/witchcityrope-react/docs/lessons-learned/orchestrator-lessons-learned.md`
+   - Location: `/home/chad/repos/witchcityrope/docs/lessons-learned/orchestrator-lessons-learned.md`
    - Contains critical knowledge specific to orchestrator role
    - Apply these lessons to all workflow coordination
 
 2. **Reference Workflow Process** (SINGLE SOURCE OF TRUTH)
-   - Location: `/home/chad/repos/witchcityrope-react/docs/standards-processes/workflow-orchestration-process.md`
+   - Location: `/home/chad/repos/witchcityrope/docs/standards-processes/workflow-orchestration-process.md`
    - THE authoritative source for all workflow procedures
    - Contains 5-phase workflow definition, quality gates, human review points
 
 3. **Clickable File Links** (REQUIRED)
    - ALL file links in documentation must use full absolute paths
-   - Format: `/home/chad/repos/witchcityrope-react/...`
+   - Format: `/home/chad/repos/witchcityrope/...`
    - Enables clickable navigation for stakeholders
 
 ## Usage
@@ -407,10 +407,10 @@ The orchestrator tracks and reports:
 10. **ALWAYS** maintain progress tracking throughout workflow
 
 ## References
-- **Single Source Process**: [Workflow Orchestration Process](/home/chad/repos/witchcityrope-react/docs/standards-processes/workflow-orchestration-process.md)
-- **Orchestrator Lessons**: [Orchestrator Lessons Learned](/home/chad/repos/witchcityrope-react/docs/lessons-learned/orchestrator-lessons-learned.md)
-- **Master Index**: [Functional Area Master Index](/home/chad/repos/witchcityrope-react/docs/architecture/functional-area-master-index.md)
-- **File Registry**: [File Registry](/home/chad/repos/witchcityrope-react/docs/architecture/file-registry.md)
+- **Single Source Process**: [Workflow Orchestration Process](/home/chad/repos/witchcityrope/docs/standards-processes/workflow-orchestration-process.md)
+- **Orchestrator Lessons**: [Orchestrator Lessons Learned](/home/chad/repos/witchcityrope/docs/lessons-learned/orchestrator-lessons-learned.md)
+- **Master Index**: [Functional Area Master Index](/home/chad/repos/witchcityrope/docs/architecture/functional-area-master-index.md)
+- **File Registry**: [File Registry](/home/chad/repos/witchcityrope/docs/architecture/file-registry.md)
 
 ---
 

@@ -902,3 +902,146 @@ await expect(notification).toBeVisible(); // Passes: checks first notification
 - Add .first() when checking notifications, alerts, or success messages
 - Use more specific selectors (data-testid) when element should be unique
 - Test with multiple rapid actions to catch multi-element scenarios
+
+## TEST_CATALOG Comprehensive Documentation (October 2025)
+
+### Complete Test Inventory Required for Effective Testing
+**Problem**: TEST_CATALOG only documented 89 E2E Playwright tests (33% coverage) while repository contained 271 total test files.
+**Discovery**: Comprehensive audit revealed 182 undocumented test files (React unit + C# backend).
+**Impact**: Agents couldn't find tests, didn't know what coverage existed, duplicated test efforts.
+
+**What Was Missing**:
+- **React Unit Tests** (20 files): Component tests, hook tests, integration tests
+- **C# Backend Tests** (56 active files): Domain logic, infrastructure, API services
+- **C# Integration Tests** (5 files): Database integration with TestContainers
+- **C# Performance Tests** (3 files): Load and stress testing
+- **Legacy/Obsolete Tests** (29+ files): Historical reference
+
+**Solution**: Expanded TEST_CATALOG to document ALL 271 test files with multi-part structure:
+
+```
+Part 1 - Navigation Index (310 lines):
+  - Quick navigation
+  - Current status
+  - High-level metrics
+  - Under 500 lines for agent accessibility
+
+Part 2 - Historical Documentation (1,513 lines):
+  - Test transformations
+  - Migration patterns
+  - Historical context
+
+Part 3 - Archived Information (1,048 lines):
+  - Legacy architecture
+  - Obsolete patterns
+
+Part 4 - Complete Test Listings (1,069 lines):
+  - All 271 test files documented
+  - Organized by type and feature
+  - Execution commands
+  - Maintenance guidelines
+```
+
+**Documentation Format for Each Test**:
+```markdown
+### Feature Area Tests (N files)
+
+1. **filename.test.tsx** or **FilenameTests.cs**
+   - Purpose: Clear description of what test covers
+   - Status: Pass/fail status, migration notes
+   - Tests: Key test scenarios
+   - Location: Full path to file
+```
+
+**Organization by Test Type**:
+1. **E2E Playwright** (89 files): By feature area (Admin, Auth, Dashboard, Events, Vetting, Diagnostic)
+2. **React Unit** (20 files): By component type (Features, Pages, Components, Integration)
+3. **C# Backend** (56 files): By project and purpose (Core, Infrastructure, API, Unit, Integration)
+4. **Legacy/Obsolete** (29+ files): Clearly marked as legacy
+
+**Quick Reference Tables Added**:
+```markdown
+| Test Type | Count | Status | Framework |
+|-----------|-------|--------|-----------|
+| E2E Playwright | 89 | Active | Playwright + TypeScript |
+| React Unit | 20 | Active | Vitest + React Testing Library |
+| C# Backend | 56 | Active | xUnit + Moq + FluentAssertions |
+...
+```
+
+**Test Coverage by Feature Matrix**:
+```markdown
+| Feature | E2E | React | C# | Total |
+|---------|-----|-------|-----|-------|
+| Vetting | 10+ | 6 | 6 | 22+ |
+| Events | 15+ | 2 | 3 | 20+ |
+...
+```
+
+**Benefits of Complete Documentation**:
+1. **Test Discovery**: Agents can find ANY test file quickly
+2. **Gap Identification**: Clear visibility of test coverage by feature
+3. **Avoid Duplication**: Know what tests already exist
+4. **Technology Guidance**: Framework and patterns for each test type
+5. **Maintenance**: Clear update procedures and review schedule
+
+**Maintenance Requirements**:
+```markdown
+### When Creating New Tests:
+1. Add to appropriate section in TEST_CATALOG_PART_4.md
+2. Update test counts in Part 1 summary tables
+3. Include purpose, location, framework
+4. Update coverage matrix if new feature area
+
+### Monthly Review:
+- Verify file counts with find commands
+- Update pass rates from latest runs
+- Add new tests created this month
+- Archive obsolete tests to legacy section
+
+### Quarterly Cleanup:
+- Consolidate duplicate coverage
+- Identify test gaps
+- Update coverage metrics
+- Review test organization
+```
+
+**Critical Files**:
+- **Navigation**: `/docs/standards-processes/testing/TEST_CATALOG.md` (Part 1)
+- **Complete Listings**: `/docs/standards-processes/testing/TEST_CATALOG_PART_4.md` (Part 4)
+- **Audit Report**: `/docs/standards-processes/testing/TEST_AUDIT_REPORT_2025-10-10.md`
+
+**Verification Commands**:
+```bash
+# Count E2E Playwright tests
+find /apps/web/tests/playwright -name "*.spec.ts" | wc -l
+# Result: 89 files ✅
+
+# Count React unit tests
+find /apps/web/src -name "*.test.tsx" -o -name "*.test.ts" | wc -l
+# Result: 20 files ✅
+
+# Count C# backend tests (active only)
+find /tests -name "*Tests.cs" -not -path "*/bin/*" -not -path "*/obj/*" \
+  | grep -v legacy-obsolete | grep -v blazor-obsolete | grep -v disabled | wc -l
+# Result: 56 files ✅
+```
+
+**Impact**:
+- **Before**: 33% coverage (89/271 documented)
+- **After**: 100% coverage (271/271 documented)
+- **Result**: Complete test inventory visibility for all agents
+
+**Prevention**:
+- **ALWAYS update TEST_CATALOG** when creating new tests
+- **Run verification commands** monthly to ensure counts accurate
+- **Document purpose and location** for every test file
+- **Use multi-part structure** to stay within token limits (each part < 2,000 lines)
+- **Maintain navigation index** (Part 1) under 500 lines for agent accessibility
+
+**When NOT to Add to TEST_CATALOG**:
+- Test infrastructure files (helpers, fixtures, builders)
+- Build artifacts (bin/obj directories)
+- Temporary diagnostic tests (add note they're temporary)
+
+**Reference**: `/home/chad/repos/witchcityrope/session-work/2025-10-10/test-catalog-expansion-summary.md`

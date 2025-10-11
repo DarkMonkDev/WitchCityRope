@@ -62,7 +62,9 @@ tests/WitchCityRope.E2E.Tests/obj/
 
 # Playwright test artifacts
 playwright-report/
-**/playwright-report/data/
+playwright-results/
+**/playwright-report/
+**/playwright-results/
 test-results/
 **/test-results/
 apps/web/test-results/
