@@ -450,7 +450,13 @@ test.describe('Events - Performance', () => {
       route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify(manyEvents)
+        body: JSON.stringify({
+          success: true,
+          data: manyEvents,
+          error: null,
+          message: null,
+          timestamp: new Date().toISOString()
+        })
       });
     });
 
