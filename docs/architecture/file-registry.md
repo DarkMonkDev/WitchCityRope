@@ -7,6 +7,9 @@
 ## Registry Table
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
+| 2025-10-10 | /docs/functional-areas/platform-overview/GO-LIVE-LAUNCH-CHECKLIST.md | DELETED | DUPLICATE - Accidentally created duplicate of PRE_LAUNCH_PUNCH_LIST.md | Duplicate Documentation Cleanup | DELETED | N/A |
+| 2025-10-10 | /docs/standards-processes/PRE_LAUNCH_PUNCH_LIST.md | MODIFIED | Added Post-Login Return to Intended Page feature (P1 CRITICAL) to Core Authentication section, updated dashboard metrics | Post-Login Return Feature Addition | ACTIVE | Never - permanent documentation |
+| 2025-10-10 | /docs/functional-areas/authentication/new-work/2025-10-10-post-login-return/requirements/business-requirements.md | CREATED | Business requirements for post-login return to intended page feature (P1 CRITICAL) - 5 user stories, 6 business rules, security requirements | Post-Login Return Feature | ACTIVE | Never - permanent documentation |
 | 2025-10-10 | /apps/web/tests/playwright/phase4-events-testing.spec.ts | MODIFIED | Fixed 5 selector issues per Phase 2 diagnosis (event-filters→button-view-toggle, event-type→event-date, etc.) | Phase 2 Public Events Fixes | ACTIVE | Never |
 | 2025-10-10 | /apps/web/tests/playwright/events-display-verification.spec.ts | MODIFIED | Fixed strict mode violation (h1/h2 selector with .first()) | Phase 2 Public Events Fixes | ACTIVE | Never |
 | 2025-10-10 | /apps/web/tests/playwright/events-comprehensive.spec.ts | MODIFIED | Fixed logout issues (clearAuthState instead of logout navigation), skipped API 401 blocked test | Phase 2 Public Events Fixes | ACTIVE | Never |

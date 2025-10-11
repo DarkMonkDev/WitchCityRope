@@ -1,6 +1,6 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-10-10 19:35 -->
-<!-- Version: 4.1 -->
+<!-- Last Updated: 2025-10-10 20:30 -->
+<!-- Version: 4.2 -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
 
@@ -42,7 +42,8 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 
 ### Current Test Status (October 2025)
 
-**Latest Updates** (2025-10-10 20:00):
+**Latest Updates** (2025-10-10 20:30):
+- ✅ **Event Session Matrix Demo Test Skipped**: 1 test skipped pending P1 post-login redirect feature
 - ✅ **Phase 2 Public Events Selector Fixes COMPLETE**: Fixed 8 tests, skipped 3 tests per diagnosis
 - ✅ **Phase 2 Public Events Selector Diagnosis COMPLETE**: Identified exact fixes for 10+ test failures
 - ✅ **TEST CATALOG AUDIT COMPLETE**: Updated catalog to reflect all 89 test files
@@ -109,6 +110,14 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 - `events-comprehensive.spec.ts` - ✅ Fixed logout issues, skipped API 401 blocked test
 - `capture-public-pages.spec.ts` - ✅ Skipped wireframe tests
 - Diagnosis: `/test-results/phase2-public-events-selector-diagnosis-2025-10-10.md`
+
+**Tests Pending P1 Features** (2025-10-10 20:30):
+- `events-management-e2e.spec.ts` - 1 test skipped: "should load Event Session Matrix demo page"
+  - Blocked by: Post-login return-to-page feature (P1 CRITICAL)
+  - Reference: `/docs/standards-processes/PRE_LAUNCH_PUNCH_LIST.md` lines 58-64
+  - Current: Login from demo page redirects to dashboard
+  - Expected: Return to `/admin/event-session-matrix-demo` after login
+  - Will re-enable when feature implemented
 
 #### Unit Tests
 **Location**: `/tests/unit/api/`

@@ -1,6 +1,6 @@
 # Pre-Launch Functionality Punch List
-<!-- Last Updated: 2025-10-06 -->
-<!-- Version: 1.1 -->
+<!-- Last Updated: 2025-10-10 -->
+<!-- Version: 1.4 -->
 <!-- Owner: Project Team -->
 <!-- Status: Active -->
 
@@ -30,7 +30,7 @@ Use the orchestrator command when testing reveals missing functionality:
 
 | Category | Total Items | Complete | In Progress | Blocked | Not Started | % Complete |
 |----------|-------------|----------|-------------|---------|-------------|------------|
-| **Core Authentication & Authorization** | 2 | 1 | 1 | 0 | 0 | 50% |
+| **Core Authentication & Authorization** | 3 | 1 | 1 | 0 | 1 | 33% |
 | **Event Management & RSVP** | 9 | 3 | 2 | 0 | 4 | 33% |
 | **Vetting System** | 8 | 3 | 2 | 0 | 3 | 38% |
 | **Payment Processing** | 3 | 1 | 1 | 0 | 1 | 33% |
@@ -41,7 +41,7 @@ Use the orchestrator command when testing reveals missing functionality:
 | **Infrastructure & Deployment** | 7 | 0 | 0 | 0 | 7 | 0% |
 | **Testing & Quality** | 4 | 0 | 1 | 0 | 3 | 0% |
 | **Documentation** | 2 | 1 | 0 | 0 | 1 | 50% |
-| **TOTAL** | 47 | 13 | 8 | 0 | 26 | 28% |
+| **TOTAL** | 48 | 13 | 8 | 0 | 27 | 27% |
 
 ---
 
@@ -54,6 +54,14 @@ Use the orchestrator command when testing reveals missing functionality:
   - **Dependencies**: None
   - **Status**: Complete (2025-09-12)
   - **Notes**: Migration from localStorage JWT complete. Zero authentication timeouts. Silent token refresh working.
+
+- [ ] **Post-Login Return to Intended Page** (Priority: High)
+  - **Description**: After login, return user to the page they were on (vetting form, event page, demo page, etc.) instead of always redirecting to dashboard
+  - **Business Value**: Improved UX - users don't lose context. Critical for vetting workflow (15-25% completion improvement) and event registration conversion
+  - **Effort**: Small (4-6 hours)
+  - **Dependencies**: None
+  - **Status**: Not Started
+  - **Notes**: SECURITY CRITICAL - must implement open redirect prevention with allow-list validation. See requirements: `/docs/functional-areas/authentication/new-work/2025-10-10-post-login-return/requirements/business-requirements.md`
 
 - [ ] **Role-Based Access Control (RBAC) Enforcement** (Priority: High)
   - **Description**: Systematic enforcement of role permissions across all endpoints and UI
@@ -476,21 +484,22 @@ Use the orchestrator command when testing reveals missing functionality:
 ### 🔴 CRITICAL (Must Fix Before Launch)
 
 **Application Features:**
-1. **Vetting Workflow Backend** - 12 integration tests failing, blocks RSVP access control
-2. **Complete Test Suite** - Cannot launch with 56% React unit pass rate
-3. **Dashboard Error Handling** - 40-50 tests failing, poor user experience
-4. **Public Events Anonymous Access** - New visitors cannot see events (returns 401)
-5. **Event Detail View** - Users cannot see full event details
-6. **CMS Implementation** - Required for text-only pages (Terms, Privacy, etc.)
-7. **Text-Only Pages** - Legal compliance requirement (Terms of Service, Privacy Policy)
+1. **Post-Login Return to Intended Page** - P1 CRITICAL UX feature (see below for details)
+2. **Vetting Workflow Backend** - 12 integration tests failing, blocks RSVP access control
+3. **Complete Test Suite** - Cannot launch with 56% React unit pass rate
+4. **Dashboard Error Handling** - 40-50 tests failing, poor user experience
+5. **Public Events Anonymous Access** - New visitors cannot see events (returns 401)
+6. **Event Detail View** - Users cannot see full event details
+7. **CMS Implementation** - Required for text-only pages (Terms, Privacy, etc.)
+8. **Text-Only Pages** - Legal compliance requirement (Terms of Service, Privacy Policy)
 
 **Infrastructure & Deployment:**
-8. **Staging Environment Setup** - Pre-production testing environment required
-9. **Production Environment Setup** - Live deployment infrastructure required
-10. **CI/CD Pipeline - Staging** - Automated deployments to staging
-11. **Production Deployment Process** - Controlled release process required
-12. **Database Backup & Recovery** - Data protection mandatory before launch
-13. **Environment Configuration Management** - Secure secrets management required
+9. **Staging Environment Setup** - Pre-production testing environment required
+10. **Production Environment Setup** - Live deployment infrastructure required
+11. **CI/CD Pipeline - Staging** - Automated deployments to staging
+12. **Production Deployment Process** - Controlled release process required
+13. **Database Backup & Recovery** - Data protection mandatory before launch
+14. **Environment Configuration Management** - Secure secrets management required
 
 ### 🟠 HIGH Priority (Strongly Recommended)
 
@@ -527,6 +536,7 @@ Use the orchestrator command when testing reveals missing functionality:
 **Critical Path (Absolute Minimum)**:
 
 *Application Features:*
+- Post-login return feature: 4-6 hours
 - Vetting workflow backend: 2-3 days
 - Test suite completion: 4-5 days
 - Dashboard error handling: 1-2 days
@@ -547,6 +557,7 @@ Use the orchestrator command when testing reveals missing functionality:
 
 **Recommended Path (Reduced Risk)**:
 - Critical items above: 29-43 days
+- Post-login return: 4-6 hours (INCLUDED ABOVE)
 - Event card interaction: 4-6 hours
 - Admin event editing: 1 day
 - Ticket purchase flow: 2-3 days
@@ -587,7 +598,7 @@ Use the orchestrator command when testing reveals missing functionality:
 
 ## Notes
 
-- **Updated**: 2025-10-08 - Added 13 new items (6 features + 7 infrastructure)
+- **Updated**: 2025-10-10 - Added Post-Login Return to Intended Page feature (P1 CRITICAL)
 - **Source**: `/home/chad/repos/witchcityrope/test-results/comprehensive-test-analysis-2025-10-05.md`
 - **Testing Plan**: `/home/chad/repos/witchcityrope/session-work/2025-10-06/testing-completion-plan.md`
 - **Bulk Ops Investigation**: `/home/chad/repos/witchcityrope/session-work/2025-10-06/bulk-validation-investigation.md`
@@ -612,3 +623,4 @@ Use the orchestrator command when testing reveals missing functionality:
 | 2025-10-06 | 1.1 | Added bulk vetting operations work item after codebase investigation | Librarian Agent |
 | 2025-10-08 | 1.2 | Added 6 feature items: CMS implementation, text-only pages, event volunteer display, vetting email templates, vetting modal fix, admin members section | Claude Code |
 | 2025-10-08 | 1.3 | Added 7 infrastructure items: staging/production environment setup, CI/CD pipeline for staging, production deployment process, database backup/recovery, file storage, environment configuration management - total now 47 items | Claude Code |
+| 2025-10-10 | 1.4 | Added Post-Login Return to Intended Page feature (P1 CRITICAL) - total now 48 items, updated dashboard metrics (3 auth items, 27 not started) | Librarian Agent |
