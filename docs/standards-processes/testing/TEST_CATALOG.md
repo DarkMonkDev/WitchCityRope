@@ -1,6 +1,6 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-10-11 01:45 -->
-<!-- Version: 5.0 - 75% Pass Rate Target HIT! -->
+<!-- Last Updated: 2025-10-10 (Test Consolidation) -->
+<!-- Version: 5.1 - Test Maintenance Phase -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
 
@@ -42,7 +42,33 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 
 ### Current Test Status (October 2025)
 
-**Latest Updates** (2025-10-11 01:45 - PERFORMANCE TEST FIXED):
+**Latest Updates** (2025-10-10 - TEST CONSOLIDATION):
+- ✅ **TEST CONSOLIDATION COMPLETE**: Reduced duplicate tests per user request
+  - **Policies Field Tests**: 3 tests → 1 comprehensive test
+    - Consolidated: `events-crud-test.spec.ts`, `verify-policies-field-fix.spec.ts`, `verify-policies-field-display.spec.ts`
+    - New Test: `events-policies-field-comprehensive.spec.ts` (covers all functionality)
+    - Archived: Original 3 tests moved to `_archived/duplicate-tests/`
+  - **Navigation Tests**: 4 tests → 1 comprehensive test
+    - Consolidated: `events-actual-routes-test.spec.ts`, `navigation-updates-test.spec.ts`, `test-direct-navigation.spec.ts`, `test-events-navigation.spec.ts`
+    - New Test: `navigation-comprehensive.spec.ts` (covers all navigation scenarios)
+    - Archived: Original 4 tests moved to `_archived/duplicate-tests/`
+  - **Diagnostic Tests**: 5 tests archived
+    - Archived: `diagnostic-test.spec.ts`, `diagnostic-test-corrected.spec.ts`, `enhanced-diagnostic.spec.ts`, `comprehensive-diagnostic.spec.ts`, `page-load-diagnostic.spec.ts`
+    - Location: `_archived/diagnostic-tests/`
+    - Reason: Bugs investigated by these tests are now fixed
+  - **Total File Reduction**: 12 files archived, 2 comprehensive tests created
+  - **Test Coverage**: All functionality preserved in consolidated tests
+  - **Report**: `/test-results/test-consolidation-2025-10-10.md`
+- ✅ **PERFORMANCE TEST FIXED**: Large events handling test now PASSING! (2025-10-11 01:45):
+- ✅ **FAILING TEST ANALYSIS COMPLETE**: All 43 failing tests analyzed to verify correct behavior
+  - **Total Analyzed**: 43 tests (12.0% of test suite)
+  - **Test Quality**: 93% of failures are VALID tests revealing real bugs/missing features
+  - **Categorized**: 10 feature areas (Vetting, Events, Persistence, Navigation, Forms, etc.)
+  - **Assessment**: Only 3 tests may need updates (navigation routes), 4 tests obsolete (diagnostic)
+  - **User Questions**: 6 questions about feature scope and test consolidation
+  - **Path to 80%**: 22 additional tests (~20 hours React + Backend work)
+  - **Report**: `/test-results/failing-test-analysis-2025-10-10.md`
+  - **Key Finding**: Test suite is EXCELLENT - failures expose real work needed, not test bugs
 - ✅ **PERFORMANCE TEST FIXED**: Large events handling test now PASSING!
   - **Pass Rate**: 74.5% → **75.0%** (+0.5% improvement in 15 minutes)
   - **Test Fixed**: events-comprehensive.spec.ts:438 - Large events performance test
@@ -291,6 +317,7 @@ dotnet test tests/WitchCityRope.IntegrationTests/ --filter "Category=HealthCheck
 - **Admin Event Editing Diagnosis**: `/test-results/admin-event-editing-diagnosis-2025-10-10.md`
 - **Events List Display Diagnosis**: `/test-results/events-list-display-diagnosis-2025-10-10.md`
 - **Status Badges Diagnosis**: `/test-results/status-badges-diagnosis-2025-10-10.md`
+- **Failing Test Analysis**: `/test-results/failing-test-analysis-2025-10-10.md` ✅ COMPLETE (NEW - Comprehensive analysis of all 43 failing tests)
 
 ---
 

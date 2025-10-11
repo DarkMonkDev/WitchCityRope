@@ -1045,3 +1045,174 @@ find /tests -name "*Tests.cs" -not -path "*/bin/*" -not -path "*/obj/*" \
 - Temporary diagnostic tests (add note they're temporary)
 
 **Reference**: `/home/chad/repos/witchcityrope/session-work/2025-10-10/test-catalog-expansion-summary.md`
+
+## Test Consolidation Strategy (October 2025)
+
+### When to Consolidate Duplicate Tests
+**Problem**: Accumulation of duplicate tests testing the same functionality from different angles.
+**User Feedback**: "If you can accomplish all of the goals of all three tests in just one test, then merge them. No reason to have duplicate tests testing basically the same stuff."
+**Impact**: File clutter, maintenance overhead, confusion about which test to update.
+
+**When to Consolidate**:
+1. Multiple tests testing same feature from different angles
+2. Tests with overlapping assertions and scenarios
+3. Tests that can be logically grouped without loss of clarity
+4. Diagnostic tests after bugs they investigated are fixed
+
+**When NOT to Consolidate**:
+1. Tests for different features (even if similar patterns)
+2. Tests with different test data requirements
+3. Tests that would become too large/complex if merged
+4. Tests where separation aids debugging
+
+### Consolidation Pattern (October 2025)
+
+**Step 1: Analyze Original Tests**
+```typescript
+// Identify what each test covers
+// Test 1: Policies field display in form
+// Test 2: Policies field persistence after save
+// Test 3: Policies field API verification
+```
+
+**Step 2: Create Comprehensive Test Structure**
+```typescript
+/**
+ * Comprehensive [Feature] Test
+ *
+ * Consolidates functionality from:
+ * - original-test-1.spec.ts (feature aspect 1)
+ * - original-test-2.spec.ts (feature aspect 2)
+ * - original-test-3.spec.ts (feature aspect 3)
+ *
+ * Date Consolidated: YYYY-MM-DD
+ * Reason: Reduce duplicate tests per user request
+ */
+
+test.describe('[Feature] - Comprehensive Testing', () => {
+
+  test.describe('[Aspect 1]', () => {
+    test('should [scenario from original test 1]', async ({ page }) => {
+      // All assertions from original test 1
+    });
+
+    test('should [scenario from original test 1 variant]', async ({ page }) => {
+      // Additional scenarios from original test 1
+    });
+  });
+
+  test.describe('[Aspect 2]', () => {
+    test('should [scenario from original test 2]', async ({ page }) => {
+      // All assertions from original test 2
+    });
+  });
+
+  test.describe('[Aspect 3]', () => {
+    test('should [scenario from original test 3]', async ({ page }) => {
+      // All assertions from original test 3
+    });
+  });
+});
+```
+
+**Step 3: Verify No Functionality Lost**
+```bash
+# Run consolidated test
+npx playwright test [consolidated-test].spec.ts
+
+# Compare results with original tests
+# - Same pass/fail reasons?
+# - All scenarios covered?
+# - All assertions included?
+```
+
+**Step 4: Archive Original Tests**
+```bash
+# Create archive folder structure
+mkdir -p tests/playwright/_archived/duplicate-tests
+mkdir -p tests/playwright/_archived/diagnostic-tests
+
+# Move original tests
+mv original-test-1.spec.ts _archived/duplicate-tests/
+mv original-test-2.spec.ts _archived/duplicate-tests/
+mv diagnostic-test.spec.ts _archived/diagnostic-tests/
+```
+
+**Step 5: Update TEST_CATALOG**
+```markdown
+**Latest Updates** (YYYY-MM-DD - TEST CONSOLIDATION):
+- ✅ **TEST CONSOLIDATION COMPLETE**: Reduced duplicate tests
+  - **[Feature] Tests**: 3 tests → 1 comprehensive test
+    - Consolidated: test1, test2, test3
+    - New Test: comprehensive-test.spec.ts
+    - Archived: Original 3 tests moved to _archived/duplicate-tests/
+  - **Total File Reduction**: 12 files archived, 2 created (net -10 files)
+  - **Report**: `/test-results/test-consolidation-YYYY-MM-DD.md`
+```
+
+### Archive Organization
+
+**Folder Structure**:
+```
+/tests/playwright/_archived/
+├── diagnostic-tests/          # Tests for bugs now fixed
+│   ├── diagnostic-test.spec.ts
+│   └── enhanced-diagnostic.spec.ts
+└── duplicate-tests/           # Consolidated into comprehensive tests
+    ├── test-1.spec.ts
+    ├── test-2.spec.ts
+    └── test-3.spec.ts
+```
+
+**Archive Reasons**:
+1. **Diagnostic Tests**: Bugs they investigated are now fixed
+2. **Duplicate Tests**: Functionality consolidated into comprehensive tests
+3. **Obsolete Tests**: Feature no longer exists or changed significantly
+
+### Real-World Example (October 2025)
+
+**Policies Field Tests Consolidation**:
+- **Before**: 3 separate test files (events-crud-test, verify-policies-field-fix, verify-policies-field-display)
+- **After**: 1 comprehensive test file (events-policies-field-comprehensive)
+- **Result**: All 5 original scenarios preserved in organized describe blocks
+- **File Reduction**: 3 files → 1 file (net -2 files)
+
+**Navigation Tests Consolidation**:
+- **Before**: 4 separate test files (events-actual-routes, navigation-updates, test-direct-navigation, test-events-navigation)
+- **After**: 1 comprehensive test file (navigation-comprehensive)
+- **Result**: All 16+ original scenarios preserved across 7 describe blocks
+- **File Reduction**: 4 files → 1 file (net -3 files)
+
+### Benefits Achieved
+
+**Maintainability**:
+- Fewer files to maintain
+- Clear test organization with describe blocks
+- No duplicate test logic
+- Easier to find what's being tested
+
+**Clarity**:
+- Single source of truth for feature testing
+- Better test organization
+- Clearer test intent with comprehensive structure
+
+**File Management**:
+- 11.2% reduction in E2E test file count (12 files archived, 2 created)
+- Organized archive structure for historical reference
+- Clear categorization (duplicate vs diagnostic)
+
+### Prevention
+
+**Before Creating New Tests**:
+1. **Check TEST_CATALOG** for existing similar tests
+2. **Search test directory** for tests of same feature
+3. **Consider consolidation** if similar tests exist
+4. **Ask user** if unsure whether to create separate or consolidate
+
+**Regular Maintenance**:
+1. **Monthly review** of test file count and organization
+2. **Quarterly consolidation** of accumulated duplicates
+3. **Archive diagnostic tests** after bugs fixed
+4. **Update TEST_CATALOG** with all consolidation actions
+
+**Reference**: `/test-results/test-consolidation-2025-10-10.md` - Complete consolidation report
