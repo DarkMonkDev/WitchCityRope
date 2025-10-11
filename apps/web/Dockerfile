@@ -13,16 +13,19 @@ RUN apk add --no-cache \
     g++ \
     libc6-compat
 
-# Copy package files
+# Copy workspace package files
 COPY package*.json ./
 COPY tsconfig*.json ./
+
+# Copy workspace packages (for monorepo dependencies)
+COPY packages/ ./packages/
 
 ###########################################
 # Dependencies Stage
 ###########################################
 FROM base AS deps
 
-# Install all dependencies (including devDependencies for build)
+# Install all workspace dependencies (including monorepo packages)
 RUN npm install
 
 ###########################################
@@ -35,9 +38,13 @@ RUN apk add --no-cache curl
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/packages ./packages
 
-# Copy source code
-COPY . .
+# Copy app source code
+COPY apps/web ./apps/web
+
+# Set working directory to the web app
+WORKDIR /app/apps/web
 
 # Expose development port and HMR port
 EXPOSE 5173 24678
@@ -55,14 +62,18 @@ CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
 ###########################################
 FROM base AS builder
 
-# Copy dependencies from deps stage
+# Copy dependencies from deps stage (includes packages/)
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/packages ./packages
 
-# Copy source code
-COPY . .
+# Copy app source code
+COPY apps/web ./apps/web
 
-# Use container-specific tsconfig for builds
-COPY tsconfig.container.json tsconfig.json
+# Set working directory to the web app
+WORKDIR /app/apps/web
+
+# Use container-specific tsconfig for builds if it exists
+RUN if [ -f tsconfig.container.json ]; then cp tsconfig.container.json tsconfig.json; fi
 
 # Build arguments for environment configuration
 ARG VITE_API_BASE_URL
@@ -89,11 +100,11 @@ FROM nginx:alpine AS production
 # Install security tools
 RUN apk add --no-cache curl
 
-# Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy custom nginx configuration from web app directory
+COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy built application from builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
 
 # Create nginx user for security
 RUN addgroup -S nginx_app && adduser -S nginx_app -G nginx_app
@@ -118,14 +129,18 @@ CMD ["nginx", "-g", "daemon off;"]
 ###########################################
 FROM base AS test
 
-# Copy dependencies from deps stage
+# Copy dependencies from deps stage (includes packages/)
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/packages ./packages
 
-# Copy source code
-COPY . .
+# Copy app source code
+COPY apps/web ./apps/web
 
-# Use container-specific tsconfig for builds
-COPY tsconfig.container.json tsconfig.json
+# Set working directory to the web app
+WORKDIR /app/apps/web
+
+# Use container-specific tsconfig for builds if it exists
+RUN if [ -f tsconfig.container.json ]; then cp tsconfig.container.json tsconfig.json; fi
 
 # Run tests
 RUN npm run test -- --run --coverage
