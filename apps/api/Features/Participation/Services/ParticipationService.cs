@@ -25,47 +25,116 @@ public class ParticipationService : IParticipationService
 
     /// <summary>
     /// Get user's participation status for a specific event
+    /// Returns enhanced DTO with hasRSVP/hasTicket flags and nested details
+    /// Matches frontend ParticipationCard component expectations
     /// </summary>
-    public async Task<Result<ParticipationStatusDto?>> GetParticipationStatusAsync(
+    public async Task<Result<EnhancedParticipationStatusDto?>> GetParticipationStatusAsync(
         Guid eventId,
         Guid userId,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            _logger.LogInformation("Getting participation status for user {UserId} in event {EventId}", userId, eventId);
+            _logger.LogInformation("Getting enhanced participation status for user {UserId} in event {EventId}", userId, eventId);
 
-            // Only return ACTIVE participations - cancelled RSVPs should not prevent new ones
+            // Get event details for capacity calculation
+            var eventEntity = await _context.Events
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Id == eventId, cancellationToken);
+
+            if (eventEntity == null)
+            {
+                _logger.LogWarning("Event {EventId} not found when fetching participation status", eventId);
+                return Result<EnhancedParticipationStatusDto?>.Failure("Event not found");
+            }
+
+            // Get all ACTIVE participations for this event (for capacity calculation)
+            var activeParticipationsCount = await _context.EventParticipations
+                .Where(ep => ep.EventId == eventId && ep.Status == ParticipationStatus.Active)
+                .CountAsync(cancellationToken);
+
+            // Get user's ACTIVE participation (only one allowed per user per event)
             var participation = await _context.EventParticipations
                 .AsNoTracking()
                 .Where(ep => ep.EventId == eventId && ep.UserId == userId && ep.Status == ParticipationStatus.Active)
                 .OrderByDescending(ep => ep.CreatedAt)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            if (participation == null)
+            // Build enhanced DTO with nested structure
+            var dto = new EnhancedParticipationStatusDto
             {
-                _logger.LogInformation("No participation found for user {UserId} in event {EventId}", userId, eventId);
-                return Result<ParticipationStatusDto?>.Success(null);
-            }
-
-            var dto = new ParticipationStatusDto
-            {
-                EventId = participation.EventId,
-                UserId = participation.UserId,
-                ParticipationType = participation.ParticipationType,
-                Status = participation.Status,
-                ParticipationDate = participation.CreatedAt,
-                Notes = participation.Notes,
-                CanCancel = participation.CanBeCancelled(),
-                Metadata = participation.Metadata
+                HasRSVP = participation != null && participation.ParticipationType == ParticipationType.RSVP,
+                HasTicket = participation != null && participation.ParticipationType == ParticipationType.Ticket,
+                CanRSVP = participation == null && activeParticipationsCount < eventEntity.Capacity,
+                CanPurchaseTicket = participation == null && activeParticipationsCount < eventEntity.Capacity,
+                Capacity = new CapacityInfoDto
+                {
+                    Current = activeParticipationsCount,
+                    Total = eventEntity.Capacity,
+                    Available = Math.Max(0, eventEntity.Capacity - activeParticipationsCount)
+                }
             };
 
-            return Result<ParticipationStatusDto?>.Success(dto);
+            // If user has active participation, populate nested RSVP or Ticket details
+            if (participation != null)
+            {
+                if (participation.ParticipationType == ParticipationType.RSVP)
+                {
+                    dto.Rsvp = new RsvpDetailsDto
+                    {
+                        Id = participation.Id,
+                        Status = participation.Status.ToString(),
+                        CreatedAt = participation.CreatedAt,
+                        CanceledAt = participation.CancelledAt,
+                        CancelReason = participation.CancellationReason,
+                        Notes = participation.Notes
+                    };
+                }
+                else if (participation.ParticipationType == ParticipationType.Ticket)
+                {
+                    // Extract purchase amount from metadata JSON
+                    decimal? amount = null;
+                    if (!string.IsNullOrWhiteSpace(participation.Metadata))
+                    {
+                        try
+                        {
+                            var metadata = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(participation.Metadata);
+                            if (metadata != null && metadata.TryGetValue("purchaseAmount", out var amountObj))
+                            {
+                                amount = Convert.ToDecimal(amountObj);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Failed to parse metadata for participation {ParticipationId}", participation.Id);
+                        }
+                    }
+
+                    dto.Ticket = new TicketDetailsDto
+                    {
+                        Id = participation.Id,
+                        Status = participation.Status.ToString(),
+                        Amount = amount,
+                        PaymentStatus = participation.Status == ParticipationStatus.Active ? "Completed" :
+                                       participation.Status == ParticipationStatus.Refunded ? "Refunded" : "Unknown",
+                        CreatedAt = participation.CreatedAt,
+                        CanceledAt = participation.CancelledAt,
+                        CancelReason = participation.CancellationReason,
+                        Notes = participation.Notes
+                    };
+                }
+            }
+
+            _logger.LogInformation(
+                "Participation status for user {UserId} in event {EventId}: HasRSVP={HasRSVP}, HasTicket={HasTicket}, CanRSVP={CanRSVP}, Capacity={Current}/{Total}",
+                userId, eventId, dto.HasRSVP, dto.HasTicket, dto.CanRSVP, dto.Capacity.Current, dto.Capacity.Total);
+
+            return Result<EnhancedParticipationStatusDto?>.Success(dto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting participation status for user {UserId} in event {EventId}", userId, eventId);
-            return Result<ParticipationStatusDto?>.Failure("Failed to get participation status", ex.Message);
+            return Result<EnhancedParticipationStatusDto?>.Failure("Failed to get participation status", ex.Message);
         }
     }
 

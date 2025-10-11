@@ -43,7 +43,7 @@ test.describe('Events Management Demo Page Stability', () => {
     
     // Take screenshot for evidence
     await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope-react/apps/web/test-results/events-demo-page-content.png',
+      path: '/home/chad/repos/witchcityrope/apps/web/test-results/events-demo-page-content.png',
       fullPage: true 
     });
     
@@ -111,7 +111,7 @@ test.describe('Events Management Demo Page Stability', () => {
     
     // Take screenshot of final state
     await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope-react/apps/web/test-results/events-demo-stability-check.png',
+      path: '/home/chad/repos/witchcityrope/apps/web/test-results/events-demo-stability-check.png',
       fullPage: true 
     });
     
@@ -154,7 +154,7 @@ test.describe('Events Management Demo Page Stability', () => {
     
     // Take initial screenshot
     await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope-react/apps/web/test-results/navigation-test-initial.png',
+      path: '/home/chad/repos/witchcityrope/apps/web/test-results/navigation-test-initial.png',
       fullPage: true 
     });
     
@@ -175,7 +175,7 @@ test.describe('Events Management Demo Page Stability', () => {
     
     // Take final screenshot
     await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope-react/apps/web/test-results/navigation-test-after-5s.png',
+      path: '/home/chad/repos/witchcityrope/apps/web/test-results/navigation-test-after-5s.png',
       fullPage: true 
     });
     
@@ -220,7 +220,7 @@ test.describe('Events Management Demo Page Stability', () => {
     
     // Take screenshot
     await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope-react/apps/web/test-results/test-no-layout-stability.png',
+      path: '/home/chad/repos/witchcityrope/apps/web/test-results/test-no-layout-stability.png',
       fullPage: true 
     });
     
@@ -291,7 +291,7 @@ test.describe('Events Management Demo Page Stability', () => {
         
         // Take screenshot
         await page.screenshot({ 
-          path: `/home/chad/repos/witchcityrope-react/apps/web/test-results/${pageInfo.key}-report-screenshot.png`
+          path: `/home/chad/repos/witchcityrope/apps/web/test-results/${pageInfo.key}-report-screenshot.png`
         });
         
       } catch (error) {
@@ -310,7 +310,7 @@ test.describe('Events Management Demo Page Stability', () => {
     }
 
     // Write comprehensive report
-    const reportPath = '/home/chad/repos/witchcityrope-react/apps/web/test-results/page-stability-report.json';
+    const reportPath = '/home/chad/repos/witchcityrope/apps/web/test-results/page-stability-report.json';
     await page.evaluate((reportData) => {
       // Save report data for later access
       window.testReport = reportData;

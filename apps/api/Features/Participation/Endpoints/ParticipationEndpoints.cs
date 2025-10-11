@@ -42,9 +42,9 @@ public static class ParticipationEndpoints
             })
             .WithName("GetParticipationStatus")
             .WithSummary("Get user's participation status for an event")
-            .WithDescription("Returns the user's current participation status (RSVP or ticket) for the specified event")
+            .WithDescription("Returns enhanced participation status with hasRSVP/hasTicket flags, nested RSVP/ticket details, and capacity information")
             .WithTags("Participation")
-            .Produces<ParticipationStatusDto?>(200)
+            .Produces<EnhancedParticipationStatusDto?>(200)
             .Produces(401)
             .Produces(500);
 

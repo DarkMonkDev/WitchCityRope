@@ -16,7 +16,7 @@ test.describe('Basic Functionality Check - Current State', () => {
     await expect(page).toHaveTitle(/Witch City Rope/);
     
     // Take screenshot of what actually loads
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/current-app-state.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/current-app-state.png' });
     
     console.log('✅ React app loads successfully');
   });
@@ -43,7 +43,7 @@ test.describe('Basic Functionality Check - Current State', () => {
         
         // Take screenshot of each route
         await page.screenshot({ 
-          path: `/home/chad/repos/witchcityrope-react/test-results/route-${route.replace(/\//g, '_')}.png` 
+          path: `/home/chad/repos/witchcityrope/test-results/route-${route.replace(/\//g, '_')}.png` 
         });
         
       } catch (error) {

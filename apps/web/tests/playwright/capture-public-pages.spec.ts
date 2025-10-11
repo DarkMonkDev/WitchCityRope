@@ -46,3 +46,4 @@ test.describe('Public Event Pages Comparison', () => {
       fullPage: true
     });
   });
+});

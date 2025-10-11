@@ -30,7 +30,7 @@ test.describe('Debug Login Issue', () => {
     }
 
     // Take screenshot
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/debug-home-page.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/debug-home-page.png' });
     
     // Check page content
     const title = await page.title();
@@ -62,7 +62,7 @@ test.describe('Debug Login Issue', () => {
       await page.goto('/login', { timeout: 5000 });
       console.log('✅ Navigated to login page');
       
-      await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/debug-login-page.png' });
+      await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/debug-login-page.png' });
       
       // Check if login form exists
       const hasForm = await page.locator('form').count() > 0;
@@ -87,7 +87,7 @@ test.describe('Debug Login Issue', () => {
             console.log('✅ Login successful using AuthHelpers');
 
             // Take screenshot after login
-            await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/debug-form-filled.png' });
+            await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/debug-form-filled.png' });
           } catch (error) {
             console.log('❌ Login failed:', error);
           }

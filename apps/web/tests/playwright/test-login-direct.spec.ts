@@ -106,12 +106,12 @@ test.describe('Direct Login Test', () => {
       console.log('✅ Login form found');
     } catch (e) {
       console.log('❌ Login form not found within 10 seconds');
-      await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/no-form-found.png' });
+      await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/no-form-found.png' });
       return;
     }
     
     // Take screenshot before submit
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/before-submit.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/before-submit.png' });
 
     // Use AuthHelpers for consistent login
     console.log('=== USING AUTH HELPERS TO LOGIN ===');
@@ -138,7 +138,7 @@ test.describe('Direct Login Test', () => {
     }
     
     // Take screenshot after submit
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/after-submit.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/after-submit.png' });
     
     // Log all network activity
     console.log('=== NETWORK REQUEST LOG ===');

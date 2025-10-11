@@ -152,7 +152,7 @@ export interface EventParticipationRecord {
   id: string;
   userId: string;
   eventId: string;
-  participationType: 'Ticket' | 'RSVP';
+  participationType: 'Ticket' | 'RSVP' | number; // Can be string OR number from database
   status: 1 | 2 | 3 | 4; // ParticipationStatus enum: 1=Active, 2=Cancelled, 3=Refunded, 4=Waitlisted
   createdAt: Date;
   updatedAt: Date;
@@ -167,6 +167,20 @@ export function getParticipationStatusName(status: number): string {
     4: 'Waitlisted'
   };
   return statusMap[status] || `Unknown(${status})`;
+}
+
+// Helper to convert numeric participation type to readable name
+export function getParticipationTypeName(type: number | string): string {
+  if (typeof type === 'string') {
+    return type; // Already a string like 'RSVP' or 'Ticket'
+  }
+
+  // PostgreSQL stores ParticipationType enum as integers
+  const typeMap: Record<number, string> = {
+    0: 'Ticket',
+    1: 'RSVP'
+  };
+  return typeMap[type] || `Unknown(${type})`;
 }
 
 /**
@@ -224,6 +238,7 @@ export async function verifyEventParticipation(
   }
 
   console.log(`✅ Database verification: Status is ${actual.status} (${getParticipationStatusName(actual.status)})`);
+  console.log(`   Participation Type: ${getParticipationTypeName(actual.participationType)}`);
 
   return actual;
 }
@@ -555,7 +570,8 @@ export async function createTestUser(options: TestUserOptions): Promise<TestUser
     }
 
     const result = await response.json();
-    const userId = result.userId;
+    // FIX: API returns user ID in result.data.id, not result.userId
+    const userId = result.data?.id;
 
     if (!userId) {
       throw new Error(`No user ID returned from TestHelpers API: ${JSON.stringify(result)}`);
@@ -636,4 +652,5 @@ export const DatabaseHelpers = {
   cleanupTestData,
   cleanupTestUser,
   closeDatabaseConnections,
+  getParticipationTypeName, // Export new helper
 };

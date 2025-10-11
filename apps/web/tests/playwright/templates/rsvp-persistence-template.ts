@@ -19,6 +19,7 @@ import {
   verifyApiSuccess,
 } from './persistence-test-template';
 import { DatabaseHelpers } from '../utils/database-helpers';
+import { getParticipationTypeName } from '../utils/database-helpers';
 
 // ============================================================================
 // RSVP TEST CONFIG
@@ -77,7 +78,12 @@ export async function testRsvpPersistence(
         '[data-testid="button-rsvp"], button:has-text("RSVP Now"), button:has-text("RSVP")'
       ).first();
 
+      // CRITICAL FIX: Wait for button to be ENABLED before clicking
+      // Button may be in loading/disabled state on initial page load
       await expect(rsvpButton).toBeVisible({ timeout: 5000 });
+      await expect(rsvpButton).toBeEnabled({ timeout: 10000 });
+      console.log('✅ RSVP button is enabled and ready');
+
       await rsvpButton.click();
       console.log('✅ Clicked RSVP button');
 
@@ -117,9 +123,11 @@ export async function testRsvpPersistence(
       );
 
       // Verify participation type is RSVP
-      if (participation.participationType !== 'RSVP') {
+      // Database stores ParticipationType as integer: 0=Ticket, 1=RSVP
+      const typeName = getParticipationTypeName(participation.participationType);
+      if (typeName !== 'RSVP') {
         throw new Error(
-          `Expected RSVP but got ${participation.participationType}`
+          `Expected RSVP but got ${typeName} (raw: ${participation.participationType})`
         );
       }
 
@@ -190,7 +198,8 @@ export async function testCancelRsvpPersistence(
         eventId,
         1  // 1 = Active (ParticipationStatus enum)
       );
-      console.log(`✅ User has active ${participation.participationType}`);
+      const typeName = getParticipationTypeName(participation.participationType);
+      console.log(`✅ User has active ${typeName}`);
 
       // Navigate to event
       await page.goto(`http://localhost:5173/events/${eventId}`);
@@ -203,7 +212,11 @@ export async function testCancelRsvpPersistence(
         'button:has-text("Cancel RSVP"), button:has-text("Withdraw")'
       ).first();
 
+      // Wait for button to be enabled before clicking
       await expect(cancelButton).toBeVisible({ timeout: 5000 });
+      await expect(cancelButton).toBeEnabled({ timeout: 10000 });
+      console.log('✅ Cancel RSVP button is enabled');
+
       await cancelButton.click();
       console.log('✅ Clicked Cancel RSVP button');
 
@@ -216,6 +229,7 @@ export async function testCancelRsvpPersistence(
 
       // Click the red "Cancel RSVP" button in modal (not "Keep RSVP")
       const confirmButton = page.locator('button:has-text("Cancel RSVP")').last();
+      await expect(confirmButton).toBeEnabled({ timeout: 5000 });
       await confirmButton.click();
       console.log('✅ Confirmed cancellation in modal');
     },

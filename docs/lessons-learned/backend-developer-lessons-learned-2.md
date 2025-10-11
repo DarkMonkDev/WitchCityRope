@@ -2051,3 +2051,181 @@ function getParticipationStatusName(status: number): string {
 
 ---
 
+## API Endpoint Returning Raw Entity Instead of Proper DTO - RSVP Status Lost After Refresh (2025-10-11)
+
+**Problem**: RSVP state lost after page refresh. User successfully RSVPs to event, database correctly stores RSVP, but after refresh UI shows "RSVP Now" button instead of "Cancel RSVP".
+
+**Root Cause**: GET `/api/events/{eventId}/participation` endpoint returning raw `EventParticipation` entity structure instead of properly formatted DTO expected by frontend. Frontend expected nested structure with boolean flags (`hasRSVP`, `hasTicket`, `canRSVP`, `capacity`) but API returned flat entity with integer enums.
+
+**Frontend Expected Structure**:
+```typescript
+{
+  "hasRSVP": true,              // Boolean flag
+  "hasTicket": false,
+  "canRSVP": false,
+  "canPurchaseTicket": true,
+  "rsvp": {                      // Nested RSVP details
+    "id": "guid",
+    "status": "Active",
+    "createdAt": "2025-10-11T...",
+    "canceledAt": null,
+    "cancelReason": null
+  },
+  "ticket": null,
+  "capacity": {                  // Capacity information
+    "current": 45,
+    "total": 50,
+    "available": 5
+  }
+}
+```
+
+**What API Was Returning**:
+```json
+{
+  "eventId": "guid",
+  "userId": "guid",
+  "participationType": 1,        // Integer enum (1=RSVP, 2=Ticket)
+  "status": 1,                   // Integer enum (1=Active, 2=Cancelled)
+  "participationDate": "2025-10-11T...",
+  "notes": null,
+  "canCancel": true,
+  "metadata": "{...}"
+}
+```
+
+**Solution - Enhanced DTO Structure**:
+
+Created `EnhancedParticipationStatusDto` with proper nested structure:
+
+```csharp
+public class EnhancedParticipationStatusDto
+{
+    public bool HasRSVP { get; set; }
+    public bool HasTicket { get; set; }
+    public bool CanRSVP { get; set; }
+    public bool CanPurchaseTicket { get; set; }
+    public RsvpDetailsDto? Rsvp { get; set; }
+    public TicketDetailsDto? Ticket { get; set; }
+    public CapacityInfoDto? Capacity { get; set; }
+}
+
+public class RsvpDetailsDto
+{
+    public Guid Id { get; set; }
+    public string Status { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? CanceledAt { get; set; }
+    public string? CancelReason { get; set; }
+    public string? Notes { get; set; }
+}
+
+public class TicketDetailsDto
+{
+    public Guid Id { get; set; }
+    public string Status { get; set; }
+    public decimal? Amount { get; set; }
+    public string? PaymentStatus { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? CanceledAt { get; set; }
+    public string? CancelReason { get; set; }
+    public string? Notes { get; set; }
+}
+
+public class CapacityInfoDto
+{
+    public int Current { get; set; }
+    public int Total { get; set; }
+    public int Available { get; set; }
+}
+```
+
+**Service Method Updates**:
+
+```csharp
+public async Task<Result<EnhancedParticipationStatusDto?>> GetParticipationStatusAsync(...)
+{
+    // Get event for capacity calculation
+    var eventEntity = await _context.Events
+        .AsNoTracking()
+        .FirstOrDefaultAsync(e => e.Id == eventId, cancellationToken);
+
+    // Get active participation count for capacity
+    var activeParticipationsCount = await _context.EventParticipations
+        .Where(ep => ep.EventId == eventId && ep.Status == ParticipationStatus.Active)
+        .CountAsync(cancellationToken);
+
+    // Get user's active participation
+    var participation = await _context.EventParticipations
+        .AsNoTracking()
+        .Where(ep => ep.EventId == eventId && ep.UserId == userId && ep.Status == ParticipationStatus.Active)
+        .FirstOrDefaultAsync(cancellationToken);
+
+    // Build enhanced DTO with nested structure
+    var dto = new EnhancedParticipationStatusDto
+    {
+        HasRSVP = participation?.ParticipationType == ParticipationType.RSVP,
+        HasTicket = participation?.ParticipationType == ParticipationType.Ticket,
+        CanRSVP = participation == null && activeParticipationsCount < eventEntity.Capacity,
+        CanPurchaseTicket = participation == null && activeParticipationsCount < eventEntity.Capacity,
+        Capacity = new CapacityInfoDto
+        {
+            Current = activeParticipationsCount,
+            Total = eventEntity.Capacity,
+            Available = Math.Max(0, eventEntity.Capacity - activeParticipationsCount)
+        }
+    };
+
+    // Populate nested RSVP or Ticket details
+    if (participation != null)
+    {
+        if (participation.ParticipationType == ParticipationType.RSVP)
+        {
+            dto.Rsvp = new RsvpDetailsDto { /* map properties */ };
+        }
+        else if (participation.ParticipationType == ParticipationType.Ticket)
+        {
+            // Extract amount from metadata JSON
+            decimal? amount = ExtractAmountFromMetadata(participation.Metadata);
+            dto.Ticket = new TicketDetailsDto { /* map properties */ };
+        }
+    }
+
+    return Result<EnhancedParticipationStatusDto?>.Success(dto);
+}
+```
+
+**Benefits**:
+1. ✅ **Eliminates frontend workaround** - No client-side transformation needed
+2. ✅ **Type safety** - NSwag generates correct TypeScript interfaces
+3. ✅ **Business logic in backend** - Backend calculates canRSVP/canPurchaseTicket
+4. ✅ **API contract clarity** - OpenAPI spec documents exact structure
+5. ✅ **Reduced frontend complexity** - Remove 35+ lines of workaround code
+
+**Prevention Checklist**:
+- [ ] **Check frontend expectations** - What structure does UI component need?
+- [ ] **Design DTOs first** - Don't return raw entities
+- [ ] **Include business logic results** - Calculate boolean flags, statuses, etc.
+- [ ] **Provide nested structures** - Group related data logically
+- [ ] **Document in OpenAPI** - Use XML comments and `.Produces<T>()`
+- [ ] **Test with curl** - Verify response structure matches expectations
+- [ ] **Compare with frontend types** - Does C# DTO match TypeScript interface?
+
+**Pattern**: API endpoints should return properly structured DTOs with boolean flags and nested objects, NOT raw database entities. Frontend should receive data in a format that's ready to consume without transformation. Backend is responsible for calculating derived states (canRSVP, canPurchaseTicket) and providing complete information (capacity).
+
+**Files Created/Modified**:
+- `/apps/api/Features/Participation/Models/EnhancedParticipationStatusDto.cs` - New DTO with nested structure
+- `/apps/api/Features/Participation/Services/ParticipationService.cs` - Updated GetParticipationStatusAsync method
+- `/apps/api/Features/Participation/Services/IParticipationService.cs` - Updated interface signature
+- `/apps/api/Features/Participation/Endpoints/ParticipationEndpoints.cs` - Updated endpoint metadata
+
+**Analysis Document**: `/test-results/rsvp-participation-api-fix-2025-10-11.md`
+
+**Related Pattern**: Similar to "API Response Format Mismatch" lesson (Part 1, lines 154-176) which documented requirement for consistent response wrapper formats. This extends that principle to requiring proper DTO structures with nested objects.
+
+**Expected Impact**: +5-9 RSVP integration tests passing (entire RSVP test suite unblocked)
+
+**Tags**: #critical #api-contract #dto-design #rsvp #persistence #page-refresh #nested-dto #boolean-flags
+
+---
+

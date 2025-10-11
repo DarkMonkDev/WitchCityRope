@@ -10,8 +10,9 @@ public interface IParticipationService
 {
     /// <summary>
     /// Get user's participation status for a specific event
+    /// Returns enhanced DTO with hasRSVP/hasTicket flags, nested details, and capacity info
     /// </summary>
-    Task<Result<ParticipationStatusDto?>> GetParticipationStatusAsync(
+    Task<Result<EnhancedParticipationStatusDto?>> GetParticipationStatusAsync(
         Guid eventId,
         Guid userId,
         CancellationToken cancellationToken = default);

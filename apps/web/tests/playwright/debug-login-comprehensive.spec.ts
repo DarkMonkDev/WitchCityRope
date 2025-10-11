@@ -103,7 +103,7 @@ test.describe('Comprehensive Login Debugging', () => {
     await page.waitForLoadState('networkidle');
     
     // Take screenshot of login page
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/login-page-diagnosis.png', fullPage: true });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/login-page-diagnosis.png', fullPage: true });
     
     // Check page title and URL
     const title = await page.title();
@@ -243,8 +243,8 @@ test.describe('Comprehensive Login Debugging', () => {
     };
     
     console.log('=== WRITING DEBUG FILES ===');
-    console.log('Full page HTML saved to: /home/chad/repos/witchcityrope-react/test-results/login-page-debug.html');
-    console.log('Debug info saved to: /home/chad/repos/witchcityrope-react/test-results/login-debug-info.json');
+    console.log('Full page HTML saved to: /home/chad/repos/witchcityrope/test-results/login-page-debug.html');
+    console.log('Debug info saved to: /home/chad/repos/witchcityrope/test-results/login-debug-info.json');
     
     // Don't fail the test - just gather info
     expect(allInputs.length).toBeGreaterThanOrEqual(0);

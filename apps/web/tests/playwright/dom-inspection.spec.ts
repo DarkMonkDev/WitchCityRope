@@ -7,7 +7,7 @@ test('Inspect login form DOM structure', async ({ page }) => {
   await page.waitForTimeout(2000);
   
   // Take screenshot
-  await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/login-form-inspection.png' });
+  await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/login-form-inspection.png' });
   
   // Get all input elements
   const inputs = await page.locator('input').all();

@@ -40,7 +40,7 @@ test('debug login issue', async ({ page }) => {
   console.log('📍 Navigating to login page...');
   await page.goto('http://localhost:5173/login');
   await page.waitForLoadState('networkidle');
-  await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/before-login.png' });
+  await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/before-login.png' });
   
   console.log('📍 Current URL after navigation:', page.url());
 
@@ -115,7 +115,7 @@ test('debug login issue', async ({ page }) => {
 
   // Wait a bit for any errors
   await page.waitForTimeout(2000);
-  await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/after-login.png' });
+  await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/after-login.png' });
 
   // Report errors
   if (errors.length > 0) {

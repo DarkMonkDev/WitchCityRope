@@ -1374,6 +1374,9 @@
           "404": {
             "description": "Not Found"
           },
+          "409": {
+            "description": "Conflict"
+          },
           "500": {
             "description": "Internal Server Error"
           }
@@ -1474,6 +1477,9 @@
           },
           "404": {
             "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict"
           },
           "500": {
             "description": "Internal Server Error"
@@ -2193,6 +2199,105 @@
           },
           "500": {
             "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/test-helpers/users": {
+      "post": {
+        "tags": [
+          "Testing",
+          "TestHelpers"
+        ],
+        "summary": "Create test user for E2E testing",
+        "description": "Programmatically create a user with specific properties for testing. ONLY available in Development/Test.",
+        "operationId": "CreateTestUser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTestUserRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/test-helpers/users/{userId}": {
+      "delete": {
+        "tags": [
+          "Testing",
+          "TestHelpers"
+        ],
+        "summary": "Delete test user for cleanup",
+        "description": "Delete a test user by ID. Used in afterEach/afterAll hooks. ONLY available in Development/Test.",
+        "operationId": "DeleteTestUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/test-helpers/health": {
+      "get": {
+        "tags": [
+          "Testing",
+          "TestHelpers"
+        ],
+        "summary": "Check if test helpers are available",
+        "description": "Returns 200 if test helper endpoints are enabled (Development/Test only)",
+        "operationId": "TestHelpersHealth",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
           }
         }
       }
@@ -4549,6 +4654,57 @@
         },
         "additionalProperties": false
       },
+      "CreateTestUserRequest": {
+        "required": [
+          "email",
+          "password",
+          "sceneName"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "password": {
+            "type": "string",
+            "nullable": true
+          },
+          "sceneName": {
+            "type": "string",
+            "nullable": true
+          },
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          },
+          "role": {
+            "type": "string",
+            "nullable": true
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "isVetted": {
+            "type": "boolean"
+          },
+          "bio": {
+            "type": "string",
+            "nullable": true
+          },
+          "pronouns": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "CreateTicketPurchaseRequest": {
         "required": [
           "eventId"
@@ -4624,6 +4780,10 @@
             "nullable": true
           },
           "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "policies": {
             "type": "string",
             "nullable": true
           },
@@ -6442,6 +6602,10 @@
             "type": "string",
             "nullable": true
           },
+          "policies": {
+            "type": "string",
+            "nullable": true
+          },
           "startDate": {
             "type": "string",
             "format": "date-time",
@@ -6536,7 +6700,7 @@
             "nullable": true
           },
           "bio": {
-            "maxLength": 500,
+            "maxLength": 2000,
             "minLength": 0,
             "type": "string",
             "nullable": true

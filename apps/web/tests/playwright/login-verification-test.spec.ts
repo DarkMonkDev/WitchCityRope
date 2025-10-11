@@ -35,7 +35,7 @@ test.describe('Login Page Verification', () => {
     await page.waitForLoadState('networkidle');
     
     // Take screenshot of initial page state
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/apps/web/test-results/login-page-loaded.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope/apps/web/test-results/login-page-loaded.png' });
     
     // Verify login page elements are present
     const emailInput = page.locator('[data-testid="email-input"]');
@@ -83,7 +83,7 @@ test.describe('Login Page Verification', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Take screenshot after login
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/apps/web/test-results/after-admin-login.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope/apps/web/test-results/after-admin-login.png' });
 
     // Check current URL
     console.log(`🌐 Current URL after login: ${page.url()}`);
@@ -103,7 +103,7 @@ test.describe('Login Page Verification', () => {
     await AuthHelpers.loginAs(page, 'guest');
 
     // Take screenshot after login
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/apps/web/test-results/after-guest-login.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope/apps/web/test-results/after-guest-login.png' });
 
     // Check current URL
     console.log(`🌐 Current URL after login: ${page.url()}`);
@@ -126,7 +126,7 @@ test.describe('Login Page Verification', () => {
     );
 
     // Take screenshot of error state
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/apps/web/test-results/invalid-credentials-result.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope/apps/web/test-results/invalid-credentials-result.png' });
 
     console.log('✅ Invalid credentials correctly handled');
   });

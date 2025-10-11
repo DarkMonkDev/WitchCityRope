@@ -33,7 +33,7 @@ test.describe.skip('Phase 4: Public Events Pages - Corrected Tests', () => {
     
     // Take full page screenshot for design verification
     await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope-react/test-results/phase4-events-page-final.png',
+      path: '/home/chad/repos/witchcityrope/test-results/phase4-events-page-final.png',
       fullPage: true 
     });
   });
@@ -48,7 +48,7 @@ test.describe.skip('Phase 4: Public Events Pages - Corrected Tests', () => {
     
     // Take screenshot of empty state
     await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope-react/test-results/phase4-empty-state-verified.png',
+      path: '/home/chad/repos/witchcityrope/test-results/phase4-empty-state-verified.png',
       fullPage: true 
     });
   });
@@ -77,7 +77,7 @@ test.describe.skip('Phase 4: Public Events Pages - Corrected Tests', () => {
     
     // Take mobile screenshot
     await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope-react/test-results/phase4-mobile-responsive.png',
+      path: '/home/chad/repos/witchcityrope/test-results/phase4-mobile-responsive.png',
       fullPage: true 
     });
   });
@@ -93,7 +93,7 @@ test.describe.skip('Phase 4: Public Events Pages - Corrected Tests', () => {
     
     // Take tablet screenshot
     await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope-react/test-results/phase4-tablet-responsive.png',
+      path: '/home/chad/repos/witchcityrope/test-results/phase4-tablet-responsive.png',
       fullPage: true 
     });
   });
@@ -137,7 +137,7 @@ test.describe.skip('Phase 4: Public Events Pages - Corrected Tests', () => {
     
     // Take screenshot for design comparison with wireframe
     await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope-react/test-results/phase4-wireframe-comparison.png',
+      path: '/home/chad/repos/witchcityrope/test-results/phase4-wireframe-comparison.png',
       fullPage: true 
     });
     

@@ -171,7 +171,7 @@ test.describe('Login 401 Investigation', () => {
     
     // Take screenshot before filling
     await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope-react/test-results/login-before-fill.png', 
+      path: '/home/chad/repos/witchcityrope/test-results/login-before-fill.png', 
       fullPage: true 
     });
     
@@ -194,7 +194,7 @@ test.describe('Login 401 Investigation', () => {
     
     // Take screenshot after filling
     await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope-react/test-results/login-after-fill.png', 
+      path: '/home/chad/repos/witchcityrope/test-results/login-after-fill.png', 
       fullPage: true 
     });
     
@@ -210,7 +210,7 @@ test.describe('Login 401 Investigation', () => {
     
     // Take screenshot after click
     await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope-react/test-results/login-after-click.png', 
+      path: '/home/chad/repos/witchcityrope/test-results/login-after-click.png', 
       fullPage: true 
     });
     
