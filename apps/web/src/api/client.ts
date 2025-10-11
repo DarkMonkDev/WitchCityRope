@@ -2,11 +2,12 @@ import axios from 'axios'
 
 // API Service handles both authentication and business logic
 // For production/staging: VITE_API_BASE_URL should be empty string (same-origin requests)
-// For local dev: Falls back to http://localhost:5655
-// Note: Vite always defines VITE_* variables, so we check for empty string, not undefined
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL === ''
+// For local dev: undefined falls back to http://localhost:5655
+// Note: Vite replaces import.meta.env.VITE_* with literal values at build time
+const envApiUrl = import.meta.env.VITE_API_BASE_URL
+const apiBaseUrl = envApiUrl === ''
   ? '' // Empty string = same-origin requests (staging/production)
-  : import.meta.env.VITE_API_BASE_URL || 'http://localhost:5655'
+  : (envApiUrl || 'http://localhost:5655') // Any other string or undefined = use value or fallback
 
 export const api = axios.create({
   baseURL: apiBaseUrl,
