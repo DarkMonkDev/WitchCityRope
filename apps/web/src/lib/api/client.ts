@@ -2,7 +2,12 @@ import axios from 'axios'
 import { queryClient } from './queryClient'
 
 // Use environment variable for API base URL, fallback to development default
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5655'
+// Note: Vite replaces import.meta.env.VITE_* with literal values at build time
+// Empty string means same-origin requests (production/staging), not localhost
+const envApiUrl = import.meta.env.VITE_API_BASE_URL
+const API_BASE_URL = envApiUrl === ''
+  ? '' // Empty string = same-origin requests (staging/production)
+  : (envApiUrl || 'http://localhost:5655') // Any other string or undefined = use value or fallback
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
