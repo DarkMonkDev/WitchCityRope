@@ -29,7 +29,7 @@ FROM base AS deps
 RUN npm install
 
 ###########################################
-# Development Stage
+# Development Stage (used by ./dev.sh and docker-compose.dev.yml)
 ###########################################
 FROM base AS development
 
@@ -62,18 +62,15 @@ CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
 ###########################################
 FROM base AS builder
 
-# Copy dependencies from deps stage (includes packages/)
+# Copy dependencies from deps stage (includes packages/ and all node_modules)
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
 
 # Copy app source code
 COPY apps/web ./apps/web
 
-# Set working directory to the web app
-WORKDIR /app/apps/web
-
-# Use container-specific tsconfig for builds if it exists
-RUN if [ -f tsconfig.container.json ]; then cp tsconfig.container.json tsconfig.json; fi
+# Use container-specific tsconfig for builds if it exists (from app directory)
+RUN if [ -f apps/web/tsconfig.container.json ]; then cp apps/web/tsconfig.container.json apps/web/tsconfig.json; fi
 
 # Build arguments for environment configuration
 ARG VITE_API_BASE_URL
@@ -86,11 +83,11 @@ ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 ENV VITE_APP_TITLE=$VITE_APP_TITLE
 ENV VITE_APP_VERSION=$VITE_APP_VERSION
 
-# Build application
-RUN npm run build
+# Build application using npm workspace command from root
+RUN npm run build --workspace=@witchcityrope/web
 
 # Verify build output
-RUN ls -la dist/
+RUN ls -la apps/web/dist/
 
 ###########################################
 # Production Stage
@@ -136,17 +133,14 @@ COPY --from=deps /app/packages ./packages
 # Copy app source code
 COPY apps/web ./apps/web
 
-# Set working directory to the web app
-WORKDIR /app/apps/web
-
 # Use container-specific tsconfig for builds if it exists
-RUN if [ -f tsconfig.container.json ]; then cp tsconfig.container.json tsconfig.json; fi
+RUN if [ -f apps/web/tsconfig.container.json ]; then cp apps/web/tsconfig.container.json apps/web/tsconfig.json; fi
 
-# Run tests
-RUN npm run test -- --run --coverage
+# Run tests using workspace command from root
+RUN npm run test --workspace=@witchcityrope/web -- --run --coverage
 
-# Run linting
-RUN npm run lint
+# Run linting using workspace command from root
+RUN npm run lint --workspace=@witchcityrope/web
 
-# Run type checking
-RUN npx tsc --noEmit
+# Run type checking from web app directory
+RUN cd apps/web && npx tsc --noEmit
