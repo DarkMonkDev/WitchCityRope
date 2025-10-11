@@ -1,9 +1,14 @@
 import axios from 'axios'
 
 // API Service handles both authentication and business logic
-// Updated to connect directly to the .NET API at port 5655
+// For production/staging: VITE_API_BASE_URL should be empty (same-origin requests)
+// For local dev: Falls back to http://localhost:5655
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL !== undefined
+  ? import.meta.env.VITE_API_BASE_URL
+  : 'http://localhost:5655'
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5655',
+  baseURL: apiBaseUrl,
   withCredentials: true, // Include httpOnly cookies
   headers: {
     'Content-Type': 'application/json',
