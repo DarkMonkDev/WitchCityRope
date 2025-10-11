@@ -86,9 +86,9 @@ ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 ENV VITE_APP_TITLE=$VITE_APP_TITLE
 ENV VITE_APP_VERSION=$VITE_APP_VERSION
 
-# Build application using npx to access root node_modules bins
+# Build application using direct paths to node_modules executables
 WORKDIR /app/apps/web
-RUN npx --prefix /app tsc -p . && npx --prefix /app vite build
+RUN /app/node_modules/.bin/tsc -p . && /app/node_modules/.bin/vite build
 
 # Verify build output
 RUN ls -la dist/
