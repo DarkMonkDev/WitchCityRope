@@ -7,6 +7,7 @@
 ## Registry Table
 
 | Date | File Path | Action | Purpose | Session/Task | Status | Cleanup Date |
+| 2025-10-10 | /docs/guides-setup/mcp-server-setup-guide.md | CREATED | Comprehensive MCP server setup guide - Context7, DigitalOcean, SSH configuration with security best practices | MCP Server Setup Documentation | ACTIVE | Never |
 | 2025-10-10 | /PROGRESS.md | MODIFIED | Comprehensive October 10 session summary - TEST_CATALOG 100%, 7 critical bugs fixed, 4 HIGH priority issues, MSW cleanup, pass rate 68.1%→72.5% (+16 tests) | October 10 Session Documentation | ACTIVE | Never |
 | 2025-10-10 | /docs/functional-areas/platform-overview/GO-LIVE-LAUNCH-CHECKLIST.md | DELETED | DUPLICATE - Accidentally created duplicate of PRE_LAUNCH_PUNCH_LIST.md | Duplicate Documentation Cleanup | DELETED | N/A |
 | 2025-10-10 | /docs/standards-processes/PRE_LAUNCH_PUNCH_LIST.md | MODIFIED | Added Post-Login Return to Intended Page feature (P1 CRITICAL) to Core Authentication section, updated dashboard metrics | Post-Login Return Feature Addition | ACTIVE | Never - permanent documentation |
