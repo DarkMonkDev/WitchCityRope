@@ -20,13 +20,16 @@ COPY tsconfig*.json ./
 # Copy workspace packages (for monorepo dependencies)
 COPY packages/ ./packages/
 
+# Copy apps package.json files (needed for workspace discovery)
+COPY apps/web/package*.json ./apps/web/
+
 ###########################################
 # Dependencies Stage
 ###########################################
 FROM base AS deps
 
-# Install all workspace dependencies including devDependencies (needed for build tools)
-RUN npm install --include=dev --workspaces
+# Install all dependencies (npm workspaces automatically installs workspace devDependencies)
+RUN npm install
 
 ###########################################
 # Development Stage (used by ./dev.sh and docker-compose.dev.yml)
