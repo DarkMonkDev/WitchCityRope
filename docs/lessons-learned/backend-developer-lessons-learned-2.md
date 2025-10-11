@@ -1672,3 +1672,148 @@ docker exec witchcity-postgres psql -U postgres -d witchcitydb \
 
 ---
 
+## RSVP Duplicate Prevention - HTTP 409 Conflict for Duplicates (2025-10-11)
+
+**Problem**: E2E test failing: "should prevent duplicate RSVPs". Users could submit multiple RSVPs for the same event, creating data integrity violations.
+
+**Root Cause**: Business logic correctly prevented duplicates (checking for existing active participation), but endpoint returned wrong HTTP status code (400 Bad Request instead of 409 Conflict).
+
+**Why 409 Conflict is Correct**:
+- **400 Bad Request**: Client sent malformed/invalid data (validation errors)
+- **409 Conflict**: Request valid but conflicts with current resource state (duplicate)
+- **422 Unprocessable Entity**: Request well-formed but semantically invalid
+- Duplicate RSVP is NOT a validation error - it's a state conflict
+
+**Existing Validation (CORRECT)**:
+```csharp
+// /apps/api/Features/Participation/Services/ParticipationService.cs:114-122
+var existingParticipation = await _context.EventParticipations
+    .FirstOrDefaultAsync(ep => ep.EventId == request.EventId
+                            && ep.UserId == userId
+                            && ep.Status == ParticipationStatus.Active,
+                        cancellationToken);
+
+if (existingParticipation != null)
+{
+    return Result<ParticipationStatusDto>.Failure(
+        "User already has an active participation for this event");
+}
+```
+
+**Endpoint Fix (HTTP Status Code)**:
+```csharp
+// BEFORE (WRONG) - Returns 400 for duplicates
+if (result.Error.Contains("already"))
+{
+    return Results.BadRequest(new { error = result.Error });
+}
+
+// AFTER (CORRECT) - Returns 409 for duplicates
+if (result.Error.Contains("already"))
+{
+    return Results.Conflict(new { error = result.Error });
+}
+```
+
+**Database Constraint Enhancement**:
+Added partial unique index to prevent race conditions at database level:
+
+```csharp
+// /apps/api/Features/Participation/Data/EventParticipationConfiguration.cs:116-122
+builder.HasIndex(e => new { e.UserId, e.EventId })
+       .IsUnique()
+       .HasDatabaseName("UQ_EventParticipations_User_Event_Active")
+       .HasFilter("\"Status\" = 1"); // Only Active participations (Status = 1)
+```
+
+**Migration Generated**:
+```sql
+-- Drops old non-filtered unique index
+DROP INDEX "UQ_EventParticipations_User_Event_Active";
+
+-- Creates new filtered unique index (only applies to Active participations)
+CREATE UNIQUE INDEX "UQ_EventParticipations_User_Event_Active"
+ON "EventParticipations" ("UserId", "EventId")
+WHERE "Status" = 1;
+```
+
+**Why Filtered Index**:
+- Prevents duplicate ACTIVE participations per user per event
+- Allows users to re-RSVP after cancelling (cancelled participations ignored)
+- Database-level protection against race conditions
+- PostgreSQL partial index feature (not supported in all databases)
+
+**Expected Behavior**:
+```bash
+# First RSVP
+curl -X POST 'http://localhost:5173/api/events/{eventId}/rsvp' -b cookies.txt
+# Response: 201 Created
+
+# Second RSVP attempt (duplicate)
+curl -X POST 'http://localhost:5173/api/events/{eventId}/rsvp' -b cookies.txt
+# Response: 409 Conflict
+# Body: { "error": "User already has an active participation for this event" }
+
+# Cancel RSVP
+curl -X DELETE 'http://localhost:5173/api/events/{eventId}/participation' -b cookies.txt
+# Response: 204 No Content
+
+# Re-RSVP after cancellation (allowed)
+curl -X POST 'http://localhost:5173/api/events/{eventId}/rsvp' -b cookies.txt
+# Response: 201 Created ✅
+```
+
+**OpenAPI Documentation Updated**:
+```csharp
+.WithName("CreateRSVP")
+.Produces<ParticipationStatusDto>(201) // Success
+.Produces(400) // Bad request (validation errors)
+.Produces(401) // Unauthorized
+.Produces(403) // Forbidden (vetting status)
+.Produces(404) // Event not found
+.Produces(409) // Conflict (duplicate RSVP) ← NEW
+.Produces(500); // Server error
+```
+
+**Testing Verification**:
+```bash
+# Run E2E test
+cd /home/chad/repos/witchcityrope/apps/web
+npm run test:e2e:playwright -- rsvp-lifecycle-persistence.spec.ts --grep "duplicate"
+
+# Expected: ✅ PASS - Test expects 409 status code
+```
+
+**Prevention**:
+1. **Use correct HTTP status codes** - 409 for state conflicts, 400 for validation
+2. **Add database constraints** for critical business rules (race condition protection)
+3. **Use partial/filtered indexes** when uniqueness applies only to certain states
+4. **Document status codes** in OpenAPI `.Produces()` metadata
+5. **Test duplicate submission scenarios** in E2E tests
+
+**HTTP Status Code Decision Guide**:
+- **400**: Invalid input format, missing required fields, type validation
+- **409**: Duplicate resource, state conflict, concurrency violation
+- **422**: Semantically invalid (valid format, wrong business context)
+
+**Files Modified**:
+- `/apps/api/Features/Participation/Endpoints/ParticipationEndpoints.cs` - Changed 400 to 409 for duplicates
+- `/apps/api/Features/Participation/Data/EventParticipationConfiguration.cs` - Added filtered unique index
+- `/apps/api/Migrations/20251011002739_AddUniqueActiveParticipationConstraint.cs` - Database migration
+
+**Related Patterns**:
+- Same fix applied to ticket purchase endpoint (consistency)
+- Filtered index pattern useful for soft-delete scenarios
+- EF Core `.HasFilter()` generates PostgreSQL `WHERE` clause in index
+
+**Success Criteria**:
+- ✅ First RSVP succeeds with 201 Created
+- ✅ Duplicate RSVP fails with 409 Conflict
+- ✅ Re-RSVP after cancellation succeeds (cancelled not counted)
+- ✅ Database constraint prevents race conditions
+- ✅ E2E test passes
+
+**Tags**: #critical #http-status-codes #duplicate-prevention #rsvp #database-constraints #partial-index #409-conflict
+
+---
+

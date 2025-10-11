@@ -275,7 +275,12 @@ export const EventsListPage: React.FC = () => {
         ) : (
           <EventTableView
             events={eventsArray}
-            onEventClick={(eventId) => navigate(`/events/${eventId}`)}
+            onEventClick={(eventId) => {
+              // Use setTimeout to ensure navigation happens AFTER React finishes current render cycle
+              setTimeout(() => {
+                navigate(`/events/${eventId}`)
+              }, 0)
+            }}
           />
         )}
       </Container>
@@ -294,6 +299,14 @@ interface EventCardGridProps {
 const EventCardGrid: React.FC<EventCardGridProps> = ({ events, userRole, onRegister, onRSVP }) => {
   const navigate = useNavigate()
 
+  const handleCardClick = (eventId: string) => {
+    // Use setTimeout to ensure navigation happens AFTER React finishes current render cycle
+    // This allows Outlet to properly unmount old component and mount new one
+    setTimeout(() => {
+      navigate(`/events/${eventId}`)
+    }, 0)
+  }
+
   return (
     <Box
       data-testid="events-list"
@@ -311,7 +324,7 @@ const EventCardGrid: React.FC<EventCardGridProps> = ({ events, userRole, onRegis
           userRole={userRole}
           onRegister={onRegister}
           onRSVP={onRSVP}
-          onClick={() => navigate(`/events/${event.id}`)}
+          onClick={() => handleCardClick(event.id)}
         />
       ))}
     </Box>
@@ -489,11 +502,15 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({
         {/* Action Button */}
         <Group justify="center" mt="md" pb="xs">
           <Button
+            data-testid="button-learn-more"
             className="btn btn-primary"
             size="sm"
             onClick={(e) => {
               e.stopPropagation()
-              navigate(`/events/${event.id}`)
+              // Use setTimeout to ensure navigation happens AFTER React finishes current render cycle
+              setTimeout(() => {
+                navigate(`/events/${event.id}`)
+              }, 0)
             }}
             style={{
               background:

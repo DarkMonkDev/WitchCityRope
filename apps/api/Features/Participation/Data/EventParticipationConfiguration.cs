@@ -113,9 +113,12 @@ public class EventParticipationConfiguration : IEntityTypeConfiguration<EventPar
             "CHK_EventParticipations_CancelledAt_Logic",
             "(\"Status\" IN (2, 3) AND \"CancelledAt\" IS NOT NULL) OR (\"Status\" NOT IN (2, 3) AND \"CancelledAt\" IS NULL)"));
 
-        // Unique constraint: one participation per user per event
+        // Partial unique constraint: one ACTIVE participation per user per event
+        // Allows users to re-RSVP after cancelling (cancelled participations are not constrained)
+        // Note: EF Core doesn't directly support filtered indexes, so we need a migration for this
         builder.HasIndex(e => new { e.UserId, e.EventId })
                .IsUnique()
-               .HasDatabaseName("UQ_EventParticipations_User_Event_Active");
+               .HasDatabaseName("UQ_EventParticipations_User_Event_Active")
+               .HasFilter("\"Status\" = 1"); // Only enforce uniqueness for Active participations (Status = 1)
     }
 }

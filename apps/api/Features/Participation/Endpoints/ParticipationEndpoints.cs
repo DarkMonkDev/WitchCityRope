@@ -107,7 +107,11 @@ public static class ParticipationEndpoints
                     {
                         return Results.NotFound(new { error = result.Error });
                     }
-                    if (result.Error.Contains("vetted") || result.Error.Contains("capacity") || result.Error.Contains("already"))
+                    if (result.Error.Contains("already"))
+                    {
+                        return Results.Conflict(new { error = result.Error });
+                    }
+                    if (result.Error.Contains("vetted") || result.Error.Contains("capacity"))
                     {
                         return Results.BadRequest(new { error = result.Error });
                     }
@@ -129,6 +133,7 @@ public static class ParticipationEndpoints
             .Produces(401)
             .Produces(403)
             .Produces(404)
+            .Produces(409)
             .Produces(500);
 
         // Purchase ticket for class event
@@ -190,7 +195,11 @@ public static class ParticipationEndpoints
                     {
                         return Results.NotFound(new { error = result.Error });
                     }
-                    if (result.Error.Contains("capacity") || result.Error.Contains("already") || result.Error.Contains("only allowed"))
+                    if (result.Error.Contains("already"))
+                    {
+                        return Results.Conflict(new { error = result.Error });
+                    }
+                    if (result.Error.Contains("capacity") || result.Error.Contains("only allowed"))
                     {
                         return Results.BadRequest(new { error = result.Error });
                     }
@@ -212,6 +221,7 @@ public static class ParticipationEndpoints
             .Produces(401)
             .Produces(403)
             .Produces(404)
+            .Produces(409)
             .Produces(500);
 
         // Cancel participation (both RSVPs and tickets)

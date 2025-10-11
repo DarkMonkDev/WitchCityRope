@@ -1,6 +1,6 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-10-10 20:30 -->
-<!-- Version: 4.2 -->
+<!-- Last Updated: 2025-10-10 21:45 -->
+<!-- Version: 4.3 -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
 
@@ -42,30 +42,40 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 
 ### Current Test Status (October 2025)
 
-**Latest Updates** (2025-10-10 20:30):
+**Latest Updates** (2025-10-10 21:45):
+- ✅ **EVENTS CATEGORY DIAGNOSIS COMPLETE**: Comprehensive analysis of 142 events-related tests
+  - **Results**: 95/142 passing (66.9%), 11 failures, 36 skipped
+  - **Report**: `/test-results/events-category-diagnosis-2025-10-10.md`
+  - **Critical Failures**: RSVP duplicate prevention, event click navigation, Event Session Matrix incomplete
+  - **Priority Fix Order**: 3 CRITICAL, 3 HIGH, 2 MEDIUM, 1 LOW
+  - **Effort to 80%**: 14-21 hours across React + Backend developers
 - ✅ **Event Session Matrix Demo Test Skipped**: 1 test skipped pending P1 post-login redirect feature
 - ✅ **Phase 2 Public Events Selector Fixes COMPLETE**: Fixed 8 tests, skipped 3 tests per diagnosis
 - ✅ **Phase 2 Public Events Selector Diagnosis COMPLETE**: Identified exact fixes for 10+ test failures
 - ✅ **TEST CATALOG AUDIT COMPLETE**: Updated catalog to reflect all 89 test files
 - ✅ **AuthHelpers Migration Complete**: All 22 tests now use AuthHelpers.loginAs() pattern
-- ✅ **Test User Creation Fix**: Fixed bio length validation alignment between frontend/backend
-- ✅ **Form Button Strict Mode Fix**: Fixed strict mode violations in profile/dashboard tests
-- ✅ **Auth Routing Fix**: Fixed infinite redirect loop with proper return URL handling
-- ✅ **Login Email Input Fix**: Fixed email input strict mode error with .first()
 
 **Pass Rate Progress**:
 - Previous: 68% (September 2025 - multiple authentication issues)
-- Current: 68.1% (243/357 tests passing - October 10, 2025)
-- **Phase 2 Diagnosis**: 10-12 public events tests with clear fixes identified
-- Next Target: 75% (Phase 2-3 test fixes in progress)
+- Current: 66.9% (95/142 events tests) - Full suite: 68.1% (243/357 tests)
+- **Events Category**: 11 failures identified with specific fix priorities
+- Next Target: 75% (CRITICAL + HIGH priority fixes)
 - Ultimate Goal: 90%+
 
 **Today's Major Work** (2025-10-10):
+- **EVENTS CATEGORY DIAGNOSIS**: Complete analysis of 142 events tests
+  - 11 specific failures categorized and prioritized
+  - 4 UI/component issues (React Developer)
+  - 2 backend/API issues (Backend Developer)
+  - 3 workflow/integration issues (React + Test Developer)
+  - 1 performance issue (adjust test expectations)
+  - **Document**: `/test-results/events-category-diagnosis-2025-10-10.md`
 - **PUBLIC EVENTS SELECTOR DIAGNOSIS**: Complete analysis of 10+ test failures
   - 8 tests need selector updates (specific fixes documented)
   - 2 tests should be skipped (wireframe validation only)
   - 3 tests blocked by API 401 issue (P1-3 backend task)
   - **Document**: `/test-results/phase2-public-events-selector-diagnosis-2025-10-10.md`
+- Fixed syntax error in capture-public-pages.spec.ts (missing closing brace)
 - 22 test files migrated to AuthHelpers (eliminated manual login code)
 - Bio validation alignment fixed (frontend now enforces 500 char limit)
 - Auth routing infinite loop resolved
@@ -79,11 +89,28 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 **Count**: 89 spec files (83 in root, 6 in subdirectories)
 **Status**: AuthHelpers migration 100% complete (2025-10-10)
 
+**Events Category Test Results** (2025-10-10 21:45):
+- **Total Tests**: 142 tests matching "event" keyword
+- **Passed**: 95 tests (66.9%)
+- **Failed**: 11 tests (7.7%)
+- **Skipped**: 36 tests (25.4%)
+- **Full Report**: `/test-results/events-category-diagnosis-2025-10-10.md`
+
+**Critical Events Test Failures** (MUST FIX FIRST):
+1. **RSVP Duplicate Prevention** - Data integrity issue (Backend Developer)
+2. **Event Click Navigation** - Core user journey broken (React Developer)
+3. **Event Session Matrix Incomplete** - 4/9 features working (React + Backend Developer)
+
+**High Priority Events Test Failures** (FIX NEXT):
+4. **Admin Event Editing Workflow** - Admin functionality broken (React Developer)
+5. **Events List Display** - Admin demo page not working (React Developer)
+6. **Mock Events Cleanup** - Still showing fake data (React Developer)
+
 **Phase 2 Public Events Fixes COMPLETE** (2025-10-10 20:00):
 - ✅ **events-display-verification.spec.ts**: Fixed strict mode violation (h1/h2 selector with .first())
 - ✅ **phase4-events-testing.spec.ts**: Fixed all 5 selector issues (event-filters → button-view-toggle, event-type → event-date, etc.)
 - ✅ **events-comprehensive.spec.ts**: Fixed 2 logout issues (clearAuthState instead of logout navigation), skipped 1 test blocked by API 401
-- ✅ **capture-public-pages.spec.ts**: Skipped 2 wireframe tests (design validation only, files don't exist)
+- ✅ **capture-public-pages.spec.ts**: Fixed syntax error, skipped 2 wireframe tests (design validation only, files don't exist)
 - **Total**: 8 tests fixed, 3 tests skipped (1 API blocked, 2 wireframe validation)
 
 **Key Files**:
@@ -91,7 +118,7 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 - `admin-events-navigation-test.spec.ts` - ✅ Fixed with AuthHelpers
 - `admin-events-detailed-test.spec.ts` - ✅ Fixed with AuthHelpers
 - `admin-events-table-ui-check.spec.ts` - ✅ Fixed with AuthHelpers
-- `event-session-matrix-test.spec.ts` - ✅ Fixed with AuthHelpers
+- `event-session-matrix-test.spec.ts` - ❌ FAILING - Event Session Matrix incomplete (4/9 features)
 - `e2e/tiptap-editors.spec.ts` - ✅ Fixed with AuthHelpers - 7/7 tests passing
 
 **New Verification Tests** (2025-10-10):
@@ -103,13 +130,6 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 - `events-comprehensive.spec.ts` - ✅ Migrated to AuthHelpers
 - `vetting-notes-direct.spec.ts` - ✅ Already using AuthHelpers
 - `vetting-notes-display.spec.ts` - ✅ Already using AuthHelpers
-
-**Public Events Tests - FIXED** (2025-10-10 20:00):
-- `events-display-verification.spec.ts` - ✅ Fixed strict mode violation
-- `phase4-events-testing.spec.ts` - ✅ Fixed all 5 selector issues
-- `events-comprehensive.spec.ts` - ✅ Fixed logout issues, skipped API 401 blocked test
-- `capture-public-pages.spec.ts` - ✅ Skipped wireframe tests
-- Diagnosis: `/test-results/phase2-public-events-selector-diagnosis-2025-10-10.md`
 
 **Tests Pending P1 Features** (2025-10-10 20:30):
 - `events-management-e2e.spec.ts` - 1 test skipped: "should load Event Session Matrix demo page"
@@ -162,7 +182,8 @@ dotnet test tests/WitchCityRope.IntegrationTests/ --filter "Category=HealthCheck
 
 ### Phase 2 Test Recovery Documentation
 - **P1 Assessment**: `/test-results/phase2-p1-assessment-2025-10-10.md`
-- **Public Events Diagnosis**: `/test-results/phase2-public-events-selector-diagnosis-2025-10-10.md` (NEW)
+- **Public Events Diagnosis**: `/test-results/phase2-public-events-selector-diagnosis-2025-10-10.md`
+- **Events Category Diagnosis**: `/test-results/events-category-diagnosis-2025-10-10.md` (NEW)
 
 ---
 
@@ -179,24 +200,19 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
 ### E2E Tests (Playwright)
 ```bash
-cd apps/web/tests/playwright
-
-# Install dependencies (first time only)
-npm install
+cd apps/web
 
 # Run all E2E tests
-npm test
+npm run test:e2e
+
+# Run events category tests
+npm run test:e2e -- --grep "event"
 
 # Run specific test file
-npm test admin-events-workflow-test.spec.ts
+npm run test:e2e admin-events-workflow-test.spec.ts
 
 # Run with UI mode (debugging)
-npm test -- --ui
-
-# Run Phase 2 diagnosed tests
-npm test phase4-events-testing.spec.ts
-npm test events-display-verification.spec.ts
-npm test events-comprehensive.spec.ts
+npm run test:e2e -- --ui
 ```
 
 ### Unit Tests
@@ -274,9 +290,10 @@ const emailInput = page.locator('[data-testid="email-input"]');
 
 ## 📊 Test Metrics & Goals
 
-### Current Coverage (2025-10-10 19:35)
-- **E2E Tests**: 89 Playwright spec files (243/357 tests passing = 68.1%)
-- **Phase 2 Diagnosed**: 10-12 tests with documented fixes ready
+### Current Coverage (2025-10-10 21:45)
+- **E2E Tests**: 89 Playwright spec files
+  - **All Tests**: 243/357 passing (68.1%)
+  - **Events Category**: 95/142 passing (66.9%) - 11 failures diagnosed
 - **React Unit Tests**: 20 test files (Vitest + React Testing Library)
 - **C# Backend Tests**: 56 active test files (xUnit + Moq + FluentAssertions)
 - **Integration Tests**: 5 test files (PostgreSQL with TestContainers)
@@ -288,12 +305,21 @@ const emailInput = page.locator('[data-testid="email-input"]');
 - **P1 Assessment**: ✅ Complete (24 auth issues, 5 public events, 7 form issues)
 - **Public Events Diagnosis**: ✅ Complete (10-12 tests, exact fixes documented)
 - **Public Events Fixes**: ✅ Complete (8 tests fixed, 3 tests skipped)
-- **Next**: Backend P1-3 Public Events API 401 fix (backend-developer task)
+- **Events Category Diagnosis**: ✅ Complete (11 failures, prioritized fix order)
+- **Next**: CRITICAL events fixes (RSVP, navigation, Event Session Matrix)
 
 ### Target Coverage
-- **Pass Rate**: 90%+ (current: 68.1%, next milestone: 75%)
+- **Pass Rate**: 90%+ (current: 66.9% events, 68.1% overall, next milestone: 75%)
 - **Critical Paths**: 100% coverage for authentication, events, payments
 - **Performance**: All tests < 90 seconds timeout
+
+### Events Category Breakdown (2025-10-10)
+- **Total Events Tests**: 142 tests
+- **UI/Component Failures**: 4 tests (React Developer)
+- **Backend/API Failures**: 2 tests (Backend Developer)
+- **Workflow/Integration Failures**: 3 tests (React + Test Developer)
+- **Performance Failures**: 1 test (adjust expectations)
+- **Data Display Failures**: 1 test (React Developer)
 
 ### Test File Breakdown
 - **Admin Tests**: 4 spec files (events management)
@@ -309,7 +335,7 @@ const emailInput = page.locator('[data-testid="email-input"]');
 
 ## 🗂️ For More Information
 
-### Complete Test Listings (NEW)
+### Complete Test Listings
 **See Part 4**: `/docs/standards-processes/testing/TEST_CATALOG_PART_4.md`
 - All 89 E2E Playwright tests with descriptions
 - All 20 React unit tests organized by feature
@@ -352,14 +378,14 @@ const emailInput = page.locator('[data-testid="email-input"]');
 - Maintain clear navigation structure
 
 ### Phase 2 Test Recovery Notes
-- All selector diagnoses go to `/test-results/`
+- All diagnoses go to `/test-results/`
 - Update catalog with diagnosis file references
 - Track progress in "Latest Updates" section
-- Document specific fixes for test-developer delegation
+- Document specific fixes for developer delegation
 
 ---
 
-*This is a navigation index only. For detailed test information, see Part 2 and Part 3.*
+*This is a navigation index only. For detailed test information, see Part 2, 3, and 4.*
 *For current test execution, see CURRENT_TEST_STATUS.md*
 *For testing standards, see TESTING_GUIDE.md*
-*For Phase 2 public events diagnosis, see `/test-results/phase2-public-events-selector-diagnosis-2025-10-10.md`*
+*For Phase 2 diagnoses, see `/test-results/` directory*

@@ -191,7 +191,13 @@ export const EventCard = memo<EventCardProps>(({
         e.currentTarget.style.transform = 'translateY(0)';
         e.currentTarget.style.boxShadow = '';
       }}
-      onClick={() => navigate(`/events/${event.id}`)}
+      onClick={() => {
+        // Use setTimeout to ensure navigation happens AFTER React finishes current render cycle
+        // This allows Outlet to properly unmount old component and mount new one
+        setTimeout(() => {
+          navigate(`/events/${event.id}`)
+        }, 0)
+      }}
     >
       <Stack gap="sm">
         {/* Event Header */}

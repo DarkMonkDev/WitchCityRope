@@ -161,3 +161,6 @@
 | 2025-10-10 | /.claude/agents/testing/test-developer.md | MODIFIED | CRITICAL ENFORCEMENT - Added mandatory TEST_CATALOG maintenance section at top of agent definition | TEST_CATALOG Enforcement | ACTIVE | Never |
 | 2025-10-10 | /.claude/agents/testing/test-executor.md | MODIFIED | CRITICAL ENFORCEMENT - Added mandatory TEST_CATALOG maintenance section with test metrics responsibilities | TEST_CATALOG Enforcement | ACTIVE | Never |
 | 2025-10-10 | /session-work/2025-10-10/test-catalog-enforcement-update.md | CREATED | Comprehensive summary of TEST_CATALOG enforcement updates to both test agent definitions | TEST_CATALOG Enforcement Summary | ACTIVE | Keep permanently |
+| 2025-10-10 | /apps/web/src/pages/events/EventsListPage.tsx | MODIFIED | CRITICAL FIX - Wrapped all navigate() calls in setTimeout to fix React Router timing issue (3 locations) | Event Navigation Fix | ACTIVE | Never |
+| 2025-10-10 | /apps/web/src/components/events/public/EventCard.tsx | MODIFIED | CRITICAL FIX - Wrapped navigate() call in setTimeout to fix React Router timing issue | Event Navigation Fix | ACTIVE | Never |
+| 2025-10-10 | /test-results/event-navigation-fix-2025-10-10.md | CREATED | Event click navigation fix documentation - React Router timing issue resolution | Event Navigation Fix Report | ACTIVE | Keep permanently |
