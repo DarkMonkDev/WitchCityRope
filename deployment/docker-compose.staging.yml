@@ -1,0 +1,168 @@
+# WitchCityRope Staging Docker Compose
+# DigitalOcean Deployment Configuration
+# Uses: Managed PostgreSQL, System Nginx, Container Registry
+# Domain: staging.notfai.com
+
+version: '3.8'
+
+networks:
+  witchcity-staging:
+    driver: bridge
+
+volumes:
+  api_uploads_staging:
+    driver: local
+  redis_data_staging:
+    driver: local
+
+services:
+  # ==========================================================================
+  # API Service - .NET 9 Minimal API (Staging)
+  # ==========================================================================
+  api:
+    image: registry.digitalocean.com/witchcityrope/api:${IMAGE_TAG:-staging}
+    container_name: witchcity-api-staging
+    restart: unless-stopped
+    networks:
+      - witchcity-staging
+    ports:
+      - "5002:8080"  # Maps to Nginx proxy at localhost:5002
+    volumes:
+      - api_uploads_staging:/app/uploads
+    environment:
+      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_ENVIRONMENT=Staging
+      - ConnectionStrings__DefaultConnection=${STAGING_DB_CONNECTION_STRING}
+      - Authentication__JwtSecret=${JWT_SECRET}
+      - Authentication__Issuer=https://staging.notfai.com
+      - Authentication__Audience=https://staging.notfai.com
+      - Authentication__ExpiryMinutes=60
+      - CORS__AllowedOrigins=https://staging.notfai.com
+      - CORS__AllowCredentials=true
+      - Logging__LogLevel__Default=Debug
+      - Logging__LogLevel__Microsoft=Information
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ==========================================================================
+  # Web Service - React + Vite (Staging Build with Nginx)
+  # ==========================================================================
+  web:
+    image: registry.digitalocean.com/witchcityrope/web:${IMAGE_TAG:-staging}
+    container_name: witchcity-web-staging
+    restart: unless-stopped
+    networks:
+      - witchcity-staging
+    ports:
+      - "3002:80"  # Maps to Nginx proxy at localhost:3002
+    environment:
+      - NODE_ENV=production
+      - VITE_API_BASE_URL=/api
+      - VITE_APP_ENVIRONMENT=staging
+      - VITE_APP_TITLE=WitchCityRope (Staging)
+      - VITE_APP_VERSION=${APP_VERSION:-staging}
+      - VITE_ENABLE_DEBUG=true
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ==========================================================================
+  # Redis Cache Service (Staging)
+  # ==========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: witchcity-redis-staging
+    restart: unless-stopped
+    networks:
+      - witchcity-staging
+    volumes:
+      - redis_data_staging:/data
+    command: [
+      "redis-server",
+      "--appendonly", "yes",
+      "--maxmemory", "256mb",
+      "--maxmemory-policy", "allkeys-lru"
+    ]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+# Deployment Notes:
+# ================
+#
+# System Nginx Configuration (already configured on server):
+#   - Staging: https://staging.notfai.com → http://localhost:3002 (React)
+#   - Staging API: https://staging.notfai.com/api → http://localhost:5002 (API)
+#   - SSL: Let's Encrypt certificates already installed
+#
+# Database Configuration:
+#   - Using DigitalOcean Managed PostgreSQL (not a container)
+#   - Connection string provided via environment variable
+#   - Two databases: witchcityrope_staging (this env)
+#
+# Docker Registry:
+#   - Images pushed to: registry.digitalocean.com/witchcityrope/
+#   - API image: registry.digitalocean.com/witchcityrope/api:staging
+#   - Web image: registry.digitalocean.com/witchcityrope/web:staging
+#
+# Deployment Commands:
+#   cd /opt/witchcityrope/staging
+#   docker-compose -f docker-compose.staging.yml pull
+#   docker-compose -f docker-compose.staging.yml up -d
+#   docker-compose -f docker-compose.staging.yml logs -f
+#
+# Health Checks:
+#   - Internal: docker-compose ps
+#   - External: curl https://staging.notfai.com/health
+#   - External API: curl https://staging.notfai.com/api/health

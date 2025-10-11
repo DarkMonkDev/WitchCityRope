@@ -1,0 +1,210 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Docker image tag to deploy'
+        required: false
+        default: 'latest'
+      confirmation:
+        description: 'Type "DEPLOY" to confirm production deployment'
+        required: true
+
+jobs:
+  validate-confirmation:
+    name: Validate Deployment Confirmation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check confirmation
+        run: |
+          if [ "${{ github.event.inputs.confirmation }}" != "DEPLOY" ]; then
+            echo "❌ Deployment cancelled - confirmation string did not match"
+            echo "You must type 'DEPLOY' exactly to confirm production deployment"
+            exit 1
+          fi
+          echo "✅ Deployment confirmed"
+
+  deploy-production:
+    name: Deploy to Production Environment
+    needs: validate-confirmation
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://notfai.com
+
+    steps:
+      - name: Checkout deployment files
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            deployment/docker-compose.production.yml
+            deployment/.env.production.template
+
+      - name: Set deployment info
+        run: |
+          echo "IMAGE_TAG=${{ github.event.inputs.image_tag }}" >> $GITHUB_ENV
+          echo "SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_ENV
+          echo "DEPLOY_TIME=$(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_ENV
+
+      - name: Create backup before deployment
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PRODUCTION_SERVER_HOST }}
+          username: ${{ secrets.PRODUCTION_SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            echo "=== Creating pre-deployment backup ==="
+
+            # Backup current state
+            BACKUP_DIR="/opt/backups/witchcityrope/pre-deploy-$(date +%Y%m%d_%H%M%S)"
+            mkdir -p $BACKUP_DIR
+
+            # Backup docker-compose file
+            if [ -f /opt/witchcityrope/production/docker-compose.production.yml ]; then
+              cp /opt/witchcityrope/production/docker-compose.production.yml $BACKUP_DIR/
+            fi
+
+            # Backup environment file
+            if [ -f /opt/witchcityrope/production/.env.production ]; then
+              cp /opt/witchcityrope/production/.env.production $BACKUP_DIR/
+            fi
+
+            echo "Backup created at: $BACKUP_DIR"
+
+      - name: Deploy to production server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PRODUCTION_SERVER_HOST }}
+          username: ${{ secrets.PRODUCTION_SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+
+            echo "=== Deploying to Production ==="
+            echo "Image Tag: ${{ env.IMAGE_TAG }}"
+            echo "Commit SHA: ${{ env.SHORT_SHA }}"
+            echo "Deploy Time: ${{ env.DEPLOY_TIME }}"
+
+            # Navigate to production directory
+            cd /opt/witchcityrope/production
+
+            # Create directory if it doesn't exist
+            mkdir -p /opt/witchcityrope/production
+
+            # Download docker-compose file
+            curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3.raw" \
+              -o docker-compose.production.yml \
+              -L https://api.github.com/repos/${{ github.repository }}/contents/deployment/docker-compose.production.yml
+
+            # Create .env file if it doesn't exist
+            if [ ! -f .env.production ]; then
+              echo "IMAGE_TAG=${{ env.IMAGE_TAG }}" > .env.production
+              echo "APP_VERSION=${{ env.SHORT_SHA }}" >> .env.production
+              echo "PROD_DB_CONNECTION_STRING=${{ secrets.PROD_DB_CONNECTION_STRING }}" >> .env.production
+              echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env.production
+              chmod 600 .env.production
+            else
+              # Update image tag in existing file
+              sed -i "s/^IMAGE_TAG=.*/IMAGE_TAG=${{ env.IMAGE_TAG }}/" .env.production
+              sed -i "s/^APP_VERSION=.*/APP_VERSION=${{ env.SHORT_SHA }}/" .env.production
+            fi
+
+            # Login to DigitalOcean Container Registry
+            echo "${{ secrets.DIGITALOCEAN_TOKEN }}" | docker login registry.digitalocean.com -u ${{ secrets.DIGITALOCEAN_TOKEN }} --password-stdin
+
+            # Pull latest images
+            docker-compose -f docker-compose.production.yml pull
+
+            # Stop and remove old containers (brief downtime)
+            docker-compose -f docker-compose.production.yml down
+
+            # Start new containers
+            docker-compose -f docker-compose.production.yml up -d
+
+            # Wait for services to be healthy
+            echo "Waiting for services to start..."
+            sleep 15
+
+            # Check container status
+            docker-compose -f docker-compose.production.yml ps
+
+            # Run database migrations
+            echo "Running database migrations..."
+            docker-compose -f docker-compose.production.yml exec -T api dotnet ef database update || echo "Migrations failed or not needed"
+
+            echo "=== Production Deployment Complete ==="
+
+      - name: Health Check
+        run: |
+          echo "Waiting for application to be ready..."
+          sleep 30
+
+          # Check web health
+          if curl -f https://notfai.com/health; then
+            echo "✅ Web service is healthy"
+          else
+            echo "❌ Web service health check failed"
+            exit 1
+          fi
+
+          # Check API health
+          if curl -f https://notfai.com/api/health; then
+            echo "✅ API service is healthy"
+          else
+            echo "❌ API service health check failed"
+            exit 1
+          fi
+
+      - name: Post-deployment verification
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PRODUCTION_SERVER_HOST }}
+          username: ${{ secrets.PRODUCTION_SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /opt/witchcityrope/production
+
+            echo "=== Container Status ==="
+            docker-compose -f docker-compose.production.yml ps
+
+            echo "=== Recent Logs ==="
+            docker-compose -f docker-compose.production.yml logs --tail=50
+
+      - name: Deployment Summary
+        if: always()
+        run: |
+          echo "## Production Deployment Complete :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** Production" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** https://notfai.com" >> $GITHUB_STEP_SUMMARY
+          echo "**Image Tag:** ${{ env.IMAGE_TAG }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit SHA:** ${{ env.SHORT_SHA }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Deploy Time:** ${{ env.DEPLOY_TIME }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Services Deployed:" >> $GITHUB_STEP_SUMMARY
+          echo "- React Web: https://notfai.com" >> $GITHUB_STEP_SUMMARY
+          echo "- API: https://notfai.com/api" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Health Checks:" >> $GITHUB_STEP_SUMMARY
+          echo "- Web: https://notfai.com/health" >> $GITHUB_STEP_SUMMARY
+          echo "- API: https://notfai.com/api/health" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Rollback Instructions:" >> $GITHUB_STEP_SUMMARY
+          echo "If issues are detected, connect to server and run:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "cd /opt/witchcityrope/production" >> $GITHUB_STEP_SUMMARY
+          echo "# Find backup: ls /opt/backups/witchcityrope/" >> $GITHUB_STEP_SUMMARY
+          echo "# Restore from backup and restart containers" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "## ❌ Production Deployment Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Action Required:** Check logs and consider rollback" >> $GITHUB_STEP_SUMMARY
+          echo "**Server:** ${{ secrets.PRODUCTION_SERVER_HOST }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Backup Location:** /opt/backups/witchcityrope/" >> $GITHUB_STEP_SUMMARY

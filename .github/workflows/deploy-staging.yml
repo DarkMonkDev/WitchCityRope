@@ -1,0 +1,140 @@
+name: Deploy to Staging
+
+on:
+  repository_dispatch:
+    types: [deploy-staging]
+
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Docker image tag to deploy'
+        required: false
+        default: 'staging'
+
+jobs:
+  deploy-staging:
+    name: Deploy to Staging Environment
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.notfai.com
+
+    steps:
+      - name: Checkout deployment files
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            deployment/docker-compose.staging.yml
+            deployment/.env.staging.template
+
+      - name: Set image tag
+        run: |
+          if [ "${{ github.event_name }}" == "repository_dispatch" ]; then
+            echo "IMAGE_TAG=${{ github.event.client_payload.image_tag }}" >> $GITHUB_ENV
+            echo "SHORT_SHA=${{ github.event.client_payload.sha }}" >> $GITHUB_ENV
+          else
+            echo "IMAGE_TAG=${{ github.event.inputs.image_tag }}" >> $GITHUB_ENV
+            echo "SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_ENV
+          fi
+
+      - name: Deploy to staging server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.STAGING_SERVER_HOST }}
+          username: ${{ secrets.STAGING_SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+
+            echo "=== Deploying to Staging ==="
+            echo "Image Tag: ${{ env.IMAGE_TAG }}"
+            echo "Commit SHA: ${{ env.SHORT_SHA }}"
+
+            # Navigate to staging directory
+            cd /opt/witchcityrope/staging
+
+            # Create directory if it doesn't exist
+            mkdir -p /opt/witchcityrope/staging
+
+            # Download docker-compose file
+            curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3.raw" \
+              -o docker-compose.staging.yml \
+              -L https://api.github.com/repos/${{ github.repository }}/contents/deployment/docker-compose.staging.yml
+
+            # Create .env file if it doesn't exist
+            if [ ! -f .env.staging ]; then
+              echo "IMAGE_TAG=${{ env.IMAGE_TAG }}" > .env.staging
+              echo "APP_VERSION=${{ env.SHORT_SHA }}" >> .env.staging
+              echo "STAGING_DB_CONNECTION_STRING=${{ secrets.STAGING_DB_CONNECTION_STRING }}" >> .env.staging
+              echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env.staging
+              chmod 600 .env.staging
+            else
+              # Update image tag in existing file
+              sed -i "s/^IMAGE_TAG=.*/IMAGE_TAG=${{ env.IMAGE_TAG }}/" .env.staging
+              sed -i "s/^APP_VERSION=.*/APP_VERSION=${{ env.SHORT_SHA }}/" .env.staging
+            fi
+
+            # Login to DigitalOcean Container Registry
+            echo "${{ secrets.DIGITALOCEAN_TOKEN }}" | docker login registry.digitalocean.com -u ${{ secrets.DIGITALOCEAN_TOKEN }} --password-stdin
+
+            # Pull latest images
+            docker-compose -f docker-compose.staging.yml pull
+
+            # Stop and remove old containers
+            docker-compose -f docker-compose.staging.yml down
+
+            # Start new containers
+            docker-compose -f docker-compose.staging.yml up -d
+
+            # Wait for services to be healthy
+            echo "Waiting for services to start..."
+            sleep 10
+
+            # Check container status
+            docker-compose -f docker-compose.staging.yml ps
+
+            # Run database migrations
+            echo "Running database migrations..."
+            docker-compose -f docker-compose.staging.yml exec -T api dotnet ef database update || echo "Migrations failed or not needed"
+
+            echo "=== Staging Deployment Complete ==="
+
+      - name: Health Check
+        run: |
+          echo "Waiting for application to be ready..."
+          sleep 20
+
+          # Check web health
+          if curl -f https://staging.notfai.com/health; then
+            echo "✅ Web service is healthy"
+          else
+            echo "❌ Web service health check failed"
+            exit 1
+          fi
+
+          # Check API health
+          if curl -f https://staging.notfai.com/api/health; then
+            echo "✅ API service is healthy"
+          else
+            echo "❌ API service health check failed"
+            exit 1
+          fi
+
+      - name: Deployment Summary
+        if: always()
+        run: |
+          echo "## Staging Deployment Complete :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** Staging" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** https://staging.notfai.com" >> $GITHUB_STEP_SUMMARY
+          echo "**Image Tag:** ${{ env.IMAGE_TAG }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit SHA:** ${{ env.SHORT_SHA }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Services Deployed:" >> $GITHUB_STEP_SUMMARY
+          echo "- React Web: https://staging.notfai.com" >> $GITHUB_STEP_SUMMARY
+          echo "- API: https://staging.notfai.com/api" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Health Checks:" >> $GITHUB_STEP_SUMMARY
+          echo "- Web: https://staging.notfai.com/health" >> $GITHUB_STEP_SUMMARY
+          echo "- API: https://staging.notfai.com/api/health" >> $GITHUB_STEP_SUMMARY

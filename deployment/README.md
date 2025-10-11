@@ -1,6 +1,20 @@
 # WitchCityRope Deployment Guide
 
-This directory contains all deployment scripts, configurations, and procedures for deploying WitchCityRope to various environments.
+**IMPORTANT**: This project now uses **GitHub Actions CI/CD** for automated deployments to DigitalOcean.
+
+## 🚀 Quick Start - GitHub Actions CI/CD (Recommended)
+
+### New Automated Deployment Method
+For DigitalOcean deployment with GitHub Actions:
+👉 **See [GITHUB-ACTIONS-SETUP.md](./GITHUB-ACTIONS-SETUP.md)** for the complete step-by-step guide.
+
+**Quick Summary**:
+1. Configure GitHub Secrets (9 secrets required)
+2. Push to `staging` branch → Automatic deployment to https://staging.notfai.com
+3. Trigger production deployment → Manual approval → Deploy to https://notfai.com
+
+### Legacy Deployment Methods
+This directory also contains legacy deployment scripts for manual deployments and other hosting providers.
 
 ## 📁 Directory Structure
 
