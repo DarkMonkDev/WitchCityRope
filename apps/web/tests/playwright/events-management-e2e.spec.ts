@@ -382,18 +382,42 @@ test.describe('Events Management System E2E Tests', () => {
       // Wait for content to load
       await page.waitForTimeout(2000)
 
-      // Look for grid-like elements (tables, grids, lists)
-      const tables = await page.locator('table').count()
-      const grids = await page.locator('[role="grid"], .grid').count()
-      const lists = await page.locator('ul, ol').count()
+      // Navigate to Setup tab where session grid lives
+      const setupTab = page.locator('[role="tab"]:has-text("Setup")')
+      if (await setupTab.count() > 0) {
+        await setupTab.click()
+        await page.waitForTimeout(1000)
+        console.log('✅ Navigated to Setup tab')
+      }
 
-      console.log('Grid elements found:', { tables, grids, lists })
+      // Look for the actual sessions grid (modal-based UI)
+      const sessionsGrid = await page.locator('[data-testid="grid-sessions"]').count()
+      const addSessionButton = await page.locator('[data-testid="button-add-session"]').count()
+      const sessionRows = await page.locator('[data-testid="session-row"]').count()
 
-      // Look for session-related content
-      const sessionElements = await page
-        .locator('*:has-text("session"), *:has-text("Session")')
-        .count()
-      console.log(`Found ${sessionElements} session-related elements`)
+      console.log('Event Session Matrix elements found:', {
+        sessionsGrid,
+        addSessionButton,
+        sessionRows
+      })
+
+      // Test modal workflow if Add Session button exists
+      if (addSessionButton > 0) {
+        await page.locator('[data-testid="button-add-session"]').click()
+        await page.waitForTimeout(1000)
+
+        // Check if session modal opened
+        const sessionModal = await page.locator('[data-testid="modal-add-session"]').count()
+        console.log(`Session modal opened: ${sessionModal > 0}`)
+
+        // Take screenshot of modal
+        if (sessionModal > 0) {
+          await page.screenshot({ path: 'test-results/session-modal-workflow.png' })
+          // Close modal with Escape
+          await page.keyboard.press('Escape')
+          await page.waitForTimeout(500)
+        }
+      }
 
       // Take screenshot of session grid area
       await page.screenshot({ path: 'test-results/session-grid-display.png' })

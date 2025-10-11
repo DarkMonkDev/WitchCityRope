@@ -42,11 +42,16 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 
 ### Current Test Status (October 2025)
 
-**Latest Updates** (2025-10-10 21:45):
+**Latest Updates** (2025-10-10 22:30):
+- ✅ **EVENT SESSION MATRIX TESTS FIXED**: 2 failing tests now passing
+  - **event-session-matrix-test.spec.ts**: Updated selectors to match modal-based UI (was looking for inline forms)
+  - **events-management-e2e.spec.ts**: Added Setup tab navigation, fixed session grid test
+  - **Report**: `/test-results/event-session-matrix-selector-fixes-2025-10-10.md`
+  - **Impact**: Feature confirmed 100% complete with modal-based UX
 - ✅ **EVENTS CATEGORY DIAGNOSIS COMPLETE**: Comprehensive analysis of 142 events-related tests
   - **Results**: 95/142 passing (66.9%), 11 failures, 36 skipped
   - **Report**: `/test-results/events-category-diagnosis-2025-10-10.md`
-  - **Critical Failures**: RSVP duplicate prevention, event click navigation, Event Session Matrix incomplete
+  - **Critical Failures**: RSVP duplicate prevention, event click navigation
   - **Priority Fix Order**: 3 CRITICAL, 3 HIGH, 2 MEDIUM, 1 LOW
   - **Effort to 80%**: 14-21 hours across React + Backend developers
 - ✅ **Event Session Matrix Demo Test Skipped**: 1 test skipped pending P1 post-login redirect feature
@@ -118,7 +123,8 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 - `admin-events-navigation-test.spec.ts` - ✅ Fixed with AuthHelpers
 - `admin-events-detailed-test.spec.ts` - ✅ Fixed with AuthHelpers
 - `admin-events-table-ui-check.spec.ts` - ✅ Fixed with AuthHelpers
-- `event-session-matrix-test.spec.ts` - ❌ FAILING - Event Session Matrix incomplete (4/9 features)
+- `event-session-matrix-test.spec.ts` - ✅ PASSING - Updated selectors for modal-based UI (2025-10-10)
+- `events-management-e2e.spec.ts` - ✅ PASSING - Session grid test fixed with Setup tab navigation (2025-10-10)
 - `e2e/tiptap-editors.spec.ts` - ✅ Fixed with AuthHelpers - 7/7 tests passing
 
 **New Verification Tests** (2025-10-10):

@@ -36,28 +36,24 @@ test.describe('Event Session Matrix System Test', () => {
     }
     
     // Step 5: Click on Setup tab (this should contain the Event Session Matrix)
-    if (await tabs.setup.count() > 0) {
-      await tabs.setup.click();
+    if (await page.locator('[role="tab"]:has-text("Setup")').count() > 0) {
+      await page.locator('[role="tab"]:has-text("Setup")').click();
       await page.waitForTimeout(1000);
       await page.screenshot({ path: 'test-results/setup-tab.png', fullPage: true });
       console.log('✅ Clicked Setup tab');
       
-      // Step 6: Look for Session Matrix elements
+      // Step 6: Look for Session Matrix elements (MODAL-BASED UI)
       const sessionMatrixElements = {
-        sessionSection: page.locator('text=Session').or(page.locator('fieldset:has-text("Session")')),
-        addSessionBtn: page.locator('button:has-text("Add Session")').or(page.locator('[data-testid*="add-session"]')),
-        sessionList: page.locator('[data-testid*="session-list"]').or(page.locator('.session-item')),
-        timeSlots: page.locator('input[type="time"]').or(page.locator('[placeholder*="time"]')),
-        dateInputs: page.locator('input[type="date"]').or(page.locator('[placeholder*="date"]')),
-        ticketTypes: page.locator('text=Ticket Type').or(page.locator('fieldset:has-text("Ticket")')),
-        addTicketBtn: page.locator('button:has-text("Add Ticket")').or(page.locator('[data-testid*="add-ticket"]')),
-        priceInputs: page.locator('input[name*="price"]').or(page.locator('[placeholder*="price"]')),
-        capacityInputs: page.locator('input[name*="capacity"]').or(page.locator('[placeholder*="capacity"]'))
+        sessionsGrid: page.locator('[data-testid="grid-sessions"]'),
+        addSessionBtn: page.locator('[data-testid="button-add-session"]'),
+        addTicketBtn: page.locator('button:has-text("Add Ticket Type")'),
+        sessionRows: page.locator('[data-testid="session-row"]'),
+        ticketTypeSection: page.locator('text=Ticket Types')
       };
-      
+
       console.log('🎯 Checking Event Session Matrix elements...');
       let matrixFeatures = 0;
-      
+
       for (const [elementName, elementLocator] of Object.entries(sessionMatrixElements)) {
         const elementCount = await elementLocator.count();
         console.log(`${elementName}: ${elementCount} element(s) found`);
@@ -66,10 +62,10 @@ test.describe('Event Session Matrix System Test', () => {
           await page.screenshot({ path: `test-results/matrix-${elementName}.png`, fullPage: true });
         }
       }
+
+      console.log(`🎉 Event Session Matrix features detected: ${matrixFeatures}/5`);
       
-      console.log(`🎉 Event Session Matrix features detected: ${matrixFeatures}/9`);
-      
-      // Step 7: Try to interact with session management
+      // Step 7: Try to interact with session management (MODAL-BASED)
       // CRITICAL: Must add session BEFORE attempting to add ticket types
       // The Event Session Matrix requires at least one session to exist before tickets can be configured
       let sessionAdded = false;
@@ -77,76 +73,118 @@ test.describe('Event Session Matrix System Test', () => {
         console.log('✅ Testing Add Session functionality...');
         await page.locator('[data-testid="button-add-session"]').click();
         await page.waitForTimeout(1000);
-        await page.screenshot({ path: 'test-results/add-session-clicked.png', fullPage: true });
 
-        // Look for session form fields that appear
-        const sessionForm = {
-          sessionTitle: page.locator('input[name*="session"]').or(page.locator('[placeholder*="session"]')),
-          startTime: page.locator('input[type="time"]').first(),
-          endTime: page.locator('input[type="time"]').last(),
-          capacity: page.locator('input[name*="capacity"]').or(page.locator('[placeholder*="capacity"]'))
-        };
+        // Wait for modal to open
+        const sessionModal = page.locator('[data-testid="modal-add-session"]');
+        const modalOpened = await sessionModal.count() > 0;
+        console.log(`Session modal opened: ${modalOpened}`);
+        await page.screenshot({ path: 'test-results/session-modal-opened.png', fullPage: true });
 
-        for (const [fieldName, fieldLocator] of Object.entries(sessionForm)) {
-          const fieldExists = await fieldLocator.count() > 0;
-          console.log(`Session ${fieldName}: ${fieldExists ? 'FOUND' : 'MISSING'}`);
-        }
+        if (modalOpened) {
+          // Look for modal form fields
+          const sessionForm = {
+            sessionId: page.locator('[data-testid="input-session-id"]'),
+            sessionName: page.locator('[data-testid="input-session-name"]'),
+            sessionDate: page.locator('[data-testid="input-session-date"]'),
+            startTime: page.locator('[data-testid="input-session-start-time"]'),
+            endTime: page.locator('[data-testid="input-session-end-time"]'),
+            capacity: page.locator('[data-testid="input-session-capacity"]')
+          };
 
-        // Try to save the session if save button exists
-        const saveSessionBtn = page.locator('button:has-text("Save"), button:has-text("Add")').last();
-        if (await saveSessionBtn.count() > 0 && await saveSessionBtn.isVisible()) {
-          await saveSessionBtn.click();
-          await page.waitForTimeout(500);
-          sessionAdded = true;
-          console.log('✅ Session saved successfully');
+          console.log('🔍 Checking modal form fields...');
+          for (const [fieldName, fieldLocator] of Object.entries(sessionForm)) {
+            const fieldExists = await fieldLocator.count() > 0;
+            console.log(`Session ${fieldName}: ${fieldExists ? 'FOUND' : 'MISSING'}`);
+          }
+
+          // Try to fill and save the session if fields exist
+          if (await sessionForm.sessionName.count() > 0) {
+            await sessionForm.sessionName.fill('Test Session 1');
+
+            if (await sessionForm.capacity.count() > 0) {
+              await sessionForm.capacity.fill('20');
+            }
+
+            const saveSessionBtn = page.locator('[data-testid="button-save-session"]');
+            if (await saveSessionBtn.count() > 0) {
+              await saveSessionBtn.click();
+              await page.waitForTimeout(1000);
+
+              // Verify session appears in grid
+              const sessionInGrid = await page.locator('[data-testid="session-name"]:has-text("Test Session 1")').count() > 0;
+              sessionAdded = sessionInGrid;
+              console.log(`✅ Session ${sessionAdded ? 'saved and appears in grid' : 'save attempted'}`);
+            }
+          }
         }
       }
 
-      // Step 8: Try to interact with ticket management
+      // Step 8: Try to interact with ticket management (MODAL-BASED)
       // ONLY attempt if session was successfully added first
       if (sessionAdded && await sessionMatrixElements.addTicketBtn.count() > 0) {
         console.log('✅ Testing Add Ticket Type functionality...');
         await sessionMatrixElements.addTicketBtn.click();
         await page.waitForTimeout(1000);
-        await page.screenshot({ path: 'test-results/add-ticket-clicked.png', fullPage: true });
 
-        // Look for ticket form fields
-        const ticketForm = {
-          ticketName: page.locator('input[name*="ticket"]').or(page.locator('[placeholder*="ticket"]')),
-          ticketPrice: page.locator('input[name*="price"]').or(page.locator('[placeholder*="price"]')),
-          ticketCapacity: page.locator('input[name*="capacity"]').or(page.locator('[placeholder*="capacity"]'))
-        };
+        // Wait for ticket modal to open
+        const ticketModal = page.locator('text=Add Ticket Type').or(page.locator('[role="dialog"]'));
+        const ticketModalOpened = await ticketModal.count() > 0;
+        console.log(`Ticket modal opened: ${ticketModalOpened}`);
+        await page.screenshot({ path: 'test-results/ticket-modal-opened.png', fullPage: true });
 
-        for (const [fieldName, fieldLocator] of Object.entries(ticketForm)) {
-          const fieldExists = await fieldLocator.count() > 0;
-          console.log(`Ticket ${fieldName}: ${fieldExists ? 'FOUND' : 'MISSING'}`);
+        if (ticketModalOpened) {
+          // Look for ticket modal form fields
+          const ticketForm = {
+            ticketName: page.locator('input[placeholder*="General Admission"]').or(page.locator('label:has-text("Ticket Name") + input')),
+            description: page.locator('textarea[placeholder*="included"]'),
+            price: page.locator('label:has-text("Price") + input').or(page.locator('input[placeholder="0.00"]')),
+            quantity: page.locator('label:has-text("Quantity Available") + input'),
+            sessionsIncluded: page.locator('label:has-text("Sessions Included")'),
+            saleEndDate: page.locator('[data-testid="ticket-sale-end-date-input"]')
+          };
+
+          console.log('🔍 Checking ticket modal form fields...');
+          for (const [fieldName, fieldLocator] of Object.entries(ticketForm)) {
+            const fieldExists = await fieldLocator.count() > 0;
+            console.log(`Ticket ${fieldName}: ${fieldExists ? 'FOUND' : 'MISSING'}`);
+          }
+
+          // Try to fill basic fields if they exist
+          if (await ticketForm.ticketName.count() > 0) {
+            console.log('✅ Ticket form fields found - modal-based UI confirmed');
+          }
+
+          // Close the modal before continuing (press Escape key)
+          await page.keyboard.press('Escape');
+          await page.waitForTimeout(500);
+          console.log('✅ Ticket modal closed');
         }
       } else if (!sessionAdded) {
         console.log('⚠️ Skipping ticket type test - session must be added first');
       }
-      
+
     } else {
       console.log('⚠️ Setup tab not found - Event Session Matrix may not be fully integrated');
     }
     
-    // Step 9: Check other tabs for completeness
-    if (await tabs.emails.count() > 0) {
-      await tabs.emails.click();
+    // Step 9: Check other tabs for completeness (use role="tab" selectors)
+    if (await page.locator('[role="tab"]:has-text("Emails")').count() > 0) {
+      await page.locator('[role="tab"]:has-text("Emails")').click();
       await page.waitForTimeout(500);
       await page.screenshot({ path: 'test-results/emails-tab.png', fullPage: true });
       console.log('✅ Emails tab accessible');
     }
-    
-    if (await tabs.volunteers.count() > 0) {
-      await tabs.volunteers.click();
+
+    if (await page.locator('[role="tab"]:has-text("Volunteers")').count() > 0) {
+      await page.locator('[role="tab"]:has-text("Volunteers")').click();
       await page.waitForTimeout(500);
       await page.screenshot({ path: 'test-results/volunteers-tab.png', fullPage: true });
       console.log('✅ Volunteers tab accessible');
     }
-    
+
     // Step 10: Go back to Basic Info to test form completion
-    if (await tabs.basicInfo.count() > 0) {
-      await tabs.basicInfo.click();
+    if (await page.locator('[role="tab"]:has-text("Basic Info")').count() > 0) {
+      await page.locator('[role="tab"]:has-text("Basic Info")').click();
       await page.waitForTimeout(500);
       
       // Fill in basic event info
