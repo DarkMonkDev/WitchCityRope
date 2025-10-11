@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { AuthHelpers } from './helpers/auth.helpers';
+import { EventHelpers } from './helpers/event.helpers';
 
 test.describe('Debug Event Form Fields - Field Display Investigation', () => {
   test('should display shortDescription and policies fields from API', async ({ page }) => {
@@ -7,10 +8,12 @@ test.describe('Debug Event Form Fields - Field Display Investigation', () => {
     console.log('🔐 Logging in as admin...');
     await AuthHelpers.loginAs(page, 'admin');
 
-    // Navigate to event that we KNOW has data
-    const eventId = '64535b73-74c3-4b95-a1a9-2b2db70c3ba0';
-    console.log(`📍 Navigating to event: ${eventId}`);
-    await page.goto(`http://localhost:5173/admin/events/${eventId}`);
+    // Fetch first event from database dynamically
+    const firstEvent = await EventHelpers.getFirstActiveEvent(page);
+    console.log(`📍 Using event from database: ${firstEvent.title} (ID: ${firstEvent.id})`);
+
+    // Navigate to event
+    await page.goto(`http://localhost:5173/admin/events/${firstEvent.id}`);
 
     // Wait for form to load
     console.log('⏳ Waiting for form to load...');

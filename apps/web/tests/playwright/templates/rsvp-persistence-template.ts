@@ -74,34 +74,33 @@ export async function testRsvpPersistence(
     // Action: Click RSVP button
     action: async (page: Page) => {
       const rsvpButton = page.locator(
-        '[data-testid="rsvp-button"], button:has-text("RSVP"), button:has-text("Register")'
+        '[data-testid="button-rsvp"], button:has-text("RSVP Now"), button:has-text("RSVP")'
       ).first();
 
       await expect(rsvpButton).toBeVisible({ timeout: 5000 });
       await rsvpButton.click();
       console.log('✅ Clicked RSVP button');
 
-      // Handle confirmation modal if it appears
-      await page.waitForTimeout(500);
-
-      const confirmModal = page.locator('[role="dialog"], .modal');
-      if (await confirmModal.count() > 0 && await confirmModal.isVisible()) {
-        const confirmButton = page.locator('button:has-text("Confirm"), button:has-text("Yes")').last();
-        await confirmButton.click();
-        console.log('✅ Confirmed RSVP');
-      }
+      // NO CONFIRMATION MODAL for RSVP
+      // RSVP happens immediately (see ParticipationCard.tsx line 293-296)
+      // Wait for UI to update
+      await page.waitForTimeout(1000);
     },
 
     // Verify UI success
     verifyUiSuccess: async (page: Page) => {
-      await verifySuccessMessage(page, successMessage);
+      // NO SUCCESS NOTIFICATION SHOWN
+      // RSVP mutation runs silently (see useParticipation.ts lines 40-70)
+      // Success is indicated by UI state change only
+
       await verifyNoErrorMessage(page);
 
-      // RSVP button should change to "Cancel RSVP" or be disabled
-      const cancelRsvpButton = page.locator('button:has-text("Cancel RSVP"), button:has-text("Withdraw")');
-      if (await cancelRsvpButton.count() > 0) {
-        console.log('✅ RSVP button changed to Cancel RSVP');
-      }
+      // RSVP button should change to "Cancel RSVP"
+      // Wait for UI to update via React Query cache
+      // Use .first() to handle multiple "Cancel RSVP" buttons (status box + potential modal)
+      const cancelRsvpButton = page.locator('button:has-text("Cancel RSVP"), button:has-text("Withdraw")').first();
+      await expect(cancelRsvpButton).toBeVisible({ timeout: 5000 });
+      console.log('✅ RSVP button changed to Cancel RSVP');
     },
 
     // Verify API response
@@ -208,27 +207,31 @@ export async function testCancelRsvpPersistence(
       await cancelButton.click();
       console.log('✅ Clicked Cancel RSVP button');
 
-      // Handle confirmation modal
+      // CANCELLATION HAS CONFIRMATION MODAL (see ParticipationCard.tsx line 298-307)
+      // Wait for modal to appear
       await page.waitForTimeout(500);
 
-      const confirmModal = page.locator('[role="dialog"], .modal');
-      if (await confirmModal.count() > 0 && await confirmModal.isVisible()) {
-        const confirmButton = page.locator('button:has-text("Confirm"), button:has-text("Yes")').last();
-        await confirmButton.click();
-        console.log('✅ Confirmed cancellation');
-      }
+      const confirmModal = page.locator('[role="dialog"]');
+      await expect(confirmModal).toBeVisible({ timeout: 5000 });
+
+      // Click the red "Cancel RSVP" button in modal (not "Keep RSVP")
+      const confirmButton = page.locator('button:has-text("Cancel RSVP")').last();
+      await confirmButton.click();
+      console.log('✅ Confirmed cancellation in modal');
     },
 
     // Verify UI success
     verifyUiSuccess: async (page: Page) => {
-      await verifySuccessMessage(page, successMessage);
+      // NO SUCCESS NOTIFICATION SHOWN
+      // Cancel RSVP mutation runs silently (see useParticipation.ts lines 72-120)
+      // Success is indicated by UI state change only
+
       await verifyNoErrorMessage(page);
 
-      // RSVP button should reappear
-      const rsvpButton = page.locator('button:has-text("RSVP"), button:has-text("Register")');
-      if (await rsvpButton.count() > 0) {
-        console.log('✅ RSVP button reappeared');
-      }
+      // RSVP button should reappear after cancellation
+      const rsvpButton = page.locator('[data-testid="button-rsvp"], button:has-text("RSVP Now"), button:has-text("RSVP")');
+      await expect(rsvpButton).toBeVisible({ timeout: 5000 });
+      console.log('✅ RSVP button reappeared');
     },
 
     // Verify API response
