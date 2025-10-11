@@ -556,6 +556,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                     This detailed description will be visible on the public events page
                   </Text>
                   <MantineTiptapEditor
+                    key={`fullDescription-${form.values.fullDescription?.substring(0, 50) || 'empty'}`}
                     value={form.values.fullDescription}
                     onChange={(content) => form.setFieldValue('fullDescription', content)}
                     minRows={10}
@@ -578,6 +579,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                     studio/admin, teachers cannot edit)
                   </Text>
                   <MantineTiptapEditor
+                    key={`policies-${form.values.policies?.substring(0, 50) || 'empty'}`}
                     value={form.values.policies}
                     onChange={(content) => form.setFieldValue('policies', content)}
                     minRows={5}

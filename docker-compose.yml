@@ -128,8 +128,8 @@ services:
   # ==========================================================================
   web:
     build:
-      context: ./apps/web
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./apps/web/Dockerfile
       args:
         BUILDKIT_INLINE_CACHE: 1
     container_name: witchcity-web

@@ -119,8 +119,11 @@ services:
   # ==========================================================================
   web:
     build:
-      context: ./apps/web
-      dockerfile: Dockerfile
+      # CRITICAL: Context MUST be repo root (.) for monorepo structure
+      # Dockerfile expects to COPY from apps/web/ and packages/ relative to repo root
+      # DO NOT change to ./apps/web - it will break the build!
+      context: .
+      dockerfile: ./apps/web/Dockerfile
       target: development  # Multi-stage development target
       args:
         BUILDKIT_INLINE_CACHE: 1
