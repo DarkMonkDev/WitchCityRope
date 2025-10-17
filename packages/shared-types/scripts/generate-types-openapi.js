@@ -43,9 +43,9 @@ async function generateTypes() {
     // Generate types using openapi-typescript
     console.log('🏗️ Generating types with openapi-typescript...');
     
-    const swaggerSource = useTestFile 
+    const swaggerSource = useTestFile
         ? path.join(__dirname, '../test-swagger.json')
-        : `http://localhost:${apiPort}/swagger/v1/swagger.json`;
+        : `http://localhost:${apiPort}/openapi/v1.json`;
     
     const outputPath = path.join(__dirname, '../src/generated/api-types.ts');
     
@@ -111,8 +111,8 @@ export type LoginResponse = schemas['LoginResponse'];
 export type RegisterRequest = schemas['RegisterRequest'];
 export type AuthUserResponse = schemas['AuthUserResponse'];
 export type UpdateEventRequest = schemas['UpdateEventRequest'];
-export type EventDtoListApiResponse = schemas['EventDtoListApiResponse'];
-export type EventDtoApiResponse = schemas['EventDtoApiResponse'];
+export type ApiResponseOfListOfEventDto = schemas['ApiResponseOfListOfEventDto'];
+export type ApiResponseOfEventDto = schemas['ApiResponseOfEventDto'];
 
 // Dashboard types
 export type AdminDashboardResponse = schemas['AdminDashboardResponse'];
@@ -194,8 +194,8 @@ import type {
   RegisterRequest,
   AuthUserResponse,
   UpdateEventRequest,
-  EventDtoListApiResponse,
-  EventDtoApiResponse,
+  ApiResponseOfListOfEventDto,
+  ApiResponseOfEventDto,
   AdminDashboardResponse,
   CreateIncidentRequest,
   SubmissionResponse,
@@ -303,16 +303,16 @@ class ApiClient {
   }
 
   // Events endpoints
-  async getEvents(): Promise<EventDtoListApiResponse> {
-    return this.request<EventDtoListApiResponse>('/api/events');
+  async getEvents(): Promise<ApiResponseOfListOfEventDto> {
+    return this.request<ApiResponseOfListOfEventDto>('/api/events');
   }
 
-  async getEvent(id: string): Promise<EventDtoApiResponse> {
-    return this.request<EventDtoApiResponse>(\`/api/events/\${id}\`);
+  async getEvent(id: string): Promise<ApiResponseOfEventDto> {
+    return this.request<ApiResponseOfEventDto>(\`/api/events/\${id}\`);
   }
 
-  async updateEvent(id: string, event: UpdateEventRequest): Promise<EventDtoApiResponse> {
-    return this.request<EventDtoApiResponse>(\`/api/events/\${id}\`, {
+  async updateEvent(id: string, event: UpdateEventRequest): Promise<ApiResponseOfEventDto> {
+    return this.request<ApiResponseOfEventDto>(\`/api/events/\${id}\`, {
       method: 'PUT',
       body: JSON.stringify(event),
     });

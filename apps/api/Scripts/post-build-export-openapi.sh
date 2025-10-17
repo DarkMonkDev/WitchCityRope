@@ -10,8 +10,8 @@ echo "📤 Post-build: Exporting OpenAPI specification..."
 if curl -s -f "http://localhost:5655/health-check" > /dev/null 2>&1; then
     echo "✅ API detected at http://localhost:5655"
 
-    # Export OpenAPI spec
-    curl -s -f "http://localhost:5655/swagger/v1/swagger.json" -o "openapi.json"
+    # Export OpenAPI spec (Microsoft's native endpoint)
+    curl -s -f "http://localhost:5655/openapi/v1.json" -o "openapi.json"
 
     if [ $? -eq 0 ]; then
         echo "✅ OpenAPI spec exported to openapi.json"

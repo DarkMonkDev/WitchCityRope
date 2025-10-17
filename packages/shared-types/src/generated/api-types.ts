@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/api/admin/users": {
+    "/api/health": {
         parameters: {
             query?: never;
             header?: never;
@@ -12,10 +12,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get paginated list of users (admin only)
-         * @description Returns a paginated list of users with optional filtering and sorting
+         * Get basic API health status
+         * @description Returns basic health information including database connectivity and user count
          */
-        get: operations["GetUsers"];
+        get: operations["GetHealth"];
         put?: never;
         post?: never;
         delete?: never;
@@ -24,7 +24,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/admin/users/{id}": {
+    "/api/health/detailed": {
         parameters: {
             query?: never;
             header?: never;
@@ -32,15 +32,11 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get user by ID (admin only)
-         * @description Returns detailed user information by user ID
+         * Get detailed API health information
+         * @description Returns comprehensive health metrics including database version and active user counts
          */
-        get: operations["GetUser"];
-        /**
-         * Update user by ID (admin only)
-         * @description Updates user information including role, status, and profile data
-         */
-        put: operations["UpdateUser"];
+        get: operations["GetDetailedHealth"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -48,7 +44,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/admin/events/{eventId}/participations": {
+    "/health": {
         parameters: {
             query?: never;
             header?: never;
@@ -56,10 +52,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get all participations for an event (admin only)
-         * @description Returns all RSVPs and ticket purchases for the specified event. Admin role required.
+         * Legacy health check endpoint
+         * @description Simple health check for compatibility with existing monitoring
          */
-        get: operations["GetEventParticipations"];
+        get: operations["GetLegacyHealth"];
         put?: never;
         post?: never;
         delete?: never;
@@ -228,6 +224,510 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all events
+         * @description Returns events from the database. Use ?includeUnpublished=true for admin access to draft events. Requires Administrator role for unpublished events.
+         */
+        get: operations["GetEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get single event by ID
+         * @description Returns a specific event by its unique identifier
+         */
+        get: operations["GetEvent"];
+        /**
+         * Update an existing event
+         * @description Updates an event with the provided data. Supports partial updates (only non-null fields will be updated). Business rules: Cannot update past events, cannot reduce capacity below current attendance.
+         */
+        put: operations["UpdateEvent"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get current user profile
+         * @description Returns the current user's profile information based on JWT token
+         */
+        get: operations["GetUserProfile"];
+        /**
+         * Update current user profile
+         * @description Updates the current user's profile information (scene name, pronouns)
+         */
+        put: operations["UpdateUserProfile"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/user/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get current user profile (singular endpoint)
+         * @description Returns the current user's profile information based on JWT token
+         */
+        get: operations["GetUserProfileSingular"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get paginated list of users (admin only)
+         * @description Returns a paginated list of users with optional filtering and sorting
+         */
+        get: operations["GetUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get user by ID (admin only)
+         * @description Returns detailed user information by user ID
+         */
+        get: operations["GetUser"];
+        /**
+         * Update user by ID (admin only)
+         * @description Updates user information including role, status, and profile data
+         */
+        put: operations["UpdateUser"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/by-role/{role}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get users by role
+         * @description Get list of users filtered by role (e.g., 'Teacher', 'Admin') for dropdown options
+         */
+        get: operations["GetUsersByRole"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/{userId}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get user's registered events
+         * @description Returns list of events the user has registered for or purchased tickets for. Excludes past events by default.
+         */
+        get: operations["GetUserRegisteredEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/{userId}/vetting-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get user's vetting status
+         * @description Returns the user's current vetting status with display message for alert box
+         */
+        get: operations["GetUserDashboardVettingStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/{userId}/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get user profile
+         * @description Returns the user's profile information for settings page
+         */
+        get: operations["GetUserDashboardProfile"];
+        /**
+         * Update user profile
+         * @description Updates the user's profile information
+         */
+        put: operations["UpdateUserDashboardProfile"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/{userId}/change-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Change user password
+         * @description Changes the user's password after verifying current password
+         */
+        post: operations["ChangeUserDashboardPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{eventId}/participation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get user's participation status for an event
+         * @description Returns enhanced participation status with hasRSVP/hasTicket flags, nested RSVP/ticket details, and capacity information
+         */
+        get: operations["GetParticipationStatus"];
+        put?: never;
+        post?: never;
+        /**
+         * Cancel participation in event
+         * @description Cancels the user's participation (RSVP or ticket) in the specified event
+         */
+        delete: operations["CancelParticipation"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{eventId}/rsvp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create RSVP for social event
+         * @description Creates an RSVP for a social event. Blocked for users with OnHold, Denied, or Withdrawn vetting status.
+         */
+        post: operations["CreateRSVP"];
+        /**
+         * Cancel RSVP (backward compatibility)
+         * @description Cancels the user's RSVP. Alias for cancelling participation.
+         */
+        delete: operations["CancelRSVP"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{eventId}/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Purchase ticket for class event
+         * @description Purchases a ticket for a class event. Blocked for users with OnHold, Denied, or Withdrawn vetting status.
+         */
+        post: operations["PurchaseTicket"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/user/participations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get user's event participations
+         * @description Returns all current participations (RSVPs and tickets) for the authenticated user
+         */
+        get: operations["GetUserParticipations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/events/{eventId}/participations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all participations for an event (admin only)
+         * @description Returns all RSVPs and ticket purchases for the specified event. Admin role required.
+         */
+        get: operations["GetEventParticipations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/test-helpers/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create test user for E2E testing
+         * @description Programmatically create a user with specific properties for testing. ONLY available in Development/Test.
+         */
+        post: operations["CreateTestUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/test-helpers/users/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete test user for cleanup
+         * @description Delete a test user by ID. Used in afterEach/afterAll hooks. ONLY available in Development/Test.
+         */
+        delete: operations["DeleteTestUser"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/test-helpers/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Check if test helpers are available
+         * @description Returns 200 if test helper endpoints are enabled (Development/Test only)
+         */
+        get: operations["TestHelpersHealth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/safety/incidents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit safety incident report
+         * @description Submit a new safety incident report (anonymous or identified)
+         */
+        post: operations["SubmitIncident"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/safety/incidents/{referenceNumber}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get incident status for tracking
+         * @description Get current status of incident by reference number (public access)
+         */
+        get: operations["GetIncidentStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/safety/admin/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get safety team dashboard data
+         * @description Get dashboard statistics and recent incidents for safety team
+         */
+        get: operations["GetSafetyDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/safety/admin/incidents/{incidentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get detailed incident information
+         * @description Get full incident details with decrypted data for safety team
+         */
+        get: operations["GetIncidentDetail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/safety/my-reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get user's incident reports
+         * @description Get list of incident reports submitted by current user
+         */
+        get: operations["GetUserReports"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/checkin/events/{eventId}/attendees": {
         parameters: {
             query?: never;
@@ -340,812 +840,6 @@ export interface paths {
          * @description Returns the number of pending offline operations for the current user
          */
         get: operations["GetPendingSyncCount"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/dashboard": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get current user's dashboard data
-         * @description Returns the current user's dashboard including profile info and vetting status
-         */
-        get: operations["GetUserDashboard"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/dashboard/events": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get current user's upcoming events
-         * @description Returns the current user's upcoming events they are registered for
-         */
-        get: operations["GetUserEvents"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/dashboard/statistics": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get current user's membership statistics
-         * @description Returns the current user's attendance history and membership metrics
-         */
-        get: operations["GetUserStatistics"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/events": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get all events
-         * @description Returns events from the database. Use ?includeUnpublished=true for admin access to draft events. Requires Administrator role for unpublished events.
-         */
-        get: operations["GetEvents"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/events/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get single event by ID
-         * @description Returns a specific event by its unique identifier
-         */
-        get: operations["GetEvent"];
-        /**
-         * Update an existing event
-         * @description Updates an event with the provided data. Supports partial updates (only non-null fields will be updated). Business rules: Cannot update past events, cannot reduce capacity below current attendance.
-         */
-        put: operations["UpdateEvent"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/health": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get basic API health status
-         * @description Returns basic health information including database connectivity and user count
-         */
-        get: operations["GetHealth"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/health/detailed": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get detailed API health information
-         * @description Returns comprehensive health metrics including database version and active user counts
-         */
-        get: operations["GetDetailedHealth"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/health": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Legacy health check endpoint
-         * @description Simple health check for compatibility with existing monitoring
-         */
-        get: operations["GetLegacyHealth"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/events/{eventId}/participation": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get user's participation status for an event
-         * @description Returns the user's current participation status (RSVP or ticket) for the specified event
-         */
-        get: operations["GetParticipationStatus"];
-        put?: never;
-        post?: never;
-        /**
-         * Cancel participation in event
-         * @description Cancels the user's participation (RSVP or ticket) in the specified event
-         */
-        delete: operations["CancelParticipation"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/events/{eventId}/rsvp": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Create RSVP for social event
-         * @description Creates an RSVP for a social event. Blocked for users with OnHold, Denied, or Withdrawn vetting status.
-         */
-        post: operations["CreateRSVP"];
-        /**
-         * Cancel RSVP (backward compatibility)
-         * @description Cancels the user's RSVP. Alias for cancelling participation.
-         */
-        delete: operations["CancelRSVP"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/events/{eventId}/tickets": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Purchase ticket for class event
-         * @description Purchases a ticket for a class event. Blocked for users with OnHold, Denied, or Withdrawn vetting status.
-         */
-        post: operations["PurchaseTicket"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/user/participations": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get user's event participations
-         * @description Returns all current participations (RSVPs and tickets) for the authenticated user
-         */
-        get: operations["GetUserParticipations"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/payments/process": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["ProcessPaymentApiRequest"];
-                    "text/json": components["schemas"]["ProcessPaymentApiRequest"];
-                    "application/*+json": components["schemas"]["ProcessPaymentApiRequest"];
-                };
-            };
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["PaymentResponse"];
-                        "application/json": components["schemas"]["PaymentResponse"];
-                        "text/json": components["schemas"]["PaymentResponse"];
-                    };
-                };
-                /** @description Bad Request */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ValidationProblemDetails"];
-                        "application/json": components["schemas"]["ValidationProblemDetails"];
-                        "text/json": components["schemas"]["ValidationProblemDetails"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-                /** @description Internal Server Error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/payments/{paymentId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    paymentId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["PaymentResponse"];
-                        "application/json": components["schemas"]["PaymentResponse"];
-                        "text/json": components["schemas"]["PaymentResponse"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/payments/registration/{eventRegistrationId}/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    eventRegistrationId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["PaymentStatusResponse"];
-                        "application/json": components["schemas"]["PaymentStatusResponse"];
-                        "text/json": components["schemas"]["PaymentStatusResponse"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/payments/{paymentId}/refund": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    paymentId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["ProcessRefundApiRequest"];
-                    "text/json": components["schemas"]["ProcessRefundApiRequest"];
-                    "application/*+json": components["schemas"]["ProcessRefundApiRequest"];
-                };
-            };
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["RefundResponse"];
-                        "application/json": components["schemas"]["RefundResponse"];
-                        "text/json": components["schemas"]["RefundResponse"];
-                    };
-                };
-                /** @description Bad Request */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ValidationProblemDetails"];
-                        "application/json": components["schemas"]["ValidationProblemDetails"];
-                        "text/json": components["schemas"]["ValidationProblemDetails"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-                /** @description Forbidden */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/Protected/welcome": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ProtectedWelcomeResponse"];
-                        "application/json": components["schemas"]["ProtectedWelcomeResponse"];
-                        "text/json": components["schemas"]["ProtectedWelcomeResponse"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ObjectApiResponse"];
-                        "application/json": components["schemas"]["ObjectApiResponse"];
-                        "text/json": components["schemas"]["ObjectApiResponse"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/Protected/profile": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["AuthUserResponseApiResponse"];
-                        "application/json": components["schemas"]["AuthUserResponseApiResponse"];
-                        "text/json": components["schemas"]["AuthUserResponseApiResponse"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ObjectApiResponse"];
-                        "application/json": components["schemas"]["ObjectApiResponse"];
-                        "text/json": components["schemas"]["ObjectApiResponse"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/safety/incidents": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Submit safety incident report
-         * @description Submit a new safety incident report (anonymous or identified)
-         */
-        post: operations["SubmitIncident"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/safety/incidents/{referenceNumber}/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get incident status for tracking
-         * @description Get current status of incident by reference number (public access)
-         */
-        get: operations["GetIncidentStatus"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/safety/admin/dashboard": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get safety team dashboard data
-         * @description Get dashboard statistics and recent incidents for safety team
-         */
-        get: operations["GetSafetyDashboard"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/safety/admin/incidents/{incidentId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get detailed incident information
-         * @description Get full incident details with decrypted data for safety team
-         */
-        get: operations["GetIncidentDetail"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/safety/my-reports": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get user's incident reports
-         * @description Get list of incident reports submitted by current user
-         */
-        get: operations["GetUserReports"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/users/profile": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get current user profile
-         * @description Returns the current user's profile information based on JWT token
-         */
-        get: operations["GetUserProfile"];
-        /**
-         * Update current user profile
-         * @description Updates the current user's profile information (scene name, pronouns)
-         */
-        put: operations["UpdateUserProfile"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/user/profile": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get current user profile (singular endpoint)
-         * @description Returns the current user's profile information based on JWT token
-         */
-        get: operations["GetUserProfileSingular"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/users/by-role/{role}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get users by role
-         * @description Get list of users filtered by role (e.g., 'Teacher', 'Admin') for dropdown options
-         */
-        get: operations["GetUsersByRole"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1409,6 +1103,300 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/payments/process": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ProcessPaymentApiRequest"];
+                    "text/json": components["schemas"]["ProcessPaymentApiRequest"];
+                    "application/*+json": components["schemas"]["ProcessPaymentApiRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["PaymentResponse"];
+                        "application/json": components["schemas"]["PaymentResponse"];
+                        "text/json": components["schemas"]["PaymentResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ValidationProblemDetails"];
+                        "application/json": components["schemas"]["ValidationProblemDetails"];
+                        "text/json": components["schemas"]["ValidationProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/payments/{paymentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    paymentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["PaymentResponse"];
+                        "application/json": components["schemas"]["PaymentResponse"];
+                        "text/json": components["schemas"]["PaymentResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/payments/registration/{eventRegistrationId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    eventRegistrationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["PaymentStatusResponse"];
+                        "application/json": components["schemas"]["PaymentStatusResponse"];
+                        "text/json": components["schemas"]["PaymentStatusResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/payments/{paymentId}/refund": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    paymentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ProcessRefundApiRequest"];
+                    "text/json": components["schemas"]["ProcessRefundApiRequest"];
+                    "application/*+json": components["schemas"]["ProcessRefundApiRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["RefundResponse"];
+                        "application/json": components["schemas"]["RefundResponse"];
+                        "text/json": components["schemas"]["RefundResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ValidationProblemDetails"];
+                        "application/json": components["schemas"]["ValidationProblemDetails"];
+                        "text/json": components["schemas"]["ValidationProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/webhooks/paypal": {
         parameters: {
             query?: never;
@@ -1432,7 +1420,9 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": unknown;
+                    };
                 };
                 /** @description Bad Request */
                 400: {
@@ -1448,7 +1438,9 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": unknown;
+                    };
                 };
             };
         };
@@ -1491,6 +1483,102 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/Protected/welcome": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProtectedWelcomeResponse"];
+                        "application/json": components["schemas"]["ProtectedWelcomeResponse"];
+                        "text/json": components["schemas"]["ProtectedWelcomeResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseOfObject"];
+                        "application/json": components["schemas"]["ApiResponseOfObject"];
+                        "text/json": components["schemas"]["ApiResponseOfObject"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/Protected/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseOfAuthUserResponse"];
+                        "application/json": components["schemas"]["ApiResponseOfAuthUserResponse"];
+                        "text/json": components["schemas"]["ApiResponseOfAuthUserResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ApiResponseOfObject"];
+                        "application/json": components["schemas"]["ApiResponseOfObject"];
+                        "text/json": components["schemas"]["ApiResponseOfObject"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1498,40 +1586,193 @@ export interface components {
         ActionItem: {
             /** Format: uuid */
             incidentId?: string;
-            referenceNumber?: string | null;
-            actionNeeded?: string | null;
+            referenceNumber?: string;
+            actionNeeded?: string;
             priority?: components["schemas"]["IncidentSeverity"];
             /** Format: date-time */
             dueDate?: string;
         };
         AdminDashboardResponse: {
             statistics?: components["schemas"]["SafetyStatistics"];
-            recentIncidents?: components["schemas"]["IncidentSummaryResponse"][] | null;
-            pendingActions?: components["schemas"]["ActionItem"][] | null;
+            recentIncidents?: components["schemas"]["IncidentSummaryResponse"][];
+            pendingActions?: components["schemas"]["ActionItem"][];
+        };
+        ApiResponseOfApplicationDetailResponse: {
+            success?: boolean;
+            data?: components["schemas"]["ApplicationDetailResponse"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfApplicationStatusResponse: {
+            success?: boolean;
+            data?: components["schemas"]["ApplicationStatusResponse"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfApplicationSubmissionResponse: {
+            success?: boolean;
+            data?: components["schemas"]["ApplicationSubmissionResponse"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfAuthUserResponse: {
+            success?: boolean;
+            data?: components["schemas"]["AuthUserResponse2"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfboolean: {
+            success?: boolean;
+            data?: boolean;
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfEventDto: {
+            success?: boolean;
+            data?: components["schemas"]["EventDto2"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfListOfEventDto: {
+            success?: boolean;
+            data?: components["schemas"]["EventDto"][] | null;
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfListOfEventParticipationDto: {
+            success?: boolean;
+            data?: components["schemas"]["EventParticipationDto"][] | null;
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfListOfUserEventDto: {
+            success?: boolean;
+            data?: components["schemas"]["UserEventDto"][] | null;
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfMyApplicationStatusResponse: {
+            success?: boolean;
+            data?: components["schemas"]["MyApplicationStatusResponse"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfNoteResponse: {
+            success?: boolean;
+            data?: components["schemas"]["NoteResponse"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfObject: {
+            success?: boolean;
+            data?: unknown;
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfPagedResultOfApplicationSummaryDto: {
+            success?: boolean;
+            data?: components["schemas"]["PagedResultOfApplicationSummaryDto"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfReviewDecisionResponse: {
+            success?: boolean;
+            data?: components["schemas"]["ReviewDecisionResponse"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfSimplifiedApplicationResponse: {
+            success?: boolean;
+            data?: components["schemas"]["SimplifiedApplicationResponse"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfUserProfileDto: {
+            success?: boolean;
+            data?: components["schemas"]["UserProfileDto"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfVettingStatusDto: {
+            success?: boolean;
+            data?: components["schemas"]["VettingStatusDto"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
         };
         ApplicationDetailResponse: {
             /** Format: uuid */
             id?: string;
-            applicationNumber?: string | null;
-            status?: string | null;
+            applicationNumber?: string;
+            status?: string;
             /** Format: date-time */
             submittedAt?: string;
             /** Format: date-time */
             lastActivityAt?: string | null;
-            fullName?: string | null;
-            sceneName?: string | null;
+            fullName?: string;
+            sceneName?: string;
             pronouns?: string | null;
-            email?: string | null;
+            email?: string;
             phone?: string | null;
-            experienceLevel?: string | null;
+            experienceLevel?: string;
             /** Format: int32 */
             yearsExperience?: number;
-            experienceDescription?: string | null;
-            safetyKnowledge?: string | null;
-            consentUnderstanding?: string | null;
-            whyJoinCommunity?: string | null;
-            skillsInterests?: string[] | null;
-            expectationsGoals?: string | null;
+            experienceDescription?: string;
+            safetyKnowledge?: string;
+            consentUnderstanding?: string;
+            whyJoinCommunity?: string;
+            skillsInterests?: string[];
+            expectationsGoals?: string;
             agreesToGuidelines?: boolean;
             isAnonymous?: boolean;
             agreesToTerms?: boolean;
@@ -1543,44 +1784,35 @@ export interface components {
             priority?: number;
             /** Format: date-time */
             interviewScheduledFor?: string | null;
-            references?: components["schemas"]["ReferenceDetailDto"][] | null;
-            notes?: components["schemas"]["ApplicationNoteDto"][] | null;
-            decisions?: components["schemas"]["ReviewDecisionDto"][] | null;
-            workflowHistory?: components["schemas"]["WorkflowHistoryDto"][] | null;
+            references?: components["schemas"]["ReferenceDetailDto"][];
+            notes?: components["schemas"]["ApplicationNoteDto"][];
+            decisions?: components["schemas"]["ReviewDecisionDto"][];
+            workflowHistory?: components["schemas"]["WorkflowHistoryDto"][];
             adminNotes?: string | null;
-            tags?: string[] | null;
-            attachments?: string[] | null;
+            tags?: string[];
+            attachments?: string[];
             /** Format: date-time */
             updatedAt?: string;
             /** Format: uuid */
             applicationId?: string;
-        };
-        ApplicationDetailResponseApiResponse: {
-            success?: boolean;
-            data?: components["schemas"]["ApplicationDetailResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
+        } | null;
         ApplicationFilterRequest: {
             /** Format: int32 */
             page?: number;
             /** Format: int32 */
             pageSize?: number;
-            statusFilters?: string[] | null;
+            statusFilters?: string[];
             onlyMyAssignments?: boolean | null;
             onlyUnassigned?: boolean | null;
             /** Format: uuid */
             assignedReviewerId?: string | null;
-            priorityFilters?: number[] | null;
-            experienceLevelFilters?: number[] | null;
+            priorityFilters?: number[];
+            experienceLevelFilters?: number[];
             /** Format: int32 */
             minYearsExperience?: number | null;
             /** Format: int32 */
             maxYearsExperience?: number | null;
-            skillsFilters?: string[] | null;
+            skillsFilters?: string[];
             /** Format: date-time */
             submittedAfter?: string | null;
             /** Format: date-time */
@@ -1592,17 +1824,17 @@ export interface components {
             searchQuery?: string | null;
             onlyCompleteReferences?: boolean | null;
             onlyPendingReferences?: boolean | null;
-            sortBy?: string | null;
-            sortDirection?: string | null;
+            sortBy?: string;
+            sortDirection?: string;
         };
         ApplicationNoteDto: {
             /** Format: uuid */
             id?: string;
-            content?: string | null;
-            type?: string | null;
+            content?: string;
+            type?: string;
             isPrivate?: boolean;
-            tags?: string[] | null;
-            reviewerName?: string | null;
+            tags?: string[];
+            reviewerName?: string;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -1617,7 +1849,7 @@ export interface components {
             decisionMade?: boolean;
             /** Format: int32 */
             progressPercentage?: number;
-            currentPhase?: string | null;
+            currentPhase?: string;
         };
         ApplicationReferenceStatus: {
             /** Format: int32 */
@@ -1633,9 +1865,9 @@ export interface components {
         ApplicationStatusInfo: {
             /** Format: uuid */
             applicationId?: string;
-            applicationNumber?: string | null;
-            status?: string | null;
-            statusDescription?: string | null;
+            applicationNumber?: string;
+            status?: string;
+            statusDescription?: string;
             /** Format: date-time */
             submittedAt?: string;
             /** Format: date-time */
@@ -1643,64 +1875,46 @@ export interface components {
             nextSteps?: string | null;
             /** Format: int32 */
             estimatedDaysRemaining?: number | null;
-        };
+        } | null;
         ApplicationStatusResponse: {
-            applicationNumber?: string | null;
-            status?: string | null;
+            applicationNumber?: string;
+            status?: string;
             /** Format: date-time */
             submittedAt?: string;
-            statusDescription?: string | null;
+            statusDescription?: string;
             /** Format: date-time */
             lastUpdateAt?: string | null;
             /** Format: int32 */
             estimatedDaysRemaining?: number | null;
             progress?: components["schemas"]["ApplicationProgressSummary"];
-            recentUpdates?: components["schemas"]["StatusUpdateSummary"][] | null;
-        };
-        ApplicationStatusResponseApiResponse: {
-            success?: boolean;
-            data?: components["schemas"]["ApplicationStatusResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
+            recentUpdates?: components["schemas"]["StatusUpdateSummary"][];
+        } | null;
         ApplicationSubmissionResponse: {
             /** Format: uuid */
             id?: string;
             /** Format: uuid */
             applicationId?: string;
-            applicationNumber?: string | null;
-            statusToken?: string | null;
+            applicationNumber?: string;
+            statusToken?: string;
             /** Format: date-time */
             submittedAt?: string;
-            confirmationMessage?: string | null;
+            confirmationMessage?: string;
             /** Format: int32 */
             estimatedReviewDays?: number;
-            nextSteps?: string | null;
-            referenceStatuses?: components["schemas"]["ReferenceStatusSummary"][] | null;
-        };
-        ApplicationSubmissionResponseApiResponse: {
-            success?: boolean;
-            data?: components["schemas"]["ApplicationSubmissionResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
+            nextSteps?: string;
+            referenceStatuses?: components["schemas"]["ReferenceStatusSummary"][];
+        } | null;
         ApplicationSummaryDto: {
             /** Format: uuid */
             id?: string;
-            applicationNumber?: string | null;
-            status?: string | null;
+            applicationNumber?: string;
+            status?: string;
             /** Format: date-time */
             submittedAt?: string;
             /** Format: date-time */
             lastActivityAt?: string | null;
-            sceneName?: string | null;
-            experienceLevel?: string | null;
+            sceneName?: string;
+            experienceLevel?: string;
             /** Format: int32 */
             yearsExperience?: number;
             isAnonymous?: boolean;
@@ -1716,35 +1930,13 @@ export interface components {
             hasPendingActions?: boolean;
             /** Format: date-time */
             interviewScheduledFor?: string | null;
-            skillsTags?: string[] | null;
-        };
-        ApplicationSummaryDtoPagedResult: {
-            items?: components["schemas"]["ApplicationSummaryDto"][] | null;
-            /** Format: int32 */
-            totalCount?: number;
-            /** Format: int32 */
-            page?: number;
-            /** Format: int32 */
-            pageSize?: number;
-            /** Format: int32 */
-            totalPages?: number;
-            hasPreviousPage?: boolean;
-            hasNextPage?: boolean;
-        };
-        ApplicationSummaryDtoPagedResultApiResponse: {
-            success?: boolean;
-            data?: components["schemas"]["ApplicationSummaryDtoPagedResult"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
+            skillsTags?: string[];
         };
         AuditLogDto: {
             /** Format: uuid */
             id?: string;
-            actionType?: string | null;
-            actionDescription?: string | null;
+            actionType?: string;
+            actionDescription?: string;
             /** Format: uuid */
             userId?: string | null;
             userName?: string | null;
@@ -1754,25 +1946,43 @@ export interface components {
         AuthUserResponse: {
             /** Format: uuid */
             id?: string;
-            email?: string | null;
-            sceneName?: string | null;
+            email?: string;
+            sceneName?: string;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
             lastLoginAt?: string | null;
-            role?: string | null;
-            roles?: string[] | null;
+            role?: string;
+            roles?: string[];
             isVetted?: boolean;
             isActive?: boolean;
         };
-        AuthUserResponseApiResponse: {
-            success?: boolean;
-            data?: components["schemas"]["AuthUserResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
+        AuthUserResponse2: {
+            /** Format: uuid */
+            id?: string;
+            email?: string;
+            sceneName?: string;
             /** Format: date-time */
-            timestamp?: string;
+            createdAt?: string;
+            /** Format: date-time */
+            lastLoginAt?: string | null;
+            role?: string;
+            roles?: string[];
+            isVetted?: boolean;
+            isActive?: boolean;
+        } | null;
+        CapacityInfoDto: {
+            /** Format: int32 */
+            current?: number;
+            /** Format: int32 */
+            total?: number;
+            /** Format: int32 */
+            available?: number;
+        } | null;
+        ChangePasswordDto: {
+            currentPassword: string;
+            newPassword: string;
+            confirmPassword: string;
         };
         CheckInRequest: {
             attendeeId: string;
@@ -1787,9 +1997,7 @@ export interface components {
             fullName: string;
             sceneName: string;
             pronouns?: string | null;
-            /** Format: email */
             email: string;
-            /** Format: tel */
             phone?: string | null;
             /** Format: int32 */
             experienceLevel: number;
@@ -1813,8 +2021,8 @@ export interface components {
             severity?: components["schemas"]["IncidentSeverity"];
             /** Format: date-time */
             incidentDate?: string;
-            location?: string | null;
-            description?: string | null;
+            location?: string;
+            description?: string;
             involvedParties?: string | null;
             witnesses?: string | null;
             isAnonymous?: boolean;
@@ -1827,12 +2035,25 @@ export interface components {
             /** Format: int32 */
             type: number;
             isPrivate?: boolean;
-            tags?: string[] | null;
+            tags?: string[];
         };
         CreateRSVPRequest: {
             /** Format: uuid */
             eventId: string;
             notes?: string | null;
+        };
+        CreateTestUserRequest: {
+            email: string;
+            password: string;
+            sceneName: string;
+            firstName?: string | null;
+            lastName?: string | null;
+            role?: string | null;
+            /** Format: date-time */
+            dateOfBirth?: string | null;
+            isVetted?: boolean;
+            bio?: string | null;
+            pronouns?: string | null;
         };
         CreateTicketPurchaseRequest: {
             /** Format: uuid */
@@ -1840,46 +2061,40 @@ export interface components {
             notes?: string | null;
             paymentMethodId?: string | null;
         };
-        DashboardEventDto: {
-            /** Format: uuid */
-            id?: string;
-            title?: string | null;
-            /** Format: date-time */
-            startDate?: string;
-            /** Format: date-time */
-            endDate?: string;
-            location?: string | null;
-            eventType?: string | null;
-            instructorName?: string | null;
-            registrationStatus?: string | null;
-            /** Format: uuid */
-            ticketId?: string;
-            confirmationCode?: string | null;
-        };
         DetailedHealthResponse: {
-            status?: string | null;
+            databaseVersion?: string;
+            /** Format: int32 */
+            activeUserCount?: number;
+            environment?: string;
+            status?: string;
             /** Format: date-time */
             timestamp?: string;
             databaseConnected?: boolean;
             /** Format: int32 */
             userCount?: number;
-            version?: string | null;
-            databaseVersion?: string | null;
-            /** Format: int32 */
-            activeUserCount?: number;
-            environment?: string | null;
+            version?: string;
+        };
+        EnhancedParticipationStatusDto: {
+            hasRSVP?: boolean;
+            hasTicket?: boolean;
+            canRSVP?: boolean;
+            canPurchaseTicket?: boolean;
+            rsvp?: components["schemas"]["RsvpDetailsDto"];
+            ticket?: components["schemas"]["TicketDetailsDto"];
+            capacity?: components["schemas"]["CapacityInfoDto"];
         };
         EventDto: {
-            id?: string | null;
-            title?: string | null;
+            id?: string;
+            title?: string;
             shortDescription?: string | null;
-            description?: string | null;
+            description?: string;
+            policies?: string | null;
             /** Format: date-time */
             startDate?: string;
             /** Format: date-time */
             endDate?: string;
-            location?: string | null;
-            eventType?: string | null;
+            location?: string;
+            eventType?: string;
             /** Format: int32 */
             capacity?: number;
             isPublished?: boolean;
@@ -1889,36 +2104,44 @@ export interface components {
             currentRSVPs?: number;
             /** Format: int32 */
             currentTickets?: number;
-            sessions?: components["schemas"]["SessionDto"][] | null;
-            ticketTypes?: components["schemas"]["TicketTypeDto"][] | null;
-            volunteerPositions?: components["schemas"]["VolunteerPositionDto"][] | null;
-            teacherIds?: string[] | null;
+            sessions?: components["schemas"]["SessionDto"][];
+            ticketTypes?: components["schemas"]["TicketTypeDto"][];
+            volunteerPositions?: components["schemas"]["VolunteerPositionDto"][];
+            teacherIds?: string[];
         };
-        EventDtoApiResponse: {
-            success?: boolean;
-            data?: components["schemas"]["EventDto"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
+        EventDto2: {
+            id?: string;
+            title?: string;
+            shortDescription?: string | null;
+            description?: string;
+            policies?: string | null;
             /** Format: date-time */
-            timestamp?: string;
-        };
-        EventDtoListApiResponse: {
-            success?: boolean;
-            data?: components["schemas"]["EventDto"][] | null;
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
+            startDate?: string;
             /** Format: date-time */
-            timestamp?: string;
-        };
+            endDate?: string;
+            location?: string;
+            eventType?: string;
+            /** Format: int32 */
+            capacity?: number;
+            isPublished?: boolean;
+            /** Format: int32 */
+            registrationCount?: number;
+            /** Format: int32 */
+            currentRSVPs?: number;
+            /** Format: int32 */
+            currentTickets?: number;
+            sessions?: components["schemas"]["SessionDto"][];
+            ticketTypes?: components["schemas"]["TicketTypeDto"][];
+            volunteerPositions?: components["schemas"]["VolunteerPositionDto"][];
+            teacherIds?: string[];
+        } | null;
         EventParticipationDto: {
             /** Format: uuid */
             id?: string;
             /** Format: uuid */
             userId?: string;
-            userSceneName?: string | null;
-            userEmail?: string | null;
+            userSceneName?: string;
+            userEmail?: string;
             participationType?: components["schemas"]["ParticipationType"];
             status?: components["schemas"]["ParticipationStatus"];
             /** Format: date-time */
@@ -1927,28 +2150,19 @@ export interface components {
             canCancel?: boolean;
             metadata?: string | null;
         };
-        EventParticipationDtoListApiResponse: {
-            success?: boolean;
-            data?: components["schemas"]["EventParticipationDto"][] | null;
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
         HealthResponse: {
-            status?: string | null;
+            status?: string;
             /** Format: date-time */
             timestamp?: string;
             databaseConnected?: boolean;
             /** Format: int32 */
             userCount?: number;
-            version?: string | null;
+            version?: string;
         };
         IncidentResponse: {
             /** Format: uuid */
             id?: string;
-            referenceNumber?: string | null;
+            referenceNumber?: string;
             /** Format: uuid */
             reporterId?: string | null;
             reporterName?: string | null;
@@ -1957,8 +2171,8 @@ export interface components {
             incidentDate?: string;
             /** Format: date-time */
             reportedAt?: string;
-            location?: string | null;
-            description?: string | null;
+            location?: string;
+            description?: string;
             involvedParties?: string | null;
             witnesses?: string | null;
             contactEmail?: string | null;
@@ -1969,19 +2183,19 @@ export interface components {
             /** Format: uuid */
             assignedTo?: string | null;
             assignedUserName?: string | null;
-            auditTrail?: components["schemas"]["AuditLogDto"][] | null;
+            auditTrail?: components["schemas"]["AuditLogDto"][];
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
             updatedAt?: string;
         };
-        /** @enum {string} */
+        /** @enum {unknown} */
         IncidentSeverity: "Low" | "Medium" | "High" | "Critical";
-        /** @enum {string} */
+        /** @enum {unknown} */
         IncidentStatus: "New" | "InProgress" | "Resolved" | "Archived";
         IncidentStatusResponse: {
-            referenceNumber?: string | null;
-            status?: string | null;
+            referenceNumber?: string;
+            status?: string;
             /** Format: date-time */
             lastUpdated?: string;
             canProvideMoreInfo?: boolean;
@@ -1989,13 +2203,13 @@ export interface components {
         IncidentSummaryResponse: {
             /** Format: uuid */
             id?: string;
-            referenceNumber?: string | null;
+            referenceNumber?: string;
             severity?: components["schemas"]["IncidentSeverity"];
             /** Format: date-time */
             incidentDate?: string;
             /** Format: date-time */
             reportedAt?: string;
-            location?: string | null;
+            location?: string;
             isAnonymous?: boolean;
             status?: components["schemas"]["IncidentStatus"];
             /** Format: uuid */
@@ -2003,21 +2217,26 @@ export interface components {
             assignedUserName?: string | null;
         };
         LoginRequest: {
-            /** Format: email */
             email: string;
             password: string;
         };
         LoginResponse: {
-            token?: string | null;
+            token?: string;
             /** Format: date-time */
             expiresAt?: string;
             user?: components["schemas"]["AuthUserResponse"];
         };
         ManualEntryData: {
             name: string;
-            /** Format: email */
             email: string;
-            /** Format: tel */
+            phone: string;
+            dietaryRestrictions?: string | null;
+            accessibilityNeeds?: string | null;
+            hasCompletedWaiver?: boolean;
+        } | null;
+        ManualEntryData2: {
+            name: string;
+            email: string;
             phone: string;
             dietaryRestrictions?: string | null;
             accessibilityNeeds?: string | null;
@@ -2026,42 +2245,28 @@ export interface components {
         MyApplicationStatusResponse: {
             hasApplication?: boolean;
             application?: components["schemas"]["ApplicationStatusInfo"];
-        };
-        MyApplicationStatusResponseApiResponse: {
-            success?: boolean;
-            data?: components["schemas"]["MyApplicationStatusResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
+        } | null;
         NoteResponse: {
             /** Format: uuid */
             noteId?: string;
             /** Format: date-time */
             createdAt?: string;
-            confirmationMessage?: string | null;
-        };
-        NoteResponseApiResponse: {
-            success?: boolean;
-            data?: components["schemas"]["NoteResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ObjectApiResponse: {
-            success?: boolean;
-            data?: unknown;
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        /** @enum {string} */
+            confirmationMessage?: string;
+        } | null;
+        PagedResultOfApplicationSummaryDto: {
+            items?: components["schemas"]["ApplicationSummaryDto"][];
+            /** Format: int32 */
+            totalCount?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            pageSize?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            hasPreviousPage?: boolean;
+            hasNextPage?: boolean;
+        } | null;
+        /** @enum {unknown} */
         ParticipationStatus: "Active" | "Cancelled" | "Refunded" | "Waitlisted";
         ParticipationStatusDto: {
             /** Format: uuid */
@@ -2076,9 +2281,9 @@ export interface components {
             canCancel?: boolean;
             metadata?: string | null;
         };
-        /** @enum {string} */
+        /** @enum {unknown} */
         ParticipationType: "RSVP" | "Ticket";
-        /** @enum {string} */
+        /** @enum {unknown} */
         PaymentMethodType: "SavedCard" | "NewCard" | "BankTransfer" | "PayPal" | "Venmo";
         PaymentResponse: {
             /** Format: uuid */
@@ -2089,8 +2294,8 @@ export interface components {
             userId?: string;
             /** Format: double */
             amount?: number;
-            currency?: string | null;
-            displayAmount?: string | null;
+            currency?: string;
+            displayAmount?: string;
             /** Format: double */
             originalAmount?: number | null;
             /** Format: double */
@@ -2098,7 +2303,7 @@ export interface components {
             /** Format: double */
             discountAmount?: number | null;
             status?: components["schemas"]["PaymentStatus"];
-            statusDescription?: string | null;
+            statusDescription?: string;
             paymentMethodType?: components["schemas"]["PaymentMethodType"];
             /** Format: date-time */
             processedAt?: string | null;
@@ -2107,7 +2312,7 @@ export interface components {
             refundInfo?: components["schemas"]["RefundInfoResponse"];
             clientSecret?: string | null;
         };
-        /** @enum {string} */
+        /** @enum {unknown} */
         PaymentStatus: "Pending" | "Completed" | "Failed" | "Refunded" | "PartiallyRefunded";
         PaymentStatusResponse: {
             /** Format: uuid */
@@ -2115,12 +2320,12 @@ export interface components {
             /** Format: uuid */
             eventRegistrationId?: string;
             status?: components["schemas"]["PaymentStatus"];
-            statusDescription?: string | null;
+            statusDescription?: string;
             isCompleted?: boolean;
             isRefunded?: boolean;
             /** Format: double */
             amount?: number;
-            currency?: string | null;
+            currency?: string;
             /** Format: date-time */
             processedAt?: string | null;
         };
@@ -2140,15 +2345,13 @@ export interface components {
             status?: number | null;
             detail?: string | null;
             instance?: string | null;
-        } & {
-            [key: string]: unknown;
         };
         ProcessPaymentApiRequest: {
             /** Format: uuid */
             eventRegistrationId?: string;
             /** Format: double */
             originalAmount?: number;
-            currency?: string | null;
+            currency?: string;
             /** Format: double */
             slidingScalePercentage?: number;
             paymentMethodType?: components["schemas"]["PaymentMethodType"];
@@ -2160,25 +2363,21 @@ export interface components {
             paymentId?: string;
             /** Format: double */
             refundAmount?: number;
-            currency?: string | null;
-            refundReason?: string | null;
-            metadata?: {
-                [key: string]: unknown;
-            } | null;
+            currency?: string;
+            refundReason?: string;
+            metadata?: Record<string, never>;
         };
         ProtectedWelcomeResponse: {
-            message?: string | null;
+            message?: string;
             user?: components["schemas"]["AuthUserResponse"];
             /** Format: date-time */
             serverTime?: string;
             tokenClaims?: components["schemas"]["TokenClaims"];
         };
         PublicApplicationSubmissionRequest: {
-            /** Format: email */
             email: string;
             sceneName: string;
             realName: string;
-            /** Format: tel */
             phoneNumber: string;
             experience: string;
             interests: string;
@@ -2191,12 +2390,12 @@ export interface components {
         ReferenceDetailDto: {
             /** Format: uuid */
             id?: string;
-            name?: string | null;
-            email?: string | null;
-            relationship?: string | null;
+            name?: string;
+            email?: string;
+            relationship?: string;
             /** Format: int32 */
             order?: number;
-            status?: string | null;
+            status?: string;
             /** Format: date-time */
             contactedAt?: string | null;
             /** Format: date-time */
@@ -2207,26 +2406,25 @@ export interface components {
         };
         ReferenceRequest: {
             name: string;
-            /** Format: email */
             email: string;
             relationship: string;
             /** Format: int32 */
             order?: number;
         };
         ReferenceResponseDto: {
-            relationshipDuration?: string | null;
-            experienceAssessment?: string | null;
+            relationshipDuration?: string;
+            experienceAssessment?: string;
             safetyConcerns?: string | null;
-            communityReadiness?: string | null;
-            recommendation?: string | null;
+            communityReadiness?: string;
+            recommendation?: string;
             additionalComments?: string | null;
             /** Format: date-time */
             respondedAt?: string;
-        };
+        } | null;
         ReferenceStatusSummary: {
-            name?: string | null;
-            email?: string | null;
-            status?: string | null;
+            name?: string;
+            email?: string;
+            status?: string;
             /** Format: date-time */
             contactedAt?: string | null;
             /** Format: date-time */
@@ -2235,15 +2433,15 @@ export interface components {
         RefundInfoResponse: {
             /** Format: double */
             refundedAmount?: number;
-            currency?: string | null;
-            displayAmount?: string | null;
+            currency?: string;
+            displayAmount?: string;
             /** Format: date-time */
             refundedAt?: string | null;
             refundReason?: string | null;
             /** Format: int32 */
             refundCount?: number;
             isPartialRefund?: boolean;
-        };
+        } | null;
         RefundResponse: {
             /** Format: uuid */
             id?: string;
@@ -2251,23 +2449,22 @@ export interface components {
             originalPaymentId?: string;
             /** Format: double */
             refundAmount?: number;
-            currency?: string | null;
-            displayAmount?: string | null;
-            refundReason?: string | null;
+            currency?: string;
+            displayAmount?: string;
+            refundReason?: string;
             refundStatus?: components["schemas"]["RefundStatus"];
-            statusDescription?: string | null;
+            statusDescription?: string;
             /** Format: uuid */
             processedByUserId?: string;
-            processedByUserName?: string | null;
+            processedByUserName?: string;
             /** Format: date-time */
             processedAt?: string;
             /** Format: date-time */
             createdAt?: string;
         };
-        /** @enum {string} */
+        /** @enum {unknown} */
         RefundStatus: "Processing" | "Completed" | "Failed" | "Cancelled";
         RegisterRequest: {
-            /** Format: email */
             email: string;
             password: string;
             sceneName: string;
@@ -2275,8 +2472,8 @@ export interface components {
         ReviewDecisionDto: {
             /** Format: uuid */
             id?: string;
-            decisionType?: string | null;
-            reasoning?: string | null;
+            decisionType?: string;
+            reasoning?: string;
             /** Format: int32 */
             score?: number | null;
             isFinalDecision?: boolean;
@@ -2286,7 +2483,7 @@ export interface components {
             /** Format: date-time */
             proposedInterviewTime?: string | null;
             interviewNotes?: string | null;
-            reviewerName?: string | null;
+            reviewerName?: string;
             /** Format: date-time */
             createdAt?: string;
         };
@@ -2306,22 +2503,24 @@ export interface components {
         ReviewDecisionResponse: {
             /** Format: uuid */
             decisionId?: string;
-            decisionType?: string | null;
+            decisionType?: string;
             /** Format: date-time */
             submittedAt?: string;
-            newApplicationStatus?: string | null;
-            confirmationMessage?: string | null;
-            actionsTriggered?: string[] | null;
-        };
-        ReviewDecisionResponseApiResponse: {
-            success?: boolean;
-            data?: components["schemas"]["ReviewDecisionResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
+            newApplicationStatus?: string;
+            confirmationMessage?: string;
+            actionsTriggered?: string[];
+        } | null;
+        RsvpDetailsDto: {
+            /** Format: uuid */
+            id?: string;
+            status?: string;
             /** Format: date-time */
-            timestamp?: string;
-        };
+            createdAt?: string;
+            /** Format: date-time */
+            canceledAt?: string | null;
+            cancelReason?: string | null;
+            notes?: string | null;
+        } | null;
         SafetyStatistics: {
             /** Format: int32 */
             criticalCount?: number;
@@ -2343,13 +2542,13 @@ export interface components {
             thisMonth?: number;
         };
         ServiceTokenRequest: {
-            userId?: string | null;
-            email?: string | null;
+            userId?: string;
+            email?: string;
         };
         SessionDto: {
-            id?: string | null;
-            sessionIdentifier?: string | null;
-            name?: string | null;
+            id?: string;
+            sessionIdentifier?: string;
+            name?: string;
             /** Format: date-time */
             date?: string;
             /** Format: date-time */
@@ -2373,7 +2572,6 @@ export interface components {
             realName: string;
             preferredSceneName: string;
             fetLifeHandle?: string | null;
-            /** Format: email */
             email: string;
             whyJoin: string;
             experienceWithRope: string;
@@ -2384,24 +2582,15 @@ export interface components {
         SimplifiedApplicationResponse: {
             /** Format: uuid */
             applicationId?: string;
-            applicationNumber?: string | null;
+            applicationNumber?: string;
             /** Format: date-time */
             submittedAt?: string;
-            confirmationMessage?: string | null;
+            confirmationMessage?: string;
             emailSent?: boolean;
-            nextSteps?: string | null;
+            nextSteps?: string;
             pronouns?: string | null;
             otherNames?: string | null;
-        };
-        SimplifiedApplicationResponseApiResponse: {
-            success?: boolean;
-            data?: components["schemas"]["SimplifiedApplicationResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
+        } | null;
         StatusChangeRequest: {
             status: string;
             reasoning: string;
@@ -2409,12 +2598,12 @@ export interface components {
         StatusUpdateSummary: {
             /** Format: date-time */
             updatedAt?: string;
-            message?: string | null;
-            type?: string | null;
+            message?: string;
+            type?: string;
         };
         SubmissionResponse: {
-            referenceNumber?: string | null;
-            trackingUrl?: string | null;
+            referenceNumber?: string;
+            trackingUrl?: string;
             /** Format: date-time */
             submittedAt?: string;
         };
@@ -2423,11 +2612,25 @@ export interface components {
             pendingCheckIns: components["schemas"]["PendingCheckIn"][];
             lastSyncTimestamp: string;
         };
+        TicketDetailsDto: {
+            /** Format: uuid */
+            id?: string;
+            status?: string;
+            /** Format: double */
+            amount?: number | null;
+            paymentStatus?: string | null;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            canceledAt?: string | null;
+            cancelReason?: string | null;
+            notes?: string | null;
+        } | null;
         TicketTypeDto: {
-            id?: string | null;
-            name?: string | null;
-            type?: string | null;
-            sessionIdentifiers?: string[] | null;
+            id?: string;
+            name?: string;
+            type?: string;
+            sessionIdentifiers?: string[];
             /** Format: double */
             minPrice?: number;
             /** Format: double */
@@ -2438,14 +2641,15 @@ export interface components {
             salesEndDate?: string | null;
         };
         TokenClaims: {
-            userId?: string | null;
-            email?: string | null;
-            sceneName?: string | null;
+            userId?: string;
+            email?: string;
+            sceneName?: string;
         };
         UpdateEventRequest: {
             title?: string | null;
             shortDescription?: string | null;
             description?: string | null;
+            policies?: string | null;
             /** Format: date-time */
             startDate?: string | null;
             /** Format: date-time */
@@ -2460,9 +2664,20 @@ export interface components {
             teacherIds?: string[] | null;
             volunteerPositions?: components["schemas"]["VolunteerPositionDto"][] | null;
         };
-        UpdateProfileRequest: {
-            sceneName?: string | null;
+        UpdateProfileDto: {
+            sceneName: string;
+            firstName?: string | null;
+            lastName?: string | null;
+            email: string;
             pronouns?: string | null;
+            bio?: string | null;
+            discordName?: string | null;
+            fetLifeName?: string | null;
+            phoneNumber?: string | null;
+        };
+        UpdateProfileRequest: {
+            sceneName?: string;
+            pronouns?: string;
         };
         UpdateUserRequest: {
             sceneName?: string | null;
@@ -2474,24 +2689,13 @@ export interface components {
             /** Format: int32 */
             vettingStatus?: number | null;
         };
-        UserDashboardResponse: {
-            sceneName?: string | null;
-            role?: string | null;
-            vettingStatus?: components["schemas"]["VettingStatus"];
-            hasVettingApplication?: boolean;
-            isVetted?: boolean;
-            email?: string | null;
-            /** Format: date-time */
-            joinDate?: string;
-            pronouns?: string | null;
-        };
         UserDto: {
             /** Format: uuid */
             id?: string;
-            email?: string | null;
-            sceneName?: string | null;
-            role?: string | null;
-            pronouns?: string | null;
+            email?: string;
+            sceneName?: string;
+            role?: string;
+            pronouns?: string;
             isActive?: boolean;
             isVetted?: boolean;
             emailConfirmed?: boolean;
@@ -2502,11 +2706,23 @@ export interface components {
             /** Format: int32 */
             vettingStatus?: number;
         };
-        UserEventsResponse: {
-            upcomingEvents?: components["schemas"]["DashboardEventDto"][] | null;
+        UserEventDto: {
+            /** Format: uuid */
+            id?: string;
+            title?: string;
+            /** Format: date-time */
+            startDate?: string;
+            /** Format: date-time */
+            endDate?: string;
+            location?: string;
+            description?: string | null;
+            registrationStatus?: string;
+            isSocialEvent?: boolean;
+            hasTicket?: boolean;
+            isPastEvent?: boolean;
         };
         UserListResponse: {
-            users?: components["schemas"]["UserDto"][] | null;
+            users?: components["schemas"]["UserDto"][];
             /** Format: int32 */
             totalCount?: number;
             /** Format: int32 */
@@ -2514,26 +2730,26 @@ export interface components {
             /** Format: int32 */
             pageSize?: number;
             /** Format: int32 */
-            readonly totalPages?: number;
-            readonly hasPreviousPage?: boolean;
-            readonly hasNextPage?: boolean;
+            totalPages?: number;
+            hasPreviousPage?: boolean;
+            hasNextPage?: boolean;
         };
         UserOptionDto: {
-            id?: string | null;
-            name?: string | null;
-            email?: string | null;
+            id?: string;
+            name?: string;
+            email?: string;
         };
         UserParticipationDto: {
             /** Format: uuid */
             id?: string;
             /** Format: uuid */
             eventId?: string;
-            eventTitle?: string | null;
+            eventTitle?: string;
             /** Format: date-time */
             eventStartDate?: string;
             /** Format: date-time */
             eventEndDate?: string;
-            eventLocation?: string | null;
+            eventLocation?: string;
             participationType?: components["schemas"]["ParticipationType"];
             status?: components["schemas"]["ParticipationStatus"];
             /** Format: date-time */
@@ -2541,24 +2757,20 @@ export interface components {
             notes?: string | null;
             canCancel?: boolean;
         };
-        UserStatisticsResponse: {
-            isVerified?: boolean;
-            /** Format: int32 */
-            eventsAttended?: number;
-            /** Format: int32 */
-            monthsAsMember?: number;
-            /** Format: int32 */
-            recentEvents?: number;
-            /** Format: date-time */
-            joinDate?: string;
-            vettingStatus?: components["schemas"]["VettingStatus"];
-            /** Format: date-time */
-            nextInterviewDate?: string | null;
-            /** Format: int32 */
-            upcomingRegistrations?: number;
-            /** Format: int32 */
-            cancelledRegistrations?: number;
-        };
+        UserProfileDto: {
+            /** Format: uuid */
+            userId?: string;
+            sceneName?: string;
+            firstName?: string | null;
+            lastName?: string | null;
+            email?: string;
+            pronouns?: string | null;
+            bio?: string | null;
+            discordName?: string | null;
+            fetLifeName?: string | null;
+            phoneNumber?: string | null;
+            vettingStatus?: string;
+        } | null;
         ValidationProblemDetails: {
             type?: string | null;
             title?: string | null;
@@ -2568,32 +2780,36 @@ export interface components {
             instance?: string | null;
             errors?: {
                 [key: string]: string[];
-            } | null;
-        } & {
-            [key: string]: unknown;
+            };
         };
-        /** @enum {string} */
-        VettingStatus: "UnderReview" | "InterviewApproved" | "FinalReview" | "Approved" | "Denied" | "OnHold" | "Withdrawn";
+        VettingStatusDto: {
+            status?: string;
+            /** Format: date-time */
+            lastUpdatedAt?: string;
+            message?: string;
+            interviewScheduleUrl?: string | null;
+            reapplyInfoUrl?: string | null;
+        } | null;
         VolunteerPositionDto: {
-            id?: string | null;
-            title?: string | null;
-            description?: string | null;
+            id?: string;
+            title?: string;
+            description?: string;
             /** Format: int32 */
             slotsNeeded?: number;
             /** Format: int32 */
             slotsFilled?: number;
             requiresExperience?: boolean;
-            requirements?: string | null;
+            requirements?: string;
             sessionId?: string | null;
             /** Format: int32 */
-            readonly slotsRemaining?: number;
-            readonly isFullyStaffed?: boolean;
+            slotsRemaining?: number;
+            isFullyStaffed?: boolean;
         };
         WorkflowHistoryDto: {
-            action?: string | null;
+            action?: string;
             /** Format: date-time */
             performedAt?: string;
-            performedBy?: string | null;
+            performedBy?: string;
             notes?: string | null;
         };
     };
@@ -2605,18 +2821,9 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    GetUsers: {
+    GetHealth: {
         parameters: {
-            query: {
-                SearchTerm?: string;
-                Role?: string;
-                IsActive?: boolean;
-                IsVetted?: boolean;
-                Page: number;
-                PageSize: number;
-                SortBy: string;
-                SortDescending: boolean;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
@@ -2629,25 +2836,11 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserListResponse"];
+                    "application/json": components["schemas"]["HealthResponse"];
                 };
             };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
+            /** @description Service Unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2655,13 +2848,11 @@ export interface operations {
             };
         };
     };
-    GetUser: {
+    GetDetailedHealth: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -2672,32 +2863,11 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserDto"];
+                    "application/json": components["schemas"]["DetailedHealthResponse"];
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
+            /** @description Service Unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2705,74 +2875,11 @@ export interface operations {
             };
         };
     };
-    UpdateUser: {
+    GetLegacyHealth: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateUserRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserDto"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    GetEventParticipations: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                eventId: string;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -2782,26 +2889,10 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["EventParticipationDtoListApiResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
                 content?: never;
             };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
+            /** @description Service Unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3093,275 +3184,6 @@ export interface operations {
             };
         };
     };
-    GetEventAttendees: {
-        parameters: {
-            query?: {
-                search?: string;
-                status?: string;
-                page?: number;
-                pageSize?: number;
-            };
-            header?: never;
-            path: {
-                eventId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    ProcessCheckIn: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                eventId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CheckInRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    GetEventDashboard: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                eventId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    SyncOfflineCheckIns: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                eventId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SyncRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    CreateManualEntry: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                eventId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ManualEntryData"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    GetPendingSyncCount: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    GetUserDashboard: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserDashboardResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemDetails"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemDetails"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemDetails"];
-                };
-            };
-        };
-    };
-    GetUserEvents: {
-        parameters: {
-            query: {
-                count: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserEventsResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemDetails"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemDetails"];
-                };
-            };
-        };
-    };
-    GetUserStatistics: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserStatisticsResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemDetails"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemDetails"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemDetails"];
-                };
-            };
-        };
-    };
     GetEvents: {
         parameters: {
             query?: {
@@ -3379,7 +3201,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EventDtoListApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfListOfEventDto"];
                 };
             };
             /** @description Unauthorized */
@@ -3422,7 +3244,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EventDtoApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfEventDto"];
                 };
             };
             /** @description Not Found */
@@ -3462,7 +3284,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EventDtoApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfEventDto"];
                 };
             };
             /** @description Bad Request */
@@ -3495,7 +3317,7 @@ export interface operations {
             };
         };
     };
-    GetHealth: {
+    GetUserProfile: {
         parameters: {
             query?: never;
             header?: never;
@@ -3510,11 +3332,25 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["HealthResponse"];
+                    "application/json": components["schemas"]["UserDto"];
                 };
             };
-            /** @description Service Unavailable */
-            503: {
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3522,7 +3358,52 @@ export interface operations {
             };
         };
     };
-    GetDetailedHealth: {
+    UpdateUserProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetUserProfileSingular: {
         parameters: {
             query?: never;
             header?: never;
@@ -3537,11 +3418,25 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DetailedHealthResponse"];
+                    "application/json": components["schemas"]["UserDto"];
                 };
             };
-            /** @description Service Unavailable */
-            503: {
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3549,9 +3444,18 @@ export interface operations {
             };
         };
     };
-    GetLegacyHealth: {
+    GetUsers: {
         parameters: {
-            query?: never;
+            query: {
+                SearchTerm?: string;
+                Role?: string;
+                IsActive?: boolean;
+                IsVetted?: boolean;
+                Page: number;
+                PageSize: number;
+                SortBy: string;
+                SortDescending: boolean;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3563,14 +3467,432 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["UserListResponse"];
+                };
             };
-            /** @description Service Unavailable */
-            503: {
+            /** @description Unauthorized */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UpdateUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateUserRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetUsersByRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                role: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserOptionDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetUserRegisteredEvents: {
+        parameters: {
+            query?: {
+                includePast?: boolean;
+            };
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfListOfUserEventDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfListOfUserEventDto"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfListOfUserEventDto"];
+                };
+            };
+        };
+    };
+    GetUserDashboardVettingStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfVettingStatusDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfVettingStatusDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfVettingStatusDto"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfVettingStatusDto"];
+                };
+            };
+        };
+    };
+    GetUserDashboardProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfUserProfileDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfUserProfileDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfUserProfileDto"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfUserProfileDto"];
+                };
+            };
+        };
+    };
+    UpdateUserDashboardProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProfileDto"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfUserProfileDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfUserProfileDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfUserProfileDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfUserProfileDto"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfUserProfileDto"];
+                };
+            };
+        };
+    };
+    ChangeUserDashboardPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangePasswordDto"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfboolean"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfboolean"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfboolean"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfboolean"];
+                };
             };
         };
     };
@@ -3591,7 +3913,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ParticipationStatusDto"];
+                    "application/json": components["schemas"]["EnhancedParticipationStatusDto"];
                 };
             };
             /** @description Unauthorized */
@@ -3712,6 +4034,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Internal Server Error */
             500: {
                 headers: {
@@ -3823,6 +4152,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Internal Server Error */
             500: {
                 headers: {
@@ -3866,6 +4202,133 @@ export interface operations {
             };
         };
     };
+    GetEventParticipations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfListOfEventParticipationDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CreateTestUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTestUserRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    DeleteTestUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    TestHelpersHealth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
     SubmitIncident: {
         parameters: {
             query?: never;
@@ -3895,7 +4358,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Unprocessable Content */
+            /** @description Unprocessable Entity */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -4051,11 +4514,18 @@ export interface operations {
             };
         };
     };
-    GetUserProfile: {
+    GetEventAttendees: {
         parameters: {
-            query?: never;
+            query?: {
+                search?: string;
+                status?: string;
+                page?: number;
+                pageSize?: number;
+            };
             header?: never;
-            path?: never;
+            path: {
+                eventId: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -4065,125 +4535,40 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["UserDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
                 content?: never;
             };
         };
     };
-    UpdateUserProfile: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateProfileRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserDto"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    GetUserProfileSingular: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    GetUsersByRole: {
+    ProcessCheckIn: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                role: string;
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckInRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetEventDashboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
             };
             cookie?: never;
         };
@@ -4194,19 +4579,69 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["UserOptionDto"][];
-                };
+                content?: never;
             };
-            /** @description Unauthorized */
-            401: {
+        };
+    };
+    SyncOfflineCheckIns: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SyncRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description Internal Server Error */
-            500: {
+        };
+    };
+    CreateManualEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManualEntryData2"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetPendingSyncCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4233,7 +4668,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApplicationSummaryDtoPagedResultApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfPagedResultOfApplicationSummaryDto"];
                 };
             };
             /** @description Bad Request */
@@ -4242,7 +4677,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Forbidden */
@@ -4251,7 +4686,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Internal Server Error */
@@ -4260,7 +4695,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
         };
@@ -4282,7 +4717,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApplicationDetailResponseApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfApplicationDetailResponse"];
                 };
             };
             /** @description Bad Request */
@@ -4291,7 +4726,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Forbidden */
@@ -4300,7 +4735,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Not Found */
@@ -4309,7 +4744,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Internal Server Error */
@@ -4318,7 +4753,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
         };
@@ -4344,7 +4779,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReviewDecisionResponseApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfReviewDecisionResponse"];
                 };
             };
             /** @description Bad Request */
@@ -4353,7 +4788,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Forbidden */
@@ -4362,7 +4797,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Not Found */
@@ -4371,7 +4806,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Internal Server Error */
@@ -4380,7 +4815,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
         };
@@ -4406,7 +4841,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["NoteResponseApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfNoteResponse"];
                 };
             };
             /** @description Bad Request */
@@ -4415,7 +4850,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Forbidden */
@@ -4424,7 +4859,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Not Found */
@@ -4433,7 +4868,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Internal Server Error */
@@ -4442,7 +4877,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
         };
@@ -4468,7 +4903,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReviewDecisionResponseApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfReviewDecisionResponse"];
                 };
             };
             /** @description Bad Request */
@@ -4477,7 +4912,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Forbidden */
@@ -4486,7 +4921,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Not Found */
@@ -4495,7 +4930,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Internal Server Error */
@@ -4504,7 +4939,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
         };
@@ -4530,7 +4965,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReviewDecisionResponseApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfReviewDecisionResponse"];
                 };
             };
             /** @description Bad Request */
@@ -4539,7 +4974,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Forbidden */
@@ -4548,7 +4983,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Not Found */
@@ -4557,7 +4992,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Internal Server Error */
@@ -4566,7 +5001,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
         };
@@ -4592,7 +5027,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["NoteResponseApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfNoteResponse"];
                 };
             };
             /** @description Bad Request */
@@ -4601,7 +5036,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Forbidden */
@@ -4610,7 +5045,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Not Found */
@@ -4619,7 +5054,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Internal Server Error */
@@ -4628,7 +5063,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
         };
@@ -4654,7 +5089,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReviewDecisionResponseApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfReviewDecisionResponse"];
                 };
             };
             /** @description Bad Request */
@@ -4663,7 +5098,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Forbidden */
@@ -4672,7 +5107,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Not Found */
@@ -4681,7 +5116,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Internal Server Error */
@@ -4690,7 +5125,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
         };
@@ -4710,7 +5145,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MyApplicationStatusResponseApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfMyApplicationStatusResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -4719,7 +5154,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Internal Server Error */
@@ -4728,7 +5163,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
         };
@@ -4748,7 +5183,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApplicationDetailResponseApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfApplicationDetailResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -4757,7 +5192,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Not Found */
@@ -4766,7 +5201,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Internal Server Error */
@@ -4775,7 +5210,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
         };
@@ -4799,7 +5234,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApplicationSubmissionResponseApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfApplicationSubmissionResponse"];
                 };
             };
             /** @description Bad Request */
@@ -4808,7 +5243,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Unauthorized */
@@ -4817,7 +5252,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Conflict */
@@ -4826,7 +5261,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Internal Server Error */
@@ -4835,7 +5270,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
         };
@@ -4855,7 +5290,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SimplifiedApplicationResponseApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfSimplifiedApplicationResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -4864,7 +5299,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Not Found */
@@ -4873,7 +5308,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Internal Server Error */
@@ -4882,7 +5317,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
         };
@@ -4906,7 +5341,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApplicationSubmissionResponseApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfApplicationSubmissionResponse"];
                 };
             };
             /** @description Bad Request */
@@ -4915,7 +5350,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Conflict */
@@ -4924,7 +5359,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Internal Server Error */
@@ -4933,7 +5368,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
         };
@@ -4957,7 +5392,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApplicationSubmissionResponseApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfApplicationSubmissionResponse"];
                 };
             };
             /** @description Bad Request */
@@ -4966,7 +5401,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Internal Server Error */
@@ -4975,7 +5410,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
         };
@@ -4997,7 +5432,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApplicationStatusResponseApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfApplicationStatusResponse"];
                 };
             };
             /** @description Not Found */
@@ -5006,7 +5441,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Internal Server Error */
@@ -5015,7 +5450,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ObjectApiResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
         };

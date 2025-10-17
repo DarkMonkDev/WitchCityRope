@@ -8,6 +8,7 @@ using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Services;
 using WitchCityRope.Api.Features.Shared.Extensions;
+using WitchCityRope.Api.Infrastructure.OpenAPI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,7 +35,12 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+// Configure Microsoft's native OpenAPI support (.NET 9+)
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+});
 
 // Database configuration for PostgreSQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -209,8 +215,12 @@ var app = builder.Build();
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    // Map OpenAPI endpoint (Microsoft's native support)
+    app.MapOpenApi();
+
+    // Use NSwag for Swagger UI (provides UI for OpenAPI document)
+    app.UseOpenApi(); // NSwag middleware
+    app.UseSwaggerUi(); // NSwag UI (note: UseSwaggerUi, not UseSwaggerUI)
 }
 
 app.UseCors("ReactDevelopmentWithCredentials");
