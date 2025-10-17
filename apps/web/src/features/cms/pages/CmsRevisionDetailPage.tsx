@@ -6,11 +6,15 @@ import { Container, Title, LoadingOverlay, Alert, Text, Stack, Button } from '@m
 import { IconAlertCircle, IconArrowLeft } from '@tabler/icons-react'
 import { useParams, Link } from 'react-router-dom'
 import { useCmsRevisions } from '../hooks/useCmsRevisions'
+import { useCmsPageList } from '../hooks/useCmsPageList'
 import { CmsRevisionCard } from '../components/CmsRevisionCard'
 
 export const CmsRevisionDetailPage: React.FC = () => {
   const { pageId } = useParams<{ pageId: string }>()
   const { data: revisions, isLoading, error } = useCmsRevisions(Number(pageId))
+  const { data: pages } = useCmsPageList()
+
+  const page = pages?.find(p => p.id === Number(pageId))
 
   if (isLoading) {
     return (
@@ -44,7 +48,7 @@ export const CmsRevisionDetailPage: React.FC = () => {
       </Button>
 
       <Title order={1} mb="xl">
-        Revision History
+        {page?.title ? `${page.title} - Revision History` : 'Revision History'}
       </Title>
 
       {!revisions || revisions.length === 0 ? (

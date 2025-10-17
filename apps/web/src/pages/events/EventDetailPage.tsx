@@ -257,16 +257,15 @@ export const EventDetailPage: React.FC = () => {
 
           {/* About This Event */}
           <ContentSection title="About This Event">
-            <Text 
+            <div
               style={{
                 fontSize: '17px',
                 lineHeight: 1.8,
                 color: 'var(--color-charcoal)',
                 marginBottom: 'var(--space-md)'
               }}
-            >
-              {(event as any)?.description}
-            </Text>
+              dangerouslySetInnerHTML={{ __html: (event as any)?.description || '' }}
+            />
 
             <Title 
               order={2}
@@ -309,21 +308,19 @@ export const EventDetailPage: React.FC = () => {
             </Group>
           </ContentSection>
 
-          {/* Important Policies */}
-          <ContentSection title="Important Policies">
-            <Text mb="md">
-              <strong>Refund Policy:</strong> Full refund available up to 48 hours before the event. No refunds within 48 hours of start time.
-            </Text>
-            <Text mb="md">
-              <strong>Age Requirement:</strong> All participants must be 21 or older.
-            </Text>
-            <Text>
-              <strong>Code of Conduct:</strong> All attendees must follow our{' '}
-              <Anchor href="#" style={{ color: 'var(--color-burgundy)', textDecoration: 'underline' }}>
-                Code of Conduct
-              </Anchor>.
-            </Text>
-          </ContentSection>
+          {/* Policies */}
+          {(event as any)?.policies && (
+            <ContentSection title="Policies">
+              <div
+                style={{
+                  fontSize: '17px',
+                  lineHeight: 1.8,
+                  color: 'var(--color-charcoal)'
+                }}
+                dangerouslySetInnerHTML={{ __html: (event as any)?.policies }}
+              />
+            </ContentSection>
+          )}
         </Stack>
 
         {/* Right Column - Participation Card */}

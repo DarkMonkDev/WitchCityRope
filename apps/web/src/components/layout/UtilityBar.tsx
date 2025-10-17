@@ -118,7 +118,7 @@ export const UtilityBar: React.FC = () => {
           </Box>
           <Box
             component={Link}
-            to="/contact"
+            to="/contact-us"
             style={{
               color: 'var(--color-taupe)',
               textDecoration: 'none',

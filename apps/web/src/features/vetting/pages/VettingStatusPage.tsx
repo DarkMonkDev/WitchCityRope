@@ -231,7 +231,7 @@ export const VettingStatusPage: React.FC<VettingStatusPageProps> = ({
           <Divider />
           
           <Group>
-            <Button variant="light" color="blue" size="sm" component={Link} to="/contact">
+            <Button variant="light" color="blue" size="sm" component={Link} to="/contact-us">
               Contact Support
             </Button>
             <Button variant="subtle" color="blue" size="sm" component={Link} to="/vetting/apply">

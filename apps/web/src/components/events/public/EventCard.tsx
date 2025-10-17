@@ -238,12 +238,12 @@ export const EventCard = memo<EventCardProps>(({
         {/* Description */}
         {canViewFullDetails ? (
           <Text size="sm" c="dimmed" lineClamp={2}>
-            {event.shortDescription || event.description}
+            {event.shortDescription || ''}
           </Text>
         ) : (
           <Stack gap="sm">
             <Text size="sm" c="dimmed" lineClamp={1} style={{ opacity: 0.7 }}>
-              {(event.shortDescription || event.description).substring(0, 50)}...
+              {event.shortDescription ? event.shortDescription.substring(0, 50) + '...' : ''}
             </Text>
             <Alert color="orange" p="xs">
               <Text size="sm">

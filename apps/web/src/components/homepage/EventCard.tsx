@@ -188,7 +188,7 @@ export const EventCard: React.FC<EventCardProps> = ({
           }}
           data-testid="event-description"
         >
-          {event.shortDescription || event.description || 'No description available'}
+          {event.shortDescription || ''}
         </Text>
 
         <Group

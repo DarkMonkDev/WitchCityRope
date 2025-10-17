@@ -49,9 +49,18 @@ export const CmsRevisionCard: React.FC<CmsRevisionCardProps> = ({ revision }) =>
         <Text size="sm" c="dimmed" mb="xs">
           Preview:
         </Text>
-        <Text size="sm" lineClamp={showFullContent ? undefined : 3}>
-          {revision.contentPreview}
-        </Text>
+        <div
+          style={{
+            fontSize: '14px',
+            lineHeight: 1.6,
+            maxHeight: showFullContent ? 'none' : '4.8em',
+            overflow: 'hidden',
+            display: '-webkit-box',
+            WebkitLineClamp: showFullContent ? 'unset' : 3,
+            WebkitBoxOrient: 'vertical',
+          }}
+          dangerouslySetInnerHTML={{ __html: revision.contentPreview || '' }}
+        />
       </Box>
 
       <Button
