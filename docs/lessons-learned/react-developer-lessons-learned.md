@@ -1115,6 +1115,139 @@ If Tiptap editor doesn't render:
 
 ---
 
+## 🚨 CRITICAL: MISSING FIELDS IN API TRANSFORM LAYER BREAK DATA PERSISTENCE 🚨
+
+### ⚠️ PROBLEM: Form fields don't load or persist despite database having data
+**DISCOVERED**: 2025-10-17 - Event edit form shortDescription and policies fields immediately blank out after save
+
+### 🔍 SYMPTOMS TO RECOGNIZE THIS ISSUE:
+- Input fields/text boxes appear empty even though database has data
+- Fields briefly show data then immediately clear/blank out after save
+- Rich text editors (TipTap) display empty content despite data in database
+- Other fields on the same form work correctly, but specific fields always blank
+- Manual page refresh doesn't fix the issue
+- Console shows `undefined` or `null` for field values when debugging
+- Database queries show data exists, but frontend never displays it
+
+### 🛑 ROOT CAUSE:
+- **Manual API response transformation** in frontend stripping out fields
+- `transformApiEvent` function in `/apps/web/src/lib/api/hooks/useEvents.ts` had TWO critical issues:
+  1. `ApiEvent` interface missing `shortDescription` and `policies` fields
+  2. Transform function return object missing these field mappings
+- **Result**: Even though database → backend API → network all had the data, the frontend transform layer stripped it out before reaching React components
+
+### 🔍 DEBUGGING SYMPTOM PROGRESSION:
+1. User reports: "Fields blank out after save"
+2. Check: Database has data ✓
+3. Check: Backend API returns data (verified with curl) ✓
+4. Check: TypeScript types include fields ✓
+5. **Check: Frontend transform layer** ✗ **STRIPS FIELDS OUT**
+
+### ✅ CRITICAL SOLUTION:
+**ALWAYS check the manual transform layer when fields are "missing"**
+
+```typescript
+// ❌ BROKEN: Transform layer missing fields
+interface ApiEvent {
+  id: string
+  title: string
+  description: string
+  // Missing: shortDescription
+  // Missing: policies
+  startDate: string
+  location: string
+}
+
+function transformApiEvent(apiEvent: ApiEvent): EventDto {
+  return {
+    id: apiEvent.id,
+    title: apiEvent.title,
+    description: apiEvent.description,
+    // Missing: shortDescription mapping
+    // Missing: policies mapping
+    startDate: apiEvent.startDate,
+    location: apiEvent.location,
+  }
+}
+
+// ✅ CORRECT: Complete transform with all fields
+interface ApiEvent {
+  id: string
+  title: string
+  shortDescription?: string | null  // ADD MISSING FIELD
+  description: string
+  policies?: string | null  // ADD MISSING FIELD
+  startDate: string
+  location: string
+}
+
+function transformApiEvent(apiEvent: ApiEvent): EventDto {
+  return {
+    id: apiEvent.id,
+    title: apiEvent.title,
+    shortDescription: apiEvent.shortDescription || null,  // ADD MAPPING
+    description: apiEvent.description,
+    policies: apiEvent.policies || null,  // ADD MAPPING
+    startDate: apiEvent.startDate,
+    location: apiEvent.location,
+  }
+}
+```
+
+### 🔧 MANDATORY DEBUGGING CHECKLIST FOR "MISSING FIELDS":
+
+When fields don't load or persist:
+1. **Check database** - Does it have the data? (SQL query)
+2. **Check backend API** - Does it return the data? (`curl` the endpoint)
+3. **Check generated TypeScript types** - Do they include the fields? (Check `@witchcityrope/shared-types`)
+4. **Check frontend transform layer** - Is it mapping the fields? ← **MOST COMMON ISSUE**
+5. **Check component code** - Is it using the fields correctly?
+
+### 📍 FILE LOCATIONS TO CHECK:
+- **Frontend transform functions**: `/apps/web/src/lib/api/hooks/useEvents.ts` (or similar hooks)
+- **API interface definitions**: Look for `interface Api[Entity]` in hooks files
+- **Transform function**: Look for `function transformApi[Entity]` in hooks files
+
+### 🎯 PREVENTION RULES:
+
+1. **WHEN ADDING NEW FIELDS TO BACKEND DTOs:**
+   - Regenerate TypeScript types immediately
+   - Search for transform functions that map this entity
+   - Add field to BOTH interface definition AND transform return object
+   - Test that field appears in frontend immediately
+
+2. **WHEN FIELDS DON'T PERSIST:**
+   - **Don't create workarounds** (like skipNextSync flags)
+   - **Trace data flow systematically** from database → API → transform → component
+   - **Add console.log** at each layer to find where data is lost
+   - **Check the transform layer FIRST** - it's the most common culprit
+
+3. **WHEN CREATING MANUAL TRANSFORM FUNCTIONS:**
+   - Document why manual transform is needed (vs generated types)
+   - Keep transform interfaces in sync with backend DTOs
+   - Add comments for optional fields
+   - Test with actual API data, not mocks
+
+### 💥 CONSEQUENCES OF IGNORING:
+- ❌ Fields appear to "not save" even though database is updated
+- ❌ Hours wasted debugging database, API, and form code
+- ❌ Workarounds pollute codebase instead of fixing root cause
+- ❌ Same bug reoccurs when new fields are added
+- ❌ Users lose data they entered
+
+### 🚨 CRITICAL LESSON:
+**"Missing from a list"** means checking the manual transform layer!
+When user says "fields are missing from a list somewhere", check:
+1. API interface definitions (the input "list")
+2. Transform function return objects (the output "list")
+
+Don't spend hours checking database, API endpoints, or generated types first.
+
+### Tags
+#critical #data-persistence #api-transform #form-fields #debugging #data-flow
+
+---
+
 ## 🚨 NAVIGATION TO PART 2 - MORE LESSONS LEARNED 🚨
 
 **PART 1 COMPLETE** - You have read the startup procedures and critical patterns.

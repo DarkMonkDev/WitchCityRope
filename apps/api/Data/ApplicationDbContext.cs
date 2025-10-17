@@ -11,6 +11,8 @@ using WitchCityRope.Api.Features.Payments.Entities;
 using WitchCityRope.Api.Features.Payments.Data;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Participation.Data;
+using WitchCityRope.Api.Features.Cms.Entities;
+using WitchCityRope.Api.Features.Cms.Configurations;
 
 namespace WitchCityRope.Api.Data;
 
@@ -159,6 +161,16 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     /// ParticipationHistory table for participation audit trails
     /// </summary>
     public DbSet<ParticipationHistory> ParticipationHistory { get; set; }
+
+    /// <summary>
+    /// ContentPages table for CMS content management
+    /// </summary>
+    public DbSet<ContentPage> ContentPages => Set<ContentPage>();
+
+    /// <summary>
+    /// ContentRevisions table for CMS content revision history
+    /// </summary>
+    public DbSet<ContentRevision> ContentRevisions => Set<ContentRevision>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -769,6 +781,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         // Apply Participation System configurations
         modelBuilder.ApplyConfiguration(new EventParticipationConfiguration());
         modelBuilder.ApplyConfiguration(new ParticipationHistoryConfiguration());
+
+        // Apply CMS configurations
+        modelBuilder.ApplyConfiguration(new ContentPageConfiguration());
+        modelBuilder.ApplyConfiguration(new ContentRevisionConfiguration());
     }
 
     /// <summary>
@@ -1208,6 +1224,31 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         // Handle ParticipationHistory entities
         var participationHistoryEntries = ChangeTracker.Entries<ParticipationHistory>();
         foreach (var entry in participationHistoryEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
+            }
+        }
+
+        // Handle ContentPage entities
+        var contentPageEntries = ChangeTracker.Entries<ContentPage>();
+        foreach (var entry in contentPageEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        // Handle ContentRevision entities
+        var contentRevisionEntries = ChangeTracker.Entries<ContentRevision>();
+        foreach (var entry in contentRevisionEntries)
         {
             if (entry.State == EntityState.Added)
             {

@@ -1,6 +1,6 @@
 # Pre-Launch Functionality Punch List
-<!-- Last Updated: 2025-10-10 -->
-<!-- Version: 1.4 -->
+<!-- Last Updated: 2025-10-17 -->
+<!-- Version: 1.5 -->
 <!-- Owner: Project Team -->
 <!-- Status: Active -->
 
@@ -31,7 +31,7 @@ Use the orchestrator command when testing reveals missing functionality:
 | Category | Total Items | Complete | In Progress | Blocked | Not Started | % Complete |
 |----------|-------------|----------|-------------|---------|-------------|------------|
 | **Core Authentication & Authorization** | 3 | 1 | 1 | 0 | 1 | 33% |
-| **Event Management & RSVP** | 9 | 3 | 2 | 0 | 4 | 33% |
+| **Event Management & RSVP** | 10 | 3 | 2 | 0 | 5 | 30% |
 | **Vetting System** | 8 | 3 | 2 | 0 | 3 | 38% |
 | **Payment Processing** | 3 | 1 | 1 | 0 | 1 | 33% |
 | **Admin Tools** | 5 | 1 | 1 | 0 | 3 | 20% |
@@ -41,7 +41,7 @@ Use the orchestrator command when testing reveals missing functionality:
 | **Infrastructure & Deployment** | 7 | 0 | 0 | 0 | 7 | 0% |
 | **Testing & Quality** | 4 | 0 | 1 | 0 | 3 | 0% |
 | **Documentation** | 2 | 1 | 0 | 0 | 1 | 50% |
-| **TOTAL** | 48 | 13 | 8 | 0 | 27 | 27% |
+| **TOTAL** | 49 | 13 | 8 | 0 | 28 | 27% |
 
 ---
 
@@ -146,6 +146,19 @@ Use the orchestrator command when testing reveals missing functionality:
   - **Dependencies**: Event volunteer positions system
   - **Status**: Not Started
   - **Notes**: Need sortable grid showing volunteer name, email, selected position, application date. Should appear below volunteer tasks table.
+
+- [ ] **Venue Management System** (Priority: High)
+  - **Description**: Admin interface to create and manage event venues with full details
+  - **Business Value**: Event setup - admins need to define venues before creating events
+  - **Effort**: Medium (1-2 days)
+  - **Dependencies**: None
+  - **Status**: Not Started
+  - **Notes**:
+    - **Venue Fields**: Name (required), Short Description, Long Description (rich text), Directions/Location Details, Contact Information (phone, email, emergency contact)
+    - **CRUD Operations**: Create, Read, Update, Delete venues
+    - **Integration**: Venue dropdown in event creation should pull from this system
+    - **Additional Fields**: Address, Capacity, Accessibility Notes, Parking Information, Public Transit Info
+    - Consider adding: Venue images/photos, Map integration, Amenities checklist
 
 ---
 
@@ -286,12 +299,16 @@ Use the orchestrator command when testing reveals missing functionality:
   - **Notes**: Not critical for launch. Use external service initially if needed.
 
 - [ ] **Admin Members Management Section** (Priority: High)
-  - **Description**: Admin section with grid table of all members and member detail pages
-  - **Business Value**: User management - admins need to view and manage member accounts
+  - **Description**: Admin section with grid table of all members and member detail pages - similar to events or vetting applications main page with search and table sorting features
+  - **Business Value**: User management - admins need to view and manage member accounts, their history, and roles
   - **Effort**: Medium (1-2 days)
   - **Dependencies**: Authentication, RBAC
   - **Status**: Not Started
-  - **Notes**: Grid table should show: Name, Email, Role, Vetting Status, Join Date, Last Login. Member detail page should show full profile, vetting history, event participation, payment history, notes. Similar to existing user management but more comprehensive.
+  - **Notes**:
+    - **Main Page**: Grid table with search and sorting similar to events/vetting pages. Columns: Name, Email, Role, Vetting Status, Join Date, Last Login
+    - **Member Detail Page**: Full profile view showing member history, event participation, payment history, vetting application details, and role assignment UI
+    - **Role Management**: Ability to view and set user roles directly from detail page
+    - Must match UX patterns from existing admin event and vetting grids
 
 ---
 
@@ -511,6 +528,7 @@ Use the orchestrator command when testing reveals missing functionality:
 5. **Event Volunteer Applications Display** - Admins need to see volunteer signups
 6. **Vetting Email Template Management** - Email customization for vetting process
 7. **Admin Members Management Section** - Core admin functionality for user management
+8. **Venue Management System** - Required for event creation and management
 
 ### 🟡 MEDIUM Priority (Nice to Have)
 
@@ -565,13 +583,14 @@ Use the orchestrator command when testing reveals missing functionality:
 - Event volunteer applications display: 1-2 days
 - Vetting email template management: 1-2 days
 - Admin members management section: 1-2 days
-- **Total**: ~37-56 days (7-11 weeks)
+- Venue management system: 1-2 days
+- **Total**: ~38-58 days (7-12 weeks)
 
 **Full Feature Path (Complete Product)**:
-- Recommended items above: 37-56 days
+- Recommended items above: 38-58 days
 - Medium priority items: 5-7 days
 - Bulk vetting operations: 4-5 days
-- **Total**: ~46-68 days (9-14 weeks)
+- **Total**: ~47-70 days (9-14 weeks)
 
 ---
 
@@ -598,7 +617,7 @@ Use the orchestrator command when testing reveals missing functionality:
 
 ## Notes
 
-- **Updated**: 2025-10-10 - Added Post-Login Return to Intended Page feature (P1 CRITICAL)
+- **Updated**: 2025-10-17 - Added Venue Management System, enhanced Admin Members Management details
 - **Source**: `/home/chad/repos/witchcityrope/test-results/comprehensive-test-analysis-2025-10-05.md`
 - **Testing Plan**: `/home/chad/repos/witchcityrope/session-work/2025-10-06/testing-completion-plan.md`
 - **Bulk Ops Investigation**: `/home/chad/repos/witchcityrope/session-work/2025-10-06/bulk-validation-investigation.md`
@@ -624,3 +643,4 @@ Use the orchestrator command when testing reveals missing functionality:
 | 2025-10-08 | 1.2 | Added 6 feature items: CMS implementation, text-only pages, event volunteer display, vetting email templates, vetting modal fix, admin members section | Claude Code |
 | 2025-10-08 | 1.3 | Added 7 infrastructure items: staging/production environment setup, CI/CD pipeline for staging, production deployment process, database backup/recovery, file storage, environment configuration management - total now 47 items | Claude Code |
 | 2025-10-10 | 1.4 | Added Post-Login Return to Intended Page feature (P1 CRITICAL) - total now 48 items, updated dashboard metrics (3 auth items, 27 not started) | Librarian Agent |
+| 2025-10-17 | 1.5 | Added Venue Management System (HIGH priority), enhanced Admin Members Management with detailed requirements for search/sorting and role management - total now 49 items | Claude Code |

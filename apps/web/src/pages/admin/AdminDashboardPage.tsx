@@ -1,6 +1,6 @@
 import React from 'react';
 import { Container, Title, Text, Grid, Paper, Box, Group, Badge, Button } from '@mantine/core';
-import { IconCalendarEvent, IconUsers, IconSettings, IconChartBar, IconPlus, IconArrowRight, IconClipboardCheck } from '@tabler/icons-react';
+import { IconCalendarEvent, IconUsers, IconSettings, IconChartBar, IconPlus, IconArrowRight, IconClipboardCheck, IconFileText } from '@tabler/icons-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../stores/authStore';
 import { useVettingStats } from '../../features/admin/vetting/hooks/useVettingStats';
@@ -48,6 +48,15 @@ export const AdminDashboardPage: React.FC = () => {
       countLabel: 'Under Review',
       link: '/admin/vetting',
       color: '#9b4a75',
+    },
+    {
+      title: 'Content Management',
+      description: 'Manage CMS pages and view revision history',
+      icon: <IconFileText size={32} />,
+      count: 3,
+      countLabel: 'CMS Pages',
+      link: '/admin/cms/revisions',
+      color: '#FF6B35',
     },
     {
       title: 'Analytics',

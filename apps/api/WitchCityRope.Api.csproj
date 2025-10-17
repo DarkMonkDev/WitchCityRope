@@ -25,6 +25,9 @@
     <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.1" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
 
+    <!-- Content sanitization -->
+    <PackageReference Include="HtmlSanitizer" Version="9.0.10" />
+
     <!-- OpenAPI generation and export -->
     <PackageReference Include="NSwag.AspNetCore" Version="14.6.1" />
   </ItemGroup>

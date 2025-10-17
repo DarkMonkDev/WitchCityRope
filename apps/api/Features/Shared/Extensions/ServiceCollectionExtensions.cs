@@ -13,6 +13,7 @@ using WitchCityRope.Api.Features.Payments.Services;
 using WitchCityRope.Api.Features.Payments.Validators;
 using WitchCityRope.Api.Features.Participation.Services;
 using WitchCityRope.Api.Features.TestHelpers.Services;
+using WitchCityRope.Api.Features.Cms;
 using WitchCityRope.Api.Services;
 
 namespace WitchCityRope.Api.Features.Shared.Extensions;
@@ -92,6 +93,9 @@ public static class ServiceCollectionExtensions
 
         // Participation feature services
         services.AddScoped<IParticipationService, ParticipationService>();
+
+        // CMS feature services
+        services.AddCmsServices();
 
         // Database initialization services
         services.AddScoped<ISeedDataService, SeedDataService>();

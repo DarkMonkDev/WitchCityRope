@@ -16,18 +16,11 @@ export function useTeachers(enabled = true) {
     queryKey: ['users', 'by-role', 'Teacher'],
     queryFn: async (): Promise<TeacherOption[]> => {
       try {
-        console.log('🔍 [DEBUG] Attempting to fetch teachers from API...');
         const response = await apiClient.get<TeacherOption[]>('/api/users/by-role/Teacher');
-        console.log('🔍 [DEBUG] Teachers API response:', {
-          status: response.status,
-          data: response.data,
-          dataLength: response.data?.length
-        });
-
         // Return whatever the API provides (could be empty array)
         return response.data || [];
       } catch (error) {
-        console.warn('🔍 [DEBUG] Teachers API failed:', error);
+        console.error('Failed to fetch teachers:', error);
         // Return empty array on error - no fake data
         return [];
       }
@@ -42,10 +35,8 @@ export function useTeachers(enabled = true) {
  * Convert teachers to Mantine MultiSelect data format
  */
 export function formatTeachersForMultiSelect(teachers: TeacherOption[]) {
-  const formatted = teachers.map(teacher => ({
+  return teachers.map(teacher => ({
     value: teacher.id,
     label: teacher.name
   }));
-  console.log('🔍 [DEBUG] Formatted teachers for MultiSelect:', formatted);
-  return formatted;
 }

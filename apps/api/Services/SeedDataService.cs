@@ -5,6 +5,7 @@ using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Vetting.Entities;
+using WitchCityRope.Api.Features.Cms;
 
 namespace WitchCityRope.Api.Services;
 
@@ -96,6 +97,7 @@ public class SeedDataService : ISeedDataService
             await SeedVettingStatusesAsync(cancellationToken);
             await SeedVettingApplicationsAsync(cancellationToken);
             await SeedVettingEmailTemplatesAsync(cancellationToken);
+            await CmsSeedData.SeedInitialPagesAsync(_context);
 
             // Calculate records created
             var finalUserCount = await _userManager.Users.CountAsync(cancellationToken);

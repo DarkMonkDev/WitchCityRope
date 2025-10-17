@@ -54,6 +54,13 @@ import { SafetyStatusPage } from '../pages/safety/SafetyStatusPage'
 // Vetting system pages
 import { VettingApplicationPage } from '../features/vetting/pages/VettingApplicationPage'
 
+// CMS system pages
+import { ResourcesPage } from '../features/cms/pages/ResourcesPage'
+import { ContactUsPage } from '../features/cms/pages/ContactUsPage'
+import { PrivateLessonsPage } from '../features/cms/pages/PrivateLessonsPage'
+import { CmsRevisionListPage } from '../features/cms/pages/CmsRevisionListPage'
+import { CmsRevisionDetailPage } from '../features/cms/pages/CmsRevisionDetailPage'
+
 // Payment system pages
 import { EventPaymentPage } from '../features/payments'
 import { PaymentTestPage } from '../pages/PaymentTestPage'
@@ -95,6 +102,20 @@ export const router = createBrowserRouter([
       {
         path: 'unauthorized',
         element: <UnauthorizedPage />,
+      },
+
+      // CMS pages - public access (admins can edit)
+      {
+        path: 'resources',
+        element: <ResourcesPage />,
+      },
+      {
+        path: 'contact-us',
+        element: <ContactUsPage />,
+      },
+      {
+        path: 'private-lessons',
+        element: <PrivateLessonsPage />,
       },
 
       // Events system routes
@@ -288,6 +309,17 @@ export const router = createBrowserRouter([
       {
         path: 'admin/vetting/email-templates',
         element: <EmailTemplates />,
+        loader: adminLoader,
+      },
+      // CMS admin routes
+      {
+        path: 'admin/cms/revisions',
+        element: <CmsRevisionListPage />,
+        loader: adminLoader,
+      },
+      {
+        path: 'admin/cms/revisions/:pageId',
+        element: <CmsRevisionDetailPage />,
         loader: adminLoader,
       },
     ],

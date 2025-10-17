@@ -27,7 +27,9 @@ interface ApiEventResponse {
 interface ApiEvent {
   id: string
   title: string
+  shortDescription?: string | null
   description: string
+  policies?: string | null
   startDate: string
   location: string
   eventType?: string
@@ -118,7 +120,9 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
   return {
     id: apiEvent.id,
     title: apiEvent.title,
+    shortDescription: apiEvent.shortDescription || null,
     description: apiEvent.description,
+    policies: apiEvent.policies || null,
     startDate: apiEvent.startDate,
     endDate: apiEvent.endDate || null,
     location: apiEvent.location,

@@ -2,8 +2,8 @@ import React, { useEffect, useImperativeHandle, forwardRef } from 'react'
 import { RichTextEditor } from '@mantine/tiptap'
 import { useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import Underline from '@tiptap/extension-underline'
-import Link from '@tiptap/extension-link'
+// Note: Link and Underline are automatically added by Mantine's RichTextEditor toolbar controls
+// Importing them here causes duplicate extension warnings
 import TextAlign from '@tiptap/extension-text-align'
 import Superscript from '@tiptap/extension-superscript'
 import Subscript from '@tiptap/extension-subscript'
@@ -186,8 +186,9 @@ export const MantineTiptapEditor = forwardRef<MantineTiptapEditorRef, MantineTip
     const editor = useEditor({
       extensions: [
         StarterKit,
-        Underline,
-        Link,
+        // Note: Link and Underline extensions are automatically added by Mantine's
+        // RichTextEditor.Link and RichTextEditor.Underline toolbar controls
+        // We don't need to add them here - doing so causes duplicate extension warnings
         Superscript,
         Subscript,
         Highlight,
@@ -208,9 +209,28 @@ export const MantineTiptapEditor = forwardRef<MantineTiptapEditorRef, MantineTip
     })
 
     // Update editor content when value prop changes
+    // Only update if the value is significantly different from current content
     useEffect(() => {
-      if (editor && value !== editor.getHTML()) {
+      if (!editor) return
+
+      const currentContent = editor.getHTML()
+
+      // Normalize HTML for comparison (remove extra whitespace, normalize tags)
+      const normalize = (html: string) => html?.trim().replace(/\s+/g, ' ') || ''
+      const normalizedValue = normalize(value)
+      const normalizedCurrent = normalize(currentContent)
+
+      // Only update if content has actually changed
+      if (normalizedValue !== normalizedCurrent) {
+        // Prevent cursor jump by checking if editor is focused
+        const isFocused = editor.isFocused
+
         editor.commands.setContent(value)
+
+        // Restore focus if editor was focused
+        if (isFocused) {
+          editor.commands.focus('end')
+        }
       }
     }, [value, editor])
 

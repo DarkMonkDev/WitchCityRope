@@ -136,27 +136,17 @@ export const EventForm: React.FC<EventFormProps> = ({
   })
 
   // Update form values when initialData changes (for loading from API)
-  // Check if form values differ from initialData to prevent unnecessary updates
+  // Only update when initialData actually changes (not on every render)
+  const initialDataRef = useRef<string>('')
+
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
-      // Only update if initialData is different from current form values
-      const currentValues = JSON.stringify(form.values)
-      const newValues = JSON.stringify({
-        eventType: 'class',
-        title: '',
-        shortDescription: '',
-        fullDescription: '',
-        policies: '',
-        venueId: '',
-        teacherIds: [],
-        status: 'Draft',
-        sessions: [],
-        ticketTypes: [],
-        volunteerPositions: [],
-        ...initialData,
-      })
+      const newInitialDataStr = JSON.stringify(initialData)
 
-      if (currentValues !== newValues) {
+      // Only update if initialData has actually changed from last time
+      if (newInitialDataStr !== initialDataRef.current) {
+        initialDataRef.current = newInitialDataStr
+
         form.setValues({
           eventType: 'class',
           title: '',
@@ -556,7 +546,6 @@ export const EventForm: React.FC<EventFormProps> = ({
                     This detailed description will be visible on the public events page
                   </Text>
                   <MantineTiptapEditor
-                    key={`fullDescription-${form.values.fullDescription?.substring(0, 50) || 'empty'}`}
                     value={form.values.fullDescription}
                     onChange={(content) => form.setFieldValue('fullDescription', content)}
                     minRows={10}
@@ -579,7 +568,6 @@ export const EventForm: React.FC<EventFormProps> = ({
                     studio/admin, teachers cannot edit)
                   </Text>
                   <MantineTiptapEditor
-                    key={`policies-${form.values.policies?.substring(0, 50) || 'empty'}`}
                     value={form.values.policies}
                     onChange={(content) => form.setFieldValue('policies', content)}
                     minRows={5}

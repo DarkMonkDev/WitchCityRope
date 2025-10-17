@@ -128,7 +128,8 @@ export const wcrTheme = createTheme({
       },
       styles: {
         root: {
-          padding: '14px 32px',
+          height: '42px',
+          padding: '12px 32px',
           borderRadius: '12px 6px 12px 6px', // v7 button corner morphing start
           fontFamily: 'Montserrat, sans-serif',
           fontWeight: 600,
@@ -141,6 +142,9 @@ export const wcrTheme = createTheme({
           '&:hover': {
             borderRadius: '6px 12px 6px 12px', // v7 button corner morphing end
           }
+        },
+        label: {
+          lineHeight: '1.2',
         }
       }
       // Note: Button variants moved to CSS classes in index.css per v7 design system
