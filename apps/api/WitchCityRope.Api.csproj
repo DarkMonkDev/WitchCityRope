@@ -23,7 +23,7 @@
 
     <!-- Validation packages -->
     <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.1" />
-    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
 
     <!-- OpenAPI generation and export -->
     <PackageReference Include="NSwag.AspNetCore" Version="14.6.1" />
