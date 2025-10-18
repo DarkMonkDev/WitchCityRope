@@ -1,8 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { useForm } from '@mantine/form'
-import { zodResolver } from 'mantine-form-zod-resolver'
-import { z } from 'zod'
 import {
   Title,
   TextInput,
@@ -18,25 +16,30 @@ import {
 import { IconAlertCircle } from '@tabler/icons-react'
 import { useLogin } from '../features/auth/api/mutations'
 
-const loginSchema = z.object({
-  email: z.string().email('Invalid email format'),
-  password: z.string().min(1, 'Password is required'),
-  rememberMe: z.boolean().optional(),
-})
-
-type LoginFormData = z.infer<typeof loginSchema>
+type LoginFormData = {
+  email: string
+  password: string
+  rememberMe: boolean
+}
 
 export const LoginPage: React.FC = () => {
   const loginMutation = useLogin()
 
-  // Mantine form with Zod validation
+  // Mantine form with manual validation
   const form = useForm<LoginFormData>({
     mode: 'uncontrolled',
-    validate: zodResolver(loginSchema),
     initialValues: {
       email: '',
       password: '',
       rememberMe: false,
+    },
+    validate: {
+      email: (value) => {
+        if (!value) return 'Email is required'
+        if (!/^\S+@\S+\.\S+$/.test(value)) return 'Invalid email format'
+        return null
+      },
+      password: (value) => (!value ? 'Password is required' : null),
     },
   })
 

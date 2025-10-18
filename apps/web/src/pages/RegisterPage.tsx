@@ -1,8 +1,6 @@
 import React, { useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useForm } from '@mantine/form'
-import { zodResolver } from 'mantine-form-zod-resolver'
-import { z } from 'zod'
 import {
   Container,
   Paper,
@@ -18,37 +16,47 @@ import { IconAlertCircle } from '@tabler/icons-react'
 import { useRegister } from '../features/auth/api/mutations'
 import { useIsAuthenticated } from '../stores/authStore'
 
-const registerSchema = z.object({
-  email: z.string().email('Invalid email format'),
-  sceneName: z
-    .string()
-    .min(3, 'Scene name must be at least 3 characters')
-    .max(50, 'Scene name must be less than 50 characters')
-    .regex(/^[a-zA-Z0-9\s]+$/, 'Scene name can only contain letters, numbers, and spaces'),
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number')
-    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
-})
-
-type RegisterFormData = z.infer<typeof registerSchema>
+type RegisterFormData = {
+  email: string
+  sceneName: string
+  password: string
+}
 
 export const RegisterPage: React.FC = () => {
   const location = useLocation()
   const isAuthenticated = useIsAuthenticated();
   const registerMutation = useRegister()
 
-  // Mantine form with Zod validation
+  // Mantine form with manual validation
   const form = useForm<RegisterFormData>({
     mode: 'uncontrolled',
-    validate: zodResolver(registerSchema),
     initialValues: {
       email: '',
       sceneName: '',
       password: '',
+    },
+    validate: {
+      email: (value) => {
+        if (!value) return 'Email is required'
+        if (!/^\S+@\S+\.\S+$/.test(value)) return 'Invalid email format'
+        return null
+      },
+      sceneName: (value) => {
+        if (!value) return 'Scene name is required'
+        if (value.length < 3) return 'Scene name must be at least 3 characters'
+        if (value.length > 50) return 'Scene name must be less than 50 characters'
+        if (!/^[a-zA-Z0-9\s]+$/.test(value)) return 'Scene name can only contain letters, numbers, and spaces'
+        return null
+      },
+      password: (value) => {
+        if (!value) return 'Password is required'
+        if (value.length < 8) return 'Password must be at least 8 characters'
+        if (!/[A-Z]/.test(value)) return 'Password must contain at least one uppercase letter'
+        if (!/[a-z]/.test(value)) return 'Password must contain at least one lowercase letter'
+        if (!/[0-9]/.test(value)) return 'Password must contain at least one number'
+        if (!/[^A-Za-z0-9]/.test(value)) return 'Password must contain at least one special character'
+        return null
+      },
     },
   })
 
