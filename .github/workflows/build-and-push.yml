@@ -1,21 +1,21 @@
 name: Build and Push Docker Images
 
 on:
-  push:
-    branches:
-      - main
-      - staging
-    paths-ignore:
-      - 'docs/**'
-      - '**.md'
-      - '.gitignore'
-
+  # Manual trigger only - no automatic builds on push
   workflow_dispatch:
     inputs:
       image_tag:
-        description: 'Docker image tag'
+        description: 'Docker image tag (latest, staging, or commit SHA)'
         required: false
         default: 'latest'
+      environment:
+        description: 'Target environment (production or staging)'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+        default: 'staging'
 
 env:
   DOCKER_REGISTRY: registry.digitalocean.com/witchcityrope
@@ -32,16 +32,9 @@ jobs:
       - name: Set image tag
         id: set-tag
         run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            echo "IMAGE_TAG=latest" >> $GITHUB_ENV
-            echo "ENVIRONMENT=production" >> $GITHUB_ENV
-          elif [ "${{ github.ref }}" == "refs/heads/staging" ]; then
-            echo "IMAGE_TAG=staging" >> $GITHUB_ENV
-            echo "ENVIRONMENT=staging" >> $GITHUB_ENV
-          else
-            echo "IMAGE_TAG=${{ github.sha }}" >> $GITHUB_ENV
-            echo "ENVIRONMENT=development" >> $GITHUB_ENV
-          fi
+          # Use manual input values
+          echo "IMAGE_TAG=${{ github.event.inputs.image_tag || 'latest' }}" >> $GITHUB_ENV
+          echo "ENVIRONMENT=${{ github.event.inputs.environment || 'staging' }}" >> $GITHUB_ENV
           echo "SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_ENV
 
       - name: Log in to DigitalOcean Container Registry
@@ -64,10 +57,10 @@ jobs:
           file: ./apps/api/Dockerfile
           push: true
           tags: |
-            ${{ env.DOCKER_REGISTRY }}/api:${{ env.IMAGE_TAG }}
-            ${{ env.DOCKER_REGISTRY }}/api:${{ env.SHORT_SHA }}
-          cache-from: type=registry,ref=${{ env.DOCKER_REGISTRY }}/api:buildcache
-          cache-to: type=registry,ref=${{ env.DOCKER_REGISTRY }}/api:buildcache,mode=max
+            ${{ env.DOCKER_REGISTRY }}/witchcityrope-api:${{ env.IMAGE_TAG }}
+            ${{ env.DOCKER_REGISTRY }}/witchcityrope-api:${{ env.SHORT_SHA }}
+          cache-from: type=registry,ref=${{ env.DOCKER_REGISTRY }}/witchcityrope-api:buildcache
+          cache-to: type=registry,ref=${{ env.DOCKER_REGISTRY }}/witchcityrope-api:buildcache,mode=max
           target: production
 
       # =======================================================================
@@ -80,10 +73,10 @@ jobs:
           file: ./apps/web/Dockerfile
           push: true
           tags: |
-            ${{ env.DOCKER_REGISTRY }}/web:${{ env.IMAGE_TAG }}
-            ${{ env.DOCKER_REGISTRY }}/web:${{ env.SHORT_SHA }}
-          cache-from: type=registry,ref=${{ env.DOCKER_REGISTRY }}/web:buildcache
-          cache-to: type=registry,ref=${{ env.DOCKER_REGISTRY }}/web:buildcache,mode=max
+            ${{ env.DOCKER_REGISTRY }}/witchcityrope-web:${{ env.IMAGE_TAG }}
+            ${{ env.DOCKER_REGISTRY }}/witchcityrope-web:${{ env.SHORT_SHA }}
+          cache-from: type=registry,ref=${{ env.DOCKER_REGISTRY }}/witchcityrope-web:buildcache
+          cache-to: type=registry,ref=${{ env.DOCKER_REGISTRY }}/witchcityrope-web:buildcache,mode=max
           target: production
           build-args: |
             VITE_API_BASE_URL=
@@ -102,25 +95,28 @@ jobs:
           echo "**Commit SHA:** ${{ env.SHORT_SHA }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Images:" >> $GITHUB_STEP_SUMMARY
-          echo "- API: \`${{ env.DOCKER_REGISTRY }}/api:${{ env.IMAGE_TAG }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- Web: \`${{ env.DOCKER_REGISTRY }}/web:${{ env.IMAGE_TAG }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- API: \`${{ env.DOCKER_REGISTRY }}/witchcityrope-api:${{ env.IMAGE_TAG }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Web: \`${{ env.DOCKER_REGISTRY }}/witchcityrope-web:${{ env.IMAGE_TAG }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           if [ "${{ env.ENVIRONMENT }}" == "staging" ]; then
-            echo "**Next Step:** Deploy to staging automatically triggered" >> $GITHUB_STEP_SUMMARY
+            echo "**Next Step:** Manually deploy to staging via Actions → Deploy to Staging" >> $GITHUB_STEP_SUMMARY
           elif [ "${{ env.ENVIRONMENT }}" == "production" ]; then
-            echo "**Next Step:** Deploy to production (manual approval required)" >> $GITHUB_STEP_SUMMARY
+            echo "**Next Step:** Manually deploy to production via Actions → Deploy to Production" >> $GITHUB_STEP_SUMMARY
           fi
 
-      - name: Trigger staging deployment
-        if: github.ref == 'refs/heads/staging'
-        uses: peter-evans/repository-dispatch@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          event-type: deploy-staging
-          client-payload: '{"image_tag": "${{ env.IMAGE_TAG }}", "sha": "${{ env.SHORT_SHA }}"}'
-
-      - name: Notify deployment ready for production
-        if: github.ref == 'refs/heads/main'
+      - name: Notify deployment ready
         run: |
-          echo "Production images built. Ready for manual deployment approval."
-          echo "Go to Actions → Deploy to Production to approve deployment"
+          echo "✅ Docker images built and pushed successfully"
+          echo ""
+          echo "Images ready in registry:"
+          echo "  - witchcityrope-api:${{ env.IMAGE_TAG }}"
+          echo "  - witchcityrope-web:${{ env.IMAGE_TAG }}"
+          echo ""
+          echo "To deploy to ${{ env.ENVIRONMENT }}:"
+          echo "  1. Go to Actions tab"
+          echo "  2. Select 'Deploy to ${{ env.ENVIRONMENT == 'staging' && 'Staging' || 'Production' }}' workflow"
+          echo "  3. Click 'Run workflow'"
+          echo "  4. Use image tag: ${{ env.IMAGE_TAG }}"
+          if [ "${{ env.ENVIRONMENT }}" == "production" ]; then
+            echo "  5. Type 'DEPLOY' to confirm"
+          fi
