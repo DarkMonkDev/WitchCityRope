@@ -53,6 +53,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<VolunteerPosition> VolunteerPositions { get; set; }
 
     /// <summary>
+    /// VolunteerSignups table for tracking user volunteer sign-ups
+    /// </summary>
+    public DbSet<VolunteerSignup> VolunteerSignups { get; set; }
+
+    /// <summary>
     /// SafetyIncidents table for safety incident reporting
     /// </summary>
     public DbSet<SafetyIncident> SafetyIncidents { get; set; }
@@ -177,6 +182,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     /// </summary>
     public DbSet<ContentRevision> ContentRevisions => Set<ContentRevision>();
 
+    /// <summary>
+    /// UserNotes table for unified user notes system (vetting, general, administrative, status changes)
+    /// </summary>
+    public DbSet<WitchCityRope.Api.Data.Entities.UserNote> UserNotes => Set<WitchCityRope.Api.Data.Entities.UserNote>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Call base to configure Identity tables
@@ -266,9 +276,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
 
             entity.HasIndex(e => e.IsActive)
                 .HasDatabaseName("IX_Users_IsActive");
-
-            entity.HasIndex(e => e.IsVetted)
-                .HasDatabaseName("IX_Users_IsVetted");
 
             entity.HasIndex(e => e.Role)
                 .HasDatabaseName("IX_Users_Role");
@@ -882,6 +889,66 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         // Apply CMS configurations
         modelBuilder.ApplyConfiguration(new ContentPageConfiguration());
         modelBuilder.ApplyConfiguration(new ContentRevisionConfiguration());
+
+        // UserNote entity configuration
+        modelBuilder.Entity<WitchCityRope.Api.Data.Entities.UserNote>(entity =>
+        {
+            entity.ToTable("UserNotes", "public");
+            entity.HasKey(un => un.Id);
+
+            // Required fields
+            entity.Property(un => un.UserId)
+                  .IsRequired();
+
+            entity.Property(un => un.Content)
+                  .IsRequired()
+                  .HasMaxLength(5000);
+
+            entity.Property(un => un.NoteType)
+                  .IsRequired()
+                  .HasMaxLength(50);
+
+            // Optional fields
+            entity.Property(un => un.AuthorId);
+
+            entity.Property(un => un.IsArchived)
+                  .IsRequired()
+                  .HasDefaultValue(false);
+
+            // DateTime fields
+            entity.Property(un => un.CreatedAt)
+                  .IsRequired()
+                  .HasColumnType("timestamptz");
+
+            // Relationships
+            entity.HasOne(un => un.User)
+                  .WithMany()
+                  .HasForeignKey(un => un.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(un => un.Author)
+                  .WithMany()
+                  .HasForeignKey(un => un.AuthorId)
+                  .OnDelete(DeleteBehavior.SetNull);
+
+            // Indexes
+            entity.HasIndex(un => un.UserId)
+                  .HasDatabaseName("IX_UserNotes_UserId");
+
+            entity.HasIndex(un => un.NoteType)
+                  .HasDatabaseName("IX_UserNotes_NoteType");
+
+            entity.HasIndex(un => new { un.UserId, un.CreatedAt })
+                  .HasDatabaseName("IX_UserNotes_UserId_CreatedAt")
+                  .IsDescending(false, true); // User ASC, CreatedAt DESC
+
+            entity.HasIndex(un => un.AuthorId)
+                  .HasDatabaseName("IX_UserNotes_AuthorId")
+                  .HasFilter("\"AuthorId\" IS NOT NULL");
+
+            entity.HasIndex(un => un.IsArchived)
+                  .HasDatabaseName("IX_UserNotes_IsArchived");
+        });
     }
 
     /// <summary>
@@ -1360,6 +1427,16 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         // Handle ContentRevision entities
         var contentRevisionEntries = ChangeTracker.Entries<ContentRevision>();
         foreach (var entry in contentRevisionEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
+            }
+        }
+
+        // Handle UserNote entities
+        var userNoteEntries = ChangeTracker.Entries<WitchCityRope.Api.Data.Entities.UserNote>();
+        foreach (var entry in userNoteEntries)
         {
             if (entry.State == EntityState.Added)
             {

@@ -59,6 +59,12 @@ public class VolunteerPosition
     public string Requirements { get; set; } = string.Empty;
 
     /// <summary>
+    /// Whether this position is visible on the public event page
+    /// Public positions allow attendees to sign up, private positions are admin-only
+    /// </summary>
+    public bool IsPublicFacing { get; set; } = true;
+
+    /// <summary>
     /// Navigation property to parent event
     /// </summary>
     public Event? Event { get; set; }

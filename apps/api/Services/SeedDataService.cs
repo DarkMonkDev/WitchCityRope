@@ -226,7 +226,8 @@ public class SeedDataService : ISeedDataService
                 Role = "Administrator",
                 PronouncedName = "Rope Master",
                 Pronouns = "they/them",
-                VettingStatus = 3  // Approved
+                VettingStatus = 3,  // Approved
+                IsActive = true
             },
             new {
                 Email = "teacher@witchcityrope.com",
@@ -235,7 +236,8 @@ public class SeedDataService : ISeedDataService
                 Role = "Teacher",
                 PronouncedName = "Safety First",
                 Pronouns = "she/her",
-                VettingStatus = 3  // Approved
+                VettingStatus = 3,  // Approved
+                IsActive = true
             },
             new {
                 Email = "vetted@witchcityrope.com",
@@ -244,7 +246,8 @@ public class SeedDataService : ISeedDataService
                 Role = "",  // No special permissions
                 PronouncedName = "Rope Enthusiast",
                 Pronouns = "he/him",
-                VettingStatus = 3  // Approved (vetted)
+                VettingStatus = 3,  // Approved (vetted)
+                IsActive = true
             },
             new {
                 Email = "member@witchcityrope.com",
@@ -253,7 +256,8 @@ public class SeedDataService : ISeedDataService
                 Role = "",  // No special permissions
                 PronouncedName = "Learning",
                 Pronouns = "they/them",
-                VettingStatus = 0  // UnderReview (not vetted)
+                VettingStatus = 0,  // UnderReview (not vetted)
+                IsActive = true
             },
             new {
                 Email = "guest@witchcityrope.com",
@@ -262,7 +266,8 @@ public class SeedDataService : ISeedDataService
                 Role = "",  // No special permissions
                 PronouncedName = "Newcomer",
                 Pronouns = "she/they",
-                VettingStatus = 0  // UnderReview (not vetted)
+                VettingStatus = 0,  // UnderReview (not vetted)
+                IsActive = true
             },
             // Safety/Incident coordinators for testing incident assignment
             new {
@@ -272,7 +277,8 @@ public class SeedDataService : ISeedDataService
                 Role = "SafetyTeam",
                 PronouncedName = "Safety Coordinator",
                 Pronouns = "they/them",
-                VettingStatus = 3  // Approved
+                VettingStatus = 3,  // Approved
+                IsActive = true
             },
             new {
                 Email = "coordinator2@witchcityrope.com",
@@ -281,21 +287,22 @@ public class SeedDataService : ISeedDataService
                 Role = "SafetyTeam",
                 PronouncedName = "Incident Handler",
                 Pronouns = "she/her",
-                VettingStatus = 3  // Approved
+                VettingStatus = 3,  // Approved
+                IsActive = true
             },
             // Additional users for vetting application testing (users 5-16)
-            new { Email = "applicant1@example.com", SceneName = "RopeNovice", DiscordName = "rope_novice", Role = "", PronouncedName = "Rope Novice", Pronouns = "she/her", VettingStatus = 0 },
-            new { Email = "applicant2@example.com", SceneName = "KnotLearner", DiscordName = "knot_learner", Role = "", PronouncedName = "Knot Learner", Pronouns = "they/them", VettingStatus = 0 },
-            new { Email = "applicant3@example.com", SceneName = "TrustBuilder", DiscordName = "trust_builder", Role = "Teacher,SafetyTeam", PronouncedName = "Trust Builder", Pronouns = "he/him", VettingStatus = 3 },  // Multiple roles, vetted
-            new { Email = "applicant4@example.com", SceneName = "SilkAndSteel", DiscordName = "silk_and_steel", Role = "", PronouncedName = "Silk And Steel", Pronouns = "she/her", VettingStatus = 4 },  // No role, denied
-            new { Email = "applicant5@example.com", SceneName = "EagerLearner", DiscordName = "eager_learner", Role = "", PronouncedName = "Eager Learner", Pronouns = "she/they", VettingStatus = 0 },
-            new { Email = "applicant6@example.com", SceneName = "QuickLearner", DiscordName = "quick_learner", Role = "", PronouncedName = "Quick Learner", Pronouns = "he/him", VettingStatus = 0 },
-            new { Email = "applicant7@example.com", SceneName = "ThoughtfulRigger", DiscordName = "thoughtful_rigger", Role = "Teacher", PronouncedName = "Thoughtful Rigger", Pronouns = "they/them", VettingStatus = 3 },  // Teacher, vetted
-            new { Email = "applicant8@example.com", SceneName = "CommunityBuilder", DiscordName = "community_builder", Role = "", PronouncedName = "Community Builder", Pronouns = "she/her", VettingStatus = 0 },
-            new { Email = "applicant9@example.com", SceneName = "NervousNewbie", DiscordName = "nervous_newbie", Role = "", PronouncedName = "Nervous Newbie", Pronouns = "he/him", VettingStatus = 0 },
-            new { Email = "applicant10@example.com", SceneName = "RopeBunny", DiscordName = "rope_bunny", Role = "", PronouncedName = "Rope Bunny", Pronouns = "she/her", VettingStatus = 0 },
-            new { Email = "applicant11@example.com", SceneName = "SafetyConscious", DiscordName = "safety_conscious", Role = "Teacher", PronouncedName = "Safety Conscious", Pronouns = "they/them", VettingStatus = 3 },  // Teacher, vetted
-            new { Email = "applicant12@example.com", SceneName = "PatientPractitioner", DiscordName = "patient_practitioner", Role = "Teacher", PronouncedName = "Patient Practitioner", Pronouns = "he/him", VettingStatus = 3 }  // Teacher, vetted
+            new { Email = "applicant1@example.com", SceneName = "RopeNovice", DiscordName = "rope_novice", Role = "", PronouncedName = "Rope Novice", Pronouns = "she/her", VettingStatus = 0, IsActive = false },
+            new { Email = "applicant2@example.com", SceneName = "KnotLearner", DiscordName = "knot_learner", Role = "", PronouncedName = "Knot Learner", Pronouns = "they/them", VettingStatus = 0, IsActive = true },
+            new { Email = "applicant3@example.com", SceneName = "TrustBuilder", DiscordName = "trust_builder", Role = "Teacher,SafetyTeam", PronouncedName = "Trust Builder", Pronouns = "he/him", VettingStatus = 3, IsActive = true },  // Multiple roles, vetted
+            new { Email = "applicant4@example.com", SceneName = "SilkAndSteel", DiscordName = "silk_and_steel", Role = "", PronouncedName = "Silk And Steel", Pronouns = "she/her", VettingStatus = 3, IsActive = true },  // Approved (will be synced from application)
+            new { Email = "applicant5@example.com", SceneName = "EagerLearner", DiscordName = "eager_learner", Role = "", PronouncedName = "Eager Learner", Pronouns = "she/they", VettingStatus = 0, IsActive = true },
+            new { Email = "applicant6@example.com", SceneName = "QuickLearner", DiscordName = "quick_learner", Role = "", PronouncedName = "Quick Learner", Pronouns = "he/him", VettingStatus = 0, IsActive = true },
+            new { Email = "applicant7@example.com", SceneName = "ThoughtfulRigger", DiscordName = "thoughtful_rigger", Role = "Teacher", PronouncedName = "Thoughtful Rigger", Pronouns = "they/them", VettingStatus = 3, IsActive = true },  // Teacher, vetted
+            new { Email = "applicant8@example.com", SceneName = "CommunityBuilder", DiscordName = "community_builder", Role = "", PronouncedName = "Community Builder", Pronouns = "she/her", VettingStatus = 0, IsActive = true },
+            new { Email = "applicant9@example.com", SceneName = "NervousNewbie", DiscordName = "nervous_newbie", Role = "", PronouncedName = "Nervous Newbie", Pronouns = "he/him", VettingStatus = 0, IsActive = true },
+            new { Email = "applicant10@example.com", SceneName = "RopeBunny", DiscordName = "rope_bunny", Role = "", PronouncedName = "Rope Bunny", Pronouns = "she/her", VettingStatus = 0, IsActive = true },
+            new { Email = "applicant11@example.com", SceneName = "SafetyConscious", DiscordName = "safety_conscious", Role = "Teacher", PronouncedName = "Safety Conscious", Pronouns = "they/them", VettingStatus = 3, IsActive = true },  // Teacher, vetted
+            new { Email = "applicant12@example.com", SceneName = "PatientPractitioner", DiscordName = "patient_practitioner", Role = "Teacher", PronouncedName = "Patient Practitioner", Pronouns = "he/him", VettingStatus = 3, IsActive = true }  // Teacher, vetted
         };
 
         var createdCount = 0;
@@ -309,6 +316,15 @@ public class SeedDataService : ISeedDataService
                 continue;
             }
 
+            // Try to get IsActive from account, default to true if not specified
+            var isActive = true;
+            var accountType = account.GetType();
+            var isActiveProperty = accountType.GetProperty("IsActive");
+            if (isActiveProperty != null)
+            {
+                isActive = (bool)(isActiveProperty.GetValue(account) ?? true);
+            }
+
             var user = new ApplicationUser
             {
                 UserName = account.Email,
@@ -319,7 +335,7 @@ public class SeedDataService : ISeedDataService
                 Role = account.Role,
                 PronouncedName = account.PronouncedName,
                 Pronouns = account.Pronouns,
-                IsActive = true,
+                IsActive = isActive,
                 VettingStatus = account.VettingStatus, // 3 = Approved (vetted), 0 = UnderReview (not vetted)
 
                 // Set required fields with placeholder data for development
@@ -334,19 +350,37 @@ public class SeedDataService : ISeedDataService
             var createResult = await _userManager.CreateAsync(user, "Test123!");
             if (createResult.Succeeded)
             {
-                // Assign user to role
-                var roleResult = await _userManager.AddToRoleAsync(user, account.Role);
-                if (roleResult.Succeeded)
+                // Assign user to role(s) - handle comma-separated roles
+                if (!string.IsNullOrWhiteSpace(account.Role))
                 {
+                    var roles = account.Role.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    var roleAssignments = new List<string>();
+
+                    foreach (var role in roles)
+                    {
+                        var roleResult = await _userManager.AddToRoleAsync(user, role);
+                        if (roleResult.Succeeded)
+                        {
+                            roleAssignments.Add(role);
+                        }
+                        else
+                        {
+                            var roleErrors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
+                            _logger.LogWarning("Failed to assign role {Role} to user {Email}: {Errors}",
+                                role, account.Email, roleErrors);
+                        }
+                    }
+
                     createdCount++;
-                    _logger.LogInformation("Created test account: {Email} ({Role}, VettingStatus: {VettingStatus})",
-                        account.Email, account.Role, account.VettingStatus);
+                    _logger.LogInformation("Created test account: {Email} (Roles: {Roles}, VettingStatus: {VettingStatus})",
+                        account.Email, string.Join(", ", roleAssignments), account.VettingStatus);
                 }
                 else
                 {
-                    var roleErrors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
-                    _logger.LogWarning("Failed to assign role {Role} to user {Email}: {Errors}",
-                        account.Role, account.Email, roleErrors);
+                    // User created without a role
+                    createdCount++;
+                    _logger.LogInformation("Created test account: {Email} (No role, VettingStatus: {VettingStatus})",
+                        account.Email, account.VettingStatus);
                 }
             }
             else
@@ -1224,7 +1258,7 @@ Past participants built a strong foundation in rope fundamentals with structured
                 AdminNotes = "Good references and thoughtful application. Ready for interview to assess practical knowledge."
             },
 
-            // Application 4: Interview Scheduled - interview scheduled
+            // Application 4: Approved - approved member with multiple roles
             new VettingApplication
             {
                 Id = Guid.NewGuid(),
@@ -1236,11 +1270,13 @@ Past participants built a strong foundation in rope fundamentals with structured
                 Pronouns = "he/him",
                 OtherNames = "Marc, MJ",
                 AboutYourself = @"I'm a 28-year-old professional who discovered rope bondage through a partner. I've been practicing for six months and am passionate about the psychological and emotional aspects of rope. I have experience as a rigger and understand the responsibility that comes with restraining another person. I've completed online safety courses and practiced extensively with enthusiastic partners. I'm seeking a community where I can continue learning and share experiences with others who value both technical skill and emotional intelligence in rope work.",
-                WorkflowStatus = VettingStatus.FinalReview, // FinalReview (2) - Interview complete, awaiting decision
+                WorkflowStatus = VettingStatus.Approved, // Approved (3) - matches User.VettingStatus
                 SubmittedAt = DateTime.UtcNow.AddDays(-14),
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-10),
-                InterviewScheduledFor = DateTime.UtcNow.AddDays(-3), // Interview completed 3 days ago
-                AdminNotes = "Interview completed on Saturday. Applicant showed good understanding of consent and safety principles."
+                InterviewScheduledFor = DateTime.UtcNow.AddDays(-8),
+                DecisionMadeAt = DateTime.UtcNow.AddDays(-5),
+                LastReviewedAt = DateTime.UtcNow.AddDays(-5),
+                AdminNotes = "Interview completed. Applicant showed excellent understanding of consent and safety principles. Approved for membership with Teacher and SafetyTeam roles."
             },
 
             // Application 5: Approved - recently approved member
@@ -1312,7 +1348,7 @@ Past participants built a strong foundation in rope fundamentals with structured
                 });
             }
 
-            // Application 8: Recent submission - just submitted
+            // Application 8: Approved - experienced Teacher
             if (users.Count >= 7)
             {
                 additionalApplications.Add(new VettingApplication
@@ -1326,9 +1362,13 @@ Past participants built a strong foundation in rope fundamentals with structured
                     Pronouns = "they/them",
                     OtherNames = "Riv, AR",
                     AboutYourself = @"I've been practicing rope for about 8 months with a consistent partner. We've focused heavily on safety, communication, and building trust. I've completed several online courses about rope safety and anatomy. I'm particularly interested in the artistic and meditative aspects of rope bondage. I understand that joining a community is about contributing positively and learning from experienced practitioners, not just gaining access to events.",
-                    WorkflowStatus = VettingStatus.UnderReview,
-                    SubmittedAt = DateTime.UtcNow.AddDays(-1),
-                    AdminNotes = null
+                    WorkflowStatus = VettingStatus.Approved, // Approved (3) - matches User.VettingStatus
+                    SubmittedAt = DateTime.UtcNow.AddDays(-30),
+                    ReviewStartedAt = DateTime.UtcNow.AddDays(-25),
+                    InterviewScheduledFor = DateTime.UtcNow.AddDays(-20),
+                    DecisionMadeAt = DateTime.UtcNow.AddDays(-15),
+                    LastReviewedAt = DateTime.UtcNow.AddDays(-15),
+                    AdminNotes = "Experienced practitioner with strong safety focus. Approved for Teacher role."
                 });
             }
 
@@ -1393,23 +1433,51 @@ Past participants built a strong foundation in rope fundamentals with structured
                 });
             }
 
-            // Application 12: SafetyFirst - An experienced rigger from another city
+            // Application 12: SafetyConscious - Approved Teacher from another city
             if (users.Count >= 11)
             {
                 additionalApplications.Add(new VettingApplication
                 {
                     Id = Guid.NewGuid(),
                     UserId = users[10].Id,
-                    SceneName = "SafetyFirst",
+                    SceneName = "SafetyConscious", // Fixed: was "SafetyFirst", should match user's SceneName
                     RealName = "Sam Rodriguez",
-                    Email = "safetyfirst@example.com",
-                    FetLifeHandle = "SafetyFirst_SR",
+                    Email = "safety.conscious@email.com",
+                    FetLifeHandle = "SafetyConscious_SR",
                     Pronouns = "they/them",
                     OtherNames = "Sam",
                     AboutYourself = @"I'm an experienced rigger relocating from Portland, where I was an active member of the rope community for 4+ years. I have extensive experience with both floor work and suspension, and I've completed multiple safety courses including basic first aid and rope-specific emergency procedures. In my previous community, I helped mentor newcomers and occasionally assisted with safety monitoring at events. I prioritize safety above all else in rope work and am committed to ongoing education. I'm seeking a new community home where I can contribute my knowledge while continuing to learn from other experienced practitioners.",
-                    WorkflowStatus = VettingStatus.UnderReview,
-                    SubmittedAt = DateTime.UtcNow.AddDays(-1),
-                    AdminNotes = null
+                    WorkflowStatus = VettingStatus.Approved, // Approved (3) - matches User.VettingStatus
+                    SubmittedAt = DateTime.UtcNow.AddDays(-40),
+                    ReviewStartedAt = DateTime.UtcNow.AddDays(-35),
+                    InterviewScheduledFor = DateTime.UtcNow.AddDays(-30),
+                    DecisionMadeAt = DateTime.UtcNow.AddDays(-25),
+                    LastReviewedAt = DateTime.UtcNow.AddDays(-25),
+                    AdminNotes = "Highly experienced with excellent references from Portland community. Strong safety background. Approved for Teacher role."
+                });
+            }
+
+            // Application 13: PatientPractitioner - Approved Teacher with teaching experience
+            if (users.Count >= 12)
+            {
+                additionalApplications.Add(new VettingApplication
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = users[11].Id,
+                    SceneName = "PatientPractitioner",
+                    RealName = "James Chen",
+                    Email = "patient.practitioner@email.com",
+                    FetLifeHandle = "PatientPractitioner_JC",
+                    Pronouns = "he/him",
+                    OtherNames = "Jim",
+                    AboutYourself = @"I'm a dedicated rope practitioner with 5+ years of experience. I've been teaching beginner workshops in my previous community for the past 2 years and have a particular passion for patient, methodical instruction. I believe in building strong fundamentals and emphasize safety, consent, and communication in all my teaching. I've completed advanced safety courses and have experience with both floor work and suspension. I'm seeking a new community where I can continue teaching and learning from other experienced practitioners.",
+                    WorkflowStatus = VettingStatus.Approved, // Approved (3) - matches User.VettingStatus
+                    SubmittedAt = DateTime.UtcNow.AddDays(-50),
+                    ReviewStartedAt = DateTime.UtcNow.AddDays(-45),
+                    InterviewScheduledFor = DateTime.UtcNow.AddDays(-40),
+                    DecisionMadeAt = DateTime.UtcNow.AddDays(-35),
+                    LastReviewedAt = DateTime.UtcNow.AddDays(-35),
+                    AdminNotes = "Excellent teaching credentials with strong references from previous community. Patient and methodical approach to instruction. Approved for Teacher role."
                 });
             }
 
@@ -2159,6 +2227,200 @@ The WitchCityRope Vetting Team",
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Volunteer positions creation completed. Created: {VolunteerCount} positions", volunteerPositionsToAdd.Count);
+
+        // Create volunteer signups for testing
+        await SeedVolunteerSignupsAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Creates volunteer signups for testing volunteer management functionality
+    /// </summary>
+    private async Task SeedVolunteerSignupsAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Starting volunteer signups creation");
+
+        // Check if volunteer signups already exist (idempotent operation)
+        var existingSignupCount = await _context.VolunteerSignups.CountAsync(cancellationToken);
+        if (existingSignupCount > 0)
+        {
+            _logger.LogInformation("Volunteer signups already exist ({Count}), skipping signup seeding", existingSignupCount);
+            return;
+        }
+
+        // Get users for signup testing
+        var adminUser = await _userManager.FindByEmailAsync("admin@witchcityrope.com");
+        var teacherUser = await _userManager.FindByEmailAsync("teacher@witchcityrope.com");
+        var vettedUser = await _userManager.FindByEmailAsync("vetted@witchcityrope.com");
+        var memberUser = await _userManager.FindByEmailAsync("member@witchcityrope.com");
+
+        if (adminUser == null || teacherUser == null || vettedUser == null || memberUser == null)
+        {
+            _logger.LogWarning("Could not find all test users for volunteer signup seeding");
+            return;
+        }
+
+        // Get volunteer positions
+        var volunteerPositions = await _context.VolunteerPositions
+            .Include(vp => vp.Event)
+            .ToListAsync(cancellationToken);
+
+        if (!volunteerPositions.Any())
+        {
+            _logger.LogWarning("No volunteer positions found for signup seeding");
+            return;
+        }
+
+        var signupsToAdd = new List<VolunteerSignup>();
+        var now = DateTime.UtcNow;
+
+        // RopeMaster (admin) volunteers for multiple positions
+        // Sign up for Door Monitor positions (public-facing)
+        var doorMonitorPositions = volunteerPositions
+            .Where(vp => vp.Title == "Door Monitor" && vp.IsPublicFacing)
+            .Take(3)
+            .ToList();
+
+        foreach (var position in doorMonitorPositions)
+        {
+            signupsToAdd.Add(new VolunteerSignup
+            {
+                Id = Guid.NewGuid(),
+                VolunteerPositionId = position.Id,
+                UserId = adminUser.Id,
+                Status = VolunteerSignupStatus.Confirmed,
+                SignedUpAt = now.AddDays(-7),
+                Notes = "Happy to help with door duties!",
+                HasCheckedIn = false,
+                CreatedAt = now.AddDays(-7),
+                UpdatedAt = now.AddDays(-7)
+            });
+
+            // Update position slot count
+            position.SlotsFilled++;
+        }
+
+        // RopeMaster volunteers for Setup/Cleanup
+        var setupPosition = volunteerPositions
+            .Where(vp => vp.Title == "Setup/Cleanup Crew" && vp.IsPublicFacing)
+            .FirstOrDefault();
+
+        if (setupPosition != null)
+        {
+            signupsToAdd.Add(new VolunteerSignup
+            {
+                Id = Guid.NewGuid(),
+                VolunteerPositionId = setupPosition.Id,
+                UserId = adminUser.Id,
+                Status = VolunteerSignupStatus.Confirmed,
+                SignedUpAt = now.AddDays(-5),
+                Notes = "I can bring some extra equipment too.",
+                HasCheckedIn = false,
+                CreatedAt = now.AddDays(-5),
+                UpdatedAt = now.AddDays(-5)
+            });
+
+            setupPosition.SlotsFilled++;
+        }
+
+        // Teacher volunteers for Setup/Cleanup
+        var setupPosition2 = volunteerPositions
+            .Where(vp => vp.Title == "Setup/Cleanup Crew" && vp.IsPublicFacing && vp.Id != setupPosition?.Id)
+            .FirstOrDefault();
+
+        if (setupPosition2 != null)
+        {
+            signupsToAdd.Add(new VolunteerSignup
+            {
+                Id = Guid.NewGuid(),
+                VolunteerPositionId = setupPosition2.Id,
+                UserId = teacherUser.Id,
+                Status = VolunteerSignupStatus.Confirmed,
+                SignedUpAt = now.AddDays(-6),
+                HasCheckedIn = false,
+                CreatedAt = now.AddDays(-6),
+                UpdatedAt = now.AddDays(-6)
+            });
+
+            setupPosition2.SlotsFilled++;
+        }
+
+        // Vetted member volunteers for Door Monitor
+        var doorPosition = volunteerPositions
+            .Where(vp => vp.Title == "Door Monitor" && vp.IsPublicFacing && !doorMonitorPositions.Contains(vp))
+            .FirstOrDefault();
+
+        if (doorPosition != null)
+        {
+            signupsToAdd.Add(new VolunteerSignup
+            {
+                Id = Guid.NewGuid(),
+                VolunteerPositionId = doorPosition.Id,
+                UserId = vettedUser.Id,
+                Status = VolunteerSignupStatus.Confirmed,
+                SignedUpAt = now.AddDays(-4),
+                HasCheckedIn = false,
+                CreatedAt = now.AddDays(-4),
+                UpdatedAt = now.AddDays(-4)
+            });
+
+            doorPosition.SlotsFilled++;
+        }
+
+        // Regular member volunteers for Setup/Cleanup
+        var setupPosition3 = volunteerPositions
+            .Where(vp => vp.Title == "Setup/Cleanup Crew" && vp.IsPublicFacing &&
+                         vp.Id != setupPosition?.Id && vp.Id != setupPosition2?.Id)
+            .FirstOrDefault();
+
+        if (setupPosition3 != null)
+        {
+            signupsToAdd.Add(new VolunteerSignup
+            {
+                Id = Guid.NewGuid(),
+                VolunteerPositionId = setupPosition3.Id,
+                UserId = memberUser.Id,
+                Status = VolunteerSignupStatus.Confirmed,
+                SignedUpAt = now.AddDays(-3),
+                Notes = "First time volunteering, excited to help!",
+                HasCheckedIn = false,
+                CreatedAt = now.AddDays(-3),
+                UpdatedAt = now.AddDays(-3)
+            });
+
+            setupPosition3.SlotsFilled++;
+        }
+
+        // Add one completed volunteer signup for RopeMaster (past event)
+        var pastPosition = volunteerPositions
+            .Where(vp => vp.Event != null && vp.Event.StartDate < now && vp.IsPublicFacing)
+            .FirstOrDefault();
+
+        if (pastPosition != null)
+        {
+            var completedSignup = new VolunteerSignup
+            {
+                Id = Guid.NewGuid(),
+                VolunteerPositionId = pastPosition.Id,
+                UserId = adminUser.Id,
+                Status = VolunteerSignupStatus.Completed,
+                SignedUpAt = now.AddDays(-14),
+                HasCheckedIn = true,
+                CheckedInAt = pastPosition.Event!.StartDate.AddMinutes(-15),
+                HasCompleted = true,
+                CompletedAt = pastPosition.Event!.StartDate.AddHours(2),
+                Notes = "Completed successfully",
+                CreatedAt = now.AddDays(-14),
+                UpdatedAt = pastPosition.Event!.StartDate.AddHours(2)
+            };
+
+            signupsToAdd.Add(completedSignup);
+            pastPosition.SlotsFilled++;
+        }
+
+        await _context.VolunteerSignups.AddRangeAsync(signupsToAdd, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Volunteer signups creation completed. Created: {SignupCount} signups", signupsToAdd.Count);
     }
 
     /// <summary>
@@ -2392,9 +2654,10 @@ The WitchCityRope Vetting Team",
             Title = "Door Monitor",
             Description = "Check attendees in, verify tickets/RSVPs, and welcome newcomers",
             SlotsNeeded = 2,
-            SlotsFilled = Random.Shared.Next(0, 3),
+            SlotsFilled = 0, // Will be set by actual signups
             RequiresExperience = false,
-            Requirements = "Friendly demeanor, punctuality"
+            Requirements = "Friendly demeanor, punctuality",
+            IsPublicFacing = true // Public can sign up
         });
 
         positions.Add(new VolunteerPosition
@@ -2403,9 +2666,10 @@ The WitchCityRope Vetting Team",
             Title = "Setup/Cleanup Crew",
             Description = "Help set up equipment before the event and clean up afterwards",
             SlotsNeeded = 3,
-            SlotsFilled = Random.Shared.Next(1, 4),
+            SlotsFilled = 0, // Will be set by actual signups
             RequiresExperience = false,
-            Requirements = "Physical ability to lift equipment"
+            Requirements = "Physical ability to lift equipment",
+            IsPublicFacing = true // Public can sign up
         });
 
         // Additional positions for classes
@@ -2417,9 +2681,10 @@ The WitchCityRope Vetting Team",
                 Title = "Teaching Assistant",
                 Description = "Help instructor with demonstrations and assist students",
                 SlotsNeeded = 1,
-                SlotsFilled = Random.Shared.Next(0, 2),
+                SlotsFilled = 0, // Will be set by actual signups
                 RequiresExperience = true,
-                Requirements = "Intermediate+ rope skills, teaching experience preferred"
+                Requirements = "Intermediate+ rope skills, teaching experience preferred",
+                IsPublicFacing = false // Admin-only assignment
             });
         }
 
@@ -2443,9 +2708,10 @@ The WitchCityRope Vetting Team",
                 Title = $"Session Monitor - {session.Name}",
                 Description = $"Monitor safety and assist during {session.Name}",
                 SlotsNeeded = 1,
-                SlotsFilled = Random.Shared.Next(0, 2),
+                SlotsFilled = 0, // Will be set by actual signups
                 RequiresExperience = true,
-                Requirements = "Safety knowledge, first aid certified preferred"
+                Requirements = "Safety knowledge, first aid certified preferred",
+                IsPublicFacing = false // Admin-only assignment (requires safety expertise)
             });
         }
 
