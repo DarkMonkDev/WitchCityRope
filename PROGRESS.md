@@ -1,10 +1,10 @@
 # Witch City Rope - Development Progress
 
 ## Current Development Status
-**Last Updated**: 2025-10-18
-**Current Focus**: Incident Reporting Feature - Frontend Complete ✅, Backend Schema Complete ✅
-**Project Status**: Frontend implementation 100%, Backend schema 85%, API endpoints 0%
-**Next Phase**: Backend API Implementation (12 endpoints, estimated 40-60 hours)
+**Last Updated**: 2025-10-20
+**Current Focus**: Volunteer Signup System Complete ✅ | Incident Reporting Awaiting Backend API
+**Project Status**: Volunteer system production-ready, Incident reporting frontend 100%, backend schema 85%
+**Next Phase**: Incident Reporting Backend API Implementation (12 endpoints, estimated 40-60 hours)
 
 ### Historical Archive
 For complete development history, see:
@@ -15,6 +15,69 @@ For complete development history, see:
 > **Note**: During 2025-08-22 canonical document location consolidation, extensive historical development details were moved from this file to maintain focused current status while preserving complete project history.
 
 ## Current Development Sessions
+
+### October 20, 2025: Volunteer Position Signup System - Complete ✅
+**Type**: Feature Development (Full Stack)
+**Status**: ✅ **PRODUCTION READY** - Backend API complete, Frontend complete, E2E tested
+**Time Invested**: ~4 hours
+**Commit**: `e40bd843` - feat(volunteers): add volunteer position signup system with auto-RSVP
+
+**🎯 VOLUNTEER SIGNUP SYSTEM - FULLY IMPLEMENTED**
+
+**📊 DELIVERABLES:**
+
+**Backend (100% Complete)**:
+- **VolunteerSignup Entity**: Tracks user signups with status, check-in, and completion
+- **IsPublicFacing Field**: Added to VolunteerPosition for public vs admin-only positions
+- **2 API Endpoints**: GET volunteer positions, POST signup with auto-RSVP
+- **Auto-RSVP Logic**: Creates EventParticipation when user signs up to volunteer
+- **Seed Data**: 8 test volunteer signups across multiple users
+- **EF Core Migration**: `20251020080341_AddVolunteerSignupsAndIsPublicFacing`
+- **Vertical Slice Architecture**: Features/Volunteers with Models, Services, Endpoints
+
+**Frontend (100% Complete)**:
+- **5 New Files**: Types, API client, hook, 2 components
+- **VolunteerPositionCard**: Summary card with progress bar, badges, status indicators
+- **VolunteerPositionModal**: Detailed modal with signup form and notifications
+- **React Query Integration**: Data fetching, caching, and automatic invalidation
+- **Mantine UI**: Consistent design with notifications for user feedback
+- **Real-time Updates**: Progress bars and badges update instantly after signup
+- **Authentication-Based Filtering**: Public positions visible to all, private positions admin-only
+
+**Integration (100% Complete)**:
+- **EventDetailPage**: Volunteer section added after Policies
+- **Service Registration**: VolunteerService registered in DI container
+- **Endpoint Mapping**: Volunteer endpoints mapped in WebApplicationExtensions
+- **Database Context**: VolunteerSignups DbSet added to ApplicationDbContext
+
+**🔑 KEY FEATURES:**
+- **Auto-RSVP**: Signing up for volunteer position automatically RSVPs user to event
+- **Progress Tracking**: Visual progress bars show slots filled/remaining
+- **Status Badges**: "Signed Up", "X spots left", "Full" indicators
+- **Optional Notes**: Users can add notes when signing up
+- **Success Notifications**: Mantine notifications for feedback
+- **Query Cache**: Automatic invalidation for instant UI refresh
+
+**✅ TESTING VERIFIED:**
+- **End-to-End Tested**: Full signup flow tested with browser automation
+- **Database Verified**: Signup recorded correctly with notes and timestamp
+- **API Tested**: Both endpoints returning correct data
+- **UI/UX Tested**: Modal interactions, notifications, real-time updates all working
+
+**📦 FILES CREATED (18 files, +5034/-54 lines):**
+- Backend: VolunteerEndpoints.cs, VolunteerModels.cs, VolunteerService.cs, VolunteerSignup.cs
+- Frontend: volunteerApi.ts, VolunteerPositionCard.tsx, VolunteerPositionModal.tsx, useVolunteerPositions.ts, volunteer.types.ts
+- Database: Migration, ApplicationDbContext updates, SeedDataService updates
+
+**📸 SCREENSHOTS:**
+- `test-results/volunteer-positions-display.png` - Event page with volunteer section
+- `test-results/volunteer-modal-unauthenticated.png` - Guest user view
+- `test-results/volunteer-modal-authenticated.png` - Signup form with notes
+- `test-results/volunteer-signup-success.png` - After successful signup
+
+**🚀 STATUS**: Ready for production use
+
+---
 
 ### October 18, 2025: Incident Reporting Feature - Phases 1-4 Complete ✅
 **Type**: Feature Development (Orchestrated Workflow)
