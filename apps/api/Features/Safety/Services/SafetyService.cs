@@ -268,6 +268,9 @@ public class SafetyService : ISafetyService
                     case IncidentStatus.InformationGathering:
                         statistics.InProgressCount = count.Count;
                         break;
+                    case IncidentStatus.ReviewingFinalReport:
+                        statistics.ReviewingFinalReportCount = count.Count;
+                        break;
                     case IncidentStatus.Closed:
                         statistics.ResolvedCount = count.Count;
                         break;

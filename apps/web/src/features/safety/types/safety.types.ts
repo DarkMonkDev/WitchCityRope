@@ -93,6 +93,7 @@ export interface SafetyStatistics {
   totalCount: number;
   newCount: number;
   inProgressCount: number;
+  reviewingFinalReportCount: number;
   resolvedCount: number;
   thisMonth: number;
 }

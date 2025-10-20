@@ -10,7 +10,6 @@ public class UpdateUserRequest
     public string? Role { get; set; }
     public string? Pronouns { get; set; }
     public bool? IsActive { get; set; }
-    public bool? IsVetted { get; set; }
     public bool? EmailConfirmed { get; set; }
     public int? VettingStatus { get; set; }
 }

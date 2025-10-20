@@ -44,10 +44,11 @@ public class CreateTestUserRequest
     public DateTime? DateOfBirth { get; set; }
 
     /// <summary>
-    /// Whether user is vetted (sets IsVetted flag)
-    /// Default: false
+    /// User's vetting status (0-6 enum value)
+    /// 0 = UnderReview, 3 = Approved (vetted)
+    /// Default: 0 (UnderReview)
     /// </summary>
-    public bool IsVetted { get; set; } = false;
+    public int VettingStatus { get; set; } = 0;
 
     /// <summary>
     /// User's bio (optional)

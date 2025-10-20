@@ -459,7 +459,6 @@ public class UserDashboardProfileServiceTests : IAsyncLifetime
             Bio = bio,
             Role = "Member",
             IsActive = true,
-            IsVetted = false,
             VettingStatus = (int)vettingStatus,
             EmailConfirmed = true,
             CreatedAt = DateTime.UtcNow,

@@ -220,7 +220,7 @@ public class SeedDataServiceTests : DatabaseTestBase
         adminUser.Role.Should().Be("Administrator");
         adminUser.PronouncedName.Should().Be("Rope Master");
         adminUser.Pronouns.Should().Be("they/them");
-        adminUser.IsVetted.Should().BeTrue();
+        adminUser.VettingStatus.Should().Be(3); // 3 = Approved (vetted)
         adminUser.IsActive.Should().BeTrue();
         adminUser.EmailConfirmed.Should().BeTrue();
         adminUser.DateOfBirth.Kind.Should().Be(DateTimeKind.Utc);
@@ -229,13 +229,13 @@ public class SeedDataServiceTests : DatabaseTestBase
         var teacherUser = createdUsers.First(u => u.Email == "teacher@witchcityrope.com");
         teacherUser.SceneName.Should().Be("SafetyFirst");
         teacherUser.Role.Should().Be("Teacher");
-        teacherUser.IsVetted.Should().BeTrue();
+        teacherUser.VettingStatus.Should().Be(3); // 3 = Approved (vetted)
 
         // Verify regular member (not vetted)
         var memberUser = createdUsers.First(u => u.Email == "member@witchcityrope.com");
         memberUser.SceneName.Should().Be("Learning");
         memberUser.Role.Should().Be("Member");
-        memberUser.IsVetted.Should().BeFalse();
+        memberUser.VettingStatus.Should().NotBe(3); // Not vetted (any status except Approved)
     }
 
     [Fact]

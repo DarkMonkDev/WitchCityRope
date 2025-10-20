@@ -229,5 +229,8 @@ public static class UserEndpoints
             .Produces<IEnumerable<UserOptionDto>>(200)
             .Produces(401)
             .Produces(500);
+
+        // Map member details endpoints (admin-only comprehensive member information)
+        app.MapMemberDetailsEndpoints();
     }
 }

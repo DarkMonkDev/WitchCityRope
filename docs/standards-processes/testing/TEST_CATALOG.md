@@ -1,6 +1,6 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-10-19 (Safety Test Schema Update Complete) -->
-<!-- Version: 6.5 - Safety Test Schema Migration Complete -->
+<!-- Last Updated: 2025-10-19 (Docker Environment Health Verification) -->
+<!-- Version: 6.6 - Docker Health Check Added -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
 
@@ -42,7 +42,51 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 
 ### Current Test Status (October 2025)
 
-**Latest Updates** (2025-10-19 - SAFETY TEST SCHEMA UPDATE):
+**Latest Updates** (2025-10-19 - DOCKER ENVIRONMENT HEALTH VERIFICATION):
+
+- ✅ **DOCKER ENVIRONMENT HEALTH CHECK COMPLETE** (2025-10-19 22:31 UTC):
+  - **Purpose**: Verify WitchCityRope Docker environment status before test execution
+  - **Overall Status**: ✅ **HEALTHY** (with minor informational warnings)
+  - **Recommendation**: 🟢 **ENVIRONMENT READY FOR TESTING**
+  - **Container Health**:
+    - witchcity-web: ✅ HEALTHY (Up 2 hours)
+    - witchcity-api: ✅ HEALTHY (Up 2 hours)
+    - witchcity-postgres: ✅ HEALTHY (Up 2 hours)
+    - witchcity-test-server: ⚠️ unhealthy (test utility only, not critical)
+  - **Service Endpoint Checks**:
+    - Database (PostgreSQL): ✅ FULLY OPERATIONAL (18 users seeded)
+    - API Service (.NET): ✅ FULLY OPERATIONAL (200 OK, {"status":"Healthy"})
+    - Web Service (React): ✅ FULLY OPERATIONAL (200 OK, correct content)
+  - **Compilation Status**: ✅ NO ERRORS DETECTED
+    - Web logs: Clean (no compilation errors)
+    - API logs: Healthy (informational CORS warnings only for /health endpoint)
+  - **Performance Metrics**:
+    - Database query: 0.022-0.090ms (excellent)
+    - API health check: < 100ms (excellent)
+    - Web page load: < 1 second (excellent)
+  - **Docker-Only Testing Standard Compliance**: ✅ 100% COMPLIANT
+    - Web on port 5173 (Docker) ✅
+    - API on port 5655 (Docker) ✅
+    - Database on port 5434 (Docker) ✅
+    - No local dev servers detected ✅
+  - **Pre-Flight Checklist**: ✅ ALL CHECKS PASSED
+    - Docker containers running ✅
+    - No rogue local dev servers ✅
+    - No conflicting processes ✅
+    - All services responding correctly ✅
+  - **Test Execution Readiness**: ✅ READY FOR ALL TEST TYPES
+    - E2E Tests (Playwright) ✅
+    - Integration Tests (C# with TestContainers) ✅
+    - Unit Tests (React + C# Backend) ✅
+  - **Known Issues** (all non-blocking):
+    - Database external password auth (use docker exec instead) - ⚠️ MINOR
+    - Test server container unhealthy (test utility only) - ⚠️ NONE
+    - CORS warnings in API logs for /health endpoint - ⚠️ NONE (expected)
+  - **Report**: `/test-results/docker-health-check-2025-10-19.md`
+  - **Status**: ✅ **ENVIRONMENT VERIFIED HEALTHY** - No restart/rebuild needed
+  - **catalog_updated**: true
+
+**Previous Updates** (2025-10-19 - SAFETY TEST SCHEMA UPDATE):
 
 - ✅ **SAFETY TEST SCHEMA UPDATE COMPLETE** (2025-10-19):
   - **Feature**: Safety Incident Reporting (Backend test schema migration)
@@ -288,7 +332,8 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 - **Timeout Config**: `/apps/web/docs/testing/TIMEOUT_CONFIGURATION.md`
 
 ### Recent Test Reports
-- **Incident Reporting FINAL VERIFICATION**: `/test-results/incident-reporting-final-verification-analysis.md` 🔍 **LATEST** (2025-10-18 21:30)
+- **Docker Health Check**: `/test-results/docker-health-check-2025-10-19.md` 🟢 **LATEST** (2025-10-19 22:31)
+- **Incident Reporting FINAL VERIFICATION**: `/test-results/incident-reporting-final-verification-analysis.md` 🔍 (2025-10-18 21:30)
 - **Incident Reporting FINAL Phase 2**: `/test-results/incident-reporting-final-test-execution-phase2-2025-10-18.md` 🚨 (2025-10-18 20:30)
 - **Incident Reporting Phase 4**: `/test-results/incident-reporting-phase4-test-summary.md` ✅ (2025-10-18)
 - **CMS Final Test Report**: `/test-results/cms-final-test-report-2025-10-17.md` ✅ (2025-10-17)
@@ -420,7 +465,7 @@ await DatabaseHelpers.verifyEventParticipation(userId, eventId, 'Registered');  
 
 ## 📊 Test Metrics & Goals
 
-### Current Coverage (2025-10-18 FINAL VERIFICATION)
+### Current Coverage (2025-10-19 DOCKER HEALTH CHECK)
 - **E2E Tests**: 89 Playwright spec files
   - **Incident Reporting**: 7/24 passing (29.2%) 🚨 **TEST DATA/SELECTOR ISSUE**
 - **React Unit Tests**: 20+ test files (Vitest + React Testing Library)
@@ -431,6 +476,7 @@ await DatabaseHelpers.verifyEventParticipation(userId, eventId, 'Registered');  
 - **Integration Tests**: 5 test files (PostgreSQL with TestContainers)
   - **Incident Reporting**: ✅ **100% PASSING** (8/8 tests)
 - **Total Active Tests**: 186+ test files across all types
+- **Environment Status**: ✅ **HEALTHY AND READY** (verified 2025-10-19)
 
 ### Target Coverage
 - **Current Status**: 74.1% (63/85 tests) - Variable by feature
@@ -507,7 +553,8 @@ await DatabaseHelpers.verifyEventParticipation(userId, eventId, 'Registered');  
 - Track progress in "Latest Updates" section
 - Document test status changes (PASSING, FAILING, BLOCKED)
 - **Latest reports**:
-  - Incident Reporting FINAL VERIFICATION: `/test-results/incident-reporting-final-verification-analysis.md` 🔍 **LATEST**
+  - Docker Health Check: `/test-results/docker-health-check-2025-10-19.md` 🟢 **LATEST**
+  - Incident Reporting FINAL VERIFICATION: `/test-results/incident-reporting-final-verification-analysis.md` 🔍
   - Incident Reporting FINAL Phase 2: `/test-results/incident-reporting-final-test-execution-phase2-2025-10-18.md` 🚨
   - Incident Reporting Phase 4: `/test-results/incident-reporting-phase4-test-summary.md`
   - CMS Final: `/test-results/cms-final-test-report-2025-10-17.md`
@@ -517,4 +564,4 @@ await DatabaseHelpers.verifyEventParticipation(userId, eventId, 'Registered');  
 *This is a navigation index only. For detailed test information, see Part 2, 3, and 4.*
 *For current test execution, see CURRENT_TEST_STATUS.md*
 *For testing standards, see TESTING_GUIDE.md*
-*For latest incident reporting results, see `/test-results/incident-reporting-final-verification-analysis.md`*
+*For latest environment health check, see `/test-results/docker-health-check-2025-10-19.md`*

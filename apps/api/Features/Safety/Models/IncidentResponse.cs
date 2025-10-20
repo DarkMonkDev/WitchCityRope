@@ -121,6 +121,7 @@ public class SafetyStatistics
     public int TotalCount { get; set; }
     public int NewCount { get; set; }
     public int InProgressCount { get; set; }
+    public int ReviewingFinalReportCount { get; set; }
     public int ResolvedCount { get; set; }
     public int ThisMonth { get; set; }
 }

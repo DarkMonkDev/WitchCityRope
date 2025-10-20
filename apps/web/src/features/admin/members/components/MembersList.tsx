@@ -290,21 +290,29 @@ export const MembersList: React.FC = () => {
                 </Group>
               </Table.Th>
 
-              {/* Roles column */}
+              {/* Roles column - sortable */}
               <Table.Th
-                style={{ backgroundColor: '#880124', borderBottom: 'none' }}
+                style={{
+                  backgroundColor: '#880124',
+                  borderBottom: 'none',
+                  cursor: 'pointer',
+                }}
+                onClick={() => handleSort('Role')}
               >
-                <Text
-                  fw={600}
-                  size="sm"
-                  style={{
-                    color: 'white',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                  }}
-                >
-                  ROLES
-                </Text>
+                <Group gap={4} justify="flex-start">
+                  <Text
+                    fw={600}
+                    size="sm"
+                    style={{
+                      color: 'white',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                    }}
+                  >
+                    ROLES
+                  </Text>
+                  {getSortIcon('Role')}
+                </Group>
               </Table.Th>
 
               {/* Vetting Status column - sortable and center-aligned */}

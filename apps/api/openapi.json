@@ -1562,6 +1562,402 @@
         }
       }
     },
+    "/api/users/{userId}/details": {
+      "get": {
+        "tags": [
+          "Member Details"
+        ],
+        "summary": "Get comprehensive member details including participation summary",
+        "operationId": "GetMemberDetails",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberDetailsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/vetting-details": {
+      "get": {
+        "tags": [
+          "Member Details"
+        ],
+        "summary": "Get vetting application details and questionnaire responses",
+        "operationId": "GetMemberVettingDetails",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VettingDetailsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/event-history": {
+      "get": {
+        "tags": [
+          "Member Details"
+        ],
+        "summary": "Get paginated event registration and attendance history",
+        "operationId": "GetMemberEventHistory",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventHistoryResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/incidents": {
+      "get": {
+        "tags": [
+          "Member Details"
+        ],
+        "summary": "Get safety incidents involving this member",
+        "operationId": "GetMemberIncidents",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberIncidentsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/notes": {
+      "get": {
+        "tags": [
+          "Member Details"
+        ],
+        "summary": "Get all notes for this member (vetting, general, administrative, status changes)",
+        "operationId": "GetMemberNotes",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserNoteResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Member Details"
+        ],
+        "summary": "Create a new note for this member",
+        "operationId": "CreateMemberNote",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserNoteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserNoteResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/status": {
+      "put": {
+        "tags": [
+          "Member Details"
+        ],
+        "summary": "Update member status (active/inactive) - auto-creates status change note",
+        "operationId": "UpdateMemberStatus",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMemberStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/role": {
+      "put": {
+        "tags": [
+          "Member Details"
+        ],
+        "summary": "Update member role",
+        "operationId": "UpdateMemberRole",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMemberRoleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/api/safety/incidents": {
       "post": {
         "tags": [
@@ -5891,6 +6287,17 @@
           }
         }
       },
+      "CreateUserNoteRequest": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "noteType": {
+            "type": "string"
+          }
+        }
+      },
       "DashboardStatisticsResponse": {
         "type": "object",
         "properties": {
@@ -6125,6 +6532,74 @@
           }
         },
         "nullable": true
+      },
+      "EventHistoryRecord": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "eventTitle": {
+            "type": "string"
+          },
+          "eventType": {
+            "type": "string"
+          },
+          "eventDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "registrationType": {
+            "type": "string"
+          },
+          "participationStatus": {
+            "type": "string",
+            "nullable": true
+          },
+          "registeredAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "cancelledAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "amountPaid": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        }
+      },
+      "EventHistoryResponse": {
+        "type": "object",
+        "properties": {
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventHistoryRecord"
+            }
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
       },
       "EventParticipationDto": {
         "type": "object",
@@ -6621,6 +7096,130 @@
           },
           "hasCompletedWaiver": {
             "type": "boolean"
+          }
+        }
+      },
+      "MemberDetailsResponse": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sceneName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "discordName": {
+            "type": "string",
+            "nullable": true
+          },
+          "fetLifeHandle": {
+            "type": "string",
+            "nullable": true
+          },
+          "role": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastLoginAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "totalEventsAttended": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalEventsRegistered": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "activeRegistrations": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lastEventAttended": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "vettingStatus": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "vettingStatusDisplay": {
+            "type": "string"
+          },
+          "hasVettingApplication": {
+            "type": "boolean"
+          }
+        }
+      },
+      "MemberIncidentRecord": {
+        "type": "object",
+        "properties": {
+          "incidentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "referenceNumber": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "incidentDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reportedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "involvedParties": {
+            "type": "string",
+            "nullable": true
+          },
+          "witnesses": {
+            "type": "string",
+            "nullable": true
+          },
+          "userInvolvementType": {
+            "type": "string"
+          }
+        }
+      },
+      "MemberIncidentsResponse": {
+        "type": "object",
+        "properties": {
+          "incidents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MemberIncidentRecord"
+            }
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -8082,6 +8681,26 @@
           }
         }
       },
+      "UpdateMemberRoleRequest": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateMemberStatusRequest": {
+        "type": "object",
+        "properties": {
+          "isActive": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
       "UpdateNoteRequest": {
         "type": "object",
         "properties": {
@@ -8354,6 +8973,41 @@
           }
         }
       },
+      "UserNoteResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "content": {
+            "type": "string"
+          },
+          "noteType": {
+            "type": "string"
+          },
+          "authorId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "authorSceneName": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isArchived": {
+            "type": "boolean"
+          }
+        }
+      },
       "UserOptionDto": {
         "type": "object",
         "properties": {
@@ -8494,6 +9148,121 @@
           }
         }
       },
+      "VettingDetailsResponse": {
+        "type": "object",
+        "properties": {
+          "hasApplication": {
+            "type": "boolean"
+          },
+          "applicationId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "applicationNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "workflowStatus": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "workflowStatusDisplay": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastReviewedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "decisionMadeAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "sceneName": {
+            "type": "string",
+            "nullable": true
+          },
+          "realName": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "fetLifeHandle": {
+            "type": "string",
+            "nullable": true
+          },
+          "pronouns": {
+            "type": "string",
+            "nullable": true
+          },
+          "aboutYourself": {
+            "type": "string",
+            "nullable": true
+          },
+          "experienceLevel": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "yearsExperience": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "experienceDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "safetyKnowledge": {
+            "type": "string",
+            "nullable": true
+          },
+          "consentUnderstanding": {
+            "type": "string",
+            "nullable": true
+          },
+          "whyJoinCommunity": {
+            "type": "string",
+            "nullable": true
+          },
+          "skillsInterests": {
+            "type": "string",
+            "nullable": true
+          },
+          "expectationsGoals": {
+            "type": "string",
+            "nullable": true
+          },
+          "agreesToGuidelines": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "agreesToTerms": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "adminNotes": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
       "VettingStatusDto": {
         "type": "object",
         "properties": {
@@ -8629,6 +9398,9 @@
     },
     {
       "name": "TestHelpers"
+    },
+    {
+      "name": "Member Details"
     },
     {
       "name": "Safety"

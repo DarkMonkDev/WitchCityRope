@@ -129,13 +129,15 @@ public class UserManagementService
             // Start with base query using direct Entity Framework
             var query = _context.Users.AsNoTracking();
 
-            // Apply search term filter
+            // Apply search term filter - search across email, scene name, discord name, and roles
             if (!string.IsNullOrWhiteSpace(request.SearchTerm))
             {
                 var searchTerm = request.SearchTerm.ToLower();
                 query = query.Where(u =>
                     (u.Email != null && u.Email.ToLower().Contains(searchTerm)) ||
-                    (u.SceneName != null && u.SceneName.ToLower().Contains(searchTerm)));
+                    (u.SceneName != null && u.SceneName.ToLower().Contains(searchTerm)) ||
+                    (u.DiscordName != null && u.DiscordName.ToLower().Contains(searchTerm)) ||
+                    (u.Role != null && u.Role.ToLower().Contains(searchTerm)));
             }
 
             // Apply role filter with OR logic for multiple roles
@@ -165,6 +167,9 @@ public class UserManagementService
             // Apply sorting
             query = request.SortBy.ToLower() switch
             {
+                "scenename" => request.SortDescending
+                    ? query.OrderByDescending(u => u.SceneName)
+                    : query.OrderBy(u => u.SceneName),
                 "email" => request.SortDescending
                     ? query.OrderByDescending(u => u.Email)
                     : query.OrderBy(u => u.Email),

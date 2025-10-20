@@ -22,8 +22,11 @@ export const AdminDashboardPage: React.FC = () => {
   const { data: safetyDashboard } = useSafetyDashboard();
 
   // Calculate active incidents (not on hold or closed)
+  // Active statuses: ReportSubmitted, InformationGathering, ReviewingFinalReport
   const activeIncidentsCount = safetyDashboard
-    ? safetyDashboard.statistics.newCount + safetyDashboard.statistics.inProgressCount
+    ? safetyDashboard.statistics.newCount +
+      safetyDashboard.statistics.inProgressCount +
+      safetyDashboard.statistics.reviewingFinalReportCount
     : 0;
 
   const dashboardCards: DashboardCard[] = [

@@ -16,6 +16,29 @@ export const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
   withCredentials: true, // Include httpOnly cookies for auth
+  // Configure array serialization for ASP.NET Core [AsParameters] binding
+  // ASP.NET expects: ?RoleFilters=Teacher&RoleFilters=Admin
+  // NOT: ?RoleFilters[]=Teacher&RoleFilters[]=Admin (axios default)
+  paramsSerializer: {
+    serialize: (params) => {
+      const parts: string[] = []
+      Object.keys(params).forEach((key) => {
+        const value = params[key]
+        if (value === null || value === undefined) {
+          return // Skip null/undefined values
+        }
+        if (Array.isArray(value)) {
+          // Serialize arrays as repeated keys for ASP.NET Core
+          value.forEach((item) => {
+            parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(item)}`)
+          })
+        } else {
+          parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+        }
+      })
+      return parts.join('&')
+    },
+  },
 })
 
 // Request interceptor for logging (BFF pattern - auth via httpOnly cookies only)

@@ -1246,7 +1246,7 @@ public class SafetyServiceExtendedTests : IAsyncLifetime
             SceneName = sceneName,
             Role = role ?? "Member",
             IsActive = true,
-            IsVetted = false,
+            VettingStatus = 0, // 0 = UnderReview (not vetted)
             EmailConfirmed = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow

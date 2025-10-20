@@ -229,7 +229,7 @@ public class ParticipationServiceTests : DatabaseTestBase
             Email = email,
             UserName = email,
             SceneName = sceneName,
-            IsVetted = isVetted,
+            VettingStatus = isVetted ? 3 : 0, // 3 = Approved (vetted), 0 = UnderReview (not vetted)
             IsActive = true,
             Role = "Member",
             EncryptedLegalName = "Test User",
@@ -237,7 +237,6 @@ public class ParticipationServiceTests : DatabaseTestBase
             PronouncedName = "Test User",
             Pronouns = "they/them",
             EmailVerificationToken = string.Empty,
-            VettingStatus = 0,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

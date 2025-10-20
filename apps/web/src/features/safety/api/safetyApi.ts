@@ -154,17 +154,14 @@ export const safetyApi = {
 
   /**
    * Get safety dashboard data for admin/safety team
+   * Backend returns AdminDashboardResponse directly (NOT wrapped in ApiResponse)
    */
   async getSafetyDashboard(): Promise<SafetyDashboardResponse> {
-    const { data } = await apiClient.get<ApiResponse<SafetyDashboardResponse>>(
+    const { data } = await apiClient.get<SafetyDashboardResponse>(
       '/api/safety/admin/dashboard'
     );
-    
-    if (!data.data) {
-      throw new Error(data.error || 'Failed to get dashboard data');
-    }
-    
-    return data.data;
+
+    return data;
   },
 
   /**
