@@ -93,7 +93,7 @@ export const UtilityBar: React.FC = () => {
         <Group gap="var(--space-lg)">
           <Box
             component={Link}
-            to="/incident-report"
+            to="/safety/report"
             style={{
               color: 'var(--color-brass)',
               fontWeight: 600,

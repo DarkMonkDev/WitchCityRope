@@ -68,6 +68,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<IncidentNotification> IncidentNotifications { get; set; }
 
     /// <summary>
+    /// IncidentNotes table for investigation notes
+    /// </summary>
+    public DbSet<IncidentNote> IncidentNotes => Set<IncidentNote>();
+
+    /// <summary>
     /// EventAttendees table for event registration and check-in
     /// </summary>
     public DbSet<EventAttendee> EventAttendees { get; set; }
@@ -556,8 +561,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             entity.Property(e => e.EncryptedContactEmail)
                   .HasMaxLength(500);
 
-            entity.Property(e => e.EncryptedContactPhone)
-                  .HasMaxLength(200);
+            entity.Property(e => e.EncryptedContactName)
+                  .HasMaxLength(500);
 
             // DateTime properties - CRITICAL: Use timestamptz for PostgreSQL
             entity.Property(e => e.IncidentDate)
@@ -577,10 +582,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
                   .HasColumnType("timestamptz");
 
             // Enum properties
-            entity.Property(e => e.Severity)
-                  .IsRequired()
-                  .HasConversion<int>();
-
             entity.Property(e => e.Status)
                   .IsRequired()
                   .HasConversion<int>();
@@ -589,9 +590,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             entity.HasIndex(e => e.ReferenceNumber)
                   .IsUnique()
                   .HasDatabaseName("IX_SafetyIncidents_ReferenceNumber");
-
-            entity.HasIndex(e => e.Severity)
-                  .HasDatabaseName("IX_SafetyIncidents_Severity");
 
             entity.HasIndex(e => e.Status)
                   .HasDatabaseName("IX_SafetyIncidents_Status");
@@ -603,8 +601,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
                   .HasDatabaseName("IX_SafetyIncidents_ReporterId")
                   .HasFilter("\"ReporterId\" IS NOT NULL");
 
-            entity.HasIndex(e => new { e.Status, e.Severity, e.ReportedAt })
-                  .HasDatabaseName("IX_SafetyIncidents_Status_Severity_ReportedAt");
+            entity.HasIndex(e => new { e.Status, e.ReportedAt })
+                  .HasDatabaseName("IX_SafetyIncidents_Status_ReportedAt");
+
+            // NEW: Google Drive fields
+            entity.Property(e => e.GoogleDriveFolderUrl)
+                  .HasMaxLength(500);
+
+            entity.Property(e => e.GoogleDriveFinalReportUrl)
+                  .HasMaxLength(500);
 
             // Foreign key relationships
             entity.HasOne(e => e.Reporter)
@@ -615,6 +620,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             entity.HasOne(e => e.AssignedUser)
                   .WithMany()
                   .HasForeignKey(e => e.AssignedTo)
+                  .OnDelete(DeleteBehavior.SetNull);
+
+            // NEW: Coordinator relationship
+            entity.HasOne(e => e.Coordinator)
+                  .WithMany()
+                  .HasForeignKey(e => e.CoordinatorId)
                   .OnDelete(DeleteBehavior.SetNull);
 
             entity.HasOne(e => e.CreatedByUser)
@@ -637,6 +648,21 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
                   .WithOne(n => n.Incident)
                   .HasForeignKey(n => n.IncidentId)
                   .OnDelete(DeleteBehavior.Cascade);
+
+            // NEW: Notes relationship
+            entity.HasMany(e => e.Notes)
+                  .WithOne(n => n.Incident)
+                  .HasForeignKey(n => n.IncidentId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            // NEW: Coordinator workload index
+            entity.HasIndex(e => new { e.CoordinatorId, e.Status })
+                  .HasDatabaseName("IX_SafetyIncidents_CoordinatorId_Status");
+
+            // NEW: Unassigned queue partial index
+            entity.HasIndex(e => new { e.Status, e.CoordinatorId })
+                  .HasDatabaseName("IX_SafetyIncidents_Status_CoordinatorId")
+                  .HasFilter("\"CoordinatorId\" IS NULL");
         });
 
         // IncidentAuditLog entity configuration
@@ -753,6 +779,77 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             entity.HasIndex(e => new { e.CreatedAt, e.RetryCount })
                   .HasDatabaseName("IX_IncidentNotifications_Failed_RetryCount")
                   .HasFilter("\"Status\" = 'Failed' AND \"RetryCount\" < 5");
+        });
+
+        // IncidentNote entity configuration
+        modelBuilder.Entity<IncidentNote>(entity =>
+        {
+            entity.ToTable("IncidentNotes", "public");
+            entity.HasKey(e => e.Id);
+
+            // Required fields
+            entity.Property(e => e.IncidentId)
+                  .IsRequired();
+
+            entity.Property(e => e.Content)
+                  .IsRequired()
+                  .HasColumnType("text");
+
+            entity.Property(e => e.Type)
+                  .IsRequired()
+                  .HasConversion<int>();
+
+            entity.Property(e => e.IsPrivate)
+                  .IsRequired()
+                  .HasDefaultValue(false);
+
+            // Optional fields
+            entity.Property(e => e.Tags)
+                  .HasMaxLength(200);
+
+            // DateTime fields (UTC timestamptz)
+            entity.Property(e => e.CreatedAt)
+                  .IsRequired()
+                  .HasColumnType("timestamptz");
+
+            entity.Property(e => e.UpdatedAt)
+                  .HasColumnType("timestamptz");
+
+            // Relationships
+            entity.HasOne(e => e.Incident)
+                  .WithMany(i => i.Notes)
+                  .HasForeignKey(e => e.IncidentId)
+                  .OnDelete(DeleteBehavior.Cascade)
+                  .HasConstraintName("FK_IncidentNotes_Incidents_IncidentId");
+
+            entity.HasOne(e => e.Author)
+                  .WithMany()
+                  .HasForeignKey(e => e.AuthorId)
+                  .OnDelete(DeleteBehavior.SetNull)
+                  .HasConstraintName("FK_IncidentNotes_Users_AuthorId");
+
+            // Indexes
+            entity.HasIndex(e => new { e.IncidentId, e.CreatedAt })
+                  .HasDatabaseName("IX_IncidentNotes_IncidentId_CreatedAt")
+                  .IsDescending(false, true);
+
+            entity.HasIndex(e => e.AuthorId)
+                  .HasDatabaseName("IX_IncidentNotes_AuthorId")
+                  .HasFilter("\"AuthorId\" IS NOT NULL");
+
+            entity.HasIndex(e => e.Type)
+                  .HasDatabaseName("IX_IncidentNotes_Type");
+
+            // Check constraints
+            entity.HasCheckConstraint(
+                "CHK_IncidentNotes_Type",
+                "\"Type\" IN (1, 2)"
+            );
+
+            entity.HasCheckConstraint(
+                "CHK_IncidentNotes_Content_NotEmpty",
+                "LENGTH(TRIM(\"Content\")) > 0"
+            );
         });
 
         // Apply CheckIn System configurations
@@ -967,6 +1064,20 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             {
                 entry.Entity.CreatedAt = DateTime.UtcNow;
                 entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        // Handle IncidentNote entities
+        var incidentNoteEntries = ChangeTracker.Entries<IncidentNote>();
+        foreach (var entry in incidentNoteEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
             }
             else if (entry.State == EntityState.Modified)
             {

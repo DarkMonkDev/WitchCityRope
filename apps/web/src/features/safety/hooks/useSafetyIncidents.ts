@@ -7,7 +7,6 @@ import type {
   SubmitIncidentRequest,
   SearchIncidentsRequest,
   UpdateIncidentRequest,
-  IncidentSeverity,
   IncidentStatus,
   SafetyIncidentDto
 } from '../types/safety.types';

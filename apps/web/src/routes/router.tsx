@@ -37,15 +37,19 @@ import { AdminEventDetailsPage } from '../pages/admin/AdminEventDetailsPage'
 import { NewEventPage } from '../pages/admin/NewEventPage'
 import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage'
 import { AdminSafetyPage } from '../pages/admin/AdminSafetyPage'
+import { AdminIncidentDashboard } from '../pages/admin/safety/AdminIncidentDashboard'
+import { AdminIncidentDetailPage } from '../pages/admin/safety/AdminIncidentDetailPage'
 import { AdminVettingPage } from '../pages/admin/AdminVettingPage'
 import { AdminVettingApplicationDetailPage } from '../pages/admin/AdminVettingApplicationDetailPage'
 import { EmailTemplates } from '../features/admin/vetting/pages/EmailTemplates'
 import { TestPage } from '../pages/TestPage'
 import { VettingTestPage } from '../pages/VettingTestPage'
 
-// Safety system pages - temporarily disabled due to TypeScript errors
-// import { SafetyReportPage } from '../pages/safety/SafetyReportPage';
+// Safety system pages
+import { SafetyReportPage } from '../pages/safety/SafetyReportPage'
 import { SafetyStatusPage } from '../pages/safety/SafetyStatusPage'
+import { MyReportsPage } from '../pages/MyReportsPage'
+import { MyReportDetailView } from '../pages/MyReportDetailView'
 
 // CheckIn system pages - temporarily disabled due to TypeScript errors
 // import { CheckInPage } from '../pages/checkin/CheckInPage';
@@ -140,11 +144,11 @@ export const router = createBrowserRouter([
       //   loader: authLoader
       // },
 
-      // Safety system routes (public) - temporarily disabled due to TypeScript errors
-      // {
-      //   path: "safety/report",
-      //   element: <SafetyReportPage />
-      // },
+      // Safety system routes (public)
+      {
+        path: 'safety/report',
+        element: <SafetyReportPage />
+      },
       {
         path: 'safety/status',
         element: <SafetyStatusPage />,
@@ -269,6 +273,18 @@ export const router = createBrowserRouter([
         loader: authLoader,
       },
 
+      // My Reports routes - authentication required (identified users only)
+      {
+        path: 'my-reports',
+        element: <MyReportsPage />,
+        loader: authLoader,
+      },
+      {
+        path: 'my-reports/:id',
+        element: <MyReportDetailView />,
+        loader: authLoader,
+      },
+
       // Admin routes - authentication and admin role required
       // SECURITY: All admin routes use adminLoader which validates "Administrator" role
       {
@@ -294,6 +310,16 @@ export const router = createBrowserRouter([
       {
         path: 'admin/safety',
         element: <AdminSafetyPage />,
+        loader: adminLoader,
+      },
+      {
+        path: 'admin/safety/incidents',
+        element: <AdminIncidentDashboard />,
+        loader: adminLoader,
+      },
+      {
+        path: 'admin/safety/incidents/:id',
+        element: <AdminIncidentDetailPage />,
         loader: adminLoader,
       },
       {

@@ -17,28 +17,34 @@
 import type { components } from '@witchcityrope/shared-types';
 
 /**
- * VettingStatus enum - AUTO-GENERATED from backend
- * String union type from OpenAPI spec
+ * VettingStatus enum
+ * TODO: Add to backend OpenAPI spec and regenerate types
  */
-export type VettingStatus = components['schemas']['VettingStatus'];
+export type VettingStatus = 'UnderReview' | 'InterviewApproved' | 'InterviewCompleted' | 'FinalReview' | 'Approved' | 'Denied' | 'OnHold' | 'Withdrawn';
 
 /**
- * Application status information from API - AUTO-GENERATED
- * Matches ApplicationStatusInfo C# DTO
+ * Application status information from API
+ * TODO: Add to backend OpenAPI spec and regenerate types
  */
-export type ApplicationStatusInfo = components['schemas']['ApplicationStatusInfo'];
+export interface ApplicationStatusInfo {
+  [key: string]: any;
+}
 
 /**
- * My application status response from GET /api/vetting/status - AUTO-GENERATED
- * Matches MyApplicationStatusResponse C# DTO
+ * My application status response from GET /api/vetting/status
+ * TODO: Add to backend OpenAPI spec and regenerate types
  */
-export type MyApplicationStatusResponse = components['schemas']['MyApplicationStatusResponse'];
+export interface MyApplicationStatusResponse {
+  [key: string]: any;
+}
 
 /**
- * API response wrapper for vetting status - AUTO-GENERATED
- * Matches MyApplicationStatusResponseApiResponse from backend
+ * API response wrapper for vetting status
+ * TODO: Add to backend OpenAPI spec and regenerate types
  */
-export type VettingStatusApiResponse = components['schemas']['MyApplicationStatusResponseApiResponse'];
+export interface VettingStatusApiResponse {
+  [key: string]: any;
+}
 
 /**
  * Menu visibility decision result

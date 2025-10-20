@@ -2,7 +2,7 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
 import { api } from '../../../api/client'
 import { queryKeys } from '../../../api/queryKeys'
-import type { EventDto, EventDtoListApiResponse } from '@witchcityrope/shared-types'
+import type { EventDto } from '@witchcityrope/shared-types'
 import type { PaginatedResponse, EventFilters } from '../../../types/api.types'
 import { autoFixEventFieldNames, mapApiEventToDto } from '../../../utils/eventFieldMapping'
 
@@ -39,9 +39,9 @@ export function useEvents(options: { includeUnpublished?: boolean } = {}) {
 }
 
 export function useInfiniteEvents(filters: EventFilters = {}) {
-  return useInfiniteQuery<EventDtoListApiResponse>({
+  return useInfiniteQuery<{ events: EventDto[], page: number, totalPages: number }>({
     queryKey: queryKeys.infiniteEvents(filters),
-    queryFn: async ({ pageParam = 1 }): Promise<EventDtoListApiResponse> => {
+    queryFn: async ({ pageParam = 1 }): Promise<{ events: EventDto[], page: number, totalPages: number }> => {
       const response = await api.get('/api/events', {
         params: { page: pageParam, pageSize: 20, ...filters }
       })

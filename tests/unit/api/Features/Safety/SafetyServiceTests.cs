@@ -83,7 +83,9 @@ public class SafetyServiceTests : IAsyncLifetime
         var request = new CreateIncidentRequest
         {
             IsAnonymous = true,
-            Severity = IncidentSeverity.High,
+            Title = "Anonymous Safety Report",
+            Type = IncidentType.SafetyConcern,
+            WhereOccurred = WhereOccurred.AtEvent,
             IncidentDate = DateTime.UtcNow.AddDays(-1),
             Location = "Event Space",
             Description = "Detailed incident description",
@@ -107,8 +109,9 @@ public class SafetyServiceTests : IAsyncLifetime
         incident.Should().NotBeNull();
         incident!.IsAnonymous.Should().BeTrue();
         incident.ReporterId.Should().BeNull();
-        incident.Severity.Should().Be(IncidentSeverity.High);
-        incident.Status.Should().Be(IncidentStatus.New);
+        incident.Type.Should().Be(IncidentType.SafetyConcern);
+        incident.WhereOccurred.Should().Be(WhereOccurred.AtEvent);
+        incident.Status.Should().Be(IncidentStatus.ReportSubmitted);
 
         // Verify encryption was called
         _mockEncryptionService.Verify(x => x.EncryptAsync("Detailed incident description"), Times.Once);
@@ -127,11 +130,14 @@ public class SafetyServiceTests : IAsyncLifetime
         {
             ReporterId = reporter.Id,
             IsAnonymous = false,
-            Severity = IncidentSeverity.Medium,
+            Title = "Authenticated Safety Report",
+            Type = IncidentType.BoundaryViolation,
+            WhereOccurred = WhereOccurred.AtEvent,
             IncidentDate = DateTime.UtcNow.AddDays(-1),
             Location = "Workshop Room",
             Description = "Authenticated incident report",
             ContactEmail = "reporter@example.com",
+            ContactName = "Jane Reporter",
             RequestFollowUp = true
         };
 
@@ -149,8 +155,9 @@ public class SafetyServiceTests : IAsyncLifetime
         incident.ReporterId.Should().Be(reporter.Id);
         incident.RequestFollowUp.Should().BeTrue();
 
-        // Verify contact email was encrypted
+        // Verify contact email and name were encrypted
         _mockEncryptionService.Verify(x => x.EncryptAsync("reporter@example.com"), Times.Once);
+        _mockEncryptionService.Verify(x => x.EncryptAsync("Jane Reporter"), Times.Once);
     }
 
     /// <summary>
@@ -163,7 +170,9 @@ public class SafetyServiceTests : IAsyncLifetime
         var request = new CreateIncidentRequest
         {
             IsAnonymous = true,
-            Severity = IncidentSeverity.Low,
+            Title = "Audit Test Report",
+            Type = IncidentType.SafetyConcern,
+            WhereOccurred = WhereOccurred.Online,
             IncidentDate = DateTime.UtcNow,
             Location = "Public Area",
             Description = "Test incident"
@@ -189,23 +198,25 @@ public class SafetyServiceTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Test 4: Verify all severity levels are handled correctly
+    /// Test 4: Verify all incident types are handled correctly
     /// </summary>
     [Theory]
-    [InlineData(IncidentSeverity.Low)]
-    [InlineData(IncidentSeverity.Medium)]
-    [InlineData(IncidentSeverity.High)]
-    [InlineData(IncidentSeverity.Critical)]
-    public async Task SubmitIncidentAsync_WithDifferentSeverities_CreatesIncidentCorrectly(IncidentSeverity severity)
+    [InlineData(IncidentType.SafetyConcern)]
+    [InlineData(IncidentType.BoundaryViolation)]
+    [InlineData(IncidentType.Harassment)]
+    [InlineData(IncidentType.OtherConcern)]
+    public async Task SubmitIncidentAsync_WithDifferentTypes_CreatesIncidentCorrectly(IncidentType type)
     {
         // Arrange
         var request = new CreateIncidentRequest
         {
             IsAnonymous = true,
-            Severity = severity,
+            Title = $"Test {type} Report",
+            Type = type,
+            WhereOccurred = WhereOccurred.AtEvent,
             IncidentDate = DateTime.UtcNow,
             Location = "Test Location",
-            Description = $"Incident with {severity} severity"
+            Description = $"Incident with {type} type"
         };
 
         // Act
@@ -218,7 +229,7 @@ public class SafetyServiceTests : IAsyncLifetime
             .FirstOrDefaultAsync(i => i.ReferenceNumber == result.Value!.ReferenceNumber);
 
         incident.Should().NotBeNull();
-        incident!.Severity.Should().Be(severity);
+        incident!.Type.Should().Be(type);
     }
 
     #endregion
@@ -241,7 +252,7 @@ public class SafetyServiceTests : IAsyncLifetime
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.ReferenceNumber.Should().Be(incident.ReferenceNumber);
-        result.Value.Status.Should().Be(IncidentStatus.New.ToString());
+        result.Value.Status.Should().Be(IncidentStatus.ReportSubmitted.ToString());
         result.Value.LastUpdated.Should().BeAfter(DateTime.MinValue);
     }
 
@@ -325,7 +336,7 @@ public class SafetyServiceTests : IAsyncLifetime
     public async Task GetIncidentDetailAsync_ByAdmin_ReturnsDecryptedDetails()
     {
         // Arrange
-        var admin = await CreateTestUserAsync("Admin", role: "Admin");
+        var admin = await CreateTestUserAsync("Admin", role: "Administrator");
         var incident = await CreateTestIncidentAsync();
 
         // Act
@@ -368,10 +379,10 @@ public class SafetyServiceTests : IAsyncLifetime
         // Arrange
         var safetyTeamMember = await CreateTestUserAsync("SafetyDashboard", role: "SafetyTeam");
 
-        // Create incidents with different severities and statuses
-        await CreateTestIncidentAsync(severity: IncidentSeverity.Critical, status: IncidentStatus.New);
-        await CreateTestIncidentAsync(severity: IncidentSeverity.High, status: IncidentStatus.InProgress);
-        await CreateTestIncidentAsync(severity: IncidentSeverity.Medium, status: IncidentStatus.Resolved);
+        // Create incidents with different types and statuses
+        await CreateTestIncidentAsync(type: IncidentType.SafetyConcern, status: IncidentStatus.ReportSubmitted);
+        await CreateTestIncidentAsync(type: IncidentType.BoundaryViolation, status: IncidentStatus.InformationGathering);
+        await CreateTestIncidentAsync(type: IncidentType.Harassment, status: IncidentStatus.Closed);
 
         // Act
         var result = await _sut.GetDashboardDataAsync(safetyTeamMember.Id);
@@ -391,20 +402,19 @@ public class SafetyServiceTests : IAsyncLifetime
     public async Task GetDashboardDataAsync_CalculatesStatisticsCorrectly()
     {
         // Arrange
-        var admin = await CreateTestUserAsync("AdminDashboard", role: "Admin");
+        var admin = await CreateTestUserAsync("AdminDashboard", role: "Administrator");
 
         // Create test incidents with known distribution
-        await CreateTestIncidentAsync(severity: IncidentSeverity.Critical);
-        await CreateTestIncidentAsync(severity: IncidentSeverity.Critical);
-        await CreateTestIncidentAsync(severity: IncidentSeverity.High);
+        await CreateTestIncidentAsync(type: IncidentType.BoundaryViolation);
+        await CreateTestIncidentAsync(type: IncidentType.BoundaryViolation);
+        await CreateTestIncidentAsync(type: IncidentType.Harassment);
 
         // Act
         var result = await _sut.GetDashboardDataAsync(admin.Id);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value!.Statistics.CriticalCount.Should().BeGreaterOrEqualTo(2);
-        result.Value.Statistics.HighCount.Should().BeGreaterOrEqualTo(1);
+        result.Value!.Statistics.TotalCount.Should().BeGreaterOrEqualTo(3);
     }
 
     /// <summary>
@@ -515,8 +525,8 @@ public class SafetyServiceTests : IAsyncLifetime
         bool isAnonymous = false,
         Guid? reporterId = null,
         string? description = null,
-        IncidentSeverity severity = IncidentSeverity.Medium,
-        IncidentStatus status = IncidentStatus.New)
+        IncidentType type = IncidentType.SafetyConcern,
+        IncidentStatus status = IncidentStatus.ReportSubmitted)
     {
         var uniqueId = Guid.NewGuid().ToString().Substring(0, 8);
 
@@ -524,9 +534,11 @@ public class SafetyServiceTests : IAsyncLifetime
         {
             Id = Guid.NewGuid(),
             ReferenceNumber = $"SAF-{DateTime.UtcNow:yyyyMMdd}-{uniqueId}",
+            Title = $"Test Incident {uniqueId}",
             ReporterId = reporterId,
             IsAnonymous = isAnonymous,
-            Severity = severity,
+            Type = type,
+            WhereOccurred = WhereOccurred.AtEvent,
             Status = status,
             IncidentDate = DateTime.UtcNow.AddDays(-1),
             ReportedAt = DateTime.UtcNow,

@@ -56,9 +56,9 @@ public class IncidentResponse
 {
     public Guid Id { get; set; }
     public string ReferenceNumber { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
     public Guid? ReporterId { get; set; }
     public string? ReporterName { get; set; }
-    public IncidentSeverity Severity { get; set; }
     public DateTime IncidentDate { get; set; }
     public DateTime ReportedAt { get; set; }
     public string Location { get; set; } = string.Empty;
@@ -66,9 +66,17 @@ public class IncidentResponse
     public string? InvolvedParties { get; set; } // Decrypted for safety team
     public string? Witnesses { get; set; } // Decrypted for safety team
     public string? ContactEmail { get; set; } // Decrypted for safety team
-    public string? ContactPhone { get; set; } // Decrypted for safety team
+    public string? ContactName { get; set; } // Decrypted for safety team
     public bool IsAnonymous { get; set; }
     public bool RequestFollowUp { get; set; }
+    public IncidentType Type { get; set; }
+    public WhereOccurred WhereOccurred { get; set; }
+    public string? EventName { get; set; }
+    public SpokenToPersonStatus? HasSpokenToPerson { get; set; }
+    public string? DesiredOutcomes { get; set; }
+    public string? FutureInteractionPreference { get; set; }
+    public bool? AnonymousDuringInvestigation { get; set; }
+    public bool? AnonymousInFinalReport { get; set; }
     public IncidentStatus Status { get; set; }
     public Guid? AssignedTo { get; set; }
     public string? AssignedUserName { get; set; }
@@ -84,7 +92,7 @@ public class IncidentSummaryResponse
 {
     public Guid Id { get; set; }
     public string ReferenceNumber { get; set; } = string.Empty;
-    public IncidentSeverity Severity { get; set; }
+    public string Title { get; set; } = string.Empty;
     public DateTime IncidentDate { get; set; }
     public DateTime ReportedAt { get; set; }
     public string Location { get; set; } = string.Empty;
@@ -122,7 +130,6 @@ public class ActionItem
     public Guid IncidentId { get; set; }
     public string ReferenceNumber { get; set; } = string.Empty;
     public string ActionNeeded { get; set; } = string.Empty;
-    public IncidentSeverity Priority { get; set; }
     public DateTime DueDate { get; set; }
 }
 

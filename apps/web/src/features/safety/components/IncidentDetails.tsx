@@ -12,6 +12,7 @@ import {
   Badge,
   Button,
   Select,
+  TextInput,
   Textarea,
   Alert,
   Timeline,
@@ -34,11 +35,10 @@ import {
 } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
 import { useIncidentDetail, useUpdateIncident } from '../hooks/useSafetyIncidents';
-import { 
-  IncidentStatus, 
-  UpdateIncidentRequest, 
-  SEVERITY_CONFIGS, 
-  STATUS_CONFIGS 
+import {
+  IncidentStatus,
+  UpdateIncidentRequest,
+  STATUS_CONFIGS
 } from '../types/safety.types';
 
 interface IncidentDetailsProps {
@@ -63,16 +63,18 @@ export function IncidentDetails({ incidentId, onClose }: IncidentDetailsProps) {
   // Form for updating incident
   const form = useForm<UpdateIncidentRequest>({
     initialValues: {
+      title: incident?.title || '',
       status: incident?.status,
       assignedTo: incident?.assignedTo || '',
       notes: ''
     }
   });
-  
+
   // Update form when incident data loads
   React.useEffect(() => {
     if (incident) {
       form.setValues({
+        title: incident.title || '',
         status: incident.status,
         assignedTo: incident.assignedTo || '',
         notes: ''
@@ -127,9 +129,8 @@ export function IncidentDetails({ incidentId, onClose }: IncidentDetailsProps) {
     );
   }
   
-  const severityConfig = SEVERITY_CONFIGS[incident.severity];
   const statusConfig = STATUS_CONFIGS[incident.status];
-  
+
   return (
     <Stack gap="lg">
       {/* Header */}
@@ -137,23 +138,23 @@ export function IncidentDetails({ incidentId, onClose }: IncidentDetailsProps) {
         <Box>
           <Group gap="md" align="center" mb="xs">
             <Title order={2} size="h3">
-              {incident.referenceNumber}
+              {incident.title || 'Untitled Incident'}
             </Title>
-            <Badge
-              color={severityConfig.color}
-              variant="filled"
-              size="lg"
-              leftSection={<span style={{ fontSize: '12px' }}>{severityConfig.icon}</span>}
-            >
-              {severityConfig.label}
-            </Badge>
             <Badge color={statusConfig.color} variant="light" size="lg">
               {statusConfig.label}
             </Badge>
           </Group>
-          <Text c="dimmed" size="sm">
-            Reported on {formatDateTime(incident.reportedAt)}
-          </Text>
+          <Group gap="sm">
+            <Text c="dimmed" size="sm">
+              {incident.referenceNumber}
+            </Text>
+            <Text c="dimmed" size="sm">
+              •
+            </Text>
+            <Text c="dimmed" size="sm">
+              Reported on {formatDateTime(incident.reportedAt)}
+            </Text>
+          </Group>
         </Box>
         
         <Group>
@@ -281,6 +282,13 @@ export function IncidentDetails({ incidentId, onClose }: IncidentDetailsProps) {
               {editMode ? (
                 <form onSubmit={form.onSubmit(handleUpdate)}>
                   <Stack gap="md">
+                    <TextInput
+                      label="Incident Title"
+                      placeholder="Enter a short descriptive title..."
+                      {...form.getInputProps('title')}
+                      required
+                    />
+
                     <Select
                       label="Status"
                       data={Object.values(IncidentStatus).map(status => ({
@@ -340,8 +348,8 @@ export function IncidentDetails({ incidentId, onClose }: IncidentDetailsProps) {
                   
                   <Box>
                     <Text size="sm" fw={500} mb="xs">Assigned To</Text>
-                    <Text size="sm" c={incident.assignedUserName ? undefined : 'dimmed'}>
-                      {incident.assignedUserName || 'Unassigned'}
+                    <Text size="sm" c={incident.coordinatorName ? undefined : 'dimmed'}>
+                      {incident.coordinatorName || 'Unassigned'}
                     </Text>
                   </Box>
                 </Stack>

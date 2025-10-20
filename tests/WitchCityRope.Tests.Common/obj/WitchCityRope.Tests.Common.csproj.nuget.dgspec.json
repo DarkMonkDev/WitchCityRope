@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/home/chad/repos/witchcityrope/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj": {}
+    "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj": {}
   },
   "projects": {
-    "/home/chad/repos/witchcityrope/apps/api/WitchCityRope.Api.csproj": {
+    "/home/chad/repos/witchcityrope-react/apps/api/WitchCityRope.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/chad/repos/witchcityrope/apps/api/WitchCityRope.Api.csproj",
+        "projectUniqueName": "/home/chad/repos/witchcityrope-react/apps/api/WitchCityRope.Api.csproj",
         "projectName": "WitchCityRope.Api",
-        "projectPath": "/home/chad/repos/witchcityrope/apps/api/WitchCityRope.Api.csproj",
+        "projectPath": "/home/chad/repos/witchcityrope-react/apps/api/WitchCityRope.Api.csproj",
         "packagesPath": "/home/chad/.nuget/packages/",
-        "outputPath": "/home/chad/repos/witchcityrope/apps/api/obj/",
+        "outputPath": "/home/chad/repos/witchcityrope-react/apps/api/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/chad/.nuget/NuGet/NuGet.Config"
@@ -38,7 +38,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.100"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net9.0": {
@@ -58,27 +58,31 @@
             },
             "FluentValidation.DependencyInjectionExtensions": {
               "target": "Package",
-              "version": "[11.11.0, )"
+              "version": "[12.0.0, )"
+            },
+            "HtmlSanitizer": {
+              "target": "Package",
+              "version": "[9.0.10, )"
             },
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
               "target": "Package",
-              "version": "[9.0.6, )"
+              "version": "[9.0.10, )"
             },
             "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
               "target": "Package",
-              "version": "[9.0.6, )"
+              "version": "[9.0.10, )"
             },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
-              "version": "[9.0.6, )"
+              "version": "[9.0.10, )"
             },
             "Microsoft.EntityFrameworkCore.Design": {
               "target": "Package",
-              "version": "[9.0.6, )"
+              "version": "[9.0.10, )"
             },
             "NSwag.AspNetCore": {
               "target": "Package",
-              "version": "[14.2.0, )"
+              "version": "[14.6.1, )"
             },
             "Npgsql.EntityFrameworkCore.PostgreSQL": {
               "target": "Package",
@@ -96,13 +100,9 @@
               "target": "Package",
               "version": "[9.29.3, )"
             },
-            "Swashbuckle.AspNetCore": {
-              "target": "Package",
-              "version": "[7.2.0, )"
-            },
             "System.IdentityModel.Tokens.Jwt": {
               "target": "Package",
-              "version": "[8.3.1, )"
+              "version": "[8.14.0, )"
             }
           },
           "imports": [
@@ -124,18 +124,18 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/var/snap/dotnet/common/dotnet/sdk/9.0.110/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/home/chad/.dotnet/sdk/9.0.301/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "/home/chad/repos/witchcityrope/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj": {
+    "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/chad/repos/witchcityrope/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj",
+        "projectUniqueName": "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj",
         "projectName": "WitchCityRope.Tests.Common",
-        "projectPath": "/home/chad/repos/witchcityrope/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj",
+        "projectPath": "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj",
         "packagesPath": "/home/chad/.nuget/packages/",
-        "outputPath": "/home/chad/repos/witchcityrope/tests/WitchCityRope.Tests.Common/obj/",
+        "outputPath": "/home/chad/repos/witchcityrope-react/tests/WitchCityRope.Tests.Common/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/chad/.nuget/NuGet/NuGet.Config"
@@ -150,8 +150,8 @@
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "/home/chad/repos/witchcityrope/apps/api/WitchCityRope.Api.csproj": {
-                "projectPath": "/home/chad/repos/witchcityrope/apps/api/WitchCityRope.Api.csproj"
+              "/home/chad/repos/witchcityrope-react/apps/api/WitchCityRope.Api.csproj": {
+                "projectPath": "/home/chad/repos/witchcityrope-react/apps/api/WitchCityRope.Api.csproj"
               }
             }
           }
@@ -166,7 +166,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.100"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net9.0": {
@@ -182,35 +182,35 @@
             },
             "Microsoft.AspNetCore.Mvc.Testing": {
               "target": "Package",
-              "version": "[9.0.6, )"
+              "version": "[9.0.10, )"
             },
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
-              "version": "[9.0.6, )"
+              "version": "[9.0.10, )"
             },
             "Microsoft.EntityFrameworkCore.InMemory": {
               "target": "Package",
-              "version": "[9.0.6, )"
+              "version": "[9.0.10, )"
             },
             "Microsoft.Extensions.Configuration": {
               "target": "Package",
-              "version": "[9.0.6, )"
+              "version": "[9.0.10, )"
             },
             "Microsoft.Extensions.Configuration.Binder": {
               "target": "Package",
-              "version": "[9.0.6, )"
+              "version": "[9.0.10, )"
             },
             "Microsoft.Extensions.DependencyInjection": {
               "target": "Package",
-              "version": "[9.0.6, )"
+              "version": "[9.0.10, )"
             },
             "Microsoft.Extensions.Logging": {
               "target": "Package",
-              "version": "[9.0.6, )"
+              "version": "[9.0.10, )"
             },
             "Microsoft.Extensions.Logging.Console": {
               "target": "Package",
-              "version": "[9.0.6, )"
+              "version": "[9.0.10, )"
             },
             "Moq": {
               "target": "Package",
@@ -249,7 +249,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/var/snap/dotnet/common/dotnet/sdk/9.0.110/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/home/chad/.dotnet/sdk/9.0.301/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

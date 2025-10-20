@@ -399,9 +399,11 @@ public class ParticipationServiceTests_Extended : DatabaseTestBase
         // Assert - Should return event1 participation, not event2
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
-        Assert.Equal(ParticipationStatus.Active, result.Value.Status);
-        Assert.Equal("First event", result.Value.Notes);
-        Assert.Equal(event1.Id, result.Value.EventId);
+        // Check that user has RSVP for this event
+        Assert.True(result.Value.HasRSVP);
+        Assert.NotNull(result.Value.Rsvp);
+        Assert.Equal("Active", result.Value.Rsvp.Status);
+        Assert.Equal("First event", result.Value.Rsvp.Notes);
     }
 
     #endregion

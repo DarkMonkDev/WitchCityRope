@@ -96,6 +96,17 @@ public interface ISeedDataService
     Task SeedEventParticipationsAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Creates sample safety incident reports for testing the safety management system.
+    /// Includes variety of incident statuses, assignments, and realistic scenarios.
+    ///
+    /// Incidents include different statuses (ReportSubmitted, InformationGathering,
+    /// ReviewingFinalReport, OnHold, Closed) with both anonymous and non-anonymous reports,
+    /// various locations, and assigned coordinators. All sensitive data is properly encrypted.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token for async operation</param>
+    Task SeedSafetyIncidentsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Checks if seed data population is required by examining existing data.
     /// Used for optimization to avoid unnecessary seeding operations.
     /// 

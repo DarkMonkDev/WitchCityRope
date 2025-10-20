@@ -458,7 +458,7 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({
             flex: 1,
           }}
         >
-          {event.shortDescription || event.description}
+          {event.shortDescription || ''}
         </Text>
 
         {/* Footer */}

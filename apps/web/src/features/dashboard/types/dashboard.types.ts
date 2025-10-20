@@ -16,33 +16,45 @@ import type { components } from '@witchcityrope/shared-types';
 
 /**
  * User dashboard response from GET /api/dashboard
- * AUTO-GENERATED from backend UserDashboardResponse DTO
+ * TODO: Add to backend API and regenerate types
  */
-export type UserDashboardResponse = components['schemas']['UserDashboardResponse'];
+export interface UserDashboardResponse {
+  // Placeholder - implement when backend endpoint exists
+  [key: string]: any;
+}
 
 /**
  * VettingStatus enum
- * AUTO-GENERATED from backend VettingStatus enum
+ * TODO: Add to backend API and regenerate types
  */
-export type VettingStatus = components['schemas']['VettingStatus'];
+export type VettingStatus = 'UnderReview' | 'InterviewApproved' | 'InterviewCompleted' | 'FinalReview' | 'Approved' | 'Denied' | 'OnHold' | 'Withdrawn';
 
 /**
  * User events response from GET /api/dashboard/events
- * AUTO-GENERATED from backend UserEventsResponse DTO
+ * TODO: Add to backend API and regenerate types
  */
-export type UserEventsResponse = components['schemas']['UserEventsResponse'];
+export interface UserEventsResponse {
+  // Placeholder - implement when backend endpoint exists
+  [key: string]: any;
+}
 
 /**
  * Event information for dashboard display
- * AUTO-GENERATED from backend DashboardEventDto DTO
+ * TODO: Add to backend API and regenerate types
  */
-export type DashboardEventDto = components['schemas']['DashboardEventDto'];
+export interface DashboardEventDto {
+  // Placeholder - implement when backend endpoint exists
+  [key: string]: any;
+}
 
 /**
  * User statistics response from GET /api/dashboard/statistics
- * AUTO-GENERATED from backend UserStatisticsResponse DTO
+ * TODO: Add to backend API and regenerate types
  */
-export type UserStatisticsResponse = components['schemas']['UserStatisticsResponse'];
+export interface UserStatisticsResponse {
+  // Placeholder - implement when backend endpoint exists
+  [key: string]: any;
+}
 
 
 /**

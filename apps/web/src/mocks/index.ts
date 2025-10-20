@@ -4,7 +4,7 @@
 export async function enableMocking() {
   // Only enable MSW in development when explicitly requested
   if (import.meta.env.MODE !== 'development' || import.meta.env.VITE_MSW_ENABLED !== 'true') {
-    console.log('🔶 MSW disabled - Not in development mode or VITE_MSW_ENABLED not true')
+    // MSW disabled - this is the normal state when using real API
     return
   }
 

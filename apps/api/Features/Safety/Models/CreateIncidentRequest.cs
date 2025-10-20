@@ -13,9 +13,9 @@ public class CreateIncidentRequest
     public Guid? ReporterId { get; set; }
 
     /// <summary>
-    /// Incident severity level
+    /// Short descriptive title for the incident
     /// </summary>
-    public IncidentSeverity Severity { get; set; }
+    public string Title { get; set; } = string.Empty;
 
     /// <summary>
     /// When the incident occurred
@@ -58,7 +58,47 @@ public class CreateIncidentRequest
     public string? ContactEmail { get; set; }
 
     /// <summary>
-    /// Contact phone for identified reports (optional)
+    /// Contact name for identified reports
     /// </summary>
-    public string? ContactPhone { get; set; }
+    public string? ContactName { get; set; }
+
+    /// <summary>
+    /// Type of incident being reported
+    /// </summary>
+    public IncidentType Type { get; set; }
+
+    /// <summary>
+    /// Where the incident occurred
+    /// </summary>
+    public WhereOccurred WhereOccurred { get; set; }
+
+    /// <summary>
+    /// Event name if incident occurred at an event (optional)
+    /// </summary>
+    public string? EventName { get; set; }
+
+    /// <summary>
+    /// Whether reporter has spoken to the person involved
+    /// </summary>
+    public SpokenToPersonStatus? HasSpokenToPerson { get; set; }
+
+    /// <summary>
+    /// Reporter's desired outcomes (free-text)
+    /// </summary>
+    public string? DesiredOutcomes { get; set; }
+
+    /// <summary>
+    /// Reporter's preference for future interactions with involved person
+    /// </summary>
+    public string? FutureInteractionPreference { get; set; }
+
+    /// <summary>
+    /// Whether reporter wants to remain anonymous during the investigation
+    /// </summary>
+    public bool? AnonymousDuringInvestigation { get; set; }
+
+    /// <summary>
+    /// Whether reporter wants to remain anonymous in the final report
+    /// </summary>
+    public bool? AnonymousInFinalReport { get; set; }
 }

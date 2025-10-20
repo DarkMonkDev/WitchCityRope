@@ -32,6 +32,369 @@
 - [ ] Verify database port: PostgreSQL=5433 (Docker)
 - [ ] Understand UTC DateTime requirement for PostgreSQL
 
+---
+
+## 🚨 CRITICAL: Enum Migration Breaking Changes Pattern (NEW) 🚨
+**Date**: 2025-10-18
+**Category**: Database Migration
+**Severity**: Critical
+
+### Context
+The Incident Reporting System database design revealed critical patterns for handling enum migrations that fundamentally change business logic. A 4-stage to 5-stage enum migration requires code-first, database-second deployment sequencing to avoid breaking production.
+
+### What We Learned
+- **Enum migrations are BREAKING CHANGES**: All code referencing old enum values fails after database migration
+- **Code must update BEFORE database migration**: Update enum definitions, then migrate data
+- **Data migrations can be LOSSY**: Multiple old values mapping to one new value loses distinction
+- **System notes auto-creation is database-triggered**: Status changes trigger note creation via application events
+- **Coordinator assignment must support ANY user**: Database cannot restrict by role (application layer handles access)
+- **Cascade delete vs SET NULL requires careful planning**: Preserve incidents when users deleted, cascade delete notes when incidents deleted
+
+### Critical Enum Migration Patterns
+
+```csharp
+// ❌ WRONG - Database migration before code update
+// 1. Run database migration (updates enum values in database)
+// 2. Code still references old enum values
+// 3. Runtime exceptions: "Enum value 'New' does not exist"
+
+// ✅ CORRECT - Code-first migration sequence
+// 1. Update enum in code (SafetyIncident.cs)
+public enum IncidentStatus
+{
+    ReportSubmitted = 1,        // Was: New (1)
+    InformationGathering = 2,   // Was: InProgress (2)
+    ReviewingFinalReport = 3,   // NEW - no old mapping
+    OnHold = 4,                 // NEW - no old mapping
+    Closed = 5                  // Was: Resolved (3) OR Archived (4) - LOSSY!
+}
+
+// 2. Update ALL code references to new enum values
+if (incident.Status == IncidentStatus.ReportSubmitted) { ... }  // Was: New
+if (incident.Status == IncidentStatus.InformationGathering) { ... }  // Was: InProgress
+if (incident.Status == IncidentStatus.Closed) { ... }  // Was: Resolved OR Archived
+
+// 3. Run ALL tests to verify compilation
+
+// 4. THEN run database data migration
+UPDATE "SafetyIncidents"
+SET "Status" = CASE
+    WHEN "Status" = 1 THEN 1  -- New → ReportSubmitted
+    WHEN "Status" = 2 THEN 2  -- InProgress → InformationGathering
+    WHEN "Status" = 3 THEN 5  -- Resolved → Closed (LOSSY)
+    WHEN "Status" = 4 THEN 5  -- Archived → Closed (LOSSY)
+END;
+
+// 5. Regenerate NSwag TypeScript types
+
+// 6. Update frontend code to use new enum values
+```
+
+### LOSSY Migration Awareness
+
+```sql
+-- ⚠️ WARNING - This migration LOSES data distinction
+-- Resolved (3) and Archived (4) both become Closed (5)
+-- Rollback will map both back to Resolved (3) - cannot distinguish original state
+
+-- BEFORE MIGRATION:
+-- Incident A: Status = 3 (Resolved)
+-- Incident B: Status = 4 (Archived)
+
+-- AFTER MIGRATION:
+-- Incident A: Status = 5 (Closed) ← Lost "Resolved" distinction
+-- Incident B: Status = 5 (Closed) ← Lost "Archived" distinction
+
+-- AFTER ROLLBACK:
+-- Incident A: Status = 3 (Resolved) ← Cannot restore "Archived"
+-- Incident B: Status = 3 (Resolved) ← Cannot restore "Archived"
+
+-- SOLUTION: Document that rollback is LOSSY, prefer forward-only migrations
+```
+
+### System Notes Auto-Creation Pattern
+
+```csharp
+// ✅ CORRECT - Auto-create system note on status change
+public async Task ChangeStatusAsync(Guid incidentId, IncidentStatus newStatus)
+{
+    var incident = await _context.SafetyIncidents.FindAsync(incidentId);
+    var oldStatus = incident.Status;
+
+    incident.Status = newStatus;
+    incident.UpdatedAt = DateTime.UtcNow;
+
+    // CRITICAL: Auto-create system note
+    var systemNote = new IncidentNote
+    {
+        IncidentId = incidentId,
+        Content = $"Status changed from {oldStatus} to {newStatus} by {_currentUser.SceneName}",
+        Type = IncidentNoteType.System,  // Enum value 2
+        AuthorId = null,  // System notes have NO author
+        IsPrivate = false,
+        CreatedAt = DateTime.UtcNow
+    };
+
+    await _context.IncidentNotes.AddAsync(systemNote);
+
+    // Also create audit log entry
+    var auditLog = new IncidentAuditLog
+    {
+        IncidentId = incidentId,
+        UserId = _currentUserId,
+        ActionType = "StatusChanged",
+        ActionDescription = $"Status changed from {oldStatus} to {newStatus}",
+        OldValues = JsonSerializer.Serialize(new { Status = oldStatus }),
+        NewValues = JsonSerializer.Serialize(new { Status = newStatus }),
+        CreatedAt = DateTime.UtcNow
+    };
+
+    await _context.IncidentAuditLogs.AddAsync(auditLog);
+    await _context.SaveChangesAsync();
+}
+```
+
+### Coordinator Assignment (Any User) Pattern
+
+```csharp
+// ✅ CORRECT - Database allows ANY user as coordinator
+public class SafetyIncidentConfiguration : IEntityTypeConfiguration<SafetyIncident>
+{
+    public void Configure(EntityTypeBuilder<SafetyIncident> builder)
+    {
+        // NO role restriction in database - ANY user can be coordinator
+        builder.HasOne(e => e.Coordinator)
+            .WithMany()  // No reverse navigation
+            .HasForeignKey(e => e.CoordinatorId)
+            .OnDelete(DeleteBehavior.SetNull);  // Preserve incident if user deleted
+
+        // ❌ DO NOT add role check constraint at database level
+        // Application layer handles access control
+    }
+}
+
+// ✅ CORRECT - Application layer enforces access
+public async Task AssignCoordinatorAsync(Guid incidentId, Guid coordinatorId)
+{
+    // ANY user can be assigned as coordinator
+    var coordinator = await _context.Users.FindAsync(coordinatorId);
+    if (coordinator == null)
+    {
+        throw new NotFoundException("User not found");
+    }
+
+    var incident = await _context.SafetyIncidents.FindAsync(incidentId);
+    incident.CoordinatorId = coordinatorId;
+    incident.Status = IncidentStatus.InformationGathering;  // Auto-transition
+    incident.UpdatedAt = DateTime.UtcNow;
+
+    // Auto-create system note
+    var systemNote = new IncidentNote
+    {
+        IncidentId = incidentId,
+        Content = $"Assigned to {coordinator.SceneName} by {_currentUser.SceneName}",
+        Type = IncidentNoteType.System,
+        AuthorId = null,
+        CreatedAt = DateTime.UtcNow
+    };
+
+    await _context.IncidentNotes.AddAsync(systemNote);
+    await _context.SaveChangesAsync();
+}
+
+// ✅ CORRECT - Access control in query
+public async Task<SafetyIncident?> GetIncidentAsync(Guid incidentId)
+{
+    var incident = await _context.SafetyIncidents.FindAsync(incidentId);
+
+    // Check access: must be assigned coordinator OR admin
+    if (incident.CoordinatorId != _currentUserId && !_currentUser.IsAdmin)
+    {
+        throw new ForbiddenException("Access denied");
+    }
+
+    return incident;
+}
+```
+
+### Cascade Delete vs SET NULL Pattern
+
+```csharp
+// ✅ CORRECT - Strategic cascade delete configuration
+public class SafetyIncidentConfiguration : IEntityTypeConfiguration<SafetyIncident>
+{
+    public void Configure(EntityTypeBuilder<SafetyIncident> builder)
+    {
+        // SafetyIncident → IncidentNote: CASCADE DELETE
+        // Rationale: Notes have no meaning without incident
+        builder.HasMany(e => e.Notes)
+            .WithOne(n => n.Incident)
+            .HasForeignKey(n => n.IncidentId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // SafetyIncident → ApplicationUser (Coordinator): SET NULL
+        // Rationale: Preserve incident even if coordinator user deleted
+        builder.HasOne(e => e.Coordinator)
+            .WithMany()
+            .HasForeignKey(e => e.CoordinatorId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // SafetyIncident → ApplicationUser (Reporter): SET NULL
+        // Rationale: Preserve incident even if reporter deleted (especially anonymous)
+        builder.HasOne(e => e.Reporter)
+            .WithMany()
+            .HasForeignKey(e => e.ReporterId)
+            .OnDelete(DeleteBehavior.SetNull);
+    }
+}
+
+public class IncidentNoteConfiguration : IEntityTypeConfiguration<IncidentNote>
+{
+    public void Configure(EntityTypeBuilder<IncidentNote> builder)
+    {
+        // IncidentNote → ApplicationUser (Author): SET NULL
+        // Rationale: Preserve note even if author deleted (show "Deleted User")
+        builder.HasOne(e => e.Author)
+            .WithMany()
+            .HasForeignKey(e => e.AuthorId)
+            .OnDelete(DeleteBehavior.SetNull);
+    }
+}
+
+// ⚠️ CRITICAL - Production should use SOFT DELETE
+// Hard delete should NEVER happen in production
+public class SafetyIncident
+{
+    // Add in future migration
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public Guid? DeletedBy { get; set; }
+}
+
+// Query filter for soft deletes
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.Entity<SafetyIncident>()
+        .HasQueryFilter(i => !i.IsDeleted);
+}
+```
+
+### Notes System Mirroring Vetting Pattern
+
+```csharp
+// ✅ CORRECT - Notes entity mirrors vetting ApplicationNoteDto
+public class IncidentNote
+{
+    public Guid Id { get; set; }
+    public Guid IncidentId { get; set; }
+
+    // Content is encrypted (same pattern as vetting)
+    public string Content { get; set; }
+
+    // CRITICAL: Type differentiation for UI styling
+    public IncidentNoteType Type { get; set; }  // 1=Manual, 2=System
+
+    // Privacy controls
+    public bool IsPrivate { get; set; }
+
+    // System notes have NULL author
+    public Guid? AuthorId { get; set; }
+
+    // Optional categorization
+    public string? Tags { get; set; }
+
+    // UTC timestamps
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+
+    // Navigation properties
+    public SafetyIncident Incident { get; set; } = null!;
+    public ApplicationUser? Author { get; set; }
+}
+
+public enum IncidentNoteType
+{
+    Manual = 1,  // User-created (gray UI background, note icon)
+    System = 2   // Auto-generated (purple UI background, "SYSTEM" badge)
+}
+
+// ✅ CORRECT - EF Core configuration
+public class IncidentNoteConfiguration : IEntityTypeConfiguration<IncidentNote>
+{
+    public void Configure(EntityTypeBuilder<IncidentNote> builder)
+    {
+        builder.Property(e => e.Content)
+            .IsRequired()
+            .HasColumnType("text");  // Unlimited length for detailed notes
+
+        builder.Property(e => e.Type)
+            .IsRequired()
+            .HasConversion<int>();  // Store as integer
+
+        builder.Property(e => e.CreatedAt)
+            .IsRequired()
+            .HasColumnType("timestamptz");  // CRITICAL: UTC timestamptz
+
+        // Check constraint for Type enum
+        builder.HasCheckConstraint(
+            "CHK_IncidentNotes_Type",
+            "\"Type\" IN (1, 2)"
+        );
+
+        // Check constraint for non-empty content
+        builder.HasCheckConstraint(
+            "CHK_IncidentNotes_Content_NotEmpty",
+            "LENGTH(TRIM(\"Content\")) > 0"
+        );
+
+        // Chronological index (descending for newest-first queries)
+        builder.HasIndex(e => new { e.IncidentId, e.CreatedAt })
+            .HasDatabaseName("IX_IncidentNotes_IncidentId_CreatedAt")
+            .IsDescending(false, true);
+    }
+}
+```
+
+### Database Developer Action Items
+- [x] UPDATE enum definitions in code BEFORE running database migrations
+- [x] TEST all code compilation after enum updates
+- [x] DOCUMENT LOSSY migrations with clear warnings
+- [x] IMPLEMENT system notes auto-creation on status changes
+- [x] CONFIGURE CASCADE vs SET NULL strategically
+- [x] MIRROR proven patterns from similar systems (vetting notes)
+- [ ] ADD soft delete pattern to SafetyIncident in future migration
+- [ ] VALIDATE enum migration rollback is truly necessary (prefer forward-only)
+- [ ] MONITOR production for orphaned records after user deletions
+
+### Migration Sequence Best Practices
+
+**CORRECT Sequence for Breaking Enum Changes**:
+1. ✅ Update enum definition in entity class
+2. ✅ Update ALL code references to new enum values
+3. ✅ Run complete test suite (unit + integration)
+4. ✅ Create EF Core migration
+5. ✅ Run data migration script (maps old values to new)
+6. ✅ Apply schema migration
+7. ✅ Regenerate API client types (NSwag)
+8. ✅ Update frontend code to use new enum values
+9. ✅ Deploy backend first, then frontend
+
+**WRONG Sequence** (causes production outages):
+1. ❌ Run database migration
+2. ❌ Code still uses old enum values
+3. ❌ Runtime exceptions in production
+
+### Community Values in Database Design
+- **Privacy Protection**: SET NULL on user deletions preserves incident privacy
+- **Audit Trail**: System notes create comprehensive investigation history
+- **Flexibility**: ANY user can be coordinator (expertise-based, not role-based)
+- **Trust**: Soft delete prevents accidental data loss
+
+### Tags
+#critical #enum-migration #breaking-change #cascade-delete #system-notes #coordinator-assignment #incident-reporting #lossy-migration #code-first-migration
+
+---
+
 ## 🚨 ULTRA CRITICAL: Entity Framework Entity Model ID Pattern - NEVER Initialize IDs 🚨
 
 **CRITICAL DATABASE DESIGN RULE**: Entity models should have simple `public Guid Id { get; set; }` without initializers. The Events admin persistence bug was caused by `public Guid Id { get; set; } = Guid.NewGuid();` initializers causing Entity Framework to treat new entities as existing ones.

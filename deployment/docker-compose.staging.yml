@@ -20,7 +20,7 @@ services:
   # API Service - .NET 9 Minimal API (Staging)
   # ==========================================================================
   api:
-    image: registry.digitalocean.com/witchcityrope/api:${IMAGE_TAG:-staging}
+    image: registry.digitalocean.com/witchcityrope/witchcityrope-api:${IMAGE_TAG:-staging}
     container_name: witchcity-api-staging
     restart: unless-stopped
     networks:
@@ -67,7 +67,7 @@ services:
   # Web Service - React + Vite (Staging Build with Nginx)
   # ==========================================================================
   web:
-    image: registry.digitalocean.com/witchcityrope/web:${IMAGE_TAG:-staging}
+    image: registry.digitalocean.com/witchcityrope/witchcityrope-web:${IMAGE_TAG:-staging}
     container_name: witchcity-web-staging
     restart: unless-stopped
     networks:
@@ -153,8 +153,8 @@ services:
 #
 # Docker Registry:
 #   - Images pushed to: registry.digitalocean.com/witchcityrope/
-#   - API image: registry.digitalocean.com/witchcityrope/api:staging
-#   - Web image: registry.digitalocean.com/witchcityrope/web:staging
+#   - API image: registry.digitalocean.com/witchcityrope/witchcityrope-api:staging
+#   - Web image: registry.digitalocean.com/witchcityrope/witchcityrope-web:staging
 #
 # Deployment Commands:
 #   cd /opt/witchcityrope/staging

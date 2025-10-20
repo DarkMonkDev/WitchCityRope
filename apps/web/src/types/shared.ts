@@ -16,8 +16,6 @@ export type EventDto = components['schemas']['EventDto'];
 export type EventType = string; // components['schemas']['EventType'] if it exists
 export type EventStatus = string; // components['schemas']['EventStatus'] if it exists
 export type CreateEventRequest = any; // components['schemas']['CreateEventRequest'] if it exists
-// Fix naming - use the correct generated type name
-export type EventListResponse = components['schemas']['EventDtoListApiResponse'];
 
 // Operation types for API calls
 export type GetCurrentUserOperation = operations['GetCurrentUser'];

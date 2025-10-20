@@ -98,8 +98,8 @@ describe('Authentication Flow Integration Tests', () => {
         lastLoginAt: '2025-08-19T10:00:00Z',
       })
 
-      // Verify roles were set correctly
-      expect(authState.user.roles).toContain('Admin')
+      // Verify role was set correctly
+      expect(authState.user.role).toBe('Admin')
 
       // Verify navigation was triggered
       expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true })

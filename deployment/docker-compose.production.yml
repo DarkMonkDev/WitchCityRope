@@ -20,7 +20,7 @@ services:
   # API Service - .NET 9 Minimal API
   # ==========================================================================
   api:
-    image: registry.digitalocean.com/witchcityrope/api:${IMAGE_TAG:-latest}
+    image: registry.digitalocean.com/witchcityrope/witchcityrope-api:${IMAGE_TAG:-latest}
     container_name: witchcity-api-prod
     restart: unless-stopped
     networks:
@@ -67,7 +67,7 @@ services:
   # Web Service - React + Vite (Production Build with Nginx)
   # ==========================================================================
   web:
-    image: registry.digitalocean.com/witchcityrope/web:${IMAGE_TAG:-latest}
+    image: registry.digitalocean.com/witchcityrope/witchcityrope-web:${IMAGE_TAG:-latest}
     container_name: witchcity-web-prod
     restart: unless-stopped
     networks:
@@ -152,8 +152,8 @@ services:
 #
 # Docker Registry:
 #   - Images pushed to: registry.digitalocean.com/witchcityrope/
-#   - API image: registry.digitalocean.com/witchcityrope/api:latest
-#   - Web image: registry.digitalocean.com/witchcityrope/web:latest
+#   - API image: registry.digitalocean.com/witchcityrope/witchcityrope-api:latest
+#   - Web image: registry.digitalocean.com/witchcityrope/witchcityrope-web:latest
 #
 # Deployment Commands:
 #   cd /opt/witchcityrope/production

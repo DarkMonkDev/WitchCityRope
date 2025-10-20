@@ -10,6 +10,7 @@ using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Tests.TestBase;
 using WitchCityRope.Api.Tests.Fixtures;
+using WitchCityRope.Api.Features.Safety.Services;
 
 namespace WitchCityRope.Api.Tests.Services;
 
@@ -50,8 +51,15 @@ public class SeedDataServiceTests : DatabaseTestBase
             null,
             null);
 
+        // Create mock IEncryptionService
+        var mockEncryptionService = new Mock<IEncryptionService>();
+        mockEncryptionService.Setup(e => e.EncryptAsync(It.IsAny<string>()))
+            .ReturnsAsync((string data) => $"encrypted_{data}");
+        mockEncryptionService.Setup(e => e.DecryptAsync(It.IsAny<string>()))
+            .ReturnsAsync((string data) => data.Replace("encrypted_", ""));
+
         // Create service with real DbContext and mock managers
-        _service = new SeedDataService(DbContext, MockUserManager.Object, mockRoleManager.Object, _mockLogger.Object);
+        _service = new SeedDataService(DbContext, MockUserManager.Object, mockRoleManager.Object, _mockLogger.Object, mockEncryptionService.Object);
     }
 
     // TODO: Complex seeding operations require integration-level testing

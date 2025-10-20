@@ -108,8 +108,7 @@ export const AdminEventDetailsPage: React.FC = () => {
       title: event.title || '',
       shortDescription: event.shortDescription || '',
       fullDescription: event.description || '',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      policies: (event as any).policies || '', // Policies field from EventDto (not yet in generated types)
+      policies: event.policies || '',
       venueId, // Now properly extracted from API location field
       teacherIds: event.teacherIds || [], // Now maps from API response
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

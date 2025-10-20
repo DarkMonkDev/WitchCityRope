@@ -1,9 +1,9 @@
 import React from 'react';
-import { Container, Title, Text, Grid, Paper, Box, Group, Badge, Button } from '@mantine/core';
-import { IconCalendarEvent, IconUsers, IconSettings, IconChartBar, IconPlus, IconArrowRight, IconClipboardCheck, IconFileText } from '@tabler/icons-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../stores/authStore';
+import { Container, Title, Text, Grid, Paper, Box, Group, Badge } from '@mantine/core';
+import { IconCalendarEvent, IconUsers, IconSettings, IconChartBar, IconArrowRight, IconClipboardCheck, IconFileText, IconAlertTriangle } from '@tabler/icons-react';
+import { Link } from 'react-router-dom';
 import { useVettingStats } from '../../features/admin/vetting/hooks/useVettingStats';
+import { useSafetyDashboard } from '../../features/safety/hooks/useSafetyIncidents';
 
 interface DashboardCard {
   title: string;
@@ -14,12 +14,17 @@ interface DashboardCard {
   link: string;
   color: string;
   badge?: string;
+  testId?: string;
 }
 
 export const AdminDashboardPage: React.FC = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
   const { data: vettingStats } = useVettingStats();
+  const { data: safetyDashboard } = useSafetyDashboard();
+
+  // Calculate active incidents (not on hold or closed)
+  const activeIncidentsCount = safetyDashboard
+    ? safetyDashboard.statistics.newCount + safetyDashboard.statistics.inProgressCount
+    : 0;
 
   const dashboardCards: DashboardCard[] = [
     {
@@ -50,6 +55,16 @@ export const AdminDashboardPage: React.FC = () => {
       color: '#9b4a75',
     },
     {
+      title: 'Incident Reports',
+      description: 'Manage safety incident reports and investigations',
+      icon: <IconAlertTriangle size={32} />,
+      count: activeIncidentsCount,
+      countLabel: 'Active Incidents',
+      link: '/admin/safety/incidents',
+      color: '#7B2CBF',
+      testId: 'incident-reports-card',
+    },
+    {
       title: 'Content Management',
       description: 'Manage CMS pages and view revision history',
       icon: <IconFileText size={32} />,
@@ -74,61 +89,23 @@ export const AdminDashboardPage: React.FC = () => {
     }
   ];
 
-  const quickActions = [
-    { label: 'Create New Event', action: () => navigate('/admin/events'), icon: <IconPlus size={16} /> },
-    { label: 'View Event Calendar', action: () => navigate('/events'), icon: <IconCalendarEvent size={16} /> },
-    { label: 'Export Reports', action: () => {}, icon: <IconChartBar size={16} /> },
-  ];
-
   return (
     <Container size="xl" py="xl">
       {/* Header */}
       <Box mb="xl">
-        <Group justify="space-between" align="center" mb="md">
-          <div>
-            <Title 
-              order={1}
-              style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontSize: '32px',
-                fontWeight: 800,
-                color: '#880124',
-                textTransform: 'uppercase',
-                letterSpacing: '-0.5px',
-              }}
-            >
-              Admin Dashboard
-            </Title>
-            <Text size="lg" c="dimmed" mt="xs">
-              Welcome back, {user?.sceneName || 'Administrator'}
-            </Text>
-          </div>
-          
-          <Group gap="md">
-            {quickActions.map((action, index) => (
-              <Button
-                key={index}
-                leftSection={action.icon}
-                variant="light"
-                onClick={action.action}
-                styles={{
-                  root: {
-                    borderColor: '#880124',
-                    color: '#880124',
-                    fontWeight: 600,
-                    height: '44px',
-                    paddingTop: '12px',
-                    paddingBottom: '12px',
-                    fontSize: '14px',
-                    lineHeight: '1.2'
-                  }
-                }}
-              >
-                {action.label}
-              </Button>
-            ))}
-          </Group>
-        </Group>
+        <Title
+          order={1}
+          style={{
+            fontFamily: "'Montserrat', sans-serif",
+            fontSize: '32px',
+            fontWeight: 800,
+            color: '#880124',
+            textTransform: 'uppercase',
+            letterSpacing: '-0.5px',
+          }}
+        >
+          Admin Dashboard
+        </Title>
       </Box>
 
       {/* Dashboard Cards Grid */}
@@ -141,6 +118,7 @@ export const AdminDashboardPage: React.FC = () => {
               radius="md"
               component={Link}
               to={card.link}
+              data-testid={card.testId}
               style={{
                 background: '#FFF8F0',
                 border: '1px solid rgba(136, 1, 36, 0.1)',

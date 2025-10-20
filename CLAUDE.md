@@ -146,7 +146,7 @@ Failure to create/read handoffs = implementation failures.
 ### 2. Web+API Microservices Architecture
 - **Web Service** (React + Vite): UI/Auth at http://localhost:5173 (Docker only)
 - **API Service** (Minimal API): Business logic at http://localhost:5655 (Docker only)
-- **Database** (PostgreSQL): localhost:5433 (Docker only)
+- **Database** (PostgreSQL): **localhost:5434** (Docker only) - **DEDICATED PORT** to avoid conflicts with other local PostgreSQL containers
 - **Pattern**: React → HTTP → API → Database (NEVER React → Database directly)
 
 ### 3. 🚨 DTO ALIGNMENT STRATEGY - CRITICAL FOR ALL DEVELOPERS
@@ -226,6 +226,8 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 - **Vetted Member**: vetted@witchcityrope.com / Test123!
 - **General Member**: member@witchcityrope.com / Test123!
 - **Guest/Attendee**: guest@witchcityrope.com / Test123!
+- **Safety Coordinator 1**: coordinator1@witchcityrope.com / Test123! (SafetyTeam role)
+- **Safety Coordinator 2**: coordinator2@witchcityrope.com / Test123! (SafetyTeam role)
 
 ## 🛠️ Claude-Specific Configuration
 

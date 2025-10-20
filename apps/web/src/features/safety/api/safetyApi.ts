@@ -84,16 +84,41 @@ export const safetyApi = {
    * Search and filter incidents (safety team only)
    */
   async searchIncidents(request: SearchIncidentsRequest): Promise<PaginatedResponse<IncidentSummaryDto>> {
-    const { data } = await apiClient.get<ApiResponse<PaginatedResponse<IncidentSummaryDto>>>(
-      '/api/safety/admin/incidents',
-      { params: request }
-    );
-    
-    if (!data.data) {
-      throw new Error(data.error || 'Failed to search incidents');
+    // Map frontend request to backend AdminIncidentListRequest parameter names
+    const params = {
+      Search: request.searchText || '',
+      Status: request.status || '', // Backend supports comma-separated values
+      Page: request.page || 1,
+      PageSize: request.pageSize || 25,
+      SortBy: request.sortBy || 'reportedAt',
+      SortOrder: request.sortDirection || 'desc'
+    };
+
+    // Backend returns PaginatedIncidentListResponse directly (not wrapped in ApiResponse)
+    // with lowercase property names (JSON serialization)
+    interface BackendPaginatedResponse {
+      items: IncidentSummaryDto[];
+      totalCount: number;
+      page: number;
+      pageSize: number;
+      totalPages: number;
     }
-    
-    return data.data;
+
+    const { data } = await apiClient.get<BackendPaginatedResponse>(
+      '/api/safety/admin/incidents',
+      { params }
+    );
+
+    // Transform backend response to match frontend PaginatedResponse type
+    return {
+      items: data.items,
+      page: data.page,
+      limit: data.pageSize,
+      total: data.totalCount,
+      totalPages: data.totalPages,
+      hasNext: data.page < data.totalPages,
+      hasPrev: data.page > 1
+    };
   },
 
   /**

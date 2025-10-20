@@ -10,10 +10,6 @@ public class CreateIncidentValidator : AbstractValidator<CreateIncidentRequest>
 {
     public CreateIncidentValidator()
     {
-        RuleFor(x => x.Severity)
-            .IsInEnum()
-            .WithMessage("Severity level must be Low, Medium, High, or Critical");
-
         RuleFor(x => x.IncidentDate)
             .NotEmpty()
             .WithMessage("Incident date is required")
@@ -22,11 +18,34 @@ public class CreateIncidentValidator : AbstractValidator<CreateIncidentRequest>
             .GreaterThan(DateTime.UtcNow.AddYears(-2))
             .WithMessage("Incident date cannot be more than 2 years in the past");
 
+        // Title is auto-generated on backend, not user-provided
+        RuleFor(x => x.Title)
+            .Length(0, 200)
+            .WithMessage("Title cannot exceed 200 characters")
+            .When(x => !string.IsNullOrEmpty(x.Title));
+
+        // Location is now free-text field (not enum)
         RuleFor(x => x.Location)
             .NotEmpty()
             .WithMessage("Location is required")
-            .Length(5, 200)
-            .WithMessage("Location must be between 5 and 200 characters");
+            .MaximumLength(200)
+            .WithMessage("Location cannot exceed 200 characters");
+
+        // Type is required
+        RuleFor(x => x.Type)
+            .IsInEnum()
+            .WithMessage("Valid incident type is required");
+
+        // WhereOccurred is required
+        RuleFor(x => x.WhereOccurred)
+            .IsInEnum()
+            .WithMessage("Where incident occurred is required");
+
+        // EventName is optional but has max length
+        RuleFor(x => x.EventName)
+            .MaximumLength(200)
+            .WithMessage("Event name cannot exceed 200 characters")
+            .When(x => !string.IsNullOrEmpty(x.EventName));
 
         RuleFor(x => x.Description)
             .NotEmpty()
@@ -54,12 +73,12 @@ public class CreateIncidentValidator : AbstractValidator<CreateIncidentRequest>
                 .WithMessage("Valid email address is required");
         });
 
-        RuleFor(x => x.ContactPhone)
-            .Matches(@"^[\d\s\-\(\)\+\.]+$")
-            .WithMessage("Phone number contains invalid characters")
-            .Length(10, 20)
-            .WithMessage("Phone number must be between 10 and 20 characters")
-            .When(x => !string.IsNullOrEmpty(x.ContactPhone));
+        RuleFor(x => x.ContactName)
+            .MinimumLength(2)
+            .WithMessage("Contact name must be at least 2 characters")
+            .MaximumLength(200)
+            .WithMessage("Contact name cannot exceed 200 characters")
+            .When(x => !string.IsNullOrEmpty(x.ContactName));
 
         // Business rule: Anonymous reports cannot request follow-up
         RuleFor(x => x.RequestFollowUp)

@@ -668,6 +668,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/safety/admin/incidents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get paginated incident list with filters
+         * @description Get filtered and paginated list of incidents (Admin: all, Coordinator: assigned only)
+         */
+        get: operations["GetAdminIncidentsList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/safety/admin/dashboard/statistics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get dashboard statistics
+         * @description Get unassigned count, old unassigned flag, and recent incidents
+         */
+        get: operations["GetDashboardStatistics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/safety/admin/users/coordinators": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all users for coordinator assignment
+         * @description Get list of all users with active incident counts for assignment dropdown
+         */
+        get: operations["GetCoordinatorsList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/safety/admin/dashboard": {
         parameters: {
             query?: never;
@@ -676,7 +736,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get safety team dashboard data
+         * Get safety team dashboard data (legacy)
          * @description Get dashboard statistics and recent incidents for safety team
          */
         get: operations["GetSafetyDashboard"];
@@ -708,6 +768,114 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/safety/admin/incidents/{incidentId}/assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Assign coordinator to incident
+         * @description Assign or unassign coordinator (Admin only)
+         */
+        post: operations["AssignCoordinator"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/safety/admin/incidents/{incidentId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update incident status
+         * @description Update status with optional reason (Admin/Coordinator)
+         */
+        put: operations["UpdateIncidentStatus"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/safety/admin/incidents/{incidentId}/google-drive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update Google Drive links
+         * @description Update folder and final report URLs (Admin/Coordinator)
+         */
+        put: operations["UpdateGoogleDriveLinks"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/safety/admin/incidents/{incidentId}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all notes for incident
+         * @description Get notes with privacy filtering (Admin/Coordinator)
+         */
+        get: operations["GetIncidentNotes"];
+        put?: never;
+        /**
+         * Add manual note to incident
+         * @description Add coordinator/admin note to incident
+         */
+        post: operations["AddIncidentNote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/safety/admin/notes/{noteId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update manual note
+         * @description Update existing manual note (author or admin only)
+         */
+        put: operations["UpdateIncidentNote"];
+        post?: never;
+        /**
+         * Delete manual note
+         * @description Delete manual note (author or admin only)
+         */
+        delete: operations["DeleteIncidentNote"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/safety/my-reports": {
         parameters: {
             query?: never;
@@ -716,10 +884,30 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get user's incident reports
-         * @description Get list of incident reports submitted by current user
+         * Get user's own reports (paginated)
+         * @description Get list of current user's incident reports with limited view
          */
-        get: operations["GetUserReports"];
+        get: operations["GetMyReports"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/safety/my-reports/{incidentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get user's own report detail
+         * @description Get detailed view of user's own incident report (limited fields)
+         */
+        get: operations["GetMyReportDetail"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1095,6 +1283,86 @@ export interface paths {
         };
         /** Check application status using status token */
         get: operations["GetApplicationStatusByToken"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cms/pages/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get content page by slug
+         * @description Fetches a published content page by its URL slug. Public endpoint.
+         */
+        get: operations["GetCmsPageBySlug"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cms/pages/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update content page
+         * @description Updates page content and creates a revision. Requires Administrator role.
+         */
+        put: operations["UpdateCmsPage"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cms/pages/{id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get page revision history
+         * @description Fetches all revisions for a content page. Requires Administrator role.
+         */
+        get: operations["GetCmsPageRevisions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cms/pages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List all content pages
+         * @description Lists all content pages with revision counts. Requires Administrator role.
+         */
+        get: operations["GetAllCmsPages"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1588,9 +1856,13 @@ export interface components {
             incidentId?: string;
             referenceNumber?: string;
             actionNeeded?: string;
-            priority?: components["schemas"]["IncidentSeverity"];
             /** Format: date-time */
             dueDate?: string;
+        };
+        AddNoteRequest: {
+            content?: string;
+            isPrivate?: boolean;
+            tags?: string | null;
         };
         AdminDashboardResponse: {
             statistics?: components["schemas"]["SafetyStatistics"];
@@ -1932,6 +2204,10 @@ export interface components {
             interviewScheduledFor?: string | null;
             skillsTags?: string[];
         };
+        AssignCoordinatorRequest: {
+            /** Format: uuid */
+            coordinatorId?: string | null;
+        };
         AuditLogDto: {
             /** Format: uuid */
             id?: string;
@@ -1993,6 +2269,42 @@ export interface components {
             isManualEntry?: boolean;
             manualEntryData?: components["schemas"]["ManualEntryData"];
         };
+        CmsPageSummaryDto: {
+            /** Format: int32 */
+            id?: number;
+            slug?: string;
+            title?: string;
+            /** Format: int32 */
+            revisionCount?: number;
+            /** Format: date-time */
+            updatedAt?: string;
+            lastModifiedBy?: string;
+            isPublished?: boolean;
+        };
+        ContentPageDto: {
+            /** Format: int32 */
+            id?: number;
+            slug?: string;
+            title?: string;
+            content?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+            lastModifiedBy?: string;
+            isPublished?: boolean;
+        };
+        ContentRevisionDto: {
+            /** Format: int32 */
+            id?: number;
+            /** Format: int32 */
+            contentPageId?: number;
+            /** Format: date-time */
+            createdAt?: string;
+            createdBy?: string;
+            changeDescription?: string | null;
+            contentPreview?: string;
+            title?: string;
+            fullContent?: string | null;
+        };
         CreateApplicationRequest: {
             fullName: string;
             sceneName: string;
@@ -2018,7 +2330,7 @@ export interface components {
         CreateIncidentRequest: {
             /** Format: uuid */
             reporterId?: string | null;
-            severity?: components["schemas"]["IncidentSeverity"];
+            title?: string;
             /** Format: date-time */
             incidentDate?: string;
             location?: string;
@@ -2060,6 +2372,12 @@ export interface components {
             eventId: string;
             notes?: string | null;
             paymentMethodId?: string | null;
+        };
+        DashboardStatisticsResponse: {
+            /** Format: int32 */
+            unassignedCount?: number;
+            hasOldUnassigned?: boolean;
+            recentIncidents?: components["schemas"]["IncidentSummaryDto"][];
         };
         DetailedHealthResponse: {
             databaseVersion?: string;
@@ -2150,6 +2468,15 @@ export interface components {
             canCancel?: boolean;
             metadata?: string | null;
         };
+        GoogleDriveUpdateResponse: {
+            /** Format: uuid */
+            id?: string;
+            googleDriveFolderUrl?: string | null;
+            googleDriveFinalReportUrl?: string | null;
+            /** Format: date-time */
+            lastUpdatedAt?: string;
+            systemNoteCreated?: boolean;
+        };
         HealthResponse: {
             status?: string;
             /** Format: date-time */
@@ -2159,14 +2486,33 @@ export interface components {
             userCount?: number;
             version?: string;
         };
+        IncidentNoteDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            incidentId?: string;
+            content?: string;
+            type?: components["schemas"]["IncidentNoteType"];
+            isPrivate?: boolean;
+            /** Format: uuid */
+            authorId?: string | null;
+            authorName?: string | null;
+            tags?: string | null;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string | null;
+        };
+        /** @enum {unknown} */
+        IncidentNoteType: "Manual" | "System";
         IncidentResponse: {
             /** Format: uuid */
             id?: string;
             referenceNumber?: string;
+            title?: string;
             /** Format: uuid */
             reporterId?: string | null;
             reporterName?: string | null;
-            severity?: components["schemas"]["IncidentSeverity"];
             /** Format: date-time */
             incidentDate?: string;
             /** Format: date-time */
@@ -2190,9 +2536,7 @@ export interface components {
             updatedAt?: string;
         };
         /** @enum {unknown} */
-        IncidentSeverity: "Low" | "Medium" | "High" | "Critical";
-        /** @enum {unknown} */
-        IncidentStatus: "New" | "InProgress" | "Resolved" | "Archived";
+        IncidentStatus: "ReportSubmitted" | "InformationGathering" | "ReviewingFinalReport" | "OnHold" | "Closed";
         IncidentStatusResponse: {
             referenceNumber?: string;
             status?: string;
@@ -2200,11 +2544,39 @@ export interface components {
             lastUpdated?: string;
             canProvideMoreInfo?: boolean;
         };
+        IncidentSummaryDto: {
+            /** Format: uuid */
+            id?: string;
+            referenceNumber?: string;
+            title?: string;
+            status?: components["schemas"]["IncidentStatus"];
+            /** Format: date-time */
+            incidentDate?: string;
+            /** Format: date-time */
+            reportedAt?: string;
+            /** Format: date-time */
+            lastUpdatedAt?: string;
+            location?: string;
+            description?: string;
+            isAnonymous?: boolean;
+            /** Format: uuid */
+            reporterId?: string | null;
+            reporterName?: string | null;
+            /** Format: uuid */
+            coordinatorId?: string | null;
+            coordinatorName?: string | null;
+            involvedParties?: string | null;
+            witnesses?: string | null;
+            googleDriveFolderUrl?: string | null;
+            googleDriveFinalReportUrl?: string | null;
+            /** Format: int32 */
+            noteCount?: number;
+        };
         IncidentSummaryResponse: {
             /** Format: uuid */
             id?: string;
             referenceNumber?: string;
-            severity?: components["schemas"]["IncidentSeverity"];
+            title?: string;
             /** Format: date-time */
             incidentDate?: string;
             /** Format: date-time */
@@ -2246,6 +2618,43 @@ export interface components {
             hasApplication?: boolean;
             application?: components["schemas"]["ApplicationStatusInfo"];
         } | null;
+        MyReportDetailDto: {
+            /** Format: uuid */
+            id?: string;
+            status?: components["schemas"]["IncidentStatus"];
+            /** Format: date-time */
+            incidentDate?: string;
+            /** Format: date-time */
+            reportedAt?: string;
+            /** Format: date-time */
+            lastUpdatedAt?: string;
+            location?: string;
+            description?: string;
+            involvedParties?: string | null;
+            witnesses?: string | null;
+            isAnonymous?: boolean;
+        };
+        MyReportsPaginatedResponse: {
+            reports?: components["schemas"]["MyReportSummaryDto"][];
+            /** Format: int32 */
+            totalCount?: number;
+            /** Format: int32 */
+            currentPage?: number;
+            /** Format: int32 */
+            pageSize?: number;
+        };
+        MyReportSummaryDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: date-time */
+            incidentDate?: string;
+            location?: string;
+            status?: components["schemas"]["IncidentStatus"];
+            /** Format: date-time */
+            reportedAt?: string;
+            /** Format: date-time */
+            lastUpdatedAt?: string;
+        };
         NoteResponse: {
             /** Format: uuid */
             noteId?: string;
@@ -2253,6 +2662,9 @@ export interface components {
             createdAt?: string;
             confirmationMessage?: string;
         } | null;
+        NotesListResponse: {
+            notes?: components["schemas"]["IncidentNoteDto"][];
+        };
         PagedResultOfApplicationSummaryDto: {
             items?: components["schemas"]["ApplicationSummaryDto"][];
             /** Format: int32 */
@@ -2266,6 +2678,17 @@ export interface components {
             hasPreviousPage?: boolean;
             hasNextPage?: boolean;
         } | null;
+        PaginatedIncidentListResponse: {
+            items?: components["schemas"]["IncidentSummaryDto"][];
+            /** Format: int32 */
+            totalCount?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            pageSize?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
         /** @enum {unknown} */
         ParticipationStatus: "Active" | "Cancelled" | "Refunded" | "Waitlisted";
         ParticipationStatusDto: {
@@ -2595,6 +3018,14 @@ export interface components {
             status: string;
             reasoning: string;
         };
+        StatusUpdateResponse: {
+            /** Format: uuid */
+            id?: string;
+            status?: components["schemas"]["IncidentStatus"];
+            /** Format: date-time */
+            lastUpdatedAt?: string;
+            systemNoteCreated?: boolean;
+        };
         StatusUpdateSummary: {
             /** Format: date-time */
             updatedAt?: string;
@@ -2645,6 +3076,11 @@ export interface components {
             email?: string;
             sceneName?: string;
         };
+        UpdateContentPageRequest: {
+            title: string;
+            content: string;
+            changeDescription?: string | null;
+        };
         UpdateEventRequest: {
             title?: string | null;
             shortDescription?: string | null;
@@ -2664,6 +3100,15 @@ export interface components {
             teacherIds?: string[] | null;
             volunteerPositions?: components["schemas"]["VolunteerPositionDto"][] | null;
         };
+        UpdateGoogleDriveRequest: {
+            googleDriveFolderUrl?: string | null;
+            googleDriveFinalReportUrl?: string | null;
+        };
+        UpdateNoteRequest: {
+            content?: string;
+            isPrivate?: boolean;
+            tags?: string | null;
+        };
         UpdateProfileDto: {
             sceneName: string;
             firstName?: string | null;
@@ -2679,6 +3124,11 @@ export interface components {
             sceneName?: string;
             pronouns?: string;
         };
+        UpdateStatusRequest: {
+            newStatus?: components["schemas"]["IncidentStatus"];
+            reason?: string | null;
+            metadata?: Record<string, never> | null;
+        };
         UpdateUserRequest: {
             sceneName?: string | null;
             role?: string | null;
@@ -2688,6 +3138,15 @@ export interface components {
             emailConfirmed?: boolean | null;
             /** Format: int32 */
             vettingStatus?: number | null;
+        };
+        UserCoordinatorDto: {
+            /** Format: uuid */
+            id?: string;
+            sceneName?: string;
+            realName?: string;
+            role?: string;
+            /** Format: int32 */
+            activeIncidentCount?: number;
         };
         UserDto: {
             /** Format: uuid */
@@ -4396,6 +4855,140 @@ export interface operations {
             };
         };
     };
+    GetAdminIncidentsList: {
+        parameters: {
+            query: {
+                Search?: string;
+                Status?: string;
+                StartDate?: string;
+                EndDate?: string;
+                AssignedTo?: string;
+                Unassigned?: boolean;
+                Page: number;
+                PageSize: number;
+                SortBy: string;
+                SortOrder: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedIncidentListResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetDashboardStatistics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardStatisticsResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetCoordinatorsList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserCoordinatorDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     GetSafetyDashboard: {
         parameters: {
             query?: never;
@@ -4480,9 +5073,415 @@ export interface operations {
             };
         };
     };
-    GetUserReports: {
+    AssignCoordinator: {
         parameters: {
             query?: never;
+            header?: never;
+            path: {
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignCoordinatorRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncidentSummaryDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UpdateIncidentStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatusUpdateResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UpdateGoogleDriveLinks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateGoogleDriveRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoogleDriveUpdateResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetIncidentNotes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotesListResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AddIncidentNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddNoteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncidentNoteDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UpdateIncidentNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                noteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateNoteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncidentNoteDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    DeleteIncidentNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                noteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetMyReports: {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -4495,11 +5494,61 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IncidentSummaryResponse"][];
+                    "application/json": components["schemas"]["MyReportsPaginatedResponse"];
                 };
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetMyReportDetail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyReportDetailDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5452,6 +6501,145 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
+            };
+        };
+    };
+    GetCmsPageBySlug: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentPageDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UpdateCmsPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateContentPageRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentPageDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetCmsPageRevisions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentRevisionDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetAllCmsPages: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsPageSummaryDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

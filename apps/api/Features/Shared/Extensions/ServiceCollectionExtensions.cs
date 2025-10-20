@@ -47,11 +47,13 @@ public static class ServiceCollectionExtensions
 
         // Safety feature services
         services.AddScoped<ISafetyService, SafetyService>();
+        services.AddScoped<ISafetyServiceExtended, SafetyServiceExtended>();
         services.AddScoped<IEncryptionService, EncryptionService>();
         services.AddScoped<IAuditService, AuditService>();
 
         // FluentValidation for Safety feature
         services.AddValidatorsFromAssemblyContaining<CreateIncidentValidator>();
+        services.AddValidatorsFromAssemblyContaining<WitchCityRope.Api.Features.Safety.Validators.CreateIncidentRequestValidator>();
 
         // CheckIn feature services
         services.AddCheckInServices();

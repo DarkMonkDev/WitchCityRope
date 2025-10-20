@@ -1,6 +1,6 @@
 # Functional Area Master Index
-<!-- Last Updated: 2025-10-17 - CMS Phase 1 Complete, Phase 2 Started -->
-<!-- Version: 2.0 -->
+<!-- Last Updated: 2025-10-17 - Incident Reporting Feature Added -->
+<!-- Version: 2.1 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -27,6 +27,7 @@ This master index is maintained by the librarian agent to provide quick lookups 
 | **Events Management** | `/docs/functional-areas/events/` | `/docs/functional-areas/events/new-work/2025-08-24-events-management/` | **ACTIVE DEVELOPMENT** - React migration from Blazor implementation - Event creation, RSVP, ticketing, admin management | **Phase 1 - Requirements** | 2025-08-24 |
 | **Homepage** | `/docs/functional-areas/homepage/` | N/A | Landing page and main navigation entry point with complete workflow structure and design assets | Enhanced | 2025-08-19 |
 | **HTML Editor Migration** | `/docs/functional-areas/html-editor-migration/` | **IMPLEMENTATION COMPLETE** ✅ | **TinyMCE to @mantine/tiptap migration COMPLETE** - Eliminated API key requirements and testing quota issues. New MantineTiptapEditor component with variable insertion, ~70% bundle size reduction, zero configuration needed. All 5 phases complete: Component Migration, Configuration Cleanup, Test Suite Updates, Code Formatting, Documentation. **PRODUCTION READY** | **COMPLETE** | 2025-10-08 |
+| **Incident Reporting** | `/docs/functional-areas/incident-reporting/` | `/docs/functional-areas/incident-reporting/new-work/2025-10-17-initial-implementation/` | **NEW FEATURE** - Safety incident documentation and tracking system - Admin-focused interface for documenting safety incidents, consent violations, and community concerns. Similar patterns to vetting system (multi-phase workflow, status tracking). | **Phase 1 - Requirements (Not Started)** | 2025-10-17 |
 | **Navigation** | `/docs/functional-areas/navigation/` | **IMPLEMENTATION COMPLETE** ✅ | **Complete logged-in user navigation updates** - Dashboard button, Admin link, User greeting, Logout accessibility | **COMPLETE** | 2025-09-11 |
 | **Payment (PayPal/Venmo)** | `/docs/functional-areas/payment-paypal-venmo/` | **INTEGRATION COMPLETE** ✅ | **PayPal webhook integration with Cloudflare tunnel** - Real sandbox webhooks working, strongly-typed event processing, mock services for CI/CD | **COMPLETE** | 2025-09-14 |
 | **Payments (RSVP/Ticketing)** | `/docs/functional-areas/payments/` | `/docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/` | **IMPLEMENTATION COMPLETE** ✅ | **Complete RSVP and ticketing system** - Production-ready RSVP for social events, PayPal ticket purchases for classes, comprehensive participation management, 90% functional with minor API issues | **IMPLEMENTATION COMPLETE** | 2025-09-20 |
@@ -238,6 +239,16 @@ This master index is maintained by the librarian agent to provide quick lookups 
 - **Next Human Review**: After Business Requirements Document completion
 - **Key Deliverables**: Business requirements, design brief, 5 design variations, stakeholder selection, implementation guides
 - **Session**: 2025-08-20
+
+### 🆕 NEW FEATURE: Incident Reporting System (Just Initialized)
+- **Current Work**: `/docs/functional-areas/incident-reporting/new-work/2025-10-17-initial-implementation/`
+- **Status**: Phase 1 - Requirements (Not Started)
+- **Objective**: Admin-focused incident documentation and tracking for safety incidents, consent violations, and community concerns
+- **Similar Patterns**: Vetting System (multi-phase workflow, admin interface, status tracking)
+- **Technology Stack**: React 18 + TypeScript + .NET Minimal API + PostgreSQL
+- **Quality Gates**: Requirements 5% → 95%, Design 0% → 90%, Implementation 0% → 85%, Testing 0% → 100%
+- **Next Steps**: Business Requirements Agent - Create initial requirements document
+- **Session**: 2025-10-17 (Initialized)
 
 ### 🏆 MILESTONE COMPLETE: Authentication + NSwag Implementation Excellence
 - **Milestone Achievement**: Complete React authentication system with automated type generation

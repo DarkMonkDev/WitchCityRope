@@ -42,14 +42,27 @@ public class SafetyService : ISafetyService
             // Generate unique reference number
             var referenceNumber = await GenerateReferenceNumberAsync(cancellationToken);
 
+            // Auto-generate title from incident type and date if not provided
+            var title = !string.IsNullOrEmpty(request.Title)
+                ? request.Title
+                : $"{request.Type} - {request.IncidentDate:yyyy-MM-dd}";
+
             // Create incident entity with encrypted sensitive data
             var incident = new SafetyIncident
             {
                 ReferenceNumber = referenceNumber,
+                Title = title,
                 ReporterId = request.IsAnonymous ? null : request.ReporterId,
-                Severity = request.Severity,
                 IncidentDate = request.IncidentDate.ToUniversalTime(),
                 Location = request.Location,
+                Type = request.Type,
+                WhereOccurred = request.WhereOccurred,
+                EventName = request.EventName,
+                HasSpokenToPerson = request.HasSpokenToPerson,
+                DesiredOutcomes = request.DesiredOutcomes,
+                FutureInteractionPreference = request.FutureInteractionPreference,
+                AnonymousDuringInvestigation = request.AnonymousDuringInvestigation,
+                AnonymousInFinalReport = request.AnonymousInFinalReport,
                 EncryptedDescription = await _encryptionService.EncryptAsync(request.Description),
                 EncryptedInvolvedParties = !string.IsNullOrEmpty(request.InvolvedParties)
                     ? await _encryptionService.EncryptAsync(request.InvolvedParties) : null,
@@ -57,11 +70,11 @@ public class SafetyService : ISafetyService
                     ? await _encryptionService.EncryptAsync(request.Witnesses) : null,
                 EncryptedContactEmail = !string.IsNullOrEmpty(request.ContactEmail)
                     ? await _encryptionService.EncryptAsync(request.ContactEmail) : null,
-                EncryptedContactPhone = !string.IsNullOrEmpty(request.ContactPhone)
-                    ? await _encryptionService.EncryptAsync(request.ContactPhone) : null,
+                EncryptedContactName = !string.IsNullOrEmpty(request.ContactName)
+                    ? await _encryptionService.EncryptAsync(request.ContactName) : null,
                 IsAnonymous = request.IsAnonymous,
                 RequestFollowUp = request.RequestFollowUp,
-                Status = IncidentStatus.New,
+                Status = IncidentStatus.ReportSubmitted,
                 CreatedBy = request.IsAnonymous ? null : request.ReporterId
             };
 
@@ -84,8 +97,8 @@ public class SafetyService : ISafetyService
                 SubmittedAt = incident.CreatedAt
             };
 
-            _logger.LogInformation("Safety incident submitted successfully: {ReferenceNumber}, Severity: {Severity}, Anonymous: {IsAnonymous}",
-                referenceNumber, incident.Severity, incident.IsAnonymous);
+            _logger.LogInformation("Safety incident submitted successfully: {ReferenceNumber}, Anonymous: {IsAnonymous}",
+                referenceNumber, incident.IsAnonymous);
 
             return Result<SubmissionResponse>.Success(response);
         }
@@ -167,12 +180,20 @@ public class SafetyService : ISafetyService
             {
                 Id = incident.Id,
                 ReferenceNumber = incident.ReferenceNumber,
+                Title = incident.Title,
                 ReporterId = incident.ReporterId,
                 ReporterName = incident.Reporter?.SceneName,
-                Severity = incident.Severity,
                 IncidentDate = incident.IncidentDate,
                 ReportedAt = incident.ReportedAt,
                 Location = incident.Location,
+                Type = incident.Type,
+                WhereOccurred = incident.WhereOccurred,
+                EventName = incident.EventName,
+                HasSpokenToPerson = incident.HasSpokenToPerson,
+                DesiredOutcomes = incident.DesiredOutcomes,
+                FutureInteractionPreference = incident.FutureInteractionPreference,
+                AnonymousDuringInvestigation = incident.AnonymousDuringInvestigation,
+                AnonymousInFinalReport = incident.AnonymousInFinalReport,
                 Description = await _encryptionService.DecryptAsync(incident.EncryptedDescription),
                 InvolvedParties = !string.IsNullOrEmpty(incident.EncryptedInvolvedParties)
                     ? await _encryptionService.DecryptAsync(incident.EncryptedInvolvedParties) : null,
@@ -180,8 +201,8 @@ public class SafetyService : ISafetyService
                     ? await _encryptionService.DecryptAsync(incident.EncryptedWitnesses) : null,
                 ContactEmail = !string.IsNullOrEmpty(incident.EncryptedContactEmail)
                     ? await _encryptionService.DecryptAsync(incident.EncryptedContactEmail) : null,
-                ContactPhone = !string.IsNullOrEmpty(incident.EncryptedContactPhone)
-                    ? await _encryptionService.DecryptAsync(incident.EncryptedContactPhone) : null,
+                ContactName = !string.IsNullOrEmpty(incident.EncryptedContactName)
+                    ? await _encryptionService.DecryptAsync(incident.EncryptedContactName) : null,
                 IsAnonymous = incident.IsAnonymous,
                 RequestFollowUp = incident.RequestFollowUp,
                 Status = incident.Status,
@@ -232,30 +253,6 @@ public class SafetyService : ISafetyService
             // Get statistics
             var statistics = new SafetyStatistics();
 
-            var severityCounts = await _context.SafetyIncidents
-                .GroupBy(i => i.Severity)
-                .Select(g => new { Severity = g.Key, Count = g.Count() })
-                .ToListAsync(cancellationToken);
-
-            foreach (var count in severityCounts)
-            {
-                switch (count.Severity)
-                {
-                    case IncidentSeverity.Critical:
-                        statistics.CriticalCount = count.Count;
-                        break;
-                    case IncidentSeverity.High:
-                        statistics.HighCount = count.Count;
-                        break;
-                    case IncidentSeverity.Medium:
-                        statistics.MediumCount = count.Count;
-                        break;
-                    case IncidentSeverity.Low:
-                        statistics.LowCount = count.Count;
-                        break;
-                }
-            }
-
             var statusCounts = await _context.SafetyIncidents
                 .GroupBy(i => i.Status)
                 .Select(g => new { Status = g.Key, Count = g.Count() })
@@ -265,13 +262,13 @@ public class SafetyService : ISafetyService
             {
                 switch (count.Status)
                 {
-                    case IncidentStatus.New:
+                    case IncidentStatus.ReportSubmitted:
                         statistics.NewCount = count.Count;
                         break;
-                    case IncidentStatus.InProgress:
+                    case IncidentStatus.InformationGathering:
                         statistics.InProgressCount = count.Count;
                         break;
-                    case IncidentStatus.Resolved:
+                    case IncidentStatus.Closed:
                         statistics.ResolvedCount = count.Count;
                         break;
                 }
@@ -284,14 +281,14 @@ public class SafetyService : ISafetyService
             // Get recent incidents
             var recentIncidents = await _context.SafetyIncidents
                 .AsNoTracking()
-                .Where(i => i.Status != IncidentStatus.Archived)
+                .Where(i => i.Status != IncidentStatus.Closed)
                 .OrderByDescending(i => i.ReportedAt)
                 .Take(10)
                 .Select(i => new IncidentSummaryResponse
                 {
                     Id = i.Id,
                     ReferenceNumber = i.ReferenceNumber,
-                    Severity = i.Severity,
+                    Title = i.Title,
                     Status = i.Status,
                     ReportedAt = i.ReportedAt,
                     IncidentDate = i.IncidentDate,
@@ -335,7 +332,7 @@ public class SafetyService : ISafetyService
                 {
                     Id = i.Id,
                     ReferenceNumber = i.ReferenceNumber,
-                    Severity = i.Severity,
+                    Title = i.Title,
                     Status = i.Status,
                     ReportedAt = i.ReportedAt,
                     IncidentDate = i.IncidentDate,
@@ -382,13 +379,13 @@ public class SafetyService : ISafetyService
     /// </summary>
     private async Task<bool> VerifySafetyTeamAccessAsync(Guid userId, CancellationToken cancellationToken)
     {
-        // Check if user has SafetyTeam or Admin role
+        // Check if user has SafetyTeam or Administrator role
         var user = await _context.Users
             .AsNoTracking()
             .Where(u => u.Id == userId)
             .Select(u => new { u.Role })
             .FirstOrDefaultAsync(cancellationToken);
 
-        return user?.Role == "SafetyTeam" || user?.Role == "Admin";
+        return user?.Role == "SafetyTeam" || user?.Role == "Administrator";
     }
 }

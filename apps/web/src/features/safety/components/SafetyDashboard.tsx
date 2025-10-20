@@ -15,6 +15,7 @@ import {
   Button,
   TextInput,
   Select,
+  MultiSelect,
   Alert,
   Loader,
   ActionIcon,
@@ -35,24 +36,32 @@ import { useDisclosure } from '@mantine/hooks';
 import { useSafetyDashboard, useSearchIncidents } from '../hooks/useSafetyIncidents';
 import { IncidentList } from './IncidentList';
 import { IncidentDetails } from './IncidentDetails';
-import { 
-  IncidentSeverity, 
-  IncidentStatus, 
-  SEVERITY_CONFIGS, 
+import {
+  IncidentStatus,
   STATUS_CONFIGS,
-  SearchIncidentsRequest 
+  SearchIncidentsRequest
 } from '../types/safety.types';
 
 export function SafetyDashboard() {
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
   const [detailsOpened, { open: openDetails, close: closeDetails }] = useDisclosure(false);
   
-  // Search and filter state
-  const [searchFilters, setSearchFilters] = useState<SearchIncidentsRequest>({
-    page: 1,
-    pageSize: 25
-  });
+  // Search and filter state (separate from API request for better UX)
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([
+    IncidentStatus.ReportSubmitted,
+    IncidentStatus.InformationGathering,
+    IncidentStatus.ReviewingFinalReport
+  ]); // Default to active incident statuses
   const [searchText, setSearchText] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Map frontend state to backend request format
+  const searchFilters: SearchIncidentsRequest = {
+    page: currentPage,
+    pageSize: 25,
+    status: selectedStatuses.length > 0 ? selectedStatuses.join(',') : undefined,
+    searchText: searchText || undefined
+  };
   
   // Fetch dashboard data
   const dashboardResult = useSafetyDashboard();
@@ -75,29 +84,23 @@ export function SafetyDashboard() {
     setSelectedIncidentId(incidentId);
     openDetails();
   };
-  
+
   // Handle search
   const handleSearch = () => {
-    setSearchFilters(prev => ({
-      ...prev,
-      searchText: searchText.trim() || undefined,
-      page: 1 // Reset to first page on new search
-    }));
+    setCurrentPage(1); // Reset to first page on new search
   };
-  
-  // Handle filter changes
-  const handleFilterChange = (field: keyof SearchIncidentsRequest, value: any) => {
-    setSearchFilters(prev => ({
-      ...prev,
-      [field]: value,
-      page: 1 // Reset to first page on filter change
-    }));
+
+  // Handle status filter change
+  const handleStatusChange = (values: string[]) => {
+    setSelectedStatuses(values);
+    setCurrentPage(1); // Reset to first page on filter change
   };
-  
+
   // Clear filters
   const clearFilters = () => {
-    setSearchFilters({ page: 1, pageSize: 25 });
+    setSelectedStatuses([]);
     setSearchText('');
+    setCurrentPage(1);
   };
   
   if (error) {
@@ -222,34 +225,20 @@ export function SafetyDashboard() {
             Clear All
           </Button>
         </Group>
-        
+
         <Grid gutter="md" align="end">
-          {/* Severity Filter */}
-          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
-            <Select
-              label="Minimum Severity"
-              placeholder="All severities"
-              data={Object.values(IncidentSeverity).map(severity => ({
-                value: severity,
-                label: `${SEVERITY_CONFIGS[severity].icon} ${SEVERITY_CONFIGS[severity].label}`
-              }))}
-              value={searchFilters.minSeverity || null}
-              onChange={(value) => handleFilterChange('minSeverity', value as IncidentSeverity)}
-              clearable
-            />
-          </Grid.Col>
-          
           {/* Status Filter */}
           <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
-            <Select
+            <MultiSelect
               label="Status"
-              placeholder="All statuses"
+              placeholder="Select status filters"
               data={Object.values(IncidentStatus).map(status => ({
                 value: status,
                 label: STATUS_CONFIGS[status].label
               }))}
-              value={searchFilters.status || null}
-              onChange={(value) => handleFilterChange('status', value as IncidentStatus)}
+              value={selectedStatuses}
+              onChange={handleStatusChange}
+              leftSection={<IconFilter size={16} />}
               clearable
             />
           </Grid.Col>
@@ -308,9 +297,9 @@ export function SafetyDashboard() {
           <IncidentList
             incidents={(searchQuery.data as any)?.items || []}
             totalCount={(searchQuery.data as any)?.total || 0}
-            currentPage={searchFilters.page || 1}
-            pageSize={searchFilters.pageSize || 25}
-            onPageChange={(page) => handleFilterChange('page', page)}
+            currentPage={currentPage}
+            pageSize={25}
+            onPageChange={setCurrentPage}
             onIncidentSelect={handleIncidentSelect}
             loading={searchQuery.isLoading}
           />

@@ -15,10 +15,9 @@ import {
   Button
 } from '@mantine/core';
 import { IconEye, IconUser, IconUserOff } from '@tabler/icons-react';
-import { 
-  IncidentSummaryDto, 
-  SEVERITY_CONFIGS, 
-  STATUS_CONFIGS 
+import {
+  IncidentSummaryDto,
+  STATUS_CONFIGS
 } from '../types/safety.types';
 
 interface IncidentListProps {
@@ -83,7 +82,6 @@ export function IncidentList({
             <Table.Tr>
               <Table.Th>Reference</Table.Th>
               <Table.Th>Date</Table.Th>
-              <Table.Th>Severity</Table.Th>
               <Table.Th>Location</Table.Th>
               <Table.Th>Status</Table.Th>
               <Table.Th>Reporter</Table.Th>
@@ -93,7 +91,6 @@ export function IncidentList({
           </Table.Thead>
           <Table.Tbody>
             {incidents.map((incident) => {
-              const severityConfig = SEVERITY_CONFIGS[incident.severity];
               const statusConfig = STATUS_CONFIGS[incident.status];
               
               return (
@@ -112,19 +109,7 @@ export function IncidentList({
                       <Text size="xs" c="dimmed">{formatTime(incident.incidentDate)}</Text>
                     </Box>
                   </Table.Td>
-                  
-                  {/* Severity */}
-                  <Table.Td>
-                    <Badge
-                      color={severityConfig.color}
-                      variant="filled"
-                      size="sm"
-                      leftSection={<span style={{ fontSize: '10px' }}>{severityConfig.icon}</span>}
-                    >
-                      {severityConfig.label}
-                    </Badge>
-                  </Table.Td>
-                  
+
                   {/* Location */}
                   <Table.Td>
                     <Text size="sm" style={{ maxWidth: '150px' }} truncate>
@@ -166,8 +151,8 @@ export function IncidentList({
                   
                   {/* Assigned To */}
                   <Table.Td>
-                    {incident.assignedUserName ? (
-                      <Text size="sm">{incident.assignedUserName}</Text>
+                    {incident.coordinatorName ? (
+                      <Text size="sm">{incident.coordinatorName}</Text>
                     ) : (
                       <Text size="sm" c="dimmed" fs="italic">Unassigned</Text>
                     )}

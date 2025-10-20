@@ -88,7 +88,7 @@ If you suspect local dev servers are running:
 ### 2. Access Services
 - **React App**: http://localhost:5173
 - **API**: http://localhost:5655
-- **Database**: localhost:5433 (postgres/devpass123)
+- **Database**: **localhost:5434** (postgres/devpass123) - **DEDICATED PORT** for WitchCityRope
 
 ### 3. Make Code Changes
 - React: Hot reload works automatically
