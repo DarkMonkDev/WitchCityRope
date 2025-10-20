@@ -807,6 +807,15 @@ public class VettingService : IVettingService
             };
 
             _context.VettingApplications.Add(application);
+
+            // If a user exists with this email, update their HasVettingApplication field
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
+            if (user != null)
+            {
+                user.HasVettingApplication = true;
+                _logger.LogInformation("Updated user {UserId} HasVettingApplication to true", user.Id);
+            }
+
             await _context.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Vetting application {ApplicationNumber} submitted successfully with ID {ApplicationId}",
@@ -1074,6 +1083,15 @@ public class VettingService : IVettingService
             };
 
             _context.VettingApplications.Add(application);
+
+            // If a user exists with this email, update their HasVettingApplication field
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
+            if (user != null)
+            {
+                user.HasVettingApplication = true;
+                _logger.LogInformation("Updated user {UserId} HasVettingApplication to true", user.Id);
+            }
+
             await _context.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Public vetting application {ApplicationNumber} submitted successfully with ID {ApplicationId}",
@@ -1164,12 +1182,13 @@ public class VettingService : IVettingService
 
             _context.VettingApplications.Add(application);
 
-            // Update user's VettingStatus so dashboard shows correct status
+            // Update user's VettingStatus and HasVettingApplication so dashboard shows correct status
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
             if (user != null)
             {
                 user.VettingStatus = (int)VettingStatus.UnderReview;
-                _logger.LogInformation("Updated user {UserId} VettingStatus to UnderReview", user.Id);
+                user.HasVettingApplication = true;
+                _logger.LogInformation("Updated user {UserId} VettingStatus to UnderReview and HasVettingApplication to true", user.Id);
             }
 
             await _context.SaveChangesAsync(cancellationToken);
@@ -1356,10 +1375,6 @@ public class VettingService : IVettingService
                 if (applicantUser != null)
                 {
                     applicantUser.VettingStatus = (int)newStatus;
-                    if (newStatus == VettingStatus.Approved)
-                    {
-                        applicantUser.IsVetted = true;
-                    }
                     _context.Users.Update(applicantUser);
 
                     _logger.LogInformation(
@@ -1535,9 +1550,6 @@ public class VettingService : IVettingService
                     // Update the Role property
                     user.Role = "VettedMember";
 
-                    // Update IsVetted flag (CRITICAL for RSVP access)
-                    user.IsVetted = true;
-
                     // Sync User.VettingStatus (source of truth for permissions/access control)
                     user.VettingStatus = (int)VettingStatus.Approved;
 
@@ -1545,7 +1557,7 @@ public class VettingService : IVettingService
                     _context.Users.Update(user);
 
                     _logger.LogInformation(
-                        "Set IsVetted=true, Role=VettedMember, and VettingStatus=Approved for user {UserId} for approved application {ApplicationId}",
+                        "Set Role=VettedMember and VettingStatus=Approved for user {UserId} for approved application {ApplicationId}",
                         application.UserId.Value, applicationId);
 
                     // Get the VettedMember role from database

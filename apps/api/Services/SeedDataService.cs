@@ -151,7 +151,7 @@ public class SeedDataService : ISeedDataService
     {
         _logger.LogInformation("Starting role creation");
 
-        var roles = new[] { "Administrator", "Teacher", "VettedMember", "Member", "Attendee" };
+        var roles = new[] { "Administrator", "Teacher", "SafetyTeam" };
         var createdCount = 0;
 
         foreach (var roleName in roles)
@@ -222,73 +222,80 @@ public class SeedDataService : ISeedDataService
             new {
                 Email = "admin@witchcityrope.com",
                 SceneName = "RopeMaster",
+                DiscordName = "ropemaster_admin",
                 Role = "Administrator",
                 PronouncedName = "Rope Master",
                 Pronouns = "they/them",
-                IsVetted = true
+                VettingStatus = 3  // Approved
             },
             new {
                 Email = "teacher@witchcityrope.com",
                 SceneName = "SafetyFirst",
+                DiscordName = "safety_teacher",
                 Role = "Teacher",
                 PronouncedName = "Safety First",
                 Pronouns = "she/her",
-                IsVetted = true
+                VettingStatus = 3  // Approved
             },
             new {
                 Email = "vetted@witchcityrope.com",
                 SceneName = "RopeEnthusiast",
-                Role = "Member",
+                DiscordName = "rope_enthusiast",
+                Role = "",  // No special permissions
                 PronouncedName = "Rope Enthusiast",
                 Pronouns = "he/him",
-                IsVetted = true
+                VettingStatus = 3  // Approved (vetted)
             },
             new {
                 Email = "member@witchcityrope.com",
                 SceneName = "Learning",
-                Role = "Member",
+                DiscordName = "learning_rope",
+                Role = "",  // No special permissions
                 PronouncedName = "Learning",
                 Pronouns = "they/them",
-                IsVetted = false
+                VettingStatus = 0  // UnderReview (not vetted)
             },
             new {
                 Email = "guest@witchcityrope.com",
                 SceneName = "Newcomer",
-                Role = "Attendee",
+                DiscordName = "new_to_rope",
+                Role = "",  // No special permissions
                 PronouncedName = "Newcomer",
                 Pronouns = "she/they",
-                IsVetted = false
+                VettingStatus = 0  // UnderReview (not vetted)
             },
             // Safety/Incident coordinators for testing incident assignment
             new {
                 Email = "coordinator1@witchcityrope.com",
                 SceneName = "SafetyCoordinator",
+                DiscordName = "safety_coord1",
                 Role = "SafetyTeam",
                 PronouncedName = "Safety Coordinator",
                 Pronouns = "they/them",
-                IsVetted = true
+                VettingStatus = 3  // Approved
             },
             new {
                 Email = "coordinator2@witchcityrope.com",
                 SceneName = "IncidentHandler",
+                DiscordName = "incident_handler",
                 Role = "SafetyTeam",
                 PronouncedName = "Incident Handler",
                 Pronouns = "she/her",
-                IsVetted = true
+                VettingStatus = 3  // Approved
             },
             // Additional users for vetting application testing (users 5-16)
-            new { Email = "applicant1@example.com", SceneName = "RopeNovice", Role = "Attendee", PronouncedName = "Rope Novice", Pronouns = "she/her", IsVetted = false },
-            new { Email = "applicant2@example.com", SceneName = "KnotLearner", Role = "Attendee", PronouncedName = "Knot Learner", Pronouns = "they/them", IsVetted = false },
-            new { Email = "applicant3@example.com", SceneName = "TrustBuilder", Role = "Attendee", PronouncedName = "Trust Builder", Pronouns = "he/him", IsVetted = false },
-            new { Email = "applicant4@example.com", SceneName = "SilkAndSteel", Role = "Attendee", PronouncedName = "Silk And Steel", Pronouns = "she/her", IsVetted = false },
-            new { Email = "applicant5@example.com", SceneName = "EagerLearner", Role = "Attendee", PronouncedName = "Eager Learner", Pronouns = "she/they", IsVetted = false },
-            new { Email = "applicant6@example.com", SceneName = "QuickLearner", Role = "Attendee", PronouncedName = "Quick Learner", Pronouns = "he/him", IsVetted = false },
-            new { Email = "applicant7@example.com", SceneName = "ThoughtfulRigger", Role = "Attendee", PronouncedName = "Thoughtful Rigger", Pronouns = "they/them", IsVetted = false },
-            new { Email = "applicant8@example.com", SceneName = "CommunityBuilder", Role = "Attendee", PronouncedName = "Community Builder", Pronouns = "she/her", IsVetted = false },
-            new { Email = "applicant9@example.com", SceneName = "NervousNewbie", Role = "Attendee", PronouncedName = "Nervous Newbie", Pronouns = "he/him", IsVetted = false },
-            new { Email = "applicant10@example.com", SceneName = "RopeBunny", Role = "Attendee", PronouncedName = "Rope Bunny", Pronouns = "she/her", IsVetted = false },
-            new { Email = "applicant11@example.com", SceneName = "SafetyConscious", Role = "Attendee", PronouncedName = "Safety Conscious", Pronouns = "they/them", IsVetted = false },
-            new { Email = "applicant12@example.com", SceneName = "PatientPractitioner", Role = "Attendee", PronouncedName = "Patient Practitioner", Pronouns = "he/him", IsVetted = false }
+            new { Email = "applicant1@example.com", SceneName = "RopeNovice", DiscordName = "rope_novice", Role = "", PronouncedName = "Rope Novice", Pronouns = "she/her", VettingStatus = 0 },
+            new { Email = "applicant2@example.com", SceneName = "KnotLearner", DiscordName = "knot_learner", Role = "", PronouncedName = "Knot Learner", Pronouns = "they/them", VettingStatus = 0 },
+            new { Email = "applicant3@example.com", SceneName = "TrustBuilder", DiscordName = "trust_builder", Role = "Teacher,SafetyTeam", PronouncedName = "Trust Builder", Pronouns = "he/him", VettingStatus = 3 },  // Multiple roles, vetted
+            new { Email = "applicant4@example.com", SceneName = "SilkAndSteel", DiscordName = "silk_and_steel", Role = "", PronouncedName = "Silk And Steel", Pronouns = "she/her", VettingStatus = 4 },  // No role, denied
+            new { Email = "applicant5@example.com", SceneName = "EagerLearner", DiscordName = "eager_learner", Role = "", PronouncedName = "Eager Learner", Pronouns = "she/they", VettingStatus = 0 },
+            new { Email = "applicant6@example.com", SceneName = "QuickLearner", DiscordName = "quick_learner", Role = "", PronouncedName = "Quick Learner", Pronouns = "he/him", VettingStatus = 0 },
+            new { Email = "applicant7@example.com", SceneName = "ThoughtfulRigger", DiscordName = "thoughtful_rigger", Role = "Teacher", PronouncedName = "Thoughtful Rigger", Pronouns = "they/them", VettingStatus = 3 },  // Teacher, vetted
+            new { Email = "applicant8@example.com", SceneName = "CommunityBuilder", DiscordName = "community_builder", Role = "", PronouncedName = "Community Builder", Pronouns = "she/her", VettingStatus = 0 },
+            new { Email = "applicant9@example.com", SceneName = "NervousNewbie", DiscordName = "nervous_newbie", Role = "", PronouncedName = "Nervous Newbie", Pronouns = "he/him", VettingStatus = 0 },
+            new { Email = "applicant10@example.com", SceneName = "RopeBunny", DiscordName = "rope_bunny", Role = "", PronouncedName = "Rope Bunny", Pronouns = "she/her", VettingStatus = 0 },
+            new { Email = "applicant11@example.com", SceneName = "SafetyConscious", DiscordName = "safety_conscious", Role = "Teacher", PronouncedName = "Safety Conscious", Pronouns = "they/them", VettingStatus = 3 },  // Teacher, vetted
+            new { Email = "applicant12@example.com", SceneName = "PatientPractitioner", DiscordName = "patient_practitioner", Role = "Teacher", PronouncedName = "Patient Practitioner", Pronouns = "he/him", VettingStatus = 3 }  // Teacher, vetted
         };
 
         var createdCount = 0;
@@ -308,12 +315,12 @@ public class SeedDataService : ISeedDataService
                 Email = account.Email,
                 EmailConfirmed = true,
                 SceneName = account.SceneName,
+                DiscordName = account.DiscordName,
                 Role = account.Role,
                 PronouncedName = account.PronouncedName,
                 Pronouns = account.Pronouns,
                 IsActive = true,
-                IsVetted = account.IsVetted,
-                VettingStatus = account.IsVetted ? 4 : 0, // 4 = Approved for vetted users, 0 = UnderReview for non-vetted
+                VettingStatus = account.VettingStatus, // 3 = Approved (vetted), 0 = UnderReview (not vetted)
 
                 // Set required fields with placeholder data for development
                 EncryptedLegalName = $"TestUser_{account.SceneName}",
@@ -332,8 +339,8 @@ public class SeedDataService : ISeedDataService
                 if (roleResult.Succeeded)
                 {
                     createdCount++;
-                    _logger.LogInformation("Created test account: {Email} ({Role}, Vetted: {IsVetted})",
-                        account.Email, account.Role, account.IsVetted);
+                    _logger.LogInformation("Created test account: {Email} ({Role}, VettingStatus: {VettingStatus})",
+                        account.Email, account.Role, account.VettingStatus);
                 }
                 else
                 {
@@ -1428,10 +1435,6 @@ Past participants built a strong foundation in rope fundamentals with structured
             if (user != null)
             {
                 user.VettingStatus = (int)application.WorkflowStatus;
-                if (application.WorkflowStatus == VettingStatus.Approved)
-                {
-                    user.IsVetted = true;
-                }
                 _logger.LogInformation(
                     "Synced User.VettingStatus to {VettingStatus} for user {UserId} (application {ApplicationId})",
                     application.WorkflowStatus, user.Id, application.Id);

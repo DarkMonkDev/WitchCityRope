@@ -13,7 +13,6 @@ public class UserDto
     public string? LastName { get; set; }
     public string[] Roles { get; set; } = Array.Empty<string>();
     public bool IsActive { get; set; }
-    public bool IsVetted { get; set; }
     public string CreatedAt { get; set; } = string.Empty;
     public string UpdatedAt { get; set; } = string.Empty;
     public string? LastLoginAt { get; set; }

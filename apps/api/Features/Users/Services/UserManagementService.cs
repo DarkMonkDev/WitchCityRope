@@ -138,9 +138,18 @@ public class UserManagementService
                     (u.SceneName != null && u.SceneName.ToLower().Contains(searchTerm)));
             }
 
-            // Apply role filter
-            if (!string.IsNullOrWhiteSpace(request.Role))
+            // Apply role filter with OR logic for multiple roles
+            if (request.RoleFilters != null && request.RoleFilters.Length > 0)
             {
+                // User matches if their Role field contains ANY of the requested roles
+                // This supports users with multiple comma-separated roles like "Teacher,SafetyTeam"
+                query = query.Where(u =>
+                    request.RoleFilters.Any(role =>
+                        u.Role != null && u.Role.Contains(role)));
+            }
+            else if (!string.IsNullOrWhiteSpace(request.Role))
+            {
+                // Legacy single role filter (kept for backward compatibility)
                 query = query.Where(u => u.Role == request.Role);
             }
 
@@ -148,12 +157,6 @@ public class UserManagementService
             if (request.IsActive.HasValue)
             {
                 query = query.Where(u => u.IsActive == request.IsActive.Value);
-            }
-
-            // Apply vetting status filter
-            if (request.IsVetted.HasValue)
-            {
-                query = query.Where(u => u.IsVetted == request.IsVetted.Value);
             }
 
             // Get total count for pagination
@@ -168,6 +171,15 @@ public class UserManagementService
                 "role" => request.SortDescending
                     ? query.OrderByDescending(u => u.Role)
                     : query.OrderBy(u => u.Role),
+                "discordname" => request.SortDescending
+                    ? query.OrderByDescending(u => u.DiscordName)
+                    : query.OrderBy(u => u.DiscordName),
+                "vettingstatus" => request.SortDescending
+                    ? query.OrderByDescending(u => u.VettingStatus)
+                    : query.OrderBy(u => u.VettingStatus),
+                "isactive" => request.SortDescending
+                    ? query.OrderByDescending(u => u.IsActive)
+                    : query.OrderBy(u => u.IsActive),
                 "createdat" => request.SortDescending
                     ? query.OrderByDescending(u => u.CreatedAt)
                     : query.OrderBy(u => u.CreatedAt),
@@ -300,11 +312,6 @@ public class UserManagementService
             if (request.IsActive.HasValue)
             {
                 user.IsActive = request.IsActive.Value;
-            }
-
-            if (request.IsVetted.HasValue)
-            {
-                user.IsVetted = request.IsVetted.Value;
             }
 
             if (request.EmailConfirmed.HasValue)

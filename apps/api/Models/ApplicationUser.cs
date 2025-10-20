@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WitchCityRope.Api.Models;
 
@@ -73,7 +74,6 @@ public class ApplicationUser : IdentityUser<Guid>
     public bool IsActive { get; set; } = true;
     public string PronouncedName { get; set; } = string.Empty;
     public string Pronouns { get; set; } = string.Empty;
-    public bool IsVetted { get; set; } = false;
     public int FailedLoginAttempts { get; set; } = 0;
     public DateTime? LockedOutUntil { get; set; }
     public DateTime? LastPasswordChangeAt { get; set; }
@@ -86,4 +86,23 @@ public class ApplicationUser : IdentityUser<Guid>
     /// Updated when VettingApplication reaches terminal states (Approved, Denied, etc.)
     /// </summary>
     public int VettingStatus { get; set; } = 0;
+
+    /// <summary>
+    /// Tracks whether the user has submitted a vetting application
+    /// Prevents expensive LEFT JOIN queries when displaying member lists
+    /// Set to true when a vetting application is created, remains true even if deleted
+    /// </summary>
+    public bool HasVettingApplication { get; set; } = false;
+
+    /// <summary>
+    /// Computed property - User is vetted when VettingStatus is Approved (3)
+    /// This property is not stored in the database and is computed from VettingStatus
+    /// During migration period, still allows setting for backward compatibility, but value is ignored
+    /// </summary>
+    [NotMapped]
+    public bool IsVetted
+    {
+        get => VettingStatus == 3;
+        set { /* Ignore setter - kept for backward compatibility during migration */ }
+    }
 }

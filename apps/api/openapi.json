@@ -583,14 +583,17 @@
             }
           },
           {
-            "name": "IsActive",
+            "name": "RoleFilters",
             "in": "query",
             "schema": {
-              "type": "boolean"
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             }
           },
           {
-            "name": "IsVetted",
+            "name": "IsActive",
             "in": "query",
             "schema": {
               "type": "boolean"
@@ -1687,6 +1690,13 @@
             }
           },
           {
+            "name": "Type",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "Page",
             "in": "query",
             "required": true,
@@ -1714,14 +1724,6 @@
           },
           {
             "name": "SortOrder",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Type",
             "in": "query",
             "required": true,
             "schema": {
@@ -5392,9 +5394,6 @@
               "type": "string"
             }
           },
-          "isVetted": {
-            "type": "boolean"
-          },
           "isActive": {
             "type": "boolean"
           }
@@ -5430,9 +5429,6 @@
             "items": {
               "type": "string"
             }
-          },
-          "isVetted": {
-            "type": "boolean"
           },
           "isActive": {
             "type": "boolean"
@@ -5860,8 +5856,9 @@
             "format": "date-time",
             "nullable": true
           },
-          "isVetted": {
-            "type": "boolean"
+          "vettingStatus": {
+            "type": "integer",
+            "format": "int32"
           },
           "bio": {
             "type": "string",
@@ -6422,6 +6419,9 @@
           },
           "status": {
             "$ref": "#/components/schemas/IncidentStatus"
+          },
+          "type": {
+            "$ref": "#/components/schemas/IncidentType"
           },
           "incidentDate": {
             "type": "string",
@@ -7603,6 +7603,10 @@
             "type": "integer",
             "format": "int32"
           },
+          "reviewingFinalReportCount": {
+            "type": "integer",
+            "format": "int32"
+          },
           "resolvedCount": {
             "type": "integer",
             "format": "int32"
@@ -8198,10 +8202,6 @@
             "type": "boolean",
             "nullable": true
           },
-          "isVetted": {
-            "type": "boolean",
-            "nullable": true
-          },
           "emailConfirmed": {
             "type": "boolean",
             "nullable": true
@@ -8248,6 +8248,10 @@
           "sceneName": {
             "type": "string"
           },
+          "discordName": {
+            "type": "string",
+            "nullable": true
+          },
           "role": {
             "type": "string"
           },
@@ -8255,9 +8259,6 @@
             "type": "string"
           },
           "isActive": {
-            "type": "boolean"
-          },
-          "isVetted": {
             "type": "boolean"
           },
           "emailConfirmed": {
@@ -8275,6 +8276,9 @@
           "vettingStatus": {
             "type": "integer",
             "format": "int32"
+          },
+          "hasVettingApplication": {
+            "type": "boolean"
           }
         }
       },

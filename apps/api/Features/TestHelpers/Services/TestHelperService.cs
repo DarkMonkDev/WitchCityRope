@@ -62,7 +62,7 @@ public class TestHelperService : ITestHelperService
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 Role = request.Role ?? "Member",
-                IsVetted = request.IsVetted,
+                VettingStatus = request.VettingStatus, // 0-6 enum value, 3 = Approved (vetted)
                 Bio = request.Bio,
                 Pronouns = request.Pronouns ?? string.Empty, // CRITICAL: Database has NOT NULL constraint
                 DateOfBirth = dateOfBirth,
@@ -90,7 +90,6 @@ public class TestHelperService : ITestHelperService
                 Email = user.Email!,
                 SceneName = user.SceneName,
                 Role = user.Role ?? "Member",
-                IsVetted = user.IsVetted,
                 CreatedAt = DateTime.UtcNow
             };
 

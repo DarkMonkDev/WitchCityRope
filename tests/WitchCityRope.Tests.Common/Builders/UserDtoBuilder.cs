@@ -15,7 +15,6 @@ public class UserDtoBuilder
     private string? _lastName = "User";
     private string[] _roles = { "Member" };
     private bool _isActive = true;
-    private bool _isVetted = false;
     private DateTime _createdAt = DateTime.UtcNow;
     private DateTime _updatedAt = DateTime.UtcNow;
     private DateTime? _lastLoginAt = null;
@@ -74,18 +73,6 @@ public class UserDtoBuilder
         return this;
     }
 
-    public UserDtoBuilder AsVetted()
-    {
-        _isVetted = true;
-        return this;
-    }
-
-    public UserDtoBuilder AsNotVetted()
-    {
-        _isVetted = false;
-        return this;
-    }
-
     public UserDtoBuilder AsActive()
     {
         _isActive = true;
@@ -136,7 +123,6 @@ public class UserDtoBuilder
             LastName = _lastName,
             Roles = _roles,
             IsActive = _isActive,
-            IsVetted = _isVetted,
             CreatedAt = _createdAt.ToString("O"),
             UpdatedAt = _updatedAt.ToString("O"),
             LastLoginAt = _lastLoginAt?.ToString("O")
@@ -164,7 +150,6 @@ public class UserDtoBuilder
             .WithFirstName("Admin")
             .WithLastName("User")
             .AsAdmin()
-            .AsVetted()
             .Build();
     }
 
@@ -179,12 +164,11 @@ public class UserDtoBuilder
             .WithFirstName("Teacher")
             .WithLastName("User")
             .AsTeacher()
-            .AsVetted()
             .Build();
     }
 
     /// <summary>
-    /// Creates a test vetted member user
+    /// Creates a test vetted member user (NOTE: vetting status now tracked in ApplicationUser entity, not DTO)
     /// </summary>
     public static UserDto TestVettedMember()
     {
@@ -194,12 +178,11 @@ public class UserDtoBuilder
             .WithFirstName("Vetted")
             .WithLastName("Member")
             .AsMember()
-            .AsVetted()
             .Build();
     }
 
     /// <summary>
-    /// Creates a test general member user
+    /// Creates a test general member user (NOTE: vetting status now tracked in ApplicationUser entity, not DTO)
     /// </summary>
     public static UserDto TestMember()
     {
@@ -209,7 +192,6 @@ public class UserDtoBuilder
             .WithFirstName("General")
             .WithLastName("Member")
             .AsMember()
-            .AsNotVetted()
             .Build();
     }
 
@@ -224,7 +206,6 @@ public class UserDtoBuilder
             .WithFirstName("Guest")
             .WithLastName("User")
             .AsGuest()
-            .AsNotVetted()
             .Build();
     }
 }

@@ -27,11 +27,6 @@ public class TestUserResponse
     public required string Role { get; set; }
 
     /// <summary>
-    /// Whether user is vetted
-    /// </summary>
-    public bool IsVetted { get; set; }
-
-    /// <summary>
     /// Creation timestamp
     /// </summary>
     public DateTime CreatedAt { get; set; }

@@ -41,6 +41,7 @@ import { AdminIncidentDashboard } from '../pages/admin/safety/AdminIncidentDashb
 import { AdminIncidentDetailPage } from '../pages/admin/safety/AdminIncidentDetailPage'
 import { AdminVettingPage } from '../pages/admin/AdminVettingPage'
 import { AdminVettingApplicationDetailPage } from '../pages/admin/AdminVettingApplicationDetailPage'
+import { AdminMembersPage } from '../pages/admin/AdminMembersPage'
 import { EmailTemplates } from '../features/admin/vetting/pages/EmailTemplates'
 import { TestPage } from '../pages/TestPage'
 import { VettingTestPage } from '../pages/VettingTestPage'
@@ -335,6 +336,11 @@ export const router = createBrowserRouter([
       {
         path: 'admin/vetting/email-templates',
         element: <EmailTemplates />,
+        loader: adminLoader,
+      },
+      {
+        path: 'admin/members',
+        element: <AdminMembersPage />,
         loader: adminLoader,
       },
       // CMS admin routes

@@ -532,7 +532,7 @@ public class UserManagementServiceTests : IAsyncLifetime
             SceneName = sceneName,
             Role = role ?? "Member",
             IsActive = isActive,
-            IsVetted = false,
+            VettingStatus = 0, // 0 = UnderReview (not vetted)
             EmailConfirmed = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow

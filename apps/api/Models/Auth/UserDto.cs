@@ -13,7 +13,6 @@ public class UserDto
     public DateTime? LastLoginAt { get; set; }
     public string Role { get; set; } = string.Empty;
     public string[] Roles { get; set; } = Array.Empty<string>();
-    public bool IsVetted { get; set; }
     public bool IsActive { get; set; }
 
     /// <summary>
@@ -33,7 +32,6 @@ public class UserDto
         LastLoginAt = user.LastLoginAt;
         Role = user.Role;
         Roles = new[] { user.Role }; // Frontend expects roles array, provide single role as array
-        IsVetted = user.IsVetted;
         IsActive = user.IsActive;
     }
 }

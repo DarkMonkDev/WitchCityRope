@@ -1,6 +1,6 @@
 # Functional Area Master Index
-<!-- Last Updated: 2025-10-17 - Incident Reporting Feature Added -->
-<!-- Version: 2.1 -->
+<!-- Last Updated: 2025-10-19 - Admin Members List Feature Added -->
+<!-- Version: 2.2 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -32,7 +32,7 @@ This master index is maintained by the librarian agent to provide quick lookups 
 | **Payment (PayPal/Venmo)** | `/docs/functional-areas/payment-paypal-venmo/` | **INTEGRATION COMPLETE** ✅ | **PayPal webhook integration with Cloudflare tunnel** - Real sandbox webhooks working, strongly-typed event processing, mock services for CI/CD | **COMPLETE** | 2025-09-14 |
 | **Payments (RSVP/Ticketing)** | `/docs/functional-areas/payments/` | `/docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/` | **IMPLEMENTATION COMPLETE** ✅ | **Complete RSVP and ticketing system** - Production-ready RSVP for social events, PayPal ticket purchases for classes, comprehensive participation management, 90% functional with minor API issues | **IMPLEMENTATION COMPLETE** | 2025-09-20 |
 | **Testing Infrastructure** | `/docs/functional-areas/testing-infrastructure/` | `/docs/functional-areas/testing-infrastructure/new-work/2025-09-12-containerized-testing/` | **Research and planning for containerized testing infrastructure** - Investigate fresh Docker containers with blank PostgreSQL databases, GitHub Actions CI/CD compatibility, and orphaned container prevention | **Research Phase** | 2025-09-12 |
-| **User Management** | `/docs/functional-areas/user-management/` | `/docs/functional-areas/user-management/new-work/2025-08-12-admin-screen/` | Admin user management, member profiles, vetting status | In Development | 2025-08-12 |
+| **User Management** | `/docs/functional-areas/user-management/` | `/docs/functional-areas/user-management/new-work/2025-10-19-admin-members-list/` | **ACTIVE DEVELOPMENT** - Admin members management screen showing all registered members with filtering, sorting, and management capabilities. Similar to vetting and incident reporting dashboards. | **Phase 1 - Requirements (Not Started)** | 2025-10-19 |
 | **Vetting System** | `/docs/functional-areas/vetting-system/` | `/docs/functional-areas/vetting-system/new-work/2025-10-04-how-to-join-conditional-visibility/` | **FEATURE COMPLETE** ✅ - Conditional "How to Join" menu visibility based on vetting status. 46 tests passing, TDD approach, full TypeScript coverage. Backend API complete, React implementation production-ready. **READY FOR QA** | **IMPLEMENTATION COMPLETE** | 2025-10-04 |
 | ~~**API Cleanup**~~ | `/docs/functional-areas/api-cleanup/` | **MIGRATION COMPLETE** ✅ | **✅ RESOLVED** - Successfully archived legacy API projects and migrated all valuable features to modern API. Architecture consistency restored. | **COMPLETE** | 2025-09-13 |
 | ~~**Authentication-Identity**~~ | `/docs/_archive/authentication-identity-legacy-2025-08-12/` | **ARCHIVED** | Legacy authentication docs - ARCHIVED to prevent confusion | Archived | 2025-08-12 |
@@ -239,6 +239,16 @@ This master index is maintained by the librarian agent to provide quick lookups 
 - **Next Human Review**: After Business Requirements Document completion
 - **Key Deliverables**: Business requirements, design brief, 5 design variations, stakeholder selection, implementation guides
 - **Session**: 2025-08-20
+
+### 🆕 NEW FEATURE: Admin Members List (Just Initialized)
+- **Current Work**: `/docs/functional-areas/user-management/new-work/2025-10-19-admin-members-list/`
+- **Status**: Phase 1 - Requirements (Not Started)
+- **Objective**: Admin-facing members management screen showing all registered members with filtering, sorting, and management capabilities
+- **Similar Patterns**: Vetting dashboard, incident reporting dashboard
+- **Technology Stack**: React 18 + TypeScript + Mantine v7 + TanStack Query
+- **Quality Gates**: Requirements 0% → 95%, Design 0% → 90%, Implementation 0% → 85%, Testing 0% → 100%
+- **Next Steps**: Business Requirements Agent - Create initial requirements document
+- **Session**: 2025-10-19 (Initialized)
 
 ### 🆕 NEW FEATURE: Incident Reporting System (Just Initialized)
 - **Current Work**: `/docs/functional-areas/incident-reporting/new-work/2025-10-17-initial-implementation/`

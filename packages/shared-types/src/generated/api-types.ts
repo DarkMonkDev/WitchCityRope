@@ -2230,7 +2230,6 @@ export interface components {
             lastLoginAt?: string | null;
             role?: string;
             roles?: string[];
-            isVetted?: boolean;
             isActive?: boolean;
         };
         AuthUserResponse2: {
@@ -2244,7 +2243,6 @@ export interface components {
             lastLoginAt?: string | null;
             role?: string;
             roles?: string[];
-            isVetted?: boolean;
             isActive?: boolean;
         } | null;
         CapacityInfoDto: {
@@ -2340,7 +2338,15 @@ export interface components {
             isAnonymous?: boolean;
             requestFollowUp?: boolean;
             contactEmail?: string | null;
-            contactPhone?: string | null;
+            contactName?: string | null;
+            type?: components["schemas"]["IncidentType"];
+            whereOccurred?: components["schemas"]["WhereOccurred"];
+            eventName?: string | null;
+            hasSpokenToPerson?: components["schemas"]["NullableOfSpokenToPersonStatus"];
+            desiredOutcomes?: string | null;
+            futureInteractionPreference?: string | null;
+            anonymousDuringInvestigation?: boolean | null;
+            anonymousInFinalReport?: boolean | null;
         };
         CreateNoteRequest: {
             content: string;
@@ -2363,7 +2369,8 @@ export interface components {
             role?: string | null;
             /** Format: date-time */
             dateOfBirth?: string | null;
-            isVetted?: boolean;
+            /** Format: int32 */
+            vettingStatus?: number;
             bio?: string | null;
             pronouns?: string | null;
         };
@@ -2522,9 +2529,17 @@ export interface components {
             involvedParties?: string | null;
             witnesses?: string | null;
             contactEmail?: string | null;
-            contactPhone?: string | null;
+            contactName?: string | null;
             isAnonymous?: boolean;
             requestFollowUp?: boolean;
+            type?: components["schemas"]["IncidentType"];
+            whereOccurred?: components["schemas"]["WhereOccurred"];
+            eventName?: string | null;
+            hasSpokenToPerson?: components["schemas"]["NullableOfSpokenToPersonStatus"];
+            desiredOutcomes?: string | null;
+            futureInteractionPreference?: string | null;
+            anonymousDuringInvestigation?: boolean | null;
+            anonymousInFinalReport?: boolean | null;
             status?: components["schemas"]["IncidentStatus"];
             /** Format: uuid */
             assignedTo?: string | null;
@@ -2550,6 +2565,7 @@ export interface components {
             referenceNumber?: string;
             title?: string;
             status?: components["schemas"]["IncidentStatus"];
+            type?: components["schemas"]["IncidentType"];
             /** Format: date-time */
             incidentDate?: string;
             /** Format: date-time */
@@ -2588,6 +2604,8 @@ export interface components {
             assignedTo?: string | null;
             assignedUserName?: string | null;
         };
+        /** @enum {unknown} */
+        IncidentType: "SafetyConcern" | "BoundaryViolation" | "Harassment" | "OtherConcern";
         LoginRequest: {
             email: string;
             password: string;
@@ -2665,6 +2683,8 @@ export interface components {
         NotesListResponse: {
             notes?: components["schemas"]["IncidentNoteDto"][];
         };
+        /** @enum {unknown|null} */
+        NullableOfSpokenToPersonStatus: "Yes" | "No" | "NotApplicable" | null;
         PagedResultOfApplicationSummaryDto: {
             items?: components["schemas"]["ApplicationSummaryDto"][];
             /** Format: int32 */
@@ -2960,6 +2980,8 @@ export interface components {
             /** Format: int32 */
             inProgressCount?: number;
             /** Format: int32 */
+            reviewingFinalReportCount?: number;
+            /** Format: int32 */
             resolvedCount?: number;
             /** Format: int32 */
             thisMonth?: number;
@@ -3134,7 +3156,6 @@ export interface components {
             role?: string | null;
             pronouns?: string | null;
             isActive?: boolean | null;
-            isVetted?: boolean | null;
             emailConfirmed?: boolean | null;
             /** Format: int32 */
             vettingStatus?: number | null;
@@ -3153,10 +3174,10 @@ export interface components {
             id?: string;
             email?: string;
             sceneName?: string;
+            discordName?: string | null;
             role?: string;
             pronouns?: string;
             isActive?: boolean;
-            isVetted?: boolean;
             emailConfirmed?: boolean;
             /** Format: date-time */
             createdAt?: string;
@@ -3164,6 +3185,7 @@ export interface components {
             lastLoginAt?: string | null;
             /** Format: int32 */
             vettingStatus?: number;
+            hasVettingApplication?: boolean;
         };
         UserEventDto: {
             /** Format: uuid */
@@ -3264,6 +3286,8 @@ export interface components {
             slotsRemaining?: number;
             isFullyStaffed?: boolean;
         };
+        /** @enum {unknown} */
+        WhereOccurred: "AtEvent" | "Online" | "PrivatePlay" | "OtherSpace";
         WorkflowHistoryDto: {
             action?: string;
             /** Format: date-time */
@@ -3908,8 +3932,8 @@ export interface operations {
             query: {
                 SearchTerm?: string;
                 Role?: string;
+                RoleFilters?: string[];
                 IsActive?: boolean;
-                IsVetted?: boolean;
                 Page: number;
                 PageSize: number;
                 SortBy: string;
@@ -4864,6 +4888,7 @@ export interface operations {
                 EndDate?: string;
                 AssignedTo?: string;
                 Unassigned?: boolean;
+                Type?: string;
                 Page: number;
                 PageSize: number;
                 SortBy: string;

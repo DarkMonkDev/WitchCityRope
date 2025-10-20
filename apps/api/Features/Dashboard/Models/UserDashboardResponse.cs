@@ -30,11 +30,6 @@ public class UserDashboardResponse
     public bool HasVettingApplication { get; set; }
 
     /// <summary>
-    /// Whether the user is currently vetted
-    /// </summary>
-    public bool IsVetted { get; set; }
-
-    /// <summary>
     /// User's email address
     /// </summary>
     public string Email { get; set; } = string.Empty;
