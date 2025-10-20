@@ -48,7 +48,7 @@ test.describe('Admin Events Dashboard', () => {
     const classChip = page.getByTestId('filter-class');
     
     // Take screenshot for debugging
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/filter-chips-test.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/filter-chips-test.png' });
     
     // Check if chips exist first
     const socialExists = await socialChip.count() > 0;
@@ -72,7 +72,7 @@ test.describe('Admin Events Dashboard', () => {
     console.log('Testing events display with filters...');
     
     // Take screenshot for debugging
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/events-table-test.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/events-table-test.png' });
     
     // Both filters should be checked by default
     const eventsTable = page.getByTestId('events-table');

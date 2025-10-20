@@ -89,7 +89,7 @@ test.describe('Focused Real API Login Test', () => {
     console.log(`Current URL after login: ${currentUrl}`);
 
     // Step 5: Take screenshot of result
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/focused-login-result.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/focused-login-result.png' });
 
     // Step 6: Analyze results
     const loginRequests = apiRequests.filter(req => 

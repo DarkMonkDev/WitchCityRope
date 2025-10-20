@@ -14,7 +14,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Base directory
-BASE_DIR="/home/chad/repos/witchcityrope-react"
+BASE_DIR="/home/chad/repos/witchcityrope"
 DOCS_DIR="$BASE_DIR/docs"
 
 # Sacred Six - Files that MUST exist only in project root (not in /docs/)

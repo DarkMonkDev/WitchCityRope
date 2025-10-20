@@ -1463,6 +1463,101 @@
         }
       }
     },
+    "/api/events/{id}/volunteer-positions": {
+      "get": {
+        "tags": [
+          "Volunteers"
+        ],
+        "summary": "Get volunteer positions for an event",
+        "description": "Returns volunteer positions for a specific event. Shows public-facing positions only for non-authenticated users. Authenticated users see their signup status.",
+        "operationId": "GetEventVolunteerPositions",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfListOfVolunteerPositionDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/volunteer-positions/{id}/signup": {
+      "post": {
+        "tags": [
+          "Volunteers"
+        ],
+        "summary": "Sign up for a volunteer position",
+        "description": "Sign up for a volunteer position. Requires authentication. Automatically RSVPs user to the event if not already registered.",
+        "operationId": "SignupForVolunteerPosition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VolunteerSignupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfVolunteerSignupDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/api/test-helpers/users": {
       "post": {
         "tags": [
@@ -4981,6 +5076,37 @@
           }
         }
       },
+      "ApiResponseOfListOfVolunteerPositionDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VolunteerPositionDto2"
+            },
+            "nullable": true
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ApiResponseOfMyApplicationStatusResponse": {
         "type": "object",
         "properties": {
@@ -5176,6 +5302,33 @@
           },
           "data": {
             "$ref": "#/components/schemas/VettingStatusDto"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseOfVolunteerSignupDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/VolunteerSignupDto"
           },
           "error": {
             "type": "string",
@@ -9326,6 +9479,140 @@
           }
         }
       },
+      "VolunteerPositionDto2": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sessionId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "slotsNeeded": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "slotsFilled": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "slotsRemaining": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "requiresExperience": {
+            "type": "boolean"
+          },
+          "requirements": {
+            "type": "string"
+          },
+          "isPublicFacing": {
+            "type": "boolean"
+          },
+          "isFullyStaffed": {
+            "type": "boolean"
+          },
+          "sessionName": {
+            "type": "string",
+            "nullable": true
+          },
+          "sessionStartTime": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "sessionEndTime": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "hasUserSignedUp": {
+            "type": "boolean"
+          },
+          "userSignupId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        }
+      },
+      "VolunteerSignupDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "volunteerPositionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string"
+          },
+          "signedUpAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "hasCheckedIn": {
+            "type": "boolean"
+          },
+          "checkedInAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "hasCompleted": {
+            "type": "boolean"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "positionTitle": {
+            "type": "string"
+          },
+          "eventTitle": {
+            "type": "string"
+          },
+          "eventStartDate": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "nullable": true
+      },
+      "VolunteerSignupRequest": {
+        "type": "object",
+        "properties": {
+          "notes": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
       "WhereOccurred": {
         "enum": [
           "AtEvent",
@@ -9392,6 +9679,9 @@
     },
     {
       "name": "Participation"
+    },
+    {
+      "name": "Volunteers"
     },
     {
       "name": "Testing"

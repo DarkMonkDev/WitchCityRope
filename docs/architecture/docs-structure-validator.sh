@@ -5,7 +5,7 @@
 
 set -e
 
-DOCS_ROOT="/home/chad/repos/witchcityrope-react/docs"
+DOCS_ROOT="/home/chad/repos/witchcityrope/docs"
 ERRORS_FOUND=0
 
 echo "🔍 CRITICAL: Validating documentation structure..."
@@ -82,7 +82,7 @@ fi
 
 # 3.1 Check that required files ARE in project root
 echo "📄 Checking canonical files are in project root..."
-PROJECT_ROOT="/home/chad/repos/witchcityrope-react"
+PROJECT_ROOT="/home/chad/repos/witchcityrope"
 MISSING_FROM_ROOT=()
 for required_file in "${FORBIDDEN_IN_DOCS[@]}"; do
     if [ "$required_file" != "QUICK_START.md" ]; then  # QUICK_START should be in guides-setup

@@ -31,7 +31,7 @@ WARNINGS=0
 # ================================================
 echo -e "${BLUE}[1/8] Checking current directory...${NC}"
 CURRENT_DIR=$(pwd)
-EXPECTED_DIR="/home/chad/repos/witchcityrope-react"
+EXPECTED_DIR="/home/chad/repos/witchcityrope"
 
 if [ "$CURRENT_DIR" != "$EXPECTED_DIR" ]; then
     echo -e "${RED}✗ ERROR: Wrong directory!${NC}"

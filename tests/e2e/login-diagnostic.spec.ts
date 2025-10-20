@@ -11,7 +11,7 @@ test.describe('Login Diagnostic', () => {
     console.log(`Current URL: ${page.url()}`);
     
     // Take screenshot
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/login-page-diagnostic.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/login-page-diagnostic.png' });
     
     // Check for form elements with various selectors
     const formSelectors = [
@@ -132,7 +132,7 @@ test.describe('Login Diagnostic', () => {
       console.log(`URL after login attempt: ${page.url()}`);
       
       // Take screenshot after login attempt
-      await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/post-login-diagnostic.png' });
+      await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/post-login-diagnostic.png' });
       
     } else {
       console.log('❌ Could not find all required form elements');
@@ -176,7 +176,7 @@ test.describe('Login Diagnostic', () => {
     }
     
     // Take screenshot
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/react-app-diagnostic.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/react-app-diagnostic.png' });
     
     expect(true).toBeTruthy();
   });

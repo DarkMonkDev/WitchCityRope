@@ -20,7 +20,7 @@ if lsof -Pi :5655 -sTCP:LISTEN -t >/dev/null 2>&1; then
 else
     echo -e "${YELLOW}⚠️  API not detected on port 5655${NC}"
     echo "   Starting API..."
-    cd /home/chad/repos/witchcityrope-react/apps/api
+    cd /home/chad/repos/witchcityrope/apps/api
     dotnet run --urls http://localhost:5655 &
     sleep 5
 fi
@@ -70,9 +70,9 @@ fi
 echo ""
 echo "5️⃣  PayPal Configuration:"
 echo "   ========================"
-if [ -f /home/chad/repos/witchcityrope-react/.env.development ]; then
-    echo -e "${GREEN}   Client ID:${NC} $(grep PAYPAL_CLIENT_ID /home/chad/repos/witchcityrope-react/.env.development | cut -d'=' -f2 | head -c20)..."
-    WEBHOOK_ID=$(grep PAYPAL_WEBHOOK_ID /home/chad/repos/witchcityrope-react/.env.development | cut -d'=' -f2)
+if [ -f /home/chad/repos/witchcityrope/.env.development ]; then
+    echo -e "${GREEN}   Client ID:${NC} $(grep PAYPAL_CLIENT_ID /home/chad/repos/witchcityrope/.env.development | cut -d'=' -f2 | head -c20)..."
+    WEBHOOK_ID=$(grep PAYPAL_WEBHOOK_ID /home/chad/repos/witchcityrope/.env.development | cut -d'=' -f2)
     if [ -n "$WEBHOOK_ID" ] && [ "$WEBHOOK_ID" != "YOUR_SANDBOX_WEBHOOK_ID" ]; then
         echo -e "${GREEN}   Webhook ID:${NC} $WEBHOOK_ID"
     else

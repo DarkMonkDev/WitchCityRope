@@ -139,7 +139,7 @@ test.describe('Dashboard Navigation - Critical Bug Detection', () => {
 
     // Step 11: Take screenshot for verification
     await page.screenshot({
-      path: '/home/chad/repos/witchcityrope-react./test-results/dashboard-navigation-success.png',
+      path: '/home/chad/repos/witchcityrope./test-results/dashboard-navigation-success.png',
       fullPage: true
     });
 

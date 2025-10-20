@@ -57,7 +57,7 @@ test.describe('Event Update Flow E2E Testing', () => {
     await page.waitForLoadState('networkidle');
     
     // Take screenshot of admin events page
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/admin-events-page.png', fullPage: true });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/admin-events-page.png', fullPage: true });
     
     // Check if we can access admin events page (might show table or other admin UI)
     const currentUrl = page.url();
@@ -84,7 +84,7 @@ test.describe('Event Update Flow E2E Testing', () => {
     console.log(`Publish/Draft toggle found: ${segmentedExists}`);
     
     // Take screenshot of event details page
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/admin-event-details-page.png', fullPage: true });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/admin-event-details-page.png', fullPage: true });
     
     expect(eventTitle).toBeTruthy();
     console.log('✅ Successfully accessed AdminEventDetailsPage');
@@ -140,7 +140,7 @@ test.describe('Event Update Flow E2E Testing', () => {
       }
       
       // Take screenshot before submission
-      await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/event-form-modified.png', fullPage: true });
+      await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/event-form-modified.png', fullPage: true });
       
       if (submitExists) {
         console.log('Attempting to submit form...');
@@ -183,7 +183,7 @@ test.describe('Event Update Flow E2E Testing', () => {
         }
         
         // Take screenshot after submission attempt
-        await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/event-form-submitted.png', fullPage: true });
+        await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/event-form-submitted.png', fullPage: true });
         
       } else {
         console.log('⚠️ No submit button found - cannot test form submission');
@@ -193,7 +193,7 @@ test.describe('Event Update Flow E2E Testing', () => {
       console.log('⚠️ Event form elements not found - EventForm may not be rendering');
       
       // Take screenshot for debugging
-      await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/event-form-missing.png', fullPage: true });
+      await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/event-form-missing.png', fullPage: true });
     }
     
     console.log('✅ EventForm integration test completed');
@@ -238,7 +238,7 @@ test.describe('Event Update Flow E2E Testing', () => {
           console.log('Confirmation modal appeared');
           
           // Take screenshot of modal
-          await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/publish-confirmation-modal.png' });
+          await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/publish-confirmation-modal.png' });
           
           // Look for confirm button
           const confirmButton = page.locator('button:has-text("Publish"), button:has-text("Unpublish")').first();
@@ -280,7 +280,7 @@ test.describe('Event Update Flow E2E Testing', () => {
         }
         
         // Take final screenshot
-        await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/publish-toggle-completed.png' });
+        await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/publish-toggle-completed.png' });
         
       } else {
         console.log('⚠️ Target toggle option not found');
@@ -288,7 +288,7 @@ test.describe('Event Update Flow E2E Testing', () => {
       
     } else {
       console.log('⚠️ Publish/Draft toggle not found');
-      await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/publish-toggle-missing.png', fullPage: true });
+      await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/publish-toggle-missing.png', fullPage: true });
     }
     
     console.log('✅ Publish/Draft toggle test completed');

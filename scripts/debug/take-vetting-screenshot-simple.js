@@ -23,7 +23,7 @@ async function takeVettingScreenshot() {
     // Just take a screenshot of the current page to see what's there
     console.log('Taking login page screenshot...');
     await page.screenshot({
-      path: '/home/chad/repos/witchcityrope-react/session-work/2025-09-22/current-login-page.png',
+      path: '/home/chad/repos/witchcityrope/session-work/2025-09-22/current-login-page.png',
       fullPage: true
     });
 
@@ -60,7 +60,7 @@ async function takeVettingScreenshot() {
 
             console.log('Taking vetting page screenshot...');
             await page.screenshot({
-              path: '/home/chad/repos/witchcityrope-react/session-work/2025-09-22/vetting-page-updated.png',
+              path: '/home/chad/repos/witchcityrope/session-work/2025-09-22/vetting-page-updated.png',
               fullPage: true
             });
 
@@ -68,7 +68,7 @@ async function takeVettingScreenshot() {
           } catch (navError) {
             console.log('Navigation to dashboard failed, taking current page screenshot...');
             await page.screenshot({
-              path: '/home/chad/repos/witchcityrope-react/session-work/2025-09-22/after-login-attempt.png',
+              path: '/home/chad/repos/witchcityrope/session-work/2025-09-22/after-login-attempt.png',
               fullPage: true
             });
           }
@@ -81,7 +81,7 @@ async function takeVettingScreenshot() {
     } else {
       console.log('No email input found - taking debug screenshot');
       await page.screenshot({
-        path: '/home/chad/repos/witchcityrope-react/session-work/2025-09-22/login-page-debug.png',
+        path: '/home/chad/repos/witchcityrope/session-work/2025-09-22/login-page-debug.png',
         fullPage: true
       });
     }
@@ -91,7 +91,7 @@ async function takeVettingScreenshot() {
     // Take screenshot of current state for debugging
     try {
       await page.screenshot({
-        path: '/home/chad/repos/witchcityrope-react/session-work/2025-09-22/error-state.png',
+        path: '/home/chad/repos/witchcityrope/session-work/2025-09-22/error-state.png',
         fullPage: true
       });
     } catch (e) {

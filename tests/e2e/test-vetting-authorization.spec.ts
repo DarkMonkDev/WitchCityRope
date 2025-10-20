@@ -159,7 +159,7 @@ test.describe('Admin Vetting Management Authorization', () => {
 
     // Step 6: Take screenshot for evidence
     await page.screenshot({
-      path: `/home/chad/repos/witchcityrope-react/test-results/vetting-authorization-test-${Date.now()}.png`,
+      path: `/home/chad/repos/witchcityrope/test-results/vetting-authorization-test-${Date.now()}.png`,
       fullPage: true
     });
 

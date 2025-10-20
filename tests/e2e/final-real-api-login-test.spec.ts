@@ -71,7 +71,7 @@ test.describe('Final Real API Authentication Test', () => {
     await page.waitForLoadState('networkidle');
     
     // Take initial screenshot
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/final-01-login-page.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/final-01-login-page.png' });
     console.log('✅ Login page loaded');
 
     // Step 2: Wait for form to be fully rendered
@@ -94,7 +94,7 @@ test.describe('Final Real API Authentication Test', () => {
     await passwordInput.fill('Test1234');
     
     // Screenshot with filled credentials
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/final-02-credentials-filled.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/final-02-credentials-filled.png' });
 
     // Step 4: Clear API requests and submit
     console.log('Step 4: Submitting login form and monitoring API calls...');
@@ -110,7 +110,7 @@ test.describe('Final Real API Authentication Test', () => {
     console.log(`URL after login attempt: ${urlAfterLogin}`);
 
     // Take screenshot of result
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/final-03-after-login.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/final-03-after-login.png' });
 
     // Step 5: Analyze authentication result
     console.log('Step 5: Analyzing authentication result...');

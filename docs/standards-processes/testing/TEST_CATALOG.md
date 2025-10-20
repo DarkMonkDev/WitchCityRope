@@ -1,6 +1,6 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-10-19 (Docker Environment Health Verification) -->
-<!-- Version: 6.6 - Docker Health Check Added -->
+<!-- Last Updated: 2025-10-20 (Folder Rename Verification) -->
+<!-- Version: 6.7 - Folder Rename Verification Added -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
 
@@ -42,7 +42,56 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 
 ### Current Test Status (October 2025)
 
-**Latest Updates** (2025-10-19 - DOCKER ENVIRONMENT HEALTH VERIFICATION):
+**Latest Updates** (2025-10-20 - FOLDER RENAME VERIFICATION):
+
+- ✅ **PROJECT FOLDER RENAME VERIFICATION COMPLETE** (2025-10-20):
+  - **Change**: Folder renamed from `witchcityrope-react` to `witchcityrope`
+  - **Overall Status**: ✅ **DOCKER ENVIRONMENT HEALTHY** - Rename did NOT break runtime
+  - **Recommendation**: ⚠️ **COMPILATION FIXES NEEDED** - TypeScript errors blocking new builds
+  - **Docker Container Health**:
+    - witchcity-web: ✅ HEALTHY (serving content correctly)
+    - witchcity-api: ✅ HEALTHY (all endpoints responding)
+    - witchcity-postgres: ✅ HEALTHY (19 users, database operational)
+    - witchcity-test-server: ⚠️ unhealthy (test utility only, not critical)
+  - **Service Endpoint Checks**:
+    - Web Service: ✅ FULLY OPERATIONAL (http://localhost:5173)
+    - API Service: ✅ FULLY OPERATIONAL (http://localhost:5655, 6 events returned)
+    - Database: ✅ FULLY OPERATIONAL (19 users confirmed)
+  - **.NET API Compilation**: ✅ **BUILDS SUCCESSFULLY** (6 warnings, 0 errors)
+    - OpenAPI export: ✅ 86 endpoint paths exported
+    - Time: 6.75 seconds
+  - **React Frontend Compilation**: ❌ **13 TYPESCRIPT ERRORS**
+    - Impact: Build fails, but containers use previous build (still functional)
+    - Path-related: 1 error shows old path `/home/chad/repos/witchcityrope-react/`
+    - Schema mismatches: 3 errors (`contactPhone` missing on `SafetyIncidentDto`)
+    - Missing modules: 1 error (`@/types/api` not found)
+    - Type errors: 8 errors (statistics, enum mismatches, array access)
+  - **Path References Found**:
+    - `/package.json`: "name": "witchcityrope-react" (needs update)
+    - `/package-lock.json`: "name": "witchcityrope-react" (needs update)
+    - Debug scripts: old paths in screenshot scripts (low priority)
+    - Build artifacts: auto-generated files (will update on rebuild)
+  - **Test Environment Readiness**:
+    - E2E Tests: ✅ READY (Docker environment healthy)
+    - Backend Unit Tests: ✅ READY (compiles successfully)
+    - Frontend Unit Tests: ❌ BLOCKED (compilation errors)
+    - Integration Tests: ✅ READY (API and database operational)
+  - **Critical Findings**:
+    - ✅ Folder rename did NOT break Docker environment
+    - ✅ All services running and accessible
+    - ✅ API compiles and works correctly
+    - ❌ TypeScript errors are PRE-EXISTING (not caused by rename)
+    - ❌ Frontend types out of sync with backend DTOs
+  - **Fixes Required**:
+    1. Update package.json name (5 minutes - any agent)
+    2. Clear TypeScript cache and rebuild (15 minutes)
+    3. Fix schema mismatches (1-2 hours - backend/react developer)
+    4. Regenerate types from OpenAPI (30 minutes)
+  - **Report**: `/test-results/folder-rename-verification-2025-10-20.md`
+  - **Status**: ✅ **ENVIRONMENT HEALTHY** - TypeScript fixes needed for new builds
+  - **catalog_updated**: true
+
+**Previous Updates** (2025-10-19 - DOCKER ENVIRONMENT HEALTH VERIFICATION):
 
 - ✅ **DOCKER ENVIRONMENT HEALTH CHECK COMPLETE** (2025-10-19 22:31 UTC):
   - **Purpose**: Verify WitchCityRope Docker environment status before test execution
@@ -116,159 +165,6 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
     - All test data now includes required `Title`, `Type`, `WhereOccurred` fields
   - **Status**: ✅ **SCHEMA MIGRATION COMPLETE** - Tests ready for execution
 
-**Previous Updates** (2025-10-18 - INCIDENT REPORTING E2E SELECTOR FIXES):
-
-- ✅ **INCIDENT REPORTING E2E SELECTOR FIXES COMPLETE** (2025-10-18 23:00):
-  - **Feature**: Incident Reporting System (E2E test selector corrections)
-  - **Action**: Fixed test selector mismatches between tests and components
-  - **Files Fixed**: 4 files (1 component, 3 test files)
-  - **Lines Changed**: 29 total
-  - **Selector Fixes**:
-    - `submit-incident-button` → `submit-report-button` (correct)
-    - `location-input` → `incident-location-input` (correct prefix)
-    - `description-textarea` → `incident-description-textarea` (correct prefix)
-    - Severity selection pattern corrected (direct click, no dropdown)
-  - **Component Updates**:
-    - Added `data-testid` to severity Stack container
-    - Added individual test IDs to each severity Paper element
-  - **Test Updates**:
-    - anonymous-report-submission.spec.ts: 11 selectors fixed
-    - identified-report-submission.spec.ts: 15 selectors fixed
-    - admin-dashboard-workflow.spec.ts: Empty state handling added to first test
-  - **Validation Updates**: All descriptions updated to meet 20-char minimum
-  - **Expected Impact**:
-    - Anonymous tests: 5/5 passing (100%)
-    - Identified tests: 6/6 passing (100%)
-    - Admin tests: 1-2/13 passing (need data seeding for rest)
-  - **Estimated New Pass Rate**: 12-13/24 (50-54%) WITHOUT data seeding
-  - **Estimated With Data**: 23-24/24 (96-100%) AFTER data seeding
-  - **Report**: `/test-results/incident-reporting-e2e-selector-fixes-2025-10-18.md`
-  - **Status**: ✅ **SELECTOR FIXES COMPLETE** - Ready for test verification
-  - **Next Step**: Run tests to verify fixes, then add data seeding for admin tests
-
-- 🔍 **INCIDENT REPORTING E2E FINAL VERIFICATION - ROOT CAUSE IDENTIFIED** (2025-10-18 21:30):
-  - **Feature**: Incident Reporting System (Complete E2E test suite)
-  - **Test Results**: 7/24 passing (29.2%) - **SAME AS BEFORE ROUTING FIX**
-  - **Duration**: ~90 seconds
-  - **Environment**: ✅ ALL HEALTHY (Docker, API, Database, No compilation errors)
-  - **CRITICAL DISCOVERY**: ✅ **ROUTING FIX WORKED BUT REVEALED NEW ISSUE**
-    - **Routing Fix Verified**: `/admin/safety/incidents` URL IS CORRECT ✅
-    - **Page Loads Successfully**: "Incident Dashboard" heading visible ✅
-    - **NO 404 Errors**: Tests reach correct page ✅
-    - **NEW PROBLEM FOUND**: Tests expect table elements that don't exist when no data
-  - **Root Cause Analysis**:
-    - **Issue #1** (13 tests): `data-testid="incidents-table"` not found
-      - **Why**: Page shows "No incidents match your filters" when empty
-      - **Tests Expect**: Table structure always present
-      - **Page Shows**: Empty state message instead of empty table
-    - **Issue #2** (6 tests): Form element selectors don't match
-      - `data-testid="anonymous-checkbox"` timeout
-      - `data-testid="contact-email-input"` not visible
-      - **Why**: Test IDs don't match component implementation
-  - **Evidence**:
-    - Page URL: `/admin/safety/incidents` ✅ CORRECT
-    - Page Content: Stats, filters, "No incidents" message ✅ CORRECT
-    - Error: "element(s) not found" NOT "404 Not Found" ✅ DIFFERENT ERROR
-  - **Overall Test Status** (ALL TYPES):
-    - **E2E**: 7/24 passing (29.2%) ❌ NEEDS WORK
-    - **Backend Unit**: 48/53 passing (90.6%) ✅ GOOD
-    - **Integration**: 8/8 passing (100%) ✅ EXCELLENT
-    - **TOTAL**: 63/85 passing (74.1%) ❌ BELOW 90% TARGET
-  - **Production Readiness**: ❌ **NOT READY FOR PRODUCTION**
-    - Backend: ✅ READY (95.3% pass rate)
-    - Frontend E2E: ❌ NOT READY (29.2% pass rate)
-    - **Blocker**: Can't verify admin dashboard and user workflows work
-  - **Fix Required** (4-5 hours - test-developer):
-    1. **Seed test data** (1-2 hours): Add incident records so tables appear
-    2. **Update selectors** (3-4 hours): Verify component test IDs and fix
-    3. **Handle empty states** (included): Update tests to check empty state first
-  - **Expected After Fix**:
-    - E2E: 22/24 passing (92%)
-    - Overall: 78/85 passing (92%) ✅ MEETS TARGET
-  - **Reports**:
-    - `/test-results/incident-reporting-final-verification-analysis.md` (comprehensive)
-    - `/test-results/e2e-incident-final-verification.log` (full output)
-  - **Artifacts**: 17 failure screenshots + videos in `/apps/web/test-results/`
-  - **Key Learning**: Routing fix SUCCESS, but empty state handling needed
-  - **Status**: ⚠️ **E2E TEST IMPLEMENTATION ISSUE** - Fixable (4-5 hours)
-
-**Previous Updates** (2025-10-18 - INCIDENT REPORTING E2E ROUTING FIX):
-
-- ✅ **INCIDENT REPORTING E2E ROUTING FIX APPLIED** (2025-10-18 21:00):
-  - **Action**: Fixed all 13 URL occurrences in admin-dashboard-workflow.spec.ts
-  - **Change**: `/admin/incidents` → `/admin/safety/incidents` (CORRECT ROUTE)
-  - **Files Fixed**: 1 test file (admin-dashboard-workflow.spec.ts)
-  - **URLs Corrected**: 13 occurrences
-  - **Fix Time**: 5 minutes (faster than estimated 30 minutes)
-  - **Other Test Files**: Verified correct routes in anonymous and identified tests
-    - `/report-incident` ✅ CORRECT
-    - `/incident-status` ✅ CORRECT
-    - `/my-reports` ✅ CORRECT
-  - **Expected Impact**: 11-13 previously failing tests should now pass
-  - **Actual Impact**: Routing fix worked, but revealed test data/selector issues
-  - **Status**: ✅ **FIX COMPLETE** - See final verification above
-
-**Previous Updates** (2025-10-18 - INCIDENT REPORTING FINAL PHASE 2):
-
-- 🚨 **INCIDENT REPORTING FINAL PHASE 2 - E2E ROUTING ERROR FOUND** (2025-10-18 20:30):
-  - **Feature**: Incident Reporting System (Complete test suite - Backend + Frontend)
-  - **Overall Status**: 63/81 tests passing (77.8%) - **BELOW 90% TARGET**
-  - **Execution Time**: 19 minutes (integration + unit + E2E)
-  - **Environment Status**: ✅ ALL HEALTHY (Docker, API, Database)
-  - **Test Results Summary**:
-    - **Integration Tests**: 8/8 passing (100%) ✅ **EXCELLENT**
-    - **Backend Unit Tests**: 48/53 passing (90.6%) ✅ **GOOD**
-    - **E2E Tests**: 7/24 passing (29.2%) ❌ **CRITICAL ISSUE**
-  - **CRITICAL FINDING**: 🚨 **E2E TEST ROUTING CONFIGURATION ERROR**
-    - Tests navigate to: `/admin/incidents` (WRONG)
-    - Actual route is: `/admin/safety/incidents` (CORRECT)
-    - Result: 11-13 admin dashboard tests hit 404 page
-    - Impact: 45-54% of E2E suite blocked by routing error
-  - **Backend Compilation**: ✅ **FIXED** (was blocking 49 tests)
-    - ParticipationServiceTests DTO error resolved
-    - SafetyServiceExtendedTests now compiling
-    - 48/53 tests passing (90.6%)
-  - **Integration Tests**: ✅ **100% PASSING** (8/8)
-  - **Backend Unit Test Failures** (5/53 failing, 9.4%):
-    1. GetIncidentsAsync_WithStatusFilter_ReturnsFilteredIncidents
-    2. AssignCoordinatorAsync_WithInvalidCoordinator_ReturnsFailure
-    3. AddNoteAsync_WithValidData_CreatesNote
-    4. AddNoteAsync_WithInvalidAuthor_ReturnsFailure
-    5. AddNoteAsync_EncryptsContent
-  - **Reports**:
-    - `/test-results/incident-reporting-final-test-execution-phase2-2025-10-18.md`
-  - **Status**: ⚠️ **SUPERSEDED BY FINAL VERIFICATION** - See latest update above
-
-**Latest Updates** (2025-10-18 - INCIDENT REPORTING API TEST SUITE CREATED):
-
-- ✅ **INCIDENT REPORTING API TEST SUITE - ALL TESTS CREATED** (2025-10-18):
-  - **Feature**: Incident Reporting Backend API (15 endpoints)
-  - **Test Files Created**: 5 total (Unit: 1, Integration: 1, E2E: 3)
-  - **Total Test Methods**: 81 tests
-  - **Lines of Test Code**: 3,066 lines
-  - **Backend API Endpoint Coverage**: 15/15 (100%)
-  - **Test Status**: 63/85 passing (74.1%) - See final verification above
-  - **Status**: ✅ TEST SUITE CREATED
-
-**Latest Updates** (2025-10-18 - INCIDENT REPORTING PHASE 4 TESTING):
-
-- ✅ **INCIDENT REPORTING PHASE 4 TESTING COMPLETE** (2025-10-18):
-  - **Feature**: Incident Reporting System (Safety feature)
-  - **Components Implemented**: 19/19 (100%)
-  - **Test Files Created**: 16 total (Component: 14, Page: 2)
-  - **Unit Tests**: 177 total tests created
-    - **Passing**: 130/177 (73.4%)
-    - **Page Tests**: 21/21 PASSING (100%) ✅
-  - **Status**: ✅ PHASE 4 COMPLETE
-
-**Latest Updates** (2025-10-17 - CMS TEST SUITE FINALIZED):
-
-- ✅ **CMS TEST SUITE FINALIZED - PRODUCTION APPROVED** (2025-10-17):
-  - **E2E Tests**: 9 Playwright tests
-    - **Desktop Tests**: 8/8 passing (100%) ✅
-    - **Mobile Test**: 1 skipped (Playwright viewport limitation)
-  - **Deployment Status**: ✅ APPROVED FOR PRODUCTION (Desktop-First)
-
 ---
 
 ### Test Categories
@@ -290,6 +186,7 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 **Location**: `/apps/web/src/features/*/components/__tests__/` and `/apps/web/src/pages/__tests__/`
 **Count**: 20+ test files (updated with incident reporting)
 **Framework**: Vitest + React Testing Library
+**Status**: ❌ **COMPILATION BLOCKED** (2025-10-20 - TypeScript errors)
 
 **Recent Addition - Incident Reporting** (2025-10-18):
 - **New Test Files**: 16
@@ -299,7 +196,7 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 
 #### Unit Tests (C# Backend)
 **Location**: `/tests/unit/api/`
-**Status**: ✅ **COMPILATION FIXED** (2025-10-18)
+**Status**: ✅ **COMPILATION SUCCESSFUL** (2025-10-20)
 
 **Recent Addition - Incident Reporting** (2025-10-18):
 - **New Test Files**: 1 (SafetyServiceExtendedTests.cs)
@@ -332,11 +229,11 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 - **Timeout Config**: `/apps/web/docs/testing/TIMEOUT_CONFIGURATION.md`
 
 ### Recent Test Reports
-- **Docker Health Check**: `/test-results/docker-health-check-2025-10-19.md` 🟢 **LATEST** (2025-10-19 22:31)
+- **Folder Rename Verification**: `/test-results/folder-rename-verification-2025-10-20.md` 🔧 **LATEST** (2025-10-20)
+- **Docker Health Check**: `/test-results/docker-health-check-2025-10-19.md` 🟢 (2025-10-19 22:31)
 - **Incident Reporting FINAL VERIFICATION**: `/test-results/incident-reporting-final-verification-analysis.md` 🔍 (2025-10-18 21:30)
 - **Incident Reporting FINAL Phase 2**: `/test-results/incident-reporting-final-test-execution-phase2-2025-10-18.md` 🚨 (2025-10-18 20:30)
 - **Incident Reporting Phase 4**: `/test-results/incident-reporting-phase4-test-summary.md` ✅ (2025-10-18)
-- **CMS Final Test Report**: `/test-results/cms-final-test-report-2025-10-17.md` ✅ (2025-10-17)
 
 ---
 
@@ -465,18 +362,20 @@ await DatabaseHelpers.verifyEventParticipation(userId, eventId, 'Registered');  
 
 ## 📊 Test Metrics & Goals
 
-### Current Coverage (2025-10-19 DOCKER HEALTH CHECK)
+### Current Coverage (2025-10-20 FOLDER RENAME VERIFICATION)
 - **E2E Tests**: 89 Playwright spec files
   - **Incident Reporting**: 7/24 passing (29.2%) 🚨 **TEST DATA/SELECTOR ISSUE**
 - **React Unit Tests**: 20+ test files (Vitest + React Testing Library)
+  - **Status**: ❌ **COMPILATION BLOCKED** (TypeScript errors)
   - **Incident Reporting**: 16 new test files, 177 tests, 130 passing (73.4%)
   - **Page Tests**: 21/21 passing (100%)
 - **C# Backend Tests**: 56+ active test files (xUnit + Moq + FluentAssertions)
+  - **Status**: ✅ **COMPILES SUCCESSFULLY**
   - **Incident Reporting**: ✅ **90.6% PASSING** (48/53 tests)
 - **Integration Tests**: 5 test files (PostgreSQL with TestContainers)
   - **Incident Reporting**: ✅ **100% PASSING** (8/8 tests)
 - **Total Active Tests**: 186+ test files across all types
-- **Environment Status**: ✅ **HEALTHY AND READY** (verified 2025-10-19)
+- **Environment Status**: ✅ **HEALTHY AND OPERATIONAL** (verified 2025-10-20)
 
 ### Target Coverage
 - **Current Status**: 74.1% (63/85 tests) - Variable by feature
@@ -553,15 +452,15 @@ await DatabaseHelpers.verifyEventParticipation(userId, eventId, 'Registered');  
 - Track progress in "Latest Updates" section
 - Document test status changes (PASSING, FAILING, BLOCKED)
 - **Latest reports**:
-  - Docker Health Check: `/test-results/docker-health-check-2025-10-19.md` 🟢 **LATEST**
+  - Folder Rename Verification: `/test-results/folder-rename-verification-2025-10-20.md` 🔧 **LATEST**
+  - Docker Health Check: `/test-results/docker-health-check-2025-10-19.md` 🟢
   - Incident Reporting FINAL VERIFICATION: `/test-results/incident-reporting-final-verification-analysis.md` 🔍
   - Incident Reporting FINAL Phase 2: `/test-results/incident-reporting-final-test-execution-phase2-2025-10-18.md` 🚨
   - Incident Reporting Phase 4: `/test-results/incident-reporting-phase4-test-summary.md`
-  - CMS Final: `/test-results/cms-final-test-report-2025-10-17.md`
 
 ---
 
 *This is a navigation index only. For detailed test information, see Part 2, 3, and 4.*
 *For current test execution, see CURRENT_TEST_STATUS.md*
 *For testing standards, see TESTING_GUIDE.md*
-*For latest environment health check, see `/test-results/docker-health-check-2025-10-19.md`*
+*For latest verification report, see `/test-results/folder-rename-verification-2025-10-20.md`*

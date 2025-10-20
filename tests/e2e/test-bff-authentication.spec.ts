@@ -112,7 +112,7 @@ test.describe('BFF Authentication Flow', () => {
       }
       
       // Take screenshot for debugging
-      await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/tests/e2e/test-results/login-failure.png' });
+      await page.screenshot({ path: '/home/chad/repos/witchcityrope/tests/e2e/test-results/login-failure.png' });
     } else {
       console.log('✅ Successfully navigated away from login page');
     }

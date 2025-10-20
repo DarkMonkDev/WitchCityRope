@@ -34,7 +34,7 @@ fi
 # If still no API found, try starting it
 if [ -z "$API_PORT" ]; then
     echo "⚠️  No API detected. Starting API..."
-    cd /home/chad/repos/witchcityrope-react/apps/api
+    cd /home/chad/repos/witchcityrope/apps/api
     dotnet run --urls http://localhost:5655 &
     API_PORT=5655
     sleep 5  # Wait for API to start
@@ -43,7 +43,7 @@ fi
 # Check if ngrok is installed
 if ! command -v ngrok &> /dev/null && ! [ -f ~/bin/ngrok ]; then
     echo "📦 Installing ngrok..."
-    /home/chad/repos/witchcityrope-react/scripts/install-ngrok.sh
+    /home/chad/repos/witchcityrope/scripts/install-ngrok.sh
 fi
 
 # Use ngrok from ~/bin if not in PATH

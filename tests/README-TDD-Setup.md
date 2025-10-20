@@ -96,7 +96,7 @@ Implementation needed to make tests pass:
 sudo systemctl start docker
 
 # Navigate to project directory
-cd /home/chad/repos/witchcityrope-react
+cd /home/chad/repos/witchcityrope
 ```
 
 ### Backend API Tests

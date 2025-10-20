@@ -73,7 +73,7 @@ test.describe('Real API Authentication Flow', () => {
     
     // Wait for page to load and take initial screenshot
     await page.waitForLoadState('networkidle');
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/01-login-page-loaded.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/01-login-page-loaded.png' });
 
     // Step 2: Verify MSW is disabled by checking for real API availability
     console.log('Step 2: Verifying MSW is disabled and real API is available...');
@@ -100,7 +100,7 @@ test.describe('Real API Authentication Flow', () => {
     await passwordInput.fill('Test1234');
     
     // Take screenshot before submitting
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/02-credentials-filled.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/02-credentials-filled.png' });
 
     // Step 4: Submit login form and monitor API call
     console.log('Step 4: Submitting login form...');
@@ -121,7 +121,7 @@ test.describe('Real API Authentication Flow', () => {
 
     // Wait for any post-login navigation or state changes
     await page.waitForTimeout(2000);
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/03-after-login-attempt.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/03-after-login-attempt.png' });
 
     // Step 5: Verify login outcome
     console.log('Step 5: Verifying login outcome...');
@@ -183,7 +183,7 @@ test.describe('Real API Authentication Flow', () => {
     }, testReport);
 
     // Final screenshot
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/04-final-state.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/04-final-state.png' });
 
     // Step 9: Assertions
     console.log('Step 9: Running test assertions...');
@@ -243,7 +243,7 @@ test.describe('Real API Authentication Flow', () => {
     const urlAfterRefresh = page.url();
     
     // Take screenshot of state after refresh
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope-react/test-results/05-after-refresh.png' });
+    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/05-after-refresh.png' });
 
     console.log(`URL after login: ${urlAfterLogin}`);
     console.log(`URL after refresh: ${urlAfterRefresh}`);

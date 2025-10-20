@@ -38,7 +38,7 @@ async function takeVettingScreenshot() {
 
     console.log('Taking screenshot...');
     await page.screenshot({
-      path: '/home/chad/repos/witchcityrope-react/session-work/2025-09-22/vetting-page-updated.png',
+      path: '/home/chad/repos/witchcityrope/session-work/2025-09-22/vetting-page-updated.png',
       fullPage: true
     });
 
