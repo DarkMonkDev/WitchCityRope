@@ -514,9 +514,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
                   .IsRequired()
                   .HasMaxLength(1000);
 
-            entity.Property(v => v.Requirements)
-                  .HasMaxLength(500);
-
             entity.Property(v => v.CreatedAt)
                   .IsRequired()
                   .HasColumnType("timestamptz");

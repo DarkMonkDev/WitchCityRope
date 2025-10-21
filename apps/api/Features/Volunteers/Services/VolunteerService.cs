@@ -57,6 +57,11 @@ public class VolunteerService
 
             var positions = await query.ToListAsync(cancellationToken);
 
+            // Get event sessions to handle event-wide positions
+            var eventSessions = await _context.Sessions
+                .Where(s => s.EventId == eventGuid)
+                .ToListAsync(cancellationToken);
+
             // Get user's existing signups if authenticated
             List<VolunteerSignup>? userSignups = null;
             if (!string.IsNullOrEmpty(userId) && Guid.TryParse(userId, out var userGuid))
@@ -71,6 +76,13 @@ public class VolunteerService
             {
                 var userSignup = userSignups?.FirstOrDefault(us => us.VolunteerPositionId == vp.Id);
 
+                // For event-wide positions (no SessionId), use the event's session if only one exists
+                Session? sessionToUse = vp.Session;
+                if (sessionToUse == null && eventSessions.Count == 1)
+                {
+                    sessionToUse = eventSessions[0];
+                }
+
                 return new VolunteerPositionDto
                 {
                     Id = vp.Id,
@@ -81,13 +93,12 @@ public class VolunteerService
                     SlotsNeeded = vp.SlotsNeeded,
                     SlotsFilled = vp.SlotsFilled,
                     SlotsRemaining = vp.SlotsRemaining,
-                    RequiresExperience = vp.RequiresExperience,
-                    Requirements = vp.Requirements,
                     IsPublicFacing = vp.IsPublicFacing,
                     IsFullyStaffed = vp.IsFullyStaffed,
-                    SessionName = vp.Session?.Name,
-                    SessionStartTime = vp.Session?.StartTime,
-                    SessionEndTime = vp.Session?.EndTime,
+                    // Don't show session name if event has only one session (redundant)
+                    SessionName = eventSessions.Count > 1 ? sessionToUse?.Name : null,
+                    SessionStartTime = sessionToUse?.StartTime,
+                    SessionEndTime = sessionToUse?.EndTime,
                     HasUserSignedUp = userSignup != null,
                     UserSignupId = userSignup?.Id
                 };
@@ -164,7 +175,6 @@ public class VolunteerService
                 UserId = userGuid,
                 Status = VolunteerSignupStatus.Confirmed,
                 SignedUpAt = DateTime.UtcNow,
-                Notes = request.Notes,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -207,7 +217,6 @@ public class VolunteerService
                 UserId = signup.UserId,
                 Status = signup.Status.ToString(),
                 SignedUpAt = signup.SignedUpAt,
-                Notes = signup.Notes,
                 HasCheckedIn = signup.HasCheckedIn,
                 CheckedInAt = signup.CheckedInAt,
                 HasCompleted = signup.HasCompleted,

@@ -49,16 +49,6 @@ public class VolunteerPosition
     public int SlotsFilled { get; set; } = 0;
 
     /// <summary>
-    /// Whether this position requires specific skills or experience
-    /// </summary>
-    public bool RequiresExperience { get; set; } = false;
-
-    /// <summary>
-    /// Special requirements or qualifications needed
-    /// </summary>
-    public string Requirements { get; set; } = string.Empty;
-
-    /// <summary>
     /// Whether this position is visible on the public event page
     /// Public positions allow attendees to sign up, private positions are admin-only
     /// </summary>

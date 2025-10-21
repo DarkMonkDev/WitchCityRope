@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/api/client';
-import type { ApiResponse } from '@/types/api';
+import type { ApiResponse } from '@/lib/api/types/api.types';
 import type { VolunteerPosition, VolunteerSignup, VolunteerSignupRequest } from '../types/volunteer.types';
 
 /**

@@ -2575,14 +2575,6 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<bool>("IsPublicFacing")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("Requirements")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<bool>("RequiresExperience")
-                        .HasColumnType("boolean");
-
                     b.Property<Guid?>("SessionId")
                         .HasColumnType("uuid");
 
@@ -2631,9 +2623,6 @@ namespace WitchCityRope.Api.Migrations
 
                     b.Property<bool>("HasCompleted")
                         .HasColumnType("boolean");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("text");
 
                     b.Property<DateTime>("SignedUpAt")
                         .HasColumnType("timestamp with time zone");

@@ -11,8 +11,6 @@ public class VolunteerPositionDto
     public string Description { get; set; } = string.Empty;
     public int SlotsNeeded { get; set; }
     public int SlotsFilled { get; set; }
-    public bool RequiresExperience { get; set; }
-    public string Requirements { get; set; } = string.Empty;
     public string? SessionId { get; set; }
 
     /// <summary>
@@ -30,8 +28,6 @@ public class VolunteerPositionDto
         Description = volunteerPosition.Description;
         SlotsNeeded = volunteerPosition.SlotsNeeded;
         SlotsFilled = volunteerPosition.SlotsFilled;
-        RequiresExperience = volunteerPosition.RequiresExperience;
-        Requirements = volunteerPosition.Requirements;
         SessionId = volunteerPosition.SessionId?.ToString();
     }
 

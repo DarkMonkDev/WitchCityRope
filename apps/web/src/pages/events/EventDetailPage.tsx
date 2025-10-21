@@ -17,13 +17,10 @@ import { useCurrentUser } from '../../lib/api/hooks/useAuth';
 import type { EventDto } from '../../lib/api/types/events.types';
 import { useVolunteerPositions } from '../../features/volunteers/hooks/useVolunteerPositions';
 import { VolunteerPositionCard } from '../../features/volunteers/components/VolunteerPositionCard';
-import { VolunteerPositionModal } from '../../features/volunteers/components/VolunteerPositionModal';
-import type { VolunteerPosition } from '../../features/volunteers/types/volunteer.types';
 
 export const EventDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [selectedTicket, setSelectedTicket] = useState('single');
-  const [selectedVolunteerPosition, setSelectedVolunteerPosition] = useState<VolunteerPosition | null>(null);
 
   const { data: event, isLoading, error } = useEvent(id!, !!id);
   const { data: participation, isLoading: participationLoading } = useParticipation(id!, !!id);
@@ -314,6 +311,23 @@ export const EventDetailPage: React.FC = () => {
             </Group>
           </ContentSection>
 
+          {/* Volunteer Positions */}
+          {volunteerPositions && Array.isArray(volunteerPositions) && volunteerPositions.length > 0 && (
+            <ContentSection title="Volunteer Opportunities">
+              <Stack gap="md">
+                <Text size="sm" c="dimmed" mb="sm">
+                  Help make this event a success! Sign up for a volunteer position and you'll automatically be RSVPed to the event.
+                </Text>
+                {volunteerPositions.map((position) => (
+                  <VolunteerPositionCard
+                    key={position.id}
+                    position={position}
+                  />
+                ))}
+              </Stack>
+            </ContentSection>
+          )}
+
           {/* Policies */}
           {(event as any)?.policies && (
             <ContentSection title="Policies">
@@ -325,24 +339,6 @@ export const EventDetailPage: React.FC = () => {
                 }}
                 dangerouslySetInnerHTML={{ __html: (event as any)?.policies }}
               />
-            </ContentSection>
-          )}
-
-          {/* Volunteer Positions */}
-          {volunteerPositions && volunteerPositions.length > 0 && (
-            <ContentSection title="Volunteer Opportunities">
-              <Stack gap="md">
-                <Text size="sm" c="dimmed" mb="sm">
-                  Help make this event a success! Sign up for a volunteer position and you'll automatically be RSVPed to the event.
-                </Text>
-                {volunteerPositions.map((position) => (
-                  <VolunteerPositionCard
-                    key={position.id}
-                    position={position}
-                    onLearnMore={() => setSelectedVolunteerPosition(position)}
-                  />
-                ))}
-              </Stack>
             </ContentSection>
           )}
         </Stack>
@@ -366,13 +362,6 @@ export const EventDetailPage: React.FC = () => {
           />
         </Box>
       </Container>
-
-      {/* Volunteer Position Modal */}
-      <VolunteerPositionModal
-        position={selectedVolunteerPosition}
-        opened={!!selectedVolunteerPosition}
-        onClose={() => setSelectedVolunteerPosition(null)}
-      />
     </Box>
   );
 };

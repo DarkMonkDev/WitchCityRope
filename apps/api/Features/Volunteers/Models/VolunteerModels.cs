@@ -13,8 +13,6 @@ public class VolunteerPositionDto
     public int SlotsNeeded { get; set; }
     public int SlotsFilled { get; set; }
     public int SlotsRemaining { get; set; }
-    public bool RequiresExperience { get; set; }
-    public string Requirements { get; set; } = string.Empty;
     public bool IsPublicFacing { get; set; }
     public bool IsFullyStaffed { get; set; }
 
@@ -33,7 +31,7 @@ public class VolunteerPositionDto
 /// </summary>
 public class VolunteerSignupRequest
 {
-    public string? Notes { get; set; }
+    // Empty request body - signup requires no additional fields
 }
 
 /// <summary>
@@ -46,7 +44,6 @@ public class VolunteerSignupDto
     public Guid UserId { get; set; }
     public string Status { get; set; } = string.Empty;
     public DateTime SignedUpAt { get; set; }
-    public string? Notes { get; set; }
     public bool HasCheckedIn { get; set; }
     public DateTime? CheckedInAt { get; set; }
     public bool HasCompleted { get; set; }

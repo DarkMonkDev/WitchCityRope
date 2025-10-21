@@ -642,8 +642,6 @@ public class EventService
                 existingPosition.Description = positionDto.Description;
                 existingPosition.SlotsNeeded = positionDto.SlotsNeeded;
                 existingPosition.SlotsFilled = positionDto.SlotsFilled;
-                existingPosition.RequiresExperience = positionDto.RequiresExperience;
-                existingPosition.Requirements = positionDto.Requirements;
 
                 // Update session linkage if provided
                 if (!string.IsNullOrEmpty(positionDto.SessionId) && Guid.TryParse(positionDto.SessionId, out var sessionId))
@@ -667,9 +665,7 @@ public class EventService
                     Title = positionDto.Title,
                     Description = positionDto.Description,
                     SlotsNeeded = positionDto.SlotsNeeded,
-                    SlotsFilled = positionDto.SlotsFilled,
-                    RequiresExperience = positionDto.RequiresExperience,
-                    Requirements = positionDto.Requirements
+                    SlotsFilled = positionDto.SlotsFilled
                 };
 
                 // Set session linkage if provided

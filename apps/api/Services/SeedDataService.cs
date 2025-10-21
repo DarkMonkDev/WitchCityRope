@@ -1824,6 +1824,11 @@ The WitchCityRope Vetting Team",
                 var numberOfDays = eventItem.Title.Contains("Conference") ? 3 : 2;
                 AddMultiDayEventSessions(eventItem, numberOfDays, sessionsToAdd);
             }
+            else if (eventItem.Title.Contains("Suspension Basics"))
+            {
+                // Multi-session event (for testing session-specific volunteer positions)
+                AddSuspensionBasicsSessions(eventItem, sessionsToAdd);
+            }
             else
             {
                 // Single-day events (most events)
@@ -2208,17 +2213,29 @@ The WitchCityRope Vetting Team",
 
         foreach (var eventItem in events)
         {
-            // Add event-wide volunteer positions
-            var eventPositions = CreateEventVolunteerPositions(eventItem);
-            volunteerPositionsToAdd.AddRange(eventPositions);
-
-            // Add session-specific volunteer positions for some events
-            if (eventItem.Sessions.Any() && eventItem.EventType == "Class")
+            // Special handling for Suspension Basics: Create session-specific volunteer positions
+            if (eventItem.Title.Contains("Suspension Basics"))
             {
                 foreach (var session in eventItem.Sessions)
                 {
-                    var sessionPositions = CreateSessionVolunteerPositions(eventItem, session);
+                    var sessionPositions = CreateSuspensionBasicsVolunteerPositions(eventItem, session);
                     volunteerPositionsToAdd.AddRange(sessionPositions);
+                }
+            }
+            else
+            {
+                // Add event-wide volunteer positions for other events
+                var eventPositions = CreateEventVolunteerPositions(eventItem);
+                volunteerPositionsToAdd.AddRange(eventPositions);
+
+                // Add session-specific volunteer positions for multi-day events
+                if (eventItem.Sessions.Any() && eventItem.EventType == "Class")
+                {
+                    foreach (var session in eventItem.Sessions)
+                    {
+                        var sessionPositions = CreateSessionVolunteerPositions(eventItem, session);
+                        volunteerPositionsToAdd.AddRange(sessionPositions);
+                    }
                 }
             }
         }
@@ -2289,7 +2306,6 @@ The WitchCityRope Vetting Team",
                 UserId = adminUser.Id,
                 Status = VolunteerSignupStatus.Confirmed,
                 SignedUpAt = now.AddDays(-7),
-                Notes = "Happy to help with door duties!",
                 HasCheckedIn = false,
                 CreatedAt = now.AddDays(-7),
                 UpdatedAt = now.AddDays(-7)
@@ -2313,7 +2329,6 @@ The WitchCityRope Vetting Team",
                 UserId = adminUser.Id,
                 Status = VolunteerSignupStatus.Confirmed,
                 SignedUpAt = now.AddDays(-5),
-                Notes = "I can bring some extra equipment too.",
                 HasCheckedIn = false,
                 CreatedAt = now.AddDays(-5),
                 UpdatedAt = now.AddDays(-5)
@@ -2381,7 +2396,6 @@ The WitchCityRope Vetting Team",
                 UserId = memberUser.Id,
                 Status = VolunteerSignupStatus.Confirmed,
                 SignedUpAt = now.AddDays(-3),
-                Notes = "First time volunteering, excited to help!",
                 HasCheckedIn = false,
                 CreatedAt = now.AddDays(-3),
                 UpdatedAt = now.AddDays(-3)
@@ -2408,7 +2422,6 @@ The WitchCityRope Vetting Team",
                 CheckedInAt = pastPosition.Event!.StartDate.AddMinutes(-15),
                 HasCompleted = true,
                 CompletedAt = pastPosition.Event!.StartDate.AddHours(2),
-                Notes = "Completed successfully",
                 CreatedAt = now.AddDays(-14),
                 UpdatedAt = pastPosition.Event!.StartDate.AddHours(2)
             };
@@ -2655,8 +2668,6 @@ The WitchCityRope Vetting Team",
             Description = "Check attendees in, verify tickets/RSVPs, and welcome newcomers",
             SlotsNeeded = 2,
             SlotsFilled = 0, // Will be set by actual signups
-            RequiresExperience = false,
-            Requirements = "Friendly demeanor, punctuality",
             IsPublicFacing = true // Public can sign up
         });
 
@@ -2667,8 +2678,6 @@ The WitchCityRope Vetting Team",
             Description = "Help set up equipment before the event and clean up afterwards",
             SlotsNeeded = 3,
             SlotsFilled = 0, // Will be set by actual signups
-            RequiresExperience = false,
-            Requirements = "Physical ability to lift equipment",
             IsPublicFacing = true // Public can sign up
         });
 
@@ -2682,8 +2691,6 @@ The WitchCityRope Vetting Team",
                 Description = "Help instructor with demonstrations and assist students",
                 SlotsNeeded = 1,
                 SlotsFilled = 0, // Will be set by actual signups
-                RequiresExperience = true,
-                Requirements = "Intermediate+ rope skills, teaching experience preferred",
                 IsPublicFacing = false // Admin-only assignment
             });
         }
@@ -2709,9 +2716,69 @@ The WitchCityRope Vetting Team",
                 Description = $"Monitor safety and assist during {session.Name}",
                 SlotsNeeded = 1,
                 SlotsFilled = 0, // Will be set by actual signups
-                RequiresExperience = true,
-                Requirements = "Safety knowledge, first aid certified preferred",
                 IsPublicFacing = false // Admin-only assignment (requires safety expertise)
+            });
+        }
+
+        return positions;
+    }
+
+    /// <summary>
+    /// Creates session-specific volunteer positions for Suspension Basics event
+    /// This demonstrates volunteer positions tied to specific sessions for testing
+    /// </summary>
+    private List<VolunteerPosition> CreateSuspensionBasicsVolunteerPositions(Event eventItem, Session session)
+    {
+        var positions = new List<VolunteerPosition>();
+
+        if (session.SessionCode == "DAY1")
+        {
+            // Day 1 positions (6:00 PM - 9:00 PM)
+            positions.Add(new VolunteerPosition
+            {
+                EventId = eventItem.Id,
+                SessionId = session.Id,
+                Title = "Setup Crew",
+                Description = "Help set up equipment and prepare the space before Day 1 begins",
+                SlotsNeeded = 3,
+                SlotsFilled = 0,
+                IsPublicFacing = true
+            });
+
+            positions.Add(new VolunteerPosition
+            {
+                EventId = eventItem.Id,
+                SessionId = session.Id,
+                Title = "Door Monitor",
+                Description = "Check attendees in and welcome participants for Day 1",
+                SlotsNeeded = 2,
+                SlotsFilled = 0,
+                IsPublicFacing = true
+            });
+        }
+        else if (session.SessionCode == "DAY2")
+        {
+            // Day 2 positions (8:00 PM - 10:00 PM)
+            positions.Add(new VolunteerPosition
+            {
+                EventId = eventItem.Id,
+                SessionId = session.Id,
+                Title = "Teaching Assistant",
+                Description = "Assist instructor with advanced suspension demonstrations and provide individual feedback for Day 2",
+                SlotsNeeded = 2,
+                SlotsFilled = 0,
+                IsPublicFacing = true
+            });
+
+            positions.Add(new VolunteerPosition
+            {
+                EventId = eventItem.Id,
+                SessionId = session.Id,
+                Title = "Safety Monitor",
+                Description = "Monitor rigging and ensure safety protocols are followed during Day 2",
+                SlotsNeeded = 2,
+                SlotsFilled = 0,
+                IsPublicFacing = true
             });
         }
 
@@ -2791,6 +2858,40 @@ The WitchCityRope Vetting Team",
         };
 
         sessionsToAdd.Add(session);
+    }
+
+    /// <summary>
+    /// Helper method to add sessions for Suspension Basics event (multi-session example)
+    /// Creates two sessions: Day 1 and Day 2 for testing session-specific volunteers
+    /// </summary>
+    private void AddSuspensionBasicsSessions(Event eventItem, List<Session> sessionsToAdd)
+    {
+        // Day 1: 6:00 PM - 9:00 PM
+        var day1Session = new Session
+        {
+            EventId = eventItem.Id,
+            SessionCode = "DAY1",
+            Name = "Day 1",
+            StartTime = eventItem.StartDate,
+            EndTime = eventItem.StartDate.AddHours(3),
+            Capacity = eventItem.Capacity / 2,
+            CurrentAttendees = 0
+        };
+
+        // Day 2: 8:00 PM - 10:00 PM
+        var day2Session = new Session
+        {
+            EventId = eventItem.Id,
+            SessionCode = "DAY2",
+            Name = "Day 2",
+            StartTime = eventItem.StartDate.AddHours(2),
+            EndTime = eventItem.StartDate.AddHours(4),
+            Capacity = eventItem.Capacity / 2,
+            CurrentAttendees = 0
+        };
+
+        sessionsToAdd.Add(day1Session);
+        sessionsToAdd.Add(day2Session);
     }
 
     /// <summary>

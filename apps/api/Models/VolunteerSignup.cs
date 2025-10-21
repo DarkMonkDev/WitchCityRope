@@ -38,11 +38,6 @@ public class VolunteerSignup
     public DateTime SignedUpAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
-    /// Optional notes from the volunteer when signing up
-    /// </summary>
-    public string? Notes { get; set; }
-
-    /// <summary>
     /// Whether the volunteer checked in for their shift
     /// </summary>
     public bool HasCheckedIn { get; set; } = false;
