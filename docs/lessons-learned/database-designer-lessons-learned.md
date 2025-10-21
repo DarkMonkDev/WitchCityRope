@@ -4,26 +4,26 @@
 
 ### 🚨 ULTRA CRITICAL DATABASE DOCUMENTS (MUST READ): 🚨
 1. **Entity Framework Patterns** - **DATABASE STANDARDS**
-`/docs/standards-processes/development-standards/entity-framework-patterns.md`
+`/home/chad/repos/witchcityrope/docs/standards-processes/development-standards/entity-framework-patterns.md`
 
 2. **API Architecture Overview** - **DATABASE CONTEXT**
-`/docs/architecture/API-ARCHITECTURE-OVERVIEW.md`
+`/home/chad/repos/witchcityrope/docs/architecture/API-ARCHITECTURE-OVERVIEW.md`
 
 3. **Docker Architecture** - **CONTAINER CONFIG**
-`/docs/architecture/docker-architecture.md`
+`/home/chad/repos/witchcityrope/docs/architecture/docker-architecture.md`
 
 4. **Project Architecture** - **TECH STACK**
 `/ARCHITECTURE.md`
 
 ### 📚 DOCUMENT DISCOVERY RESOURCES:
-- **File Registry** - `/docs/architecture/file-registry.md` - Find any document
-- **Functional Areas Index** - `/docs/architecture/functional-area-master-index.md` - Navigate features
-- **Key Documents List** - `/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+- **File Registry** - `/home/chad/repos/witchcityrope/docs/architecture/file-registry.md` - Find any document
+- **Functional Areas Index** - `/home/chad/repos/witchcityrope/docs/architecture/functional-area-master-index.md` - Navigate features
+- **Key Documents List** - `/home/chad/repos/witchcityrope/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
 
 ### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
-- **Port Configuration** - `/docs/standards-processes/development-standards/port-configuration-management.md` - DB ports
-- **Workflow Process** - `/docs/standards-processes/workflow-orchestration-process.md` - Handoff procedures
-- **Agent Boundaries** - `/docs/standards-processes/agent-boundaries.md` - What each agent does
+- **Port Configuration** - `/home/chad/repos/witchcityrope/docs/standards-processes/development-standards/port-configuration-management.md` - DB ports
+- **Workflow Process** - `/home/chad/repos/witchcityrope/docs/standards-processes/workflow-orchestration-process.md` - Handoff procedures
+- **Agent Boundaries** - `/home/chad/repos/witchcityrope/docs/standards-processes/agent-boundaries.md` - What each agent does
 
 ### Validation Gates (MUST COMPLETE):
 - [ ] **Read Entity Framework Patterns FIRST** - Core database standards
@@ -497,10 +497,10 @@ public class Event
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
 
 ### Critical Reference Documents (MUST READ BEFORE ANY WORK):
-1. **Entity Framework Patterns**: `/docs/standards-processes/development-standards/entity-framework-patterns.md`
-2. **Critical Learnings**: `/docs/lessons-learned/CRITICAL_LEARNINGS_FOR_DEVELOPERS.md`
-3. **Backend Lessons**: `/docs/lessons-learned/backend-lessons-learned.md`
-4. **Architecture Discovery**: `/docs/standards-processes/architecture-discovery-process.md`
+1. **Entity Framework Patterns**: `/home/chad/repos/witchcityrope/docs/standards-processes/development-standards/entity-framework-patterns.md`
+2. **Critical Learnings**: `/home/chad/repos/witchcityrope/docs/lessons-learned/CRITICAL_LEARNINGS_FOR_DEVELOPERS.md`
+3. **Backend Lessons**: `/home/chad/repos/witchcityrope/docs/lessons-learned/backend-lessons-learned.md`
+4. **Architecture Discovery**: `/home/chad/repos/witchcityrope/docs/standards-processes/architecture-discovery-process.md`
 
 ### Database Developer Specific Rules:
 - **PostgreSQL requires UTC DateTime handling - NEVER use DateTime.Unspecified**
@@ -520,9 +520,9 @@ public class Event
 - **MIGRATION CREATION** - Document all database changes
 
 ### 📁 WHERE TO SAVE HANDOFFS
-**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Location**: `/home/chad/repos/witchcityrope/docs/functional-areas/[feature]/handoffs/`
 **Naming**: `database-designer-YYYY-MM-DD-handoff.md`
-**Template**: `/docs/standards-processes/agent-handoff-template.md`
+**Template**: `/home/chad/repos/witchcityrope/docs/standards-processes/agent-handoff-template.md`
 
 ### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
 1. **Entity Definitions**: Complete entity models with properties
@@ -539,7 +539,7 @@ public class Event
 
 ### ⚠️ MANDATORY READING BEFORE STARTING
 **ALWAYS READ EXISTING HANDOFFS FIRST**:
-1. Check `/docs/functional-areas/[feature]/handoffs/` for previous work
+1. Check `/home/chad/repos/witchcityrope/docs/functional-areas/[feature]/handoffs/` for previous work
 2. Read ALL handoff documents in the functional area
 3. Understand existing schema and constraints
 4. Build on existing models - don't create conflicts

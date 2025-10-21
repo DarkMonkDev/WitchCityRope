@@ -1,17 +1,50 @@
 import React, { useState } from 'react'
-import { Stack, Title, Card, Text, Group, Badge, Grid, Paper, Alert } from '@mantine/core'
+import { Stack, Title, Card, Text, Group, Badge, Grid, Paper, Alert, MultiSelect } from '@mantine/core'
 import { IconAlertCircle } from '@tabler/icons-react'
-import { useMemberDetails, useMemberNotes, useMemberVetting } from '../../lib/api/hooks/useMemberDetails'
+import { useMemberDetails, useMemberNotes, useMemberVetting, useUpdateMemberRole } from '../../lib/api/hooks/useMemberDetails'
 import { MemberNotesSection } from './MemberNotesSection'
+import { notifications } from '@mantine/notifications'
+import { useValidRoles, formatRolesForSelect } from '../../lib/api/hooks/useValidRoles'
 
 interface MemberOverviewTabProps {
   memberId: string
 }
 
 export const MemberOverviewTab: React.FC<MemberOverviewTabProps> = ({ memberId }) => {
-  const { data: memberDetails, isLoading, error } = useMemberDetails(memberId)
+  const { data: memberDetails, isLoading, error, refetch } = useMemberDetails(memberId)
   const { data: notes } = useMemberNotes(memberId)
   const { data: vettingDetails } = useMemberVetting(memberId)
+  const updateRoleMutation = useUpdateMemberRole()
+  const { data: validRoles = [] } = useValidRoles()
+
+  // Format roles for MultiSelect
+  const roleOptions = formatRolesForSelect(validRoles)
+
+  // Handle role change
+  const handleRoleChange = async (selectedRoles: string[]) => {
+    try {
+      // Backend supports multiple roles as array
+      await updateRoleMutation.mutateAsync({
+        userId: memberId,
+        request: { roles: selectedRoles },
+      })
+
+      notifications.show({
+        title: 'Success',
+        message: 'Role updated successfully',
+        color: 'green',
+      })
+
+      // Refresh member details to show updated role in page title
+      refetch()
+    } catch (error: any) {
+      notifications.show({
+        title: 'Error',
+        message: error.message || 'Failed to update role',
+        color: 'red',
+      })
+    }
+  }
 
   if (isLoading) {
     return (
@@ -131,6 +164,33 @@ export const MemberOverviewTab: React.FC<MemberOverviewTabProps> = ({ memberId }
               </Badge>
             </Grid.Col>
           </Grid>
+        </Card>
+      </div>
+
+      {/* Role Assignment Section */}
+      <div>
+        <Title
+          order={2}
+          c="burgundy"
+          mb="md"
+          style={{
+            borderBottom: '2px solid var(--mantine-color-burgundy-3)',
+            paddingBottom: '8px',
+          }}
+        >
+          Role Assignment
+        </Title>
+        <Card withBorder p="lg" radius="md">
+          <MultiSelect
+            label="Assigned Roles"
+            placeholder="Select roles..."
+            data={roleOptions}
+            value={memberDetails.role ? memberDetails.role.split(',').filter(r => r.trim()) : []}
+            onChange={handleRoleChange}
+            searchable
+            clearable
+            description="Select one or more roles for this member"
+          />
         </Card>
       </div>
 

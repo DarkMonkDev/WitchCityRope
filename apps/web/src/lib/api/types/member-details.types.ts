@@ -141,5 +141,5 @@ export interface UpdateMemberStatusRequest {
 }
 
 export interface UpdateMemberRoleRequest {
-  role: string // "Admin", "Teacher", "VettedMember", "Member", "Guest", "SafetyTeam"
+  role: string // "Administrator", "Teacher", "SafetyTeam" (or empty string for regular member)
 }

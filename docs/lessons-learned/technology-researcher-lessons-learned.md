@@ -4,27 +4,27 @@
 
 ### 🚨 ULTRA CRITICAL RESEARCH DOCUMENTS (MUST READ): 🚨
 1. **🛑 ARCHITECTURE DISCOVERY** - **CHECK EXISTING SOLUTIONS FIRST**
-`/docs/standards-processes/architecture-discovery-process.md`
+`/home/chad/repos/witchcityrope/docs/standards-processes/architecture-discovery-process.md`
 
 2. **Migration Architecture** - **CURRENT TECH STACK**
-`/docs/architecture/react-migration/domain-layer-architecture.md`
+`/home/chad/repos/witchcityrope/docs/architecture/react-migration/domain-layer-architecture.md`
 
 3. **DTO Alignment Strategy** - **TYPE GENERATION PATTERNS**
-`/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
+`/home/chad/repos/witchcityrope/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
 
 4. **Migration Plan** - **TECHNOLOGY ROADMAP**
-`/docs/architecture/react-migration/migration-plan.md`
+`/home/chad/repos/witchcityrope/docs/architecture/react-migration/migration-plan.md`
 
 ### 📚 DOCUMENT DISCOVERY RESOURCES:
-- **File Registry** - `/docs/architecture/file-registry.md` - Find any document
-- **Functional Areas Index** - `/docs/architecture/functional-area-master-index.md` - Navigate features
-- **Key Documents List** - `/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+- **File Registry** - `/home/chad/repos/witchcityrope/docs/architecture/file-registry.md` - Find any document
+- **Functional Areas Index** - `/home/chad/repos/witchcityrope/docs/architecture/functional-area-master-index.md` - Navigate features
+- **Key Documents List** - `/home/chad/repos/witchcityrope/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
 
 ### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
-- **API Architecture** - `/docs/architecture/API-ARCHITECTURE-OVERVIEW.md` - Backend patterns
-- **React Standards** - `/docs/standards-processes/react-component-standards.md` - Frontend patterns
-- **Security Standards** - `/docs/standards-processes/security-standards.md` - Security constraints
-- **Performance Standards** - `/docs/standards-processes/performance-standards.md` - Performance requirements
+- **API Architecture** - `/home/chad/repos/witchcityrope/docs/architecture/API-ARCHITECTURE-OVERVIEW.md` - Backend patterns
+- **React Standards** - `/home/chad/repos/witchcityrope/docs/standards-processes/react-component-standards.md` - Frontend patterns
+- **Security Standards** - `/home/chad/repos/witchcityrope/docs/standards-processes/security-standards.md` - Security constraints
+- **Performance Standards** - `/home/chad/repos/witchcityrope/docs/standards-processes/performance-standards.md` - Performance requirements
 
 ### Validation Gates (MUST COMPLETE):
 - [ ] Read architecture discovery process
@@ -52,9 +52,9 @@
 - **ARCHITECTURE DECISIONS** - Document choices made
 
 ### 📁 WHERE TO SAVE HANDOFFS
-**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Location**: `/home/chad/repos/witchcityrope/docs/functional-areas/[feature]/handoffs/`
 **Naming**: `technology-researcher-YYYY-MM-DD-handoff.md`
-**Template**: `/docs/standards-processes/agent-handoff-template.md`
+**Template**: `/home/chad/repos/witchcityrope/docs/standards-processes/agent-handoff-template.md`
 
 ### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
 1. **Research Findings**: Technology evaluations completed
@@ -71,7 +71,7 @@
 
 ### ⚠️ MANDATORY READING BEFORE STARTING
 **ALWAYS READ EXISTING HANDOFFS FIRST**:
-1. Check `/docs/functional-areas/[feature]/handoffs/` for tech decisions
+1. Check `/home/chad/repos/witchcityrope/docs/functional-areas/[feature]/handoffs/` for tech decisions
 2. Review existing research documents
 3. Check architecture constraints
 4. Build on previous evaluations
@@ -94,8 +94,8 @@
 - **Research Scripts (.js, .ts, .sh)**: `/scripts/research/`
 - **Technology Evaluation Tools**: `/scripts/evaluation/`
 - **Benchmark Scripts**: `/scripts/benchmark/`
-- **ADR Draft Files**: `/docs/architecture/adrs/drafts/`
-- **Technology Comparison Files**: `/docs/architecture/research/`
+- **ADR Draft Files**: `/home/chad/repos/witchcityrope/docs/architecture/adrs/drafts/`
+- **Technology Comparison Files**: `/home/chad/repos/witchcityrope/docs/architecture/research/`
 - **POC Scripts**: `/scripts/poc/`
 
 ### Pre-Work Validation:

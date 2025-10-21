@@ -4,38 +4,38 @@
 
 ### 🚨 ULTRA CRITICAL DOCUMENTATION DOCUMENTS (MUST READ): 🚨
 1. **🛑 DOCUMENTATION ORGANIZATION STANDARD** - **PREVENTS CHAOS**
-`/docs/standards-processes/documentation-organization-standard.md`
+`/home/chad/repos/witchcityrope/docs/standards-processes/documentation-organization-standard.md`
 
 2. **File Registry** - **MASTER FILE TRACKING**
-`/docs/architecture/file-registry.md`
+`/home/chad/repos/witchcityrope/docs/architecture/file-registry.md`
 
 3. **Functional Area Master Index** - **NAVIGATION STRUCTURE**
-`/docs/architecture/functional-area-master-index.md`
+`/home/chad/repos/witchcityrope/docs/architecture/functional-area-master-index.md`
 
 4. **Documentation Structure Validator** - **ENFORCE STANDARDS**
-`/docs/architecture/docs-structure-validator.sh`
+`/home/chad/repos/witchcityrope/docs/architecture/docs-structure-validator.sh`
 
 ### 📚 DOCUMENT DISCOVERY RESOURCES:
-- **File Registry** - `/docs/architecture/file-registry.md` - Find any document
-- **Functional Areas Index** - `/docs/architecture/functional-area-master-index.md` - Navigate features
-- **Key Documents List** - `/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+- **File Registry** - `/home/chad/repos/witchcityrope/docs/architecture/file-registry.md` - Find any document
+- **Functional Areas Index** - `/home/chad/repos/witchcityrope/docs/architecture/functional-area-master-index.md` - Navigate features
+- **Key Documents List** - `/home/chad/repos/witchcityrope/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
 
 ### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
-- **Workflow Process** - `/docs/standards-processes/workflow-orchestration-process.md` - 5-phase workflow
-- **Agent Handoff Template** - `/docs/standards-processes/agent-handoff-template.md` - Documentation format
-- **Lessons Learned Template** - `/docs/standards-processes/LESSONS-LEARNED-TEMPLATE.md` - LL format
-- **File Naming Standards** - `/docs/standards-processes/file-naming-standards.md` - Naming conventions
+- **Workflow Process** - `/home/chad/repos/witchcityrope/docs/standards-processes/workflow-orchestration-process.md` - 5-phase workflow
+- **Agent Handoff Template** - `/home/chad/repos/witchcityrope/docs/standards-processes/agent-handoff-template.md` - Documentation format
+- **Lessons Learned Template** - `/home/chad/repos/witchcityrope/docs/standards-processes/LESSONS-LEARNED-TEMPLATE.md` - LL format
+- **File Naming Standards** - `/home/chad/repos/witchcityrope/docs/standards-processes/file-naming-standards.md` - Naming conventions
 
 ### Validation Gates (MUST COMPLETE):
 - [ ] Read documentation organization standard
 - [ ] Check file registry before creating/moving files
 - [ ] Verify functional area exists before adding docs
-- [ ] NEVER create files in /docs/ root
+- [ ] NEVER create files in /home/chad/repos/witchcityrope/docs/ root
 - [ ] Update file registry for ALL operations
 - [ ] Create documentation handoff when complete
 
 ### Librarian Specific Rules:
-- **NEVER create files in /docs/ root directory**
+- **NEVER create files in /home/chad/repos/witchcityrope/docs/ root directory**
 - **ALWAYS update file registry for every file operation**
 - **ENFORCE functional area organization**
 - **PREVENT duplicate documentation**
@@ -147,9 +147,9 @@
 - **DISCOVERY of documentation gaps** - Share immediately
 
 ### 📁 WHERE TO SAVE HANDOFFS
-**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Location**: `/home/chad/repos/witchcityrope/docs/functional-areas/[feature]/handoffs/`
 **Naming**: `librarian-YYYY-MM-DD-handoff.md`
-**Template**: `/docs/standards-processes/agent-handoff-template.md`
+**Template**: `/home/chad/repos/witchcityrope/docs/standards-processes/agent-handoff-template.md`
 
 ### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
 1. **Documentation Created**: New docs and their purposes
@@ -166,7 +166,7 @@
 
 ### ⚠️ MANDATORY READING BEFORE STARTING
 **ALWAYS READ EXISTING HANDOFFS FIRST**:
-1. Check `/docs/functional-areas/[feature]/handoffs/` for doc status
+1. Check `/home/chad/repos/witchcityrope/docs/functional-areas/[feature]/handoffs/` for doc status
 2. Review file registry for recent changes
 3. Check master index for navigation updates
 4. Continue existing documentation patterns
@@ -184,11 +184,11 @@
 
 ## CRITICAL: Document Structure Prevention
 
-**Never allow `/docs/docs/` folders** - This catastrophic pattern happened multiple times and breaks the entire documentation system.
+**Never allow `/home/chad/repos/witchcityrope/docs/docs/` folders** - This catastrophic pattern happened multiple times and breaks the entire documentation system.
 
-**Always check canonical locations first** - Use `/docs/standards-processes/CANONICAL-DOCUMENT-LOCATIONS.md` before creating ANY files.
+**Always check canonical locations first** - Use `/home/chad/repos/witchcityrope/docs/standards-processes/CANONICAL-DOCUMENT-LOCATIONS.md` before creating ANY files.
 
-**Update file registry for EVERY operation** - No exceptions. Every file created/modified/deleted must be logged in `/docs/architecture/file-registry.md`.
+**Update file registry for EVERY operation** - No exceptions. Every file created/modified/deleted must be logged in `/home/chad/repos/witchcityrope/docs/architecture/file-registry.md`.
 
 ## File Placement Rules
 
@@ -196,22 +196,22 @@
 
 **Never create files in project root** - ALL files must go in proper subdirectories under docs/.
 
-**Use functional areas structure** - All feature documentation goes in `/docs/functional-areas/[feature]/`.
+**Use functional areas structure** - All feature documentation goes in `/home/chad/repos/witchcityrope/docs/functional-areas/[feature]/`.
 
-**Check master index before searching** - Always consult `/docs/architecture/functional-area-master-index.md` first when agents ask for files.
+**Check master index before searching** - Always consult `/home/chad/repos/witchcityrope/docs/architecture/functional-area-master-index.md` first when agents ask for files.
 
 ## 🚨 CRITICAL: File Extraction and Analysis Placement 🚨
 
 **When extracting versions or creating analysis files:**
-- **Wireframe versions** → `/docs/functional-areas/[feature]/new-work/[date-feature]/design/wireframes/`
-- **Analysis documents** → `/docs/functional-areas/[feature]/new-work/[date-feature]/requirements/`
+- **Wireframe versions** → `/home/chad/repos/witchcityrope/docs/functional-areas/[feature]/new-work/[date-feature]/design/wireframes/`
+- **Analysis documents** → `/home/chad/repos/witchcityrope/docs/functional-areas/[feature]/new-work/[date-feature]/requirements/`
 - **NEVER in root** → Not in project root directory
 - **ALWAYS in proper subfolder** → Follow the established structure without exception
 
 **Example for Events Management:**
 - ❌ WRONG: `/volunteers-tab-version-1.html`
 - ❌ WRONG: Files in project root directory
-- ✅ CORRECT: `/docs/functional-areas/events/new-work/2025-08-24-events-management/design/wireframes/volunteers-tab-version-1.html`
+- ✅ CORRECT: `/home/chad/repos/witchcityrope/docs/functional-areas/events/new-work/2025-08-24-events-management/design/wireframes/volunteers-tab-version-1.html`
 
 ## Content Quality Standards
 
@@ -361,10 +361,10 @@
 ## 🚨 AUTHENTICATION METHODOLOGY CONFUSION PREVENTION 🚨
 
 **Problem**: Agents confused about "correct" authentication approach, asking for guidance when clear documentation exists.
-**Solution**: ALWAYS check `/docs/functional-areas/authentication/AUTHENTICATION_MILESTONE_COMPLETE.md` FIRST - 572 lines of definitive authentication implementation.
+**Solution**: ALWAYS check `/home/chad/repos/witchcityrope/docs/functional-areas/authentication/AUTHENTICATION_MILESTONE_COMPLETE.md` FIRST - 572 lines of definitive authentication implementation.
 
 **Problem**: Agents might look for Blazor authentication patterns which cause "Headers are read-only" errors.
-**Solution**: ALL Blazor authentication patterns archived in `/docs/_archive/authentication-blazor-legacy-2025-08-19/` - React patterns are ONLY valid approach.
+**Solution**: ALL Blazor authentication patterns archived in `/home/chad/repos/witchcityrope/docs/_archive/authentication-blazor-legacy-2025-08-19/` - React patterns are ONLY valid approach.
 
 **Problem**: Authentication "confusion" when complete working implementation exists and is documented.
 **Solution**: Functional area master index shows Authentication status as "COMPLETE" - investigate before declaring confusion.
@@ -487,7 +487,7 @@
 **Solution**: Systematic documentation migration with clear archival process.
 
 **Migration Process**:
-1. **Archive Legacy Code**: Move outdated implementation to `/docs/_archive/` with explanatory README
+1. **Archive Legacy Code**: Move outdated implementation to `/home/chad/repos/witchcityrope/docs/_archive/` with explanatory README
 2. **Update Architecture Documentation**: Replace outdated patterns in ARCHITECTURE.md with current implementation
 3. **Update Functional Area Documentation**: Refresh README and implementation guides in functional area
 4. **Create Migration Summary**: Document what changed, why, and security benefits achieved
@@ -620,7 +620,7 @@
 **Solution Applied**:
 1. **Progress Documentation Updated**: Added comprehensive session summary to PROGRESS.md with technical achievements and remaining issues
 2. **File Registry Tracking**: Logged all session files with proper cleanup dates and status
-3. **Handoff Document Created**: Created detailed session handoff at `/docs/functional-areas/vetting-system/handoffs/2025-09-23-session-handoff.md`
+3. **Handoff Document Created**: Created detailed session handoff at `/home/chad/repos/witchcityrope/docs/functional-areas/vetting-system/handoffs/2025-09-23-session-handoff.md`
 4. **Temporary File Cleanup**: Removed test result files, screenshots, and debugging scripts from root and test directories
 5. **Important Documentation Preserved**: Kept session work documentation in `/session-work/2025-09-23/` with cleanup dates
 

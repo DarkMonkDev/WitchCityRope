@@ -218,9 +218,9 @@ export function useUpdateMemberRole() {
       request,
     }: {
       userId: string
-      request: UpdateMemberRoleRequest
+      request: { roles: string[] }
     }): Promise<void> => {
-      await apiClient.put(`/api/users/${userId}/role`, request)
+      await apiClient.put(`/api/admin/users/${userId}/roles`, request)
     },
     onSuccess: (_, variables) => {
       // Invalidate member details

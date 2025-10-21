@@ -10,6 +10,7 @@ using WitchCityRope.Api.Features.Vetting.Endpoints;
 using WitchCityRope.Api.Features.TestHelpers.Endpoints;
 using WitchCityRope.Api.Features.Volunteers.Endpoints;
 using WitchCityRope.Api.Features.Cms;
+using WitchCityRope.Api.Features.Metadata.Endpoints;
 
 namespace WitchCityRope.Api.Features.Shared.Extensions;
 
@@ -27,6 +28,9 @@ public static class WebApplicationExtensions
     {
         // Health feature endpoints
         app.MapHealthEndpoints();
+
+        // Metadata feature endpoints
+        app.MapMetadataEndpoints();
 
         // Authentication feature endpoints
         app.MapAuthenticationEndpoints();
@@ -54,6 +58,7 @@ public static class WebApplicationExtensions
 
         // Volunteer feature endpoints
         app.MapVolunteerEndpoints();
+        app.MapVolunteerAssignmentEndpoints();
 
         // CMS feature endpoints
         app.MapCmsEndpoints();

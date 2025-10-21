@@ -8,33 +8,33 @@
 
 ### 🚨 ULTRA CRITICAL TESTING DOCUMENTS (MUST READ): 🚨
 1. **Docker-Only Testing Standard** - **ALL TESTS RUN IN DOCKER**
-`/docs/standards-processes/testing/docker-only-testing-standard.md`
+`/home/chad/repos/witchcityrope/docs/standards-processes/testing/docker-only-testing-standard.md`
 
 2. **Test Catalog** - **ALL EXISTING TESTS** (SPLIT FOR ACCESSIBILITY)
-⭕ **START HERE**: `/docs/standards-processes/testing/TEST_CATALOG.md` (Part 1 - Current Tests)
-📚 **If needed**: `/docs/standards-processes/testing/TEST_CATALOG_PART_2.md` (Part 2 - Historical)
-📜 **Archives**: `/docs/standards-processes/testing/TEST_CATALOG_PART_3.md` (Part 3 - Archived)
+⭕ **START HERE**: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_CATALOG.md` (Part 1 - Current Tests)
+📚 **If needed**: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_CATALOG_PART_2.md` (Part 2 - Historical)
+📜 **Archives**: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_CATALOG_PART_3.md` (Part 3 - Archived)
 
 3. **Current Test Status** - **WHAT'S BROKEN/WORKING**
-`/docs/standards-processes/testing/CURRENT_TEST_STATUS.md`
+`/home/chad/repos/witchcityrope/docs/standards-processes/testing/CURRENT_TEST_STATUS.md`
 
 4. **Testing Prerequisites** - **BEFORE YOU START**
-`/docs/standards-processes/testing-prerequisites.md`
+`/home/chad/repos/witchcityrope/docs/standards-processes/testing-prerequisites.md`
 
 5. **Project Architecture** - **DOCKER CONFIG**
 `/ARCHITECTURE.md`
 
 ### 📚 DOCUMENT DISCOVERY RESOURCES:
-- **File Registry** - `/docs/architecture/file-registry.md` - Find any document
-- **Functional Areas Index** - `/docs/architecture/functional-area-master-index.md` - Navigate features
-- **Key Documents List** - `/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
-- **Docker Architecture** - `/docs/architecture/docker-architecture.md` - Container setup
+- **File Registry** - `/home/chad/repos/witchcityrope/docs/architecture/file-registry.md` - Find any document
+- **Functional Areas Index** - `/home/chad/repos/witchcityrope/docs/architecture/functional-area-master-index.md` - Navigate features
+- **Key Documents List** - `/home/chad/repos/witchcityrope/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+- **Docker Architecture** - `/home/chad/repos/witchcityrope/docs/architecture/docker-architecture.md` - Container setup
 
 ### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
-- **E2E Testing Procedures** - `/docs/standards-processes/testing/E2E_TESTING_PROCEDURES.md`
-- **Testing Guide** - `/docs/standards-processes/testing/TESTING_GUIDE.md`
-- **Port Configuration** - `/docs/standards-processes/development-standards/port-configuration-management.md`
-- **Agent Boundaries** - `/docs/standards-processes/agent-boundaries.md` - What each agent does
+- **E2E Testing Procedures** - `/home/chad/repos/witchcityrope/docs/standards-processes/testing/E2E_TESTING_PROCEDURES.md`
+- **Testing Guide** - `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TESTING_GUIDE.md`
+- **Port Configuration** - `/home/chad/repos/witchcityrope/docs/standards-processes/development-standards/port-configuration-management.md`
+- **Agent Boundaries** - `/home/chad/repos/witchcityrope/docs/standards-processes/agent-boundaries.md` - What each agent does
 
 ### Validation Gates (MUST COMPLETE):
 - [ ] **Verify Docker containers running** with `docker ps`
@@ -75,7 +75,7 @@
 - E2E test debugging - Inspect console errors and network failures
 - Integration validation - Monitor API calls and responses during test execution
 
-**Configuration**: Automatically available via MCP - see `/docs/standards-processes/MCP/MCP_SERVERS.md`
+**Configuration**: Automatically available via MCP - see `/home/chad/repos/witchcityrope/docs/standards-processes/MCP/MCP_SERVERS.md`
 
 **Requirements**:
 - Node.js v20.19+

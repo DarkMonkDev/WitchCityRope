@@ -356,9 +356,10 @@ public class UserManagementService
             _logger.LogDebug("Getting users by role: {Role}", role);
 
             // Query users with the specified role using Entity Framework
+            // Support comma-separated roles (e.g., "Teacher,SafetyTeam")
             var users = await _context.Users
                 .AsNoTracking()
-                .Where(u => u.Role == role && u.IsActive)
+                .Where(u => u.IsActive && (u.Role == role || u.Role.Contains(role + ",") || u.Role.Contains("," + role)))
                 .OrderBy(u => u.SceneName ?? u.Email)
                 .Select(u => new UserOptionDto
                 {
@@ -375,6 +376,95 @@ public class UserManagementService
         {
             _logger.LogError(ex, "Failed to get users by role: {Role}", role);
             return (false, null, "Failed to get users by role");
+        }
+    }
+
+    /// <summary>
+    /// Update user roles for admin - Direct Entity Framework access
+    /// Roles are stored as comma-separated string in User.Role field
+    /// Valid roles: Teacher, SafetyTeam, Administrator (empty string = regular member)
+    /// </summary>
+    public async Task<(bool Success, UserDto? Response, string Error)> UpdateUserRolesAsync(
+        string userId,
+        UpdateUserRolesRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (!Guid.TryParse(userId, out var parsedId))
+            {
+                _logger.LogWarning("Invalid user ID format for role update: {UserId}", userId);
+                return (false, null, "Invalid user ID format");
+            }
+
+            // Validate roles - only allow specific role values (source of truth: UserRoleConstants)
+            var validRoles = Constants.UserRoleConstants.ValidRoles;
+            var invalidRoles = request.Roles
+                .Where(r => !string.IsNullOrWhiteSpace(r) && !validRoles.Contains(r))
+                .ToList();
+
+            if (invalidRoles.Any())
+            {
+                _logger.LogWarning("Invalid roles provided for user {UserId}: {InvalidRoles}",
+                    userId, string.Join(", ", invalidRoles));
+                return (false, null, $"Invalid roles: {string.Join(", ", invalidRoles)}. " +
+                    $"Valid roles are: {string.Join(", ", validRoles)}");
+            }
+
+            // Find user using UserManager for better Identity integration
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                _logger.LogWarning("User not found for role update: {UserId}", userId);
+                return (false, null, "User not found");
+            }
+
+            // Store old role for audit logging
+            var oldRole = user.Role;
+
+            // Convert list of roles to comma-separated string
+            // Remove empty/whitespace entries and deduplicate
+            var cleanRoles = request.Roles
+                .Where(r => !string.IsNullOrWhiteSpace(r))
+                .Distinct()
+                .OrderBy(r => r) // Sort for consistency
+                .ToList();
+
+            var newRole = cleanRoles.Any() ? string.Join(",", cleanRoles) : string.Empty;
+
+            // Update user role
+            user.Role = newRole;
+
+            // Explicitly mark entity as modified to ensure EF Core tracks the change
+            // This is critical for domain property modifications
+            _context.Users.Update(user);
+
+            // Save changes using Entity Framework
+            await _context.SaveChangesAsync(cancellationToken);
+
+            // Verify persistence with fresh database query
+            var updatedUser = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == parsedId, cancellationToken);
+
+            if (updatedUser == null || updatedUser.Role != newRole)
+            {
+                _logger.LogError("CRITICAL: Role update for user {UserId} failed to persist. Expected: {NewRole}, Got: {ActualRole}",
+                    userId, newRole, updatedUser?.Role ?? "NULL");
+                return (false, null, "Role update did not persist to database");
+            }
+
+            var response = new UserDto(updatedUser);
+
+            _logger.LogInformation("User roles updated successfully by admin: {UserId} ({SceneName}) - Old: '{OldRole}' -> New: '{NewRole}'",
+                userId, user.SceneName, oldRole, newRole);
+
+            return (true, response, string.Empty);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update user roles: {UserId}", userId);
+            return (false, null, "Failed to update user roles");
         }
     }
 }

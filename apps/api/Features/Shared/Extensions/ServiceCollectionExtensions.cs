@@ -100,6 +100,7 @@ public static class ServiceCollectionExtensions
 
         // Volunteer feature services
         services.AddScoped<VolunteerService>();
+        services.AddScoped<VolunteerAssignmentService>();
 
         // CMS feature services
         services.AddCmsServices();

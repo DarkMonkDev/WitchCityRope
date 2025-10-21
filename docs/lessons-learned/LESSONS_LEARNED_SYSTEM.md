@@ -47,7 +47,7 @@ While most lessons are domain-specific, these critical insights apply across all
 ### 2. File Registry is Mandatory
 **Context**: Files were being created without tracking, leading to orphaned files
 **Learning**: Every file operation must be logged
-**Action**: Update `/docs/architecture/file-registry.md` for EVERY file created/modified/deleted
+**Action**: Update `/home/chad/repos/witchcityrope/docs/architecture/file-registry.md` for EVERY file created/modified/deleted
 
 ### 3. Check Existing Documentation First
 **Context**: Duplicate solutions were being created for solved problems
@@ -165,7 +165,7 @@ Use these standardized tags for consistency:
 
 ### Archiving
 
-Move obsolete lessons to `/docs/archive/obsolete-lessons/` when they:
+Move obsolete lessons to `/home/chad/repos/witchcityrope/docs/archive/obsolete-lessons/` when they:
 - No longer apply (e.g., Blazor lessons after React migration)
 - Have been superseded by better approaches
 - Refer to removed features or components
@@ -182,7 +182,7 @@ Good lessons are:
 ## File Locations
 
 ```
-/docs/lessons-learned/
+/home/chad/repos/witchcityrope/docs/lessons-learned/
 ├── LESSONS_LEARNED_SYSTEM.md         (this file - system documentation)
 ├── backend-lessons-learned.md        (backend-developer agent)
 ├── frontend-lessons-learned.md       (react-developer agent)
@@ -191,7 +191,7 @@ Good lessons are:
 ├── test-executor-lessons-learned.md  (test-executor agent)
 └── devops-lessons-learned.md         (devops agent)
 
-/docs/archive/obsolete-lessons/       (archived/obsolete content)
+/home/chad/repos/witchcityrope/docs/archive/obsolete-lessons/       (archived/obsolete content)
 ```
 
 ## Getting Started

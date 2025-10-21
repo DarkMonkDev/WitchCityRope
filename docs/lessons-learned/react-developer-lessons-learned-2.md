@@ -5,8 +5,8 @@
 ## 🚨 NAVIGATION: LESSONS LEARNED SPLIT FILES 🚨
 
 **FILES**: 2 total
-**Part 1**: `/docs/lessons-learned/react-developer-lessons-learned.md` (STARTUP + CRITICAL PATTERNS)
-**Part 2**: `/docs/lessons-learned/react-developer-lessons-learned-part-2.md` (THIS FILE - CONTINUED LESSONS)
+**Part 1**: `/home/chad/repos/witchcityrope/docs/lessons-learned/react-developer-lessons-learned.md` (STARTUP + CRITICAL PATTERNS)
+**Part 2**: `/home/chad/repos/witchcityrope/docs/lessons-learned/react-developer-lessons-learned-part-2.md` (THIS FILE - CONTINUED LESSONS)
 **Read ALL**: Both Part 1 AND Part 2 are MANDATORY
 **Write to**: THIS FILE (Part 2) for new lessons
 **Maximum file size**: 1700 lines (to stay under token limits). Both Part 1 and Part 2 files can be up to 1700 lines each

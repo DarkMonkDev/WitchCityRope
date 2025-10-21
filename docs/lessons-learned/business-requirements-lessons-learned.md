@@ -4,21 +4,21 @@
 ## 🚨 MANDATORY STARTUP PROCEDURE - READ FIRST 🚨
 
 ### 🚨 ULTRA CRITICAL Architecture Documents (MUST READ FIRST): 🚨
-1. **🛑 DTO ALIGNMENT STRATEGY**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md` - **PREVENTS 393 TYPESCRIPT ERRORS**
-2. **Migration Architecture**: `/docs/architecture/react-migration/domain-layer-architecture.md`
-3. **Architecture Discovery Process**: `/docs/standards-processes/architecture-discovery-process.md`
-4. **Migration Plan**: `/docs/architecture/react-migration/migration-plan.md`
+1. **🛑 DTO ALIGNMENT STRATEGY**: `/home/chad/repos/witchcityrope/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md` - **PREVENTS 393 TYPESCRIPT ERRORS**
+2. **Migration Architecture**: `/home/chad/repos/witchcityrope/docs/architecture/react-migration/domain-layer-architecture.md`
+3. **Architecture Discovery Process**: `/home/chad/repos/witchcityrope/docs/standards-processes/architecture-discovery-process.md`
+4. **Migration Plan**: `/home/chad/repos/witchcityrope/docs/architecture/react-migration/migration-plan.md`
 
 ### 📚 DOCUMENT DISCOVERY RESOURCES:
-- **File Registry** - `/docs/architecture/file-registry.md` - Find any document
-- **Functional Areas Index** - `/docs/architecture/functional-area-master-index.md` - Navigate features
-- **Key Documents List** - `/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+- **File Registry** - `/home/chad/repos/witchcityrope/docs/architecture/file-registry.md` - Find any document
+- **Functional Areas Index** - `/home/chad/repos/witchcityrope/docs/architecture/functional-area-master-index.md` - Navigate features
+- **Key Documents List** - `/home/chad/repos/witchcityrope/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
 
 ### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
-- **Workflow Process** - `/docs/standards-processes/workflow-orchestration-process.md` - 5-phase workflow
-- **Phase Validation** - `/docs/standards-processes/PHASE-BASED-VALIDATION-SYSTEM.md` - Quality gates
-- **Agent Handoff Template** - `/docs/standards-processes/agent-handoff-template.md` - Documentation format
-- **Agent Boundaries** - `/docs/standards-processes/agent-boundaries.md` - What each agent does
+- **Workflow Process** - `/home/chad/repos/witchcityrope/docs/standards-processes/workflow-orchestration-process.md` - 5-phase workflow
+- **Phase Validation** - `/home/chad/repos/witchcityrope/docs/standards-processes/PHASE-BASED-VALIDATION-SYSTEM.md` - Quality gates
+- **Agent Handoff Template** - `/home/chad/repos/witchcityrope/docs/standards-processes/agent-handoff-template.md` - Documentation format
+- **Agent Boundaries** - `/home/chad/repos/witchcityrope/docs/standards-processes/agent-boundaries.md` - What each agent does
 
 ### Validation Gates (MUST COMPLETE):
 - [ ] Read all architecture documents above
@@ -44,9 +44,9 @@
 - **STAKEHOLDER DECISIONS** - Document all approvals and changes
 
 ### 📁 WHERE TO SAVE HANDOFFS
-**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Location**: `/home/chad/repos/witchcityrope/docs/functional-areas/[feature]/handoffs/`
 **Naming**: `business-requirements-YYYY-MM-DD-handoff.md`
-**Template**: `/docs/standards-processes/agent-handoff-template.md`
+**Template**: `/home/chad/repos/witchcityrope/docs/standards-processes/agent-handoff-template.md`
 
 ### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
 1. **Business Rules**: Critical rules that MUST be implemented
@@ -63,7 +63,7 @@
 
 ### ⚠️ MANDATORY READING BEFORE STARTING
 **ALWAYS READ EXISTING HANDOFFS FIRST**:
-1. Check `/docs/functional-areas/[feature]/handoffs/` for previous work
+1. Check `/home/chad/repos/witchcityrope/docs/functional-areas/[feature]/handoffs/` for previous work
 2. Read ALL handoff documents in the functional area
 3. Understand business context already established
 4. Build on existing requirements - don't contradict decisions
@@ -98,8 +98,8 @@ Business requirements must specify exact data structure requirements to prevent 
 - **Change Management**: Breaking DTO changes require 30-day notice for frontend coordination
 
 ### Action Items
-- [ ] READ: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md` (updated with NSwag emphasis)
-- [ ] READ: `/docs/architecture/react-migration/domain-layer-architecture.md` for NSwag workflow
+- [ ] READ: `/home/chad/repos/witchcityrope/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md` (updated with NSwag emphasis)
+- [ ] READ: `/home/chad/repos/witchcityrope/docs/architecture/react-migration/domain-layer-architecture.md` for NSwag workflow
 - [ ] SPECIFY: Business data needs - let NSwag handle TypeScript generation
 - [ ] DOCUMENT: OpenAPI annotation requirements for comprehensive type generation
 - [ ] REFERENCE: Existing C# DTOs in packages/contracts/ before new specifications
@@ -173,7 +173,7 @@ Must check the functional area master index before starting new requirements wor
 - Historical work provides essential context
 
 ### Action Items
-- [ ] Always check `/docs/architecture/functional-area-master-index.md` first
+- [ ] Always check `/home/chad/repos/witchcityrope/docs/architecture/functional-area-master-index.md` first
 - [ ] Identify existing functional areas with relevant requirements
 - [ ] Review current work status to avoid conflicts
 - [ ] Reference existing requirements when building on previous work

@@ -4,27 +4,27 @@
 
 ### 🚨 ULTRA CRITICAL CODE REVIEW DOCUMENTS (MUST READ): 🚨
 1. **🛑 CODE QUALITY STANDARDS** - **PREVENTS SECURITY/PERFORMANCE ISSUES**
-`/docs/standards-processes/code-review-standards.md`
+`/home/chad/repos/witchcityrope/docs/standards-processes/code-review-standards.md`
 
 2. **Architecture Overview** - **SYSTEM PATTERNS TO ENFORCE**
-`/docs/architecture/API-ARCHITECTURE-OVERVIEW.md`
+`/home/chad/repos/witchcityrope/docs/architecture/API-ARCHITECTURE-OVERVIEW.md`
 
 3. **DTO Alignment Strategy** - **TYPE SAFETY ENFORCEMENT**
-`/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
+`/home/chad/repos/witchcityrope/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
 
 4. **Security Standards** - **AUTHENTICATION/AUTHORIZATION PATTERNS**
-`/docs/standards-processes/security-standards.md`
+`/home/chad/repos/witchcityrope/docs/standards-processes/security-standards.md`
 
 ### 📚 DOCUMENT DISCOVERY RESOURCES:
-- **File Registry** - `/docs/architecture/file-registry.md` - Find any document
-- **Functional Areas Index** - `/docs/architecture/functional-area-master-index.md` - Navigate features
-- **Key Documents List** - `/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+- **File Registry** - `/home/chad/repos/witchcityrope/docs/architecture/file-registry.md` - Find any document
+- **Functional Areas Index** - `/home/chad/repos/witchcityrope/docs/architecture/functional-area-master-index.md` - Navigate features
+- **Key Documents List** - `/home/chad/repos/witchcityrope/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
 
 ### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
-- **React Standards** - `/docs/standards-processes/react-component-standards.md` - Component patterns
-- **API Standards** - `/docs/standards-processes/api-design-standards.md` - Endpoint patterns
-- **Testing Standards** - `/docs/standards-processes/testing-standards.md` - Test requirements
-- **Database Standards** - `/docs/standards-processes/development-standards/entity-framework-patterns.md` - EF patterns
+- **React Standards** - `/home/chad/repos/witchcityrope/docs/standards-processes/react-component-standards.md` - Component patterns
+- **API Standards** - `/home/chad/repos/witchcityrope/docs/standards-processes/api-design-standards.md` - Endpoint patterns
+- **Testing Standards** - `/home/chad/repos/witchcityrope/docs/standards-processes/testing-standards.md` - Test requirements
+- **Database Standards** - `/home/chad/repos/witchcityrope/docs/standards-processes/development-standards/entity-framework-patterns.md` - EF patterns
 
 ### Validation Gates (MUST COMPLETE):
 - [ ] Read all critical review documents above
@@ -59,11 +59,11 @@
 
 ### UI Component Pattern Validation
 **Problem**: Component reviews miss design system violations causing inconsistent user interface.
-**Solution**: Cross-reference UI components against `/docs/standards-processes/ui-design-system/` patterns before approval.
+**Solution**: Cross-reference UI components against `/home/chad/repos/witchcityrope/docs/standards-processes/ui-design-system/` patterns before approval.
 
 ### Database Schema Alignment Check
 **Problem**: Data model reviews miss database schema mismatches causing entity framework errors.
-**Solution**: Verify data models align with database schema documentation in `/docs/functional-areas/*/database-design.md`.
+**Solution**: Verify data models align with database schema documentation in `/home/chad/repos/witchcityrope/docs/functional-areas/*/database-design.md`.
 
 ### Architecture Consistency Validation
 **Problem**: Reviews approve code that violates established architecture patterns causing technical debt.

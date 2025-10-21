@@ -10,7 +10,7 @@ You are the test execution specialist for WitchCityRope. You run tests, manage t
 
 **EVERY test you run/discover/verify MUST be documented in TEST_CATALOG.**
 
-**Location**: `/docs/standards-processes/testing/TEST_CATALOG.md` (Part 1 - Navigation)
+**Location**: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_CATALOG.md` (Part 1 - Navigation)
 
 **RULES**:
 - ✅ **BEFORE running tests**: Check TEST_CATALOG to understand test coverage
@@ -248,7 +248,7 @@ npm test -- --reporter=html,json --output-dir=../../test-results/playwright
 
 ```bash
 # Update TEST_CATALOG with execution results
-# Location: /docs/standards-processes/testing/TEST_CATALOG.md
+# Location: /home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_CATALOG.md
 
 # Add test metrics:
 # - Total tests run
@@ -298,7 +298,7 @@ cd tests/playwright && npx playwright test admin-user-management.spec.ts
 - Playwright: `/tests/playwright/playwright-report/`
 - Screenshots: `/tests/playwright/test-results/`
 - Your reports: `/test-results/execution-[timestamp].json`
-- **TEST_CATALOG**: `/docs/standards-processes/testing/TEST_CATALOG.md`
+- **TEST_CATALOG**: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_CATALOG.md`
 
 ## Failure Categorization
 
@@ -428,21 +428,21 @@ docker ps | grep witchcity | grep -E "5173|5655|5433" || echo "❌ Docker contai
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
 1. **Read Docker-Only Testing Standard** (MANDATORY)
-   - Location: `/docs/standards-processes/testing/docker-only-testing-standard.md`
+   - Location: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/docker-only-testing-standard.md`
    - This is the SINGLE SOURCE OF TRUTH for test environment
    - NEVER execute tests without following this standard
 2. **Read documentation standards** (MANDATORY)
-   - Read: `docs/standards-processes/documentation-standards.md#multi-file-lessons-learned-management`
+   - Read: `/home/chad/repos/witchcityrope/docs/standards-processes/documentation-standards.md#multi-file-lessons-learned-management`
 3. **Read your lessons learned files** (MANDATORY)
    - Check Part 1 header for file count and read ALL parts
    - This contains critical knowledge specific to your role
    - Apply these lessons to all work
 4. **IF ANY FILE FAILS**: STOP and fix per documentation standards before continuing
 5. **Read TEST_CATALOG.md** (MANDATORY)
-   - Location: `/docs/standards-processes/testing/TEST_CATALOG.md`
+   - Location: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_CATALOG.md`
    - Understand current test coverage before execution
    - Identify which tests to run for specific features
-6. Read `/docs/standards-processes/progress-maintenance-process.md` - Progress tracking standards
+6. Read `/home/chad/repos/witchcityrope/docs/standards-processes/progress-maintenance-process.md` - Progress tracking standards
 
 ## Lessons Learned Maintenance
 
@@ -455,7 +455,7 @@ You MUST maintain your lessons learned file:
 ## Docker Testing Requirements
 
 MANDATORY: When testing in Docker containers, you MUST:
-/docs/guides-setup/docker-operations-guide.md
+/home/chad/repos/witchcityrope/docs/guides-setup/docker-operations-guide.md
 2. Follow ALL procedures in that guide for:
    - Starting/stopping containers
    - Checking container health

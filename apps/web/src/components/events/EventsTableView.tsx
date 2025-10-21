@@ -1,6 +1,6 @@
 import React from 'react'
 import { Table, ActionIcon, Button, Text, Group, Skeleton, Badge } from '@mantine/core'
-import { IconCaretUp, IconCaretDown, IconSelector, IconEdit } from '@tabler/icons-react'
+import { IconCaretUp, IconCaretDown, IconSelector } from '@tabler/icons-react'
 import { notifications } from '@mantine/notifications'
 import { useNavigate } from 'react-router-dom'
 import type { EventDto } from '@witchcityrope/shared-types'
@@ -141,7 +141,7 @@ const EventsTableSkeleton: React.FC = () => (
         <Table.Th c="white" style={{ width: '160px', maxWidth: '160px', textAlign: 'center' }}>
           Tickets/Capacity
         </Table.Th>
-        <Table.Th c="white" style={{ width: '150px', textAlign: 'center' }}>
+        <Table.Th c="white" style={{ width: '100px', textAlign: 'center' }}>
           Actions
         </Table.Th>
       </Table.Tr>
@@ -165,7 +165,7 @@ const EventsTableSkeleton: React.FC = () => (
             <Skeleton height={16} width="60%" mb={4} />
             <Skeleton height={8} width="100%" />
           </Table.Td>
-          <Table.Td style={{ width: '150px', textAlign: 'center' }}>
+          <Table.Td style={{ width: '100px', textAlign: 'center' }}>
             <Skeleton height={28} width="60%" />
           </Table.Td>
         </Table.Tr>
@@ -175,26 +175,20 @@ const EventsTableSkeleton: React.FC = () => (
 )
 
 /**
- * EventsTableView - Displays events in a sortable table with Edit and Copy actions
- *
- * IMPORTANT: This table provides TWO ways to edit events:
- * 1. Click the "Edit" button in the Actions column (RECOMMENDED for E2E tests)
- * 2. Click anywhere on the table row (UX convenience)
+ * EventsTableView - Displays events in a sortable table with Copy action
  *
  * User Flow:
- * 1. User clicks "Edit" button OR clicks on table row
+ * 1. User clicks on table row to edit event
  * 2. Navigation handler navigates to /admin/events/:id
  * 3. AdminEventDetailsPage loads with EventForm populated with event data
  * 4. User can edit all fields and save changes
  *
  * Action Buttons:
- * - "Edit" button: Opens event edit page (data-testid="edit-event")
  * - "Copy" button: Duplicates event and opens edit page for the copy
  * - NO "Delete" button: Not yet implemented
  *
  * Testing Note:
- * E2E tests should use: page.locator('[data-testid="edit-event"]').first().click()
- * Both row-click and edit button navigate to the same edit page
+ * E2E tests should click on the event row to navigate to event details
  */
 export const EventsTableView: React.FC<EventsTableViewProps> = ({
   events,
@@ -208,27 +202,9 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
   /**
    * handleRowClick - Primary interaction for viewing/editing events
    * Clicking any row navigates to the event detail/edit page
-   * Note: Now redundant with dedicated Edit button but kept for UX consistency
    */
   const handleRowClick = (eventId: string) => {
     navigate(`/admin/events/${eventId}`)
-  }
-
-  /**
-   * handleEditEvent - Dedicated edit button click handler
-   * Uses setTimeout pattern to ensure React Router navigation timing is correct
-   * This prevents the issue where URL changes but component doesn't re-render
-   */
-  const handleEditEvent = (eventId: string, event: React.MouseEvent) => {
-    // Stop propagation to prevent row click
-    event.stopPropagation()
-
-    // Use setTimeout to defer navigation to next tick
-    // This ensures React Router's Outlet properly unmounts/mounts components
-    // See: react-developer-lessons-learned.md lines 100-160
-    setTimeout(() => {
-      navigate(`/admin/events/${eventId}`)
-    }, 0)
   }
 
   const handleCopyEvent = (eventId: string, event: React.MouseEvent) => {
@@ -271,7 +247,7 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
             <Table.Th c="white" style={{ width: '160px', maxWidth: '160px', textAlign: 'center' }}>
               Tickets/Capacity
             </Table.Th>
-            <Table.Th c="white" style={{ width: '150px', textAlign: 'center' }}>
+            <Table.Th c="white" style={{ width: '100px', textAlign: 'center' }}>
               Actions
             </Table.Th>
           </Table.Tr>
@@ -333,7 +309,7 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
           <Table.Th c="white" style={{ width: '160px', maxWidth: '160px', textAlign: 'center' }}>
             Tickets/Capacity
           </Table.Th>
-          <Table.Th c="white" style={{ width: '150px', textAlign: 'center' }}>
+          <Table.Th c="white" style={{ width: '100px', textAlign: 'center' }}>
             Actions
           </Table.Th>
         </Table.Tr>
@@ -383,31 +359,9 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
               <CapacityDisplay current={getCorrectCurrentCount(event)} max={event.capacity} />
             </Table.Td>
 
-            {/* Actions Column - Contains Edit and Copy buttons */}
-            <Table.Td style={{ width: '150px' }} onClick={(e) => e.stopPropagation()}>
+            {/* Actions Column - Contains Copy button */}
+            <Table.Td style={{ width: '100px' }} onClick={(e) => e.stopPropagation()}>
               <Group gap="xs" justify="center">
-                <Button
-                  variant="subtle"
-                  color="blue"
-                  data-testid="edit-event"
-                  leftSection={<IconEdit size={16} />}
-                  onClick={(e) => handleEditEvent(event.id, e)}
-                  styles={{
-                    root: {
-                      minHeight: 40,
-                      height: 'auto',
-                      fontWeight: 600,
-                      fontSize: '14px',
-                      paddingTop: '10px',
-                      paddingBottom: '10px',
-                      paddingLeft: '12px',
-                      paddingRight: '12px',
-                      lineHeight: '1.4',
-                    },
-                  }}
-                >
-                  Edit
-                </Button>
                 <Button
                   variant="subtle"
                   color="wcr.7"

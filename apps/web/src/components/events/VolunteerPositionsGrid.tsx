@@ -1,27 +1,32 @@
-import React from 'react';
-import { Table, Text, Group, ActionIcon, Badge } from '@mantine/core';
-import { IconEdit, IconTrash } from '@tabler/icons-react';
+import React, { useState } from 'react';
+import { Table, Text, Group, Badge, Collapse, Stack } from '@mantine/core';
 import { WCRButton } from '../ui';
+import { CapacityDisplay } from './CapacityDisplay';
+import { VolunteerPositionInlineForm } from './VolunteerPositionInlineForm';
+import { AssignedMembersSection } from './AssignedMembersSection';
 import type { VolunteerPosition } from './VolunteerPositionFormModal';
 
 interface VolunteerPositionsGridProps {
   positions: VolunteerPosition[];
-  onEditPosition: (positionId: string) => void;
+  onPositionSubmit: (positionData: Omit<VolunteerPosition, 'id' | 'slotsFilled'>, positionId?: string) => void;
   onDeletePosition: (positionId: string) => void;
-  onAddPosition: () => void;
+  availableSessions: Array<{ sessionIdentifier: string; name: string }>;
 }
 
 export const VolunteerPositionsGrid: React.FC<VolunteerPositionsGridProps> = ({
   positions,
-  onEditPosition,
+  onPositionSubmit,
   onDeletePosition,
-  onAddPosition,
+  availableSessions,
 }) => {
-  const handleDeleteClick = (positionId: string, positionTitle: string) => {
-    if (window.confirm(`Are you sure you want to delete the "${positionTitle}" position?`)) {
-      onDeletePosition(positionId);
-    }
-  };
+  const [selectedPositionId, setSelectedPositionId] = useState<string | null>(null);
+  const [isEditAreaOpen, setIsEditAreaOpen] = useState(false);
+  const [editMode, setEditMode] = useState<'create' | 'edit'>('create');
+
+  // Find the currently editing position
+  const editingPosition = selectedPositionId
+    ? positions.find(p => p.id === selectedPositionId)
+    : null;
 
   const formatTime = (timeString: string) => {
     // Assuming timeString is in HH:MM format
@@ -32,20 +37,58 @@ export const VolunteerPositionsGrid: React.FC<VolunteerPositionsGridProps> = ({
     return `${displayHour}:${minutes} ${ampm}`;
   };
 
-  const getAssignmentStatus = (assigned: number, needed: number) => {
-    if (assigned === 0) {
-      return { text: `${needed} positions open`, color: 'red', variant: 'light' as const };
-    } else if (assigned < needed) {
-      return { text: `${needed - assigned} more needed`, color: 'yellow', variant: 'light' as const };
+  const handleRowClick = (positionId: string) => {
+    // If clicking the same row that's already open, close it
+    if (selectedPositionId === positionId && isEditAreaOpen) {
+      setIsEditAreaOpen(false);
+      setSelectedPositionId(null);
+      setEditMode('create');
     } else {
-      return { text: 'Fully staffed', color: 'green', variant: 'light' as const };
+      // Open edit area for this position
+      setSelectedPositionId(positionId);
+      setEditMode('edit');
+      setIsEditAreaOpen(true);
     }
   };
+
+  const handleAddNewClick = () => {
+    setSelectedPositionId(null);
+    setEditMode('create');
+    setIsEditAreaOpen(true);
+  };
+
+  const handleFormSubmit = (positionData: Omit<VolunteerPosition, 'id' | 'slotsFilled'>) => {
+    if (editMode === 'edit' && editingPosition) {
+      // Update existing position - pass data and ID to parent
+      onPositionSubmit(positionData, editingPosition.id);
+    } else {
+      // Create new position - pass data without ID
+      onPositionSubmit(positionData);
+    }
+
+    // Close the edit area after submission
+    setIsEditAreaOpen(false);
+    setSelectedPositionId(null);
+  };
+
+  const handleFormCancel = () => {
+    setIsEditAreaOpen(false);
+    setSelectedPositionId(null);
+    setEditMode('create');
+  };
+
+  const handleFormDelete = (positionId: string) => {
+    onDeletePosition(positionId);
+    setIsEditAreaOpen(false);
+    setSelectedPositionId(null);
+    setEditMode('create');
+  };
+
 
   return (
     <div>
       <Text size="sm" c="dimmed" mb="lg">
-        Define volunteer positions needed for your event. Use the session filter to assign positions to specific sessions.
+        Define volunteer positions needed for your event. Click any row to edit details and manage assigned volunteers.
       </Text>
 
       <Table
@@ -63,9 +106,6 @@ export const VolunteerPositionsGrid: React.FC<VolunteerPositionsGridProps> = ({
         <Table.Thead style={{ backgroundColor: 'var(--mantine-color-burgundy-6)' }}>
           <Table.Tr>
             <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
-              Edit
-            </Table.Th>
-            <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
               Position
             </Table.Th>
             <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
@@ -77,34 +117,29 @@ export const VolunteerPositionsGrid: React.FC<VolunteerPositionsGridProps> = ({
             <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
               Description
             </Table.Th>
-            <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
-              Needed
+            <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', textAlign: 'center' }}>
+              Needed / Filled
             </Table.Th>
-            <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
-              Assigned
-            </Table.Th>
-            <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
-              Delete
+            <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', textAlign: 'center' }}>
+              Visibility
             </Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
           {positions.map((position) => {
-            const status = getAssignmentStatus(position.slotsFilled, position.slotsNeeded);
-            
+            const isSelected = selectedPositionId === position.id && isEditAreaOpen;
+
             return (
-              <Table.Tr key={position.id} data-testid="position-row">
-                <Table.Td>
-                  <WCRButton
-                    size="compact-xs"
-                    variant="outline"
-                    leftSection={<IconEdit size={14} />}
-                    onClick={() => onEditPosition(position.id)}
-                    data-testid="button-edit-volunteer-position"
-                  >
-                    Edit
-                  </WCRButton>
-                </Table.Td>
+              <Table.Tr
+                key={position.id}
+                data-testid="position-row"
+                onClick={() => handleRowClick(position.id)}
+                style={{
+                  cursor: 'pointer',
+                  backgroundColor: isSelected ? '#f8f9fa' : undefined,
+                  transition: 'background-color 0.2s',
+                }}
+              >
                 <Table.Td>
                   <Text fw={600} c="burgundy" data-testid="position-title">
                     {position.title}
@@ -125,33 +160,27 @@ export const VolunteerPositionsGrid: React.FC<VolunteerPositionsGridProps> = ({
                     {position.description}
                   </Text>
                 </Table.Td>
-                <Table.Td style={{ textAlign: 'center', fontWeight: 600 }}>
-                  <Text fw={600} data-testid="slots-needed">
-                    {position.slotsNeeded}
-                  </Text>
-                </Table.Td>
                 <Table.Td>
-                  <Badge color={status.color} variant={status.variant}>
-                    {status.text}
-                  </Badge>
+                  <CapacityDisplay
+                    current={position.slotsFilled}
+                    max={position.slotsNeeded}
+                  />
                 </Table.Td>
-                <Table.Td>
-                  <ActionIcon
-                    variant="filled"
-                    color="red"
-                    size="sm"
-                    onClick={() => handleDeleteClick(position.id, position.title)}
-                    data-testid="button-delete-volunteer-position"
+                <Table.Td style={{ textAlign: 'center' }}>
+                  <Badge
+                    color={position.isPublicFacing ? 'green' : 'gray'}
+                    variant="light"
+                    data-testid="visibility-badge"
                   >
-                    <IconTrash size={14} />
-                  </ActionIcon>
+                    {position.isPublicFacing ? 'Public' : 'Private'}
+                  </Badge>
                 </Table.Td>
               </Table.Tr>
             );
           })}
           {positions.length === 0 && (
             <Table.Tr>
-              <Table.Td colSpan={8}>
+              <Table.Td colSpan={6}>
                 <Text ta="center" c="dimmed" py="xl">
                   No volunteer positions created yet. Click "Add New Position" to get started.
                 </Text>
@@ -165,16 +194,38 @@ export const VolunteerPositionsGrid: React.FC<VolunteerPositionsGridProps> = ({
         <WCRButton
           variant="secondary"
           size="lg"
-          onClick={onAddPosition}
+          onClick={handleAddNewClick}
           data-testid="button-add-volunteer-position"
         >
           Add New Position
         </WCRButton>
-        
+
         <Text size="xs" c="dimmed" fs="italic">
-          💡 Tip: Click Edit to modify position details in a modal dialog.
+          💡 Tip: Click any row to edit position details and manage volunteers
         </Text>
       </Group>
+
+      {/* Inline Edit Area */}
+      <Collapse in={isEditAreaOpen} transitionDuration={300}>
+        <Stack gap="md" mt="xl">
+          <VolunteerPositionInlineForm
+            position={editingPosition}
+            onSubmit={handleFormSubmit}
+            onCancel={handleFormCancel}
+            onDelete={handleFormDelete}
+            availableSessions={availableSessions}
+            mode={editMode}
+          />
+
+          {/* Member Assignment Section - Only show in edit mode */}
+          {editMode === 'edit' && editingPosition && (
+            <AssignedMembersSection
+              positionId={editingPosition.id}
+              positionTitle={editingPosition.title}
+            />
+          )}
+        </Stack>
+      </Collapse>
     </div>
   );
 };

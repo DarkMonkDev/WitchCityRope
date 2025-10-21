@@ -24,7 +24,7 @@ If you cannot read ANY file:
 ## 🚨 REQUIRED READING FOR SPECIFIC TASKS 🚨
 
 ### Before Creating E2E Persistence Tests
-**MUST READ**: `/docs/functional-areas/testing/e2e-persistence-testing-guide.md` (618 lines)
+**MUST READ**: `/home/chad/repos/witchcityrope/docs/functional-areas/testing/e2e-persistence-testing-guide.md` (618 lines)
 - Complete persistence test pattern (UI + API + Database verification)
 - Database verification helpers
 - How to use test templates
@@ -32,7 +32,7 @@ If you cannot read ANY file:
 **CRITICAL**: Tests that only verify UI updates miss bugs where database doesn't update (profile bug, ticket cancellation bug)
 
 ### Before Creating Backend Integration Tests
-**MUST READ**: `/docs/functional-areas/testing/backend-integration-testing-guide.md`
+**MUST READ**: `/home/chad/repos/witchcityrope/docs/functional-areas/testing/backend-integration-testing-guide.md`
 - DTO/Entity mapping validation patterns
 - TestContainers setup
 - Database persistence verification
@@ -697,7 +697,7 @@ test('should persist profile update', async ({ page }) => {
 - `dotnet test --filter "Category=HealthCheck"` - Health checks first
 - `npm test` - Run React unit tests
 
-**Reference**: `/docs/standards-processes/testing/TESTING_GUIDE.md`
+**Reference**: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TESTING_GUIDE.md`
 
 ## Deprecated Testing Approaches
 
@@ -1007,9 +1007,9 @@ Part 4 - Complete Test Listings (1,069 lines):
 ```
 
 **Critical Files**:
-- **Navigation**: `/docs/standards-processes/testing/TEST_CATALOG.md` (Part 1)
-- **Complete Listings**: `/docs/standards-processes/testing/TEST_CATALOG_PART_4.md` (Part 4)
-- **Audit Report**: `/docs/standards-processes/testing/TEST_AUDIT_REPORT_2025-10-10.md`
+- **Navigation**: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_CATALOG.md` (Part 1)
+- **Complete Listings**: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_CATALOG_PART_4.md` (Part 4)
+- **Audit Report**: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_AUDIT_REPORT_2025-10-10.md`
 
 **Verification Commands**:
 ```bash

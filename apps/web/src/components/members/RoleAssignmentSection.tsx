@@ -3,20 +3,12 @@ import { Title, Card, Select, Group, Text } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { WCRButton } from '../ui'
 import { useUpdateMemberRole } from '../../lib/api/hooks/useMemberDetails'
+import { useValidRoles, formatRolesForSelect } from '../../lib/api/hooks/useValidRoles'
 
 interface RoleAssignmentSectionProps {
   memberId: string
   currentRole: string
 }
-
-const AVAILABLE_ROLES = [
-  { value: 'Guest', label: 'Guest' },
-  { value: 'Member', label: 'Member' },
-  { value: 'VettedMember', label: 'Vetted Member' },
-  { value: 'Teacher', label: 'Teacher' },
-  { value: 'SafetyTeam', label: 'Safety Team' },
-  { value: 'Admin', label: 'Admin' },
-]
 
 export const RoleAssignmentSection: React.FC<RoleAssignmentSectionProps> = ({
   memberId,
@@ -24,6 +16,10 @@ export const RoleAssignmentSection: React.FC<RoleAssignmentSectionProps> = ({
 }) => {
   const [selectedRole, setSelectedRole] = useState(currentRole)
   const updateRoleMutation = useUpdateMemberRole()
+  const { data: validRoles = [] } = useValidRoles()
+
+  // Format roles for Select
+  const roleOptions = formatRolesForSelect(validRoles)
 
   const hasChanges = selectedRole !== currentRole
 
@@ -75,7 +71,7 @@ export const RoleAssignmentSection: React.FC<RoleAssignmentSectionProps> = ({
           <Select
             label="Member Role"
             placeholder="Select role..."
-            data={AVAILABLE_ROLES}
+            data={roleOptions}
             value={selectedRole}
             onChange={(value) => setSelectedRole(value || currentRole)}
           />

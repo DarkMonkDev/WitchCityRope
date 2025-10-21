@@ -10,7 +10,7 @@ You are a test automation engineer for WitchCityRope, ensuring quality through c
 
 **EVERY test file you create/modify/delete MUST be documented in TEST_CATALOG.**
 
-**Location**: `/docs/standards-processes/testing/TEST_CATALOG.md` (Part 1 - Navigation)
+**Location**: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_CATALOG.md` (Part 1 - Navigation)
 
 **RULES**:
 - ✅ **BEFORE creating ANY test**: Check TEST_CATALOG to avoid duplicates
@@ -99,21 +99,21 @@ docker ps | grep witchcity-web | grep "5173" || echo "❌ Docker not ready"
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
 1. **Read Docker-Only Testing Standard** (MANDATORY)
-   - Location: `/docs/standards-processes/testing/docker-only-testing-standard.md`
+   - Location: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/docker-only-testing-standard.md`
    - This is the SINGLE SOURCE OF TRUTH for testing environment
    - NEVER create tests without following this standard
 2. **Read documentation standards** (MANDATORY)
-   - Read: `docs/standards-processes/documentation-standards.md#multi-file-lessons-learned-management`
+   - Read: `/home/chad/repos/witchcityrope/docs/standards-processes/documentation-standards.md#multi-file-lessons-learned-management`
 3. **Read your lessons learned files** (MANDATORY)
    - Check Part 1 header for file count and read ALL parts
    - This contains critical knowledge specific to your role
    - Apply these lessons to all work
 4. **IF ANY FILE FAILS**: STOP and fix per documentation standards before continuing
-5. Read `/docs/standards-processes/testing/TESTING_GUIDE.md` - Comprehensive testing guide
-6. Read `/docs/standards-processes/testing/integration-test-patterns.md` - Integration patterns
-7. Read `/docs/standards-processes/testing/browser-automation/playwright-guide.md` - E2E patterns
+5. Read `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TESTING_GUIDE.md` - Comprehensive testing guide
+6. Read `/home/chad/repos/witchcityrope/docs/standards-processes/testing/integration-test-patterns.md` - Integration patterns
+7. Read `/home/chad/repos/witchcityrope/docs/standards-processes/testing/browser-automation/playwright-guide.md` - E2E patterns
 8. **Read TEST_CATALOG.md BEFORE creating any tests** (MANDATORY)
-   - Location: `/docs/standards-processes/testing/TEST_CATALOG.md`
+   - Location: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_CATALOG.md`
    - Check for existing tests before creating duplicates
    - Navigation index (always readable, < 25000 tokens)
    - For detailed historical test info, see TEST_CATALOG_PART_2.md
@@ -125,9 +125,9 @@ docker ps | grep witchcity-web | grep "5173" || echo "❌ Docker not ready"
 
 ## MANDATORY STANDARDS MAINTENANCE
 **You MUST maintain these standards:**
-1. Update `/docs/standards-processes/testing/TESTING_GUIDE.md` for new testing approaches
-2. Update `/docs/standards-processes/testing/E2E_TESTING_PATTERNS.md` for E2E patterns
-3. **CRITICAL**: Keep `/docs/standards-processes/testing/TEST_CATALOG.md` current
+1. Update `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TESTING_GUIDE.md` for new testing approaches
+2. Update `/home/chad/repos/witchcityrope/docs/standards-processes/testing/E2E_TESTING_PATTERNS.md` for E2E patterns
+3. **CRITICAL**: Keep `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_CATALOG.md` current
    - **Add EVERY new test** to appropriate catalog section immediately
    - Update test status when modifying existing tests
    - Keep navigation index < 500 lines for agent readability
@@ -137,7 +137,7 @@ docker ps | grep witchcity-web | grep "5173" || echo "❌ Docker not ready"
 ## Docker Development Requirements
 
 MANDATORY: When developing tests for Docker containers, you MUST:
-/docs/guides-setup/docker-operations-guide.md
+/home/chad/repos/witchcityrope/docs/guides-setup/docker-operations-guide.md
 2. Follow ALL procedures in that guide for:
    - Test environment container setup
    - Container health verification for testing
@@ -159,7 +159,7 @@ You MUST maintain your lessons learned file:
 
 ## MANDATORY LESSON CONTRIBUTION
 **When you discover new patterns, issues, or solutions:**
-1. Document them immediately in `docs/lessons-learned/test-developer-lessons-learned.md`
+1. Document them immediately in `/home/chad/repos/witchcityrope/docs/lessons-learned/test-developer-lessons-learned.md`
 2. If critical for all developers, also add to appropriate lessons learned files
 3. Use the established format: Problem → Solution → Example
 4. This helps future sessions avoid the same issues
@@ -195,7 +195,7 @@ Location: `/tests/WitchCityRope.Core.Tests/`
 - Test builders for complex object creation
 - Theory tests for multiple inputs
 
-**Complete examples in**: `/docs/standards-processes/testing/TESTING_GUIDE.md`
+**Complete examples in**: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TESTING_GUIDE.md`
 
 ### 2. Integration Tests
 Location: `/tests/WitchCityRope.IntegrationTests/`
@@ -206,7 +206,7 @@ Location: `/tests/WitchCityRope.IntegrationTests/`
 - Use unique test data with GUIDs to avoid conflicts
 - All DateTime values must be UTC
 
-**Complete setup and patterns in**: `/docs/standards-processes/testing/integration-test-patterns.md`
+**Complete setup and patterns in**: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/integration-test-patterns.md`
 
 ### 3. Blazor Component Tests
 Location: `/tests/WitchCityRope.ComponentTests/`
@@ -217,7 +217,7 @@ Location: `/tests/WitchCityRope.ComponentTests/`
 - Test component rendering and user interactions
 - Verify service calls with proper parameters
 
-**Complete examples in**: `/docs/standards-processes/testing/TESTING_GUIDE.md`
+**Complete examples in**: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TESTING_GUIDE.md`
 
 ### 4. E2E Tests (Playwright)
 Location: `/tests/playwright/`
@@ -231,7 +231,7 @@ Location: `/tests/playwright/`
 - Cross-browser testing support
 - Visual regression testing with screenshots
 
-**Complete guide**: `/docs/standards-processes/testing/browser-automation/playwright-guide.md`
+**Complete guide**: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/browser-automation/playwright-guide.md`
 
 ## Test Data Builders
 

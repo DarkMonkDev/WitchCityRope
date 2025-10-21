@@ -45,18 +45,18 @@ These patterns are LESSONS LEARNED - they teach future sessions how to avoid pro
 
 ## VALUABLE CONTENT THAT BELONGS ELSEWHERE:
 
-📚 **Implementation guides** → `/docs/guides-setup/` or `/docs/functional-areas/[area]/implementation/`
-📚 **Code examples** (>3 lines) → `/docs/functional-areas/[area]/code-examples/`
-📚 **Integration strategies** → `/docs/architecture/` or `/docs/functional-areas/[area]/architecture/`
-📚 **Detailed workflows** → `/docs/standards-processes/` or `/docs/functional-areas/[area]/workflows/`
-📚 **API documentation** → `/docs/functional-areas/[area]/api/`
-📚 **Testing strategies** → `/docs/functional-areas/testing/strategies/`
+📚 **Implementation guides** → `/home/chad/repos/witchcityrope/docs/guides-setup/` or `/home/chad/repos/witchcityrope/docs/functional-areas/[area]/implementation/`
+📚 **Code examples** (>3 lines) → `/home/chad/repos/witchcityrope/docs/functional-areas/[area]/code-examples/`
+📚 **Integration strategies** → `/home/chad/repos/witchcityrope/docs/architecture/` or `/home/chad/repos/witchcityrope/docs/functional-areas/[area]/architecture/`
+📚 **Detailed workflows** → `/home/chad/repos/witchcityrope/docs/standards-processes/` or `/home/chad/repos/witchcityrope/docs/functional-areas/[area]/workflows/`
+📚 **API documentation** → `/home/chad/repos/witchcityrope/docs/functional-areas/[area]/api/`
+📚 **Testing strategies** → `/home/chad/repos/witchcityrope/docs/functional-areas/testing/strategies/`
 
 ## CORRECT FORMAT EXAMPLES:
 
 ### ✅ RIGHT:
 ```markdown
-**Problem**: Creating files in /docs/ root breaks navigation.
+**Problem**: Creating files in /home/chad/repos/witchcityrope/docs/ root breaks navigation.
 **Solution**: Always use functional area subdirectories.
 ```
 

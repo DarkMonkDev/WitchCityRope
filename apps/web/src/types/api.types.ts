@@ -16,7 +16,7 @@ export interface UserDto {
   lastLoginAt?: string | null;
 }
 
-export type UserRole = 'Administrator' | 'Teacher' | 'VettedMember' | 'GeneralMember' | 'Guest';
+export type UserRole = 'Administrator' | 'Teacher' | 'SafetyTeam' | '';
 
 export interface EventDto {
   id?: string;

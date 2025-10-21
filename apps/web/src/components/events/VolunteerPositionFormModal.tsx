@@ -1,3 +1,11 @@
+/**
+ * @deprecated This modal component is deprecated as of 2025-10-21.
+ * Use inline editing in VolunteerPositionsGrid instead.
+ * This file is kept for the VolunteerPosition interface export only.
+ *
+ * @see VolunteerPositionsGrid - New inline editing implementation
+ * @see VolunteerPositionInlineForm - Replacement form component
+ */
 import React from 'react';
 import { Modal, TextInput, Textarea, NumberInput, Group, Button, Stack, Select } from '@mantine/core';
 import { TimeInput } from '@mantine/dates';
@@ -12,6 +20,7 @@ export interface VolunteerPosition {
   endTime: string;
   slotsNeeded: number;  // Match API field name
   slotsFilled: number;  // Match API field name
+  isPublicFacing: boolean;  // Whether visible on public event page
 }
 
 interface VolunteerPositionFormModalProps {

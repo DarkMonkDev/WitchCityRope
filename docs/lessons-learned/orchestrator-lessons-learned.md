@@ -6,25 +6,25 @@
 
 ### 🚨 ULTRA CRITICAL ORCHESTRATION DOCUMENTS (MUST READ): 🚨
 1. **Workflow Orchestration Process** - **5-PHASE WORKFLOW**
-`/docs/standards-processes/workflow-orchestration-process.md`
+`/home/chad/repos/witchcityrope/docs/standards-processes/workflow-orchestration-process.md`
 
 2. **Phase-Based Validation** - **QUALITY GATES**
-`/docs/standards-processes/PHASE-BASED-VALIDATION-SYSTEM.md`
+`/home/chad/repos/witchcityrope/docs/standards-processes/PHASE-BASED-VALIDATION-SYSTEM.md`
 
 3. **Agent Boundaries** - **WHO DOES WHAT**
-`/docs/standards-processes/agent-boundaries.md`
+`/home/chad/repos/witchcityrope/docs/standards-processes/agent-boundaries.md`
 
 4. **Project Progress** - **CURRENT STATE**
 `/PROGRESS.md`
 
 ### 📚 DOCUMENT DISCOVERY RESOURCES:
-- **File Registry** - `/docs/architecture/file-registry.md` - Find any document
-- **Functional Areas Index** - `/docs/architecture/functional-area-master-index.md` - Navigate features
-- **Key Documents List** - `/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+- **File Registry** - `/home/chad/repos/witchcityrope/docs/architecture/file-registry.md` - Find any document
+- **Functional Areas Index** - `/home/chad/repos/witchcityrope/docs/architecture/functional-area-master-index.md` - Navigate features
+- **Key Documents List** - `/home/chad/repos/witchcityrope/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
 
 ### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
-- **Agent Handoff Template** - `/docs/standards-processes/agent-handoff-template.md` - Documentation format
-- **Documentation Standards** - `/docs/standards-processes/documentation-standards.md` - How to document
+- **Agent Handoff Template** - `/home/chad/repos/witchcityrope/docs/standards-processes/agent-handoff-template.md` - Documentation format
+- **Documentation Standards** - `/home/chad/repos/witchcityrope/docs/standards-processes/documentation-standards.md` - How to document
 
 ### Validation Gates (MUST COMPLETE):
 - [ ] **Read Workflow Orchestration FIRST** - Understand 5-phase process
@@ -159,9 +159,9 @@ The orchestrator MUST focus on keeping its context clean and ALWAYS delegate wor
 - **VALIDATION of phase completions** - Document quality gates
 
 ### 📁 WHERE TO SAVE HANDOFFS
-**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Location**: `/home/chad/repos/witchcityrope/docs/functional-areas/[feature]/handoffs/`
 **Naming**: `orchestrator-YYYY-MM-DD-handoff.md`
-**Template**: `/docs/standards-processes/agent-handoff-template.md`
+**Template**: `/home/chad/repos/witchcityrope/docs/standards-processes/agent-handoff-template.md`
 
 ### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
 1. **Workflow Status**: Which phases completed and what's pending
@@ -178,7 +178,7 @@ The orchestrator MUST focus on keeping its context clean and ALWAYS delegate wor
 
 ### ⚠️ MANDATORY READING BEFORE STARTING
 **ALWAYS READ EXISTING HANDOFFS FIRST**:
-1. Check `/docs/functional-areas/[feature]/handoffs/` for previous orchestration work
+1. Check `/home/chad/repos/witchcityrope/docs/functional-areas/[feature]/handoffs/` for previous orchestration work
 2. Read ALL handoff documents from all agents
 3. Understand workflow state and agent outputs
 4. Build on existing progress - don't restart completed phases
@@ -196,7 +196,7 @@ The orchestrator MUST focus on keeping its context clean and ALWAYS delegate wor
 
 **MANDATORY ENFORCEMENT ACTIONS**:
 1. **VERIFY** handoff exists before allowing phase transition
-2. **INCLUDE** in every delegation prompt: "Read handoff at `/docs/functional-areas/[feature]/handoffs/`"
+2. **INCLUDE** in every delegation prompt: "Read handoff at `/home/chad/repos/witchcityrope/docs/functional-areas/[feature]/handoffs/`"
 3. **CHECK** agent completion includes handoff creation
 4. **BLOCK** workflow if handoff missing - NO EXCEPTIONS
 
@@ -206,12 +206,12 @@ Task: [agent-name]
 Prompt: [specific instructions]
 
 MANDATORY: Read existing handoffs FIRST:
-- Location: /docs/functional-areas/[feature]/handoffs/
+- Location: /home/chad/repos/witchcityrope/docs/functional-areas/[feature]/handoffs/
 - Previous phase handoff: [specific-file.md]
 
 MANDATORY: Create handoff document AFTER completion:
-- Template: /docs/standards-processes/agent-handoff-template.md
-- Save to: /docs/functional-areas/[feature]/handoffs/[agent]-YYYY-MM-DD-handoff.md
+- Template: /home/chad/repos/witchcityrope/docs/standards-processes/agent-handoff-template.md
+- Save to: /home/chad/repos/witchcityrope/docs/functional-areas/[feature]/handoffs/[agent]-YYYY-MM-DD-handoff.md
 ```
 
 **VERIFICATION CHECKLIST**:
@@ -229,16 +229,16 @@ MANDATORY: Create handoff document AFTER completion:
 **ZERO TOLERANCE POLICY - VIOLATIONS = IMMEDIATE FAILURE**
 
 #### Documentation Structure Rules (NEVER VIOLATE):
-- ❌ **NEVER** create files in `/docs/` root (only 6 approved files allowed)
-- ✅ **ALWAYS** check `/docs/architecture/functional-area-master-index.md` FIRST
+- ❌ **NEVER** create files in `/home/chad/repos/witchcityrope/docs/` root (only 6 approved files allowed)
+- ✅ **ALWAYS** check `/home/chad/repos/witchcityrope/docs/architecture/functional-area-master-index.md` FIRST
 - ✅ **ALWAYS** use proper functional area paths:
-  - `/docs/functional-areas/[area]/` - Feature work
-  - `/docs/guides-setup/` - Guides and setup
-  - `/docs/lessons-learned/` - Lessons learned
-  - `/docs/standards-processes/` - Standards
+  - `/home/chad/repos/witchcityrope/docs/functional-areas/[area]/` - Feature work
+  - `/home/chad/repos/witchcityrope/docs/guides-setup/` - Guides and setup
+  - `/home/chad/repos/witchcityrope/docs/lessons-learned/` - Lessons learned
+  - `/home/chad/repos/witchcityrope/docs/standards-processes/` - Standards
 
 #### Documentation Organization Standard (NEW - CRITICAL):
-**MANDATORY**: Follow `/docs/standards-processes/documentation-organization-standard.md`
+**MANDATORY**: Follow `/home/chad/repos/witchcityrope/docs/standards-processes/documentation-organization-standard.md`
 
 **KEY ENFORCEMENT RULES**:
 1. **Cross-cutting features organized by PRIMARY BUSINESS DOMAIN**
@@ -247,20 +247,20 @@ MANDATORY: Create handoff document AFTER completion:
 4. **NEVER create separate functional area folders for UI contexts of existing domains**
 
 **ORCHESTRATOR MUST ENFORCE**:
-- ✅ **CORRECT**: `/docs/functional-areas/events/[context]/`
-- ❌ **WRONG**: `/docs/functional-areas/user-dashboard/events/`
+- ✅ **CORRECT**: `/home/chad/repos/witchcityrope/docs/functional-areas/events/[context]/`
+- ❌ **WRONG**: `/home/chad/repos/witchcityrope/docs/functional-areas/user-dashboard/events/`
 - **Coordinate agents** to follow domain-based organization
 - **Prevent UI-context functional areas** from being created
 - **Ensure cross-references** between related contexts
-  - `/docs/architecture/` - Architecture decisions
-  - `/docs/design/` - Design documents
-  - `/docs/_archive/` - Archived content
-- 🔍 **ALWAYS** run structure validator: `bash /docs/architecture/docs-structure-validator.sh`
+  - `/home/chad/repos/witchcityrope/docs/architecture/` - Architecture decisions
+  - `/home/chad/repos/witchcityrope/docs/design/` - Design documents
+  - `/home/chad/repos/witchcityrope/docs/_archive/` - Archived content
+- 🔍 **ALWAYS** run structure validator: `bash /home/chad/repos/witchcityrope/docs/architecture/docs-structure-validator.sh`
 - 📝 **ALWAYS** update file registry for ALL operations
 
 #### Pre-Flight Checklist (MANDATORY):
 - [ ] Check functional-area-master-index.md for proper location
-- [ ] Verify NOT creating in /docs/ root
+- [ ] Verify NOT creating in /home/chad/repos/witchcityrope/docs/ root
 - [ ] Use existing functional area structure
 - [ ] Update file registry for all operations
 - [ ] Run structure validator after operations
@@ -272,10 +272,10 @@ MANDATORY: Create handoff document AFTER completion:
 - **Agent shortcuts** → VIOLATION + re-training required
 
 ### Critical Architecture Documents (MUST READ BEFORE ANY WORK):
-1. **Migration Architecture**: `/docs/architecture/react-migration/domain-layer-architecture.md`
-2. **DTO Strategy**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
-3. **Architecture Discovery Process**: `/docs/standards-processes/architecture-discovery-process.md`
-4. **Migration Plan**: `/docs/architecture/react-migration/migration-plan.md`
+1. **Migration Architecture**: `/home/chad/repos/witchcityrope/docs/architecture/react-migration/domain-layer-architecture.md`
+2. **DTO Strategy**: `/home/chad/repos/witchcityrope/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
+3. **Architecture Discovery Process**: `/home/chad/repos/witchcityrope/docs/standards-processes/architecture-discovery-process.md`
+4. **Migration Plan**: `/home/chad/repos/witchcityrope/docs/architecture/react-migration/migration-plan.md`
 
 ### Validation Gates (MUST COMPLETE):
 - [ ] Read all architecture documents above
@@ -295,8 +295,8 @@ MANDATORY: Create handoff document AFTER completion:
 When delegating ANY technical work, ALWAYS include:
 ```
 BEFORE starting work:
-1. Complete Architecture Discovery per /docs/standards-processes/architecture-discovery-process.md
-2. Check if solution exists in /docs/architecture/react-migration/ documents
+1. Complete Architecture Discovery per /home/chad/repos/witchcityrope/docs/standards-processes/architecture-discovery-process.md
+2. Check if solution exists in /home/chad/repos/witchcityrope/docs/architecture/react-migration/ documents
 3. For DTO/API work: Verify NSwag auto-generation in domain-layer-architecture.md lines 725-997
 4. Document your findings with specific line references before proposing solutions
 ```
@@ -438,7 +438,7 @@ Implemented comprehensive phase-based validation system after catastrophic docum
 
 #### Phase 1: Requirements & Planning
 - **Critical Checks**: Functional area structure, root pollution, archive integrity
-- **Blocking Conditions**: Files in /docs/ root, missing master index, multiple archives
+- **Blocking Conditions**: Files in /home/chad/repos/witchcityrope/docs/ root, missing master index, multiple archives
 - **Key Validation**: Business requirements in proper locations
 
 #### Phase 2: Design & Architecture
@@ -514,7 +514,7 @@ Files being created in the wrong locations, particularly in the project root dir
 - ONLY README.md, PROGRESS.md, ARCHITECTURE.md, and CLAUDE.md belong in project root
 - ALL other files must go in appropriate subdirectories
 - Temporary files should use /session-work/YYYY-MM-DD/ structure
-- Documentation must follow /docs/ hierarchy without nested /docs/docs/ folders
+- Documentation must follow /home/chad/repos/witchcityrope/docs/ hierarchy without nested /home/chad/repos/witchcityrope/docs/docs/ folders
 
 #### Action Items
 - [ ] ALWAYS validate file creation locations before delegation
@@ -523,7 +523,7 @@ Files being created in the wrong locations, particularly in the project root dir
 - [ ] MONITOR for root directory violations and correct immediately
 
 #### Impact
-Proper file organization prevents /docs/docs/ disasters, maintains clean project structure, and ensures documents can be found by future team members.
+Proper file organization prevents /home/chad/repos/witchcityrope/docs/docs/ disasters, maintains clean project structure, and ensures documents can be found by future team members.
 
 ### Tags
 #critical #file-management #organization #structure

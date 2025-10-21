@@ -13,18 +13,18 @@
 `/.prettierignore` - What not to format
 
 4. **Coding Standards** - **PROJECT CONVENTIONS**
-`/docs/standards-processes/coding-standards.md`
+`/home/chad/repos/witchcityrope/docs/standards-processes/coding-standards.md`
 
 ### 📚 DOCUMENT DISCOVERY RESOURCES:
-- **File Registry** - `/docs/architecture/file-registry.md` - Find any document
-- **Functional Areas Index** - `/docs/architecture/functional-area-master-index.md` - Navigate features
-- **Key Documents List** - `/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+- **File Registry** - `/home/chad/repos/witchcityrope/docs/architecture/file-registry.md` - Find any document
+- **Functional Areas Index** - `/home/chad/repos/witchcityrope/docs/architecture/functional-area-master-index.md` - Navigate features
+- **Key Documents List** - `/home/chad/repos/witchcityrope/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
 
 ### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
-- **React Standards** - `/docs/standards-processes/react-component-standards.md` - Component patterns
-- **Monorepo Structure** - `/docs/architecture/monorepo-structure.md` - Package organization
-- **CI/CD Pipeline** - `/docs/guides-setup/ci-cd-setup.md` - Formatting in pipeline
-- **Development Guide** - `/docs/guides-setup/development-guide.md` - Dev workflow
+- **React Standards** - `/home/chad/repos/witchcityrope/docs/standards-processes/react-component-standards.md` - Component patterns
+- **Monorepo Structure** - `/home/chad/repos/witchcityrope/docs/architecture/monorepo-structure.md` - Package organization
+- **CI/CD Pipeline** - `/home/chad/repos/witchcityrope/docs/guides-setup/ci-cd-setup.md` - Formatting in pipeline
+- **Development Guide** - `/home/chad/repos/witchcityrope/docs/guides-setup/development-guide.md` - Dev workflow
 
 ### Validation Gates (MUST COMPLETE):
 - [ ] Read .prettierrc configuration
@@ -52,9 +52,9 @@
 - **CONFIGURATION CHANGES** - Document rule updates
 
 ### 📁 WHERE TO SAVE HANDOFFS
-**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Location**: `/home/chad/repos/witchcityrope/docs/functional-areas/[feature]/handoffs/`
 **Naming**: `prettier-formatter-YYYY-MM-DD-handoff.md`
-**Template**: `/docs/standards-processes/agent-handoff-template.md`
+**Template**: `/home/chad/repos/witchcityrope/docs/standards-processes/agent-handoff-template.md`
 
 ### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
 1. **Formatting Results**: Files formatted count
@@ -71,7 +71,7 @@
 
 ### ⚠️ MANDATORY READING BEFORE STARTING
 **ALWAYS READ EXISTING HANDOFFS FIRST**:
-1. Check `/docs/functional-areas/[feature]/handoffs/` for format history
+1. Check `/home/chad/repos/witchcityrope/docs/functional-areas/[feature]/handoffs/` for format history
 2. Review configuration state
 3. Check known conflicts
 4. Continue formatting patterns

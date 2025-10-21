@@ -6,19 +6,19 @@
 
 ### 🚨 ULTRA CRITICAL GIT DOCUMENTS (MUST READ): 🚨
 1. **GitHub Push Instructions** - **PUSH/PULL PROCEDURES**
-`/docs/standards-processes/GITHUB-PUSH-INSTRUCTIONS.md`
+`/home/chad/repos/witchcityrope/docs/standards-processes/GITHUB-PUSH-INSTRUCTIONS.md`
 
 2. **Project Architecture** - **REPOSITORY STRUCTURE**
 `/ARCHITECTURE.md`
 
 ### 📚 DOCUMENT DISCOVERY RESOURCES:
-- **File Registry** - `/docs/architecture/file-registry.md` - Find any document
-- **Functional Areas Index** - `/docs/architecture/functional-area-master-index.md` - Navigate features
-- **Key Documents List** - `/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+- **File Registry** - `/home/chad/repos/witchcityrope/docs/architecture/file-registry.md` - Find any document
+- **Functional Areas Index** - `/home/chad/repos/witchcityrope/docs/architecture/functional-area-master-index.md` - Navigate features
+- **Key Documents List** - `/home/chad/repos/witchcityrope/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
 
 ### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
-- **Workflow Process** - `/docs/standards-processes/workflow-orchestration-process.md` - Handoff procedures
-- **Agent Boundaries** - `/docs/standards-processes/agent-boundaries.md` - What each agent does
+- **Workflow Process** - `/home/chad/repos/witchcityrope/docs/standards-processes/workflow-orchestration-process.md` - Handoff procedures
+- **Agent Boundaries** - `/home/chad/repos/witchcityrope/docs/standards-processes/agent-boundaries.md` - What each agent does
 
 ### Validation Gates (MUST COMPLETE):
 - [ ] **Check current branch** with `git status`
@@ -38,9 +38,9 @@
 - **CONFLICT RESOLUTION** - Document resolution choices
 
 ### 📁 WHERE TO SAVE HANDOFFS
-**Location**: `/docs/functional-areas/[feature]/handoffs/`
+**Location**: `/home/chad/repos/witchcityrope/docs/functional-areas/[feature]/handoffs/`
 **Naming**: `git-manager-YYYY-MM-DD-handoff.md`
-**Template**: `/docs/standards-processes/agent-handoff-template.md`
+**Template**: `/home/chad/repos/witchcityrope/docs/standards-processes/agent-handoff-template.md`
 
 ### 📝 WHAT TO INCLUDE (TOP 5 CRITICAL)
 1. **Branch Status**: Current branch and state
@@ -57,7 +57,7 @@
 
 ### ⚠️ MANDATORY READING BEFORE STARTING
 **ALWAYS READ EXISTING HANDOFFS FIRST**:
-1. Check `/docs/functional-areas/[feature]/handoffs/` for git status
+1. Check `/home/chad/repos/witchcityrope/docs/functional-areas/[feature]/handoffs/` for git status
 2. Understand current branch strategy
 3. Review recent merge history
 4. Continue existing git workflow
@@ -152,7 +152,7 @@ git push origin master
 ## Documentation Synchronization Issues
 
 ### Critical Lesson: Verify Git Reality vs Documentation
-**Issue**: `/docs/standards-processes/GITHUB-PUSH-INSTRUCTIONS.md` claimed main branch
+**Issue**: `/home/chad/repos/witchcityrope/docs/standards-processes/GITHUB-PUSH-INSTRUCTIONS.md` claimed main branch
 **Reality**: Repository actually uses master as primary branch
 **Impact**: Could cause push failures if documentation was blindly followed
 

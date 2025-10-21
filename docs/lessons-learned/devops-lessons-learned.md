@@ -7,24 +7,24 @@
 `/DOCKER_DEV_GUIDE.md` and `/DOCKER_ONLY_DEVELOPMENT.md`
 
 2. **GitHub Push Instructions** - **GIT OPERATIONS**
-`/docs/standards-processes/GITHUB-PUSH-INSTRUCTIONS.md`
+`/home/chad/repos/witchcityrope/docs/standards-processes/GITHUB-PUSH-INSTRUCTIONS.md`
 
 3. **Architecture Overview** - **SYSTEM STRUCTURE**
 `/ARCHITECTURE.md`
 
 4. **CI/CD Pipeline** - **DEPLOYMENT PROCEDURES**
-`/docs/guides-setup/ci-cd-setup.md`
+`/home/chad/repos/witchcityrope/docs/guides-setup/ci-cd-setup.md`
 
 ### 📚 DOCUMENT DISCOVERY RESOURCES:
-- **File Registry** - `/docs/architecture/file-registry.md` - Find any document
-- **Functional Areas Index** - `/docs/architecture/functional-area-master-index.md` - Navigate features
-- **Key Documents List** - `/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+- **File Registry** - `/home/chad/repos/witchcityrope/docs/architecture/file-registry.md` - Find any document
+- **Functional Areas Index** - `/home/chad/repos/witchcityrope/docs/architecture/functional-area-master-index.md` - Navigate features
+- **Key Documents List** - `/home/chad/repos/witchcityrope/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
 
 ### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
-- **Development Guide** - `/docs/guides-setup/development-guide.md` - Dev workflow
-- **Deployment Guide** - `/docs/guides-setup/deployment-guide.md` - Production deploy
-- **Environment Config** - `/docs/guides-setup/environment-setup.md` - Environment vars
-- **Monitoring Setup** - `/docs/guides-setup/monitoring-setup.md` - App monitoring
+- **Development Guide** - `/home/chad/repos/witchcityrope/docs/guides-setup/development-guide.md` - Dev workflow
+- **Deployment Guide** - `/home/chad/repos/witchcityrope/docs/guides-setup/deployment-guide.md` - Production deploy
+- **Environment Config** - `/home/chad/repos/witchcityrope/docs/guides-setup/environment-setup.md` - Environment vars
+- **Monitoring Setup** - `/home/chad/repos/witchcityrope/docs/guides-setup/monitoring-setup.md` - App monitoring
 
 ### Validation Gates (MUST COMPLETE):
 - [ ] Read Docker development guides

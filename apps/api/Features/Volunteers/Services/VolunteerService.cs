@@ -44,18 +44,11 @@ public class VolunteerService
                 return (false, null, "Event not found");
             }
 
-            // Get volunteer positions
-            var query = _context.VolunteerPositions
+            // Get volunteer positions - only show public-facing positions on event page
+            var positions = await _context.VolunteerPositions
                 .Include(vp => vp.Session)
-                .Where(vp => vp.EventId == eventGuid);
-
-            // Only show public-facing positions to non-authenticated users
-            if (string.IsNullOrEmpty(userId))
-            {
-                query = query.Where(vp => vp.IsPublicFacing);
-            }
-
-            var positions = await query.ToListAsync(cancellationToken);
+                .Where(vp => vp.EventId == eventGuid && vp.IsPublicFacing)
+                .ToListAsync(cancellationToken);
 
             // Get event sessions to handle event-wide positions
             var eventSessions = await _context.Sessions
@@ -189,7 +182,7 @@ public class VolunteerService
             var existingParticipation = await _context.EventParticipations
                 .FirstOrDefaultAsync(ep => ep.EventId == eventId
                     && ep.UserId == userGuid
-                    && ep.ParticipationType == ParticipationType.RSVP, cancellationToken);
+                    && ep.Status == ParticipationStatus.Active, cancellationToken);
 
             if (existingParticipation == null)
             {

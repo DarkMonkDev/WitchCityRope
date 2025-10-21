@@ -65,7 +65,7 @@ export const AdminMemberDetailsPage: React.FC = () => {
         {memberDetails && !isLoading && !error && (
           <Group gap="xs">
             {/* Role Badges */}
-            {memberDetails.role.split(',').map((role, index) => (
+            {memberDetails.role.split(',').filter(role => role.trim()).map((role, index) => (
               <Badge key={index} color="blue" size="lg" variant="filled">
                 {role.trim().toUpperCase()}
               </Badge>

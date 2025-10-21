@@ -78,6 +78,28 @@
         }
       }
     },
+    "/api/metadata/valid-roles": {
+      "get": {
+        "tags": [
+          "Metadata"
+        ],
+        "summary": "Get valid user roles",
+        "description": "Returns the list of valid role names that can be assigned to users in the system",
+        "operationId": "GetValidRoles",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidRolesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/current-user": {
       "get": {
         "tags": [
@@ -754,6 +776,64 @@
           },
           "409": {
             "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/admin/users/{userId}/roles": {
+      "put": {
+        "tags": [
+          "Admin",
+          "Users"
+        ],
+        "summary": "Update user roles (admin only)",
+        "description": "Updates user roles in the admin user management system.\nAccepts a list of roles: 'Teacher', 'SafetyTeam', 'Administrator'.\nEmpty list = Regular member (no special roles).\nRoles are stored as comma-separated string (e.g., 'Teacher,SafetyTeam').\nRole changes are logged for audit purposes.",
+        "operationId": "UpdateUserRoles",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserRolesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -1551,6 +1631,205 @@
           },
           "409": {
             "description": "Conflict"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/volunteer-positions/{positionId}/signups": {
+      "get": {
+        "tags": [
+          "Volunteer Assignment"
+        ],
+        "summary": "Get members assigned to a volunteer position",
+        "description": "Returns list of members currently assigned to a volunteer position with their contact information. Requires Admin or SafetyTeam role. Shows scene name, email, FetLife, Discord, and signup status.",
+        "operationId": "GetVolunteerPositionSignups",
+        "parameters": [
+          {
+            "name": "positionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfListOfVolunteerAssignmentDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Volunteer Assignment"
+        ],
+        "summary": "Assign a member to a volunteer position",
+        "description": "Assigns a member to a volunteer position. Requires Admin or SafetyTeam role. Checks position capacity and existing participations. Auto-RSVPs user to event if needed. Returns 409 Conflict if position is full or user already assigned.",
+        "operationId": "AssignMemberToVolunteerPosition",
+        "parameters": [
+          {
+            "name": "positionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignVolunteerRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfVolunteerAssignmentDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/volunteer-signups/{signupId}": {
+      "delete": {
+        "tags": [
+          "Volunteer Assignment"
+        ],
+        "summary": "Remove a member assignment from a volunteer position",
+        "description": "Removes a member assignment from a volunteer position by cancelling the signup. Requires Admin or SafetyTeam role. Only allows removal if volunteer has not checked in yet. Updates position slots count. Returns 409 Conflict if already cancelled or checked in.",
+        "operationId": "RemoveVolunteerAssignment",
+        "parameters": [
+          {
+            "name": "signupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/users/search": {
+      "get": {
+        "tags": [
+          "Volunteer Assignment",
+          "Users"
+        ],
+        "summary": "Search for active members",
+        "description": "Search all active members by scene name, real name, email, or Discord name. Requires Admin or SafetyTeam role. Minimum 3 characters required. Returns up to 50 results ordered by scene name. Excludes inactive users.",
+        "operationId": "SearchUsers",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfListOfUserSearchResultDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           },
           "500": {
             "description": "Internal Server Error"
@@ -5076,6 +5355,68 @@
           }
         }
       },
+      "ApiResponseOfListOfUserSearchResultDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserSearchResultDto"
+            },
+            "nullable": true
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseOfListOfVolunteerAssignmentDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VolunteerAssignmentDto"
+            },
+            "nullable": true
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ApiResponseOfListOfVolunteerPositionDto": {
         "type": "object",
         "properties": {
@@ -5302,6 +5643,33 @@
           },
           "data": {
             "$ref": "#/components/schemas/VettingStatusDto"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseOfVolunteerAssignmentDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/VolunteerAssignmentDto2"
           },
           "error": {
             "type": "string",
@@ -5881,6 +6249,15 @@
             "type": "string",
             "format": "uuid",
             "nullable": true
+          }
+        }
+      },
+      "AssignVolunteerRequest": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
           }
         }
       },
@@ -8985,6 +9362,20 @@
           }
         }
       },
+      "UpdateUserRolesRequest": {
+        "required": [
+          "roles"
+        ],
+        "type": "object",
+        "properties": {
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "UserCoordinatorDto": {
         "type": "object",
         "properties": {
@@ -9266,6 +9657,29 @@
         },
         "nullable": true
       },
+      "UserSearchResultDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sceneName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "discordName": {
+            "type": "string",
+            "nullable": true
+          },
+          "realName": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
       "ValidationProblemDetails": {
         "type": "object",
         "properties": {
@@ -9297,6 +9711,17 @@
               "items": {
                 "type": "string"
               }
+            }
+          }
+        }
+      },
+      "ValidRolesResponse": {
+        "type": "object",
+        "properties": {
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
             }
           }
         }
@@ -9440,6 +9865,99 @@
         },
         "nullable": true
       },
+      "VolunteerAssignmentDto": {
+        "type": "object",
+        "properties": {
+          "signupId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "volunteerPositionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sceneName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "fetLifeName": {
+            "type": "string",
+            "nullable": true
+          },
+          "discordName": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          },
+          "signedUpAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "hasCheckedIn": {
+            "type": "boolean"
+          },
+          "checkedInAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "VolunteerAssignmentDto2": {
+        "type": "object",
+        "properties": {
+          "signupId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "volunteerPositionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sceneName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "fetLifeName": {
+            "type": "string",
+            "nullable": true
+          },
+          "discordName": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          },
+          "signedUpAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "hasCheckedIn": {
+            "type": "boolean"
+          },
+          "checkedInAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "nullable": true
+      },
       "VolunteerPositionDto": {
         "type": "object",
         "properties": {
@@ -9459,12 +9977,6 @@
           "slotsFilled": {
             "type": "integer",
             "format": "int32"
-          },
-          "requiresExperience": {
-            "type": "boolean"
-          },
-          "requirements": {
-            "type": "string"
           },
           "sessionId": {
             "type": "string",
@@ -9512,12 +10024,6 @@
           "slotsRemaining": {
             "type": "integer",
             "format": "int32"
-          },
-          "requiresExperience": {
-            "type": "boolean"
-          },
-          "requirements": {
-            "type": "string"
           },
           "isPublicFacing": {
             "type": "boolean"
@@ -9571,10 +10077,6 @@
             "type": "string",
             "format": "date-time"
           },
-          "notes": {
-            "type": "string",
-            "nullable": true
-          },
           "hasCheckedIn": {
             "type": "boolean"
           },
@@ -9605,13 +10107,7 @@
         "nullable": true
       },
       "VolunteerSignupRequest": {
-        "type": "object",
-        "properties": {
-          "notes": {
-            "type": "string",
-            "nullable": true
-          }
-        }
+        "type": "object"
       },
       "WhereOccurred": {
         "enum": [
@@ -9660,6 +10156,9 @@
       "name": "Health"
     },
     {
+      "name": "Metadata"
+    },
+    {
       "name": "Authentication"
     },
     {
@@ -9682,6 +10181,9 @@
     },
     {
       "name": "Volunteers"
+    },
+    {
+      "name": "Volunteer Assignment"
     },
     {
       "name": "Testing"

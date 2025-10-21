@@ -6,33 +6,33 @@
 
 ### 🚨 ULTRA CRITICAL TESTING DOCUMENTS (MUST READ): 🚨
 1. **Docker-Only Testing Standard** - **ALL TESTS RUN IN DOCKER**
-`/docs/standards-processes/testing/docker-only-testing-standard.md`
+`/home/chad/repos/witchcityrope/docs/standards-processes/testing/docker-only-testing-standard.md`
 
 2. **Playwright Standards** - **E2E TESTING FRAMEWORK**
-`/docs/standards-processes/testing/playwright-standards.md`
+`/home/chad/repos/witchcityrope/docs/standards-processes/testing/playwright-standards.md`
 
 3. **Test Catalog** - **ALL EXISTING TESTS** (SPLIT FOR ACCESSIBILITY)
-⭕ **START HERE**: `/docs/standards-processes/testing/TEST_CATALOG.md` (Part 1 - Current Tests)
-📚 **If needed**: `/docs/standards-processes/testing/TEST_CATALOG_PART_2.md` (Part 2 - Historical)
-📜 **Archives**: `/docs/standards-processes/testing/TEST_CATALOG_PART_3.md` (Part 3 - Archived)
+⭕ **START HERE**: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_CATALOG.md` (Part 1 - Current Tests)
+📚 **If needed**: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_CATALOG_PART_2.md` (Part 2 - Historical)
+📜 **Archives**: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_CATALOG_PART_3.md` (Part 3 - Archived)
 
 4. **Testing Prerequisites** - **BEFORE YOU START**
-`/docs/standards-processes/testing-prerequisites.md`
+`/home/chad/repos/witchcityrope/docs/standards-processes/testing-prerequisites.md`
 
 5. **Project Architecture** - **TECH STACK**
 `/ARCHITECTURE.md`
 
 ### 📚 DOCUMENT DISCOVERY RESOURCES:
-- **File Registry** - `/docs/architecture/file-registry.md` - Find any document
-- **Functional Areas Index** - `/docs/architecture/functional-area-master-index.md` - Navigate features
-- **Key Documents List** - `/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
-- **Current Test Status** - `/docs/standards-processes/testing/CURRENT_TEST_STATUS.md` - Test state
+- **File Registry** - `/home/chad/repos/witchcityrope/docs/architecture/file-registry.md` - Find any document
+- **Functional Areas Index** - `/home/chad/repos/witchcityrope/docs/architecture/functional-area-master-index.md` - Navigate features
+- **Key Documents List** - `/home/chad/repos/witchcityrope/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+- **Current Test Status** - `/home/chad/repos/witchcityrope/docs/standards-processes/testing/CURRENT_TEST_STATUS.md` - Test state
 
 ### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
-- **E2E Testing Patterns** - `/docs/standards-processes/testing/E2E_TESTING_PATTERNS.md`
-- **Testing Guide** - `/docs/standards-processes/testing/TESTING_GUIDE.md`
-- **Workflow Process** - `/docs/standards-processes/workflow-orchestration-process.md` - Handoff procedures
-- **Agent Boundaries** - `/docs/standards-processes/agent-boundaries.md` - What each agent does
+- **E2E Testing Patterns** - `/home/chad/repos/witchcityrope/docs/standards-processes/testing/E2E_TESTING_PATTERNS.md`
+- **Testing Guide** - `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TESTING_GUIDE.md`
+- **Workflow Process** - `/home/chad/repos/witchcityrope/docs/standards-processes/workflow-orchestration-process.md` - Handoff procedures
+- **Agent Boundaries** - `/home/chad/repos/witchcityrope/docs/standards-processes/agent-boundaries.md` - What each agent does
 
 ### Validation Gates (MUST COMPLETE):
 - [ ] **Read Docker-Only Testing Standard FIRST** - All tests run in Docker containers
@@ -60,7 +60,7 @@
 - Performance validation - Add performance assertions based on measured metrics
 - Integration testing - Monitor API calls to ensure proper data flow
 
-**Configuration**: Automatically available via MCP - see `/docs/standards-processes/MCP/MCP_SERVERS.md`
+**Configuration**: Automatically available via MCP - see `/home/chad/repos/witchcityrope/docs/standards-processes/MCP/MCP_SERVERS.md`
 
 **Integration with Playwright**:
 - Use alongside Playwright for enhanced debugging capabilities
@@ -77,8 +77,8 @@
 
 ## 📚 MULTI-FILE LESSONS LEARNED
 **Files**: 2 total
-**Part 1**: `/docs/lessons-learned/test-developer-lessons-learned.md` (THIS FILE)
-**Part 2**: `/docs/lessons-learned/test-developer-lessons-learned-2.md` (MUST ALSO READ)
+**Part 1**: `/home/chad/repos/witchcityrope/docs/lessons-learned/test-developer-lessons-learned.md` (THIS FILE)
+**Part 2**: `/home/chad/repos/witchcityrope/docs/lessons-learned/test-developer-lessons-learned-2.md` (MUST ALSO READ)
 **Read ALL**: Both Part 1 AND Part 2 are MANDATORY
 **Write to**: Part 2 ONLY
 **Maximum file size**: 1700 lines (to stay under token limits). Both Part 1 and Part 2 files can be up to 1700 lines each
@@ -175,7 +175,7 @@ curl -f http://localhost:5173/ || echo "ERROR: Docker not on port 5173"
 ## 🚨 ULTRA CRITICAL: NEW LESSONS GO TO PART 2, NOT HERE! 🚨
 
 **PART 1 PURPOSE**: Startup procedures and critical navigation ONLY
-**ADD ALL NEW LESSONS TO PART 2**: `/docs/lessons-learned/test-developer-lessons-learned-2.md`
+**ADD ALL NEW LESSONS TO PART 2**: `/home/chad/repos/witchcityrope/docs/lessons-learned/test-developer-lessons-learned-2.md`
 
 ## NEVER ADD NEW LESSONS TO THIS FILE (PART 1)
 

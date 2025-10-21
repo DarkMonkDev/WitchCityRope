@@ -23,7 +23,7 @@ import { EventTicketTypesGrid, EventTicketType } from './EventTicketTypesGrid'
 import { SessionFormModal } from './SessionFormModal'
 import { TicketTypeFormModal, EventTicketType as ModalTicketType } from './TicketTypeFormModal'
 import { VolunteerPositionsGrid } from './VolunteerPositionsGrid'
-import { VolunteerPositionFormModal, VolunteerPosition } from './VolunteerPositionFormModal'
+import { VolunteerPosition } from './VolunteerPositionFormModal'
 import { WCRButton } from '../ui'
 import { useTeachers, formatTeachersForMultiSelect } from '../../lib/api/hooks/useTeachers'
 import {
@@ -101,11 +101,8 @@ export const EventForm: React.FC<EventFormProps> = ({
   // Modal state management
   const [sessionModalOpen, setSessionModalOpen] = useState(false)
   const [ticketModalOpen, setTicketModalOpen] = useState(false)
-  const [volunteerModalOpen, setVolunteerModalOpen] = useState(false)
   const [editingSession, setEditingSession] = useState<EventSession | null>(null)
   const [editingTicketType, setEditingTicketType] = useState<EventTicketType | null>(null)
-  const [editingVolunteerPosition, setEditingVolunteerPosition] =
-    useState<VolunteerPosition | null>(null)
 
   // Form state management
   const form = useForm<EventFormData>({
@@ -300,14 +297,6 @@ export const EventForm: React.FC<EventFormProps> = ({
   }
 
   // Volunteer position management handlers
-  const handleEditVolunteerPosition = (positionId: string) => {
-    const position = form.values.volunteerPositions.find((p) => p.id === positionId)
-    if (position) {
-      setEditingVolunteerPosition(position)
-      setVolunteerModalOpen(true)
-    }
-  }
-
   const handleDeleteVolunteerPosition = (positionId: string) => {
     const updatedPositions = form.values.volunteerPositions.filter(
       (position) => position.id !== positionId
@@ -315,26 +304,25 @@ export const EventForm: React.FC<EventFormProps> = ({
     form.setFieldValue('volunteerPositions', updatedPositions)
   }
 
-  const handleAddVolunteerPosition = () => {
-    setEditingVolunteerPosition(null)
-    setVolunteerModalOpen(true)
-  }
-
   const handleVolunteerPositionSubmit = (
-    positionData: Omit<VolunteerPosition, 'id' | 'slotsFilled'>
+    positionData: Omit<VolunteerPosition, 'id' | 'slotsFilled'>,
+    positionId?: string
   ) => {
-    if (editingVolunteerPosition) {
+    if (positionId) {
       // Update existing position
-      const updatedPositions = form.values.volunteerPositions.map((position) =>
-        position.id === editingVolunteerPosition.id
-          ? {
-              ...positionData,
-              id: editingVolunteerPosition.id,
-              slotsFilled: editingVolunteerPosition.slotsFilled,
-            }
-          : position
-      )
-      form.setFieldValue('volunteerPositions', updatedPositions)
+      const existingPosition = form.values.volunteerPositions.find((p) => p.id === positionId)
+      if (existingPosition) {
+        const updatedPositions = form.values.volunteerPositions.map((position) =>
+          position.id === positionId
+            ? {
+                ...positionData,
+                id: positionId,
+                slotsFilled: existingPosition.slotsFilled,
+              }
+            : position
+        )
+        form.setFieldValue('volunteerPositions', updatedPositions)
+      }
     } else {
       // Add new position
       const newPosition: VolunteerPosition = {
@@ -1037,9 +1025,12 @@ export const EventForm: React.FC<EventFormProps> = ({
                 </Title>
                 <VolunteerPositionsGrid
                   positions={form.values.volunteerPositions}
-                  onEditPosition={handleEditVolunteerPosition}
+                  onPositionSubmit={handleVolunteerPositionSubmit}
                   onDeletePosition={handleDeleteVolunteerPosition}
-                  onAddPosition={handleAddVolunteerPosition}
+                  availableSessions={form.values.sessions.map((s) => ({
+                    sessionIdentifier: s.sessionIdentifier,
+                    name: s.name,
+                  }))}
                 />
               </div>
             </Stack>
@@ -1518,17 +1509,7 @@ export const EventForm: React.FC<EventFormProps> = ({
         availableSessions={form.values.sessions || []}
       />
 
-      {/* Volunteer Position Form Modal */}
-      <VolunteerPositionFormModal
-        opened={volunteerModalOpen}
-        onClose={() => {
-          setVolunteerModalOpen(false)
-          setEditingVolunteerPosition(null)
-        }}
-        onSubmit={handleVolunteerPositionSubmit}
-        position={editingVolunteerPosition}
-        availableSessions={form.values.sessions || []}
-      />
+      {/* Modal removed - now using inline editing in VolunteerPositionsGrid */}
     </Card>
   )
 }

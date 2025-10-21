@@ -276,8 +276,8 @@ test('verify auth cookie has SameSite=Lax', async ({ page, context }) => {
 ### 4. Document in Lessons Learned
 
 Create reminder for new developers:
-- Authentication helper in `/docs/lessons-learned/test-executor-lessons-learned.md`
-- Backend developer lessons in `/docs/lessons-learned/backend-developer-lessons-learned.md`
+- Authentication helper in `/home/chad/repos/witchcityrope/docs/lessons-learned/test-executor-lessons-learned.md`
+- Backend developer lessons in `/home/chad/repos/witchcityrope/docs/lessons-learned/backend-developer-lessons-learned.md`
 
 ## Security Considerations
 

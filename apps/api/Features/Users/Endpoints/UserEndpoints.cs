@@ -206,6 +206,39 @@ public static class UserEndpoints
             .Produces(404)
             .Produces(409);
 
+        // Update user roles (admin only)
+        app.MapPut("/api/admin/users/{userId}/roles", async (
+            string userId,
+            UpdateUserRolesRequest request,
+            UserManagementService userService,
+            CancellationToken cancellationToken) =>
+            {
+                var (success, response, error) = await userService.UpdateUserRolesAsync(userId, request, cancellationToken);
+
+                return success
+                    ? Results.Ok(response)
+                    : Results.Problem(
+                        title: "Update User Roles Failed",
+                        detail: error,
+                        statusCode: error.Contains("not found") ? 404 :
+                                  error.Contains("Invalid") ? 400 : 500);
+            })
+            .RequireAuthorization(policy => policy.RequireRole("Administrator", "Admin")) // Administrator or Admin role required
+            .WithName("UpdateUserRoles")
+            .WithSummary("Update user roles (admin only)")
+            .WithDescription(@"Updates user roles in the admin user management system.
+Accepts a list of roles: 'Teacher', 'SafetyTeam', 'Administrator'.
+Empty list = Regular member (no special roles).
+Roles are stored as comma-separated string (e.g., 'Teacher,SafetyTeam').
+Role changes are logged for audit purposes.")
+            .WithTags("Admin", "Users")
+            .Produces<UserDto>(200)
+            .Produces(400)
+            .Produces(401)
+            .Produces(403)
+            .Produces(404)
+            .Produces(500);
+
         // Get users by role (for dropdowns)
         app.MapGet("/api/users/by-role/{role}", async (
             string role,

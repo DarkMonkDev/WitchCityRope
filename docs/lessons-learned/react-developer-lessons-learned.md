@@ -6,31 +6,31 @@
 
 ### 🚨 ULTRA CRITICAL ARCHITECTURE DOCUMENTS (MUST READ FIRST): 🚨
 1. **🛑 DTO ALIGNMENT STRATEGY** - **PREVENTS 393 TYPESCRIPT ERRORS**
-`/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
+`/home/chad/repos/witchcityrope/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md`
 
 2. **React Architecture Guide** - **CORE ARCHITECTURE DECISIONS**
-`/docs/architecture/react-migration/react-architecture.md`
+`/home/chad/repos/witchcityrope/docs/architecture/react-migration/react-architecture.md`
 
 3. **API Changes Guide**
-`/docs/guides-setup/ai-agents/react-developer-api-changes-guide.md`
+`/home/chad/repos/witchcityrope/docs/guides-setup/ai-agents/react-developer-api-changes-guide.md`
 
 4. **Project Architecture** - **TECH STACK AND STANDARDS**
 `/ARCHITECTURE.md`
 
 5. **Design System**
-`/docs/design/current/design-system-v7.md`
+`/home/chad/repos/witchcityrope/docs/design/current/design-system-v7.md`
 
 ### 📚 DOCUMENT DISCOVERY RESOURCES:
-- **File Registry** - `/docs/architecture/file-registry.md` - Find any document
-- **Functional Areas Index** - `/docs/architecture/functional-area-master-index.md` - Navigate features
-- **Key Documents List** - `/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
-- **React Patterns** - `/docs/standards-processes/development-standards/react-patterns.md` - React standards
-- **UI Standards** - `/docs/standards-processes/ui-implementation-standards.md` - UI implementation rules
+- **File Registry** - `/home/chad/repos/witchcityrope/docs/architecture/file-registry.md` - Find any document
+- **Functional Areas Index** - `/home/chad/repos/witchcityrope/docs/architecture/functional-area-master-index.md` - Navigate features
+- **Key Documents List** - `/home/chad/repos/witchcityrope/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+- **React Patterns** - `/home/chad/repos/witchcityrope/docs/standards-processes/development-standards/react-patterns.md` - React standards
+- **UI Standards** - `/home/chad/repos/witchcityrope/docs/standards-processes/ui-implementation-standards.md` - UI implementation rules
 
 ### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
-- **Workflow Process** - `/docs/standards-processes/workflow-orchestration-process.md` - Handoff procedures
-- **Agent Boundaries** - `/docs/standards-processes/agent-boundaries.md` - What each agent does
-- **Documentation Standards** - `/docs/standards-processes/documentation-standards.md` - How to document
+- **Workflow Process** - `/home/chad/repos/witchcityrope/docs/standards-processes/workflow-orchestration-process.md` - Handoff procedures
+- **Agent Boundaries** - `/home/chad/repos/witchcityrope/docs/standards-processes/agent-boundaries.md` - What each agent does
+- **Documentation Standards** - `/home/chad/repos/witchcityrope/docs/standards-processes/documentation-standards.md` - How to document
 
 ### Validation Gates (MUST COMPLETE WHEN STARTING A NEW SESSION):
 - [ ] **Read React Architecture Guide FIRST** - Core React architecture decisions and patterns
@@ -70,7 +70,7 @@
 - Performance optimization - Identify slow renders and unnecessary re-renders
 - Responsive design testing - Test components at different viewport sizes
 
-**Configuration**: Automatically available via MCP - see `/docs/standards-processes/MCP/MCP_SERVERS.md`
+**Configuration**: Automatically available via MCP - see `/home/chad/repos/witchcityrope/docs/standards-processes/MCP/MCP_SERVERS.md`
 
 **Best Practices**:
 - Use React DevTools features to inspect component state and props
@@ -85,8 +85,8 @@
 
 ## 📚 MULTI-FILE LESSONS LEARNED
 **Files**: 2 total
-**Part 1**: `/docs/lessons-learned/react-developer-lessons-learned.md` (THIS FILE - STARTUP ONLY)
-**Part 2**: `/docs/lessons-learned/react-developer-lessons-learned-2.md` (MAIN LESSONS FILE)
+**Part 1**: `/home/chad/repos/witchcityrope/docs/lessons-learned/react-developer-lessons-learned.md` (THIS FILE - STARTUP ONLY)
+**Part 2**: `/home/chad/repos/witchcityrope/docs/lessons-learned/react-developer-lessons-learned-2.md` (MAIN LESSONS FILE)
 **Read ALL**: Both Part 1 AND Part 2 are MANDATORY
 **Write to**: Part 2 ONLY - **NEVER ADD NEW LESSONS TO THIS FILE (PART 1)**
 **Maximum file size**: 1700 lines (to stay under token limits). Both Part 1 and Part 2 files can be up to 1700 lines each
@@ -94,7 +94,7 @@
 
 ## 🚨 ULTRA CRITICAL: NEW LESSONS GO TO PART 2, NOT HERE! 🚨
 **PART 1 PURPOSE**: Startup procedures and critical navigation ONLY
-**ALL NEW LESSONS**: Must go to Part 2 - `/docs/lessons-learned/react-developer-lessons-learned-2.md`
+**ALL NEW LESSONS**: Must go to Part 2 - `/home/chad/repos/witchcityrope/docs/lessons-learned/react-developer-lessons-learned-2.md`
 **IF YOU ADD LESSONS HERE**: You are violating the split pattern!
 
 ## 🚨 LATEST CRITICAL LESSON: REACT ROUTER NAVIGATION TIMING FIX 🚨
@@ -1252,7 +1252,7 @@ Don't spend hours checking database, API endpoints, or generated types first.
 
 **PART 1 COMPLETE** - You have read the startup procedures and critical patterns.
 
-**CONTINUE READING**: `/docs/lessons-learned/react-developer-lessons-learned-2.md`
+**CONTINUE READING**: `/home/chad/repos/witchcityrope/docs/lessons-learned/react-developer-lessons-learned-2.md`
 **CONTAINS**: Additional lessons learned, more patterns, and detailed solutions
 **MANDATORY**: You MUST read Part 2 for complete React developer knowledge
 **SIZE**: Part 2 contains up to 1700 additional lines of critical lessons
