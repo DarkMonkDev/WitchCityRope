@@ -35,14 +35,22 @@ public class VettingEmailService : IVettingEmailService
             EmailEnabled = configuration.GetValue<bool>("Vetting:EmailEnabled"),
             SendGridApiKey = configuration["Vetting:SendGridApiKey"] ?? string.Empty,
             FromEmail = configuration["Vetting:FromEmail"] ?? "noreply@witchcityrope.com",
-            FromName = configuration["Vetting:FromName"] ?? "WitchCityRope"
+            FromName = configuration["Vetting:FromName"] ?? "WitchCityRope",
+            SendGridSandboxMode = configuration.GetValue<bool>("Vetting:SendGridSandboxMode")
         };
 
         // Initialize SendGrid client only if email is enabled and API key is configured
         if (_emailConfig.EmailEnabled && !string.IsNullOrEmpty(_emailConfig.SendGridApiKey))
         {
             _sendGridClient = new SendGridClient(_emailConfig.SendGridApiKey);
-            _logger.LogInformation("VettingEmailService initialized with SendGrid integration enabled");
+            if (_emailConfig.SendGridSandboxMode)
+            {
+                _logger.LogInformation("VettingEmailService initialized with SendGrid SANDBOX mode - emails will be sent to SendGrid but not delivered");
+            }
+            else
+            {
+                _logger.LogInformation("VettingEmailService initialized with SendGrid integration enabled - emails will be sent and delivered");
+            }
         }
         else
         {
@@ -301,6 +309,13 @@ public class VettingEmailService : IVettingEmailService
                 var to = new EmailAddress(recipientEmail);
                 var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextBody, htmlBody);
 
+                // Enable sandbox mode if configured (emails sent to SendGrid but not delivered)
+                if (_emailConfig.SendGridSandboxMode)
+                {
+                    msg.SetSandBoxMode(true);
+                    _logger.LogInformation("Sandbox mode enabled - email will not be delivered");
+                }
+
                 var response = await _sendGridClient.SendEmailAsync(msg, cancellationToken);
 
                 // Extract SendGrid message ID from headers
@@ -376,7 +391,7 @@ public class VettingEmailService : IVettingEmailService
     private static string RenderTemplate(string template, VettingApplication application, string applicantName)
     {
         return template
-            .Replace("{{applicant_name}}", applicantName)
+            .Replace("{{scene_name}}", applicantName)
             .Replace("{{application_number}}", application.ApplicationNumber)
             .Replace("{{application_date}}", application.SubmittedAt.ToString("MMMM dd, yyyy"))
             .Replace("{{submission_date}}", application.SubmittedAt.ToString("MMMM dd, yyyy"))
@@ -693,4 +708,5 @@ internal class VettingEmailConfiguration
     public string SendGridApiKey { get; set; } = string.Empty;
     public string FromEmail { get; set; } = string.Empty;
     public string FromName { get; set; } = string.Empty;
+    public bool SendGridSandboxMode { get; set; } = false;
 }

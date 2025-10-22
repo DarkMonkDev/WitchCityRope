@@ -14,6 +14,8 @@ public class ApplicationSummaryDto
 
     // Applicant information (masked for privacy)
     public string SceneName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string? FetLifeHandle { get; set; }
     public string ExperienceLevel { get; set; } = string.Empty;
     public int YearsExperience { get; set; }
     public bool IsAnonymous { get; set; }

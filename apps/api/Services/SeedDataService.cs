@@ -1546,8 +1546,8 @@ Past participants built a strong foundation in rope fundamentals with structured
             {
                 Id = Guid.NewGuid(),
                 TemplateType = EmailTemplateType.ApplicationReceived,
-                Subject = "Application Received - {{applicant_name}}",
-                HtmlBody = @"Dear {{applicant_name}},
+                Subject = "Application Received - {{scene_name}}",
+                HtmlBody = @"Dear {{scene_name}},
 
 Thank you for submitting your vetting application to WitchCityRope. We have received your application and it is now under review.
 
@@ -1560,7 +1560,7 @@ If you have any questions, please don't hesitate to contact us.
 
 Best regards,
 The WitchCityRope Vetting Team",
-                PlainTextBody = @"Dear {{applicant_name}},
+                PlainTextBody = @"Dear {{scene_name}},
 
 Thank you for submitting your vetting application to WitchCityRope. We have received your application and it is now under review.
 
@@ -1573,6 +1573,7 @@ If you have any questions, please don't hesitate to contact us.
 
 Best regards,
 The WitchCityRope Vetting Team",
+                Variables = "scene_name, application_number, submission_date, application_date, status_change_date, contact_email, current_status",
                 IsActive = true,
                 UpdatedBy = adminUser.Id,
                 CreatedAt = DateTime.UtcNow,
@@ -1583,8 +1584,8 @@ The WitchCityRope Vetting Team",
             {
                 Id = Guid.NewGuid(),
                 TemplateType = EmailTemplateType.InterviewApproved,
-                Subject = "Interview Approved - {{applicant_name}}",
-                HtmlBody = @"Dear {{applicant_name}},
+                Subject = "Interview Approved - {{scene_name}}",
+                HtmlBody = @"Dear {{scene_name}},
 
 Congratulations! Your vetting application has been approved for the interview stage.
 
@@ -1598,7 +1599,7 @@ Please schedule your interview within the next 14 days.
 
 Best regards,
 The WitchCityRope Vetting Team",
-                PlainTextBody = @"Dear {{applicant_name}},
+                PlainTextBody = @"Dear {{scene_name}},
 
 Congratulations! Your vetting application has been approved for the interview stage.
 
@@ -1612,6 +1613,7 @@ Please schedule your interview within the next 14 days.
 
 Best regards,
 The WitchCityRope Vetting Team",
+                Variables = "scene_name, application_number, interview_link, submission_date, application_date, status_change_date, contact_email, current_status",
                 IsActive = true,
                 UpdatedBy = adminUser.Id,
                 CreatedAt = DateTime.UtcNow,
@@ -1622,8 +1624,8 @@ The WitchCityRope Vetting Team",
             {
                 Id = Guid.NewGuid(),
                 TemplateType = EmailTemplateType.Approved,
-                Subject = "Welcome to WitchCityRope - {{applicant_name}}",
-                HtmlBody = @"Dear {{applicant_name}},
+                Subject = "Welcome to WitchCityRope - {{scene_name}}",
+                HtmlBody = @"Dear {{scene_name}},
 
 Congratulations! Your application has been approved and you are now a vetted member of WitchCityRope.
 
@@ -1642,7 +1644,7 @@ Welcome aboard!
 
 Best regards,
 The WitchCityRope Team",
-                PlainTextBody = @"Dear {{applicant_name}},
+                PlainTextBody = @"Dear {{scene_name}},
 
 Congratulations! Your application has been approved and you are now a vetted member of WitchCityRope.
 
@@ -1661,6 +1663,7 @@ Welcome aboard!
 
 Best regards,
 The WitchCityRope Team",
+                Variables = "scene_name, application_number, approval_date, submission_date, application_date, status_change_date, contact_email, current_status",
                 IsActive = true,
                 UpdatedBy = adminUser.Id,
                 CreatedAt = DateTime.UtcNow,
@@ -1671,8 +1674,8 @@ The WitchCityRope Team",
             {
                 Id = Guid.NewGuid(),
                 TemplateType = EmailTemplateType.OnHold,
-                Subject = "Application On Hold - Additional Information Needed - {{applicant_name}}",
-                HtmlBody = @"Dear {{applicant_name}},
+                Subject = "Application On Hold - Additional Information Needed - {{scene_name}}",
+                HtmlBody = @"Dear {{scene_name}},
 
 Your vetting application is currently on hold as we need some additional information to proceed.
 
@@ -1688,7 +1691,7 @@ If you have any questions about what's needed, please contact us.
 
 Best regards,
 The WitchCityRope Vetting Team",
-                PlainTextBody = @"Dear {{applicant_name}},
+                PlainTextBody = @"Dear {{scene_name}},
 
 Your vetting application is currently on hold as we need some additional information to proceed.
 
@@ -1704,6 +1707,7 @@ If you have any questions about what's needed, please contact us.
 
 Best regards,
 The WitchCityRope Vetting Team",
+                Variables = "scene_name, application_number, hold_reason, required_actions, submission_date, application_date, status_change_date, contact_email, current_status",
                 IsActive = true,
                 UpdatedBy = adminUser.Id,
                 CreatedAt = DateTime.UtcNow,
@@ -1714,8 +1718,8 @@ The WitchCityRope Vetting Team",
             {
                 Id = Guid.NewGuid(),
                 TemplateType = EmailTemplateType.Denied,
-                Subject = "Application Status Update - {{applicant_name}}",
-                HtmlBody = @"Dear {{applicant_name}},
+                Subject = "Application Status Update - {{scene_name}}",
+                HtmlBody = @"Dear {{scene_name}},
 
 Thank you for your interest in WitchCityRope. After careful review, we are unable to approve your application at this time.
 
@@ -1728,7 +1732,7 @@ We appreciate your interest in our community.
 
 Best regards,
 The WitchCityRope Vetting Team",
-                PlainTextBody = @"Dear {{applicant_name}},
+                PlainTextBody = @"Dear {{scene_name}},
 
 Thank you for your interest in WitchCityRope. After careful review, we are unable to approve your application at this time.
 
@@ -1741,6 +1745,7 @@ We appreciate your interest in our community.
 
 Best regards,
 The WitchCityRope Vetting Team",
+                Variables = "scene_name, application_number, review_date, submission_date, application_date, status_change_date, contact_email, current_status",
                 IsActive = true,
                 UpdatedBy = adminUser.Id,
                 CreatedAt = DateTime.UtcNow,
@@ -1751,15 +1756,12 @@ The WitchCityRope Vetting Team",
             {
                 Id = Guid.NewGuid(),
                 TemplateType = EmailTemplateType.InterviewReminder,
-                Subject = "Interview Reminder - {{applicant_name}}",
-                HtmlBody = @"Dear {{applicant_name}},
+                Subject = "Interview Reminder - {{scene_name}}",
+                HtmlBody = @"Dear {{scene_name}},
 
 This is a friendly reminder about your upcoming vetting interview.
 
 Application Number: {{application_number}}
-Interview Date: {{interview_date}}
-Interview Time: {{interview_time}}
-Location: {{interview_location}}
 
 If you need to reschedule, please contact us at least 24 hours in advance.
 
@@ -1767,14 +1769,11 @@ We look forward to meeting with you!
 
 Best regards,
 The WitchCityRope Vetting Team",
-                PlainTextBody = @"Dear {{applicant_name}},
+                PlainTextBody = @"Dear {{scene_name}},
 
 This is a friendly reminder about your upcoming vetting interview.
 
 Application Number: {{application_number}}
-Interview Date: {{interview_date}}
-Interview Time: {{interview_time}}
-Location: {{interview_location}}
 
 If you need to reschedule, please contact us at least 24 hours in advance.
 
@@ -1782,6 +1781,7 @@ We look forward to meeting with you!
 
 Best regards,
 The WitchCityRope Vetting Team",
+                Variables = "scene_name, application_number, submission_date, application_date, status_change_date, contact_email, current_status",
                 IsActive = true,
                 UpdatedBy = adminUser.Id,
                 CreatedAt = DateTime.UtcNow,

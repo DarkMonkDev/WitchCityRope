@@ -6322,6 +6322,9 @@
           },
           "isActive": {
             "type": "boolean"
+          },
+          "isVetted": {
+            "type": "boolean"
           }
         }
       },
@@ -6357,6 +6360,9 @@
             }
           },
           "isActive": {
+            "type": "boolean"
+          },
+          "isVetted": {
             "type": "boolean"
           }
         },

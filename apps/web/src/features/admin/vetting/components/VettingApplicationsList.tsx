@@ -211,8 +211,8 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
                 />
               </Table.Th>
 
-              {/* Name column - sortable */}
-              <Table.Th style={{ backgroundColor: '#880124', borderBottom: 'none', cursor: 'pointer' }} onClick={() => handleSort('RealName')}>
+              {/* Scene Name column - sortable */}
+              <Table.Th style={{ backgroundColor: '#880124', borderBottom: 'none', cursor: 'pointer' }} onClick={() => handleSort('SceneName')}>
                 <Group gap={4} justify="flex-start">
                   <Text
                     fw={600}
@@ -223,13 +223,13 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
                       letterSpacing: '0.5px'
                     }}
                   >
-                    NAME
+                    SCENE NAME
                   </Text>
-                  {getSortIcon('RealName')}
+                  {getSortIcon('SceneName')}
                 </Group>
               </Table.Th>
 
-              {/* FetLife Name column - sortable */}
+              {/* FetLife Handle column - sortable */}
               <Table.Th style={{ backgroundColor: '#880124', borderBottom: 'none', cursor: 'pointer' }} onClick={() => handleSort('FetLifeHandle')}>
                 <Group gap={4} justify="flex-start">
                   <Text
@@ -241,7 +241,7 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
                       letterSpacing: '0.5px'
                     }}
                   >
-                    FETLIFE NAME
+                    FETLIFE HANDLE
                   </Text>
                   {getSortIcon('FetLifeHandle')}
                 </Group>
@@ -319,28 +319,28 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
                       event.stopPropagation(); // Prevent row click
                       handleSelectApplication(application.id, event.currentTarget.checked);
                     }}
-                    aria-label={`Select application for ${(application as any).realName || (application as any).fullName || application.sceneName}`}
+                    aria-label={`Select application for ${application.sceneName}`}
                   />
                 </Table.Td>
 
-                {/* Name - Real name in bold */}
+                {/* Scene Name - in bold */}
                 <Table.Td>
                   <Text size="sm" fw={600} style={{ color: '#2B2B2B' }}>
-                    {(application as any).realName || (application as any).fullName || application.sceneName || 'Name not provided'}
+                    {application.sceneName || 'Name not provided'}
                   </Text>
                 </Table.Td>
 
-                {/* FetLife Name - Handle in bold */}
+                {/* FetLife Handle - in bold */}
                 <Table.Td>
                   <Text size="sm" fw={600} style={{ color: '#2B2B2B' }}>
-                    {(application as any).fetLifeHandle || (application as any).fetLifeName || 'Not provided'}
+                    {application.fetLifeHandle || 'Not provided'}
                   </Text>
                 </Table.Td>
 
                 {/* Email */}
                 <Table.Td>
                   <Text size="sm" style={{ color: '#2B2B2B' }}>
-                    {(application as any).email || 'Not provided'}
+                    {application.email || 'Not provided'}
                   </Text>
                 </Table.Td>
 

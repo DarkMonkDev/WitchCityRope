@@ -1,45 +1,29 @@
-// Note: In production, these should be imported from @witchcityrope/shared-types
-// For now, we'll define them locally based on the API DTOs
+// Import generated types from shared-types package
+import type { components } from '@witchcityrope/shared-types';
 
-export interface ApplicationSummaryDto {
-  id: string;
-  applicationNumber: string;
-  status: string;
-  submittedAt: string;
-  lastActivityAt?: string;
+// Re-export API types for convenience
+export type ApplicationSummaryDto = components['schemas']['ApplicationSummaryDto'];
+export type ApplicationReferenceStatus = components['schemas']['ApplicationReferenceStatus'];
+export type ApplicationDetailResponse = components['schemas']['ApplicationDetailResponse'];
+export type ReferenceDetailDto = components['schemas']['ReferenceDetailDto'];
+export type ReferenceResponseDto = components['schemas']['ReferenceResponseDto'];
+export type ApplicationNoteDto = components['schemas']['ApplicationNoteDto'];
+export type ReviewDecisionDto = components['schemas']['ReviewDecisionDto'];
+export type ReviewDecisionRequest = components['schemas']['ReviewDecisionRequest'];
+export type ReviewDecisionResponse = components['schemas']['ReviewDecisionResponse'];
 
-  // Applicant information (masked for privacy)
-  sceneName: string;
-  experienceLevel: string;
-  yearsExperience: number;
-  isAnonymous: boolean;
-
-  // Review information
-  assignedReviewerName?: string;
-  reviewStartedAt?: string;
-  priority: number;
-  daysInCurrentStatus: number;
-
-  // Reference status
-  referenceStatus: ApplicationReferenceStatus;
-
-  // Recent activity indicators
-  hasRecentNotes: boolean;
-  hasPendingActions: boolean;
-  interviewScheduledFor?: string;
-
-  // Skills/interests tags (for filtering)
-  skillsTags: string[];
+// Generic PagedResult type
+export interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
 }
 
-export interface ApplicationReferenceStatus {
-  totalReferences: number;
-  contactedReferences: number;
-  respondedReferences: number;
-  allReferencesComplete: boolean;
-  oldestPendingReferenceDate?: string;
-}
-
+// Filter request (not in API, used for frontend state)
 export interface ApplicationFilterRequest {
   // Pagination
   page: number;
@@ -80,129 +64,6 @@ export interface ApplicationFilterRequest {
   // Sorting
   sortBy: string;
   sortDirection: string;
-}
-
-export interface PagedResult<T> {
-  items: T[];
-  totalCount: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-  hasPreviousPage: boolean;
-  hasNextPage: boolean;
-}
-
-export interface ApplicationDetailResponse {
-  id: string;
-  applicationNumber: string;
-  status: string;
-  submittedAt: string;
-  lastActivityAt?: string;
-
-  // Applicant Information (Decrypted)
-  fullName: string;
-  sceneName: string;
-  pronouns?: string;
-  email: string;
-  phone?: string;
-
-  // Experience Information
-  experienceLevel: string;
-  yearsExperience: number;
-  experienceDescription: string;
-  safetyKnowledge: string;
-  consentUnderstanding: string;
-
-  // Community Information
-  whyJoinCommunity: string;
-  skillsInterests: string[];
-  expectationsGoals: string;
-  agreesToGuidelines: boolean;
-
-  // Privacy Settings
-  isAnonymous: boolean;
-  agreesToTerms: boolean;
-  consentToContact: boolean;
-
-  // Review Information
-  assignedReviewerName?: string;
-  reviewStartedAt?: string;
-  priority: number;
-  interviewScheduledFor?: string;
-
-  // References
-  references: ReferenceDetailDto[];
-
-  // Notes and Decisions
-  notes: ApplicationNoteDto[];
-  decisions: ReviewDecisionDto[];
-}
-
-export interface ReferenceDetailDto {
-  id: string;
-  name: string;
-  email: string;
-  relationship: string;
-  order: number;
-  status: string;
-  contactedAt?: string;
-  respondedAt?: string;
-  formExpiresAt?: string;
-
-  // Response data (if available)
-  response?: ReferenceResponseDto;
-}
-
-export interface ReferenceResponseDto {
-  relationshipDuration: string;
-  experienceAssessment: string;
-  safetyConcerns?: string;
-  communityReadiness: string;
-  recommendation: string;
-  additionalComments?: string;
-  respondedAt: string;
-}
-
-export interface ApplicationNoteDto {
-  id: string;
-  content: string;
-  type: string;
-  isPrivate: boolean;
-  tags: string[];
-  reviewerName: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ReviewDecisionDto {
-  id: string;
-  decisionType: string;
-  reasoning: string;
-  score?: number;
-  isFinalDecision: boolean;
-  additionalInfoRequested?: string;
-  additionalInfoDeadline?: string;
-  proposedInterviewTime?: string;
-  interviewNotes?: string;
-  reviewerName: string;
-  createdAt: string;
-}
-
-export interface ReviewDecisionRequest {
-  decisionType: string;
-  reasoning: string;
-  score?: number;
-  isFinalDecision: boolean;
-  additionalInfoRequested?: string;
-  additionalInfoDeadline?: string;
-  proposedInterviewTime?: string;
-  interviewNotes?: string;
-}
-
-export interface ReviewDecisionResponse {
-  success: boolean;
-  message: string;
-  newApplicationStatus: string;  // Changed from updatedStatus to match backend DTO
 }
 
 // API Error types

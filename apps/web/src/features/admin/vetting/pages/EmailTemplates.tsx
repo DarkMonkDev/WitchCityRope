@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Container,
@@ -10,106 +10,171 @@ import {
   Paper,
   Table,
   Badge,
-  ActionIcon,
-  Modal,
   TextInput,
-  Textarea
+  Loader,
+  Alert
 } from '@mantine/core';
 import {
   IconArrowLeft,
-  IconEdit,
-  IconPlus,
-  IconEye,
-  IconCopy
+  IconAlertCircle
 } from '@tabler/icons-react';
-
-interface EmailTemplate {
-  id: string;
-  name: string;
-  subject: string;
-  type: 'application_received' | 'interview_scheduled' | 'approved' | 'denied' | 'on_hold';
-  isActive: boolean;
-  lastModified: string;
-}
-
-// Mock data for now - in production this would come from an API
-const mockTemplates: EmailTemplate[] = [
-  {
-    id: '1',
-    name: 'Application Received',
-    subject: 'WitchCityRope - Application Received',
-    type: 'application_received',
-    isActive: true,
-    lastModified: '2025-09-20'
-  },
-  {
-    id: '2',
-    name: 'Interview Scheduled',
-    subject: 'WitchCityRope - Interview Scheduled',
-    type: 'interview_scheduled',
-    isActive: true,
-    lastModified: '2025-09-18'
-  },
-  {
-    id: '3',
-    name: 'Application Approved',
-    subject: 'Welcome to WitchCityRope!',
-    type: 'approved',
-    isActive: true,
-    lastModified: '2025-09-15'
-  },
-  {
-    id: '4',
-    name: 'Application On Hold',
-    subject: 'WitchCityRope - Additional Information Required',
-    type: 'on_hold',
-    isActive: true,
-    lastModified: '2025-09-10'
-  }
-];
+import { notifications } from '@mantine/notifications';
+import { MantineTiptapEditor } from '../../../../components/forms/MantineTiptapEditor';
+import { emailTemplatesApi } from '../services/emailTemplates.api';
+import type { EmailTemplateResponse } from '../types/emailTemplates.types';
 
 export const EmailTemplates: React.FC = () => {
   const navigate = useNavigate();
-  const [templates] = useState<EmailTemplate[]>(mockTemplates);
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
+  const [templates, setTemplates] = useState<EmailTemplateResponse[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplateResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Load templates on mount
+  useEffect(() => {
+    loadTemplates();
+  }, []);
+
+  const loadTemplates = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      console.log('EmailTemplates: Loading templates from API');
+
+      const data = await emailTemplatesApi.getEmailTemplates();
+
+      console.log('EmailTemplates: Templates loaded successfully', {
+        count: data.length
+      });
+
+      setTemplates(data);
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to load email templates';
+      console.error('EmailTemplates: Error loading templates:', errorMessage);
+      setError(errorMessage);
+
+      notifications.show({
+        title: 'Error Loading Templates',
+        message: errorMessage,
+        color: 'red',
+        icon: <IconAlertCircle size={16} />
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleBackToVetting = () => {
     navigate('/admin/vetting');
   };
 
-  const handleEditTemplate = (template: EmailTemplate) => {
+  const handleSelectTemplate = (template: EmailTemplateResponse) => {
     setSelectedTemplate(template);
-    setEditModalOpen(true);
   };
 
-  const handleCreateTemplate = () => {
-    setSelectedTemplate(null);
-    setEditModalOpen(true);
-  };
+  const handleSaveTemplate = async () => {
+    if (!selectedTemplate) {
+      console.warn('EmailTemplates: No template selected to save');
+      return;
+    }
 
-  const getTypeBadgeColor = (type: EmailTemplate['type']) => {
-    switch (type) {
-      case 'application_received':
-        return 'blue';
-      case 'interview_scheduled':
-        return 'yellow';
-      case 'approved':
-        return 'green';
-      case 'denied':
-        return 'red';
-      case 'on_hold':
-        return 'orange';
-      default:
-        return 'gray';
+    try {
+      setIsSaving(true);
+      console.log('EmailTemplates: Saving template', {
+        id: selectedTemplate.id,
+        subject: selectedTemplate.subject
+      });
+
+      // Call API to update template
+      const updatedTemplate = await emailTemplatesApi.updateEmailTemplate(
+        selectedTemplate.id,
+        {
+          subject: selectedTemplate.subject,
+          htmlBody: selectedTemplate.htmlBody,
+          plainTextBody: selectedTemplate.plainTextBody || '' // Use empty string if not set
+        }
+      );
+
+      console.log('EmailTemplates: Template saved successfully', {
+        id: updatedTemplate.id,
+        version: updatedTemplate.version
+      });
+
+      // Update template in list with the response from API
+      setTemplates(prev => prev.map(t =>
+        t.id === updatedTemplate.id ? updatedTemplate : t
+      ));
+
+      // Close editor
+      setSelectedTemplate(null);
+
+      // Show success notification
+      notifications.show({
+        title: 'Template Saved',
+        message: 'Email template has been updated successfully',
+        color: 'green'
+      });
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to save email template';
+      console.error('EmailTemplates: Error saving template:', errorMessage);
+
+      // Show error notification
+      notifications.show({
+        title: 'Error Saving Template',
+        message: errorMessage,
+        color: 'red',
+        icon: <IconAlertCircle size={16} />
+      });
+
+      // Keep editor open so user doesn't lose changes
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const formatTypeName = (type: EmailTemplate['type']) => {
-    return type.split('_').map(word =>
-      word.charAt(0).toUpperCase() + word.slice(1)
-    ).join(' ');
+  const getTypeBadgeColor = (templateTypeName: string) => {
+    // Map template type names to badge colors
+    const lowerType = templateTypeName.toLowerCase();
+    if (lowerType.includes('received')) return 'blue';
+    if (lowerType.includes('scheduled')) return 'yellow';
+    if (lowerType.includes('approved')) return 'green';
+    if (lowerType.includes('denied')) return 'red';
+    if (lowerType.includes('hold')) return 'orange';
+    return 'gray';
   };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <Container size="xl" py="xl">
+        <Stack align="center" py="xl">
+          <Loader size="lg" />
+          <Text c="dimmed">Loading email templates...</Text>
+        </Stack>
+      </Container>
+    );
+  }
+
+  // Show error state
+  if (error && templates.length === 0) {
+    return (
+      <Container size="xl" py="xl">
+        <Alert
+          icon={<IconAlertCircle />}
+          color="red"
+          title="Error Loading Templates"
+        >
+          <Stack gap="md">
+            <Text>{error}</Text>
+            <Button onClick={loadTemplates} variant="light" color="red">
+              Try Again
+            </Button>
+          </Stack>
+        </Alert>
+      </Container>
+    );
+  }
 
   return (
     <Container size="xl" py="xl">
@@ -137,30 +202,9 @@ export const EmailTemplates: React.FC = () => {
               letterSpacing: '-0.5px',
             }}
           >
-            Email Templates
+            Vetting Email Templates
           </Title>
-          <Text size="lg" c="dimmed" mt="xs">
-            Manage automated email templates for vetting process
-          </Text>
         </div>
-
-        <Button
-          leftSection={<IconPlus size={16} />}
-          onClick={handleCreateTemplate}
-          styles={{
-            root: {
-              backgroundColor: '#880124',
-              fontWeight: 600,
-              height: '44px',
-              paddingTop: '12px',
-              paddingBottom: '12px',
-              fontSize: '14px',
-              lineHeight: '1.2'
-            }
-          }}
-        >
-          CREATE TEMPLATE
-        </Button>
       </Group>
 
       {/* Templates Table */}
@@ -185,32 +229,31 @@ export const EmailTemplates: React.FC = () => {
               </Table.Th>
               <Table.Th style={{ backgroundColor: '#880124', borderBottom: 'none' }}>
                 <Text fw={600} size="sm" style={{ color: 'white', textTransform: 'uppercase' }}>
-                  STATUS
-                </Text>
-              </Table.Th>
-              <Table.Th style={{ backgroundColor: '#880124', borderBottom: 'none' }}>
-                <Text fw={600} size="sm" style={{ color: 'white', textTransform: 'uppercase' }}>
                   LAST MODIFIED
-                </Text>
-              </Table.Th>
-              <Table.Th style={{ backgroundColor: '#880124', borderBottom: 'none' }}>
-                <Text fw={600} size="sm" style={{ color: 'white', textTransform: 'uppercase' }}>
-                  ACTIONS
                 </Text>
               </Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
             {templates.map((template) => (
-              <Table.Tr key={template.id}>
+              <Table.Tr
+                key={template.id}
+                onClick={() => handleSelectTemplate(template)}
+                style={{
+                  cursor: 'pointer',
+                  backgroundColor: selectedTemplate?.id === template.id
+                    ? 'rgba(136, 1, 36, 0.05)'
+                    : undefined
+                }}
+              >
                 <Table.Td>
                   <Text size="sm" fw={600}>
-                    {template.name}
+                    {template.templateTypeName}
                   </Text>
                 </Table.Td>
                 <Table.Td>
-                  <Badge color={getTypeBadgeColor(template.type)} variant="light">
-                    {formatTypeName(template.type)}
+                  <Badge color={getTypeBadgeColor(template.templateTypeName)} variant="light">
+                    {template.templateTypeName}
                   </Badge>
                 </Table.Td>
                 <Table.Td>
@@ -219,40 +262,9 @@ export const EmailTemplates: React.FC = () => {
                   </Text>
                 </Table.Td>
                 <Table.Td>
-                  <Badge color={template.isActive ? 'green' : 'gray'}>
-                    {template.isActive ? 'Active' : 'Inactive'}
-                  </Badge>
-                </Table.Td>
-                <Table.Td>
                   <Text size="sm">
                     {new Date(template.lastModified).toLocaleDateString()}
                   </Text>
-                </Table.Td>
-                <Table.Td>
-                  <Group gap="xs">
-                    <ActionIcon
-                      variant="light"
-                      color="blue"
-                      onClick={() => handleEditTemplate(template)}
-                      title="Edit template"
-                    >
-                      <IconEdit size={16} />
-                    </ActionIcon>
-                    <ActionIcon
-                      variant="light"
-                      color="gray"
-                      title="Preview template"
-                    >
-                      <IconEye size={16} />
-                    </ActionIcon>
-                    <ActionIcon
-                      variant="light"
-                      color="green"
-                      title="Duplicate template"
-                    >
-                      <IconCopy size={16} />
-                    </ActionIcon>
-                  </Group>
                 </Table.Td>
               </Table.Tr>
             ))}
@@ -264,70 +276,107 @@ export const EmailTemplates: React.FC = () => {
             <Text c="dimmed" size="lg">
               No email templates found
             </Text>
-            <Button
-              leftSection={<IconPlus size={16} />}
-              onClick={handleCreateTemplate}
-              variant="light"
-            >
-              Create your first template
-            </Button>
           </Stack>
         )}
       </Paper>
 
-      {/* Edit/Create Template Modal */}
-      <Modal
-        opened={editModalOpen}
-        onClose={() => setEditModalOpen(false)}
-        title={selectedTemplate ? 'Edit Email Template' : 'Create Email Template'}
-        size="lg"
-        centered
-      >
-        <Stack gap="md">
-          <TextInput
-            label="Template Name"
-            placeholder="Enter template name"
-            defaultValue={selectedTemplate?.name || ''}
-            required
-          />
+      {/* Template Editor Section - Shows when template is selected */}
+      {selectedTemplate && (
+        <Paper shadow="sm" radius="md" p="xl" mt="xl">
+          <Stack gap="md">
+            {/* Header with template name */}
+            <Group justify="space-between">
+              <div>
+                <Title order={3} style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontSize: '24px',
+                  fontWeight: 700,
+                  color: '#880124'
+                }}>
+                  Edit Template: {selectedTemplate.templateTypeName}
+                </Title>
+                <Text size="sm" c="dimmed" mt="xs">
+                  Available variables: {selectedTemplate.variables || 'No variables available'}
+                </Text>
+              </div>
+              <Button
+                variant="subtle"
+                onClick={() => setSelectedTemplate(null)}
+                disabled={isSaving}
+              >
+                Close Editor
+              </Button>
+            </Group>
 
-          <TextInput
-            label="Subject Line"
-            placeholder="Enter email subject"
-            defaultValue={selectedTemplate?.subject || ''}
-            required
-          />
-
-          <Textarea
-            label="Email Content"
-            placeholder="Enter email template content..."
-            minRows={8}
-            description="You can use variables like {{applicantName}}, {{applicationNumber}}, etc."
-          />
-
-          <Group justify="flex-end" mt="md">
-            <Button
-              variant="light"
-              onClick={() => setEditModalOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                // TODO: Implement save functionality
-                setEditModalOpen(false);
+            {/* Subject Field */}
+            <TextInput
+              label="Subject Line"
+              placeholder="Enter email subject"
+              value={selectedTemplate.subject}
+              onChange={(e) => {
+                setSelectedTemplate({
+                  ...selectedTemplate,
+                  subject: e.currentTarget.value
+                })
               }}
+              required
+              disabled={isSaving}
               styles={{
-                root: {
-                  backgroundColor: '#880124'
-                }
+                label: { fontWeight: 600, marginBottom: 8 }
               }}
-            >
-              {selectedTemplate ? 'Update Template' : 'Create Template'}
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+            />
+
+            {/* Email Content - TipTap Editor */}
+            <div>
+              <Text fw={600} size="sm" mb={8}>
+                Email Content
+              </Text>
+              <MantineTiptapEditor
+                value={selectedTemplate.htmlBody || ''}
+                onChange={(html) => {
+                  setSelectedTemplate({
+                    ...selectedTemplate,
+                    htmlBody: html
+                  })
+                }}
+                placeholder="Enter email template content..."
+                minRows={12}
+              />
+              <Text size="xs" c="dimmed" mt="xs">
+                Use variables like {'{{scene_name}}'} in your template. They will be replaced with actual values when emails are sent.
+              </Text>
+            </div>
+
+            {/* Action Buttons */}
+            <Group justify="flex-end" mt="md">
+              <Button
+                variant="light"
+                onClick={() => setSelectedTemplate(null)}
+                disabled={isSaving}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveTemplate}
+                loading={isSaving}
+                styles={{
+                  root: {
+                    backgroundColor: '#880124',
+                    fontWeight: 600,
+                    height: '44px',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    fontSize: '14px',
+                    lineHeight: '1.2'
+                  }
+                }}
+              >
+                Save Template
+              </Button>
+            </Group>
+          </Stack>
+        </Paper>
+      )}
     </Container>
   );
 };

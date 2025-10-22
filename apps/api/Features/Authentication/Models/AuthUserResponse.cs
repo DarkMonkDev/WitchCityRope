@@ -49,6 +49,12 @@ public class AuthUserResponse
     public bool IsActive { get; set; }
 
     /// <summary>
+    /// Whether the user has completed the vetting process
+    /// Derived from VettingStatus == 3 (Approved)
+    /// </summary>
+    public bool IsVetted { get; set; }
+
+    /// <summary>
     /// Default constructor
     /// </summary>
     public AuthUserResponse() { }
@@ -66,5 +72,6 @@ public class AuthUserResponse
         Role = user.Role;
         Roles = new[] { user.Role }; // Frontend expects roles array, provide single role as array
         IsActive = user.IsActive;
+        IsVetted = user.IsVetted;
     }
 }

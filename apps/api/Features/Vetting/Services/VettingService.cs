@@ -119,6 +119,8 @@ public class VettingService : IVettingService
                 SubmittedAt = app.SubmittedAt,
                 LastActivityAt = app.UpdatedAt,
                 SceneName = app.SceneName,
+                Email = app.Email,
+                FetLifeHandle = app.FetLifeHandle,
                 ExperienceLevel = "Beginner", // Default for now
                 YearsExperience = 0, // Default for now
                 IsAnonymous = false, // Default for now
@@ -754,103 +756,6 @@ public class VettingService : IVettingService
     }
 
     /// <summary>
-    /// Submit a new vetting application (public endpoint)
-    /// </summary>
-    public async Task<Result<ApplicationSubmissionResponse>> SubmitApplicationAsync(
-        CreateApplicationRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            _logger.LogInformation("Submitting new vetting application for {SceneName} ({Email})",
-                request.SceneName, request.Email);
-
-            // Generate unique application number and status token
-            var applicationNumber = $"VET-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..8].ToUpper()}";
-            var statusToken = Guid.NewGuid().ToString("N"); // No hyphens for cleaner URLs
-
-            // Create vetting application entity
-            var application = new VettingApplication
-            {
-                SceneName = request.SceneName,
-                Email = request.Email,
-                ApplicationNumber = applicationNumber,
-                StatusToken = statusToken,
-                WorkflowStatus = VettingStatus.UnderReview, // Applications start in UnderReview status
-                SubmittedAt = DateTime.UtcNow,
-
-                // Personal information
-                FullName = request.FullName,
-                Pronouns = request.Pronouns,
-                Phone = request.Phone,
-
-                // Experience & knowledge
-                ExperienceLevel = request.ExperienceLevel,
-                YearsExperience = request.YearsExperience,
-                ExperienceDescription = request.ExperienceDescription,
-                SafetyKnowledge = request.SafetyKnowledge,
-                ConsentUnderstanding = request.ConsentUnderstanding,
-
-                // Community understanding
-                WhyJoinCommunity = request.WhyJoinCommunity,
-                SkillsInterests = string.Join(", ", request.SkillsInterests),
-                ExpectationsGoals = request.ExpectationsGoals,
-                AgreesToGuidelines = request.AgreesToGuidelines,
-
-                // References (serialize as JSON)
-                References = System.Text.Json.JsonSerializer.Serialize(request.References),
-
-                // Terms
-                AgreesToTerms = request.AgreesToTerms,
-                IsAnonymous = request.IsAnonymous,
-                ConsentToContact = request.ConsentToContact
-            };
-
-            _context.VettingApplications.Add(application);
-
-            // If a user exists with this email, update their HasVettingApplication field
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
-            if (user != null)
-            {
-                user.HasVettingApplication = true;
-                _logger.LogInformation("Updated user {UserId} HasVettingApplication to true", user.Id);
-            }
-
-            await _context.SaveChangesAsync(cancellationToken);
-
-            _logger.LogInformation("Vetting application {ApplicationNumber} submitted successfully with ID {ApplicationId}",
-                applicationNumber, application.Id);
-
-            // Build response
-            var response = new ApplicationSubmissionResponse
-            {
-                Id = application.Id,
-                ApplicationNumber = applicationNumber,
-                StatusToken = statusToken,
-                SubmittedAt = application.SubmittedAt,
-                ConfirmationMessage = "Thank you for submitting your vetting application. You will receive updates via email.",
-                EstimatedReviewDays = 14, // Standard review period
-                NextSteps = "Your application will be reviewed by our vetting committee. References will be contacted within 3-5 business days.",
-                ReferenceStatuses = request.References.Select(r => new ReferenceStatusSummary
-                {
-                    Name = r.Name,
-                    Email = MaskEmail(r.Email),
-                    Status = "NotContacted"
-                }).ToList()
-            };
-
-            return Result<ApplicationSubmissionResponse>.Success(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to submit vetting application for {SceneName}", request.SceneName);
-            return Result<ApplicationSubmissionResponse>.Failure(
-                "Failed to submit application",
-                "An error occurred while processing your application. Please try again later.");
-        }
-    }
-
-    /// <summary>
     /// Get application status by status token (public endpoint)
     /// </summary>
     public async Task<Result<ApplicationStatusResponse>> GetApplicationStatusByTokenAsync(
@@ -1097,6 +1002,41 @@ public class VettingService : IVettingService
             _logger.LogInformation("Public vetting application {ApplicationNumber} submitted successfully with ID {ApplicationId}",
                 applicationNumber, application.Id);
 
+            // Send application confirmation email
+            try
+            {
+                _logger.LogInformation(
+                    "Sending confirmation email for application {ApplicationNumber} to {Email}",
+                    applicationNumber, request.Email);
+
+                var emailResult = await _emailService.SendApplicationConfirmationAsync(
+                    application,
+                    request.Email,
+                    request.SceneName ?? request.RealName,
+                    cancellationToken);
+
+                if (emailResult.IsSuccess)
+                {
+                    _logger.LogInformation(
+                        "Confirmation email sent successfully for application {ApplicationNumber}",
+                        applicationNumber);
+                }
+                else
+                {
+                    // Log warning but don't fail the application submission
+                    _logger.LogWarning(
+                        "Failed to send confirmation email for application {ApplicationNumber}: {Error}",
+                        applicationNumber, emailResult.Error);
+                }
+            }
+            catch (Exception emailEx)
+            {
+                // Catch email errors separately so they don't fail the application
+                _logger.LogError(emailEx,
+                    "Exception sending confirmation email for application {ApplicationNumber}",
+                    applicationNumber);
+            }
+
             // Build response
             var response = new ApplicationSubmissionResponse
             {
@@ -1195,6 +1135,41 @@ public class VettingService : IVettingService
 
             _logger.LogInformation("Simplified vetting application {ApplicationNumber} submitted successfully with ID {ApplicationId}",
                 applicationNumber, application.Id);
+
+            // Send application confirmation email
+            try
+            {
+                _logger.LogInformation(
+                    "Sending confirmation email for application {ApplicationNumber} to {Email}",
+                    applicationNumber, request.Email);
+
+                var emailResult = await _emailService.SendApplicationConfirmationAsync(
+                    application,
+                    request.Email,
+                    request.PreferredSceneName ?? request.RealName,
+                    cancellationToken);
+
+                if (emailResult.IsSuccess)
+                {
+                    _logger.LogInformation(
+                        "Confirmation email sent successfully for application {ApplicationNumber}",
+                        applicationNumber);
+                }
+                else
+                {
+                    // Log warning but don't fail the application submission
+                    _logger.LogWarning(
+                        "Failed to send confirmation email for application {ApplicationNumber}: {Error}",
+                        applicationNumber, emailResult.Error);
+                }
+            }
+            catch (Exception emailEx)
+            {
+                // Catch email errors separately so they don't fail the application
+                _logger.LogError(emailEx,
+                    "Exception sending confirmation email for application {ApplicationNumber}",
+                    applicationNumber);
+            }
 
             // Build response
             var response = new ApplicationSubmissionResponse

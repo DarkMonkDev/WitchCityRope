@@ -28,15 +28,19 @@ export { PhoneInput, validateUSPhone, validateInternationalPhone } from './Phone
 export type { PhoneInputProps } from './PhoneInput';
 
 // Enhanced Mantine form components with CSS modules
-export { 
-  MantineTextInput, 
-  MantinePasswordInput, 
-  MantineTextarea, 
-  MantineSelect 
+export {
+  MantineTextInput,
+  MantinePasswordInput,
+  MantineTextarea,
+  MantineSelect
 } from './MantineFormInputs';
-export type { 
-  EnhancedTextInputProps, 
-  EnhancedPasswordInputProps, 
-  EnhancedTextareaProps, 
-  EnhancedSelectProps 
+export type {
+  EnhancedTextInputProps,
+  EnhancedPasswordInputProps,
+  EnhancedTextareaProps,
+  EnhancedSelectProps
 } from './MantineFormInputs';
+
+// Rich text editor
+export { MantineTiptapEditor } from './MantineTiptapEditor';
+export type { MantineTiptapEditorProps, MantineTiptapEditorRef } from './MantineTiptapEditor';

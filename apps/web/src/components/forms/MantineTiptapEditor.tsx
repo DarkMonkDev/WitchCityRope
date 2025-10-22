@@ -8,6 +8,8 @@ import TextAlign from '@tiptap/extension-text-align'
 import Superscript from '@tiptap/extension-superscript'
 import Subscript from '@tiptap/extension-subscript'
 import Highlight from '@tiptap/extension-highlight'
+import { TextStyle } from '@tiptap/extension-text-style'
+import { Color } from '@tiptap/extension-color'
 import { Extension } from '@tiptap/core'
 import { ReactRenderer } from '@tiptap/react'
 import { SuggestionOptions } from '@tiptap/suggestion'
@@ -189,6 +191,8 @@ export const MantineTiptapEditor = forwardRef<MantineTiptapEditorRef, MantineTip
         // Note: Link and Underline extensions are automatically added by Mantine's
         // RichTextEditor.Link and RichTextEditor.Underline toolbar controls
         // We don't need to add them here - doing so causes duplicate extension warnings
+        TextStyle, // Required for Color extension
+        Color,
         Superscript,
         Subscript,
         Highlight,
@@ -261,6 +265,23 @@ export const MantineTiptapEditor = forwardRef<MantineTiptapEditorRef, MantineTip
             <RichTextEditor.Underline />
             <RichTextEditor.Strikethrough />
             <RichTextEditor.ClearFormatting />
+          </RichTextEditor.ControlsGroup>
+
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.ColorPicker
+              colors={[
+                '#000000',
+                '#880124',
+                '#C41E3A',
+                '#FF6B35',
+                '#F7931E',
+                '#2E7D32',
+                '#1976D2',
+                '#7B1FA2',
+                '#616161',
+                '#FFFFFF',
+              ]}
+            />
           </RichTextEditor.ControlsGroup>
 
           <RichTextEditor.ControlsGroup>

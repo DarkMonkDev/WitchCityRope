@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Features.Vetting.Models;
 using WitchCityRope.Api.Features.Vetting.Services;
@@ -31,14 +33,6 @@ public static class VettingEndpoints
             .Produces<ApiResponse<ApplicationSubmissionResponse>>(201)
             .Produces<ApiResponse<object>>(400)
             .Produces<ApiResponse<object>>(409)
-            .Produces<ApiResponse<object>>(500);
-
-        // POST: Submit full vetting application (public - complete form)
-        publicGroup.MapPost("/applications/full", SubmitApplication)
-            .WithName("SubmitVettingApplicationFull")
-            .WithSummary("Submit a complete vetting application with all fields")
-            .Produces<ApiResponse<ApplicationSubmissionResponse>>(201)
-            .Produces<ApiResponse<object>>(400)
             .Produces<ApiResponse<object>>(500);
 
         // GET: Check application status by token (public)
@@ -162,6 +156,40 @@ public static class VettingEndpoints
             .WithSummary("Check if current user has an existing application")
             .Produces<ApiResponse<SimplifiedApplicationResponse>>(200)
             .Produces<ApiResponse<object>>(401)
+            .Produces<ApiResponse<object>>(404)
+            .Produces<ApiResponse<object>>(500);
+
+        // Email Template Management Endpoints (Admin only)
+        // GET: Retrieve all email templates
+        group.MapGet("/email-templates", GetEmailTemplates)
+            .RequireAuthorization(policy => policy.RequireRole("Administrator"))
+            .WithName("GetEmailTemplates")
+            .WithSummary("Retrieve all active email templates (Admin only)")
+            .Produces<ApiResponse<List<EmailTemplateResponse>>>(200)
+            .Produces<ApiResponse<object>>(401)
+            .Produces<ApiResponse<object>>(403)
+            .Produces<ApiResponse<object>>(500);
+
+        // GET: Retrieve single email template by ID
+        group.MapGet("/email-templates/{id}", GetEmailTemplate)
+            .RequireAuthorization(policy => policy.RequireRole("Administrator"))
+            .WithName("GetEmailTemplate")
+            .WithSummary("Retrieve a single email template by ID (Admin only)")
+            .Produces<ApiResponse<EmailTemplateResponse>>(200)
+            .Produces<ApiResponse<object>>(401)
+            .Produces<ApiResponse<object>>(403)
+            .Produces<ApiResponse<object>>(404)
+            .Produces<ApiResponse<object>>(500);
+
+        // PUT: Update email template
+        group.MapPut("/email-templates/{id}", UpdateEmailTemplate)
+            .RequireAuthorization(policy => policy.RequireRole("Administrator"))
+            .WithName("UpdateEmailTemplate")
+            .WithSummary("Update email template content (Admin only)")
+            .Produces<ApiResponse<EmailTemplateResponse>>(200)
+            .Produces<ApiResponse<object>>(400)
+            .Produces<ApiResponse<object>>(401)
+            .Produces<ApiResponse<object>>(403)
             .Produces<ApiResponse<object>>(404)
             .Produces<ApiResponse<object>>(500);
     }
@@ -905,52 +933,6 @@ public static class VettingEndpoints
     }
 
     /// <summary>
-    /// Submit a new vetting application (public endpoint)
-    /// POST /api/vetting/public/applications
-    /// </summary>
-    private static async Task<IResult> SubmitApplication(
-        CreateApplicationRequest request,
-        IVettingService vettingService,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            var result = await vettingService.SubmitApplicationAsync(request, cancellationToken);
-
-            if (result.IsSuccess && result.Value != null)
-            {
-                return Results.Created(
-                    $"/api/vetting/public/applications/status/{result.Value.StatusToken}",
-                    new ApiResponse<ApplicationSubmissionResponse>
-                    {
-                        Success = true,
-                        Data = result.Value,
-                        Message = "Application submitted successfully",
-                        Timestamp = DateTime.UtcNow
-                    });
-            }
-
-            return Results.Json(new ApiResponse<object>
-            {
-                Success = false,
-                Error = result.Error,
-                Details = result.Details,
-                Timestamp = DateTime.UtcNow
-            }, statusCode: 400);
-        }
-        catch (Exception ex)
-        {
-            return Results.Json(new ApiResponse<object>
-            {
-                Success = false,
-                Error = "Failed to submit application",
-                Details = ex.Message,
-                Timestamp = DateTime.UtcNow
-            }, statusCode: 500);
-        }
-    }
-
-    /// <summary>
     /// Get application status by token (public endpoint)
     /// GET /api/vetting/public/applications/status/{token}
     /// </summary>
@@ -1236,5 +1218,270 @@ public static class VettingEndpoints
             VettingStatus.Withdrawn => "Your application has been withdrawn.",
             _ => "Please contact us for more information."
         };
+    }
+
+    /// <summary>
+    /// Get all active email templates
+    /// GET /api/vetting/email-templates
+    /// Admin only
+    /// </summary>
+    private static async Task<IResult> GetEmailTemplates(
+        ApplicationDbContext context,
+        ClaimsPrincipal user,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Query all active templates, ordered by TemplateType
+            var templates = await context.VettingEmailTemplates
+                .Include(t => t.UpdatedByUser)
+                .Where(t => t.IsActive)
+                .OrderBy(t => t.TemplateType)
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
+
+            // Map to response DTOs
+            var response = templates.Select(t => new EmailTemplateResponse
+            {
+                Id = t.Id,
+                TemplateType = (int)t.TemplateType,
+                TemplateTypeName = t.TemplateType.ToString(),
+                Subject = t.Subject,
+                HtmlBody = t.HtmlBody,
+                PlainTextBody = t.PlainTextBody,
+                Variables = t.Variables,
+                IsActive = t.IsActive,
+                Version = t.Version,
+                CreatedAt = t.CreatedAt,
+                UpdatedAt = t.UpdatedAt,
+                LastModified = t.LastModified,
+                UpdatedBy = t.UpdatedBy,
+                UpdatedByEmail = t.UpdatedByUser?.Email ?? "System"
+            }).ToList();
+
+            return Results.Ok(new ApiResponse<List<EmailTemplateResponse>>
+            {
+                Success = true,
+                Data = response,
+                Message = "Email templates retrieved successfully",
+                Timestamp = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            return Results.Json(new ApiResponse<object>
+            {
+                Success = false,
+                Error = "Failed to retrieve email templates",
+                Details = ex.Message,
+                Timestamp = DateTime.UtcNow
+            }, statusCode: 500);
+        }
+    }
+
+    /// <summary>
+    /// Get single email template by ID
+    /// GET /api/vetting/email-templates/{id}
+    /// Admin only
+    /// </summary>
+    private static async Task<IResult> GetEmailTemplate(
+        Guid id,
+        ApplicationDbContext context,
+        ClaimsPrincipal user,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Find template by ID
+            var template = await context.VettingEmailTemplates
+                .Include(t => t.UpdatedByUser)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
+
+            if (template == null)
+            {
+                return Results.Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Error = "Email template not found",
+                    Details = $"No email template found with ID: {id}",
+                    Timestamp = DateTime.UtcNow
+                }, statusCode: 404);
+            }
+
+            // Map to response DTO
+            var response = new EmailTemplateResponse
+            {
+                Id = template.Id,
+                TemplateType = (int)template.TemplateType,
+                TemplateTypeName = template.TemplateType.ToString(),
+                Subject = template.Subject,
+                HtmlBody = template.HtmlBody,
+                PlainTextBody = template.PlainTextBody,
+                Variables = template.Variables,
+                IsActive = template.IsActive,
+                Version = template.Version,
+                CreatedAt = template.CreatedAt,
+                UpdatedAt = template.UpdatedAt,
+                LastModified = template.LastModified,
+                UpdatedBy = template.UpdatedBy,
+                UpdatedByEmail = template.UpdatedByUser?.Email ?? "System"
+            };
+
+            return Results.Ok(new ApiResponse<EmailTemplateResponse>
+            {
+                Success = true,
+                Data = response,
+                Message = "Email template retrieved successfully",
+                Timestamp = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            return Results.Json(new ApiResponse<object>
+            {
+                Success = false,
+                Error = "Failed to retrieve email template",
+                Details = ex.Message,
+                Timestamp = DateTime.UtcNow
+            }, statusCode: 500);
+        }
+    }
+
+    /// <summary>
+    /// Update email template content
+    /// PUT /api/vetting/email-templates/{id}
+    /// Admin only
+    /// </summary>
+    private static async Task<IResult> UpdateEmailTemplate(
+        Guid id,
+        UpdateEmailTemplateRequest request,
+        ApplicationDbContext context,
+        ClaimsPrincipal user,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Validate request
+            if (string.IsNullOrWhiteSpace(request.Subject))
+            {
+                return Results.Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Error = "Invalid request",
+                    Details = "Subject is required",
+                    Timestamp = DateTime.UtcNow
+                }, statusCode: 400);
+            }
+
+            if (string.IsNullOrWhiteSpace(request.HtmlBody))
+            {
+                return Results.Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Error = "Invalid request",
+                    Details = "HtmlBody is required",
+                    Timestamp = DateTime.UtcNow
+                }, statusCode: 400);
+            }
+
+            if (string.IsNullOrWhiteSpace(request.PlainTextBody))
+            {
+                return Results.Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Error = "Invalid request",
+                    Details = "PlainTextBody is required",
+                    Timestamp = DateTime.UtcNow
+                }, statusCode: 400);
+            }
+
+            // Extract user ID from JWT claims
+            var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdClaim, out var userId))
+            {
+                return Results.Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Error = "User information not found",
+                    Timestamp = DateTime.UtcNow
+                }, statusCode: 400);
+            }
+
+            // Find template by ID
+            var template = await context.VettingEmailTemplates
+                .Include(t => t.UpdatedByUser)
+                .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
+
+            if (template == null)
+            {
+                return Results.Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Error = "Email template not found",
+                    Details = $"No email template found with ID: {id}",
+                    Timestamp = DateTime.UtcNow
+                }, statusCode: 404);
+            }
+
+            // Update template properties
+            template.Subject = request.Subject.Trim();
+            template.HtmlBody = request.HtmlBody.Trim();
+            template.PlainTextBody = request.PlainTextBody.Trim();
+            template.Version++;
+            template.UpdatedAt = DateTime.UtcNow;
+            template.UpdatedBy = userId;
+            template.LastModified = DateTime.UtcNow;
+
+            // Explicitly mark entity as modified to ensure EF Core tracks the change
+            // See backend-developer-lessons-learned-2.md lines 1211-1320 for pattern explanation
+            context.VettingEmailTemplates.Update(template);
+
+            // Save changes to database
+            await context.SaveChangesAsync(cancellationToken);
+
+            // Reload template with updated user information
+            var updatedTemplate = await context.VettingEmailTemplates
+                .Include(t => t.UpdatedByUser)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
+
+            // Map to response DTO
+            var response = new EmailTemplateResponse
+            {
+                Id = updatedTemplate!.Id,
+                TemplateType = (int)updatedTemplate.TemplateType,
+                TemplateTypeName = updatedTemplate.TemplateType.ToString(),
+                Subject = updatedTemplate.Subject,
+                HtmlBody = updatedTemplate.HtmlBody,
+                PlainTextBody = updatedTemplate.PlainTextBody,
+                Variables = updatedTemplate.Variables,
+                IsActive = updatedTemplate.IsActive,
+                Version = updatedTemplate.Version,
+                CreatedAt = updatedTemplate.CreatedAt,
+                UpdatedAt = updatedTemplate.UpdatedAt,
+                LastModified = updatedTemplate.LastModified,
+                UpdatedBy = updatedTemplate.UpdatedBy,
+                UpdatedByEmail = updatedTemplate.UpdatedByUser?.Email ?? "System"
+            };
+
+            return Results.Ok(new ApiResponse<EmailTemplateResponse>
+            {
+                Success = true,
+                Data = response,
+                Message = "Email template updated successfully",
+                Timestamp = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            return Results.Json(new ApiResponse<object>
+            {
+                Success = false,
+                Error = "Failed to update email template",
+                Details = ex.Message,
+                Timestamp = DateTime.UtcNow
+            }, statusCode: 500);
+        }
     }
 }
