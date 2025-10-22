@@ -50,8 +50,8 @@ lerna-debug.log*
 
 
 # Test artifacts and build outputs
-**/bin/Debug/
-**/obj/Debug/
+**/bin/
+**/obj/
 .playwright/
 tests/**/bin/
 tests/**/obj/
