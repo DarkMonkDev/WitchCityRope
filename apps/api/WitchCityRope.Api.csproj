@@ -1,9 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>51c30e23-eda7-47d3-b7ba-81004187bc0d</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,9 +35,7 @@
 
   <!-- Post-build: Export OpenAPI specification -->
   <Target Name="ExportOpenAPI" AfterTargets="Build">
-    <Exec Command="bash Scripts/post-build-export-openapi.sh"
-          Condition="Exists('Scripts/post-build-export-openapi.sh')"
-          ContinueOnError="true" />
+    <Exec Command="bash Scripts/post-build-export-openapi.sh" Condition="Exists('Scripts/post-build-export-openapi.sh')" ContinueOnError="true" />
   </Target>
 
 </Project>
