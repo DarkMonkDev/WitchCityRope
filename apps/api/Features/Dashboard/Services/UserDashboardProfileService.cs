@@ -37,12 +37,11 @@ public class UserDashboardProfileService : IUserDashboardProfileService
         {
             _logger.LogInformation("Fetching events for user {UserId}, includePast={IncludePast}", userId, includePast);
 
-            // FIXED: Query EventParticipations instead of TicketPurchases to get BOTH RSVPs and tickets
-            // Bug: Original query only looked at TicketPurchases, missing all RSVPs
-            // EventParticipations is the central table for both participation types
+            // SERVER-SIDE PROJECTION: Query EventParticipations and project to DTO at database level
+            // EventParticipations is the central table for both RSVP and ticket participation types
+            // Benefits: Only loads needed event fields, no Include() overhead
             var query = _context.EventParticipations
-                .AsNoTracking() // Read-only query - 20-40% performance improvement
-                .Include(ep => ep.Event)
+                .AsNoTracking()
                 .Where(ep => ep.UserId == userId)
                 .Where(ep => ep.Status == ParticipationStatus.Active) // Only active participations (not cancelled)
                 .AsQueryable();
@@ -53,57 +52,30 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                 query = query.Where(ep => ep.Event.EndDate >= DateTime.UtcNow);
             }
 
-            var participations = await query
+            // SERVER-SIDE PROJECTION: Project to DTO in single database query
+            var events = await query
                 .OrderBy(ep => ep.Event.StartDate)
+                .Select(ep => new UserEventDto
+                {
+                    // Projected at database level - only loads these event fields
+                    Id = ep.Event.Id,
+                    Title = ep.Event.Title,
+                    StartDate = ep.Event.StartDate,
+                    EndDate = ep.Event.EndDate,
+                    Location = ep.Event.Location,
+                    Description = ep.Event.ShortDescription,
+                    IsSocialEvent = ep.Event.EventType.ToLower().Contains("social"),
+                    HasTicket = ep.ParticipationType == ParticipationType.Ticket,
+                    // Calculate registration status at database level
+                    RegistrationStatus = ep.Event.EndDate < DateTime.UtcNow
+                        ? "Attended"
+                        : ep.ParticipationType == ParticipationType.Ticket
+                            ? (ep.Event.EventType.ToLower().Contains("social") ? "Ticket Purchased (Social Event)" : "Ticket Purchased")
+                            : "RSVP Confirmed"
+                })
                 .ToListAsync(cancellationToken);
 
-            _logger.LogInformation(
-                "Found {ParticipationCount} active participations for user {UserId}: {RSVPCount} RSVPs, {TicketCount} tickets",
-                participations.Count,
-                userId,
-                participations.Count(p => p.ParticipationType == ParticipationType.RSVP),
-                participations.Count(p => p.ParticipationType == ParticipationType.Ticket));
-
-            var events = participations
-                .Where(ep => ep.Event != null)
-                .Select(ep =>
-                {
-                    var evt = ep.Event;
-                    var isTicket = ep.ParticipationType == ParticipationType.Ticket;
-                    var isRsvp = ep.ParticipationType == ParticipationType.RSVP;
-                    var isSocialEvent = evt.EventType.ToLower().Contains("social");
-
-                    // Determine registration status
-                    string registrationStatus;
-                    if (evt.EndDate < DateTime.UtcNow)
-                    {
-                        registrationStatus = "Attended";
-                    }
-                    else if (isTicket)
-                    {
-                        registrationStatus = isSocialEvent ? "Ticket Purchased (Social Event)" : "Ticket Purchased";
-                    }
-                    else // isRsvp
-                    {
-                        registrationStatus = "RSVP Confirmed";
-                    }
-
-                    return new UserEventDto
-                    {
-                        Id = evt.Id,
-                        Title = evt.Title,
-                        StartDate = evt.StartDate,
-                        EndDate = evt.EndDate,
-                        Location = evt.Location,
-                        Description = evt.ShortDescription,
-                        RegistrationStatus = registrationStatus,
-                        IsSocialEvent = isSocialEvent,
-                        HasTicket = isTicket
-                    };
-                })
-                .ToList();
-
-            _logger.LogInformation("Returning {EventCount} events for user {UserId}", events.Count, userId);
+            _logger.LogInformation("Retrieved {EventCount} events using server-side projection for user {UserId}", events.Count, userId);
 
             return Result<List<UserEventDto>>.Success(events);
         }

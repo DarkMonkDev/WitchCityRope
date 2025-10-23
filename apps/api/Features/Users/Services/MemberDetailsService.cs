@@ -51,30 +51,35 @@ public class MemberDetailsService : IMemberDetailsService
                 return (false, null, "User not found");
             }
 
-            // Get participation counts
-            var participations = await _context.EventParticipations
+            // SERVER-SIDE PROJECTION: Calculate participation counts at database level
+            // Benefits: Eliminates loading full participations, more efficient counting
+            var activeRegistrations = await _context.EventParticipations
+                .AsNoTracking()
+                .Where(ep => ep.UserId == userId
+                          && ep.Status == WitchCityRope.Api.Features.Participation.Entities.ParticipationStatus.Active)
+                .CountAsync(cancellationToken);
+
+            var totalRegistered = await _context.EventParticipations
                 .AsNoTracking()
                 .Where(ep => ep.UserId == userId)
-                .ToListAsync(cancellationToken);
+                .CountAsync(cancellationToken);
 
-            var activeRegistrations = participations
-                .Count(p => p.Status == WitchCityRope.Api.Features.Participation.Entities.ParticipationStatus.Active);
-
-            var totalRegistered = participations.Count;
-
-            // Get past events (attended events are those in the past with active participation)
-            var pastEvents = await _context.EventParticipations
+            // SERVER-SIDE PROJECTION: Calculate past events count and last event at database level
+            var totalAttended = await _context.EventParticipations
                 .AsNoTracking()
-                .Include(ep => ep.Event)
                 .Where(ep => ep.UserId == userId
                           && ep.Status == WitchCityRope.Api.Features.Participation.Entities.ParticipationStatus.Active
                           && ep.Event.EndDate < DateTime.UtcNow)
-                .ToListAsync(cancellationToken);
+                .CountAsync(cancellationToken);
 
-            var totalAttended = pastEvents.Count;
-            var lastEventAttended = pastEvents
+            var lastEventAttended = await _context.EventParticipations
+                .AsNoTracking()
+                .Where(ep => ep.UserId == userId
+                          && ep.Status == WitchCityRope.Api.Features.Participation.Entities.ParticipationStatus.Active
+                          && ep.Event.EndDate < DateTime.UtcNow)
                 .OrderByDescending(ep => ep.Event.EndDate)
-                .FirstOrDefault()?.Event.EndDate;
+                .Select(ep => ep.Event.EndDate)
+                .FirstOrDefaultAsync(cancellationToken);
 
             // Map vetting status to display string
             var vettingStatusDisplay = user.VettingStatus switch

@@ -45,33 +45,32 @@ public class VolunteerAssignmentService
                 return (false, null, "Volunteer position not found");
             }
 
-            // Get all confirmed signups for this position with user details
-            var signups = await _context.VolunteerSignups
+            // SERVER-SIDE PROJECTION: Project to DTO at database level
+            // Benefits: Only loads needed user fields, no Include() overhead
+            var assignmentDtos = await _context.VolunteerSignups
                 .AsNoTracking()
-                .Include(vs => vs.User)
                 .Where(vs => vs.VolunteerPositionId == positionId
                           && vs.Status == VolunteerSignupStatus.Confirmed)
                 .OrderBy(vs => vs.SignedUpAt)
+                .Select(vs => new VolunteerAssignmentDto
+                {
+                    // Projected at database level - only loads these fields
+                    SignupId = vs.Id,
+                    UserId = vs.UserId,
+                    VolunteerPositionId = vs.VolunteerPositionId,
+                    SceneName = vs.User != null ? vs.User.SceneName : string.Empty,
+                    Email = vs.User != null ? vs.User.Email : string.Empty,
+                    FetLifeName = vs.User != null ? vs.User.FetLifeName : null,
+                    DiscordName = vs.User != null ? vs.User.DiscordName : null,
+                    Status = vs.Status.ToString(),
+                    SignedUpAt = vs.SignedUpAt,
+                    HasCheckedIn = vs.HasCheckedIn,
+                    CheckedInAt = vs.CheckedInAt
+                })
                 .ToListAsync(cancellationToken);
 
-            // Map to DTOs with user contact information
-            var assignmentDtos = signups.Select(vs => new VolunteerAssignmentDto
-            {
-                SignupId = vs.Id,
-                UserId = vs.UserId,
-                VolunteerPositionId = vs.VolunteerPositionId,
-                SceneName = vs.User?.SceneName ?? string.Empty,
-                Email = vs.User?.Email ?? string.Empty,
-                FetLifeName = vs.User?.FetLifeName,
-                DiscordName = vs.User?.DiscordName,
-                Status = vs.Status.ToString(),
-                SignedUpAt = vs.SignedUpAt,
-                HasCheckedIn = vs.HasCheckedIn,
-                CheckedInAt = vs.CheckedInAt
-            }).ToList();
-
             _logger.LogInformation(
-                "Retrieved {Count} assignments for volunteer position {PositionId}",
+                "Retrieved {Count} assignments using server-side projection for volunteer position {PositionId}",
                 assignmentDtos.Count, positionId);
 
             return (true, assignmentDtos, null);

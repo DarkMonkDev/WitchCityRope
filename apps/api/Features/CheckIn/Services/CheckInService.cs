@@ -45,10 +45,9 @@ public class CheckInService : ICheckInService
             if (pageSize > 100) pageSize = 100;
             if (page < 1) page = 1;
 
-            // Build query with includes for performance
+            // SERVER-SIDE PROJECTION: Build query without includes
             var query = _context.EventAttendees
-                .Include(ea => ea.User)
-                .Include(ea => ea.CheckIns)
+                .AsNoTracking()
                 .Where(ea => ea.EventId == eventId);
 
             // Apply search filter
@@ -70,20 +69,12 @@ public class CheckInService : ICheckInService
             // Get total count for pagination
             var totalCount = await query.CountAsync(cancellationToken);
 
-            // Apply pagination
-            var attendees = await query
-                .OrderBy(ea => ea.RegistrationStatus)
-                .ThenBy(ea => ea.WaitlistPosition ?? 0)
-                .ThenBy(ea => ea.User.SceneName)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .AsNoTracking()
-                .ToListAsync(cancellationToken);
-
-            // Get event info and capacity
+            // Get event info and capacity (use single query with projection)
             var eventInfo = await _context.Events
                 .AsNoTracking()
-                .FirstOrDefaultAsync(e => e.Id == eventId, cancellationToken);
+                .Where(e => e.Id == eventId)
+                .Select(e => new { e.Title, e.StartDate })
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (eventInfo == null)
             {
@@ -92,23 +83,34 @@ public class CheckInService : ICheckInService
 
             var capacity = await GetEventCapacityAsync(eventId, cancellationToken);
 
-            // Map to response DTOs
-            var attendeeResponses = attendees.Select(ea => new AttendeeResponse
-            {
-                AttendeeId = ea.Id.ToString(),
-                UserId = ea.UserId.ToString(),
-                SceneName = ea.User.SceneName ?? string.Empty,
-                Email = ea.User.Email ?? string.Empty,
-                RegistrationStatus = ea.RegistrationStatus,
-                TicketNumber = ea.TicketNumber,
-                CheckInTime = ea.CheckIns.FirstOrDefault()?.CheckInTime.ToString("O"),
-                IsFirstTime = ea.IsFirstTime,
-                DietaryRestrictions = ea.DietaryRestrictions,
-                AccessibilityNeeds = ea.AccessibilityNeeds,
-                Pronouns = ea.User.Pronouns,
-                HasCompletedWaiver = ea.HasCompletedWaiver,
-                WaitlistPosition = ea.WaitlistPosition
-            }).ToList();
+            // SERVER-SIDE PROJECTION: Project to DTO at database level
+            // Benefits: Only loads needed fields, calculates check-in time at database level
+            var attendeeResponses = await query
+                .OrderBy(ea => ea.RegistrationStatus)
+                .ThenBy(ea => ea.WaitlistPosition ?? 0)
+                .ThenBy(ea => ea.User.SceneName)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(ea => new AttendeeResponse
+                {
+                    // Projected at database level - only loads these fields
+                    AttendeeId = ea.Id.ToString(),
+                    UserId = ea.UserId.ToString(),
+                    SceneName = ea.User.SceneName ?? string.Empty,
+                    Email = ea.User.Email ?? string.Empty,
+                    RegistrationStatus = ea.RegistrationStatus,
+                    TicketNumber = ea.TicketNumber,
+                    CheckInTime = ea.CheckIns.OrderByDescending(c => c.CheckInTime)
+                                             .Select(c => c.CheckInTime.ToString("O"))
+                                             .FirstOrDefault(),
+                    IsFirstTime = ea.IsFirstTime,
+                    DietaryRestrictions = ea.DietaryRestrictions,
+                    AccessibilityNeeds = ea.AccessibilityNeeds,
+                    Pronouns = ea.User.Pronouns,
+                    HasCompletedWaiver = ea.HasCompletedWaiver,
+                    WaitlistPosition = ea.WaitlistPosition
+                })
+                .ToListAsync(cancellationToken);
 
             var response = new CheckInAttendeesResponse
             {

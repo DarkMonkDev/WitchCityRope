@@ -44,11 +44,9 @@ public class VettingService : IVettingService
                     "Access denied", "Only administrators can access vetting applications.");
             }
 
-            // Build query
-            var query = _context.VettingApplications
-                .Include(v => v.User)
-                .Include(v => v.AuditLogs)
-                .AsNoTracking();
+            // SERVER-SIDE PROJECTION: Project directly to DTO at database level
+            // Benefits: Only loads needed fields, no Include() overhead
+            var query = _context.VettingApplications.AsNoTracking();
 
             // Apply status filters
             if (request.StatusFilters.Any())
@@ -104,48 +102,46 @@ public class VettingService : IVettingService
                 _ => query.OrderByDescending(v => v.SubmittedAt)
             };
 
-            // Apply pagination
-            var applications = await query
-                .AsNoTracking() // Read-only query - 20-40% performance improvement
+            // Apply pagination and project to DTO in single database query
+            var applicationDtos = await query
                 .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize)
-                .ToListAsync(cancellationToken);
-
-            // Map to DTOs
-            var applicationDtos = applications.Select(app => new ApplicationSummaryDto
-            {
-                Id = app.Id,
-                ApplicationNumber = app.Id.ToString()[..8], // Simple application number from ID
-                Status = app.WorkflowStatus.ToString(),
-                SubmittedAt = app.SubmittedAt,
-                LastActivityAt = app.UpdatedAt,
-                SceneName = app.SceneName,
-                Email = app.Email,
-                FetLifeHandle = app.FetLifeHandle,
-                ExperienceLevel = "Beginner", // Default for now
-                YearsExperience = 0, // Default for now
-                IsAnonymous = false, // Default for now
-                AssignedReviewerName = null, // Not implemented yet
-                ReviewStartedAt = app.ReviewStartedAt,
-                Priority = 1, // Default priority
-                DaysInCurrentStatus = (DateTime.UtcNow - app.SubmittedAt).Days,
-                ReferenceStatus = new ApplicationReferenceStatus
+                .Select(app => new ApplicationSummaryDto
                 {
-                    TotalReferences = 0,
-                    ContactedReferences = 0,
-                    RespondedReferences = 0,
-                    AllReferencesComplete = false
-                },
-                HasRecentNotes = false, // Default for now
-                HasPendingActions = app.WorkflowStatus == VettingStatus.UnderReview,
-                InterviewScheduledFor = app.InterviewScheduledFor,
-                SkillsTags = new List<string>()
-            }).ToList();
+                    // Projected at database level - only loads these fields
+                    Id = app.Id,
+                    ApplicationNumber = app.Id.ToString().Substring(0, 8), // Simple application number from ID
+                    Status = app.WorkflowStatus.ToString(),
+                    SubmittedAt = app.SubmittedAt,
+                    LastActivityAt = app.UpdatedAt,
+                    SceneName = app.SceneName,
+                    Email = app.Email,
+                    FetLifeHandle = app.FetLifeHandle,
+                    ExperienceLevel = "Beginner", // Default for now
+                    YearsExperience = 0, // Default for now
+                    IsAnonymous = false, // Default for now
+                    AssignedReviewerName = null, // Not implemented yet
+                    ReviewStartedAt = app.ReviewStartedAt,
+                    Priority = 1, // Default priority
+                    DaysInCurrentStatus = (int)(DateTime.UtcNow - app.SubmittedAt).TotalDays,
+                    ReferenceStatus = new ApplicationReferenceStatus
+                    {
+                        TotalReferences = 0,
+                        ContactedReferences = 0,
+                        RespondedReferences = 0,
+                        AllReferencesComplete = false
+                    },
+                    HasRecentNotes = false, // Default for now
+                    HasPendingActions = app.WorkflowStatus == VettingStatus.UnderReview,
+                    InterviewScheduledFor = app.InterviewScheduledFor,
+                    SkillsTags = new List<string>()
+                })
+                .ToListAsync(cancellationToken);
 
             var pagedResult = new PagedResult<ApplicationSummaryDto>(
                 applicationDtos, totalCount, request.Page, request.PageSize);
 
-            _logger.LogInformation("Retrieved {Count} vetting applications for admin user {UserId}",
+            _logger.LogInformation("Retrieved {Count} vetting applications using server-side projection for admin user {UserId}",
                 applicationDtos.Count, userId);
 
             return Result<PagedResult<ApplicationSummaryDto>>.Success(pagedResult);
