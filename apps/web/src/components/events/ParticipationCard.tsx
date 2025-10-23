@@ -130,7 +130,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
           </Text>
           <Button
             component="a"
-            href="/login"
+            href={`/login?returnUrl=${encodeURIComponent(window.location.pathname)}`}
             variant="filled"
             color="blue"
             styles={{

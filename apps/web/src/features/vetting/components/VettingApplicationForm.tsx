@@ -271,7 +271,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                 <Group gap="md">
                   <Button
                     component="a"
-                    href="/login"
+                    href={`/login?returnUrl=${encodeURIComponent(window.location.pathname)}`}
                     color="wcr"
                     leftSection={<IconLogin />}
                     data-testid="login-to-account-button"

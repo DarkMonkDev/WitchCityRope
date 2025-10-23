@@ -1,5 +1,5 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
+import React, { useMemo } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useForm } from '@mantine/form'
 import {
   Title,
@@ -20,10 +20,22 @@ type LoginFormData = {
   email: string
   password: string
   rememberMe: boolean
+  returnUrl?: string // Optional return URL to send to backend
 }
 
 export const LoginPage: React.FC = () => {
   const loginMutation = useLogin()
+  const [searchParams] = useSearchParams()
+
+  // Extract returnUrl from query parameters
+  const returnUrl = useMemo(() => {
+    const returnUrlParam = searchParams.get('returnUrl')
+    if (returnUrlParam) {
+      console.log('📍 Login page loaded with returnUrl:', returnUrlParam)
+      return returnUrlParam
+    }
+    return undefined
+  }, [searchParams])
 
   // Mantine form with manual validation
   const form = useForm<LoginFormData>({
@@ -32,6 +44,7 @@ export const LoginPage: React.FC = () => {
       email: '',
       password: '',
       rememberMe: false,
+      returnUrl, // Include return URL in form values
     },
     validate: {
       email: (value) => {
@@ -46,6 +59,7 @@ export const LoginPage: React.FC = () => {
   // Navigation is handled by the useLogin mutation to avoid infinite loops
 
   const handleSubmit = (values: LoginFormData) => {
+    // Pass returnUrl to API for backend validation
     loginMutation.mutate(values)
   }
 

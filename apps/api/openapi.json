@@ -136,8 +136,8 @@
         "tags": [
           "Authentication"
         ],
-        "summary": "Authenticate user with email and password",
-        "description": "Validates user credentials and returns JWT token with user information",
+        "summary": "Authenticate user with email and password (with optional return URL)",
+        "description": "Validates user credentials, performs OWASP-compliant return URL validation, and returns JWT token with user information. If returnUrl is provided and valid, it will be included in response for post-login redirect.",
         "operationId": "Login",
         "requestBody": {
           "content": {
@@ -4170,6 +4170,219 @@
         }
       }
     },
+    "/api/vetting/email-templates": {
+      "get": {
+        "tags": [
+          "Vetting"
+        ],
+        "summary": "Retrieve all active email templates (Admin only)",
+        "operationId": "GetEmailTemplates",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfListOfEmailTemplateResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/vetting/email-templates/{id}": {
+      "get": {
+        "tags": [
+          "Vetting"
+        ],
+        "summary": "Retrieve a single email template by ID (Admin only)",
+        "operationId": "GetEmailTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfEmailTemplateResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Vetting"
+        ],
+        "summary": "Update email template content (Admin only)",
+        "operationId": "UpdateEmailTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEmailTemplateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfEmailTemplateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/vetting/public/applications": {
       "post": {
         "tags": [
@@ -4210,57 +4423,6 @@
           },
           "409": {
             "description": "Conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseOfObject"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseOfObject"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/vetting/public/applications/full": {
-      "post": {
-        "tags": [
-          "Vetting - Public"
-        ],
-        "summary": "Submit a complete vetting application with all fields",
-        "operationId": "SubmitVettingApplicationFull",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateApplicationRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseOfApplicationSubmissionResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
             "content": {
               "application/json": {
                 "schema": {
@@ -5235,6 +5397,33 @@
           }
         }
       },
+      "ApiResponseOfEmailTemplateResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/EmailTemplateResponse2"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ApiResponseOfEventDto": {
         "type": "object",
         "properties": {
@@ -5243,6 +5432,37 @@
           },
           "data": {
             "$ref": "#/components/schemas/EventDto2"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseOfListOfEmailTemplateResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EmailTemplateResponse"
+            },
+            "nullable": true
           },
           "error": {
             "type": "string",
@@ -6193,6 +6413,13 @@
           "sceneName": {
             "type": "string"
           },
+          "email": {
+            "type": "string"
+          },
+          "fetLifeHandle": {
+            "type": "string",
+            "nullable": true
+          },
           "experienceLevel": {
             "type": "string"
           },
@@ -6531,111 +6758,6 @@
           }
         }
       },
-      "CreateApplicationRequest": {
-        "required": [
-          "fullName",
-          "sceneName",
-          "email",
-          "experienceLevel",
-          "yearsExperience",
-          "experienceDescription",
-          "safetyKnowledge",
-          "consentUnderstanding",
-          "whyJoinCommunity",
-          "skillsInterests",
-          "expectationsGoals",
-          "agreesToGuidelines",
-          "references",
-          "agreesToTerms",
-          "isAnonymous",
-          "consentToContact"
-        ],
-        "type": "object",
-        "properties": {
-          "fullName": {
-            "maxLength": 50,
-            "minLength": 2,
-            "type": "string"
-          },
-          "sceneName": {
-            "maxLength": 50,
-            "minLength": 2,
-            "type": "string"
-          },
-          "pronouns": {
-            "maxLength": 100,
-            "minLength": 0,
-            "type": "string",
-            "nullable": true
-          },
-          "email": {
-            "type": "string"
-          },
-          "phone": {
-            "type": "string",
-            "nullable": true
-          },
-          "experienceLevel": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "yearsExperience": {
-            "maximum": 50,
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          },
-          "experienceDescription": {
-            "maxLength": 500,
-            "minLength": 50,
-            "type": "string"
-          },
-          "safetyKnowledge": {
-            "maxLength": 300,
-            "minLength": 30,
-            "type": "string"
-          },
-          "consentUnderstanding": {
-            "maxLength": 300,
-            "minLength": 30,
-            "type": "string"
-          },
-          "whyJoinCommunity": {
-            "maxLength": 400,
-            "minLength": 50,
-            "type": "string"
-          },
-          "skillsInterests": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "expectationsGoals": {
-            "maxLength": 300,
-            "minLength": 30,
-            "type": "string"
-          },
-          "agreesToGuidelines": {
-            "type": "boolean"
-          },
-          "references": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ReferenceRequest"
-            }
-          },
-          "agreesToTerms": {
-            "type": "boolean"
-          },
-          "isAnonymous": {
-            "type": "boolean"
-          },
-          "consentToContact": {
-            "type": "boolean"
-          }
-        }
-      },
       "CreateIncidentRequest": {
         "type": "object",
         "properties": {
@@ -6883,6 +7005,115 @@
             "type": "string"
           }
         }
+      },
+      "EmailTemplateResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "templateType": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "templateTypeName": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "htmlBody": {
+            "type": "string"
+          },
+          "plainTextBody": {
+            "type": "string"
+          },
+          "variables": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastModified": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "updatedByEmail": {
+            "type": "string"
+          }
+        }
+      },
+      "EmailTemplateResponse2": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "templateType": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "templateTypeName": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "htmlBody": {
+            "type": "string"
+          },
+          "plainTextBody": {
+            "type": "string"
+          },
+          "variables": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastModified": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "updatedByEmail": {
+            "type": "string"
+          }
+        },
+        "nullable": true
       },
       "EnhancedParticipationStatusDto": {
         "type": "object",
@@ -7556,6 +7787,10 @@
           },
           "password": {
             "type": "string"
+          },
+          "returnUrl": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -7571,6 +7806,10 @@
           },
           "user": {
             "$ref": "#/components/schemas/AuthUserResponse"
+          },
+          "returnUrl": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -8359,33 +8598,6 @@
           }
         }
       },
-      "ReferenceRequest": {
-        "required": [
-          "name",
-          "email",
-          "relationship"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "maxLength": 100,
-            "minLength": 2,
-            "type": "string"
-          },
-          "email": {
-            "type": "string"
-          },
-          "relationship": {
-            "maxLength": 200,
-            "minLength": 5,
-            "type": "string"
-          },
-          "order": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
       "ReferenceResponseDto": {
         "type": "object",
         "properties": {
@@ -9125,6 +9337,26 @@
             "minLength": 0,
             "type": "string",
             "nullable": true
+          }
+        }
+      },
+      "UpdateEmailTemplateRequest": {
+        "required": [
+          "subject",
+          "htmlBody",
+          "plainTextBody"
+        ],
+        "type": "object",
+        "properties": {
+          "subject": {
+            "maxLength": 500,
+            "type": "string"
+          },
+          "htmlBody": {
+            "type": "string"
+          },
+          "plainTextBody": {
+            "type": "string"
           }
         }
       },

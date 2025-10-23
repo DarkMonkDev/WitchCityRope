@@ -114,8 +114,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Authenticate user with email and password
-         * @description Validates user credentials and returns JWT token with user information
+         * Authenticate user with email and password (with optional return URL)
+         * @description Validates user credentials, performs OWASP-compliant return URL validation, and returns JWT token with user information. If returnUrl is provided and valid, it will be included in response for post-login redirect.
          */
         post: operations["Login"];
         delete?: never;
@@ -1560,23 +1560,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/vetting/public/applications/full": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Submit a complete vetting application with all fields */
-        post: operations["SubmitVettingApplicationFull"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/vetting/public/applications/status/{token}": {
         parameters: {
             query?: never;
@@ -2677,28 +2660,6 @@ export interface components {
             title?: string;
             fullContent?: string | null;
         };
-        CreateApplicationRequest: {
-            fullName: string;
-            sceneName: string;
-            pronouns?: string | null;
-            email: string;
-            phone?: string | null;
-            /** Format: int32 */
-            experienceLevel: number;
-            /** Format: int32 */
-            yearsExperience: number;
-            experienceDescription: string;
-            safetyKnowledge: string;
-            consentUnderstanding: string;
-            whyJoinCommunity: string;
-            skillsInterests: string[];
-            expectationsGoals: string;
-            agreesToGuidelines: boolean;
-            references: components["schemas"]["ReferenceRequest"][];
-            agreesToTerms: boolean;
-            isAnonymous: boolean;
-            consentToContact: boolean;
-        };
         CreateIncidentRequest: {
             /** Format: uuid */
             reporterId?: string | null;
@@ -3060,12 +3021,14 @@ export interface components {
         LoginRequest: {
             email: string;
             password: string;
+            returnUrl?: string | null;
         };
         LoginResponse: {
             token?: string;
             /** Format: date-time */
             expiresAt?: string;
             user?: components["schemas"]["AuthUserResponse"];
+            returnUrl?: string | null;
         };
         ManualEntryData: {
             name: string;
@@ -3344,13 +3307,6 @@ export interface components {
             /** Format: date-time */
             formExpiresAt?: string | null;
             response?: components["schemas"]["ReferenceResponseDto"];
-        };
-        ReferenceRequest: {
-            name: string;
-            email: string;
-            relationship: string;
-            /** Format: int32 */
-            order?: number;
         };
         ReferenceResponseDto: {
             relationshipDuration?: string;
@@ -8109,48 +8065,6 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
-                };
-            };
-        };
-    };
-    SubmitVettingApplicationFull: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateApplicationRequest"];
-            };
-        };
-        responses: {
-            /** @description Created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponseOfApplicationSubmissionResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
                 headers: {
                     [name: string]: unknown;
                 };

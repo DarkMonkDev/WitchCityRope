@@ -13,6 +13,7 @@ interface LoginResponseData {
   success: boolean;
   user: UserDto;
   message?: string;
+  returnUrl?: string | null; // Backend-validated return URL (OWASP compliant)
 }
 
 // Registration credentials interface - not generated yet, create locally
@@ -57,9 +58,31 @@ function getErrorMessage(error: any): string {
 }
 
 /**
+ * Get contextual success message based on return URL path
+ */
+function getSuccessMessage(returnUrl: string | null | undefined): string {
+  if (!returnUrl) {
+    return 'Welcome back!';
+  }
+
+  // Contextual messages based on return URL
+  if (returnUrl.includes('/apply/vetting') || returnUrl.includes('/join')) {
+    return 'Welcome back! Please complete your application.';
+  }
+  if (returnUrl.includes('/events/')) {
+    return 'Welcome back! You can now register for this event.';
+  }
+  if (returnUrl.includes('/demo/')) {
+    return 'Welcome! Explore all demo features.';
+  }
+
+  return 'Welcome back!';
+}
+
+/**
  * Login mutation using TanStack Query v5 + Zustand integration
- * Follows pattern from: /docs/functional-areas/api-integration-validation/requirements/functional-specification-v2.md
- * Section: "Mutation Pattern"
+ * Implements post-login return URL feature with backend validation
+ * Requirements: /docs/functional-areas/authentication/new-work/2025-10-10-post-login-return/requirements/business-requirements.md
  */
 export function useLogin() {
   const queryClient = useQueryClient()
@@ -82,26 +105,38 @@ export function useLogin() {
     },
     onSuccess: (data, variables, context) => {
       // Handle httpOnly cookie authentication - no tokens in response
-      // The API returns { success: true, user: {...}, message: '...' }
+      // The API returns { success: true, user: {...}, returnUrl: '...' }
       const userData = data.user
-      
+
       // Update Zustand store with user data (httpOnly cookies handle auth)
       login(userData)
-      
+
       // Invalidate any user-related queries (if they exist)
       queryClient.invalidateQueries({ queryKey: ['user'] })
       queryClient.invalidateQueries({ queryKey: ['auth'] })
-      
-      // Navigate to returnTo URL from query params or dashboard
-      const urlParams = new URLSearchParams(window.location.search)
-      const returnTo = urlParams.get('returnTo')
 
-      if (returnTo) {
-        // Decode the return URL and navigate there
-        navigate(decodeURIComponent(returnTo), { replace: true })
+      // CRITICAL: Prioritize backend-validated returnUrl over query param for security
+      // Backend applies OWASP-compliant validation (open redirect prevention)
+      const returnUrl = data.returnUrl;
+
+      // Get contextual success message
+      const successMessage = getSuccessMessage(returnUrl);
+      console.log('✅ Login successful:', successMessage);
+
+      if (returnUrl) {
+        // Backend-validated URL is guaranteed to be safe - redirect immediately
+        console.log('📍 Redirecting to validated return URL:', returnUrl);
+        navigate(returnUrl, {
+          replace: true,
+          state: { message: successMessage }
+        });
       } else {
-        // Default to dashboard if no returnTo specified
-        navigate('/dashboard', { replace: true })
+        // No return URL provided or validation failed - default to dashboard
+        console.log('📍 Redirecting to dashboard (default)');
+        navigate('/dashboard', {
+          replace: true,
+          state: { message: successMessage }
+        });
       }
     },
     onError: (error) => {
