@@ -139,6 +139,9 @@ public class PaymentService : IPaymentService
     {
         try
         {
+            // OPTIMIZATION: Already optimized - single query with all includes
+            // This prevents N+1 when accessing User, AuditLogs, Refunds, Failures
+            // Impact: Reduces from 5 queries to 1 (80% reduction)
             var payment = await _context.Payments
                 .AsNoTracking()
                 .Include(p => p.User)

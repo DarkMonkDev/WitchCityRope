@@ -172,10 +172,14 @@ public class VettingService : IVettingService
                     "Access denied", "Only administrators can access application details.");
             }
 
-            // Get application with related data
+            // OPTIMIZATION: Single query with all includes to prevent N+1 queries
+            // Before: 2 queries (application + audit logs separately)
+            // After: 1 query with nested includes
+            // Impact: 50% reduction in query count
             var application = await _context.VettingApplications
                 .Include(v => v.User)
                 .Include(v => v.AuditLogs)
+                    .ThenInclude(log => log.PerformedByUser)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(v => v.Id == applicationId, cancellationToken);
 
@@ -185,13 +189,10 @@ public class VettingService : IVettingService
                     "Application not found", $"No application found with ID {applicationId}");
             }
 
-            // FIX: Get audit logs with User navigation property to access reviewer's SceneName
-            var auditLogsWithUsers = await _context.VettingAuditLogs
-                .AsNoTracking() // Read-only query - 20-40% performance improvement
-                .Where(log => log.ApplicationId == applicationId)
-                .Include(log => log.PerformedByUser)
+            // Use already-loaded audit logs from Include
+            var auditLogsWithUsers = application.AuditLogs
                 .OrderByDescending(log => log.PerformedAt)
-                .ToListAsync(cancellationToken);
+                .ToList();
 
             // Convert audit logs to workflow history
             var workflowHistory = auditLogsWithUsers.Select(log => new WorkflowHistoryDto

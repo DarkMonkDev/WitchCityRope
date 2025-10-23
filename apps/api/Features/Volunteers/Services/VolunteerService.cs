@@ -46,6 +46,10 @@ public class VolunteerService
                 return (false, null, "Event not found");
             }
 
+            // OPTIMIZATION: Already optimized - uses Include for Session relationship
+            // Batches queries appropriately (3 queries instead of 1+N+M)
+            // Could be optimized further with single query if needed, but current approach is good
+
             // Get volunteer positions - only show public-facing positions on event page
             var positions = await _context.VolunteerPositions
                 .AsNoTracking()

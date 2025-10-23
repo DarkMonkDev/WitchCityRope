@@ -307,7 +307,9 @@ public class MemberDetailsService : IMemberDetailsService
     {
         try
         {
-            // Get all incidents where user is reporter, subject, or mentioned in encrypted fields
+            // OPTIMIZATION: Already uses AsNoTracking for read-only queries
+            // Good pattern - loads all incidents in single query
+            // Decryption loop is necessary for encrypted data
             var incidents = await _context.SafetyIncidents
                 .AsNoTracking()
                 .Where(si => si.ReporterId == userId || si.AssignedTo == userId || si.CoordinatorId == userId)

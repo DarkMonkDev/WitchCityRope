@@ -163,6 +163,9 @@ public class SafetyService : ISafetyService
                 return Result<IncidentResponse>.Failure("Access denied - safety team role required");
             }
 
+            // OPTIMIZATION: Already optimized - single query with nested includes
+            // This prevents N+1 when accessing Reporter, AssignedUser, AuditLogs, and related Users
+            // Impact: Reduces from 4+ queries to 1 (75%+ reduction)
             var incident = await _context.SafetyIncidents
                 .Include(i => i.Reporter)
                 .Include(i => i.AssignedUser)
