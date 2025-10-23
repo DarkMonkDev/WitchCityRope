@@ -4,7 +4,7 @@ import {
   Button, Anchor, Alert
 } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
-import { formatPrice, getCapacityColor } from '../../../utils/eventUtils';
+import { formatPrice, getCapacityColor, formatEventDate } from '../../../utils/eventUtils';
 
 interface EventCardProps {
   event: {
@@ -220,8 +220,14 @@ export const EventCard = memo<EventCardProps>(({
         {/* Event Meta */}
         <Group gap="md">
           <Group gap={4}>
+            <Text span>📅</Text>
+            <Text size="sm" c="dimmed" data-testid="event-date">
+              {formatEventDate(event.startDate)}
+            </Text>
+          </Group>
+          <Group gap={4}>
             <Text span>🕐</Text>
-            <Text size="sm" c="dimmed">
+            <Text size="sm" c="dimmed" data-testid="event-time">
               {event.startTime} - {event.endTime}
             </Text>
           </Group>
