@@ -92,7 +92,10 @@ public class PaymentEndpoints : ControllerBase
                     "Payment processing failed for registration {RegistrationId}: {Error}",
                     request.EventRegistrationId, result.ErrorMessage);
 
-                return BadRequest(new { error = result.ErrorMessage, errors = result.Errors });
+                return Problem(
+                    title: "Payment Processing Failed",
+                    detail: result.ErrorMessage,
+                    statusCode: 400);
             }
 
             // Map to response
@@ -108,7 +111,10 @@ public class PaymentEndpoints : ControllerBase
         {
             _logger.LogError(ex, "Unexpected error processing payment for registration {RegistrationId}",
                 request.EventRegistrationId);
-            return StatusCode(500, new { error = "An unexpected error occurred while processing your payment" });
+            return Problem(
+                title: "Server Error",
+                detail: "An unexpected error occurred while processing your payment",
+                statusCode: 500);
         }
     }
 
@@ -131,12 +137,18 @@ public class PaymentEndpoints : ControllerBase
             if (!result.IsSuccess)
             {
                 _logger.LogWarning("Error retrieving payment {PaymentId}: {Error}", paymentId, result.ErrorMessage);
-                return BadRequest(new { error = result.ErrorMessage });
+                return Problem(
+                    title: "Bad Request",
+                    detail: result.ErrorMessage,
+                    statusCode: 400);
             }
 
             if (result.Value == null)
             {
-                return NotFound(new { error = "Payment not found" });
+                return Problem(
+                    title: "Not Found",
+                    detail: "Payment not found",
+                    statusCode: 404);
             }
 
             // Check if user has permission to view this payment
@@ -152,7 +164,10 @@ public class PaymentEndpoints : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error retrieving payment {PaymentId}", paymentId);
-            return StatusCode(500, new { error = "An unexpected error occurred" });
+            return Problem(
+                title: "Server Error",
+                detail: "An unexpected error occurred",
+                statusCode: 500);
         }
     }
 
@@ -173,12 +188,18 @@ public class PaymentEndpoints : ControllerBase
 
             if (!paymentResult.IsSuccess)
             {
-                return BadRequest(new { error = paymentResult.ErrorMessage });
+                return Problem(
+                    title: "Bad Request",
+                    detail: paymentResult.ErrorMessage,
+                    statusCode: 400);
             }
 
             if (paymentResult.Value == null)
             {
-                return NotFound(new { error = "No payment found for this registration" });
+                return Problem(
+                    title: "Not Found",
+                    detail: "No payment found for this registration",
+                    statusCode: 404);
             }
 
             // Check permissions
@@ -195,7 +216,10 @@ public class PaymentEndpoints : ControllerBase
         {
             _logger.LogError(ex, "Unexpected error retrieving payment status for registration {RegistrationId}",
                 eventRegistrationId);
-            return StatusCode(500, new { error = "An unexpected error occurred" });
+            return Problem(
+                title: "Server Error",
+                detail: "An unexpected error occurred",
+                statusCode: 500);
         }
     }
 
@@ -231,7 +255,10 @@ public class PaymentEndpoints : ControllerBase
             // Ensure payment ID matches
             if (request.PaymentId != paymentId)
             {
-                return BadRequest(new { error = "Payment ID mismatch" });
+                return Problem(
+                    title: "Bad Request",
+                    detail: "Payment ID mismatch",
+                    statusCode: 400);
             }
 
             // Get current user and client info
@@ -258,7 +285,10 @@ public class PaymentEndpoints : ControllerBase
                 _logger.LogWarning("Refund processing failed for payment {PaymentId}: {Error}",
                     paymentId, result.ErrorMessage);
 
-                return BadRequest(new { error = result.ErrorMessage, errors = result.Errors });
+                return Problem(
+                    title: "Payment Processing Failed",
+                    detail: result.ErrorMessage,
+                    statusCode: 400);
             }
 
             // Map to response
@@ -272,7 +302,10 @@ public class PaymentEndpoints : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error processing refund for payment {PaymentId}", paymentId);
-            return StatusCode(500, new { error = "An unexpected error occurred while processing the refund" });
+            return Problem(
+                title: "Server Error",
+                detail: "An unexpected error occurred while processing the refund",
+                statusCode: 500);
         }
     }
 

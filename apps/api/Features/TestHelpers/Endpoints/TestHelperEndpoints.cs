@@ -44,12 +44,10 @@ public static class TestHelperEndpoints
                     });
                 }
 
-                return Results.BadRequest(new
-                {
-                    Success = false,
-                    Error = error,
-                    Message = "Failed to create test user"
-                });
+                return Results.Problem(
+                    title: "Failed to create test user",
+                    detail: error,
+                    statusCode: 400);
             })
             .AllowAnonymous() // No auth required for test user creation
             .WithName("CreateTestUser")
@@ -76,12 +74,10 @@ public static class TestHelperEndpoints
                     });
                 }
 
-                return Results.BadRequest(new
-                {
-                    Success = false,
-                    Error = error,
-                    Message = "Failed to delete test user"
-                });
+                return Results.Problem(
+                    title: "Failed to delete test user",
+                    detail: error,
+                    statusCode: 400);
             })
             .AllowAnonymous() // No auth required for test cleanup
             .WithName("DeleteTestUser")

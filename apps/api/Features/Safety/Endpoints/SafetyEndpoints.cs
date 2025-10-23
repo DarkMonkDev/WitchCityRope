@@ -63,7 +63,10 @@ public static class SafetyEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.NotFound(new { error = result.Error });
+                : Results.Problem(
+                    title: "Resource Not Found",
+                    detail: result.Error,
+                    statusCode: 404);
         })
         .WithName("GetIncidentStatus")
         .WithSummary("Get incident status for tracking")

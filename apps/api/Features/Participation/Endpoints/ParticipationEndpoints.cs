@@ -28,7 +28,10 @@ public static class ParticipationEndpoints
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Unauthorized();
+                    return Results.Problem(
+                        title: "Unauthorized",
+                        detail: "User authentication failed - missing or invalid user identifier",
+                        statusCode: 401);
                 }
 
                 var result = await participationService.GetParticipationStatusAsync(eventId, userId, cancellationToken);
@@ -61,7 +64,10 @@ public static class ParticipationEndpoints
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Unauthorized();
+                    return Results.Problem(
+                        title: "Unauthorized",
+                        detail: "User authentication failed - missing or invalid user identifier",
+                        statusCode: 401);
                 }
 
                 // Check vetting access control BEFORE processing RSVP
@@ -105,15 +111,24 @@ public static class ParticipationEndpoints
                     // Check for specific business rule violations
                     if (result.Error.Contains("not found"))
                     {
-                        return Results.NotFound(new { error = result.Error });
+                            return Results.Problem(
+                            title: "Resource Not Found",
+                            detail: result.Error,
+                            statusCode: 404);
                     }
                     if (result.Error.Contains("already"))
                     {
-                        return Results.Conflict(new { error = result.Error });
+                        return Results.Problem(
+                            title: "Conflict",
+                            detail: result.Error,
+                            statusCode: 409);
                     }
                     if (result.Error.Contains("vetted") || result.Error.Contains("capacity"))
                     {
-                        return Results.BadRequest(new { error = result.Error });
+                        return Results.Problem(
+                            title: "Bad Request",
+                            detail: result.Error,
+                            statusCode: 400);
                     }
 
                     return Results.Problem(
@@ -149,7 +164,10 @@ public static class ParticipationEndpoints
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Unauthorized();
+                    return Results.Problem(
+                        title: "Unauthorized",
+                        detail: "User authentication failed - missing or invalid user identifier",
+                        statusCode: 401);
                 }
 
                 // Check vetting access control BEFORE processing ticket purchase
@@ -193,15 +211,24 @@ public static class ParticipationEndpoints
                     // Check for specific business rule violations
                     if (result.Error.Contains("not found"))
                     {
-                        return Results.NotFound(new { error = result.Error });
+                            return Results.Problem(
+                            title: "Resource Not Found",
+                            detail: result.Error,
+                            statusCode: 404);
                     }
                     if (result.Error.Contains("already"))
                     {
-                        return Results.Conflict(new { error = result.Error });
+                        return Results.Problem(
+                            title: "Conflict",
+                            detail: result.Error,
+                            statusCode: 409);
                     }
                     if (result.Error.Contains("capacity") || result.Error.Contains("only allowed"))
                     {
-                        return Results.BadRequest(new { error = result.Error });
+                        return Results.Problem(
+                            title: "Bad Request",
+                            detail: result.Error,
+                            statusCode: 400);
                     }
 
                     return Results.Problem(
@@ -235,7 +262,10 @@ public static class ParticipationEndpoints
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Unauthorized();
+                    return Results.Problem(
+                        title: "Unauthorized",
+                        detail: "User authentication failed - missing or invalid user identifier",
+                        statusCode: 401);
                 }
 
                 var result = await participationService.CancelParticipationAsync(eventId, userId, reason, cancellationToken);
@@ -244,11 +274,17 @@ public static class ParticipationEndpoints
                 {
                     if (result.Error.Contains("not found"))
                     {
-                        return Results.NotFound(new { error = result.Error });
+                            return Results.Problem(
+                            title: "Resource Not Found",
+                            detail: result.Error,
+                            statusCode: 404);
                     }
                     if (result.Error.Contains("cannot be cancelled"))
                     {
-                        return Results.BadRequest(new { error = result.Error });
+                        return Results.Problem(
+                            title: "Bad Request",
+                            detail: result.Error,
+                            statusCode: 400);
                     }
 
                     return Results.Problem(
@@ -278,7 +314,10 @@ public static class ParticipationEndpoints
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Unauthorized();
+                    return Results.Problem(
+                        title: "Unauthorized",
+                        detail: "User authentication failed - missing or invalid user identifier",
+                        statusCode: 401);
                 }
 
                 var result = await participationService.GetUserParticipationsAsync(userId, cancellationToken);
@@ -309,7 +348,10 @@ public static class ParticipationEndpoints
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
-                    return Results.Unauthorized();
+                    return Results.Problem(
+                        title: "Unauthorized",
+                        detail: "User authentication failed - missing or invalid user identifier",
+                        statusCode: 401);
                 }
 
                 var result = await participationService.CancelParticipationAsync(eventId, userId, reason, cancellationToken);
@@ -318,11 +360,17 @@ public static class ParticipationEndpoints
                 {
                     if (result.Error.Contains("not found"))
                     {
-                        return Results.NotFound(new { error = result.Error });
+                            return Results.Problem(
+                            title: "Resource Not Found",
+                            detail: result.Error,
+                            statusCode: 404);
                     }
                     if (result.Error.Contains("cannot be cancelled"))
                     {
-                        return Results.BadRequest(new { error = result.Error });
+                        return Results.Problem(
+                            title: "Bad Request",
+                            detail: result.Error,
+                            statusCode: 400);
                     }
 
                     return Results.Problem(

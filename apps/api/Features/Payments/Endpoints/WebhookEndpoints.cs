@@ -50,13 +50,19 @@ public class WebhookEndpoints : ControllerBase
             if (string.IsNullOrEmpty(signature) || string.IsNullOrEmpty(transmissionId))
             {
                 _logger.LogWarning("PayPal webhook received without required signature headers");
-                return BadRequest(new { error = "Missing PayPal signature headers" });
+                return Problem(
+                    title: "Bad Request",
+                    detail: "Missing PayPal signature headers",
+                    statusCode: 400);
             }
 
             if (string.IsNullOrEmpty(payload))
             {
                 _logger.LogWarning("PayPal webhook received with empty payload");
-                return BadRequest(new { error = "Empty webhook payload" });
+                return Problem(
+                    title: "Bad Request",
+                    detail: "Empty webhook payload",
+                    statusCode: 400);
             }
 
             // Get webhook ID from configuration
@@ -66,7 +72,10 @@ public class WebhookEndpoints : ControllerBase
             if (string.IsNullOrEmpty(webhookId))
             {
                 _logger.LogError("PayPal webhook ID not configured");
-                return StatusCode(500, new { error = "Webhook configuration error" });
+                return Problem(
+                    title: "Server Error",
+                    detail: "Webhook configuration error",
+                    statusCode: 500);
             }
 
             _logger.LogInformation("Processing PayPal webhook, payload length: {Length}", payload.Length);
@@ -77,7 +86,10 @@ public class WebhookEndpoints : ControllerBase
             if (!validationResult.IsSuccess || validationResult.Value == null)
             {
                 _logger.LogWarning("PayPal webhook signature validation failed: {Error}", validationResult.ErrorMessage);
-                return BadRequest(new { error = "Invalid webhook signature" });
+                return Problem(
+                    title: "Bad Request",
+                    detail: "Invalid webhook signature",
+                    statusCode: 400);
             }
 
             var paypalEvent = validationResult.Value;
@@ -100,7 +112,10 @@ public class WebhookEndpoints : ControllerBase
                     eventId, eventType, processingResult.ErrorMessage);
 
                 // Return 500 so PayPal will retry the webhook
-                return StatusCode(500, new { error = "Failed to process webhook event" });
+                return Problem(
+                    title: "Server Error",
+                    detail: "Failed to process webhook event",
+                    statusCode: 500);
             }
 
             _logger.LogInformation(
@@ -115,7 +130,10 @@ public class WebhookEndpoints : ControllerBase
             _logger.LogError(ex, "Unexpected error processing PayPal webhook");
 
             // Return 500 so PayPal will retry the webhook
-            return StatusCode(500, new { error = "Internal server error processing webhook" });
+            return Problem(
+                title: "Server Error",
+                detail: "Internal server error processing webhook",
+                statusCode: 500);
         }
     }
 

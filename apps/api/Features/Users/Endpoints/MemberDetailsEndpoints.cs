@@ -116,8 +116,14 @@ public static class MemberDetailsEndpoints
         if (!success)
         {
             return error.Contains("not found", StringComparison.OrdinalIgnoreCase)
-                ? Results.NotFound(new { error })
-                : Results.Json(new { error }, statusCode: 500);
+                ? Results.Problem(
+                    title: "Resource Not Found",
+                    detail: error,
+                    statusCode: 404)
+                : Results.Problem(
+                    title: "Server Error",
+                    detail: error,
+                    statusCode: 500);
         }
 
         return Results.Ok(new
@@ -142,8 +148,14 @@ public static class MemberDetailsEndpoints
         if (!success)
         {
             return error.Contains("not found", StringComparison.OrdinalIgnoreCase)
-                ? Results.NotFound(new { error })
-                : Results.Json(new { error }, statusCode: 500);
+                ? Results.Problem(
+                    title: "Resource Not Found",
+                    detail: error,
+                    statusCode: 404)
+                : Results.Problem(
+                    title: "Server Error",
+                    detail: error,
+                    statusCode: 500);
         }
 
         return Results.Ok(new
@@ -168,12 +180,18 @@ public static class MemberDetailsEndpoints
         // Validate pagination parameters
         if (page < 1)
         {
-            return Results.BadRequest(new { error = "Page must be >= 1" });
+            return Results.Problem(
+                title: "Validation Failed",
+                detail: "Page must be >= 1",
+                statusCode: 400);
         }
 
         if (pageSize < 1 || pageSize > 100)
         {
-            return Results.BadRequest(new { error = "Page size must be between 1 and 100" });
+            return Results.Problem(
+                title: "Validation Failed",
+                detail: "Page size must be between 1 and 100",
+                statusCode: 400);
         }
 
         var (success, response, error) = await service.GetEventHistoryAsync(userId, page, pageSize, cancellationToken);
@@ -181,8 +199,14 @@ public static class MemberDetailsEndpoints
         if (!success)
         {
             return error.Contains("not found", StringComparison.OrdinalIgnoreCase)
-                ? Results.NotFound(new { error })
-                : Results.Json(new { error }, statusCode: 500);
+                ? Results.Problem(
+                    title: "Resource Not Found",
+                    detail: error,
+                    statusCode: 404)
+                : Results.Problem(
+                    title: "Server Error",
+                    detail: error,
+                    statusCode: 500);
         }
 
         return Results.Ok(new
@@ -207,8 +231,14 @@ public static class MemberDetailsEndpoints
         if (!success)
         {
             return error.Contains("not found", StringComparison.OrdinalIgnoreCase)
-                ? Results.NotFound(new { error })
-                : Results.Json(new { error }, statusCode: 500);
+                ? Results.Problem(
+                    title: "Resource Not Found",
+                    detail: error,
+                    statusCode: 404)
+                : Results.Problem(
+                    title: "Server Error",
+                    detail: error,
+                    statusCode: 500);
         }
 
         return Results.Ok(new
@@ -233,8 +263,14 @@ public static class MemberDetailsEndpoints
         if (!success)
         {
             return error.Contains("not found", StringComparison.OrdinalIgnoreCase)
-                ? Results.NotFound(new { error })
-                : Results.Json(new { error }, statusCode: 500);
+                ? Results.Problem(
+                    title: "Resource Not Found",
+                    detail: error,
+                    statusCode: 404)
+                : Results.Problem(
+                    title: "Server Error",
+                    detail: error,
+                    statusCode: 500);
         }
 
         return Results.Ok(new
@@ -262,7 +298,10 @@ public static class MemberDetailsEndpoints
 
         if (string.IsNullOrEmpty(authorIdClaim) || !Guid.TryParse(authorIdClaim, out var authorId))
         {
-            return Results.Unauthorized();
+            return Results.Problem(
+                title: "Unauthorized",
+                detail: "User authentication failed - missing or invalid user identifier",
+                statusCode: 401);
         }
 
         var (success, response, error) = await service.CreateMemberNoteAsync(userId, request, authorId, cancellationToken);
@@ -271,14 +310,23 @@ public static class MemberDetailsEndpoints
         {
             if (error.Contains("not found", StringComparison.OrdinalIgnoreCase))
             {
-                return Results.NotFound(new { error });
+                return Results.Problem(
+                    title: "Resource Not Found",
+                    detail: error,
+                    statusCode: 404);
             }
             if (error.Contains("Invalid", StringComparison.OrdinalIgnoreCase) ||
                 error.Contains("empty", StringComparison.OrdinalIgnoreCase))
             {
-                return Results.BadRequest(new { error });
+                return Results.Problem(
+                    title: "Bad Request",
+                    detail: error,
+                    statusCode: 400);
             }
-            return Results.Json(new { error }, statusCode: 500);
+            return Results.Problem(
+                title: "Server Error",
+                detail: error,
+                statusCode: 500);
         }
 
         return Results.Created($"/api/users/{userId}/notes/{response!.Id}", new
@@ -306,7 +354,10 @@ public static class MemberDetailsEndpoints
 
         if (string.IsNullOrEmpty(performedByIdClaim) || !Guid.TryParse(performedByIdClaim, out var performedById))
         {
-            return Results.Unauthorized();
+            return Results.Problem(
+                title: "Unauthorized",
+                detail: "User authentication failed - missing or invalid user identifier",
+                statusCode: 401);
         }
 
         var (success, error) = await service.UpdateMemberStatusAsync(userId, request, performedById, cancellationToken);
@@ -314,8 +365,14 @@ public static class MemberDetailsEndpoints
         if (!success)
         {
             return error.Contains("not found", StringComparison.OrdinalIgnoreCase)
-                ? Results.NotFound(new { error })
-                : Results.Json(new { error }, statusCode: 500);
+                ? Results.Problem(
+                    title: "Resource Not Found",
+                    detail: error,
+                    statusCode: 404)
+                : Results.Problem(
+                    title: "Server Error",
+                    detail: error,
+                    statusCode: 500);
         }
 
         return Results.NoContent();
@@ -338,7 +395,10 @@ public static class MemberDetailsEndpoints
 
         if (string.IsNullOrEmpty(performedByIdClaim) || !Guid.TryParse(performedByIdClaim, out var performedById))
         {
-            return Results.Unauthorized();
+            return Results.Problem(
+                title: "Unauthorized",
+                detail: "User authentication failed - missing or invalid user identifier",
+                statusCode: 401);
         }
 
         var (success, error) = await service.UpdateMemberRoleAsync(userId, request, performedById, cancellationToken);
@@ -347,13 +407,22 @@ public static class MemberDetailsEndpoints
         {
             if (error.Contains("not found", StringComparison.OrdinalIgnoreCase))
             {
-                return Results.NotFound(new { error });
+                return Results.Problem(
+                    title: "Resource Not Found",
+                    detail: error,
+                    statusCode: 404);
             }
             if (error.Contains("Invalid", StringComparison.OrdinalIgnoreCase))
             {
-                return Results.BadRequest(new { error });
+                return Results.Problem(
+                    title: "Bad Request",
+                    detail: error,
+                    statusCode: 400);
             }
-            return Results.Json(new { error }, statusCode: 500);
+            return Results.Problem(
+                title: "Server Error",
+                detail: error,
+                statusCode: 500);
         }
 
         return Results.NoContent();
