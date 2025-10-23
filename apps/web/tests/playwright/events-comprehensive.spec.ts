@@ -35,9 +35,7 @@ test.describe('Events - Public Access', () => {
     console.log('✅ Public events page loads correctly');
   });
 
-  // TODO: Unskip when event detail modal/view is implemented
-  // Feature does not exist yet - event cards are not clickable to show details
-  test.skip('should display event details when clicking event card', async ({ page }) => {
+  test('should display event details when clicking event card', async ({ page }) => {
     await page.goto('/events');
     await WaitHelpers.waitForDataLoad(page, 'events-list');
 
