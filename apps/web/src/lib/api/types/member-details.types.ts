@@ -1,89 +1,125 @@
 /**
- * Member Details Types
- * TypeScript interfaces matching backend DTOs from MemberDetailsModels.cs
+ * DTO ALIGNMENT STRATEGY - CRITICAL RULES:
+ * 1. API DTOs (C#) are the SOURCE OF TRUTH
+ * 2. TypeScript types are AUTO-GENERATED via @witchcityrope/shared-types
+ * 3. NEVER manually create TypeScript interfaces for API data
+ *
+ * @generated This file uses auto-generated types from packages/shared-types
+ * Last migration: 2025-10-23
+ * Phase: Priority 2-5 (Phase 4 - High Complexity)
  */
 
-export interface MemberDetailsResponse {
-  userId: string
-  sceneName: string
-  email?: string
-  discordName?: string
-  fetLifeHandle?: string
-  role: string
-  isActive: boolean
-  createdAt: string
-  lastLoginAt?: string
+import type { components } from '@witchcityrope/shared-types'
 
-  // Participation summary
-  totalEventsAttended: number
-  totalEventsRegistered: number
-  activeRegistrations: number
-  lastEventAttended?: string
+// ============================================================================
+// API DTOS - AUTO-GENERATED FROM C# BACKEND
+// ============================================================================
 
-  // Vetting status
-  vettingStatus: number
-  vettingStatusDisplay: string
-  hasVettingApplication: boolean
-}
+/**
+ * Member details with participation summary and vetting status
+ * @generated from MemberDetailsResponse DTO
+ */
+export type MemberDetailsResponse = components['schemas']['MemberDetailsResponse']
 
-export interface VettingDetailsResponse {
-  hasApplication: boolean
-  applicationId?: string
-  applicationNumber?: string
-  submittedAt?: string
-  workflowStatus?: number
-  workflowStatusDisplay?: string
-  lastReviewedAt?: string
-  decisionMadeAt?: string
+/**
+ * Vetting application details and questionnaire responses
+ * @generated from VettingDetailsResponse DTO
+ */
+export type VettingDetailsResponse = components['schemas']['VettingDetailsResponse']
 
-  // Questionnaire responses
-  sceneName?: string
-  realName?: string
-  otherNames?: string
-  email?: string
-  phone?: string
-  fetLifeHandle?: string
-  pronouns?: string
-  aboutYourself?: string
-  experienceLevel?: number
-  yearsExperience?: number
-  experienceDescription?: string
-  experienceWithRope?: string
-  safetyKnowledge?: string
-  consentUnderstanding?: string
-  whyJoin?: string
-  whyJoinCommunity?: string
-  skillsInterests?: string
-  expectationsGoals?: string
-  agreesToGuidelines?: boolean
-  agreesToTerms?: boolean
-  updatedAt?: string
+/**
+ * Event participation history record
+ * @generated from EventHistoryRecord DTO
+ * @note Missing 'attended' field in generated types - using custom extension below
+ */
+export type EventHistoryRecordGenerated = components['schemas']['EventHistoryRecord']
 
-  // Admin notes
-  adminNotes?: string
-}
+/**
+ * Paginated event history response
+ * @generated from EventHistoryResponse DTO
+ */
+export type EventHistoryResponse = components['schemas']['EventHistoryResponse']
 
-export interface EventHistoryRecord {
-  eventId: string
-  eventTitle: string
-  eventType: string
-  eventDate: string
-  registrationType: string // "RSVP", "Ticket", "Attended"
-  participationStatus?: string // "Active", "Cancelled", etc.
-  registeredAt?: string
-  cancelledAt?: string
-  amountPaid?: number
+/**
+ * Member incident record (safety incidents)
+ * @generated from MemberIncidentRecord DTO
+ */
+export type MemberIncidentRecord = components['schemas']['MemberIncidentRecord']
+
+/**
+ * Member incidents collection response
+ * @generated from MemberIncidentsResponse DTO
+ */
+export type MemberIncidentsResponse = components['schemas']['MemberIncidentsResponse']
+
+/**
+ * User note response
+ * @generated from UserNoteResponse DTO
+ */
+export type UserNoteResponse = components['schemas']['UserNoteResponse']
+
+/**
+ * Create user note request
+ * @generated from CreateUserNoteRequest DTO
+ */
+export type CreateUserNoteRequest = components['schemas']['CreateUserNoteRequest']
+
+/**
+ * Update member status request
+ * @generated from UpdateMemberStatusRequest DTO
+ */
+export type UpdateMemberStatusRequest = components['schemas']['UpdateMemberStatusRequest']
+
+/**
+ * Update member role request
+ * @generated from UpdateMemberRoleRequest DTO
+ */
+export type UpdateMemberRoleRequest = components['schemas']['UpdateMemberRoleRequest']
+
+// ============================================================================
+// FRONTEND EXTENSIONS - Field Mappings and Missing Properties
+// ============================================================================
+
+/**
+ * Event history record with attended field
+ * TEMPORARY: Backend DTO is missing 'attended' boolean field
+ * TODO: Add 'attended' field to C# EventHistoryRecord DTO and regenerate types
+ */
+export interface EventHistoryRecord extends EventHistoryRecordGenerated {
+  /** Whether the member attended the event (not in generated DTO yet) */
   attended: boolean
 }
 
-export interface EventHistoryResponse {
-  events: EventHistoryRecord[]
-  totalCount: number
-  page: number
-  pageSize: number
-  totalPages: number
+/**
+ * Extended vetting details response with additional frontend-expected fields
+ * COMPATIBILITY: Some components expect fields not in the generated DTO
+ *
+ * Field mapping issues:
+ * - otherNames: Not in backend DTO (should be removed from frontend)
+ * - whyJoin: Maps to whyJoinCommunity in backend DTO
+ * - experienceWithRope: Maps to experienceDescription in backend DTO
+ *
+ * TODO: Update components (MemberVettingTab, MemberOverviewTab) to use correct field names
+ * from generated VettingDetailsResponse and remove this extension type.
+ */
+export type VettingDetailsResponseExtended = VettingDetailsResponse & {
+  /** Not in backend DTO - frontend-only field that should be removed */
+  otherNames?: string
+  /** Maps to whyJoinCommunity in backend DTO */
+  whyJoin?: string
+  /** Maps to experienceDescription in backend DTO */
+  experienceWithRope?: string
 }
 
+// ============================================================================
+// FRONTEND-ONLY TYPES - Not Sent to API
+// ============================================================================
+
+/**
+ * Volunteer history record
+ * FRONTEND-ONLY: Backend endpoint not implemented yet
+ * See useMemberVolunteerHistory hook - returns empty data
+ */
 export interface VolunteerHistoryRecord {
   eventId: string
   eventTitle: string
@@ -92,54 +128,15 @@ export interface VolunteerHistoryRecord {
   showedUp: boolean
 }
 
+/**
+ * Paginated volunteer history response
+ * FRONTEND-ONLY: Backend endpoint not implemented yet
+ * See useMemberVolunteerHistory hook - returns empty data
+ */
 export interface VolunteerHistoryResponse {
   volunteers: VolunteerHistoryRecord[]
   totalCount: number
   page: number
   pageSize: number
   totalPages: number
-}
-
-export interface MemberIncidentRecord {
-  incidentId: string
-  referenceNumber: string
-  title?: string
-  incidentDate: string
-  reportedAt: string
-  status: string
-  location: string
-  description: string
-  involvedParties?: string
-  witnesses?: string
-  userInvolvementType: string // "Reporter", "Subject", "Witness"
-}
-
-export interface MemberIncidentsResponse {
-  incidents: MemberIncidentRecord[]
-  totalCount: number
-}
-
-export interface UserNoteResponse {
-  id: string
-  userId: string
-  content: string
-  noteType: string // "Vetting", "General", "Administrative", "StatusChange"
-  authorId?: string
-  authorSceneName?: string
-  createdAt: string
-  isArchived: boolean
-}
-
-export interface CreateUserNoteRequest {
-  content: string
-  noteType: string // "Vetting", "General", "Administrative", "StatusChange"
-}
-
-export interface UpdateMemberStatusRequest {
-  isActive: boolean
-  reason?: string
-}
-
-export interface UpdateMemberRoleRequest {
-  role: string // "Administrator", "Teacher", "SafetyTeam" (or empty string for regular member)
 }

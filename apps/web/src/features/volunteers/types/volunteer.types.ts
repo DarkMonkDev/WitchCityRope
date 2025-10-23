@@ -1,56 +1,76 @@
 /**
- * Volunteer position response from API
- * IMPORTANT: This interface must match the C# DTO exactly
- * Source: apps/api/Features/Volunteers/Models/VolunteerModels.cs - VolunteerPositionDto
+ * Volunteer Types - Using Auto-Generated Types
+ *
+ * DTO ALIGNMENT STRATEGY - CRITICAL RULES:
+ * ════════════════════════════════════════
+ * 1. API DTOs (C#) are the SOURCE OF TRUTH
+ * 2. TypeScript types are AUTO-GENERATED from OpenAPI spec via @witchcityrope/shared-types
+ * 3. NEVER manually create TypeScript interfaces for API response data
+ * 4. If a type is missing, expose it in the backend API (add .Produces<> to endpoint)
+ * 5. Regenerate types: cd packages/shared-types && npm run generate
+ *
+ * WHY: Prevents type mismatches, ensures type safety, eliminates manual sync work
+ * SEE: /docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md
+ * ════════════════════════════════════════
  */
-export interface VolunteerPosition {
-  id: string;
-  eventId: string;
-  sessionId?: string | null;
-  title: string;
-  description: string;
-  slotsNeeded: number;
-  slotsFilled: number;
-  slotsRemaining: number;
-  requiresExperience: boolean;
-  requirements: string;
-  isPublicFacing: boolean;
-  isFullyStaffed: boolean;
 
-  // Session information if session-specific (from backend DTO)
-  sessionName?: string | null;
-  sessionStartTime?: string | null;  // DateTime? in C# becomes string | null in TypeScript
-  sessionEndTime?: string | null;    // DateTime? in C# becomes string | null in TypeScript
+import type { components } from '@witchcityrope/shared-types';
 
-  // User's signup status for this position (if authenticated)
-  hasUserSignedUp: boolean;
-  userSignupId?: string | null;
-}
+/**
+ * Volunteer Position DTO (full detail with session info)
+ * @generated from C# VolunteerPositionDto2 via NSwag
+ * Note: VolunteerPositionDto2 includes extended fields like eventId, sessionName, hasUserSignedUp
+ */
+export type VolunteerPositionDto = components['schemas']['VolunteerPositionDto2'];
+
+/**
+ * Volunteer Signup DTO
+ * @generated from C# VolunteerSignupDto via NSwag
+ */
+export type VolunteerSignupDto = components['schemas']['VolunteerSignupDto'];
+
+/**
+ * Volunteer Assignment DTO (for admin assignment operations)
+ * @generated from C# VolunteerAssignmentDto via NSwag
+ */
+export type VolunteerAssignmentDto = components['schemas']['VolunteerAssignmentDto'];
+
+// ============================================================================
+// Frontend-Only Types (NOT sent to API)
+// ============================================================================
 
 /**
  * Request to sign up for a volunteer position
+ * Frontend form data structure
  */
 export interface VolunteerSignupRequest {
   // Empty - no additional data required for signup
+  // User ID is inferred from authentication context
 }
 
 /**
- * Volunteer signup response from API
+ * Volunteer Position Filters (Frontend state - NOT sent to API)
+ * Used for client-side filtering and UI state management
  */
-export interface VolunteerSignup {
-  id: string;
-  volunteerPositionId: string;
-  userId: string;
-  status: string;
-  signedUpAt: string;
-  notes?: string;
-  hasCheckedIn: boolean;
-  checkedInAt?: string;
-  hasCompleted: boolean;
-  completedAt?: string;
-
-  // Position information
-  positionTitle: string;
-  eventTitle: string;
-  eventStartDate: string;
+export interface VolunteerPositionFilters {
+  showOnlyAvailable?: boolean;
+  sessionId?: string | null;
+  requiresExperience?: boolean | null;
+  searchQuery?: string;
 }
+
+// ============================================================================
+// Type Aliases for Backwards Compatibility
+// ============================================================================
+
+/**
+ * Alias for VolunteerPositionDto
+ * @deprecated Use VolunteerPositionDto directly
+ */
+export type VolunteerPosition = VolunteerPositionDto;
+
+/**
+ * Alias for VolunteerSignupDto
+ * @deprecated Use VolunteerSignupDto directly
+ */
+export type VolunteerSignup = VolunteerSignupDto;

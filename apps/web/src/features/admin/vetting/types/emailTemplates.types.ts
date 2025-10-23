@@ -1,35 +1,17 @@
 /**
  * Email template types for vetting system
- * These match the backend EmailTemplateResponse and UpdateEmailTemplateRequest DTOs
+ * Using generated types from @witchcityrope/shared-types for API DTOs
  */
+import type { components } from '@witchcityrope/shared-types';
 
 /**
- * Email template response from API
- * Matches EmailTemplateResponse.cs in backend
+ * Email Template Response
+ * @generated from C# EmailTemplateResponse via NSwag
  */
-export interface EmailTemplateResponse {
-  id: string;
-  templateType: number;
-  templateTypeName: string;
-  subject: string;
-  htmlBody: string;
-  plainTextBody: string;
-  variables: string;
-  isActive: boolean;
-  version: number;
-  createdAt: string;
-  updatedAt: string;
-  lastModified: string;
-  updatedBy: string;
-  updatedByEmail: string;
-}
+export type EmailTemplateResponse = components['schemas']['EmailTemplateResponse'];
 
 /**
- * Request DTO for updating email template
- * Matches UpdateEmailTemplateRequest.cs in backend
+ * Update Email Template Request
+ * @generated from C# UpdateEmailTemplateRequest via NSwag
  */
-export interface UpdateEmailTemplateRequest {
-  subject: string;
-  htmlBody: string;
-  plainTextBody: string;
-}
+export type UpdateEmailTemplateRequest = components['schemas']['UpdateEmailTemplateRequest'];

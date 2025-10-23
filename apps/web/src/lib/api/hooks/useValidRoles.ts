@@ -1,13 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../client';
+import type { components } from '@witchcityrope/shared-types';
 
 /**
- * Valid roles response from metadata endpoint
- * Using generated types from @witchcityrope/shared-types
+ * Valid Roles Response
+ * @generated from C# ValidRolesResponse via NSwag
  */
-export interface ValidRolesResponse {
-  roles?: string[];
-}
+export type ValidRolesResponse = components['schemas']['ValidRolesResponse'];
 
 /**
  * React Query hook to fetch valid user roles from metadata endpoint
@@ -17,7 +16,7 @@ export interface ValidRolesResponse {
  * Backend Constants: UserRoleConstants.ValidRoles
  */
 export function useValidRoles() {
-  return useQuery({
+  return useQuery<string[]>({
     queryKey: ['metadata', 'valid-roles'],
     queryFn: async (): Promise<string[]> => {
       const response = await apiClient.get<ValidRolesResponse>('/api/metadata/valid-roles');

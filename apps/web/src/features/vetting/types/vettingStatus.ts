@@ -16,35 +16,68 @@
 
 import type { components } from '@witchcityrope/shared-types';
 
-/**
- * VettingStatus enum
- * TODO: Add to backend OpenAPI spec and regenerate types
- */
-export type VettingStatus = 'UnderReview' | 'InterviewApproved' | 'InterviewCompleted' | 'FinalReview' | 'Approved' | 'Denied' | 'OnHold' | 'Withdrawn';
+// ============================================================================
+// Generated API DTOs
+// ============================================================================
 
 /**
- * Application status information from API
- * TODO: Add to backend OpenAPI spec and regenerate types
+ * Vetting Status DTO
+ * @generated from C# VettingStatusDto via NSwag
  */
-export interface ApplicationStatusInfo {
-  [key: string]: any;
-}
+export type VettingStatusDto = components['schemas']['VettingStatusDto'];
 
 /**
- * My application status response from GET /api/vetting/status
- * TODO: Add to backend OpenAPI spec and regenerate types
+ * Application Status Information DTO
+ * @generated from C# ApplicationStatusInfo via NSwag
  */
-export interface MyApplicationStatusResponse {
-  [key: string]: any;
-}
+export type ApplicationStatusInfo = components['schemas']['ApplicationStatusInfo'];
 
 /**
- * API response wrapper for vetting status
- * TODO: Add to backend OpenAPI spec and regenerate types
+ * My Application Status Response DTO
+ * @generated from C# MyApplicationStatusResponse via NSwag
  */
-export interface VettingStatusApiResponse {
-  [key: string]: any;
-}
+export type MyApplicationStatusResponse = components['schemas']['MyApplicationStatusResponse'];
+
+/**
+ * API Response wrapper for Vetting Status
+ * @generated from C# ApiResponseOfVettingStatusDto via NSwag
+ */
+export type ApiResponseOfVettingStatusDto = components['schemas']['ApiResponseOfVettingStatusDto'];
+
+/**
+ * API Response wrapper for My Application Status Response
+ * @generated from C# ApiResponseOfMyApplicationStatusResponse via NSwag
+ */
+export type ApiResponseOfMyApplicationStatusResponse = components['schemas']['ApiResponseOfMyApplicationStatusResponse'];
+
+// ============================================================================
+// Type Aliases for Convenience
+// ============================================================================
+
+/**
+ * Alias for ApiResponseOfMyApplicationStatusResponse
+ * Used by useVettingStatus hook
+ */
+export type VettingStatusApiResponse = ApiResponseOfMyApplicationStatusResponse;
+
+// ============================================================================
+// Frontend-Only Types (NOT sent to API)
+// ============================================================================
+
+/**
+ * VettingStatus enum values (Frontend constants)
+ * Note: Backend uses string type, not enum. These are frontend constants for type safety.
+ * MUST match backend string values exactly.
+ */
+export type VettingStatus =
+  | 'UnderReview'
+  | 'InterviewApproved'
+  | 'InterviewCompleted'
+  | 'FinalReview'
+  | 'Approved'
+  | 'Denied'
+  | 'OnHold'
+  | 'Withdrawn';
 
 /**
  * Menu visibility decision result

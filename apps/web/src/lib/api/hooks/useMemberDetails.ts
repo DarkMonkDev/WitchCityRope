@@ -3,6 +3,7 @@ import { apiClient } from '../client'
 import type {
   MemberDetailsResponse,
   VettingDetailsResponse,
+  VettingDetailsResponseExtended,
   EventHistoryResponse,
   VolunteerHistoryResponse,
   MemberIncidentsResponse,
@@ -57,14 +58,14 @@ export function useMemberDetails(userId: string, enabled: boolean = true) {
 
 // Fetch vetting details and questionnaire
 export function useMemberVetting(userId: string, enabled: boolean = true) {
-  return useQuery<VettingDetailsResponse>({
+  return useQuery<VettingDetailsResponseExtended>({
     queryKey: memberDetailsKeys.vetting(userId),
-    queryFn: async (): Promise<VettingDetailsResponse> => {
+    queryFn: async (): Promise<VettingDetailsResponseExtended> => {
       const { data } = await apiClient.get<ApiResponse<VettingDetailsResponse>>(
         `/api/users/${userId}/vetting-details`
       )
       if (!data.data) throw new Error('Vetting details not found')
-      return data.data
+      return data.data as VettingDetailsResponseExtended
     },
     enabled: !!userId && enabled,
     staleTime: 10 * 60 * 1000, // 10 minutes (vetting data changes less frequently)

@@ -1,54 +1,58 @@
 /**
  * React hooks for volunteer assignment API operations
  * Provides hooks for managing volunteer position assignments and member search
+ *
+ * DTO ALIGNMENT STRATEGY - CRITICAL RULES:
+ * ════════════════════════════════════════
+ * 1. API DTOs (C#) are the SOURCE OF TRUTH
+ * 2. TypeScript types are AUTO-GENERATED from OpenAPI spec via @witchcityrope/shared-types
+ * 3. NEVER manually create TypeScript interfaces for API response data
+ * 4. If a type is missing, expose it in the backend API (add .Produces<> to endpoint)
+ * 5. Regenerate types: cd packages/shared-types && npm run generate
+ *
+ * WHY: Prevents type mismatches, ensures type safety, eliminates manual sync work
+ * SEE: /docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md
+ * ════════════════════════════════════════
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../client';
 import { notifications } from '@mantine/notifications';
 import { useMemo } from 'react';
+import type { components } from '@witchcityrope/shared-types';
 
 // ============================================================================
-// TypeScript Interfaces (Matching Backend DTOs)
+// Generated API DTOs
 // ============================================================================
 
 /**
- * Volunteer assignment DTO (matches VolunteerAssignmentDto from backend)
+ * Volunteer Assignment DTO
+ * @generated from C# VolunteerAssignmentDto via NSwag
+ * Note: Using VolunteerAssignmentDto (not VolunteerAssignmentDto2) for list endpoint
  */
-export interface VolunteerAssignmentDto {
-  signupId: string;
-  userId: string;
-  volunteerPositionId: string;
-  sceneName: string;
-  email: string;
-  fetLifeName?: string | null;
-  discordName?: string | null;
-  status: string;
-  signedUpAt: string; // ISO 8601 date string
-  hasCheckedIn: boolean;
-  checkedInAt?: string | null; // ISO 8601 date string
-}
+export type VolunteerAssignmentDto = components['schemas']['VolunteerAssignmentDto'];
 
 /**
- * User search result DTO (matches UserSearchResultDto from backend)
+ * User Search Result DTO
+ * @generated from C# UserSearchResultDto via NSwag
  */
-export interface UserSearchResultDto {
-  userId: string;
-  sceneName: string;
-  email: string;
-  discordName?: string | null;
-  realName?: string | null;
-}
+export type UserSearchResultDto = components['schemas']['UserSearchResultDto'];
+
+// ============================================================================
+// Frontend-Only Types (NOT sent to API)
+// ============================================================================
 
 /**
- * Request to assign a member to a volunteer position (matches AssignVolunteerRequest)
+ * Request to assign a member to a volunteer position
+ * Frontend request structure (userId is the only field needed)
  */
 export interface AssignVolunteerRequest {
   userId: string;
 }
 
 /**
- * API response wrapper (matches backend ApiResponse<T>)
+ * API Response wrapper (generic)
+ * Note: Backend uses ApiResponse<T> pattern
  */
 interface ApiResponse<T> {
   success: boolean;
