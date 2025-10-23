@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WitchCityRope.Api.Features.Cms.Entities;
 
-namespace WitchCityRope.Api.Features.Cms.Configurations
+namespace WitchCityRope.Api.Features.Cms.Configuration
 {
     public class ContentRevisionConfiguration : IEntityTypeConfiguration<ContentRevision>
     {

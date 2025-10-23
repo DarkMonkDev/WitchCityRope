@@ -8,11 +8,11 @@ using WitchCityRope.Api.Features.CheckIn.Entities.Configuration;
 using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Features.Vetting.Entities.Configuration;
 using WitchCityRope.Api.Features.Payments.Entities;
-using WitchCityRope.Api.Features.Payments.Data;
+using WitchCityRope.Api.Features.Payments.Configuration;
 using WitchCityRope.Api.Features.Participation.Entities;
-using WitchCityRope.Api.Features.Participation.Data;
+using WitchCityRope.Api.Features.Participation.Configuration;
 using WitchCityRope.Api.Features.Cms.Entities;
-using WitchCityRope.Api.Features.Cms.Configurations;
+using WitchCityRope.Api.Features.Cms.Configuration;
 
 namespace WitchCityRope.Api.Data;
 

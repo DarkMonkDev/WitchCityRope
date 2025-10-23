@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WitchCityRope.Api.Features.Payments.Entities;
 using WitchCityRope.Api.Features.Payments.Models;
 
-namespace WitchCityRope.Api.Features.Payments.Data;
+namespace WitchCityRope.Api.Features.Payments.Configuration;
 
 /// <summary>
 /// Entity Framework configuration for Payment entity

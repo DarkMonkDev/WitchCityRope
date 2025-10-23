@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WitchCityRope.Api.Features.Participation.Entities;
 
-namespace WitchCityRope.Api.Features.Participation.Data;
+namespace WitchCityRope.Api.Features.Participation.Configuration;
 
 /// <summary>
 /// Entity Framework configuration for ParticipationHistory entity
