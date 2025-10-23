@@ -31,7 +31,7 @@ Use the orchestrator command when testing reveals missing functionality:
 | Category | Total Items | Complete | In Progress | Blocked | Not Started | % Complete |
 |----------|-------------|----------|-------------|---------|-------------|------------|
 | **Core Authentication & Authorization** | 3 | 1 | 1 | 0 | 1 | 33% |
-| **Event Management & RSVP** | 11 | 4 | 2 | 0 | 5 | 36% |
+| **Event Management & RSVP** | 11 | 5 | 2 | 0 | 4 | 45% |
 | **Vetting System** | 8 | 3 | 2 | 0 | 3 | 38% |
 | **Payment Processing** | 3 | 1 | 1 | 0 | 1 | 33% |
 | **Admin Tools** | 5 | 1 | 1 | 0 | 3 | 20% |
@@ -42,7 +42,7 @@ Use the orchestrator command when testing reveals missing functionality:
 | **Testing & Quality** | 4 | 0 | 1 | 0 | 3 | 0% |
 | **Documentation** | 2 | 1 | 0 | 0 | 1 | 50% |
 | **Incident Reporting** | 2 | 1 | 1 | 0 | 0 | 50% |
-| **TOTAL** | 52 | 16 | 9 | 0 | 27 | 31% |
+| **TOTAL** | 52 | 17 | 9 | 0 | 26 | 33% |
 
 ---
 
@@ -124,13 +124,13 @@ Use the orchestrator command when testing reveals missing functionality:
   - **Status**: In Progress
   - **Notes**: PayPal webhook integration complete (2025-09-14). Frontend purchase flow partially implemented.
 
-- [ ] **Public Events Anonymous Access** (Priority: High)
-  - **Description**: Allow browsing events without authentication (currently returns 401)
+- [x] **Public Events Anonymous Access** (Priority: High) ✅ ALREADY WORKING
+  - **Description**: Allow browsing events without authentication
   - **Business Value**: Marketing - new visitors must see events before creating account
-  - **Effort**: Small (4-6 hours)
+  - **Effort**: None - already implemented
   - **Dependencies**: None
-  - **Status**: Not Started
-  - **Notes**: E2E test failing - public endpoint returning 401 Unauthorized. Backend configuration issue.
+  - **Status**: Complete (2025-10-23) - Verified Working
+  - **Notes**: FALSE ALARM - Endpoint works correctly for anonymous users. Tested: GET `/api/events` returns 200 OK with 6 events. No authentication required for public events. See verification report: `/docs/functional-areas/events/PUBLIC-EVENTS-ANONYMOUS-ACCESS-VERIFICATION.md`
 
 - [ ] **Admin Event Editing** (Priority: Medium)
   - **Description**: Admin interface to update existing events
@@ -530,11 +530,11 @@ Use the orchestrator command when testing reveals missing functionality:
 ### 🔴 CRITICAL (Must Fix Before Launch)
 
 **Application Features:**
-1. **Post-Login Return to Intended Page** - P1 CRITICAL UX feature (see below for details)
+1. ~~**Post-Login Return to Intended Page**~~ ✅ COMPLETE (2025-10-23 - backend + frontend implemented)
 2. **Vetting Workflow Backend** - 12 integration tests failing, blocks RSVP access control
 3. **Complete Test Suite** - Cannot launch with 56% React unit pass rate
 4. **Dashboard Error Handling** - 40-50 tests failing, poor user experience
-5. **Public Events Anonymous Access** - New visitors cannot see events (returns 401)
+5. ~~**Public Events Anonymous Access**~~ ✅ COMPLETE (2025-10-23 - verified already working)
 6. **Event Detail View** - Users cannot see full event details
 7. ~~**CMS Implementation**~~ ✅ COMPLETE (2025-10-17)
 8. **Text-Only Pages** - Legal compliance requirement (Terms of Service, Privacy Policy)
