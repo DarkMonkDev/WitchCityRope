@@ -74,9 +74,11 @@ services:
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=witchcityrope_dev;Username=postgres;Password=devpass123;Include Error Detail=true"
 
       # Development authentication settings
-      Authentication__JwtSecret: dev-jwt-secret-for-local-testing-make-it-long-enough
+      Jwt__SecretKey: dev-jwt-secret-for-local-testing-make-it-long-enough
+      Jwt__Issuer: WitchCityRope-API
+      Jwt__Audience: WitchCityRope-Services
+      Jwt__ExpirationMinutes: 480  # 8 hours for development convenience
       Authentication__RequireHttps: "false"
-      Authentication__ExpiryMinutes: 480  # 8 hours for development convenience
 
       # Development CORS - allow multiple origins
       CORS__AllowedOrigins: "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://web:5173"

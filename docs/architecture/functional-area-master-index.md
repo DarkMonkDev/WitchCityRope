@@ -1,6 +1,6 @@
 # Functional Area Master Index
-<!-- Last Updated: 2025-10-19 - Admin Members List Feature Added -->
-<!-- Version: 2.2 -->
+<!-- Last Updated: 2025-10-23 - Backend API Audit Added -->
+<!-- Version: 2.3 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -219,6 +219,22 @@ This master index is maintained by the librarian agent to provide quick lookups 
 - **Documentation**: Complete migration documentation created with archive warnings
 - **Completion Date**: 2025-09-13 (1 day - faster than estimated)
 
+### 🔍 ACTIVE: API Standards & Best Practices Audit (October 2025)
+- **Current Work**: `/docs/standards-processes/backend-api-audit-2025-10-23/`
+- **Status**: Phase 1 - Research & Analysis (In Progress)
+- **Objective**: Validate existing vertical slice implementation against latest .NET 9 best practices, identify technical debt, consolidate coding standards
+- **Scope**: Gap analysis, orphaned code identification, DTO audit, pattern consistency validation
+- **Quality Gates**: Research 0% → 100%, Analysis 0% → 100%, Standards 0% → 100%, Recommendations 0% → 100%
+- **Session**: 2025-10-23 (Started)
+- **Progress Tracking**: `/docs/standards-processes/backend-api-audit-2025-10-23/progress.md`
+- **Key Deliverables**:
+  - Best practices research (Milan Jovanovic + Microsoft docs)
+  - Gap analysis vs current implementation
+  - Technical debt inventory
+  - DTO audit (manual vs auto-generated)
+  - Consolidated coding standards
+  - Prioritized recommendations
+
 ### 🚀 ACTIVE: Events Management React Migration
 - **Current Work**: `/docs/functional-areas/events/new-work/2025-08-24-events-management/`
 - **Status**: Phase 1 - Requirements Analysis (STARTED)
@@ -345,6 +361,7 @@ Pattern: `{base_path}/wireframes/`
 | **Lessons Learned** | `/docs/lessons-learned/` | Role-specific lessons by UI developers, backend developers, test writers, etc. | All Teams | Active |
 | **Orchestration Failures** | `/docs/lessons-learned/orchestration-failures/` | Critical lessons about AI workflow orchestration failures and solutions - UPDATED 2025-08-13 to fix test-fix-coordinator references | AI Teams | Active |
 | **Standards & Processes** | `/docs/standards-processes/` | Development standards, coding patterns, testing guidelines | All Teams | Active |
+| **Backend Standards** | `/docs/standards-processes/backend/` | Backend coding standards, vertical slice implementation guide, Entity Framework best practices | Backend Teams | Active |
 | **Agent Boundaries** | `/docs/standards-processes/agent-boundaries.md` | Strict agent file access matrix and boundary enforcement | AI Teams | Active |
 | **Guides & Setup** | `/docs/guides-setup/` | Installation guides, Docker setup, environment configuration, admin guides | DevOps/Setup | Active |
 | **Design Assets** | `/docs/design/` | UI designs, wireframes, style guides, screenshots | Design Team | Active |
