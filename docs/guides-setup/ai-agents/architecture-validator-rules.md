@@ -382,7 +382,7 @@ echo "✅ Architecture validation passed"
 Pattern: using MediatR;
 File: Features/Events/Services/EventService.cs:3
 Solution: Remove MediatR dependency and use direct Entity Framework services
-Reference: /docs/guides-setup/ai-agents/backend-developer-vertical-slice-guide.md
+Reference: /docs/standards-processes/backend/vertical-slice-implementation-guide.md
 ```
 
 ### Level 2: Code Review Detection  

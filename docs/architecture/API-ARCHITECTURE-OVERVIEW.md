@@ -573,7 +573,7 @@ GET /health                  // Legacy compatibility
 
 ### Documentation Links
 - **Developer Quick Start Guide**: `/docs/guides-setup/VERTICAL-SLICE-QUICK-START.md`
-- **AI Agent Implementation Guide**: `/docs/guides-setup/ai-agents/backend-developer-vertical-slice-guide.md`
+- **AI Agent Implementation Guide**: `/docs/standards-processes/backend/vertical-slice-implementation-guide.md`
 - **Migration Completion Summary**: `/docs/functional-areas/api-architecture-modernization/new-work/2025-08-22-minimal-api-research/MIGRATION-COMPLETION-SUMMARY.md`
 
 ### Working Code Examples

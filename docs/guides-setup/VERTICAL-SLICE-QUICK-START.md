@@ -1161,7 +1161,7 @@ Before considering your feature complete, verify:
 ### Reference Materials
 - **Health Feature Template**: `/apps/api/Features/Health/` - Copy this pattern exactly
 - **API Architecture Overview**: `/docs/architecture/API-ARCHITECTURE-OVERVIEW.md`
-- **AI Agent Implementation Guide**: `/docs/guides-setup/ai-agents/backend-developer-vertical-slice-guide.md`
+- **AI Agent Implementation Guide**: `/docs/standards-processes/backend/vertical-slice-implementation-guide.md`
 
 ### Working Examples
 - **Simple CRUD**: Health feature

@@ -113,8 +113,8 @@ The WitchCityRope API modernization project has been **successfully completed** 
 
 ### AI Agent Documentation
 ```
-/docs/guides-setup/ai-agents/                           ✅ COMPLETE
-├── backend-developer-vertical-slice-guide.md          ✅ Implementation patterns
+/docs/standards-processes/backend/ and /docs/guides-setup/ai-agents/                           ✅ COMPLETE
+├── vertical-slice-implementation-guide.md (moved to /docs/standards-processes/backend/)          ✅ Implementation patterns
 ├── test-developer-vertical-slice-guide.md             ✅ Testing strategies  
 ├── react-developer-api-changes-guide.md               ✅ Frontend integration
 └── architecture-validator-rules.md                    ✅ Complexity prevention
