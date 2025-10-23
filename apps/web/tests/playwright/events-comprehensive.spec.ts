@@ -189,9 +189,7 @@ test.describe('Events - Public Access', () => {
 });
 
 test.describe('Events - Authenticated Access', () => {
-  // TODO: Unskip when event detail view with RSVP/ticket buttons is implemented
-  // Feature incomplete - event cards not clickable and RSVP buttons not in event detail view
-  test.skip('should show event RSVP/ticket options for authenticated users', async ({ page }) => {
+  test('should show event RSVP/ticket options for authenticated users', async ({ page }) => {
     // Login using AuthHelpers
     await AuthHelpers.loginAs(page, 'member');
 
