@@ -535,11 +535,11 @@ Use the orchestrator command when testing reveals missing functionality:
 
 **Application Features:**
 1. ~~**Post-Login Return to Intended Page**~~ ✅ COMPLETE (2025-10-23 - backend + frontend implemented)
-2. **Vetting Workflow Backend** - 12 integration tests failing, blocks RSVP access control
+2. ~~**Vetting Workflow Backend**~~ ✅ COMPLETE (2025-10-23 - all 15 integration tests passing)
 3. **Complete Test Suite** - Cannot launch with 56% React unit pass rate
-4. **Dashboard Error Handling** - 40-50 tests failing, poor user experience
+4. ~~**Dashboard Error Handling**~~ ✅ COMPLETE (2025-10-23 - all 16 tests passing)
 5. ~~**Public Events Anonymous Access**~~ ✅ COMPLETE (2025-10-23 - verified already working)
-6. **Event Detail View** - Users cannot see full event details
+6. ~~**Event Detail View**~~ ✅ COMPLETE (2025-10-23 - test IDs fixed, date display added)
 7. ~~**CMS Implementation**~~ ✅ COMPLETE (2025-10-17)
 8. **Text-Only Pages** - Legal compliance requirement (Terms of Service, Privacy Policy)
 9. **Incident Reporting Backend API** - Safety operations require complete workflow (40-60 hours)
@@ -555,7 +555,7 @@ Use the orchestrator command when testing reveals missing functionality:
 ### 🟠 HIGH Priority (Strongly Recommended)
 
 **Application Features:**
-1. **Event Card Click Interaction** - Navigation broken for event details
+1. ~~**Event Card Click Interaction**~~ ✅ COMPLETE (2025-10-23 - part of Event Detail View fix)
 2. **Admin Event Editing** - Admins cannot update events
 3. **Ticket Purchase Flow** - Revenue generation requires this
 4. **Security Audit** - Risk mitigation before public launch
