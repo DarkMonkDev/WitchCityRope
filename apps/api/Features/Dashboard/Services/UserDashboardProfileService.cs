@@ -41,6 +41,7 @@ public class UserDashboardProfileService : IUserDashboardProfileService
             // Bug: Original query only looked at TicketPurchases, missing all RSVPs
             // EventParticipations is the central table for both participation types
             var query = _context.EventParticipations
+                .AsNoTracking() // Read-only query - 20-40% performance improvement
                 .Include(ep => ep.Event)
                 .Where(ep => ep.UserId == userId)
                 .Where(ep => ep.Status == ParticipationStatus.Active) // Only active participations (not cancelled)

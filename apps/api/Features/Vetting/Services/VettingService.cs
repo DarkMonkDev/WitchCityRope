@@ -106,6 +106,7 @@ public class VettingService : IVettingService
 
             // Apply pagination
             var applications = await query
+                .AsNoTracking() // Read-only query - 20-40% performance improvement
                 .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize)
                 .ToListAsync(cancellationToken);
@@ -190,6 +191,7 @@ public class VettingService : IVettingService
 
             // FIX: Get audit logs with User navigation property to access reviewer's SceneName
             var auditLogsWithUsers = await _context.VettingAuditLogs
+                .AsNoTracking() // Read-only query - 20-40% performance improvement
                 .Where(log => log.ApplicationId == applicationId)
                 .Include(log => log.PerformedByUser)
                 .OrderByDescending(log => log.PerformedAt)
