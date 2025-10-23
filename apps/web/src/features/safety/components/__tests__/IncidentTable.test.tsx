@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MantineProvider } from '@mantine/core';
 import { IncidentTable } from '../IncidentTable';
-import type { SafetyIncidentDto } from '../../types/safety.types';
+import type { IncidentSummaryDto } from '../../types/safety.types';
 import { IncidentStatus } from '../../types/safety.types';
 
 // Wrapper with Mantine provider
@@ -16,7 +16,7 @@ const renderWithMantine = (ui: React.ReactElement) => {
 };
 
 describe('IncidentTable', () => {
-  const mockIncidents: SafetyIncidentDto[] = [
+  const mockIncidents: IncidentSummaryDto[] = [
     {
       id: '1',
       referenceNumber: 'SAF-20251018-0001',
@@ -24,15 +24,12 @@ describe('IncidentTable', () => {
       status: IncidentStatus.ReportSubmitted,
       incidentDate: '2025-10-15T19:30:00Z',
       reportedAt: '2025-10-15T20:45:00Z',
+      lastUpdatedAt: '2025-10-18T10:00:00Z',
       location: 'Test Location',
       description: 'Test description',
       isAnonymous: false,
-      requestFollowUp: true,
       coordinatorId: null,
-      coordinatorName: null,
-      auditTrail: [],
-      createdAt: '2025-10-15T20:45:00Z',
-      updatedAt: '2025-10-18T10:00:00Z'
+      coordinatorName: null
     },
     {
       id: '2',
@@ -41,15 +38,12 @@ describe('IncidentTable', () => {
       status: IncidentStatus.InformationGathering,
       incidentDate: '2025-10-16T18:00:00Z',
       reportedAt: '2025-10-16T19:30:00Z',
+      lastUpdatedAt: '2025-10-17T14:22:00Z',
       location: 'Workshop Space',
       description: 'Another incident',
       isAnonymous: true,
-      requestFollowUp: false,
       coordinatorId: 'user-123',
-      coordinatorName: 'JaneRigger',
-      auditTrail: [],
-      createdAt: '2025-10-16T19:30:00Z',
-      updatedAt: '2025-10-17T14:22:00Z'
+      coordinatorName: 'JaneRigger'
     }
   ];
 
@@ -208,10 +202,10 @@ describe('IncidentTable', () => {
 
   it('formats relative time correctly', () => {
     // Create incident updated today
-    const todayIncident: SafetyIncidentDto = {
+    const todayIncident: IncidentSummaryDto = {
       ...mockIncidents[0],
       id: '3',
-      updatedAt: new Date().toISOString()
+      lastUpdatedAt: new Date().toISOString()
     };
 
     renderWithMantine(
@@ -229,10 +223,10 @@ describe('IncidentTable', () => {
     const oldDate = new Date();
     oldDate.setDate(oldDate.getDate() - 10);
 
-    const oldIncident: SafetyIncidentDto = {
+    const oldIncident: IncidentSummaryDto = {
       ...mockIncidents[0],
       id: '4',
-      updatedAt: oldDate.toISOString()
+      lastUpdatedAt: oldDate.toISOString()
     };
 
     renderWithMantine(

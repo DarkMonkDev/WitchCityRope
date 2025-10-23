@@ -18,10 +18,10 @@ import {
   IconX
 } from '@tabler/icons-react';
 import { IncidentStatusBadge } from './IncidentStatusBadge';
-import type { SafetyIncidentDto } from '../types/safety.types';
+import type { IncidentSummaryDto } from '../types/safety.types';
 
 interface IncidentTableProps {
-  incidents: SafetyIncidentDto[];
+  incidents: IncidentSummaryDto[];
   isLoading?: boolean;
   onRowClick?: (incidentId: string) => void;
   onAssign?: (incidentId: string) => void;
@@ -155,7 +155,7 @@ export const IncidentTable: React.FC<IncidentTableProps> = ({
       {/* Body */}
       <Table.Tbody>
         {incidents.map((incident) => {
-          const daysOld = getDaysOld(incident.updatedAt);
+          const daysOld = getDaysOld(incident.lastUpdatedAt);
           const rowBg = getRowBackground(daysOld);
 
           return (
@@ -201,7 +201,7 @@ export const IncidentTable: React.FC<IncidentTableProps> = ({
                     fontWeight: daysOld > 3 ? 600 : 400
                   }}
                 >
-                  {formatRelativeTime(incident.updatedAt)}
+                  {formatRelativeTime(incident.lastUpdatedAt)}
                 </Text>
               </Table.Td>
 
@@ -220,7 +220,7 @@ export const IncidentTable: React.FC<IncidentTableProps> = ({
                       leftSection={<IconUserPlus size={14} />}
                       onClick={() => onAssign?.(incident.id!)}
                     >
-                      {incident.assignedTo ? 'Reassign' : 'Assign'} Coordinator
+                      {incident.coordinatorId ? 'Reassign' : 'Assign'} Coordinator
                     </Menu.Item>
                     <Menu.Item
                       leftSection={<IconEye size={14} />}

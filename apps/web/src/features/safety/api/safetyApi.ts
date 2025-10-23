@@ -11,8 +11,10 @@ import type {
   SafetyDashboardResponse,
   IncidentSummaryDto,
   UpdateIncidentRequest,
-  SearchIncidentsRequest
+  SearchIncidentsRequest,
+  FrontendIncidentDetails
 } from '../types/safety.types';
+import { mapIncidentDetailFromBackend } from '../types/safety.types';
 
 /**
  * Safety API client following established patterns
@@ -52,17 +54,20 @@ export const safetyApi = {
 
   /**
    * Get detailed incident information (safety team only)
+   * Transforms backend IncidentResponse (assignedTo/assignedUserName) to
+   * frontend-friendly format (coordinatorId/coordinatorName)
    */
-  async getIncidentDetail(incidentId: string): Promise<SafetyIncidentDto> {
+  async getIncidentDetail(incidentId: string): Promise<FrontendIncidentDetails> {
     const { data } = await apiClient.get<ApiResponse<SafetyIncidentDto>>(
       `/api/safety/admin/incidents/${incidentId}`
     );
-    
+
     if (!data.data) {
       throw new Error(data.error || 'Failed to get incident details');
     }
-    
-    return data.data;
+
+    // Transform backend field names to frontend expectations
+    return mapIncidentDetailFromBackend(data.data);
   },
 
   /**
@@ -123,18 +128,20 @@ export const safetyApi = {
 
   /**
    * Update incident status and assignment (safety team only)
+   * Transforms backend IncidentResponse to frontend-friendly format
    */
-  async updateIncident(incidentId: string, request: UpdateIncidentRequest): Promise<SafetyIncidentDto> {
+  async updateIncident(incidentId: string, request: UpdateIncidentRequest): Promise<FrontendIncidentDetails> {
     const { data } = await apiClient.patch<ApiResponse<SafetyIncidentDto>>(
       `/api/safety/admin/incidents/${incidentId}`,
       request
     );
-    
+
     if (!data.data) {
       throw new Error(data.error || 'Failed to update incident');
     }
-    
-    return data.data;
+
+    // Transform backend field names to frontend expectations
+    return mapIncidentDetailFromBackend(data.data);
   },
 
   /**

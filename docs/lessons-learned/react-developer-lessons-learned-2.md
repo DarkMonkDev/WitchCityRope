@@ -19,6 +19,225 @@
 
 ---
 
+## 🚨🚨🚨 ULTRA CRITICAL: NEVER MANUALLY DEFINE API TYPES - USE GENERATED TYPES FROM @witchcityrope/shared-types 🚨🚨🚨
+**Date**: 2025-10-23
+**Category**: TypeScript / DTO Alignment Strategy
+**Severity**: ULTRA CRITICAL - PREVENTS 393+ TYPE ERRORS
+
+### What We Learned
+**MANUAL API TYPE DEFINITIONS CAUSE 393+ TYPESCRIPT ERRORS**: During React migration (August 2025), manually-created TypeScript interfaces in `/apps/web/src/types/api.types.ts` didn't match backend C# DTOs, causing **393 TypeScript compilation errors**.
+
+**ROOT CAUSE**: Manual interface definitions drift from backend DTOs when:
+1. Backend developer changes C# DTO structure
+2. Frontend developer doesn't know about the change
+3. No automatic synchronization between backend and frontend
+4. Manual updates forgotten or incorrect
+
+### 🛑 CRITICAL VIOLATION PATTERN:
+
+```typescript
+// ❌ WRONG: Manual interface definition
+// /apps/web/src/types/api.types.ts
+export interface UserDto {
+  id?: string;
+  email?: string;
+  sceneName?: string | null;
+  firstName?: string | null;  // Might not exist in backend!
+  lastName?: string | null;   // Might not exist in backend!
+  roles?: string[];           // Backend uses string 'role', not array 'roles'!
+}
+```
+
+**Why This Breaks**:
+- Backend adds/removes/renames fields → Frontend not updated
+- TypeScript thinks interface is valid → Runtime failures
+- 393 compilation errors during migration from manual interfaces
+- Hours wasted debugging type mismatches
+
+### ✅ CRITICAL SOLUTION: USE GENERATED TYPES FROM @witchcityrope/shared-types
+
+```typescript
+// ✅ CORRECT: Import from generated types package
+// /apps/web/src/types/api.types.ts
+import type { components } from '@witchcityrope/shared-types';
+
+/**
+ * User Data Transfer Object
+ * Source: C# UserDto via NSwag generation
+ */
+export type UserDto = components['schemas']['UserDto'];
+
+/**
+ * Event Data Transfer Object
+ * Source: C# EventDto via NSwag generation
+ */
+export type EventDto = components['schemas']['EventDto'];
+```
+
+### 📋 MANDATORY PATTERN FOR ALL API TYPES:
+
+**Step 1: Import from generated types**
+```typescript
+import type { components } from '@witchcityrope/shared-types';
+```
+
+**Step 2: Re-export with JSDoc**
+```typescript
+/**
+ * [Type Name]
+ * Source: C# [DTO Name] via NSwag generation
+ */
+export type [TypeName] = components['schemas']['[SchemaName]'];
+```
+
+**Step 3: Add comments for complex types**
+```typescript
+/**
+ * API Response wrapper for list of EventDto
+ * Source: C# ApiResponse<List<EventDto>> via NSwag generation
+ */
+export type ApiResponseOfListOfEventDto = components['schemas']['ApiResponseOfListOfEventDto'];
+```
+
+### 🔧 TYPE GENERATION WORKFLOW:
+
+**When backend DTOs change:**
+
+1. **Backend Developer**: Modify C# DTOs in `/apps/api/Features/*/Models/`
+2. **Generate Types**: `cd packages/shared-types && npm run generate`
+3. **Frontend Developer**: Types automatically updated (no manual work!)
+4. **Test**: TypeScript compiler catches any breaking changes
+
+### 🎯 WHAT TO RE-EXPORT VS KEEP MANUAL:
+
+**RE-EXPORT from generated types** (API data contracts):
+- ✅ `UserDto`, `EventDto`, `EventParticipationDto` - Backend DTOs
+- ✅ `ApiResponseOfListOfEventDto` - Backend response wrappers
+- ✅ `UpdateEventRequest`, `CreateUserRequest` - Backend request models
+- ✅ `PagedResultOf*`, `UserListResponse` - Backend pagination types
+- ✅ `ParticipationStatus`, `PaymentStatus` - Backend enums
+- ✅ `ProblemDetails`, `ValidationProblemDetails` - Backend error types
+
+**KEEP MANUAL** (frontend-only logic):
+- ✅ `EventFilters` - Frontend filtering logic (not sent to API)
+- ✅ `CreateEventData` - Frontend form structure (if different from backend)
+- ✅ `PaginatedResponse<T>` - Generic convenience type (supplement to specific types)
+- ✅ `ApiResponse<T>` - Generic convenience type (supplement to specific types)
+
+### 🚨 REFERENCE IMPLEMENTATION - VETTING TYPES (GOLD STANDARD):
+
+**File**: `/apps/web/src/features/admin/vetting/types/vetting.types.ts`
+
+```typescript
+// ✅ CORRECT: This is the pattern ALL API types should follow
+import type { components } from '@witchcityrope/shared-types';
+
+// Re-export API types for convenience
+export type ApplicationSummaryDto = components['schemas']['ApplicationSummaryDto'];
+export type ApplicationReferenceStatus = components['schemas']['ApplicationReferenceStatus'];
+export type ApplicationDetailResponse = components['schemas']['ApplicationDetailResponse'];
+export type ApplicationStatusResponse = components['schemas']['ApplicationStatusResponse'];
+// ... more re-exports
+```
+
+This is **100% compliant** with DTO Alignment Strategy.
+
+### 🚨 PRIORITY 1 VIOLATION - FIXED OCTOBER 2025:
+
+**File**: `/apps/web/src/types/api.types.ts`
+**Before**: 106 lines of manual interfaces (VIOLATION)
+**After**: 313 lines of generated type re-exports (COMPLIANT)
+
+**TODO Comment that triggered fix**:
+```typescript
+// TODO: Use generated types from @witchcityrope/shared-types when package is available
+// Temporarily using inline types to fix import failures
+```
+
+This comment sat in the codebase for **2+ months** acknowledging the violation but not fixing it.
+
+### 💥 CONSEQUENCES OF MANUAL API TYPES:
+
+- ❌ **393 TypeScript errors** during React migration (August 2025)
+- ❌ Hours wasted debugging type mismatches
+- ❌ Runtime failures when types don't match API
+- ❌ Duplicate maintenance effort (backend + frontend)
+- ❌ High risk of inconsistency between systems
+- ❌ Architecture violation (DTO Alignment Strategy)
+
+### ✅ BENEFITS OF GENERATED TYPES:
+
+- ✅ **Zero TypeScript errors** from type mismatches
+- ✅ Automatic synchronization with backend
+- ✅ Zero manual maintenance burden
+- ✅ 100% type safety guarantee
+- ✅ Single source of truth (C# DTOs)
+- ✅ Architecture compliance
+
+### 📋 MANDATORY CHECKLIST FOR NEW API TYPES:
+
+When you need to use a new backend type:
+
+1. **Check generated types** - `packages/shared-types/src/generated/api-types.ts`
+2. **If type exists** - Re-export it from `components['schemas'][...]`
+3. **If type missing** - Backend needs to add OpenAPI annotations
+4. **Regenerate types** - `cd packages/shared-types && npm run generate`
+5. **NEVER create manual interface** for API data
+
+### 🛑 CODE REVIEW RED FLAGS:
+
+**Watch for these patterns in PRs:**
+
+```typescript
+// ❌ RED FLAG: Manual interface for API data
+export interface UserDto {
+  // If this comes from API, it MUST be generated!
+}
+
+// ❌ RED FLAG: Manual DTO creation
+export interface EventResponse {
+  // Check if this exists in generated types first!
+}
+
+// ❌ RED FLAG: Duplicating backend enums
+export type EventStatus = 'Draft' | 'Published' | 'Cancelled';
+// Use generated enum instead!
+```
+
+**Correct patterns:**
+```typescript
+// ✅ GREEN FLAG: Import from generated types
+import type { components } from '@witchcityrope/shared-types';
+
+// ✅ GREEN FLAG: Re-export with documentation
+export type UserDto = components['schemas']['UserDto'];
+
+// ✅ GREEN FLAG: Frontend-only type (not API data)
+export interface EventFilters {
+  // This is frontend logic, not backend data
+  search?: string;
+  startDate?: string;
+}
+```
+
+### 📚 RELATED DOCUMENTATION:
+
+**CRITICAL - MUST READ**:
+- `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md` - Core principles
+- `/docs/architecture/react-migration/domain-layer-architecture.md` - NSwag implementation
+
+**REFERENCE IMPLEMENTATION**:
+- `/apps/web/src/features/admin/vetting/types/vetting.types.ts` - Gold standard
+- `/apps/web/src/types/api.types.ts` - Complete example (fixed October 2025)
+
+**IMPLEMENTATION SUMMARY**:
+- `/session-work/2025-10-23/api-types-dto-alignment-migration-summary.md` - Detailed migration documentation
+
+### Tags
+#ultra-critical #dto-alignment #typescript #api-types #nswag #type-generation #architecture-compliance #393-errors-prevented
+
+---
+
 ## 🚨🚨🚨 ULTRA CRITICAL: TIPTAP EDITOR KEY PROP CAUSES REMOUNTING AND FOCUS LOSS 🚨🚨🚨
 **Date**: 2025-10-17
 **Category**: TipTap Rich Text Editor / React State Management

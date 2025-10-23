@@ -61,12 +61,12 @@ export function IncidentDetails({ incidentId, onClose }: IncidentDetailsProps) {
   const updateIncidentMutation = useUpdateIncident();
   
   // Form for updating incident
+  // Note: UpdateStatusRequest only includes newStatus, reason, metadata (not title)
   const form = useForm<UpdateIncidentRequest>({
     initialValues: {
-      title: incident?.title || '',
-      status: incident?.status,
-      assignedTo: incident?.assignedTo || '',
-      notes: ''
+      newStatus: incident?.status,
+      reason: '',
+      metadata: null
     }
   });
 
@@ -74,10 +74,9 @@ export function IncidentDetails({ incidentId, onClose }: IncidentDetailsProps) {
   React.useEffect(() => {
     if (incident) {
       form.setValues({
-        title: incident.title || '',
-        status: incident.status,
-        assignedTo: incident.assignedTo || '',
-        notes: ''
+        newStatus: incident.status,
+        reason: '',
+        metadata: null
       });
     }
   }, [incident]);
@@ -245,7 +244,7 @@ export function IncidentDetails({ incidentId, onClose }: IncidentDetailsProps) {
             )}
             
             {/* Contact Information */}
-            {!incident.isAnonymous && (incident.contactEmail || incident.contactPhone) && (
+            {!incident.isAnonymous && incident.contactEmail && (
               <Paper p="md" withBorder>
                 <Title order={4} size="h5" mb="md">Contact Information</Title>
                 <Stack gap="xs">
@@ -255,12 +254,7 @@ export function IncidentDetails({ incidentId, onClose }: IncidentDetailsProps) {
                       <Text size="sm" c="blue">{incident.contactEmail}</Text>
                     </Group>
                   )}
-                  {incident.contactPhone && (
-                    <Group gap="xs">
-                      <Text size="sm" fw={500}>Phone:</Text>
-                      <Text size="sm">{incident.contactPhone}</Text>
-                    </Group>
-                  )}
+                  {/* NOTE: contactPhone field does not exist in backend DTO */}
                   {incident.requestFollowUp && (
                     <Text size="sm" c="orange" fs="italic">
                       Reporter requested follow-up contact

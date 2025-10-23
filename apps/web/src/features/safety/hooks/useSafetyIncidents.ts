@@ -8,7 +8,8 @@ import type {
   SearchIncidentsRequest,
   UpdateIncidentRequest,
   IncidentStatus,
-  SafetyIncidentDto
+  SafetyIncidentDto,
+  FrontendIncidentDetails
 } from '../types/safety.types';
 
 // Query keys for cache management
@@ -63,9 +64,10 @@ export function useIncidentStatus(referenceNumber: string, enabled: boolean = tr
 /**
  * Get detailed incident information for safety team
  * Requires safety team authorization
+ * Returns FrontendIncidentDetails with mapped field names (coordinatorId, coordinatorName)
  */
 export function useIncidentDetail(incidentId: string, enabled: boolean = true) {
-  return useQuery<SafetyIncidentDto>({
+  return useQuery<FrontendIncidentDetails>({
     queryKey: safetyKeys.incident(incidentId),
     queryFn: () => safetyApi.getIncidentDetail(incidentId),
     enabled: enabled && !!incidentId,
