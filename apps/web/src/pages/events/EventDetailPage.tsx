@@ -35,7 +35,7 @@ export const EventDetailPage: React.FC = () => {
   
   if (isLoading) {
     return (
-      <Box data-testid="page-event-detail" style={{ background: 'var(--color-cream)', minHeight: '100vh' }}>
+      <Box data-testid="event-details" style={{ background: 'var(--color-cream)', minHeight: '100vh' }}>
         <Container size="xl" py="xl">
           <EventDetailSkeleton />
         </Container>
@@ -45,7 +45,7 @@ export const EventDetailPage: React.FC = () => {
   
   if (error || !event) {
     return (
-      <Box data-testid="page-event-detail" style={{ background: 'var(--color-cream)', minHeight: '100vh' }}>
+      <Box data-testid="event-details" style={{ background: 'var(--color-cream)', minHeight: '100vh' }}>
         <Container size="xl" py="xl">
           <Alert color="red" title="Event Not Found">
             <Text>Sorry, we couldn't find this event. It may have been removed or the link is incorrect.</Text>
@@ -101,7 +101,7 @@ export const EventDetailPage: React.FC = () => {
   console.log('  - determined eventType:', eventType);
 
   return (
-    <Box data-testid="page-event-detail" style={{ background: 'var(--color-cream)', minHeight: '100vh' }}>
+    <Box data-testid="event-details" style={{ background: 'var(--color-cream)', minHeight: '100vh' }}>
       {/* Breadcrumb */}
       <Container size="xl" pt="md">
         <Group justify="space-between" align="center">
