@@ -1,6 +1,6 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-10-23 (Post-Login Return E2E Tests Created) -->
-<!-- Version: 7.4 - Post-Login Return Feature Test Coverage -->
+<!-- Last Updated: 2025-10-23 (Public Events Anonymous Access E2E Tests) -->
+<!-- Version: 7.5 - Public Events Anonymous Access Test Coverage -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
 
@@ -42,7 +42,47 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 
 ### Current Test Status (October 2025)
 
-**Latest Updates** (2025-10-23 - POST-LOGIN RETURN E2E TESTS):
+**Latest Updates** (2025-10-23 - PUBLIC EVENTS ANONYMOUS ACCESS E2E TESTS):
+
+- ✅ **PUBLIC EVENTS ANONYMOUS ACCESS E2E TESTS COMPLETE** (2025-10-23 20:45 UTC):
+  - **Feature**: Public Events Browsing Without Authentication (commit 82999f09)
+  - **Test File**: `/apps/web/tests/playwright/events/public-events-anonymous.spec.ts`
+  - **Overall Status**: ✅ **100% PASSING** - All 15 tests passing (15/15)
+  - **Test Coverage**: Comprehensive E2E validation
+    - P0 Security Tests: 4/4 PASSING (100%) - API endpoint security verified
+    - P1 Browsing Tests: 4/4 PASSING (100%) - Anonymous access workflow validated
+    - P1 Visibility Tests: 3/3 PASSING (100%) - Event data display confirmed
+    - P2 Navigation Tests: 3/3 PASSING (100%) - UX and navigation working
+    - P3 Error Handling: 2/2 PASSING (100%) - Error handling graceful
+  - **Security Validation**: ✅ **EXCELLENT**
+    - Anonymous users can access published events (verified)
+    - Unpublished events blocked from anonymous users (verified)
+    - API returns 401 when includeUnpublished=true (verified)
+    - No sensitive admin data exposed to anonymous users (verified)
+  - **API Validation**: ✅ **PASSING**
+    - GET /api/events returns 200 OK without authentication
+    - Returns ApiResponse<List<EventDto>> wrapper format
+    - 6 published events returned (verified)
+    - EventDto structure validated (startDate, endDate, title, etc.)
+  - **UI Validation**: ✅ **PASSING**
+    - Events list displays successfully
+    - Event cards show title, date, description
+    - Event cards are clickable
+    - No 401 errors from events endpoints
+    - Page title set correctly
+    - Navigation menu links work
+  - **Test Quality**: ✅ **EXCELLENT**
+    - 375 lines of comprehensive test code
+    - Follows all Playwright standards
+    - Uses data-testid selectors where available
+    - Proper async/await patterns
+    - Comprehensive error filtering
+  - **Report**: `/test-results/public-events-anonymous-e2e-report-2025-10-23.md`
+  - **Status**: ✅ **FEATURE VERIFIED** - Public events browsing working as designed
+  - **catalog_updated**: true
+  - **Next Steps**: None - feature complete and tested
+
+**Previous Updates** (2025-10-23 - POST-LOGIN RETURN E2E TESTS):
 
 - ✅ **POST-LOGIN RETURN E2E TESTS CREATED** (2025-10-23 19:15 UTC):
   - **Feature**: Post-Login Return to Intended Page (commits 55e7deb7 backend, e6f77f50 frontend)
