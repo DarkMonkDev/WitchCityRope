@@ -175,7 +175,10 @@ export type ValidationProblemDetails = components['schemas']['ValidationProblemD
  * Generic paginated response type
  * Note: This is a frontend convenience type for components that don't use specific backend pagination types
  * Prefer using specific backend types when available (e.g., UserListResponse, PagedResultOfApplicationSummaryDto)
+ *
+ * ESLint Exception: This is a generic frontend wrapper, not a backend DTO
  */
+// eslint-disable-next-line no-restricted-syntax
 export interface PaginatedResponse<T> {
   data: T[];
   page: number;
@@ -285,7 +288,10 @@ export interface UpdateEventData {
 /**
  * Generic API Response wrapper (Frontend convenience)
  * Note: Prefer using specific ApiResponseOf* types from generated types when available
+ *
+ * ESLint Exception: This is a generic frontend wrapper, not a backend DTO
  */
+// eslint-disable-next-line no-restricted-syntax
 export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
