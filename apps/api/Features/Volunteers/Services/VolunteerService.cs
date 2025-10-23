@@ -38,7 +38,9 @@ public class VolunteerService
             }
 
             // Check if event exists
-            var eventExists = await _context.Events.AnyAsync(e => e.Id == eventGuid, cancellationToken);
+            var eventExists = await _context.Events
+                .AsNoTracking()
+                .AnyAsync(e => e.Id == eventGuid, cancellationToken);
             if (!eventExists)
             {
                 return (false, null, "Event not found");
@@ -46,12 +48,14 @@ public class VolunteerService
 
             // Get volunteer positions - only show public-facing positions on event page
             var positions = await _context.VolunteerPositions
+                .AsNoTracking()
                 .Include(vp => vp.Session)
                 .Where(vp => vp.EventId == eventGuid && vp.IsPublicFacing)
                 .ToListAsync(cancellationToken);
 
             // Get event sessions to handle event-wide positions
             var eventSessions = await _context.Sessions
+                .AsNoTracking()
                 .Where(s => s.EventId == eventGuid)
                 .ToListAsync(cancellationToken);
 
@@ -60,6 +64,7 @@ public class VolunteerService
             if (!string.IsNullOrEmpty(userId) && Guid.TryParse(userId, out var userGuid))
             {
                 userSignups = await _context.VolunteerSignups
+                    .AsNoTracking()
                     .Where(vs => vs.UserId == userGuid && vs.Status == VolunteerSignupStatus.Confirmed)
                     .ToListAsync(cancellationToken);
             }

@@ -106,3 +106,8 @@
 **Last Updated:** 2025-10-23
 **Total Files Tracked:** 56+ (since registry implementation)
 **Next Cleanup Review:** 2025-11-23
+| 2025-10-23 | /apps/api/Features/Volunteers/Services/VolunteerService.cs | MODIFIED | Phase 2.1: Added 4 AsNoTracking() optimizations to read-only queries (event exists check, position listing, session retrieval, user signups) | Backend API Standards Audit Phase 2.1 - Performance Optimization | ACTIVE | Never |
+| 2025-10-23 | /apps/api/Features/Payments/Services/PaymentService.cs | MODIFIED | Phase 2.1: Added 3 AsNoTracking() optimizations to read-only queries (payment by ID, user payment history, payment by registration) | Backend API Standards Audit Phase 2.1 - Performance Optimization | ACTIVE | Never |
+| 2025-10-23 | /apps/api/Features/Payments/Services/RefundService.cs | MODIFIED | Phase 2.1: Added 4 AsNoTracking() optimizations to read-only queries (refund by ID, refunds by payment, refunds by processor, max refund amount) | Backend API Standards Audit Phase 2.1 - Performance Optimization | ACTIVE | Never |
+| 2025-10-23 | /apps/api/Features/Volunteers/Services/VolunteerAssignmentService.cs | MODIFIED | Phase 2.1: Added 2 AsNoTracking() optimizations to read-only queries (position exists check, confirmed signups listing) | Backend API Standards Audit Phase 2.1 - Performance Optimization | ACTIVE | Never |
+| 2025-10-23 | /tmp/asnotracking-optimization-report.md | CREATED | Comprehensive Phase 2.1 optimization report - 13 queries optimized (80→93 usages), performance impact analysis, safety verification, coverage metrics, recommendations | Backend API Standards Audit Phase 2.1 - Final Report | TEMPORARY | 2025-10-24 |

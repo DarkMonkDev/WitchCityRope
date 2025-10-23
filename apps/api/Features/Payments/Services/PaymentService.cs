@@ -140,6 +140,7 @@ public class PaymentService : IPaymentService
         try
         {
             var payment = await _context.Payments
+                .AsNoTracking()
                 .Include(p => p.User)
                 .Include(p => p.AuditLogs)
                 .Include(p => p.Refunds)
@@ -162,6 +163,7 @@ public class PaymentService : IPaymentService
         try
         {
             var payments = await _context.Payments
+                .AsNoTracking()
                 .Where(p => p.UserId == userId)
                 .Include(p => p.Refunds)
                 .OrderByDescending(p => p.CreatedAt)
@@ -183,6 +185,7 @@ public class PaymentService : IPaymentService
         try
         {
             var payment = await _context.Payments
+                .AsNoTracking()
                 .Include(p => p.User)
                 .Include(p => p.Refunds)
                 .FirstOrDefaultAsync(p => p.EventRegistrationId == eventRegistrationId, cancellationToken);

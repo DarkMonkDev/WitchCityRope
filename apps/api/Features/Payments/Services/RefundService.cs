@@ -198,6 +198,7 @@ public class RefundService : IRefundService
         try
         {
             var refund = await _context.PaymentRefunds
+                .AsNoTracking()
                 .Include(r => r.OriginalPayment)
                 .Include(r => r.ProcessedByUser)
                 .FirstOrDefaultAsync(r => r.Id == refundId, cancellationToken);
@@ -218,6 +219,7 @@ public class RefundService : IRefundService
         try
         {
             var refunds = await _context.PaymentRefunds
+                .AsNoTracking()
                 .Where(r => r.OriginalPaymentId == paymentId)
                 .Include(r => r.ProcessedByUser)
                 .OrderByDescending(r => r.CreatedAt)
@@ -239,6 +241,7 @@ public class RefundService : IRefundService
         try
         {
             var refunds = await _context.PaymentRefunds
+                .AsNoTracking()
                 .Where(r => r.ProcessedByUserId == userId)
                 .Include(r => r.OriginalPayment)
                 .OrderByDescending(r => r.CreatedAt)
@@ -282,6 +285,7 @@ public class RefundService : IRefundService
         try
         {
             var payment = await _context.Payments
+                .AsNoTracking()
                 .Include(p => p.Refunds)
                 .FirstOrDefaultAsync(p => p.Id == paymentId, cancellationToken);
 

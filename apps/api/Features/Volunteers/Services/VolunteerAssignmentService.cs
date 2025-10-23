@@ -37,6 +37,7 @@ public class VolunteerAssignmentService
         {
             // Check if position exists
             var positionExists = await _context.VolunteerPositions
+                .AsNoTracking()
                 .AnyAsync(vp => vp.Id == positionId, cancellationToken);
 
             if (!positionExists)
@@ -46,6 +47,7 @@ public class VolunteerAssignmentService
 
             // Get all confirmed signups for this position with user details
             var signups = await _context.VolunteerSignups
+                .AsNoTracking()
                 .Include(vs => vs.User)
                 .Where(vs => vs.VolunteerPositionId == positionId
                           && vs.Status == VolunteerSignupStatus.Confirmed)
