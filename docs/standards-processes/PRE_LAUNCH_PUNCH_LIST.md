@@ -31,17 +31,18 @@ Use the orchestrator command when testing reveals missing functionality:
 | Category | Total Items | Complete | In Progress | Blocked | Not Started | % Complete |
 |----------|-------------|----------|-------------|---------|-------------|------------|
 | **Core Authentication & Authorization** | 3 | 1 | 1 | 0 | 1 | 33% |
-| **Event Management & RSVP** | 10 | 3 | 2 | 0 | 5 | 30% |
+| **Event Management & RSVP** | 11 | 4 | 2 | 0 | 5 | 36% |
 | **Vetting System** | 8 | 3 | 2 | 0 | 3 | 38% |
 | **Payment Processing** | 3 | 1 | 1 | 0 | 1 | 33% |
 | **Admin Tools** | 5 | 1 | 1 | 0 | 3 | 20% |
 | **User Dashboard** | 3 | 2 | 0 | 0 | 1 | 67% |
 | **Public Pages** | 2 | 1 | 0 | 0 | 1 | 50% |
-| **Content Management** | 2 | 0 | 0 | 0 | 2 | 0% |
+| **Content Management** | 2 | 1 | 0 | 0 | 1 | 50% |
 | **Infrastructure & Deployment** | 7 | 0 | 0 | 0 | 7 | 0% |
 | **Testing & Quality** | 4 | 0 | 1 | 0 | 3 | 0% |
 | **Documentation** | 2 | 1 | 0 | 0 | 1 | 50% |
-| **TOTAL** | 49 | 13 | 8 | 0 | 28 | 27% |
+| **Incident Reporting** | 2 | 1 | 1 | 0 | 0 | 50% |
+| **TOTAL** | 52 | 16 | 9 | 0 | 27 | 31% |
 
 ---
 
@@ -139,13 +140,21 @@ Use the orchestrator command when testing reveals missing functionality:
   - **Status**: In Progress
   - **Notes**: E2E test Step 2 failing - admin cannot find/edit events in admin panel. UI incomplete or broken.
 
+- [x] **Volunteer Position Signup System** (Priority: High) ✅ COMPLETE
+  - **Description**: Complete volunteer signup workflow with auto-RSVP functionality
+  - **Business Value**: Event operations - enables volunteer recruitment and management
+  - **Effort**: Large (3+ days) - COMPLETED
+  - **Dependencies**: Event system, authentication
+  - **Status**: Complete (2025-10-20)
+  - **Notes**: Full stack implementation. 8 test volunteer signups, auto-RSVP integration, progress tracking, 5 new frontend files, vertical slice backend architecture. Production-ready.
+
 - [ ] **Event Volunteer Applications Display** (Priority: High)
   - **Description**: Grid table on Event Details Volunteers tab showing who volunteered for each task
   - **Business Value**: Event management - admins need to see volunteer signups and assign positions
   - **Effort**: Medium (1-2 days)
-  - **Dependencies**: Event volunteer positions system
+  - **Dependencies**: Volunteer signup system complete
   - **Status**: Not Started
-  - **Notes**: Need sortable grid showing volunteer name, email, selected position, application date. Should appear below volunteer tasks table.
+  - **Notes**: Need sortable grid showing volunteer name, email, selected position, application date. Should appear below volunteer tasks table. Backend API complete, need admin UI component.
 
 - [ ] **Venue Management System** (Priority: High)
   - **Description**: Admin interface to create and manage event venues with full details
@@ -362,13 +371,13 @@ Use the orchestrator command when testing reveals missing functionality:
 
 ## Content Management
 
-- [ ] **CMS Implementation** (Priority: High)
+- [x] **CMS Implementation** (Priority: High) ✅ COMPLETE
   - **Description**: Content Management System for managing text-only pages (About, FAQ, Policies, etc.)
   - **Business Value**: Administrative efficiency - admins need to update page content without developer intervention
-  - **Effort**: Large (3-5 days)
+  - **Effort**: Large (3-5 days) - COMPLETED
   - **Dependencies**: None
-  - **Status**: Not Started
-  - **Notes**: Need to select CMS approach: 1) Custom admin UI + database tables, 2) TinyMCE/Tiptap with database, 3) Markdown files + admin editor, or 4) Third-party headless CMS (Strapi, Contentful). Decision needed. Should support: rich text editing, page versioning, publish/draft states, multiple text pages (About, FAQ, Terms, Privacy, Safety Guidelines, Code of Conduct).
+  - **Status**: Complete (2025-10-17)
+  - **Notes**: TipTap rich text editor implementation complete. 4 API endpoints (GET/PUT pages, GET revisions), 6 React components, 203+ passing unit tests, 8/9 E2E tests passing. In-place editing, revision history, HTML sanitization, admin-only controls, mobile-responsive. Production-ready for desktop. 3 initial pages operational: About, How to Join, Contact.
 
 - [ ] **Text-Only Pages Creation** (Priority: High)
   - **Description**: Create and populate core text pages: About Us, FAQ, Community Guidelines, Safety Practices, Terms of Service, Privacy Policy, Code of Conduct
@@ -377,6 +386,26 @@ Use the orchestrator command when testing reveals missing functionality:
   - **Dependencies**: CMS implementation
   - **Status**: Not Started
   - **Notes**: Content writing required. Some content may exist from Blazor version. Each page needs SEO metadata, proper navigation, and responsive design.
+
+---
+
+## Incident Reporting
+
+- [x] **Incident Reporting Frontend** (Priority: High) ✅ COMPLETE
+  - **Description**: Complete incident reporting UI with anonymous/identified submission, 5-stage workflow, severity coding
+  - **Business Value**: Safety operations - community safety incident tracking and response
+  - **Effort**: Large (5+ days) - COMPLETED
+  - **Dependencies**: None (backend pending)
+  - **Status**: Complete (2025-10-18)
+  - **Notes**: 19 React components, 239+ unit tests (100% passing), ~6,000 lines of code. Anonymous & identified reporting, 4-level severity coding (Critical/High/Medium/Low), 5-stage workflow, per-incident coordinator assignment, notes system, stage guidance modals, Google Drive manual integration, My Reports user view. WCAG 2.1 AA compliant. Awaiting backend API implementation.
+
+- [ ] **Incident Reporting Backend API** (Priority: High)
+  - **Description**: Implement 12 API endpoints for incident reporting system
+  - **Business Value**: Safety operations - enable complete incident management workflow
+  - **Effort**: Large (40-60 hours estimated)
+  - **Dependencies**: Incident reporting frontend complete, database migration
+  - **Status**: In Progress
+  - **Notes**: Database schema 85% complete (migration created, not applied). Need: IncidentStatus enum migration (4-stage → 5-stage), IncidentNote entity implementation, 12 API endpoints (submit, list, detail, assign, transition, notes CRUD, coordinators, Google Drive links). Frontend ready for API integration. See `/docs/functional-areas/incident-reporting/new-work/2025-10-17-initial-implementation/BACKEND-INTEGRATION-GUIDE.md`
 
 ---
 
@@ -507,8 +536,9 @@ Use the orchestrator command when testing reveals missing functionality:
 4. **Dashboard Error Handling** - 40-50 tests failing, poor user experience
 5. **Public Events Anonymous Access** - New visitors cannot see events (returns 401)
 6. **Event Detail View** - Users cannot see full event details
-7. **CMS Implementation** - Required for text-only pages (Terms, Privacy, etc.)
+7. ~~**CMS Implementation**~~ ✅ COMPLETE (2025-10-17)
 8. **Text-Only Pages** - Legal compliance requirement (Terms of Service, Privacy Policy)
+9. **Incident Reporting Backend API** - Safety operations require complete workflow (40-60 hours)
 
 **Infrastructure & Deployment:**
 9. **Staging Environment Setup** - Pre-production testing environment required
@@ -644,3 +674,4 @@ Use the orchestrator command when testing reveals missing functionality:
 | 2025-10-08 | 1.3 | Added 7 infrastructure items: staging/production environment setup, CI/CD pipeline for staging, production deployment process, database backup/recovery, file storage, environment configuration management - total now 47 items | Claude Code |
 | 2025-10-10 | 1.4 | Added Post-Login Return to Intended Page feature (P1 CRITICAL) - total now 48 items, updated dashboard metrics (3 auth items, 27 not started) | Librarian Agent |
 | 2025-10-17 | 1.5 | Added Venue Management System (HIGH priority), enhanced Admin Members Management with detailed requirements for search/sorting and role management - total now 49 items | Claude Code |
+| 2025-10-23 | 1.6 | Marked CMS Implementation as COMPLETE (2025-10-17). Added Volunteer Position Signup System (COMPLETE 2025-10-20). Added Incident Reporting category with frontend COMPLETE (2025-10-18) and backend API in progress. Updated dashboard: 52 total items, 16 complete (31%), 9 in progress, 27 not started. | Claude Code |
