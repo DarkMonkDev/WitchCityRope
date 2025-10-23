@@ -54,7 +54,7 @@ public static class AuthenticationEndpoints
             .Produces(404)
             .Produces(500);
 
-        // User login endpoint with httpOnly cookie support
+        // User login endpoint with httpOnly cookie support and return URL validation
         app.MapPost("/api/auth/login", async (
             LoginRequest request,
             AuthenticationService authService,
@@ -62,7 +62,8 @@ public static class AuthenticationEndpoints
             IConfiguration configuration,
             CancellationToken cancellationToken) =>
             {
-                var (success, response, error) = await authService.LoginAsync(request, cancellationToken);
+                // Pass HttpContext to service for return URL validation
+                var (success, response, error) = await authService.LoginAsync(request, context, cancellationToken);
 
                 if (success && response != null)
                 {
@@ -78,11 +79,13 @@ public static class AuthenticationEndpoints
 
                     context.Response.Cookies.Append("auth-token", response.Token, cookieOptions);
 
-                    // Return user info without token (BFF pattern)
+                    // Return user info with validated return URL (BFF pattern)
+                    // Frontend should redirect to returnUrl if present, otherwise /dashboard
                     return Results.Ok(new
                     {
                         Success = true,
                         User = response.User,
+                        ReturnUrl = response.ReturnUrl, // Null if not provided or validation failed
                         Message = "Login successful"
                     });
                 }
@@ -93,8 +96,8 @@ public static class AuthenticationEndpoints
                     statusCode: error.Contains("Invalid email or password") ? 401 : 400);
             })
             .WithName("Login")
-            .WithSummary("Authenticate user with email and password")
-            .WithDescription("Validates user credentials and returns JWT token with user information")
+            .WithSummary("Authenticate user with email and password (with optional return URL)")
+            .WithDescription("Validates user credentials, performs OWASP-compliant return URL validation, and returns JWT token with user information. If returnUrl is provided and valid, it will be included in response for post-login redirect.")
             .WithTags("Authentication")
             .Produces<LoginResponse>(200)
             .Produces(400)

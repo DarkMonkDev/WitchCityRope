@@ -36,6 +36,7 @@ public static class ServiceCollectionExtensions
 
         // Authentication feature services
         services.AddScoped<AuthenticationService>();
+        services.AddScoped<ReturnUrlValidator>();
 
         // Events feature services
         services.AddScoped<Events.Services.EventService>();

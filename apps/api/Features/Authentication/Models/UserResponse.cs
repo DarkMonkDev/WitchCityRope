@@ -66,4 +66,11 @@ public class LoginResponse
     /// User information
     /// </summary>
     public AuthUserResponse User { get; set; } = new();
+
+    /// <summary>
+    /// Validated return URL to redirect to after successful login
+    /// Null if no return URL was provided or validation failed (client should default to /dashboard)
+    /// Guaranteed to be safe (OWASP-compliant validation applied)
+    /// </summary>
+    public string? ReturnUrl { get; set; }
 }

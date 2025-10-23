@@ -17,6 +17,7 @@ public class AuthenticationService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IJwtService _jwtService;
+    private readonly ReturnUrlValidator _returnUrlValidator;
     private readonly ILogger<AuthenticationService> _logger;
 
     public AuthenticationService(
@@ -24,12 +25,14 @@ public class AuthenticationService
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         IJwtService jwtService,
+        ReturnUrlValidator returnUrlValidator,
         ILogger<AuthenticationService> logger)
     {
         _context = context;
         _userManager = userManager;
         _signInManager = signInManager;
         _jwtService = jwtService;
+        _returnUrlValidator = returnUrlValidator;
         _logger = logger;
     }
 
@@ -66,11 +69,17 @@ public class AuthenticationService
     }
 
     /// <summary>
-    /// Authenticate user with email and password
+    /// Authenticate user with email and password with optional return URL validation
     /// Direct Entity Framework and Identity service calls - NO MediatR complexity
+    /// Implements OWASP-compliant return URL validation per BR-1 and SEC-1 requirements
     /// </summary>
+    /// <param name="request">Login request containing email, password, and optional return URL</param>
+    /// <param name="httpContext">HTTP context for return URL validation</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Login response with validated return URL (defaults to /dashboard if validation fails)</returns>
     public async Task<(bool Success, LoginResponse? Response, string Error)> LoginAsync(
         LoginRequest request,
+        HttpContext httpContext,
         CancellationToken cancellationToken = default)
     {
         try
@@ -91,13 +100,39 @@ public class AuthenticationService
                 user.LastLoginAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync(cancellationToken);
 
+                // Validate return URL if provided (OWASP-compliant security validation)
+                string? validatedReturnUrl = null;
+                if (!string.IsNullOrWhiteSpace(request.ReturnUrl))
+                {
+                    var validationResult = _returnUrlValidator.ValidateReturnUrl(
+                        request.ReturnUrl,
+                        httpContext,
+                        user.Id.ToString());
+
+                    if (validationResult.IsValid)
+                    {
+                        validatedReturnUrl = validationResult.ValidatedUrl;
+                        _logger.LogInformation(
+                            "Return URL validated for user {UserId}: {OriginalUrl} -> {ValidatedUrl}",
+                            user.Id, validationResult.OriginalUrl, validatedReturnUrl);
+                    }
+                    else
+                    {
+                        _logger.LogWarning(
+                            "Return URL validation failed for user {UserId}: {OriginalUrl}, Reason: {Reason}",
+                            user.Id, validationResult.OriginalUrl, validationResult.FailureReason);
+                        // validatedReturnUrl remains null - frontend will default to /dashboard
+                    }
+                }
+
                 // Generate JWT token
                 var jwtToken = _jwtService.GenerateToken(user);
                 var response = new LoginResponse
                 {
                     Token = jwtToken.Token,
                     ExpiresAt = jwtToken.ExpiresAt,
-                    User = new AuthUserResponse(user)
+                    User = new AuthUserResponse(user),
+                    ReturnUrl = validatedReturnUrl // Null if not provided or validation failed
                 };
 
                 _logger.LogInformation("User logged in successfully: {Email}", user.Email);

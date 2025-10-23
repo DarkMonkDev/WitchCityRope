@@ -20,4 +20,11 @@ public class LoginRequest
     /// </summary>
     [Required(ErrorMessage = "Password is required")]
     public string Password { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Optional return URL to redirect to after successful login
+    /// Will be validated against OWASP security standards to prevent open redirect attacks
+    /// If not provided or validation fails, defaults to /dashboard
+    /// </summary>
+    public string? ReturnUrl { get; set; }
 }
