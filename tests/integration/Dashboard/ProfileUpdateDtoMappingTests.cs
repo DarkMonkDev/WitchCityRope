@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Text.Json;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -127,6 +128,7 @@ public class ProfileUpdateDtoMappingTests : DtoMappingTestBase
             DiscordName = "discord#0000",
             FetLifeName = "fetlife_original",
             PhoneNumber = "555-0000",
+            SecurityStamp = Guid.NewGuid().ToString(), // Required by ASP.NET Identity
             EncryptedLegalName = "encrypted",
             DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             Role = "Member",
@@ -155,16 +157,30 @@ public class ProfileUpdateDtoMappingTests : DtoMappingTestBase
 
         // Act: Call update endpoint
         var client = CreateAuthenticatedClient(testUser.Id.ToString(), testUser.Email);
-        var response = await client.PutAsJsonAsync($"/api/dashboard/profile", updateDto);
+        var response = await client.PutAsJsonAsync($"/api/users/{testUser.Id}/profile", updateDto);
 
         // Assert: Response successful
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Profile update failed with status {response.StatusCode}: {errorContent}");
+        }
         response.IsSuccessStatusCode.Should().BeTrue("Profile update should succeed");
 
         // Assert: Get updated profile and verify all fields returned
-        var getResponse = await client.GetAsync("/api/dashboard/profile");
+        var getResponse = await client.GetAsync($"/api/users/{testUser.Id}/profile");
         getResponse.IsSuccessStatusCode.Should().BeTrue("Profile retrieval should succeed");
 
-        var returnedProfile = await getResponse.Content.ReadFromJsonAsync<UserProfileDto>();
+        // Use case-insensitive JSON deserialization to handle camelCase API responses
+        var jsonOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+        var apiResponse = await getResponse.Content.ReadFromJsonAsync<ApiResponse<UserProfileDto>>(jsonOptions);
+        apiResponse.Should().NotBeNull("API should return response");
+        apiResponse!.Success.Should().BeTrue("API response should indicate success");
+
+        var returnedProfile = apiResponse.Data;
         returnedProfile.Should().NotBeNull("API should return profile");
 
         // CRITICAL: Verify all DTO fields are in the response
