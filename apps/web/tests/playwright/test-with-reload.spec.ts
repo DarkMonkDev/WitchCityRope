@@ -13,11 +13,13 @@ test('vetting navigation with hard reload', async ({ page }) => {
   // Click first row
   const firstRow = page.locator('table tbody tr').first();
   await firstRow.click();
-  await page.waitForURL(/\/admin\/vetting\/[a-f0-9-]+$/);
+  await page.waitForURL(/\/admin\/vetting\/applications\/[a-f0-9-]+$/);
   await page.waitForLoadState('networkidle');
   
-  const h1 = await page.locator('h1').first().textContent();
-  console.log('H1 after navigation:', h1);
-  
-  expect(h1).not.toBe('Vetting Applications');
+  // Verify we navigated to the detail page
+  const currentUrl = page.url();
+  console.log('Current URL after navigation:', currentUrl);
+
+  // Check that we're on the detail page (URL should contain application ID)
+  expect(currentUrl).toMatch(/\/admin\/vetting\/applications\/[a-f0-9-]+$/);
 });

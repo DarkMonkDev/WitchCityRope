@@ -11,7 +11,7 @@ test('check DOM after navigation', async ({ page }) => {
   // Click first row
   const firstRow = page.locator('table tbody tr').first();
   await firstRow.click();
-  await page.waitForURL(/\/admin\/vetting\/[a-f0-9-]+$/);
+  await page.waitForURL(/\/admin\/vetting\/applications\/[a-f0-9-]+$/);
   await page.waitForLoadState('networkidle');
   
   // Check ALL h1 elements on the page
