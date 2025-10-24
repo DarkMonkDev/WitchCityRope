@@ -34,7 +34,7 @@ Use the orchestrator command when testing reveals missing functionality:
 | **Event Management & RSVP** | 11 | 7 | 2 | 0 | 2 | 64% |
 | **Vetting System** | 9 | 4 | 1 | 0 | 4 | 44% |
 | **Payment Processing** | 3 | 1 | 1 | 0 | 1 | 33% |
-| **Admin Tools** | 5 | 1 | 1 | 0 | 3 | 20% |
+| **Admin Tools** | 7 | 1 | 1 | 0 | 5 | 14% |
 | **User Dashboard** | 3 | 2 | 0 | 0 | 1 | 67% |
 | **Public Pages** | 2 | 1 | 0 | 0 | 1 | 50% |
 | **Content Management** | 3 | 2 | 0 | 0 | 1 | 67% |
@@ -42,7 +42,7 @@ Use the orchestrator command when testing reveals missing functionality:
 | **Testing & Quality** | 4 | 0 | 1 | 0 | 3 | 0% |
 | **Documentation** | 2 | 1 | 0 | 0 | 1 | 50% |
 | **Incident Reporting** | 2 | 2 | 0 | 0 | 0 | 100% |
-| **TOTAL** | 54 | 24 | 5 | 0 | 25 | 44% |
+| **TOTAL** | 56 | 24 | 5 | 0 | 27 | 43% |
 
 ---
 
@@ -329,6 +329,33 @@ Use the orchestrator command when testing reveals missing functionality:
     - **Member Detail Page**: Full profile view showing member history, event participation, payment history, vetting application details, and role assignment UI
     - **Role Management**: Ability to view and set user roles directly from detail page
     - Must match UX patterns from existing admin event and vetting grids
+
+- [ ] **Admin Email Templates Management** (Priority: High)
+  - **Description**: Centralized admin interface for creating and managing email templates across the platform
+  - **Business Value**: Communication management - admins need to customize and manage all platform emails from one location
+  - **Effort**: Large (3+ days)
+  - **Dependencies**: Email service infrastructure
+  - **Status**: Not Started
+  - **Notes**:
+    - **Template Categories**: Monthly newsletters, general announcements, system notifications
+    - **Integration**: May include tabs/sections for templates used in other areas (vetting, payments, events)
+    - **Features**: Rich text editor, variable substitution ({{name}}, {{event}}, etc.), preview, test email sending
+    - **CRUD Operations**: Create, read, update, delete templates
+    - **Template Types**: Vetting emails already exist separately - consider consolidation or cross-reference
+    - **Related**: This is broader than the existing "Bulk Email to Members" item - includes template management AND bulk sending
+
+- [ ] **Admin Configuration Management** (Priority: High)
+  - **Description**: Secure admin interface for managing 3rd party service credentials and platform configuration
+  - **Business Value**: Security & operations - centralized, secure management of API keys and service credentials without code deployment
+  - **Effort**: Medium (1-2 days)
+  - **Dependencies**: Authentication, RBAC (admin-only access)
+  - **Status**: Not Started
+  - **Notes**:
+    - **Configuration Areas**: PayPal (API keys, webhook secrets), Email service (SMTP, API keys), Storage (S3/Azure), Auth (JWT secrets, cookie settings)
+    - **Security**: Encrypted storage, audit logging, role-based access (SuperAdmin only), masked display of secrets
+    - **Features**: Update credentials without redeployment, test connection buttons, configuration history/versioning
+    - **UI Design**: Tabbed interface organized by service, clear labeling, validation before save
+    - **Critical**: Currently credentials are in environment variables/config files - need runtime management
 
 ---
 
