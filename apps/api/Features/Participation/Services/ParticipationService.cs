@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
+using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Participation.Models;
 using WitchCityRope.Api.Features.Shared.Models;
@@ -175,7 +176,7 @@ public class ParticipationService : IParticipationService
                 return Result<ParticipationStatusDto>.Failure("Event not found");
             }
 
-            if (eventEntity.EventType != "Social")
+            if (eventEntity.EventType != EventType.Social)
             {
                 return Result<ParticipationStatusDto>.Failure("RSVPs are only allowed for social events");
             }
@@ -295,7 +296,7 @@ public class ParticipationService : IParticipationService
                 return Result<ParticipationStatusDto>.Failure("Event not found");
             }
 
-            if (eventEntity.EventType != "Class")
+            if (eventEntity.EventType != EventType.Class)
             {
                 return Result<ParticipationStatusDto>.Failure("Ticket purchases are only allowed for class events");
             }

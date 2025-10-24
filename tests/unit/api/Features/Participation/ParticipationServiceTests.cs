@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using WitchCityRope.Api.Data;
+using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Participation.Models;
 using WitchCityRope.Api.Features.Participation.Services;
@@ -17,12 +18,20 @@ namespace WitchCityRope.Api.Tests.Features.Participation;
 /// </summary>
 public class ParticipationServiceTests : DatabaseTestBase
 {
-    private readonly ParticipationService _participationService;
+    private ParticipationService _participationService = null!;
     private readonly Mock<ILogger<ParticipationService>> _mockLogger;
 
     public ParticipationServiceTests(DatabaseTestFixture databaseFixture) : base(databaseFixture)
     {
         _mockLogger = new Mock<ILogger<ParticipationService>>();
+    }
+
+    public override async Task InitializeAsync()
+    {
+        // Call base to initialize DbContext
+        await base.InitializeAsync();
+
+        // Create service AFTER DbContext is initialized
         _participationService = new ParticipationService(DbContext, _mockLogger.Object);
     }
 
@@ -46,7 +55,7 @@ public class ParticipationServiceTests : DatabaseTestBase
     {
         // Arrange
         var user = CreateTestUser(isVetted: true);
-        var socialEvent = CreateTestEvent("Social");
+        var socialEvent = CreateTestEvent(EventType.Social);
 
         await DbContext.Users.AddAsync(user);
         await DbContext.Events.AddAsync(socialEvent);
@@ -83,7 +92,7 @@ public class ParticipationServiceTests : DatabaseTestBase
     {
         // Arrange
         var user = CreateTestUser(isVetted: false);
-        var socialEvent = CreateTestEvent("Social");
+        var socialEvent = CreateTestEvent(EventType.Social);
 
         await DbContext.Users.AddAsync(user);
         await DbContext.Events.AddAsync(socialEvent);
@@ -108,7 +117,7 @@ public class ParticipationServiceTests : DatabaseTestBase
     {
         // Arrange
         var user = CreateTestUser(isVetted: true);
-        var classEvent = CreateTestEvent("Class");
+        var classEvent = CreateTestEvent(EventType.Class);
 
         await DbContext.Users.AddAsync(user);
         await DbContext.Events.AddAsync(classEvent);
@@ -133,7 +142,7 @@ public class ParticipationServiceTests : DatabaseTestBase
     {
         // Arrange
         var user = CreateTestUser(isVetted: true);
-        var socialEvent = CreateTestEvent("Social", capacity: 1);
+        var socialEvent = CreateTestEvent(EventType.Social, capacity: 1);
 
         await DbContext.Users.AddAsync(user);
         await DbContext.Events.AddAsync(socialEvent);
@@ -166,7 +175,7 @@ public class ParticipationServiceTests : DatabaseTestBase
     {
         // Arrange
         var user = CreateTestUser(isVetted: true);
-        var socialEvent = CreateTestEvent("Social");
+        var socialEvent = CreateTestEvent(EventType.Social);
 
         await DbContext.Users.AddAsync(user);
         await DbContext.Events.AddAsync(socialEvent);
@@ -197,8 +206,8 @@ public class ParticipationServiceTests : DatabaseTestBase
     {
         // Arrange
         var user = CreateTestUser(isVetted: true);
-        var event1 = CreateTestEvent("Social", title: "Event 1");
-        var event2 = CreateTestEvent("Social", title: "Event 2");
+        var event1 = CreateTestEvent(EventType.Social, title: "Event 1");
+        var event2 = CreateTestEvent(EventType.Social, title: "Event 2");
 
         await DbContext.Users.AddAsync(user);
         await DbContext.Events.AddRangeAsync(event1, event2);
@@ -242,7 +251,7 @@ public class ParticipationServiceTests : DatabaseTestBase
         };
     }
 
-    private Event CreateTestEvent(string eventType, string title = "Test Event", int capacity = 10)
+    private Event CreateTestEvent(EventType eventType, string title = "Test Event", int capacity = 10)
     {
         return new Event
         {
