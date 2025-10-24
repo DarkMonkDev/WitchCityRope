@@ -36,13 +36,13 @@ Use the orchestrator command when testing reveals missing functionality:
 | **Payment Processing** | 3 | 1 | 1 | 0 | 1 | 33% |
 | **Admin Tools** | 7 | 1 | 1 | 0 | 5 | 14% |
 | **User Dashboard** | 3 | 2 | 0 | 0 | 1 | 67% |
-| **Public Pages** | 2 | 1 | 0 | 0 | 1 | 50% |
+| **Public Pages** | 2 | 2 | 0 | 0 | 0 | 100% |
 | **Content Management** | 3 | 2 | 0 | 0 | 1 | 67% |
 | **Infrastructure & Deployment** | 7 | 0 | 0 | 0 | 7 | 0% |
 | **Testing & Quality** | 4 | 0 | 1 | 0 | 3 | 0% |
 | **Documentation** | 2 | 1 | 0 | 0 | 1 | 50% |
 | **Incident Reporting** | 2 | 2 | 0 | 0 | 0 | 100% |
-| **TOTAL** | 56 | 24 | 5 | 0 | 27 | 43% |
+| **TOTAL** | 56 | 25 | 5 | 0 | 26 | 45% |
 
 ---
 
@@ -397,13 +397,13 @@ Use the orchestrator command when testing reveals missing functionality:
   - **Status**: Complete (2025-08-19)
   - **Notes**: Homepage navigation refresh complete. Design system v7 applied.
 
-- [ ] **About/Community Information Page** (Priority: Medium)
+- [x] **About/Community Information Page** (Priority: Medium) ✅ COMPLETE (Oct 23)
   - **Description**: Information about WitchCityRope, community values, safety practices
   - **Business Value**: Trust building - new members need to understand community
-  - **Effort**: Small (4-6 hours)
-  - **Dependencies**: CMS implementation (or hardcoded content)
-  - **Status**: Not Started
-  - **Notes**: Content needs to be written. Requires CMS or hardcoded text.
+  - **Effort**: Small (4-6 hours) - COMPLETED
+  - **Dependencies**: CMS implementation ✅
+  - **Status**: COMPLETE
+  - **Notes**: Already created as "About Us" page in CMS (slug: /about-us, title: "About WitchCityRope"). This was a duplicate entry - the page was completed as part of "Text-Only Pages Creation" on Oct 23.
 
 ---
 
