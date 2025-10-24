@@ -71,22 +71,22 @@ public class AllDtosMappingTests : DtoMappingTestBase
                 (typeof(ApplicationUser), new[] { "PhoneNumber" }), // PhoneNumber is on IdentityUser base class
 
             [typeof(WitchCityRope.Api.Features.Dashboard.Models.UserProfileDto)] =
-                (typeof(ApplicationUser), Array.Empty<string>()),
+                (typeof(ApplicationUser), new[] { "UserId" }), // Computed field - user's own ID
 
             // Event DTOs - map to Event entity
             [typeof(WitchCityRope.Api.Features.Events.Models.EventDto)] =
-                (typeof(Event), new[] { "CurrentRsvps", "CurrentTickets", "AvailableCapacity", "Teachers", "SessionCount", "TicketTypeCount" }), // Computed fields
+                (typeof(Event), new[] { "CurrentRsvps", "CurrentTickets", "AvailableCapacity", "Teachers", "SessionCount", "TicketTypeCount", "RegistrationCount", "CurrentRSVPs", "TeacherIds" }), // Computed fields
 
             [typeof(WitchCityRope.Api.Features.Events.Models.SessionDto)] =
-                (typeof(Session), new[] { "Date", "TeacherNames" }), // Computed/related fields
+                (typeof(Session), new[] { "Date", "TeacherNames", "SessionIdentifier", "RegistrationCount" }), // Computed/related fields
 
             [typeof(WitchCityRope.Api.Features.Events.Models.TicketTypeDto)] =
-                (typeof(TicketType), new[] { "EventId", "SessionId", "EventTitle", "SessionName" }), // Foreign keys handled differently in DTOs
+                (typeof(TicketType), new[] { "EventId", "SessionId", "EventTitle", "SessionName", "Type", "SessionIdentifiers", "MinPrice", "MaxPrice", "QuantityAvailable", "SalesEndDate" }), // Foreign keys and computed fields
 
             // Participation DTOs
             [typeof(WitchCityRope.Api.Features.Participation.Models.EventParticipationDto)] =
                 (typeof(WitchCityRope.Api.Features.Participation.Entities.EventParticipation),
-                    new[] { "UserName", "UserEmail", "EventTitle" }), // Related entity data
+                    new[] { "UserName", "UserEmail", "EventTitle", "UserSceneName", "ParticipationDate", "CanCancel" }), // Related entity data and computed fields
 
             // User DTOs
             [typeof(WitchCityRope.Api.Features.Users.Models.UserDto)] =
