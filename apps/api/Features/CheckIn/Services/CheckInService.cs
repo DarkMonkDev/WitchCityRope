@@ -385,9 +385,7 @@ public class CheckInService : ICheckInService
             .Select(e => new CapacityInfo
             {
                 TotalCapacity = e.Capacity,
-                CheckedInCount = e.Sessions.SelectMany(s => s.TicketTypes)
-                    .SelectMany(tt => tt.Purchases)
-                    .Count(p => _context.CheckIns.Any(c => c.EventId == eventId)),
+                CheckedInCount = _context.CheckIns.Count(c => c.EventId == eventId),
                 WaitlistCount = _context.EventAttendees
                     .Count(ea => ea.EventId == eventId && ea.RegistrationStatus == "waitlist"),
                 AvailableSpots = e.Capacity - _context.CheckIns.Count(c => c.EventId == eventId),

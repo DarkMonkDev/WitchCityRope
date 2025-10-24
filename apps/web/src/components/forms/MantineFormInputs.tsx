@@ -286,6 +286,7 @@ export const EnhancedPasswordInput = forwardRef<HTMLInputElement, EnhancedPasswo
     placeholder,
     ...props
   }, ref) => {
+    const inputId = React.useId();
     const [focused, setFocused] = useState(false);
     const hasValue = Boolean(value);
 
@@ -348,6 +349,7 @@ export const EnhancedPasswordInput = forwardRef<HTMLInputElement, EnhancedPasswo
       <Box className={styles.inputContainer}>
         <MantinePasswordInput
           ref={ref}
+          id={inputId}
           data-testid={testId}
           value={value}
           onFocus={handleFocus}
@@ -393,6 +395,7 @@ export const EnhancedPasswordInput = forwardRef<HTMLInputElement, EnhancedPasswo
             [styles.hasError]: error
           })}
           component="label"
+          htmlFor={inputId}
         >
           {label}
         </Text>

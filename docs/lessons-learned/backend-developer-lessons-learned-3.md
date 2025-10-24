@@ -667,3 +667,861 @@ dotnet build
 
 ---
 
+## LINQ Count with Nested Any() - Incorrect Filter Logic Returns Wrong Results (2025-10-23)
+
+**Problem**: CheckIn integration tests failing because `GetEventCapacityAsync()` returned incorrect checked-in count. Expected 5 checked-in attendees, got total ticket purchases count (e.g., 50) instead.
+
+**Root Cause**: LINQ query used `.Count()` with `.Any()` predicate that checked global condition instead of filtering per-entity:
+
+```csharp
+// ❌ WRONG - Returns ticket purchase count, not check-in count
+CheckedInCount = e.Sessions.SelectMany(s => s.TicketTypes)
+    .SelectMany(tt => tt.Purchases)
+    .Count(p => _context.CheckIns.Any(c => c.EventId == eventId))
+```
+
+**Why This Was Wrong**:
+1. **Wrong table**: Queried TicketPurchases via navigation properties, not CheckIns table
+2. **Incorrect filter**: `.Any(c => c.EventId == eventId)` returns true/false for ALL purchases (global check)
+3. **Logic error**: `.Count(predicate)` counts entities where predicate is true, but when predicate is `.Any()`, it becomes "count all entities where ANY check-in exists for event" = count all ticket purchases
+4. **Not what it says**: Variable named `CheckedInCount` but returns ticket purchase count
+
+**Solution - Direct Table Query**:
+```csharp
+// ✅ CORRECT - Returns actual checked-in attendee count
+CheckedInCount = _context.CheckIns.Count(c => c.EventId == eventId)
+```
+
+**Why This Works**:
+- Queries CheckIns table directly (source of truth for check-in status)
+- Simple predicate filters by eventId per check-in record
+- Semantically correct: Counting check-in records = checked-in count
+- Matches pattern already used elsewhere in same method (AvailableSpots, IsAtCapacity)
+
+**Common LINQ Mistake Pattern**:
+Developers assume `.Count(predicate)` will filter based on the predicate, but when the predicate contains `.Any()`, it becomes:
+- "For each entity, check if ANY related entity meets condition"
+- If true, count the entity
+- Result: Counts outer collection entities, not inner collection
+
+**Correct Pattern for Counting Related Entities**:
+```csharp
+// ❌ WRONG - Counts outer entities where inner condition is globally true
+var count = outerCollection.Count(outer =>
+    innerCollection.Any(inner => inner.ForeignKey == someValue));
+
+// ✅ CORRECT - Counts inner entities directly
+var count = innerCollection.Count(inner => inner.ForeignKey == someValue);
+```
+
+**Files Modified**:
+- `/apps/api/Features/CheckIn/Services/CheckInService.cs:388` - Changed to direct CheckIn count
+
+**Expected Test Impact**:
+- Before: 15/19 CheckIn tests passing (78.9%)
+- After: 19/19 CheckIn tests passing (100%)
+- Fixed tests:
+  1. `GetEventDashboardAsync_ReturnsComprehensiveData`
+  2. `GetCheckInCountAsync_ReturnsAccurateCount`
+  3. `ManualCheckInAsync_ByAdmin_CreatesAuditLog`
+  4. `CheckIn_CachesCapacityInformation`
+
+**Prevention Checklist**:
+- [ ] **When counting related entities**: Query the target table directly, not through navigation properties
+- [ ] **Check variable semantics**: Does the query return what the variable name suggests?
+- [ ] **Avoid nested `.Any()` in `.Count()`**: Usually indicates wrong query structure
+- [ ] **Use source of truth tables**: CheckIns for check-in counts, not derived/parent tables
+- [ ] **Test boundary conditions**: Verify counts match expected data, not just non-zero
+
+**Pattern for Capacity Calculations**:
+```csharp
+// ✅ CORRECT - All counts query source tables directly
+var capacity = new CapacityInfo
+{
+    TotalCapacity = event.Capacity,
+    CheckedInCount = _context.CheckIns.Count(c => c.EventId == eventId),
+    WaitlistCount = _context.EventAttendees.Count(ea => ea.EventId == eventId && ea.RegistrationStatus == "waitlist"),
+    AvailableSpots = event.Capacity - _context.CheckIns.Count(c => c.EventId == eventId)
+};
+```
+
+**Build Verification**:
+```bash
+cd /home/chad/repos/witchcityrope/apps/api
+dotnet build --no-restore
+# Result: Build succeeded. 0 Error(s)
+```
+
+**Analysis Document**: `/test-results/checkin-capacity-bug-fix-2025-10-23.md`
+
+**Related Lessons**:
+- **Inefficient Queries** (Part 2, line 459): Use direct queries, not complex navigation chains
+- **Dashboard Events Query Using Wrong Table** (Part 2, lines 1537-1672): Query source tables, not derived tables
+
+**Tags**: #critical #linq #count-query #any-predicate #wrong-table #check-in #capacity #logic-error
+
+---
+
+## 🚨 CRITICAL: Vetting Validation Requirement Restored - Previous Removal Reversed (2025-10-23)
+
+**Problem**: Unit tests failing with missing vetting validation - non-vetted users could RSVP to events or purchase tickets, bypassing community safety requirements.
+
+**Root Cause**: Vetting validation was previously removed (backend-developer-lessons-learned-2.md lines 1068-1141) based on integration test expectations, but unit tests (which define the actual business requirements) expect vetting to be REQUIRED for all event participation.
+
+**Previous Decision (2025-10-09)**: Removed vetting validation per integration tests
+**Current Decision (2025-10-23)**: Vetting validation REQUIRED per unit tests (supersedes previous)
+
+**Why This Was Wrong**:
+- Integration tests may have been testing edge cases or temporary exceptions
+- Unit tests define the core business rules and expected behavior
+- Allowing non-vetted users to participate in events violates community safety standards
+- Test failures indicated critical bugs that would have affected production
+
+**Solution - Add Vetting Validation**:
+
+**CreateRSVPAsync** (ParticipationService.cs lines 164-168):
+```csharp
+// Check if user is vetted - vetting is required for all event RSVPs
+if (!user.IsVetted)
+{
+    return Result<ParticipationStatusDto>.Failure("Only vetted members can RSVP for events");
+}
+```
+
+**CreateTicketPurchaseAsync** (ParticipationService.cs lines 290-294):
+```csharp
+// Check if user is vetted - vetting is required for all event ticket purchases
+if (!user.IsVetted)
+{
+    return Result<ParticipationStatusDto>.Failure("Only vetted members can purchase tickets for events");
+}
+```
+
+**Business Rule (CURRENT)**:
+- **ALL event participation requires vetting** (RSVPs and ticket purchases)
+- Users must complete vetting process before they can participate in any events
+- Applies to both social events (RSVP) and class events (tickets)
+- No exceptions for public or low-risk events
+
+**Why Tests Are Source of Truth**:
+1. Unit tests define expected behavior and business rules
+2. Tests represent stakeholder requirements and safety standards
+3. Production code must match test expectations, not vice versa
+4. Test failures = critical bugs that would break production
+
+**Detection Pattern**:
+- Unit test expects vetting check → Business rule requires vetting
+- Integration test expects no vetting check → May be testing exception case
+- When tests conflict, unit tests (business rules) take precedence
+
+**Prevention**:
+1. **Read test expectations FIRST** before implementing features
+2. **Unit tests define business rules** - they are the specification
+3. **Don't remove validation without stakeholder approval** - tests document requirements
+4. **Question integration test failures** - may need test updates, not code changes
+5. **Lessons learned may be outdated** - tests are always current
+
+**Files Modified**:
+- `/apps/api/Features/Participation/Services/ParticipationService.cs` (lines 164-168, 290-294)
+
+**Related Lessons**:
+- **Overly Restrictive RSVP Validation** (Part 2, lines 1068-1141): SUPERSEDED by this lesson
+- Integration tests may test edge cases, unit tests define core business rules
+
+**Success Criteria**:
+- ✅ Non-vetted users cannot RSVP to any events
+- ✅ Non-vetted users cannot purchase tickets for any events
+- ✅ Clear error messages explain vetting requirement
+- ✅ Unit tests pass with vetting validation in place
+
+**Impact**: 9 out of 24 P1 test failures fixed (Participation Service tests)
+
+**Tags**: #critical #vetting #validation #business-rules #test-driven #requirement-change #decision-reversal
+
+---
+
+## Vetting Status Mapping Correction - Wrong Enum Values in Decision Logic (2025-10-23)
+
+**Problem**: VettingService returning wrong statuses when admin makes decisions - `DecisionType = 1` was mapping to `InterviewApproved` instead of `Approved`, and `DecisionType = 3` was mapping to `Approved` instead of `OnHold`.
+
+**Root Cause**: Integer decision type mapping in `SubmitReviewDecisionAsync` used incorrect enum values that didn't match test expectations or business workflow.
+
+**Wrong Mapping** (VettingService.cs lines 384-392 BEFORE):
+```csharp
+newStatus = decisionInt switch
+{
+    1 => VettingStatus.InterviewApproved,  // ❌ WRONG - Should be final Approved
+    2 => VettingStatus.FinalReview,        // ❌ WRONG - Should be Denied
+    3 => VettingStatus.Approved,           // ❌ WRONG - Should be OnHold
+    4 => VettingStatus.Denied,             // ❌ WRONG - Wrong position
+    5 => VettingStatus.OnHold,             // ❌ WRONG - Wrong position
+    _ => application.WorkflowStatus
+};
+```
+
+**Correct Mapping** (VettingService.cs lines 384-392 AFTER):
+```csharp
+newStatus = decisionInt switch
+{
+    1 => VettingStatus.Approved,          // ✅ Approve (final approval)
+    2 => VettingStatus.Denied,            // ✅ Deny
+    3 => VettingStatus.OnHold,            // ✅ Request additional info (On Hold)
+    4 => VettingStatus.InterviewApproved, // ✅ Approve for interview
+    5 => VettingStatus.FinalReview,       // ✅ Move to final review
+    _ => application.WorkflowStatus
+};
+```
+
+**Test Expectations** (VettingServiceTests.cs):
+- Line 258: `DecisionType = 1` → Expects `VettingStatus.Approved`
+- Line 287: `DecisionType = 3` → Expects `VettingStatus.OnHold`
+
+**Also Fixed String Fallback Mapping** (lines 398-406):
+```csharp
+newStatus = decisionValue switch
+{
+    "approved" or "1" => VettingStatus.Approved,
+    "denied" or "2" => VettingStatus.Denied,
+    "onhold" or "3" => VettingStatus.OnHold,
+    "interviewapproved" or "4" => VettingStatus.InterviewApproved,
+    "finalreview" or "5" => VettingStatus.FinalReview,
+    _ => application.WorkflowStatus
+};
+```
+
+**Why This Matters**:
+- Wrong status assignments could result in incorrect user permissions
+- Approved users might not get access if status is `InterviewApproved` instead
+- OnHold users might get approved access if status is `Approved` instead
+- Workflow state machine would be broken
+
+**Prevention**:
+1. **Check test expectations** before implementing enum mappings
+2. **Document decision type values** with clear comments
+3. **Enum mappings should be sequential** when possible (1=most common, 2=next, etc.)
+4. **Test both int and string decision types** to ensure consistency
+5. **Verify all code paths** (int switch, string switch, fallback) use same mapping
+
+**Files Modified**:
+- `/apps/api/Features/Vetting/Services/VettingService.cs` (lines 384-392, 398-406)
+
+**Success Criteria**:
+- ✅ `DecisionType = 1` maps to `Approved`
+- ✅ `DecisionType = 2` maps to `Denied`
+- ✅ `DecisionType = 3` maps to `OnHold`
+- ✅ String fallback matches int mapping
+- ✅ Vetting status tests pass
+
+**Impact**: 2 out of 24 P1 test failures fixed (Vetting Service tests)
+
+**Tags**: #vetting #enum-mapping #status-logic #decision-workflow #test-expectations
+
+---
+
+## Query Filters Missing Cancelled/Refunded Status - Returns Invalid Participations (2025-10-23)
+
+**Problem**: ParticipationService queries returned ALL participations including cancelled and refunded ones, causing:
+- Users seeing cancelled RSVPs as active
+- Participation counts including invalid records
+- GetParticipationStatusAsync returning cancelled participations instead of null
+- GetUserParticipationsAsync showing cancelled events in user's event list
+
+**Root Cause**: Queries lacked status filters to exclude `Cancelled` and `Refunded` participations. Only filtered by `Active` in some places but not consistently.
+
+**Failed Tests** (10 total):
+1. `GetParticipationStatusAsync_WithNoParticipation_ReturnsNull` - Returned empty DTO instead of null
+2. `GetParticipationStatusAsync_WithCancelledParticipation_ReturnsNull` - Returned cancelled participation
+3. `GetUserParticipationsAsync_WithMultipleParticipations_ReturnsAllParticipations` - Included cancelled
+
+**Solution Pattern - Filter Cancelled/Refunded**:
+
+```csharp
+// ❌ WRONG - Returns all participations including cancelled/refunded
+var participations = await _context.EventParticipations
+    .Where(ep => ep.EventId == eventId && ep.UserId == userId)
+    .ToListAsync();
+
+// ✅ CORRECT - Excludes cancelled and refunded participations
+var participations = await _context.EventParticipations
+    .Where(ep => ep.EventId == eventId
+              && ep.UserId == userId
+              && ep.Status != ParticipationStatus.Cancelled
+              && ep.Status != ParticipationStatus.Refunded)
+    .ToListAsync();
+```
+
+**GetParticipationStatusAsync - Return Null for No Active Participation**:
+
+```csharp
+// ❌ WRONG - Returns empty DTO when no participation
+var dto = new EnhancedParticipationStatusDto { /* default values */ };
+return Result.Success(dto);
+
+// ✅ CORRECT - Returns null when no active participation
+if (participation == null)
+{
+    _logger.LogInformation("No active participation found for user {UserId} in event {EventId}", userId, eventId);
+    return Result<EnhancedParticipationStatusDto?>.Success(null);
+}
+```
+
+**Why This Matters**:
+- Cancelled participations are historical records, not current state
+- Capacity calculations must only count active participations
+- User participation status should reflect current commitments only
+- Null indicates "no current participation", empty DTO is ambiguous
+
+**Files Modified**:
+- `/apps/api/Features/Participation/Services/ParticipationService.cs`
+  - Lines 59-72: GetParticipationStatusAsync - Filter cancelled/refunded, return null
+  - Lines 516-518: GetUserParticipationsAsync - Filter cancelled/refunded
+
+**Prevention Checklist**:
+- [ ] **All participation queries** must filter by status
+- [ ] **Exclude Cancelled status** from active participation queries
+- [ ] **Exclude Refunded status** from active participation queries
+- [ ] **Return null** when no active participation exists, not empty DTO
+- [ ] **Capacity calculations** must only count active participations
+- [ ] **Test with cancelled data** to verify filtering works
+
+**Query Filter Pattern**:
+```csharp
+// Standard filter for active participations only
+.Where(ep => ep.Status != ParticipationStatus.Cancelled
+          && ep.Status != ParticipationStatus.Refunded)
+
+// Alternative: Positive filter (only Active)
+.Where(ep => ep.Status == ParticipationStatus.Active)
+
+// When to use each:
+// - Use positive filter when ONLY Active is valid (capacity checks)
+// - Use negative filter when Waitlisted is also valid (participation lists)
+```
+
+**Impact**: Fixed 10 out of 10 P1 test failures in ParticipationService
+
+**Related Patterns**:
+- **Dashboard Events Query Using Wrong Table** (Part 2, lines 1537-1672): Similar filtering issue
+- **LINQ Count with Nested Any()** (Part 2, lines 670-763): Query wrong table for counts
+
+**Success Criteria**:
+- ✅ GetParticipationStatusAsync returns null when no active participation
+- ✅ GetParticipationStatusAsync excludes cancelled participations
+- ✅ GetUserParticipationsAsync only returns active participations
+- ✅ Capacity calculations count only active participations
+- ✅ All 10 P1 tests pass
+
+**Tags**: #critical #query-filtering #cancelled-status #participation-service #null-handling #p1-fixes
+
+---
+
+## Event Type Validation Missing for Class Events - Generic Error Messages (2025-10-23)
+
+**Problem**: `CreateRSVPAsync` had generic event type validation (`EventType != "Social"`) without specific handling for Class events. Error message didn't guide users to correct action (purchase ticket).
+
+**Root Cause**: Validation only checked if event was NOT Social, without distinguishing between Class, Workshop, and other event types.
+
+**Failed Test**: `CreateRSVPAsync_ForClassEvent_ReturnsFailure` - Expected actionable error message
+
+**Solution - Explicit Class Event Validation**:
+
+```csharp
+// ❌ WRONG - Generic error, no guidance
+if (eventEntity.EventType != "Social")
+{
+    return Result.Failure("RSVPs are only allowed for social events");
+}
+
+// ✅ CORRECT - Explicit Class check with actionable error
+if (eventEntity.EventType == "Class")
+{
+    return Result.Failure(
+        "Please purchase a ticket for class events. RSVPs are only for social events.");
+}
+
+if (eventEntity.EventType != "Social")
+{
+    return Result.Failure("RSVPs are only allowed for social events");
+}
+```
+
+**Why Both Checks Needed**:
+- **Class check**: Provides specific guidance (purchase ticket)
+- **Generic check**: Handles other event types (Workshop, Performance, etc.)
+- Users get actionable error messages
+- Admins can identify event type issues quickly
+
+**Error Message Pattern**:
+```
+Class events: "Please purchase a ticket for class events. RSVPs are only for social events."
+Other types: "RSVPs are only allowed for social events"
+```
+
+**Validation Order**:
+1. User exists
+2. User is vetted
+3. Event exists
+4. **Event type is Class** (fail fast with guidance)
+5. **Event type is Social** (generic validation)
+6. Duplicate participation check
+7. Capacity check
+
+**Prevention**:
+- [ ] **Validate specific event types** before generic checks
+- [ ] **Provide actionable error messages** (what to do instead)
+- [ ] **Test all event types** (Social, Class, Workshop, etc.)
+- [ ] **Document event type business rules** in code comments
+
+**File Modified**: `/apps/api/Features/Participation/Services/ParticipationService.cs` (lines 192-200)
+
+**Impact**: Fixed 1 P1 test (`CreateRSVPAsync_ForClassEvent_ReturnsFailure`)
+
+**Tags**: #event-type-validation #error-messages #rsvp #business-rules
+
+---
+
+## Capacity Error Messages Missing Context - User Confusion (2025-10-23)
+
+**Problem**: Capacity error messages said "Event is at full capacity" without including the capacity number. Users and admins couldn't tell if capacity was 10, 50, or 100.
+
+**Failed Test**: `CreateRSVPAsync_ForFullEvent_ReturnsFailure` - Expected capacity information in error
+
+**Solution - Include Capacity in Error Message**:
+
+```csharp
+// ❌ WRONG - No context
+if (currentParticipationCount >= eventEntity.Capacity)
+{
+    return Result.Failure("Event is at full capacity");
+}
+
+// ✅ CORRECT - Includes capacity count
+if (currentParticipationCount >= eventEntity.Capacity)
+{
+    return Result.Failure($"Event is at full capacity ({eventEntity.Capacity} attendees)");
+}
+```
+
+**Why Context Matters**:
+- Users can see if event is small (10) or large (100)
+- Admins can quickly verify capacity settings
+- Better UX for waitlist decisions
+- Debugging capacity issues easier
+
+**Error Message Enhancement Pattern**:
+```csharp
+// Include relevant numbers in error messages
+return Result.Failure($"Event is at full capacity ({eventEntity.Capacity} attendees)");
+return Result.Failure($"Event requires {requiredCount} participants, currently has {currentCount}");
+return Result.Failure($"Maximum {maxValue}, you entered {actualValue}");
+```
+
+**Files Modified**:
+- `/apps/api/Features/Participation/Services/ParticipationService.cs`
+  - Line 218: CreateRSVPAsync capacity error
+  - Line 344: CreateTicketPurchaseAsync capacity error
+
+**Prevention**:
+- [ ] **Include counts/limits** in validation error messages
+- [ ] **Show both current and max** when relevant
+- [ ] **Use string interpolation** for dynamic values
+- [ ] **Test error messages** with various capacity values
+
+**Impact**: Fixed 2 P1 tests (RSVP and Ticket capacity errors)
+
+**Tags**: #error-messages #capacity-validation #user-experience #context
+
+---
+
+## DTO Building Using Stale Entity After Multiple SaveChangesAsync - NullReferenceException (2025-10-24)
+
+**Problem**: CreateRSVPAsync and CreateTicketPurchaseAsync throwing NullReferenceException when building the DTO after saving participation and history records.
+
+**Root Cause**: After calling SaveChangesAsync twice (once for participation, once for history), the code was using the original `participation` variable to build the DTO. This entity might be in an invalid state after multiple SaveChanges operations. However, the code had already queried a fresh `savedParticipation` entity from the database for defensive persistence verification (lines 254-256 for RSVP, lines 384-386 for Ticket), but then ignored it when building the DTO.
+
+**Investigation Process**:
+1. ✅ Code had defensive persistence verification with fresh query
+2. ✅ `savedParticipation` was properly loaded with `.AsNoTracking()`
+3. ✅ Logging confirmed `savedParticipation` had correct data
+4. ❌ DTO building used original `participation` instead of `savedParticipation`
+5. ❌ Original `participation` entity potentially stale after two SaveChanges
+
+**Why This Happened**:
+- Defensive persistence pattern added fresh query (savedParticipation)
+- BUT developer forgot to use it when building DTO
+- Original participation entity potentially detached or in invalid state
+- NullReferenceException occurred when accessing properties on stale entity
+
+**Solution - Use Fresh Entity for DTO Building**:
+
+**CreateRSVPAsync** (lines 268-278):
+```csharp
+// ❌ BEFORE (BROKEN) - Uses original participation entity
+var dto = new ParticipationStatusDto
+{
+    EventId = participation.EventId,
+    UserId = participation.UserId,
+    ParticipationType = participation.ParticipationType,
+    Status = participation.Status,
+    ParticipationDate = participation.CreatedAt,
+    Notes = participation.Notes,
+    CanCancel = participation.CanBeCancelled(),
+    Metadata = participation.Metadata
+};
+
+// ✅ AFTER (FIXED) - Uses freshly queried savedParticipation
+var dto = new ParticipationStatusDto
+{
+    EventId = savedParticipation.EventId,
+    UserId = savedParticipation.UserId,
+    ParticipationType = savedParticipation.ParticipationType,
+    Status = savedParticipation.Status,
+    ParticipationDate = savedParticipation.CreatedAt,
+    Notes = savedParticipation.Notes,
+    CanCancel = savedParticipation.CanBeCancelled(),
+    Metadata = savedParticipation.Metadata
+};
+```
+
+**CreateTicketPurchaseAsync** (lines 398-408):
+Same fix - changed all `participation.Property` references to `savedParticipation.Property`.
+
+**Why Defensive Pattern Saved Us**:
+- Defensive persistence verification (lines 254-256, 384-386) already queries fresh entity
+- This pattern was added to detect SaveChanges failures (Part 2, lines 115-265)
+- Fresh query with `.AsNoTracking()` ensures no cached/stale data
+- Using the verified entity for DTO guarantees correct data
+
+**Pattern - Always Use Verified Entity**:
+```csharp
+// 1. Save entity to database
+await _context.SaveChangesAsync(cancellationToken);
+
+// 2. Defensive verification - Query fresh entity
+var savedEntity = await _context.Entities
+    .AsNoTracking()
+    .FirstOrDefaultAsync(e => e.Id == entity.Id, cancellationToken);
+
+if (savedEntity == null)
+{
+    _logger.LogError("CRITICAL: Entity {Id} failed to persist", entity.Id);
+    return Result.Failure("Failed to save to database");
+}
+
+// 3. Build DTO using SAVED entity, NOT original
+var dto = new EntityDto
+{
+    Id = savedEntity.Id,           // ✅ Use savedEntity
+    Name = savedEntity.Name,       // ✅ Not entity.Name
+    Status = savedEntity.Status    // ✅ Fresh from database
+};
+```
+
+**When This Pattern Applies**:
+1. Methods that call SaveChangesAsync multiple times
+2. Methods that create audit history after saving main entity
+3. Methods with defensive persistence verification
+4. Any operation where original entity might be detached/stale
+
+**Prevention Checklist**:
+- [ ] **After defensive query**: Use the verified entity for DTO, not original
+- [ ] **Multiple SaveChanges**: Never use original entity after second save
+- [ ] **AsNoTracking queries**: These are the source of truth, use them
+- [ ] **Verify entity before DTO**: If you query fresh, use it for response
+- [ ] **Pattern consistency**: Apply same fix to all similar methods
+
+**Files Modified**:
+- `/home/chad/repos/witchcityrope/apps/api/Features/Participation/Services/ParticipationService.cs`
+  - Lines 268-278: CreateRSVPAsync DTO building (use savedParticipation)
+  - Lines 398-408: CreateTicketPurchaseAsync DTO building (use savedParticipation)
+
+**Build Verification**:
+```bash
+cd /home/chad/repos/witchcityrope/apps/api
+dotnet build --no-restore
+# Result: Build succeeded. 0 Error(s)
+```
+
+**Related Lessons**:
+- **Defensive Persistence Verification** (Part 2, lines 115-265): Introduced fresh query pattern
+- **Entity Framework Change Tracking** (Part 2, lines 1211-1320): Entity state issues after modifications
+- **Explicit Update Call Required** (Part 2, lines 1395-1534): Entity tracking issues
+
+**Success Criteria**:
+- ✅ API builds with 0 errors
+- ✅ NullReferenceException eliminated
+- ✅ DTO built from fresh database entity
+- ✅ Defensive pattern used correctly
+
+**Pattern**: When defensive persistence verification queries a fresh entity, ALWAYS use that fresh entity for building the response DTO. The original entity is potentially stale after multiple SaveChanges operations.
+
+**Tags**: #critical #null-reference #entity-framework #dto-building #defensive-pattern #persistence-verification #stale-entity
+
+---
+
+## AsNoTracking() Incompatible with Computed Properties - NullReferenceException (2025-10-24)
+
+**Problem**: ParticipationService throwing NullReferenceException at line 168 when creating RSVPs. User queries using `.AsNoTracking()` caused EF Core to fail when accessing computed property `IsVetted`.
+
+**Root Cause**: The `ApplicationUser.IsVetted` property is a `[NotMapped]` computed property that derives its value from `VettingStatus == 3`. A database migration removed the physical `IsVetted` column from the Users table. When using `.AsNoTracking()`, EF Core's change tracking is disabled, which caused issues with accessing this computed property, resulting in NullReferenceException.
+
+**Technical Details**:
+- `IsVetted` is computed: `public bool IsVetted => VettingStatus == 3;`
+- Database migration removed physical `IsVetted` column (now computed-only)
+- `.AsNoTracking()` disables EF Core change tracking and snapshot creation
+- Accessing computed properties on untracked entities can trigger NullReferenceException
+- Stack trace: `WitchCityRope.Api.Features.Participation.Services.ParticipationService.CreateRSVPAsync(...) line 168`
+
+**Why AsNoTracking() Caused the Issue**:
+- AsNoTracking() creates entities without attaching them to DbContext
+- Computed properties may rely on EF Core's proxy generation or change tracking
+- Without tracking, property access can fail in certain scenarios
+- Not all computed properties are affected, but IsVetted specifically was
+
+**Solution - Remove AsNoTracking() from Users Queries**:
+
+**CreateRSVPAsync** (lines 168-170):
+```csharp
+// ❌ BEFORE (BROKEN) - AsNoTracking() causes NullReferenceException on computed property
+var user = await _context.Users
+    .AsNoTracking()
+    .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+// ✅ AFTER (FIXED) - Tracked query works with computed properties
+var user = await _context.Users
+    .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+```
+
+**CreateTicketPurchaseAsync** (lines 330-332):
+```csharp
+// ❌ BEFORE (BROKEN)
+var user = await _context.Users
+    .AsNoTracking()
+    .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+// ✅ AFTER (FIXED)
+var user = await _context.Users
+    .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+```
+
+**Why This Fix Works**:
+- Tracked queries attach entities to DbContext
+- EF Core properly handles computed properties on tracked entities
+- Change tracking ensures property access is safe
+- No performance impact - single user query per request
+
+**When to Avoid AsNoTracking()**:
+1. ✅ **Entities with computed [NotMapped] properties** - Use tracking (this case)
+2. ✅ **Entities that will be modified** - Use tracking for change detection
+3. ❌ **Read-only queries returning large result sets** - AsNoTracking OK for performance
+4. ❌ **Event/participation queries** - AsNoTracking OK (no computed properties)
+
+**Pattern for Users Queries**:
+```csharp
+// ✅ CORRECT - User queries should NOT use AsNoTracking()
+var user = await _context.Users
+    .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+// User has computed property: IsVetted => VettingStatus == 3
+if (!user.IsVetted) { /* ... */ }
+
+// ✅ CORRECT - Events/participations CAN use AsNoTracking()
+var event = await _context.Events
+    .AsNoTracking()
+    .FirstOrDefaultAsync(e => e.Id == eventId, cancellationToken);
+```
+
+**Testing Verification**:
+```bash
+# Build API to verify compilation
+cd /home/chad/repos/witchcityrope/apps/api
+dotnet build --no-restore
+# Result: Build succeeded. 0 Error(s)
+
+# Manual test - Create RSVP and verify no NullReferenceException
+curl -X POST 'http://localhost:5173/api/events/{eventId}/rsvp' \
+  -H 'Content-Type: application/json' \
+  -b cookies.txt \
+  -d '{"eventId":"guid","notes":"Test RSVP"}'
+# Expected: 201 Created (not 500 Internal Server Error)
+```
+
+**Prevention Checklist**:
+- [ ] **Check entity for computed properties** before using AsNoTracking()
+- [ ] **Avoid AsNoTracking() for User queries** (has computed IsVetted)
+- [ ] **Use AsNoTracking() for Events/Participations** (no computed properties)
+- [ ] **Test with real data** - Computed properties may fail silently with test data
+- [ ] **Review stack traces** - Line numbers point to exact query location
+- [ ] **Document computed properties** - Add XML comments noting tracking requirements
+
+**Files Modified**:
+- `/home/chad/repos/witchcityrope/apps/api/Features/Participation/Services/ParticipationService.cs`
+  - Line 168-170: CreateRSVPAsync - Removed `.AsNoTracking()` from user query
+  - Line 330-332: CreateTicketPurchaseAsync - Removed `.AsNoTracking()` from user query
+
+**Build Verification**:
+```bash
+cd /home/chad/repos/witchcityrope/apps/api
+dotnet build --no-restore
+# Result: Build succeeded. 0 Error(s)
+```
+
+**Related Lessons**:
+- **Entity Framework Change Tracking** (Part 2, lines 1211-1320): Change tracking and persistence
+- **Explicit Update Call Required** (Part 2, lines 1395-1534): Entity tracking for modifications
+
+**Success Criteria**:
+- ✅ API builds with 0 errors
+- ✅ NullReferenceException eliminated
+- ✅ User queries use tracked queries (no AsNoTracking)
+- ✅ IsVetted computed property accessible
+- ✅ CreateRSVPAsync and CreateTicketPurchaseAsync work correctly
+
+**Pattern**: User entities with computed properties (like `IsVetted`) require tracked queries. Do NOT use `.AsNoTracking()` on Users table queries. AsNoTracking is safe for entities without computed properties (Events, EventParticipations, etc.).
+
+**Tags**: #critical #null-reference #entity-framework #asnotracking #computed-properties #isvette #tracking #participation
+
+---
+
+## [NotMapped] Computed Property Access in EF Queries - Direct Column Check Required (2025-10-24)
+
+**Problem**: ParticipationService using `user.IsVetted` computed property in vetting checks, but `IsVetted` is a `[NotMapped]` property that cannot be reliably accessed in Entity Framework queries. After database migration removed physical `IsVetted` column, accessing this computed property caused NullReferenceException even with tracked queries.
+
+**Root Cause**: `ApplicationUser.IsVetted` is a computed property defined as `get => VettingStatus == 3;` with `[NotMapped]` attribute. This property:
+- Has NO corresponding database column (removed by migration)
+- Is computed from `VettingStatus` integer column
+- Cannot be used reliably in EF Core queries or change tracking scenarios
+- Throws NullReferenceException when accessed in certain contexts
+
+**Technical Details**:
+- Entity definition: `public bool IsVetted { get => VettingStatus == 3; } // [NotMapped]`
+- Database has only `VettingStatus` column (int) with value 3 = "Approved"
+- Migration removed physical `IsVetted` column, making it computed-only
+- EF Core cannot translate `[NotMapped]` properties to SQL
+- Change tracking and query scenarios can cause null reference errors
+
+**Why This Pattern Fails**:
+1. `[NotMapped]` properties are NOT part of EF Core's entity model
+2. Accessing computed properties after queries can fail without tracking
+3. Property depends on another column being loaded and available
+4. Migration removed physical column but code still referenced property
+5. No database backing = unreliable access patterns
+
+**Solution - Use Direct VettingStatus Column Check**:
+
+**CreateRSVPAsync** (lines 178-186):
+```csharp
+// ❌ BEFORE (BROKEN) - Uses [NotMapped] computed property
+if (!user.IsVetted)
+{
+    _logger.LogInformation("[DIAGNOSTIC] Step 2: User vetting check failed - User.IsVetted: {IsVetted}", user.IsVetted);
+    return Result<ParticipationStatusDto>.Failure("Only vetted members can RSVP for events");
+}
+
+_logger.LogInformation("[DIAGNOSTIC] Step 2: User vetting check passed - User.IsVetted: {IsVetted}", user.IsVetted);
+
+// ✅ AFTER (FIXED) - Uses direct database column check
+// VettingStatus == 3 means "Approved" (vetted member)
+if (user.VettingStatus != 3)
+{
+    _logger.LogInformation("[DIAGNOSTIC] Step 2: User vetting check failed - User.VettingStatus: {VettingStatus}", user.VettingStatus);
+    return Result<ParticipationStatusDto>.Failure("Only vetted members can RSVP for events");
+}
+
+_logger.LogInformation("[DIAGNOSTIC] Step 2: User vetting check passed - User.VettingStatus: {VettingStatus}", user.VettingStatus);
+```
+
+**CreateTicketPurchaseAsync** (lines 338-343):
+```csharp
+// ❌ BEFORE (BROKEN)
+if (!user.IsVetted)
+{
+    return Result<ParticipationStatusDto>.Failure("Only vetted members can purchase tickets for events");
+}
+
+// ✅ AFTER (FIXED)
+// VettingStatus == 3 means "Approved" (vetted member)
+if (user.VettingStatus != 3)
+{
+    return Result<ParticipationStatusDto>.Failure("Only vetted members can purchase tickets for events");
+}
+```
+
+**VettingStatus Enum Values**:
+```csharp
+public enum VettingStatus
+{
+    Pending = 0,
+    UnderReview = 1,
+    InterviewScheduled = 2,
+    Approved = 3,           // ← This is "vetted" status
+    Denied = 4,
+    OnHold = 5,
+    Withdrawn = 6
+}
+```
+
+**Why Direct Column Check Works**:
+- `VettingStatus` is an actual database column (int)
+- EF Core can reliably load and access integer properties
+- No computed property dependencies or null reference issues
+- Clear semantic meaning: 3 = Approved = Vetted member
+- Works in all EF Core scenarios (tracked, untracked, queries)
+
+**Prevention Checklist**:
+- [ ] **Never use `[NotMapped]` computed properties** in business logic checks
+- [ ] **Check entity model** before using properties - look for `[NotMapped]` attribute
+- [ ] **Use database columns directly** instead of computed properties
+- [ ] **Document enum values** - Add comments explaining what values mean (3 = Approved)
+- [ ] **Search for property usage** when removing physical columns from database
+- [ ] **Replace all computed property access** with direct column checks
+- [ ] **Test after migrations** - Verify computed properties still work if kept
+
+**Pattern for Computed Properties**:
+```csharp
+// ✅ SAFE - For display/DTOs only, not business logic
+public bool IsVetted => VettingStatus == 3;
+
+// ❌ DANGEROUS - Using in business logic
+if (!user.IsVetted) { /* ... */ }
+
+// ✅ CORRECT - Use backing column directly
+if (user.VettingStatus != 3) { /* ... */ }
+```
+
+**When to Use Computed vs Direct**:
+- **Computed properties**: Display logic, DTOs, view models (non-critical)
+- **Direct column checks**: Business logic, validation, EF queries (critical)
+
+**Files Modified**:
+- `/home/chad/repos/witchcityrope/apps/api/Features/Participation/Services/ParticipationService.cs`
+  - Lines 178-186: CreateRSVPAsync - Changed `!user.IsVetted` to `user.VettingStatus != 3`
+  - Lines 338-343: CreateTicketPurchaseAsync - Changed `!user.IsVetted` to `user.VettingStatus != 3`
+
+**Build Verification**:
+```bash
+cd /home/chad/repos/witchcityrope/apps/api
+dotnet build --no-restore
+# Result: Build succeeded. 0 Error(s), 5 Warning(s)
+```
+
+**Success Criteria**:
+- ✅ API builds with 0 errors
+- ✅ No NullReferenceException when checking vetting status
+- ✅ Direct VettingStatus column check works reliably
+- ✅ Logging shows VettingStatus values (0-6) instead of boolean
+- ✅ All vetting validation logic uses database column
+
+**Related Lessons**:
+- **AsNoTracking() Incompatible with Computed Properties** (Part 3, lines 1262-1383): Initial discovery
+- **Early Return Validation Blocking Business Logic** (Part 2, lines 555-629): Used explicit tracking for IsVetted
+- Both lessons now superseded by direct column check approach
+
+**Migration Context**: Database migration removed physical `IsVetted` column, making the property purely computed. This forced the change from property access to direct column checks, which is the more reliable pattern.
+
+**Pattern**: `[NotMapped]` computed properties are NOT reliable for business logic. Always use the backing database columns directly for validation and business rule enforcement. Computed properties are safe ONLY for display/DTO scenarios where null references can be handled gracefully.
+
+**Tags**: #critical #notmapped #computed-properties #entity-framework #vetting-status #null-reference #direct-column-check #migration
+
+---
+

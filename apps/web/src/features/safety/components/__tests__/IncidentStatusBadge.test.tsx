@@ -15,43 +15,43 @@ describe('IncidentStatusBadge', () => {
   it('renders ReportSubmitted status with correct label', () => {
     renderWithMantine(<IncidentStatusBadge status="ReportSubmitted" />);
 
-    expect(screen.getByText('SUBMITTED')).toBeInTheDocument();
+    expect(screen.getByText('Submitted')).toBeInTheDocument();
   });
 
   it('renders InformationGathering status with correct label', () => {
     renderWithMantine(<IncidentStatusBadge status="InformationGathering" />);
 
-    expect(screen.getByText('INVESTIGATING')).toBeInTheDocument();
+    expect(screen.getByText('Investigating')).toBeInTheDocument();
   });
 
   it('renders ReviewingFinalReport status with correct label', () => {
     renderWithMantine(<IncidentStatusBadge status="ReviewingFinalReport" />);
 
-    expect(screen.getByText('FINAL REVIEW')).toBeInTheDocument();
+    expect(screen.getByText('Final Review')).toBeInTheDocument();
   });
 
   it('renders OnHold status with correct label', () => {
     renderWithMantine(<IncidentStatusBadge status="OnHold" />);
 
-    expect(screen.getByText('ON HOLD')).toBeInTheDocument();
+    expect(screen.getByText('On Hold')).toBeInTheDocument();
   });
 
   it('renders Closed status with correct label', () => {
     renderWithMantine(<IncidentStatusBadge status="Closed" />);
 
-    expect(screen.getByText('CLOSED')).toBeInTheDocument();
+    expect(screen.getByText('Closed')).toBeInTheDocument();
   });
 
   it('shows full label on large size', () => {
     renderWithMantine(<IncidentStatusBadge status="InformationGathering" size="lg" />);
 
-    expect(screen.getByText('INFORMATION GATHERING')).toBeInTheDocument();
+    expect(screen.getByText('Information Gathering')).toBeInTheDocument();
   });
 
   it('shows short label on small size', () => {
     renderWithMantine(<IncidentStatusBadge status="InformationGathering" size="sm" />);
 
-    expect(screen.getByText('INVESTIGATING')).toBeInTheDocument();
+    expect(screen.getByText('Investigating')).toBeInTheDocument();
   });
 
   it('applies correct ARIA label for ReportSubmitted', () => {

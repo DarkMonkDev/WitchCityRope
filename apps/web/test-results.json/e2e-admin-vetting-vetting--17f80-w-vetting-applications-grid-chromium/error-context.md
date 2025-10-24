@@ -1,0 +1,259 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e7]: Welcome, RopeMaster
+      - generic [ref=e8]:
+        - link "Report an Incident" [ref=e9] [cursor=pointer]:
+          - /url: /safety/report
+        - link "Private Lessons" [ref=e10] [cursor=pointer]:
+          - /url: /private-lessons
+        - link "Contact" [ref=e11] [cursor=pointer]:
+          - /url: /contact-us
+        - link "Edit Profile" [ref=e12] [cursor=pointer]:
+          - /url: /dashboard/profile-settings
+        - button "Logout" [ref=e13] [cursor=pointer]
+    - banner [ref=e14]:
+      - link "WITCH CITY ROPE" [ref=e15] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e16]:
+        - link "Admin" [ref=e17] [cursor=pointer]:
+          - /url: /admin
+        - link "Events & Classes" [ref=e18] [cursor=pointer]:
+          - /url: /events
+        - link "Resources" [ref=e19] [cursor=pointer]:
+          - /url: /resources
+        - link "Dashboard" [ref=e20] [cursor=pointer]:
+          - /url: /dashboard
+    - main [ref=e21]:
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - heading "Vetting Applications" [level=1] [ref=e24]
+          - generic [ref=e25]:
+            - button "PUT ON HOLD (0)" [disabled] [ref=e26]:
+              - generic [ref=e27]:
+                - img [ref=e29]
+                - generic [ref=e32]: PUT ON HOLD (0)
+            - button "SEND REMINDER" [ref=e33] [cursor=pointer]:
+              - generic [ref=e34]:
+                - img [ref=e36]
+                - generic [ref=e38]: SEND REMINDER
+            - button "EMAIL TEMPLATES" [ref=e39] [cursor=pointer]:
+              - generic [ref=e40]:
+                - img [ref=e42]
+                - generic [ref=e45]: EMAIL TEMPLATES
+        - generic [ref=e46]:
+          - generic [ref=e48]:
+            - generic [ref=e50]:
+              - img [ref=e52]
+              - textbox "Search by name, email, or scene name..." [ref=e55]
+            - generic [ref=e58]:
+              - img [ref=e60]
+              - generic [ref=e63] [cursor=pointer]:
+                - generic [ref=e64]:
+                  - generic [ref=e65]: Under Review
+                  - button [ref=e66]:
+                    - img
+                - generic [ref=e67]:
+                  - generic [ref=e68]: Approved for Interview
+                  - button [ref=e69]:
+                    - img
+                - generic [ref=e70]:
+                  - generic [ref=e71]: Pending Interview
+                  - button [ref=e72]:
+                    - img
+                - textbox "Select status filters" [ref=e73]
+              - button [ref=e75] [cursor=pointer]:
+                - img [ref=e76]
+          - table [ref=e79]:
+            - rowgroup [ref=e80]:
+              - row "Select all applications SCENE NAME FETLIFE HANDLE EMAIL APPLICATION DATE CURRENT STATUS" [ref=e81]:
+                - cell "Select all applications" [ref=e82]:
+                  - generic [ref=e85]:
+                    - checkbox "Select all applications" [ref=e86]
+                    - img
+                - cell "SCENE NAME" [ref=e87] [cursor=pointer]:
+                  - paragraph [ref=e89]: SCENE NAME
+                - cell "FETLIFE HANDLE" [ref=e90] [cursor=pointer]:
+                  - paragraph [ref=e92]: FETLIFE HANDLE
+                - cell "EMAIL" [ref=e93]:
+                  - paragraph [ref=e94]: EMAIL
+                - cell "APPLICATION DATE" [ref=e95] [cursor=pointer]:
+                  - generic [ref=e96]:
+                    - paragraph [ref=e97]: APPLICATION DATE
+                    - img [ref=e98]
+                - cell "CURRENT STATUS" [ref=e100]:
+                  - paragraph [ref=e101]: CURRENT STATUS
+            - rowgroup [ref=e102]:
+              - row "Select application for TestUser1761262425647 TestUser1761262425647 TestUser123 test-vetting-1761262425647-3145@example.com 10/23/2025 Under Review" [ref=e103] [cursor=pointer]:
+                - cell "Select application for TestUser1761262425647" [ref=e104]:
+                  - generic [ref=e107]:
+                    - checkbox "Select application for TestUser1761262425647" [ref=e108]
+                    - img
+                - cell "TestUser1761262425647" [ref=e109]:
+                  - paragraph [ref=e110]: TestUser1761262425647
+                - cell "TestUser123" [ref=e111]:
+                  - paragraph [ref=e112]: TestUser123
+                - cell "test-vetting-1761262425647-3145@example.com" [ref=e113]:
+                  - paragraph [ref=e114]: test-vetting-1761262425647-3145@example.com
+                - cell "10/23/2025" [ref=e115]:
+                  - paragraph [ref=e116]: 10/23/2025
+                - cell "Under Review" [ref=e117]:
+                  - generic [ref=e119]: Under Review
+              - row "Select application for ApprovalTest-1761262261986 ApprovalTest-1761262261986 Not provided approval-1761262261986@test.com 10/23/2025 Under Review" [ref=e120] [cursor=pointer]:
+                - cell "Select application for ApprovalTest-1761262261986" [ref=e121]:
+                  - generic [ref=e124]:
+                    - checkbox "Select application for ApprovalTest-1761262261986" [ref=e125]
+                    - img
+                - cell "ApprovalTest-1761262261986" [ref=e126]:
+                  - paragraph [ref=e127]: ApprovalTest-1761262261986
+                - cell "Not provided" [ref=e128]:
+                  - paragraph [ref=e129]: Not provided
+                - cell "approval-1761262261986@test.com" [ref=e130]:
+                  - paragraph [ref=e131]: approval-1761262261986@test.com
+                - cell "10/23/2025" [ref=e132]:
+                  - paragraph [ref=e133]: 10/23/2025
+                - cell "Under Review" [ref=e134]:
+                  - generic [ref=e136]: Under Review
+              - row "Select application for ApprovalTest-1761261423811 ApprovalTest-1761261423811 Not provided approval-1761261423811@test.com 10/23/2025 Under Review" [ref=e137] [cursor=pointer]:
+                - cell "Select application for ApprovalTest-1761261423811" [ref=e138]:
+                  - generic [ref=e141]:
+                    - checkbox "Select application for ApprovalTest-1761261423811" [ref=e142]
+                    - img
+                - cell "ApprovalTest-1761261423811" [ref=e143]:
+                  - paragraph [ref=e144]: ApprovalTest-1761261423811
+                - cell "Not provided" [ref=e145]:
+                  - paragraph [ref=e146]: Not provided
+                - cell "approval-1761261423811@test.com" [ref=e147]:
+                  - paragraph [ref=e148]: approval-1761261423811@test.com
+                - cell "10/23/2025" [ref=e149]:
+                  - paragraph [ref=e150]: 10/23/2025
+                - cell "Under Review" [ref=e151]:
+                  - generic [ref=e153]: Under Review
+              - row "Select application for RealEmailTest RealEmailTest Not provided vetting@witchcityrope.com 10/21/2025 Under Review" [ref=e154] [cursor=pointer]:
+                - cell "Select application for RealEmailTest" [ref=e155]:
+                  - generic [ref=e158]:
+                    - checkbox "Select application for RealEmailTest" [ref=e159]
+                    - img
+                - cell "RealEmailTest" [ref=e160]:
+                  - paragraph [ref=e161]: RealEmailTest
+                - cell "Not provided" [ref=e162]:
+                  - paragraph [ref=e163]: Not provided
+                - cell "vetting@witchcityrope.com" [ref=e164]:
+                  - paragraph [ref=e165]: vetting@witchcityrope.com
+                - cell "10/21/2025" [ref=e166]:
+                  - paragraph [ref=e167]: 10/21/2025
+                - cell "Under Review" [ref=e168]:
+                  - generic [ref=e170]: Under Review
+              - row "Select application for EmailTester EmailTester Not provided email-integration-test@example.com 10/21/2025 Awaiting Interview" [ref=e171] [cursor=pointer]:
+                - cell "Select application for EmailTester" [ref=e172]:
+                  - generic [ref=e175]:
+                    - checkbox "Select application for EmailTester" [ref=e176]
+                    - img
+                - cell "EmailTester" [ref=e177]:
+                  - paragraph [ref=e178]: EmailTester
+                - cell "Not provided" [ref=e179]:
+                  - paragraph [ref=e180]: Not provided
+                - cell "email-integration-test@example.com" [ref=e181]:
+                  - paragraph [ref=e182]: email-integration-test@example.com
+                - cell "10/21/2025" [ref=e183]:
+                  - paragraph [ref=e184]: 10/21/2025
+                - cell "Awaiting Interview" [ref=e185]:
+                  - generic [ref=e187]: Awaiting Interview
+              - row "Select application for SendGridTester SendGridTester Not provided sendgrid-test@example.com 10/21/2025 Under Review" [ref=e188] [cursor=pointer]:
+                - cell "Select application for SendGridTester" [ref=e189]:
+                  - generic [ref=e192]:
+                    - checkbox "Select application for SendGridTester" [ref=e193]
+                    - img
+                - cell "SendGridTester" [ref=e194]:
+                  - paragraph [ref=e195]: SendGridTester
+                - cell "Not provided" [ref=e196]:
+                  - paragraph [ref=e197]: Not provided
+                - cell "sendgrid-test@example.com" [ref=e198]:
+                  - paragraph [ref=e199]: sendgrid-test@example.com
+                - cell "10/21/2025" [ref=e200]:
+                  - paragraph [ref=e201]: 10/21/2025
+                - cell "Under Review" [ref=e202]:
+                  - generic [ref=e204]: Under Review
+              - row "Select application for RopeBunny RopeBunny RopeBunny_RC ropebunny@example.com 10/18/2025 Under Review" [ref=e205] [cursor=pointer]:
+                - cell "Select application for RopeBunny" [ref=e206]:
+                  - generic [ref=e209]:
+                    - checkbox "Select application for RopeBunny" [ref=e210]
+                    - img
+                - cell "RopeBunny" [ref=e211]:
+                  - paragraph [ref=e212]: RopeBunny
+                - cell "RopeBunny_RC" [ref=e213]:
+                  - paragraph [ref=e214]: RopeBunny_RC
+                - cell "ropebunny@example.com" [ref=e215]:
+                  - paragraph [ref=e216]: ropebunny@example.com
+                - cell "10/18/2025" [ref=e217]:
+                  - paragraph [ref=e218]: 10/18/2025
+                - cell "Under Review" [ref=e219]:
+                  - generic [ref=e221]: Under Review
+              - row "Select application for RopeNovice RopeNovice RopeNovice2024 alexandra.martinez@email.com 10/17/2025 Under Review" [ref=e222] [cursor=pointer]:
+                - cell "Select application for RopeNovice" [ref=e223]:
+                  - generic [ref=e226]:
+                    - checkbox "Select application for RopeNovice" [ref=e227]
+                    - img
+                - cell "RopeNovice" [ref=e228]:
+                  - paragraph [ref=e229]: RopeNovice
+                - cell "RopeNovice2024" [ref=e230]:
+                  - paragraph [ref=e231]: RopeNovice2024
+                - cell "alexandra.martinez@email.com" [ref=e232]:
+                  - paragraph [ref=e233]: alexandra.martinez@email.com
+                - cell "10/17/2025" [ref=e234]:
+                  - paragraph [ref=e235]: 10/17/2025
+                - cell "Under Review" [ref=e236]:
+                  - generic [ref=e238]: Under Review
+              - row "Select application for NervousNewbie NervousNewbie NervousNewbie_JM jordan.martinez@email.com 10/15/2025 Under Review" [ref=e239] [cursor=pointer]:
+                - cell "Select application for NervousNewbie" [ref=e240]:
+                  - generic [ref=e243]:
+                    - checkbox "Select application for NervousNewbie" [ref=e244]
+                    - img
+                - cell "NervousNewbie" [ref=e245]:
+                  - paragraph [ref=e246]: NervousNewbie
+                - cell "NervousNewbie_JM" [ref=e247]:
+                  - paragraph [ref=e248]: NervousNewbie_JM
+                - cell "jordan.martinez@email.com" [ref=e249]:
+                  - paragraph [ref=e250]: jordan.martinez@email.com
+                - cell "10/15/2025" [ref=e251]:
+                  - paragraph [ref=e252]: 10/15/2025
+                - cell "Under Review" [ref=e253]:
+                  - generic [ref=e255]: Under Review
+              - row "Select application for CommunityBuilder CommunityBuilder CommunityBuilder_MK morgan.kim@email.com 10/12/2025 Awaiting Interview" [ref=e256] [cursor=pointer]:
+                - cell "Select application for CommunityBuilder" [ref=e257]:
+                  - generic [ref=e260]:
+                    - checkbox "Select application for CommunityBuilder" [ref=e261]
+                    - img
+                - cell "CommunityBuilder" [ref=e262]:
+                  - paragraph [ref=e263]: CommunityBuilder
+                - cell "CommunityBuilder_MK" [ref=e264]:
+                  - paragraph [ref=e265]: CommunityBuilder_MK
+                - cell "morgan.kim@email.com" [ref=e266]:
+                  - paragraph [ref=e267]: morgan.kim@email.com
+                - cell "10/12/2025" [ref=e268]:
+                  - paragraph [ref=e269]: 10/12/2025
+                - cell "Awaiting Interview" [ref=e270]:
+                  - generic [ref=e272]: Awaiting Interview
+              - row "Select application for KnotLearner KnotLearner KnotLearner_JK jordan.kim@email.com 10/10/2025 Awaiting Interview" [ref=e273] [cursor=pointer]:
+                - cell "Select application for KnotLearner" [ref=e274]:
+                  - generic [ref=e277]:
+                    - checkbox "Select application for KnotLearner" [ref=e278]
+                    - img
+                - cell "KnotLearner" [ref=e279]:
+                  - paragraph [ref=e280]: KnotLearner
+                - cell "KnotLearner_JK" [ref=e281]:
+                  - paragraph [ref=e282]: KnotLearner_JK
+                - cell "jordan.kim@email.com" [ref=e283]:
+                  - paragraph [ref=e284]: jordan.kim@email.com
+                - cell "10/10/2025" [ref=e285]:
+                  - paragraph [ref=e286]: 10/10/2025
+                - cell "Awaiting Interview" [ref=e287]:
+                  - generic [ref=e289]: Awaiting Interview
+  - generic [ref=e290]:
+    - img [ref=e292]
+    - button "Open Tanstack query devtools" [ref=e340] [cursor=pointer]:
+      - img [ref=e341]
+```

@@ -27,6 +27,7 @@ public class VettingEmailServiceTests : IAsyncLifetime
     private ILogger<VettingEmailService> _logger = null!;
     private Mock<IConfiguration> _mockConfig = null!;
     private string _connectionString = null!;
+    private ApplicationUser _adminUser = null!;
 
     public VettingEmailServiceTests()
     {
@@ -51,6 +52,26 @@ public class VettingEmailServiceTests : IAsyncLifetime
         _context = new ApplicationDbContext(options);
         await _context.Database.EnsureCreatedAsync();
 
+        // Seed admin user for email template FK constraints
+        _adminUser = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            UserName = "admin@witchcityrope.com",
+            Email = "admin@witchcityrope.com",
+            NormalizedUserName = "ADMIN@WITCHCITYROPE.COM",
+            NormalizedEmail = "ADMIN@WITCHCITYROPE.COM",
+            SceneName = "Admin",
+            EmailConfirmed = true,
+            Role = "Administrator",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.Users.Add(_adminUser);
+        await _context.SaveChangesAsync();
+
+        // Seed all required email templates for tests
+        await SeedEmailTemplates();
+
         _logger = new LoggerFactory().CreateLogger<VettingEmailService>();
         _mockConfig = SetupMockConfiguration(emailEnabled: false); // Default to mock mode
         _service = new VettingEmailService(_context, _logger, _mockConfig.Object);
@@ -60,6 +81,104 @@ public class VettingEmailServiceTests : IAsyncLifetime
     {
         _context?.Dispose();
         await _container.DisposeAsync();
+    }
+
+    /// <summary>
+    /// Seed all email templates needed for tests
+    /// This ensures templates exist for all test scenarios
+    /// </summary>
+    private async Task SeedEmailTemplates()
+    {
+        var templates = new[]
+        {
+            new VettingEmailTemplate
+            {
+                Id = Guid.NewGuid(),
+                TemplateType = EmailTemplateType.ApplicationReceived,
+                Subject = "Application {{application_number}} Received",
+                HtmlBody = "<p>Hello {{applicant_name}}, your application {{application_number}} was received on {{submission_date}}.</p>",
+                PlainTextBody = "Hello {{applicant_name}}, your application {{application_number}} was received on {{submission_date}}.",
+                IsActive = true,
+                Version = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                LastModified = DateTime.UtcNow,
+                UpdatedBy = _adminUser.Id
+            },
+            new VettingEmailTemplate
+            {
+                Id = Guid.NewGuid(),
+                TemplateType = EmailTemplateType.InterviewApproved,
+                Subject = "Interview Approved - {{application_number}}",
+                HtmlBody = "<p>Hello {{applicant_name}}, your interview has been approved for application {{application_number}}.</p>",
+                PlainTextBody = "Hello {{applicant_name}}, your interview has been approved for application {{application_number}}.",
+                IsActive = true,
+                Version = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                LastModified = DateTime.UtcNow,
+                UpdatedBy = _adminUser.Id
+            },
+            new VettingEmailTemplate
+            {
+                Id = Guid.NewGuid(),
+                TemplateType = EmailTemplateType.Approved,
+                Subject = "Application Approved!",
+                HtmlBody = "<p>Congratulations {{applicant_name}}! Your application {{application_number}} has been approved.</p>",
+                PlainTextBody = "Congratulations {{applicant_name}}! Your application {{application_number}} has been approved.",
+                IsActive = true,
+                Version = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                LastModified = DateTime.UtcNow,
+                UpdatedBy = _adminUser.Id
+            },
+            new VettingEmailTemplate
+            {
+                Id = Guid.NewGuid(),
+                TemplateType = EmailTemplateType.OnHold,
+                Subject = "Application On Hold - {{application_number}}",
+                HtmlBody = "<p>Hello {{applicant_name}}, your application {{application_number}} is currently on hold.</p>",
+                PlainTextBody = "Hello {{applicant_name}}, your application {{application_number}} is currently on hold.",
+                IsActive = true,
+                Version = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                LastModified = DateTime.UtcNow,
+                UpdatedBy = _adminUser.Id
+            },
+            new VettingEmailTemplate
+            {
+                Id = Guid.NewGuid(),
+                TemplateType = EmailTemplateType.Denied,
+                Subject = "Application Update - {{application_number}}",
+                HtmlBody = "<p>Hello {{applicant_name}}, regarding your application {{application_number}}, we have an update.</p>",
+                PlainTextBody = "Hello {{applicant_name}}, regarding your application {{application_number}}, we have an update.",
+                IsActive = true,
+                Version = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                LastModified = DateTime.UtcNow,
+                UpdatedBy = _adminUser.Id
+            },
+            new VettingEmailTemplate
+            {
+                Id = Guid.NewGuid(),
+                TemplateType = EmailTemplateType.InterviewReminder,
+                Subject = "Interview Reminder - {{application_number}}",
+                HtmlBody = "<p>Hello {{applicant_name}}, this is a reminder about your interview for application {{application_number}}. {{custom_message}}</p>",
+                PlainTextBody = "Hello {{applicant_name}}, this is a reminder about your interview for application {{application_number}}. {{custom_message}}",
+                IsActive = true,
+                Version = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                LastModified = DateTime.UtcNow,
+                UpdatedBy = _adminUser.Id
+            }
+        };
+
+        await _context.VettingEmailTemplates.AddRangeAsync(templates);
+        await _context.SaveChangesAsync();
     }
 
     #region SendApplicationConfirmationAsync Tests
@@ -95,13 +214,7 @@ public class VettingEmailServiceTests : IAsyncLifetime
         // Arrange
         var application = await CreateTestVettingApplication(VettingStatus.UnderReview);
 
-        // Create email template with variables
-        var template = await CreateTestEmailTemplate(
-            EmailTemplateType.ApplicationReceived,
-            "Application {{application_number}} Received",
-            "<p>Hello {{applicant_name}}, your application {{application_number}} was received.</p>",
-            "Hello {{applicant_name}}, your application {{application_number}} was received.");
-
+        // Template already seeded in InitializeAsync
         var email = "applicant@example.com";
         var name = "Test Applicant";
 
@@ -126,7 +239,10 @@ public class VettingEmailServiceTests : IAsyncLifetime
         var email = "applicant@example.com";
         var name = "Test Applicant";
 
-        // No template in database
+        // Remove all templates to test fallback
+        var templates = await _context.VettingEmailTemplates.ToListAsync();
+        _context.VettingEmailTemplates.RemoveRange(templates);
+        await _context.SaveChangesAsync();
 
         // Act
         var result = await _service.SendApplicationConfirmationAsync(application, email, name);
@@ -151,13 +267,7 @@ public class VettingEmailServiceTests : IAsyncLifetime
         // Arrange
         var application = await CreateTestVettingApplication(VettingStatus.Approved);
 
-        // Create approved template
-        var template = await CreateTestEmailTemplate(
-            EmailTemplateType.Approved,
-            "Application Approved!",
-            "<p>Congratulations {{applicant_name}}!</p>",
-            "Congratulations {{applicant_name}}!");
-
+        // Template already seeded in InitializeAsync
         var email = "applicant@example.com";
         var name = "Test Applicant";
 
@@ -265,7 +375,10 @@ public class VettingEmailServiceTests : IAsyncLifetime
         var email = "applicant@example.com";
         var name = "Test Applicant";
 
-        // No template in database - should use default
+        // Remove all templates to test fallback
+        var templates = await _context.VettingEmailTemplates.ToListAsync();
+        _context.VettingEmailTemplates.RemoveRange(templates);
+        await _context.SaveChangesAsync();
 
         // Act
         var result = await _service.SendStatusUpdateAsync(application, email, name, VettingStatus.Approved);
@@ -513,13 +626,26 @@ public class VettingEmailServiceTests : IAsyncLifetime
     private Mock<IConfiguration> SetupMockConfiguration(bool emailEnabled, string? apiKey = null)
     {
         var config = new Mock<IConfiguration>();
+
+        // Mock the indexer for string values
         config.Setup(c => c["Vetting:EmailEnabled"]).Returns(emailEnabled.ToString());
         config.Setup(c => c["Vetting:SendGridApiKey"]).Returns(apiKey ?? "");
         config.Setup(c => c["Vetting:FromEmail"]).Returns("noreply@witchcityrope.com");
         config.Setup(c => c["Vetting:FromName"]).Returns("WitchCityRope");
+        config.Setup(c => c["Vetting:SendGridSandboxMode"]).Returns("false");
 
-        // Setup GetValue method for EmailEnabled
-        config.Setup(c => c.GetSection("Vetting:EmailEnabled").Value).Returns(emailEnabled.ToString());
+        // Mock GetSection for each key to support GetValue<T>
+        var emailEnabledSection = new Mock<IConfigurationSection>();
+        emailEnabledSection.Setup(s => s.Value).Returns(emailEnabled.ToString());
+        emailEnabledSection.Setup(s => s.Path).Returns("Vetting:EmailEnabled");
+        emailEnabledSection.Setup(s => s.Key).Returns("EmailEnabled");
+        config.Setup(c => c.GetSection("Vetting:EmailEnabled")).Returns(emailEnabledSection.Object);
+
+        var sandboxSection = new Mock<IConfigurationSection>();
+        sandboxSection.Setup(s => s.Value).Returns("false");
+        sandboxSection.Setup(s => s.Path).Returns("Vetting:SendGridSandboxMode");
+        sandboxSection.Setup(s => s.Key).Returns("SendGridSandboxMode");
+        config.Setup(c => c.GetSection("Vetting:SendGridSandboxMode")).Returns(sandboxSection.Object);
 
         return config;
     }

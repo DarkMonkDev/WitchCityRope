@@ -4,71 +4,64 @@ import type { Event, PaginatedResponse } from '../../types/api.types'
 
 // Use NSwag generated UserDto structure - aligned with API
 type UserDto = {
-  id?: string
-  email?: string
-  sceneName?: string | null
-  firstName?: string | null
-  lastName?: string | null
-  roles?: string[]
-  isActive?: boolean
-  createdAt?: string
-  updatedAt?: string
-  lastLoginAt?: string | null
+  id?: string;
+  email?: string;
+  sceneName?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  roles?: string[];
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  lastLoginAt?: string | null;
 }
 
 // Environment-based API URL configuration - NO MORE HARD-CODED PORTS
 const getApiBaseUrl = () => {
   if (typeof window !== 'undefined' && window.location) {
     // Browser environment - use VITE environment variables
-    return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5655'
+    return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5655';
   }
   // Test environment fallback
-  return 'http://localhost:5655'
-}
+  return 'http://localhost:5655';
+};
 
-const API_BASE_URL = getApiBaseUrl()
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type RequestBody = any
+const API_BASE_URL = getApiBaseUrl();
 
 export const handlers = [
   // Authentication endpoints
   // Current user endpoint used by useCurrentUser hook
+  // NOTE: API returns UserDto directly, not wrapped in {success, data}
   http.get('/api/auth/user', () => {
     return HttpResponse.json({
-      success: true,
-      data: {
-        id: '1',
-        email: 'admin@witchcityrope.com',
-        sceneName: 'TestAdmin',
-        firstName: null,
-        lastName: null,
-        roles: ['Admin'],
-        isActive: true,
-        createdAt: '2025-08-19T00:00:00Z',
-        updatedAt: '2025-08-19T10:00:00Z',
-        lastLoginAt: '2025-08-19T10:00:00Z',
-      } as UserDto,
-    })
+      id: '1',
+      email: 'admin@witchcityrope.com',
+      sceneName: 'TestAdmin',
+      firstName: null,
+      lastName: null,
+      roles: ['Admin'],
+      isActive: true,
+      createdAt: '2025-08-19T00:00:00Z',
+      updatedAt: '2025-08-19T10:00:00Z',
+      lastLoginAt: '2025-08-19T10:00:00Z'
+    } as UserDto)
   }),
 
   // Support absolute URLs for auth user endpoint (environment-based)
+  // NOTE: API returns UserDto directly, not wrapped in {success, data}
   http.get(`${API_BASE_URL}/api/auth/user`, () => {
     return HttpResponse.json({
-      success: true,
-      data: {
-        id: '1',
-        email: 'admin@witchcityrope.com',
-        sceneName: 'TestAdmin',
-        firstName: null,
-        lastName: null,
-        roles: ['Admin'],
-        isActive: true,
-        createdAt: '2025-08-19T00:00:00Z',
-        updatedAt: '2025-08-19T10:00:00Z',
-        lastLoginAt: '2025-08-19T10:00:00Z',
-      } as UserDto,
-    })
+      id: '1',
+      email: 'admin@witchcityrope.com',
+      sceneName: 'TestAdmin',
+      firstName: null,
+      lastName: null,
+      roles: ['Admin'],
+      isActive: true,
+      createdAt: '2025-08-19T00:00:00Z',
+      updatedAt: '2025-08-19T10:00:00Z',
+      lastLoginAt: '2025-08-19T10:00:00Z'
+    } as UserDto)
   }),
 
   // Legacy endpoints for backwards compatibility
@@ -84,7 +77,7 @@ export const handlers = [
       isActive: true,
       createdAt: '2025-08-19T00:00:00Z',
       updatedAt: '2025-08-19T10:00:00Z',
-      lastLoginAt: '2025-08-19T10:00:00Z',
+      lastLoginAt: '2025-08-19T10:00:00Z'
     } as UserDto)
   }),
 
@@ -100,7 +93,7 @@ export const handlers = [
       isActive: true,
       createdAt: '2025-08-19T00:00:00Z',
       updatedAt: '2025-08-19T10:00:00Z',
-      lastLoginAt: '2025-08-19T10:00:00Z',
+      lastLoginAt: '2025-08-19T10:00:00Z'
     } as UserDto)
   }),
 
@@ -115,7 +108,7 @@ export const handlers = [
 
   // Login endpoints - Pascal case with proper LoginResponse structure
   http.post('/api/Auth/login', async ({ request }) => {
-    const body = (await request.json()) as RequestBody
+    const body = await request.json() as any
     if (body.email === 'admin@witchcityrope.com' && body.password === 'Test123!') {
       return HttpResponse.json({
         success: true,
@@ -129,21 +122,18 @@ export const handlers = [
           isActive: true,
           createdAt: '2025-08-19T00:00:00Z',
           updatedAt: '2025-08-19T10:00:00Z',
-          lastLoginAt: '2025-08-19T10:00:00Z',
+          lastLoginAt: '2025-08-19T10:00:00Z'
         } as UserDto,
-        message: 'Login successful',
+        message: 'Login successful'
       })
     }
-    return HttpResponse.json(
-      {
-        error: 'Invalid credentials',
-      },
-      { status: 401 }
-    )
+    return HttpResponse.json({
+      error: 'Invalid credentials'
+    }, { status: 401 })
   }),
 
   http.post(`${API_BASE_URL}/api/Auth/login`, async ({ request }) => {
-    const body = (await request.json()) as RequestBody
+    const body = await request.json() as any
     if (body.email === 'admin@witchcityrope.com' && body.password === 'Test123!') {
       return HttpResponse.json({
         success: true,
@@ -157,17 +147,14 @@ export const handlers = [
           isActive: true,
           createdAt: '2025-08-19T00:00:00Z',
           updatedAt: '2025-08-19T10:00:00Z',
-          lastLoginAt: '2025-08-19T10:00:00Z',
+          lastLoginAt: '2025-08-19T10:00:00Z'
         } as UserDto,
-        message: 'Login successful',
+        message: 'Login successful'
       })
     }
-    return HttpResponse.json(
-      {
-        error: 'Invalid credentials',
-      },
-      { status: 401 }
-    )
+    return HttpResponse.json({
+      error: 'Invalid credentials'
+    }, { status: 401 })
   }),
 
   // Auth refresh endpoint for interceptor
@@ -175,7 +162,27 @@ export const handlers = [
     return new HttpResponse('Unauthorized', { status: 401 })
   }),
 
-  // Protected welcome endpoint
+  // Protected welcome endpoint (relative URL for authService)
+  http.get('/api/protected/welcome', () => {
+    return HttpResponse.json({
+      message: 'Welcome to the protected area!',
+      user: {
+        id: '1',
+        email: 'admin@witchcityrope.com',
+        sceneName: 'TestAdmin',
+        firstName: null,
+        lastName: null,
+        roles: ['Admin'],
+        isActive: true,
+        createdAt: '2025-08-19T00:00:00Z',
+        updatedAt: '2025-08-19T10:00:00Z',
+        lastLoginAt: '2025-08-19T10:00:00Z'
+      } as UserDto,
+      serverTime: new Date().toISOString()
+    })
+  }),
+
+  // Protected welcome endpoint (absolute URL for backward compatibility)
   http.get(`${API_BASE_URL}/api/protected/welcome`, () => {
     return HttpResponse.json({
       message: 'Welcome to the protected area!',
@@ -189,15 +196,15 @@ export const handlers = [
         isActive: true,
         createdAt: '2025-08-19T00:00:00Z',
         updatedAt: '2025-08-19T10:00:00Z',
-        lastLoginAt: '2025-08-19T10:00:00Z',
+        lastLoginAt: '2025-08-19T10:00:00Z'
       } as UserDto,
-      serverTime: new Date().toISOString(),
+      serverTime: new Date().toISOString()
     })
   }),
 
   // Register endpoint
   http.post(`${API_BASE_URL}/api/auth/register`, async ({ request }) => {
-    const body = (await request.json()) as RequestBody
+    const body = await request.json() as any
     return HttpResponse.json({
       success: true,
       user: {
@@ -210,9 +217,9 @@ export const handlers = [
         isActive: true,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        lastLoginAt: new Date().toISOString(),
+        lastLoginAt: new Date().toISOString()
       } as UserDto,
-      message: 'Registration successful',
+      message: 'Registration successful'
     })
   }),
 
@@ -230,8 +237,8 @@ export const handlers = [
         isActive: true,
         createdAt: '2025-08-19T00:00:00Z',
         updatedAt: '2025-08-19T10:00:00Z',
-        lastLoginAt: '2025-08-19T10:00:00Z',
-      } as UserDto,
+        lastLoginAt: '2025-08-19T10:00:00Z'
+      } as UserDto
     })
   }),
 
@@ -239,23 +246,181 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 })
   }),
 
+
   // Events endpoints - CLEANED UP with proper API response format and no duplicates
+  
+  // Individual event endpoint (both relative and absolute URL support)
+  http.get('/api/events/:id', ({ params }) => {
+    return HttpResponse.json({
+      success: true,
+      data: {
+        id: params.id,
+        title: 'Test Event',
+        description: 'A test event for API validation',
+        startDate: '2025-08-20T19:00:00Z',
+        endDate: '2025-08-20T21:00:00Z',
+        capacity: 20,
+        registrationCount: 5,
+        isRegistrationOpen: true,
+        status: 'Published',
+        eventType: 'class',
+        instructorId: '1',
+        instructor: {
+          id: '1',
+          sceneName: 'TestInstructor',
+          email: 'instructor@test.com',
+          createdAt: '2025-08-19T00:00:00Z',
+          lastLoginAt: '2025-08-19T10:00:00Z'
+        },
+        attendees: [],
+      } as Event
+    })
+  }),
 
-  // Individual event endpoint - PASSTHROUGH TO REAL API (no mocks for E2E tests)
-  // REMOVED: Mock event detail handler that returned hardcoded "Test Event"
-  // Tests expect real database events, not mock data
-  // If unit tests need mock event details, they should use server.use() in the test file
+  http.get(`${API_BASE_URL}/api/events/:id`, ({ params }) => {
+    return HttpResponse.json({
+      success: true,
+      data: {
+        id: params.id,
+        title: 'Test Event',
+        description: 'A test event for API validation',
+        startDate: '2025-08-20T19:00:00Z',
+        endDate: '2025-08-20T21:00:00Z',
+        capacity: 20,
+        registrationCount: 5,
+        isRegistrationOpen: true,
+        status: 'Published',
+        eventType: 'class',
+        instructorId: '1',
+        instructor: {
+          id: '1',
+          sceneName: 'TestInstructor',
+          email: 'instructor@test.com',
+          createdAt: '2025-08-19T00:00:00Z',
+          lastLoginAt: '2025-08-19T10:00:00Z'
+        },
+        attendees: [],
+      } as Event
+    })
+  }),
 
-  // Events list endpoint - PASSTHROUGH TO REAL API (no mocks for E2E tests)
-  // MSW handlers are commented out to allow real API calls during E2E testing
-  // These handlers were returning hardcoded mock events instead of database events
+  // Events list endpoint (both relative and absolute URL support)
+  http.get('/api/events', ({ request }) => {
+    const url = new URL(request.url)
+    const page = parseInt(url.searchParams.get('page') || '1')
+    const pageSize = parseInt(url.searchParams.get('pageSize') || '20')
 
-  // REMOVED: Mock events handlers that prevented real API calls
-  // Tests expect real database events, not mock data
-  // If unit tests need mock events, they should use server.use() in the test file
+    const events = [
+      {
+        id: '1',
+        title: 'Rope Bondage Fundamentals',
+        description: 'Learn the basics of safe rope bondage with experienced instructors',
+        startDate: '2025-08-20T19:00:00Z',
+        endDate: '2025-08-20T21:00:00Z',
+        capacity: 20,
+        registrationCount: 5,
+        isRegistrationOpen: true,
+        status: 'Published',
+        eventType: 'class',
+        instructorId: '1',
+      },
+      {
+        id: '2',
+        title: 'Community Social Night',
+        description: 'Join fellow community members for socializing and light play',
+        startDate: '2025-08-21T19:00:00Z',
+        endDate: '2025-08-21T21:00:00Z',
+        capacity: 15,
+        registrationCount: 10,
+        isRegistrationOpen: true,
+        status: 'Published',
+        eventType: 'social',
+        instructorId: '1',
+      },
+    ] as Event[]
+
+    // Return paginated or simple response based on request - ALL wrapped in API response format
+    if (url.searchParams.has('page')) {
+      return HttpResponse.json({
+        success: true,
+        data: {
+          data: events,
+          page,
+          pageSize,
+          totalCount: 25,
+          totalPages: 2,
+          hasNext: page < 2,
+          hasPrevious: page > 1,
+        }
+      })
+    }
+
+    // CRITICAL FIX: Wrap events in API response format so useEvents query works
+    return HttpResponse.json({
+      success: true,
+      data: events
+    })
+  }),
+
+  http.get(`${API_BASE_URL}/api/events`, ({ request }) => {
+    const url = new URL(request.url)
+    const page = parseInt(url.searchParams.get('page') || '1')
+    const pageSize = parseInt(url.searchParams.get('pageSize') || '20')
+
+    const events = [
+      {
+        id: '1',
+        title: 'Rope Bondage Fundamentals',
+        description: 'Learn the basics of safe rope bondage with experienced instructors',
+        startDate: '2025-08-20T19:00:00Z',
+        endDate: '2025-08-20T21:00:00Z',
+        capacity: 20,
+        registrationCount: 5,
+        isRegistrationOpen: true,
+        status: 'Published',
+        eventType: 'class',
+        instructorId: '1',
+      },
+      {
+        id: '2',
+        title: 'Community Social Night',
+        description: 'Join fellow community members for socializing and light play',
+        startDate: '2025-08-21T19:00:00Z',
+        endDate: '2025-08-21T21:00:00Z',
+        capacity: 15,
+        registrationCount: 10,
+        isRegistrationOpen: true,
+        status: 'Published',
+        eventType: 'social',
+        instructorId: '1',
+      },
+    ] as Event[]
+
+    // Return paginated or simple response based on request - ALL wrapped in API response format
+    if (url.searchParams.has('page')) {
+      return HttpResponse.json({
+        success: true,
+        data: {
+          data: events,
+          page,
+          pageSize,
+          totalCount: 25,
+          totalPages: 2,
+          hasNext: page < 2,
+          hasPrevious: page > 1,
+        }
+      })
+    }
+
+    // CRITICAL FIX: Wrap events in API response format so useEvents query works
+    return HttpResponse.json({
+      success: true,
+      data: events
+    })
+  }),
 
   http.post('/api/events', async ({ request }) => {
-    const body = (await request.json()) as RequestBody
+    const body = await request.json() as any
     return HttpResponse.json({
       id: 'new-event-id',
       title: body.title || 'New Event',
@@ -271,14 +436,14 @@ export const handlers = [
         sceneName: 'TestInstructor',
         email: 'instructor@test.com',
         createdAt: '2025-08-19T00:00:00Z',
-        lastLoginAt: '2025-08-19T10:00:00Z',
+        lastLoginAt: '2025-08-19T10:00:00Z'
       },
       attendees: [],
     } as Event)
   }),
 
   http.put('/api/events/:id', async ({ params, request }) => {
-    const body = (await request.json()) as RequestBody
+    const body = await request.json() as any
     return HttpResponse.json({
       id: params.id,
       title: body.title || 'Updated Test Event',
@@ -298,7 +463,7 @@ export const handlers = [
 
   // Event Registration
   http.post('/api/events/:eventId/registration', async ({ params, request }) => {
-    const body = (await request.json()) as RequestBody
+    const body = await request.json() as any
     return HttpResponse.json({
       id: `reg-${params.eventId}`,
       eventId: params.eventId,
@@ -313,7 +478,7 @@ export const handlers = [
     const url = new URL(request.url)
     const page = parseInt(url.searchParams.get('page') || '1')
     const pageSize = parseInt(url.searchParams.get('pageSize') || '20')
-
+    
     const members = [
       {
         id: '1',
@@ -325,7 +490,7 @@ export const handlers = [
         isActive: true,
         createdAt: '2025-08-19T00:00:00Z',
         updatedAt: '2025-08-19T10:00:00Z',
-        lastLoginAt: '2025-08-19T10:00:00Z',
+        lastLoginAt: '2025-08-19T10:00:00Z'
       },
       {
         id: '2',
@@ -337,7 +502,7 @@ export const handlers = [
         isActive: true,
         createdAt: '2025-08-19T00:00:00Z',
         updatedAt: '2025-08-19T10:00:00Z',
-        lastLoginAt: '2025-08-19T10:00:00Z',
+        lastLoginAt: '2025-08-19T10:00:00Z'
       },
     ] as UserDto[]
 
@@ -368,12 +533,12 @@ export const handlers = [
       isActive: true,
       createdAt: '2025-08-19T00:00:00Z',
       updatedAt: '2025-08-19T10:00:00Z',
-      lastLoginAt: '2025-08-19T10:00:00Z',
+      lastLoginAt: '2025-08-19T10:00:00Z'
     } as UserDto)
   }),
 
-  http.put('/api/members/:id/status', async ({ params }) => {
-    // Body intentionally not used - just updating status
+  http.put('/api/members/:id/status', async ({ params, request }) => {
+    const body = await request.json() as any
     return HttpResponse.json({
       id: params.id,
       email: 'member@test.com',
@@ -384,12 +549,12 @@ export const handlers = [
       isActive: true,
       createdAt: '2025-08-19T00:00:00Z',
       updatedAt: new Date().toISOString(),
-      lastLoginAt: new Date().toISOString(),
+      lastLoginAt: new Date().toISOString()
     } as UserDto)
   }),
 
   http.put('/api/members/profile', async ({ request }) => {
-    const body = (await request.json()) as RequestBody
+    const body = await request.json() as any
     return HttpResponse.json({
       id: '1',
       email: 'user@test.com',
@@ -400,7 +565,7 @@ export const handlers = [
       isActive: true,
       createdAt: '2025-08-19T00:00:00Z',
       updatedAt: new Date().toISOString(),
-      lastLoginAt: new Date().toISOString(),
+      lastLoginAt: new Date().toISOString()
     } as UserDto)
   }),
 
@@ -415,7 +580,7 @@ export const handlers = [
       isVetted: true,
       email: 'admin@witchcityrope.com',
       joinDate: '2025-08-19T00:00:00Z',
-      pronouns: 'they/them',
+      pronouns: 'they/them'
     })
   }),
 
@@ -428,7 +593,7 @@ export const handlers = [
       isVetted: true,
       email: 'admin@witchcityrope.com',
       joinDate: '2025-08-19T00:00:00Z',
-      pronouns: 'they/them',
+      pronouns: 'they/them'
     })
   }),
 
@@ -448,7 +613,7 @@ export const handlers = [
         instructorName: 'TestInstructor',
         registrationStatus: 'Ticket Purchased',
         ticketId: 'ticket-1',
-        confirmationCode: 'TEST1234',
+        confirmationCode: 'TEST1234'
       },
       {
         id: '2',
@@ -460,12 +625,12 @@ export const handlers = [
         instructorName: '',
         registrationStatus: 'RSVP Confirmed',
         ticketId: 'rsvp-2',
-        confirmationCode: 'RSVP5678',
-      },
+        confirmationCode: 'RSVP5678'
+      }
     ].slice(0, count)
 
     return HttpResponse.json({
-      upcomingEvents: events,
+      upcomingEvents: events
     })
   }),
 
@@ -484,7 +649,7 @@ export const handlers = [
         instructorName: 'TestInstructor',
         registrationStatus: 'Ticket Purchased',
         ticketId: 'ticket-1',
-        confirmationCode: 'TEST1234',
+        confirmationCode: 'TEST1234'
       },
       {
         id: '2',
@@ -496,12 +661,12 @@ export const handlers = [
         instructorName: '',
         registrationStatus: 'RSVP Confirmed',
         ticketId: 'rsvp-2',
-        confirmationCode: 'RSVP5678',
-      },
+        confirmationCode: 'RSVP5678'
+      }
     ].slice(0, count)
 
     return HttpResponse.json({
-      upcomingEvents: events,
+      upcomingEvents: events
     })
   }),
 
@@ -516,7 +681,7 @@ export const handlers = [
       vettingStatus: 'Approved',
       nextInterviewDate: null,
       upcomingRegistrations: 5,
-      cancelledRegistrations: 0,
+      cancelledRegistrations: 0
     })
   }),
 
@@ -530,7 +695,7 @@ export const handlers = [
       vettingStatus: 'Approved',
       nextInterviewDate: null,
       upcomingRegistrations: 5,
-      cancelledRegistrations: 0,
+      cancelledRegistrations: 0
     })
   }),
 
@@ -540,8 +705,8 @@ export const handlers = [
       success: true,
       data: {
         hasApplication: false,
-        application: null,
-      },
+        application: null
+      }
     })
   }),
 
@@ -550,8 +715,8 @@ export const handlers = [
       success: true,
       data: {
         hasApplication: false,
-        application: null,
-      },
+        application: null
+      }
     })
   }),
 
@@ -569,8 +734,8 @@ export const handlers = [
         status: 'Active',
         participationDate: '2025-08-15T10:00:00Z',
         notes: null,
-        canCancel: true,
-      },
+        canCancel: true
+      }
     ])
   }),
 
@@ -587,13 +752,40 @@ export const handlers = [
         status: 'Active',
         participationDate: '2025-08-15T10:00:00Z',
         notes: null,
-        canCancel: true,
-      },
+        canCancel: true
+      }
     ])
   }),
 
   // OPTIONS preflight for participations (CORS)
   http.options(`${API_BASE_URL}/api/user/participations`, () => {
     return new HttpResponse(null, { status: 200 })
+  }),
+
+  // Safety / Incident Management endpoints
+  // Get available coordinators
+  http.get('/api/safety/admin/users/coordinators', () => {
+    return HttpResponse.json([
+      { id: '1', sceneName: 'Admin User', realName: 'Alice Smith', role: 'Admin', activeIncidentCount: 2 },
+      { id: '2', sceneName: 'Safety Coordinator', realName: 'Bob Johnson', role: 'Teacher', activeIncidentCount: 1 },
+      { id: '3', sceneName: 'RopeTeacher', realName: 'Carol Martinez', role: 'Teacher', activeIncidentCount: 0 }
+    ])
+  }),
+
+  http.get(`${API_BASE_URL}/api/safety/admin/users/coordinators`, () => {
+    return HttpResponse.json([
+      { id: '1', sceneName: 'Admin User', realName: 'Alice Smith', role: 'Admin', activeIncidentCount: 2 },
+      { id: '2', sceneName: 'Safety Coordinator', realName: 'Bob Johnson', role: 'Teacher', activeIncidentCount: 1 },
+      { id: '3', sceneName: 'RopeTeacher', realName: 'Carol Martinez', role: 'Teacher', activeIncidentCount: 0 }
+    ])
+  }),
+
+  // Assign coordinator to incident
+  http.post('/api/safety/admin/incidents/:incidentId/assign', () => {
+    return HttpResponse.json({ success: true })
+  }),
+
+  http.post(`${API_BASE_URL}/api/safety/admin/incidents/:incidentId/assign`, () => {
+    return HttpResponse.json({ success: true })
   }),
 ]

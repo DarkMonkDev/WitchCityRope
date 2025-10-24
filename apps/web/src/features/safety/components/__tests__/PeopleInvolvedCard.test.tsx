@@ -1,10 +1,19 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { MantineProvider } from '@mantine/core';
 import { PeopleInvolvedCard } from '../PeopleInvolvedCard';
+
+const renderWithProvider = (ui: React.ReactElement) => {
+  return render(
+    <MantineProvider>
+      {ui}
+    </MantineProvider>
+  );
+};
 
 describe('PeopleInvolvedCard', () => {
   it('renders involved parties when provided', () => {
-    render(
+    renderWithProvider(
       <PeopleInvolvedCard
         involvedParties="Top: RopeExpert\nBottom: Participant"
         witnesses={undefined}
@@ -15,7 +24,7 @@ describe('PeopleInvolvedCard', () => {
   });
 
   it('renders witnesses when provided', () => {
-    render(
+    renderWithProvider(
       <PeopleInvolvedCard
         involvedParties={undefined}
         witnesses="Witness 1\nWitness 2"
@@ -26,7 +35,7 @@ describe('PeopleInvolvedCard', () => {
   });
 
   it('renders both involved parties and witnesses', () => {
-    render(
+    renderWithProvider(
       <PeopleInvolvedCard
         involvedParties="Top: RopeExpert\nBottom: Participant"
         witnesses="Witness 1\nWitness 2"
@@ -37,12 +46,12 @@ describe('PeopleInvolvedCard', () => {
   });
 
   it('shows empty state when no people documented', () => {
-    render(<PeopleInvolvedCard involvedParties={undefined} witnesses={undefined} />);
+    renderWithProvider(<PeopleInvolvedCard involvedParties={undefined} witnesses={undefined} />);
     expect(screen.getByText('No people documented')).toBeInTheDocument();
   });
 
   it('does not show empty state when only involved parties provided', () => {
-    render(
+    renderWithProvider(
       <PeopleInvolvedCard
         involvedParties="Top: RopeExpert"
         witnesses={undefined}
@@ -52,7 +61,7 @@ describe('PeopleInvolvedCard', () => {
   });
 
   it('does not show empty state when only witnesses provided', () => {
-    render(
+    renderWithProvider(
       <PeopleInvolvedCard
         involvedParties={undefined}
         witnesses="Witness 1"
@@ -62,7 +71,7 @@ describe('PeopleInvolvedCard', () => {
   });
 
   it('preserves whitespace in involved parties text', () => {
-    render(
+    renderWithProvider(
       <PeopleInvolvedCard
         involvedParties="Line 1\nLine 2"
         witnesses={undefined}
@@ -73,7 +82,7 @@ describe('PeopleInvolvedCard', () => {
   });
 
   it('preserves whitespace in witnesses text', () => {
-    render(
+    renderWithProvider(
       <PeopleInvolvedCard
         involvedParties={undefined}
         witnesses="Witness 1\nWitness 2"

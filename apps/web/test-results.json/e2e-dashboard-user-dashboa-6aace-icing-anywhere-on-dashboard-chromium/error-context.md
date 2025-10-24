@@ -1,0 +1,107 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e7]: Welcome, RopeEnthusiast
+      - generic [ref=e8]:
+        - link "Report an Incident" [ref=e9] [cursor=pointer]:
+          - /url: /safety/report
+        - link "Private Lessons" [ref=e10] [cursor=pointer]:
+          - /url: /private-lessons
+        - link "Contact" [ref=e11] [cursor=pointer]:
+          - /url: /contact-us
+        - link "Edit Profile" [ref=e12] [cursor=pointer]:
+          - /url: /dashboard/profile-settings
+        - button "Logout" [ref=e13] [cursor=pointer]
+    - banner [ref=e14]:
+      - link "WITCH CITY ROPE" [ref=e15] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e16]:
+        - link "Events & Classes" [ref=e17] [cursor=pointer]:
+          - /url: /events
+        - link "Resources" [ref=e18] [cursor=pointer]:
+          - /url: /resources
+        - link "Dashboard" [ref=e19] [cursor=pointer]:
+          - /url: /dashboard
+    - main [ref=e20]:
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - heading "RopeEnthusiast Dashboard" [level=1] [ref=e24]
+          - link "Edit Profile" [ref=e25] [cursor=pointer]:
+            - /url: /dashboard/profile-settings
+            - generic [ref=e27]: Edit Profile
+        - generic [ref=e29]:
+          - generic [ref=e30]:
+            - generic [ref=e32]:
+              - generic [ref=e33]:
+                - checkbox "Show Past Events" [ref=e34]
+                - img
+              - generic [ref=e36]: Show Past Events
+            - radiogroup [ref=e37]:
+              - generic [ref=e39]:
+                - radio "Card View" [checked]
+                - generic [ref=e40] [cursor=pointer]: Card View
+              - generic [ref=e41]:
+                - radio "List View"
+                - generic [ref=e42] [cursor=pointer]: List View
+          - generic [ref=e44]:
+            - img [ref=e46]
+            - textbox "Search events..." [ref=e49]
+        - generic [ref=e50]:
+          - generic [ref=e51]:
+            - paragraph [ref=e53]: Introduction to Rope Safety
+            - generic [ref=e54]:
+              - paragraph [ref=e55]: Tuesday, October 28, 2025 • 2:00 PM
+              - paragraph [ref=e56]: 📍 main-studio
+              - paragraph [ref=e57]: Navigation test - this should persist after save
+              - generic [ref=e59]: Ticket Purchased
+              - link "View Details" [ref=e60] [cursor=pointer]:
+                - /url: /events/dd5e0d9c-a7a8-4a91-85e9-f3d570d166d0
+                - generic [ref=e62]: View Details
+          - generic [ref=e63]:
+            - paragraph [ref=e65]: Advanced Floor Work
+            - generic [ref=e66]:
+              - paragraph [ref=e67]: Tuesday, November 11, 2025 • 1:00 PM
+              - paragraph [ref=e68]: 📍 Main Workshop Room
+              - paragraph [ref=e69]: Explore complex floor-based rope bondage techniques for experienced practitioners.
+              - generic [ref=e71]: Ticket Purchased
+              - link "View Details" [ref=e72] [cursor=pointer]:
+                - /url: /events/6df6831c-ad2e-4810-aee6-384e48f03893
+                - generic [ref=e74]: View Details
+          - generic [ref=e75]:
+            - paragraph [ref=e77]: Community Rope Jam
+            - generic [ref=e78]:
+              - paragraph [ref=e79]: Tuesday, November 18, 2025 • 2:00 PM
+              - paragraph [ref=e80]: 📍 Community Space
+              - paragraph [ref=e81]: Casual practice session for all skill levels. Bring your rope and practice with the community.
+              - generic [ref=e83]: RSVP Confirmed
+              - link "View Details" [ref=e84] [cursor=pointer]:
+                - /url: /events/ce42ad83-2895-4353-9b94-19f2f6e76c9f
+                - generic [ref=e86]: View Details
+          - generic [ref=e87]:
+            - paragraph [ref=e89]: Rope Social & Discussion
+            - generic [ref=e90]:
+              - paragraph [ref=e91]: Tuesday, November 25, 2025 • 2:00 PM
+              - paragraph [ref=e92]: 📍 Community Space
+              - paragraph [ref=e93]: Monthly social gathering for community connection and discussion of rope topics.
+              - generic [ref=e95]: RSVP Confirmed
+              - link "View Details" [ref=e96] [cursor=pointer]:
+                - /url: /events/5d21c139-73af-40e0-b548-b3da346d8972
+                - generic [ref=e98]: View Details
+          - generic [ref=e99]:
+            - paragraph [ref=e101]: New Members Meetup
+            - generic [ref=e102]:
+              - paragraph [ref=e103]: Tuesday, December 2, 2025 • 1:00 PM
+              - paragraph [ref=e104]: 📍 Community Space
+              - paragraph [ref=e105]: Welcome gathering for new community members to meet established practitioners and learn about upcoming events.
+              - generic [ref=e107]: RSVP Confirmed
+              - link "View Details" [ref=e108] [cursor=pointer]:
+                - /url: /events/75b86eaa-9217-47d4-9d53-0a441c5b3515
+                - generic [ref=e110]: View Details
+  - generic [ref=e111]:
+    - img [ref=e113]
+    - button "Open Tanstack query devtools" [ref=e161] [cursor=pointer]:
+      - img [ref=e162]
+```

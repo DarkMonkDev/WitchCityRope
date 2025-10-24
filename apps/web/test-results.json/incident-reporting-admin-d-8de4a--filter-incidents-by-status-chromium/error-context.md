@@ -1,0 +1,48 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e7]: Welcome, RopeMaster
+      - generic [ref=e8]:
+        - link "Report an Incident" [ref=e9] [cursor=pointer]:
+          - /url: /safety/report
+        - link "Private Lessons" [ref=e10] [cursor=pointer]:
+          - /url: /private-lessons
+        - link "Contact" [ref=e11] [cursor=pointer]:
+          - /url: /contact-us
+        - link "Edit Profile" [ref=e12] [cursor=pointer]:
+          - /url: /dashboard/profile-settings
+        - button "Logout" [ref=e13] [cursor=pointer]
+    - banner [ref=e14]:
+      - link "WITCH CITY ROPE" [ref=e15] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e16]:
+        - link "Admin" [ref=e17] [cursor=pointer]:
+          - /url: /admin
+        - link "Events & Classes" [ref=e18] [cursor=pointer]:
+          - /url: /events
+        - link "Resources" [ref=e19] [cursor=pointer]:
+          - /url: /resources
+        - link "Dashboard" [ref=e20] [cursor=pointer]:
+          - /url: /dashboard
+    - main [ref=e21]:
+      - generic [ref=e23]:
+        - heading "Incident Dashboard" [level=1] [ref=e24]
+        - alert "Error Loading Incidents" [ref=e25]:
+          - generic [ref=e26]:
+            - img [ref=e28]
+            - generic [ref=e31]:
+              - generic [ref=e33]: Error Loading Incidents
+              - generic [ref=e34]:
+                - paragraph [ref=e35]: Request failed with status code 500
+                - button "Retry" [ref=e36] [cursor=pointer]:
+                  - generic [ref=e37]:
+                    - img [ref=e39]
+                    - generic [ref=e42]: Retry
+  - generic [ref=e43]:
+    - img [ref=e45]
+    - button "Open Tanstack query devtools" [ref=e93] [cursor=pointer]:
+      - img [ref=e94]
+```

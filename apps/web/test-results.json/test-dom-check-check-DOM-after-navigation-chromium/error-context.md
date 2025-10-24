@@ -1,0 +1,94 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e7]: Welcome, RopeMaster
+      - generic [ref=e8]:
+        - link "Report an Incident" [ref=e9] [cursor=pointer]:
+          - /url: /safety/report
+        - link "Private Lessons" [ref=e10] [cursor=pointer]:
+          - /url: /private-lessons
+        - link "Contact" [ref=e11] [cursor=pointer]:
+          - /url: /contact-us
+        - link "Edit Profile" [ref=e12] [cursor=pointer]:
+          - /url: /dashboard/profile-settings
+        - button "Logout" [ref=e13] [cursor=pointer]
+    - banner [ref=e14]:
+      - link "WITCH CITY ROPE" [ref=e15] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e16]:
+        - link "Admin" [ref=e17] [cursor=pointer]:
+          - /url: /admin
+        - link "Events & Classes" [ref=e18] [cursor=pointer]:
+          - /url: /events
+        - link "Resources" [ref=e19] [cursor=pointer]:
+          - /url: /resources
+        - link "Dashboard" [ref=e20] [cursor=pointer]:
+          - /url: /dashboard
+    - main [ref=e21]:
+      - generic [ref=e23]:
+        - generic [ref=e24]:
+          - button "Back to Applications" [ref=e25] [cursor=pointer]:
+            - generic [ref=e26]:
+              - img [ref=e28]
+              - generic [ref=e31]: Back to Applications
+          - generic [ref=e33]: Under Review
+        - heading "ApprovalTest-1761262571966" [level=1] [ref=e35]
+        - generic [ref=e36]:
+          - generic [ref=e37]:
+            - button "Approve for Interview" [ref=e38] [cursor=pointer]
+            - button "Skip to Approved" [ref=e39] [cursor=pointer]
+          - generic [ref=e40]:
+            - button "Reminder" [ref=e41] [cursor=pointer]:
+              - img [ref=e42]
+              - generic [ref=e45]: Reminder
+            - button "On Hold" [ref=e46] [cursor=pointer]:
+              - img [ref=e47]
+              - generic [ref=e50]: On Hold
+            - button "Deny" [ref=e51] [cursor=pointer]:
+              - img [ref=e52]
+              - generic [ref=e55]: Deny
+        - generic [ref=e60]:
+          - heading "Application Details" [level=3] [ref=e61]
+          - generic [ref=e63]:
+            - generic [ref=e65]:
+              - generic [ref=e66]:
+                - paragraph [ref=e67]: "Scene Name:"
+                - paragraph [ref=e68]: ApprovalTest-1761262571966
+              - generic [ref=e69]:
+                - paragraph [ref=e70]: "Real Name:"
+                - paragraph [ref=e71]: Test User 1761262571966
+              - generic [ref=e72]:
+                - paragraph [ref=e73]: "Email:"
+                - paragraph [ref=e74]: approval-1761262571966@test.com
+            - generic [ref=e76]:
+              - generic [ref=e77]:
+                - paragraph [ref=e78]: "Application Date:"
+                - paragraph [ref=e79]: 10/23/2025
+              - generic [ref=e80]:
+                - paragraph [ref=e81]: "FetLife Handle:"
+                - paragraph [ref=e82]: "@ApprovalTest-1761262571966"
+              - generic [ref=e83]:
+                - paragraph [ref=e84]: "Other Names/Handles:"
+                - paragraph [ref=e85]: Not provided
+          - generic [ref=e86]:
+            - generic [ref=e87]:
+              - paragraph [ref=e88]: Why do you want to join WitchCityRope?
+              - paragraph
+            - generic [ref=e89]:
+              - paragraph [ref=e90]: What is your rope experience thus far?
+              - paragraph
+        - generic [ref=e91]:
+          - generic [ref=e92]:
+            - heading "Notes" [level=3] [ref=e93]
+            - button "Save Note" [disabled]
+          - generic [ref=e94]:
+            - textbox "Add a note about this application..." [ref=e97]
+            - paragraph [ref=e98]: No notes added yet
+  - generic [ref=e99]:
+    - img [ref=e101]
+    - button "Open Tanstack query devtools" [ref=e149] [cursor=pointer]:
+      - img [ref=e150]
+```

@@ -1,32 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { setupConsoleErrorFiltering } from './helpers/console.helpers';
 
 test('Check console errors', async ({ page }) => {
-  const errors: string[] = [];
-
-  // Listen for console errors
-  page.on('console', msg => {
-    if (msg.type() === 'error') {
-      const errorText = msg.text();
-
-      // Filter out expected 401 errors on public pages
-      // These occur when unauthenticated users visit public routes (homepage, events)
-      // The app checks auth status on load, which returns 401 - this is EXPECTED behavior
-      const is401Error = errorText.includes('401') || errorText.includes('Unauthorized');
-      const isFailedResource = errorText.includes('Failed to load resource');
-
-      if ((is401Error && isFailedResource) || is401Error) {
-        console.log('ℹ️  Expected auth check (401):', errorText);
-        return; // Skip this error - it's expected behavior on public pages
-      }
-
-      errors.push(errorText);
-      console.log('❌ Console Error:', errorText);
-    }
-  });
-
-  page.on('pageerror', error => {
-    errors.push(error.message);
-    console.log('❌ Page Error:', error.message);
+  // Set up console error filtering with helper
+  const { getErrors, printSummary } = setupConsoleErrorFiltering(page, {
+    filter401Errors: true,
+    logFilteredMessages: true,
   });
 
   // Navigate to the app
@@ -57,16 +36,13 @@ test('Check console errors', async ({ page }) => {
 
   console.log('JavaScript check:', jsCheck);
 
-  // Report findings
-  if (errors.length > 0) {
-    console.log('\n=== CONSOLE ERRORS FOUND ===');
-    errors.forEach((error, i) => console.log(`${i + 1}. ${error}`));
-  } else {
-    console.log('\n✅ No console errors found');
-  }
+  // Report findings using helper
+  printSummary();
 
   // Take screenshot
   await page.screenshot({ path: 'test-results/console-error-check.png' });
 
+  // Use helper to get errors
+  const errors = getErrors();
   expect(errors.length).toBe(0);
 });

@@ -8,24 +8,16 @@ const getApiBaseUrl = () => {
 }
 const API_BASE_URL = getApiBaseUrl()
 
-const mockFetch = vi.fn() as MockedFunction<typeof fetch>;
-
-// Mock JWT token data
+// Mock JWT token data (kept for potential future use)
 const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock_token_payload';
 const mockExpiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
 
 describe('AuthStore', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
-    // Mock fetch directly with default success response
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({ success: true })
-    } as Response);
-    global.fetch = mockFetch;
-    
-    // Reset store state after setting up mocks
+
+    // Reset store state - let MSW handle all API calls
+    // DO NOT mock global.fetch - it conflicts with MSW handlers
     useAuthStore.getState().actions.logout();
   });
 
@@ -82,15 +74,12 @@ describe('AuthStore', () => {
       // Call logout
       actions.logout();
       
-      // Verify state was cleared immediately (no API call in store)
+      // Verify state was cleared immediately (no API call in store action)
       const state = useAuthStore.getState();
       expect(state.isAuthenticated).toBe(false);
       expect(state.user).toBeNull();
       expect(state.isLoading).toBe(false);
       expect(state.lastAuthCheck).toBeNull();
-      
-      // Verify no API call was made from the store
-      expect(mockFetch).not.toHaveBeenCalled();
     });
   });
 
@@ -140,11 +129,13 @@ describe('AuthStore', () => {
         id: '1',
         email: 'admin@witchcityrope.com',
         sceneName: 'TestAdmin',
-                roles: ['Admin'],
+        firstName: null,
+        lastName: null,
+        roles: ['Admin'],
         isActive: true,
         createdAt: '2025-08-19T00:00:00Z',
+        updatedAt: '2025-08-19T10:00:00Z',
         lastLoginAt: '2025-08-19T10:00:00Z',
-        // lastLoginAt: '2025-08-19T10:00:00Z' // TODO: Fix type resolution issue
       });
       expect(state.isLoading).toBe(false);
     });
@@ -152,18 +143,20 @@ describe('AuthStore', () => {
     it('should handle flat response structure', async () => {
       const { actions } = useAuthStore.getState();
       await actions.checkAuth();
-      
+
       const state = useAuthStore.getState();
       expect(state.isAuthenticated).toBe(true);
       expect(state.user).toEqual({
         id: '1',
         email: 'admin@witchcityrope.com',
         sceneName: 'TestAdmin',
-                roles: ['Admin'],
+        firstName: null,
+        lastName: null,
+        roles: ['Admin'],
         isActive: true,
         createdAt: '2025-08-19T00:00:00Z',
+        updatedAt: '2025-08-19T10:00:00Z',
         lastLoginAt: '2025-08-19T10:00:00Z',
-        // lastLoginAt: '2025-08-19T10:00:00Z' // TODO: Fix type resolution issue
       });
     });
 
@@ -171,16 +164,17 @@ describe('AuthStore', () => {
       // Override MSW handler to return 401 for this test
       const { server } = await import('../../test/setup');
       const { http, HttpResponse } = await import('msw');
-      
+
+      // authStore calls relative URL '/api/auth/user', so override that handler
       server.use(
-        http.get(`${API_BASE_URL}/api/auth/user`, () => {
+        http.get('/api/auth/user', () => {
           return new HttpResponse(null, { status: 401 })
         })
       );
-      
+
       const { actions } = useAuthStore.getState();
       await actions.checkAuth();
-      
+
       const state = useAuthStore.getState();
       expect(state.isAuthenticated).toBe(false);
       expect(state.user).toBeNull();
@@ -191,16 +185,17 @@ describe('AuthStore', () => {
       // Override MSW handler to simulate network error for this test
       const { server } = await import('../../test/setup');
       const { http, HttpResponse } = await import('msw');
-      
+
+      // authStore calls relative URL '/api/auth/user', so override that handler
       server.use(
-        http.get(`${API_BASE_URL}/api/auth/user`, () => {
+        http.get('/api/auth/user', () => {
           return HttpResponse.error()
         })
       );
-      
+
       const { actions } = useAuthStore.getState();
       await actions.checkAuth();
-      
+
       const state = useAuthStore.getState();
       expect(state.isAuthenticated).toBe(false);
       expect(state.user).toBeNull();

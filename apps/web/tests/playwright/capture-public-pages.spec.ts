@@ -1,7 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 test.describe('Public Event Pages Comparison', () => {
   test('capture dashboard events page', async ({ page }) => {
+    // Login as member before accessing dashboard
+    await AuthHelpers.loginAs(page, 'member');
+
     // Navigate to the dashboard events page (currently requires auth)
     await page.goto('http://localhost:5173/dashboard/events');
 

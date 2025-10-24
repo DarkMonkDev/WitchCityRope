@@ -1,0 +1,229 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e6]:
+      - link "Report an Incident" [ref=e7] [cursor=pointer]:
+        - /url: /safety/report
+      - link "Private Lessons" [ref=e8] [cursor=pointer]:
+        - /url: /private-lessons
+      - link "Contact" [ref=e9] [cursor=pointer]:
+        - /url: /contact-us
+    - banner [ref=e10]:
+      - link "WITCH CITY ROPE" [ref=e11] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e12]:
+        - link "Events & Classes" [ref=e13] [cursor=pointer]:
+          - /url: /events
+        - link "How to Join" [ref=e14] [cursor=pointer]:
+          - /url: /join
+        - link "Resources" [ref=e15] [cursor=pointer]:
+          - /url: /resources
+        - link "Login" [ref=e16] [cursor=pointer]:
+          - /url: /login
+    - main [ref=e17]:
+      - generic [ref=e18]:
+        - heading "Event Session Matrix Demo" [level=1] [ref=e19]
+        - generic [ref=e23]:
+          - tablist [ref=e24]:
+            - tab "Basic Info" [selected] [ref=e25] [cursor=pointer]:
+              - generic [ref=e26]: Basic Info
+            - tab "Setup" [ref=e27] [cursor=pointer]:
+              - generic [ref=e28]: Setup
+            - tab "Emails" [ref=e29] [cursor=pointer]:
+              - generic [ref=e30]: Emails
+            - tab "Volunteers" [ref=e31] [cursor=pointer]:
+              - generic [ref=e32]: Volunteers
+            - tab "RSVP/Tickets" [ref=e33] [cursor=pointer]:
+              - generic [ref=e34]: RSVP/Tickets
+            - tab "Attendees" [ref=e35] [cursor=pointer]:
+              - generic [ref=e36]: Attendees
+          - tabpanel "Basic Info" [ref=e37]:
+            - generic [ref=e38]:
+              - generic [ref=e39]:
+                - heading "Event Details" [level=2] [ref=e40]
+                - radiogroup [ref=e42]:
+                  - generic [ref=e43]:
+                    - generic [ref=e45] [cursor=pointer]:
+                      - paragraph [ref=e46]: Class
+                      - paragraph [ref=e47]: Educational workshop requiring payment
+                    - generic [ref=e49] [cursor=pointer]:
+                      - paragraph [ref=e50]: Social Event
+                      - paragraph [ref=e51]: Community gathering with volunteers
+                - generic [ref=e52]:
+                  - generic [ref=e53]: Event Title *
+                  - textbox "Event Title" [ref=e55]:
+                    - /placeholder: Enter event title
+                    - text: "Rope Bondage Intensive: 3-Day Series"
+                - generic [ref=e56]:
+                  - generic [ref=e57]: Short Description *
+                  - paragraph [ref=e58]: Brief description for cards and grid views (160 characters max)
+                  - textbox "Short Description" [ref=e60]:
+                    - /placeholder: Brief description for cards and grid views
+                    - text: Comprehensive rope bondage workshop covering fundamentals through advanced techniques
+                - generic [ref=e61]:
+                  - paragraph [ref=e62]: Full Event Description *
+                  - paragraph [ref=e63]: This detailed description will be visible on the public events page
+                  - generic [ref=e64]:
+                    - generic [ref=e65]:
+                      - generic [ref=e66]:
+                        - button "Bold" [pressed] [ref=e67] [cursor=pointer]:
+                          - img [ref=e68]
+                        - button "Italic" [ref=e72] [cursor=pointer]:
+                          - img [ref=e73]
+                        - button "Underline" [ref=e76] [cursor=pointer]:
+                          - img [ref=e77]
+                        - button "Strikethrough" [ref=e80] [cursor=pointer]:
+                          - img [ref=e81]
+                        - button "Clear formatting" [ref=e84] [cursor=pointer]:
+                          - img [ref=e85]
+                      - button "Text color" [ref=e91] [cursor=pointer]
+                      - generic [ref=e97]:
+                        - button "Heading 1" [ref=e98] [cursor=pointer]:
+                          - img [ref=e99]
+                        - button "Heading 2" [ref=e102] [cursor=pointer]:
+                          - img [ref=e103]
+                        - button "Heading 3" [ref=e106] [cursor=pointer]:
+                          - img [ref=e107]
+                        - button "Heading 4" [ref=e111] [cursor=pointer]:
+                          - img [ref=e112]
+                      - generic [ref=e115]:
+                        - button "Blockquote" [ref=e116] [cursor=pointer]:
+                          - img [ref=e117]
+                        - button "Horizontal line" [ref=e121] [cursor=pointer]:
+                          - img [ref=e122]
+                        - button "Bullet list" [ref=e124] [cursor=pointer]:
+                          - img [ref=e125]
+                        - button "Ordered list" [ref=e127] [cursor=pointer]:
+                          - img [ref=e128]
+                      - generic [ref=e132]:
+                        - button "Link" [ref=e133] [cursor=pointer]:
+                          - img [ref=e134]
+                        - button "Remove link" [ref=e139] [cursor=pointer]:
+                          - img [ref=e140]
+                      - generic [ref=e145]:
+                        - 'button "Align text: left" [ref=e146] [cursor=pointer]':
+                          - img [ref=e147]
+                        - 'button "Align text: center" [ref=e149] [cursor=pointer]':
+                          - img [ref=e150]
+                        - 'button "Align text: justify" [ref=e152] [cursor=pointer]':
+                          - img [ref=e153]
+                        - 'button "Align text: right" [ref=e155] [cursor=pointer]':
+                          - img [ref=e156]
+                      - generic [ref=e158]:
+                        - button "Undo" [disabled] [ref=e159]:
+                          - img [ref=e160]
+                        - button "Redo" [disabled] [ref=e164]:
+                          - img [ref=e165]
+                    - generic [ref=e171]:
+                      - paragraph [ref=e172]:
+                        - strong [ref=e173]: Join us for an intensive 3-day rope bondage series!
+                      - paragraph [ref=e174]: This comprehensive workshop will take you from the basics through advanced techniques.
+                - generic [ref=e175]:
+                  - paragraph [ref=e176]: Policies & Procedures
+                  - paragraph [ref=e177]: Studio-specific policies, prerequisites, safety requirements, etc. (managed by studio/admin, teachers cannot edit)
+                  - generic [ref=e178]:
+                    - generic [ref=e179]:
+                      - generic [ref=e180]:
+                        - button "Bold" [pressed] [ref=e181] [cursor=pointer]:
+                          - img [ref=e182]
+                        - button "Italic" [ref=e186] [cursor=pointer]:
+                          - img [ref=e187]
+                        - button "Underline" [ref=e190] [cursor=pointer]:
+                          - img [ref=e191]
+                        - button "Strikethrough" [ref=e194] [cursor=pointer]:
+                          - img [ref=e195]
+                        - button "Clear formatting" [ref=e198] [cursor=pointer]:
+                          - img [ref=e199]
+                      - button "Text color" [ref=e205] [cursor=pointer]
+                      - generic [ref=e211]:
+                        - button "Heading 1" [ref=e212] [cursor=pointer]:
+                          - img [ref=e213]
+                        - button "Heading 2" [ref=e216] [cursor=pointer]:
+                          - img [ref=e217]
+                        - button "Heading 3" [ref=e220] [cursor=pointer]:
+                          - img [ref=e221]
+                        - button "Heading 4" [ref=e225] [cursor=pointer]:
+                          - img [ref=e226]
+                      - generic [ref=e229]:
+                        - button "Blockquote" [ref=e230] [cursor=pointer]:
+                          - img [ref=e231]
+                        - button "Horizontal line" [ref=e235] [cursor=pointer]:
+                          - img [ref=e236]
+                        - button "Bullet list" [ref=e238] [cursor=pointer]:
+                          - img [ref=e239]
+                        - button "Ordered list" [ref=e241] [cursor=pointer]:
+                          - img [ref=e242]
+                      - generic [ref=e246]:
+                        - button "Link" [ref=e247] [cursor=pointer]:
+                          - img [ref=e248]
+                        - button "Remove link" [ref=e253] [cursor=pointer]:
+                          - img [ref=e254]
+                      - generic [ref=e259]:
+                        - 'button "Align text: left" [ref=e260] [cursor=pointer]':
+                          - img [ref=e261]
+                        - 'button "Align text: center" [ref=e263] [cursor=pointer]':
+                          - img [ref=e264]
+                        - 'button "Align text: justify" [ref=e266] [cursor=pointer]':
+                          - img [ref=e267]
+                        - 'button "Align text: right" [ref=e269] [cursor=pointer]':
+                          - img [ref=e270]
+                      - generic [ref=e272]:
+                        - button "Undo" [disabled] [ref=e273]:
+                          - img [ref=e274]
+                        - button "Redo" [disabled] [ref=e278]:
+                          - img [ref=e279]
+                    - generic [ref=e285]:
+                      - paragraph [ref=e286]:
+                        - strong [ref=e287]: "Prerequisites:"
+                        - text: Basic rope handling experience recommended
+                      - paragraph [ref=e288]:
+                        - strong [ref=e289]: "Safety:"
+                        - text: All safety equipment provided
+              - generic [ref=e290]:
+                - heading "Venue" [level=2] [ref=e291]
+                - generic [ref=e292]:
+                  - generic [ref=e293]:
+                    - generic [ref=e294]: Venue *
+                    - generic [ref=e295]:
+                      - textbox "Venue" [ref=e296] [cursor=pointer]:
+                        - /placeholder: Select venue...
+                        - text: Main Studio
+                      - generic:
+                        - img
+                  - button "Add Venue" [ref=e297] [cursor=pointer]:
+                    - generic [ref=e299]: Add Venue
+              - generic [ref=e300]:
+                - heading "Teachers/Instructors" [level=2] [ref=e301]
+                - generic [ref=e302]:
+                  - generic [ref=e303]: Select Teachers
+                  - generic [ref=e304]:
+                    - generic [ref=e306]:
+                      - generic [ref=e307]:
+                        - generic [ref=e308]: river-moon
+                        - button [ref=e309] [cursor=pointer]:
+                          - img
+                      - generic [ref=e310]:
+                        - generic [ref=e311]: sage-blackthorne
+                        - button [ref=e312] [cursor=pointer]:
+                          - img
+                      - textbox "Select Teachers" [ref=e313]:
+                        - /placeholder: Choose teachers for this event
+                    - generic:
+                      - img
+                - paragraph [ref=e314]:
+                  - text: "Debug - Current teacherIds: [\"river-moon\",\"sage-blackthorne\"]"
+                  - text: "Teachers loading: No"
+                  - text: "Teachers available: 0"
+                  - text: "Teachers error: None"
+              - generic [ref=e315]:
+                - button "Cancel" [ref=e316] [cursor=pointer]:
+                  - generic [ref=e318]: Cancel
+                - button "Save" [disabled] [ref=e319]:
+                  - generic [ref=e321]: Save
+  - generic [ref=e322]:
+    - img [ref=e324]
+    - button "Open Tanstack query devtools" [ref=e372] [cursor=pointer]:
+      - img [ref=e373]
+```

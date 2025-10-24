@@ -6,11 +6,16 @@
 **CRITICAL**: Read Part 1 FIRST for ULTRA CRITICAL startup procedure and architecture documents.
 
 ## 📚 MULTI-FILE LESSONS LEARNED
-**This is Part 2 of 2**
+**This is Part 2 of 3**
 **Read Part 1 first**: backend-developer-lessons-learned.md - **CONTAINS MANDATORY STARTUP PROCEDURE**
 **Write to**: Part 2 ONLY
-**Max size**: 2,000 lines per file (NOT 2,500)
+**Max size**: 1,700 lines per file (NOT 2,500)
 **IF READ FAILS**: STOP and fix per documentation-standards.md
+
+## ⚠️ CAPACITY WARNING
+**Current Status**: Part 2 is at capacity (1701 lines)
+**Next Step**: Write new lessons to Part 3 (backend-developer-lessons-learned-3.md)
+**Do NOT exceed**: 1,700 lines per file to maintain readability
 
 ## ⛔ CRITICAL: HARD BLOCK - DO NOT PROCEED IF FILES UNREADABLE
 If you cannot read ANY file:

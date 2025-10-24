@@ -17,6 +17,7 @@ export default defineConfig({
       '**/.{idea,git,cache,output,temp}/**',
       '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
       '**/tests/playwright/**',  // Playwright E2E tests
+      '**/*.spec.ts',            // All Playwright test files (.spec.ts)
       '**/*.e2e.spec.ts',        // Any E2E test files
     ],
     // Memory management optimized for performance while preventing crashes

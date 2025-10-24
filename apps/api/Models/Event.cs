@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Participation.Entities;
 
 namespace WitchCityRope.Api.Models;
@@ -60,7 +61,7 @@ public class Event
     /// Type of event (workshop, social, performance, etc.)
     /// </summary>
     [Required]
-    public string EventType { get; set; } = string.Empty;
+    public EventType EventType { get; set; }
 
     /// <summary>
     /// Event location
@@ -132,7 +133,7 @@ public class Event
     /// </summary>
     public int GetCurrentAttendeeCount()
     {
-        if (EventType == "Social")
+        if (EventType == Enums.EventType.Social)
         {
             // Social events: Attendees = RSVPs (primary attendance metric)
             return GetCurrentRSVPCount();
@@ -153,7 +154,7 @@ public class Event
     public int GetCurrentRSVPCount()
     {
         // Only Social events have RSVPs
-        if (EventType != "Social") return 0;
+        if (EventType != Enums.EventType.Social) return 0;
 
         // Count active RSVP participations if navigation property is loaded
         if (EventParticipations?.Any() == true)

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 test.describe('Wireframe Comparison', () => {
   test('capture original wireframe', async ({ page }) => {
@@ -16,6 +17,9 @@ test.describe('Wireframe Comparison', () => {
   });
 
   test('capture current implementation', async ({ page }) => {
+    // Login as admin before accessing admin pages
+    await AuthHelpers.loginAs(page, 'admin');
+
     // Navigate to the current implementation
     await page.goto('http://localhost:5173/admin/event-session-matrix-demo');
     

@@ -1,0 +1,143 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e7]: Welcome, Learning
+      - generic [ref=e8]:
+        - link "Report an Incident" [ref=e9] [cursor=pointer]:
+          - /url: /safety/report
+        - link "Private Lessons" [ref=e10] [cursor=pointer]:
+          - /url: /private-lessons
+        - link "Contact" [ref=e11] [cursor=pointer]:
+          - /url: /contact-us
+        - link "Edit Profile" [ref=e12] [cursor=pointer]:
+          - /url: /dashboard/profile-settings
+        - button "Logout" [ref=e13] [cursor=pointer]
+    - banner [ref=e14]:
+      - link "WITCH CITY ROPE" [ref=e15] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e16]:
+        - link "Events & Classes" [ref=e17] [cursor=pointer]:
+          - /url: /events
+        - link "How to Join" [ref=e18] [cursor=pointer]:
+          - /url: /join
+        - link "Resources" [ref=e19] [cursor=pointer]:
+          - /url: /resources
+        - link "Dashboard" [ref=e20] [cursor=pointer]:
+          - /url: /dashboard
+    - main [ref=e21]:
+      - generic [ref=e22]:
+        - generic [ref=e25]:
+          - link "Home" [ref=e26] [cursor=pointer]:
+            - /url: /
+          - generic [ref=e27]: /
+          - link "Events" [ref=e28] [cursor=pointer]:
+            - /url: /events
+          - generic [ref=e29]: /
+          - paragraph [ref=e30]: Introduction to Rope Safety
+        - generic [ref=e31]:
+          - generic [ref=e32]:
+            - generic [ref=e35]:
+              - generic [ref=e37]: Event
+              - heading "Introduction to Rope Safety" [level=1] [ref=e38]
+              - generic [ref=e39]:
+                - generic [ref=e40]:
+                  - img [ref=e41]
+                  - paragraph [ref=e43]: Tuesday, October 28, 2025
+                - generic [ref=e44]:
+                  - img [ref=e45]
+                  - paragraph [ref=e48]: 2:00 PM
+                - generic [ref=e49]:
+                  - img [ref=e50]
+                  - paragraph [ref=e53]: main-studio
+            - generic [ref=e54]:
+              - heading "About This Event" [level=2] [ref=e55]
+              - generic [ref=e56]: "This comprehensive introduction to rope safety is designed for absolute beginners and those looking to refresh their fundamental knowledge. In this 3-hour workshop, you'll learn: - Essential safety principles and risk awareness for rope bondage - Communication techniques including consent negotiation and safe words - Basic rope handling skills and material selection (jute, hemp, synthetic) - Recognition of nerve compression and circulation issues - Emergency release procedures and safety protocols - How to create a safe practice environment Prerequisites: None - this is a beginner-friendly class designed for people with no prior rope experience. Materials: - Two 30-foot lengths of 6mm rope will be provided (jute or hemp) - You may bring your own rope if preferred - Comfortable clothing that allows movement is required Class Structure: - 45 minutes: Safety theory and communication fundamentals - 90 minutes: Hands-on practice with instructor guidance - 30 minutes: Q&A and resource sharing - 15 minutes: Community discussion and next steps This class emphasizes building a strong foundation in safety practices that will serve you throughout your rope journey. We focus on understanding risks, developing good habits, and creating positive experiences for all participants."
+              - heading "Event Details" [level=2] [ref=e57]
+              - generic [ref=e58]:
+                - paragraph [ref=e59]: Start Time
+                - paragraph [ref=e60]: Tuesday, October 28, 2025 at 2:00 PM
+              - generic [ref=e61]:
+                - paragraph [ref=e62]: End Time
+                - paragraph [ref=e63]: Tuesday, October 28, 2025 at 5:00 PM
+              - generic [ref=e64]:
+                - paragraph [ref=e65]: Location
+                - paragraph [ref=e66]: main-studio
+              - generic [ref=e67]:
+                - paragraph [ref=e68]: Capacity
+                - paragraph [ref=e69]: "20"
+            - generic [ref=e70]:
+              - heading "Volunteer Opportunities" [level=2] [ref=e71]
+              - generic [ref=e72]:
+                - paragraph [ref=e73]: Help make this event a success! Sign up for a volunteer position and you'll automatically be RSVPed to the event.
+                - generic [ref=e75]:
+                  - generic [ref=e76]:
+                    - generic [ref=e78]:
+                      - paragraph [ref=e79]: Door Monitor
+                      - paragraph [ref=e80]: 2:00 pm - 5:00 pm
+                    - generic [ref=e82]: (1 / 2 spots filled)
+                  - generic [ref=e83]:
+                    - generic [ref=e84]:
+                      - paragraph [ref=e85]: Check attendees in, verify tickets/RSVPs, and welcome newcomers
+                      - button "Sign Up" [ref=e86] [cursor=pointer]:
+                        - generic [ref=e88]: Sign Up
+                    - alert [ref=e89]:
+                      - generic [ref=e90]:
+                        - img [ref=e92]
+                        - generic [ref=e94]:
+                          - generic [ref=e96]: Confirm Volunteer Signup
+                          - generic [ref=e98]:
+                            - paragraph [ref=e99]: Signing up for this volunteer position will automatically RSVP you to the event if you haven't already.
+                            - generic [ref=e100]:
+                              - button [ref=e101] [cursor=pointer]:
+                                - generic [ref=e103]: Confirm
+                              - button [ref=e104] [cursor=pointer]:
+                                - generic [ref=e106]: Cancel
+                - generic [ref=e108]:
+                  - generic [ref=e109]:
+                    - generic [ref=e111]:
+                      - paragraph [ref=e112]: Setup/Cleanup Crew
+                      - paragraph [ref=e113]: 2:00 pm - 5:00 pm
+                    - generic [ref=e115]: (1 / 3 spots filled)
+                  - generic [ref=e116]:
+                    - generic [ref=e117]:
+                      - paragraph [ref=e118]: Help set up equipment before the event and clean up afterwards
+                      - button "Sign Up" [ref=e119] [cursor=pointer]:
+                        - generic [ref=e121]: Sign Up
+                    - alert [ref=e122]:
+                      - generic [ref=e123]:
+                        - img [ref=e125]
+                        - generic [ref=e127]:
+                          - generic [ref=e129]: Confirm Volunteer Signup
+                          - generic [ref=e131]:
+                            - paragraph [ref=e132]: Signing up for this volunteer position will automatically RSVP you to the event if you haven't already.
+                            - generic [ref=e133]:
+                              - button [ref=e134] [cursor=pointer]:
+                                - generic [ref=e136]: Confirm
+                              - button [ref=e137] [cursor=pointer]:
+                                - generic [ref=e139]: Cancel
+            - generic [ref=e140]:
+              - heading "Policies" [level=2] [ref=e141]
+              - generic [ref=e142]: "Event Policies and Safety Guidelines: Attendance Requirements: - All participants must be 18+ years old with valid government-issued photo ID - Advance registration and payment required (no walk-ins) - Arrive 15 minutes early for check-in and orientation Consent and Communication: - Enthusiastic consent is required for all activities and interactions - Respect all safe words, boundaries, and limits without question - \"No\" means no - immediately stop any activity when requested - Ask before touching others or their belongings Photography and Recording: - Absolutely no photography, video, or audio recording without explicit written permission from all participants - Cell phones must be on silent and stored during class - Violations will result in immediate removal without refund Appropriate Conduct and Attire: - Professional and respectful behavior expected at all times - Wear comfortable, non-restrictive clothing suitable for movement - Remove jewelry that may interfere with rope work - Closed-toe shoes recommended for safety Health and Safety: - Inform instructor of any medical conditions, injuries, or mobility limitations - Practice good hygiene - shower before attending - Do not attend if you are ill or contagious - Report any injuries or safety concerns immediately to staff Scent-Free Environment: - Please avoid strong perfumes, colognes, or scented products - Some community members have chemical sensitivities Zero Tolerance Policies: - No harassment, discrimination, or predatory behavior of any kind - No drugs or alcohol on premises - Violation of policies may result in permanent ban from all community events By attending, you agree to abide by all policies and accept responsibility for your own safety and well-being."
+          - generic [ref=e145]:
+            - generic [ref=e146]:
+              - generic [ref=e147]:
+                - paragraph [ref=e148]: Event Capacity
+                - paragraph [ref=e149]: 5 / 20
+              - progressbar [ref=e151]
+            - generic [ref=e152]:
+              - generic [ref=e153]:
+                - img [ref=e154]
+                - paragraph [ref=e157]: Your Participation Status
+              - generic [ref=e158]:
+                - paragraph [ref=e160]: 1 Ticket Purchased
+                - paragraph [ref=e161]: Purchased on October 20, 2025
+                - button "Cancel Ticket" [ref=e162] [cursor=pointer]:
+                  - generic [ref=e164]: Cancel Ticket
+  - generic [ref=e165]:
+    - img [ref=e167]
+    - button "Open Tanstack query devtools" [ref=e215] [cursor=pointer]:
+      - img [ref=e216]
+```

@@ -1,0 +1,60 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e6]:
+      - link "Report an Incident" [ref=e7] [cursor=pointer]:
+        - /url: /safety/report
+      - link "Private Lessons" [ref=e8] [cursor=pointer]:
+        - /url: /private-lessons
+      - link "Contact" [ref=e9] [cursor=pointer]:
+        - /url: /contact-us
+    - banner [ref=e10]:
+      - link "WITCH CITY ROPE" [ref=e11] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e12]:
+        - link "Events & Classes" [ref=e13] [cursor=pointer]:
+          - /url: /events
+        - link "How to Join" [ref=e14] [cursor=pointer]:
+          - /url: /join
+        - link "Resources" [ref=e15] [cursor=pointer]:
+          - /url: /resources
+        - link "Login" [ref=e16] [cursor=pointer]:
+          - /url: /login
+    - main [ref=e17]:
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - heading "Welcome Back" [level=1] [ref=e21]
+          - paragraph [ref=e22]: Join Salem's premier rope education community
+        - generic [ref=e23]: 21+ COMMUNITY • AGE VERIFICATION REQUIRED
+        - generic [ref=e26]:
+          - generic [ref=e27]:
+            - generic [ref=e28]: Email Address
+            - textbox "your@email.com" [ref=e31]
+          - generic [ref=e32]:
+            - generic [ref=e33]: Password
+            - generic [ref=e35]:
+              - textbox "Enter your password" [ref=e37]
+              - button [ref=e39] [cursor=pointer]:
+                - img [ref=e41]
+          - generic [ref=e43]:
+            - generic [ref=e46]:
+              - checkbox [ref=e47]
+              - img
+            - paragraph [ref=e48]: Keep me signed in for 30 days
+          - button "Sign In" [ref=e49] [cursor=pointer]
+        - generic [ref=e50]:
+          - paragraph [ref=e51]:
+            - link "Forgot your password?" [ref=e52] [cursor=pointer]:
+              - /url: /forgot-password
+          - paragraph [ref=e53]:
+            - text: New to Witch City Rope?
+            - link "Create an account" [ref=e54] [cursor=pointer]:
+              - /url: /register
+          - paragraph [ref=e56]: "Test Account: admin@witchcityrope.com / Test123!"
+  - generic [ref=e57]:
+    - img [ref=e59]
+    - button "Open Tanstack query devtools" [ref=e107] [cursor=pointer]:
+      - img [ref=e108]
+```

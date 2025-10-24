@@ -1,0 +1,198 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e6]:
+      - link "Report an Incident" [ref=e7] [cursor=pointer]:
+        - /url: /safety/report
+      - link "Private Lessons" [ref=e8] [cursor=pointer]:
+        - /url: /private-lessons
+      - link "Contact" [ref=e9] [cursor=pointer]:
+        - /url: /contact-us
+    - banner [ref=e10]:
+      - link "WITCH CITY ROPE" [ref=e11] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e12]:
+        - link "Events & Classes" [ref=e13] [cursor=pointer]:
+          - /url: /events
+        - link "How to Join" [ref=e14] [cursor=pointer]:
+          - /url: /join
+        - link "Resources" [ref=e15] [cursor=pointer]:
+          - /url: /resources
+        - link "Login" [ref=e16] [cursor=pointer]:
+          - /url: /login
+    - main [ref=e17]:
+      - generic [ref=e18]:
+        - generic [ref=e20]:
+          - paragraph [ref=e21]: Where curiosity meets connection
+          - heading "Salem's Rope Bondage Education & Practice Community" [level=1] [ref=e22]:
+            - text: Salem's Rope Bondage
+            - text: Education & Practice
+            - text: Community
+          - paragraph [ref=e23]: Join 600+ members learning and growing together in a supportive, consent-focused space that celebrates every journey
+          - generic [ref=e24]:
+            - link "Browse Upcoming Classes" [ref=e25] [cursor=pointer]:
+              - /url: /#events
+            - link "Start Your Journey" [ref=e26] [cursor=pointer]:
+              - /url: /#join
+        - generic [ref=e27]:
+          - heading "Upcoming Classes & Events" [level=2] [ref=e28]: Upcoming Classes & Events
+          - generic [ref=e30]:
+            - generic [ref=e31] [cursor=pointer]:
+              - paragraph [ref=e34]: Introduction to Rope Safety
+              - generic [ref=e35]:
+                - paragraph [ref=e36]: Tuesday, October 28 at 2:00 PM
+                - paragraph [ref=e37]: This is a test short description for debugging
+                - generic [ref=e38]:
+                  - generic [ref=e39]:
+                    - generic [ref=e40]: 📍
+                    - generic [ref=e41]: main-studio
+                  - generic [ref=e42]:
+                    - generic [ref=e43]: ⏱️
+                    - generic [ref=e44]: 2.5 hours
+                  - generic [ref=e45]:
+                    - generic [ref=e46]: 📚
+                    - generic [ref=e47]: Beginner
+                - generic [ref=e48]:
+                  - paragraph [ref=e49]: $35-55
+                  - paragraph [ref=e50]: 15 of 20 tickets
+            - generic [ref=e51] [cursor=pointer]:
+              - paragraph [ref=e54]: Suspension Basics
+              - generic [ref=e55]:
+                - paragraph [ref=e56]: Tuesday, November 4 at 1:00 PM
+                - paragraph [ref=e57]: Introduction to suspension techniques with emphasis on safety and proper rigging.
+                - generic [ref=e58]:
+                  - generic [ref=e59]:
+                    - generic [ref=e60]: 📍
+                    - generic [ref=e61]: Main Workshop Room
+                  - generic [ref=e62]:
+                    - generic [ref=e63]: ⏱️
+                    - generic [ref=e64]: 2.5 hours
+                  - generic [ref=e65]:
+                    - generic [ref=e66]: 📚
+                    - generic [ref=e67]: Beginner
+                - generic [ref=e68]:
+                  - paragraph [ref=e69]: $35-55
+                  - paragraph [ref=e70]: 9 of 12 tickets
+            - generic [ref=e71] [cursor=pointer]:
+              - paragraph [ref=e74]: Advanced Floor Work
+              - generic [ref=e75]:
+                - paragraph [ref=e76]: Tuesday, November 11 at 1:00 PM
+                - paragraph [ref=e77]: Explore complex floor-based rope bondage techniques for experienced practitioners.
+                - generic [ref=e78]:
+                  - generic [ref=e79]:
+                    - generic [ref=e80]: 📍
+                    - generic [ref=e81]: Main Workshop Room
+                  - generic [ref=e82]:
+                    - generic [ref=e83]: ⏱️
+                    - generic [ref=e84]: 2.5 hours
+                  - generic [ref=e85]:
+                    - generic [ref=e86]: 📚
+                    - generic [ref=e87]: Beginner
+                - generic [ref=e88]:
+                  - paragraph [ref=e89]: $35-55
+                  - paragraph [ref=e90]: 7 of 10 tickets
+            - generic [ref=e91] [cursor=pointer]:
+              - paragraph [ref=e94]: Community Rope Jam
+              - generic [ref=e95]:
+                - paragraph [ref=e96]: Tuesday, November 18 at 2:00 PM
+                - paragraph [ref=e97]: Casual practice session for all skill levels. Bring your rope and practice with the community.
+                - generic [ref=e98]:
+                  - generic [ref=e99]:
+                    - generic [ref=e100]: 📍
+                    - generic [ref=e101]: Community Space
+                  - generic [ref=e102]:
+                    - generic [ref=e103]: ⏱️
+                    - generic [ref=e104]: 2.5 hours
+                  - generic [ref=e105]:
+                    - generic [ref=e106]: 📚
+                    - generic [ref=e107]: Beginner
+                - generic [ref=e108]:
+                  - paragraph [ref=e109]: $35-55
+                  - paragraph [ref=e110]: 5/40 RSVPs
+          - link "View Full Calendar" [ref=e112] [cursor=pointer]:
+            - /url: /events
+        - img [ref=e114]
+        - generic [ref=e117]:
+          - heading "What Makes Our Community Special" [level=2] [ref=e118]: What Makes Our Community Special
+          - generic [ref=e120]:
+            - generic [ref=e121]:
+              - generic [ref=e122] [cursor=pointer]: 🎭
+              - heading "Expert Teaching" [level=3] [ref=e123]
+              - paragraph [ref=e124]: Learn from experienced instructors who make rope accessible to everyone. We blend technical skills with creativity and always prioritize safety.
+            - generic [ref=e125]:
+              - generic [ref=e126] [cursor=pointer]: 🌹
+              - heading "Welcoming Community" [level=3] [ref=e127]
+              - paragraph [ref=e128]: Find your people in our warm, respectful space. We celebrate diversity, honor boundaries, and support each other's growth.
+            - generic [ref=e129]:
+              - generic [ref=e130] [cursor=pointer]: 🔮
+              - heading "Safety First, Always" [level=3] [ref=e131]
+              - paragraph [ref=e132]: We're committed to risk-aware practice, ongoing consent, and creating an environment where everyone feels secure to learn and explore.
+            - generic [ref=e133]:
+              - generic [ref=e134] [cursor=pointer]: ✨
+              - heading "Everyone Belongs" [level=3] [ref=e135]
+              - paragraph [ref=e136]: All bodies, orientations, and experience levels are welcome here. Come as you are—we're excited to support your unique journey.
+        - generic [ref=e139]:
+          - paragraph [ref=e140]: Ready to start?
+          - heading "Your Rope Journey Begins Here" [level=2] [ref=e141]
+          - paragraph [ref=e142]: Whether you're curious about rope or ready to deepen your practice, we're here to support you every step of the way.
+          - link "Join Our Community" [ref=e143] [cursor=pointer]:
+            - /url: /#join
+        - generic [ref=e144]:
+          - generic [ref=e146]:
+            - generic [ref=e147]:
+              - paragraph [ref=e148]: Education
+              - link "Class Calendar" [ref=e149] [cursor=pointer]:
+                - /url: "#"
+              - link "Private Instruction" [ref=e150] [cursor=pointer]:
+                - /url: "#"
+              - link "Online Resources" [ref=e151] [cursor=pointer]:
+                - /url: "#"
+              - link "Safety Protocols" [ref=e152] [cursor=pointer]:
+                - /url: "#"
+            - generic [ref=e153]:
+              - paragraph [ref=e154]: Community
+              - link "Membership" [ref=e155] [cursor=pointer]:
+                - /url: "#"
+              - link "Code of Conduct" [ref=e156] [cursor=pointer]:
+                - /url: "#"
+              - link "Our Instructors" [ref=e157] [cursor=pointer]:
+                - /url: "#"
+              - link "Testimonials" [ref=e158] [cursor=pointer]:
+                - /url: "#"
+            - generic [ref=e159]:
+              - paragraph [ref=e160]: Resources
+              - link "Equipment Guide" [ref=e161] [cursor=pointer]:
+                - /url: "#"
+              - link "Venue Information" [ref=e162] [cursor=pointer]:
+                - /url: "#"
+              - link "FAQ" [ref=e163] [cursor=pointer]:
+                - /url: "#"
+              - link "Blog" [ref=e164] [cursor=pointer]:
+                - /url: "#"
+            - generic [ref=e165]:
+              - paragraph [ref=e166]: Connect
+              - link "Discord Community" [ref=e167] [cursor=pointer]:
+                - /url: "#"
+              - link "Newsletter" [ref=e168] [cursor=pointer]:
+                - /url: "#"
+              - link "FetLife Group" [ref=e169] [cursor=pointer]:
+                - /url: "#"
+              - link "Instagram" [ref=e170] [cursor=pointer]:
+                - /url: "#"
+          - paragraph [ref=e172]:
+            - text: © 2024 Witch City Rope. All rights reserved. |
+            - link "Privacy Policy" [ref=e173] [cursor=pointer]:
+              - /url: "#"
+            - text: "|"
+            - link "Terms of Use" [ref=e174] [cursor=pointer]:
+              - /url: "#"
+            - text: "|"
+            - link "Age 21+ Community" [ref=e175] [cursor=pointer]:
+              - /url: "#"
+  - generic [ref=e176]:
+    - img [ref=e178]
+    - button "Open Tanstack query devtools" [ref=e226] [cursor=pointer]:
+      - img [ref=e227]
+```

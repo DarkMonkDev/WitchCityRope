@@ -1,13 +1,15 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
+import { setupConsoleErrorFiltering } from './helpers/console.helpers';
 
 /**
  * Test suite to verify page stability and content for Events Management demo pages
- * 
+ *
  * This test addresses user reports of:
  * 1. Demo page showing minimal content instead of full demo
  * 2. Pages constantly reloading
  * 3. Navigation test page constantly counting up renders
- * 
+ *
  * Environment: React app on port 5173 (Docker)
  * Created: 2025-09-06
  * Purpose: Verify actual page behavior vs reported issues
@@ -15,15 +17,15 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Events Management Demo Page Stability', () => {
   const BASE_URL = 'http://localhost:5173';
-  
+
   test.beforeEach(async ({ page }) => {
-    // Set up console monitoring to track errors and reloads
-    page.on('console', msg => {
-      if (msg.type() === 'error') {
-        console.log(`❌ Console Error: ${msg.text()}`);
-      } else if (msg.type() === 'warn') {
-        console.log(`⚠️ Console Warning: ${msg.text()}`);
-      }
+    // Login as admin before accessing admin pages
+    await AuthHelpers.loginAs(page, 'admin');
+
+    // Set up console error filtering
+    setupConsoleErrorFiltering(page, {
+      filter401Errors: true,
+      logFilteredMessages: false, // Reduce noise in test output
     });
 
     // Track page reloads
@@ -199,52 +201,42 @@ test.describe('Events Management Demo Page Stability', () => {
 
   test('should check /test-no-layout page stability and console errors', async ({ page }) => {
     console.log('🔍 Testing test-no-layout page stability...');
-    
-    let consoleErrors: string[] = [];
-    let consoleWarnings: string[] = [];
-    
-    // Capture console messages
-    page.on('console', msg => {
-      if (msg.type() === 'error') {
-        consoleErrors.push(msg.text());
-      } else if (msg.type() === 'warn') {
-        consoleWarnings.push(msg.text());
-      }
+
+    // Set up console error filtering for this specific test
+    const { getErrors, getWarnings, printSummary } = setupConsoleErrorFiltering(page, {
+      filter401Errors: true,
+      logFilteredMessages: false,
     });
-    
+
     // Navigate to the test page
     await page.goto(`${BASE_URL}/test-no-layout`);
-    
+
     // Wait for page to be fully loaded
     await page.waitForLoadState('networkidle', { timeout: 5000 });
-    
+
     // Take screenshot
-    await page.screenshot({ 
+    await page.screenshot({
       path: '/home/chad/repos/witchcityrope/apps/web/test-results/test-no-layout-stability.png',
-      fullPage: true 
+      fullPage: true
     });
-    
+
     // Monitor page stability for 5 seconds
     await page.waitForTimeout(5000);
-    
-    console.log(`📊 Console Analysis:`);
-    console.log(`   - Console errors: ${consoleErrors.length}`);
-    console.log(`   - Console warnings: ${consoleWarnings.length}`);
-    
-    if (consoleErrors.length > 0) {
-      console.log('❌ Console errors found:', consoleErrors.slice(0, 3)); // Show first 3
-    }
-    if (consoleWarnings.length > 0) {
-      console.log('⚠️ Console warnings found:', consoleWarnings.slice(0, 3)); // Show first 3
-    }
-    
+
+    // Print console summary
+    printSummary();
+
     // Verify basic page structure
     expect(page.url()).toBe(`${BASE_URL}/test-no-layout`);
-    
+
+    // Get errors and warnings from helper
+    const errors = getErrors();
+    const warnings = getWarnings();
+
     // Expect minimal console errors (some may be expected due to API issues)
-    if (consoleErrors.length > 10) {
+    if (errors.length > 10) {
       console.log('❌ EXCESSIVE console errors detected');
-      throw new Error(`Excessive console errors: ${consoleErrors.length} errors found`);
+      throw new Error(`Excessive console errors: ${errors.length} errors found`);
     } else {
       console.log('✅ Console errors within acceptable range');
     }

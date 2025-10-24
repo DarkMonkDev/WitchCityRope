@@ -1971,7 +1971,7 @@ The WitchCityRope Vetting Team",
         // Find events to register for
         var upcomingWorkshop = await _context.Events
             .Include(e => e.TicketTypes)
-            .Where(e => (e.EventType == "Class" || e.EventType.Contains("Workshop")) &&
+            .Where(e => e.EventType == EventType.Class &&
                        e.StartDate > DateTime.UtcNow &&
                        e.TicketTypes.Any())
             .OrderBy(e => e.StartDate)
@@ -1979,7 +1979,7 @@ The WitchCityRope Vetting Team",
 
         var upcomingSocial = await _context.Events
             .Include(e => e.TicketTypes)
-            .Where(e => e.EventType.Contains("Social") &&
+            .Where(e => e.EventType == EventType.Social &&
                        e.StartDate > DateTime.UtcNow &&
                        e.TicketTypes.Any())
             .OrderBy(e => e.StartDate)
@@ -2093,7 +2093,7 @@ The WitchCityRope Vetting Team",
 
             if (ticketType != null)
             {
-                var isSocialEvent = additionalEvent.EventType.Contains("Social");
+                var isSocialEvent = additionalEvent.EventType == EventType.Social;
                 var price = isSocialEvent ? 0 : ticketType.Price * 0.6m; // Sliding scale
 
                 purchasesToAdd.Add(new TicketPurchase
@@ -2140,7 +2140,7 @@ The WitchCityRope Vetting Team",
 
         foreach (var eventItem in events)
         {
-            if (eventItem.EventType == "Social")
+            if (eventItem.EventType == EventType.Social)
             {
                 // Social events: Create RSVPs for multiple users
                 var rsvpCount = eventItem.Title.Contains("Community Rope Jam") ? 5 :
@@ -2229,7 +2229,7 @@ The WitchCityRope Vetting Team",
                 volunteerPositionsToAdd.AddRange(eventPositions);
 
                 // Add session-specific volunteer positions for multi-day events
-                if (eventItem.Sessions.Any() && eventItem.EventType == "Class")
+                if (eventItem.Sessions.Any() && eventItem.EventType == EventType.Class)
                 {
                     foreach (var session in eventItem.Sessions)
                     {
@@ -2491,7 +2491,7 @@ The WitchCityRope Vetting Team",
             StartDate = DateTime.SpecifyKind(startDate, DateTimeKind.Utc),
             EndDate = DateTime.SpecifyKind(endDate, DateTimeKind.Utc),
             Capacity = capacity,
-            EventType = eventType.ToString(),
+            EventType = eventType,
             Location = eventType == EventType.Social ? "Community Space" : "Main Workshop Room",
             IsPublished = true,
             PricingTiers = FormatPricingTiers(price, eventType),
@@ -2538,7 +2538,7 @@ The WitchCityRope Vetting Team",
         sessionsToAdd.Add(session);
 
         // Add ticket types based on event type
-        if (eventItem.EventType == "Social")
+        if (eventItem.EventType == EventType.Social)
         {
             // Social events: Free RSVP + optional donation ticket
             var rsvpTicket = new TicketType
@@ -2682,7 +2682,7 @@ The WitchCityRope Vetting Team",
         });
 
         // Additional positions for classes
-        if (eventItem.EventType == "Class")
+        if (eventItem.EventType == EventType.Class)
         {
             positions.Add(new VolunteerPosition
             {
@@ -2923,7 +2923,7 @@ The WitchCityRope Vetting Team",
     /// </summary>
     private void CreateTicketTypesForSession(Event eventItem, Session session, List<TicketType> ticketTypesToAdd)
     {
-        if (eventItem.EventType == "Social")
+        if (eventItem.EventType == EventType.Social)
         {
             // Social events: Free RSVP + optional donation ticket
             var rsvpTicket = new TicketType

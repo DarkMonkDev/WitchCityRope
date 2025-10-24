@@ -1,6 +1,6 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-10-23 (CMS Pages Seeding and API Verification) -->
-<!-- Version: 8.1 - Added CMS Pages Database Seeding + API Endpoint Verification -->
+<!-- Last Updated: 2025-10-24 (Test Initialization Pattern Fixed - 95.1% Passing) -->
+<!-- Version: 8.7 - Participation test initialization pattern fixed, overall 95.1% pass rate -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
 
@@ -8,7 +8,7 @@
 
 This is a **navigation index** for the WitchCityRope test catalog. The full catalog is split into manageable parts to stay within token limits for AI agents.
 
-**File Size**: This index is kept under 600 lines to ensure AI agents can read it during startup.
+**File Size**: This index is kept under 700 lines to ensure AI agents can read it during startup.
 
 **Coverage**: Now documents all 271+ test files across all test types (E2E, React, C# Backend, Infrastructure) + CMS verification
 
@@ -42,104 +42,432 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 
 ### Current Test Status (October 2025)
 
-**Latest Updates** (2025-10-23 22:30 UTC - CMS PAGES VERIFICATION):
+**Latest Updates** (2025-10-24 - TEST INITIALIZATION PATTERN FIXED - 95.1% PASSING):
 
-- ✅ **CMS PAGES SEEDING AND API VERIFICATION COMPLETE** (2025-10-23 22:30 UTC):
-  - **Purpose**: Verify 7 new text-only CMS pages load correctly after seed data update
-  - **Overall Status**: ✅ **ALL 10 CMS PAGES OPERATIONAL** - Legal compliance pages ready for launch
-  - **Database Seeding**:
-    - Method: Manual SQL INSERT (automatic seeding skipped due to existing data)
-    - Total pages seeded: 10 (3 existing + 7 new)
-    - All pages marked as published: `IsPublished = true`
-  - **New Pages Added** (2025-10-23):
-    1. about-us - About WitchCityRope
-    2. faq - Frequently Asked Questions
-    3. safety-practices - Safety Practices
-    4. code-of-conduct - Code of Conduct
-    5. terms-of-service - Terms of Service (Legal Compliance)
-    6. privacy-policy - Privacy Policy (Legal Compliance)
-    7. community-guidelines - Community Guidelines
-  - **API Endpoint Testing**: ✅ **7/7 NEW PAGES PASS**
-    - Endpoint pattern: `GET /api/cms/pages/{slug}`
-    - All pages return 200 OK
-    - Response structure validated (id, slug, title, content, updatedAt, lastModifiedBy, isPublished)
-    - Content format: HTML with proper tags (h1, p, h2, ul, etc.)
-  - **Legal Compliance Verification**: ✅ **CRITICAL PAGES ACCESSIBLE**
-    - Terms of Service: `/api/cms/pages/terms-of-service` - ✅ Accessible
-    - Privacy Policy: `/api/cms/pages/privacy-policy` - ✅ Accessible
-    - **Legal Compliance Status**: ✅ **READY FOR LAUNCH**
-  - **Environment Status**: ✅ **HEALTHY**
-    - Docker containers: All healthy (API: 5655, Web: 5173, DB: 5434)
-    - Database schema: `cms` with tables `ContentPages`, `ContentRevisions`
-    - API health endpoint: Responding
-  - **Issues Resolved**:
-    - Automatic seeding skipped when existing pages present (design limitation)
-    - Manual SQL seeding used successfully
-    - Full content from CmsSeedData.cs available for production use
-  - **Report**: `/test-results/cms-pages-seeding-test-report-2025-10-23.md`
-  - **Status**: ✅ **CMS PAGES VERIFIED AND OPERATIONAL**
-  - **catalog_updated**: true
-
-**Previous Updates** (2025-10-23 - 🎉 PHASE 2 COMPLETE 🎉):
-
-- ✅ **PHASE 2.3 API UNIT TESTS VERIFICATION COMPLETE** (2025-10-23 22:09 UTC):
-  - **Purpose**: Verify Phase 2.3 LINQ query optimizations (N+1 fixes + documentation) didn't break existing tests
-  - **Overall Status**: ✅ **ZERO REGRESSIONS - PHASE 2 COMPLETE** - LINQ optimizations had no impact on tests
+- ✅ **PARTICIPATION TEST INITIALIZATION PATTERN FIXED** (2025-10-24):
+  - **Purpose**: Fix NullReferenceException in Participation tests caused by service initialization in constructor
+  - **Overall Status**: ⚠️ **95.1% PASS RATE - 446/469 PASSING** (up from 94.0%)
   - **Test Execution Summary**:
-    - Total tests: 316
-    - Passed: 247 (78.2%)
-    - Failed: 54 (17.1%) - **ALL PRE-EXISTING, unrelated to LINQ changes**
-    - Skipped: 15 (4.7%)
-    - Execution time: 2.29 minutes
-  - **Compilation Status**: ✅ **SUCCESSFUL**
-    - Zero compilation errors
-    - All Include() and eager loading calls syntactically correct
-    - Zero breaking changes to service interfaces
-  - **LINQ Optimization Changes**:
-    - Services modified: 6 files (EventService, VettingService, PaymentService, SafetyService, VolunteerService, MemberDetailsService)
-    - N+1 problems fixed: 4 critical queries (EventService, VettingService)
-    - Sequential queries consolidated: 1 service (VettingService)
-    - Already-optimal patterns documented: 4 services (PaymentService, SafetyService, VolunteerService, MemberDetailsService)
-    - Query reduction: 80-90% in modified endpoints
-  - **Report**: `/test-results/api-unit-tests-phase2.3-linq-optimization-verification-2025-10-23.md`
-  - **Status**: ✅ **PHASE 2 COMPLETE - ALL 3 SUB-PHASES SUCCESSFUL**
+    - Total tests: 469 tests
+    - Passing: 446 (95.1%)
+    - Failing: 8 (1.7%)
+    - Skipped: 15 (3.2%)
+    - Duration: 7m 55s
+  - **Root Cause Identified**: ParticipationService created in test constructor before DbContext initialized
+  - **Technical Analysis**:
+    - Test lifecycle: Constructor → InitializeAsync() → Test Method
+    - DatabaseTestBase.InitializeAsync() creates DbContext instance
+    - Services were created in constructor when DbContext was null
+    - Service stored null reference → NullReferenceException during test execution
+  - **Fix Applied**: ✅ Moved service creation from constructor to InitializeAsync()
+  - **Files Fixed**:
+    - `/tests/unit/api/Features/Participation/ParticipationServiceTests.cs` - Fixed initialization (Lines 19-36)
+    - `/tests/unit/api/Features/Participation/ParticipationServiceDiagnosticTest.cs` - Fixed initialization (Lines 17-36)
+    - `/apps/api/Features/Participation/Services/ParticipationService.cs` - Re-added EventType enum fix
+  - **Participation Tests Result**: 28/32 passing (87.5%) - improved from NullReferenceException failures
+  - **Remaining Failures** (8 tests total):
+    - **Participation Tests** (4 business logic issues):
+      - `GetParticipationStatusAsync_WithNoParticipation_ReturnsNull` - Returns non-null
+      - `CreateRSVPAsync_WithNonVettedUser_ReturnsFailure` - Not failing for non-vetted users
+      - `GetParticipationStatusAsync_WithCancelledParticipation_ReturnsNull` - Returns non-null for cancelled
+      - `CreateTicketPurchaseAsync_AfterCancelledTicket_FailsDueToUniqueConstraint` - Allows duplicate
+    - **DatabaseInitialization Tests** (4 constructor issues):
+      - `ClassifyError_WithSpecificExceptionTypes` (2 tests) - MissingMethodException for SocketException/NetworkInformationException
+      - `ExecuteAsync_WithTimeout_ThrowsTimeoutException` - No exception thrown
+      - `ExecuteAsync_WithSeedDataFailure_HandlesBehaviorBasedOnConfiguration` - No exception thrown
+  - **Session Context**: User expected ALL Participation tests passing after cleanup
+  - **Critical Finding**: Only 28/32 Participation tests passing suggests working fixes may have been lost during code revert
+  - **Commit**: 4a3a7c32 "fix(tests): fix Participation test initialization and EventType enum usage"
+  - **Test Log**: `/test-results/full-suite-after-participation-fix-2025-10-24.log`
+  - **Next Steps**:
+    - Review git history to find commit where ALL Participation tests were passing
+    - Restore working fixes that were lost during `git checkout` revert
+    - Fix 4 DatabaseInitialization test failures
+  - **Status**: ⚠️ **INFRASTRUCTURE FIX COMPLETE - BUSINESS LOGIC ISSUES REMAIN**
+  - **catalog_updated**: true (2025-10-24 21:30 UTC)
+
+**Previous Updates** (2025-10-24 - PARTICIPATION TESTS AFTER ASNOTRACKING FIX - ROOT CAUSE IDENTIFIED):
+
+- ⚠️ **PARTICIPATION TESTS AFTER ASNOTRACKING() FIX - STILL FAILING** (2025-10-24):
+  - **Purpose**: Verify that removing `.AsNoTracking()` from ParticipationService user queries resolved NullReferenceException issues
+  - **Overall Status**: ⚠️ **68.8% PASS RATE - 22/32 PASSING** (10 tests still failing with NullReferenceException)
+  - **Test Execution Summary**:
+    - Total tests: 32 tests (Participation + related tests)
+    - Passing: 22 (68.8%)
+    - Failing: 10 (31.3%)
+    - Duration: 26.1 seconds
+  - **Fix Applied**: ✅ `.AsNoTracking()` removed from lines 168 and 329 in ParticipationService.cs
+  - **Result**: ❌ **FIX INSUFFICIENT - NullReferenceException STILL OCCURRING**
+  - **Root Cause Identified**: The real issue is NOT `.AsNoTracking()` but accessing `ApplicationUser.IsVetted` property
+  - **Technical Analysis**:
+    - `ApplicationUser.IsVetted` is a `[NotMapped]` computed property: `VettingStatus == 3`
+    - Entity Framework cannot properly materialize `[NotMapped]` properties in queries
+    - Line 179 accesses `user.IsVetted` which causes NullReferenceException
+    - Stack trace points to line 168 because exception occurs during entity materialization
+  - **Failing Tests** (10):
+    - **ParticipationServiceDiagnosticTest** (1 test):
+      - ❌ `Diagnostic_CreateRSVP_WithValidUser_ShowsActualError` - NullReferenceException at line 168
+    - **ParticipationServiceTests** (7 tests):
+      - ❌ `CreateRSVPAsync_WithValidVettedUser_CreatesRSVPSuccessfully`
+      - ❌ `CreateRSVPAsync_WithNonVettedUser_ReturnsFailure`
+      - ❌ `CreateRSVPAsync_ForClassEvent_ReturnsFailure`
+      - ❌ `CreateRSVPAsync_ForFullEvent_ReturnsFailure`
+      - ❌ `CancelParticipationAsync_WithActiveParticipation_CancelsSuccessfully`
+      - ❌ `GetUserParticipationsAsync_WithMultipleParticipations_ReturnsAllParticipations`
+      - ❌ `GetParticipationStatusAsync_WithNoParticipation_ReturnsNull`
+    - **ParticipationServiceTests_Extended** (2 tests):
+      - ❌ `CreateTicketPurchaseAsync_WithValidAuthenticatedUser_CreatesTicketSuccessfully`
+      - ❌ `CreateTicketPurchaseAsync_AfterCancelledTicket_FailsDueToUniqueConstraint`
+  - **Passing Tests** (22):
+    - ✅ ParticipationServiceTests_Extended: 12 tests (ticket purchases, cancellations, validations)
+    - ✅ VolunteerServiceTests: 3 tests (auto-RSVP, duplicate prevention)
+    - ✅ MemberDetailsServiceBusinessLogicTests: 7 tests (participation filtering, history mapping)
+  - **CORRECT FIX REQUIRED** (Backend Developer):
+    - **Option 1 (Recommended)**: Replace `user.IsVetted` with `user.VettingStatus == 3` at lines 179, 340
+    - **Option 2**: Use projection to safely map IsVetted before accessing
+    - **Option 3**: Create database computed column for IsVetted (architecture change)
+  - **Business Impact**:
+    - ❌ **Users cannot RSVP for events** - CRITICAL BLOCKER
+    - ❌ **Users cannot purchase tickets** - CRITICAL BLOCKER
+    - ❌ **Vetting validation broken** - SECURITY RISK
+    - ❌ **Event capacity checks failing** - BUSINESS RULE VIOLATION
+  - **Detailed Report**: `/test-results/participation-tests-after-asnotracking-fix-2025-10-24-ANALYSIS.md`
+  - **Test Log**: `/test-results/participation-tests-after-asnotracking-fix-2025-10-24.log`
+  - **Status**: ⚠️ **ROOT CAUSE IDENTIFIED - BACKEND DEVELOPER FIX REQUIRED**
+  - **catalog_updated**: true (2025-10-24 05:12 UTC)
+
+**Previous Updates** (2025-10-24 - PARTICIPATION DIAGNOSTIC TEST ENHANCED):
+
+- 🔍 **PARTICIPATION DIAGNOSTIC TEST ENHANCED WITH CONSOLE OUTPUT** (2025-10-24):
+  - **Purpose**: Add Console.WriteLine statements to capture debugging information even when ILogger is mocked
+  - **Test File**: `/tests/unit/api/Features/Participation/ParticipationServiceDiagnosticTest.cs`
+  - **Changes Made**:
+    - Added Console.WriteLine before CreateRSVPAsync call with request parameters
+    - Added Console.WriteLine after CreateRSVPAsync call with result status
+    - Added Console.WriteLine for full exception details on failure
+    - Added FAILURE ANALYSIS block with user vetting status and event type
+  - **Why This Matters**: ILogger is mocked, so standard logging doesn't appear in test output
+  - **Console.WriteLine Advantage**: Appears in xUnit test output regardless of mocking
+  - **Status**: ✅ **ENHANCED FOR DEBUGGING**
   - **catalog_updated**: true
 
-**Previous Updates** (2025-10-23 - PHASE 2.2 SERVER-SIDE PROJECTION VERIFICATION):
+**Previous Updates** (2025-10-23 - SEEDDATASERVICE INTEGRATION TEST CONVERSION):
 
-- ✅ **PHASE 2.2 API UNIT TESTS VERIFICATION COMPLETE** (2025-10-23 22:05 UTC):
-  - **Server-Side Projection Changes**: 5 files, 7 queries optimized, 30-60% data reduction
-  - **Report**: `/test-results/api-unit-tests-phase2.2-server-side-projection-verification-2025-10-23.md`
-  - **Status**: ✅ **PHASE 2.2 SAFE FOR PRODUCTION**
+- 🔄 **SEEDDATASERVICE CONVERTED TO INTEGRATION TESTS** (2025-10-23):
+  - **Purpose**: Convert 17 failing unit tests to integration tests with TestContainers
+  - **Overall Status**: ⚠️ **75% PASS RATE - 12/16 PASSING** (was 0/17 with mocks)
+  - **Test File**: `/tests/unit/api/Services/SeedDataServiceTests.cs`
+  - **Test Conversion**:
+    - Total tests: 16 (1 skipped as obsolete)
+    - Passing: 12 tests (75%)
+    - Failing: 3 tests (19% - assertion adjustments needed)
+    - Skipped: 1 test (6% - private method test)
+  - **Technical Approach**:
+    - **Before**: Moq mocks with complex `IAsyncQueryProvider` setup (100% failure rate)
+    - **After**: Real PostgreSQL via TestContainers (postgres:16-alpine)
+    - Real UserManager with NSubstitute partial mocks
+    - Real RoleManager for identity operations
+    - Real database queries (no more async query provider issues)
+  - **Key Improvements**:
+    - Eliminated complex `IAsyncQueryProvider` mocking
+    - Tests now validate actual database behavior
+    - Unique test data with GUIDs prevents conflicts
+    - Proper transaction rollback testing
+    - Real Identity framework integration
+  - **Passing Tests** (12):
+    1. ✅ `IsSeedDataRequiredAsync_WithEmptyDatabase_ReturnsTrue`
+    2. ✅ `IsSeedDataRequiredAsync_WithNoUsers_ReturnsTrue`
+    3. ✅ `IsSeedDataRequiredAsync_WithNoEvents_ReturnsTrue`
+    4. ✅ `SeedUsersAsync_WithNoExistingUsers_CreatesAllTestAccounts`
+    5. ✅ `SeedUsersAsync_WithExistingUsers_SkipsExistingAccounts`
+    6. ✅ `SeedUsersAsync_CreatesUsersWithCorrectProperties`
+    7. ✅ `SeedUsersAsync_WithUserCreationFailure_ThrowsException`
+    8. ✅ `SeedEventsAsync_WithNoExistingEvents_CreatesAllSampleEvents`
+    9. ✅ `SeedEventsAsync_WithExistingEvents_SkipsCreation`
+    10. ✅ `SeedVettingStatusesAsync_CompletesSuccessfully`
+    11. ✅ `SeedAllDataAsync_WithException_RollsBackTransactionAndRethrows`
+    12. ✅ `SeedAllDataAsync_WithCancellation_StopsGracefully`
+  - **Remaining Failures** (3 - assertion adjustments only):
+    1. ❌ `IsSeedDataRequiredAsync_WithExistingEvents_ReturnsFalse` - Need to verify all 5 data types seeded
+    2. ❌ `IsSeedDataRequiredAsync_WithBothUsersAndEvents_ReturnsFalse` - Same issue
+    3. ❌ `SeedEventsAsync_CreatesEventsWithCorrectProperties` - Event count and property assertions
+  - **Net Impact**: +12 passing tests (from 0 to 12)
+  - **Test Suite Impact**: Overall pass rate improved from 84.9% (377/444) to 87.6% (389/444)
+  - **Duration**: ~28 seconds for full test suite
+  - **Backup Created**: `SeedDataServiceTests.cs.backup-before-integration-conversion`
+  - **Documentation**: `/test-results/seeddata-integration-conversion-summary.md`
+  - **Status**: ✅ **MAJOR IMPROVEMENT - 75% PASSING vs 0% BEFORE**
+  - **Next Steps**: Fix remaining 3 assertion issues (30 min estimated)
+  - **catalog_updated**: true
+
+**Previous Updates** (2025-10-23 - PHASE 3 MEMBERDETAILS BUSINESS LOGIC TESTS COMPLETE):
+
+- ✅ **PHASE 3: MEMBERDETAILS BUSINESS LOGIC TESTS - 100% COMPLETE** (2025-10-23 23:59 UTC):
+  - **Purpose**: Business logic validation for MemberDetailsService complementing Phase 1 security tests
+  - **Overall Status**: ✅ **100% PASS RATE - 25/25 TESTS PASSING** ✅
+  - **Test File**: `/tests/unit/api/Features/Users/MemberDetailsServiceBusinessLogicTests.cs`
+  - **Test Count**: 25 comprehensive business logic tests (complements 25 existing security tests)
+  - **Test Coverage**:
+    - ✅ **Participation Statistics**: Calculates active/total counts, filters past events, handles new users (3 tests)
+    - ✅ **Vetting Status Mapping**: Maps 8 vetting status enum values to display strings (2 tests)
+    - ✅ **Event History Assembly**: Chronological ordering, pagination with 25+ events (2 tests)
+    - ✅ **Participation Type Mapping**: RSVP vs Ticket types, 4 participation statuses (2 tests)
+    - ✅ **Note Management**: Validates note types, creates audit notes on status changes (2 tests)
+    - ✅ **Empty Data Handling**: No vetting application, no incidents (2 tests)
+    - ✅ **Edge Cases**: Partial user data, metadata JSON parsing (2 tests)
+  - **Technical Approach**:
+    - Real PostgreSQL via TestContainers (postgres:16-alpine)
+    - Real Entity Framework Core operations
+    - Proper database constraint handling (CancelledAt for Cancelled/Refunded status)
+    - Helper methods for test data creation
+  - **Key Patterns Implemented**:
+    - Server-side projection calculations (participation counts at database level)
+    - Proper UTC DateTime handling for past event filtering
+    - Database constraint compliance (CancelledAt must be set for certain statuses)
+    - Metadata JSON parsing for payment amounts
+  - **Database Constraints Fixed**:
+    - EventParticipations table constraint: CancelledAt required when status is Cancelled/Refunded
+    - Test helper now sets CancelledAt and CancellationReason appropriately
+  - **Combined MemberDetails Coverage**:
+    - Total tests: 50 (25 security + 25 business logic)
+    - Security validation: Complete (Phase 1)
+    - Business logic validation: Complete (Phase 3)
+    - Coverage: Comprehensive for production deployment
+  - **Environment**: TestContainers with PostgreSQL 16-alpine
+  - **Duration**: ~59 seconds for full test suite
+  - **Status**: ✅ **PRODUCTION READY - ALL MEMBERDETAILS BUSINESS LOGIC VALIDATED**
+  - **catalog_updated**: true
+
+**Previous Updates** (2025-10-23 - C# BACKEND UNIT TEST FAILURES ANALYZED):
+
+- 🔍 **C# BACKEND UNIT TESTS FAILURE ANALYSIS COMPLETE** (2025-10-23):
+  - **Purpose**: Systematic categorization of 52 failing backend API unit tests for prioritized fixing
+  - **Overall Status**: ⚠️ **84.9% PASS RATE - 377/444 PASSING** (52 failures analyzed and categorized)
+  - **Test Execution Summary**:
+    - Total tests: 444 tests
+    - Passing: 377 (84.9%)
+    - Failing: 52 (11.7%)
+    - Skipped: 15 (3.4%)
+    - Duration: 6.6 minutes
+  - **Failure Categories** (by root cause):
+    - 🔴 **Database Mocking Issues**: 28 tests (53.8%) - Incorrect `IAsyncQueryProvider` setup
+    - 🔴 **Test Data Setup Issues**: 15 tests (28.8%) - Missing email templates, vetting status seeds
+    - 🔴 **Business Logic Gaps**: 9 tests (17.3%) - RSVP validation missing, wrong error messages
+    - 🟡 **Dashboard Query Issues**: 3 tests (5.8%) - Empty result sets from event queries
+    - 🟢 **Minor Assertion Issues**: 1 test (1.9%) - PayPal amount comparison needs property access
+  - **Impact by Feature Area**:
+    - 🔴 **BLOCKER - Vetting Email Service**: 13 tests (P1) - Critical communication pathway
+    - 🔴 **HIGH - Participation/RSVP**: 9 tests (P1) - Core user experience broken
+    - 🔴 **HIGH - Vetting Logic**: 2 tests (P1) - Wrong status assignments
+    - 🟡 **MEDIUM - SeedDataService**: 17 tests (P2) - Development tooling
+    - 🟡 **MEDIUM - Dashboard Service**: 3 tests (P2) - User event display
+    - 🟡 **MEDIUM - Health Checks**: 8 tests (P2-P3) - Infrastructure monitoring
+    - 🟢 **LOW - PayPal Mock**: 1 test (P3) - Test assertion fix
+  - **Prioritized Fix Plan**:
+    - **Phase 1 (P1 - Week 1)**: 24 tests - Launch blockers - 8.3 hours estimated
+      - Vetting Email Service (13 tests - 4h) - Add template seeds
+      - Participation Service (9 tests - 3.5h) - Add validation logic
+      - Vetting Service Logic (2 tests - 50m) - Fix status state machine
+    - **Phase 2 (P2 - Week 2)**: 23 tests - Infrastructure - 7 hours estimated
+      - SeedDataService (17 tests - 5.5h) - Fix async mocking or convert to integration tests
+      - Dashboard Service (3 tests - 1h) - Fix test data and queries
+      - DB Health Checks (3 tests - 30m) - Fix exception reflection
+    - **Phase 3 (P3 - Week 3)**: 6 tests - Edge cases - 2.17 hours estimated
+      - DB Init Service (5 tests - 2h) - Concurrency and timeout handling
+      - PayPal Assertion (1 test - 10m) - Property comparison fix
+  - **Expected Progress**:
+    - After Phase 1: 401/444 passing (90.3%) ✅ **LAUNCH READY**
+    - After Phase 2: 421/444 passing (94.8%)
+    - After Phase 3: 427/444 passing (96.2%) 🎯 **PRODUCTION READY**
+  - **Launch Readiness**: ⚠️ **YELLOW - CRITICAL FIXES NEEDED**
+    - **Must Fix**: Vetting email notifications, RSVP validation (24 tests - Week 1)
+    - **Should Fix**: Seed data service, dashboard queries (23 tests - Week 2)
+    - **Nice to Have**: Health check edge cases (6 tests - Week 3)
+  - **Total Estimated Effort**: 17.5 hours across 3 weeks
+  - **Report**: `/test-results/failing-tests-analysis-2025-10-23.md` (comprehensive 700+ line report)
+  - **Next Steps**:
+    - ✅ **COMPLETED**: Analysis and categorization of all 52 failures
+    - 🔄 **REQUIRED**: Delegate Phase 1 fixes to backend-developer (vetting, participation, RSVP)
+    - 📊 **TRACKING**: Update TEST_CATALOG after each phase completion
+  - **catalog_updated**: true (2025-10-23 comprehensive failure analysis complete)
+
+**Previous Updates** (2025-10-23 - PHASE 2 EVENTS/VOLUNTEERS/CHECKIN INTEGRATION TESTS CREATED):
+
+- 🎉 **PHASE 2: EVENTS, VOLUNTEERS, AND CHECK-IN INTEGRATION TESTS - 93.1% PASS RATE** (2025-10-23 UPDATE):
+  - **Purpose**: Comprehensive integration tests for core business logic using TestContainers pattern
+  - **Overall Status**: ⚠️ **93.1% PASS RATE - 54/58 TESTS PASSING** (Excellent progress, 4 tests blocked by service bug)
+  - **Test Files Status**:
+    - `/tests/unit/api/Features/Events/EventServiceTests.cs` - 22 tests - ✅ **100% PASSING** (22/22) ✅
+    - `/tests/unit/api/Features/Volunteers/VolunteerServiceTests.cs` - 17 tests - ✅ **100% PASSING** (17/17) ✅ **(FIXED)**
+    - `/tests/unit/api/Features/CheckIn/CheckInServiceTests.cs` - 19 tests - ⚠️ **78.9% PASSING** (15/19) **(BLOCKED - Service Bug)**
+  - **Test Coverage Areas**:
+    - ✅ Events: CRUD operations, capacity enforcement, date validation, authorization (COMPLETE)
+    - ✅ Volunteers: Signup, auto-RSVP, capacity management, check-in integration (COMPLETE - ALL FIXED)
+    - ⚠️ CheckIn: Attendee check-in, capacity enforcement, waiver validation, audit trails (BLOCKED by service bug)
+  - **Technical Approach**:
+    - Real PostgreSQL via TestContainers (postgres:16-alpine)
+    - Real Entity Framework Core operations (no database mocks)
+    - Real business logic validation (capacity, dates, permissions)
+    - Database isolation per test class with cleanup
+  - **Key Patterns Implemented**:
+    - Helper methods for test data creation
+    - Proper user/event setup for foreign key constraints
+    - Social event type for RSVP counting
+    - Comprehensive edge case coverage
+  - **Volunteer Tests - FIXED ✅**:
+    - **Problem**: Foreign key constraint violations - tests created VolunteerSignup records with non-existent UserIds
+    - **Solution**: Added CreateTestUser() helper to create ApplicationUser records before signups
+    - **Result**: 17/17 tests now passing (100%)
+    - **Files Modified**: `/tests/unit/api/Features/Volunteers/VolunteerServiceTests.cs`
+  - **CheckIn Tests - BLOCKED BY SERVICE BUG ⚠️**:
+    - **Problem**: CheckInService.GetEventCapacityAsync() has incorrect LINQ query for CheckedInCount
+    - **Location**: `/apps/api/Features/CheckIn/Services/CheckInService.cs` line ~214
+    - **Bug**: Uses `e.Sessions.SelectMany(s => s.TicketTypes).SelectMany(tt => tt.Purchases).Count(...)` instead of `_context.CheckIns.Count(c => c.EventId == eventId)`
+    - **Impact**: CheckedInCount always returns 0 in tests (no Sessions/TicketTypes created)
+    - **Failing Tests**: 4/19 tests blocked (GetEventDashboardAsync_ReturnsComprehensiveData, GetCheckInCountAsync_ReturnsAccurateCount, ManualCheckInAsync_ByAdmin_CreatesAuditLog, CheckIn_CachesCapacityInformation)
+    - **Fix Required**: Backend-developer must fix service method
+    - **Estimated Fix Time**: 15-30 minutes
+  - **Status**: ⚠️ **93.1% PASSING - 4 TESTS BLOCKED BY SERVICE BUG**
+  - **Reports**:
+    - Diagnosis: `/test-results/phase2-test-diagnosis-2025-10-23.md`
+    - Final Results: `/test-results/phase2-final-results-2025-10-23.md`
+  - **Next Steps**:
+    - ❌ **BLOCKED**: test-executor cannot fix service code
+    - ✅ **COMPLETED**: Volunteer test fixes (17/17 passing)
+    - 🔄 **REQUIRED**: Backend-developer fixes CheckInService.GetEventCapacityAsync()
+    - 📊 **READY FOR RE-TEST**: After service fix, expect 58/58 passing (100%)
+  - **catalog_updated**: true (2025-10-23 Phase 2 test execution complete)
+
+**Previous Updates** (2025-10-23 - PHASE 1 AUTH/SECURITY UNIT TESTS 100% COMPLETE):
+
+- ✅ **PHASE 1: AUTHENTICATION & SECURITY UNIT TESTS - 100% COMPLETE** (2025-10-23 20:46 UTC):
+  - **Purpose**: Unit-level security validation for AuthenticationService with comprehensive OWASP coverage
+  - **Overall Status**: ✅ **100% PASS RATE - 27/27 TESTS PASSING** ✅
+  - **Test File**: `/tests/unit/api/Features/Auth/AuthenticationServiceTests.cs`
+  - **Test Count**: 27 comprehensive unit tests
+  - **Test Coverage**:
+    - ✅ **Login Tests**: Valid credentials, invalid email, invalid password, locked account, inactive user (6 tests)
+    - ✅ **Return URL Validation**: Valid local URLs, malicious external URLs (2 tests)
+    - ✅ **Registration Tests**: Valid data, duplicate email/scene name, weak password, invalid email (5 tests)
+    - ✅ **User Retrieval**: Valid user ID, invalid user ID (2 tests)
+    - ✅ **Service Tokens**: Valid credentials, mismatched email, unconfirmed email (3 tests)
+    - ✅ **Security Tests (OWASP)**: SQL injection, XSS, malicious input handling (4 tests)
+    - ✅ **Password Security**: Password hashing verification (1 test)
+    - ✅ **Role Assignment**: Default member role assignment (1 test)
+    - ✅ **Additional Security**: Deleted user, case-insensitive email (3 tests)
+  - **Technical Approach**:
+    - Real PostgreSQL via TestContainers (no mocks for database)
+    - Real ASP.NET Core Identity components (UserManager, SignInManager)
+    - Real JWT token generation and validation
+    - Real ReturnUrlValidator (not mocked - uses actual validation logic)
+    - NSubstitute for service dependencies only
+  - **Key Fixes Applied**:
+    - Fixed async mocking with Task.FromResult() wrappers
+    - UserManager.CreateAsync now saves to real database
+    - ReturnUrlValidator uses REAL instance (not mocked) for accurate validation
+  - **Environment**: TestContainers with PostgreSQL 16-alpine
+  - **Duration**: ~51 seconds for full test suite
+  - **Status**: ✅ **PRODUCTION READY - ALL AUTHENTICATION SECURITY PATHS VALIDATED**
+  - **Fixes**: 2 return URL validation tests fixed by removing invalid mock setups
+  - **catalog_updated**: true
+
+**Previous Updates** (2025-10-23 23:29 UTC - E2E BASELINE ASSESSMENT COMPLETE):
+
+- ✅ **E2E TEST BASELINE ASSESSMENT COMPLETE** (2025-10-23 23:29 UTC):
+  - **Purpose**: Establish current E2E test suite status for Phase 3 stabilization planning
+  - **Overall Status**: ⚠️ **70.3% PASS RATE - STABLE BUT NEEDS FIXES BEFORE LAUNCH**
+  - **Test Execution Summary**:
+    - Total tests: 425 tests across 93 test files
+    - Passing: 299 (70.3%)
+    - Failing: 75 (17.6%)
+    - Skipped: 51 (12.0%)
+    - Flaky: 0 (0%) ✅ **EXCELLENT**
+    - Duration: 4.4 minutes (262 seconds)
+  - **Critical Findings**:
+    - ✅ **ZERO authentication failures** - Login system fully operational
+    - ✅ **ZERO flaky tests** - High reliability and consistency
+    - ✅ **Core workflows operational** - Users can register, login, browse events, RSVP
+    - ⚠️ **6 failing test files** - Specific issues with vetting admin UI and console errors
+    - ⚠️ **51 skipped tests** - Need review for launch readiness
+  - **Failure Categories**:
+    - Navigation timeouts: 2 tests (vetting detail navigation)
+    - Element not found: 2 tests (vetting data setup issues)
+    - Console errors: 1 test (application generates 3 unexpected errors)
+    - Deprecated API: 1 test (archived diagnostic test)
+  - **Environment Health**: ✅ **100% HEALTHY**
+    - Docker containers: All operational (Web: 5173, API: 5655, DB: 5434)
+    - API health: Responding correctly
+    - Database: 7 test users seeded
+    - No local dev server conflicts
+  - **Launch Readiness**: ⚠️ **YELLOW - 70% READY**
+    - Must fix: Console errors, vetting navigation (high priority)
+    - Should fix: Vetting test data setup, skipped test review (medium priority)
+    - Core functionality: ✅ **OPERATIONAL**
+  - **Report**: `/test-results/e2e-baseline-2025-10-23.md` (comprehensive 347-line analysis)
+  - **Status**: ⚠️ **BASELINE ESTABLISHED - SYSTEMATIC FIXES REQUIRED**
   - **catalog_updated**: true
 
 ---
 
 ### Test Categories
 
-#### CMS Pages (Database + API Verification)
-**Location**: `/apps/api/Features/Cms/`
-**Database**: `cms.ContentPages` table (PostgreSQL)
-**API Endpoints**: `/api/cms/pages/{slug}` (public), `/api/cms/pages` (admin)
-**Status**: ✅ **ALL 10 PAGES OPERATIONAL** (2025-10-23)
-**Pages**:
-- ✅ resources - Community Resources
-- ✅ contact-us - Contact Us
-- ✅ private-lessons - Private Lessons & Instruction
-- ✅ about-us - About WitchCityRope (NEW)
-- ✅ faq - Frequently Asked Questions (NEW)
-- ✅ safety-practices - Safety Practices (NEW)
-- ✅ code-of-conduct - Code of Conduct (NEW)
-- ✅ terms-of-service - Terms of Service (NEW - Legal Compliance)
-- ✅ privacy-policy - Privacy Policy (NEW - Legal Compliance)
-- ✅ community-guidelines - Community Guidelines (NEW)
-
-#### E2E Tests (Playwright)
+#### E2E Tests (Playwright) - BASELINE COMPLETE ✅
 **Location**: `/apps/web/tests/playwright/`
 **Count**: 89 spec files (83 in root, 6 in subdirectories)
-**Status**: ❌ **BLOCKED BY AUTHENTICATION CONFIGURATION** (2025-10-23)
+**Total Tests**: 425 test cases
+**Status**: ⚠️ **70.3% PASS RATE - STABLE, NEEDS SYSTEMATIC FIXES**
 
-**CRITICAL**: All E2E tests requiring authentication (majority of test suite) are BLOCKED until configuration mismatch is fixed.
+**Pass Rate Details** (2025-10-23 Baseline):
+- **Passing**: 299 tests (70.3%)
+- **Failing**: 75 tests (17.6%)
+- **Skipped**: 51 tests (12.0%)
+- **Flaky**: 0 tests (0%) ✅
+
+**Key Strengths**:
+- ✅ Authentication system: 100% operational (zero auth failures)
+- ✅ Test reliability: Zero flaky tests detected
+- ✅ Environment stability: Docker containers healthy
+- ✅ Core user workflows: Login, events, RSVP, profile all working
+
+**Known Issues** (6 failing test files):
+1. `console-error-check.spec.ts` - Application generates 3 console errors (HIGH PRIORITY)
+2. `vetting-notes-display.spec.ts` - Test data setup issue (MEDIUM)
+3. `vetting-notes-direct.spec.ts` - Element visibility issue (MEDIUM)
+4. `test-dom-check.spec.ts` - Navigation timeout (LOW)
+5. `test-with-reload.spec.ts` - Navigation timeout (LOW)
+6. `_archived/diagnostic-tests/page-load-diagnostic.spec.ts` - Deprecated API (LOW)
+
+**Detailed Report**: `/test-results/e2e-baseline-2025-10-23.md`
+
+#### Unit Tests (C# Backend) - PARTICIPATION TESTS STILL FAILING ⚠️
+**Location**: `/tests/unit/api/`
+**Count**: 476 tests total (399 passing, 62 failing, 15 skipped)
+**Status**: ⚠️ **83.8% PASS RATE - PARTICIPATION TESTS NEED FIX** (2025-10-24)
+**Pass Rate**: 399/476 (83.8%)
+**Latest Execution**: Participation tests after AsNoTracking() fix (2025-10-24)
+
+**Participation Test Results** (2025-10-24):
+- **Total Participation Tests**: 32
+- **Passing**: 22 (68.8%)
+- **Failing**: 10 (31.3%)
+- **Root Cause**: `[NotMapped]` property `ApplicationUser.IsVetted` cannot be accessed in EF queries
+- **Fix Required**: Replace `user.IsVetted` with `user.VettingStatus == 3` in ParticipationService
+- **Business Impact**: CRITICAL BLOCKER - Users cannot RSVP or purchase tickets
+
+**Overall Backend Test Breakdown**:
+- **P1 (Launch Blockers)**: 34 tests (includes 10 Participation + 24 others) - Vetting emails, RSVP logic, status transitions
+- **P2 (Important)**: 23 tests - Seed data, dashboard, health checks
+- **P3 (Nice-to-Have)**: 5 tests - Infrastructure edge cases, minor fixes
+
+**Critical Issues**:
+1. 🔴 Participation/RSVP Service (10 tests) - [NotMapped] property access in queries - **NEW ROOT CAUSE IDENTIFIED**
+2. 🔴 Vetting Email Service (13 tests) - No email notifications sent to users
+3. 🔴 Participation/RSVP Service (9 tests - original analysis) - Broken event registration
+4. 🔴 Vetting Status Logic (2 tests) - Wrong status assignments
+
+**Estimated Fix Time**: 18 hours total (Participation: 30 min, Others: 17.5 hours)
+**Detailed Analysis**: `/test-results/failing-tests-analysis-2025-10-23.md`
+**Participation Analysis**: `/test-results/participation-tests-after-asnotracking-fix-2025-10-24-ANALYSIS.md`
 
 #### Unit Tests (React)
 **Location**: `/apps/web/src/features/*/components/__tests__/` and `/apps/web/src/pages/__tests__/`
@@ -147,15 +475,15 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 **Framework**: Vitest + React Testing Library
 **Status**: ❌ **COMPILATION BLOCKED** (2025-10-20 - TypeScript errors)
 
-#### Unit Tests (C# Backend)
-**Location**: `/tests/unit/api/`
-**Count**: 316 tests total (247 passing, 54 failing, 15 skipped)
-**Status**: ✅ **COMPILATION SUCCESSFUL** (2025-10-23 - Phase 2.3 LINQ Optimization verified)
-**Latest Verification**: Phase 2.3 LINQ optimizations had zero impact on tests - **PHASE 2 COMPLETE**
-
 #### Integration Tests
 **Location**: `/tests/integration/`
 **Status**: Real PostgreSQL with TestContainers
+
+#### CMS Pages (Database + API Verification)
+**Location**: `/apps/api/Features/Cms/`
+**Database**: `cms.ContentPages` table (PostgreSQL)
+**API Endpoints**: `/api/cms/pages/{slug}` (public), `/api/cms/pages` (admin)
+**Status**: ✅ **ALL 10 PAGES OPERATIONAL** (2025-10-23)
 
 ---
 
@@ -173,72 +501,118 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 - **Timeout Config**: `/apps/web/docs/testing/TIMEOUT_CONFIGURATION.md`
 
 ### Recent Test Reports
-- **CMS Pages Verification**: `/test-results/cms-pages-seeding-test-report-2025-10-23.md` ✅ **ALL 10 PAGES OPERATIONAL - LEGAL COMPLIANCE READY** (2025-10-23 22:30)
-- **Phase 2.3 API Verification**: `/test-results/api-unit-tests-phase2.3-linq-optimization-verification-2025-10-23.md` ✅ **ZERO REGRESSIONS - PHASE 2 COMPLETE** (2025-10-23 22:09)
-- **Phase 2.2 API Verification**: `/test-results/api-unit-tests-phase2.2-server-side-projection-verification-2025-10-23.md` ✅ **ZERO REGRESSIONS** (2025-10-23 22:05)
-- **Phase 2.1 API Verification**: `/test-results/api-unit-tests-phase2.1-asnotracking-verification-2025-10-23.md` ✅ **ZERO REGRESSIONS** (2025-10-23 21:37)
-- **Phase 1.4 API Verification**: `/test-results/api-unit-tests-phase1.4-error-handling-verification-2025-10-23.md` ✅ **ZERO REGRESSIONS** (2025-10-23 21:54)
+- **Participation After Fix**: `/test-results/participation-tests-after-asnotracking-fix-2025-10-24-ANALYSIS.md` ⚠️ **ROOT CAUSE IDENTIFIED** (2025-10-24)
+- **Backend Failure Analysis**: `/test-results/failing-tests-analysis-2025-10-23.md` ⚠️ **52 FAILURES CATEGORIZED** (2025-10-23)
+- **E2E Baseline**: `/test-results/e2e-baseline-2025-10-23.md` ⚠️ **70.3% PASS RATE** (2025-10-23 23:29)
+- **Phase 2 Integration**: `/test-results/phase2-final-results-2025-10-23.md` ✅ **93.1% PASS RATE** (2025-10-23)
+- **CMS Pages**: `/test-results/cms-pages-seeding-test-report-2025-10-23.md` ✅ **ALL OPERATIONAL** (2025-10-23 22:30)
 
 ---
 
 ## 🚀 Running Tests
 
-### Prerequisites
-```bash
-# Ensure Docker is running
-sudo systemctl start docker
-
-# Start development environment
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-
-# ⚠️ CRITICAL: Fix authentication configuration first!
-# See /home/chad/repos/witchcityrope/test-results/auth-secrets-config-investigation-2025-10-23.md
-```
-
-### CMS Pages Testing
-**STATUS**: ✅ **OPERATIONAL** - All 10 pages verified
-
-```bash
-# Test individual page endpoints
-curl -s http://localhost:5655/api/cms/pages/about-us | jq '.title'
-curl -s http://localhost:5655/api/cms/pages/terms-of-service | jq '.title'
-curl -s http://localhost:5655/api/cms/pages/privacy-policy | jq '.title'
-
-# Verify in database
-PGPASSWORD=devpass123 psql -h localhost -p 5434 -U postgres -d witchcityrope_dev \
-  -c "SELECT \"Slug\", \"Title\", \"IsPublished\" FROM cms.\"ContentPages\" ORDER BY \"Slug\";"
-```
-
-### E2E Tests (Playwright)
-**STATUS**: ❌ **BLOCKED** - Fix authentication configuration before running E2E tests
-
-```bash
-cd apps/web
-
-# ⚠️ AUTHENTICATION REQUIRED TESTS WILL FAIL UNTIL CONFIG FIXED
-# Run all E2E tests (after auth fix)
-npm run test:e2e
-```
-
 ### Unit Tests (C# Backend)
-**STATUS**: ✅ **FUNCTIONAL** - Phase 2.3 LINQ optimization verification passed - **PHASE 2 COMPLETE**
+**STATUS**: ⚠️ **83.8% PASSING** - Participation tests need [NotMapped] property fix
 
 ```bash
 # Run all unit tests
 dotnet test tests/unit/api/WitchCityRope.Api.Tests.csproj
 
-# Latest Results (2025-10-23):
-# Total: 316 tests
-# Passed: 247 (78.2%)
-# Failed: 54 (17.1%) - Pre-existing, unrelated to Phase 2 changes
-# Skipped: 15 (4.7%)
+# Run Participation tests specifically
+dotnet test tests/unit/api/WitchCityRope.Api.Tests.csproj --filter "FullyQualifiedName~Participation"
+
+# Latest Results (2025-10-24):
+# Total: 476 tests
+# Passed: 399 (83.8%)
+# Failed: 62 (13.0%) - Includes 10 Participation tests with [NotMapped] issue
+# Skipped: 15 (3.2%)
+# Duration: Varies by test category
 ```
+
+### E2E Tests (Playwright)
+**STATUS**: ⚠️ **70.3% PASSING** - Baseline established
+
+```bash
+cd apps/web
+npm run test:e2e
+
+# Current Results (2025-10-23):
+# Total: 425 tests
+# Passed: 299 (70.3%)
+# Failed: 75 (17.6%)
+# Skipped: 51 (12.0%)
+# Flaky: 0 (0%)
+# Duration: 4.4 minutes
+```
+
+---
+
+## 📊 Test Metrics & Goals
+
+### Current Coverage (2025-10-24 - PARTICIPATION ROOT CAUSE IDENTIFIED)
+- **Environment Status**: ✅ **OPERATIONAL** (containers healthy)
+- **CMS Pages**: 10 pages - ✅ **ALL OPERATIONAL**
+- **E2E Tests**: 425 tests - ⚠️ **70.3% PASSING** (299/425) - Zero flaky tests
+- **React Unit Tests**: 20+ test files - ❌ **COMPILATION BLOCKED**
+- **C# Backend Tests**: 476 tests - ⚠️ **83.8% PASSING** (399/476) - **62 FAILURES** (10 Participation + 52 others)
+  - **CRITICAL**: Participation tests (10 failing) - [NotMapped] property access issue
+  - P1 Blockers: 34 tests (Participation + vetting + RSVP + status logic)
+  - P2 Important: 23 tests (seed data, dashboard, health)
+  - P3 Nice-to-Have: 5 tests (edge cases, minor fixes)
+- **Integration Tests**: 5 test files - Status pending verification
+
+### Backend Test Roadmap
+| Phase | Tests | Pass Rate | Status | Target Date |
+|-------|-------|-----------|--------|-------------|
+| Current | 399/476 | 83.8% | ⚠️ Root Cause ID'd | 2025-10-24 |
+| After Participation Fix | 409/476 | 85.9% | 🎯 Quick Win | Immediate |
+| After Phase 1 | 433/476 | 91.0% | 🎯 Launch Ready | Week 1 |
+| After Phase 2 | 453/476 | 95.2% | ✅ Stable | Week 2 |
+| After Phase 3 | 459/476 | 96.4% | 🎯 Production | Week 3 |
+
+---
+
+## 🚨 Launch Readiness Status
+
+### Backend API Tests: 🔴 **RED - CRITICAL FIX REQUIRED IMMEDIATELY**
+
+**MUST FIX IMMEDIATELY** (10 tests - Participation):
+1. 🔴 **BLOCKER**: Fix `ApplicationUser.IsVetted` [NotMapped] property access
+   - **Location**: ParticipationService.cs lines 179, 340
+   - **Fix**: Replace `user.IsVetted` with `user.VettingStatus == 3`
+   - **Estimated Time**: 30 minutes
+   - **Impact**: Users cannot RSVP or purchase tickets (CRITICAL)
+
+**Must Fix Before Launch** (24 tests - P1):
+1. ❌ Vetting Email Service (13 tests) - Users won't receive status updates
+2. ❌ Participation/RSVP Logic (9 tests - original analysis) - Event registration broken
+3. ❌ Vetting Status Transitions (2 tests) - Wrong statuses assigned
+
+**Should Fix Before Launch** (23 tests - P2):
+1. ⚠️ SeedDataService (17 tests) - Development environment issues
+2. ⚠️ Dashboard Service (3 tests) - User can't see their events
+3. ⚠️ Health Checks (3 tests) - Monitoring gaps
+
+**Can Fix After Launch** (5 tests - P3):
+1. ✅ DB Init Edge Cases (5 tests) - Infrastructure resilience
+
+### E2E Tests: ⚠️ **YELLOW - 70% READY**
+
+**Must Fix Before Launch**:
+1. ❌ Console errors in application (HIGH PRIORITY)
+2. ❌ Vetting admin navigation (HIGH PRIORITY)
+
+**Core Functionality**: ✅ **OPERATIONAL**
+- Users can register, login, browse events, and RSVP
+- Admin can manage events and vetting
+- Profile updates persist correctly
+- Ticket system functional
 
 ---
 
 ## 🔑 Test Accounts
 
-**STATUS**: ❌ **AUTHENTICATION BLOCKED** - None of these accounts can login until configuration fixed
+**STATUS**: ✅ **AUTHENTICATION OPERATIONAL**
 
 ```
 admin@witchcityrope.com / Test123! - Administrator, Vetted
@@ -252,95 +626,8 @@ guest@witchcityrope.com / Test123! - Guest/Attendee
 
 ---
 
-## 🎯 Critical Testing Policies
-
-### 90-Second Maximum Timeout
-**ENFORCED**: See `/apps/web/docs/testing/TIMEOUT_CONFIGURATION.md`
-
-### AuthHelpers Migration
-**REQUIRED**: All new tests MUST use AuthHelpers.loginAs() pattern
-
-### Docker-Only Testing
-**ENFORCED**: All tests run against Docker containers only
-
-- Web Service: http://localhost:5173
-- API Service: http://localhost:5655
-- PostgreSQL: localhost:5434
-
----
-
-## 📊 Test Metrics & Goals
-
-### Current Coverage (2025-10-23 - CMS PAGES + PHASE 2 COMPLETE)
-- **Environment Status**: ✅ **OPERATIONAL** (containers healthy)
-- **CMS Pages**: 10 pages - ✅ **ALL OPERATIONAL** (legal compliance ready)
-- **Authentication Status**: ❌ **BLOCKED** (configuration mismatch)
-- **E2E Tests**: 89 Playwright spec files - ❌ **BLOCKED** (cannot authenticate)
-- **React Unit Tests**: 20+ test files - ❌ **COMPILATION BLOCKED**
-- **C# Backend Tests**: 316 test files - ✅ **247 PASSING** (78.2% pass rate)
-  - **Phase 2.3 Impact**: ✅ **ZERO REGRESSIONS** from LINQ optimizations
-  - **🎉 PHASE 2 COMPLETE**: All query optimizations successful with zero test regressions
-- **Integration Tests**: 5 test files - Status unknown (may require auth)
-- **Total Active Tests**: 186+ test files (majority BLOCKED by auth configuration)
-
-### CMS Pages Status
-**All 10 Pages Verified** ✅
-- **Existing Pages**: 3/3 operational
-- **New Pages**: 7/7 operational
-- **Legal Compliance**: 2/2 accessible (Terms, Privacy)
-- **API Endpoints**: 100% passing (7/7 tested)
-- **Database**: All pages marked as published
-
----
-
-## 🗂️ For More Information
-
-### Complete Test Listings
-**See Part 4**: `/docs/standards-processes/testing/TEST_CATALOG_PART_4.md`
-
-### Recent Test Work
-**See Part 2**: `/docs/standards-processes/testing/TEST_CATALOG_PART_2.md`
-
-### Historical Context
-**See Part 3**: `/docs/standards-processes/testing/TEST_CATALOG_PART_3.md`
-
-### Agent-Specific Guidance
-**See Lessons Learned**: `/docs/lessons-learned/`
-- `test-developer-lessons-learned.md` - Test creation patterns
-- `test-executor-lessons-learned.md` - Test execution patterns
-- `orchestrator-lessons-learned.md` - Workflow coordination
-
----
-
-## 📝 Maintenance Notes
-
-### Adding New Tests
-1. Follow patterns in appropriate test category
-2. Use AuthHelpers for authentication
-3. Respect 90-second timeout policy
-4. **Use numeric enum values for database verification**
-5. **VERIFY COMPILATION** before marking tests complete
-6. Update this catalog with significant additions
-
-### Catalog Updates
-- Keep this index < 700 lines
-- Move detailed content to Part 2 or Part 3
-- Update "Last Updated" date when making changes
-- Maintain clear navigation structure
-
-### Test Verification Notes
-- All verification reports go to `/test-results/`
-- Update catalog with verification results
-- Track progress in "Latest Updates" section
-- Document test status changes (PASSING, FAILING, BLOCKED)
-- **Latest reports**:
-  - CMS Pages: `/test-results/cms-pages-seeding-test-report-2025-10-23.md` ✅ **ALL 10 PAGES OPERATIONAL** (2025-10-23 22:30)
-  - Phase 2.3 API: `/test-results/api-unit-tests-phase2.3-linq-optimization-verification-2025-10-23.md` ✅ **PHASE 2 COMPLETE** (2025-10-23 22:09)
-  - Phase 2.2 API: `/test-results/api-unit-tests-phase2.2-server-side-projection-verification-2025-10-23.md` ✅ **ZERO REGRESSIONS** (2025-10-23 22:05)
-
----
-
 *This is a navigation index only. For detailed test information, see Part 2, 3, and 4.*
 *For current test execution, see CURRENT_TEST_STATUS.md*
 *For testing standards, see TESTING_GUIDE.md*
-*For latest CMS verification, see `/test-results/cms-pages-seeding-test-report-2025-10-23.md`*
+*For comprehensive failure analysis, see `/test-results/failing-tests-analysis-2025-10-23.md`*
+*For Participation test analysis, see `/test-results/participation-tests-after-asnotracking-fix-2025-10-24-ANALYSIS.md`*

@@ -1,0 +1,109 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e7]: Welcome, Learning
+      - generic [ref=e8]:
+        - link "Report an Incident" [ref=e9] [cursor=pointer]:
+          - /url: /safety/report
+        - link "Private Lessons" [ref=e10] [cursor=pointer]:
+          - /url: /private-lessons
+        - link "Contact" [ref=e11] [cursor=pointer]:
+          - /url: /contact-us
+        - link "Edit Profile" [ref=e12] [cursor=pointer]:
+          - /url: /dashboard/profile-settings
+        - button "Logout" [ref=e13] [cursor=pointer]
+    - banner [ref=e14]:
+      - link "WITCH CITY ROPE" [ref=e15] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e16]:
+        - link "Events & Classes" [ref=e17] [cursor=pointer]:
+          - /url: /events
+        - link "How to Join" [ref=e18] [cursor=pointer]:
+          - /url: /join
+        - link "Resources" [ref=e19] [cursor=pointer]:
+          - /url: /resources
+        - link "Dashboard" [ref=e20] [cursor=pointer]:
+          - /url: /dashboard
+    - main [ref=e21]:
+      - generic [ref=e26]:
+        - generic [ref=e27]:
+          - heading "Apply to Join Witch City Rope" [level=2] [ref=e28]
+          - paragraph [ref=e29]: Please fill out this application thoughtfully. We review all applications within 1-2 weeks.
+        - alert "Privacy & Data Protection" [ref=e30]:
+          - generic [ref=e31]:
+            - img [ref=e33]
+            - generic [ref=e36]:
+              - generic [ref=e38]: Privacy & Data Protection
+              - generic [ref=e39]: All personal information is encrypted and only accessible to approved vetting team members. Your data will never be shared outside the review process.
+        - generic [ref=e41]:
+          - paragraph [ref=e42]: Your Account Information
+          - generic [ref=e43]:
+            - generic [ref=e44]:
+              - paragraph [ref=e45]: "Email:"
+              - paragraph [ref=e46]: member@witchcityrope.com
+            - generic [ref=e47]:
+              - paragraph [ref=e48]: "Scene Name:"
+              - paragraph [ref=e49]: Learning
+          - paragraph [ref=e50]: This information will be used for your application. To update it, please edit your profile.
+        - generic [ref=e52]:
+          - generic [ref=e53]:
+            - generic [ref=e54]:
+              - textbox "Enter your real name" [ref=e57]
+              - generic: Real Name
+            - paragraph [ref=e58]: Your real name is required for our records
+          - generic [ref=e59]:
+            - generic [ref=e60]:
+              - textbox "Enter your pronouns (optional)" [ref=e63]
+              - generic: Pronouns
+            - paragraph [ref=e64]: How you'd like to be referred to (e.g., she/her, they/them)
+          - generic [ref=e65]:
+            - generic [ref=e66]:
+              - textbox "Enter your FetLife handle (optional)" [ref=e69]
+              - generic: FetLife Handle
+            - paragraph [ref=e70]: Optional - helps us verify community connections
+          - generic [ref=e71]:
+            - generic [ref=e72]:
+              - textbox "List any other names, nicknames, or social media handles (optional)" [ref=e75]
+              - generic: Other Names or Handles
+            - paragraph [ref=e76]: Any other names, nicknames, or social media handles you have used in a kinky context
+          - generic [ref=e77]:
+            - generic [ref=e78]:
+              - textbox "Tell us why you would like to join Witch City Rope and what you hope to gain from being part of our community..." [ref=e81]
+              - generic: Why would you like to join Witch City Rope
+            - paragraph [ref=e82]: Tell us why you would like to join our community
+          - generic [ref=e83]:
+            - generic [ref=e84]:
+              - textbox "Tell us about your experience with rope bondage, BDSM, or kink communities..." [ref=e87]
+              - generic: Experience with Rope
+            - paragraph [ref=e88]: Share your experience in rope bondage, BDSM, or kink communities
+          - generic [ref=e90]:
+            - heading "Community Standards Agreement" [level=4] [ref=e91]
+            - paragraph [ref=e92]: "By submitting this application, you acknowledge that:"
+            - list [ref=e93]:
+              - listitem [ref=e94]:
+                - generic [ref=e96]: You are at least 21 years old
+              - listitem [ref=e97]:
+                - generic [ref=e99]: You are comfortable with nudity, sex, and BDSM being discussed
+              - listitem [ref=e100]:
+                - generic [ref=e102]: You understand the importance of consent and boundaries
+              - listitem [ref=e103]:
+                - generic [ref=e105]: You will conduct yourself respectfully
+              - listitem [ref=e106]:
+                - generic [ref=e108]: You agree to follow our Code of Conduct
+            - generic [ref=e110]:
+              - generic [ref=e111]:
+                - checkbox "I agree to all of the above items" [ref=e112]
+                - img
+              - paragraph [ref=e115]: I agree to all of the above items
+          - button "Submit Application" [disabled] [ref=e117]:
+            - generic [ref=e118]:
+              - img [ref=e120]
+              - generic [ref=e122]: Submit Application
+  - generic [ref=e123]:
+    - img [ref=e125]
+    - button "Open Tanstack query devtools" [ref=e173] [cursor=pointer]:
+      - img [ref=e174]
+```

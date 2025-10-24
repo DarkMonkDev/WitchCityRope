@@ -1,0 +1,100 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e7]: Welcome, RopeMaster
+      - generic [ref=e8]:
+        - link "Report an Incident" [ref=e9] [cursor=pointer]:
+          - /url: /safety/report
+        - link "Private Lessons" [ref=e10] [cursor=pointer]:
+          - /url: /private-lessons
+        - link "Contact" [ref=e11] [cursor=pointer]:
+          - /url: /contact-us
+        - link "Edit Profile" [ref=e12] [cursor=pointer]:
+          - /url: /dashboard/profile-settings
+        - button "Logout" [ref=e13] [cursor=pointer]
+    - banner [ref=e14]:
+      - link "WITCH CITY ROPE" [ref=e15] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e16]:
+        - link "Admin" [ref=e17] [cursor=pointer]:
+          - /url: /admin
+        - link "Events & Classes" [ref=e18] [cursor=pointer]:
+          - /url: /events
+        - link "Resources" [ref=e19] [cursor=pointer]:
+          - /url: /resources
+        - link "Dashboard" [ref=e20] [cursor=pointer]:
+          - /url: /dashboard
+    - main [ref=e21]:
+      - generic [ref=e23]:
+        - generic [ref=e24]:
+          - generic [ref=e25]: Page Title *
+          - textbox "Page Title" [ref=e27]:
+            - /placeholder: Enter page title
+            - text: Community Resources
+        - generic [ref=e28]:
+          - generic [ref=e29]:
+            - generic [ref=e30]:
+              - button "Bold" [ref=e31] [cursor=pointer]:
+                - img [ref=e32]
+              - button "Italic" [ref=e36] [cursor=pointer]:
+                - img [ref=e37]
+              - button "Underline" [ref=e40] [cursor=pointer]:
+                - img [ref=e41]
+              - button "Strikethrough" [ref=e44] [cursor=pointer]:
+                - img [ref=e45]
+              - button "Clear formatting" [ref=e48] [cursor=pointer]:
+                - img [ref=e49]
+            - button "Text color" [ref=e55] [cursor=pointer]
+            - generic [ref=e61]:
+              - button "Heading 1" [pressed] [ref=e62] [cursor=pointer]:
+                - img [ref=e63]
+              - button "Heading 2" [ref=e66] [cursor=pointer]:
+                - img [ref=e67]
+              - button "Heading 3" [ref=e70] [cursor=pointer]:
+                - img [ref=e71]
+              - button "Heading 4" [ref=e75] [cursor=pointer]:
+                - img [ref=e76]
+            - generic [ref=e79]:
+              - button "Blockquote" [ref=e80] [cursor=pointer]:
+                - img [ref=e81]
+              - button "Horizontal line" [ref=e85] [cursor=pointer]:
+                - img [ref=e86]
+              - button "Bullet list" [ref=e88] [cursor=pointer]:
+                - img [ref=e89]
+              - button "Ordered list" [ref=e91] [cursor=pointer]:
+                - img [ref=e92]
+            - generic [ref=e96]:
+              - button "Link" [ref=e97] [cursor=pointer]:
+                - img [ref=e98]
+              - button "Remove link" [ref=e103] [cursor=pointer]:
+                - img [ref=e104]
+            - generic [ref=e109]:
+              - 'button "Align text: left" [ref=e110] [cursor=pointer]':
+                - img [ref=e111]
+              - 'button "Align text: center" [ref=e113] [cursor=pointer]':
+                - img [ref=e114]
+              - 'button "Align text: justify" [ref=e116] [cursor=pointer]':
+                - img [ref=e117]
+              - 'button "Align text: right" [ref=e119] [cursor=pointer]':
+                - img [ref=e120]
+            - generic [ref=e122]:
+              - button "Undo" [disabled] [ref=e123]:
+                - img [ref=e124]
+              - button "Redo" [disabled] [ref=e128]:
+                - img [ref=e129]
+          - generic [ref=e135]:
+            - heading "Performance test content" [level=1] [ref=e136]
+            - paragraph [ref=e137]
+        - generic [ref=e138]:
+          - button "Cancel" [ref=e139] [cursor=pointer]:
+            - generic [ref=e141]: Cancel
+          - button "Save" [disabled] [ref=e142]:
+            - generic [ref=e144]: Save
+  - generic [ref=e145]:
+    - img [ref=e147]
+    - button "Open Tanstack query devtools" [ref=e195] [cursor=pointer]:
+      - img [ref=e196]
+```

@@ -1,16 +1,20 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
+import { MantineProvider } from '@mantine/core';
 import { IncidentDetailHeader } from '../IncidentDetailHeader';
 
 const renderWithRouter = (ui: React.ReactElement) => {
-  return render(<BrowserRouter>{ui}</BrowserRouter>);
+  return render(
+    <MantineProvider>
+      <BrowserRouter>{ui}</BrowserRouter>
+    </MantineProvider>
+  );
 };
 
 describe('IncidentDetailHeader', () => {
   const defaultProps = {
     referenceNumber: 'SAF-20251018-0001',
-    severity: 'High' as const,
     status: 'InformationGathering' as const,
     reportedDate: '2025-10-16T08:00:00Z',
     incidentDate: '2025-10-15T19:30:00Z',
@@ -24,9 +28,8 @@ describe('IncidentDetailHeader', () => {
     expect(screen.getByText('SAF-20251018-0001')).toBeInTheDocument();
   });
 
-  it('renders severity and status badges', () => {
+  it('renders status badge', () => {
     renderWithRouter(<IncidentDetailHeader {...defaultProps} />);
-    expect(screen.getByText('HIGH')).toBeInTheDocument();
     expect(screen.getByText(/Information Gathering|Investigating/i)).toBeInTheDocument();
   });
 

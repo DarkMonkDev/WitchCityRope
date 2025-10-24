@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MantineProvider } from '@mantine/core'
 import { CmsPage } from '../CmsPage'
 import * as authStore from '../../../../stores/authStore'
 import * as useCmsPageHook from '../../hooks/useCmsPage'
@@ -56,13 +57,15 @@ describe('CmsPage Component', () => {
     vi.mocked(useCmsPageHook.useCmsPage).mockReturnValue(mockUseCmsPage as any)
 
     render(
-      <QueryClientProvider client={queryClient}>
-        <CmsPage slug="resources" />
-      </QueryClientProvider>
+      <MantineProvider>
+        <QueryClientProvider client={queryClient}>
+          <CmsPage slug="resources" />
+        </QueryClientProvider>
+      </MantineProvider>
     )
 
     // Verify content is displayed
-    expect(screen.getByText(/Resources/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/Resources/i)[0]).toBeInTheDocument()
 
     // Verify edit button is NOT visible for non-admin
     expect(screen.queryByRole('button', { name: /edit/i })).not.toBeInTheDocument()
@@ -74,9 +77,11 @@ describe('CmsPage Component', () => {
     vi.mocked(useCmsPageHook.useCmsPage).mockReturnValue(mockUseCmsPage as any)
 
     render(
-      <QueryClientProvider client={queryClient}>
-        <CmsPage slug="resources" />
-      </QueryClientProvider>
+      <MantineProvider>
+        <QueryClientProvider client={queryClient}>
+          <CmsPage slug="resources" />
+        </QueryClientProvider>
+      </MantineProvider>
     )
 
     // Verify edit button is visible for admin
@@ -90,9 +95,11 @@ describe('CmsPage Component', () => {
     vi.mocked(useCmsPageHook.useCmsPage).mockReturnValue(mockUseCmsPage as any)
 
     render(
-      <QueryClientProvider client={queryClient}>
-        <CmsPage slug="resources" />
-      </QueryClientProvider>
+      <MantineProvider>
+        <QueryClientProvider client={queryClient}>
+          <CmsPage slug="resources" />
+        </QueryClientProvider>
+      </MantineProvider>
     )
 
     // Click edit button
@@ -113,9 +120,11 @@ describe('CmsPage Component', () => {
     vi.mocked(useCmsPageHook.useCmsPage).mockReturnValue(mockUseCmsPage as any)
 
     render(
-      <QueryClientProvider client={queryClient}>
-        <CmsPage slug="resources" />
-      </QueryClientProvider>
+      <MantineProvider>
+        <QueryClientProvider client={queryClient}>
+          <CmsPage slug="resources" />
+        </QueryClientProvider>
+      </MantineProvider>
     )
 
     // Enter edit mode
@@ -143,9 +152,11 @@ describe('CmsPage Component', () => {
     } as any)
 
     render(
-      <QueryClientProvider client={queryClient}>
-        <CmsPage slug="resources" />
-      </QueryClientProvider>
+      <MantineProvider>
+        <QueryClientProvider client={queryClient}>
+          <CmsPage slug="resources" />
+        </QueryClientProvider>
+      </MantineProvider>
     )
 
     // Enter edit mode
@@ -175,9 +186,11 @@ describe('CmsPage Component', () => {
     vi.mocked(useCmsPageHook.useCmsPage).mockReturnValue(mockUseCmsPage as any)
 
     render(
-      <QueryClientProvider client={queryClient}>
-        <CmsPage slug="resources" />
-      </QueryClientProvider>
+      <MantineProvider>
+        <QueryClientProvider client={queryClient}>
+          <CmsPage slug="resources" />
+        </QueryClientProvider>
+      </MantineProvider>
     )
 
     // Enter edit mode
@@ -193,7 +206,7 @@ describe('CmsPage Component', () => {
     // Verify modal appears
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeInTheDocument()
-      expect(screen.getByText(/unsaved changes/i)).toBeInTheDocument()
+      expect(screen.getAllByText(/unsaved changes/i)[0]).toBeInTheDocument()
     })
   })
 
@@ -204,9 +217,11 @@ describe('CmsPage Component', () => {
     vi.mocked(useCmsPageHook.useCmsPage).mockReturnValue(mockUseCmsPage as any)
 
     render(
-      <QueryClientProvider client={queryClient}>
-        <CmsPage slug="resources" />
-      </QueryClientProvider>
+      <MantineProvider>
+        <QueryClientProvider client={queryClient}>
+          <CmsPage slug="resources" />
+        </QueryClientProvider>
+      </MantineProvider>
     )
 
     // Enter edit mode and make changes
@@ -240,13 +255,16 @@ describe('CmsPage Component', () => {
     } as any)
 
     render(
-      <QueryClientProvider client={queryClient}>
-        <CmsPage slug="resources" />
-      </QueryClientProvider>
+      <MantineProvider>
+        <QueryClientProvider client={queryClient}>
+          <CmsPage slug="resources" />
+        </QueryClientProvider>
+      </MantineProvider>
     )
 
     // Verify loading overlay is shown
-    expect(screen.getByTestId('mantine-LoadingOverlay-overlay') || screen.getByRole('status')).toBeInTheDocument()
+    const loadingOverlay = document.querySelector('.mantine-LoadingOverlay-overlay')
+    expect(loadingOverlay).toBeInTheDocument()
   })
 
   it('shows error state when content fails to load', () => {
@@ -258,9 +276,11 @@ describe('CmsPage Component', () => {
     } as any)
 
     render(
-      <QueryClientProvider client={queryClient}>
-        <CmsPage slug="resources" />
-      </QueryClientProvider>
+      <MantineProvider>
+        <QueryClientProvider client={queryClient}>
+          <CmsPage slug="resources" />
+        </QueryClientProvider>
+      </MantineProvider>
     )
 
     // Verify error message is shown
@@ -276,13 +296,15 @@ describe('CmsPage Component', () => {
     } as any)
 
     render(
-      <QueryClientProvider client={queryClient}>
-        <CmsPage
+      <MantineProvider>
+        <QueryClientProvider client={queryClient}>
+          <CmsPage
           slug="resources"
           defaultTitle="Default Title"
           defaultContent="<p>Default content here</p>"
         />
-      </QueryClientProvider>
+        </QueryClientProvider>
+      </MantineProvider>
     )
 
     // Verify default content is rendered

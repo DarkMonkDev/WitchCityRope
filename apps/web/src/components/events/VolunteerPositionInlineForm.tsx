@@ -125,7 +125,7 @@ export const VolunteerPositionInlineForm: React.FC<VolunteerPositionInlineFormPr
       }}
       data-testid="volunteer-position-inline-form"
     >
-      <form onSubmit={handleSubmit}>
+      <div>
         <Stack gap="md">
           <Text size="lg" fw={600} c="burgundy" mb="sm">
             {mode === 'create' ? 'Add New Volunteer Position' : 'Edit Volunteer Position'}
@@ -284,7 +284,7 @@ export const VolunteerPositionInlineForm: React.FC<VolunteerPositionInlineFormPr
             </Group>
 
             <Button
-              type="submit"
+              onClick={handleSubmit}
               variant="filled"
               color="blue"
               leftSection={<IconDeviceFloppy size={16} />}
@@ -304,7 +304,7 @@ export const VolunteerPositionInlineForm: React.FC<VolunteerPositionInlineFormPr
             </Button>
           </Group>
         </Stack>
-      </form>
+      </div>
     </Box>
   );
 };

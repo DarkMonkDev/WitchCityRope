@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { MantineProvider } from '@mantine/core';
 import { IncidentNotesList, IncidentNoteDto, IncidentNoteType } from '../IncidentNotesList';
 
 describe('IncidentNotesList', () => {
@@ -28,20 +29,28 @@ describe('IncidentNotesList', () => {
 
   const mockOnAddNote = vi.fn().mockResolvedValue(undefined);
 
+  const renderWithProvider = (ui: React.ReactElement) => {
+    return render(
+      <MantineProvider>
+        {ui}
+      </MantineProvider>
+    );
+  };
+
   it('renders add note form', () => {
-    render(<IncidentNotesList notes={[]} onAddNote={mockOnAddNote} />);
+    renderWithProvider(<IncidentNotesList notes={[]} onAddNote={mockOnAddNote} />);
     expect(screen.getByPlaceholderText('Add a note about this incident...')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Save Note/i })).toBeInTheDocument();
   });
 
   it('disables save button when note is empty', () => {
-    render(<IncidentNotesList notes={[]} onAddNote={mockOnAddNote} />);
+    renderWithProvider(<IncidentNotesList notes={[]} onAddNote={mockOnAddNote} />);
     const saveButton = screen.getByRole('button', { name: /Save Note/i });
     expect(saveButton).toBeDisabled();
   });
 
   it('enables save button when note has content', async () => {
-    render(<IncidentNotesList notes={[]} onAddNote={mockOnAddNote} />);
+    renderWithProvider(<IncidentNotesList notes={[]} onAddNote={mockOnAddNote} />);
     const textarea = screen.getByPlaceholderText('Add a note about this incident...');
     const saveButton = screen.getByRole('button', { name: /Save Note/i });
 
@@ -53,7 +62,7 @@ describe('IncidentNotesList', () => {
   });
 
   it('renders system notes with correct styling', () => {
-    render(<IncidentNotesList notes={[mockSystemNote]} onAddNote={mockOnAddNote} />);
+    renderWithProvider(<IncidentNotesList notes={[mockSystemNote]} onAddNote={mockOnAddNote} />);
 
     expect(screen.getByText('SYSTEM')).toBeInTheDocument();
     expect(screen.getByText('System')).toBeInTheDocument();
@@ -64,7 +73,7 @@ describe('IncidentNotesList', () => {
   });
 
   it('renders manual notes with privacy indicator', () => {
-    render(<IncidentNotesList notes={[mockManualNote]} onAddNote={mockOnAddNote} />);
+    renderWithProvider(<IncidentNotesList notes={[mockManualNote]} onAddNote={mockOnAddNote} />);
 
     expect(screen.getByText('Safety Coordinator')).toBeInTheDocument();
     expect(screen.getByText('Initial contact made with reporter.')).toBeInTheDocument();
@@ -80,29 +89,29 @@ describe('IncidentNotesList', () => {
       isPrivate: true
     };
 
-    render(<IncidentNotesList notes={[privateNote]} onAddNote={mockOnAddNote} />);
+    renderWithProvider(<IncidentNotesList notes={[privateNote]} onAddNote={mockOnAddNote} />);
     expect(screen.getByText('Private')).toBeInTheDocument();
   });
 
   it('displays tags when present', () => {
-    render(<IncidentNotesList notes={[mockManualNote]} onAddNote={mockOnAddNote} />);
+    renderWithProvider(<IncidentNotesList notes={[mockManualNote]} onAddNote={mockOnAddNote} />);
     expect(screen.getByText('initial-contact')).toBeInTheDocument();
   });
 
   it('shows empty state when no notes', () => {
-    render(<IncidentNotesList notes={[]} onAddNote={mockOnAddNote} />);
+    renderWithProvider(<IncidentNotesList notes={[]} onAddNote={mockOnAddNote} />);
     expect(screen.getByText('No notes added yet')).toBeInTheDocument();
   });
 
   it('renders privacy toggle switch', () => {
-    render(<IncidentNotesList notes={[]} onAddNote={mockOnAddNote} />);
+    renderWithProvider(<IncidentNotesList notes={[]} onAddNote={mockOnAddNote} />);
     expect(screen.getByText(/Private \(coordinators only\)/i)).toBeInTheDocument();
   });
 
   it('changes privacy label when toggled', async () => {
-    render(<IncidentNotesList notes={[]} onAddNote={mockOnAddNote} />);
+    renderWithProvider(<IncidentNotesList notes={[]} onAddNote={mockOnAddNote} />);
 
-    const switchElement = screen.getByRole('checkbox');
+    const switchElement = screen.getByRole('switch');
     fireEvent.click(switchElement);
 
     await waitFor(() => {
@@ -111,7 +120,7 @@ describe('IncidentNotesList', () => {
   });
 
   it('calls onAddNote with correct parameters', async () => {
-    render(<IncidentNotesList notes={[]} onAddNote={mockOnAddNote} />);
+    renderWithProvider(<IncidentNotesList notes={[]} onAddNote={mockOnAddNote} />);
 
     const textarea = screen.getByPlaceholderText('Add a note about this incident...');
     const tagsInput = screen.getByPlaceholderText('Tags (optional, comma-separated)');
@@ -131,7 +140,7 @@ describe('IncidentNotesList', () => {
   });
 
   it('clears form after successful note addition', async () => {
-    render(<IncidentNotesList notes={[]} onAddNote={mockOnAddNote} />);
+    renderWithProvider(<IncidentNotesList notes={[]} onAddNote={mockOnAddNote} />);
 
     const textarea = screen.getByPlaceholderText('Add a note about this incident...');
     const tagsInput = screen.getByPlaceholderText('Tags (optional, comma-separated)');
@@ -162,7 +171,7 @@ describe('IncidentNotesList', () => {
       content: 'Newer note'
     };
 
-    render(<IncidentNotesList notes={[olderNote, newerNote]} onAddNote={mockOnAddNote} />);
+    renderWithProvider(<IncidentNotesList notes={[olderNote, newerNote]} onAddNote={mockOnAddNote} />);
 
     const notes = screen.getAllByTestId('manual-note');
     expect(notes[0]).toHaveTextContent('Newer note');
@@ -170,7 +179,7 @@ describe('IncidentNotesList', () => {
   });
 
   it('shows loading state on save button when isAddingNote is true', () => {
-    render(<IncidentNotesList notes={[]} onAddNote={mockOnAddNote} isAddingNote={true} />);
+    renderWithProvider(<IncidentNotesList notes={[]} onAddNote={mockOnAddNote} isAddingNote={true} />);
     expect(screen.getByRole('button', { name: /Saving.../i })).toBeInTheDocument();
   });
 });

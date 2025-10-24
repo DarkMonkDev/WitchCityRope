@@ -47,6 +47,7 @@
     "@tiptap/suggestion": "^3.6.5",
     "@witchcityrope/shared-types": "file:../../packages/shared-types",
     "autoprefixer": "^10.4.21",
+    "axe-playwright": "^2.2.2",
     "axios": "^1.11.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.12",

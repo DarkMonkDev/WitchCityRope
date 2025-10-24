@@ -19,7 +19,6 @@ import { TestMSWPage } from '../pages/TestMSWPage'
 import { EventSessionMatrixDemo } from '../pages/admin/EventSessionMatrixDemo'
 import { EventsManagementApiDemo } from '../pages/admin/EventsManagementApiDemo'
 // import { EventsManagementApiDemoMinimal } from '../pages/admin/EventsManagementApiDemo.minimal';
-import { EventsManagementApiDemoTest } from '../pages/admin/EventsManagementApiDemo.test'
 // import { EventsManagementApiDemoDebug } from '../pages/admin/EventsManagementApiDemo.debug';
 import { EventFormTestPage } from '../pages/EventFormTestPage'
 import { NavigationTestPage } from '../pages/NavigationTestPage'
@@ -361,10 +360,5 @@ export const router = createBrowserRouter([
         loader: adminLoader,
       },
     ],
-  },
-  // Test route OUTSIDE of RootLayout to bypass Navigation/UtilityBar
-  {
-    path: '/test-no-layout',
-    element: <EventsManagementApiDemoTest />,
   },
 ])

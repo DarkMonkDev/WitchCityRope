@@ -163,7 +163,7 @@ describe('StageGuidanceModal', () => {
     it('renders correct title and guidance text', () => {
       renderComponent({ variant: 'resumeFromHold' });
 
-      expect(screen.getByText('Resume Investigation')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Resume Investigation', level: 3 })).toBeInTheDocument();
       expect(screen.getByText(/Investigation will resume/)).toBeInTheDocument();
     });
 
@@ -184,7 +184,7 @@ describe('StageGuidanceModal', () => {
       const user = userEvent.setup();
       renderComponent({ variant: 'resumeFromHold' });
 
-      const select = screen.getByLabelText(/Resume To Stage/);
+      const select = screen.getByTestId('resume-to-status-select');
       await user.click(select);
 
       const option = await screen.findByText('Information Gathering');
@@ -201,7 +201,7 @@ describe('StageGuidanceModal', () => {
       const mockOnConfirm = vi.fn().mockResolvedValue(undefined);
       renderComponent({ variant: 'resumeFromHold', onConfirm: mockOnConfirm });
 
-      const select = screen.getByLabelText(/Resume To Stage/);
+      const select = screen.getByTestId('resume-to-status-select');
       await user.click(select);
 
       const option = await screen.findByText('Information Gathering');
@@ -224,7 +224,7 @@ describe('StageGuidanceModal', () => {
     it('renders correct title and guidance text', () => {
       renderComponent({ variant: 'close' });
 
-      expect(screen.getByText('Close Incident')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Close Incident', level: 3 })).toBeInTheDocument();
       expect(screen.getByText(/Once closed, this incident will move to archived status/)).toBeInTheDocument();
     });
 

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using WitchCityRope.Api.Data;
+using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Participation.Models;
 using WitchCityRope.Api.Features.Participation.Services;
@@ -41,7 +42,7 @@ public class ParticipationServiceTests_Extended : DatabaseTestBase
     {
         // Arrange
         var user = CreateTestUser(isVetted: false); // Non-vetted user can purchase tickets
-        var classEvent = CreateTestEvent("Class");
+        var classEvent = CreateTestEvent(EventType.Class);
 
         await DbContext.Users.AddAsync(user);
         await DbContext.Events.AddAsync(classEvent);
@@ -83,7 +84,7 @@ public class ParticipationServiceTests_Extended : DatabaseTestBase
     {
         // Arrange
         var user = CreateTestUser(isVetted: true);
-        var socialEvent = CreateTestEvent("Social");
+        var socialEvent = CreateTestEvent(EventType.Social);
 
         await DbContext.Users.AddAsync(user);
         await DbContext.Events.AddAsync(socialEvent);
@@ -108,7 +109,7 @@ public class ParticipationServiceTests_Extended : DatabaseTestBase
     {
         // Arrange
         var user = CreateTestUser(isVetted: true);
-        var classEvent = CreateTestEvent("Class", capacity: 1);
+        var classEvent = CreateTestEvent(EventType.Class, capacity: 1);
 
         await DbContext.Users.AddAsync(user);
         await DbContext.Events.AddAsync(classEvent);
@@ -141,7 +142,7 @@ public class ParticipationServiceTests_Extended : DatabaseTestBase
     {
         // Arrange
         var user = CreateTestUser(isVetted: true);
-        var classEvent = CreateTestEvent("Class");
+        var classEvent = CreateTestEvent(EventType.Class);
 
         await DbContext.Users.AddAsync(user);
         await DbContext.Events.AddAsync(classEvent);
@@ -174,7 +175,7 @@ public class ParticipationServiceTests_Extended : DatabaseTestBase
         // Expected behavior: Cancelled tickets SHOULD allow re-purchase
         // Actual behavior: Unique constraint on (UserId, EventId) prevents any duplicate participation
         var user = CreateTestUser(isVetted: true);
-        var classEvent = CreateTestEvent("Class");
+        var classEvent = CreateTestEvent(EventType.Class);
 
         await DbContext.Users.AddAsync(user);
         await DbContext.Events.AddAsync(classEvent);
@@ -205,7 +206,7 @@ public class ParticipationServiceTests_Extended : DatabaseTestBase
     public async Task CreateTicketPurchaseAsync_WithNonExistentUser_ReturnsFailure()
     {
         // Arrange
-        var classEvent = CreateTestEvent("Class");
+        var classEvent = CreateTestEvent(EventType.Class);
         await DbContext.Events.AddAsync(classEvent);
         await DbContext.SaveChangesAsync();
 
@@ -253,7 +254,7 @@ public class ParticipationServiceTests_Extended : DatabaseTestBase
     public async Task GetEventParticipationsAsync_WithMultipleParticipations_ReturnsAllParticipations()
     {
         // Arrange
-        var event1 = CreateTestEvent("Social");
+        var event1 = CreateTestEvent(EventType.Social);
         await DbContext.Events.AddAsync(event1);
 
         var user1 = CreateTestUser(isVetted: true, email: "user1@test.com", sceneName: "User1");
@@ -296,7 +297,7 @@ public class ParticipationServiceTests_Extended : DatabaseTestBase
     public async Task GetEventParticipationsAsync_WithNoParticipations_ReturnsEmptyList()
     {
         // Arrange
-        var event1 = CreateTestEvent("Social");
+        var event1 = CreateTestEvent(EventType.Social);
         await DbContext.Events.AddAsync(event1);
         await DbContext.SaveChangesAsync();
 
@@ -313,7 +314,7 @@ public class ParticipationServiceTests_Extended : DatabaseTestBase
     public async Task GetEventParticipationsAsync_WithMixedParticipationTypes_ReturnsAllTypes()
     {
         // Arrange
-        var event1 = CreateTestEvent("Workshop", capacity: 20); // Can have both RSVPs and tickets
+        var event1 = CreateTestEvent(EventType.Class, capacity: 20); // Can have both RSVPs and tickets
         await DbContext.Events.AddAsync(event1);
 
         var user1 = CreateTestUser(isVetted: true, email: "rsvp@test.com", sceneName: "RSVPUser");
@@ -345,7 +346,7 @@ public class ParticipationServiceTests_Extended : DatabaseTestBase
     {
         // Arrange - Cancelled participations should not be returned (only active ones count)
         var user = CreateTestUser(isVetted: true);
-        var event1 = CreateTestEvent("Social");
+        var event1 = CreateTestEvent(EventType.Social);
 
         await DbContext.Users.AddAsync(user);
         await DbContext.Events.AddAsync(event1);
@@ -369,8 +370,8 @@ public class ParticipationServiceTests_Extended : DatabaseTestBase
     {
         // Arrange - Test that service returns correct participation when user has multiple across different events
         var user = CreateTestUser(isVetted: true);
-        var event1 = CreateTestEvent("Social", title: "First Social Event");
-        var event2 = CreateTestEvent("Social", title: "Second Social Event");
+        var event1 = CreateTestEvent(EventType.Social, title: "First Social Event");
+        var event2 = CreateTestEvent(EventType.Social, title: "Second Social Event");
 
         await DbContext.Users.AddAsync(user);
         await DbContext.Events.AddRangeAsync(event1, event2);
@@ -415,7 +416,7 @@ public class ParticipationServiceTests_Extended : DatabaseTestBase
     {
         // Arrange
         var user = CreateTestUser(isVetted: true);
-        var event1 = CreateTestEvent("Social");
+        var event1 = CreateTestEvent(EventType.Social);
 
         await DbContext.Users.AddAsync(user);
         await DbContext.Events.AddAsync(event1);
@@ -439,7 +440,7 @@ public class ParticipationServiceTests_Extended : DatabaseTestBase
     {
         // Arrange
         var user = CreateTestUser(isVetted: true);
-        var event1 = CreateTestEvent("Social");
+        var event1 = CreateTestEvent(EventType.Social);
 
         await DbContext.Users.AddAsync(user);
         await DbContext.Events.AddAsync(event1);
@@ -478,7 +479,7 @@ public class ParticipationServiceTests_Extended : DatabaseTestBase
         };
     }
 
-    private Event CreateTestEvent(string eventType, string title = "Test Event", int capacity = 10)
+    private Event CreateTestEvent(EventType eventType, string title = "Test Event", int capacity = 10)
     {
         return new Event
         {

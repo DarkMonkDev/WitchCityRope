@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
 using WitchCityRope.Api.Data;
+using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Services;
 using WitchCityRope.Api.Tests.Fixtures;
@@ -173,7 +174,7 @@ public abstract class DatabaseTestBase : IAsyncLifetime
             EndDate = startDate.AddHours(2),
             Location = "Test Location",
             Capacity = 20,
-            EventType = "Workshop",
+            EventType = EventType.Class,
             IsPublished = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow

@@ -1,0 +1,64 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e7]: Welcome, RopeEnthusiast
+      - generic [ref=e8]:
+        - link "Report an Incident" [ref=e9] [cursor=pointer]:
+          - /url: /safety/report
+        - link "Private Lessons" [ref=e10] [cursor=pointer]:
+          - /url: /private-lessons
+        - link "Contact" [ref=e11] [cursor=pointer]:
+          - /url: /contact-us
+        - link "Edit Profile" [ref=e12] [cursor=pointer]:
+          - /url: /dashboard/profile-settings
+        - button "Logout" [ref=e13] [cursor=pointer]
+    - banner [ref=e14]:
+      - link "WITCH CITY ROPE" [ref=e15] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e16]:
+        - link "Events & Classes" [ref=e17] [cursor=pointer]:
+          - /url: /events
+        - link "Resources" [ref=e18] [cursor=pointer]:
+          - /url: /resources
+        - link "Dashboard" [ref=e19] [cursor=pointer]:
+          - /url: /dashboard
+    - main [ref=e20]:
+      - generic [ref=e22]:
+        - generic [ref=e24]:
+          - generic [ref=e25]:
+            - generic [ref=e26]:
+              - img [ref=e27]
+              - paragraph [ref=e30]: Approved
+            - generic [ref=e32]: fd5b0d8e
+          - paragraph [ref=e34]: Application approved - welcome to the community!
+          - generic [ref=e35]:
+            - generic [ref=e36]:
+              - paragraph [ref=e37]: "Submitted:"
+              - paragraph [ref=e38]: April 23, 2025
+            - generic [ref=e39]:
+              - paragraph [ref=e40]: "Last Updated:"
+              - paragraph [ref=e41]: October 20, 2025
+          - generic [ref=e42]:
+            - paragraph [ref=e43]: "Next Steps:"
+            - paragraph [ref=e44]: You can now register for member events
+        - generic [ref=e47]:
+          - heading "Application Already Submitted" [level=2] [ref=e48]
+          - alert [ref=e49]:
+            - generic [ref=e50]:
+              - img [ref=e52]
+              - generic [ref=e55]: You have already submitted a vetting application. Only one application is allowed per person.
+          - generic [ref=e56]:
+            - paragraph [ref=e57]: "Application Status:"
+            - paragraph [ref=e58]: Pending
+          - generic [ref=e59]:
+            - paragraph [ref=e60]: "Submitted:"
+            - paragraph [ref=e61]: 4/23/2025
+          - paragraph
+  - generic [ref=e62]:
+    - img [ref=e64]
+    - button "Open Tanstack query devtools" [ref=e112] [cursor=pointer]:
+      - img [ref=e113]
+```

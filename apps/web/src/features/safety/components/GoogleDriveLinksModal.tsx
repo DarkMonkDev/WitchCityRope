@@ -51,7 +51,9 @@ export const GoogleDriveLinksModal: React.FC<GoogleDriveLinksModalProps> = ({
 
   const handleFolderUrlChange = (value: string) => {
     setFolderUrl(value);
-    if (value && !validateGoogleDriveUrl(value)) {
+    // Trim before validating to handle accidental whitespace
+    const trimmedValue = value.trim();
+    if (trimmedValue && !validateGoogleDriveUrl(trimmedValue)) {
       setFolderUrlError('URL must start with https://drive.google.com/');
     } else {
       setFolderUrlError('');
@@ -60,7 +62,9 @@ export const GoogleDriveLinksModal: React.FC<GoogleDriveLinksModalProps> = ({
 
   const handleFinalReportUrlChange = (value: string) => {
     setFinalReportUrl(value);
-    if (value && !validateGoogleDriveUrl(value)) {
+    // Trim before validating to handle accidental whitespace
+    const trimmedValue = value.trim();
+    if (trimmedValue && !validateGoogleDriveUrl(trimmedValue)) {
       setFinalReportUrlError('URL must start with https://drive.google.com/');
     } else {
       setFinalReportUrlError('');
@@ -68,9 +72,13 @@ export const GoogleDriveLinksModal: React.FC<GoogleDriveLinksModalProps> = ({
   };
 
   const handleSave = async () => {
-    // Validate URLs
-    const folderValid = validateGoogleDriveUrl(folderUrl);
-    const reportValid = validateGoogleDriveUrl(finalReportUrl);
+    // Trim URLs before validation to handle accidental whitespace
+    const trimmedFolderUrl = folderUrl.trim();
+    const trimmedReportUrl = finalReportUrl.trim();
+
+    // Validate trimmed URLs
+    const folderValid = validateGoogleDriveUrl(trimmedFolderUrl);
+    const reportValid = validateGoogleDriveUrl(trimmedReportUrl);
 
     if (!folderValid) {
       setFolderUrlError('URL must start with https://drive.google.com/');
@@ -86,8 +94,8 @@ export const GoogleDriveLinksModal: React.FC<GoogleDriveLinksModalProps> = ({
     setIsSubmitting(true);
     try {
       await onSave(
-        folderUrl.trim() || undefined,
-        finalReportUrl.trim() || undefined
+        trimmedFolderUrl || undefined,
+        trimmedReportUrl || undefined
       );
       handleClose();
     } catch (error) {

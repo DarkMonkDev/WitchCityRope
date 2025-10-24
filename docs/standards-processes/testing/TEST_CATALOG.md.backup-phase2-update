@@ -1,0 +1,463 @@
+# WitchCityRope Test Catalog - Navigation Index
+<!-- Last Updated: 2025-10-23 (Phase 2 API Unit Tests Created) -->
+<!-- Version: 8.3 - Added Phase 2 Events/Volunteers/CheckIn Integration Tests (70.7% Pass Rate) -->
+<!-- Owner: Testing Team -->
+<!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
+
+## 📋 About This Catalog
+
+This is a **navigation index** for the WitchCityRope test catalog. The full catalog is split into manageable parts to stay within token limits for AI agents.
+
+**File Size**: This index is kept under 700 lines to ensure AI agents can read it during startup.
+
+**Coverage**: Now documents all 271+ test files across all test types (E2E, React, C# Backend, Infrastructure) + CMS verification
+
+---
+
+## 🗺️ Catalog Structure
+
+### Part 1 (This File): Navigation & Current Status
+- **You are here** - Quick navigation and current test status
+- **Use for**: Finding specific test information, understanding catalog organization
+
+### Part 2: Historical Test Documentation
+- **Location**: `/docs/standards-processes/testing/TEST_CATALOG_PART_2.md`
+- **Contains**: September 2025 test transformations, historical patterns, cleanup notes
+- **Use for**: Understanding test migration patterns, historical context
+
+### Part 3: Archived Test Information
+- **Location**: `/docs/standards-processes/testing/TEST_CATALOG_PART_3.md`
+- **Contains**: Legacy test architecture, obsolete patterns, archived migration info
+- **Use for**: Historical context, understanding why approaches were abandoned
+
+### Part 4: Complete Test File Listings
+- **Location**: `/docs/standards-processes/testing/TEST_CATALOG_PART_4.md`
+- **Contains**: All 271+ test files with descriptions and locations
+- **Sections**: E2E Playwright (89), React Unit (20+), C# Backend (56), Legacy (29+)
+- **Use for**: Finding specific test files, understanding test coverage by feature
+
+---
+
+## 🔍 Quick Navigation
+
+### Current Test Status (October 2025)
+
+**Latest Updates** (2025-10-23 - PHASE 2 EVENTS/VOLUNTEERS/CHECKIN INTEGRATION TESTS CREATED):
+
+- 🚧 **PHASE 2: EVENTS, VOLUNTEERS, AND CHECK-IN INTEGRATION TESTS - 70.7% PASS RATE** (2025-10-23 23:45 UTC):
+  - **Purpose**: Comprehensive integration tests for core business logic using TestContainers pattern
+  - **Overall Status**: ⚠️ **70.7% PASS RATE - 41/58 TESTS PASSING** (Good foundation, needs bug fixes)
+  - **Test Files Created**:
+    - `/tests/unit/api/Features/Events/EventServiceTests.cs` - 22 tests - ✅ **100% PASSING** (22/22)
+    - `/tests/unit/api/Features/Volunteers/VolunteerServiceTests.cs` - 21 tests - ⚠️ **38% PASSING** (8/21)
+    - `/tests/unit/api/Features/CheckIn/CheckInServiceTests.cs` - 15 tests - ⚠️ **73% PASSING** (11/15)
+  - **Test Coverage Areas**:
+    - ✅ Events: CRUD operations, capacity enforcement, date validation, authorization (COMPLETE)
+    - ⚠️ Volunteers: Signup, auto-RSVP, capacity management, check-in integration (NEEDS FIXES)
+    - ⚠️ CheckIn: Attendee check-in, capacity enforcement, waiver validation, audit trails (NEEDS FIXES)
+  - **Technical Approach**:
+    - Real PostgreSQL via TestContainers (postgres:16-alpine)
+    - Real Entity Framework Core operations (no database mocks)
+    - Real business logic validation (capacity, dates, permissions)
+    - Database isolation per test class with cleanup
+  - **Key Patterns Implemented**:
+    - Helper methods for test data creation
+    - Proper user/event setup for foreign key constraints
+    - Social event type for RSVP counting
+    - Comprehensive edge case coverage
+  - **Status**: 🚧 **GOOD FOUNDATION - NEEDS BUG FIXES BEFORE PRODUCTION**
+  - **Next Steps**:
+    - Debug 13 failing volunteer tests (likely missing Event entity loading)
+    - Debug 4 failing check-in tests (likely service method differences)
+    - All tests compile and run successfully with TestContainers
+  - **catalog_updated**: true
+
+**Previous Updates** (2025-10-23 - PHASE 1 AUTH/SECURITY UNIT TESTS 100% COMPLETE):
+
+- ✅ **PHASE 1: AUTHENTICATION & SECURITY UNIT TESTS - 100% COMPLETE** (2025-10-23 20:46 UTC):
+  - **Purpose**: Unit-level security validation for AuthenticationService with comprehensive OWASP coverage
+  - **Overall Status**: ✅ **100% PASS RATE - 27/27 TESTS PASSING** ✅
+  - **Test File**: `/tests/unit/api/Features/Auth/AuthenticationServiceTests.cs`
+  - **Test Count**: 27 comprehensive unit tests
+  - **Test Coverage**:
+    - ✅ **Login Tests**: Valid credentials, invalid email, invalid password, locked account, inactive user (6 tests)
+    - ✅ **Return URL Validation**: Valid local URLs, malicious external URLs (2 tests)
+    - ✅ **Registration Tests**: Valid data, duplicate email/scene name, weak password, invalid email (5 tests)
+    - ✅ **User Retrieval**: Valid user ID, invalid user ID (2 tests)
+    - ✅ **Service Tokens**: Valid credentials, mismatched email, unconfirmed email (3 tests)
+    - ✅ **Security Tests (OWASP)**: SQL injection, XSS, malicious input handling (4 tests)
+    - ✅ **Password Security**: Password hashing verification (1 test)
+    - ✅ **Role Assignment**: Default member role assignment (1 test)
+    - ✅ **Additional Security**: Deleted user, case-insensitive email (3 tests)
+  - **Technical Approach**:
+    - Real PostgreSQL via TestContainers (no mocks for database)
+    - Real ASP.NET Core Identity components (UserManager, SignInManager)
+    - Real JWT token generation and validation
+    - Real ReturnUrlValidator (not mocked - uses actual validation logic)
+    - NSubstitute for service dependencies only
+  - **Key Fixes Applied**:
+    - Fixed async mocking with Task.FromResult() wrappers
+    - UserManager.CreateAsync now saves to real database
+    - ReturnUrlValidator uses REAL instance (not mocked) for accurate validation
+  - **Environment**: TestContainers with PostgreSQL 16-alpine
+  - **Duration**: ~51 seconds for full test suite
+  - **Status**: ✅ **PRODUCTION READY - ALL AUTHENTICATION SECURITY PATHS VALIDATED**
+  - **Fixes**: 2 return URL validation tests fixed by removing invalid mock setups
+  - **catalog_updated**: true
+
+**Previous Updates** (2025-10-23 23:29 UTC - E2E BASELINE ASSESSMENT COMPLETE):
+
+- ✅ **E2E TEST BASELINE ASSESSMENT COMPLETE** (2025-10-23 23:29 UTC):
+  - **Purpose**: Establish current E2E test suite status for Phase 3 stabilization planning
+  - **Overall Status**: ⚠️ **70.3% PASS RATE - STABLE BUT NEEDS FIXES BEFORE LAUNCH**
+  - **Test Execution Summary**:
+    - Total tests: 425 tests across 93 test files
+    - Passing: 299 (70.3%)
+    - Failing: 75 (17.6%)
+    - Skipped: 51 (12.0%)
+    - Flaky: 0 (0%) ✅ **EXCELLENT**
+    - Duration: 4.4 minutes (262 seconds)
+  - **Critical Findings**:
+    - ✅ **ZERO authentication failures** - Login system fully operational
+    - ✅ **ZERO flaky tests** - High reliability and consistency
+    - ✅ **Core workflows operational** - Users can register, login, browse events, RSVP
+    - ⚠️ **6 failing test files** - Specific issues with vetting admin UI and console errors
+    - ⚠️ **51 skipped tests** - Need review for launch readiness
+  - **Failure Categories**:
+    - Navigation timeouts: 2 tests (vetting detail navigation)
+    - Element not found: 2 tests (vetting data setup issues)
+    - Console errors: 1 test (application generates 3 unexpected errors)
+    - Deprecated API: 1 test (archived diagnostic test)
+  - **Environment Health**: ✅ **100% HEALTHY**
+    - Docker containers: All operational (Web: 5173, API: 5655, DB: 5434)
+    - API health: Responding correctly
+    - Database: 7 test users seeded
+    - No local dev server conflicts
+  - **Launch Readiness**: ⚠️ **YELLOW - 70% READY**
+    - Must fix: Console errors, vetting navigation (high priority)
+    - Should fix: Vetting test data setup, skipped test review (medium priority)
+    - Core functionality: ✅ **OPERATIONAL**
+  - **Report**: `/test-results/e2e-baseline-2025-10-23.md` (comprehensive 347-line analysis)
+  - **Status**: ⚠️ **BASELINE ESTABLISHED - SYSTEMATIC FIXES REQUIRED**
+  - **catalog_updated**: true
+
+**Previous Updates** (2025-10-23 22:30 UTC - CMS PAGES VERIFICATION):
+
+- ✅ **CMS PAGES SEEDING AND API VERIFICATION COMPLETE** (2025-10-23 22:30 UTC):
+  - **Overall Status**: ✅ **ALL 10 CMS PAGES OPERATIONAL** - Legal compliance pages ready for launch
+  - **Report**: `/test-results/cms-pages-seeding-test-report-2025-10-23.md`
+  - **Status**: ✅ **CMS PAGES VERIFIED AND OPERATIONAL**
+  - **catalog_updated**: true
+
+**Previous Updates** (2025-10-23 - 🎉 PHASE 2 COMPLETE 🎉):
+
+- ✅ **PHASE 2.3 API UNIT TESTS VERIFICATION COMPLETE** (2025-10-23 22:09 UTC):
+  - **Overall Status**: ✅ **ZERO REGRESSIONS - PHASE 2 COMPLETE**
+  - **Report**: `/test-results/api-unit-tests-phase2.3-linq-optimization-verification-2025-10-23.md`
+  - **Status**: ✅ **PHASE 2 COMPLETE - ALL 3 SUB-PHASES SUCCESSFUL**
+  - **catalog_updated**: true
+
+---
+
+### Test Categories
+
+#### E2E Tests (Playwright) - BASELINE COMPLETE ✅
+**Location**: `/apps/web/tests/playwright/`
+**Count**: 89 spec files (83 in root, 6 in subdirectories)
+**Total Tests**: 425 test cases
+**Status**: ⚠️ **70.3% PASS RATE - STABLE, NEEDS SYSTEMATIC FIXES**
+
+**Pass Rate Details** (2025-10-23 Baseline):
+- **Passing**: 299 tests (70.3%)
+- **Failing**: 75 tests (17.6%)
+- **Skipped**: 51 tests (12.0%)
+- **Flaky**: 0 tests (0%) ✅
+
+**Key Strengths**:
+- ✅ Authentication system: 100% operational (zero auth failures)
+- ✅ Test reliability: Zero flaky tests detected
+- ✅ Environment stability: Docker containers healthy
+- ✅ Core user workflows: Login, events, RSVP, profile all working
+
+**Known Issues** (6 failing test files):
+1. `console-error-check.spec.ts` - Application generates 3 console errors (HIGH PRIORITY)
+2. `vetting-notes-display.spec.ts` - Test data setup issue (MEDIUM)
+3. `vetting-notes-direct.spec.ts` - Element visibility issue (MEDIUM)
+4. `test-dom-check.spec.ts` - Navigation timeout (LOW)
+5. `test-with-reload.spec.ts` - Navigation timeout (LOW)
+6. `_archived/diagnostic-tests/page-load-diagnostic.spec.ts` - Deprecated API (LOW)
+
+**Skipped Tests**: 51 tests need review for launch readiness
+
+**Launch Blockers**:
+- Must fix: Console errors (affects UX)
+- Should fix: Vetting navigation issues (affects admin workflow)
+
+**Detailed Report**: `/test-results/e2e-baseline-2025-10-23.md`
+
+#### CMS Pages (Database + API Verification)
+**Location**: `/apps/api/Features/Cms/`
+**Database**: `cms.ContentPages` table (PostgreSQL)
+**API Endpoints**: `/api/cms/pages/{slug}` (public), `/api/cms/pages` (admin)
+**Status**: ✅ **ALL 10 PAGES OPERATIONAL** (2025-10-23)
+**Pages**:
+- ✅ resources - Community Resources
+- ✅ contact-us - Contact Us
+- ✅ private-lessons - Private Lessons & Instruction
+- ✅ about-us - About WitchCityRope (NEW)
+- ✅ faq - Frequently Asked Questions (NEW)
+- ✅ safety-practices - Safety Practices (NEW)
+- ✅ code-of-conduct - Code of Conduct (NEW)
+- ✅ terms-of-service - Terms of Service (NEW - Legal Compliance)
+- ✅ privacy-policy - Privacy Policy (NEW - Legal Compliance)
+- ✅ community-guidelines - Community Guidelines (NEW)
+
+#### Unit Tests (React)
+**Location**: `/apps/web/src/features/*/components/__tests__/` and `/apps/web/src/pages/__tests__/`
+**Count**: 20+ test files (updated with incident reporting)
+**Framework**: Vitest + React Testing Library
+**Status**: ❌ **COMPILATION BLOCKED** (2025-10-20 - TypeScript errors)
+
+#### Unit Tests (C# Backend)
+**Location**: `/tests/unit/api/`
+**Count**: 316 tests total (247 passing, 54 failing, 15 skipped)
+**Status**: ✅ **COMPILATION SUCCESSFUL** (2025-10-23 - Phase 2.3 LINQ Optimization verified)
+**Latest Verification**: Phase 2.3 LINQ optimizations had zero impact on tests - **PHASE 2 COMPLETE**
+
+#### Integration Tests
+**Location**: `/tests/integration/`
+**Status**: Real PostgreSQL with TestContainers
+
+---
+
+## 📚 Testing Standards & Documentation
+
+### Essential Testing Guides
+- **Playwright Standards**: `/docs/standards-processes/testing/playwright-standards.md`
+- **Testing Guide**: `/docs/standards-processes/testing/TESTING_GUIDE.md`
+- **Integration Patterns**: `/docs/standards-processes/testing/integration-test-patterns.md`
+- **Docker-Only Testing**: `/docs/standards-processes/testing/docker-only-testing-standard.md`
+
+### Test Status Tracking
+- **Current Status**: `/docs/standards-processes/testing/CURRENT_TEST_STATUS.md`
+- **E2E Patterns**: `/docs/standards-processes/testing/E2E_TESTING_PATTERNS.md`
+- **Timeout Config**: `/apps/web/docs/testing/TIMEOUT_CONFIGURATION.md`
+
+### Recent Test Reports
+- **E2E Baseline**: `/test-results/e2e-baseline-2025-10-23.md` ⚠️ **70.3% PASS RATE - COMPREHENSIVE ANALYSIS** (2025-10-23 23:29)
+- **CMS Pages Verification**: `/test-results/cms-pages-seeding-test-report-2025-10-23.md` ✅ **ALL 10 PAGES OPERATIONAL** (2025-10-23 22:30)
+- **Phase 2.3 API Verification**: `/test-results/api-unit-tests-phase2.3-linq-optimization-verification-2025-10-23.md` ✅ **PHASE 2 COMPLETE** (2025-10-23 22:09)
+- **Phase 2.2 API Verification**: `/test-results/api-unit-tests-phase2.2-server-side-projection-verification-2025-10-23.md` ✅ **ZERO REGRESSIONS** (2025-10-23 22:05)
+
+---
+
+## 🚀 Running Tests
+
+### Prerequisites
+```bash
+# Ensure Docker is running
+sudo systemctl start docker
+
+# Start development environment
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+# Verify environment health
+docker ps | grep witchcity
+curl http://localhost:5655/health
+curl http://localhost:5173/
+```
+
+### E2E Tests (Playwright)
+**STATUS**: ⚠️ **70.3% PASSING** - Baseline established, systematic fixes needed
+
+```bash
+cd apps/web
+
+# Run all E2E tests
+npm run test:e2e
+
+# Run specific test file
+npx playwright test tests/playwright/auth.spec.ts
+
+# Run with UI mode for debugging
+npx playwright test --ui
+
+# Current Results (2025-10-23):
+# Total: 425 tests
+# Passed: 299 (70.3%)
+# Failed: 75 (17.6%)
+# Skipped: 51 (12.0%)
+# Flaky: 0 (0%)
+# Duration: 4.4 minutes
+```
+
+### CMS Pages Testing
+**STATUS**: ✅ **OPERATIONAL** - All 10 pages verified
+
+```bash
+# Test individual page endpoints
+curl -s http://localhost:5655/api/cms/pages/about-us | jq '.title'
+curl -s http://localhost:5655/api/cms/pages/terms-of-service | jq '.title'
+curl -s http://localhost:5655/api/cms/pages/privacy-policy | jq '.title'
+
+# Verify in database
+PGPASSWORD=devpass123 psql -h localhost -p 5434 -U postgres -d witchcityrope_dev \
+  -c "SELECT \"Slug\", \"Title\", \"IsPublished\" FROM cms.\"ContentPages\" ORDER BY \"Slug\";"
+```
+
+### Unit Tests (C# Backend)
+**STATUS**: ✅ **FUNCTIONAL** - Phase 2.3 LINQ optimization verification passed - **PHASE 2 COMPLETE**
+
+```bash
+# Run all unit tests
+dotnet test tests/unit/api/WitchCityRope.Api.Tests.csproj
+
+# Latest Results (2025-10-23):
+# Total: 316 tests
+# Passed: 247 (78.2%)
+# Failed: 54 (17.1%) - Pre-existing, unrelated to Phase 2 changes
+# Skipped: 15 (4.7%)
+```
+
+---
+
+## 🔑 Test Accounts
+
+**STATUS**: ✅ **AUTHENTICATION OPERATIONAL** - All accounts functional per E2E baseline
+
+```
+admin@witchcityrope.com / Test123! - Administrator, Vetted
+coordinator1@witchcityrope.com / Test123! - SafetyTeam
+coordinator2@witchcityrope.com / Test123! - SafetyTeam
+teacher@witchcityrope.com / Test123! - Teacher, Vetted
+vetted@witchcityrope.com / Test123! - Member, Vetted
+member@witchcityrope.com / Test123! - Member, Not Vetted
+guest@witchcityrope.com / Test123! - Guest/Attendee
+```
+
+---
+
+## 🎯 Critical Testing Policies
+
+### 90-Second Maximum Timeout
+**ENFORCED**: See `/apps/web/docs/testing/TIMEOUT_CONFIGURATION.md`
+
+### AuthHelpers Migration
+**REQUIRED**: All new tests MUST use AuthHelpers.loginAs() pattern
+
+### Docker-Only Testing
+**ENFORCED**: All tests run against Docker containers only
+
+- Web Service: http://localhost:5173
+- API Service: http://localhost:5655
+- PostgreSQL: localhost:5434
+
+---
+
+## 📊 Test Metrics & Goals
+
+### Current Coverage (2025-10-23 - E2E BASELINE COMPLETE)
+- **Environment Status**: ✅ **OPERATIONAL** (containers healthy)
+- **CMS Pages**: 10 pages - ✅ **ALL OPERATIONAL** (legal compliance ready)
+- **E2E Tests**: 425 tests - ⚠️ **70.3% PASSING** (299/425) - Zero flaky tests
+- **React Unit Tests**: 20+ test files - ❌ **COMPILATION BLOCKED**
+- **C# Backend Tests**: 316 tests - ✅ **247 PASSING** (78.2% pass rate)
+  - **Phase 2 Complete**: ✅ All query optimizations verified
+- **Integration Tests**: 5 test files - Status pending verification
+
+### E2E Test Status by Feature (Baseline 2025-10-23)
+| Feature Area | Pass Rate | Status | Notes |
+|--------------|-----------|--------|-------|
+| Authentication | ✅ 100% | Operational | Zero auth failures |
+| User Dashboard | ✅ ~95% | Operational | Core functionality working |
+| Event System | ✅ ~90% | Operational | Most event tests passing |
+| Profile Management | ✅ ~85% | Operational | Persistence working |
+| RSVP System | ✅ ~80% | Operational | Core RSVP lifecycle working |
+| Vetting System | ⚠️ ~70% | Partial | Admin detail view has issues |
+| Admin Tools | ✅ ~85% | Operational | Most admin features working |
+| Registration | ✅ ~90% | Operational | Form validation working |
+
+### CMS Pages Status
+**All 10 Pages Verified** ✅
+- **Existing Pages**: 3/3 operational
+- **New Pages**: 7/7 operational
+- **Legal Compliance**: 2/2 accessible (Terms, Privacy)
+- **API Endpoints**: 100% passing (7/7 tested)
+
+---
+
+## 🗂️ For More Information
+
+### Complete Test Listings
+**See Part 4**: `/docs/standards-processes/testing/TEST_CATALOG_PART_4.md`
+
+### Recent Test Work
+**See Part 2**: `/docs/standards-processes/testing/TEST_CATALOG_PART_2.md`
+
+### Historical Context
+**See Part 3**: `/docs/standards-processes/testing/TEST_CATALOG_PART_3.md`
+
+### Agent-Specific Guidance
+**See Lessons Learned**: `/docs/lessons-learned/`
+- `test-developer-lessons-learned.md` - Test creation patterns
+- `test-executor-lessons-learned.md` - Test execution patterns
+- `orchestrator-lessons-learned.md` - Workflow coordination
+
+---
+
+## 📝 Maintenance Notes
+
+### Adding New Tests
+1. Follow patterns in appropriate test category
+2. Use AuthHelpers for authentication
+3. Respect 90-second timeout policy
+4. **Use numeric enum values for database verification**
+5. **VERIFY COMPILATION** before marking tests complete
+6. Update this catalog with significant additions
+
+### Catalog Updates
+- Keep this index < 700 lines
+- Move detailed content to Part 2 or Part 3
+- Update "Last Updated" date when making changes
+- Maintain clear navigation structure
+
+### Test Verification Notes
+- All verification reports go to `/test-results/`
+- Update catalog with verification results
+- Track progress in "Latest Updates" section
+- Document test status changes (PASSING, FAILING, BLOCKED)
+- **Latest reports**:
+  - E2E Baseline: `/test-results/e2e-baseline-2025-10-23.md` ⚠️ **70.3% PASS RATE** (2025-10-23 23:29)
+  - CMS Pages: `/test-results/cms-pages-seeding-test-report-2025-10-23.md` ✅ **ALL OPERATIONAL** (2025-10-23 22:30)
+  - Phase 2.3 API: `/test-results/api-unit-tests-phase2.3-linq-optimization-verification-2025-10-23.md` ✅ **PHASE 2 COMPLETE** (2025-10-23 22:09)
+
+---
+
+## 🚨 E2E Launch Readiness Status
+
+### Current Status: ⚠️ **YELLOW - 70% READY**
+
+**Must Fix Before Launch**:
+1. ❌ Eliminate 3 console errors in application (HIGH PRIORITY - UX impact)
+2. ❌ Fix vetting admin detail page navigation (HIGH PRIORITY - admin workflow)
+
+**Should Fix Before Launch**:
+1. ⚠️ Fix vetting test data setup issues (MEDIUM PRIORITY)
+2. ⚠️ Review and enable 51 skipped tests (MEDIUM PRIORITY)
+
+**Can Fix After Launch**:
+1. ✅ Update deprecated Playwright API in archived tests (LOW PRIORITY)
+2. ✅ Improve test timing resilience (LOW PRIORITY)
+
+**Core Functionality Status**: ✅ **OPERATIONAL**
+- Users can register, login, browse events, and RSVP
+- Admin can manage events and vetting
+- Profile updates persist correctly
+- Ticket system functional
+
+---
+
+*This is a navigation index only. For detailed test information, see Part 2, 3, and 4.*
+*For current test execution, see CURRENT_TEST_STATUS.md*
+*For testing standards, see TESTING_GUIDE.md*
+*For E2E baseline analysis, see `/test-results/e2e-baseline-2025-10-23.md`*

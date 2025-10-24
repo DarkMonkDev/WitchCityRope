@@ -1,7 +1,15 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
+import { setupConsoleErrorFiltering } from './helpers/console.helpers';
 
 test.describe('Phase 4: Registration/RSVP System', () => {
   test.beforeEach(async ({ page }) => {
+    // Set up console error filtering
+    setupConsoleErrorFiltering(page, {
+      filter401Errors: true,
+      logFilteredMessages: false,
+    });
+
     // Navigate to events page
     await page.goto('http://localhost:5173/events');
   });
@@ -14,7 +22,7 @@ test.describe('Phase 4: Registration/RSVP System', () => {
     
     // Look for any event card
     const eventCard = page.locator('[data-testid="event-card"], .event-card, article').first();
-    const hasEvents = await eventCard.isVisible().catch(() => false);
+    const hasEvents = await eventCard.isVisible();
     
     if (hasEvents) {
       // Click on View Details or the event card itself
@@ -82,10 +90,10 @@ test.describe('Phase 4: Registration/RSVP System', () => {
         
         // Click RSVP
         await rsvpButton.first().click();
-        
-        // Check for confirmation or status change
-        await page.waitForTimeout(1000);
-        
+
+        // Wait for confirmation or status change
+        await page.waitForLoadState('networkidle');
+
         // Look for cancel RSVP option
         const cancelButton = page.locator('button:has-text("Cancel"), button:has-text("Not Going")');
         if (await cancelButton.isVisible()) {
@@ -230,12 +238,17 @@ test.describe('Phase 4: Registration/RSVP System', () => {
 });
 
 test.describe('Phase 4: User Dashboard Integration', () => {
+  test.beforeEach(async ({ page }) => {
+    // Login as member before accessing dashboard
+    await AuthHelpers.loginAs(page, 'member');
+  });
+
   /**
    * Test 7: My Registrations View
    */
   test('My Registrations - User can view their registrations', async ({ page }) => {
     console.log('🧪 Testing My Registrations View...');
-    
+
     // Navigate to dashboard (would require auth)
     await page.goto('http://localhost:5173/dashboard');
     

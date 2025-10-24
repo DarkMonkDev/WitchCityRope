@@ -383,11 +383,11 @@ public class VettingService : IVettingService
             {
                 newStatus = decisionInt switch
                 {
-                    1 => VettingStatus.InterviewApproved, // Approve for interview
-                    2 => VettingStatus.FinalReview,       // Final review
-                    3 => VettingStatus.Approved,          // Final approval
-                    4 => VettingStatus.Denied,            // Deny
-                    5 => VettingStatus.OnHold,            // Request additional info
+                    1 => VettingStatus.Approved,          // Approve (final approval)
+                    2 => VettingStatus.Denied,            // Deny
+                    3 => VettingStatus.OnHold,            // Request additional info (On Hold)
+                    4 => VettingStatus.InterviewApproved, // Approve for interview
+                    5 => VettingStatus.FinalReview,       // Move to final review
                     _ => application.WorkflowStatus       // No change
                 };
             }
@@ -397,11 +397,11 @@ public class VettingService : IVettingService
                 var decisionValue = request.DecisionType?.ToString()?.ToLower() ?? "";
                 newStatus = decisionValue switch
                 {
-                    "approved" or "3" => VettingStatus.Approved,
-                    "denied" or "4" => VettingStatus.Denied,
-                    "onhold" or "5" => VettingStatus.OnHold,
-                    "interviewapproved" or "1" => VettingStatus.InterviewApproved,
-                    "finalreview" or "2" => VettingStatus.FinalReview,
+                    "approved" or "1" => VettingStatus.Approved,
+                    "denied" or "2" => VettingStatus.Denied,
+                    "onhold" or "3" => VettingStatus.OnHold,
+                    "interviewapproved" or "4" => VettingStatus.InterviewApproved,
+                    "finalreview" or "5" => VettingStatus.FinalReview,
                     _ => application.WorkflowStatus
                 };
             }

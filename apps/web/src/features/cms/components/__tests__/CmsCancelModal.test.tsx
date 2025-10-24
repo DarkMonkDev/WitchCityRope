@@ -1,25 +1,34 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MantineProvider } from '@mantine/core'
 import { CmsCancelModal } from '../CmsCancelModal'
+
+const renderWithProvider = (ui: React.ReactElement) => {
+  return render(
+    <MantineProvider>
+      {ui}
+    </MantineProvider>
+  );
+};
 
 describe('CmsCancelModal Component', () => {
   it('renders when opened is true', () => {
     const onClose = vi.fn()
     const onConfirm = vi.fn()
 
-    render(<CmsCancelModal opened={true} onClose={onClose} onConfirm={onConfirm} />)
+    renderWithProvider(<CmsCancelModal opened={true} onClose={onClose} onConfirm={onConfirm} />)
 
     // Verify modal is visible
     expect(screen.getByRole('dialog')).toBeInTheDocument()
-    expect(screen.getByText(/unsaved changes/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/unsaved changes/i)[0]).toBeInTheDocument()
   })
 
   it('does not render when opened is false', () => {
     const onClose = vi.fn()
     const onConfirm = vi.fn()
 
-    render(<CmsCancelModal opened={false} onClose={onClose} onConfirm={onConfirm} />)
+    renderWithProvider(<CmsCancelModal opened={false} onClose={onClose} onConfirm={onConfirm} />)
 
     // Verify modal is not visible
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
@@ -30,7 +39,7 @@ describe('CmsCancelModal Component', () => {
     const onClose = vi.fn()
     const onConfirm = vi.fn()
 
-    render(<CmsCancelModal opened={true} onClose={onClose} onConfirm={onConfirm} />)
+    renderWithProvider(<CmsCancelModal opened={true} onClose={onClose} onConfirm={onConfirm} />)
 
     const keepEditingButton = screen.getByRole('button', { name: /keep editing/i })
     await user.click(keepEditingButton)
@@ -44,7 +53,7 @@ describe('CmsCancelModal Component', () => {
     const onClose = vi.fn()
     const onConfirm = vi.fn()
 
-    render(<CmsCancelModal opened={true} onClose={onClose} onConfirm={onConfirm} />)
+    renderWithProvider(<CmsCancelModal opened={true} onClose={onClose} onConfirm={onConfirm} />)
 
     const discardButton = screen.getByRole('button', { name: /discard/i })
     await user.click(discardButton)
@@ -56,7 +65,7 @@ describe('CmsCancelModal Component', () => {
     const onClose = vi.fn()
     const onConfirm = vi.fn()
 
-    render(<CmsCancelModal opened={true} onClose={onClose} onConfirm={onConfirm} />)
+    renderWithProvider(<CmsCancelModal opened={true} onClose={onClose} onConfirm={onConfirm} />)
 
     // Verify warning text is present
     expect(screen.getByText(/are you sure you want to discard/i)).toBeInTheDocument()
@@ -67,7 +76,7 @@ describe('CmsCancelModal Component', () => {
     const onClose = vi.fn()
     const onConfirm = vi.fn()
 
-    render(<CmsCancelModal opened={true} onClose={onClose} onConfirm={onConfirm} />)
+    renderWithProvider(<CmsCancelModal opened={true} onClose={onClose} onConfirm={onConfirm} />)
 
     // Click outside modal (on backdrop)
     const backdrop = screen.getByRole('dialog').parentElement
@@ -83,7 +92,7 @@ describe('CmsCancelModal Component', () => {
     const onClose = vi.fn()
     const onConfirm = vi.fn()
 
-    render(<CmsCancelModal opened={true} onClose={onClose} onConfirm={onConfirm} />)
+    renderWithProvider(<CmsCancelModal opened={true} onClose={onClose} onConfirm={onConfirm} />)
 
     // Verify both buttons are present
     expect(screen.getByRole('button', { name: /keep editing/i })).toBeInTheDocument()

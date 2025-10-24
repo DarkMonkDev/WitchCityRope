@@ -1,0 +1,179 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e7]: Welcome, RopeMaster
+      - generic [ref=e8]:
+        - link "Report an Incident" [ref=e9] [cursor=pointer]:
+          - /url: /safety/report
+        - link "Private Lessons" [ref=e10] [cursor=pointer]:
+          - /url: /private-lessons
+        - link "Contact" [ref=e11] [cursor=pointer]:
+          - /url: /contact-us
+        - link "Edit Profile" [ref=e12] [cursor=pointer]:
+          - /url: /dashboard/profile-settings
+        - button "Logout" [ref=e13] [cursor=pointer]
+    - banner [ref=e14]:
+      - link "WITCH CITY ROPE" [ref=e15] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e16]:
+        - link "Admin" [ref=e17] [cursor=pointer]:
+          - /url: /admin
+        - link "Events & Classes" [ref=e18] [cursor=pointer]:
+          - /url: /events
+        - link "Resources" [ref=e19] [cursor=pointer]:
+          - /url: /resources
+        - link "Dashboard" [ref=e20] [cursor=pointer]:
+          - /url: /dashboard
+    - main [ref=e21]:
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - heading "Events Dashboard" [level=1] [ref=e24]
+          - button "Create Event" [ref=e25] [cursor=pointer]:
+            - generic [ref=e26]:
+              - img [ref=e28]
+              - generic [ref=e29]: Create Event
+        - generic [ref=e30]:
+          - generic [ref=e31]:
+            - paragraph [ref=e32]: "Filter:"
+            - generic [ref=e33]:
+              - generic [ref=e34]:
+                - checkbox "Social" [checked]
+                - generic [ref=e35] [cursor=pointer]:
+                  - img [ref=e37]
+                  - generic [ref=e39]: Social
+              - generic [ref=e40]:
+                - checkbox "Class" [checked]
+                - generic [ref=e41] [cursor=pointer]:
+                  - img [ref=e43]
+                  - generic [ref=e45]: Class
+            - generic [ref=e47]:
+              - switch "Show Past Events"
+              - generic [ref=e52]: Show Past Events
+          - generic [ref=e54]:
+            - img [ref=e56]
+            - textbox "Search events..." [ref=e59]
+        - table [ref=e60]:
+          - rowgroup [ref=e61]:
+            - row "Date Type Event Title Time Tickets/Capacity Actions" [ref=e62]:
+              - cell "Date" [ref=e63] [cursor=pointer]:
+                - generic [ref=e64]:
+                  - text: Date
+                  - button [ref=e65]:
+                    - img [ref=e67]
+              - cell "Type" [ref=e70]
+              - cell "Event Title" [ref=e71] [cursor=pointer]:
+                - generic [ref=e72]:
+                  - text: Event Title
+                  - button [ref=e73]:
+                    - img [ref=e75]
+              - cell "Time" [ref=e77]
+              - cell "Tickets/Capacity" [ref=e78]
+              - cell "Actions" [ref=e79]
+          - rowgroup [ref=e80]:
+            - row "Nov 11, 2025 Class Advanced Floor Work 1:00 PM - 4:00 PM 3/10 30% Copy" [ref=e81] [cursor=pointer]:
+              - cell "Nov 11, 2025" [ref=e82]:
+                - paragraph [ref=e83]: Nov 11, 2025
+              - cell "Class" [ref=e84]:
+                - generic [ref=e86]: Class
+              - cell "Advanced Floor Work" [ref=e87]:
+                - paragraph [ref=e88]: Advanced Floor Work
+              - cell "1:00 PM - 4:00 PM" [ref=e89]:
+                - paragraph [ref=e90]: 1:00 PM - 4:00 PM
+              - cell "3/10 30%" [ref=e91]:
+                - generic [ref=e92]:
+                  - paragraph [ref=e93]: 3/10
+                  - progressbar "3 of 10 spots filled" [ref=e96]
+              - cell "Copy" [ref=e97]:
+                - button "Copy" [ref=e99]:
+                  - generic [ref=e101]: Copy
+            - row "Nov 18, 2025 Social Community Rope Jam 2:00 PM - 4:00 PM 5/40 12.5% Copy" [ref=e102] [cursor=pointer]:
+              - cell "Nov 18, 2025" [ref=e103]:
+                - paragraph [ref=e104]: Nov 18, 2025
+              - cell "Social" [ref=e105]:
+                - generic [ref=e107]: Social
+              - cell "Community Rope Jam" [ref=e108]:
+                - paragraph [ref=e109]: Community Rope Jam
+              - cell "2:00 PM - 4:00 PM" [ref=e110]:
+                - paragraph [ref=e111]: 2:00 PM - 4:00 PM
+              - cell "5/40 12.5%" [ref=e112]:
+                - generic [ref=e113]:
+                  - paragraph [ref=e114]: 5/40
+                  - progressbar "5 of 40 spots filled" [ref=e117]
+              - cell "Copy" [ref=e118]:
+                - button "Copy" [ref=e120]:
+                  - generic [ref=e122]: Copy
+            - row "Oct 28, 2025 Class Introduction to Rope Safety 2:00 PM - 5:00 PM 5/20 25% Copy" [ref=e123] [cursor=pointer]:
+              - cell "Oct 28, 2025" [ref=e124]:
+                - paragraph [ref=e125]: Oct 28, 2025
+              - cell "Class" [ref=e126]:
+                - generic [ref=e128]: Class
+              - cell "Introduction to Rope Safety" [ref=e129]:
+                - paragraph [ref=e130]: Introduction to Rope Safety
+              - cell "2:00 PM - 5:00 PM" [ref=e131]:
+                - paragraph [ref=e132]: 2:00 PM - 5:00 PM
+              - cell "5/20 25%" [ref=e133]:
+                - generic [ref=e134]:
+                  - paragraph [ref=e135]: 5/20
+                  - progressbar "5 of 20 spots filled" [ref=e138]
+              - cell "Copy" [ref=e139]:
+                - button "Copy" [ref=e141]:
+                  - generic [ref=e143]: Copy
+            - row "Dec 2, 2025 Social New Members Meetup 1:00 PM - 3:00 PM 8/25 32% Copy" [ref=e144] [cursor=pointer]:
+              - cell "Dec 2, 2025" [ref=e145]:
+                - paragraph [ref=e146]: Dec 2, 2025
+              - cell "Social" [ref=e147]:
+                - generic [ref=e149]: Social
+              - cell "New Members Meetup" [ref=e150]:
+                - paragraph [ref=e151]: New Members Meetup
+              - cell "1:00 PM - 3:00 PM" [ref=e152]:
+                - paragraph [ref=e153]: 1:00 PM - 3:00 PM
+              - cell "8/25 32%" [ref=e154]:
+                - generic [ref=e155]:
+                  - paragraph [ref=e156]: 8/25
+                  - progressbar "8 of 25 spots filled" [ref=e159]
+              - cell "Copy" [ref=e160]:
+                - button "Copy" [ref=e162]:
+                  - generic [ref=e164]: Copy
+            - row "Nov 25, 2025 Social Rope Social & Discussion 2:00 PM - 4:00 PM 6/30 20% Copy" [ref=e165] [cursor=pointer]:
+              - cell "Nov 25, 2025" [ref=e166]:
+                - paragraph [ref=e167]: Nov 25, 2025
+              - cell "Social" [ref=e168]:
+                - generic [ref=e170]: Social
+              - cell "Rope Social & Discussion" [ref=e171]:
+                - paragraph [ref=e172]: Rope Social & Discussion
+              - cell "2:00 PM - 4:00 PM" [ref=e173]:
+                - paragraph [ref=e174]: 2:00 PM - 4:00 PM
+              - cell "6/30 20%" [ref=e175]:
+                - generic [ref=e176]:
+                  - paragraph [ref=e177]: 6/30
+                  - progressbar "6 of 30 spots filled" [ref=e180]
+              - cell "Copy" [ref=e181]:
+                - button "Copy" [ref=e183]:
+                  - generic [ref=e185]: Copy
+            - row "Nov 4, 2025 Class Suspension Basics 1:00 PM - 4:00 PM 3/12 25% Copy" [ref=e186] [cursor=pointer]:
+              - cell "Nov 4, 2025" [ref=e187]:
+                - paragraph [ref=e188]: Nov 4, 2025
+              - cell "Class" [ref=e189]:
+                - generic [ref=e191]: Class
+              - cell "Suspension Basics" [ref=e192]:
+                - paragraph [ref=e193]: Suspension Basics
+              - cell "1:00 PM - 4:00 PM" [ref=e194]:
+                - paragraph [ref=e195]: 1:00 PM - 4:00 PM
+              - cell "3/12 25%" [ref=e196]:
+                - generic [ref=e197]:
+                  - paragraph [ref=e198]: 3/12
+                  - progressbar "3 of 12 spots filled" [ref=e201]
+              - cell "Copy" [ref=e202]:
+                - button "Copy" [ref=e204]:
+                  - generic [ref=e206]: Copy
+        - generic [ref=e208]:
+          - generic [ref=e209]: Showing 6 of 8 events
+          - generic [ref=e210]: "Filtered by: Social, Class"
+  - generic [ref=e211]:
+    - img [ref=e213]
+    - button "Open Tanstack query devtools" [ref=e261] [cursor=pointer]:
+      - img [ref=e262]
+```

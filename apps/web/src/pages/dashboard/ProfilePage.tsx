@@ -184,7 +184,7 @@ export const ProfilePage: React.FC = () => {
                     id="scene-name-input"
                     label="Scene Name"
                     placeholder="Your community name"
-                    required
+                    withAsterisk
                     styles={{
                       label: {
                         fontFamily: "'Montserrat', sans-serif",
@@ -214,8 +214,7 @@ export const ProfilePage: React.FC = () => {
                     id="email-address-input"
                     label="Email Address"
                     placeholder="your.email@example.com"
-                    type="email"
-                    required
+                    withAsterisk
                     styles={{
                       label: {
                         fontFamily: "'Montserrat', sans-serif",

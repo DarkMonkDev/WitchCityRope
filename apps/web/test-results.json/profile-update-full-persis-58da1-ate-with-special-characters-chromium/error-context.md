@@ -1,0 +1,65 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e7]: Welcome, BioTest1761262693239
+      - generic [ref=e8]:
+        - link "Report an Incident" [ref=e9] [cursor=pointer]:
+          - /url: /safety/report
+        - link "Private Lessons" [ref=e10] [cursor=pointer]:
+          - /url: /private-lessons
+        - link "Contact" [ref=e11] [cursor=pointer]:
+          - /url: /contact-us
+        - link "Edit Profile" [ref=e12] [cursor=pointer]:
+          - /url: /dashboard/profile-settings
+        - button "Logout" [ref=e13] [cursor=pointer]
+    - banner [ref=e14]:
+      - link "WITCH CITY ROPE" [ref=e15] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e16]:
+        - link "Events & Classes" [ref=e17] [cursor=pointer]:
+          - /url: /events
+        - link "How to Join" [ref=e18] [cursor=pointer]:
+          - /url: /join
+        - link "Resources" [ref=e19] [cursor=pointer]:
+          - /url: /resources
+        - link "Dashboard" [ref=e20] [cursor=pointer]:
+          - /url: /dashboard
+    - main [ref=e21]:
+      - generic [ref=e23]:
+        - generic [ref=e24]:
+          - heading "BioTest1761262693239 Dashboard" [level=1] [ref=e25]
+          - link "Edit Profile" [ref=e26] [cursor=pointer]:
+            - /url: /dashboard/profile-settings
+            - generic [ref=e28]: Edit Profile
+        - generic [ref=e30]:
+          - generic [ref=e31]:
+            - generic [ref=e33]:
+              - generic [ref=e34]:
+                - checkbox "Show Past Events" [ref=e35]
+                - img
+              - generic [ref=e37]: Show Past Events
+            - radiogroup [ref=e38]:
+              - generic [ref=e40]:
+                - radio "Card View" [checked]
+                - generic [ref=e41] [cursor=pointer]: Card View
+              - generic [ref=e42]:
+                - radio "List View"
+                - generic [ref=e43] [cursor=pointer]: List View
+          - generic [ref=e45]:
+            - img [ref=e47]
+            - textbox "Search events..." [ref=e50]
+        - generic [ref=e52]:
+          - generic [ref=e53]: 📅
+          - heading "No Events Found" [level=3] [ref=e54]
+          - paragraph [ref=e55]: You haven't registered for any events yet.
+          - link "Browse Events" [ref=e56] [cursor=pointer]:
+            - /url: /events
+            - generic [ref=e58]: Browse Events
+  - generic [ref=e59]:
+    - img [ref=e61]
+    - button "Open Tanstack query devtools" [ref=e109] [cursor=pointer]:
+      - img [ref=e110]
+```

@@ -23,8 +23,8 @@ export function useCurrentUser() {
   return useQuery<UserDto>({
     queryKey: ['auth', 'user'],
     queryFn: async (): Promise<UserDto> => {
-      const response = await api.get<ApiResponse<UserDto>>('/api/auth/user')
-      return response.data.data
+      const response = await api.get<UserDto>('/api/auth/user')
+      return response.data  // API returns UserDto directly, not wrapped in ApiResponse
     },
     staleTime: 5 * 60 * 1000, // Consider data stale after 5 minutes
     gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes (v5 uses gcTime instead of cacheTime)

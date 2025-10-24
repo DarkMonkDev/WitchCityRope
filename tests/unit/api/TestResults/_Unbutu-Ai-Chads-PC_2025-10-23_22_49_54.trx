@@ -1,0 +1,1769 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="b89fb750-b31f-4cae-9400-318ae458c094" name="@Unbutu-Ai-Chads-PC 2025-10-23 22:49:54" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2025-10-23T22:49:54.2042714-04:00" queuing="2025-10-23T22:49:54.2042714-04:00" start="2025-10-23T22:49:45.9562249-04:00" finish="2025-10-23T22:50:23.4481919-04:00" />
+  <TestSettings name="default" id="660d5e27-7943-4db4-a8b8-d79732f12257">
+    <Deployment runDeploymentRoot="_Unbutu-Ai-Chads-PC_2025-10-23_22_49_54" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="5ed60963-92aa-4011-a898-fc3cbf6d33d8" testId="df66dd7d-b654-2774-a2e9-dab721887d61" testName="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedUsersAsync_WithExistingUsers_SkipsExistingAccounts" computerName="Unbutu-Ai-Chads-PC" duration="00:00:00.1110640" startTime="2025-10-23T22:50:23.1546258-04:00" endTime="2025-10-23T22:50:23.1546260-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5ed60963-92aa-4011-a898-fc3cbf6d33d8" />
+    <UnitTestResult executionId="1b476bb3-d305-4995-a8e7-0c43d2d008f8" testId="80085eba-f1f3-3615-fa84-c8d975f65a1f" testName="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedUsersAsync_WithNoExistingUsers_CreatesAllTestAccounts" computerName="Unbutu-Ai-Chads-PC" duration="00:00:00.1873187" startTime="2025-10-23T22:50:05.9402574-04:00" endTime="2025-10-23T22:50:05.9402575-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1b476bb3-d305-4995-a8e7-0c43d2d008f8" />
+    <UnitTestResult executionId="e78d4001-6c02-4180-b427-8b04e76f1425" testId="b3188533-712e-b4a1-2f42-d159aa5e320e" testName="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.IsSeedDataRequiredAsync_WithExistingEvents_ReturnsFalse" computerName="Unbutu-Ai-Chads-PC" duration="00:00:00.1164178" startTime="2025-10-23T22:49:58.1356445-04:00" endTime="2025-10-23T22:49:58.1356448-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e78d4001-6c02-4180-b427-8b04e76f1425">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected boolean to be false, but found True.</Message>
+          <StackTrace>   at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeFalse(String because, Object[] becauseArgs)
+   at WitchCityRope.Api.Tests.Services.SeedDataServiceTests.IsSeedDataRequiredAsync_WithExistingEvents_ReturnsFalse() in /home/chad/repos/witchcityrope/tests/unit/api/Services/SeedDataServiceTests.cs:line 228
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="dc6f2a91-3da7-4159-ac4d-4cdd16fbf8ec" testId="1a36c98d-7e2d-bc2e-85bb-235591c06ef7" testName="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedVettingStatusesAsync_CompletesSuccessfully" computerName="Unbutu-Ai-Chads-PC" duration="00:00:00.0011436" startTime="2025-10-23T22:49:56.0997029-04:00" endTime="2025-10-23T22:49:56.0997031-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="dc6f2a91-3da7-4159-ac4d-4cdd16fbf8ec" />
+    <UnitTestResult executionId="f235c79f-89d0-4891-b0f3-a08a4436c240" testId="8de7e19b-5e7c-ae0e-e009-2e1025c66a04" testName="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedEventsAsync_WithNoExistingEvents_CreatesAllSampleEvents" computerName="Unbutu-Ai-Chads-PC" duration="00:00:00.0102168" startTime="2025-10-23T22:50:11.6225065-04:00" endTime="2025-10-23T22:50:11.6225067-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f235c79f-89d0-4891-b0f3-a08a4436c240">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected adminUser!.SceneName to be greater than or equal to 12, but found 8 (difference of -4).</Message>
+          <StackTrace>   at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+   at FluentAssertions.Numeric.NumericAssertions`2.BeGreaterThanOrEqualTo(T expected, String because, Object[] becauseArgs)
+   at WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedEventsAsync_WithNoExistingEvents_CreatesAllSampleEvents() in /home/chad/repos/witchcityrope/tests/unit/api/Services/SeedDataServiceTests.cs:line 370
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="79a997fe-7ae1-41b4-90f0-7112f1c7d252" testId="acf6d6b9-48c1-e877-f584-19eadbd894a3" testName="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.IsSeedDataRequiredAsync_WithNoEvents_ReturnsTrue" computerName="Unbutu-Ai-Chads-PC" duration="00:00:00.0135896" startTime="2025-10-23T22:50:03.8599995-04:00" endTime="2025-10-23T22:50:03.8599997-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="79a997fe-7ae1-41b4-90f0-7112f1c7d252" />
+    <UnitTestResult executionId="054d27ff-7668-4c6d-86ea-99e1d920c232" testId="5602729c-3175-da81-d38a-f6e3889a42be" testName="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.IsSeedDataRequiredAsync_WithNoUsers_ReturnsTrue" computerName="Unbutu-Ai-Chads-PC" duration="00:00:00.2316809" startTime="2025-10-23T22:49:54.1817455-04:00" endTime="2025-10-23T22:49:54.1817820-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="054d27ff-7668-4c6d-86ea-99e1d920c232" />
+    <UnitTestResult executionId="a4e96bdb-c4bb-48d7-b84f-a75fc63a0bac" testId="8f9f6ab6-c352-2265-bca3-9b7a67def326" testName="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedAllDataAsync_WithException_RollsBackTransactionAndRethrows" computerName="Unbutu-Ai-Chads-PC" duration="00:00:00.0231428" startTime="2025-10-23T22:50:17.2500849-04:00" endTime="2025-10-23T22:50:17.2500851-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a4e96bdb-c4bb-48d7-b84f-a75fc63a0bac" />
+    <UnitTestResult executionId="d11a4164-c7d0-4be0-a55e-d2004d388978" testId="79dada50-dd80-4d29-87eb-38a465e71531" testName="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedEventsAsync_CreatesEventsWithCorrectProperties" computerName="Unbutu-Ai-Chads-PC" duration="00:00:00.0311483" startTime="2025-10-23T22:50:09.7274985-04:00" endTime="2025-10-23T22:50:09.7274987-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d11a4164-c7d0-4be0-a55e-d2004d388978">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected collection to contain at least 12 item(s), but found 8: WitchCityRope.Api.Models.Event
+    {
+        Capacity = 30, 
+        CreatedAt = &lt;2025-10-24 02:50:09.5303167&gt;, 
+        Description = "Join us for our monthly Rope Social &amp; Discussion - a casual gathering focused on community building, conversation, and connection. This is a chance to meet fellow rope enthusiasts, discuss topics of interest, and strengthen our community bonds.
+
+Event Format:
+- Social hour: Mingle and meet community members
+- Discussion circle: Structured conversation on a monthly topic
+- Q&amp;A and open discussion
+- Resource sharing and announcements
+
+Monthly Discussion Topics (rotating):
+- Rope philosophy and personal practice
+- Navigating consent and communication
+- Building a sustainable rope practice
+- Rope community culture and values
+- Safety deep dives on specific topics
+- Artistic expression through rope
+- And more based on community interest
+
+Who Should Attend:
+- Anyone interested in rope bondage at any skill level
+- People curious about the rope community
+- Experienced practitioners looking to connect
+- Those seeking a thoughtful, discussion-oriented space
+- Community members interested in building connections
+
+What Makes This Different:
+- TALKING focused, not practice focused
+- Emphasis on community and connection over techniques
+- Safe space to ask questions and share experiences
+- Opportunity to learn from others' perspectives
+- Building friendships and support networks
+
+Topics Covered (examples from past months):
+- How do you maintain work-life-rope balance?
+- What does ethical rope practice mean to you?
+- How do you handle rope injuries and recovery?
+- Building diverse and inclusive community spaces
+- Your questions and topics welcome!
+
+Atmosphere:
+- Relaxed and welcoming
+- Judgment-free zone for all questions
+- Respectful discussion and active listening
+- Building understanding across experience levels
+
+No rope practice at this event - this is purely social and discussion-based. Bring your curiosity, questions, and openness to connect with others.
+
+Light refreshments provided. Optional sliding scale donation to support community programming.", 
+        EndDate = &lt;2025-11-28 21:00:00&gt;, 
+        EventParticipations = {empty}, 
+        EventType = "Social", 
+        Id = {111426aa-76f8-43d4-9164-1d8a807cb252}, 
+        IsPublished = True, 
+        Location = "Community Space", 
+        Organizers = {empty}, 
+        Policies = "Event Policies and Safety Guidelines:
+
+Attendance Requirements:
+- All participants must be 18+ years old with valid government-issued photo ID
+- RSVP requested for space planning and refreshment prep
+- Sliding scale pricing ($5-10) - pay what you can
+- All backgrounds and experience levels welcome
+
+Respectful Discussion:
+- This is a conversation-based event, not a practice session
+- Respect all perspectives and experiences shared
+- No interrupting or talking over others
+- Active listening encouraged
+- Disagree respectfully if you have different views
+
+Confidentiality:
+- What's shared in the discussion circle stays in the discussion circle
+- Don't repeat personal stories or identifying information shared by others
+- Respect privacy and anonymity of all participants
+
+Safe Space Guidelines:
+- No judgment for questions asked or experiences shared
+- Create welcoming environment for all experience levels
+- Step up/step back - make room for quieter voices
+- Assume good intent while allowing for mistakes and learning
+
+Photography and Recording:
+- Absolutely no photography, video, or audio recording without explicit permission from ALL participants
+- This is a private gathering
+- Respect attendees' privacy and anonymity
+
+Appropriate Conduct:
+- Professional, respectful behavior required
+- No recruitment for personal relationships or services
+- No sales pitches or self-promotion
+- Focus on community building and authentic connection
+
+Accessibility:
+- We strive to create accessible, welcoming space
+- Let organizers know if you have accessibility needs
+- Gender-neutral restrooms available
+- Scent-free preferred (some members have sensitivities)
+
+Food and Beverages:
+- Light refreshments provided
+- Let us know of any allergies or dietary restrictions
+- Clean up after yourself
+- No alcohol served
+
+Zero Tolerance:
+- No harassment, discrimination, or boundary violations
+- No drugs or alcohol
+- Violations result in removal and ban from community events
+
+Community Care:
+- Look out for each other
+- Let organizers know if someone seems in distress
+- This is a community space - we all contribute to making it safe and welcoming", 
+        PricingTiers = "$3-$10 (pay what you can)", 
+        Sessions = {empty}, 
+        ShortDescription = "Monthly social gathering for community connection and discussion of rope topics.", 
+        StartDate = &lt;2025-11-28 19:00:00&gt;, 
+        TicketTypes = {empty}, 
+        Title = "Rope Social &amp; Discussion", 
+        UpdatedAt = &lt;2025-10-24 02:50:09.5303167&gt;, 
+        VolunteerPositions = {empty}
+    }, 
+    WitchCityRope.Api.Models.Event
+    {
+        Capacity = 12, 
+        CreatedAt = &lt;2025-10-24 02:50:09.5303162&gt;, 
+        Description = "Take your rope skills to the next level with this comprehensive introduction to suspension bondage. This intermediate-level workshop covers the essential techniques, safety considerations, and rigging fundamentals needed to begin exploring suspension safely.
+
+What You'll Learn:
+- Suspension safety principles and risk mitigation strategies
+- Proper rigging setup and equipment requirements (hard points, rigging plates, carabiners)
+- Load-bearing tie techniques and weight distribution
+- Hip harness construction with emphasis on safety and comfort
+- Partial suspension techniques for beginners
+- How to assess and monitor your partner during suspension
+- Safe descent and emergency procedures
+- Common mistakes and how to avoid them
+
+Prerequisites:
+- REQUIRED: Strong foundation in floor bondage techniques
+- REQUIRED: Completion of 'Introduction to Rope Safety' or equivalent
+- Recommended: 6+ months of regular rope practice
+- You must be comfortable tying basic harnesses and understand rope safety fundamentals
+
+Equipment Provided:
+- Suspension rigging equipment (hard points, carabiners, etc.)
+- Practice rope if needed
+
+What to Bring:
+- 4-6 lengths of rope (30 feet each, 6mm diameter)
+- Comfortable, form-fitting clothing (leggings, fitted shirt)
+- Water bottle and snacks
+- Notebook for taking notes (optional)
+
+Class Format:
+- 30 minutes: Suspension theory, safety review, and equipment overview
+- 2 hours: Hands-on practice with instructor supervision
+- 30 minutes: Q&amp;A, troubleshooting, and safety discussion
+
+Safety Note: Suspension carries inherent risks including nerve damage, circulation issues, and injury from falls. This class emphasizes conservative, safety-first approaches suitable for beginners. You will learn to recognize warning signs and respond appropriately.
+
+Limited to 12 participants to ensure personalized instruction and adequate safety supervision.", 
+        EndDate = &lt;2025-11-07 21:00:00&gt;, 
+        EventParticipations = {empty}, 
+        EventType = "Class", 
+        Id = {1f0b66ef-4193-4975-ae08-d12861b1c484}, 
+        IsPublished = True, 
+        Location = "Main Workshop Room", 
+        Organizers = {empty}, 
+        Policies = "Event Policies and Safety Guidelines:
+
+Attendance Requirements:
+- All participants must be 18+ years old with valid government-issued photo ID
+- Advance registration and payment required (no walk-ins)
+- Prerequisite: Completion of rope safety fundamentals course or instructor approval
+- Arrive 15 minutes early for safety briefing and equipment setup
+
+Medical and Physical Requirements:
+- You must disclose any medical conditions, injuries, or physical limitations to instructor before class
+- Certain conditions may prevent safe participation in suspension activities
+- You are responsible for knowing your own health status and limitations
+- Sign medical waiver acknowledging suspension risks before participating
+
+Consent and Communication:
+- Enthusiastic consent required for all activities and physical contact
+- Active communication expected throughout suspension scenes
+- Immediate stop on any safe word or request to stop
+- Check-ins required at regular intervals during suspension
+
+Equipment and Safety:
+- Do not touch or adjust rigging equipment without instructor permission
+- Inspect all equipment before use and report any damage or concerns
+- Follow all instructor directions regarding equipment usage
+- Spotter required for all suspension activities
+
+Photography and Recording:
+- Absolutely no photography, video, or audio recording without explicit written permission from all participants and instructor
+- Cell phones must be on silent and stored during class
+
+Appropriate Conduct:
+- Professional behavior required at all times
+- Wear appropriate athletic/practice clothing (no loose garments)
+- Remove all jewelry before participating in suspension
+- Notify instructor immediately of any discomfort, numbness, tingling, or other concerns
+
+Zero Tolerance:
+- No harassment, discrimination, or boundary violations
+- No drugs or alcohol - immediate removal and ban
+- Suspension is an advanced skill requiring focus and sobriety
+
+Risk Acknowledgment:
+- Suspension bondage carries inherent risks including nerve damage, circulation issues, rope burns, bruising, and injury from falls
+- By attending, you acknowledge these risks and accept responsibility for your participation
+- You agree to follow all safety protocols and instructor guidance", 
+        PricingTiers = "$16-$65 (sliding scale)", 
+        Sessions = {empty}, 
+        ShortDescription = "Introduction to suspension techniques with emphasis on safety and proper rigging.", 
+        StartDate = &lt;2025-11-07 18:00:00&gt;, 
+        TicketTypes = {empty}, 
+        Title = "Suspension Basics", 
+        UpdatedAt = &lt;2025-10-24 02:50:09.5303162&gt;, 
+        VolunteerPositions = {empty}
+    }, 
+    WitchCityRope.Api.Models.Event
+    {
+        Capacity = 10, 
+        CreatedAt = &lt;2025-10-24 02:50:09.5303164&gt;, 
+        Description = "This advanced workshop is designed for experienced rope practitioners looking to expand their floor bondage repertoire with complex ties, creative positions, and artistic expression. We'll explore sophisticated techniques that challenge both rigger and model while maintaining safety and comfort.
+
+Workshop Topics:
+- Complex multi-point ties and connection techniques
+- Asymmetrical and artistic floor positions
+- Creative use of space and body positioning
+- Transitions between positions while maintaining tie integrity
+- Strappado, hogtie, and other challenging positions
+- Decorative elements and aesthetic considerations
+- Managing longer scenes and endurance considerations
+- Troubleshooting common issues with complex ties
+
+Prerequisites:
+- REQUIRED: Extensive floor bondage experience (1+ years regular practice)
+- REQUIRED: Strong foundation in safety, communication, and basic ties
+- Must be proficient in single column, double column, chest harnesses, and hip harnesses
+- Experience with multi-limb ties and transitions
+- This is NOT a beginner class
+
+What to Bring:
+- 6-8 lengths of rope (30 feet each, 6mm diameter) - quality rope recommended
+- Comfortable form-fitting practice clothing
+- Knee pads optional but recommended
+- Water and snacks
+- Notebook for notes and sketches
+
+Class Structure:
+- 20 minutes: Demonstration of key concepts and techniques
+- 2 hours: Hands-on practice with instructor feedback
+- 20 minutes: Sharing, feedback, and Q&amp;A
+
+Teaching Philosophy:
+This class emphasizes creative exploration within safe parameters. We'll focus on developing your personal style while respecting the fundamentals that keep everyone safe. Expect to be challenged and to learn from both successes and mistakes.
+
+Small class size (limited to 10 participants) ensures individualized attention and the ability to work at your own pace.
+
+Note: Partners/models welcome but not required. Solo practitioners can focus on learning tie techniques and theory.", 
+        EndDate = &lt;2025-11-14 21:00:00&gt;, 
+        EventParticipations = {empty}, 
+        EventType = "Class", 
+        Id = {387cb1f6-2816-49fa-a7ca-971e753f9cbe}, 
+        IsPublished = True, 
+        Location = "Main Workshop Room", 
+        Organizers = {empty}, 
+        Policies = "Event Policies and Safety Guidelines:
+
+Attendance Requirements:
+- All participants must be 18+ years old with valid government-issued photo ID
+- Advance registration and payment required
+- Prerequisite: Extensive rope experience and instructor approval
+- Late arrival may result in denied entry for safety reasons
+
+Experience Verification:
+- This is an advanced class - beginners will not be admitted
+- Instructor reserves right to assess skill level and decline participation
+- If your experience level is uncertain, contact instructor before registering
+
+Safety and Communication:
+- Expert-level communication and consent skills expected
+- Proactive monitoring of partner required throughout scenes
+- Immediate stop on any safe word, numbness, tingling, or discomfort
+- Report all safety concerns to instructor immediately
+
+Equipment Requirements:
+- Bring your own quality rope in good condition
+- Inspect rope before use and remove any damaged rope from rotation
+- Recommended: natural fiber rope (jute/hemp) for better grip and control
+
+Photography and Recording:
+- Absolutely no photography, video, or audio recording without explicit written permission from all participants
+- This is a closed, private workshop
+- Cell phones must be stored during practice sessions
+
+Professional Conduct:
+- Respectful, professional behavior required at all times
+- Appropriate practice attire (form-fitting, allows movement)
+- Practice good hygiene
+- No unsolicited advice or critique of other participants
+
+Health and Disclosure:
+- Disclose relevant medical conditions, injuries, or limitations
+- You are responsible for your own physical and mental well-being
+- Take breaks as needed
+- Stay hydrated
+
+Zero Tolerance Policies:
+- No harassment, boundary violations, or predatory behavior
+- No drugs or alcohol
+- Violations result in immediate removal and permanent ban
+
+Assumption of Risk:
+- Advanced rope work carries increased risk of injury
+- By participating, you acknowledge these risks and accept responsibility
+- You agree to practice safely and follow all instructor guidance
+- Nerve damage, bruising, rope burns, and other injuries are possible", 
+        PricingTiers = "$14-$55 (sliding scale)", 
+        Sessions = {empty}, 
+        ShortDescription = "Explore complex floor-based rope bondage techniques for experienced practitioners.", 
+        StartDate = &lt;2025-11-14 18:00:00&gt;, 
+        TicketTypes = {empty}, 
+        Title = "Advanced Floor Work", 
+        UpdatedAt = &lt;2025-10-24 02:50:09.5303164&gt;, 
+        VolunteerPositions = {empty}
+    }, 
+    WitchCityRope.Api.Models.Event
+    {
+        Capacity = 20, 
+        CreatedAt = &lt;2025-10-24 02:50:09.5303175&gt;, 
+        Description = "This past event was an introductory practice session designed for absolute beginners and those new to the rope community.
+
+Past attendees learned:
+- Basic rope handling techniques
+- Simple single column ties
+- Introduction to safety principles
+- Communication fundamentals
+- How to get started with rope practice
+
+This was a supportive, beginner-friendly environment where participants could ask questions, meet fellow newcomers, and start their rope journey in a welcoming space.", 
+        EndDate = &lt;2025-10-17 20:00:00&gt;, 
+        EventParticipations = {empty}, 
+        EventType = "Social", 
+        Id = {46945076-0b01-4297-8337-59af1e630ad9}, 
+        IsPublished = True, 
+        Location = "Community Space", 
+        Organizers = {empty}, 
+        Policies = "Standard event policies applied:
+- 18+ with ID required
+- Consent and communication required
+- No photography without permission
+- Respectful conduct expected
+- Zero tolerance for harassment", 
+        PricingTiers = "$3-$10 (pay what you can)", 
+        Sessions = {empty}, 
+        ShortDescription = "Past event: Introductory session for newcomers to rope bondage.", 
+        StartDate = &lt;2025-10-17 18:00:00&gt;, 
+        TicketTypes = {empty}, 
+        Title = "Beginner Rope Circle", 
+        UpdatedAt = &lt;2025-10-24 02:50:09.5303175&gt;, 
+        VolunteerPositions = {empty}
+    }WitchCityRope.Api.Models.Event
+    {
+        Capacity = 40, 
+        CreatedAt = &lt;2025-10-24 02:50:09.5303165&gt;, 
+        Description = "Join us for our monthly Community Rope Jam - a relaxed, social practice session where rope enthusiasts of all skill levels can come together to practice, learn, and connect with fellow community members.
+
+What to Expect:
+- Open practice space with supportive atmosphere
+- Practice your existing skills or try new techniques
+- Ask questions and learn from experienced practitioners
+- Make new friends and connections in the community
+- Casual, judgment-free environment
+
+Who Should Attend:
+- ALL SKILL LEVELS welcome from absolute beginners to advanced practitioners
+- Solo practitioners welcome - you don't need to bring a partner
+- People interested in learning more about rope bondage
+- Experienced rope artists looking to practice and share knowledge
+- Anyone seeking community connection
+
+Facilitators Present:
+- Experienced community members available to answer questions
+- Safety monitors on site
+- Not a formal class, but informal guidance available
+
+What to Bring:
+- Your own rope (if you have it) - we'll have some available to borrow
+- Comfortable clothing suitable for movement
+- Water bottle
+- Positive attitude and respect for all participants
+
+Activities:
+- Self-directed practice at your own pace
+- Informal peer learning and knowledge sharing
+- Socializing and community building
+- Optional: Share what you're working on with supportive feedback
+
+Perfect For:
+- Practicing ties you've learned in classes
+- Experimenting with new ideas in a safe environment
+- Meeting practice partners
+- Building confidence in your rope skills
+- Connecting with the local rope community
+
+No pressure, no judgment - just a welcoming space to explore rope at your own comfort level. Whether you tie for 5 minutes or the whole session, you're welcome here.
+
+Optional donation-based entry - pay what you can to help cover venue costs.", 
+        EndDate = &lt;2025-11-21 21:00:00&gt;, 
+        EventParticipations = {empty}, 
+        EventType = "Social", 
+        Id = {6d5a9799-4dce-40d6-b15c-7f7041b3c50f}, 
+        IsPublished = True, 
+        Location = "Community Space", 
+        Organizers = {empty}, 
+        Policies = "Event Policies and Safety Guidelines:
+
+Attendance Requirements:
+- All participants must be 18+ years old with valid government-issued photo ID
+- RSVP required for space planning
+- Sliding scale pricing ($5-15) - pay what you can
+- All skill levels welcome
+
+Safety First:
+- Practice safely within your skill level
+- Do not attempt techniques beyond your current abilities
+- Ask for help if you're unsure about safety
+- Safety monitors present to assist with concerns
+
+Consent and Boundaries:
+- Enthusiastic consent required for all interactions
+- Ask before approaching others or touching their belongings
+- Respect everyone's boundaries and personal space
+- "No" means no - respect it immediately
+
+Photography and Recording:
+- Absolutely no photography, video, or audio recording without explicit written permission from ALL people who might appear in the shot
+- Ask permission EACH time before taking photos
+- Respect others' privacy and anonymity
+
+Respectful Environment:
+- Treat all participants with respect regardless of experience level
+- No unsolicited critique or advice
+- Keep coaching to your own partner unless specifically invited to help
+- Welcoming, judgment-free atmosphere
+
+Appropriate Conduct:
+- Professional behavior expected
+- Comfortable, appropriate clothing for rope practice
+- Practice good hygiene
+- No drugs or alcohol on premises
+
+Space Sharing:
+- Be mindful of shared space - keep practice areas compact
+- Clean up your area when finished
+- Return borrowed equipment to proper location
+- Help maintain welcoming environment for all
+
+Bring Your Own Equipment:
+- Bring your own rope if possible (limited rope available to borrow)
+- Bring water and any personal items needed
+- Label your belongings
+
+Zero Tolerance:
+- No harassment, discrimination, or predatory behavior
+- Violations result in immediate removal and permanent ban
+- Community safety is our top priority
+
+Practice at Your Own Risk:
+- This is not a supervised class
+- You are responsible for your own safety
+- Practice within your abilities and knowledge
+- Ask for help when needed", 
+        PricingTiers = "$4-$15 (pay what you can)", 
+        Sessions = {empty}, 
+        ShortDescription = "Casual practice session for all skill levels. Bring your rope and practice with the community.", 
+
+(Output has exceeded the maximum of 100 lines. Increase FormattingOptions.MaxLines on AssertionScope or AssertionOptions to include more lines.)
+        StartDate = &lt;2025-11-21 19:00:00&gt;, .</Message>
+          <StackTrace>   at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+   at FluentAssertions.Execution.GivenSelector`1.FailWith(String message, Object[] args)
+   at FluentAssertions.Execution.GivenSelector`1.FailWith(String message, Func`2[] args)
+   at FluentAssertions.Collections.GenericCollectionAssertions`3.HaveCountGreaterThanOrEqualTo(Int32 expected, String because, Object[] becauseArgs)
+   at WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedEventsAsync_CreatesEventsWithCorrectProperties() in /home/chad/repos/witchcityrope/tests/unit/api/Services/SeedDataServiceTests.cs:line 399
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="320bf6a0-831b-4771-89b7-c33065eb84d7" testId="336acc2b-914b-af2c-2f2f-7393143adac8" testName="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedUsersAsync_CreatesUsersWithCorrectProperties" computerName="Unbutu-Ai-Chads-PC" duration="00:00:00.1223795" startTime="2025-10-23T22:50:19.2693359-04:00" endTime="2025-10-23T22:50:19.2693361-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="320bf6a0-831b-4771-89b7-c33065eb84d7" />
+    <UnitTestResult executionId="3e40392c-5d42-4581-b9d3-0e9d6d14ebdf" testId="0d0a9861-a1c9-62cb-f1f3-db3399eb08df" testName="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedUsersAsync_WithUserCreationFailure_ThrowsException" computerName="Unbutu-Ai-Chads-PC" duration="00:00:00.0783822" startTime="2025-10-23T22:50:01.9770583-04:00" endTime="2025-10-23T22:50:01.9770587-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3e40392c-5d42-4581-b9d3-0e9d6d14ebdf" />
+    <UnitTestResult executionId="1a46c788-a67f-4e01-aa5b-83c37ff95b73" testId="8c96ec79-77c5-041c-16d5-146bc7e04adf" testName="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.IsSeedDataRequiredAsync_WithBothUsersAndEvents_ReturnsFalse" computerName="Unbutu-Ai-Chads-PC" duration="00:00:00.0126645" startTime="2025-10-23T22:50:21.1614177-04:00" endTime="2025-10-23T22:50:21.1614179-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1a46c788-a67f-4e01-aa5b-83c37ff95b73">
+      <Output>
+        <ErrorInfo>
+          <Message>Expected boolean to be false, but found True.</Message>
+          <StackTrace>   at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeFalse(String because, Object[] becauseArgs)
+   at WitchCityRope.Api.Tests.Services.SeedDataServiceTests.IsSeedDataRequiredAsync_WithBothUsersAndEvents_ReturnsFalse() in /home/chad/repos/witchcityrope/tests/unit/api/Services/SeedDataServiceTests.cs:line 249
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="778034c9-5cec-4bc5-ab23-cc578a0173a3" testId="3ade00b3-48d5-f169-c85a-b4973c8c17cf" testName="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedAllDataAsync_WithCancellation_StopsGracefully" computerName="Unbutu-Ai-Chads-PC" duration="00:00:00.0041457" startTime="2025-10-23T22:50:00.0110886-04:00" endTime="2025-10-23T22:50:00.0110889-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="778034c9-5cec-4bc5-ab23-cc578a0173a3" />
+    <UnitTestResult executionId="f76883a5-993b-4d79-968a-b560917e9a9d" testId="b0c0a671-5e85-7c18-c1b8-7cb0e1dd3a74" testName="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedEventsAsync_WithExistingEvents_SkipsCreation" computerName="Unbutu-Ai-Chads-PC" duration="00:00:00.0055757" startTime="2025-10-23T22:50:13.4716871-04:00" endTime="2025-10-23T22:50:13.4716873-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f76883a5-993b-4d79-968a-b560917e9a9d" />
+    <UnitTestResult executionId="7c63b889-d306-40bf-8a65-2b7590119ad0" testId="39dbb595-d9da-94c5-0301-f53846ded7c7" testName="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.CreateSeedEvent_GeneratesCorrectEventProperties" computerName="Unbutu-Ai-Chads-PC" duration="00:00:00.0009812" startTime="2025-10-23T22:50:15.3278308-04:00" endTime="2025-10-23T22:50:15.3278309-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7c63b889-d306-40bf-8a65-2b7590119ad0">
+      <Output>
+        <ErrorInfo>
+          <Message>System.Reflection.TargetParameterCountException : Parameter count mismatch.</Message>
+          <StackTrace>   at System.Reflection.MethodBaseInvoker.ThrowTargetParameterCountException()
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at WitchCityRope.Api.Tests.Services.SeedDataServiceTests.CreateSeedEvent_GeneratesCorrectEventProperties() in /home/chad/repos/witchcityrope/tests/unit/api/Services/SeedDataServiceTests.cs:line 458
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="497ad1ea-1768-4325-bb11-270991dedc18" testId="79b71d82-4a2e-fab4-3614-77d4169180d7" testName="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.IsSeedDataRequiredAsync_WithEmptyDatabase_ReturnsTrue" computerName="Unbutu-Ai-Chads-PC" duration="00:00:00.0095718" startTime="2025-10-23T22:50:07.8411981-04:00" endTime="2025-10-23T22:50:07.8411982-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="497ad1ea-1768-4325-bb11-270991dedc18" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.IsSeedDataRequiredAsync_WithNoEvents_ReturnsTrue" storage="/home/chad/repos/witchcityrope/tests/unit/api/bin/debug/net9.0/witchcityrope.api.tests.dll" id="acf6d6b9-48c1-e877-f584-19eadbd894a3">
+      <Execution id="79a997fe-7ae1-41b4-90f0-7112f1c7d252" />
+      <TestMethod codeBase="/home/chad/repos/witchcityrope/tests/unit/api/bin/Debug/net9.0/WitchCityRope.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="WitchCityRope.Api.Tests.Services.SeedDataServiceTests" name="IsSeedDataRequiredAsync_WithNoEvents_ReturnsTrue" />
+    </UnitTest>
+    <UnitTest name="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedVettingStatusesAsync_CompletesSuccessfully" storage="/home/chad/repos/witchcityrope/tests/unit/api/bin/debug/net9.0/witchcityrope.api.tests.dll" id="1a36c98d-7e2d-bc2e-85bb-235591c06ef7">
+      <Execution id="dc6f2a91-3da7-4159-ac4d-4cdd16fbf8ec" />
+      <TestMethod codeBase="/home/chad/repos/witchcityrope/tests/unit/api/bin/Debug/net9.0/WitchCityRope.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="WitchCityRope.Api.Tests.Services.SeedDataServiceTests" name="SeedVettingStatusesAsync_CompletesSuccessfully" />
+    </UnitTest>
+    <UnitTest name="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedAllDataAsync_WithException_RollsBackTransactionAndRethrows" storage="/home/chad/repos/witchcityrope/tests/unit/api/bin/debug/net9.0/witchcityrope.api.tests.dll" id="8f9f6ab6-c352-2265-bca3-9b7a67def326">
+      <Execution id="a4e96bdb-c4bb-48d7-b84f-a75fc63a0bac" />
+      <TestMethod codeBase="/home/chad/repos/witchcityrope/tests/unit/api/bin/Debug/net9.0/WitchCityRope.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="WitchCityRope.Api.Tests.Services.SeedDataServiceTests" name="SeedAllDataAsync_WithException_RollsBackTransactionAndRethrows" />
+    </UnitTest>
+    <UnitTest name="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedUsersAsync_WithExistingUsers_SkipsExistingAccounts" storage="/home/chad/repos/witchcityrope/tests/unit/api/bin/debug/net9.0/witchcityrope.api.tests.dll" id="df66dd7d-b654-2774-a2e9-dab721887d61">
+      <Execution id="5ed60963-92aa-4011-a898-fc3cbf6d33d8" />
+      <TestMethod codeBase="/home/chad/repos/witchcityrope/tests/unit/api/bin/Debug/net9.0/WitchCityRope.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="WitchCityRope.Api.Tests.Services.SeedDataServiceTests" name="SeedUsersAsync_WithExistingUsers_SkipsExistingAccounts" />
+    </UnitTest>
+    <UnitTest name="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedUsersAsync_WithUserCreationFailure_ThrowsException" storage="/home/chad/repos/witchcityrope/tests/unit/api/bin/debug/net9.0/witchcityrope.api.tests.dll" id="0d0a9861-a1c9-62cb-f1f3-db3399eb08df">
+      <Execution id="3e40392c-5d42-4581-b9d3-0e9d6d14ebdf" />
+      <TestMethod codeBase="/home/chad/repos/witchcityrope/tests/unit/api/bin/Debug/net9.0/WitchCityRope.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="WitchCityRope.Api.Tests.Services.SeedDataServiceTests" name="SeedUsersAsync_WithUserCreationFailure_ThrowsException" />
+    </UnitTest>
+    <UnitTest name="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedUsersAsync_WithNoExistingUsers_CreatesAllTestAccounts" storage="/home/chad/repos/witchcityrope/tests/unit/api/bin/debug/net9.0/witchcityrope.api.tests.dll" id="80085eba-f1f3-3615-fa84-c8d975f65a1f">
+      <Execution id="1b476bb3-d305-4995-a8e7-0c43d2d008f8" />
+      <TestMethod codeBase="/home/chad/repos/witchcityrope/tests/unit/api/bin/Debug/net9.0/WitchCityRope.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="WitchCityRope.Api.Tests.Services.SeedDataServiceTests" name="SeedUsersAsync_WithNoExistingUsers_CreatesAllTestAccounts" />
+    </UnitTest>
+    <UnitTest name="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.CreateSeedEvent_GeneratesCorrectEventProperties" storage="/home/chad/repos/witchcityrope/tests/unit/api/bin/debug/net9.0/witchcityrope.api.tests.dll" id="39dbb595-d9da-94c5-0301-f53846ded7c7">
+      <Execution id="7c63b889-d306-40bf-8a65-2b7590119ad0" />
+      <TestMethod codeBase="/home/chad/repos/witchcityrope/tests/unit/api/bin/Debug/net9.0/WitchCityRope.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="WitchCityRope.Api.Tests.Services.SeedDataServiceTests" name="CreateSeedEvent_GeneratesCorrectEventProperties" />
+    </UnitTest>
+    <UnitTest name="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedUsersAsync_CreatesUsersWithCorrectProperties" storage="/home/chad/repos/witchcityrope/tests/unit/api/bin/debug/net9.0/witchcityrope.api.tests.dll" id="336acc2b-914b-af2c-2f2f-7393143adac8">
+      <Execution id="320bf6a0-831b-4771-89b7-c33065eb84d7" />
+      <TestMethod codeBase="/home/chad/repos/witchcityrope/tests/unit/api/bin/Debug/net9.0/WitchCityRope.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="WitchCityRope.Api.Tests.Services.SeedDataServiceTests" name="SeedUsersAsync_CreatesUsersWithCorrectProperties" />
+    </UnitTest>
+    <UnitTest name="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedEventsAsync_WithExistingEvents_SkipsCreation" storage="/home/chad/repos/witchcityrope/tests/unit/api/bin/debug/net9.0/witchcityrope.api.tests.dll" id="b0c0a671-5e85-7c18-c1b8-7cb0e1dd3a74">
+      <Execution id="f76883a5-993b-4d79-968a-b560917e9a9d" />
+      <TestMethod codeBase="/home/chad/repos/witchcityrope/tests/unit/api/bin/Debug/net9.0/WitchCityRope.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="WitchCityRope.Api.Tests.Services.SeedDataServiceTests" name="SeedEventsAsync_WithExistingEvents_SkipsCreation" />
+    </UnitTest>
+    <UnitTest name="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.IsSeedDataRequiredAsync_WithBothUsersAndEvents_ReturnsFalse" storage="/home/chad/repos/witchcityrope/tests/unit/api/bin/debug/net9.0/witchcityrope.api.tests.dll" id="8c96ec79-77c5-041c-16d5-146bc7e04adf">
+      <Execution id="1a46c788-a67f-4e01-aa5b-83c37ff95b73" />
+      <TestMethod codeBase="/home/chad/repos/witchcityrope/tests/unit/api/bin/Debug/net9.0/WitchCityRope.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="WitchCityRope.Api.Tests.Services.SeedDataServiceTests" name="IsSeedDataRequiredAsync_WithBothUsersAndEvents_ReturnsFalse" />
+    </UnitTest>
+    <UnitTest name="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.IsSeedDataRequiredAsync_WithEmptyDatabase_ReturnsTrue" storage="/home/chad/repos/witchcityrope/tests/unit/api/bin/debug/net9.0/witchcityrope.api.tests.dll" id="79b71d82-4a2e-fab4-3614-77d4169180d7">
+      <Execution id="497ad1ea-1768-4325-bb11-270991dedc18" />
+      <TestMethod codeBase="/home/chad/repos/witchcityrope/tests/unit/api/bin/Debug/net9.0/WitchCityRope.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="WitchCityRope.Api.Tests.Services.SeedDataServiceTests" name="IsSeedDataRequiredAsync_WithEmptyDatabase_ReturnsTrue" />
+    </UnitTest>
+    <UnitTest name="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedAllDataAsync_WithCancellation_StopsGracefully" storage="/home/chad/repos/witchcityrope/tests/unit/api/bin/debug/net9.0/witchcityrope.api.tests.dll" id="3ade00b3-48d5-f169-c85a-b4973c8c17cf">
+      <Execution id="778034c9-5cec-4bc5-ab23-cc578a0173a3" />
+      <TestMethod codeBase="/home/chad/repos/witchcityrope/tests/unit/api/bin/Debug/net9.0/WitchCityRope.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="WitchCityRope.Api.Tests.Services.SeedDataServiceTests" name="SeedAllDataAsync_WithCancellation_StopsGracefully" />
+    </UnitTest>
+    <UnitTest name="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedEventsAsync_WithNoExistingEvents_CreatesAllSampleEvents" storage="/home/chad/repos/witchcityrope/tests/unit/api/bin/debug/net9.0/witchcityrope.api.tests.dll" id="8de7e19b-5e7c-ae0e-e009-2e1025c66a04">
+      <Execution id="f235c79f-89d0-4891-b0f3-a08a4436c240" />
+      <TestMethod codeBase="/home/chad/repos/witchcityrope/tests/unit/api/bin/Debug/net9.0/WitchCityRope.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="WitchCityRope.Api.Tests.Services.SeedDataServiceTests" name="SeedEventsAsync_WithNoExistingEvents_CreatesAllSampleEvents" />
+    </UnitTest>
+    <UnitTest name="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.IsSeedDataRequiredAsync_WithExistingEvents_ReturnsFalse" storage="/home/chad/repos/witchcityrope/tests/unit/api/bin/debug/net9.0/witchcityrope.api.tests.dll" id="b3188533-712e-b4a1-2f42-d159aa5e320e">
+      <Execution id="e78d4001-6c02-4180-b427-8b04e76f1425" />
+      <TestMethod codeBase="/home/chad/repos/witchcityrope/tests/unit/api/bin/Debug/net9.0/WitchCityRope.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="WitchCityRope.Api.Tests.Services.SeedDataServiceTests" name="IsSeedDataRequiredAsync_WithExistingEvents_ReturnsFalse" />
+    </UnitTest>
+    <UnitTest name="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.IsSeedDataRequiredAsync_WithNoUsers_ReturnsTrue" storage="/home/chad/repos/witchcityrope/tests/unit/api/bin/debug/net9.0/witchcityrope.api.tests.dll" id="5602729c-3175-da81-d38a-f6e3889a42be">
+      <Execution id="054d27ff-7668-4c6d-86ea-99e1d920c232" />
+      <TestMethod codeBase="/home/chad/repos/witchcityrope/tests/unit/api/bin/Debug/net9.0/WitchCityRope.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="WitchCityRope.Api.Tests.Services.SeedDataServiceTests" name="IsSeedDataRequiredAsync_WithNoUsers_ReturnsTrue" />
+    </UnitTest>
+    <UnitTest name="WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedEventsAsync_CreatesEventsWithCorrectProperties" storage="/home/chad/repos/witchcityrope/tests/unit/api/bin/debug/net9.0/witchcityrope.api.tests.dll" id="79dada50-dd80-4d29-87eb-38a465e71531">
+      <Execution id="d11a4164-c7d0-4be0-a55e-d2004d388978" />
+      <TestMethod codeBase="/home/chad/repos/witchcityrope/tests/unit/api/bin/Debug/net9.0/WitchCityRope.Api.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="WitchCityRope.Api.Tests.Services.SeedDataServiceTests" name="SeedEventsAsync_CreatesEventsWithCorrectProperties" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="df66dd7d-b654-2774-a2e9-dab721887d61" executionId="5ed60963-92aa-4011-a898-fc3cbf6d33d8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="80085eba-f1f3-3615-fa84-c8d975f65a1f" executionId="1b476bb3-d305-4995-a8e7-0c43d2d008f8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b3188533-712e-b4a1-2f42-d159aa5e320e" executionId="e78d4001-6c02-4180-b427-8b04e76f1425" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1a36c98d-7e2d-bc2e-85bb-235591c06ef7" executionId="dc6f2a91-3da7-4159-ac4d-4cdd16fbf8ec" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8de7e19b-5e7c-ae0e-e009-2e1025c66a04" executionId="f235c79f-89d0-4891-b0f3-a08a4436c240" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="acf6d6b9-48c1-e877-f584-19eadbd894a3" executionId="79a997fe-7ae1-41b4-90f0-7112f1c7d252" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5602729c-3175-da81-d38a-f6e3889a42be" executionId="054d27ff-7668-4c6d-86ea-99e1d920c232" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8f9f6ab6-c352-2265-bca3-9b7a67def326" executionId="a4e96bdb-c4bb-48d7-b84f-a75fc63a0bac" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="79dada50-dd80-4d29-87eb-38a465e71531" executionId="d11a4164-c7d0-4be0-a55e-d2004d388978" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="336acc2b-914b-af2c-2f2f-7393143adac8" executionId="320bf6a0-831b-4771-89b7-c33065eb84d7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0d0a9861-a1c9-62cb-f1f3-db3399eb08df" executionId="3e40392c-5d42-4581-b9d3-0e9d6d14ebdf" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8c96ec79-77c5-041c-16d5-146bc7e04adf" executionId="1a46c788-a67f-4e01-aa5b-83c37ff95b73" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="3ade00b3-48d5-f169-c85a-b4973c8c17cf" executionId="778034c9-5cec-4bc5-ab23-cc578a0173a3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b0c0a671-5e85-7c18-c1b8-7cb0e1dd3a74" executionId="f76883a5-993b-4d79-968a-b560917e9a9d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="39dbb595-d9da-94c5-0301-f53846ded7c7" executionId="7c63b889-d306-40bf-8a65-2b7590119ad0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="79b71d82-4a2e-fab4-3614-77d4169180d7" executionId="497ad1ea-1768-4325-bb11-270991dedc18" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="16" executed="16" passed="11" failed="5" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.4.3+1b45f5407b (64-bit .NET 9.0.6)
+[xUnit.net 00:00:00.81]   Discovering: WitchCityRope.Api.Tests
+[xUnit.net 00:00:00.85]   Discovered:  WitchCityRope.Api.Tests
+[xUnit.net 00:00:00.86]   Starting:    WitchCityRope.Api.Tests
+[testcontainers.org 00:00:00.09] Connected to Docker:
+  Host: unix:///var/run/docker.sock
+  Server Version: 28.2.2
+  Kernel Version: 6.14.0-33-generic
+  API Version: 1.50
+  Operating System: Ubuntu 24.04.3 LTS
+  Total Memory: 62.72 GB
+[testcontainers.org 00:00:00.17] Docker container 4fbb0f1efaaa created
+[testcontainers.org 00:00:00.20] Start Docker container 4fbb0f1efaaa
+[testcontainers.org 00:00:00.32] Wait for Docker container 4fbb0f1efaaa to complete readiness checks
+[testcontainers.org 00:00:00.33] Docker container 4fbb0f1efaaa ready
+[testcontainers.org 00:00:00.34] Docker container 8037afa5c40f created
+[testcontainers.org 00:00:00.35] Start Docker container 8037afa5c40f
+[testcontainers.org 00:00:00.45] Wait for Docker container 8037afa5c40f to complete readiness checks
+[testcontainers.org 00:00:00.46] Execute "pg_isready --host localhost --dbname witchcityrope_test --username testuser" at Docker container 8037afa5c40f
+[testcontainers.org 00:00:01.51] Execute "pg_isready --host localhost --dbname witchcityrope_test --username testuser" at Docker container 8037afa5c40f
+[testcontainers.org 00:00:01.56] Docker container 8037afa5c40f ready
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10400]
+      Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10620]
+      The property 'Payment.Metadata' is a collection or enumeration type with a value converter but with no value comparer. Set a value comparer to ensure the collection/enumeration elements are compared correctly.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10620]
+      The property 'PaymentAuditLog.NewValues' is a collection or enumeration type with a value converter but with no value comparer. Set a value comparer to ensure the collection/enumeration elements are compared correctly.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10620]
+      The property 'PaymentAuditLog.OldValues' is a collection or enumeration type with a value converter but with no value comparer. Set a value comparer to ensure the collection/enumeration elements are compared correctly.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10620]
+      The property 'PaymentRefund.Metadata' is a collection or enumeration type with a value converter but with no value comparer. Set a value comparer to ensure the collection/enumeration elements are compared correctly.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[20601]
+      The 'BulkOperationStatus' property 'Status' on entity type 'VettingBulkOperation' is configured with a database-generated default, but has no configured sentinel value. The database-generated default will always be used for inserts when the property has the value '0', since this is the CLR default for the 'BulkOperationStatus' type. Consider using a nullable type, using a nullable backing field, or setting the sentinel value for the property to ensure the database default is used when, and only when, appropriate. See https://aka.ms/efcore-docs-default-values for more information.
+fail: Microsoft.EntityFrameworkCore.Database.Command[20102]
+      Failed executing DbCommand (11ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT "MigrationId", "ProductVersion"
+      FROM "__EFMigrationsHistory"
+      ORDER BY "MigrationId";
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251003000750_InitialCreate'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251003002933_AddVettingApplicationPublicSubmissionFields'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251004154546_AddVettingEmailTemplatesEnhancementsAndLogs'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251005184357_AddShortDescriptionToEvents'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251005201341_RemoveHowFoundUsField'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251005211808_RefactorVettingStatusEnum'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251005221241_RenameVettingApplicationStatusToWorkflowStatus'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251009024114_RemoveEmergencyContactFields'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251009175718_AddUserProfileExtendedFields'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251010063756_AddSafetyReferenceNumberFunction'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251010064435_IncreaseSafetyReferenceNumberLength'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251010155339_AddPoliciesFieldToEvents'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."Events" ADD "Policies" text;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251010155339_AddPoliciesFieldToEvents', '9.0.10');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251011002739_AddUniqueActiveParticipationConstraint'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      DROP INDEX public."UQ_EventParticipations_User_Event_Active";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX "UQ_EventParticipations_User_Event_Active" ON public."EventParticipations" ("UserId", "EventId") WHERE "Status" = 1;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251011002739_AddUniqueActiveParticipationConstraint', '9.0.10');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251017212204_CreateCmsSchemaAndTables'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      DO $EF$
+      BEGIN
+          IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'cms') THEN
+              CREATE SCHEMA cms;
+          END IF;
+      END $EF$;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE cms."ContentPages" (
+          "Id" integer GENERATED BY DEFAULT AS IDENTITY,
+          "Slug" character varying(100) NOT NULL,
+          "Title" character varying(200) NOT NULL,
+          "Content" TEXT NOT NULL,
+          "CreatedAt" timestamp with time zone NOT NULL DEFAULT (NOW()),
+          "UpdatedAt" timestamp with time zone NOT NULL DEFAULT (NOW()),
+          "CreatedBy" uuid NOT NULL,
+          "LastModifiedBy" uuid NOT NULL,
+          "IsPublished" boolean NOT NULL DEFAULT TRUE,
+          CONSTRAINT "PK_ContentPages" PRIMARY KEY ("Id"),
+          CONSTRAINT "CHK_ContentPages_Content_NotEmpty" CHECK (LENGTH(TRIM("Content")) &gt; 0),
+          CONSTRAINT "CHK_ContentPages_Slug_Format" CHECK ("Slug" ~ '^[a-z0-9]+(-[a-z0-9]+)*$'),
+          CONSTRAINT "CHK_ContentPages_Title_Length" CHECK (LENGTH(TRIM("Title")) &gt;= 3),
+          CONSTRAINT "FK_ContentPages_CreatedBy" FOREIGN KEY ("CreatedBy") REFERENCES public."Users" ("Id") ON DELETE RESTRICT,
+          CONSTRAINT "FK_ContentPages_LastModifiedBy" FOREIGN KEY ("LastModifiedBy") REFERENCES public."Users" ("Id") ON DELETE RESTRICT
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE cms."ContentRevisions" (
+          "Id" integer GENERATED BY DEFAULT AS IDENTITY,
+          "ContentPageId" integer NOT NULL,
+          "Content" TEXT NOT NULL,
+          "Title" character varying(200) NOT NULL,
+          "CreatedAt" timestamp with time zone NOT NULL DEFAULT (NOW()),
+          "CreatedBy" uuid NOT NULL,
+          "ChangeDescription" character varying(500),
+          CONSTRAINT "PK_ContentRevisions" PRIMARY KEY ("Id"),
+          CONSTRAINT "CHK_ContentRevisions_Content_NotEmpty" CHECK (LENGTH(TRIM("Content")) &gt; 0),
+          CONSTRAINT "CHK_ContentRevisions_Title_Length" CHECK (LENGTH(TRIM("Title")) &gt;= 3),
+          CONSTRAINT "FK_ContentRevisions_ContentPage" FOREIGN KEY ("ContentPageId") REFERENCES cms."ContentPages" ("Id") ON DELETE CASCADE,
+          CONSTRAINT "FK_ContentRevisions_CreatedBy" FOREIGN KEY ("CreatedBy") REFERENCES public."Users" ("Id") ON DELETE RESTRICT
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_ContentPages_CreatedBy" ON cms."ContentPages" ("CreatedBy");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_ContentPages_IsPublished" ON cms."ContentPages" ("IsPublished") WHERE "IsPublished" = true;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_ContentPages_LastModifiedBy" ON cms."ContentPages" ("LastModifiedBy");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_ContentPages_UpdatedAt" ON cms."ContentPages" ("UpdatedAt" DESC);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX "UX_ContentPages_Slug" ON cms."ContentPages" ("Slug");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_ContentRevisions_ContentPageId" ON cms."ContentRevisions" ("ContentPageId");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_ContentRevisions_ContentPageId_CreatedAt" ON cms."ContentRevisions" ("ContentPageId", "CreatedAt" DESC);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_ContentRevisions_CreatedAt" ON cms."ContentRevisions" ("CreatedAt" DESC);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_ContentRevisions_CreatedBy" ON cms."ContentRevisions" ("CreatedBy");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251017212204_CreateCmsSchemaAndTables', '9.0.10');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251018042442_UpdateIncidentReportingSchema'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."SafetyIncidents" ADD "CoordinatorId" uuid;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."SafetyIncidents" ADD "GoogleDriveFinalReportUrl" character varying(500);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."SafetyIncidents" ADD "GoogleDriveFolderUrl" character varying(500);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE public."IncidentNotes" (
+          "Id" uuid NOT NULL,
+          "IncidentId" uuid NOT NULL,
+          "Content" text NOT NULL,
+          "Type" integer NOT NULL,
+          "IsPrivate" boolean NOT NULL DEFAULT FALSE,
+          "AuthorId" uuid,
+          "Tags" character varying(200),
+          "CreatedAt" timestamptz NOT NULL,
+          "UpdatedAt" timestamptz,
+          CONSTRAINT "PK_IncidentNotes" PRIMARY KEY ("Id"),
+          CONSTRAINT "CHK_IncidentNotes_Content_NotEmpty" CHECK (LENGTH(TRIM("Content")) &gt; 0),
+          CONSTRAINT "CHK_IncidentNotes_Type" CHECK ("Type" IN (1, 2)),
+          CONSTRAINT "FK_IncidentNotes_Incidents_IncidentId" FOREIGN KEY ("IncidentId") REFERENCES public."SafetyIncidents" ("Id") ON DELETE CASCADE,
+          CONSTRAINT "FK_IncidentNotes_Users_AuthorId" FOREIGN KEY ("AuthorId") REFERENCES public."Users" ("Id") ON DELETE SET NULL
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_SafetyIncidents_CoordinatorId_Status" ON public."SafetyIncidents" ("CoordinatorId", "Status");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_SafetyIncidents_Status_CoordinatorId" ON public."SafetyIncidents" ("Status", "CoordinatorId") WHERE "CoordinatorId" IS NULL;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_IncidentNotes_AuthorId" ON public."IncidentNotes" ("AuthorId") WHERE "AuthorId" IS NOT NULL;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_IncidentNotes_IncidentId_CreatedAt" ON public."IncidentNotes" ("IncidentId", "CreatedAt" DESC);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_IncidentNotes_Type" ON public."IncidentNotes" ("Type");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."SafetyIncidents" ADD CONSTRAINT "FK_SafetyIncidents_Users_CoordinatorId" FOREIGN KEY ("CoordinatorId") REFERENCES public."Users" ("Id") ON DELETE SET NULL;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251018042442_UpdateIncidentReportingSchema', '9.0.10');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251018210533_RemoveSeverityFromIncidents'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      DROP INDEX public."IX_SafetyIncidents_Severity";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      DROP INDEX public."IX_SafetyIncidents_Status_Severity_ReportedAt";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."SafetyIncidents" DROP COLUMN "Severity";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_SafetyIncidents_Status_ReportedAt" ON public."SafetyIncidents" ("Status", "ReportedAt");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251018210533_RemoveSeverityFromIncidents', '9.0.10');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251018232348_AddTitleToSafetyIncident'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."SafetyIncidents" ADD "Title" character varying(200) NOT NULL DEFAULT '';
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251018232348_AddTitleToSafetyIncident', '9.0.10');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251019051647_AddWireframeFieldsToSafetyIncident'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."SafetyIncidents" ADD "DesiredOutcomes" integer;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."SafetyIncidents" ADD "EventName" character varying(200);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."SafetyIncidents" ADD "HasSpokenToPerson" integer;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."SafetyIncidents" ADD "Type" integer NOT NULL DEFAULT 0;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."SafetyIncidents" ADD "WhereOccurred" integer NOT NULL DEFAULT 0;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251019051647_AddWireframeFieldsToSafetyIncident', '9.0.10');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251019052939_UpdateIncidentFieldsToTextAndAddNewFields'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."SafetyIncidents" ALTER COLUMN "DesiredOutcomes" TYPE character varying(2000);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."SafetyIncidents" ADD "AnonymityPreferenceDuringProcess" integer;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."SafetyIncidents" ADD "FutureInteractionPreference" character varying(2000);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251019052939_UpdateIncidentFieldsToTextAndAddNewFields', '9.0.10');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251019062634_ReplaceAnonymityPreferenceWithBooleans'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."SafetyIncidents" DROP COLUMN "AnonymityPreferenceDuringProcess";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."SafetyIncidents" ADD "AnonymousDuringInvestigation" boolean;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."SafetyIncidents" ADD "AnonymousInFinalReport" boolean;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251019062634_ReplaceAnonymityPreferenceWithBooleans', '9.0.10');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251019063036_ReplaceContactPhoneWithContactName'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."SafetyIncidents" DROP COLUMN "EncryptedContactPhone";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."SafetyIncidents" ADD "EncryptedContactName" character varying(500);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251019063036_ReplaceContactPhoneWithContactName', '9.0.10');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251020013502_RemoveIsVettedField'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      DROP INDEX public."IX_Users_IsVetted";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."Users" DROP COLUMN "IsVetted";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251020013502_RemoveIsVettedField', '9.0.10');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251020025833_FixOldRolesAndAddDiscordNames'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+                      UPDATE public."Users"
+                      SET "Role" = ''
+                      WHERE "Role" IN ('Member', 'Attendee');
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251020025833_FixOldRolesAndAddDiscordNames', '9.0.10');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251020034233_AddHasVettingApplicationToUser'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."Users" ADD "HasVettingApplication" boolean NOT NULL DEFAULT FALSE;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+                      UPDATE public."Users" u
+                      SET "HasVettingApplication" = true
+                      FROM public."VettingApplications" va
+                      WHERE va."UserId" = u."Id";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251020034233_AddHasVettingApplicationToUser', '9.0.10');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251020051751_AddUserNotesTable'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE public."UserNotes" (
+          "Id" uuid NOT NULL,
+          "UserId" uuid NOT NULL,
+          "Content" character varying(5000) NOT NULL,
+          "NoteType" character varying(50) NOT NULL,
+          "AuthorId" uuid,
+          "CreatedAt" timestamptz NOT NULL,
+          "IsArchived" boolean NOT NULL DEFAULT FALSE,
+          CONSTRAINT "PK_UserNotes" PRIMARY KEY ("Id"),
+          CONSTRAINT "FK_UserNotes_Users_AuthorId" FOREIGN KEY ("AuthorId") REFERENCES public."Users" ("Id") ON DELETE SET NULL,
+          CONSTRAINT "FK_UserNotes_Users_UserId" FOREIGN KEY ("UserId") REFERENCES public."Users" ("Id") ON DELETE CASCADE
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_UserNotes_AuthorId" ON public."UserNotes" ("AuthorId") WHERE "AuthorId" IS NOT NULL;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_UserNotes_IsArchived" ON public."UserNotes" ("IsArchived");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_UserNotes_NoteType" ON public."UserNotes" ("NoteType");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_UserNotes_UserId" ON public."UserNotes" ("UserId");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_UserNotes_UserId_CreatedAt" ON public."UserNotes" ("UserId", "CreatedAt" DESC);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251020051751_AddUserNotesTable', '9.0.10');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251020080341_AddVolunteerSignupsAndIsPublicFacing'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."VolunteerPositions" ADD "IsPublicFacing" boolean NOT NULL DEFAULT FALSE;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE "VolunteerSignups" (
+          "Id" uuid NOT NULL,
+          "VolunteerPositionId" uuid NOT NULL,
+          "UserId" uuid NOT NULL,
+          "Status" integer NOT NULL,
+          "SignedUpAt" timestamp with time zone NOT NULL,
+          "Notes" text,
+          "HasCheckedIn" boolean NOT NULL,
+          "CheckedInAt" timestamp with time zone,
+          "HasCompleted" boolean NOT NULL,
+          "CompletedAt" timestamp with time zone,
+          "CreatedAt" timestamp with time zone NOT NULL,
+          "UpdatedAt" timestamp with time zone NOT NULL,
+          CONSTRAINT "PK_VolunteerSignups" PRIMARY KEY ("Id"),
+          CONSTRAINT "FK_VolunteerSignups_Users_UserId" FOREIGN KEY ("UserId") REFERENCES public."Users" ("Id") ON DELETE CASCADE,
+          CONSTRAINT "FK_VolunteerSignups_VolunteerPositions_VolunteerPositionId" FOREIGN KEY ("VolunteerPositionId") REFERENCES public."VolunteerPositions" ("Id") ON DELETE CASCADE
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_VolunteerSignups_UserId" ON "VolunteerSignups" ("UserId");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_VolunteerSignups_VolunteerPositionId" ON "VolunteerSignups" ("VolunteerPositionId");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251020080341_AddVolunteerSignupsAndIsPublicFacing', '9.0.10');
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20251021033336_TestPendingChanges'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE "VolunteerSignups" DROP COLUMN "Notes";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."VolunteerPositions" DROP COLUMN "Requirements";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER TABLE public."VolunteerPositions" DROP COLUMN "RequiresExperience";
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+      VALUES ('20251021033336_TestPendingChanges', '9.0.10');
+[testcontainers.org 00:00:04.21] Docker container fd08609cd9b3 created
+[testcontainers.org 00:00:04.21] Start Docker container fd08609cd9b3
+[testcontainers.org 00:00:04.31] Wait for Docker container fd08609cd9b3 to complete readiness checks
+[testcontainers.org 00:00:04.31] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container fd08609cd9b3
+[testcontainers.org 00:00:05.37] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container fd08609cd9b3
+[testcontainers.org 00:00:05.41] Docker container fd08609cd9b3 ready
+[testcontainers.org 00:00:06.84] Delete Docker container fd08609cd9b3
+[testcontainers.org 00:00:07.05] Docker container afda30e3a73a created
+[testcontainers.org 00:00:07.06] Start Docker container afda30e3a73a
+[testcontainers.org 00:00:07.16] Wait for Docker container afda30e3a73a to complete readiness checks
+[testcontainers.org 00:00:07.16] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container afda30e3a73a
+[testcontainers.org 00:00:08.20] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container afda30e3a73a
+[testcontainers.org 00:00:08.27] Docker container afda30e3a73a ready
+[testcontainers.org 00:00:08.76] Delete Docker container afda30e3a73a
+[testcontainers.org 00:00:08.97] Docker container c5a2dd54e78b created
+[testcontainers.org 00:00:08.97] Start Docker container c5a2dd54e78b
+[testcontainers.org 00:00:09.07] Wait for Docker container c5a2dd54e78b to complete readiness checks
+[testcontainers.org 00:00:09.07] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container c5a2dd54e78b
+[testcontainers.org 00:00:10.12] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container c5a2dd54e78b
+[testcontainers.org 00:00:10.17] Docker container c5a2dd54e78b ready
+[testcontainers.org 00:00:10.79] Delete Docker container c5a2dd54e78b
+[xUnit.net 00:00:11.93]       Expected boolean to be false, but found True.
+[xUnit.net 00:00:11.93]       Stack Trace:
+[xUnit.net 00:00:11.93]            at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+[xUnit.net 00:00:11.93]            at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+[xUnit.net 00:00:11.93]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:00:11.93]            at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+[xUnit.net 00:00:11.93]            at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+[xUnit.net 00:00:11.93]            at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+[xUnit.net 00:00:11.93]            at FluentAssertions.Primitives.BooleanAssertions`1.BeFalse(String because, Object[] becauseArgs)
+[xUnit.net 00:00:11.93]         /home/chad/repos/witchcityrope/tests/unit/api/Services/SeedDataServiceTests.cs(228,0): at WitchCityRope.Api.Tests.Services.SeedDataServiceTests.IsSeedDataRequiredAsync_WithExistingEvents_ReturnsFalse()
+[xUnit.net 00:00:11.93]         --- End of stack trace from previous location ---
+[testcontainers.org 00:00:11.00] Docker container 53000e368615 created
+[testcontainers.org 00:00:11.00] Start Docker container 53000e368615
+[testcontainers.org 00:00:11.11] Wait for Docker container 53000e368615 to complete readiness checks
+[testcontainers.org 00:00:11.11] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container 53000e368615
+[testcontainers.org 00:00:12.18] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container 53000e368615
+[testcontainers.org 00:00:12.23] Docker container 53000e368615 ready
+[testcontainers.org 00:00:12.68] Delete Docker container 53000e368615
+[testcontainers.org 00:00:12.88] Docker container 6ae0fc9f3568 created
+[testcontainers.org 00:00:12.88] Start Docker container 6ae0fc9f3568
+[testcontainers.org 00:00:12.97] Wait for Docker container 6ae0fc9f3568 to complete readiness checks
+[testcontainers.org 00:00:12.97] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container 6ae0fc9f3568
+[testcontainers.org 00:00:14.00] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container 6ae0fc9f3568
+[testcontainers.org 00:00:14.06] Docker container 6ae0fc9f3568 ready
+[testcontainers.org 00:00:14.62] Delete Docker container 6ae0fc9f3568
+[testcontainers.org 00:00:14.85] Docker container f20897d27577 created
+[testcontainers.org 00:00:14.85] Start Docker container f20897d27577
+[testcontainers.org 00:00:14.95] Wait for Docker container f20897d27577 to complete readiness checks
+[testcontainers.org 00:00:14.95] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container f20897d27577
+[testcontainers.org 00:00:15.99] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container f20897d27577
+[testcontainers.org 00:00:16.04] Docker container f20897d27577 ready
+[testcontainers.org 00:00:16.53] Delete Docker container f20897d27577
+[testcontainers.org 00:00:16.73] Docker container 8ca79bd9c55b created
+[testcontainers.org 00:00:16.73] Start Docker container 8ca79bd9c55b
+[testcontainers.org 00:00:16.84] Wait for Docker container 8ca79bd9c55b to complete readiness checks
+[testcontainers.org 00:00:16.84] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container 8ca79bd9c55b
+[testcontainers.org 00:00:17.88] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container 8ca79bd9c55b
+[testcontainers.org 00:00:17.93] Docker container 8ca79bd9c55b ready
+[testcontainers.org 00:00:18.61] Delete Docker container 8ca79bd9c55b
+[testcontainers.org 00:00:18.81] Docker container 667cb0cf87e4 created
+[testcontainers.org 00:00:18.81] Start Docker container 667cb0cf87e4
+[testcontainers.org 00:00:18.92] Wait for Docker container 667cb0cf87e4 to complete readiness checks
+[testcontainers.org 00:00:18.92] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container 667cb0cf87e4
+[testcontainers.org 00:00:19.97] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container 667cb0cf87e4
+[testcontainers.org 00:00:20.01] Docker container 667cb0cf87e4 ready
+[testcontainers.org 00:00:20.51] Delete Docker container 667cb0cf87e4
+[testcontainers.org 00:00:20.71] Docker container 543ac35a3dfa created
+[testcontainers.org 00:00:20.71] Start Docker container 543ac35a3dfa
+[testcontainers.org 00:00:20.81] Wait for Docker container 543ac35a3dfa to complete readiness checks
+[testcontainers.org 00:00:20.81] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container 543ac35a3dfa
+[testcontainers.org 00:00:21.86] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container 543ac35a3dfa
+[testcontainers.org 00:00:21.92] Docker container 543ac35a3dfa ready
+[testcontainers.org 00:00:22.41] Delete Docker container 543ac35a3dfa
+[xUnit.net 00:00:23.52]       Expected collection to contain at least 12 item(s), but found 8: WitchCityRope.Api.Models.Event
+[xUnit.net 00:00:23.52]           {
+[xUnit.net 00:00:23.52]               Capacity = 30, 
+[xUnit.net 00:00:23.52]               CreatedAt = &lt;2025-10-24 02:50:09.5303167&gt;, 
+[xUnit.net 00:00:23.52]               Description = "Join us for our monthly Rope Social &amp; Discussion - a casual gathering focused on community building, conversation, and connection. This is a chance to meet fellow rope enthusiasts, discuss topics of interest, and strengthen our community bonds.
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Event Format:
+[xUnit.net 00:00:23.52]       - Social hour: Mingle and meet community members
+[xUnit.net 00:00:23.52]       - Discussion circle: Structured conversation on a monthly topic
+[xUnit.net 00:00:23.52]       - Q&amp;A and open discussion
+[xUnit.net 00:00:23.52]       - Resource sharing and announcements
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Monthly Discussion Topics (rotating):
+[xUnit.net 00:00:23.52]       - Rope philosophy and personal practice
+[xUnit.net 00:00:23.52]       - Navigating consent and communication
+[xUnit.net 00:00:23.52]       - Building a sustainable rope practice
+[xUnit.net 00:00:23.52]       - Rope community culture and values
+[xUnit.net 00:00:23.52]       - Safety deep dives on specific topics
+[xUnit.net 00:00:23.52]       - Artistic expression through rope
+[xUnit.net 00:00:23.52]       - And more based on community interest
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Who Should Attend:
+[xUnit.net 00:00:23.52]       - Anyone interested in rope bondage at any skill level
+[xUnit.net 00:00:23.52]       - People curious about the rope community
+[xUnit.net 00:00:23.52]       - Experienced practitioners looking to connect
+[xUnit.net 00:00:23.52]       - Those seeking a thoughtful, discussion-oriented space
+[xUnit.net 00:00:23.52]       - Community members interested in building connections
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       What Makes This Different:
+[xUnit.net 00:00:23.52]       - TALKING focused, not practice focused
+[xUnit.net 00:00:23.52]       - Emphasis on community and connection over techniques
+[xUnit.net 00:00:23.52]       - Safe space to ask questions and share experiences
+[xUnit.net 00:00:23.52]       - Opportunity to learn from others' perspectives
+[xUnit.net 00:00:23.52]       - Building friendships and support networks
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Topics Covered (examples from past months):
+[xUnit.net 00:00:23.52]       - How do you maintain work-life-rope balance?
+[xUnit.net 00:00:23.52]       - What does ethical rope practice mean to you?
+[xUnit.net 00:00:23.52]       - How do you handle rope injuries and recovery?
+[xUnit.net 00:00:23.52]       - Building diverse and inclusive community spaces
+[xUnit.net 00:00:23.52]       - Your questions and topics welcome!
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Atmosphere:
+[xUnit.net 00:00:23.52]       - Relaxed and welcoming
+[xUnit.net 00:00:23.52]       - Judgment-free zone for all questions
+[xUnit.net 00:00:23.52]       - Respectful discussion and active listening
+[xUnit.net 00:00:23.52]       - Building understanding across experience levels
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       No rope practice at this event - this is purely social and discussion-based. Bring your curiosity, questions, and openness to connect with others.
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Light refreshments provided. Optional sliding scale donation to support community programming.", 
+[xUnit.net 00:00:23.52]               EndDate = &lt;2025-11-28 21:00:00&gt;, 
+[xUnit.net 00:00:23.52]               EventParticipations = {empty}, 
+[xUnit.net 00:00:23.52]               EventType = "Social", 
+[xUnit.net 00:00:23.52]               Id = {111426aa-76f8-43d4-9164-1d8a807cb252}, 
+[xUnit.net 00:00:23.52]               IsPublished = True, 
+[xUnit.net 00:00:23.52]               Location = "Community Space", 
+[xUnit.net 00:00:23.52]               Organizers = {empty}, 
+[xUnit.net 00:00:23.52]               Policies = "Event Policies and Safety Guidelines:
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Attendance Requirements:
+[xUnit.net 00:00:23.52]       - All participants must be 18+ years old with valid government-issued photo ID
+[xUnit.net 00:00:23.52]       - RSVP requested for space planning and refreshment prep
+[xUnit.net 00:00:23.52]       - Sliding scale pricing ($5-10) - pay what you can
+[xUnit.net 00:00:23.52]       - All backgrounds and experience levels welcome
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Respectful Discussion:
+[xUnit.net 00:00:23.52]       - This is a conversation-based event, not a practice session
+[xUnit.net 00:00:23.52]       - Respect all perspectives and experiences shared
+[xUnit.net 00:00:23.52]       - No interrupting or talking over others
+[xUnit.net 00:00:23.52]       - Active listening encouraged
+[xUnit.net 00:00:23.52]       - Disagree respectfully if you have different views
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Confidentiality:
+[xUnit.net 00:00:23.52]       - What's shared in the discussion circle stays in the discussion circle
+[xUnit.net 00:00:23.52]       - Don't repeat personal stories or identifying information shared by others
+[xUnit.net 00:00:23.52]       - Respect privacy and anonymity of all participants
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Safe Space Guidelines:
+[xUnit.net 00:00:23.52]       - No judgment for questions asked or experiences shared
+[xUnit.net 00:00:23.52]       - Create welcoming environment for all experience levels
+[xUnit.net 00:00:23.52]       - Step up/step back - make room for quieter voices
+[xUnit.net 00:00:23.52]       - Assume good intent while allowing for mistakes and learning
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Photography and Recording:
+[xUnit.net 00:00:23.52]       - Absolutely no photography, video, or audio recording without explicit permission from ALL participants
+[xUnit.net 00:00:23.52]       - This is a private gathering
+[xUnit.net 00:00:23.52]       - Respect attendees' privacy and anonymity
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Appropriate Conduct:
+[xUnit.net 00:00:23.52]       - Professional, respectful behavior required
+[xUnit.net 00:00:23.52]       - No recruitment for personal relationships or services
+[xUnit.net 00:00:23.52]       - No sales pitches or self-promotion
+[xUnit.net 00:00:23.52]       - Focus on community building and authentic connection
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Accessibility:
+[xUnit.net 00:00:23.52]       - We strive to create accessible, welcoming space
+[xUnit.net 00:00:23.52]       - Let organizers know if you have accessibility needs
+[xUnit.net 00:00:23.52]       - Gender-neutral restrooms available
+[xUnit.net 00:00:23.52]       - Scent-free preferred (some members have sensitivities)
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Food and Beverages:
+[xUnit.net 00:00:23.52]       - Light refreshments provided
+[xUnit.net 00:00:23.52]       - Let us know of any allergies or dietary restrictions
+[xUnit.net 00:00:23.52]       - Clean up after yourself
+[xUnit.net 00:00:23.52]       - No alcohol served
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Zero Tolerance:
+[xUnit.net 00:00:23.52]       - No harassment, discrimination, or boundary violations
+[xUnit.net 00:00:23.52]       - No drugs or alcohol
+[xUnit.net 00:00:23.52]       - Violations result in removal and ban from community events
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Community Care:
+[xUnit.net 00:00:23.52]       - Look out for each other
+[xUnit.net 00:00:23.52]       - Let organizers know if someone seems in distress
+[xUnit.net 00:00:23.52]       - This is a community space - we all contribute to making it safe and welcoming", 
+[xUnit.net 00:00:23.52]               PricingTiers = "$3-$10 (pay what you can)", 
+[xUnit.net 00:00:23.52]               Sessions = {empty}, 
+[xUnit.net 00:00:23.52]               ShortDescription = "Monthly social gathering for community connection and discussion of rope topics.", 
+[xUnit.net 00:00:23.52]               StartDate = &lt;2025-11-28 19:00:00&gt;, 
+[xUnit.net 00:00:23.52]               TicketTypes = {empty}, 
+[xUnit.net 00:00:23.52]               Title = "Rope Social &amp; Discussion", 
+[xUnit.net 00:00:23.52]               UpdatedAt = &lt;2025-10-24 02:50:09.5303167&gt;, 
+[xUnit.net 00:00:23.52]               VolunteerPositions = {empty}
+[xUnit.net 00:00:23.52]           }, 
+[xUnit.net 00:00:23.52]           WitchCityRope.Api.Models.Event
+[xUnit.net 00:00:23.52]           {
+[xUnit.net 00:00:23.52]               Capacity = 12, 
+[xUnit.net 00:00:23.52]               CreatedAt = &lt;2025-10-24 02:50:09.5303162&gt;, 
+[xUnit.net 00:00:23.52]               Description = "Take your rope skills to the next level with this comprehensive introduction to suspension bondage. This intermediate-level workshop covers the essential techniques, safety considerations, and rigging fundamentals needed to begin exploring suspension safely.
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       What You'll Learn:
+[xUnit.net 00:00:23.52]       - Suspension safety principles and risk mitigation strategies
+[xUnit.net 00:00:23.52]       - Proper rigging setup and equipment requirements (hard points, rigging plates, carabiners)
+[xUnit.net 00:00:23.52]       - Load-bearing tie techniques and weight distribution
+[xUnit.net 00:00:23.52]       - Hip harness construction with emphasis on safety and comfort
+[xUnit.net 00:00:23.52]       - Partial suspension techniques for beginners
+[xUnit.net 00:00:23.52]       - How to assess and monitor your partner during suspension
+[xUnit.net 00:00:23.52]       - Safe descent and emergency procedures
+[xUnit.net 00:00:23.52]       - Common mistakes and how to avoid them
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Prerequisites:
+[xUnit.net 00:00:23.52]       - REQUIRED: Strong foundation in floor bondage techniques
+[xUnit.net 00:00:23.52]       - REQUIRED: Completion of 'Introduction to Rope Safety' or equivalent
+[xUnit.net 00:00:23.52]       - Recommended: 6+ months of regular rope practice
+[xUnit.net 00:00:23.52]       - You must be comfortable tying basic harnesses and understand rope safety fundamentals
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Equipment Provided:
+[xUnit.net 00:00:23.52]       - Suspension rigging equipment (hard points, carabiners, etc.)
+[xUnit.net 00:00:23.52]       - Practice rope if needed
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       What to Bring:
+[xUnit.net 00:00:23.52]       - 4-6 lengths of rope (30 feet each, 6mm diameter)
+[xUnit.net 00:00:23.52]       - Comfortable, form-fitting clothing (leggings, fitted shirt)
+[xUnit.net 00:00:23.52]       - Water bottle and snacks
+[xUnit.net 00:00:23.52]       - Notebook for taking notes (optional)
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Class Format:
+[xUnit.net 00:00:23.52]       - 30 minutes: Suspension theory, safety review, and equipment overview
+[xUnit.net 00:00:23.52]       - 2 hours: Hands-on practice with instructor supervision
+[xUnit.net 00:00:23.52]       - 30 minutes: Q&amp;A, troubleshooting, and safety discussion
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Safety Note: Suspension carries inherent risks including nerve damage, circulation issues, and injury from falls. This class emphasizes conservative, safety-first approaches suitable for beginners. You will learn to recognize warning signs and respond appropriately.
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Limited to 12 participants to ensure personalized instruction and adequate safety supervision.", 
+[xUnit.net 00:00:23.52]               EndDate = &lt;2025-11-07 21:00:00&gt;, 
+[xUnit.net 00:00:23.52]               EventParticipations = {empty}, 
+[xUnit.net 00:00:23.52]               EventType = "Class", 
+[xUnit.net 00:00:23.52]               Id = {1f0b66ef-4193-4975-ae08-d12861b1c484}, 
+[xUnit.net 00:00:23.52]               IsPublished = True, 
+[xUnit.net 00:00:23.52]               Location = "Main Workshop Room", 
+[xUnit.net 00:00:23.52]               Organizers = {empty}, 
+[xUnit.net 00:00:23.52]               Policies = "Event Policies and Safety Guidelines:
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Attendance Requirements:
+[xUnit.net 00:00:23.52]       - All participants must be 18+ years old with valid government-issued photo ID
+[xUnit.net 00:00:23.52]       - Advance registration and payment required (no walk-ins)
+[xUnit.net 00:00:23.52]       - Prerequisite: Completion of rope safety fundamentals course or instructor approval
+[xUnit.net 00:00:23.52]       - Arrive 15 minutes early for safety briefing and equipment setup
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Medical and Physical Requirements:
+[xUnit.net 00:00:23.52]       - You must disclose any medical conditions, injuries, or physical limitations to instructor before class
+[xUnit.net 00:00:23.52]       - Certain conditions may prevent safe participation in suspension activities
+[xUnit.net 00:00:23.52]       - You are responsible for knowing your own health status and limitations
+[xUnit.net 00:00:23.52]       - Sign medical waiver acknowledging suspension risks before participating
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Consent and Communication:
+[xUnit.net 00:00:23.52]       - Enthusiastic consent required for all activities and physical contact
+[xUnit.net 00:00:23.52]       - Active communication expected throughout suspension scenes
+[xUnit.net 00:00:23.52]       - Immediate stop on any safe word or request to stop
+[xUnit.net 00:00:23.52]       - Check-ins required at regular intervals during suspension
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Equipment and Safety:
+[xUnit.net 00:00:23.52]       - Do not touch or adjust rigging equipment without instructor permission
+[xUnit.net 00:00:23.52]       - Inspect all equipment before use and report any damage or concerns
+[xUnit.net 00:00:23.52]       - Follow all instructor directions regarding equipment usage
+[xUnit.net 00:00:23.52]       - Spotter required for all suspension activities
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Photography and Recording:
+[xUnit.net 00:00:23.52]       - Absolutely no photography, video, or audio recording without explicit written permission from all participants and instructor
+[xUnit.net 00:00:23.52]       - Cell phones must be on silent and stored during class
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Appropriate Conduct:
+[xUnit.net 00:00:23.52]       - Professional behavior required at all times
+[xUnit.net 00:00:23.52]       - Wear appropriate athletic/practice clothing (no loose garments)
+[xUnit.net 00:00:23.52]       - Remove all jewelry before participating in suspension
+[xUnit.net 00:00:23.52]       - Notify instructor immediately of any discomfort, numbness, tingling, or other concerns
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Zero Tolerance:
+[xUnit.net 00:00:23.52]       - No harassment, discrimination, or boundary violations
+[xUnit.net 00:00:23.52]       - No drugs or alcohol - immediate removal and ban
+[xUnit.net 00:00:23.52]       - Suspension is an advanced skill requiring focus and sobriety
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Risk Acknowledgment:
+[xUnit.net 00:00:23.52]       - Suspension bondage carries inherent risks including nerve damage, circulation issues, rope burns, bruising, and injury from falls
+[xUnit.net 00:00:23.52]       - By attending, you acknowledge these risks and accept responsibility for your participation
+[xUnit.net 00:00:23.52]       - You agree to follow all safety protocols and instructor guidance", 
+[xUnit.net 00:00:23.52]               PricingTiers = "$16-$65 (sliding scale)", 
+[xUnit.net 00:00:23.52]               Sessions = {empty}, 
+[xUnit.net 00:00:23.52]               ShortDescription = "Introduction to suspension techniques with emphasis on safety and proper rigging.", 
+[xUnit.net 00:00:23.52]               StartDate = &lt;2025-11-07 18:00:00&gt;, 
+[xUnit.net 00:00:23.52]               TicketTypes = {empty}, 
+[xUnit.net 00:00:23.52]               Title = "Suspension Basics", 
+[xUnit.net 00:00:23.52]               UpdatedAt = &lt;2025-10-24 02:50:09.5303162&gt;, 
+[xUnit.net 00:00:23.52]               VolunteerPositions = {empty}
+[xUnit.net 00:00:23.52]           }, 
+[xUnit.net 00:00:23.52]           WitchCityRope.Api.Models.Event
+[xUnit.net 00:00:23.52]           {
+[xUnit.net 00:00:23.52]               Capacity = 10, 
+[xUnit.net 00:00:23.52]               CreatedAt = &lt;2025-10-24 02:50:09.5303164&gt;, 
+[xUnit.net 00:00:23.52]               Description = "This advanced workshop is designed for experienced rope practitioners looking to expand their floor bondage repertoire with complex ties, creative positions, and artistic expression. We'll explore sophisticated techniques that challenge both rigger and model while maintaining safety and comfort.
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Workshop Topics:
+[xUnit.net 00:00:23.52]       - Complex multi-point ties and connection techniques
+[xUnit.net 00:00:23.52]       - Asymmetrical and artistic floor positions
+[xUnit.net 00:00:23.52]       - Creative use of space and body positioning
+[xUnit.net 00:00:23.52]       - Transitions between positions while maintaining tie integrity
+[xUnit.net 00:00:23.52]       - Strappado, hogtie, and other challenging positions
+[xUnit.net 00:00:23.52]       - Decorative elements and aesthetic considerations
+[xUnit.net 00:00:23.52]       - Managing longer scenes and endurance considerations
+[xUnit.net 00:00:23.52]       - Troubleshooting common issues with complex ties
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Prerequisites:
+[xUnit.net 00:00:23.52]       - REQUIRED: Extensive floor bondage experience (1+ years regular practice)
+[xUnit.net 00:00:23.52]       - REQUIRED: Strong foundation in safety, communication, and basic ties
+[xUnit.net 00:00:23.52]       - Must be proficient in single column, double column, chest harnesses, and hip harnesses
+[xUnit.net 00:00:23.52]       - Experience with multi-limb ties and transitions
+[xUnit.net 00:00:23.52]       - This is NOT a beginner class
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       What to Bring:
+[xUnit.net 00:00:23.52]       - 6-8 lengths of rope (30 feet each, 6mm diameter) - quality rope recommended
+[xUnit.net 00:00:23.52]       - Comfortable form-fitting practice clothing
+[xUnit.net 00:00:23.52]       - Knee pads optional but recommended
+[xUnit.net 00:00:23.52]       - Water and snacks
+[xUnit.net 00:00:23.52]       - Notebook for notes and sketches
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Class Structure:
+[xUnit.net 00:00:23.52]       - 20 minutes: Demonstration of key concepts and techniques
+[xUnit.net 00:00:23.52]       - 2 hours: Hands-on practice with instructor feedback
+[xUnit.net 00:00:23.52]       - 20 minutes: Sharing, feedback, and Q&amp;A
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Teaching Philosophy:
+[xUnit.net 00:00:23.52]       This class emphasizes creative exploration within safe parameters. We'll focus on developing your personal style while respecting the fundamentals that keep everyone safe. Expect to be challenged and to learn from both successes and mistakes.
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Small class size (limited to 10 participants) ensures individualized attention and the ability to work at your own pace.
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Note: Partners/models welcome but not required. Solo practitioners can focus on learning tie techniques and theory.", 
+[xUnit.net 00:00:23.52]               EndDate = &lt;2025-11-14 21:00:00&gt;, 
+[xUnit.net 00:00:23.52]               EventParticipations = {empty}, 
+[xUnit.net 00:00:23.52]               EventType = "Class", 
+[xUnit.net 00:00:23.52]               Id = {387cb1f6-2816-49fa-a7ca-971e753f9cbe}, 
+[xUnit.net 00:00:23.52]               IsPublished = True, 
+[xUnit.net 00:00:23.52]               Location = "Main Workshop Room", 
+[xUnit.net 00:00:23.52]               Organizers = {empty}, 
+[xUnit.net 00:00:23.52]               Policies = "Event Policies and Safety Guidelines:
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Attendance Requirements:
+[xUnit.net 00:00:23.52]       - All participants must be 18+ years old with valid government-issued photo ID
+[xUnit.net 00:00:23.52]       - Advance registration and payment required
+[xUnit.net 00:00:23.52]       - Prerequisite: Extensive rope experience and instructor approval
+[xUnit.net 00:00:23.52]       - Late arrival may result in denied entry for safety reasons
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Experience Verification:
+[xUnit.net 00:00:23.52]       - This is an advanced class - beginners will not be admitted
+[xUnit.net 00:00:23.52]       - Instructor reserves right to assess skill level and decline participation
+[xUnit.net 00:00:23.52]       - If your experience level is uncertain, contact instructor before registering
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Safety and Communication:
+[xUnit.net 00:00:23.52]       - Expert-level communication and consent skills expected
+[xUnit.net 00:00:23.52]       - Proactive monitoring of partner required throughout scenes
+[xUnit.net 00:00:23.52]       - Immediate stop on any safe word, numbness, tingling, or discomfort
+[xUnit.net 00:00:23.52]       - Report all safety concerns to instructor immediately
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Equipment Requirements:
+[xUnit.net 00:00:23.52]       - Bring your own quality rope in good condition
+[xUnit.net 00:00:23.52]       - Inspect rope before use and remove any damaged rope from rotation
+[xUnit.net 00:00:23.52]       - Recommended: natural fiber rope (jute/hemp) for better grip and control
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Photography and Recording:
+[xUnit.net 00:00:23.52]       - Absolutely no photography, video, or audio recording without explicit written permission from all participants
+[xUnit.net 00:00:23.52]       - This is a closed, private workshop
+[xUnit.net 00:00:23.52]       - Cell phones must be stored during practice sessions
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Professional Conduct:
+[xUnit.net 00:00:23.52]       - Respectful, professional behavior required at all times
+[xUnit.net 00:00:23.52]       - Appropriate practice attire (form-fitting, allows movement)
+[xUnit.net 00:00:23.52]       - Practice good hygiene
+[xUnit.net 00:00:23.52]       - No unsolicited advice or critique of other participants
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Health and Disclosure:
+[xUnit.net 00:00:23.52]       - Disclose relevant medical conditions, injuries, or limitations
+[xUnit.net 00:00:23.52]       - You are responsible for your own physical and mental well-being
+[xUnit.net 00:00:23.52]       - Take breaks as needed
+[xUnit.net 00:00:23.52]       - Stay hydrated
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Zero Tolerance Policies:
+[xUnit.net 00:00:23.52]       - No harassment, boundary violations, or predatory behavior
+[xUnit.net 00:00:23.52]       - No drugs or alcohol
+[xUnit.net 00:00:23.52]       - Violations result in immediate removal and permanent ban
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Assumption of Risk:
+[xUnit.net 00:00:23.52]       - Advanced rope work carries increased risk of injury
+[xUnit.net 00:00:23.52]       - By participating, you acknowledge these risks and accept responsibility
+[xUnit.net 00:00:23.52]       - You agree to practice safely and follow all instructor guidance
+[xUnit.net 00:00:23.52]       - Nerve damage, bruising, rope burns, and other injuries are possible", 
+[xUnit.net 00:00:23.52]               PricingTiers = "$14-$55 (sliding scale)", 
+[xUnit.net 00:00:23.52]               Sessions = {empty}, 
+[xUnit.net 00:00:23.52]               ShortDescription = "Explore complex floor-based rope bondage techniques for experienced practitioners.", 
+[xUnit.net 00:00:23.52]               StartDate = &lt;2025-11-14 18:00:00&gt;, 
+[xUnit.net 00:00:23.52]               TicketTypes = {empty}, 
+[xUnit.net 00:00:23.52]               Title = "Advanced Floor Work", 
+[xUnit.net 00:00:23.52]               UpdatedAt = &lt;2025-10-24 02:50:09.5303164&gt;, 
+[xUnit.net 00:00:23.52]               VolunteerPositions = {empty}
+[xUnit.net 00:00:23.52]           }, 
+[xUnit.net 00:00:23.52]           WitchCityRope.Api.Models.Event
+[xUnit.net 00:00:23.52]           {
+[xUnit.net 00:00:23.52]               Capacity = 20, 
+[xUnit.net 00:00:23.52]               CreatedAt = &lt;2025-10-24 02:50:09.5303175&gt;, 
+[xUnit.net 00:00:23.52]               Description = "This past event was an introductory practice session designed for absolute beginners and those new to the rope community.
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Past attendees learned:
+[xUnit.net 00:00:23.52]       - Basic rope handling techniques
+[xUnit.net 00:00:23.52]       - Simple single column ties
+[xUnit.net 00:00:23.52]       - Introduction to safety principles
+[xUnit.net 00:00:23.52]       - Communication fundamentals
+[xUnit.net 00:00:23.52]       - How to get started with rope practice
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       This was a supportive, beginner-friendly environment where participants could ask questions, meet fellow newcomers, and start their rope journey in a welcoming space.", 
+[xUnit.net 00:00:23.52]               EndDate = &lt;2025-10-17 20:00:00&gt;, 
+[xUnit.net 00:00:23.52]               EventParticipations = {empty}, 
+[xUnit.net 00:00:23.52]               EventType = "Social", 
+[xUnit.net 00:00:23.52]               Id = {46945076-0b01-4297-8337-59af1e630ad9}, 
+[xUnit.net 00:00:23.52]               IsPublished = True, 
+[xUnit.net 00:00:23.52]               Location = "Community Space", 
+[xUnit.net 00:00:23.52]               Organizers = {empty}, 
+[xUnit.net 00:00:23.52]               Policies = "Standard event policies applied:
+[xUnit.net 00:00:23.52]       - 18+ with ID required
+[xUnit.net 00:00:23.52]       - Consent and communication required
+[xUnit.net 00:00:23.52]       - No photography without permission
+[xUnit.net 00:00:23.52]       - Respectful conduct expected
+[xUnit.net 00:00:23.52]       - Zero tolerance for harassment", 
+[xUnit.net 00:00:23.52]               PricingTiers = "$3-$10 (pay what you can)", 
+[xUnit.net 00:00:23.52]               Sessions = {empty}, 
+[xUnit.net 00:00:23.52]               ShortDescription = "Past event: Introductory session for newcomers to rope bondage.", 
+[xUnit.net 00:00:23.52]               StartDate = &lt;2025-10-17 18:00:00&gt;, 
+[xUnit.net 00:00:23.52]               TicketTypes = {empty}, 
+[xUnit.net 00:00:23.52]               Title = "Beginner Rope Circle", 
+[xUnit.net 00:00:23.52]               UpdatedAt = &lt;2025-10-24 02:50:09.5303175&gt;, 
+[xUnit.net 00:00:23.52]               VolunteerPositions = {empty}
+[xUnit.net 00:00:23.52]           }WitchCityRope.Api.Models.Event
+[xUnit.net 00:00:23.52]           {
+[xUnit.net 00:00:23.52]               Capacity = 40, 
+[xUnit.net 00:00:23.52]               CreatedAt = &lt;2025-10-24 02:50:09.5303165&gt;, 
+[xUnit.net 00:00:23.52]               Description = "Join us for our monthly Community Rope Jam - a relaxed, social practice session where rope enthusiasts of all skill levels can come together to practice, learn, and connect with fellow community members.
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       What to Expect:
+[xUnit.net 00:00:23.52]       - Open practice space with supportive atmosphere
+[xUnit.net 00:00:23.52]       - Practice your existing skills or try new techniques
+[xUnit.net 00:00:23.52]       - Ask questions and learn from experienced practitioners
+[xUnit.net 00:00:23.52]       - Make new friends and connections in the community
+[xUnit.net 00:00:23.52]       - Casual, judgment-free environment
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Who Should Attend:
+[xUnit.net 00:00:23.52]       - ALL SKILL LEVELS welcome from absolute beginners to advanced practitioners
+[xUnit.net 00:00:23.52]       - Solo practitioners welcome - you don't need to bring a partner
+[xUnit.net 00:00:23.52]       - People interested in learning more about rope bondage
+[xUnit.net 00:00:23.52]       - Experienced rope artists looking to practice and share knowledge
+[xUnit.net 00:00:23.52]       - Anyone seeking community connection
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Facilitators Present:
+[xUnit.net 00:00:23.52]       - Experienced community members available to answer questions
+[xUnit.net 00:00:23.52]       - Safety monitors on site
+[xUnit.net 00:00:23.52]       - Not a formal class, but informal guidance available
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       What to Bring:
+[xUnit.net 00:00:23.52]       - Your own rope (if you have it) - we'll have some available to borrow
+[xUnit.net 00:00:23.52]       - Comfortable clothing suitable for movement
+[xUnit.net 00:00:23.52]       - Water bottle
+[xUnit.net 00:00:23.52]       - Positive attitude and respect for all participants
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Activities:
+[xUnit.net 00:00:23.52]       - Self-directed practice at your own pace
+[xUnit.net 00:00:23.52]       - Informal peer learning and knowledge sharing
+[xUnit.net 00:00:23.52]       - Socializing and community building
+[xUnit.net 00:00:23.52]       - Optional: Share what you're working on with supportive feedback
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Perfect For:
+[xUnit.net 00:00:23.52]       - Practicing ties you've learned in classes
+[xUnit.net 00:00:23.52]       - Experimenting with new ideas in a safe environment
+[xUnit.net 00:00:23.52]       - Meeting practice partners
+[xUnit.net 00:00:23.52]       - Building confidence in your rope skills
+[xUnit.net 00:00:23.52]       - Connecting with the local rope community
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       No pressure, no judgment - just a welcoming space to explore rope at your own comfort level. Whether you tie for 5 minutes or the whole session, you're welcome here.
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Optional donation-based entry - pay what you can to help cover venue costs.", 
+[xUnit.net 00:00:23.52]               EndDate = &lt;2025-11-21 21:00:00&gt;, 
+[xUnit.net 00:00:23.52]               EventParticipations = {empty}, 
+[xUnit.net 00:00:23.52]               EventType = "Social", 
+[xUnit.net 00:00:23.52]               Id = {6d5a9799-4dce-40d6-b15c-7f7041b3c50f}, 
+[xUnit.net 00:00:23.52]               IsPublished = True, 
+[xUnit.net 00:00:23.52]               Location = "Community Space", 
+[xUnit.net 00:00:23.52]               Organizers = {empty}, 
+[xUnit.net 00:00:23.52]               Policies = "Event Policies and Safety Guidelines:
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Attendance Requirements:
+[xUnit.net 00:00:23.52]       - All participants must be 18+ years old with valid government-issued photo ID
+[xUnit.net 00:00:23.52]       - RSVP required for space planning
+[xUnit.net 00:00:23.52]       - Sliding scale pricing ($5-15) - pay what you can
+[xUnit.net 00:00:23.52]       - All skill levels welcome
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Safety First:
+[xUnit.net 00:00:23.52]       - Practice safely within your skill level
+[xUnit.net 00:00:23.52]       - Do not attempt techniques beyond your current abilities
+[xUnit.net 00:00:23.52]       - Ask for help if you're unsure about safety
+[xUnit.net 00:00:23.52]       - Safety monitors present to assist with concerns
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Consent and Boundaries:
+[xUnit.net 00:00:23.52]       - Enthusiastic consent required for all interactions
+[xUnit.net 00:00:23.52]       - Ask before approaching others or touching their belongings
+[xUnit.net 00:00:23.52]       - Respect everyone's boundaries and personal space
+[xUnit.net 00:00:23.52]       - "No" means no - respect it immediately
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Photography and Recording:
+[xUnit.net 00:00:23.52]       - Absolutely no photography, video, or audio recording without explicit written permission from ALL people who might appear in the shot
+[xUnit.net 00:00:23.52]       - Ask permission EACH time before taking photos
+[xUnit.net 00:00:23.52]       - Respect others' privacy and anonymity
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Respectful Environment:
+[xUnit.net 00:00:23.52]       - Treat all participants with respect regardless of experience level
+[xUnit.net 00:00:23.52]       - No unsolicited critique or advice
+[xUnit.net 00:00:23.52]       - Keep coaching to your own partner unless specifically invited to help
+[xUnit.net 00:00:23.52]       - Welcoming, judgment-free atmosphere
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Appropriate Conduct:
+[xUnit.net 00:00:23.52]       - Professional behavior expected
+[xUnit.net 00:00:23.52]       - Comfortable, appropriate clothing for rope practice
+[xUnit.net 00:00:23.52]       - Practice good hygiene
+[xUnit.net 00:00:23.52]       - No drugs or alcohol on premises
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Space Sharing:
+[xUnit.net 00:00:23.52]       - Be mindful of shared space - keep practice areas compact
+[xUnit.net 00:00:23.52]       - Clean up your area when finished
+[xUnit.net 00:00:23.52]       - Return borrowed equipment to proper location
+[xUnit.net 00:00:23.52]       - Help maintain welcoming environment for all
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Bring Your Own Equipment:
+[xUnit.net 00:00:23.52]       - Bring your own rope if possible (limited rope available to borrow)
+[xUnit.net 00:00:23.52]       - Bring water and any personal items needed
+[xUnit.net 00:00:23.52]       - Label your belongings
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Zero Tolerance:
+[xUnit.net 00:00:23.52]       - No harassment, discrimination, or predatory behavior
+[xUnit.net 00:00:23.52]       - Violations result in immediate removal and permanent ban
+[xUnit.net 00:00:23.52]       - Community safety is our top priority
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       Practice at Your Own Risk:
+[xUnit.net 00:00:23.52]       - This is not a supervised class
+[xUnit.net 00:00:23.52]       - You are responsible for your own safety
+[xUnit.net 00:00:23.52]       - Practice within your abilities and knowledge
+[xUnit.net 00:00:23.52]       - Ask for help when needed", 
+[xUnit.net 00:00:23.52]               PricingTiers = "$4-$15 (pay what you can)", 
+[xUnit.net 00:00:23.52]               Sessions = {empty}, 
+[xUnit.net 00:00:23.52]               ShortDescription = "Casual practice session for all skill levels. Bring your rope and practice with the community.", 
+[xUnit.net 00:00:23.52]       
+[xUnit.net 00:00:23.52]       (Output has exceeded the maximum of 100 lines. Increase FormattingOptions.MaxLines on AssertionScope or AssertionOptions to include more lines.)
+[xUnit.net 00:00:23.52]               StartDate = &lt;2025-11-21 19:00:00&gt;, .
+[xUnit.net 00:00:23.52]       Stack Trace:
+[xUnit.net 00:00:23.52]            at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+[xUnit.net 00:00:23.52]            at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+[xUnit.net 00:00:23.52]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:00:23.52]            at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+[xUnit.net 00:00:23.52]            at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+[xUnit.net 00:00:23.52]            at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+[xUnit.net 00:00:23.52]            at FluentAssertions.Execution.GivenSelector`1.FailWith(String message, Object[] args)
+[xUnit.net 00:00:23.52]            at FluentAssertions.Execution.GivenSelector`1.FailWith(String message, Func`2[] args)
+[xUnit.net 00:00:23.52]            at FluentAssertions.Collections.GenericCollectionAssertions`3.HaveCountGreaterThanOrEqualTo(Int32 expected, String because, Object[] becauseArgs)
+[xUnit.net 00:00:23.52]         /home/chad/repos/witchcityrope/tests/unit/api/Services/SeedDataServiceTests.cs(399,0): at WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedEventsAsync_CreatesEventsWithCorrectProperties()
+[xUnit.net 00:00:23.52]         --- End of stack trace from previous location ---
+[testcontainers.org 00:00:22.60] Docker container a9bd89b92df4 created
+[testcontainers.org 00:00:22.60] Start Docker container a9bd89b92df4
+[testcontainers.org 00:00:22.70] Wait for Docker container a9bd89b92df4 to complete readiness checks
+[testcontainers.org 00:00:22.70] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container a9bd89b92df4
+[testcontainers.org 00:00:23.74] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container a9bd89b92df4
+[testcontainers.org 00:00:23.78] Docker container a9bd89b92df4 ready
+[testcontainers.org 00:00:24.29] Delete Docker container a9bd89b92df4
+[xUnit.net 00:00:25.41]       Expected adminUser!.SceneName to be greater than or equal to 12, but found 8 (difference of -4).
+[xUnit.net 00:00:25.41]       Stack Trace:
+[xUnit.net 00:00:25.41]            at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+[xUnit.net 00:00:25.41]            at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+[xUnit.net 00:00:25.41]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:00:25.41]            at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+[xUnit.net 00:00:25.41]            at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+[xUnit.net 00:00:25.41]            at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+[xUnit.net 00:00:25.41]            at FluentAssertions.Numeric.NumericAssertions`2.BeGreaterThanOrEqualTo(T expected, String because, Object[] becauseArgs)
+[xUnit.net 00:00:25.41]         /home/chad/repos/witchcityrope/tests/unit/api/Services/SeedDataServiceTests.cs(370,0): at WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedEventsAsync_WithNoExistingEvents_CreatesAllSampleEvents()
+[xUnit.net 00:00:25.41]         --- End of stack trace from previous location ---
+[testcontainers.org 00:00:24.49] Docker container 0e51b31064b2 created
+[testcontainers.org 00:00:24.49] Start Docker container 0e51b31064b2
+[testcontainers.org 00:00:24.60] Wait for Docker container 0e51b31064b2 to complete readiness checks
+[testcontainers.org 00:00:24.60] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container 0e51b31064b2
+[testcontainers.org 00:00:25.64] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container 0e51b31064b2
+[testcontainers.org 00:00:25.69] Docker container 0e51b31064b2 ready
+[testcontainers.org 00:00:26.15] Delete Docker container 0e51b31064b2
+[testcontainers.org 00:00:26.34] Docker container 6df34319f390 created
+[testcontainers.org 00:00:26.34] Start Docker container 6df34319f390
+[testcontainers.org 00:00:26.44] Wait for Docker container 6df34319f390 to complete readiness checks
+[testcontainers.org 00:00:26.44] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container 6df34319f390
+[testcontainers.org 00:00:27.49] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container 6df34319f390
+[testcontainers.org 00:00:27.53] Docker container 6df34319f390 ready
+[testcontainers.org 00:00:27.99] Delete Docker container 6df34319f390
+[xUnit.net 00:00:29.12]       System.Reflection.TargetParameterCountException : Parameter count mismatch.
+[xUnit.net 00:00:29.12]       Stack Trace:
+[xUnit.net 00:00:29.12]            at System.Reflection.MethodBaseInvoker.ThrowTargetParameterCountException()
+[xUnit.net 00:00:29.12]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:29.12]         /home/chad/repos/witchcityrope/tests/unit/api/Services/SeedDataServiceTests.cs(458,0): at WitchCityRope.Api.Tests.Services.SeedDataServiceTests.CreateSeedEvent_GeneratesCorrectEventProperties()
+[xUnit.net 00:00:29.12]            at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+[xUnit.net 00:00:29.12]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[testcontainers.org 00:00:28.22] Docker container ace505a75d0c created
+[testcontainers.org 00:00:28.22] Start Docker container ace505a75d0c
+[testcontainers.org 00:00:28.33] Wait for Docker container ace505a75d0c to complete readiness checks
+[testcontainers.org 00:00:28.33] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container ace505a75d0c
+[testcontainers.org 00:00:29.38] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container ace505a75d0c
+[testcontainers.org 00:00:29.43] Docker container ace505a75d0c ready
+[testcontainers.org 00:00:29.90] Delete Docker container ace505a75d0c
+[testcontainers.org 00:00:30.12] Docker container afb404fd4b1d created
+[testcontainers.org 00:00:30.12] Start Docker container afb404fd4b1d
+[testcontainers.org 00:00:30.21] Wait for Docker container afb404fd4b1d to complete readiness checks
+[testcontainers.org 00:00:30.21] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container afb404fd4b1d
+[testcontainers.org 00:00:31.26] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container afb404fd4b1d
+[testcontainers.org 00:00:31.32] Docker container afb404fd4b1d ready
+[testcontainers.org 00:00:31.93] Delete Docker container afb404fd4b1d
+[testcontainers.org 00:00:32.14] Docker container b4ee53e8657b created
+[testcontainers.org 00:00:32.14] Start Docker container b4ee53e8657b
+[testcontainers.org 00:00:32.25] Wait for Docker container b4ee53e8657b to complete readiness checks
+[testcontainers.org 00:00:32.25] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container b4ee53e8657b
+[testcontainers.org 00:00:33.29] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container b4ee53e8657b
+[testcontainers.org 00:00:33.34] Docker container b4ee53e8657b ready
+[testcontainers.org 00:00:33.83] Delete Docker container b4ee53e8657b
+[xUnit.net 00:00:34.95]       Expected boolean to be false, but found True.
+[xUnit.net 00:00:34.95]       Stack Trace:
+[xUnit.net 00:00:34.95]            at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+[xUnit.net 00:00:34.95]            at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+[xUnit.net 00:00:34.95]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:00:34.95]            at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+[xUnit.net 00:00:34.95]            at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+[xUnit.net 00:00:34.95]            at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+[xUnit.net 00:00:34.95]            at FluentAssertions.Primitives.BooleanAssertions`1.BeFalse(String because, Object[] becauseArgs)
+[xUnit.net 00:00:34.95]         /home/chad/repos/witchcityrope/tests/unit/api/Services/SeedDataServiceTests.cs(249,0): at WitchCityRope.Api.Tests.Services.SeedDataServiceTests.IsSeedDataRequiredAsync_WithBothUsersAndEvents_ReturnsFalse()
+[xUnit.net 00:00:34.95]         --- End of stack trace from previous location ---
+[testcontainers.org 00:00:34.03] Docker container 219106848bad created
+[testcontainers.org 00:00:34.04] Start Docker container 219106848bad
+[testcontainers.org 00:00:34.14] Wait for Docker container 219106848bad to complete readiness checks
+[testcontainers.org 00:00:34.14] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container 219106848bad
+[testcontainers.org 00:00:35.18] Execute "pg_isready --host localhost --dbname witchcityrope_test_seeddata --username testuser" at Docker container 219106848bad
+[testcontainers.org 00:00:35.24] Docker container 219106848bad ready
+[testcontainers.org 00:00:35.82] Delete Docker container 219106848bad
+[testcontainers.org 00:00:36.01] Stop Docker container 8037afa5c40f
+[testcontainers.org 00:00:36.18] Delete Docker container 8037afa5c40f
+[xUnit.net 00:00:37.16]   Finished:    WitchCityRope.Api.Tests
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="Unbutu-Ai-Chads-PC" outcome="Error" timestamp="2025-10-23T22:49:58.1345316-04:00">
+        <Text>[xUnit.net 00:00:11.93]     WitchCityRope.Api.Tests.Services.SeedDataServiceTests.IsSeedDataRequiredAsync_WithExistingEvents_ReturnsFalse [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Unbutu-Ai-Chads-PC" outcome="Error" timestamp="2025-10-23T22:50:09.7239780-04:00">
+        <Text>[xUnit.net 00:00:23.51]     WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedEventsAsync_CreatesEventsWithCorrectProperties [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Unbutu-Ai-Chads-PC" outcome="Error" timestamp="2025-10-23T22:50:11.6220482-04:00">
+        <Text>[xUnit.net 00:00:25.41]     WitchCityRope.Api.Tests.Services.SeedDataServiceTests.SeedEventsAsync_WithNoExistingEvents_CreatesAllSampleEvents [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Unbutu-Ai-Chads-PC" outcome="Error" timestamp="2025-10-23T22:50:15.3274171-04:00">
+        <Text>[xUnit.net 00:00:29.12]     WitchCityRope.Api.Tests.Services.SeedDataServiceTests.CreateSeedEvent_GeneratesCorrectEventProperties [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="Unbutu-Ai-Chads-PC" outcome="Error" timestamp="2025-10-23T22:50:21.1609096-04:00">
+        <Text>[xUnit.net 00:00:34.95]     WitchCityRope.Api.Tests.Services.SeedDataServiceTests.IsSeedDataRequiredAsync_WithBothUsersAndEvents_ReturnsFalse [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

@@ -1,0 +1,114 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e7]: Welcome, RopeMaster
+      - generic [ref=e8]:
+        - link "Report an Incident" [ref=e9] [cursor=pointer]:
+          - /url: /safety/report
+        - link "Private Lessons" [ref=e10] [cursor=pointer]:
+          - /url: /private-lessons
+        - link "Contact" [ref=e11] [cursor=pointer]:
+          - /url: /contact-us
+        - link "Edit Profile" [ref=e12] [cursor=pointer]:
+          - /url: /dashboard/profile-settings
+        - button "Logout" [ref=e13] [cursor=pointer]
+    - banner [ref=e14]:
+      - link "WITCH CITY ROPE" [ref=e15] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e16]:
+        - link "Admin" [active] [ref=e17] [cursor=pointer]:
+          - /url: /admin
+        - link "Events & Classes" [ref=e18] [cursor=pointer]:
+          - /url: /events
+        - link "Resources" [ref=e19] [cursor=pointer]:
+          - /url: /resources
+        - link "Dashboard" [ref=e20] [cursor=pointer]:
+          - /url: /dashboard
+    - main [ref=e21]:
+      - generic [ref=e22]:
+        - heading "Admin Dashboard" [level=1] [ref=e24]
+        - generic [ref=e26]:
+          - link "Events Management Create, edit, and manage all community events, workshops, and classes 10 Active Events" [ref=e28] [cursor=pointer]:
+            - /url: /admin/events
+            - img [ref=e30]
+            - heading "Events Management" [level=3] [ref=e33]
+            - paragraph [ref=e34]: Create, edit, and manage all community events, workshops, and classes
+            - generic [ref=e35]:
+              - paragraph [ref=e36]: "10"
+              - paragraph [ref=e37]: Active Events
+            - img [ref=e39]
+          - link "Member Management Manage community members, roles, and permissions 156 Active Members" [ref=e43] [cursor=pointer]:
+            - /url: /admin/members
+            - img [ref=e45]
+            - heading "Member Management" [level=3] [ref=e50]
+            - paragraph [ref=e51]: Manage community members, roles, and permissions
+            - generic [ref=e52]:
+              - paragraph [ref=e53]: "156"
+              - paragraph [ref=e54]: Active Members
+            - img [ref=e56]
+          - link "Vetting Applications Review and manage member vetting applications 8 Under Review" [ref=e60] [cursor=pointer]:
+            - /url: /admin/vetting
+            - img [ref=e62]
+            - heading "Vetting Applications" [level=3] [ref=e66]
+            - paragraph [ref=e67]: Review and manage member vetting applications
+            - generic [ref=e68]:
+              - paragraph [ref=e69]: "8"
+              - paragraph [ref=e70]: Under Review
+            - img [ref=e72]
+          - link "Incident Reports Manage safety incident reports and investigations 5 Active Incidents" [ref=e76] [cursor=pointer]:
+            - /url: /admin/safety/incidents
+            - img [ref=e78]
+            - heading "Incident Reports" [level=3] [ref=e80]
+            - paragraph [ref=e81]: Manage safety incident reports and investigations
+            - generic [ref=e82]:
+              - paragraph [ref=e83]: "5"
+              - paragraph [ref=e84]: Active Incidents
+            - img [ref=e86]
+          - link "Content Management Manage CMS pages and view revision history 3 CMS Pages" [ref=e90] [cursor=pointer]:
+            - /url: /admin/cms/revisions
+            - img [ref=e92]
+            - heading "Content Management" [level=3] [ref=e95]
+            - paragraph [ref=e96]: Manage CMS pages and view revision history
+            - generic [ref=e97]:
+              - paragraph [ref=e98]: "3"
+              - paragraph [ref=e99]: CMS Pages
+            - img [ref=e101]
+          - link "Analytics View attendance, revenue, and engagement metrics" [ref=e105] [cursor=pointer]:
+            - /url: /admin/analytics
+            - img [ref=e107]
+            - heading "Analytics" [level=3] [ref=e111]
+            - paragraph [ref=e112]: View attendance, revenue, and engagement metrics
+            - img [ref=e114]
+          - link "Settings Configure system settings, venues, and pricing" [ref=e118] [cursor=pointer]:
+            - /url: /admin/settings
+            - img [ref=e120]
+            - heading "Settings" [level=3] [ref=e123]
+            - paragraph [ref=e124]: Configure system settings, venues, and pricing
+            - img [ref=e126]
+        - generic [ref=e130]:
+          - generic [ref=e132]:
+            - heading "Recent Events Activity" [level=3] [ref=e133]
+            - paragraph [ref=e135]: Recent event activity will appear here once events are created
+          - generic [ref=e137]:
+            - heading "Quick Stats" [level=3] [ref=e138]
+            - generic [ref=e139]:
+              - generic [ref=e140]:
+                - paragraph [ref=e141]: Upcoming Events
+                - paragraph [ref=e142]: "5"
+              - generic [ref=e143]:
+                - paragraph [ref=e144]: Total Registrations
+                - paragraph [ref=e145]: "87"
+              - generic [ref=e146]:
+                - paragraph [ref=e147]: This Month's Revenue
+                - paragraph [ref=e148]: $2,450
+              - generic [ref=e149]:
+                - paragraph [ref=e150]: Active Members
+                - paragraph [ref=e151]: "156"
+  - generic [ref=e152]:
+    - img [ref=e154]
+    - button "Open Tanstack query devtools" [ref=e202] [cursor=pointer]:
+      - img [ref=e203]
+```

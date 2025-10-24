@@ -1,15 +1,24 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
+import { setupConsoleErrorFiltering } from './helpers/console.helpers';
 
 test.describe('Application State Visual Evidence', () => {
+  test.beforeEach(async ({ page }) => {
+    // Set up console error filtering
+    setupConsoleErrorFiltering(page, {
+      filter401Errors: true,
+      logFilteredMessages: false,
+    });
+  });
+
   test('capture events page actual state', async ({ page }) => {
     console.log('📸 Capturing events page state for analysis...');
     
     // Navigate to events page
     await page.goto('http://localhost:5173/events');
-    
+
     // Wait for page to load
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
     
     // Capture screenshot
     await page.screenshot({ 
@@ -31,10 +40,9 @@ test.describe('Application State Visual Evidence', () => {
     
     // Navigate to login page
     await page.goto('http://localhost:5173/login');
-    
+
     // Wait for page to load
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
     
     // Capture screenshot
     await page.screenshot({ 
@@ -54,13 +62,15 @@ test.describe('Application State Visual Evidence', () => {
   
   test('capture dashboard page actual state', async ({ page }) => {
     console.log('📸 Capturing dashboard page state...');
-    
+
+    // Login as member before accessing dashboard
+    await AuthHelpers.loginAs(page, 'member');
+
     // Navigate to dashboard page (may require auth)
     await page.goto('http://localhost:5173/dashboard');
-    
+
     // Wait for page to load
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
     
     // Capture screenshot
     await page.screenshot({ 

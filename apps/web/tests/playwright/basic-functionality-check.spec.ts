@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 /**
  * Basic Functionality Check - What Currently Works
- * 
+ *
  * This test verifies the current state of the application to establish
  * a baseline for what's functional vs what needs to be implemented.
  */
@@ -22,6 +23,9 @@ test.describe('Basic Functionality Check - Current State', () => {
   });
 
   test('Check what routes are actually available', async ({ page }) => {
+    // Login as admin to access protected routes
+    await AuthHelpers.loginAs(page, 'admin');
+
     const routes = [
       '/',
       '/events',

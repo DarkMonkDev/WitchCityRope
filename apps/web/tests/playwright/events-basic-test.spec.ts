@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 /**
  * Basic Events Page Test - Simple validation that routes work
@@ -56,19 +57,21 @@ test.describe('Events Basic Tests', () => {
     console.log('✅ Basic events page test passed');
   });
 
-  test('Admin events page requires authentication', async ({ page }) => {
-    console.log('🧪 Testing admin events page...');
+  test('Admin events page loads when authenticated', async ({ page }) => {
+    console.log('🧪 Testing admin events page with authentication...');
+
+    // Login as admin before accessing admin pages
+    await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to admin events page
     const response = await page.goto('http://localhost:5173/admin/events');
-    
-    // Should either redirect to login OR show the page (depending on auth implementation)
-    // At minimum, should not give a 404
-    expect(response?.status()).not.toBe(404);
-    
+
+    // With authentication, should load successfully
+    expect(response?.status()).toBe(200);
+
     await page.screenshot({ path: 'test-results/admin-events-access.png' });
-    
-    console.log('✅ Admin events page accessibility test passed');
+
+    console.log('✅ Admin events page loads correctly when authenticated');
   });
 
   test('Event details page structure', async ({ page }) => {

@@ -130,7 +130,8 @@ public class MockPayPalServiceTests
         refundResult.Value.RefundId.Should().StartWith("MOCK-REFUND-");
         refundResult.Value.Status.Should().Be("COMPLETED");
         refundResult.Value.CaptureId.Should().Be(captureId);
-        refundResult.Value.Amount.Should().Be(refundAmount);
+        refundResult.Value.Amount.CurrencyCode.Should().Be("USD");
+        refundResult.Value.Amount.Value.Should().Be("25.00");
     }
 
     [Fact]

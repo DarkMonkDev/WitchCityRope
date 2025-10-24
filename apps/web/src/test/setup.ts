@@ -3,10 +3,8 @@ import '@testing-library/jest-dom'
 import { setupServer } from 'msw/node'
 import { handlers } from './mocks/handlers'
 
-// Mock global fetch if not available
-if (typeof global.fetch === 'undefined') {
-  global.fetch = vi.fn()
-}
+// DO NOT mock global.fetch - MSW needs the real fetch API to intercept requests
+// Modern Node.js (18+) has native fetch, and MSW provides polyfills if needed
 
 // Filter out Mantine CSS warnings in tests
 const originalError = console.error

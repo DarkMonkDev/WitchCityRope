@@ -1,0 +1,213 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e7]: Welcome, RopeMaster
+      - generic [ref=e8]:
+        - link "Report an Incident" [ref=e9] [cursor=pointer]:
+          - /url: /safety/report
+        - link "Private Lessons" [ref=e10] [cursor=pointer]:
+          - /url: /private-lessons
+        - link "Contact" [ref=e11] [cursor=pointer]:
+          - /url: /contact-us
+        - link "Edit Profile" [ref=e12] [cursor=pointer]:
+          - /url: /dashboard/profile-settings
+        - button "Logout" [ref=e13] [cursor=pointer]
+    - banner [ref=e14]:
+      - link "WITCH CITY ROPE" [ref=e15] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e16]:
+        - link "Admin" [ref=e17] [cursor=pointer]:
+          - /url: /admin
+        - link "Events & Classes" [ref=e18] [cursor=pointer]:
+          - /url: /events
+        - link "Resources" [ref=e19] [cursor=pointer]:
+          - /url: /resources
+        - link "Dashboard" [ref=e20] [cursor=pointer]:
+          - /url: /dashboard
+    - main [ref=e21]:
+      - generic [ref=e22]:
+        - heading "Create New Event" [level=1] [ref=e23]
+        - generic [ref=e26]:
+          - tablist [ref=e27]:
+            - tab "Basic Info" [selected] [ref=e28] [cursor=pointer]:
+              - generic [ref=e29]: Basic Info
+            - tab "Setup" [ref=e30] [cursor=pointer]:
+              - generic [ref=e31]: Setup
+            - tab "Emails" [ref=e32] [cursor=pointer]:
+              - generic [ref=e33]: Emails
+            - tab "Volunteers" [ref=e34] [cursor=pointer]:
+              - generic [ref=e35]: Volunteers
+            - tab "RSVP/Tickets" [ref=e36] [cursor=pointer]:
+              - generic [ref=e37]: RSVP/Tickets
+            - tab "Attendees" [ref=e38] [cursor=pointer]:
+              - generic [ref=e39]: Attendees
+          - tabpanel "Basic Info" [ref=e40]:
+            - generic [ref=e41]:
+              - generic [ref=e42]:
+                - heading "Event Details" [level=2] [ref=e43]
+                - radiogroup [ref=e45]:
+                  - generic [ref=e46]:
+                    - generic [ref=e48] [cursor=pointer]:
+                      - paragraph [ref=e49]: Class
+                      - paragraph [ref=e50]: Educational workshop requiring payment
+                    - generic [ref=e52] [cursor=pointer]:
+                      - paragraph [ref=e53]: Social Event
+                      - paragraph [ref=e54]: Community gathering with volunteers
+                - generic [ref=e55]:
+                  - generic [ref=e56]: Event Title *
+                  - textbox "Event Title" [ref=e58]:
+                    - /placeholder: Enter event title
+                - generic [ref=e59]:
+                  - generic [ref=e60]: Short Description *
+                  - paragraph [ref=e61]: Brief description for cards and grid views (160 characters max)
+                  - textbox "Short Description" [ref=e63]:
+                    - /placeholder: Brief description for cards and grid views
+                - generic [ref=e64]:
+                  - paragraph [ref=e65]: Full Event Description *
+                  - paragraph [ref=e66]: This detailed description will be visible on the public events page
+                  - generic [ref=e67]:
+                    - generic [ref=e68]:
+                      - generic [ref=e69]:
+                        - button "Bold" [ref=e70] [cursor=pointer]:
+                          - img [ref=e71]
+                        - button "Italic" [ref=e75] [cursor=pointer]:
+                          - img [ref=e76]
+                        - button "Underline" [ref=e79] [cursor=pointer]:
+                          - img [ref=e80]
+                        - button "Strikethrough" [ref=e83] [cursor=pointer]:
+                          - img [ref=e84]
+                        - button "Clear formatting" [ref=e87] [cursor=pointer]:
+                          - img [ref=e88]
+                      - button "Text color" [ref=e94] [cursor=pointer]
+                      - generic [ref=e100]:
+                        - button "Heading 1" [ref=e101] [cursor=pointer]:
+                          - img [ref=e102]
+                        - button "Heading 2" [ref=e105] [cursor=pointer]:
+                          - img [ref=e106]
+                        - button "Heading 3" [ref=e109] [cursor=pointer]:
+                          - img [ref=e110]
+                        - button "Heading 4" [ref=e114] [cursor=pointer]:
+                          - img [ref=e115]
+                      - generic [ref=e118]:
+                        - button "Blockquote" [ref=e119] [cursor=pointer]:
+                          - img [ref=e120]
+                        - button "Horizontal line" [ref=e124] [cursor=pointer]:
+                          - img [ref=e125]
+                        - button "Bullet list" [ref=e127] [cursor=pointer]:
+                          - img [ref=e128]
+                        - button "Ordered list" [ref=e130] [cursor=pointer]:
+                          - img [ref=e131]
+                      - generic [ref=e135]:
+                        - button "Link" [ref=e136] [cursor=pointer]:
+                          - img [ref=e137]
+                        - button "Remove link" [ref=e142] [cursor=pointer]:
+                          - img [ref=e143]
+                      - generic [ref=e148]:
+                        - 'button "Align text: left" [ref=e149] [cursor=pointer]':
+                          - img [ref=e150]
+                        - 'button "Align text: center" [ref=e152] [cursor=pointer]':
+                          - img [ref=e153]
+                        - 'button "Align text: justify" [ref=e155] [cursor=pointer]':
+                          - img [ref=e156]
+                        - 'button "Align text: right" [ref=e158] [cursor=pointer]':
+                          - img [ref=e159]
+                      - generic [ref=e161]:
+                        - button "Undo" [ref=e162] [cursor=pointer]:
+                          - img [ref=e163]
+                        - button "Redo" [disabled] [ref=e167]:
+                          - img [ref=e168]
+                    - paragraph [ref=e175]
+                - generic [ref=e176]:
+                  - paragraph [ref=e177]: Policies & Procedures
+                  - paragraph [ref=e178]: Studio-specific policies, prerequisites, safety requirements, etc. (managed by studio/admin, teachers cannot edit)
+                  - generic [ref=e179]:
+                    - generic [ref=e180]:
+                      - generic [ref=e181]:
+                        - button "Bold" [ref=e182] [cursor=pointer]:
+                          - img [ref=e183]
+                        - button "Italic" [ref=e187] [cursor=pointer]:
+                          - img [ref=e188]
+                        - button "Underline" [ref=e191] [cursor=pointer]:
+                          - img [ref=e192]
+                        - button "Strikethrough" [ref=e195] [cursor=pointer]:
+                          - img [ref=e196]
+                        - button "Clear formatting" [ref=e199] [cursor=pointer]:
+                          - img [ref=e200]
+                      - button "Text color" [ref=e206] [cursor=pointer]
+                      - generic [ref=e212]:
+                        - button "Heading 1" [ref=e213] [cursor=pointer]:
+                          - img [ref=e214]
+                        - button "Heading 2" [ref=e217] [cursor=pointer]:
+                          - img [ref=e218]
+                        - button "Heading 3" [ref=e221] [cursor=pointer]:
+                          - img [ref=e222]
+                        - button "Heading 4" [ref=e226] [cursor=pointer]:
+                          - img [ref=e227]
+                      - generic [ref=e230]:
+                        - button "Blockquote" [ref=e231] [cursor=pointer]:
+                          - img [ref=e232]
+                        - button "Horizontal line" [ref=e236] [cursor=pointer]:
+                          - img [ref=e237]
+                        - button "Bullet list" [ref=e239] [cursor=pointer]:
+                          - img [ref=e240]
+                        - button "Ordered list" [ref=e242] [cursor=pointer]:
+                          - img [ref=e243]
+                      - generic [ref=e247]:
+                        - button "Link" [ref=e248] [cursor=pointer]:
+                          - img [ref=e249]
+                        - button "Remove link" [ref=e254] [cursor=pointer]:
+                          - img [ref=e255]
+                      - generic [ref=e260]:
+                        - 'button "Align text: left" [ref=e261] [cursor=pointer]':
+                          - img [ref=e262]
+                        - 'button "Align text: center" [ref=e264] [cursor=pointer]':
+                          - img [ref=e265]
+                        - 'button "Align text: justify" [ref=e267] [cursor=pointer]':
+                          - img [ref=e268]
+                        - 'button "Align text: right" [ref=e270] [cursor=pointer]':
+                          - img [ref=e271]
+                      - generic [ref=e273]:
+                        - button "Undo" [ref=e274] [cursor=pointer]:
+                          - img [ref=e275]
+                        - button "Redo" [disabled] [ref=e279]:
+                          - img [ref=e280]
+                    - paragraph [ref=e287]
+              - generic [ref=e288]:
+                - heading "Venue" [level=2] [ref=e289]
+                - generic [ref=e290]:
+                  - generic [ref=e291]:
+                    - generic [ref=e292]: Venue *
+                    - generic [ref=e293]:
+                      - textbox "Venue" [ref=e294] [cursor=pointer]:
+                        - /placeholder: Select venue...
+                      - generic:
+                        - img
+                  - button "Add Venue" [ref=e295] [cursor=pointer]:
+                    - generic [ref=e297]: Add Venue
+              - generic [ref=e298]:
+                - heading "Teachers/Instructors" [level=2] [ref=e299]
+                - generic [ref=e300]:
+                  - generic [ref=e301]: Select Teachers
+                  - generic [ref=e302]:
+                    - textbox "Select Teachers" [ref=e305]:
+                      - /placeholder: Choose teachers for this event
+                    - generic:
+                      - img
+                - paragraph [ref=e306]:
+                  - text: "Debug - Current teacherIds: []"
+                  - text: "Teachers loading: No"
+                  - text: "Teachers available: 7"
+                  - text: "Teachers error: None"
+              - generic [ref=e307]:
+                - button "Cancel" [ref=e308] [cursor=pointer]:
+                  - generic [ref=e310]: Cancel
+                - button "Save" [disabled] [ref=e311]:
+                  - generic [ref=e313]: Save
+  - generic [ref=e314]:
+    - img [ref=e316]
+    - button "Open Tanstack query devtools" [ref=e364] [cursor=pointer]:
+      - img [ref=e365]
+```

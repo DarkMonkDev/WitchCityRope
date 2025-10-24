@@ -1,6 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { MantineProvider } from '@mantine/core';
 import { IncidentDetailsCard } from '../IncidentDetailsCard';
+
+const renderWithProvider = (ui: React.ReactElement) => {
+  return render(
+    <MantineProvider>
+      {ui}
+    </MantineProvider>
+  );
+};
 
 describe('IncidentDetailsCard', () => {
   const defaultProps = {
@@ -14,28 +23,28 @@ describe('IncidentDetailsCard', () => {
   };
 
   it('renders incident description', () => {
-    render(<IncidentDetailsCard {...defaultProps} />);
+    renderWithProvider(<IncidentDetailsCard {...defaultProps} />);
     expect(screen.getByText('This is a detailed description of the incident.')).toBeInTheDocument();
   });
 
   it('displays reporter name and email for identified reports', () => {
-    render(<IncidentDetailsCard {...defaultProps} />);
+    renderWithProvider(<IncidentDetailsCard {...defaultProps} />);
     expect(screen.getByText('Jane Rigger')).toBeInTheDocument();
     expect(screen.getByText('jane@example.com')).toBeInTheDocument();
   });
 
   it('shows follow-up requested badge when requested', () => {
-    render(<IncidentDetailsCard {...defaultProps} />);
+    renderWithProvider(<IncidentDetailsCard {...defaultProps} />);
     expect(screen.getByText('Follow-up Requested')).toBeInTheDocument();
   });
 
   it('does not show follow-up badge when not requested', () => {
-    render(<IncidentDetailsCard {...defaultProps} requestedFollowUp={false} />);
+    renderWithProvider(<IncidentDetailsCard {...defaultProps} requestedFollowUp={false} />);
     expect(screen.queryByText('Follow-up Requested')).not.toBeInTheDocument();
   });
 
   it('displays "Anonymous Report" for anonymous submissions', () => {
-    render(
+    renderWithProvider(
       <IncidentDetailsCard
         {...defaultProps}
         isAnonymous={true}
@@ -48,7 +57,7 @@ describe('IncidentDetailsCard', () => {
   });
 
   it('does not display reporter info for anonymous reports', () => {
-    render(
+    renderWithProvider(
       <IncidentDetailsCard
         {...defaultProps}
         isAnonymous={true}
@@ -60,15 +69,17 @@ describe('IncidentDetailsCard', () => {
   });
 
   it('displays created and updated timestamps', () => {
-    render(<IncidentDetailsCard {...defaultProps} />);
+    renderWithProvider(<IncidentDetailsCard {...defaultProps} />);
     expect(screen.getByText('Created')).toBeInTheDocument();
     expect(screen.getByText('Last Updated')).toBeInTheDocument();
   });
 
   it('preserves whitespace in description', () => {
     const multiLineDescription = 'Line 1\n\nLine 2\nLine 3';
-    render(<IncidentDetailsCard {...defaultProps} description={multiLineDescription} />);
-    const descriptionElement = screen.getByText(multiLineDescription);
+    renderWithProvider(<IncidentDetailsCard {...defaultProps} description={multiLineDescription} />);
+    const descriptionElement = screen.getByText((content, element) => {
+      return element?.textContent === multiLineDescription;
+    });
     expect(descriptionElement).toHaveStyle({ whiteSpace: 'pre-wrap' });
   });
 });

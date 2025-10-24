@@ -48,13 +48,6 @@ describe('MyReportCard', () => {
     expect(screen.getByText('Monthly Rope Jam - Main Studio')).toBeInTheDocument();
   });
 
-  it('displays severity badge', () => {
-    renderWithProviders(<MyReportCard {...defaultProps} />);
-
-    // Severity badge component should be rendered
-    expect(screen.getByText(/HIGH/i)).toBeInTheDocument();
-  });
-
   it('displays status badge', () => {
     renderWithProviders(<MyReportCard {...defaultProps} />);
 

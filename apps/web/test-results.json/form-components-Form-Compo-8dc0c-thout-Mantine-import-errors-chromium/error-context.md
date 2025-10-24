@@ -1,0 +1,175 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e6]:
+      - link "Report an Incident" [ref=e7] [cursor=pointer]:
+        - /url: /safety/report
+      - link "Private Lessons" [ref=e8] [cursor=pointer]:
+        - /url: /private-lessons
+      - link "Contact" [ref=e9] [cursor=pointer]:
+        - /url: /contact-us
+    - banner [ref=e10]:
+      - link "WITCH CITY ROPE" [ref=e11] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e12]:
+        - link "Events & Classes" [ref=e13] [cursor=pointer]:
+          - /url: /events
+        - link "How to Join" [ref=e14] [cursor=pointer]:
+          - /url: /join
+        - link "Resources" [ref=e15] [cursor=pointer]:
+          - /url: /resources
+        - link "Login" [ref=e16] [cursor=pointer]:
+          - /url: /login
+    - main [ref=e17]:
+      - generic [ref=e20]:
+        - generic [ref=e21]:
+          - paragraph [ref=e22]: Form Components Test
+          - paragraph [ref=e23]: Floating Label Design with Dark Theme
+          - paragraph [ref=e24]: Comprehensive testing page for all WitchCityRope form components with floating labels, underline effects, and dark theme styling.
+        - generic [ref=e25]:
+          - heading "Test Controls" [level=2] [ref=e26]
+          - generic [ref=e27]:
+            - button "Fill Test Data" [ref=e28] [cursor=pointer]:
+              - generic [ref=e30]: Fill Test Data
+            - button "Fill Conflict Data" [ref=e31] [cursor=pointer]:
+              - generic [ref=e33]: Fill Conflict Data
+            - button "Show Validation Errors" [ref=e34] [cursor=pointer]:
+              - generic [ref=e36]: Show Validation Errors
+            - button "Disable All Fields" [ref=e37] [cursor=pointer]:
+              - generic [ref=e39]: Disable All Fields
+        - alert "Testing Instructions" [ref=e40]:
+          - generic [ref=e41]:
+            - img [ref=e43]
+            - generic [ref=e46]:
+              - generic [ref=e48]: Testing Instructions
+              - generic [ref=e50]:
+                - paragraph [ref=e51]: • Use "Fill Test Data" to populate all fields with valid data
+                - paragraph [ref=e52]: • Use "Fill Conflict Data" to test validation errors and async uniqueness checks
+                - paragraph [ref=e53]: • Click in and out of fields to see floating label animations
+                - paragraph [ref=e54]: • Focus on fields to see elegant underline animation
+                - paragraph [ref=e55]: • All fields use floating labels with clean focus indicators
+                - paragraph [ref=e56]: • Dark theme with sophisticated color transitions
+        - generic [ref=e59]:
+          - generic [ref=e60]:
+            - heading "Basic Form Components" [level=2] [ref=e61]
+            - generic [ref=e63]:
+              - generic [ref=e65]:
+                - generic [ref=e66]:
+                  - textbox [ref=e67]:
+                    - /placeholder: " "
+                  - generic: Basic Input*
+                - paragraph [ref=e68]: This is a basic text input with validation
+              - generic [ref=e70]:
+                - generic [ref=e71]:
+                  - combobox [ref=e72] [cursor=pointer]:
+                    - option "Option 1"
+                    - option "Option 2"
+                    - option "Option 3"
+                  - generic: Floating Select*
+                - paragraph [ref=e73]: This is a floating label select without underline
+              - generic [ref=e75]:
+                - generic [ref=e76]:
+                  - textbox [ref=e77]:
+                    - /placeholder: " "
+                  - generic: Floating Textarea
+                - paragraph [ref=e78]: This is a floating label textarea with underline effect
+          - generic [ref=e79]:
+            - heading "Floating Label Inputs" [level=2] [ref=e80]
+            - generic [ref=e82]:
+              - generic [ref=e84]:
+                - generic [ref=e85]:
+                  - textbox [ref=e86]:
+                    - /placeholder: " "
+                  - generic: Email Address*
+                - paragraph [ref=e87]: Checks email uniqueness (try 'taken@example.com')
+              - generic [ref=e89]:
+                - generic [ref=e90]:
+                  - textbox [ref=e91]:
+                    - /placeholder: " "
+                  - generic: Scene Name*
+                - paragraph [ref=e92]: Checks scene name uniqueness (try 'admin')
+              - generic [ref=e94]:
+                - generic [ref=e95]:
+                  - textbox [ref=e96]:
+                    - /placeholder: " "
+                  - generic: Password*
+                - paragraph [ref=e97]: Shows real-time strength meter and requirements
+              - generic [ref=e99]:
+                - generic [ref=e100]:
+                  - textbox [ref=e101]:
+                    - /placeholder: " "
+                  - generic: Phone Number
+                - paragraph [ref=e102]: Auto-formats US phone numbers as you type
+          - generic [ref=e103]:
+            - heading "Emergency Contact Group" [level=2] [ref=e104]
+            - generic [ref=e105]:
+              - paragraph [ref=e106]: Emergency Contact Information
+              - generic [ref=e107]:
+                - generic [ref=e108]:
+                  - generic [ref=e109]:
+                    - textbox [ref=e110]:
+                      - /placeholder: " "
+                    - generic: Emergency Contact Name*
+                  - paragraph [ref=e111]: Full name of your emergency contact
+                - generic [ref=e112]:
+                  - generic [ref=e113]:
+                    - textbox [ref=e114]:
+                      - /placeholder: " "
+                    - generic: Emergency Contact Phone*
+                  - paragraph [ref=e115]: Best phone number to reach your emergency contact
+                - generic [ref=e116]:
+                  - generic [ref=e117]:
+                    - combobox [ref=e118] [cursor=pointer]:
+                      - option "Spouse/Partner"
+                      - option "Parent"
+                      - option "Sibling"
+                      - option "Friend"
+                      - option "Other"
+                    - generic: Relationship to Contact*
+                  - paragraph [ref=e119]: How this person is related to you
+          - button "Submit Form" [ref=e121] [cursor=pointer]:
+            - generic [ref=e123]: Submit Form
+        - generic [ref=e124]:
+          - heading "Form State" [level=2] [ref=e125]
+          - generic [ref=e127]:
+            - generic [ref=e130]:
+              - generic [ref=e132]: Invalid
+              - generic [ref=e134]: Pristine
+              - generic [ref=e136]: Ready
+            - generic [ref=e138]:
+              - generic [ref=e139]:
+                - button "View Form Values" [ref=e140] [cursor=pointer]:
+                  - img [ref=e142]
+                  - generic [ref=e144]: View Form Values
+                - generic [ref=e146]: "{ \"basicInput\": \"\", \"email\": \"\", \"sceneName\": \"\", \"password\": \"\", \"phone\": \"\", \"textarea\": \"\", \"select\": \"\", \"emergencyContact\": { \"name\": \"\", \"phone\": \"\", \"relationship\": \"\" } }"
+              - generic [ref=e147]:
+                - button "View Form Errors" [ref=e148] [cursor=pointer]:
+                  - img [ref=e150]
+                  - generic [ref=e152]: View Form Errors
+                - generic [ref=e154]: "{}"
+        - generic [ref=e155]:
+          - heading "Design Features Demonstrated" [level=2] [ref=e156]
+          - generic [ref=e158]:
+            - generic [ref=e160]:
+              - paragraph [ref=e161]: "Floating Label Features:"
+              - paragraph [ref=e162]: • Labels smoothly animate up when focused or filled
+              - paragraph [ref=e163]: • Clean underline animation on focus
+              - paragraph [ref=e164]: • Elegant transitions with cubic-bezier easing
+              - paragraph [ref=e165]: • Dark theme with sophisticated colors
+              - paragraph [ref=e166]: • Helper text with 1.1rem for readability
+              - paragraph [ref=e167]: • Error states with shake animation
+            - generic [ref=e169]:
+              - paragraph [ref=e170]: "Interaction States:"
+              - paragraph [ref=e171]: • Default/empty with subtle borders
+              - paragraph [ref=e172]: • Focus with brand color underline
+              - paragraph [ref=e173]: • Filled with elevated label position
+              - paragraph [ref=e174]: • Error with red color and animation
+              - paragraph [ref=e175]: • Disabled with reduced opacity
+              - paragraph [ref=e176]: • All test controls still functional
+  - generic [ref=e177]:
+    - img [ref=e179]
+    - button "Open Tanstack query devtools" [ref=e227] [cursor=pointer]:
+      - img [ref=e228]
+```

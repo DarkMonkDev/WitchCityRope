@@ -65,7 +65,7 @@ describe('IncidentTable', () => {
       />
     );
 
-    expect(screen.getByText(/incident/i)).toBeInTheDocument();
+    expect(screen.getByText(/reference/i)).toBeInTheDocument();
     expect(screen.getByText(/status/i)).toBeInTheDocument();
     expect(screen.getByText(/coordinator/i)).toBeInTheDocument();
     expect(screen.getByText(/last updated/i)).toBeInTheDocument();
@@ -128,19 +128,6 @@ describe('IncidentTable', () => {
       fireEvent.click(firstRow);
       expect(mockOnRowClick).toHaveBeenCalledWith('1');
     }
-  });
-
-  it('renders incident titles', () => {
-    renderWithMantine(
-      <IncidentTable
-        incidents={mockIncidents}
-        onRowClick={mockOnRowClick}
-      />
-    );
-
-    // Incident titles should render
-    expect(screen.getByText('Test Incident')).toBeInTheDocument();
-    expect(screen.getByText('Workshop Safety Concern')).toBeInTheDocument();
   });
 
   it('renders status badges', () => {

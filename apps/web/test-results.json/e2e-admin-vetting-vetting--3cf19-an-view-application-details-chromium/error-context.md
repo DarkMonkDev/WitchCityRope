@@ -1,0 +1,97 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e7]: Welcome, RopeMaster
+      - generic [ref=e8]:
+        - link "Report an Incident" [ref=e9] [cursor=pointer]:
+          - /url: /safety/report
+        - link "Private Lessons" [ref=e10] [cursor=pointer]:
+          - /url: /private-lessons
+        - link "Contact" [ref=e11] [cursor=pointer]:
+          - /url: /contact-us
+        - link "Edit Profile" [ref=e12] [cursor=pointer]:
+          - /url: /dashboard/profile-settings
+        - button "Logout" [ref=e13] [cursor=pointer]
+    - banner [ref=e14]:
+      - link "WITCH CITY ROPE" [ref=e15] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e16]:
+        - link "Admin" [ref=e17] [cursor=pointer]:
+          - /url: /admin
+        - link "Events & Classes" [ref=e18] [cursor=pointer]:
+          - /url: /events
+        - link "Resources" [ref=e19] [cursor=pointer]:
+          - /url: /resources
+        - link "Dashboard" [ref=e20] [cursor=pointer]:
+          - /url: /dashboard
+    - main [ref=e21]:
+      - generic [ref=e23]:
+        - generic [ref=e24]:
+          - button "Back to Applications" [ref=e25] [cursor=pointer]:
+            - generic [ref=e26]:
+              - img [ref=e28]
+              - generic [ref=e31]: Back to Applications
+          - generic [ref=e33]: Under Review
+        - heading "TestUser1761262425647" [level=1] [ref=e35]
+        - generic [ref=e36]:
+          - generic [ref=e37]:
+            - button "Approve for Interview" [ref=e38] [cursor=pointer]
+            - button "Skip to Approved" [ref=e39] [cursor=pointer]
+          - generic [ref=e40]:
+            - button "Reminder" [ref=e41] [cursor=pointer]:
+              - img [ref=e42]
+              - generic [ref=e45]: Reminder
+            - button "On Hold" [ref=e46] [cursor=pointer]:
+              - img [ref=e47]
+              - generic [ref=e50]: On Hold
+            - button "Deny" [ref=e51] [cursor=pointer]:
+              - img [ref=e52]
+              - generic [ref=e55]: Deny
+        - generic [ref=e60]:
+          - heading "Application Details" [level=3] [ref=e61]
+          - generic [ref=e63]:
+            - generic [ref=e65]:
+              - generic [ref=e66]:
+                - paragraph [ref=e67]: "Scene Name:"
+                - paragraph [ref=e68]: TestUser1761262425647
+              - generic [ref=e69]:
+                - paragraph [ref=e70]: "Real Name:"
+                - paragraph [ref=e71]: Test User
+              - generic [ref=e72]:
+                - paragraph [ref=e73]: "Email:"
+                - paragraph [ref=e74]: test-vetting-1761262425647-3145@example.com
+              - generic [ref=e75]:
+                - paragraph [ref=e76]: "Pronouns:"
+                - paragraph [ref=e77]: they/them
+            - generic [ref=e79]:
+              - generic [ref=e80]:
+                - paragraph [ref=e81]: "Application Date:"
+                - paragraph [ref=e82]: 10/23/2025
+              - generic [ref=e83]:
+                - paragraph [ref=e84]: "FetLife Handle:"
+                - paragraph [ref=e85]: "@TestUser1761262425647"
+              - generic [ref=e86]:
+                - paragraph [ref=e87]: "Other Names/Handles:"
+                - paragraph [ref=e88]: Not provided
+          - generic [ref=e89]:
+            - generic [ref=e90]:
+              - paragraph [ref=e91]: Why do you want to join WitchCityRope?
+              - paragraph [ref=e92]: TestAlias
+            - generic [ref=e93]:
+              - paragraph [ref=e94]: What is your rope experience thus far?
+              - paragraph
+        - generic [ref=e95]:
+          - generic [ref=e96]:
+            - heading "Notes" [level=3] [ref=e97]
+            - button "Save Note" [disabled]
+          - generic [ref=e98]:
+            - textbox "Add a note about this application..." [ref=e101]
+            - paragraph [ref=e102]: No notes added yet
+  - generic [ref=e103]:
+    - img [ref=e105]
+    - button "Open Tanstack query devtools" [ref=e153] [cursor=pointer]:
+      - img [ref=e154]
+```

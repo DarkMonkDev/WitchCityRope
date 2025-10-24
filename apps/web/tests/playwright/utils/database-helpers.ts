@@ -15,7 +15,7 @@ const { Pool } = pkg;
 // Database connection configuration (matches Docker setup)
 const DB_CONFIG = {
   host: 'localhost',
-  port: 5433,
+  port: 5434,  // Matches Docker PostgreSQL port from docker-compose.dev.yml
   database: 'witchcityrope_dev',
   user: 'postgres',
   password: 'devpass123',

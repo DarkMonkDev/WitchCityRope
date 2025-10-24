@@ -4,6 +4,7 @@ using Moq;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
 using WitchCityRope.Api.Data;
+using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Dashboard.Services;
 using WitchCityRope.Api.Features.Dashboard.Models;
 using WitchCityRope.Api.Features.Participation.Entities;
@@ -485,7 +486,7 @@ public class UserDashboardProfileServiceTests : IAsyncLifetime
             Title = title,
             ShortDescription = $"Test event {uniqueId}",
             Description = "Test event description",
-            EventType = "Workshop",
+            EventType = EventType.Class,
             Location = "Test Location",
             StartDate = start,
             EndDate = start.AddHours(2),
@@ -545,6 +546,26 @@ public class UserDashboardProfileServiceTests : IAsyncLifetime
 
         _context.TicketPurchases.Add(purchase);
         await _context.SaveChangesAsync();
+
+        // CRITICAL: Create EventParticipation record - UserDashboardProfileService queries EventParticipations, not TicketPurchases
+        // Get the event from the ticket type
+        var ticketType = await _context.TicketTypes.FindAsync(ticketTypeId);
+        if (ticketType != null)
+        {
+            var participation = new EventParticipation
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                EventId = ticketType.EventId,
+                ParticipationType = ParticipationType.Ticket,
+                Status = ParticipationStatus.Active,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _context.EventParticipations.Add(participation);
+            await _context.SaveChangesAsync();
+        }
 
         return purchase;
     }

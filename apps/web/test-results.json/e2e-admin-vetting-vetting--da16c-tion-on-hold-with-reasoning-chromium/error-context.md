@@ -1,0 +1,105 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e7]: Welcome, RopeMaster
+        - generic [ref=e8]:
+          - link "Report an Incident" [ref=e9] [cursor=pointer]:
+            - /url: /safety/report
+          - link "Private Lessons" [ref=e10] [cursor=pointer]:
+            - /url: /private-lessons
+          - link "Contact" [ref=e11] [cursor=pointer]:
+            - /url: /contact-us
+          - link "Edit Profile" [ref=e12] [cursor=pointer]:
+            - /url: /dashboard/profile-settings
+          - button "Logout" [ref=e13] [cursor=pointer]
+      - banner [ref=e14]:
+        - link "WITCH CITY ROPE" [ref=e15] [cursor=pointer]:
+          - /url: /
+        - generic [ref=e16]:
+          - link "Admin" [ref=e17] [cursor=pointer]:
+            - /url: /admin
+          - link "Events & Classes" [ref=e18] [cursor=pointer]:
+            - /url: /events
+          - link "Resources" [ref=e19] [cursor=pointer]:
+            - /url: /resources
+          - link "Dashboard" [ref=e20] [cursor=pointer]:
+            - /url: /dashboard
+      - main [ref=e21]:
+        - generic [ref=e23]:
+          - generic [ref=e24]:
+            - button "Back to Applications" [ref=e25] [cursor=pointer]:
+              - generic [ref=e26]:
+                - img [ref=e28]
+                - generic [ref=e31]: Back to Applications
+            - generic [ref=e33]: On Hold
+          - heading "TestUser1761262425647" [level=1] [ref=e35]
+          - generic [ref=e36]:
+            - button "Skip to Approved" [ref=e38] [cursor=pointer]
+            - generic [ref=e39]:
+              - button "Reminder" [ref=e40] [cursor=pointer]:
+                - img [ref=e41]
+                - generic [ref=e44]: Reminder
+              - button "Deny" [ref=e45] [cursor=pointer]:
+                - img [ref=e46]
+                - generic [ref=e49]: Deny
+          - generic [ref=e54]:
+            - heading "Application Details" [level=3] [ref=e55]
+            - generic [ref=e57]:
+              - generic [ref=e59]:
+                - generic [ref=e60]:
+                  - paragraph [ref=e61]: "Scene Name:"
+                  - paragraph [ref=e62]: TestUser1761262425647
+                - generic [ref=e63]:
+                  - paragraph [ref=e64]: "Real Name:"
+                  - paragraph [ref=e65]: Test User
+                - generic [ref=e66]:
+                  - paragraph [ref=e67]: "Email:"
+                  - paragraph [ref=e68]: test-vetting-1761262425647-3145@example.com
+                - generic [ref=e69]:
+                  - paragraph [ref=e70]: "Pronouns:"
+                  - paragraph [ref=e71]: they/them
+              - generic [ref=e73]:
+                - generic [ref=e74]:
+                  - paragraph [ref=e75]: "Application Date:"
+                  - paragraph [ref=e76]: 10/23/2025
+                - generic [ref=e77]:
+                  - paragraph [ref=e78]: "FetLife Handle:"
+                  - paragraph [ref=e79]: "@TestUser1761262425647"
+                - generic [ref=e80]:
+                  - paragraph [ref=e81]: "Other Names/Handles:"
+                  - paragraph [ref=e82]: Not provided
+            - generic [ref=e83]:
+              - generic [ref=e84]:
+                - paragraph [ref=e85]: Why do you want to join WitchCityRope?
+                - paragraph [ref=e86]: TestAlias
+              - generic [ref=e87]:
+                - paragraph [ref=e88]: What is your rope experience thus far?
+                - paragraph
+          - generic [ref=e89]:
+            - generic [ref=e90]:
+              - heading "Notes" [level=3] [ref=e91]
+              - button "Save Note" [disabled]
+            - generic [ref=e92]:
+              - textbox "Add a note about this application..." [ref=e95]
+              - generic [ref=e97]:
+                - generic [ref=e98]:
+                  - generic [ref=e99]:
+                    - img [ref=e100]
+                    - paragraph [ref=e102]: RopeMaster
+                  - paragraph [ref=e103]: Oct 23, 2025 - 7:36 PM
+                - paragraph [ref=e104]: Please submit 2 references from community members
+    - generic [ref=e105]:
+      - img [ref=e107]
+      - button "Open Tanstack query devtools" [ref=e155] [cursor=pointer]:
+        - img [ref=e156]
+  - alert [ref=e206]:
+    - generic [ref=e207]:
+      - generic [ref=e208]: Application On Hold
+      - generic [ref=e209]: Test User's application has been put on hold
+    - button [ref=e210] [cursor=pointer]:
+      - img [ref=e211]
+```

@@ -64,13 +64,13 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                     EndDate = ep.Event.EndDate,
                     Location = ep.Event.Location,
                     Description = ep.Event.ShortDescription,
-                    IsSocialEvent = ep.Event.EventType.ToLower().Contains("social"),
+                    IsSocialEvent = ep.Event.EventType == WitchCityRope.Api.Enums.EventType.Social,
                     HasTicket = ep.ParticipationType == ParticipationType.Ticket,
                     // Calculate registration status at database level
                     RegistrationStatus = ep.Event.EndDate < DateTime.UtcNow
                         ? "Attended"
                         : ep.ParticipationType == ParticipationType.Ticket
-                            ? (ep.Event.EventType.ToLower().Contains("social") ? "Ticket Purchased (Social Event)" : "Ticket Purchased")
+                            ? (ep.Event.EventType == WitchCityRope.Api.Enums.EventType.Social ? "Ticket Purchased (Social Event)" : "Ticket Purchased")
                             : "RSVP Confirmed"
                 })
                 .ToListAsync(cancellationToken);

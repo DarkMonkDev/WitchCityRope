@@ -60,7 +60,7 @@ describe('VettingStatusBox', () => {
         />
       );
 
-      expect(screen.getByText('Interview Approved')).toBeInTheDocument();
+      expect(screen.getByText('Awaiting Interview')).toBeInTheDocument();
       expect(screen.getByText('Schedule your interview')).toBeInTheDocument();
     });
 

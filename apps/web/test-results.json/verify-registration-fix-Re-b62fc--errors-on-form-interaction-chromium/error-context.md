@@ -1,0 +1,63 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e6]:
+      - link "Report an Incident" [ref=e7] [cursor=pointer]:
+        - /url: /safety/report
+      - link "Private Lessons" [ref=e8] [cursor=pointer]:
+        - /url: /private-lessons
+      - link "Contact" [ref=e9] [cursor=pointer]:
+        - /url: /contact-us
+    - banner [ref=e10]:
+      - link "WITCH CITY ROPE" [ref=e11] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e12]:
+        - link "Events & Classes" [ref=e13] [cursor=pointer]:
+          - /url: /events
+        - link "How to Join" [ref=e14] [cursor=pointer]:
+          - /url: /join
+        - link "Resources" [ref=e15] [cursor=pointer]:
+          - /url: /resources
+        - link "Login" [ref=e16] [cursor=pointer]:
+          - /url: /login
+    - main [ref=e17]:
+      - generic [ref=e18]:
+        - heading "Join WitchCityRope" [level=1] [ref=e19]
+        - paragraph [ref=e20]:
+          - text: Already have an account?
+          - link "Login here" [ref=e21] [cursor=pointer]:
+            - /url: /login
+        - generic [ref=e24]:
+          - alert [ref=e25]:
+            - generic [ref=e26]:
+              - img [ref=e28]
+              - generic [ref=e31]: An error occurred. Please try again.
+          - generic [ref=e32]:
+            - generic [ref=e33]: Email *
+            - textbox "Email" [ref=e35]:
+              - /placeholder: your@email.com
+              - text: testuser@example.com
+          - generic [ref=e36]:
+            - generic [ref=e37]: Scene Name *
+            - paragraph [ref=e38]: Your display name in the community (3-50 characters)
+            - textbox "Scene Name" [ref=e40]:
+              - /placeholder: Your display name
+              - text: TestUser123
+          - generic [ref=e41]:
+            - generic [ref=e42]: Password *
+            - paragraph [ref=e43]: 8+ characters with uppercase, lowercase, number, and special character
+            - generic [ref=e44]:
+              - textbox "Password" [ref=e46]:
+                - /placeholder: Your password
+                - text: Test123!@#
+              - button [ref=e48] [cursor=pointer]:
+                - img [ref=e50]
+          - button "Create Account" [ref=e52] [cursor=pointer]:
+            - generic [ref=e54]: Create Account
+  - generic [ref=e55]:
+    - img [ref=e57]
+    - button "Open Tanstack query devtools" [ref=e105] [cursor=pointer]:
+      - img [ref=e106]
+```

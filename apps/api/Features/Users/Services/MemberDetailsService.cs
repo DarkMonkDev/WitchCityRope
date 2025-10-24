@@ -268,7 +268,7 @@ public class MemberDetailsService : IMemberDetailsService
                 {
                     EventId = ep.Event.Id,
                     EventTitle = ep.Event.Title,
-                    EventType = ep.Event.EventType,
+                    EventType = ep.Event.EventType.ToString(),
                     EventDate = ep.Event.StartDate,
                     RegistrationType = registrationType,
                     ParticipationStatus = participationStatus,

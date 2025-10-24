@@ -1,0 +1,73 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e6]:
+      - link "Report an Incident" [ref=e7] [cursor=pointer]:
+        - /url: /safety/report
+      - link "Private Lessons" [ref=e8] [cursor=pointer]:
+        - /url: /private-lessons
+      - link "Contact" [ref=e9] [cursor=pointer]:
+        - /url: /contact-us
+    - banner [ref=e10]:
+      - link "WITCH CITY ROPE" [ref=e11] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e12]:
+        - link "Events & Classes" [ref=e13] [cursor=pointer]:
+          - /url: /events
+        - link "How to Join" [ref=e14] [cursor=pointer]:
+          - /url: /join
+        - link "Resources" [ref=e15] [cursor=pointer]:
+          - /url: /resources
+        - link "Login" [ref=e16] [cursor=pointer]:
+          - /url: /login
+    - main [ref=e17]:
+      - generic [ref=e22]:
+        - heading "Apply to Join Witch City Rope" [level=2] [ref=e23]
+        - alert "Login Required" [ref=e24]:
+          - generic [ref=e25]:
+            - img [ref=e27]
+            - generic [ref=e31]:
+              - generic [ref=e33]: Login Required
+              - generic [ref=e35]:
+                - paragraph [ref=e36]: You must have an account and be logged in to submit a vetting application. This helps us process applications efficiently and securely.
+                - generic [ref=e37]:
+                  - link "Login to Your Account" [ref=e38] [cursor=pointer]:
+                    - /url: /login?returnUrl=%2Fjoin
+                    - generic [ref=e39]:
+                      - img [ref=e41]
+                      - generic [ref=e45]: Login to Your Account
+                  - paragraph [ref=e46]:
+                    - text: Don't have an account?
+                    - link "Create one here" [ref=e47] [cursor=pointer]:
+                      - /url: /register
+        - alert "Privacy & Data Protection" [ref=e48]:
+          - generic [ref=e49]:
+            - img [ref=e51]
+            - generic [ref=e54]:
+              - generic [ref=e56]: Privacy & Data Protection
+              - generic [ref=e57]: All personal information is encrypted and only accessible to approved vetting team members. Your data will never be shared outside the review process.
+        - generic [ref=e58]:
+          - heading "What we'll ask you:" [level=4] [ref=e59]
+          - list [ref=e60]:
+            - listitem [ref=e61]:
+              - generic [ref=e63]: Your real name
+            - listitem [ref=e64]:
+              - generic [ref=e66]: Your pronouns (optional)
+            - listitem [ref=e67]:
+              - generic [ref=e69]: Your FetLife handle (optional)
+            - listitem [ref=e70]:
+              - generic [ref=e72]: Any other names or handles (optional)
+            - listitem [ref=e73]:
+              - generic [ref=e75]: Why you'd like to join our community
+            - listitem [ref=e76]:
+              - generic [ref=e78]: Your experience with rope bondage or BDSM
+            - listitem [ref=e79]:
+              - generic [ref=e81]: Agreement to our community standards
+          - paragraph [ref=e82]: Your email and scene name will be pulled from your account profile.
+  - generic [ref=e83]:
+    - img [ref=e85]
+    - button "Open Tanstack query devtools" [ref=e133] [cursor=pointer]:
+      - img [ref=e134]
+```

@@ -1,0 +1,83 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e7]: Welcome, TestUser1761262688620
+      - generic [ref=e8]:
+        - link "Report an Incident" [ref=e9] [cursor=pointer]:
+          - /url: /safety/report
+        - link "Private Lessons" [ref=e10] [cursor=pointer]:
+          - /url: /private-lessons
+        - link "Contact" [ref=e11] [cursor=pointer]:
+          - /url: /contact-us
+        - link "Edit Profile" [ref=e12] [cursor=pointer]:
+          - /url: /dashboard/profile-settings
+        - button "Logout" [ref=e13] [cursor=pointer]
+    - banner [ref=e14]:
+      - link "WITCH CITY ROPE" [ref=e15] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e16]:
+        - link "Events & Classes" [ref=e17] [cursor=pointer]:
+          - /url: /events
+        - link "How to Join" [ref=e18] [cursor=pointer]:
+          - /url: /join
+        - link "Resources" [ref=e19] [cursor=pointer]:
+          - /url: /resources
+        - link "Dashboard" [ref=e20] [cursor=pointer]:
+          - /url: /dashboard
+    - main [ref=e21]:
+      - generic [ref=e23]:
+        - heading "Profile Settings" [level=1] [ref=e24]
+        - generic [ref=e25]:
+          - tablist [ref=e26]:
+            - tab "Personal" [selected] [ref=e27] [cursor=pointer]:
+              - generic [ref=e28]: Personal
+            - tab "Social" [ref=e29] [cursor=pointer]:
+              - generic [ref=e30]: Social
+            - tab "Security" [ref=e31] [cursor=pointer]:
+              - generic [ref=e32]: Security
+            - tab "Vetting" [ref=e33] [cursor=pointer]:
+              - generic [ref=e34]: Vetting
+          - tabpanel "Personal" [ref=e35]:
+            - generic [ref=e37]:
+              - generic [ref=e38]:
+                - generic [ref=e39]:
+                  - generic [ref=e40]: Scene Name *
+                  - textbox "Scene Name" [ref=e42]:
+                    - /placeholder: Your scene name
+                    - text: TestAdmin_1761262691299
+                - generic [ref=e43]:
+                  - generic [ref=e44]: Email *
+                  - textbox "Email" [ref=e46]:
+                    - /placeholder: your@email.com
+                    - text: profile-persist-1761262688620-908@test.witchcityrope.com
+              - generic [ref=e47]:
+                - generic [ref=e48]:
+                  - generic [ref=e49]: First Name
+                  - textbox "First Name" [ref=e51]:
+                    - /placeholder: Optional
+                    - text: First_1761262691299
+                - generic [ref=e52]:
+                  - generic [ref=e53]: Last Name
+                  - textbox "Last Name" [ref=e55]:
+                    - /placeholder: Optional
+                    - text: Last_1761262691299
+              - generic [ref=e56]:
+                - generic [ref=e57]: Pronouns
+                - textbox "Pronouns" [ref=e59]:
+                  - /placeholder: e.g., they/them, she/her, he/him
+                  - text: they/them
+              - generic [ref=e60]:
+                - generic [ref=e61]: Bio
+                - textbox "Bio" [ref=e63]:
+                  - /placeholder: Tell us about yourself...
+                  - text: Updated bio at 1761262691299 - Testing persistence of firstName, lastName, bio, discordName, and fetLifeName
+              - button "Save Changes" [ref=e65] [cursor=pointer]:
+                - generic [ref=e67]: Save Changes
+  - generic [ref=e68]:
+    - img [ref=e70]
+    - button "Open Tanstack query devtools" [ref=e118] [cursor=pointer]:
+      - img [ref=e119]
+```

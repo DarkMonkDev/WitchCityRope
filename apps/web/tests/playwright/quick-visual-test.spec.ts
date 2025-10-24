@@ -1,9 +1,13 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './helpers/auth.helpers';
 
 test.describe('Quick Visual Test', () => {
   test('capture screenshots of current application state', async ({ page }) => {
     console.log('🔍 Testing current application state on port 5173 (Docker)...');
-    
+
+    // Login as member before accessing dashboard
+    await AuthHelpers.loginAs(page, 'member');
+
     // Screenshot home page
     try {
       await page.goto('http://localhost:5173/', { waitUntil: 'domcontentloaded', timeout: 10000 });
