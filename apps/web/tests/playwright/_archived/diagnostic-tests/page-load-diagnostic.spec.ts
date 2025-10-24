@@ -218,7 +218,7 @@ test('network connectivity check', async ({ page }) => {
   // Test if we can reach the server at all
   const response = await page.request.get('http://localhost:5173');
   console.log('HTTP Response Status:', response.status());
-  console.log('HTTP Response Headers:', await response.allHeaders());
+  console.log('HTTP Response Headers:', response.headers());
   
   const body = await response.text();
   console.log('Response body length:', body.length);
