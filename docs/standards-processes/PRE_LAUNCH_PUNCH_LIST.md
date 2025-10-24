@@ -32,7 +32,7 @@ Use the orchestrator command when testing reveals missing functionality:
 |----------|-------------|----------|-------------|---------|-------------|------------|
 | **Core Authentication & Authorization** | 3 | 3 | 0 | 0 | 0 | 100% |
 | **Event Management & RSVP** | 11 | 7 | 2 | 0 | 2 | 64% |
-| **Vetting System** | 8 | 4 | 1 | 0 | 3 | 50% |
+| **Vetting System** | 9 | 4 | 1 | 0 | 4 | 44% |
 | **Payment Processing** | 3 | 1 | 1 | 0 | 1 | 33% |
 | **Admin Tools** | 5 | 1 | 1 | 0 | 3 | 20% |
 | **User Dashboard** | 3 | 2 | 0 | 0 | 1 | 67% |
@@ -42,7 +42,7 @@ Use the orchestrator command when testing reveals missing functionality:
 | **Testing & Quality** | 4 | 0 | 1 | 0 | 3 | 0% |
 | **Documentation** | 2 | 1 | 0 | 0 | 1 | 50% |
 | **Incident Reporting** | 2 | 2 | 0 | 0 | 0 | 100% |
-| **TOTAL** | 53 | 24 | 5 | 0 | 24 | 45% |
+| **TOTAL** | 54 | 24 | 5 | 0 | 25 | 44% |
 
 ---
 
@@ -245,6 +245,14 @@ Use the orchestrator command when testing reveals missing functionality:
   - **Dependencies**: Admin vetting review grid
   - **Status**: Not Started
   - **Notes**: One of the buttons on all vetting applications admin screen shows modal that doesn't match wireframes. Need to identify which button and fix modal content/layout.
+
+- [ ] **FirstName/LastName Data Model Consistency** (Priority: Medium)
+  - **Description**: Standardize name collection across vetting application and user profile (choose FirstName+LastName vs FullName)
+  - **Business Value**: Data integrity - currently vetting form asks for "entire name" but ApplicationUser model has FirstName/LastName fields, creating inconsistency. Need legal names for compliance.
+  - **Effort**: Medium (1-2 days) - Database migration, DTO updates, frontend form updates, type regeneration
+  - **Dependencies**: None
+  - **Status**: Not Started
+  - **Notes**: Decision needed: Keep FirstName+LastName (requires updating vetting form), or switch to FullName (requires database migration). Recommendation: Keep FirstName+LastName for legal compliance and update vetting form to collect separately. Affects: ApplicationUser entity, UpdateProfileDto, vetting form, dashboard profile, user profile DTOs.
 
 ---
 
