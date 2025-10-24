@@ -28,9 +28,19 @@ const useEventsForHomepage = (enabled: boolean = true) => {
   return useQuery({
     queryKey: queryKeys.events(),
     queryFn: async (): Promise<EventDto[]> => {
-      const response = await apiClient.get('/api/events');
-      // Access events from the wrapped ApiResponse format
-      return response.data?.data || [];
+      try {
+        const response = await apiClient.get('/api/events');
+        // Access events from the wrapped ApiResponse format
+        return response.data?.data || [];
+      } catch (error: any) {
+        // Gracefully handle 401s on public pages - return empty array instead of throwing
+        // This prevents console errors when unauthenticated users visit the homepage
+        if (error?.response?.status === 401) {
+          return [];
+        }
+        // Re-throw other errors
+        throw error;
+      }
     },
     enabled, // Allow disabling the query when custom events are provided
     staleTime: 5 * 60 * 1000, // 5 minutes - same as existing pattern

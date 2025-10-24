@@ -68,14 +68,27 @@ apiClient.interceptors.response.use(
   async (error) => {
     const { response, config } = error
 
+    // Determine which errors should be suppressed from logging
+    const currentPath = window.location.pathname
+    const isPublicRoute =
+      currentPath === '/' || currentPath.startsWith('/events') || currentPath.startsWith('/join')
+
     // Check if this is an expected 404 for vetting application check
     // When a user visits /join without an existing application, the API returns 404
     // This is EXPECTED behavior - it means "no application found, show the form"
     const is404 = response?.status === 404
     const isMyApplicationEndpoint = config?.url?.includes('/my-application')
-    const shouldSuppressLog = is404 && isMyApplicationEndpoint
+    const shouldSuppress404 = is404 && isMyApplicationEndpoint
 
-    // Only log actual errors, not expected 404s for application checks
+    // Check if this is an expected 401 on public routes
+    // Public pages (homepage, events list) may call protected APIs to show personalized data
+    // 401s are EXPECTED behavior when user is not authenticated
+    const is401 = response?.status === 401
+    const shouldSuppress401 = is401 && isPublicRoute
+
+    const shouldSuppressLog = shouldSuppress404 || shouldSuppress401
+
+    // Only log actual errors, not expected 404s or 401s for public routes
     if (!shouldSuppressLog) {
       console.error(`API Error: ${config?.method?.toUpperCase()} ${config?.url}`, {
         status: response?.status,
@@ -84,15 +97,16 @@ apiClient.interceptors.response.use(
       })
     }
 
-    if (response?.status === 401) {
+    if (is401) {
       // Check if this is a login page or demo/test page to avoid redirect loops
-      const currentPath = window.location.pathname
       const isOnLoginPage = currentPath.includes('/login')
       const isDemoPage = currentPath.includes('-demo') || currentPath.includes('/test')
-      const isPublicRoute =
-        currentPath === '/' || currentPath.startsWith('/events') || currentPath.startsWith('/join')
 
-      console.warn(`🚫 401 Unauthorized: ${config?.method?.toUpperCase()} ${config?.url}`)
+      // Only log 401 errors for protected routes, not public routes
+      // Public routes expect 401s when accessing protected data while unauthenticated
+      if (!isPublicRoute) {
+        console.warn(`🚫 401 Unauthorized: ${config?.method?.toUpperCase()} ${config?.url}`)
+      }
 
       // Only redirect if NOT on login, demo, test, or public pages
       if (!isOnLoginPage && !isDemoPage && !isPublicRoute) {
