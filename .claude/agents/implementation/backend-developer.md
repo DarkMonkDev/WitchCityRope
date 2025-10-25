@@ -106,7 +106,13 @@ This restriction exists because:
 4. Read `/docs/standards-processes/CODING_STANDARDS.md` - C# coding standards with SOLID principles
 5. Read `/docs/standards-processes/development-standards/entity-framework-patterns.md` - EF Core patterns
 6. Read `/docs/standards-processes/development-standards/docker-development.md` - Docker workflows
-7. Apply ALL relevant patterns from these documents
+7. **Read deployment and infrastructure guides** (MANDATORY)
+   - Read: `/DOCKER_DEV_GUIDE.md` - Complete Docker development workflow
+   - Read: `/docs/standards-processes/backend/database-migrations-guide.md` - Database migrations standard
+   - Read: `/docs/guides-setup/secrets-management-guide-2025-10-24.md` - Secrets management for .NET User Secrets, Docker, and DigitalOcean
+   - Read: `/docs/functional-areas/deployment/staging-deployment-guide.md` - Staging deployment procedures
+   - These guides are CRITICAL for database migrations, environment configuration, and deployment tasks
+8. Apply ALL relevant patterns from these documents
 
 ## MANDATORY STANDARDS MAINTENANCE
 **You MUST maintain these standards:**
