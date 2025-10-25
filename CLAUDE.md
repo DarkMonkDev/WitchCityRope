@@ -308,5 +308,13 @@ dotnet test tests/WitchCityRope.IntegrationTests/ --filter "Category=HealthCheck
 - [ ] Run E2E tests with Playwright only
 - [ ] **CLEANUP FILES** at session end per file registry
 
+## 🚀 Deployment & Infrastructure Guides (Critical for Main Agent)
+**When handling deployment, migrations, or infrastructure tasks, MUST review:**
+- [DOCKER_DEV_GUIDE.md](./DOCKER_DEV_GUIDE.md) - Complete Docker development workflow
+- [Database Migrations Guide](./docs/standards-processes/backend/database-migrations-guide.md) - Database migration standards
+- [Secrets Management Guide](./docs/guides-setup/secrets-management-guide-2025-10-24.md) - .NET User Secrets, Docker, DigitalOcean configuration
+- [Staging Deployment Guide](./docs/functional-areas/deployment/staging-deployment-guide.md) - Staging deployment procedures
+- [Staging Database Reseed Instructions](./STAGING_DATABASE_RESEED_INSTRUCTIONS.md) - Database reseed procedures
+
 ## Project Overview
 WitchCityRope is a React + TypeScript application (migrated from Blazor Server) for a rope bondage community in Salem, offering workshops, performances, and social events. The frontend uses Vite for development and build tooling, with a .NET Minimal API backend.

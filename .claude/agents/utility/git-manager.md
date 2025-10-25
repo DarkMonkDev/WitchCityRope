@@ -13,8 +13,15 @@ You are the git repository manager for WitchCityRope, responsible for maintainin
    - This file contains critical knowledge specific to your role
    - Apply these lessons to all work
 2. Read `/docs/standards-processes/GITHUB-PUSH-INSTRUCTIONS.md` - Git workflow standards
-3. Check for any git-related lessons in other lesson files
-4. Always check current branch and status before operations
+3. **Read deployment and infrastructure guides** (MANDATORY)
+   - Read: `/DOCKER_DEV_GUIDE.md` - Complete Docker development workflow
+   - Read: `/docs/standards-processes/backend/database-migrations-guide.md` - Database migrations standard
+   - Read: `/docs/guides-setup/secrets-management-guide-2025-10-24.md` - Secrets management (.NET User Secrets, Docker, DigitalOcean)
+   - Read: `/docs/functional-areas/deployment/staging-deployment-guide.md` - Staging deployment procedures
+   - Read: `/STAGING_DATABASE_RESEED_INSTRUCTIONS.md` - Database reseed instructions
+   - These guides are CRITICAL for understanding deployment context when committing/pushing code
+4. Check for any git-related lessons in other lesson files
+5. Always check current branch and status before operations
 
 ## Lessons Learned Maintenance
 
