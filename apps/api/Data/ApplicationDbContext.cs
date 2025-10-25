@@ -19,6 +19,63 @@ namespace WitchCityRope.Api.Data;
 /// <summary>
 /// Entity Framework Core DbContext for PostgreSQL with ASP.NET Core Identity
 /// Configured for vertical slice proof-of-concept with authentication
+///
+/// <para><strong>MIGRATION CONFIGURATION:</strong></para>
+/// <para>
+/// Migrations are stored in the default location: /apps/api/Migrations/
+/// This is EF Core's default behavior when no --output-dir flag is specified.
+/// </para>
+///
+/// <para><strong>CRITICAL: DO NOT use the --output-dir flag when creating migrations!</strong></para>
+/// <para>
+/// Using --output-dir creates multiple migration directories which causes confusion
+/// and can result in empty migration files being generated in the wrong location.
+/// The correct migration directory is determined by the .csproj file location.
+/// </para>
+///
+/// <para><strong>Creating New Migrations:</strong></para>
+/// <code>
+/// # From /apps/api directory (where .csproj is located):
+/// dotnet ef migrations add YourMigrationName
+///
+/// # This will create migration files in:
+/// # /apps/api/Migrations/YYYYMMDDHHMMSS_YourMigrationName.cs
+/// # /apps/api/Migrations/ApplicationDbContextModelSnapshot.cs
+/// </code>
+///
+/// <para><strong>Initial Migration State:</strong></para>
+/// <para>
+/// The project has been reset to a single initial migration (InitialMigration)
+/// containing the complete schema. This 2674-line migration represents the entire
+/// database structure as of October 2025. Future migrations will only contain
+/// incremental changes from this baseline.
+/// </para>
+///
+/// <para><strong>Migration Namespace:</strong></para>
+/// <para>
+/// All migrations use the namespace: WitchCityRope.Api.Migrations
+/// This namespace is automatically applied by EF Core based on the project structure.
+/// </para>
+///
+/// <para><strong>Database Initialization:</strong></para>
+/// <para>
+/// On startup, DatabaseInitializationService.cs applies pending migrations using
+/// context.Database.MigrateAsync(). This creates the __EFMigrationsHistory table
+/// to track which migrations have been applied. DO NOT use EnsureCreated() as it
+/// bypasses the migration system and creates schema without migration tracking.
+/// </para>
+///
+/// <para><strong>Resetting Migrations (if needed):</strong></para>
+/// <code>
+/// # 1. Delete all files in /apps/api/Migrations/ directory
+/// # 2. Drop the database (or just the __EFMigrationsHistory table)
+/// # 3. Create a fresh initial migration:
+/// dotnet ef migrations add InitialMigration
+///
+/// # 4. Verify the migration contains the full schema (should be ~2500+ lines)
+/// # 5. Apply the migration:
+/// dotnet ef database update
+/// </code>
 /// </summary>
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
 {

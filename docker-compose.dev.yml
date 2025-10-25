@@ -92,6 +92,9 @@ services:
       ASPNETCORE_DETAILEDERRORS: "true"
       ASPNETCORE_LOGGING__CONSOLE__DISABLECOLORS: "false"
 
+      # Safety encryption key for development (DO NOT use in production)
+      Safety__EncryptionKey: "NAQntjSAGLxD4SAO59B9VwRm7gUfv31+1F1R2F51zDg="
+
       # Hot reload configuration
       DOTNET_USE_POLLING_FILE_WATCHER: "true"
       DOTNET_WATCH_RESTART_ON_RUDE_EDIT: "true"

@@ -12,15 +12,15 @@ using WitchCityRope.Api.Data;
 namespace WitchCityRope.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251011002739_AddUniqueActiveParticipationConstraint")]
-    partial class AddUniqueActiveParticipationConstraint
+    [Migration("20251024232104_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.6")
+                .HasAnnotation("ProductVersion", "9.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -168,6 +168,58 @@ namespace WitchCityRope.Api.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("UserTokens", "public");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Data.Entities.UserNote", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AuthorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(5000)
+                        .HasColumnType("character varying(5000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<bool>("IsArchived")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("NoteType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorId")
+                        .HasDatabaseName("IX_UserNotes_AuthorId")
+                        .HasFilter("\"AuthorId\" IS NOT NULL");
+
+                    b.HasIndex("IsArchived")
+                        .HasDatabaseName("IX_UserNotes_IsArchived");
+
+                    b.HasIndex("NoteType")
+                        .HasDatabaseName("IX_UserNotes_NoteType");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_UserNotes_UserId");
+
+                    b.HasIndex("UserId", "CreatedAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("IX_UserNotes_UserId_CreatedAt");
+
+                    b.ToTable("UserNotes", "public");
                 });
 
             modelBuilder.Entity("WitchCityRope.Api.Features.CheckIn.Entities.CheckIn", b =>
@@ -511,6 +563,151 @@ namespace WitchCityRope.Api.Migrations
                             t.HasCheckConstraint("CHK_OfflineSyncQueue_SyncStatus", "\"SyncStatus\" IN ('pending', 'syncing', 'completed', 'failed', 'conflict')");
 
                             t.HasCheckConstraint("CHK_OfflineSyncQueue_SyncedAt", "(\"SyncStatus\" = 'completed' AND \"SyncedAt\" IS NOT NULL) OR (\"SyncStatus\" != 'completed' AND \"SyncedAt\" IS NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Cms.Entities.ContentPage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("Id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Content");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAt")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<bool>("IsPublished")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("IsPublished");
+
+                    b.Property<Guid>("LastModifiedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("LastModifiedBy");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("Slug");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("Title");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedAt")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedBy")
+                        .HasDatabaseName("IX_ContentPages_CreatedBy");
+
+                    b.HasIndex("IsPublished")
+                        .HasDatabaseName("IX_ContentPages_IsPublished")
+                        .HasFilter("\"IsPublished\" = true");
+
+                    b.HasIndex("LastModifiedBy")
+                        .HasDatabaseName("IX_ContentPages_LastModifiedBy");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasDatabaseName("UX_ContentPages_Slug");
+
+                    b.HasIndex("UpdatedAt")
+                        .IsDescending()
+                        .HasDatabaseName("IX_ContentPages_UpdatedAt");
+
+                    b.ToTable("ContentPages", "cms", t =>
+                        {
+                            t.HasCheckConstraint("CHK_ContentPages_Content_NotEmpty", "LENGTH(TRIM(\"Content\")) > 0");
+
+                            t.HasCheckConstraint("CHK_ContentPages_Slug_Format", "\"Slug\" ~ '^[a-z0-9]+(-[a-z0-9]+)*$'");
+
+                            t.HasCheckConstraint("CHK_ContentPages_Title_Length", "LENGTH(TRIM(\"Title\")) >= 3");
+                        });
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Cms.Entities.ContentRevision", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("Id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ChangeDescription")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("ChangeDescription");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Content");
+
+                    b.Property<int>("ContentPageId")
+                        .HasColumnType("integer")
+                        .HasColumnName("ContentPageId");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedAt")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("Title");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContentPageId")
+                        .HasDatabaseName("IX_ContentRevisions_ContentPageId");
+
+                    b.HasIndex("CreatedAt")
+                        .IsDescending()
+                        .HasDatabaseName("IX_ContentRevisions_CreatedAt");
+
+                    b.HasIndex("CreatedBy")
+                        .HasDatabaseName("IX_ContentRevisions_CreatedBy");
+
+                    b.HasIndex("ContentPageId", "CreatedAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("IX_ContentRevisions_ContentPageId_CreatedAt");
+
+                    b.ToTable("ContentRevisions", "cms", t =>
+                        {
+                            t.HasCheckConstraint("CHK_ContentRevisions_Content_NotEmpty", "LENGTH(TRIM(\"Content\")) > 0");
+
+                            t.HasCheckConstraint("CHK_ContentRevisions_Title_Length", "LENGTH(TRIM(\"Title\")) >= 3");
                         });
                 });
 
@@ -1140,6 +1337,61 @@ namespace WitchCityRope.Api.Migrations
                     b.ToTable("IncidentAuditLog", "public");
                 });
 
+            modelBuilder.Entity("WitchCityRope.Api.Features.Safety.Entities.IncidentNote", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AuthorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<Guid>("IncidentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsPrivate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Tags")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorId")
+                        .HasDatabaseName("IX_IncidentNotes_AuthorId")
+                        .HasFilter("\"AuthorId\" IS NOT NULL");
+
+                    b.HasIndex("Type")
+                        .HasDatabaseName("IX_IncidentNotes_Type");
+
+                    b.HasIndex("IncidentId", "CreatedAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("IX_IncidentNotes_IncidentId_CreatedAt");
+
+                    b.ToTable("IncidentNotes", "public", t =>
+                        {
+                            t.HasCheckConstraint("CHK_IncidentNotes_Content_NotEmpty", "LENGTH(TRIM(\"Content\")) > 0");
+
+                            t.HasCheckConstraint("CHK_IncidentNotes_Type", "\"Type\" IN (1, 2)");
+                        });
+                });
+
             modelBuilder.Entity("WitchCityRope.Api.Features.Safety.Entities.IncidentNotification", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1217,7 +1469,16 @@ namespace WitchCityRope.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<bool?>("AnonymousDuringInvestigation")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("AnonymousInFinalReport")
+                        .HasColumnType("boolean");
+
                     b.Property<Guid?>("AssignedTo")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CoordinatorId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
@@ -1226,13 +1487,17 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<Guid?>("CreatedBy")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("DesiredOutcomes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
                     b.Property<string>("EncryptedContactEmail")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
-                    b.Property<string>("EncryptedContactPhone")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                    b.Property<string>("EncryptedContactName")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("EncryptedDescription")
                         .IsRequired()
@@ -1243,6 +1508,25 @@ namespace WitchCityRope.Api.Migrations
 
                     b.Property<string>("EncryptedWitnesses")
                         .HasColumnType("text");
+
+                    b.Property<string>("EventName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("FutureInteractionPreference")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("GoogleDriveFinalReportUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("GoogleDriveFolderUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int?>("HasSpokenToPerson")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("IncidentDate")
                         .HasColumnType("timestamptz");
@@ -1269,10 +1553,15 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<bool>("RequestFollowUp")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("Severity")
+                    b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Status")
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("Type")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -1280,6 +1569,9 @@ namespace WitchCityRope.Api.Migrations
 
                     b.Property<Guid?>("UpdatedBy")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("WhereOccurred")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -1298,16 +1590,20 @@ namespace WitchCityRope.Api.Migrations
                         .HasDatabaseName("IX_SafetyIncidents_ReporterId")
                         .HasFilter("\"ReporterId\" IS NOT NULL");
 
-                    b.HasIndex("Severity")
-                        .HasDatabaseName("IX_SafetyIncidents_Severity");
-
                     b.HasIndex("Status")
                         .HasDatabaseName("IX_SafetyIncidents_Status");
 
                     b.HasIndex("UpdatedBy");
 
-                    b.HasIndex("Status", "Severity", "ReportedAt")
-                        .HasDatabaseName("IX_SafetyIncidents_Status_Severity_ReportedAt");
+                    b.HasIndex("CoordinatorId", "Status")
+                        .HasDatabaseName("IX_SafetyIncidents_CoordinatorId_Status");
+
+                    b.HasIndex("Status", "CoordinatorId")
+                        .HasDatabaseName("IX_SafetyIncidents_Status_CoordinatorId")
+                        .HasFilter("\"CoordinatorId\" IS NULL");
+
+                    b.HasIndex("Status", "ReportedAt")
+                        .HasDatabaseName("IX_SafetyIncidents_Status_ReportedAt");
 
                     b.ToTable("SafetyIncidents", "public");
                 });
@@ -1947,10 +2243,10 @@ namespace WitchCityRope.Api.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<bool>("IsActive")
+                    b.Property<bool>("HasVettingApplication")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("IsVetted")
+                    b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
                     b.Property<DateTime?>("LastLoginAt")
@@ -2028,9 +2324,6 @@ namespace WitchCityRope.Api.Migrations
 
                     b.HasIndex("IsActive")
                         .HasDatabaseName("IX_Users_IsActive");
-
-                    b.HasIndex("IsVetted")
-                        .HasDatabaseName("IX_Users_IsVetted");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -2282,12 +2575,7 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<Guid>("EventId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Requirements")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<bool>("RequiresExperience")
+                    b.Property<bool>("IsPublicFacing")
                         .HasColumnType("boolean");
 
                     b.Property<Guid?>("SessionId")
@@ -2316,6 +2604,51 @@ namespace WitchCityRope.Api.Migrations
                         .HasDatabaseName("IX_VolunteerPositions_SessionId");
 
                     b.ToTable("VolunteerPositions", "public");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Models.VolunteerSignup", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CheckedInAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("HasCheckedIn")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("HasCompleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("SignedUpAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("VolunteerPositionId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("VolunteerPositionId");
+
+                    b.ToTable("VolunteerSignups");
                 });
 
             modelBuilder.Entity("EventOrganizers", b =>
@@ -2382,6 +2715,24 @@ namespace WitchCityRope.Api.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Data.Entities.UserNote", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("WitchCityRope.Api.Features.CheckIn.Entities.CheckIn", b =>
@@ -2495,6 +2846,48 @@ namespace WitchCityRope.Api.Migrations
                     b.Navigation("Event");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Cms.Entities.ContentPage", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_ContentPages_CreatedBy");
+
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "LastModifiedByUser")
+                        .WithMany()
+                        .HasForeignKey("LastModifiedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_ContentPages_LastModifiedBy");
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("LastModifiedByUser");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Cms.Entities.ContentRevision", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Features.Cms.Entities.ContentPage", "ContentPage")
+                        .WithMany("Revisions")
+                        .HasForeignKey("ContentPageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ContentRevisions_ContentPage");
+
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_ContentRevisions_CreatedBy");
+
+                    b.Navigation("ContentPage");
+
+                    b.Navigation("CreatedByUser");
                 });
 
             modelBuilder.Entity("WitchCityRope.Api.Features.Participation.Entities.EventParticipation", b =>
@@ -2643,6 +3036,26 @@ namespace WitchCityRope.Api.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("WitchCityRope.Api.Features.Safety.Entities.IncidentNote", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("FK_IncidentNotes_Users_AuthorId");
+
+                    b.HasOne("WitchCityRope.Api.Features.Safety.Entities.SafetyIncident", "Incident")
+                        .WithMany("Notes")
+                        .HasForeignKey("IncidentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_IncidentNotes_Incidents_IncidentId");
+
+                    b.Navigation("Author");
+
+                    b.Navigation("Incident");
+                });
+
             modelBuilder.Entity("WitchCityRope.Api.Features.Safety.Entities.IncidentNotification", b =>
                 {
                     b.HasOne("WitchCityRope.Api.Features.Safety.Entities.SafetyIncident", "Incident")
@@ -2661,6 +3074,11 @@ namespace WitchCityRope.Api.Migrations
                         .HasForeignKey("AssignedTo")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "Coordinator")
+                        .WithMany()
+                        .HasForeignKey("CoordinatorId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "CreatedByUser")
                         .WithMany()
                         .HasForeignKey("CreatedBy")
@@ -2677,6 +3095,8 @@ namespace WitchCityRope.Api.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("AssignedUser");
+
+                    b.Navigation("Coordinator");
 
                     b.Navigation("CreatedByUser");
 
@@ -2868,11 +3288,35 @@ namespace WitchCityRope.Api.Migrations
                     b.Navigation("Session");
                 });
 
+            modelBuilder.Entity("WitchCityRope.Api.Models.VolunteerSignup", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WitchCityRope.Api.Models.VolunteerPosition", "VolunteerPosition")
+                        .WithMany()
+                        .HasForeignKey("VolunteerPositionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+
+                    b.Navigation("VolunteerPosition");
+                });
+
             modelBuilder.Entity("WitchCityRope.Api.Features.CheckIn.Entities.EventAttendee", b =>
                 {
                     b.Navigation("AuditLogs");
 
                     b.Navigation("CheckIns");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Cms.Entities.ContentPage", b =>
+                {
+                    b.Navigation("Revisions");
                 });
 
             modelBuilder.Entity("WitchCityRope.Api.Features.Participation.Entities.EventParticipation", b =>
@@ -2892,6 +3336,8 @@ namespace WitchCityRope.Api.Migrations
             modelBuilder.Entity("WitchCityRope.Api.Features.Safety.Entities.SafetyIncident", b =>
                 {
                     b.Navigation("AuditLogs");
+
+                    b.Navigation("Notes");
 
                     b.Navigation("Notifications");
                 });

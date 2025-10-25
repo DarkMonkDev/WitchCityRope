@@ -145,17 +145,189 @@ openssl pkcs12 -export \
   -password pass:${STAGING_CERT_PASSWORD}
 ```
 
-### 5. Database Initialization
+### 5. Database Initialization and Migrations
+
+**IMPORTANT: WitchCityRope uses PostgreSQL with Entity Framework Core migrations.**
+
+#### Understanding EF Core Migrations
+
+The project maintains database schema through EF Core migrations stored in `/apps/api/Migrations/`. The current state includes a single `InitialMigration` containing the complete schema (2674 lines, ~132KB).
+
+**CRITICAL: Migration Best Practices**
 
 ```bash
-# Make script executable
-chmod +x scripts/init-staging-db.sh
+# ✅ CORRECT: Create migrations from /apps/api directory without --output-dir flag
+cd /apps/api
+dotnet ef migrations add YourMigrationName
 
-# Run database initialization
-./scripts/init-staging-db.sh
+# ❌ WRONG: Never use --output-dir flag (creates multiple migration directories)
+dotnet ef migrations add YourMigrationName --output-dir Infrastructure/Data/Migrations
+```
 
-# Verify database
-sqlite3 data/staging/witchcityrope_staging.db "SELECT COUNT(*) FROM Users;"
+The `--output-dir` flag causes EF to create separate migration directories, leading to:
+- Empty migration files generated in the wrong location
+- Confusion about which migrations are active
+- Schema changes not being captured correctly
+
+**Migration Files Location**: `/apps/api/Migrations/`
+**Migration Namespace**: `WitchCityRope.Api.Migrations`
+
+#### Automatic Migration Application (Recommended)
+
+The application automatically applies pending migrations on startup via `DatabaseInitializationService`. This is the recommended approach for staging deployments.
+
+```bash
+# Migrations are applied automatically when API starts
+# Check logs to verify:
+docker logs wcr-staging-api --tail 100 | grep "Database initialization"
+
+# You should see:
+# - "Starting database initialization for environment: Staging"
+# - "Phase 1: Applying pending migrations"
+# - "Successfully applied {Count} migrations" OR "Database is up to date"
+# - "Phase 2: Populating seed data" (if enabled)
+# - "Database initialization completed successfully"
+```
+
+**Configuration**: Set in `appsettings.Staging.json` or environment variables:
+```json
+{
+  "DatabaseInitialization": {
+    "EnableAutoMigration": true,
+    "EnableSeedData": true,
+    "TimeoutSeconds": 30,
+    "MaxRetryAttempts": 3,
+    "RetryDelaySeconds": 2.0,
+    "ExcludedEnvironments": ["Production"]
+  }
+}
+```
+
+#### Manual Migration Application (Advanced)
+
+If you need to apply migrations manually before starting services:
+
+```bash
+# From repository root
+cd apps/api
+
+# Check migration status
+dotnet ef migrations list
+
+# View pending migrations
+dotnet ef database update --verbose
+
+# Apply all pending migrations
+dotnet ef database update
+
+# Apply to specific migration
+dotnet ef database update YourMigrationName
+
+# Generate SQL script (for review before applying)
+dotnet ef migrations script --output migrations.sql
+```
+
+#### Creating New Migrations (Development Only)
+
+**For developers making schema changes:**
+
+```bash
+# 1. Make changes to entity models in /apps/api/Models/ or /apps/api/Features/
+# 2. Navigate to API project directory
+cd /apps/api
+
+# 3. Create migration (EF compares current model vs last migration)
+dotnet ef migrations add DescriptiveNameForYourChanges
+
+# 4. Review generated migration in /apps/api/Migrations/
+# Verify Up() method contains your expected schema changes
+
+# 5. Test migration locally with Docker
+cd ../..
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+# 6. Check logs to verify migration applied successfully
+docker logs witchcity-api --tail 100
+
+# 7. Verify database schema
+docker exec -it witchcity-postgres psql -U postgres -d witchcityrope_dev -c "\dt"
+```
+
+#### Resetting Migrations (Rare - Usually Only for Fresh Project Setup)
+
+**WARNING: This drops ALL migration history. Only use when starting fresh.**
+
+```bash
+# 1. Backup any production/staging data!
+# 2. Delete all migration files
+rm -rf /apps/api/Migrations/*
+
+# 3. Drop database or just __EFMigrationsHistory table
+docker exec -it witchcity-postgres psql -U postgres -d witchcityrope_dev -c "DROP TABLE IF EXISTS \"__EFMigrationsHistory\";"
+
+# 4. Create fresh initial migration capturing current schema
+cd /apps/api
+dotnet ef migrations add InitialMigration
+
+# 5. Verify migration file is comprehensive (~2500+ lines for full schema)
+wc -l Migrations/*_InitialMigration.cs
+
+# 6. Apply migration
+dotnet ef database update
+
+# 7. Verify __EFMigrationsHistory table exists with one entry
+docker exec -it witchcity-postgres psql -U postgres -d witchcityrope_dev -c "SELECT * FROM \"__EFMigrationsHistory\";"
+```
+
+#### Troubleshooting Migrations
+
+**Problem**: Migrations not applying automatically
+```bash
+# Check DatabaseInitializationService logs
+docker logs wcr-staging-api | grep "Database initialization"
+
+# Verify configuration in appsettings.Staging.json
+# Ensure EnableAutoMigration is true
+```
+
+**Problem**: "Migration already applied" error
+```bash
+# Check which migrations are recorded in database
+docker exec wcr-staging-postgres psql -U postgres -d witchcityrope_staging -c "SELECT * FROM \"__EFMigrationsHistory\";"
+
+# If migration exists in table but not in code, remove from table:
+docker exec wcr-staging-postgres psql -U postgres -d witchcityrope_staging -c "DELETE FROM \"__EFMigrationsHistory\" WHERE \"MigrationId\" = 'YourMigrationId';"
+```
+
+**Problem**: Schema and migrations out of sync
+```bash
+# Generate SQL script to see what EF thinks needs to change
+cd /apps/api
+dotnet ef migrations script --output current-state.sql
+
+# Review script to understand differences
+# If needed, create new migration to sync
+dotnet ef migrations add SyncSchemaChanges
+```
+
+#### Staging Database Verification
+
+```bash
+# Verify PostgreSQL is running
+docker ps | grep postgres
+
+# Check database connection
+docker exec wcr-staging-postgres psql -U postgres -d witchcityrope_staging -c "SELECT version();"
+
+# Count users (should be 19 if seed data loaded)
+docker exec wcr-staging-postgres psql -U postgres -d witchcityrope_staging -c "SELECT COUNT(*) FROM \"Users\";"
+
+# Check migration history
+docker exec wcr-staging-postgres psql -U postgres -d witchcityrope_staging -c "SELECT \"MigrationId\", \"ProductVersion\" FROM \"__EFMigrationsHistory\" ORDER BY \"MigrationId\";"
+
+# List all tables
+docker exec wcr-staging-postgres psql -U postgres -d witchcityrope_staging -c "\dt"
 ```
 
 ### 6. Docker Deployment
@@ -371,9 +543,13 @@ docker-compose -f $COMPOSE_FILE up -d
 log_info "Waiting for services to be healthy..."
 sleep 10
 
-# Run database migrations
-log_info "Running database migrations..."
-docker exec wcr-staging-api dotnet ef database update
+# Database migrations are applied automatically by DatabaseInitializationService
+# No manual intervention needed - check logs to verify
+log_info "Checking database initialization status..."
+docker logs wcr-staging-api --tail 50 | grep -i "database initialization"
+
+# Optional: Manually verify migration status if needed
+# docker exec wcr-staging-api sh -c "cd /app && dotnet ef migrations list"
 
 # Verify deployment
 log_info "Verifying deployment..."

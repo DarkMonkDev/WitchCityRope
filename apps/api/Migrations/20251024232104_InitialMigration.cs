@@ -7,13 +7,16 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace WitchCityRope.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.EnsureSchema(
                 name: "public");
+
+            migrationBuilder.EnsureSchema(
+                name: "cms");
 
             migrationBuilder.CreateTable(
                 name: "Events",
@@ -22,7 +25,9 @@ namespace WitchCityRope.Api.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Title = table.Column<string>(type: "text", nullable: false),
+                    ShortDescription = table.Column<string>(type: "text", nullable: true),
                     Description = table.Column<string>(type: "text", nullable: false),
+                    Policies = table.Column<string>(type: "text", nullable: true),
                     StartDate = table.Column<DateTime>(type: "timestamptz", nullable: false),
                     EndDate = table.Column<DateTime>(type: "timestamptz", nullable: false),
                     Capacity = table.Column<int>(type: "integer", nullable: false),
@@ -60,6 +65,11 @@ namespace WitchCityRope.Api.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     SceneName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    FirstName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    LastName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    Bio = table.Column<string>(type: "text", nullable: true),
+                    DiscordName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    FetLifeName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
                     LastLoginAt = table.Column<DateTime>(type: "timestamptz", nullable: true),
@@ -69,13 +79,13 @@ namespace WitchCityRope.Api.Migrations
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     PronouncedName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Pronouns = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    IsVetted = table.Column<bool>(type: "boolean", nullable: false),
                     FailedLoginAttempts = table.Column<int>(type: "integer", nullable: false),
                     LockedOutUntil = table.Column<DateTime>(type: "timestamptz", nullable: true),
                     LastPasswordChangeAt = table.Column<DateTime>(type: "timestamptz", nullable: true),
                     EmailVerificationToken = table.Column<string>(type: "text", nullable: false),
                     EmailVerificationTokenCreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: true),
                     VettingStatus = table.Column<int>(type: "integer", nullable: false),
+                    HasVettingApplication = table.Column<bool>(type: "boolean", nullable: false),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -148,6 +158,44 @@ namespace WitchCityRope.Api.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ContentPages",
+                schema: "cms",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Slug = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Content = table.Column<string>(type: "TEXT", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
+                    CreatedBy = table.Column<Guid>(type: "uuid", nullable: false),
+                    LastModifiedBy = table.Column<Guid>(type: "uuid", nullable: false),
+                    IsPublished = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ContentPages", x => x.Id);
+                    table.CheckConstraint("CHK_ContentPages_Content_NotEmpty", "LENGTH(TRIM(\"Content\")) > 0");
+                    table.CheckConstraint("CHK_ContentPages_Slug_Format", "\"Slug\" ~ '^[a-z0-9]+(-[a-z0-9]+)*$'");
+                    table.CheckConstraint("CHK_ContentPages_Title_Length", "LENGTH(TRIM(\"Title\")) >= 3");
+                    table.ForeignKey(
+                        name: "FK_ContentPages_CreatedBy",
+                        column: x => x.CreatedBy,
+                        principalSchema: "public",
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ContentPages_LastModifiedBy",
+                        column: x => x.LastModifiedBy,
+                        principalSchema: "public",
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "EventAttendees",
                 schema: "public",
                 columns: table => new
@@ -161,8 +209,6 @@ namespace WitchCityRope.Api.Migrations
                     IsFirstTime = table.Column<bool>(type: "boolean", nullable: false),
                     DietaryRestrictions = table.Column<string>(type: "text", nullable: true),
                     AccessibilityNeeds = table.Column<string>(type: "text", nullable: true),
-                    EmergencyContactName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                    EmergencyContactPhone = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     HasCompletedWaiver = table.Column<bool>(type: "boolean", nullable: false),
                     Metadata = table.Column<string>(type: "jsonb", nullable: false, defaultValue: "{}"),
                     CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
@@ -419,9 +465,9 @@ namespace WitchCityRope.Api.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ReferenceNumber = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    ReferenceNumber = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
+                    Title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     ReporterId = table.Column<Guid>(type: "uuid", nullable: true),
-                    Severity = table.Column<int>(type: "integer", nullable: false),
                     IncidentDate = table.Column<DateTime>(type: "timestamptz", nullable: false),
                     ReportedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
                     Location = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
@@ -429,11 +475,22 @@ namespace WitchCityRope.Api.Migrations
                     EncryptedInvolvedParties = table.Column<string>(type: "text", nullable: true),
                     EncryptedWitnesses = table.Column<string>(type: "text", nullable: true),
                     EncryptedContactEmail = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    EncryptedContactPhone = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    EncryptedContactName = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     IsAnonymous = table.Column<bool>(type: "boolean", nullable: false),
                     RequestFollowUp = table.Column<bool>(type: "boolean", nullable: false),
+                    Type = table.Column<int>(type: "integer", nullable: false),
+                    WhereOccurred = table.Column<int>(type: "integer", nullable: false),
+                    EventName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    HasSpokenToPerson = table.Column<int>(type: "integer", nullable: true),
+                    DesiredOutcomes = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
+                    FutureInteractionPreference = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
+                    AnonymousDuringInvestigation = table.Column<bool>(type: "boolean", nullable: true),
+                    AnonymousInFinalReport = table.Column<bool>(type: "boolean", nullable: true),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     AssignedTo = table.Column<Guid>(type: "uuid", nullable: true),
+                    CoordinatorId = table.Column<Guid>(type: "uuid", nullable: true),
+                    GoogleDriveFolderUrl = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    GoogleDriveFinalReportUrl = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
                     CreatedBy = table.Column<Guid>(type: "uuid", nullable: true),
@@ -445,6 +502,13 @@ namespace WitchCityRope.Api.Migrations
                     table.ForeignKey(
                         name: "FK_SafetyIncidents_Users_AssignedTo",
                         column: x => x.AssignedTo,
+                        principalSchema: "public",
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_SafetyIncidents_Users_CoordinatorId",
+                        column: x => x.CoordinatorId,
                         principalSchema: "public",
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -518,6 +582,38 @@ namespace WitchCityRope.Api.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "UserNotes",
+                schema: "public",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Content = table.Column<string>(type: "character varying(5000)", maxLength: 5000, nullable: false),
+                    NoteType = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    AuthorId = table.Column<Guid>(type: "uuid", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
+                    IsArchived = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserNotes", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserNotes_Users_AuthorId",
+                        column: x => x.AuthorId,
+                        principalSchema: "public",
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_UserNotes_Users_UserId",
+                        column: x => x.UserId,
+                        principalSchema: "public",
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "UserRoles",
                 schema: "public",
                 columns: table => new
@@ -571,19 +667,36 @@ namespace WitchCityRope.Api.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ApplicationNumber = table.Column<string>(type: "text", nullable: false),
+                    StatusToken = table.Column<string>(type: "text", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: true),
                     SceneName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     RealName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    FullName = table.Column<string>(type: "text", nullable: true),
                     Email = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    Phone = table.Column<string>(type: "text", nullable: true),
                     FetLifeHandle = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     Pronouns = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     OtherNames = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     AboutYourself = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: false),
-                    HowFoundUs = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
+                    ExperienceLevel = table.Column<int>(type: "integer", nullable: false),
+                    YearsExperience = table.Column<int>(type: "integer", nullable: false),
+                    ExperienceDescription = table.Column<string>(type: "text", nullable: true),
+                    SafetyKnowledge = table.Column<string>(type: "text", nullable: true),
+                    ConsentUnderstanding = table.Column<string>(type: "text", nullable: true),
+                    WhyJoinCommunity = table.Column<string>(type: "text", nullable: true),
+                    SkillsInterests = table.Column<string>(type: "text", nullable: true),
+                    ExpectationsGoals = table.Column<string>(type: "text", nullable: true),
+                    AgreesToGuidelines = table.Column<bool>(type: "boolean", nullable: false),
+                    References = table.Column<string>(type: "text", nullable: true),
+                    AgreesToTerms = table.Column<bool>(type: "boolean", nullable: false),
+                    IsAnonymous = table.Column<bool>(type: "boolean", nullable: false),
+                    ConsentToContact = table.Column<bool>(type: "boolean", nullable: false),
+                    WorkflowStatus = table.Column<int>(type: "integer", nullable: false),
                     SubmittedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
                     AdminNotes = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: true),
                     ReviewStartedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    LastReviewedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DecisionMadeAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     InterviewScheduledFor = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -639,7 +752,9 @@ namespace WitchCityRope.Api.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     TemplateType = table.Column<int>(type: "integer", nullable: false),
                     Subject = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    Body = table.Column<string>(type: "text", nullable: false),
+                    HtmlBody = table.Column<string>(type: "text", nullable: false),
+                    PlainTextBody = table.Column<string>(type: "text", nullable: false),
+                    Variables = table.Column<string>(type: "jsonb", nullable: false, defaultValue: "{}"),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
                     Version = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
                     CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
@@ -650,7 +765,8 @@ namespace WitchCityRope.Api.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_VettingEmailTemplates", x => x.Id);
-                    table.CheckConstraint("CHK_VettingEmailTemplates_Body_Length", "LENGTH(\"Body\") >= 10");
+                    table.CheckConstraint("CHK_VettingEmailTemplates_HtmlBody_Length", "LENGTH(\"HtmlBody\") >= 10");
+                    table.CheckConstraint("CHK_VettingEmailTemplates_PlainTextBody_Length", "LENGTH(\"PlainTextBody\") >= 10");
                     table.CheckConstraint("CHK_VettingEmailTemplates_Subject_Length", "LENGTH(\"Subject\") BETWEEN 5 AND 200");
                     table.ForeignKey(
                         name: "FK_VettingEmailTemplates_Users_UpdatedBy",
@@ -709,8 +825,7 @@ namespace WitchCityRope.Api.Migrations
                     Description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
                     SlotsNeeded = table.Column<int>(type: "integer", nullable: false),
                     SlotsFilled = table.Column<int>(type: "integer", nullable: false),
-                    RequiresExperience = table.Column<bool>(type: "boolean", nullable: false),
-                    Requirements = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    IsPublicFacing = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false)
                 },
@@ -731,6 +846,41 @@ namespace WitchCityRope.Api.Migrations
                         principalTable: "Sessions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ContentRevisions",
+                schema: "cms",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ContentPageId = table.Column<int>(type: "integer", nullable: false),
+                    Content = table.Column<string>(type: "TEXT", nullable: false),
+                    Title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
+                    CreatedBy = table.Column<Guid>(type: "uuid", nullable: false),
+                    ChangeDescription = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ContentRevisions", x => x.Id);
+                    table.CheckConstraint("CHK_ContentRevisions_Content_NotEmpty", "LENGTH(TRIM(\"Content\")) > 0");
+                    table.CheckConstraint("CHK_ContentRevisions_Title_Length", "LENGTH(TRIM(\"Title\")) >= 3");
+                    table.ForeignKey(
+                        name: "FK_ContentRevisions_ContentPage",
+                        column: x => x.ContentPageId,
+                        principalSchema: "cms",
+                        principalTable: "ContentPages",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ContentRevisions_CreatedBy",
+                        column: x => x.CreatedBy,
+                        principalSchema: "public",
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -1002,6 +1152,42 @@ namespace WitchCityRope.Api.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "IncidentNotes",
+                schema: "public",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    IncidentId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Content = table.Column<string>(type: "text", nullable: false),
+                    Type = table.Column<int>(type: "integer", nullable: false),
+                    IsPrivate = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    AuthorId = table.Column<Guid>(type: "uuid", nullable: true),
+                    Tags = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamptz", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_IncidentNotes", x => x.Id);
+                    table.CheckConstraint("CHK_IncidentNotes_Content_NotEmpty", "LENGTH(TRIM(\"Content\")) > 0");
+                    table.CheckConstraint("CHK_IncidentNotes_Type", "\"Type\" IN (1, 2)");
+                    table.ForeignKey(
+                        name: "FK_IncidentNotes_Incidents_IncidentId",
+                        column: x => x.IncidentId,
+                        principalSchema: "public",
+                        principalTable: "SafetyIncidents",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_IncidentNotes_Users_AuthorId",
+                        column: x => x.AuthorId,
+                        principalSchema: "public",
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "IncidentNotifications",
                 schema: "public",
                 columns: table => new
@@ -1057,6 +1243,34 @@ namespace WitchCityRope.Api.Migrations
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_VettingAuditLogs_VettingApplications_ApplicationId",
+                        column: x => x.ApplicationId,
+                        principalTable: "VettingApplications",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "VettingEmailLogs",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ApplicationId = table.Column<Guid>(type: "uuid", nullable: false),
+                    TemplateType = table.Column<int>(type: "integer", nullable: false),
+                    RecipientEmail = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    Subject = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    SentAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
+                    DeliveryStatus = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
+                    SendGridMessageId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    ErrorMessage = table.Column<string>(type: "text", nullable: true),
+                    RetryCount = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
+                    LastRetryAt = table.Column<DateTime>(type: "timestamptz", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VettingEmailLogs", x => x.Id);
+                    table.CheckConstraint("CHK_VettingEmailLogs_RetryCount", "\"RetryCount\" >= 0 AND \"RetryCount\" <= 10");
+                    table.ForeignKey(
+                        name: "FK_VettingEmailLogs_VettingApplications_ApplicationId",
                         column: x => x.ApplicationId,
                         principalTable: "VettingApplications",
                         principalColumn: "Id",
@@ -1199,6 +1413,41 @@ namespace WitchCityRope.Api.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "VolunteerSignups",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    VolunteerPositionId = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    SignedUpAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    HasCheckedIn = table.Column<bool>(type: "boolean", nullable: false),
+                    CheckedInAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    HasCompleted = table.Column<bool>(type: "boolean", nullable: false),
+                    CompletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VolunteerSignups", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_VolunteerSignups_Users_UserId",
+                        column: x => x.UserId,
+                        principalSchema: "public",
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_VolunteerSignups_VolunteerPositions_VolunteerPositionId",
+                        column: x => x.VolunteerPositionId,
+                        principalSchema: "public",
+                        principalTable: "VolunteerPositions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_CheckInAuditLog_ActionType",
                 schema: "public",
@@ -1309,6 +1558,65 @@ namespace WitchCityRope.Api.Migrations
                 table: "CheckIns",
                 column: "EventAttendeeId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ContentPages_CreatedBy",
+                schema: "cms",
+                table: "ContentPages",
+                column: "CreatedBy");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ContentPages_IsPublished",
+                schema: "cms",
+                table: "ContentPages",
+                column: "IsPublished",
+                filter: "\"IsPublished\" = true");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ContentPages_LastModifiedBy",
+                schema: "cms",
+                table: "ContentPages",
+                column: "LastModifiedBy");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ContentPages_UpdatedAt",
+                schema: "cms",
+                table: "ContentPages",
+                column: "UpdatedAt",
+                descending: new bool[0]);
+
+            migrationBuilder.CreateIndex(
+                name: "UX_ContentPages_Slug",
+                schema: "cms",
+                table: "ContentPages",
+                column: "Slug",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ContentRevisions_ContentPageId",
+                schema: "cms",
+                table: "ContentRevisions",
+                column: "ContentPageId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ContentRevisions_ContentPageId_CreatedAt",
+                schema: "cms",
+                table: "ContentRevisions",
+                columns: new[] { "ContentPageId", "CreatedAt" },
+                descending: new[] { false, true });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ContentRevisions_CreatedAt",
+                schema: "cms",
+                table: "ContentRevisions",
+                column: "CreatedAt",
+                descending: new bool[0]);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ContentRevisions_CreatedBy",
+                schema: "cms",
+                table: "ContentRevisions",
+                column: "CreatedBy");
 
             migrationBuilder.CreateIndex(
                 name: "IX_EventAttendees_CreatedBy",
@@ -1437,7 +1745,8 @@ namespace WitchCityRope.Api.Migrations
                 schema: "public",
                 table: "EventParticipations",
                 columns: new[] { "UserId", "EventId" },
-                unique: true);
+                unique: true,
+                filter: "\"Status\" = 1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_IncidentAuditLog_ActionType",
@@ -1476,6 +1785,26 @@ namespace WitchCityRope.Api.Migrations
                 schema: "public",
                 table: "IncidentAuditLog",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IncidentNotes_AuthorId",
+                schema: "public",
+                table: "IncidentNotes",
+                column: "AuthorId",
+                filter: "\"AuthorId\" IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IncidentNotes_IncidentId_CreatedAt",
+                schema: "public",
+                table: "IncidentNotes",
+                columns: new[] { "IncidentId", "CreatedAt" },
+                descending: new[] { false, true });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IncidentNotes_Type",
+                schema: "public",
+                table: "IncidentNotes",
+                column: "Type");
 
             migrationBuilder.CreateIndex(
                 name: "IX_IncidentNotifications_Failed_RetryCount",
@@ -1776,6 +2105,12 @@ namespace WitchCityRope.Api.Migrations
                 column: "AssignedTo");
 
             migrationBuilder.CreateIndex(
+                name: "IX_SafetyIncidents_CoordinatorId_Status",
+                schema: "public",
+                table: "SafetyIncidents",
+                columns: new[] { "CoordinatorId", "Status" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_SafetyIncidents_CreatedBy",
                 schema: "public",
                 table: "SafetyIncidents",
@@ -1802,22 +2137,23 @@ namespace WitchCityRope.Api.Migrations
                 filter: "\"ReporterId\" IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SafetyIncidents_Severity",
-                schema: "public",
-                table: "SafetyIncidents",
-                column: "Severity");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_SafetyIncidents_Status",
                 schema: "public",
                 table: "SafetyIncidents",
                 column: "Status");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SafetyIncidents_Status_Severity_ReportedAt",
+                name: "IX_SafetyIncidents_Status_CoordinatorId",
                 schema: "public",
                 table: "SafetyIncidents",
-                columns: new[] { "Status", "Severity", "ReportedAt" });
+                columns: new[] { "Status", "CoordinatorId" },
+                filter: "\"CoordinatorId\" IS NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SafetyIncidents_Status_ReportedAt",
+                schema: "public",
+                table: "SafetyIncidents",
+                columns: new[] { "Status", "ReportedAt" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_SafetyIncidents_UpdatedBy",
@@ -1881,6 +2217,38 @@ namespace WitchCityRope.Api.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_UserNotes_AuthorId",
+                schema: "public",
+                table: "UserNotes",
+                column: "AuthorId",
+                filter: "\"AuthorId\" IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserNotes_IsArchived",
+                schema: "public",
+                table: "UserNotes",
+                column: "IsArchived");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserNotes_NoteType",
+                schema: "public",
+                table: "UserNotes",
+                column: "NoteType");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserNotes_UserId",
+                schema: "public",
+                table: "UserNotes",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserNotes_UserId_CreatedAt",
+                schema: "public",
+                table: "UserNotes",
+                columns: new[] { "UserId", "CreatedAt" },
+                descending: new[] { false, true });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UserRoles_RoleId",
                 schema: "public",
                 table: "UserRoles",
@@ -1897,12 +2265,6 @@ namespace WitchCityRope.Api.Migrations
                 schema: "public",
                 table: "Users",
                 column: "IsActive");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Users_IsVetted",
-                schema: "public",
-                table: "Users",
-                column: "IsVetted");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_Role",
@@ -1930,11 +2292,6 @@ namespace WitchCityRope.Api.Migrations
                 column: "Email");
 
             migrationBuilder.CreateIndex(
-                name: "IX_VettingApplications_Status",
-                table: "VettingApplications",
-                column: "Status");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_VettingApplications_SubmittedAt",
                 table: "VettingApplications",
                 column: "SubmittedAt");
@@ -1944,6 +2301,11 @@ namespace WitchCityRope.Api.Migrations
                 table: "VettingApplications",
                 column: "UserId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VettingApplications_WorkflowStatus",
+                table: "VettingApplications",
+                column: "WorkflowStatus");
 
             migrationBuilder.CreateIndex(
                 name: "IX_VettingAuditLogs_Action",
@@ -2044,6 +2406,33 @@ namespace WitchCityRope.Api.Migrations
                 filter: "\"Status\" = 1");
 
             migrationBuilder.CreateIndex(
+                name: "IX_VettingEmailLogs_ApplicationId",
+                table: "VettingEmailLogs",
+                column: "ApplicationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VettingEmailLogs_DeliveryStatus",
+                table: "VettingEmailLogs",
+                column: "DeliveryStatus");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VettingEmailLogs_DeliveryStatus_RetryCount_SentAt",
+                table: "VettingEmailLogs",
+                columns: new[] { "DeliveryStatus", "RetryCount", "SentAt" },
+                filter: "\"DeliveryStatus\" IN (3, 4) AND \"RetryCount\" < 5");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VettingEmailLogs_SendGridMessageId",
+                table: "VettingEmailLogs",
+                column: "SendGridMessageId",
+                filter: "\"SendGridMessageId\" IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VettingEmailLogs_SentAt",
+                table: "VettingEmailLogs",
+                column: "SentAt");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_VettingEmailTemplates_IsActive",
                 table: "VettingEmailTemplates",
                 column: "IsActive",
@@ -2058,6 +2447,12 @@ namespace WitchCityRope.Api.Migrations
                 name: "IX_VettingEmailTemplates_UpdatedBy",
                 table: "VettingEmailTemplates",
                 column: "UpdatedBy");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VettingEmailTemplates_Variables",
+                table: "VettingEmailTemplates",
+                column: "Variables")
+                .Annotation("Npgsql:IndexMethod", "gin");
 
             migrationBuilder.CreateIndex(
                 name: "UQ_VettingEmailTemplates_TemplateType",
@@ -2106,6 +2501,16 @@ namespace WitchCityRope.Api.Migrations
                 schema: "public",
                 table: "VolunteerPositions",
                 column: "SessionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VolunteerSignups_UserId",
+                table: "VolunteerSignups",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VolunteerSignups_VolunteerPositionId",
+                table: "VolunteerSignups",
+                column: "VolunteerPositionId");
         }
 
         /// <inheritdoc />
@@ -2120,11 +2525,19 @@ namespace WitchCityRope.Api.Migrations
                 schema: "public");
 
             migrationBuilder.DropTable(
+                name: "ContentRevisions",
+                schema: "cms");
+
+            migrationBuilder.DropTable(
                 name: "EventOrganizers",
                 schema: "public");
 
             migrationBuilder.DropTable(
                 name: "IncidentAuditLog",
+                schema: "public");
+
+            migrationBuilder.DropTable(
+                name: "IncidentNotes",
                 schema: "public");
 
             migrationBuilder.DropTable(
@@ -2172,6 +2585,10 @@ namespace WitchCityRope.Api.Migrations
                 schema: "public");
 
             migrationBuilder.DropTable(
+                name: "UserNotes",
+                schema: "public");
+
+            migrationBuilder.DropTable(
                 name: "UserRoles",
                 schema: "public");
 
@@ -2191,16 +2608,22 @@ namespace WitchCityRope.Api.Migrations
                 schema: "public");
 
             migrationBuilder.DropTable(
+                name: "VettingEmailLogs");
+
+            migrationBuilder.DropTable(
                 name: "VettingNotifications",
                 schema: "public");
 
             migrationBuilder.DropTable(
-                name: "VolunteerPositions",
-                schema: "public");
+                name: "VolunteerSignups");
 
             migrationBuilder.DropTable(
                 name: "EventAttendees",
                 schema: "public");
+
+            migrationBuilder.DropTable(
+                name: "ContentPages",
+                schema: "cms");
 
             migrationBuilder.DropTable(
                 name: "SafetyIncidents",
@@ -2232,11 +2655,15 @@ namespace WitchCityRope.Api.Migrations
                 name: "VettingEmailTemplates");
 
             migrationBuilder.DropTable(
-                name: "Sessions",
+                name: "VolunteerPositions",
                 schema: "public");
 
             migrationBuilder.DropTable(
                 name: "Users",
+                schema: "public");
+
+            migrationBuilder.DropTable(
+                name: "Sessions",
                 schema: "public");
 
             migrationBuilder.DropTable(

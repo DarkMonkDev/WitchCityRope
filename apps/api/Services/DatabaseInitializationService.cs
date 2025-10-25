@@ -167,8 +167,8 @@ public class DatabaseInitializationService : BackgroundService
     /// <summary>
     /// Applies pending EF Core migrations with retry policy to handle Docker container startup delays.
     /// Uses exponential backoff (2s, 4s, 8s) as specified in functional requirements.
-    /// 
-    /// Follows existing EF Core patterns and PostgreSQL configuration from ApplicationDbContext.
+    ///
+    /// Returns the count of migrations applied during this execution.
     /// </summary>
     private async Task<int> ApplyMigrationsWithRetryAsync(ApplicationDbContext context, CancellationToken cancellationToken)
     {
@@ -179,22 +179,23 @@ public class DatabaseInitializationService : BackgroundService
         {
             try
             {
+                // Get list of pending migrations
                 var pendingMigrations = await context.Database.GetPendingMigrationsAsync(cancellationToken);
-                var migrationsList = pendingMigrations.ToList();
+                var pendingCount = pendingMigrations.Count();
 
-                if (migrationsList.Count > 0)
+                if (pendingCount > 0)
                 {
-                    _logger.LogInformation("Applying {Count} pending migrations: {Migrations}",
-                        migrationsList.Count, string.Join(", ", migrationsList));
+                    _logger.LogInformation("Applying {Count} pending migrations", pendingCount);
 
+                    // Apply all pending migrations
                     await context.Database.MigrateAsync(cancellationToken);
 
-                    _logger.LogInformation("Successfully applied {Count} migrations", migrationsList.Count);
-                    return migrationsList.Count;
+                    _logger.LogInformation("Successfully applied {Count} migrations", pendingCount);
+                    return pendingCount;
                 }
                 else
                 {
-                    _logger.LogInformation("No pending migrations found");
+                    _logger.LogInformation("Database is up to date, no pending migrations");
                     return 0;
                 }
             }
@@ -211,7 +212,7 @@ public class DatabaseInitializationService : BackgroundService
         }
 
         // If we get here, all retry attempts failed
-        throw new InvalidOperationException($"Migration failed after {maxRetries} retry attempts");
+        throw new InvalidOperationException($"Migration application failed after {maxRetries} retry attempts");
     }
 
     /// <summary>
