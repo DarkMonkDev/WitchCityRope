@@ -2,11 +2,12 @@ import React from 'react';
 import { Table, Text, Group, ActionIcon, Badge } from '@mantine/core';
 import { IconEdit, IconTrash } from '@tabler/icons-react';
 import { WCRButton } from '../ui';
+import type { components } from '@witchcityrope/shared-types';
 
 export interface EventTicketType {
   id: string;
   name: string;
-  pricingType: 'fixed' | 'sliding-scale'; // Fixed price or sliding scale
+  pricingType: components["schemas"]["PricingType"]; // Use generated type from backend
   sessionIdentifiers: string[]; // ['S1', 'S2', 'S3']
   price?: number; // For fixed price tickets
   minPrice?: number; // For sliding scale tickets
@@ -46,9 +47,9 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
         maximumFractionDigits: 2,
       }).format(price);
 
-    if (ticketType.pricingType === 'fixed' && ticketType.price !== undefined) {
+    if (ticketType.pricingType === 'Fixed' && ticketType.price !== undefined) {
       return formatPrice(ticketType.price);
-    } else if (ticketType.pricingType === 'sliding-scale' && ticketType.minPrice !== undefined && ticketType.maxPrice !== undefined) {
+    } else if (ticketType.pricingType === 'SlidingScale' && ticketType.minPrice !== undefined && ticketType.maxPrice !== undefined) {
       if (ticketType.minPrice === ticketType.maxPrice) {
         return formatPrice(ticketType.minPrice);
       }
@@ -144,10 +145,10 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
               <Table.Td>
                 <Badge
                   variant="light"
-                  color={ticketType.pricingType === 'fixed' ? 'blue' : 'green'}
+                  color={ticketType.pricingType === 'Fixed' ? 'blue' : 'green'}
                   size="sm"
                 >
-                  {ticketType.pricingType === 'fixed' ? 'Fixed Price' : 'Sliding Scale'}
+                  {ticketType.pricingType === 'Fixed' ? 'Fixed Price' : 'Sliding Scale'}
                 </Badge>
               </Table.Td>
               <Table.Td>

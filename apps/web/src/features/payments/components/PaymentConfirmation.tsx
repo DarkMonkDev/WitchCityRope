@@ -138,20 +138,12 @@ export const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
             {/* Payment Information */}
             <Stack gap="sm">
               <Group gap="sm">
-                <IconTicket size={18} color="#880124" />
-                <Text fw={500}>Registration ID: </Text>
-                <Badge variant="light" color="wcr">
-                  #{payment.eventRegistrationId.slice(-8).toUpperCase()}
-                </Badge>
-              </Group>
-
-              <Group gap="sm">
                 <IconCreditCard size={18} color="#880124" />
                 <Box>
                   <Group gap="xs">
                     <Text fw={500}>Payment:</Text>
                     <Text fw={600} size="lg" c="#880124">
-                      {payment.displayAmount}
+                      ${payment.amount ? payment.amount.toFixed(2) : '0.00'}
                     </Text>
                   </Group>
                   
@@ -199,14 +191,7 @@ export const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
                   Add this event to your calendar using the link in your confirmation email
                 </Text>
               </Group>
-              
-              <Group gap="sm" align="flex-start">
-                <Text fw={500} size="sm" c="#880124">•</Text>
-                <Text size="sm">
-                  Join our community Discord for event updates and pre-event discussions
-                </Text>
-              </Group>
-              
+
               <Group gap="sm" align="flex-start">
                 <Text fw={500} size="sm" c="#880124">•</Text>
                 <Text size="sm">

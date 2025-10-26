@@ -52,27 +52,39 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                 query = query.Where(ep => ep.Event.EndDate >= DateTime.UtcNow);
             }
 
-            // SERVER-SIDE PROJECTION: Project to DTO in single database query
+            // SERVER-SIDE PROJECTION: Group by event and aggregate participation data
+            // This ensures one UserEventDto per event even if user has multiple participation types (RSVP + Ticket)
             var events = await query
-                .OrderBy(ep => ep.Event.StartDate)
-                .Select(ep => new UserEventDto
+                .GroupBy(ep => new {
+                    ep.Event.Id,
+                    ep.Event.Title,
+                    ep.Event.StartDate,
+                    ep.Event.EndDate,
+                    ep.Event.Location,
+                    ep.Event.ShortDescription,
+                    ep.Event.EventType
+                })
+                .Select(g => new UserEventDto
                 {
                     // Projected at database level - only loads these event fields
-                    Id = ep.Event.Id,
-                    Title = ep.Event.Title,
-                    StartDate = ep.Event.StartDate,
-                    EndDate = ep.Event.EndDate,
-                    Location = ep.Event.Location,
-                    Description = ep.Event.ShortDescription,
-                    IsSocialEvent = ep.Event.EventType == WitchCityRope.Api.Enums.EventType.Social,
-                    HasTicket = ep.ParticipationType == ParticipationType.Ticket,
+                    Id = g.Key.Id,
+                    Title = g.Key.Title,
+                    StartDate = g.Key.StartDate,
+                    EndDate = g.Key.EndDate,
+                    Location = g.Key.Location,
+                    Description = g.Key.ShortDescription,
+                    IsSocialEvent = g.Key.EventType == WitchCityRope.Api.Enums.EventType.Social,
+                    // HasTicket is true if ANY participation for this event is a Ticket
+                    HasTicket = g.Any(ep => ep.ParticipationType == ParticipationType.Ticket),
                     // Calculate registration status at database level
-                    RegistrationStatus = ep.Event.EndDate < DateTime.UtcNow
+                    // Priority: Attended > Ticket Purchased > RSVP Confirmed
+                    RegistrationStatus = g.Key.EndDate < DateTime.UtcNow
                         ? "Attended"
-                        : ep.ParticipationType == ParticipationType.Ticket
-                            ? (ep.Event.EventType == WitchCityRope.Api.Enums.EventType.Social ? "Ticket Purchased (Social Event)" : "Ticket Purchased")
+                        : g.Any(ep => ep.ParticipationType == ParticipationType.Ticket)
+                            ? (g.Key.EventType == WitchCityRope.Api.Enums.EventType.Social ? "Ticket Purchased (Social Event)" : "Ticket Purchased")
                             : "RSVP Confirmed"
                 })
+                .OrderBy(e => e.StartDate)
                 .ToListAsync(cancellationToken);
 
             _logger.LogInformation("Retrieved {EventCount} events using server-side projection for user {UserId}", events.Count, userId);

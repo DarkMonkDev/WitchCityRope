@@ -67,9 +67,27 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
   const filteredParticipations = participations
     ?.filter(p => {
       const eventDate = new Date(p.eventStartDate);
-      return showPastEvents ? eventDate < now : eventDate >= now;
-    })
-    .slice(0, limit) || [];
+      const isTimeMatch = showPastEvents ? eventDate < now : eventDate >= now;
+      // Only show Active participations on the dashboard
+      const isActive = p.status === 'Active';
+      return isTimeMatch && isActive;
+    }) || [];
+
+  // Group participations by eventId to avoid duplicate cards
+  const groupedByEvent = filteredParticipations.reduce((acc, participation) => {
+    const eventId = participation.eventId;
+    if (!acc[eventId]) {
+      acc[eventId] = {
+        event: participation,
+        participations: []
+      };
+    }
+    acc[eventId].participations.push(participation);
+    return acc;
+  }, {} as Record<string, { event: UserParticipationDto, participations: UserParticipationDto[] }>);
+
+  // Convert to array and apply limit
+  const uniqueEvents = Object.values(groupedByEvent).slice(0, limit);
 
   if (isLoading) {
     return (
@@ -134,7 +152,7 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
           >
             {showPastEvents ? 'Past Events' : 'Your Upcoming Events'}
           </Title>
-          {filteredParticipations.length > 0 && (
+          {uniqueEvents.length > 0 && (
             <Button
               component={Link}
               to="/dashboard/events"
@@ -156,7 +174,7 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
         </Group>
 
         {/* Content */}
-        {filteredParticipations.length === 0 ? (
+        {uniqueEvents.length === 0 ? (
           <Box ta="center" py="xl">
             <IconCalendarEvent size={48} color="var(--color-stone)" style={{ marginBottom: '16px' }} />
             <Text size="lg" fw={600} c="var(--color-stone)" mb="sm">
@@ -189,11 +207,11 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
           </Box>
         ) : (
           <Stack gap="sm">
-            {filteredParticipations.map((participation) => (
+            {uniqueEvents.map(({ event, participations: eventParticipations }) => (
               <Box
-                key={participation.id}
+                key={event.eventId}
                 component={Link}
-                to={`/events/${participation.eventId}`}
+                to={`/events/${event.eventId}`}
                 style={{
                   background: 'var(--color-cream)',
                   borderRadius: '12px',
@@ -219,24 +237,29 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
                 <Group justify="space-between" align="flex-start" wrap="nowrap">
                   {/* Event Info */}
                   <Box style={{ flex: 1, minWidth: 0 }}>
-                    <Group gap="sm" mb="xs">
-                      <Badge
-                        color={getStatusColor(participation.status)}
-                        variant="filled"
-                        size="sm"
-                        leftSection={getTypeIcon(participation.participationType)}
-                        style={{ borderRadius: '12px 6px 12px 6px' }}
-                      >
-                        {participation.participationType}
-                      </Badge>
+                    <Group gap="sm" mb="xs" wrap="wrap">
+                      {/* Show a badge for each participation type */}
+                      {eventParticipations.map((participation) => (
+                        <React.Fragment key={participation.id}>
+                          <Badge
+                            color={getStatusColor(participation.status)}
+                            variant="filled"
+                            size="sm"
+                            leftSection={getTypeIcon(participation.participationType)}
+                            style={{ borderRadius: '12px 6px 12px 6px' }}
+                          >
+                            {participation.participationType}
+                          </Badge>
 
-                      <Badge
-                        color={getStatusColor(participation.status)}
-                        variant="light"
-                        size="sm"
-                      >
-                        {participation.status}
-                      </Badge>
+                          <Badge
+                            color={getStatusColor(participation.status)}
+                            variant="light"
+                            size="sm"
+                          >
+                            {participation.status}
+                          </Badge>
+                        </React.Fragment>
+                      ))}
                     </Group>
 
                     <Text
@@ -246,21 +269,21 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
                       mb="xs"
                       truncate
                     >
-                      {participation.eventTitle}
+                      {event.eventTitle}
                     </Text>
 
                     <Stack gap="xs">
                       <Group gap="sm" wrap="nowrap">
                         <IconClock size={14} color="var(--color-stone)" />
                         <Text size="sm" c="dimmed" truncate>
-                          {formatEventDate(participation.eventStartDate)} at {formatEventTime(participation.eventStartDate)}
+                          {formatEventDate(event.eventStartDate)} at {formatEventTime(event.eventStartDate)}
                         </Text>
                       </Group>
 
                       <Group gap="sm" wrap="nowrap">
                         <IconMapPin size={14} color="var(--color-stone)" />
                         <Text size="sm" c="dimmed" truncate>
-                          {participation.eventLocation}
+                          {event.eventLocation}
                         </Text>
                       </Group>
                     </Stack>

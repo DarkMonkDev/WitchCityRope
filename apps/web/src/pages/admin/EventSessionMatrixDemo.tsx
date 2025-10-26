@@ -41,7 +41,7 @@ const mockTicketTypes: EventTicketType[] = [
   {
     id: '1',
     name: 'Full 3-Day Series Pass',
-    pricingType: 'fixed',
+    pricingType: 'Fixed',
     sessionIdentifiers: ['S1', 'S2', 'S3'],
     price: 135,
     minPrice: 120,
@@ -52,7 +52,7 @@ const mockTicketTypes: EventTicketType[] = [
   {
     id: '2',
     name: 'Day 1: Fundamentals Only',
-    pricingType: 'fixed',
+    pricingType: 'Fixed',
     sessionIdentifiers: ['S1'],
     price: 52.50,
     minPrice: 45,
@@ -63,7 +63,7 @@ const mockTicketTypes: EventTicketType[] = [
   {
     id: '3',
     name: 'Weekend Pass (Days 2-3)',
-    pricingType: 'sliding-scale',
+    pricingType: 'SlidingScale',
     sessionIdentifiers: ['S2', 'S3'],
     minPrice: 80,
     maxPrice: 100,

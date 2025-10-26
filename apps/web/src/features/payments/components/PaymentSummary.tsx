@@ -14,12 +14,19 @@ import {
 } from '@mantine/core';
 import { IconCalendar, IconMapPin, IconUser, IconClock } from '@tabler/icons-react';
 import type { PaymentEventInfo, SlidingScaleCalculation } from '../types/payment.types';
+import type { components } from '@witchcityrope/shared-types/generated/api-types';
+
+type TicketTypeDto = components["schemas"]["TicketTypeDto"];
 
 interface PaymentSummaryProps {
   /** Event information */
   eventInfo: PaymentEventInfo;
-  /** Sliding scale calculation */
-  calculation: SlidingScaleCalculation;
+  /** Sliding scale calculation (legacy - optional) */
+  calculation?: SlidingScaleCalculation;
+  /** Selected tickets (new multi-ticket support) */
+  selectedTickets?: TicketTypeDto[];
+  /** Prices for each selected ticket (ticketId -> price) */
+  ticketPrices?: Record<string, number>;
   /** Processing fees (if any) */
   processingFee?: number;
   /** Whether to show detailed breakdown */
@@ -34,11 +41,17 @@ interface PaymentSummaryProps {
 export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
   eventInfo,
   calculation,
+  selectedTickets = [],
+  ticketPrices = {},
   processingFee = 0,
   detailed = true,
   title = "Order Summary"
 }) => {
-  const totalAmount = calculation.finalAmount + processingFee;
+  // Calculate total from individual ticket prices if available, otherwise use legacy calculation
+  const ticketsTotal = Object.values(ticketPrices).reduce((sum, price) => sum + price, 0);
+  const totalAmount = selectedTickets.length > 0
+    ? ticketsTotal + processingFee
+    : (calculation?.finalAmount || 0) + processingFee;
 
   const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -127,75 +140,50 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
         <Divider />
 
         {/* Price Breakdown */}
-        <Stack gap="sm">
-          {/* Base Price */}
-          <Group justify="space-between" align="center">
-            <Text size="sm">Event Fee:</Text>
-            <Text size="sm">
-              {calculation.display.original}
-            </Text>
-          </Group>
-
-          {/* Sliding Scale Discount */}
-          {calculation.discountAmount > 0 && (
-            <>
-              <Group justify="space-between" align="center">
-                <Group gap="xs">
-                  <Text size="sm" c="green.7">
-                    Sliding Scale Discount:
+        {selectedTickets.length > 0 ? (
+          <Stack gap="sm">
+            {/* Individual Ticket Line Items */}
+            {selectedTickets.map((ticket) => {
+              const price = ticketPrices[ticket.id || ''] || 0;
+              return (
+                <Group key={ticket.id} justify="space-between" align="center">
+                  <Text size="sm">{ticket.name}:</Text>
+                  <Text size="sm">
+                    {formatCurrency(price)}
                   </Text>
-                  <Badge size="xs" color="green" variant="light">
-                    {calculation.display.percentage}
-                  </Badge>
                 </Group>
-                <Text size="sm" c="green.7">
-                  -{calculation.display.discount}
+              );
+            })}
+
+            {/* Processing Fee */}
+            {processingFee > 0 && (
+              <Group justify="space-between" align="center">
+                <Text size="sm">Processing Fee:</Text>
+                <Text size="sm">
+                  {formatCurrency(processingFee)}
                 </Text>
               </Group>
+            )}
 
-              {detailed && (
-                <Box>
-                  <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
-                    Community discount applied • Honor-based system
-                  </Text>
-                </Box>
-              )}
-            </>
-          )}
+            {/* Divider before total */}
+            <Divider />
 
-          {/* Processing Fee */}
-          {processingFee > 0 && (
+            {/* Total Amount */}
             <Group justify="space-between" align="center">
-              <Text size="sm">Processing Fee:</Text>
-              <Text size="sm">
-                {formatCurrency(processingFee)}
+              <Text fw={700} size="lg" c="#880124">
+                Total:
+              </Text>
+              <Text fw={700} size="xl" c="#880124">
+                {formatCurrency(totalAmount)}
               </Text>
             </Group>
-          )}
-
-          {/* Divider before total */}
-          <Divider />
-
-          {/* Total Amount */}
-          <Group justify="space-between" align="center">
-            <Text fw={700} size="lg" c="#880124">
-              Total:
+          </Stack>
+        ) : (
+          <Box py="md">
+            <Text size="sm" c="dimmed" ta="center">
+              Select tickets to see pricing details
             </Text>
-            <Text fw={700} size="xl" c="#880124">
-              {formatCurrency(totalAmount)}
-            </Text>
-          </Group>
-        </Stack>
-
-        {/* Savings Display */}
-        {calculation.discountAmount > 0 && detailed && (
-          <Paper p="md" radius="sm" bg="rgba(34, 139, 34, 0.1)" withBorder>
-            <Group justify="center" gap="xs">
-              <Text size="sm" fw={500} c="green.8">
-                You're saving {calculation.display.discount} with sliding scale pricing!
-              </Text>
-            </Group>
-          </Paper>
+          </Box>
         )}
 
         {/* Payment Notes */}
@@ -214,7 +202,7 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
               <Text size="xs" c="dimmed">
                 • Registration is confirmed immediately after payment
               </Text>
-              {calculation.discountAmount > 0 && (
+              {calculation && calculation.discountAmount > 0 && (
                 <Text size="xs" c="dimmed">
                   • Sliding scale usage is completely confidential
                 </Text>

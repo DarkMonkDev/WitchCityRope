@@ -101,6 +101,11 @@ export function useCancelRSVP() {
       queryClient.invalidateQueries({
         queryKey: participationKeys.userParticipations()
       });
+
+      // Invalidate admin event participations table
+      queryClient.invalidateQueries({
+        queryKey: ['events', variables.eventId, 'participations']
+      });
     },
     onError: (error: any) => {
       console.error('Failed to cancel RSVP:', error);
@@ -115,7 +120,7 @@ export function useCancelTicket() {
   return useMutation({
     mutationFn: async ({ eventId, reason }: { eventId: string; reason?: string }): Promise<void> => {
       await apiClient.delete(`/api/events/${eventId}/participation`, {
-        params: { reason }
+        params: { type: 'ticket', reason }
       });
     },
     onSuccess: (_, variables) => {
@@ -145,6 +150,11 @@ export function useCancelTicket() {
       // Invalidate user participations to refresh the list
       queryClient.invalidateQueries({
         queryKey: participationKeys.userParticipations()
+      });
+
+      // Invalidate admin event participations table
+      queryClient.invalidateQueries({
+        queryKey: ['events', variables.eventId, 'participations']
       });
     },
     onError: (error: any) => {

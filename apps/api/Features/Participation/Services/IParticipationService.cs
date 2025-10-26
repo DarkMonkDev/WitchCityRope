@@ -1,3 +1,4 @@
+using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Participation.Models;
 using WitchCityRope.Api.Features.Shared.Models;
 
@@ -39,6 +40,7 @@ public interface IParticipationService
     Task<Result> CancelParticipationAsync(
         Guid eventId,
         Guid userId,
+        ParticipationType? participationType = null,
         string? reason = null,
         CancellationToken cancellationToken = default);
 

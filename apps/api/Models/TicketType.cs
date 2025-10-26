@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using WitchCityRope.Models;
 
 namespace WitchCityRope.Api.Models;
 
@@ -36,28 +37,28 @@ public class TicketType
     public string Description { get; set; } = string.Empty;
 
     /// <summary>
-    /// Pricing type: "fixed" for fixed price, "sliding-scale" for pay-what-you-can
+    /// Pricing type: Fixed for fixed price, SlidingScale for pay-what-you-can
     /// </summary>
     [Required]
-    public string PricingType { get; set; } = "fixed";
+    public PricingType PricingType { get; set; } = PricingType.Fixed;
 
     /// <summary>
-    /// Fixed price (used when PricingType is "fixed", null for sliding scale)
+    /// Fixed price (used when PricingType is Fixed, null for sliding scale)
     /// </summary>
     public decimal? Price { get; set; }
 
     /// <summary>
-    /// Minimum price for sliding scale pricing (used when PricingType is "sliding-scale")
+    /// Minimum price for sliding scale pricing (used when PricingType is SlidingScale)
     /// </summary>
     public decimal? MinPrice { get; set; }
 
     /// <summary>
-    /// Maximum price for sliding scale pricing (used when PricingType is "sliding-scale")
+    /// Maximum price for sliding scale pricing (used when PricingType is SlidingScale)
     /// </summary>
     public decimal? MaxPrice { get; set; }
 
     /// <summary>
-    /// Default/suggested price for sliding scale pricing (used when PricingType is "sliding-scale")
+    /// Default/suggested price for sliding scale pricing (used when PricingType is SlidingScale)
     /// </summary>
     public decimal? DefaultPrice { get; set; }
 

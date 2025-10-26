@@ -465,6 +465,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             entity.Property(t => t.Description)
                   .HasMaxLength(500);
 
+            entity.Property(t => t.PricingType)
+                  .IsRequired()
+                  .HasConversion<string>();
+
             entity.Property(t => t.Price)
                   .HasColumnType("decimal(10,2)");
 

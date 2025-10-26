@@ -107,7 +107,7 @@ export const AdminEventDetailsPage: React.FC = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ticketTypes = ((event as any)?.ticketTypes || []).map((tt: any) => {
       // Infer pricingType if not present in API data
-      let pricingType: 'fixed' | 'sliding-scale' = 'fixed';
+      let pricingType: 'Fixed' | 'SlidingScale' = 'Fixed';
       let price: number | undefined;
       let minPrice: number | undefined;
       let maxPrice: number | undefined;
@@ -125,11 +125,11 @@ export const AdminEventDetailsPage: React.FC = () => {
         if (tt.minPrice !== undefined && tt.maxPrice !== undefined) {
           if (tt.minPrice === tt.maxPrice) {
             // Same min and max = fixed price
-            pricingType = 'fixed';
+            pricingType = 'Fixed';
             price = tt.minPrice;
           } else {
             // Different min and max = sliding scale
-            pricingType = 'sliding-scale';
+            pricingType = 'SlidingScale';
             minPrice = tt.minPrice;
             maxPrice = tt.maxPrice;
             defaultPrice = tt.minPrice; // Use minPrice as default if not specified

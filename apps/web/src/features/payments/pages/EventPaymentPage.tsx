@@ -14,10 +14,11 @@ import {
   LoadingOverlay,
   Paper,
   Box,
-  Select
+  Checkbox
 } from '@mantine/core';
 import { IconArrowLeft, IconAlertCircle } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
+import type { components } from '@witchcityrope/shared-types/generated/api-types';
 
 import { SlidingScaleSelector } from '../components/SlidingScaleSelector';
 import { PaymentForm } from '../components/PaymentForm';
@@ -25,9 +26,14 @@ import { PaymentConfirmation } from '../components/PaymentConfirmation';
 import { PaymentSummary } from '../components/PaymentSummary';
 import { usePayment } from '../hooks/usePayment';
 import { useSlidingScale } from '../hooks/useSlidingScale';
+import { usePurchaseTicket } from '../../../lib/api/hooks/usePayments';
 import { eventsManagementService } from '../../../api/services/eventsManagement.service';
 
 import type { PaymentEventInfo } from '../types/payment.types';
+
+// Use generated types from OpenAPI spec
+type EventDto = components["schemas"]["EventDto2"];
+type TicketTypeDto = components["schemas"]["TicketTypeDto"];
 
 /**
  * Main event payment page with complete payment flow
@@ -51,8 +57,10 @@ export const EventPaymentPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [completedPayment, setCompletedPayment] = useState<any | null>(null);
-  const [ticketTypes, setTicketTypes] = useState<any[]>([]);
-  const [selectedTicketTypeId, setSelectedTicketTypeId] = useState<string | null>(null);
+  const [ticketTypes, setTicketTypes] = useState<TicketTypeDto[]>([]);
+  const [selectedTicketTypeIds, setSelectedTicketTypeIds] = useState<string[]>([]);
+  // Track the price for each selected ticket (ticketId -> price)
+  const [ticketPrices, setTicketPrices] = useState<Record<string, number>>({});
 
   // Payment processing
   const { 
@@ -69,6 +77,9 @@ export const EventPaymentPage: React.FC = () => {
     calculation,
     updateDiscountPercentage
   } = useSlidingScale(eventInfo?.basePrice || 0, 0);
+
+  // Ticket purchase mutation
+  const purchaseTicket = usePurchaseTicket();
 
   /**
    * Load event information from API
@@ -87,35 +98,60 @@ export const EventPaymentPage: React.FC = () => {
 
         console.log('EventPaymentPage: Loading event details for eventId:', eventId);
 
-        // Fetch real event data from API
-        const response = await eventsManagementService.getEventDetails(eventId);
-        const eventDetails = response.data;
+        // Fetch real event data from API using generated types
+        const eventDetails: EventDto = await eventsManagementService.getEventDetails(eventId);
 
         console.log('EventPaymentPage: Received event details:', eventDetails);
 
         // Extract ticket types
-        const eventTicketTypes = eventDetails.ticketTypes || [];
+        const eventTicketTypes = eventDetails?.ticketTypes || [];
         setTicketTypes(eventTicketTypes);
 
-        // Set initial selected ticket type (first one or from URL param)
-        const initialTicketTypeId = searchParams.get('ticketTypeId') || eventTicketTypes[0]?.id || null;
-        setSelectedTicketTypeId(initialTicketTypeId);
+        // Auto-select ticket(s): if only one ticket, select it automatically; otherwise use URL param or empty
+        let initialSelectedIds: string[] = [];
+        const initialPrices: Record<string, number> = {};
 
-        // Find selected ticket type for pricing
-        const selectedTicket = eventTicketTypes.find((tt: any) => tt.id === initialTicketTypeId) || eventTicketTypes[0];
+        if (eventTicketTypes.length === 1) {
+          // Only one ticket - auto-select it
+          const ticket = eventTicketTypes[0];
+          initialSelectedIds = [ticket.id || ''];
+          // Set initial price based on ticket type
+          const price = ticket.pricingType === 'Fixed'
+            ? (ticket.price ?? 0)
+            : (ticket.defaultPrice ?? ticket.minPrice ?? 0); // Use default price for sliding scale
+          initialPrices[ticket.id || ''] = price;
+        } else if (searchParams.get('ticketTypeId')) {
+          // URL param provided - select that one
+          const ticketId = searchParams.get('ticketTypeId')!;
+          const ticket = eventTicketTypes.find(t => t.id === ticketId);
+          if (ticket) {
+            initialSelectedIds = [ticketId];
+            const price = ticket.pricingType === 'Fixed'
+              ? (ticket.price ?? 0)
+              : (ticket.defaultPrice ?? ticket.minPrice ?? 0);
+            initialPrices[ticketId] = price;
+          }
+        }
+
+        setSelectedTicketTypeIds(initialSelectedIds);
+        setTicketPrices(initialPrices);
+
+        // Calculate base price from first selected ticket (or first available)
+        const firstSelectedId = initialSelectedIds[0] || eventTicketTypes[0]?.id;
+        const selectedTicket = eventTicketTypes.find((tt) => tt.id === firstSelectedId) || eventTicketTypes[0];
         // Use correct price field based on pricing type
-        const basePrice = selectedTicket?.pricingType === 'fixed'
+        const basePrice = selectedTicket?.pricingType === 'Fixed'
           ? (selectedTicket?.price ?? 0)
           : (selectedTicket?.minPrice ?? 0);
 
         // Transform to PaymentEventInfo format
         const paymentEventInfo: PaymentEventInfo = {
-          id: eventDetails.id,
-          title: eventDetails.title,
-          startDateTime: eventDetails.startDate || new Date().toISOString(),
-          endDateTime: eventDetails.endDate || new Date().toISOString(),
+          id: eventDetails?.id || '',
+          title: eventDetails?.title || '',
+          startDateTime: eventDetails?.startDate || new Date().toISOString(),
+          endDateTime: eventDetails?.endDate || new Date().toISOString(),
           instructorName: 'Instructor TBD', // teacherIds is currently empty in API response
-          location: eventDetails.location || 'TBD',
+          location: eventDetails?.location || 'TBD',
           basePrice,
           currency: 'USD',
           registrationId: registrationId
@@ -123,7 +159,7 @@ export const EventPaymentPage: React.FC = () => {
 
         console.log('EventPaymentPage: Transformed payment event info:', paymentEventInfo);
         console.log('EventPaymentPage: Ticket types:', eventTicketTypes);
-        console.log('EventPaymentPage: Selected ticket type ID:', initialTicketTypeId);
+        console.log('EventPaymentPage: Selected ticket type IDs:', initialSelectedIds);
         setEventInfo(paymentEventInfo);
       } catch (err: any) {
         console.error('EventPaymentPage: Error loading event info:', err);
@@ -144,14 +180,17 @@ export const EventPaymentPage: React.FC = () => {
   /**
    * Handle successful payment
    */
-  const handlePaymentSuccess = (paymentDetails: any) => {
+  const handlePaymentSuccess = async (paymentDetails: any) => {
     console.log('Payment success received:', paymentDetails);
+
+    // Calculate total amount from selected tickets
+    const totalAmount = Object.values(ticketPrices).reduce((sum, price) => sum + price, 0);
 
     // Create payment data object for confirmation page
     const paymentData = {
       id: typeof paymentDetails === 'string' ? paymentDetails : paymentDetails.id,
       transactionId: typeof paymentDetails === 'string' ? paymentDetails : paymentDetails.transactionId || paymentDetails.id,
-      amount: finalAmount,
+      amount: totalAmount,
       currency: 'USD',
       status: 'completed',
       paymentMethod: typeof paymentDetails === 'string' ? 'credit_card' : paymentDetails.method || 'credit_card',
@@ -161,17 +200,54 @@ export const EventPaymentPage: React.FC = () => {
       cardLast4: typeof paymentDetails === 'object' && paymentDetails.cardLast4 ? paymentDetails.cardLast4 : undefined
     };
 
-    // Store the payment data
+    // Store the payment data locally
     setCompletedPayment(paymentData);
 
-    // Move to confirmation step
-    setCurrentStep(2);
+    try {
+      // CRITICAL: Actually create the ticket purchase in the database
+      console.log('🔍 Creating ticket purchase for event:', eventId);
+      console.log('🔍 Payment details:', paymentData);
+      console.log('🔍 Total amount:', totalAmount);
+      console.log('🔍 Selected tickets:', selectedTickets.map(t => ({ id: t.id, name: t.name })));
+      console.log('🔍 Ticket prices:', ticketPrices);
 
-    notifications.show({
-      title: 'Payment Successful!',
-      message: 'Your registration has been confirmed.',
-      color: 'green'
-    });
+      if (!eventId) {
+        throw new Error('Event ID is required');
+      }
+
+      // Create a metadata object with purchase details
+      const metadata = JSON.stringify({
+        paymentMethodId: paymentData.transactionId,
+        purchaseAmount: totalAmount,
+        ticketCount: selectedTickets.length,
+        ticketTypes: selectedTickets.map(t => ({ id: t.id, name: t.name, price: ticketPrices[t.id || ''] })),
+        confirmationNumber: paymentData.confirmationNumber,
+        cardLast4: paymentData.cardLast4
+      });
+
+      // Call the API to create the ticket purchase
+      await purchaseTicket.mutateAsync({
+        eventId: eventId,
+        notes: metadata,
+        paymentMethodId: paymentData.transactionId
+      });
+
+      console.log('✅ Ticket purchase created successfully in database');
+
+      // Move to confirmation step
+      setCurrentStep(2);
+
+      // Note: Success notification is already shown by usePurchaseTicket hook
+    } catch (error: any) {
+      console.error('❌ Failed to create ticket purchase:', error);
+
+      notifications.show({
+        title: 'Purchase Error',
+        message: error?.message || 'Payment succeeded but ticket creation failed. Please contact support.',
+        color: 'red',
+        autoClose: false
+      });
+    }
   };
 
   /**
@@ -222,39 +298,71 @@ export const EventPaymentPage: React.FC = () => {
   };
 
   /**
-   * Determine if selected ticket is fixed price (not sliding scale)
+   * Get all selected tickets
    */
-  const selectedTicket = ticketTypes.find((tt: any) => tt.id === selectedTicketTypeId);
+  const selectedTickets = ticketTypes.filter((tt) => selectedTicketTypeIds.includes(tt.id || ''));
+
+  /**
+   * Determine pricing display based on first selected ticket
+   * If multiple tickets, we'll show a summary instead
+   */
+  const firstSelectedTicket = selectedTickets[0];
 
   // DEBUG: Log the ticket type to see what value it actually has
   console.log('🔍 CHECKOUT DEBUG:');
-  console.log('  - Selected ticket:', selectedTicket);
-  console.log('  - selectedTicket?.pricingType:', selectedTicket?.pricingType);
+  console.log('  - Selected ticket IDs:', selectedTicketTypeIds);
+  console.log('  - Selected tickets:', selectedTickets);
+  console.log('  - First selected ticket:', firstSelectedTicket);
   console.log('  - All ticket types:', ticketTypes);
 
-  const isFixedPrice = selectedTicket?.pricingType === 'fixed';
-  console.log('  - isFixedPrice:', isFixedPrice);
+  // Check if ANY selected ticket has sliding scale pricing
+  const hasAnySlidingScaleTicket = selectedTickets.some(ticket => ticket.pricingType === 'SlidingScale');
+  const firstSlidingTicket = selectedTickets.find(ticket => ticket.pricingType === 'SlidingScale');
+  const isSingleTicketSelected = selectedTickets.length === 1;
+  console.log('  - hasAnySlidingScaleTicket:', hasAnySlidingScaleTicket);
+  console.log('  - firstSlidingTicket:', firstSlidingTicket);
+  console.log('  - isSingleTicketSelected:', isSingleTicketSelected);
 
   /**
-   * Handle ticket type selection change
+   * Handle ticket type checkbox toggle
    */
-  const handleTicketTypeChange = (ticketTypeId: string | null) => {
-    if (!ticketTypeId) return;
+  const handleTicketTypeToggle = (ticketTypeId: string, checked: boolean) => {
+    let newSelectedIds: string[];
+    const newPrices = { ...ticketPrices };
 
-    setSelectedTicketTypeId(ticketTypeId);
+    if (checked) {
+      // Add ticket to selection
+      newSelectedIds = [...selectedTicketTypeIds, ticketTypeId];
 
-    // Update event info with new base price from selected ticket type
-    const selectedTicket = ticketTypes.find((tt: any) => tt.id === ticketTypeId);
-    if (selectedTicket && eventInfo) {
-      // Use correct price field based on pricing type
-      const newBasePrice = selectedTicket.pricingType === 'fixed'
-        ? (selectedTicket.price ?? 0)
-        : (selectedTicket.minPrice ?? 0);
-      setEventInfo({
-        ...eventInfo,
-        basePrice: newBasePrice
-      });
-      updateDiscountPercentage(0); // Reset discount when ticket type changes
+      // Set initial price for this ticket
+      const ticket = ticketTypes.find(tt => tt.id === ticketTypeId);
+      if (ticket) {
+        const price = ticket.pricingType === 'Fixed'
+          ? (ticket.price ?? 0)
+          : (ticket.defaultPrice ?? ticket.minPrice ?? 0);
+        newPrices[ticketTypeId] = price;
+      }
+    } else {
+      // Remove ticket from selection
+      newSelectedIds = selectedTicketTypeIds.filter(id => id !== ticketTypeId);
+      // Remove price for this ticket
+      delete newPrices[ticketTypeId];
+    }
+
+    setSelectedTicketTypeIds(newSelectedIds);
+    setTicketPrices(newPrices);
+
+    // Update event info with base price from first selected ticket
+    if (newSelectedIds.length > 0) {
+      const firstTicket = ticketTypes.find((tt) => tt.id === newSelectedIds[0]);
+      if (firstTicket && eventInfo) {
+        const newBasePrice = newPrices[newSelectedIds[0]] || 0;
+        setEventInfo({
+          ...eventInfo,
+          basePrice: newBasePrice
+        });
+        updateDiscountPercentage(0); // Reset discount when ticket type changes
+      }
     }
   };
 
@@ -320,8 +428,8 @@ export const EventPaymentPage: React.FC = () => {
           }}
         >
           <Stepper.Step
-            label={isFixedPrice ? "Ticket Selection" : "Pricing"}
-            description={isFixedPrice ? "Review ticket details" : "Choose your amount"}
+            label={!hasAnySlidingScaleTicket ? "Ticket Selection" : "Pricing"}
+            description={!hasAnySlidingScaleTicket ? "Review ticket details" : "Choose your amount"}
           />
           <Stepper.Step
             label="Payment"
@@ -341,88 +449,112 @@ export const EventPaymentPage: React.FC = () => {
             {currentStep === 0 && (
               <>
                 {/* Ticket Type Selection */}
-                {ticketTypes.length > 1 && (
+                {ticketTypes.length > 0 && (
                   <Paper p="lg" radius="md" mb="lg" style={{ background: 'var(--mantine-color-gray-0)' }}>
                     <Stack gap="sm">
-                      <Text fw={600} size="lg">Select Ticket Type</Text>
-                      <Select
-                        label="Ticket Type"
-                        placeholder="Choose a ticket type"
-                        value={selectedTicketTypeId}
-                        onChange={handleTicketTypeChange}
-                        data={ticketTypes.map((tt: any) => {
+                      <Text fw={600} size="lg">
+                        {ticketTypes.length === 1 ? 'Ticket' : 'Select Tickets'}
+                      </Text>
+                      <Stack gap="md">
+                        {ticketTypes.map((tt) => {
                           // Format price display based on pricing type
                           let priceDisplay = '';
-                          if (tt.pricingType === 'fixed') {
-                            // Fixed price: show the price field
+                          if (tt.pricingType === 'Fixed') {
                             const price = tt.price ?? 0;
                             priceDisplay = `$${price.toFixed(2)}`;
-                          } else if (tt.pricingType === 'sliding-scale') {
-                            // Sliding scale: show range
+                          } else if (tt.pricingType === 'SlidingScale') {
                             const minPrice = tt.minPrice ?? 0;
                             const maxPrice = tt.maxPrice ?? 0;
                             priceDisplay = `$${minPrice.toFixed(2)} - $${maxPrice.toFixed(2)}`;
                           } else {
-                            // Fallback for unknown pricing type
                             priceDisplay = 'Price TBD';
                           }
 
-                          return {
-                            value: tt.id,
-                            label: `${tt.name} - ${priceDisplay}`
-                          };
+                          const isSelected = selectedTicketTypeIds.includes(tt.id || '');
+                          const showCheckbox = ticketTypes.length > 1;
+
+                          return (
+                            <Paper
+                              key={tt.id || Math.random()}
+                              p="md"
+                              style={{
+                                background: isSelected ? 'rgba(136, 1, 36, 0.05)' : 'white',
+                                border: isSelected
+                                  ? '2px solid var(--mantine-color-wcr-6)'
+                                  : '1px solid var(--mantine-color-gray-3)',
+                                cursor: showCheckbox ? 'pointer' : 'default',
+                              }}
+                              onClick={() => showCheckbox && handleTicketTypeToggle(tt.id, !isSelected)}
+                            >
+                              <Group justify="space-between" wrap="nowrap">
+                                <Group gap="sm" style={{ flex: 1 }}>
+                                  {showCheckbox && (
+                                    <Checkbox
+                                      checked={isSelected}
+                                      onChange={(e) => {
+                                        e.stopPropagation();
+                                        handleTicketTypeToggle(tt.id, e.currentTarget.checked);
+                                      }}
+                                      color="wcr"
+                                    />
+                                  )}
+                                  <Box style={{ flex: 1 }}>
+                                    <Text fw={600} size="md">{tt.name}</Text>
+                                    {tt.sessionIdentifiers && tt.sessionIdentifiers.length > 0 && (
+                                      <Text size="xs" c="dimmed" mt={4}>
+                                        Includes sessions: {tt.sessionIdentifiers.join(', ')}
+                                      </Text>
+                                    )}
+                                  </Box>
+                                </Group>
+                                <Text fw={700} size="lg" c="#880124" style={{ whiteSpace: 'nowrap' }}>
+                                  {priceDisplay}
+                                </Text>
+                              </Group>
+                            </Paper>
+                          );
                         })}
-                        required
-                        styles={{
-                          input: {
-                            borderColor: 'var(--mantine-color-wcr-6)',
-                            '&:focus': {
-                              borderColor: 'var(--mantine-color-wcr-7)',
-                            }
-                          }
-                        }}
-                      />
-                      {/* Show selected ticket details */}
-                      {selectedTicketTypeId && ticketTypes.find((tt: any) => tt.id === selectedTicketTypeId)?.sessionIdentifiers?.length > 0 && (
-                        <Text size="sm" c="dimmed">
-                          Includes sessions: {ticketTypes.find((tt: any) => tt.id === selectedTicketTypeId).sessionIdentifiers.join(', ')}
+                      </Stack>
+                      {selectedTickets.length > 1 && (
+                        <Text size="sm" c="dimmed" mt="xs">
+                          {selectedTickets.length} tickets selected
                         </Text>
                       )}
                     </Stack>
                   </Paper>
                 )}
 
-                {/* Pricing: Fixed Price or Sliding Scale */}
-                {isFixedPrice ? (
-                  // Fixed Price Display
-                  <Paper p="xl" radius="md" style={{
-                    background: 'linear-gradient(135deg, var(--mantine-color-gray-0), var(--mantine-color-gray-1))',
-                    border: '2px solid var(--mantine-color-wcr-6)'
-                  }}>
-                    <Stack gap="md" align="center">
-                      <Text size="xl" fw={600} c="dimmed">Ticket Price</Text>
-                      <Text size="48px" fw={700} c="#880124" style={{ lineHeight: 1 }}>
-                        ${eventInfo.basePrice.toFixed(2)}
-                      </Text>
-                      <Text size="sm" c="dimmed" ta="center">
-                        This is a fixed-price ticket
-                      </Text>
-                    </Stack>
-                  </Paper>
-                ) : (
-                  // Sliding Scale Selector
+                {/* Sliding Scale Selector - only show if any selected ticket has sliding scale */}
+                {hasAnySlidingScaleTicket && firstSlidingTicket && (
                   <SlidingScaleSelector
                     basePrice={eventInfo.basePrice}
                     currency={eventInfo.currency}
                     onAmountChange={(amount, percentage) => {
                       updateDiscountPercentage(percentage);
+                      // Update all sliding scale tickets' prices in real-time
+                      const updatedPrices = { ...ticketPrices };
+                      selectedTickets.forEach(ticket => {
+                        if (ticket.pricingType === 'SlidingScale') {
+                          updatedPrices[ticket.id!] = amount;
+                        }
+                      });
+                      setTicketPrices(updatedPrices);
                     }}
                     title="Choose Your Payment Amount"
                     forceSliding={true}
-                    minPrice={selectedTicket?.minPrice}
-                    maxPrice={selectedTicket?.maxPrice}
-                    defaultPrice={selectedTicket?.defaultPrice}
+                    minPrice={firstSlidingTicket.minPrice}
+                    maxPrice={firstSlidingTicket.maxPrice}
+                    defaultPrice={firstSlidingTicket.defaultPrice}
                   />
+                )}
+
+                {/* Multiple tickets notice */}
+                {selectedTickets.length > 1 && (
+                  <Alert color="blue" variant="light">
+                    <Text size="sm">
+                      You've selected {selectedTickets.length} tickets. {hasAnySlidingScaleTicket && 'The sliding scale amount will apply to all sliding scale tickets.'}
+                    </Text>
+                  </Alert>
                 )}
 
                 <Group justify="flex-end">
@@ -430,20 +562,24 @@ export const EventPaymentPage: React.FC = () => {
                     onClick={handleContinue}
                     size="lg"
                     color="#880124"
+                    disabled={selectedTickets.length === 0}
                     styles={(theme) => ({
                       root: {
-                        background: 'linear-gradient(135deg, #FFB800, #DAA520)',
+                        background: selectedTickets.length === 0
+                          ? 'var(--mantine-color-gray-3)'
+                          : 'linear-gradient(135deg, #FFB800, #DAA520)',
                         border: 'none',
                         borderRadius: '12px 6px 12px 6px',
-                        color: '#2C2C2C',
+                        color: selectedTickets.length === 0 ? 'var(--mantine-color-gray-6)' : '#2C2C2C',
                         fontFamily: 'Montserrat, sans-serif',
                         fontWeight: 600,
                         transition: 'all 0.3s ease',
-                        '&:hover': {
+                        cursor: selectedTickets.length === 0 ? 'not-allowed' : 'pointer',
+                        '&:hover': selectedTickets.length > 0 ? {
                           borderRadius: '6px 12px 6px 12px',
                           boxShadow: '0 4px 12px rgba(255, 191, 0, 0.3)',
                           transform: 'translateY(-1px)'
-                        }
+                        } : {}
                       }
                     })}
                   >
@@ -481,6 +617,8 @@ export const EventPaymentPage: React.FC = () => {
                 <PaymentSummary
                   eventInfo={eventInfo}
                   calculation={calculation}
+                  selectedTickets={selectedTickets}
+                  ticketPrices={ticketPrices}
                   detailed={true}
                 />
               </Box>

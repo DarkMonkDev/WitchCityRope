@@ -17,8 +17,6 @@ interface CreditCardFormProps {
   onCardDataChange: (data: CreditCardData) => void;
   isProcessing: boolean;
   onSubmit: (data: CreditCardData) => void;
-  termsAccepted: boolean;
-  onTermsChange: (accepted: boolean) => void;
 }
 
 /**
@@ -28,9 +26,7 @@ interface CreditCardFormProps {
 export const CreditCardForm: React.FC<CreditCardFormProps> = ({
   cardData,
   onCardDataChange,
-  isProcessing,
-  termsAccepted,
-  onTermsChange
+  isProcessing
 }) => {
   /**
    * Format card number with spaces every 4 digits
@@ -278,66 +274,6 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
           />
         </Box>
       </Group>
-
-      {/* Row 3: Terms & Conditions */}
-      <Box>
-        <Group gap="xs" align="flex-start">
-          <input
-            type="checkbox"
-            id="terms-checkbox"
-            checked={termsAccepted}
-            onChange={(e) => onTermsChange(e.target.checked)}
-            disabled={isProcessing}
-            style={{
-              width: '20px',
-              height: '20px',
-              minWidth: '20px',
-              cursor: isProcessing ? 'not-allowed' : 'pointer',
-              accentColor: 'var(--color-burgundy)',
-              flexShrink: 0
-            }}
-          />
-          <Text
-            component="label"
-            htmlFor="terms-checkbox"
-            size="sm"
-            style={{
-              color: 'var(--color-stone)',
-              lineHeight: 1.6,
-              cursor: isProcessing ? 'not-allowed' : 'pointer',
-              userSelect: 'none',
-              flex: 1
-            }}
-          >
-            I agree to the{' '}
-            <a
-              href="/terms-of-service"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                color: 'var(--color-burgundy)',
-                textDecoration: 'underline'
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              Terms of Service
-            </a>
-            {' '}and{' '}
-            <a
-              href="/refund-policy"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                color: 'var(--color-burgundy)',
-                textDecoration: 'underline'
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              Refund Policy
-            </a>
-          </Text>
-        </Group>
-      </Box>
     </Stack>
   );
 };

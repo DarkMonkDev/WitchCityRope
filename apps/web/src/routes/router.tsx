@@ -166,11 +166,18 @@ export const router = createBrowserRouter([
       },
 
       // Payment system routes (protected)
+      // New checkout route - supports both single and dual parameter patterns
       {
         path: 'checkout/:eventId',
-        element: <CheckoutPage />,
+        element: <EventPaymentPage />,
         loader: authLoader,
       },
+      {
+        path: 'checkout/:eventId/:registrationId',
+        element: <EventPaymentPage />,
+        loader: authLoader,
+      },
+      // Keep alternative test route for development
       {
         path: 'events/:eventId/payment/:registrationId',
         element: <EventPaymentPage />,

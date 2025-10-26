@@ -175,6 +175,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
             onCardDataChange={setCardData}
             isProcessing={isProcessing}
             onSubmit={handleCreditCardSubmit}
+            termsAccepted={termsAccepted}
+            onTermsChange={setTermsAccepted}
           />
         )}
 
@@ -205,72 +207,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
           </Box>
         )}
       </Box>
-
-      {/* Total and Terms */}
-      {paymentMethod === 'card' && (
-        <Paper
-          style={{
-            background: 'var(--color-ivory)',
-            borderRadius: '12px',
-            padding: 'var(--space-lg)',
-            textAlign: 'center',
-            border: '2px solid var(--color-taupe)'
-          }}
-        >
-          <Group justify="space-between" mb="md">
-            <Text style={{ fontSize: '18px', color: 'var(--color-stone)' }}>
-              Total Amount
-            </Text>
-            <Text
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: '36px',
-                fontWeight: 700,
-                color: 'var(--color-burgundy)'
-              }}
-            >
-              ${total.toFixed(2)}
-            </Text>
-          </Group>
-
-          <Divider mb="md" color="var(--color-taupe)" />
-
-          <Group gap="xs" mb="md" style={{ justifyContent: 'center' }}>
-            <input
-              type="checkbox"
-              id="terms"
-              checked={termsAccepted}
-              onChange={(e) => setTermsAccepted(e.target.checked)}
-              style={{
-                width: '16px',
-                height: '16px'
-              }}
-            />
-            <Text size="sm" style={{ color: 'var(--color-stone)', lineHeight: 1.6 }}>
-              I agree to the{' '}
-              <a
-                href="#"
-                style={{
-                  color: 'var(--color-burgundy)',
-                  textDecoration: 'underline'
-                }}
-              >
-                Terms of Service
-              </a>
-              {' '}and{' '}
-              <a
-                href="#"
-                style={{
-                  color: 'var(--color-burgundy)',
-                  textDecoration: 'underline'
-                }}
-              >
-                Refund Policy
-              </a>
-            </Text>
-          </Group>
-        </Paper>
-      )}
 
       {/* Navigation Buttons */}
       <Group justify="space-between">

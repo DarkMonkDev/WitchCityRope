@@ -139,8 +139,8 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
         clientId: paypalClientId,
         currency: eventInfo.currency || 'USD',
         intent: 'capture',
-        "enable-funding": "paylater,venmo",
-        "disable-funding": "card"
+        "enable-funding": "venmo",
+        "disable-funding": "card,paylater"
       }}
     >
       <Box>

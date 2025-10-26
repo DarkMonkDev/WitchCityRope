@@ -9,12 +9,11 @@ import {
   Text,
   Title,
   Alert,
-  Paper,
-  Button
+  Button,
+  Checkbox
 } from '@mantine/core';
 import { IconShieldCheck } from '@tabler/icons-react';
 import { PayPalButton } from './PayPalButton';
-import { PaymentMethodSelector } from './checkout/PaymentMethodSelector';
 import { CreditCardForm } from './checkout/CreditCardForm';
 import { useSlidingScale } from '../hooks/useSlidingScale';
 import { isNonProduction, getPayPalTestCard } from '../../../lib/utils/environment';
@@ -33,22 +32,6 @@ interface PaymentFormProps {
   disabled?: boolean;
 }
 
-// CSS animation for slide-down effect
-const paymentFormStyles = `
-  @keyframes slideDown {
-    from {
-      opacity: 0;
-      max-height: 0;
-      transform: translateY(-10px);
-    }
-    to {
-      opacity: 1;
-      max-height: 2000px;
-      transform: translateY(0);
-    }
-  }
-`;
-
 /**
  * Payment form component with multiple payment methods
  */
@@ -60,7 +43,6 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
   disabled = false
 }) => {
   const [paymentError, setPaymentError] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'paypal'>('paypal');
   const [cardData, setCardData] = useState({
     cardNumber: '',
     cardholderName: '',
@@ -80,7 +62,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
 
   // Auto-fill credit card in dev/staging environment
   useEffect(() => {
-    if (paymentMethod === 'card' && isNonProduction()) {
+    if (isNonProduction()) {
       const testCard = getPayPalTestCard();
       setCardData({
         cardNumber: testCard.cardNumber.match(/.{1,4}/g)?.join(' ') || testCard.cardNumber,
@@ -89,10 +71,9 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
         cvv: testCard.cvv,
         billingZip: testCard.billingZip
       });
-      // Auto-accept terms in dev
-      setTermsAccepted(true);
+      // Don't auto-accept terms - user must manually check
     }
-  }, [paymentMethod]);
+  }, []); // Empty deps - run once on mount
 
   /**
    * Handle successful PayPal payment
@@ -148,38 +129,84 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
   };
 
   return (
-    <>
-      <style>{paymentFormStyles}</style>
-      <Stack gap="lg">
-        {/* Section Title */}
-        <Title order={3} c="#880124">
-          Payment Method
-        </Title>
+    <Stack gap="lg">
+      {/* Section Title */}
+      <Title order={3} c="#880124">
+        Payment Method
+      </Title>
 
-        {/* Payment Method Selector */}
-        <PaymentMethodSelector
-          selectedMethod={paymentMethod}
-          onMethodChange={setPaymentMethod}
+      {/* Credit Card Form */}
+      <Box>
+        <CreditCardForm
+          cardData={cardData}
+          onCardDataChange={setCardData}
+          isProcessing={isProcessing}
+          onSubmit={handleCreditCardSubmit}
         />
 
-        {/* Credit Card Form */}
-        {paymentMethod === 'card' && (
-          <Box
-            style={{
-              overflow: 'hidden',
-              animation: 'slideDown 0.3s ease-out'
-            }}
-          >
-            <CreditCardForm
-              cardData={cardData}
-              onCardDataChange={setCardData}
-              isProcessing={isProcessing}
-              onSubmit={handleCreditCardSubmit}
-              termsAccepted={termsAccepted}
-              onTermsChange={setTermsAccepted}
-            />
+        {/* Terms and Button Row */}
+        <Box mt="lg" mb="sm">
+          <Group justify="space-between" align="center" wrap="nowrap" gap="md">
+            <Group gap="sm" align="center" style={{ flex: 1 }}>
+              <Checkbox
+                id="terms-checkbox"
+                checked={termsAccepted}
+                onChange={(event) => setTermsAccepted(event.currentTarget.checked)}
+                disabled={isProcessing}
+                size="md"
+                color="#880124"
+                styles={{
+                  input: {
+                    cursor: isProcessing ? 'not-allowed' : 'pointer',
+                    border: '2px solid #880124',
+                    '&:checked': {
+                      backgroundColor: '#880124',
+                      borderColor: '#880124'
+                    }
+                  }
+                }}
+              />
+              <Text
+                component="label"
+                htmlFor="terms-checkbox"
+                size="sm"
+                style={{
+                  color: 'var(--color-stone)',
+                  lineHeight: 1.4,
+                  cursor: isProcessing ? 'not-allowed' : 'pointer',
+                  userSelect: 'none'
+                }}
+              >
+                I agree to the{' '}
+                <a
+                  href="/terms-of-service"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    color: 'var(--color-burgundy)',
+                    textDecoration: 'underline'
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Terms of Service
+                </a>
+                {' '}and{' '}
+                <a
+                  href="/refund-policy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    color: 'var(--color-burgundy)',
+                    textDecoration: 'underline'
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Refund Policy
+                </a>
+              </Text>
+            </Group>
 
-            <Group justify="flex-end" mt="md">
+            <Box style={{ flexShrink: 0 }}>
               <Button
                 onClick={() => handleCreditCardSubmit(cardData)}
                 loading={isProcessing}
@@ -187,68 +214,159 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
                 size="lg"
                 styles={{
                   root: {
-                    background: 'linear-gradient(135deg, #FFB800, #DAA520)',
-                    color: '#2C2C2C',
+                    background: termsAccepted
+                      ? 'linear-gradient(135deg, #FFB800, #DAA520)'
+                      : 'linear-gradient(135deg, #CCC, #AAA)',
+                    color: termsAccepted ? '#2C2C2C' : '#666',
                     fontWeight: 600,
                     height: '44px',
-                    paddingTop: '12px',
-                    paddingBottom: '12px',
                     fontSize: '14px',
                     lineHeight: '1.2',
+                    whiteSpace: 'nowrap',
+                    opacity: termsAccepted ? 1 : 0.4,
+                    transition: 'all 0.3s ease',
+                    cursor: termsAccepted ? 'pointer' : 'not-allowed',
                     '&:hover': {
-                      boxShadow: '0 4px 12px rgba(255, 191, 0, 0.3)'
+                      boxShadow: termsAccepted ? '0 4px 12px rgba(255, 191, 0, 0.3)' : 'none'
                     }
                   }
                 }}
               >
-                {isProcessing ? 'Processing Payment...' : 'Complete Purchase'}
+                {isProcessing ? 'Processing...' : 'Pay with Credit Card'}
               </Button>
-            </Group>
-          </Box>
-        )}
+            </Box>
+          </Group>
+        </Box>
+      </Box>
 
-        {/* PayPal Payment Button */}
-        {paymentMethod === 'paypal' && (
-          <Box
+      {/* Divider with "OR" text */}
+      <Box style={{ position: 'relative', textAlign: 'center', margin: '20px 0' }}>
+        <Box style={{
+          position: 'absolute',
+          top: '50%',
+          left: 0,
+          right: 0,
+          height: '1px',
+          background: 'var(--color-taupe)',
+          zIndex: 0
+        }} />
+        <Text
+          size="sm"
+          fw={600}
+          style={{
+            display: 'inline-block',
+            background: 'white',
+            padding: '0 16px',
+            position: 'relative',
+            zIndex: 1,
+            color: 'var(--color-stone)'
+          }}
+        >
+          OR PAY WITH
+        </Text>
+      </Box>
+
+      {/* Second Terms Checkbox for PayPal/Venmo */}
+      <Box mb="md">
+        <Group gap="sm" align="center">
+          <Checkbox
+            id="terms-checkbox-paypal"
+            checked={termsAccepted}
+            onChange={(event) => setTermsAccepted(event.currentTarget.checked)}
+            disabled={isProcessing}
+            size="md"
+            color="#880124"
+            styles={{
+              input: {
+                cursor: isProcessing ? 'not-allowed' : 'pointer',
+                border: '2px solid #880124',
+                '&:checked': {
+                  backgroundColor: '#880124',
+                  borderColor: '#880124'
+                }
+              }
+            }}
+          />
+          <Text
+            component="label"
+            htmlFor="terms-checkbox-paypal"
+            size="sm"
             style={{
-              overflow: 'hidden',
-              animation: 'slideDown 0.3s ease-out'
+              color: 'var(--color-stone)',
+              lineHeight: 1.4,
+              cursor: isProcessing ? 'not-allowed' : 'pointer',
+              userSelect: 'none'
             }}
           >
-            <PayPalButton
-              eventInfo={eventInfo}
-              amount={finalAmount}
-              slidingScalePercentage={discountPercentage}
-              onPaymentSuccess={handlePaymentSuccess}
-              onPaymentError={handlePaymentError}
-              onPaymentCancel={handlePaymentCancel}
-              disabled={disabled}
-            />
-          </Box>
-        )}
+            I agree to the{' '}
+            <a
+              href="/terms-of-service"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: 'var(--color-burgundy)',
+                textDecoration: 'underline'
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              Terms of Service
+            </a>
+            {' '}and{' '}
+            <a
+              href="/refund-policy"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: 'var(--color-burgundy)',
+                textDecoration: 'underline'
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              Refund Policy
+            </a>
+          </Text>
+        </Group>
+      </Box>
 
-        {/* Error Display */}
-        {paymentError && (
-          <Alert color="red" variant="light">
-            <Text size="sm">
-              {paymentError}
-            </Text>
-          </Alert>
-        )}
+      {/* PayPal Payment Buttons - Always Visible */}
+      <Box
+        style={{
+          opacity: termsAccepted ? 1 : 0.4,
+          pointerEvents: termsAccepted ? 'auto' : 'none',
+          transition: 'opacity 0.3s ease'
+        }}
+      >
+        <PayPalButton
+          eventInfo={eventInfo}
+          amount={finalAmount}
+          slidingScalePercentage={discountPercentage}
+          onPaymentSuccess={handlePaymentSuccess}
+          onPaymentError={handlePaymentError}
+          onPaymentCancel={handlePaymentCancel}
+          disabled={disabled || !termsAccepted}
+        />
+      </Box>
 
-        {/* Security Notice */}
-        <Alert
-          icon={<IconShieldCheck />}
-          color="blue"
-          variant="light"
-        >
+      {/* Error Display */}
+      {paymentError && (
+        <Alert color="red" variant="light">
           <Text size="sm">
-            <strong>Secure Payment:</strong> Your payment is processed securely{' '}
-            {paymentMethod === 'card' ? 'through our payment processor' : 'by PayPal'}.
-            We never store your payment information.
+            {paymentError}
           </Text>
         </Alert>
-      </Stack>
-    </>
+      )}
+
+      {/* Security Notice */}
+      <Alert
+        icon={<IconShieldCheck />}
+        color="blue"
+        variant="light"
+      >
+        <Text size="sm">
+          <strong>Secure Payment:</strong> Your payment is processed securely through our payment processor.
+          We never store your payment information.
+        </Text>
+      </Alert>
+    </Stack>
   );
 };

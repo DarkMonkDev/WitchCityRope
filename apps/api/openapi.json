@@ -1276,6 +1276,14 @@
             }
           },
           {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": null
+            }
+          },
+          {
             "name": "reason",
             "in": "query",
             "schema": {
@@ -8401,6 +8409,12 @@
           }
         }
       },
+      "PricingType": {
+        "enum": [
+          "Fixed",
+          "SlidingScale"
+        ]
+      },
       "ProblemDetails": {
         "type": "object",
         "properties": {
@@ -9276,7 +9290,7 @@
             "type": "string"
           },
           "pricingType": {
-            "type": "string"
+            "$ref": "#/components/schemas/PricingType"
           },
           "sessionIdentifiers": {
             "type": "array",
@@ -9284,13 +9298,25 @@
               "type": "string"
             }
           },
+          "price": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
           "minPrice": {
             "type": "number",
-            "format": "double"
+            "format": "double",
+            "nullable": true
           },
           "maxPrice": {
             "type": "number",
-            "format": "double"
+            "format": "double",
+            "nullable": true
+          },
+          "defaultPrice": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
           },
           "quantityAvailable": {
             "type": "integer",
@@ -9396,10 +9422,6 @@
           "capacity": {
             "type": "integer",
             "format": "int32",
-            "nullable": true
-          },
-          "pricingTiers": {
-            "type": "string",
             "nullable": true
           },
           "isPublished": {

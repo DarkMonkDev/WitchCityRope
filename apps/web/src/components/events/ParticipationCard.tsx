@@ -45,6 +45,10 @@ import {
 import { PayPalButton } from '../../features/payments/components/PayPalButton';
 import type { PaymentEventInfo } from '../../features/payments/types/payment.types';
 import { useConfirmPayPalPayment } from '../../lib/api/hooks/usePayments';
+import { PaymentSummary } from '../../features/payments/components/PaymentSummary';
+import type { components } from '@witchcityrope/shared-types/generated/api-types';
+
+type TicketTypeDto = components["schemas"]["TicketTypeDto"];
 
 // Helper function to extract purchase amount from metadata JSON
 const extractAmountFromMetadata = (metadata?: string): number => {
@@ -410,8 +414,8 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
             </Alert>
           )}
 
-          {/* Your Participation Status */}
-          {(validParticipation?.hasRSVP || validParticipation?.hasTicket) && (
+          {/* Your RSVP Status */}
+          {validParticipation?.hasRSVP && !validParticipation?.hasTicket && (
             <Box
               style={{
                 background: 'linear-gradient(135deg, var(--color-success-light) 0%, var(--color-cream) 100%)',
@@ -423,77 +427,90 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
             >
               <Group gap="sm" mb="md">
                 <IconCalendarCheck size={24} color="var(--color-success)" />
-                <Text fw={700} size="lg" c="var(--color-success)">Your Participation Status</Text>
+                <Text fw={700} size="lg" c="var(--color-success)">RSVP Confirmed</Text>
               </Group>
 
-              {validParticipation.hasRSVP && (
-                <Box mb="md">
-                  <Group justify="space-between" align="center" mb="xs">
-                    <Text fw={600} size="md" c="var(--color-charcoal)">RSVP Status</Text>
-                  </Group>
-                  <Text size="sm" c="dimmed" mb="sm">
-                    Registered on {validParticipation.rsvp?.createdAt ?
-                      new Date(validParticipation.rsvp.createdAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      }) : 'Date unavailable'}
-                  </Text>
-                  <Button
-                    variant="light"
-                    color="red"
-                    onClick={() => handleCancelClick('rsvp')}
-                    styles={{
-                      root: {
-                        height: '44px',
-                        paddingTop: '12px',
-                        paddingBottom: '12px',
-                        fontSize: '14px',
-                        lineHeight: '1.2'
-                      }
-                    }}
-                  >
-                    Cancel RSVP
-                  </Button>
-                </Box>
-              )}
+              <Text size="sm" c="dimmed" mb="sm">
+                Registered on {validParticipation.rsvp?.createdAt ?
+                  new Date(validParticipation.rsvp.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  }) : 'Date unavailable'}
+              </Text>
+              <Button
+                variant="light"
+                color="red"
+                onClick={() => handleCancelClick('rsvp')}
+                styles={{
+                  root: {
+                    height: '44px',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    fontSize: '14px',
+                    lineHeight: '1.2'
+                  }
+                }}
+              >
+                Cancel RSVP
+              </Button>
+            </Box>
+          )}
 
-              {validParticipation.hasTicket && (
-                <Box>
-                  <Group justify="space-between" align="center" mb="xs">
-                    <Text fw={600} size="md" c="var(--color-charcoal)">1 Ticket Purchased</Text>
-                  </Group>
-                  <Text size="sm" c="dimmed" mb="xs">
-                    Purchased on {validParticipation.ticket?.createdAt ?
-                      new Date(validParticipation.ticket.createdAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      }) : 'Date unavailable'}
-                  </Text>
-                  {validParticipation.ticket?.amount !== undefined && validParticipation.ticket.amount !== null ? (
-                    <Text size="sm" c="dimmed" mb="sm">
-                      Amount paid: ${validParticipation.ticket.amount}
-                    </Text>
-                  ) : null}
-                  <Button
-                    variant="light"
-                    color="red"
-                    onClick={() => handleCancelClick('ticket')}
-                    styles={{
-                      root: {
-                        height: '44px',
-                        paddingTop: '12px',
-                        paddingBottom: '12px',
-                        fontSize: '14px',
-                        lineHeight: '1.2'
-                      }
-                    }}
-                  >
-                    Cancel Ticket
-                  </Button>
-                </Box>
-              )}
+          {/* Ticket Purchase Summary */}
+          {validParticipation?.hasTicket && (
+            <Box>
+              <PaymentSummary
+                eventInfo={{
+                  id: eventId,
+                  title: eventTitle,
+                  startDateTime: eventStartDateTime || new Date().toISOString(),
+                  endDateTime: eventEndDateTime || new Date().toISOString(),
+                  currency: 'USD',
+                  location: eventLocation,
+                  instructorName: eventInstructor,
+                  basePrice: validParticipation.ticket?.amount || 0,
+                  registrationId: eventId
+                }}
+                selectedTickets={[
+                  {
+                    id: validParticipation.ticket?.id || '',
+                    name: 'Event Ticket',
+                    pricingType: 'Fixed' as const,
+                    sessionIdentifiers: [],
+                    price: validParticipation.ticket?.amount || 0,
+                    minPrice: null,
+                    maxPrice: null,
+                    defaultPrice: null,
+                    quantityAvailable: 0,
+                    salesEndDate: null
+                  } as TicketTypeDto
+                ]}
+                ticketPrices={{
+                  [validParticipation.ticket?.id || '']: validParticipation.ticket?.amount || 0
+                }}
+                detailed={false}
+                title="Your Ticket Purchase"
+              />
+              <Box mt="md">
+                <Button
+                  variant="light"
+                  color="red"
+                  onClick={() => handleCancelClick('ticket')}
+                  fullWidth
+                  styles={{
+                    root: {
+                      height: '44px',
+                      paddingTop: '12px',
+                      paddingBottom: '12px',
+                      fontSize: '14px',
+                      lineHeight: '1.2'
+                    }
+                  }}
+                >
+                  Cancel Ticket
+                </Button>
+              </Box>
             </Box>
           )}
 
@@ -503,26 +520,8 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
               {/* Social Event Pattern: RSVP first, then optional ticket */}
               {eventType === 'social' && (
                 <>
-                  {/* Show RSVP status or button */}
-                  {validParticipation?.hasRSVP ? (
-                    <Box
-                      style={{
-                        background: 'var(--color-success-light)',
-                        borderRadius: '12px',
-                        padding: 'var(--space-md)',
-                        border: '2px solid var(--color-success)',
-                        marginBottom: 'var(--space-md)'
-                      }}
-                    >
-                      <Group gap="sm">
-                        <IconCheck size={20} color="var(--color-success)" />
-                        <Text fw={600} c="var(--color-success)">You're RSVP'd!</Text>
-                      </Group>
-                      <Text size="sm" c="dimmed" mt="xs">
-                        Your spot is confirmed for this event
-                      </Text>
-                    </Box>
-                  ) : (
+                  {/* Show RSVP button only if user hasn't RSVP'd yet */}
+                  {!validParticipation?.hasRSVP && (
                     (() => {
                       const canRSVPCondition = validParticipation?.canRSVP || validParticipation === null || isLoading;
 
@@ -559,14 +558,13 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                     })()
                   )}
 
-                  {/* Show ticket purchase option when:
-                      1. participation allows ticket purchase OR participation is still loading
-                      2. AND user hasn't already purchased a ticket
-                  */}
-                  {(validParticipation?.canPurchaseTicket || (validParticipation === null && !isLoading)) && !validParticipation?.hasTicket && (
+                  {/* Show ticket purchase option when user hasn't purchased a ticket yet */}
+                  {!validParticipation?.hasTicket && (
                     <Box>
                       <Text size="sm" c="dimmed" ta="center" mb="sm">
-                        Support the event with an optional ticket purchase
+                        {validParticipation?.hasRSVP
+                          ? "Support the event with an optional ticket purchase"
+                          : "Purchase a ticket for this event"}
                       </Text>
                       <Button
                         onClick={handleTicketPurchase}

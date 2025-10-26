@@ -1,3 +1,5 @@
+using WitchCityRope.Models;
+
 namespace WitchCityRope.Api.Features.Events.Models;
 
 /// <summary>
@@ -17,9 +19,9 @@ public class TicketTypeDto
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// Pricing type: "fixed" for fixed price, "sliding-scale" for pay-what-you-can
+    /// Pricing type: Fixed for fixed price, SlidingScale for pay-what-you-can
     /// </summary>
-    public string PricingType { get; set; } = "fixed";
+    public PricingType PricingType { get; set; } = PricingType.Fixed;
 
     /// <summary>
     /// List of session identifiers this ticket includes access to
@@ -66,14 +68,14 @@ public class TicketTypeDto
         PricingType = ticketType.PricingType;
 
         // Map pricing fields based on pricing type
-        if (ticketType.PricingType == "sliding-scale")
+        if (ticketType.PricingType == PricingType.SlidingScale)
         {
             MinPrice = ticketType.MinPrice;
             MaxPrice = ticketType.MaxPrice;
             DefaultPrice = ticketType.DefaultPrice;
             Price = null;
         }
-        else // fixed
+        else // Fixed
         {
             Price = ticketType.Price;
             MinPrice = null;

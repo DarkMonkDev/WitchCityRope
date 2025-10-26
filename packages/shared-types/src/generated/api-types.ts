@@ -3242,6 +3242,8 @@ export interface components {
             isManualEntry?: boolean;
             manualEntryData?: components["schemas"]["ManualEntryData"];
         };
+        /** @enum {unknown} */
+        PricingType: "Fixed" | "SlidingScale";
         ProblemDetails: {
             type?: string | null;
             title?: string | null;
@@ -3536,7 +3538,7 @@ export interface components {
         TicketTypeDto: {
             id?: string;
             name?: string;
-            pricingType?: string;
+            pricingType?: components["schemas"]["PricingType"];
             sessionIdentifiers?: string[];
             /** Format: double */
             price?: number | null;

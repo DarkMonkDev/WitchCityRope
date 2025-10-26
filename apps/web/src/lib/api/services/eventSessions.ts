@@ -32,11 +32,13 @@ export interface UpdateEventSessionDto {
   capacity?: number
 }
 
+import type { components } from '@witchcityrope/shared-types'
+
 export interface EventTicketTypeDto {
   id: string
   eventId: string
   name: string
-  pricingType: 'fixed' | 'sliding-scale' // Matches backend enum
+  pricingType: components["schemas"]["PricingType"] // Use generated type from backend
   price?: number // For fixed pricing
   minPrice?: number // For sliding scale
   maxPrice?: number // For sliding scale

@@ -1,5 +1,6 @@
 // Event Session Matrix Types - extends base event types with session functionality
 import type { EventDto } from './events.types';
+import type { components } from '@witchcityrope/shared-types';
 
 // Extended Event DTO with sessions and ticket types
 export interface EventWithSessionsDto {
@@ -29,7 +30,7 @@ export interface EventTicketTypeDto {
   eventId: string;
   name: string;
   description?: string;
-  pricingType: 'fixed' | 'sliding-scale';
+  pricingType: components["schemas"]["PricingType"]; // Use generated type from backend
   price?: number; // For fixed pricing
   minPrice?: number; // For sliding scale
   maxPrice?: number; // For sliding scale

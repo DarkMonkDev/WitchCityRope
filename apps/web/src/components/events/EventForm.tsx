@@ -31,17 +31,33 @@ import {
   type EventParticipationDto,
 } from '../../lib/api/hooks/useEventParticipations'
 
-// Helper function to extract purchase amount from metadata JSON
-const extractAmountFromMetadata = (metadata?: string): number => {
-  if (!metadata) return 0
+// Helper function to extract purchase amount from notes JSON
+const extractAmountFromNotes = (notes?: string): number => {
+  if (!notes) return 0
 
   try {
-    const parsed = JSON.parse(metadata)
-    // Check for different possible field names in the metadata
+    const parsed = JSON.parse(notes)
+    // Check for different possible field names in the notes
     return parsed.purchaseAmount || parsed.amount || parsed.ticketAmount || 0
   } catch (error) {
-    console.error('Failed to parse participation metadata:', metadata, error)
+    // If notes is not JSON, it might be plain text - return 0
     return 0
+  }
+}
+
+// Helper function to extract ticket name from notes JSON
+const extractTicketNameFromNotes = (notes?: string): string => {
+  if (!notes) return 'Standard Ticket'
+
+  try {
+    const parsed = JSON.parse(notes)
+    // Try to get ticket name from ticketTypes array
+    if (parsed.ticketTypes && parsed.ticketTypes.length > 0) {
+      return parsed.ticketTypes[0].name || 'Standard Ticket'
+    }
+    return 'Standard Ticket'
+  } catch (error) {
+    return 'Standard Ticket'
   }
 }
 
@@ -289,7 +305,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       id: ticketType.id,
       name: ticketType.name,
       description: '', // Not stored in grid format currently
-      pricingType: ticketType.pricingType || 'fixed',
+      pricingType: ticketType.pricingType || 'Fixed',
       price: ticketType.price,
       minPrice: ticketType.minPrice,
       maxPrice: ticketType.maxPrice,
@@ -1261,7 +1277,17 @@ export const EventForm: React.FC<EventFormProps> = ({
                           letterSpacing: '1px',
                         }}
                       >
-                        Ticket Type
+                        Ticket Name
+                      </Table.Th>
+                      <Table.Th
+                        style={{
+                          color: 'white',
+                          fontWeight: 600,
+                          textTransform: 'uppercase',
+                          letterSpacing: '1px',
+                        }}
+                      >
+                        Status
                       </Table.Th>
                       <Table.Th
                         style={{
@@ -1308,7 +1334,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                   <Table.Tbody>
                     {participationsLoading ? (
                       <Table.Tr>
-                        <Table.Td colSpan={6}>
+                        <Table.Td colSpan={7}>
                           <Text ta="center" c="dimmed" py="xl">
                             Loading tickets...
                           </Text>
@@ -1316,7 +1342,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                       </Table.Tr>
                     ) : participationsError ? (
                       <Table.Tr>
-                        <Table.Td colSpan={6}>
+                        <Table.Td colSpan={7}>
                           <Text ta="center" c="red" py="xl">
                             Error loading tickets: {participationsError.message}
                           </Text>
@@ -1332,7 +1358,12 @@ export const EventForm: React.FC<EventFormProps> = ({
                               <Text fw={500}>{participation.userSceneName}</Text>
                             </Table.Td>
                             <Table.Td>
-                              <Text size="sm">Standard Ticket</Text>
+                              <Text size="sm">{extractTicketNameFromNotes(participation.notes)}</Text>
+                            </Table.Td>
+                            <Table.Td>
+                              <Text size="sm" c={participation.status === 'Active' ? 'green' : 'red'}>
+                                {participation.status}
+                              </Text>
                             </Table.Td>
                             <Table.Td>
                               <Text size="sm">All Sessions</Text>
@@ -1344,7 +1375,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                             </Table.Td>
                             <Table.Td>
                               <Text size="sm" fw={500}>
-                                ${extractAmountFromMetadata(participation.metadata).toFixed(2)}
+                                ${extractAmountFromNotes(participation.notes).toFixed(2)}
                               </Text>
                             </Table.Td>
                             <Table.Td>

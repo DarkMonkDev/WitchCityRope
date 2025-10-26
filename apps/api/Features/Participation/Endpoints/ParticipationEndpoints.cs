@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Participation.Models;
 using WitchCityRope.Api.Features.Participation.Services;
 using WitchCityRope.Api.Features.Vetting.Services;
@@ -257,6 +258,7 @@ public static class ParticipationEndpoints
                 Guid eventId,
                 IParticipationService participationService,
                 ClaimsPrincipal user,
+                string? type = null,
                 string? reason = null,
                 CancellationToken cancellationToken = default) =>
             {
@@ -268,7 +270,15 @@ public static class ParticipationEndpoints
                         statusCode: 401);
                 }
 
-                var result = await participationService.CancelParticipationAsync(eventId, userId, reason, cancellationToken);
+                // Parse participation type if provided (rsvp, ticket, or null for most recent)
+                ParticipationType? participationType = type?.ToLower() switch
+                {
+                    "rsvp" => ParticipationType.RSVP,
+                    "ticket" => ParticipationType.Ticket,
+                    _ => null
+                };
+
+                var result = await participationService.CancelParticipationAsync(eventId, userId, participationType, reason, cancellationToken);
 
                 if (!result.IsSuccess)
                 {
@@ -354,7 +364,8 @@ public static class ParticipationEndpoints
                         statusCode: 401);
                 }
 
-                var result = await participationService.CancelParticipationAsync(eventId, userId, reason, cancellationToken);
+                // Backward compatibility: explicitly cancel RSVP type
+                var result = await participationService.CancelParticipationAsync(eventId, userId, ParticipationType.RSVP, reason, cancellationToken);
 
                 if (!result.IsSuccess)
                 {

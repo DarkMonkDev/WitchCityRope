@@ -480,10 +480,21 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({
               color: 'var(--color-burgundy)',
             }}
           >
-            {event.capacity && event.registrationCount
-              ? `$${Math.round(((event.capacity - event.registrationCount) / event.capacity) * 50 + 25)}`
-              : '$35-65'}{' '}
-            sliding scale
+            {(() => {
+              // Calculate price display from real ticket types
+              const ticketTypes = (event as any).ticketTypes || [];
+              if (ticketTypes.length === 0) return '$0';
+
+              const prices = ticketTypes.map((t: any) => t.minPrice || t.maxPrice || 0);
+              const minPrice = Math.min(...prices);
+              const maxPrice = Math.max(...prices);
+
+              if (minPrice === maxPrice) {
+                return `$${minPrice.toFixed(2)}`;
+              } else {
+                return `$${minPrice.toFixed(2)}-${maxPrice.toFixed(2)}`;
+              }
+            })()}
           </Text>
 
           <Text
@@ -720,7 +731,21 @@ const EventTableView: React.FC<EventTableViewProps> = ({ events, onEventClick })
                     textAlign: 'center',
                   }}
                 >
-                  $35-65
+                  {(() => {
+                    // Calculate price display from real ticket types
+                    const ticketTypes = (event as any).ticketTypes || [];
+                    if (ticketTypes.length === 0) return '$0';
+
+                    const prices = ticketTypes.map((t: any) => t.minPrice || t.maxPrice || 0);
+                    const minPrice = Math.min(...prices);
+                    const maxPrice = Math.max(...prices);
+
+                    if (minPrice === maxPrice) {
+                      return `$${minPrice.toFixed(2)}`;
+                    } else {
+                      return `$${minPrice.toFixed(2)}-${maxPrice.toFixed(2)}`;
+                    }
+                  })()}
                 </Table.Td>
                 <Table.Td
                   style={{

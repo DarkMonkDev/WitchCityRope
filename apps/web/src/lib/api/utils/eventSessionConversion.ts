@@ -69,12 +69,14 @@ export function convertEventTicketTypeFromDto(dto: EventTicketTypeDto, sessions:
 /**
  * Converts frontend EventTicketType to backend CreateEventTicketTypeDto
  */
+import type { components } from '@witchcityrope/shared-types'
+
 export function convertEventTicketTypeToCreateDto(
-  ticketType: EventTicketType, 
+  ticketType: EventTicketType,
   sessions: EventSession[] = []
 ): {
   name: string
-  pricingType: 'fixed' | 'sliding-scale'
+  pricingType: components["schemas"]["PricingType"]
   price?: number
   minPrice?: number
   maxPrice?: number

@@ -6,6 +6,7 @@ using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Features.Cms;
+using WitchCityRope.Models;
 
 namespace WitchCityRope.Api.Services;
 
@@ -2092,7 +2093,7 @@ The WitchCityRope Vetting Team",
                 {
                     totalPrice = 0;
                 }
-                else if (ticketType.PricingType == "sliding-scale")
+                else if (ticketType.PricingType == PricingType.SlidingScale)
                 {
                     // Random price within sliding scale range
                     var minPrice = ticketType.MinPrice ?? 10m;
@@ -2214,7 +2215,7 @@ The WitchCityRope Vetting Team",
             {
                 // Calculate price based on ticket type
                 decimal purchasePrice;
-                if (paidTicket.PricingType == "sliding-scale")
+                if (paidTicket.PricingType == PricingType.SlidingScale)
                 {
                     purchasePrice = paidTicket.DefaultPrice ?? 20m; // Use default/suggested price
                 }
@@ -2280,7 +2281,7 @@ The WitchCityRope Vetting Team",
                 // Calculate price based on ticket type
                 decimal totalPrice;
                 bool isPaid;
-                if (pastTicketType.PricingType == "sliding-scale")
+                if (pastTicketType.PricingType == PricingType.SlidingScale)
                 {
                     totalPrice = (pastTicketType.DefaultPrice ?? 20m) * 0.5m;
                     isPaid = true;
@@ -2325,7 +2326,7 @@ The WitchCityRope Vetting Team",
                 {
                     price = 0; // Free RSVP or donation
                 }
-                else if (ticketType.PricingType == "sliding-scale")
+                else if (ticketType.PricingType == PricingType.SlidingScale)
                 {
                     // Use default price for sliding scale
                     price = ticketType.DefaultPrice ?? 20m;
@@ -2770,7 +2771,7 @@ The WitchCityRope Vetting Team",
                 Price = 0,
                 Available = eventItem.Capacity,
                 Sold = eventItem.GetCurrentRSVPCount(),
-                PricingType = "fixed"
+                PricingType = PricingType.Fixed
             };
 
             var donationTicket = new TicketType
@@ -2782,7 +2783,7 @@ The WitchCityRope Vetting Team",
                 Price = price,
                 Available = eventItem.Capacity,
                 Sold = eventItem.GetCurrentTicketCount(),
-                PricingType = "fixed"
+                PricingType = PricingType.Fixed
             };
 
             ticketTypesToAdd.Add(rsvpTicket);
@@ -2800,7 +2801,7 @@ The WitchCityRope Vetting Team",
                 Price = price,
                 Available = eventItem.Capacity,
                 Sold = eventItem.GetCurrentAttendeeCount(),
-                PricingType = "fixed"
+                PricingType = PricingType.Fixed
             };
 
             ticketTypesToAdd.Add(regularTicket);
@@ -2850,7 +2851,7 @@ The WitchCityRope Vetting Team",
                 Price = dailyPrice,
                 Available = capacityPerDay,
                 Sold = (int)(capacityPerDay * 0.5), // 50% sold for individual days
-                PricingType = "fixed"
+                PricingType = PricingType.Fixed
             };
 
             ticketTypesToAdd.Add(dayTicket);
@@ -2866,7 +2867,7 @@ The WitchCityRope Vetting Team",
             Price = basePrice,
             Available = eventItem.Capacity,
             Sold = eventItem.GetCurrentAttendeeCount(),
-            PricingType = "fixed"
+            PricingType = PricingType.Fixed
         };
 
         ticketTypesToAdd.Add(fullEventTicket);
@@ -3134,7 +3135,7 @@ The WitchCityRope Vetting Team",
                 Price = 0,
                 Available = session.Capacity,
                 Sold = eventItem.GetCurrentRSVPCount(),
-                PricingType = "fixed"
+                PricingType = PricingType.Fixed
             };
 
             var donationTicket = new TicketType
@@ -3149,7 +3150,7 @@ The WitchCityRope Vetting Team",
                 DefaultPrice = 20m,
                 Available = session.Capacity,
                 Sold = eventItem.GetCurrentTicketCount(),
-                PricingType = "sliding-scale"
+                PricingType = PricingType.SlidingScale
             };
 
             ticketTypesToAdd.Add(rsvpTicket);
@@ -3167,7 +3168,7 @@ The WitchCityRope Vetting Team",
                 Price = price,
                 Available = session.Capacity,
                 Sold = eventItem.GetCurrentAttendeeCount(),
-                PricingType = "fixed"
+                PricingType = PricingType.Fixed
             };
 
             ticketTypesToAdd.Add(regularTicket);
@@ -3196,7 +3197,7 @@ The WitchCityRope Vetting Team",
                     Price = 0,
                     Available = session.Capacity,
                     Sold = (int)(session.Capacity * 0.3), // 30% sold on average
-                    PricingType = "fixed"
+                    PricingType = PricingType.Fixed
                 };
 
                 ticketTypesToAdd.Add(rsvpTicket);
@@ -3215,7 +3216,7 @@ The WitchCityRope Vetting Team",
                 DefaultPrice = 20m,
                 Available = eventItem.Capacity,
                 Sold = eventItem.GetCurrentAttendeeCount(),
-                PricingType = "sliding-scale"
+                PricingType = PricingType.SlidingScale
             };
 
             ticketTypesToAdd.Add(fullEventTicket);
@@ -3237,7 +3238,7 @@ The WitchCityRope Vetting Team",
                     Price = dailyPrice,
                     Available = session.Capacity,
                     Sold = (int)(session.Capacity * 0.3), // 30% sold on average
-                    PricingType = "fixed"
+                    PricingType = PricingType.Fixed
                 };
 
                 ticketTypesToAdd.Add(dayTicket);
@@ -3253,7 +3254,7 @@ The WitchCityRope Vetting Team",
                 Price = basePrice,
                 Available = eventItem.Capacity,
                 Sold = eventItem.GetCurrentAttendeeCount(),
-                PricingType = "fixed"
+                PricingType = PricingType.Fixed
             };
 
             ticketTypesToAdd.Add(fullEventTicket);

@@ -95,6 +95,24 @@ export const EventDetailPage: React.FC = () => {
   // Determine event type based on event data
   const eventType = (event as any)?.eventType?.toLowerCase() === 'social' ? 'social' : 'class';
 
+  // Find the appropriate ticket price - prefer "All Sessions" ticket if available
+  const getTicketPrice = () => {
+    const ticketTypes = (event as any)?.ticketTypes || [];
+    if (ticketTypes.length === 0) return 50; // Default fallback
+
+    // Look for "All" sessions ticket (e.g., "All 2 Days", "All Sessions")
+    const allSessionsTicket = ticketTypes.find((tt: any) =>
+      tt.name?.toLowerCase().includes('all')
+    );
+
+    if (allSessionsTicket) {
+      return allSessionsTicket.minPrice || allSessionsTicket.maxPrice || 50;
+    }
+
+    // Fall back to first ticket type
+    return ticketTypes[0]?.minPrice || ticketTypes[0]?.maxPrice || 50;
+  };
+
   // DEBUG: Log event type determination
   console.log('🔍 EventDetailPage DEBUG:');
   console.log('  - event.eventType:', (event as any)?.eventType);
@@ -354,7 +372,8 @@ export const EventDetailPage: React.FC = () => {
             onRSVP={handleRSVP}
             onPurchaseTicket={handlePurchaseTicket}
             onCancel={handleCancel}
-            ticketPrice={(event as any)?.capacity ? Math.round(50 + (availableSpots / (event as any).capacity) * 25) : 50}
+            ticketPrice={getTicketPrice()}
+            ticketTypes={(event as any)?.ticketTypes || []}
             eventStartDateTime={(event as any)?.startDate}
             eventEndDateTime={(event as any)?.endDate}
             eventInstructor={(event as any)?.instructor}

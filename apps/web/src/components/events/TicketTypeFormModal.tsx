@@ -3,12 +3,15 @@ import { Modal, TextInput, NumberInput, Group, Button, Stack, MultiSelect, Texta
 import { DateInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { IconAlertCircle } from '@tabler/icons-react';
+import type { components } from '@witchcityrope/shared-types';
+import type { EventSession } from './EventSessionsGrid';
+
 // Define the modal's own EventTicketType interface
 export interface EventTicketType {
   id: string;
   name: string;
   description: string;
-  pricingType: 'fixed' | 'sliding-scale'; // Fixed price or sliding scale
+  pricingType: components["schemas"]["PricingType"]; // Use generated type from backend
   price?: number; // For fixed price tickets
   minPrice?: number; // For sliding scale tickets
   maxPrice?: number; // For sliding scale tickets
@@ -19,7 +22,6 @@ export interface EventTicketType {
   allowMultiplePurchase: boolean;
   saleEndDate?: Date;
 }
-import type { EventSession } from './EventSessionsGrid';
 
 interface TicketTypeFormModalProps {
   opened: boolean;
@@ -40,7 +42,7 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
     initialValues: {
       name: '',
       description: '',
-      pricingType: 'fixed' as 'fixed' | 'sliding-scale',
+      pricingType: 'Fixed' as components["schemas"]["PricingType"],
       price: 0,
       minPrice: 0,
       maxPrice: 0,
@@ -54,14 +56,14 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
     validate: {
       name: (value) => (!value ? 'Ticket name is required' : null),
       price: (value, values) => {
-        if (values.pricingType === 'fixed') {
+        if (values.pricingType === 'Fixed') {
           if (value < 0) return 'Price cannot be negative';
           if (value > 9999) return 'Price cannot exceed $9,999';
         }
         return null;
       },
       minPrice: (value, values) => {
-        if (values.pricingType === 'sliding-scale') {
+        if (values.pricingType === 'SlidingScale') {
           if (value < 0) return 'Min price cannot be negative';
           if (value > 9999) return 'Min price cannot exceed $9,999';
           if (value > values.maxPrice) return 'Min price cannot be greater than max price';
@@ -69,7 +71,7 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
         return null;
       },
       maxPrice: (value, values) => {
-        if (values.pricingType === 'sliding-scale') {
+        if (values.pricingType === 'SlidingScale') {
           if (value < 0) return 'Max price cannot be negative';
           if (value > 9999) return 'Max price cannot exceed $9,999';
           if (value < values.minPrice) return 'Max price cannot be less than min price';
@@ -77,7 +79,7 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
         return null;
       },
       defaultPrice: (value, values) => {
-        if (values.pricingType === 'sliding-scale') {
+        if (values.pricingType === 'SlidingScale') {
           if (value < values.minPrice) return 'Default price cannot be less than min price';
           if (value > values.maxPrice) return 'Default price cannot be greater than max price';
         }
@@ -100,10 +102,10 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
       name: values.name,
       description: values.description,
       pricingType: values.pricingType,
-      price: values.pricingType === 'fixed' ? values.price : undefined,
-      minPrice: values.pricingType === 'sliding-scale' ? values.minPrice : undefined,
-      maxPrice: values.pricingType === 'sliding-scale' ? values.maxPrice : undefined,
-      defaultPrice: values.pricingType === 'sliding-scale' ? values.defaultPrice : undefined,
+      price: values.pricingType === 'Fixed' ? values.price : undefined,
+      minPrice: values.pricingType === 'SlidingScale' ? values.minPrice : undefined,
+      maxPrice: values.pricingType === 'SlidingScale' ? values.maxPrice : undefined,
+      defaultPrice: values.pricingType === 'SlidingScale' ? values.defaultPrice : undefined,
       sessionsIncluded: values.sessionsIncluded,
       quantityAvailable: values.quantityAvailable,
       quantitySold: values.quantitySold,
@@ -220,7 +222,7 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
         form.setValues({
           name: ticketType.name,
           description: ticketType.description || '',
-          pricingType: ticketType.pricingType || 'fixed',
+          pricingType: ticketType.pricingType || 'Fixed',
           price: ticketType.price || 0,
           minPrice: ticketType.minPrice || 0,
           maxPrice: ticketType.maxPrice || 0,
@@ -289,17 +291,17 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
             </Text>
             <Radio.Group
               value={form.values.pricingType}
-              onChange={(value) => form.setFieldValue('pricingType', value as 'fixed' | 'sliding-scale')}
+              onChange={(value) => form.setFieldValue('pricingType', value as components["schemas"]["PricingType"])}
             >
               <Group mt="xs">
-                <Radio value="fixed" label="Fixed Price" />
-                <Radio value="sliding-scale" label="Sliding Scale (Pay What You Can)" />
+                <Radio value="Fixed" label="Fixed Price" />
+                <Radio value="SlidingScale" label="Sliding Scale (Pay What You Can)" />
               </Group>
             </Radio.Group>
           </div>
 
           {/* Conditional Pricing Fields */}
-          {form.values.pricingType === 'fixed' ? (
+          {form.values.pricingType === 'Fixed' ? (
             <Group grow>
               <NumberInput
                 label="Price ($)"

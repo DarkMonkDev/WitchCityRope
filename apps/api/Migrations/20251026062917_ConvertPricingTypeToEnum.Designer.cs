@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WitchCityRope.Api.Data;
@@ -11,9 +12,11 @@ using WitchCityRope.Api.Data;
 namespace WitchCityRope.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251026062917_ConvertPricingTypeToEnum")]
+    partial class ConvertPricingTypeToEnum
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -772,13 +775,13 @@ namespace WitchCityRope.Api.Migrations
                     b.HasIndex("EventId", "Status")
                         .HasDatabaseName("IX_EventParticipations_EventId_Status");
 
+                    b.HasIndex("UserId", "EventId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_EventParticipations_User_Event_Active")
+                        .HasFilter("\"Status\" = 1");
+
                     b.HasIndex("UserId", "Status")
                         .HasDatabaseName("IX_EventParticipations_UserId_Status");
-
-                    b.HasIndex("UserId", "EventId", "ParticipationType")
-                        .IsUnique()
-                        .HasDatabaseName("UQ_EventParticipations_User_Event_Type_Active")
-                        .HasFilter("\"Status\" = 1");
 
                     b.ToTable("EventParticipations", "public", t =>
                         {

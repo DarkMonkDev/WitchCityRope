@@ -14,14 +14,19 @@ export function usePurchaseTicket() {
       paymentsService.purchaseTicket(request),
 
     onSuccess: (data, variables) => {
-      // Invalidate participation data to refresh UI
+      // Invalidate participation data to refresh UI (event details page)
       queryClient.invalidateQueries({
-        queryKey: ['events', variables.eventId, 'participation']
+        queryKey: ['participation', 'event', variables.eventId]
       });
 
-      // Invalidate user participations list
+      // Invalidate user participations list (dashboard)
       queryClient.invalidateQueries({
-        queryKey: ['user', 'participations']
+        queryKey: ['participation', 'user']
+      });
+
+      // Invalidate admin event participations table
+      queryClient.invalidateQueries({
+        queryKey: ['events', variables.eventId, 'participations']
       });
 
       // Show success notification
@@ -87,15 +92,20 @@ export function useConfirmPayPalPayment() {
       const eventId = variables.paymentDetails?.purchase_units?.[0]?.custom_id || '';
 
       if (eventId) {
-        // Invalidate participation data to refresh UI
+        // Invalidate participation data to refresh UI (event details page)
         queryClient.invalidateQueries({
-          queryKey: ['events', eventId, 'participation']
+          queryKey: ['participation', 'event', eventId]
+        });
+
+        // Invalidate admin event participations table
+        queryClient.invalidateQueries({
+          queryKey: ['events', eventId, 'participations']
         });
       }
 
-      // Invalidate user participations list
+      // Invalidate user participations list (dashboard)
       queryClient.invalidateQueries({
-        queryKey: ['user', 'participations']
+        queryKey: ['participation', 'user']
       });
 
       // Show success notification
