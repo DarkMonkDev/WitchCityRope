@@ -94,7 +94,7 @@ export const VolunteerEncouragementBox: React.FC<VolunteerEncouragementBoxProps>
             }
           }}
         >
-          View Volunteer Positions
+          View Volunteer Spots
         </Button>
       </Stack>
     </Paper>
