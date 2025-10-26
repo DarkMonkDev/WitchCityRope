@@ -24,6 +24,8 @@ import { useNavigate } from 'react-router-dom';
 import { UserDashboard } from '../../features/dashboard/components/UserDashboard';
 import { MembershipStatistics } from '../../features/dashboard/components/MembershipStatistics';
 import { UserParticipations } from '../../components/dashboard/UserParticipations';
+import { UserVolunteerShifts, VolunteerShiftWithEvent } from '../../components/dashboard/UserVolunteerShifts';
+import { useUserVolunteerShifts } from '../../features/volunteers/hooks/useVolunteerPositions';
 import { useDashboardData, useDashboardError } from '../../features/dashboard/hooks/useDashboard';
 
 /**
@@ -40,8 +42,32 @@ export const DashboardPage: React.FC = () => {
     data,
     refetchAll
   } = useDashboardData(3);
-  
+
   const dashboardError = useDashboardError(error);
+
+  // Fetch user's volunteer shifts with event details
+  const {
+    data: volunteerShiftsResponse,
+    isLoading: volunteerLoading,
+    error: volunteerError
+  } = useUserVolunteerShifts();
+
+  // Transform UserVolunteerShiftDto to dashboard format
+  const volunteerShifts: VolunteerShiftWithEvent[] = React.useMemo(() => {
+    if (!volunteerShiftsResponse || !Array.isArray(volunteerShiftsResponse)) return [];
+
+    return volunteerShiftsResponse.map((shift) => ({
+      id: shift.signupId || '',
+      eventId: '', // Note: Backend doesn't provide eventId in UserVolunteerShiftDto yet
+      eventTitle: shift.eventTitle || 'Event',
+      eventStartDate: shift.eventDate || new Date().toISOString(),
+      eventLocation: shift.eventLocation || 'TBD',
+      positionTitle: shift.positionTitle || 'Volunteer',
+      sessionName: shift.sessionName || undefined,
+      sessionStartTime: shift.shiftStartTime || undefined,
+      sessionEndTime: shift.shiftEndTime || undefined
+    }));
+  }, [volunteerShiftsResponse]);
 
 
   // Global loading state
@@ -144,6 +170,14 @@ export const DashboardPage: React.FC = () => {
           <Box style={{ gridColumn: 'span 2' }}>
             <Stack gap="lg">
               <UserDashboard />
+
+              {/* Volunteer Shifts Section (if user has upcoming shifts) */}
+              <UserVolunteerShifts
+                shifts={volunteerShifts}
+                isLoading={volunteerLoading}
+                error={volunteerError}
+              />
+
               <UserParticipations
                 limit={3}
                 showPastEvents={false}

@@ -643,9 +643,29 @@ export interface paths {
         put?: never;
         /**
          * Sign up for a volunteer position
-         * @description Sign up for a volunteer position. Requires authentication. Automatically RSVPs user to the event if not already registered.
+         * @description Sign up for a volunteer position. Requires authentication. Automatically RSVPs user to social events if not already registered.
          */
         post: operations["SignupForVolunteerPosition"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/user/volunteer-shifts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get user's upcoming volunteer shifts
+         * @description Returns list of upcoming events where the user has signed up to volunteer. Includes event details, position title, and shift times.
+         */
+        get: operations["GetUserVolunteerShifts"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2263,6 +2283,15 @@ export interface components {
             /** Format: date-time */
             timestamp?: string;
         };
+        ApiResponseOfListOfUserVolunteerShiftDto: {
+            success?: boolean;
+            data?: components["schemas"]["UserVolunteerShiftDto"][] | null;
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
         ApiResponseOfListOfVolunteerAssignmentDto: {
             success?: boolean;
             data?: components["schemas"]["VolunteerAssignmentDto"][] | null;
@@ -3748,6 +3777,20 @@ export interface components {
             discordName?: string | null;
             realName?: string | null;
         };
+        UserVolunteerShiftDto: {
+            /** Format: uuid */
+            signupId?: string;
+            eventTitle?: string;
+            eventLocation?: string;
+            /** Format: date-time */
+            eventDate?: string;
+            positionTitle?: string;
+            sessionName?: string | null;
+            /** Format: date-time */
+            shiftStartTime?: string | null;
+            /** Format: date-time */
+            shiftEndTime?: string | null;
+        };
         ValidationProblemDetails: {
             type?: string | null;
             title?: string | null;
@@ -5115,6 +5158,7 @@ export interface operations {
     CancelParticipation: {
         parameters: {
             query?: {
+                type?: string;
                 reason?: string;
             };
             header?: never;
@@ -5508,6 +5552,40 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetUserVolunteerShifts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfListOfUserVolunteerShiftDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };

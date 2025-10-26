@@ -17,6 +17,8 @@ import { useCurrentUser } from '../../lib/api/hooks/useAuth';
 import type { EventDto } from '../../lib/api/types/events.types';
 import { useVolunteerPositions } from '../../features/volunteers/hooks/useVolunteerPositions';
 import { VolunteerPositionCard } from '../../features/volunteers/components/VolunteerPositionCard';
+import { VolunteerEncouragementBox } from '../../components/events/VolunteerEncouragementBox';
+import { UserVolunteerShifts } from '../../components/events/UserVolunteerShifts';
 import styles from './EventDetailPage.module.css';
 
 export const EventDetailPage: React.FC = () => {
@@ -118,6 +120,35 @@ export const EventDetailPage: React.FC = () => {
   console.log('🔍 EventDetailPage DEBUG:');
   console.log('  - event.eventType:', (event as any)?.eventType);
   console.log('  - determined eventType:', eventType);
+
+  // Determine volunteer box visibility
+  const hasVolunteerPositions = Array.isArray(volunteerPositions) && volunteerPositions.length > 0;
+  const userVolunteerPositions = Array.isArray(volunteerPositions)
+    ? volunteerPositions.filter(p => p.hasUserSignedUp === true)
+    : [];
+  const hasUserVolunteered = userVolunteerPositions.length > 0;
+  const isEventFull = availableSpots <= 0;
+  const hasParticipation = participation?.hasRSVP || participation?.hasTicket;
+  const isAuthenticated = !!currentUser;
+
+  // Show volunteer encouragement if:
+  // - User is logged in
+  // - User has NOT already volunteered
+  // - Event has volunteer positions available
+  // - NOT (event is full AND user doesn't have RSVP/ticket)
+  const showVolunteerEncouragement =
+    isAuthenticated &&
+    !hasUserVolunteered &&
+    hasVolunteerPositions &&
+    !(isEventFull && !hasParticipation);
+
+  // Scroll to volunteer section
+  const handleScrollToVolunteers = () => {
+    const volunteerSection = document.getElementById('volunteer-opportunities-section');
+    if (volunteerSection) {
+      volunteerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   return (
     <Box data-testid="event-details" style={{ background: 'var(--color-cream)', minHeight: '100vh' }}>
@@ -293,19 +324,21 @@ export const EventDetailPage: React.FC = () => {
 
           {/* Volunteer Positions */}
           {volunteerPositions && Array.isArray(volunteerPositions) && volunteerPositions.length > 0 && (
-            <ContentSection title="Volunteer Opportunities">
-              <Stack gap="md">
-                <Text size="sm" c="dimmed" mb="sm">
-                  Help make this event a success! Sign up for a volunteer position and you'll automatically be RSVPed to the event.
-                </Text>
-                {volunteerPositions.map((position) => (
-                  <VolunteerPositionCard
-                    key={position.id}
-                    position={position}
-                  />
-                ))}
-              </Stack>
-            </ContentSection>
+            <div id="volunteer-opportunities-section">
+              <ContentSection title="Volunteer Opportunities">
+                <Stack gap="md">
+                  <Text size="sm" c="dimmed" mb="sm">
+                    Help make this event a success! Sign up for a volunteer position and you'll automatically be RSVPed to the event.
+                  </Text>
+                  {volunteerPositions.map((position) => (
+                    <VolunteerPositionCard
+                      key={position.id}
+                      position={position}
+                    />
+                  ))}
+                </Stack>
+              </ContentSection>
+            </div>
           )}
 
           {/* Policies */}
@@ -324,24 +357,37 @@ export const EventDetailPage: React.FC = () => {
           )}
         </Stack>
 
-        {/* Right Column - Participation Card */}
+        {/* Right Column - Participation Card and Volunteer Boxes */}
         <Box style={{ position: 'sticky', top: '100px', height: 'fit-content' }}>
-          <ParticipationCard
-            eventId={id!}
-            eventTitle={(event as any)?.title || 'Event'}
-            eventType={eventType}
-            participation={participation}
-            isLoading={participationLoading || createRSVPMutation.isPending || cancelRSVPMutation.isPending || cancelTicketMutation.isPending}
-            onRSVP={handleRSVP}
-            onPurchaseTicket={handlePurchaseTicket}
-            onCancel={handleCancel}
-            ticketPrice={getTicketPrice()}
-            ticketTypes={(event as any)?.ticketTypes || []}
-            eventStartDateTime={(event as any)?.startDate}
-            eventEndDateTime={(event as any)?.endDate}
-            eventInstructor={(event as any)?.instructor}
-            eventLocation={(event as any)?.location}
-          />
+          <Stack gap="lg">
+            {/* Participation Card */}
+            <ParticipationCard
+              eventId={id!}
+              eventTitle={(event as any)?.title || 'Event'}
+              eventType={eventType}
+              participation={participation}
+              isLoading={participationLoading || createRSVPMutation.isPending || cancelRSVPMutation.isPending || cancelTicketMutation.isPending}
+              onRSVP={handleRSVP}
+              onPurchaseTicket={handlePurchaseTicket}
+              onCancel={handleCancel}
+              ticketPrice={getTicketPrice()}
+              ticketTypes={(event as any)?.ticketTypes || []}
+              eventStartDateTime={(event as any)?.startDate}
+              eventEndDateTime={(event as any)?.endDate}
+              eventInstructor={(event as any)?.instructor}
+              eventLocation={(event as any)?.location}
+            />
+
+            {/* Volunteer Encouragement Box (if user hasn't volunteered) */}
+            {showVolunteerEncouragement && (
+              <VolunteerEncouragementBox onScrollToVolunteers={handleScrollToVolunteers} />
+            )}
+
+            {/* User's Volunteer Shifts (if user has volunteered) */}
+            {hasUserVolunteered && userVolunteerPositions.length > 0 && (
+              <UserVolunteerShifts positions={userVolunteerPositions} />
+            )}
+          </Stack>
         </Box>
       </Container>
     </Box>

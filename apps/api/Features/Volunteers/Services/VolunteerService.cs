@@ -186,27 +186,41 @@ public class VolunteerService
             // Update slots filled count
             position.SlotsFilled++;
 
-            // Auto-RSVP user to the event if not already registered
+            // Auto-RSVP user to the event if it's a social event and they're not already registered
+            // Only social events use RSVPs - class/workshop events require ticket purchases
             var eventId = position.EventId;
-            var existingParticipation = await _context.EventParticipations
-                .FirstOrDefaultAsync(ep => ep.EventId == eventId
-                    && ep.UserId == userGuid
-                    && ep.Status == ParticipationStatus.Active, cancellationToken);
 
-            if (existingParticipation == null)
+            if (position.Event?.EventType == Enums.EventType.Social)
             {
-                var participation = new EventParticipation
-                {
-                    Id = Guid.NewGuid(),
-                    EventId = eventId,
-                    UserId = userGuid,
-                    ParticipationType = ParticipationType.RSVP,
-                    Status = ParticipationStatus.Active,
-                    CreatedAt = DateTime.UtcNow
-                };
+                var existingParticipation = await _context.EventParticipations
+                    .FirstOrDefaultAsync(ep => ep.EventId == eventId
+                        && ep.UserId == userGuid
+                        && ep.Status == ParticipationStatus.Active, cancellationToken);
 
-                _context.EventParticipations.Add(participation);
-                _logger.LogInformation("Auto-RSVPed user {UserId} to event {EventId} after volunteer signup", userId, eventId);
+                if (existingParticipation == null)
+                {
+                    var participation = new EventParticipation
+                    {
+                        Id = Guid.NewGuid(),
+                        EventId = eventId,
+                        UserId = userGuid,
+                        ParticipationType = ParticipationType.RSVP,
+                        Status = ParticipationStatus.Active,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    _context.EventParticipations.Add(participation);
+                    _logger.LogInformation("Auto-RSVPed user {UserId} to social event {EventId} after volunteer signup", userId, eventId);
+                }
+                else
+                {
+                    _logger.LogInformation("User {UserId} already has active participation for event {EventId}, skipping auto-RSVP", userId, eventId);
+                }
+            }
+            else
+            {
+                _logger.LogInformation("Skipping auto-RSVP for user {UserId} - Event {EventId} is not a social event (type: {EventType})",
+                    userId, eventId, position.Event?.EventType);
             }
 
             await _context.SaveChangesAsync(cancellationToken);
@@ -236,6 +250,64 @@ public class VolunteerService
         {
             _logger.LogError(ex, "Error signing up user {UserId} for volunteer position {PositionId}", userId, positionId);
             return (false, null, "Failed to sign up for volunteer position");
+        }
+    }
+
+    /// <summary>
+    /// Get user's upcoming volunteer shifts for dashboard
+    /// </summary>
+    public async Task<(bool success, List<UserVolunteerShiftDto>? shifts, string? error)> GetUserVolunteerShiftsAsync(
+        string userId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (!Guid.TryParse(userId, out var userGuid))
+            {
+                return (false, null, "Invalid user ID format");
+            }
+
+            // Get user's confirmed volunteer signups for upcoming events
+            var shifts = await _context.VolunteerSignups
+                .AsNoTracking()
+                .Include(vs => vs.VolunteerPosition)
+                    .ThenInclude(vp => vp!.Event)
+                .Include(vs => vs.VolunteerPosition)
+                    .ThenInclude(vp => vp!.Session)
+                .Where(vs => vs.UserId == userGuid
+                    && vs.Status == VolunteerSignupStatus.Confirmed
+                    && vs.VolunteerPosition!.Event!.StartDate >= DateTime.UtcNow) // Only upcoming events
+                .OrderBy(vs => vs.VolunteerPosition!.Event!.StartDate)
+                .ToListAsync(cancellationToken);
+
+            // Map to DTOs
+            var shiftDtos = shifts.Select(vs =>
+            {
+                var position = vs.VolunteerPosition!;
+                var eventEntity = position.Event!;
+                var session = position.Session;
+
+                return new UserVolunteerShiftDto
+                {
+                    SignupId = vs.Id,
+                    EventTitle = eventEntity.Title,
+                    EventLocation = eventEntity.Location,
+                    EventDate = eventEntity.StartDate,
+                    PositionTitle = position.Title,
+                    SessionName = session?.Name,
+                    ShiftStartTime = session?.StartTime,
+                    ShiftEndTime = session?.EndTime
+                };
+            }).ToList();
+
+            _logger.LogInformation("Retrieved {Count} upcoming volunteer shifts for user {UserId}", shiftDtos.Count, userId);
+
+            return (true, shiftDtos, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving volunteer shifts for user {UserId}", userId);
+            return (false, null, "Failed to retrieve volunteer shifts");
         }
     }
 }
