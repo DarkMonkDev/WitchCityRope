@@ -211,7 +211,24 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
               <Text size="sm">
                 Signing up for this volunteer position will automatically RSVP you to the event if you haven't already.
               </Text>
-              <Group gap="sm">
+              <Group gap="sm" justify="flex-end">
+                <Button
+                  size="sm"
+                  variant="subtle"
+                  onClick={() => setShowSignupConfirm(false)}
+                  styles={{
+                    root: {
+                      fontWeight: 600,
+                      height: '36px',
+                      paddingTop: '8px',
+                      paddingBottom: '8px',
+                      fontSize: '14px',
+                      lineHeight: '1.2'
+                    }
+                  }}
+                >
+                  Cancel
+                </Button>
                 <Button
                   size="sm"
                   color="blue"
@@ -229,23 +246,6 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
                   }}
                 >
                   Confirm
-                </Button>
-                <Button
-                  size="sm"
-                  variant="subtle"
-                  onClick={() => setShowSignupConfirm(false)}
-                  styles={{
-                    root: {
-                      fontWeight: 600,
-                      height: '36px',
-                      paddingTop: '8px',
-                      paddingBottom: '8px',
-                      fontSize: '14px',
-                      lineHeight: '1.2'
-                    }
-                  }}
-                >
-                  Cancel
                 </Button>
               </Group>
             </Stack>
