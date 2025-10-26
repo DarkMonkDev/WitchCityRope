@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   Container, Stack, Title, Text, Breadcrumbs,
-  Anchor, Alert, Button, Box, Badge, Group, Paper,
+  Anchor, Alert, Button, Box, Group, Paper,
   ActionIcon, List, Avatar, Skeleton, Center
 } from '@mantine/core';
 import {
@@ -259,25 +259,7 @@ export const EventDetailPage: React.FC = () => {
             />
             
             <Box style={{ position: 'relative', zIndex: 1 }}>
-              <Badge
-                size="lg"
-                style={{
-                  background: 'linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%)',
-                  color: 'var(--color-midnight)',
-                  padding: '6px 20px',
-                  borderRadius: '20px',
-                  fontSize: '14px',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '1px',
-                  marginBottom: 'var(--space-md)',
-                  boxShadow: '0 2px 10px rgba(255, 191, 0, 0.3)'
-                }}
-              >
-                Event
-              </Badge>
-
-              <Title 
+              <Title
                 order={1}
                 style={{
                   fontFamily: 'var(--font-heading)',
