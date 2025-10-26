@@ -1,9 +1,9 @@
 # Witch City Rope - Development Progress
 
 ## Current Development Status
-**Last Updated**: 2025-10-24
-**Current Focus**: Critical Bug Fixes ✅ | All Unit Tests Passing ✅
-**Project Status**: ProfilePage production bug fixed, test suite stabilized (404/449 passing)
+**Last Updated**: 2025-10-26
+**Current Focus**: Participation System Fixes ✅ | Cache Invalidation ✅
+**Project Status**: Auto-cancel RSVP, duplicate cards fixed, cache refresh working
 **Next Phase**: E2E test stabilization, Incident Reporting Backend API Implementation
 
 ### Historical Archive
@@ -15,6 +15,87 @@ For complete development history, see:
 > **Note**: During 2025-08-22 canonical document location consolidation, extensive historical development details were moved from this file to maintain focused current status while preserving complete project history.
 
 ## Current Development Sessions
+
+### October 26, 2025: Participation System Fixes & Cache Invalidation ✅
+**Type**: Bug Fixes + Feature Enhancement
+**Status**: ✅ **COMPLETE** - Auto-cancel RSVP, duplicate cards fixed, cache working
+**Time Invested**: ~4 hours
+**Impact**: **HIGH** - Multiple user-facing bugs fixed, improved UX
+
+**🎯 PARTICIPATION SYSTEM IMPROVEMENTS - ALL ISSUES RESOLVED**
+
+**✅ FIXES IMPLEMENTED:**
+
+**1. Auto-Cancel RSVP When Ticket Cancelled** (Backend):
+- **Business Rule**: Canceling ticket now automatically cancels associated RSVP
+- **Location**: `ParticipationService.cs:484-500`
+- **Logic**: When canceling ticket, finds active RSVP for same event/user and cancels it
+- **Files Modified**: ParticipationService.cs, IParticipationService.cs, ParticipationEndpoints.cs
+
+**2. Duplicate Dashboard Cards Fixed** (Backend):
+- **Problem**: User with both RSVP + Ticket saw event twice on dashboard
+- **Root Cause**: `GetUserEventsAsync()` returned one row per participation (not grouped)
+- **Fix**: Added GROUP BY aggregation to return one event per row
+- **Location**: `UserDashboardProfileService.cs:55-88`
+- **Impact**: Dashboard now shows 3 cards instead of 4 for RopeEnthusiast
+
+**3. Ticket/RSVP Cancellation Type Parameter** (Backend):
+- **Problem**: Without `type` param, backend cancelled "most recent" participation (wrong one!)
+- **Fix**: Added `type` query parameter to specify "ticket" or "rsvp"
+- **Location**: `ParticipationEndpoints.cs:261`
+- **Frontend Fix**: `useParticipation.ts:118` now passes `type: 'ticket'`
+
+**4. Admin Tickets Table Improvements** (Frontend):
+- **Fixed**: Status column added (Active/Cancelled with color coding)
+- **Fixed**: Amount Paid extracted from `notes` field instead of `metadata`
+- **Fixed**: Ticket Name extracted from `notes` field
+- **Location**: `EventForm.tsx:34-62, 1244-1380`
+- **Helper Functions**: `extractAmountFromNotes()`, `extractTicketNameFromNotes()`
+
+**5. Cache Invalidation After Purchase** (Frontend - **CRITICAL FIX**):
+- **Problem**: Dashboard/event details didn't refresh after ticket purchase
+- **Root Cause**: Wrong cache keys! Mutation invalidated `['events', eventId, 'participation']` but components use `['participation', 'event', eventId]`
+- **Fix**: Updated cache keys in `usePayments.ts:18-30, 96-109`
+- **Impact**: No more browser refresh needed - UI updates instantly!
+
+**6. Cache Invalidation After Cancellation** (Frontend):
+- **Added**: Admin participations table cache invalidation
+- **Location**: `useParticipation.ts:105-108, 150-153`
+- **Impact**: Admin table refreshes immediately after cancellation
+
+**📦 FILES MODIFIED (9 files):**
+
+**Backend**:
+- `UserDashboardProfileService.cs` - GROUP BY fix for duplicate cards
+- `ParticipationService.cs` - Auto-cancel RSVP logic
+- `IParticipationService.cs` - Updated signature with type parameter
+- `ParticipationEndpoints.cs` - Added type query parameter
+
+**Frontend**:
+- `EventForm.tsx` - Admin table improvements (Status, Amount, Ticket Name)
+- `UserParticipations.tsx` - Active-only filter, grouping by event
+- `useParticipation.ts` - Type parameter + cache invalidation
+- `usePayments.ts` - Fixed cache keys for purchase/PayPal
+
+**Database**:
+- 2 new migrations (PricingType enum, participation unique constraint)
+
+**✅ TESTING VERIFIED:**
+- **Manual Testing**: All fixes verified via browser testing
+- **Dashboard**: Shows correct number of cards (3 not 4)
+- **Purchase Flow**: Instant UI refresh without browser reload
+- **Cancellation**: Ticket + RSVP both cancelled correctly
+- **Admin Table**: Shows accurate status and amounts
+
+**🔑 KEY LEARNINGS:**
+1. **Cache Keys Must Match**: TanStack Query cache invalidation only works if keys match exactly
+2. **GROUP BY for Aggregation**: Essential when multiple rows per entity exist
+3. **Type Parameters**: Explicit type specification prevents "most recent" ambiguity
+4. **Notes vs Metadata**: Payment data stored in `notes` field, not `metadata`
+
+**🚀 STATUS**: All participation issues resolved, ready for continued development
+
+---
 
 ### October 24, 2025: Critical Production Bug Fixes & Test Suite Stabilization ✅
 **Type**: Bug Fixes + Test Infrastructure
