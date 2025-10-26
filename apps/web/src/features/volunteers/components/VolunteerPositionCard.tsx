@@ -150,7 +150,7 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
               {position.description}
             </Text>
 
-            {!position.hasUserSignedUp && !position.isFullyStaffed && (
+            {!position.hasUserSignedUp && !position.isFullyStaffed && isAuthenticated && (
               <Button
                 variant="outline"
                 color="burgundy"
@@ -171,6 +171,29 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
                 }}
               >
                 Sign Up
+              </Button>
+            )}
+
+            {!position.hasUserSignedUp && !position.isFullyStaffed && !isAuthenticated && (
+              <Button
+                component="a"
+                href="/login"
+                variant="outline"
+                color="blue"
+                size="sm"
+                styles={{
+                  root: {
+                    fontWeight: 600,
+                    height: '44px',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    fontSize: '14px',
+                    lineHeight: '1.2',
+                    flexShrink: 0
+                  }
+                }}
+              >
+                Login to Volunteer
               </Button>
             )}
           </Group>
@@ -241,13 +264,6 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
         {position.isFullyStaffed && !position.hasUserSignedUp && (
           <Alert color="gray" variant="light">
             This volunteer position is currently full
-          </Alert>
-        )}
-
-        {/* Not Authenticated State */}
-        {!isAuthenticated && !position.isFullyStaffed && (
-          <Alert color="blue" variant="light">
-            Please log in to sign up for this volunteer position
           </Alert>
         )}
       </Stack>
