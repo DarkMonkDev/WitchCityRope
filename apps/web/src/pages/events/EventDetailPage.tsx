@@ -241,6 +241,7 @@ export const EventDetailPage: React.FC = () => {
               background: 'linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%)',
               borderRadius: '24px',
               padding: 'var(--space-3xl)',
+              paddingBottom: 'var(--space-2xl)',
               position: 'relative',
               overflow: 'hidden'
             }}
@@ -280,7 +281,10 @@ export const EventDetailPage: React.FC = () => {
                 </Group>
                 <Group gap="xs" style={{ color: 'var(--color-dusty-rose)', fontSize: '20px' }}>
                   <IconClock size={20} />
-                  <Text size="lg">{formatEventTime((event as any)?.startDate)}</Text>
+                  <Text size="lg">
+                    {formatEventTime((event as any)?.startDate)}
+                    {(event as any)?.endDate && ` - ${formatEventTime((event as any)?.endDate)}`}
+                  </Text>
                 </Group>
                 <Group gap="xs" style={{ color: 'var(--color-dusty-rose)', fontSize: '20px' }}>
                   <IconMapPin size={20} />
