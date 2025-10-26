@@ -50,6 +50,14 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
     });
   };
 
+  const formatTime = (dateString: string) => {
+    return new Date(dateString).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -91,7 +99,7 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
               <Group gap="xs" align="center">
                 <IconClock size={16} color="#6B0119" />
                 <Text size="sm" c="dimmed">
-                  Duration: {formatDateTime(eventInfo.startDateTime)} - {formatDateTime(eventInfo.endDateTime)}
+                  {formatTime(eventInfo.startDateTime)} - {formatTime(eventInfo.endDateTime)}
                 </Text>
               </Group>
             )}

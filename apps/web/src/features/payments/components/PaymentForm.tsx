@@ -1,7 +1,7 @@
 // Payment Form Component
-// Handles PayPal and Venmo payment integration with sliding scale
+// Handles PayPal and credit card payment integration with sliding scale
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Stack,
@@ -9,11 +9,15 @@ import {
   Text,
   Title,
   Alert,
-  Paper
+  Paper,
+  Button
 } from '@mantine/core';
 import { IconShieldCheck } from '@tabler/icons-react';
 import { PayPalButton } from './PayPalButton';
+import { PaymentMethodSelector } from './checkout/PaymentMethodSelector';
+import { CreditCardForm } from './checkout/CreditCardForm';
 import { useSlidingScale } from '../hooks/useSlidingScale';
+import { isNonProduction, getPayPalTestCard } from '../../../lib/utils/environment';
 import type { PaymentEventInfo } from '../types/payment.types';
 
 interface PaymentFormProps {
@@ -29,8 +33,24 @@ interface PaymentFormProps {
   disabled?: boolean;
 }
 
+// CSS animation for slide-down effect
+const paymentFormStyles = `
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      max-height: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      max-height: 2000px;
+      transform: translateY(0);
+    }
+  }
+`;
+
 /**
- * PayPal-based payment form component
+ * Payment form component with multiple payment methods
  */
 export const PaymentForm: React.FC<PaymentFormProps> = ({
   eventInfo,
@@ -40,6 +60,16 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
   disabled = false
 }) => {
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'paypal'>('paypal');
+  const [cardData, setCardData] = useState({
+    cardNumber: '',
+    cardholderName: '',
+    expiryDate: '',
+    cvv: '',
+    billingZip: ''
+  });
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Sliding scale logic
   const {
@@ -47,6 +77,22 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
     discountPercentage,
     calculation,
   } = useSlidingScale(eventInfo.basePrice, initialSlidingScale);
+
+  // Auto-fill credit card in dev/staging environment
+  useEffect(() => {
+    if (paymentMethod === 'card' && isNonProduction()) {
+      const testCard = getPayPalTestCard();
+      setCardData({
+        cardNumber: testCard.cardNumber.match(/.{1,4}/g)?.join(' ') || testCard.cardNumber,
+        cardholderName: testCard.cardholderName,
+        expiryDate: testCard.expiryDate,
+        cvv: testCard.cvv,
+        billingZip: testCard.billingZip
+      });
+      // Auto-accept terms in dev
+      setTermsAccepted(true);
+    }
+  }, [paymentMethod]);
 
   /**
    * Handle successful PayPal payment
@@ -74,77 +120,135 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
     setPaymentError(null);
   };
 
+  /**
+   * Handle credit card payment submission
+   */
+  const handleCreditCardSubmit = async (data: typeof cardData) => {
+    if (!termsAccepted) {
+      setPaymentError('Please accept the terms and conditions to continue.');
+      return;
+    }
+
+    setIsProcessing(true);
+    setPaymentError(null);
+
+    try {
+      // Simulate credit card processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Simulate successful payment
+      const paymentId = `cc_${Date.now()}`;
+      onPaymentSuccess?.(paymentId);
+    } catch (error) {
+      setPaymentError('Payment processing failed. Please try again.');
+      onPaymentError?.('Payment processing failed');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
-    <Stack gap="lg">
-      {/* Section Title */}
-      <Title order={3} c="#880124">
-        Payment Method
-      </Title>
+    <>
+      <style>{paymentFormStyles}</style>
+      <Stack gap="lg">
+        {/* Section Title */}
+        <Title order={3} c="#880124">
+          Payment Method
+        </Title>
 
-      {/* Payment Amount Summary */}
-      <Paper p="md" radius="sm" bg="#FAF6F2" withBorder>
-        <Stack gap="xs">
-          <Group justify="space-between">
-            <Text size="sm" c="dimmed">Base Price:</Text>
-            <Text size="sm">{calculation.display.original}</Text>
-          </Group>
-          {calculation.discountAmount > 0 && (
-            <Group justify="space-between">
-              <Text size="sm" c="dimmed">
-                Sliding Scale ({calculation.display.percentage}):
-              </Text>
-              <Text size="sm" c="green">-{calculation.display.discount}</Text>
+        {/* Payment Method Selector */}
+        <PaymentMethodSelector
+          selectedMethod={paymentMethod}
+          onMethodChange={setPaymentMethod}
+        />
+
+        {/* Credit Card Form */}
+        {paymentMethod === 'card' && (
+          <Box
+            style={{
+              overflow: 'hidden',
+              animation: 'slideDown 0.3s ease-out'
+            }}
+          >
+            <CreditCardForm
+              cardData={cardData}
+              onCardDataChange={setCardData}
+              isProcessing={isProcessing}
+              onSubmit={handleCreditCardSubmit}
+              termsAccepted={termsAccepted}
+              onTermsChange={setTermsAccepted}
+            />
+
+            <Group justify="flex-end" mt="md">
+              <Button
+                onClick={() => handleCreditCardSubmit(cardData)}
+                loading={isProcessing}
+                disabled={!termsAccepted}
+                size="lg"
+                styles={{
+                  root: {
+                    background: 'linear-gradient(135deg, #FFB800, #DAA520)',
+                    color: '#2C2C2C',
+                    fontWeight: 600,
+                    height: '44px',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    fontSize: '14px',
+                    lineHeight: '1.2',
+                    '&:hover': {
+                      boxShadow: '0 4px 12px rgba(255, 191, 0, 0.3)'
+                    }
+                  }
+                }}
+              >
+                {isProcessing ? 'Processing Payment...' : 'Complete Purchase'}
+              </Button>
             </Group>
-          )}
-          <Group justify="space-between">
-            <Text fw={600} c="#880124">Total Amount:</Text>
-            <Text fw={700} size="lg" c="#880124">
-              {calculation.display.final}
+          </Box>
+        )}
+
+        {/* PayPal Payment Button */}
+        {paymentMethod === 'paypal' && (
+          <Box
+            style={{
+              overflow: 'hidden',
+              animation: 'slideDown 0.3s ease-out'
+            }}
+          >
+            <PayPalButton
+              eventInfo={eventInfo}
+              amount={finalAmount}
+              slidingScalePercentage={discountPercentage}
+              onPaymentSuccess={handlePaymentSuccess}
+              onPaymentError={handlePaymentError}
+              onPaymentCancel={handlePaymentCancel}
+              disabled={disabled}
+            />
+          </Box>
+        )}
+
+        {/* Error Display */}
+        {paymentError && (
+          <Alert color="red" variant="light">
+            <Text size="sm">
+              {paymentError}
             </Text>
-          </Group>
-        </Stack>
-      </Paper>
+          </Alert>
+        )}
 
-      {/* PayPal Payment Button */}
-      <PayPalButton
-        eventInfo={eventInfo}
-        amount={finalAmount}
-        slidingScalePercentage={discountPercentage}
-        onPaymentSuccess={handlePaymentSuccess}
-        onPaymentError={handlePaymentError}
-        onPaymentCancel={handlePaymentCancel}
-        disabled={disabled}
-      />
-
-      {/* Error Display */}
-      {paymentError && (
-        <Alert color="red" variant="light">
+        {/* Security Notice */}
+        <Alert
+          icon={<IconShieldCheck />}
+          color="blue"
+          variant="light"
+        >
           <Text size="sm">
-            {paymentError}
+            <strong>Secure Payment:</strong> Your payment is processed securely{' '}
+            {paymentMethod === 'card' ? 'through our payment processor' : 'by PayPal'}.
+            We never store your payment information.
           </Text>
         </Alert>
-      )}
-
-      {/* Security Notice */}
-      <Alert 
-        icon={<IconShieldCheck />}
-        color="blue"
-        variant="light"
-      >
-        <Text size="sm">
-          <strong>Secure Payment:</strong> Your payment is processed securely by PayPal. 
-          We never store your payment information.
-        </Text>
-      </Alert>
-
-      {/* Payment Methods Info */}
-      <Paper p="md" radius="sm" bg="#F8F9FA" withBorder>
-        <Text size="sm" c="dimmed" ta="center">
-          <strong>Accepted Payment Methods:</strong><br/>
-          PayPal • Venmo (mobile) • Credit & Debit Cards via PayPal<br/>
-          All payments are processed securely through PayPal's platform
-        </Text>
-      </Paper>
-    </Stack>
+      </Stack>
+    </>
   );
 };

@@ -144,33 +144,6 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
       }}
     >
       <Box>
-        {/* Payment Summary */}
-        <Box mb="md" p="md" style={{
-          background: 'var(--color-cream)',
-          borderRadius: '8px',
-          border: '1px solid rgba(136, 1, 36, 0.1)'
-        }}>
-          <Stack gap="xs">
-            <Text fw={600} size="md">Payment Summary</Text>
-            <Text size="sm" c="dimmed">{eventInfo.title}</Text>
-
-            {slidingScalePercentage > 0 && (
-              <>
-                <Text size="sm">
-                  Original Amount: <Text span td="line-through">${amount.toFixed(2)}</Text>
-                </Text>
-                <Text size="sm" c="green">
-                  Sliding Scale Discount ({slidingScalePercentage}%): -${discountAmount.toFixed(2)}
-                </Text>
-              </>
-            )}
-
-            <Text fw={700} size="lg" style={{ color: 'var(--color-burgundy)' }}>
-              Total: ${finalAmount.toFixed(2)}
-            </Text>
-          </Stack>
-        </Box>
-
         {/* Error Display */}
         {error && (
           <Alert
