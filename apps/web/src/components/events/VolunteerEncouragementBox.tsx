@@ -1,6 +1,5 @@
 import React from 'react';
 import { Paper, Stack, Title, Text, Button } from '@mantine/core';
-import { IconHeart } from '@tabler/icons-react';
 
 interface VolunteerEncouragementBoxProps {
   onScrollToVolunteers: () => void;
@@ -45,21 +44,6 @@ export const VolunteerEncouragementBox: React.FC<VolunteerEncouragementBoxProps>
       />
 
       <Stack gap="md" style={{ position: 'relative', zIndex: 1 }}>
-        {/* Icon */}
-        <div
-          style={{
-            width: '48px',
-            height: '48px',
-            borderRadius: '50%',
-            background: 'rgba(255,255,255,0.15)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-        >
-          <IconHeart size={24} color="var(--color-ivory)" />
-        </div>
-
         {/* Title */}
         <Title
           order={3}
