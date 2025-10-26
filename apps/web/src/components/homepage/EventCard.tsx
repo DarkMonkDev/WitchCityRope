@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Text, Group, Anchor } from '@mantine/core'
+import { Box, Text, Group } from '@mantine/core'
 import { EventDto } from '@witchcityrope/shared-types'
 
 interface EventCardProps {
@@ -101,9 +101,7 @@ export const EventCard: React.FC<EventCardProps> = ({
   }
 
   return (
-    <Anchor
-      component="div"
-      underline="never"
+    <Box
       className="event-card"
       style={{
         display: 'block',
@@ -117,6 +115,18 @@ export const EventCard: React.FC<EventCardProps> = ({
       }}
       onClick={onClick}
       data-testid="event-card"
+      onMouseEnter={(e) => {
+        if (onClick) {
+          e.currentTarget.style.transform = 'translateY(-4px)';
+          e.currentTarget.style.boxShadow = '0 8px 24px rgba(136, 1, 36, 0.15)';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (onClick) {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)';
+        }
+      }}
     >
       {/* Event Image Header */}
       <Box
@@ -249,6 +259,6 @@ export const EventCard: React.FC<EventCardProps> = ({
           </Text>
         </Group>
       </Box>
-    </Anchor>
+    </Box>
   )
 }

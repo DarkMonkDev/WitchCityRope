@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Box, Text, Title, Button, Alert, Loader } from '@mantine/core';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Event } from '../../types/Event';
 import { EventDto } from '@witchcityrope/shared-types';
@@ -62,17 +62,28 @@ export const EventsList: React.FC<EventsListProps> = ({
   error: customError,
   events: customEvents
 }) => {
+  const navigate = useNavigate();
+
   // Use TanStack Query for real API data (only if custom events not provided)
-  const { 
-    data: apiEvents, 
-    isLoading: queryLoading, 
-    error: queryError 
+  const {
+    data: apiEvents,
+    isLoading: queryLoading,
+    error: queryError
   } = useEventsForHomepage(!customEvents); // Disable query if custom events provided
 
   // Determine which data source to use - ensure type safety with explicit casting
   const events: EventDto[] = customEvents || (Array.isArray(apiEvents) ? apiEvents : []);
   const isLoading = customLoading ?? (customEvents ? false : queryLoading);
   const errorState = customError ?? (queryError ? 'Failed to load events' : null);
+
+  // Handle event card click - navigate to event details
+  // Use setTimeout to ensure navigation happens AFTER React finishes current render cycle
+  // This allows proper component mounting/unmounting (see react-developer-lessons-learned.md)
+  const handleEventClick = useCallback((eventId: string) => {
+    setTimeout(() => {
+      navigate(`/events/${eventId}`);
+    }, 0);
+  }, [navigate]);
 
   if (isLoading) {
     return (
@@ -218,10 +229,7 @@ export const EventsList: React.FC<EventsListProps> = ({
               key={event.id}
               event={event}
               price={priceDisplay}
-              onClick={() => {
-                // Handle event click - could navigate to event details
-                console.log('Event clicked:', event.id);
-              }}
+              onClick={() => handleEventClick(event.id)}
             />
           );
         })}
