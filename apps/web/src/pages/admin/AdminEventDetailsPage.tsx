@@ -103,6 +103,50 @@ export const AdminEventDetailsPage: React.FC = () => {
       slotsFilled: vp.slotsFilled || 0,
     }))
 
+    // Map ticket types from API response, adding pricingType if missing
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ticketTypes = ((event as any)?.ticketTypes || []).map((tt: any) => {
+      // Infer pricingType if not present in API data
+      let pricingType: 'fixed' | 'sliding-scale' = 'fixed';
+      let price: number | undefined;
+      let minPrice: number | undefined;
+      let maxPrice: number | undefined;
+      let defaultPrice: number | undefined;
+
+      if (tt.pricingType) {
+        // New data structure - use as-is
+        pricingType = tt.pricingType;
+        price = tt.price;
+        minPrice = tt.minPrice;
+        maxPrice = tt.maxPrice;
+        defaultPrice = tt.defaultPrice;
+      } else {
+        // Legacy data structure - infer from minPrice/maxPrice
+        if (tt.minPrice !== undefined && tt.maxPrice !== undefined) {
+          if (tt.minPrice === tt.maxPrice) {
+            // Same min and max = fixed price
+            pricingType = 'fixed';
+            price = tt.minPrice;
+          } else {
+            // Different min and max = sliding scale
+            pricingType = 'sliding-scale';
+            minPrice = tt.minPrice;
+            maxPrice = tt.maxPrice;
+            defaultPrice = tt.minPrice; // Use minPrice as default if not specified
+          }
+        }
+      }
+
+      return {
+        ...tt,
+        pricingType,
+        price,
+        minPrice,
+        maxPrice,
+        defaultPrice,
+      };
+    });
+
     return {
       eventType,
       title: event.title || '',
@@ -116,8 +160,7 @@ export const AdminEventDetailsPage: React.FC = () => {
         ((event as any)?.status as 'Draft' | 'Published' | 'Cancelled' | 'Completed') || 'Draft', // Map API status to form status
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       sessions: (event.sessions as any) || [], // Now maps from API response
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ticketTypes: (event.ticketTypes as any) || [], // Now maps from API response
+      ticketTypes, // Now properly mapped with pricingType
       volunteerPositions, // Now properly mapped from API response
     }
   }, [])

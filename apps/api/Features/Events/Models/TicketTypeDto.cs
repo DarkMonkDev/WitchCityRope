@@ -17,9 +17,9 @@ public class TicketTypeDto
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// Type of ticket (e.g., "single-session", "multi-session", "rsvp")
+    /// Pricing type: "fixed" for fixed price, "sliding-scale" for pay-what-you-can
     /// </summary>
-    public string Type { get; set; } = string.Empty;
+    public string PricingType { get; set; } = "fixed";
 
     /// <summary>
     /// List of session identifiers this ticket includes access to
@@ -27,14 +27,24 @@ public class TicketTypeDto
     public List<string> SessionIdentifiers { get; set; } = new List<string>();
 
     /// <summary>
-    /// Minimum price for sliding scale pricing
+    /// Fixed price (for fixed pricing type)
     /// </summary>
-    public decimal MinPrice { get; set; }
+    public decimal? Price { get; set; }
 
     /// <summary>
-    /// Maximum price (suggested donation amount)
+    /// Minimum price for sliding scale pricing
     /// </summary>
-    public decimal MaxPrice { get; set; }
+    public decimal? MinPrice { get; set; }
+
+    /// <summary>
+    /// Maximum price for sliding scale pricing
+    /// </summary>
+    public decimal? MaxPrice { get; set; }
+
+    /// <summary>
+    /// Default/suggested price for sliding scale pricing
+    /// </summary>
+    public decimal? DefaultPrice { get; set; }
 
     /// <summary>
     /// Total quantity available for this ticket type
@@ -53,9 +63,24 @@ public class TicketTypeDto
     {
         Id = ticketType.Id.ToString();
         Name = ticketType.Name;
-        Type = ticketType.IsRsvpMode ? "rsvp" : "paid";
-        MinPrice = ticketType.Price;
-        MaxPrice = ticketType.Price; // For now, same as min price
+        PricingType = ticketType.PricingType;
+
+        // Map pricing fields based on pricing type
+        if (ticketType.PricingType == "sliding-scale")
+        {
+            MinPrice = ticketType.MinPrice;
+            MaxPrice = ticketType.MaxPrice;
+            DefaultPrice = ticketType.DefaultPrice;
+            Price = null;
+        }
+        else // fixed
+        {
+            Price = ticketType.Price;
+            MinPrice = null;
+            MaxPrice = null;
+            DefaultPrice = null;
+        }
+
         QuantityAvailable = ticketType.Available;
         SalesEndDate = null; // Not currently tracked in the entity
 

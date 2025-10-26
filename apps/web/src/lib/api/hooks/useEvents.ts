@@ -97,9 +97,11 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
   const transformedTicketTypes: EventTicketTypeDto[] = (apiEvent.ticketTypes || []).map(ticket => ({
     id: ticket.id,
     name: ticket.name,
-    type: ticket.type,
-    price: ticket.minPrice,
+    pricingType: ticket.pricingType,
+    price: ticket.price,
+    minPrice: ticket.minPrice,
     maxPrice: ticket.maxPrice,
+    defaultPrice: ticket.defaultPrice,
     quantityAvailable: ticket.quantityAvailable,
     sessionIdentifiers: ticket.sessionIdentifiers,
     salesEndDate: ticket.salesEndDate || undefined

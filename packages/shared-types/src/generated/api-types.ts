@@ -3536,12 +3536,16 @@ export interface components {
         TicketTypeDto: {
             id?: string;
             name?: string;
-            type?: string;
+            pricingType?: string;
             sessionIdentifiers?: string[];
             /** Format: double */
-            minPrice?: number;
+            price?: number | null;
             /** Format: double */
-            maxPrice?: number;
+            minPrice?: number | null;
+            /** Format: double */
+            maxPrice?: number | null;
+            /** Format: double */
+            defaultPrice?: number | null;
             /** Format: int32 */
             quantityAvailable?: number;
             /** Format: date-time */
@@ -3574,7 +3578,6 @@ export interface components {
             location?: string | null;
             /** Format: int32 */
             capacity?: number | null;
-            pricingTiers?: string | null;
             isPublished?: boolean | null;
             sessions?: components["schemas"]["SessionDto"][] | null;
             ticketTypes?: components["schemas"]["TicketTypeDto"][] | null;

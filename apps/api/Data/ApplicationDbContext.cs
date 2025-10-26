@@ -382,10 +382,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
                   .IsRequired()
                   .HasColumnType("timestamptz");
 
-            entity.Property(e => e.PricingTiers)
-                  .IsRequired()
-                  .HasColumnType("text");
-
             // Navigation properties
             entity.HasMany(e => e.TicketTypes)
                   .WithOne(t => t.Event)
@@ -470,7 +466,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
                   .HasMaxLength(500);
 
             entity.Property(t => t.Price)
-                  .IsRequired()
+                  .HasColumnType("decimal(10,2)");
+
+            entity.Property(t => t.MinPrice)
+                  .HasColumnType("decimal(10,2)");
+
+            entity.Property(t => t.MaxPrice)
+                  .HasColumnType("decimal(10,2)");
+
+            entity.Property(t => t.DefaultPrice)
                   .HasColumnType("decimal(10,2)");
 
             entity.Property(t => t.CreatedAt)

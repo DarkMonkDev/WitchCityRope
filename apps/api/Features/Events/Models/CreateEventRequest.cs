@@ -27,6 +27,4 @@ public class CreateEventRequest
 
     [Range(1, int.MaxValue)]
     public int Capacity { get; set; }
-
-    public decimal[]? PricingTiers { get; set; }
 }

@@ -36,9 +36,11 @@ export interface EventTicketTypeDto {
   id: string
   eventId: string
   name: string
-  ticketType: 'Single' | 'Couples' // Matches backend enum
-  minPrice: number
-  maxPrice: number
+  pricingType: 'fixed' | 'sliding-scale' // Matches backend enum
+  price?: number // For fixed pricing
+  minPrice?: number // For sliding scale
+  maxPrice?: number // For sliding scale
+  defaultPrice?: number // Default/suggested price for sliding scale
   quantityAvailable?: number
   salesEndDate?: string
   sessionIds: string[] // Array of session IDs this ticket type includes

@@ -50,11 +50,6 @@ public class UpdateEventRequest
     public int? Capacity { get; set; }
 
     /// <summary>
-    /// Updated pricing information as JSON (optional)
-    /// </summary>
-    public string? PricingTiers { get; set; }
-
-    /// <summary>
     /// Updated publishing status (optional)
     /// </summary>
     public bool? IsPublished { get; set; }

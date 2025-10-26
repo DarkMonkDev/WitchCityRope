@@ -29,9 +29,11 @@ export interface EventTicketTypeDto {
   eventId: string;
   name: string;
   description?: string;
-  type: 'Single' | 'Couples';
-  minPrice: number;
-  maxPrice: number;
+  pricingType: 'fixed' | 'sliding-scale';
+  price?: number; // For fixed pricing
+  minPrice?: number; // For sliding scale
+  maxPrice?: number; // For sliding scale
+  defaultPrice?: number; // Default/suggested price for sliding scale
   quantityAvailable?: number; // null = unlimited
   quantitySold: number;
   salesStartDate?: string; // ISO date string

@@ -255,10 +255,12 @@ export const EventForm: React.FC<EventFormProps> = ({
     // Convert from modal format to grid format
     const gridFormatTicketType: Omit<EventTicketType, 'id'> = {
       name: ticketTypeData.name,
-      type: 'Single', // Default, could be enhanced to support couples later
+      pricingType: ticketTypeData.pricingType,
       sessionIdentifiers: ticketTypeData.sessionsIncluded,
-      minPrice: ticketTypeData.price,
-      maxPrice: ticketTypeData.price,
+      price: ticketTypeData.price,
+      minPrice: ticketTypeData.minPrice,
+      maxPrice: ticketTypeData.maxPrice,
+      defaultPrice: ticketTypeData.defaultPrice,
       quantityAvailable: ticketTypeData.quantityAvailable,
       salesEndDate: ticketTypeData.saleEndDate?.toISOString(),
     }
@@ -287,7 +289,11 @@ export const EventForm: React.FC<EventFormProps> = ({
       id: ticketType.id,
       name: ticketType.name,
       description: '', // Not stored in grid format currently
-      price: ticketType.minPrice,
+      pricingType: ticketType.pricingType || 'fixed',
+      price: ticketType.price,
+      minPrice: ticketType.minPrice,
+      maxPrice: ticketType.maxPrice,
+      defaultPrice: ticketType.defaultPrice,
       sessionsIncluded: ticketType.sessionIdentifiers,
       quantityAvailable: ticketType.quantityAvailable || 100,
       quantitySold: 0, // Not tracked in current grid format

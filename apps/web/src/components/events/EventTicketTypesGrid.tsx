@@ -6,10 +6,12 @@ import { WCRButton } from '../ui';
 export interface EventTicketType {
   id: string;
   name: string;
-  type: 'Single' | 'Couples';
+  pricingType: 'fixed' | 'sliding-scale'; // Fixed price or sliding scale
   sessionIdentifiers: string[]; // ['S1', 'S2', 'S3']
-  minPrice: number;
-  maxPrice: number;
+  price?: number; // For fixed price tickets
+  minPrice?: number; // For sliding scale tickets
+  maxPrice?: number; // For sliding scale tickets
+  defaultPrice?: number; // Default/suggested price for sliding scale
   quantityAvailable?: number;
   salesEndDate?: string;
 }
@@ -35,19 +37,24 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
     }
   };
 
-  const formatPriceRange = (minPrice: number, maxPrice: number) => {
-    const formatPrice = (price: number) => 
+  const formatPriceRange = (ticketType: EventTicketType) => {
+    const formatPrice = (price: number) =>
       new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
       }).format(price);
 
-    if (minPrice === maxPrice) {
-      return formatPrice(minPrice);
+    if (ticketType.pricingType === 'fixed' && ticketType.price !== undefined) {
+      return formatPrice(ticketType.price);
+    } else if (ticketType.pricingType === 'sliding-scale' && ticketType.minPrice !== undefined && ticketType.maxPrice !== undefined) {
+      if (ticketType.minPrice === ticketType.maxPrice) {
+        return formatPrice(ticketType.minPrice);
+      }
+      return `${formatPrice(ticketType.minPrice)} - ${formatPrice(ticketType.maxPrice)}`;
     }
-    return `${formatPrice(minPrice)} - ${formatPrice(maxPrice)}`;
+    return 'N/A';
   };
 
   const formatSalesEndDate = (dateString?: string) => {
@@ -137,10 +144,10 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
               <Table.Td>
                 <Badge
                   variant="light"
-                  color={ticketType.type === 'Single' ? 'blue' : 'pink'}
+                  color={ticketType.pricingType === 'fixed' ? 'blue' : 'green'}
                   size="sm"
                 >
-                  {ticketType.type}
+                  {ticketType.pricingType === 'fixed' ? 'Fixed Price' : 'Sliding Scale'}
                 </Badge>
               </Table.Td>
               <Table.Td>
@@ -150,7 +157,7 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
               </Table.Td>
               <Table.Td>
                 <Text size="sm">
-                  {formatPriceRange(ticketType.minPrice, ticketType.maxPrice)}
+                  {formatPriceRange(ticketType)}
                 </Text>
               </Table.Td>
               <Table.Td>

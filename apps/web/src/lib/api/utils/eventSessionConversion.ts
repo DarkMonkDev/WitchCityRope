@@ -57,7 +57,7 @@ export function convertEventTicketTypeFromDto(dto: EventTicketTypeDto, sessions:
   return {
     id: dto.id,
     name: dto.name,
-    type: dto.ticketType, // Direct mapping as enum values match
+    pricingType: dto.pricingType, // Direct mapping as enum values match
     sessionIdentifiers,
     minPrice: dto.minPrice,
     maxPrice: dto.maxPrice,
@@ -74,9 +74,11 @@ export function convertEventTicketTypeToCreateDto(
   sessions: EventSession[] = []
 ): {
   name: string
-  ticketType: 'Single' | 'Couples'
-  minPrice: number
-  maxPrice: number
+  pricingType: 'fixed' | 'sliding-scale'
+  price?: number
+  minPrice?: number
+  maxPrice?: number
+  defaultPrice?: number
   quantityAvailable?: number
   salesEndDate?: string
   sessionIds: string[]
@@ -86,12 +88,14 @@ export function convertEventTicketTypeToCreateDto(
     const session = sessions.find(s => s.sessionIdentifier === identifier)
     return session?.id || identifier
   })
-  
+
   return {
     name: ticketType.name,
-    ticketType: ticketType.type, // Direct mapping as enum values match
+    pricingType: ticketType.pricingType, // Direct mapping as enum values match
+    price: ticketType.price,
     minPrice: ticketType.minPrice,
     maxPrice: ticketType.maxPrice,
+    defaultPrice: ticketType.defaultPrice,
     quantityAvailable: ticketType.quantityAvailable,
     salesEndDate: ticketType.salesEndDate,
     sessionIds

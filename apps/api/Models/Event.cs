@@ -88,12 +88,6 @@ public class Event
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
-    /// JSON string containing pricing information
-    /// </summary>
-    [Required]
-    public string PricingTiers { get; set; } = "{}";
-
-    /// <summary>
     /// Navigation property to sessions
     /// </summary>
     public ICollection<Session> Sessions { get; set; } = new List<Session>();

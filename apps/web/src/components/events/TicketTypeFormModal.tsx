@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, TextInput, NumberInput, Group, Button, Stack, MultiSelect, Textarea, Switch, Alert } from '@mantine/core';
+import { Modal, TextInput, NumberInput, Group, Button, Stack, MultiSelect, Textarea, Switch, Alert, Radio, Text } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { IconAlertCircle } from '@tabler/icons-react';
@@ -8,7 +8,11 @@ export interface EventTicketType {
   id: string;
   name: string;
   description: string;
-  price: number;
+  pricingType: 'fixed' | 'sliding-scale'; // Fixed price or sliding scale
+  price?: number; // For fixed price tickets
+  minPrice?: number; // For sliding scale tickets
+  maxPrice?: number; // For sliding scale tickets
+  defaultPrice?: number; // Default/suggested price for sliding scale
   sessionsIncluded: string[];
   quantityAvailable: number;
   quantitySold: number;
@@ -36,7 +40,11 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
     initialValues: {
       name: '',
       description: '',
+      pricingType: 'fixed' as 'fixed' | 'sliding-scale',
       price: 0,
+      minPrice: 0,
+      maxPrice: 0,
+      defaultPrice: 0,
       sessionsIncluded: [],
       quantityAvailable: 100,
       quantitySold: 0,
@@ -45,9 +53,34 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
     },
     validate: {
       name: (value) => (!value ? 'Ticket name is required' : null),
-      price: (value) => {
-        if (value < 0) return 'Price cannot be negative';
-        if (value > 9999) return 'Price cannot exceed $9,999';
+      price: (value, values) => {
+        if (values.pricingType === 'fixed') {
+          if (value < 0) return 'Price cannot be negative';
+          if (value > 9999) return 'Price cannot exceed $9,999';
+        }
+        return null;
+      },
+      minPrice: (value, values) => {
+        if (values.pricingType === 'sliding-scale') {
+          if (value < 0) return 'Min price cannot be negative';
+          if (value > 9999) return 'Min price cannot exceed $9,999';
+          if (value > values.maxPrice) return 'Min price cannot be greater than max price';
+        }
+        return null;
+      },
+      maxPrice: (value, values) => {
+        if (values.pricingType === 'sliding-scale') {
+          if (value < 0) return 'Max price cannot be negative';
+          if (value > 9999) return 'Max price cannot exceed $9,999';
+          if (value < values.minPrice) return 'Max price cannot be less than min price';
+        }
+        return null;
+      },
+      defaultPrice: (value, values) => {
+        if (values.pricingType === 'sliding-scale') {
+          if (value < values.minPrice) return 'Default price cannot be less than min price';
+          if (value > values.maxPrice) return 'Default price cannot be greater than max price';
+        }
         return null;
       },
       sessionsIncluded: (value) => {
@@ -66,7 +99,11 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
     const ticketData: Omit<EventTicketType, 'id'> = {
       name: values.name,
       description: values.description,
-      price: values.price,
+      pricingType: values.pricingType,
+      price: values.pricingType === 'fixed' ? values.price : undefined,
+      minPrice: values.pricingType === 'sliding-scale' ? values.minPrice : undefined,
+      maxPrice: values.pricingType === 'sliding-scale' ? values.maxPrice : undefined,
+      defaultPrice: values.pricingType === 'sliding-scale' ? values.defaultPrice : undefined,
       sessionsIncluded: values.sessionsIncluded,
       quantityAvailable: values.quantityAvailable,
       quantitySold: values.quantitySold,
@@ -95,23 +132,12 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
       label: `${session.sessionIdentifier} - ${session.name}`,
     }));
 
-  // Add "All Sessions" option
-  const allSessionsOption = {
-    value: 'ALL',
-    label: 'All Sessions (Multi-day Pass)',
-  };
+  const selectOptions = sessionOptions;
 
-  const selectOptions = [allSessionsOption, ...sessionOptions];
-
-  // Handle "All Sessions" selection
+  // Handle sessions selection
   const handleSessionsChange = (value: string[]) => {
-    if (value?.includes('ALL')) {
-      // If "ALL" is selected, select all individual sessions
-      form.setFieldValue('sessionsIncluded', ['ALL', ...sessionOptions.map(s => s.value)]);
-    } else {
-      form.setFieldValue('sessionsIncluded', value || []);
-    }
-    
+    form.setFieldValue('sessionsIncluded', value || []);
+
     // Auto-set sale end date based on session selection
     updateSaleEndDate(value);
   };
@@ -193,8 +219,12 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
         // Populate form with existing ticket type data for editing
         form.setValues({
           name: ticketType.name,
-          description: ticketType.description,
-          price: ticketType.price,
+          description: ticketType.description || '',
+          pricingType: ticketType.pricingType || 'fixed',
+          price: ticketType.price || 0,
+          minPrice: ticketType.minPrice || 0,
+          maxPrice: ticketType.maxPrice || 0,
+          defaultPrice: ticketType.defaultPrice || 0,
           sessionsIncluded: ticketType.sessionsIncluded,
           quantityAvailable: ticketType.quantityAvailable,
           quantitySold: ticketType.quantitySold,
@@ -252,26 +282,90 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
             error={form.errors.sessionsIncluded}
           />
 
-          <Group grow>
-            <NumberInput
-              label="Price ($)"
-              placeholder="0.00"
-              min={0}
-              max={9999}
-              decimalScale={2}
-              fixedDecimalScale
-              required
-              {...form.getInputProps('price')}
-            />
-            <NumberInput
-              label="Quantity Available"
-              placeholder="Maximum tickets to sell"
-              min={1}
-              max={9999}
-              required
-              {...form.getInputProps('quantityAvailable')}
-            />
-          </Group>
+          {/* Pricing Type Selection */}
+          <div>
+            <Text size="sm" fw={500} mb={5}>
+              Pricing Type <Text component="span" c="red">*</Text>
+            </Text>
+            <Radio.Group
+              value={form.values.pricingType}
+              onChange={(value) => form.setFieldValue('pricingType', value as 'fixed' | 'sliding-scale')}
+            >
+              <Group mt="xs">
+                <Radio value="fixed" label="Fixed Price" />
+                <Radio value="sliding-scale" label="Sliding Scale (Pay What You Can)" />
+              </Group>
+            </Radio.Group>
+          </div>
+
+          {/* Conditional Pricing Fields */}
+          {form.values.pricingType === 'fixed' ? (
+            <Group grow>
+              <NumberInput
+                label="Price ($)"
+                placeholder="0.00"
+                min={0}
+                max={9999}
+                decimalScale={2}
+                fixedDecimalScale
+                required
+                {...form.getInputProps('price')}
+              />
+              <NumberInput
+                label="Quantity Available"
+                placeholder="Maximum tickets to sell"
+                min={1}
+                max={9999}
+                required
+                {...form.getInputProps('quantityAvailable')}
+              />
+            </Group>
+          ) : (
+            <>
+              <Group grow>
+                <NumberInput
+                  label="Minimum Price ($)"
+                  placeholder="0.00"
+                  min={0}
+                  max={9999}
+                  decimalScale={2}
+                  fixedDecimalScale
+                  required
+                  {...form.getInputProps('minPrice')}
+                />
+                <NumberInput
+                  label="Maximum Price ($)"
+                  placeholder="0.00"
+                  min={0}
+                  max={9999}
+                  decimalScale={2}
+                  fixedDecimalScale
+                  required
+                  {...form.getInputProps('maxPrice')}
+                />
+              </Group>
+              <Group grow>
+                <NumberInput
+                  label="Default/Suggested Price ($)"
+                  placeholder="0.00"
+                  min={0}
+                  max={9999}
+                  decimalScale={2}
+                  fixedDecimalScale
+                  required
+                  {...form.getInputProps('defaultPrice')}
+                />
+                <NumberInput
+                  label="Quantity Available"
+                  placeholder="Maximum tickets to sell"
+                  min={1}
+                  max={9999}
+                  required
+                  {...form.getInputProps('quantityAvailable')}
+                />
+              </Group>
+            </>
+          )}
 
           {ticketType && (
             <NumberInput

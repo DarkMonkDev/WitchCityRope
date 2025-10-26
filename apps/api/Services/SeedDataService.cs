@@ -2032,12 +2032,14 @@ The WitchCityRope Vetting Team",
             if (eventSessions.Count > 1)
             {
                 // Multi-day event - create both individual day tickets and full event tickets
-                CreateMultiDayTicketTypes(eventItem, eventSessions, ticketTypesToAdd);
+                var basePrice = eventItem.EventType == EventType.Social ? 0m : 40m; // Multi-day events default to $40
+                CreateMultiDayTicketTypes(eventItem, basePrice, eventSessions, ticketTypesToAdd);
             }
             else
             {
                 // Single-day event
-                CreateTicketTypesForSession(eventItem, eventSessions.First(), ticketTypesToAdd);
+                var price = eventItem.EventType == EventType.Social ? 10m : 25m; // Default pricing for seed data
+                CreateTicketTypesForSession(eventItem, price, eventSessions.First(), ticketTypesToAdd);
             }
         }
 
@@ -2082,7 +2084,26 @@ The WitchCityRope Vetting Team",
             for (int i = 0; i < purchaseCount; i++)
             {
                 var user = users[i % users.Count];
-                var isRSVP = ticketType.IsRsvpMode;
+                var isRSVP = ticketType.Price == 0;
+
+                // Calculate purchase price based on pricing type
+                decimal totalPrice;
+                if (isRSVP)
+                {
+                    totalPrice = 0;
+                }
+                else if (ticketType.PricingType == "sliding-scale")
+                {
+                    // Random price within sliding scale range
+                    var minPrice = ticketType.MinPrice ?? 10m;
+                    var maxPrice = ticketType.MaxPrice ?? 40m;
+                    totalPrice = minPrice + (decimal)Random.Shared.NextDouble() * (maxPrice - minPrice);
+                }
+                else
+                {
+                    // Fixed price with slight variation for realism
+                    totalPrice = (ticketType.Price ?? 0) * (0.5m + (decimal)Random.Shared.NextDouble() * 0.5m);
+                }
 
                 var purchase = new TicketPurchase
                 {
@@ -2090,7 +2111,7 @@ The WitchCityRope Vetting Team",
                     UserId = user.Id,
                     PurchaseDate = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 30)),
                     Quantity = 1,
-                    TotalPrice = isRSVP ? 0 : ticketType.Price * (0.5m + (decimal)Random.Shared.NextDouble() * 0.5m), // Sliding scale pricing
+                    TotalPrice = totalPrice,
                     PaymentStatus = isRSVP ? "Completed" : GetRandomPaymentStatus(),
                     PaymentMethod = isRSVP ? "RSVP" : GetRandomPaymentMethod(),
                     PaymentReference = Guid.NewGuid().ToString("N")[..8],
@@ -2185,12 +2206,23 @@ The WitchCityRope Vetting Team",
         if (upcomingWorkshop != null)
         {
             var paidTicket = upcomingWorkshop.TicketTypes
-                .Where(tt => tt.Price > 0 && !tt.IsRsvpMode)
+                .Where(tt => tt.Price > 0)
                 .OrderBy(tt => tt.Price)
                 .FirstOrDefault();
 
             if (paidTicket != null)
             {
+                // Calculate price based on ticket type
+                decimal purchasePrice;
+                if (paidTicket.PricingType == "sliding-scale")
+                {
+                    purchasePrice = paidTicket.DefaultPrice ?? 20m; // Use default/suggested price
+                }
+                else
+                {
+                    purchasePrice = (paidTicket.Price ?? 0) * 0.75m; // Sliding scale discount for fixed price
+                }
+
                 purchasesToAdd.Add(new TicketPurchase
                 {
                     Id = Guid.NewGuid(),
@@ -2198,7 +2230,7 @@ The WitchCityRope Vetting Team",
                     TicketTypeId = paidTicket.Id,
                     PurchaseDate = DateTime.UtcNow.AddDays(-5),
                     Quantity = 1,
-                    TotalPrice = paidTicket.Price * 0.75m, // Sliding scale discount
+                    TotalPrice = purchasePrice,
                     PaymentStatus = "Completed",
                     PaymentMethod = "PayPal",
                     PaymentReference = $"SEED_ORDER_{Guid.NewGuid().ToString()[..8]}",
@@ -2213,7 +2245,7 @@ The WitchCityRope Vetting Team",
         if (upcomingSocial != null)
         {
             var freeTicket = upcomingSocial.TicketTypes
-                .Where(tt => tt.IsRsvpMode || tt.Price == 0)
+                .Where(tt => tt.Price == 0)
                 .FirstOrDefault();
 
             if (freeTicket != null)
@@ -2244,7 +2276,21 @@ The WitchCityRope Vetting Team",
             if (pastTicketType != null)
             {
                 var purchaseDate = pastEvent.StartDate.AddDays(-7);
-                var totalPrice = pastTicketType.Price > 0 ? pastTicketType.Price * 0.5m : 0; // Sliding scale if paid
+
+                // Calculate price based on ticket type
+                decimal totalPrice;
+                bool isPaid;
+                if (pastTicketType.PricingType == "sliding-scale")
+                {
+                    totalPrice = (pastTicketType.DefaultPrice ?? 20m) * 0.5m;
+                    isPaid = true;
+                }
+                else
+                {
+                    var price = pastTicketType.Price ?? 0;
+                    totalPrice = price > 0 ? price * 0.5m : 0;
+                    isPaid = price > 0;
+                }
 
                 purchasesToAdd.Add(new TicketPurchase
                 {
@@ -2255,8 +2301,8 @@ The WitchCityRope Vetting Team",
                     Quantity = 1,
                     TotalPrice = totalPrice,
                     PaymentStatus = "Completed",
-                    PaymentMethod = pastTicketType.Price > 0 ? "Stripe" : "RSVP",
-                    PaymentReference = pastTicketType.Price > 0 ? $"SEED_ORDER_{Guid.NewGuid().ToString()[..8]}" : $"RSVP_{Guid.NewGuid().ToString()[..8]}",
+                    PaymentMethod = isPaid ? "Stripe" : "RSVP",
+                    PaymentReference = isPaid ? $"SEED_ORDER_{Guid.NewGuid().ToString()[..8]}" : $"RSVP_{Guid.NewGuid().ToString()[..8]}",
                     Notes = "Attended - great event!"
                 });
 
@@ -2272,7 +2318,23 @@ The WitchCityRope Vetting Team",
             if (ticketType != null)
             {
                 var isSocialEvent = additionalEvent.EventType == EventType.Social;
-                var price = isSocialEvent ? 0 : ticketType.Price * 0.6m; // Sliding scale
+
+                // Calculate price based on ticket type
+                decimal price;
+                if (isSocialEvent)
+                {
+                    price = 0; // Free RSVP or donation
+                }
+                else if (ticketType.PricingType == "sliding-scale")
+                {
+                    // Use default price for sliding scale
+                    price = ticketType.DefaultPrice ?? 20m;
+                }
+                else
+                {
+                    // Fixed price with slight discount
+                    price = (ticketType.Price ?? 0) * 0.6m;
+                }
 
                 purchasesToAdd.Add(new TicketPurchase
                 {
@@ -2672,35 +2734,15 @@ The WitchCityRope Vetting Team",
             EventType = eventType,
             Location = eventType == EventType.Social ? "Community Space" : "Main Workshop Room",
             IsPublished = true,
-            PricingTiers = FormatPricingTiers(price, eventType),
             // CreatedAt/UpdatedAt will be set by ApplicationDbContext.UpdateAuditFields()
         };
-    }
-
-    /// <summary>
-    /// Formats pricing information based on event type and sliding scale policies.
-    /// Reflects the organization's progressive pricing model for accessibility.
-    /// </summary>
-    private string FormatPricingTiers(decimal basePrice, EventType eventType)
-    {
-        if (basePrice == 0)
-        {
-            return "Free";
-        }
-
-        var slidingMin = Math.Round(basePrice * 0.25m, 2); // 75% discount maximum
-        var slidingMax = basePrice;
-
-        return eventType == EventType.Social
-            ? $"${slidingMin:F0}-${slidingMax:F0} (pay what you can)"
-            : $"${slidingMin:F0}-${slidingMax:F0} (sliding scale)";
     }
 
     /// <summary>
     /// Helper method to add sessions and tickets for single-day events
     /// Most events are single-day with one session
     /// </summary>
-    private void AddSingleDayEvent(Event eventItem, List<Session> sessionsToAdd, List<TicketType> ticketTypesToAdd)
+    private void AddSingleDayEvent(Event eventItem, decimal price, List<Session> sessionsToAdd, List<TicketType> ticketTypesToAdd)
     {
         var session = new Session
         {
@@ -2728,7 +2770,7 @@ The WitchCityRope Vetting Team",
                 Price = 0,
                 Available = eventItem.Capacity,
                 Sold = eventItem.GetCurrentRSVPCount(),
-                IsRsvpMode = true
+                PricingType = "fixed"
             };
 
             var donationTicket = new TicketType
@@ -2737,10 +2779,10 @@ The WitchCityRope Vetting Team",
                 SessionId = session.Id,
                 Name = "Support Donation",
                 Description = "Optional donation to support the community",
-                Price = ParsePrice(eventItem.PricingTiers),
+                Price = price,
                 Available = eventItem.Capacity,
                 Sold = eventItem.GetCurrentTicketCount(),
-                IsRsvpMode = false
+                PricingType = "fixed"
             };
 
             ticketTypesToAdd.Add(rsvpTicket);
@@ -2755,10 +2797,10 @@ The WitchCityRope Vetting Team",
                 SessionId = session.Id,
                 Name = "Regular",
                 Description = "Full access to the workshop",
-                Price = ParsePrice(eventItem.PricingTiers),
+                Price = price,
                 Available = eventItem.Capacity,
                 Sold = eventItem.GetCurrentAttendeeCount(),
-                IsRsvpMode = false
+                PricingType = "fixed"
             };
 
             ticketTypesToAdd.Add(regularTicket);
@@ -2769,9 +2811,8 @@ The WitchCityRope Vetting Team",
     /// Helper method to add sessions and tickets for multi-day events
     /// Creates individual day sessions plus discounted full-event tickets
     /// </summary>
-    private void AddMultiDayEvent(Event eventItem, int numberOfDays, List<Session> sessionsToAdd, List<TicketType> ticketTypesToAdd)
+    private void AddMultiDayEvent(Event eventItem, decimal basePrice, int numberOfDays, List<Session> sessionsToAdd, List<TicketType> ticketTypesToAdd)
     {
-        var basePrice = ParsePrice(eventItem.PricingTiers);
         var dailyPrice = Math.Round(basePrice * 0.6m, 2); // Individual day is 60% of full price
         var capacityPerDay = (int)Math.Ceiling(eventItem.Capacity / (double)numberOfDays);
 
@@ -2809,7 +2850,7 @@ The WitchCityRope Vetting Team",
                 Price = dailyPrice,
                 Available = capacityPerDay,
                 Sold = (int)(capacityPerDay * 0.5), // 50% sold for individual days
-                IsRsvpMode = false
+                PricingType = "fixed"
             };
 
             ticketTypesToAdd.Add(dayTicket);
@@ -2825,7 +2866,7 @@ The WitchCityRope Vetting Team",
             Price = basePrice,
             Available = eventItem.Capacity,
             Sold = eventItem.GetCurrentAttendeeCount(),
-            IsRsvpMode = false
+            PricingType = "fixed"
         };
 
         ticketTypesToAdd.Add(fullEventTicket);
@@ -2964,26 +3005,6 @@ The WitchCityRope Vetting Team",
     }
 
     /// <summary>
-    /// Helper method to extract price from pricing tiers JSON
-    /// </summary>
-    private decimal ParsePrice(string pricingTiers)
-    {
-        // Simple parsing for seed data - extract numeric values from pricing string
-        var price = pricingTiers.Replace("$", "").Replace("-", " ").Replace("(", " ").Replace(")", " ");
-        var parts = price.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-        foreach (var part in parts)
-        {
-            if (decimal.TryParse(part, out var result) && result > 0)
-            {
-                return result;
-            }
-        }
-
-        return 25.00m; // Default price
-    }
-
-    /// <summary>
     /// Helper method to get random payment status for realistic purchase data
     /// </summary>
     private string GetRandomPaymentStatus()
@@ -3099,11 +3120,11 @@ The WitchCityRope Vetting Team",
     /// Helper method to create ticket types for a session
     /// Must be called after session has been saved and has a valid ID
     /// </summary>
-    private void CreateTicketTypesForSession(Event eventItem, Session session, List<TicketType> ticketTypesToAdd)
+    private void CreateTicketTypesForSession(Event eventItem, decimal price, Session session, List<TicketType> ticketTypesToAdd)
     {
         if (eventItem.EventType == EventType.Social)
         {
-            // Social events: Free RSVP + optional donation ticket
+            // Social events: Free RSVP + optional sliding scale donation ticket
             var rsvpTicket = new TicketType
             {
                 EventId = eventItem.Id,
@@ -3113,7 +3134,7 @@ The WitchCityRope Vetting Team",
                 Price = 0,
                 Available = session.Capacity,
                 Sold = eventItem.GetCurrentRSVPCount(),
-                IsRsvpMode = true
+                PricingType = "fixed"
             };
 
             var donationTicket = new TicketType
@@ -3121,11 +3142,14 @@ The WitchCityRope Vetting Team",
                 EventId = eventItem.Id,
                 SessionId = session.Id,
                 Name = "Support Donation",
-                Description = "Optional donation to support the community",
-                Price = ParsePrice(eventItem.PricingTiers),
+                Description = "Optional sliding scale donation to support the community - pay what you can!",
+                Price = null, // Not used for sliding scale
+                MinPrice = 10m,
+                MaxPrice = 40m,
+                DefaultPrice = 20m,
                 Available = session.Capacity,
                 Sold = eventItem.GetCurrentTicketCount(),
-                IsRsvpMode = false
+                PricingType = "sliding-scale"
             };
 
             ticketTypesToAdd.Add(rsvpTicket);
@@ -3140,10 +3164,10 @@ The WitchCityRope Vetting Team",
                 SessionId = session.Id,
                 Name = "Regular",
                 Description = "Full access to the workshop",
-                Price = ParsePrice(eventItem.PricingTiers),
+                Price = price,
                 Available = session.Capacity,
                 Sold = eventItem.GetCurrentAttendeeCount(),
-                IsRsvpMode = false
+                PricingType = "fixed"
             };
 
             ticketTypesToAdd.Add(regularTicket);
@@ -3153,45 +3177,87 @@ The WitchCityRope Vetting Team",
     /// <summary>
     /// Helper method to create ticket types for multi-day events
     /// Creates individual day tickets and full event ticket with discount
+    /// For social events, uses sliding scale pricing
     /// </summary>
-    private void CreateMultiDayTicketTypes(Event eventItem, List<Session> sessions, List<TicketType> ticketTypesToAdd)
+    private void CreateMultiDayTicketTypes(Event eventItem, decimal basePrice, List<Session> sessions, List<TicketType> ticketTypesToAdd)
     {
-        var basePrice = ParsePrice(eventItem.PricingTiers);
-        var dailyPrice = Math.Round(basePrice * 0.6m, 2); // Individual day is 60% of full price
-
-        // Create individual day tickets
-        for (int i = 0; i < sessions.Count; i++)
+        if (eventItem.EventType == EventType.Social)
         {
-            var session = sessions[i];
-            var dayTicket = new TicketType
+            // Social events: Free RSVP for each day + sliding scale donation for full event
+            for (int i = 0; i < sessions.Count; i++)
+            {
+                var session = sessions[i];
+                var rsvpTicket = new TicketType
+                {
+                    EventId = eventItem.Id,
+                    SessionId = session.Id,
+                    Name = $"Day {i + 1} RSVP",
+                    Description = $"Free RSVP for Day {i + 1} only",
+                    Price = 0,
+                    Available = session.Capacity,
+                    Sold = (int)(session.Capacity * 0.3), // 30% sold on average
+                    PricingType = "fixed"
+                };
+
+                ticketTypesToAdd.Add(rsvpTicket);
+            }
+
+            // Full event sliding scale donation
+            var fullEventTicket = new TicketType
             {
                 EventId = eventItem.Id,
-                SessionId = session.Id,
-                Name = $"Day {i + 1} Only",
-                Description = $"Access to Day {i + 1} activities only",
-                Price = dailyPrice,
-                Available = session.Capacity,
-                Sold = (int)(session.Capacity * 0.3), // 30% sold on average
-                IsRsvpMode = false
+                SessionId = null, // Multi-session ticket
+                Name = $"All {sessions.Count} Days Support",
+                Description = $"Optional sliding scale donation for all {sessions.Count} days - pay what you can!",
+                Price = null, // Not used for sliding scale
+                MinPrice = 10m,
+                MaxPrice = 40m,
+                DefaultPrice = 20m,
+                Available = eventItem.Capacity,
+                Sold = eventItem.GetCurrentAttendeeCount(),
+                PricingType = "sliding-scale"
             };
 
-            ticketTypesToAdd.Add(dayTicket);
+            ticketTypesToAdd.Add(fullEventTicket);
         }
-
-        // Create full event ticket with discount
-        var fullEventTicket = new TicketType
+        else // Class
         {
-            EventId = eventItem.Id,
-            SessionId = null, // Multi-session ticket
-            Name = $"All {sessions.Count} Days",
-            Description = $"Full access to all {sessions.Count} days - SAVE ${(dailyPrice * sessions.Count - basePrice):F0}!",
-            Price = basePrice,
-            Available = eventItem.Capacity,
-            Sold = eventItem.GetCurrentAttendeeCount(),
-            IsRsvpMode = false
-        };
+            var dailyPrice = Math.Round(basePrice * 0.6m, 2); // Individual day is 60% of full price
 
-        ticketTypesToAdd.Add(fullEventTicket);
+            // Create individual day tickets
+            for (int i = 0; i < sessions.Count; i++)
+            {
+                var session = sessions[i];
+                var dayTicket = new TicketType
+                {
+                    EventId = eventItem.Id,
+                    SessionId = session.Id,
+                    Name = $"Day {i + 1} Only",
+                    Description = $"Access to Day {i + 1} activities only",
+                    Price = dailyPrice,
+                    Available = session.Capacity,
+                    Sold = (int)(session.Capacity * 0.3), // 30% sold on average
+                    PricingType = "fixed"
+                };
+
+                ticketTypesToAdd.Add(dayTicket);
+            }
+
+            // Create full event ticket with discount
+            var fullEventTicket = new TicketType
+            {
+                EventId = eventItem.Id,
+                SessionId = null, // Multi-session ticket
+                Name = $"All {sessions.Count} Days",
+                Description = $"Full access to all {sessions.Count} days - SAVE ${(dailyPrice * sessions.Count - basePrice):F0}!",
+                Price = basePrice,
+                Available = eventItem.Capacity,
+                Sold = eventItem.GetCurrentAttendeeCount(),
+                PricingType = "fixed"
+            };
+
+            ticketTypesToAdd.Add(fullEventTicket);
+        }
     }
 
     /// <summary>

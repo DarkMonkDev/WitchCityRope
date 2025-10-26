@@ -36,10 +36,30 @@ public class TicketType
     public string Description { get; set; } = string.Empty;
 
     /// <summary>
-    /// Minimum price for sliding scale (what you can afford)
+    /// Pricing type: "fixed" for fixed price, "sliding-scale" for pay-what-you-can
     /// </summary>
     [Required]
-    public decimal Price { get; set; }
+    public string PricingType { get; set; } = "fixed";
+
+    /// <summary>
+    /// Fixed price (used when PricingType is "fixed", null for sliding scale)
+    /// </summary>
+    public decimal? Price { get; set; }
+
+    /// <summary>
+    /// Minimum price for sliding scale pricing (used when PricingType is "sliding-scale")
+    /// </summary>
+    public decimal? MinPrice { get; set; }
+
+    /// <summary>
+    /// Maximum price for sliding scale pricing (used when PricingType is "sliding-scale")
+    /// </summary>
+    public decimal? MaxPrice { get; set; }
+
+    /// <summary>
+    /// Default/suggested price for sliding scale pricing (used when PricingType is "sliding-scale")
+    /// </summary>
+    public decimal? DefaultPrice { get; set; }
 
     /// <summary>
     /// Total number of tickets available
@@ -52,11 +72,6 @@ public class TicketType
     /// </summary>
     [Required]
     public int Sold { get; set; } = 0;
-
-    /// <summary>
-    /// Whether this is an RSVP-mode ticket (free for Social events)
-    /// </summary>
-    public bool IsRsvpMode { get; set; } = false;
 
     /// <summary>
     /// Navigation property to parent event

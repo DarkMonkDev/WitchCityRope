@@ -50,6 +50,7 @@ public class EventService
                 .AsNoTracking() // Read-only for better performance
                 .Include(e => e.Sessions)
                 .Include(e => e.TicketTypes)
+                    .ThenInclude(tt => tt.Session)
                 .Include(e => e.VolunteerPositions)
                 .Include(e => e.Organizers)
                 .Include(e => e.EventParticipations);
@@ -128,6 +129,7 @@ public class EventService
                 .AsNoTracking()
                 .Include(e => e.Sessions)
                 .Include(e => e.TicketTypes)
+                    .ThenInclude(tt => tt.Session)
                 .Include(e => e.VolunteerPositions)
                 .Include(e => e.Organizers)
                 .Include(e => e.EventParticipations)
@@ -312,11 +314,6 @@ public class EventService
                 eventEntity.Capacity = request.Capacity.Value;
             }
 
-            if (!string.IsNullOrWhiteSpace(request.PricingTiers))
-            {
-                eventEntity.PricingTiers = request.PricingTiers;
-            }
-
             if (request.IsPublished.HasValue)
             {
                 eventEntity.IsPublished = request.IsPublished.Value;
@@ -484,10 +481,10 @@ public class EventService
             {
                 // Update existing ticket type
                 existingTicketType.Name = ticketTypeDto.Name;
-                existingTicketType.Description = $"{ticketTypeDto.Type} ticket";
+                existingTicketType.Description = $"{ticketTypeDto.PricingType} ticket";
                 existingTicketType.Price = ticketTypeDto.MinPrice;
                 existingTicketType.Available = ticketTypeDto.QuantityAvailable;
-                existingTicketType.IsRsvpMode = ticketTypeDto.Type == "rsvp";
+                existingTicketType.PricingType = ticketTypeDto.PricingType;
 
                 // Update session linkage
                 if (ticketTypeDto.SessionIdentifiers.Count == 1)
@@ -511,11 +508,11 @@ public class EventService
                 {
                     EventId = eventEntity.Id,
                     Name = ticketTypeDto.Name,
-                    Description = $"{ticketTypeDto.Type} ticket",
+                    Description = $"{ticketTypeDto.PricingType} ticket",
                     Price = ticketTypeDto.MinPrice,
                     Available = ticketTypeDto.QuantityAvailable,
                     Sold = 0, // Start with 0 sold for new ticket types
-                    IsRsvpMode = ticketTypeDto.Type == "rsvp"
+                    PricingType = ticketTypeDto.PricingType
                 };
 
                 // Let Entity Framework generate the ID for new ticket types

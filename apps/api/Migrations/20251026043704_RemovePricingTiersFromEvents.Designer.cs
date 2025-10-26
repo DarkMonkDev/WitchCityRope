@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WitchCityRope.Api.Data;
@@ -11,9 +12,11 @@ using WitchCityRope.Api.Data;
 namespace WitchCityRope.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251026043704_RemovePricingTiersFromEvents")]
+    partial class RemovePricingTiersFromEvents
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2512,9 +2515,6 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamptz");
 
-                    b.Property<decimal?>("DefaultPrice")
-                        .HasColumnType("decimal(10,2)");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -2523,18 +2523,12 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<Guid>("EventId")
                         .HasColumnType("uuid");
 
-                    b.Property<decimal?>("MaxPrice")
-                        .HasColumnType("decimal(10,2)");
-
-                    b.Property<decimal?>("MinPrice")
-                        .HasColumnType("decimal(10,2)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<decimal?>("Price")
+                    b.Property<decimal>("Price")
                         .HasColumnType("decimal(10,2)");
 
                     b.Property<string>("PricingType")

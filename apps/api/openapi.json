@@ -9275,7 +9275,7 @@
           "name": {
             "type": "string"
           },
-          "type": {
+          "pricingType": {
             "type": "string"
           },
           "sessionIdentifiers": {
