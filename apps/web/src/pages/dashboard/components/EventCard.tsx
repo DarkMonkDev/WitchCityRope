@@ -126,10 +126,40 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className }) => {
           </Text>
         )}
 
-        {/* Status Badge */}
-        <Badge color={statusColors[event.registrationStatus] || 'gray'} variant="light">
-          {event.registrationStatus}
-        </Badge>
+        {/* Status Badges - Can show multiple badges when user has both ticket and RSVP */}
+        <Box style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          {/* Show Ticket Purchased badge if user has a ticket */}
+          {event.hasTicket && event.registrationStatus !== 'Attended' && (
+            <Badge color="green" variant="light">
+              Ticket Purchased
+            </Badge>
+          )}
+
+          {/*
+            Show RSVP badge if registration status contains "(Social Event)"
+            This indicates user has both paid AND RSVPed to a social event
+            Backend sets this when: hasTicket=true AND isSocialEvent=true AND user has RSVP
+          */}
+          {event.registrationStatus.includes('(Social Event)') && (
+            <Badge color="blue" variant="light">
+              RSVP
+            </Badge>
+          )}
+
+          {/* Show RSVP Confirmed badge if user only has RSVP (no ticket) */}
+          {!event.hasTicket && event.registrationStatus === 'RSVP Confirmed' && (
+            <Badge color="blue" variant="light">
+              RSVP Confirmed
+            </Badge>
+          )}
+
+          {/* Show Attended badge for past events */}
+          {event.registrationStatus === 'Attended' && (
+            <Badge color="grape" variant="light">
+              Attended
+            </Badge>
+          )}
+        </Box>
 
         {/* Action Button - Secondary Style (Design System v7) */}
         <Button

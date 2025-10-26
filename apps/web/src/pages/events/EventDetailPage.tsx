@@ -17,6 +17,7 @@ import { useCurrentUser } from '../../lib/api/hooks/useAuth';
 import type { EventDto } from '../../lib/api/types/events.types';
 import { useVolunteerPositions } from '../../features/volunteers/hooks/useVolunteerPositions';
 import { VolunteerPositionCard } from '../../features/volunteers/components/VolunteerPositionCard';
+import styles from './EventDetailPage.module.css';
 
 export const EventDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -277,8 +278,9 @@ export const EventDetailPage: React.FC = () => {
           </Paper>
 
           {/* About This Event */}
-          <ContentSection title="About This Event">
+          <ContentSection>
             <div
+              className={styles.eventContent}
               style={{
                 fontSize: '17px',
                 lineHeight: 1.8,
@@ -287,46 +289,6 @@ export const EventDetailPage: React.FC = () => {
               }}
               dangerouslySetInnerHTML={{ __html: (event as any)?.description || '' }}
             />
-
-            <Title 
-              order={2}
-              style={{
-                fontFamily: 'var(--font-heading)',
-                fontSize: '28px',
-                fontWeight: 700,
-                color: 'var(--color-burgundy)',
-                marginTop: 'var(--space-lg)',
-                marginBottom: 'var(--space-md)'
-              }}
-            >
-              Event Details
-            </Title>
-
-            <Group justify="space-between" style={{ padding: '12px 0', borderBottom: '1px solid var(--color-cream)' }}>
-              <Text style={{ color: 'var(--color-stone)', fontSize: '16px' }}>Start Time</Text>
-              <Text fw={600} style={{ color: 'var(--color-charcoal)' }}>
-                {formatEventDate((event as any)?.startDate)} at {formatEventTime((event as any)?.startDate)}
-              </Text>
-            </Group>
-            
-            {(event as any)?.endDate && (
-              <Group justify="space-between" style={{ padding: '12px 0', borderBottom: '1px solid var(--color-cream)' }}>
-                <Text style={{ color: 'var(--color-stone)', fontSize: '16px' }}>End Time</Text>
-                <Text fw={600} style={{ color: 'var(--color-charcoal)' }}>
-                  {formatEventDate((event as any)?.endDate)} at {formatEventTime((event as any)?.endDate)}
-                </Text>
-              </Group>
-            )}
-            
-            <Group justify="space-between" style={{ padding: '12px 0', borderBottom: '1px solid var(--color-cream)' }}>
-              <Text style={{ color: 'var(--color-stone)', fontSize: '16px' }}>Location</Text>
-              <Text fw={600} style={{ color: 'var(--color-charcoal)' }}>{(event as any)?.location}</Text>
-            </Group>
-            
-            <Group justify="space-between" style={{ padding: '12px 0' }}>
-              <Text style={{ color: 'var(--color-stone)', fontSize: '16px' }}>Capacity</Text>
-              <Text fw={600} style={{ color: 'var(--color-charcoal)' }}>{(event as any)?.capacity || 'Unlimited'}</Text>
-            </Group>
           </ContentSection>
 
           {/* Volunteer Positions */}
@@ -348,8 +310,9 @@ export const EventDetailPage: React.FC = () => {
 
           {/* Policies */}
           {(event as any)?.policies && (
-            <ContentSection title="Policies">
+            <ContentSection>
               <div
+                className={styles.eventContent}
                 style={{
                   fontSize: '17px',
                   lineHeight: 1.8,
@@ -387,7 +350,7 @@ export const EventDetailPage: React.FC = () => {
 
 // Content Section Component
 interface ContentSectionProps {
-  title: string;
+  title?: string;
   children: React.ReactNode;
 }
 
@@ -417,18 +380,20 @@ const ContentSection: React.FC<ContentSectionProps> = ({ title, children }) => (
       setTimeout(() => shimmer.remove(), 500);
     }}
   >
-    <Title 
-      order={2}
-      style={{
-        fontFamily: 'var(--font-heading)',
-        fontSize: '28px',
-        fontWeight: 700,
-        color: 'var(--color-burgundy)',
-        marginBottom: 'var(--space-md)'
-      }}
-    >
-      {title}
-    </Title>
+    {title && (
+      <Title
+        order={2}
+        style={{
+          fontFamily: 'var(--font-heading)',
+          fontSize: '28px',
+          fontWeight: 700,
+          color: 'var(--color-burgundy)',
+          marginBottom: 'var(--space-md)'
+        }}
+      >
+        {title}
+      </Title>
+    )}
     {children}
   </Paper>
 );
