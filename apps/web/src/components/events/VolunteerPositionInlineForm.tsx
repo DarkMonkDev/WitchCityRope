@@ -134,7 +134,6 @@ export const VolunteerPositionInlineForm: React.FC<VolunteerPositionInlineFormPr
           <TextInput
             label="Position Title"
             placeholder="e.g., Safety Monitor, Door Greeter"
-            required
             data-testid="input-position-title"
             styles={{
               label: { fontWeight: 600, marginBottom: '8px' },
@@ -149,7 +148,6 @@ export const VolunteerPositionInlineForm: React.FC<VolunteerPositionInlineFormPr
           <Textarea
             label="Description"
             placeholder="Describe the volunteer duties and responsibilities..."
-            required
             minRows={3}
             maxRows={6}
             data-testid="textarea-position-description"
@@ -167,7 +165,6 @@ export const VolunteerPositionInlineForm: React.FC<VolunteerPositionInlineFormPr
               label="Sessions"
               placeholder="Select which sessions this position covers"
               data={sessionOptions}
-              required
               data-testid="dropdown-position-sessions"
               styles={{
                 label: { fontWeight: 600, marginBottom: '8px' },
@@ -183,7 +180,6 @@ export const VolunteerPositionInlineForm: React.FC<VolunteerPositionInlineFormPr
               placeholder="Number of volunteer slots required"
               min={1}
               max={20}
-              required
               data-testid="input-slots-needed"
               styles={{
                 label: { fontWeight: 600, marginBottom: '8px' },
@@ -200,7 +196,6 @@ export const VolunteerPositionInlineForm: React.FC<VolunteerPositionInlineFormPr
             <TimeInput
               label="Start Time"
               placeholder="HH:MM"
-              required
               data-testid="input-position-start-time"
               styles={{
                 label: { fontWeight: 600, marginBottom: '8px' },
@@ -214,7 +209,6 @@ export const VolunteerPositionInlineForm: React.FC<VolunteerPositionInlineFormPr
             <TimeInput
               label="End Time"
               placeholder="HH:MM"
-              required
               data-testid="input-position-end-time"
               styles={{
                 label: { fontWeight: 600, marginBottom: '8px' },

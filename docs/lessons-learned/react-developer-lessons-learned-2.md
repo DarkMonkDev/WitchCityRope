@@ -613,10 +613,184 @@ return <DesktopVersion />
 
 ---
 
-## 🚨 NOTE: THIS FILE IS TOO LARGE 🚨
-**Current size**: Over 2167 lines
-**Maximum recommended**: 1700 lines
-**Action needed**: Split into Part 3 or archive old lessons
+## 🚨 CRITICAL: REQUIRED ATTRIBUTE ON HIDDEN FORM FIELDS BLOCKS SUBMISSION 🚨
+**Date**: 2025-10-26
+**Category**: HTML5 Form Validation / Mantine Forms
+**Severity**: CRITICAL - MAKES FORMS COMPLETELY UNUSABLE
+
+### What We Learned
+**HIDDEN REQUIRED FIELDS BLOCK FORM SUBMISSION**: Form fields with `required` attribute inside collapsed/hidden sections prevent form submission with cryptic browser errors.
+
+**ERROR SYMPTOMS**:
+```
+An invalid form control with name='' is not focusable.
+<input ... required aria-invalid="false" value ...>
+```
+
+**ROOT CAUSE**: Browser's native HTML5 validation tries to validate ALL `required` fields on the entire page, even those hidden in collapsed sections or modal dialogs. When validation fails, browser tries to focus the invalid field but can't because it's hidden, blocking submission silently.
+
+### 🛑 PROBLEM PATTERN
+
+**Scenario**: EventForm with volunteer positions in a collapsed `Collapse` component:
+
+```typescript
+// Main EventForm (always visible)
+<form onSubmit={handleSubmit}>
+  <TextInput label="Event Title" required {...form.getInputProps('title')} />
+  {/* More main form fields */}
+
+  <Button type="submit">Save Event</Button>
+</form>
+
+// Volunteer position form (hidden in collapsed section)
+<Collapse in={isEditAreaOpen}>
+  <TextInput
+    label="Position Title"
+    required  // ❌ BLOCKS MAIN FORM SUBMISSION!
+    {...form.getInputProps('title')}
+  />
+  <Textarea
+    label="Description"
+    required  // ❌ BLOCKS MAIN FORM SUBMISSION!
+    {...form.getInputProps('description')}
+  />
+</Collapse>
+```
+
+**What Happens**:
+1. User fills out main EventForm fields
+2. User clicks "Save" button on main form
+3. Browser's HTML5 validation runs on ALL `required` fields on page
+4. Finds empty required fields in collapsed volunteer section
+5. Tries to focus on them to show validation message
+6. **FAILS** because fields are hidden (`display: none` in collapsed section)
+7. Console error: "An invalid form control with name='' is not focusable"
+8. **Form submission SILENTLY BLOCKED** - no success, no error notification
+
+### ✅ CRITICAL SOLUTION: REMOVE REQUIRED FROM HIDDEN FIELDS
+
+```typescript
+// ❌ WRONG: Required attribute on fields in collapsible sections
+<Collapse in={isEditAreaOpen}>
+  <TextInput
+    label="Position Title"
+    required  // Will block main form if collapsed!
+    {...form.getInputProps('title')}
+  />
+</Collapse>
+
+// ✅ CORRECT: No required attribute, rely on Mantine form validation
+<Collapse in={isEditAreaOpen}>
+  <TextInput
+    label="Position Title"
+    {...form.getInputProps('title')}  // Mantine validates via form.validate
+  />
+</Collapse>
+
+// Mantine form validation still works:
+const form = useForm({
+  validate: {
+    title: (value) => (!value ? 'Position title is required' : null),
+  }
+})
+```
+
+### 🛑 WHEN TO REMOVE `required` ATTRIBUTE
+
+**REMOVE `required` from HTML inputs when**:
+1. Field is in a collapsible section (`Collapse`, `Accordion`, etc.)
+2. Field is in a modal/drawer that might be closed
+3. Field is conditionally rendered (`{condition && <Input required />}`)
+4. Field is in a tab that might not be active
+5. Using Mantine's `useForm` with validation rules (handles validation)
+
+**KEEP `required` attribute when**:
+1. Field is always visible on the page
+2. Field is part of main form that's never hidden
+3. NOT using Mantine form validation (relying on native HTML5 validation)
+
+### 🔧 DEBUGGING CHECKLIST
+
+When form submission fails silently (no success, no error):
+
+1. **Check browser console** - Look for "invalid form control" errors
+2. **Inspect collapsed sections** - Are there required fields hidden?
+3. **Check all tabs** - Required fields in inactive tabs cause this
+4. **Check modals** - Required fields in closed modals block forms
+5. **Remove all `required` attributes** from hidden areas
+6. **Use Mantine form validation** instead of HTML5 validation
+
+### 📋 BEST PRACTICES FOR MANTINE FORMS
+
+**Pattern: Separate forms for separate concerns**
+
+```typescript
+// ✅ CORRECT: Main form and sub-form are separate
+// Main EventForm
+<form onSubmit={handleMainFormSubmit}>
+  <TextInput required {...mainForm.getInputProps('title')} />
+  <Button type="submit">Save Event</Button>
+</form>
+
+// Volunteer Position Form (separate, in collapsed section)
+<Collapse in={isOpen}>
+  <form onSubmit={handleVolunteerFormSubmit}>
+    {/* NO required attributes on inputs */}
+    <TextInput {...volunteerForm.getInputProps('title')} />
+    <Button type="submit">Save Position</Button>
+  </form>
+</Collapse>
+
+// Use Mantine validation for both forms
+const mainForm = useForm({
+  validate: { title: (v) => !v ? 'Required' : null }
+})
+
+const volunteerForm = useForm({
+  validate: { title: (v) => !v ? 'Required' : null }
+})
+```
+
+### 💥 FILES AFFECTED
+
+- `/apps/web/src/components/events/VolunteerPositionInlineForm.tsx` - Removed 5 `required` attributes
+  - Line 137: `<TextInput>` position title
+  - Line 150: `<Textarea>` position description
+  - Line 167: `<Select>` sessions
+  - Line 183: `<NumberInput>` slots needed
+  - Line 199: `<TimeInput>` start time
+  - Line 211: `<TimeInput>` end time
+
+### 🎯 VERIFICATION STEPS
+
+After fix:
+1. **Open admin event details page**
+2. **DO NOT expand volunteer positions section** (keep it collapsed)
+3. **Edit any main form field** (title, description, etc.)
+4. **Click "Save" button**
+5. **Verify**: Success notification appears ✅
+6. **Verify**: No console errors ✅
+7. **Verify**: Changes persist after page refresh ✅
+
+### 💥 CONSEQUENCES OF IGNORING
+
+- ❌ Form appears broken - Save button does nothing
+- ❌ No user feedback - Silent failure is confusing
+- ❌ Users lose work - They think it saved but it didn't
+- ❌ Support tickets - "Save button not working"
+- ❌ Developer confusion - Error message is cryptic
+- ❌ Hours wasted debugging - Not obvious the issue is hidden fields
+
+### 🚨 RELATED PATTERNS
+
+**Similar issues occur with**:
+- Mantine `<Modal>` with required fields
+- Mantine `<Tabs>` with required fields in inactive tabs
+- Conditional rendering: `{show && <Input required />}`
+- CSS `display: none` or `visibility: hidden` on required fields
+
+### Tags
+#critical #forms #html5-validation #required-attribute #collapse #hidden-fields #form-submission #mantine-forms #silent-failure #user-experience
 
 ---
 
