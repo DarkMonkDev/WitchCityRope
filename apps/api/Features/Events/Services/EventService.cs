@@ -130,6 +130,8 @@ public class EventService
                 .Include(e => e.Sessions)
                 .Include(e => e.TicketTypes)
                     .ThenInclude(tt => tt.Session)
+                .Include(e => e.TicketTypes)
+                    .ThenInclude(tt => tt.Purchases)
                 .Include(e => e.VolunteerPositions)
                 .Include(e => e.Organizers)
                 .Include(e => e.EventParticipations)
@@ -139,6 +141,21 @@ public class EventService
             {
                 _logger.LogInformation("Event not found: {EventId}", eventId);
                 return (false, null, "Event not found");
+            }
+
+            // Calculate CurrentAttendees for each session from actual ticket purchases
+            foreach (var session in eventEntity.Sessions)
+            {
+                // Count completed ticket purchases for this session
+                // For single-session tickets: TicketType.SessionId == session.Id
+                // For multi-session tickets: Would need additional logic (not implemented yet)
+                var ticketsSold = eventEntity.TicketTypes
+                    .Where(tt => tt.SessionId == session.Id)
+                    .SelectMany(tt => tt.Purchases)
+                    .Where(p => p.IsPaymentCompleted)
+                    .Sum(p => p.Quantity);
+
+                session.CurrentAttendees = ticketsSold;
             }
 
             var eventDto = new EventDto
@@ -420,7 +437,7 @@ public class EventService
                 existingSession.StartTime = sessionDto.StartTime.ToUniversalTime();
                 existingSession.EndTime = sessionDto.EndTime.ToUniversalTime();
                 existingSession.Capacity = sessionDto.Capacity;
-                existingSession.CurrentAttendees = sessionDto.RegistrationCount;
+                // CurrentAttendees is calculated from actual ticket purchases/participations, not user input
 
                 processedSessionIds.Add(sessionId);
             }
@@ -437,7 +454,7 @@ public class EventService
                     StartTime = sessionDto.StartTime.ToUniversalTime(),
                     EndTime = sessionDto.EndTime.ToUniversalTime(),
                     Capacity = sessionDto.Capacity,
-                    CurrentAttendees = sessionDto.RegistrationCount
+                    CurrentAttendees = 0 // Will be calculated from actual ticket purchases/participations
                 };
 
                 // Let Entity Framework generate the ID for new sessions
