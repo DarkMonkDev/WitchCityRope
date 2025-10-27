@@ -4,6 +4,7 @@ import { IconCalendarEvent, IconUsers, IconSettings, IconChartBar, IconClipboard
 import { Link } from 'react-router-dom';
 import { useVettingStats } from '../../features/admin/vetting/hooks/useVettingStats';
 import { useSafetyDashboard } from '../../features/safety/hooks/useSafetyIncidents';
+import { useEvents } from '../../lib/api/hooks/useEvents';
 
 interface DashboardCard {
   title: string;
@@ -20,6 +21,12 @@ interface DashboardCard {
 export const AdminDashboardPage: React.FC = () => {
   const { data: vettingStats } = useVettingStats();
   const { data: safetyDashboard } = useSafetyDashboard();
+  const { data: events } = useEvents();
+
+  // Calculate upcoming events (events with future start dates)
+  const upcomingEventsCount = events
+    ? events.filter(event => new Date(event.startDate) > new Date()).length
+    : 0;
 
   // Calculate active incidents (not on hold or closed)
   // Active statuses: ReportSubmitted, InformationGathering, ReviewingFinalReport
@@ -34,8 +41,8 @@ export const AdminDashboardPage: React.FC = () => {
       title: 'Events Management',
       description: 'Create, edit, and manage all community events, workshops, and classes',
       icon: <IconCalendarEvent size={32} />,
-      count: 10,
-      countLabel: 'Active Events',
+      count: upcomingEventsCount,
+      countLabel: 'Upcoming Events',
       link: '/admin/events',
       color: '#880124',
     },
