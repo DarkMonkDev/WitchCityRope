@@ -1595,7 +1595,7 @@
           "Volunteers"
         ],
         "summary": "Sign up for a volunteer position",
-        "description": "Sign up for a volunteer position. Requires authentication. Automatically RSVPs user to the event if not already registered.",
+        "description": "Sign up for a volunteer position. Requires authentication. Automatically RSVPs user to social events if not already registered.",
         "operationId": "SignupForVolunteerPosition",
         "parameters": [
           {
@@ -1639,6 +1639,34 @@
           },
           "409": {
             "description": "Conflict"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/user/volunteer-shifts": {
+      "get": {
+        "tags": [
+          "Volunteers"
+        ],
+        "summary": "Get user's upcoming volunteer shifts",
+        "description": "Returns list of upcoming events where the user has signed up to volunteer. Includes event details, position title, and shift times.",
+        "operationId": "GetUserVolunteerShifts",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfListOfUserVolunteerShiftDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
           },
           "500": {
             "description": "Internal Server Error"
@@ -5614,6 +5642,37 @@
           }
         }
       },
+      "ApiResponseOfListOfUserVolunteerShiftDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserVolunteerShiftDto"
+            },
+            "nullable": true
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ApiResponseOfListOfVolunteerAssignmentDto": {
         "type": "object",
         "properties": {
@@ -9067,7 +9126,9 @@
           "email",
           "whyJoin",
           "experienceWithRope",
-          "agreeToCommunityStandards"
+          "agreeToCommunityStandards",
+          "firstName",
+          "lastName"
         ],
         "type": "object",
         "properties": {
@@ -9114,6 +9175,16 @@
             "minLength": 0,
             "type": "string",
             "nullable": true
+          },
+          "firstName": {
+            "maxLength": 50,
+            "minLength": 1,
+            "type": "string"
+          },
+          "lastName": {
+            "maxLength": 50,
+            "minLength": 1,
+            "type": "string"
           }
         }
       },
@@ -9936,6 +10007,42 @@
           },
           "realName": {
             "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "UserVolunteerShiftDto": {
+        "type": "object",
+        "properties": {
+          "signupId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "eventTitle": {
+            "type": "string"
+          },
+          "eventLocation": {
+            "type": "string"
+          },
+          "eventDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "positionTitle": {
+            "type": "string"
+          },
+          "sessionName": {
+            "type": "string",
+            "nullable": true
+          },
+          "shiftStartTime": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "shiftEndTime": {
+            "type": "string",
+            "format": "date-time",
             "nullable": true
           }
         }
