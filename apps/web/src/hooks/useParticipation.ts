@@ -156,6 +156,16 @@ export function useCancelTicket() {
       queryClient.invalidateQueries({
         queryKey: ['events', variables.eventId, 'participations']
       });
+
+      // Invalidate volunteer positions to refresh the volunteer opportunities list
+      queryClient.invalidateQueries({
+        queryKey: ['volunteerPositions', variables.eventId]
+      });
+
+      // Invalidate user volunteer shifts to update "You're Volunteering" section
+      queryClient.invalidateQueries({
+        queryKey: ['userVolunteerShifts']
+      });
     },
     onError: (error: any) => {
       console.error('Failed to cancel ticket:', error);
