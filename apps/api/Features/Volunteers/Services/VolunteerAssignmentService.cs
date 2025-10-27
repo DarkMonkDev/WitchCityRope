@@ -375,4 +375,78 @@ public class VolunteerAssignmentService
             return (false, null, "Failed to search users");
         }
     }
+
+    /// <summary>
+    /// Cancel all volunteer signups for a user for a specific event
+    /// Used when a ticket is refunded to automatically cancel volunteer commitments
+    /// </summary>
+    /// <param name="userId">User ID whose volunteer signups should be cancelled</param>
+    /// <param name="eventId">Event ID to cancel volunteer signups for</param>
+    /// <param name="cancellationReason">Reason for cancellation</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Success tuple with count of cancelled signups or error message</returns>
+    public async Task<(bool success, int cancelledCount, string? error)> CancelAllVolunteerSignupsForUserEventAsync(
+        Guid userId,
+        Guid eventId,
+        string cancellationReason,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Find all confirmed volunteer signups for this user and event
+            var signups = await _context.VolunteerSignups
+                .Include(vs => vs.VolunteerPosition)
+                .Where(vs => vs.UserId == userId
+                          && vs.VolunteerPosition.EventId == eventId
+                          && vs.Status == VolunteerSignupStatus.Confirmed)
+                .ToListAsync(cancellationToken);
+
+            if (signups.Count == 0)
+            {
+                _logger.LogInformation(
+                    "No confirmed volunteer signups found for user {UserId} at event {EventId}",
+                    userId, eventId);
+                return (true, 0, null);
+            }
+
+            var cancelledCount = 0;
+
+            foreach (var signup in signups)
+            {
+                // Mark signup as cancelled
+                signup.Status = VolunteerSignupStatus.Cancelled;
+                signup.UpdatedAt = DateTime.UtcNow;
+                _context.VolunteerSignups.Update(signup);
+
+                // Decrement position slots filled
+                var position = signup.VolunteerPosition;
+                if (position != null && position.SlotsFilled > 0)
+                {
+                    position.SlotsFilled--;
+                    _context.VolunteerPositions.Update(position);
+                }
+
+                cancelledCount++;
+
+                _logger.LogInformation(
+                    "Cancelled volunteer signup {SignupId} for user {UserId} at position {PositionId} due to: {Reason}",
+                    signup.Id, userId, signup.VolunteerPositionId, cancellationReason);
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Successfully cancelled {Count} volunteer signups for user {UserId} at event {EventId} due to: {Reason}",
+                cancelledCount, userId, eventId, cancellationReason);
+
+            return (true, cancelledCount, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Error cancelling volunteer signups for user {UserId} at event {EventId}",
+                userId, eventId);
+            return (false, 0, "Failed to cancel volunteer signups");
+        }
+    }
 }

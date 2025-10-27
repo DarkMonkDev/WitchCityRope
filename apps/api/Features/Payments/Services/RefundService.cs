@@ -4,6 +4,7 @@ using WitchCityRope.Api.Features.Payments.Entities;
 using WitchCityRope.Api.Features.Payments.Models;
 using WitchCityRope.Api.Features.Payments.ValueObjects;
 using WitchCityRope.Api.Features.Safety.Services;
+using WitchCityRope.Api.Features.Volunteers.Services;
 
 namespace WitchCityRope.Api.Features.Payments.Services;
 
@@ -15,17 +16,20 @@ public class RefundService : IRefundService
     private readonly ApplicationDbContext _context;
     private readonly IPayPalService _payPalService;
     private readonly IEncryptionService _encryptionService;
+    private readonly VolunteerAssignmentService _volunteerAssignmentService;
     private readonly ILogger<RefundService> _logger;
 
     public RefundService(
         ApplicationDbContext context,
         IPayPalService payPalService,
         IEncryptionService encryptionService,
+        VolunteerAssignmentService volunteerAssignmentService,
         ILogger<RefundService> logger)
     {
         _context = context;
         _payPalService = payPalService;
         _encryptionService = encryptionService;
+        _volunteerAssignmentService = volunteerAssignmentService;
         _logger = logger;
     }
 
@@ -181,6 +185,53 @@ public class RefundService : IRefundService
             _logger.LogInformation(
                 "Refund {RefundId} processed successfully for payment {PaymentId}, status: {RefundStatus}",
                 refund.Id, request.PaymentId, refund.RefundStatus);
+
+            // Auto-cancel volunteer signups if refund was completed
+            if (refund.RefundStatus == RefundStatus.Completed)
+            {
+                try
+                {
+                    // Get event participation to find the event ID
+                    var eventParticipation = await _context.EventParticipations
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(ep => ep.Id == payment.EventRegistrationId, cancellationToken);
+
+                    if (eventParticipation != null)
+                    {
+                        // Cancel all volunteer signups for this user and event
+                        var cancellationResult = await _volunteerAssignmentService.CancelAllVolunteerSignupsForUserEventAsync(
+                            payment.UserId,
+                            eventParticipation.EventId,
+                            "Refunded Ticket, so automatically canceled volunteer spot",
+                            cancellationToken);
+
+                        if (cancellationResult.success && cancellationResult.cancelledCount > 0)
+                        {
+                            _logger.LogInformation(
+                                "Auto-cancelled {Count} volunteer signups for user {UserId} at event {EventId} due to ticket refund",
+                                cancellationResult.cancelledCount, payment.UserId, eventParticipation.EventId);
+                        }
+                        else if (!cancellationResult.success)
+                        {
+                            _logger.LogWarning(
+                                "Failed to auto-cancel volunteer signups for user {UserId} at event {EventId}: {Error}",
+                                payment.UserId, eventParticipation.EventId, cancellationResult.error);
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning(
+                            "EventParticipation {EventRegistrationId} not found, cannot auto-cancel volunteer signups",
+                            payment.EventRegistrationId);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log but don't fail the refund if volunteer cancellation fails
+                    _logger.LogError(ex,
+                        "Error auto-cancelling volunteer signups for payment {PaymentId} refund", request.PaymentId);
+                }
+            }
 
             return Result<PaymentRefund>.Success(refund);
         }

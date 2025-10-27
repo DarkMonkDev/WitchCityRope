@@ -4,6 +4,7 @@ using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Participation.Models;
 using WitchCityRope.Api.Features.Shared.Models;
+using WitchCityRope.Api.Features.Volunteers.Services;
 
 namespace WitchCityRope.Api.Features.Participation.Services;
 
@@ -14,13 +15,16 @@ namespace WitchCityRope.Api.Features.Participation.Services;
 public class ParticipationService : IParticipationService
 {
     private readonly ApplicationDbContext _context;
+    private readonly VolunteerAssignmentService _volunteerAssignmentService;
     private readonly ILogger<ParticipationService> _logger;
 
     public ParticipationService(
         ApplicationDbContext context,
+        VolunteerAssignmentService volunteerAssignmentService,
         ILogger<ParticipationService> logger)
     {
         _context = context;
+        _volunteerAssignmentService = volunteerAssignmentService;
         _logger = logger;
     }
 
@@ -601,6 +605,36 @@ public class ParticipationService : IParticipationService
 
                 _logger.LogInformation("Successfully cancelled and verified associated RSVP {RsvpId} (Status: {Status}, CancelledAt: {CancelledAt})",
                     cancelledRsvp.Id, cancelledRsvp.Status, cancelledRsvp.CancelledAt);
+            }
+
+            // Auto-cancel volunteer signups when participation is cancelled
+            try
+            {
+                var cancellationResult = await _volunteerAssignmentService.CancelAllVolunteerSignupsForUserEventAsync(
+                    userId,
+                    eventId,
+                    "Refunded Ticket, so automatically canceled volunteer spot",
+                    cancellationToken);
+
+                if (cancellationResult.success && cancellationResult.cancelledCount > 0)
+                {
+                    _logger.LogInformation(
+                        "Auto-cancelled {Count} volunteer signups for user {UserId} at event {EventId} due to participation cancellation",
+                        cancellationResult.cancelledCount, userId, eventId);
+                }
+                else if (!cancellationResult.success)
+                {
+                    _logger.LogWarning(
+                        "Failed to auto-cancel volunteer signups for user {UserId} at event {EventId}: {Error}",
+                        userId, eventId, cancellationResult.error);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log but don't fail the cancellation if volunteer cancellation fails
+                _logger.LogError(ex,
+                    "Error auto-cancelling volunteer signups for user {UserId} at event {EventId}",
+                    userId, eventId);
             }
 
             return Result.Success();
