@@ -56,6 +56,11 @@ export function useCreateRSVP() {
       queryClient.invalidateQueries({
         queryKey: participationKeys.userParticipations()
       });
+
+      // Invalidate user events for dashboard
+      queryClient.invalidateQueries({
+        queryKey: ['user-events']
+      });
     },
     onError: (error: any) => {
       console.error('Failed to create RSVP:', error);
@@ -100,6 +105,11 @@ export function useCancelRSVP() {
       // Invalidate user participations to refresh the list
       queryClient.invalidateQueries({
         queryKey: participationKeys.userParticipations()
+      });
+
+      // Invalidate user events for dashboard
+      queryClient.invalidateQueries({
+        queryKey: ['user-events']
       });
 
       // Invalidate admin event participations table
@@ -150,6 +160,11 @@ export function useCancelTicket() {
       // Invalidate user participations to refresh the list
       queryClient.invalidateQueries({
         queryKey: participationKeys.userParticipations()
+      });
+
+      // Invalidate user events for dashboard
+      queryClient.invalidateQueries({
+        queryKey: ['user-events']
       });
 
       // Invalidate admin event participations table
