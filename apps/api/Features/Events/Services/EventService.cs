@@ -51,6 +51,8 @@ public class EventService
                 .Include(e => e.Sessions)
                 .Include(e => e.TicketTypes)
                     .ThenInclude(tt => tt.Session)
+                .Include(e => e.TicketTypes)
+                    .ThenInclude(tt => tt.Purchases) // Include purchases for dynamic QuantitySold calculation
                 .Include(e => e.VolunteerPositions)
                 .Include(e => e.Organizers)
                 .Include(e => e.EventParticipations);

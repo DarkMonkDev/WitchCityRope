@@ -9121,20 +9121,24 @@
       },
       "SimplifiedApplicationRequest": {
         "required": [
-          "realName",
+          "firstName",
+          "lastName",
           "preferredSceneName",
           "email",
           "whyJoin",
           "experienceWithRope",
-          "agreeToCommunityStandards",
-          "firstName",
-          "lastName"
+          "agreeToCommunityStandards"
         ],
         "type": "object",
         "properties": {
-          "realName": {
-            "maxLength": 100,
-            "minLength": 2,
+          "firstName": {
+            "maxLength": 50,
+            "minLength": 1,
+            "type": "string"
+          },
+          "lastName": {
+            "maxLength": 50,
+            "minLength": 1,
             "type": "string"
           },
           "preferredSceneName": {
@@ -9175,16 +9179,6 @@
             "minLength": 0,
             "type": "string",
             "nullable": true
-          },
-          "firstName": {
-            "maxLength": 50,
-            "minLength": 1,
-            "type": "string"
-          },
-          "lastName": {
-            "maxLength": 50,
-            "minLength": 1,
-            "type": "string"
           }
         }
       },
@@ -9390,6 +9384,10 @@
             "nullable": true
           },
           "quantityAvailable": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "quantitySold": {
             "type": "integer",
             "format": "int32"
           },

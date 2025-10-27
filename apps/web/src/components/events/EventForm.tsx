@@ -31,26 +31,26 @@ import {
   type EventParticipationDto,
 } from '../../lib/api/hooks/useEventParticipations'
 
-// Helper function to extract purchase amount from notes JSON
-const extractAmountFromNotes = (notes?: string): number => {
-  if (!notes) return 0
+// Helper function to extract purchase amount from metadata JSON
+const extractAmountFromMetadata = (metadata?: string): number => {
+  if (!metadata) return 0
 
   try {
-    const parsed = JSON.parse(notes)
-    // Check for different possible field names in the notes
+    const parsed = JSON.parse(metadata)
+    // Check for different possible field names in the metadata
     return parsed.purchaseAmount || parsed.amount || parsed.ticketAmount || 0
   } catch (error) {
-    // If notes is not JSON, it might be plain text - return 0
+    // If metadata is not JSON, it might be plain text - return 0
     return 0
   }
 }
 
-// Helper function to extract ticket name from notes JSON
-const extractTicketNameFromNotes = (notes?: string): string => {
-  if (!notes) return 'Standard Ticket'
+// Helper function to extract ticket name from metadata JSON
+const extractTicketNameFromMetadata = (metadata?: string): string => {
+  if (!metadata) return 'Standard Ticket'
 
   try {
-    const parsed = JSON.parse(notes)
+    const parsed = JSON.parse(metadata)
     // Try to get ticket name from ticketTypes array
     if (parsed.ticketTypes && parsed.ticketTypes.length > 0) {
       return parsed.ticketTypes[0].name || 'Standard Ticket'
@@ -1358,7 +1358,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                               <Text fw={500}>{participation.userSceneName}</Text>
                             </Table.Td>
                             <Table.Td>
-                              <Text size="sm">{extractTicketNameFromNotes(participation.notes)}</Text>
+                              <Text size="sm">{extractTicketNameFromMetadata(participation.metadata)}</Text>
                             </Table.Td>
                             <Table.Td>
                               <Text size="sm" c={participation.status === 'Active' ? 'green' : 'red'}>
@@ -1375,7 +1375,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                             </Table.Td>
                             <Table.Td>
                               <Text size="sm" fw={500}>
-                                ${extractAmountFromNotes(participation.notes).toFixed(2)}
+                                ${extractAmountFromMetadata(participation.metadata).toFixed(2)}
                               </Text>
                             </Table.Td>
                             <Table.Td>

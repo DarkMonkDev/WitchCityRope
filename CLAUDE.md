@@ -157,6 +157,43 @@ Failure to create/read handoffs = implementation failures.
 - **Backend Developers**: Any DTO changes require frontend type regeneration
 - **VIOLATION = BROKEN BUILDS** - Manual interfaces will conflict with generated types
 
+#### 🚨 CRITICAL: NEVER MANUALLY EDIT AUTO-GENERATED TYPES 🚨
+
+**ABSOLUTE RULES FOR AUTO-GENERATED OBJECTS:**
+
+❌ **NEVER** manually create or edit TypeScript interfaces that duplicate auto-generated DTOs
+❌ **NEVER** add fields like `registeredCount` when auto-generated type has `registrationCount`
+❌ **NEVER** create manual interfaces for API response data
+❌ **NEVER** add "convenience aliases" or field name mappings in frontend code
+
+✅ **ALWAYS** use auto-generated types from `@witchcityrope/shared-types` package
+✅ **ALWAYS** import: `import type { components } from '@witchcityrope/shared-types'`
+✅ **ALWAYS** use type aliases: `export type SessionDto = components['schemas']['SessionDto']`
+
+**If a field name needs to change:**
+1. ❌ DO NOT create a manual interface with the new field name
+2. ✅ DO update the backend C# DTO with the correct field name
+3. ✅ DO regenerate frontend types: `cd packages/shared-types && npm run generate`
+4. ✅ DO update frontend code to use the new field name from auto-generated types
+
+**Why this matters:**
+- Manual interfaces create field name mismatches (e.g., `registeredCount` vs `registrationCount`)
+- Data transformations read from wrong fields, causing `undefined` values
+- UI displays incorrect data (sold columns showing 0 instead of actual values)
+- Debugging becomes extremely difficult due to silent failures
+
+**Examples of violations that cause bugs:**
+```typescript
+// ❌ WRONG - Manual interface
+interface EventSession {
+  registeredCount: number  // Backend actually returns registrationCount
+}
+
+// ✅ CORRECT - Auto-generated type
+import type { components } from '@witchcityrope/shared-types'
+export type EventSession = components['schemas']['SessionDto']  // Has registrationCount
+```
+
 ### 4. Pure React with TypeScript - Component Best Practices
 **ALWAYS USE:**
 - ✅ `.tsx` files for React components

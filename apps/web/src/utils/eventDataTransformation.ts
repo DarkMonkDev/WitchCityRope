@@ -47,7 +47,7 @@ export function convertEventFormDataToUpdateDto(
       startTime: session.startTime,
       endTime: session.endTime,
       capacity: session.capacity,
-      registeredCount: session.registeredCount || 0, // Include registeredCount
+      registrationCount: session.registrationCount || 0, // Fixed: use registrationCount
       description: (session as any).description || ''
     }));
   }
@@ -205,7 +205,7 @@ export function getChangedEventFields(
       startTime: session.startTime,
       endTime: session.endTime,
       capacity: session.capacity,
-      registeredCount: session.registeredCount || 0, // Include registeredCount
+      registrationCount: session.registrationCount || 0, // Fixed: use registrationCount
       description: (session as any).description || ''
     }));
   }

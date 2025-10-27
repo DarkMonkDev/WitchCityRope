@@ -1,17 +1,10 @@
 import React from 'react';
 import { Table, Text, Group } from '@mantine/core';
 import { WCRButton } from '../ui';
+import type { components } from '@witchcityrope/shared-types';
 
-export interface EventSession {
-  id: string;
-  sessionIdentifier: string; // S1, S2, S3, etc.
-  name: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  capacity: number;
-  registeredCount: number;
-}
+// Use auto-generated SessionDto from backend instead of manual interface
+export type EventSession = components['schemas']['SessionDto'];
 
 interface EventSessionsGridProps {
   sessions: EventSession[];
@@ -46,10 +39,16 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
     return `${displayHour}:${displayMinutes} ${ampm}`;
   };
 
-  const getSoldColor = (sold: number, capacity: number) => {
+  const getSoldDisplay = (sold?: number, capacity?: number) => {
+    if (!sold && sold !== 0) return { text: '0', color: 'inherit' };
+    if (!capacity) return { text: sold.toString(), color: 'inherit' };
+
     const percentage = (sold / capacity) * 100;
-    if (percentage >= 75) return 'var(--mantine-color-amber-6)'; // Warning color
-    return 'inherit';
+
+    if (percentage === 100) {
+      return { text: `${sold} - Sold Out`, color: 'var(--mantine-color-red-6)' };
+    }
+    return { text: sold.toString(), color: 'inherit' };
   };
 
   return (
@@ -102,36 +101,36 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
             <Table.Tr
               key={session.id}
               data-testid="session-row"
-              onClick={() => onEditSession(session.id)}
+              onClick={() => session.id && onEditSession(session.id)}
               style={{ cursor: 'pointer' }}
             >
               <Table.Td>
                 <Text fw={700} size="sm" data-testid="session-id">
-                  {session.sessionIdentifier}
+                  {session.sessionIdentifier || 'N/A'}
                 </Text>
               </Table.Td>
               <Table.Td>
-                <Text size="sm" data-testid="session-name">{session.name}</Text>
+                <Text size="sm" data-testid="session-name">{session.name || 'N/A'}</Text>
               </Table.Td>
               <Table.Td>
-                <Text size="sm">{formatDate(session.date)}</Text>
+                <Text size="sm">{session.date ? formatDate(session.date) : 'N/A'}</Text>
               </Table.Td>
               <Table.Td>
-                <Text size="sm">{formatTime(session.startTime)}</Text>
+                <Text size="sm">{session.startTime ? formatTime(session.startTime) : 'N/A'}</Text>
               </Table.Td>
               <Table.Td>
-                <Text size="sm">{formatTime(session.endTime)}</Text>
+                <Text size="sm">{session.endTime ? formatTime(session.endTime) : 'N/A'}</Text>
               </Table.Td>
               <Table.Td>
-                <Text size="sm">{session.capacity}</Text>
+                <Text size="sm">{session.capacity ?? 0}</Text>
               </Table.Td>
               <Table.Td>
                 <Text
                   fw={700}
                   size="sm"
-                  style={{ color: getSoldColor(session.registeredCount, session.capacity) }}
+                  style={{ color: getSoldDisplay(session.registrationCount, session.capacity).color }}
                 >
-                  {session.registeredCount}
+                  {getSoldDisplay(session.registrationCount, session.capacity).text}
                 </Text>
               </Table.Td>
             </Table.Tr>

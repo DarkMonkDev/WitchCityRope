@@ -89,7 +89,14 @@ public class TicketTypeDto
         }
 
         QuantityAvailable = ticketType.Available;
-        QuantitySold = ticketType.Sold;
+
+        // Calculate QuantitySold dynamically from actual ticket purchases (not stored Sold column)
+        // This ensures accuracy even if purchases have Quantity > 1 or new purchases added after seed
+        // Similar to how Session.CurrentAttendees is calculated in EventService.cs lines 146-159
+        QuantitySold = ticketType.Purchases
+            .Where(p => p.IsPaymentCompleted)
+            .Sum(p => p.Quantity);
+
         SalesEndDate = null; // Not currently tracked in the entity
 
         // Determine session identifiers based on the session relationship

@@ -62,18 +62,21 @@ interface ApiEventSession {
   startTime: string
   endTime: string
   capacity: number
-  registeredCount: number
+  registrationCount: number // Fixed: API returns registrationCount, not registeredCount
 }
 
 // API ticket type structure (matches actual API response)
 interface ApiEventTicketType {
   id: string
   name: string
-  type: string
+  pricingType: string
   sessionIdentifiers: string[]
-  minPrice: number
-  maxPrice: number
+  price?: number
+  minPrice?: number
+  maxPrice?: number
+  defaultPrice?: number
   quantityAvailable: number
+  quantitySold: number // Fixed: API returns quantitySold
   salesEndDate?: string | null
 }
 
@@ -89,7 +92,7 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
     startTime: session.startTime,
     endTime: session.endTime,
     capacity: session.capacity,
-    registeredCount: session.registeredCount,
+    registrationCount: session.registrationCount, // Fixed: use registrationCount from API
     description: '' // Add default description
   }));
 
@@ -103,6 +106,7 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
     maxPrice: ticket.maxPrice,
     defaultPrice: ticket.defaultPrice,
     quantityAvailable: ticket.quantityAvailable,
+    quantitySold: ticket.quantitySold, // Fixed: map quantitySold from API
     sessionIdentifiers: ticket.sessionIdentifiers,
     salesEndDate: ticket.salesEndDate || undefined
   }));

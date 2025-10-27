@@ -27,7 +27,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
       startTime: session?.startTime || '18:00',
       endTime: session?.endTime || '21:00',
       capacity: session?.capacity || 50,
-      registeredCount: session?.registeredCount || 0,
+      registrationCount: session?.registrationCount || 0,
     },
     validate: {
       sessionIdentifier: (value) => {
@@ -88,8 +88,9 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
         startTime: startDateTime.toISOString(), // Full ISO datetime string
         endTime: endDateTime.toISOString(),     // Full ISO datetime string
         capacity: values.capacity,
-        registeredCount: values.registeredCount,
+        registrationCount: values.registrationCount,
       };
+
       onSubmit(sessionData);
       form.reset();
       onClose();
@@ -128,7 +129,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
           startTime: startTimeString,
           endTime: endTimeString,
           capacity: session.capacity,
-          registeredCount: session.registeredCount,
+          registrationCount: session.registrationCount,
         });
       } else {
         // Reset form for new session and auto-suggest next session identifier

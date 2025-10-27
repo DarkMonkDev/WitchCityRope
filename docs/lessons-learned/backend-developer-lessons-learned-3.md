@@ -1525,3 +1525,125 @@ dotnet build --no-restore
 
 ---
 
+## Stored Aggregates Become Stale - Calculate Dynamically from Source Tables (2025-10-27)
+
+**Problem**: TicketType.quantitySold showing incorrect values (5) despite database having 6 TicketPurchase records. Admin event details page showed inconsistent data: Session.registrationCount = 6 (correct) but TicketType.quantitySold = 5 (wrong).
+
+**Root Cause**: TicketTypeDto used stored `TicketType.Sold` column instead of calculating dynamically from `TicketType.Purchases` collection. The stored column became stale because:
+- Updated during seed data based on count of purchases to create, not sum of quantities
+- Doesn't account for purchases with Quantity > 1 (multi-ticket purchases)
+- Doesn't update when new purchases added after initial seed
+- Doesn't decrease when purchases deleted or cancelled
+
+**Investigation Pattern**:
+1. Check database directly: `SELECT COUNT(*) FROM "TicketPurchases"` → 6 records
+2. Check stored column: `SELECT "Sold" FROM "TicketTypes"` → 5 (stale)
+3. Compare with other calculations: Session.registrationCount correctly calculates from purchases
+4. Identify root cause: TicketTypeDto using stored column instead of dynamic calculation
+
+**Why Stored Aggregates Fail**:
+- **Single source at creation**: Set once during seed, never updated by application logic
+- **No update triggers**: Application doesn't update Sold when purchases change
+- **Quantity mismatch**: Counts purchase records, not sum of quantities
+- **State changes ignored**: Doesn't handle cancellations or refunds
+
+**Solution - Dynamic Calculation from Source Table**:
+
+**TicketTypeDto.cs** (lines 91-100):
+```csharp
+// ❌ WRONG - Uses stale stored aggregate
+QuantitySold = ticketType.Sold;
+
+// ✅ CORRECT - Calculates from actual purchase records
+// Calculate QuantitySold dynamically from actual ticket purchases (not stored Sold column)
+// This ensures accuracy even if purchases have Quantity > 1 or new purchases added after seed
+// Similar to how Session.CurrentAttendees is calculated in EventService.cs lines 146-159
+QuantitySold = ticketType.Purchases
+    .Where(p => p.IsPaymentCompleted)
+    .Sum(p => p.Quantity);
+```
+
+**Required Include Statement**:
+Must ensure Purchases navigation property is loaded:
+
+**EventService.cs GetEventsAsync** (lines 54-55):
+```csharp
+IQueryable<WitchCityRope.Api.Models.Event> query = _context.Events
+    .AsNoTracking()
+    .Include(e => e.Sessions)
+    .Include(e => e.TicketTypes)
+        .ThenInclude(tt => tt.Session)
+    .Include(e => e.TicketTypes)
+        .ThenInclude(tt => tt.Purchases) // CRITICAL for dynamic QuantitySold calculation
+    .Include(e => e.VolunteerPositions)
+    .Include(e => e.Organizers)
+    .Include(e => e.EventParticipations);
+```
+
+**Pattern Consistency**:
+This matches existing Session.CurrentAttendees calculation (EventService.cs lines 146-159):
+
+```csharp
+// Calculate session attendees from ticket purchases
+var ticketsSold = eventEntity.TicketTypes
+    .Where(tt => tt.SessionId == session.Id)
+    .SelectMany(tt => tt.Purchases)
+    .Where(p => p.IsPaymentCompleted)
+    .Sum(p => p.Quantity);
+
+session.CurrentAttendees = ticketsSold;
+```
+
+**Benefits of Dynamic Calculation**:
+1. ✅ **Always accurate** - Calculates fresh from source data every request
+2. ✅ **Handles quantities** - Sums purchase quantities, not just record counts
+3. ✅ **Reflects state changes** - Excludes cancelled/refunded via IsPaymentCompleted filter
+4. ✅ **No update logic needed** - Calculation happens automatically
+5. ✅ **Single source of truth** - TicketPurchases table is the source
+
+**When to Use This Pattern**:
+- ✅ **Aggregates that change frequently** (ticket sales, registrations, attendance)
+- ✅ **Data with state transitions** (active/cancelled/refunded)
+- ✅ **Calculations involving quantities** (not just counts)
+- ✅ **Data modified outside primary workflow** (manual updates, bulk operations)
+
+**When Stored Aggregates Are OK**:
+- ❌ **Read-heavy, write-rare data** (profile view counts, historical totals)
+- ❌ **Data with update triggers** (database triggers maintain accuracy)
+- ❌ **Immutable after creation** (final counts, archived reports)
+- ❌ **Performance-critical paths** (with proper cache invalidation)
+
+**Prevention Checklist**:
+- [ ] **Check source table** - Is there a collection that represents the actual data?
+- [ ] **Verify includes** - Is the navigation property loaded in queries?
+- [ ] **Test with variations** - Does it work with Quantity > 1? After cancellations?
+- [ ] **Compare calculations** - Do other parts of the system calculate correctly?
+- [ ] **Question stored values** - When was this set? What updates it?
+- [ ] **Prefer source truth** - Calculate from transactions, not aggregates
+
+**Related Anti-Patterns**:
+- **Dashboard Events Query Using Wrong Table** (Part 2, lines 1537-1672): Query source tables, not derived
+- **LINQ Count with Nested Any()** (Part 2, lines 670-763): Use direct table counts
+- **Query Filters Missing Cancelled/Refunded Status** (Part 2, lines 921-1015): Filter source data properly
+
+**Files Modified**:
+- `/home/chad/repos/witchcityrope/apps/api/Features/Events/Models/TicketTypeDto.cs` (lines 91-100)
+- `/home/chad/repos/witchcityrope/apps/api/Features/Events/Services/EventService.cs` (lines 54-55)
+
+**Analysis Document**: `/home/chad/repos/witchcityrope/test-results/tickettype-sold-calculation-fix-2025-10-27.md`
+
+**Future Consideration**: The stored `TicketType.Sold` column could be removed in a future migration to eliminate the source of stale data. This would be a breaking change requiring comprehensive testing and seed data updates.
+
+**Success Criteria**:
+- ✅ API builds with 0 errors
+- ✅ TicketType.quantitySold matches sum of completed purchase quantities
+- ✅ Consistent with Session.registrationCount (both calculate from TicketPurchases)
+- ✅ Works for purchases with Quantity > 1
+- ✅ Updates automatically when purchases added/cancelled
+
+**Pattern**: Stored aggregate columns become stale. Always calculate aggregates dynamically from source tables using navigation properties and LINQ. Use `.Where()` to filter state (IsPaymentCompleted, Active, etc.) and `.Sum()` for quantities instead of `.Count()` for records.
+
+**Tags**: #critical #stored-aggregates #dynamic-calculation #tickettype #quantitysold #stale-data #source-of-truth #navigation-properties #linq-aggregation
+
+---
+

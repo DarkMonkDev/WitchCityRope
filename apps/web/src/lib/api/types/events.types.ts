@@ -109,15 +109,14 @@ export interface UpdateEventDto extends Omit<UpdateEventRequest, 'ticketTypes' |
  *
  * Field additions:
  * - description: Session description text (not in generated DTO)
- * - registeredCount: Uses registrationCount from generated DTO
  *
+ * Note: registrationCount comes from auto-generated SessionDto
  * TODO: Add 'description' to backend SessionDto and regenerate types
  */
 export interface EventSessionDtoExtended extends EventSessionDto {
   /** Session description (not in generated DTO yet) */
   description?: string
-  /** Registered count - alias for registrationCount */
-  registeredCount?: number
+  // Removed registeredCount alias - use registrationCount from auto-generated SessionDto
 }
 
 // ============================================================================

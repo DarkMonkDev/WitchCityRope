@@ -2431,9 +2431,10 @@ The WitchCityRope Vetting Team",
             return;
         }
 
-        var events = await _context.Events.ToListAsync(cancellationToken);
+        var events = await _context.Events.Include(e => e.TicketTypes).ToListAsync(cancellationToken);
         var users = await _userManager.Users.ToListAsync(cancellationToken);
         var participationsToAdd = new List<EventParticipation>();
+        var ticketPurchasesToAdd = new List<TicketPurchase>();
 
         foreach (var eventItem in events)
         {
@@ -2465,26 +2466,67 @@ The WitchCityRope Vetting Team",
                                  eventItem.Title.Contains("Suspension Basics") ? 4 :
                                  eventItem.Title.Contains("Advanced Floor Work") ? 3 : 2;
 
+                // Get the first ticket type for this event (most events have one ticket type)
+                var ticketType = eventItem.TicketTypes.FirstOrDefault();
+                if (ticketType == null)
+                {
+                    _logger.LogWarning("No ticket types found for event {EventTitle}, skipping ticket purchases", eventItem.Title);
+                    continue;
+                }
+
                 for (int i = 0; i < Math.Min(ticketCount, users.Count); i++)
                 {
                     var user = users[i];
+                    var purchaseAmount = (decimal)Random.Shared.Next(15, 65);
+
+                    // Create EventParticipation record
                     var participation = new EventParticipation(eventItem.Id, user.Id, ParticipationType.Ticket)
                     {
                         Id = Guid.NewGuid(),
                         Status = ParticipationStatus.Active,
                         CreatedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20)),
                         UpdatedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20)),
-                        Metadata = $"{{\"purchaseAmount\": {(decimal)Random.Shared.Next(15, 65)}, \"paymentMethod\": \"PayPal\"}}"
+                        Metadata = $"{{\"purchaseAmount\": {purchaseAmount}, \"paymentMethod\": \"PayPal\"}}"
                     };
                     participationsToAdd.Add(participation);
+
+                    // Create corresponding TicketPurchase record
+                    var ticketPurchase = new TicketPurchase
+                    {
+                        Id = Guid.NewGuid(),
+                        TicketTypeId = ticketType.Id,
+                        UserId = user.Id,
+                        Quantity = 1,
+                        TotalPrice = purchaseAmount,
+                        PaymentStatus = "Completed",
+                        PaymentMethod = "PayPal",
+                        PaymentReference = $"PP-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
+                        PurchaseDate = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20)),
+                        CreatedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20)),
+                        UpdatedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20))
+                    };
+                    ticketPurchasesToAdd.Add(ticketPurchase);
                 }
             }
         }
 
         await _context.EventParticipations.AddRangeAsync(participationsToAdd, cancellationToken);
+        await _context.TicketPurchases.AddRangeAsync(ticketPurchasesToAdd, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Event participations creation completed. Created: {ParticipationCount} participations", participationsToAdd.Count);
+        // Update TicketType.Sold counts based on purchases
+        foreach (var ticketPurchase in ticketPurchasesToAdd)
+        {
+            var ticketType = await _context.TicketTypes.FindAsync(new object[] { ticketPurchase.TicketTypeId }, cancellationToken);
+            if (ticketType != null)
+            {
+                ticketType.Sold += ticketPurchase.Quantity;
+            }
+        }
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Event participations creation completed. Created: {ParticipationCount} participations and {PurchaseCount} ticket purchases",
+            participationsToAdd.Count, ticketPurchasesToAdd.Count);
     }
 
     /// <summary>
