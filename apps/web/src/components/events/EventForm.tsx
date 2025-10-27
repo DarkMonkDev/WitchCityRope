@@ -435,13 +435,13 @@ export const EventForm: React.FC<EventFormProps> = ({
               Basic Info
             </Tabs.Tab>
             <Tabs.Tab value="setup" data-testid="setup-tab">
-              Setup
-            </Tabs.Tab>
-            <Tabs.Tab value="emails" data-testid="tab-emails">
-              Emails
+              Sessions / Ticket Types
             </Tabs.Tab>
             <Tabs.Tab value="volunteers" data-testid="tab-volunteers">
               Volunteers
+            </Tabs.Tab>
+            <Tabs.Tab value="emails" data-testid="tab-emails">
+              Emails
             </Tabs.Tab>
             <Tabs.Tab value="rsvp-tickets" data-testid="rsvp-tickets-tab">
               RSVP/Tickets
