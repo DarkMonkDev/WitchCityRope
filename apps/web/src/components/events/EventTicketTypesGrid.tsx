@@ -95,19 +95,19 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
             <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
               Ticket Name
             </Table.Th>
-            <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+            <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', textAlign: 'center' }}>
               Type
             </Table.Th>
             <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
-              Sessions Included
+              Session(s)
             </Table.Th>
             <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
-              Price Range
+              Price
             </Table.Th>
-            <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+            <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', textAlign: 'center' }}>
               Quantity
             </Table.Th>
-            <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+            <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', textAlign: 'center' }}>
               Sold
             </Table.Th>
             <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
@@ -127,7 +127,7 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
                   {ticketType.name}
                 </Text>
               </Table.Td>
-              <Table.Td>
+              <Table.Td style={{ textAlign: 'center' }}>
                 <Badge
                   variant="light"
                   color={ticketType.pricingType === 'Fixed' ? 'blue' : 'green'}
@@ -146,12 +146,12 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
                   {formatPriceRange(ticketType)}
                 </Text>
               </Table.Td>
-              <Table.Td>
+              <Table.Td style={{ textAlign: 'center' }}>
                 <Text size="sm">
                   {getQuantityDisplay(ticketType.quantityAvailable)}
                 </Text>
               </Table.Td>
-              <Table.Td>
+              <Table.Td style={{ textAlign: 'center' }}>
                 <Text size="sm" fw={700}>
                   {ticketType.quantitySold ?? 0}
                 </Text>

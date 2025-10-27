@@ -174,14 +174,25 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
             />
           </Group>
 
-          <DateInput
-            label="Date"
-            placeholder="Select date"
-            required
-            minDate={new Date()}
-            data-testid="input-session-date"
-            {...form.getInputProps('date')}
-          />
+          <Group grow>
+            <DateInput
+              label="Date"
+              placeholder="Select date"
+              required
+              minDate={new Date()}
+              data-testid="input-session-date"
+              {...form.getInputProps('date')}
+            />
+            <NumberInput
+              label="Capacity"
+              placeholder="Maximum attendees"
+              min={1}
+              max={1000}
+              required
+              data-testid="input-session-capacity"
+              {...form.getInputProps('capacity')}
+            />
+          </Group>
 
           <Group grow>
             <TimeInput
@@ -199,16 +210,6 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
               {...form.getInputProps('endTime')}
             />
           </Group>
-
-          <NumberInput
-            label="Capacity"
-            placeholder="Maximum attendees"
-            min={1}
-            max={1000}
-            required
-            data-testid="input-session-capacity"
-            {...form.getInputProps('capacity')}
-          />
 
           <Group justify="flex-end" mt="md">
             <Button variant="outline" onClick={onClose} data-testid="button-cancel-session">
