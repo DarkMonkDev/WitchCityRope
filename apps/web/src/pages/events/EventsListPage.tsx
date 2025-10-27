@@ -605,9 +605,9 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({
               size="sm"
               onClick={(e) => {
                 e.stopPropagation()
-                // Use setTimeout to ensure navigation happens AFTER React finishes current render cycle
+                // Navigate directly to checkout page with event tickets loaded
                 setTimeout(() => {
-                  navigate(`/events/${event.id}`)
+                  navigate(`/checkout/${event.id}`)
                 }, 0)
               }}
               style={{

@@ -1,7 +1,7 @@
 import React from 'react'
 import { Card, Text, Badge, Box, Stack, Group, Button } from '@mantine/core'
 import { useNavigate } from 'react-router-dom'
-import { IconHeart, IconShoppingCart } from '@tabler/icons-react'
+import { IconHeart } from '@tabler/icons-react'
 import type { UserEventDto } from '../../../types/dashboard.types'
 import type { VolunteerShiftWithEvent } from '../../../components/dashboard/UserVolunteerShifts'
 import { useEvent } from '../../../lib/api/hooks/useEvents'
@@ -323,7 +323,6 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
         {showPurchaseButton && (
           <Button
             onClick={handlePurchaseClick}
-            leftSection={<IconShoppingCart size={16} />}
             color="burgundy"
             fullWidth
             style={{
