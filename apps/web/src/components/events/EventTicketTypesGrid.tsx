@@ -13,6 +13,7 @@ export interface EventTicketType {
   maxPrice?: number; // For sliding scale tickets
   defaultPrice?: number; // Default/suggested price for sliding scale
   quantityAvailable?: number;
+  quantitySold?: number; // Number of tickets sold
   salesEndDate?: string;
 }
 
@@ -107,6 +108,9 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
               Quantity
             </Table.Th>
             <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+              Sold
+            </Table.Th>
+            <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
               Sales End
             </Table.Th>
           </Table.Tr>
@@ -148,6 +152,11 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
                 </Text>
               </Table.Td>
               <Table.Td>
+                <Text size="sm" fw={700}>
+                  {ticketType.quantitySold ?? 0}
+                </Text>
+              </Table.Td>
+              <Table.Td>
                 <Text size="sm">
                   {formatSalesEndDate(ticketType.salesEndDate)}
                 </Text>
@@ -156,7 +165,7 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
           ))}
           {ticketTypes.length === 0 && (
             <Table.Tr>
-              <Table.Td colSpan={6}>
+              <Table.Td colSpan={7}>
                 <Text ta="center" c="dimmed" py="xl">
                   No ticket types created yet. Click "Add Ticket Type" to get started.
                 </Text>

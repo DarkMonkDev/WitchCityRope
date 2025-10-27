@@ -54,6 +54,11 @@ public class TicketTypeDto
     public int QuantityAvailable { get; set; }
 
     /// <summary>
+    /// Number of tickets sold for this ticket type
+    /// </summary>
+    public int QuantitySold { get; set; }
+
+    /// <summary>
     /// When sales for this ticket type end
     /// </summary>
     public DateTime? SalesEndDate { get; set; }
@@ -84,6 +89,7 @@ public class TicketTypeDto
         }
 
         QuantityAvailable = ticketType.Available;
+        QuantitySold = ticketType.Sold;
         SalesEndDate = null; // Not currently tracked in the entity
 
         // Determine session identifiers based on the session relationship

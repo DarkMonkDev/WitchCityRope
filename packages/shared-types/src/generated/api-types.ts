@@ -3499,7 +3499,8 @@ export interface components {
             reasoning: string;
         };
         SimplifiedApplicationRequest: {
-            realName: string;
+            firstName: string;
+            lastName: string;
             preferredSceneName: string;
             fetLifeHandle?: string | null;
             email: string;
@@ -3581,6 +3582,8 @@ export interface components {
             quantityAvailable?: number;
             /** Format: date-time */
             salesEndDate?: string | null;
+            /** Format: int32 */
+            quantitySold?: number;
         };
         TokenClaims: {
             userId?: string;
