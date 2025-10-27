@@ -136,16 +136,24 @@ export const EventDetailPage: React.FC = () => {
   const hasParticipation = participation?.hasRSVP || participation?.hasTicket;
   const isAuthenticated = !!currentUser;
 
+  // For workshops (class events), user must have an active ticket to volunteer
+  // For social events, anyone can volunteer (no ticket required)
+  const canVolunteerBasedOnEventType =
+    eventType === 'social' || (eventType === 'class' && participation?.hasTicket === true);
+
   // Show volunteer encouragement if:
   // - User is logged in
   // - User has NOT already volunteered
   // - Event has volunteer positions available
   // - NOT (event is full AND user doesn't have RSVP/ticket)
+  // - For workshops: User must have an active ticket
+  // - For social events: No ticket required
   const showVolunteerEncouragement =
     isAuthenticated &&
     !hasUserVolunteered &&
     hasVolunteerPositions &&
-    !(isEventFull && !hasParticipation);
+    !(isEventFull && !hasParticipation) &&
+    canVolunteerBasedOnEventType;
 
   // Scroll to volunteer section
   const handleScrollToVolunteers = () => {
@@ -313,7 +321,7 @@ export const EventDetailPage: React.FC = () => {
           </ContentSection>
 
           {/* Volunteer Positions */}
-          {volunteerPositions && Array.isArray(volunteerPositions) && volunteerPositions.length > 0 && (
+          {volunteerPositions && Array.isArray(volunteerPositions) && volunteerPositions.length > 0 && canVolunteerBasedOnEventType && (
             <div id="volunteer-opportunities-section">
               <ContentSection title="Volunteer Opportunities">
                 <Stack gap="md">
