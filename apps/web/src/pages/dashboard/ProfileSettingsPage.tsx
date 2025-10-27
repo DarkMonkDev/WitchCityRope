@@ -468,47 +468,50 @@ const ChangePasswordForm: React.FC = () => {
       }}
     >
       <Stack gap="md">
-        <TextInput
-          label="Current Password"
-          type="password"
-          required
-          {...form.getInputProps('currentPassword')}
-          styles={{
-            label: {
-              fontFamily: 'var(--font-heading)',
-              fontWeight: 600,
-              color: 'var(--color-burgundy)',
-            },
-          }}
-        />
+        {/* 3-column layout for password fields - stacks on smaller screens */}
+        <SimpleGrid cols={3} spacing="md">
+          <TextInput
+            label="Current Password"
+            type="password"
+            required
+            {...form.getInputProps('currentPassword')}
+            styles={{
+              label: {
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 600,
+                color: 'var(--color-burgundy)',
+              },
+            }}
+          />
 
-        <TextInput
-          label="New Password"
-          type="password"
-          required
-          {...form.getInputProps('newPassword')}
-          styles={{
-            label: {
-              fontFamily: 'var(--font-heading)',
-              fontWeight: 600,
-              color: 'var(--color-burgundy)',
-            },
-          }}
-        />
+          <TextInput
+            label="New Password"
+            type="password"
+            required
+            {...form.getInputProps('newPassword')}
+            styles={{
+              label: {
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 600,
+                color: 'var(--color-burgundy)',
+              },
+            }}
+          />
 
-        <TextInput
-          label="Confirm New Password"
-          type="password"
-          required
-          {...form.getInputProps('confirmPassword')}
-          styles={{
-            label: {
-              fontFamily: 'var(--font-heading)',
-              fontWeight: 600,
-              color: 'var(--color-burgundy)',
-            },
-          }}
-        />
+          <TextInput
+            label="Confirm New Password"
+            type="password"
+            required
+            {...form.getInputProps('confirmPassword')}
+            styles={{
+              label: {
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 600,
+                color: 'var(--color-burgundy)',
+              },
+            }}
+          />
+        </SimpleGrid>
 
         <Text size="sm" c="dimmed">
           Password must be at least 8 characters and contain uppercase, lowercase, and number.
