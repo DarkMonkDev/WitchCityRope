@@ -11,11 +11,17 @@ public class SimplifiedApplicationValidator : AbstractValidator<SimplifiedApplic
 {
     public SimplifiedApplicationValidator()
     {
-        RuleFor(x => x.RealName)
+        RuleFor(x => x.FirstName)
             .NotEmpty()
-            .WithMessage("Real name is required")
-            .Length(2, 100)
-            .WithMessage("Real name must be between 2 and 100 characters");
+            .WithMessage("First name is required")
+            .Length(1, 50)
+            .WithMessage("First name must be between 1 and 50 characters");
+
+        RuleFor(x => x.LastName)
+            .NotEmpty()
+            .WithMessage("Last name is required")
+            .Length(1, 50)
+            .WithMessage("Last name must be between 1 and 50 characters");
 
         RuleFor(x => x.PreferredSceneName)
             .NotEmpty()

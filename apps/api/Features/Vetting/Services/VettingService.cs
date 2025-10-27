@@ -1147,7 +1147,7 @@ public class VettingService : IVettingService
                 var emailResult = await _emailService.SendApplicationConfirmationAsync(
                     application,
                     request.Email,
-                    request.PreferredSceneName ?? request.RealName,
+                    request.PreferredSceneName ?? $"{request.FirstName} {request.LastName}",
                     cancellationToken);
 
                 if (emailResult.IsSuccess)
