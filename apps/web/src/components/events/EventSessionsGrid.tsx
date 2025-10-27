@@ -36,12 +36,14 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
   };
 
   const formatTime = (timeString: string) => {
-    // Assuming timeString is in HH:MM format
-    const [hours, minutes] = timeString.split(':');
-    const hour = parseInt(hours);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 || 12;
-    return `${displayHour}:${minutes} ${ampm}`;
+    // Parse ISO datetime string from backend
+    const date = new Date(timeString);
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHour = hours % 12 || 12;
+    const displayMinutes = minutes.toString().padStart(2, '0');
+    return `${displayHour}:${displayMinutes} ${ampm}`;
   };
 
   const getSoldColor = (sold: number, capacity: number) => {

@@ -115,12 +115,18 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
     if (opened) {
       if (session) {
         // Populate form with existing session data for editing
+        // Extract time portion from ISO datetime strings for TimeInput component
+        const startDate = new Date(session.startTime);
+        const endDate = new Date(session.endTime);
+        const startTimeString = `${startDate.getHours().toString().padStart(2, '0')}:${startDate.getMinutes().toString().padStart(2, '0')}`;
+        const endTimeString = `${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}`;
+
         form.setValues({
           sessionIdentifier: session.sessionIdentifier,
           name: session.name,
           date: session.date ? new Date(session.date) : new Date(),
-          startTime: session.startTime,
-          endTime: session.endTime,
+          startTime: startTimeString,
+          endTime: endTimeString,
           capacity: session.capacity,
           registeredCount: session.registeredCount,
         });
