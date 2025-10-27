@@ -1,11 +1,10 @@
 import React from 'react'
 import { Box, Text, Group } from '@mantine/core'
 import { EventDto } from '@witchcityrope/shared-types'
+import { calculateEventPriceRange } from '../../utils/eventUtils'
 
 interface EventCardProps {
   event: EventDto
-  /** Custom pricing display */
-  price?: string
   /** Availability status */
   status?: {
     type: 'available' | 'limited' | 'full'
@@ -23,7 +22,6 @@ interface EventCardProps {
 
 export const EventCard: React.FC<EventCardProps> = ({
   event,
-  price = '$35-55',
   status,
   details = {
     duration: '2.5 hours',
@@ -32,6 +30,8 @@ export const EventCard: React.FC<EventCardProps> = ({
   },
   onClick,
 }) => {
+  // Calculate price from ticket types
+  const displayPrice = calculateEventPriceRange((event as any).ticketTypes || []);
   // Calculate status dynamically based on event data
   const calculateStatus = () => {
     if (!status) {
@@ -75,16 +75,39 @@ export const EventCard: React.FC<EventCardProps> = ({
   }
 
   const finalStatus = calculateStatus()
-  const formatDate = (isoString?: string) => {
-    if (!isoString) return 'TBD'
-    const date = new Date(isoString)
-    return date.toLocaleDateString('en-US', {
+
+  const formatDateTime = (startDate?: string, endDate?: string) => {
+    if (!startDate) return 'TBD'
+    const start = new Date(startDate)
+
+    // Format date with abbreviated month, no year
+    const datePart = start.toLocaleDateString('en-US', {
       weekday: 'long',
-      month: 'long',
-      day: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
+
+    // Format start time
+    const startTime = start.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
-    })
+      hour12: true
+    }).toLowerCase()
+
+    // If no end date, just return date + start time
+    if (!endDate) {
+      return `${datePart} - ${startTime}`
+    }
+
+    // Format end time
+    const end = new Date(endDate)
+    const endTime = end.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }).toLowerCase()
+
+    return `${datePart} - ${startTime} - ${endTime}`
   }
 
   const getStatusColor = (type: string) => {
@@ -175,19 +198,65 @@ export const EventCard: React.FC<EventCardProps> = ({
 
       {/* Event Content */}
       <Box style={{ padding: 'var(--space-lg)' }}>
-        <Text
+        {/* Date and Time - Split Layout */}
+        <Group
+          justify="space-between"
           style={{
-            fontFamily: 'var(--font-heading)',
-            fontSize: '14px',
-            fontWeight: 600,
-            color: 'var(--color-burgundy)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
             marginBottom: 'var(--space-xs)',
           }}
         >
-          {formatDate(event.startDate)}
-        </Text>
+          <Text
+            style={{
+              fontFamily: 'var(--font-heading)',
+              fontSize: '14px',
+              fontWeight: 600,
+              color: 'var(--color-burgundy)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}
+          >
+            {(() => {
+              if (!event.startDate) return 'TBD'
+              const start = new Date(event.startDate)
+              return start.toLocaleDateString('en-US', {
+                weekday: 'long',
+                month: 'short',
+                day: 'numeric'
+              })
+            })()}
+          </Text>
+          <Text
+            style={{
+              fontFamily: 'var(--font-heading)',
+              fontSize: '14px',
+              fontWeight: 600,
+              color: 'var(--color-burgundy)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}
+          >
+            {(() => {
+              if (!event.startDate) return ''
+              const start = new Date(event.startDate)
+              const startTime = start.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+              }).toLowerCase()
+
+              if (!event.endDate) return startTime
+
+              const end = new Date(event.endDate)
+              const endTime = end.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+              }).toLowerCase()
+
+              return `${startTime} - ${endTime}`
+            })()}
+          </Text>
+        </Group>
 
         <Text
           style={{
@@ -200,33 +269,6 @@ export const EventCard: React.FC<EventCardProps> = ({
         >
           {event.shortDescription || ''}
         </Text>
-
-        <Group
-          gap="md"
-          style={{
-            fontSize: '14px',
-            color: 'var(--color-smoke)',
-            marginBottom: 'var(--space-md)',
-            flexWrap: 'wrap',
-          }}
-        >
-          <Group gap="xs">
-            <span>📍</span>
-            <span>{event.location || details.spots}</span>
-          </Group>
-          {details.duration && (
-            <Group gap="xs">
-              <span>⏱️</span>
-              <span>{details.duration}</span>
-            </Group>
-          )}
-          {details.level && (
-            <Group gap="xs">
-              <span>📚</span>
-              <span>{details.level}</span>
-            </Group>
-          )}
-        </Group>
 
         {/* Event Footer */}
         <Group
@@ -245,7 +287,7 @@ export const EventCard: React.FC<EventCardProps> = ({
               color: 'var(--color-burgundy)',
             }}
           >
-            {price}
+            {displayPrice}
           </Text>
 
           <Text

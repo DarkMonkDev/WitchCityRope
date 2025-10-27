@@ -4,7 +4,7 @@ import {
   Button, Anchor, Alert
 } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
-import { formatPrice, getCapacityColor, formatEventDate } from '../../../utils/eventUtils';
+import { formatPrice, getCapacityColor, formatEventDateTime, calculateEventPriceRange } from '../../../utils/eventUtils';
 
 interface EventCardProps {
   event: {
@@ -34,17 +34,18 @@ interface EventCardProps {
     requiresVetting?: boolean;
     startTime: string;
     endTime: string;
+    ticketTypes?: any[]; // Array of ticket types with pricing
   };
   userRole: 'anonymous' | 'member' | 'vetted' | 'admin';
   onRegister?: (eventId: string) => void;
   onRSVP?: (eventId: string) => void;
 }
 
-export const EventCard = memo<EventCardProps>(({ 
-  event, 
-  userRole, 
-  onRegister = () => {}, 
-  onRSVP = () => {} 
+export const EventCard = memo<EventCardProps>(({
+  event,
+  userRole,
+  onRegister = () => {},
+  onRSVP = () => {}
 }) => {
   const navigate = useNavigate();
   const canViewFullDetails = useMemo(() => {
@@ -52,10 +53,15 @@ export const EventCard = memo<EventCardProps>(({
     return userRole === 'vetted' || userRole === 'admin';
   }, [event.isMemberOnly, userRole]);
 
-  const capacityPercentage = useMemo(() => 
-    (event.capacity.taken / event.capacity.total) * 100, 
+  const capacityPercentage = useMemo(() =>
+    (event.capacity.taken / event.capacity.total) * 100,
     [event.capacity.taken, event.capacity.total]
   );
+
+  // Calculate price display from ticket types
+  const displayPrice = useMemo(() => {
+    return calculateEventPriceRange(event.ticketTypes || []);
+  }, [event.ticketTypes]);
 
   const renderActionButtons = () => {
     const stopPropagation = (e: React.MouseEvent) => {
@@ -217,29 +223,53 @@ export const EventCard = memo<EventCardProps>(({
           </Group>
         </Group>
 
-        {/* Event Meta */}
-        <Group gap="md">
+        {/* Event Meta - Split Date and Time */}
+        <Group justify="space-between" gap="md">
           <Group gap={4}>
             <Text span>📅</Text>
             <Text size="sm" c="dimmed" data-testid="event-date">
-              {formatEventDate(event.startDate)}
+              {(() => {
+                if (!event.startDate) return 'TBD'
+                const start = new Date(event.startDate)
+                return start.toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  month: 'short',
+                  day: 'numeric'
+                })
+              })()}
             </Text>
           </Group>
-          <Group gap={4}>
-            <Text span>🕐</Text>
-            <Text size="sm" c="dimmed" data-testid="event-time">
-              {event.startTime} - {event.endTime}
-            </Text>
-          </Group>
-          {event.instructor && (
-            <Group gap={4}>
-              <Text span>👤</Text>
-              <Text size="sm" c="dimmed">
-                {event.instructor}
-              </Text>
-            </Group>
-          )}
+          <Text size="sm" c="dimmed">
+            {(() => {
+              if (!event.startDate) return ''
+              const start = new Date(event.startDate)
+              const startTime = start.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+              }).toLowerCase()
+
+              if (!event.endDate) return startTime
+
+              const end = new Date(event.endDate)
+              const endTime = end.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+              }).toLowerCase()
+
+              return `${startTime} - ${endTime}`
+            })()}
+          </Text>
         </Group>
+        {event.instructor && (
+          <Group gap={4}>
+            <Text span>👤</Text>
+            <Text size="sm" c="dimmed">
+              {event.instructor}
+            </Text>
+          </Group>
+        )}
 
         {/* Description */}
         {canViewFullDetails ? (
@@ -266,7 +296,7 @@ export const EventCard = memo<EventCardProps>(({
           <Group gap="md">
             {/* Pricing */}
             <Text fw={600} c="green" size="md">
-              {formatPrice(event.price)}
+              {displayPrice}
             </Text>
             
             {/* Capacity */}

@@ -147,7 +147,11 @@ export const VolunteerPositionsGrid: React.FC<VolunteerPositionsGridProps> = ({
                 </Table.Td>
                 <Table.Td>
                   <Text fw={600} data-testid="position-sessions">
-                    {position.sessions}
+                    {(() => {
+                      // Map session identifier to session name
+                      const session = availableSessions.find(s => s.sessionIdentifier === position.sessions);
+                      return session?.name || position.sessions;
+                    })()}
                   </Text>
                 </Table.Td>
                 <Table.Td>

@@ -96,7 +96,8 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
         <Group justify="space-between" align="flex-start">
           <div>
             <Group gap="xs" mb={4} align="baseline">
-              {position.sessionName && (
+              {/* Only show session name if event has multiple sessions (hide "Main Session" for single-session events) */}
+              {position.sessionName && !position.sessionName.includes('Main Session') && (
                 <Text
                   size="lg"
                   fw={700}
@@ -108,7 +109,7 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
               <Text
                 size="lg"
                 fw={700}
-                style={{ color: 'var(--color-text)', marginLeft: position.sessionName ? '20px' : '0' }}
+                style={{ color: 'var(--color-text)', marginLeft: position.sessionName && !position.sessionName.includes('Main Session') ? '20px' : '0' }}
               >
                 {position.title}
               </Text>

@@ -2880,10 +2880,19 @@ The WitchCityRope Vetting Team",
     {
         var positions = new List<VolunteerPosition>();
 
-        // Common volunteer positions for all events
+        // Get the main session for this event (all events have at least one session)
+        var mainSession = eventItem.Sessions.FirstOrDefault();
+        if (mainSession == null)
+        {
+            _logger.LogWarning("Event {EventId} has no sessions, cannot create volunteer positions", eventItem.Id);
+            return positions;
+        }
+
+        // Common volunteer positions for all events - associated with main session
         positions.Add(new VolunteerPosition
         {
             EventId = eventItem.Id,
+            SessionId = mainSession.Id,
             Title = "Door Monitor",
             Description = "Check attendees in, verify tickets/RSVPs, and welcome newcomers",
             SlotsNeeded = 2,
@@ -2894,6 +2903,7 @@ The WitchCityRope Vetting Team",
         positions.Add(new VolunteerPosition
         {
             EventId = eventItem.Id,
+            SessionId = mainSession.Id,
             Title = "Setup/Cleanup Crew",
             Description = "Help set up equipment before the event and clean up afterwards",
             SlotsNeeded = 3,
@@ -2907,6 +2917,7 @@ The WitchCityRope Vetting Team",
             positions.Add(new VolunteerPosition
             {
                 EventId = eventItem.Id,
+                SessionId = mainSession.Id,
                 Title = "Teaching Assistant",
                 Description = "Help instructor with demonstrations and assist students",
                 SlotsNeeded = 1,

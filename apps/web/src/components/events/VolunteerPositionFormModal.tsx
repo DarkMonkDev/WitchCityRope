@@ -42,7 +42,7 @@ export const VolunteerPositionFormModal: React.FC<VolunteerPositionFormModalProp
     initialValues: {
       title: position?.title || '',
       description: position?.description || '',
-      sessions: position?.sessions || 'All Sessions',
+      sessions: position?.sessions || (availableSessions[0]?.sessionIdentifier || 'S1'),
       startTime: position?.startTime || '18:00',
       endTime: position?.endTime || '21:00',
       slotsNeeded: position?.slotsNeeded || 1,
@@ -91,16 +91,13 @@ export const VolunteerPositionFormModal: React.FC<VolunteerPositionFormModalProp
     })(event);
   };
 
-  // Generate session options from available sessions with safety checks
-  const sessionOptions = [
-    { value: 'All Sessions', label: 'All Sessions' },
-    ...availableSessions
-      .filter(session => session?.sessionIdentifier && session?.name) // Filter out invalid sessions
-      .map(session => ({
-        value: session.sessionIdentifier,
-        label: `${session.sessionIdentifier} - ${session.name}`,
-      })),
-  ];
+  // Generate session options from available sessions (no "All Sessions" - each position must be assigned to a specific session)
+  const sessionOptions = availableSessions
+    .filter(session => session?.sessionIdentifier && session?.name) // Filter out invalid sessions
+    .map(session => ({
+      value: session.sessionIdentifier,
+      label: `${session.sessionIdentifier} - ${session.name}`,
+    }));
 
   // Reset form when modal opens
   React.useEffect(() => {

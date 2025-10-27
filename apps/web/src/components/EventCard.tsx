@@ -1,20 +1,45 @@
 import React from 'react'
 import { Event } from '../types/Event'
+import { calculateEventPriceRange } from '../utils/eventUtils'
 
 interface EventCardProps {
   event: Event
 }
 
 export const EventCard: React.FC<EventCardProps> = ({ event }) => {
-  const formatDate = (isoString: string) => {
-    return new Date(isoString).toLocaleDateString('en-US', {
+  // Calculate price from ticket types
+  const displayPrice = calculateEventPriceRange((event as any).ticketTypes || []);
+  const formatDateTime = (startDate: string, endDate?: string) => {
+    const start = new Date(startDate)
+
+    // Format date with abbreviated month, no year
+    const datePart = start.toLocaleDateString('en-US', {
       weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
+
+    // Format start time
+    const startTime = start.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
-    })
+      hour12: true
+    }).toLowerCase()
+
+    // If no end date, just return date + start time
+    if (!endDate) {
+      return `${datePart} - ${startTime}`
+    }
+
+    // Format end time
+    const end = new Date(endDate)
+    const endTime = end.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }).toLowerCase()
+
+    return `${datePart} - ${startTime} - ${endTime}`
   }
 
   return (
@@ -29,8 +54,43 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
         {event.shortDescription || ''}
       </p>
       <div className="text-sm text-gray-500" data-testid="event-meta">
-        <p>📅 {formatDate(event.startDate)}</p>
+        {/* Date and Time - Split Layout */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+          <span>
+            📅 {(() => {
+              const start = new Date(event.startDate)
+              return start.toLocaleDateString('en-US', {
+                weekday: 'long',
+                month: 'short',
+                day: 'numeric'
+              })
+            })()}
+          </span>
+          <span>
+            {(() => {
+              const start = new Date(event.startDate)
+              const startTime = start.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+              }).toLowerCase()
+
+              const endDate = (event as any).endDate
+              if (!endDate) return startTime
+
+              const end = new Date(endDate)
+              const endTime = end.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+              }).toLowerCase()
+
+              return `${startTime} - ${endTime}`
+            })()}
+          </span>
+        </div>
         <p>📍 {event.location}</p>
+        <p className="font-semibold text-burgundy mt-2">{displayPrice}</p>
       </div>
     </div>
   )

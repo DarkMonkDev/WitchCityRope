@@ -21,7 +21,7 @@ import {
 import { IconSearch, IconArrowUp, IconArrowDown } from '@tabler/icons-react'
 import { useEventFilters } from '../../hooks/useEventFilters'
 import { useEvents } from '../../lib/api/hooks/useEvents'
-import { formatEventDate, formatEventTime } from '../../utils/eventUtils'
+import { formatEventDate, formatEventDateTime, formatEventTime, calculateEventPriceRange } from '../../utils/eventUtils'
 import type { EventDto } from '../../lib/api/types/events.types'
 import { useNavigate } from 'react-router-dom'
 
@@ -430,23 +430,65 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({
           flexDirection: 'column',
         }}
       >
-        {/* Date and Time */}
-        <Text
-          data-testid="event-date"
-          size="sm"
-          fw={700}
+        {/* Date and Time - Split Layout */}
+        <Group
+          justify="space-between"
           mb="sm"
-          style={{
-            fontFamily: 'var(--font-heading)',
-            color: 'var(--color-burgundy)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-          }}
         >
-          <span data-testid="event-time">
-            {formatEventDate(event.startDate)} • {formatEventTime(event.startDate)}
-          </span>
-        </Text>
+          <Text
+            data-testid="event-date"
+            size="sm"
+            fw={700}
+            style={{
+              fontFamily: 'var(--font-heading)',
+              color: 'var(--color-burgundy)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}
+          >
+            {(() => {
+              if (!event.startDate) return 'TBD'
+              const start = new Date(event.startDate)
+              return start.toLocaleDateString('en-US', {
+                weekday: 'long',
+                month: 'short',
+                day: 'numeric'
+              })
+            })()}
+          </Text>
+          <Text
+            data-testid="event-time"
+            size="sm"
+            fw={700}
+            style={{
+              fontFamily: 'var(--font-heading)',
+              color: 'var(--color-burgundy)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}
+          >
+            {(() => {
+              if (!event.startDate) return ''
+              const start = new Date(event.startDate)
+              const startTime = start.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+              }).toLowerCase()
+
+              if (!event.endDate) return startTime
+
+              const end = new Date(event.endDate)
+              const endTime = end.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+              }).toLowerCase()
+
+              return `${startTime} - ${endTime}`
+            })()}
+          </Text>
+        </Group>
 
         {/* Description */}
         <Text
@@ -480,21 +522,7 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({
               color: 'var(--color-burgundy)',
             }}
           >
-            {(() => {
-              // Calculate price display from real ticket types
-              const ticketTypes = (event as any).ticketTypes || [];
-              if (ticketTypes.length === 0) return '$0';
-
-              const prices = ticketTypes.map((t: any) => t.minPrice || t.maxPrice || 0);
-              const minPrice = Math.min(...prices);
-              const maxPrice = Math.max(...prices);
-
-              if (minPrice === maxPrice) {
-                return `$${minPrice.toFixed(2)}`;
-              } else {
-                return `$${minPrice.toFixed(2)}-${maxPrice.toFixed(2)}`;
-              }
-            })()}
+            {calculateEventPriceRange((event as any).ticketTypes || [])}
           </Text>
 
           <Text
@@ -731,21 +759,7 @@ const EventTableView: React.FC<EventTableViewProps> = ({ events, onEventClick })
                     textAlign: 'center',
                   }}
                 >
-                  {(() => {
-                    // Calculate price display from real ticket types
-                    const ticketTypes = (event as any).ticketTypes || [];
-                    if (ticketTypes.length === 0) return '$0';
-
-                    const prices = ticketTypes.map((t: any) => t.minPrice || t.maxPrice || 0);
-                    const minPrice = Math.min(...prices);
-                    const maxPrice = Math.max(...prices);
-
-                    if (minPrice === maxPrice) {
-                      return `$${minPrice.toFixed(2)}`;
-                    } else {
-                      return `$${minPrice.toFixed(2)}-${maxPrice.toFixed(2)}`;
-                    }
-                  })()}
+                  {calculateEventPriceRange((event as any).ticketTypes || [])}
                 </Table.Td>
                 <Table.Td
                   style={{

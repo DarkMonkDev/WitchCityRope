@@ -8,7 +8,9 @@ import { EventCard } from './components/EventCard';
 import { EventTable } from './components/EventTable';
 import { useUserEvents, useVettingStatus } from '../../hooks/useDashboard';
 import { useUser } from '../../stores/authStore';
+import { useUserVolunteerShifts } from '../../features/volunteers/hooks/useVolunteerPositions';
 import type { UserEventDto, VettingStatusDto } from '../../types/dashboard.types';
+import type { VolunteerShiftWithEvent } from '../../components/dashboard/UserVolunteerShifts';
 
 /**
  * User Dashboard - My Events Page
@@ -31,6 +33,26 @@ export const MyEventsPage: React.FC = () => {
   // Fetch data using TanStack Query hooks
   const { data: events, isLoading: eventsLoading, error: eventsError } = useUserEvents(showPast);
   const { data: vettingStatus, isLoading: vettingLoading } = useVettingStatus();
+
+  // Fetch user's volunteer shifts
+  const { data: volunteerShiftsResponse } = useUserVolunteerShifts();
+
+  // Transform volunteer shifts to dashboard format
+  const volunteerShifts: VolunteerShiftWithEvent[] = useMemo(() => {
+    if (!volunteerShiftsResponse || !Array.isArray(volunteerShiftsResponse)) return [];
+
+    return volunteerShiftsResponse.map((shift) => ({
+      id: shift.signupId || '',
+      eventId: '', // Note: Backend doesn't provide eventId in UserVolunteerShiftDto yet
+      eventTitle: shift.eventTitle || 'Event',
+      eventStartDate: shift.eventDate || new Date().toISOString(),
+      eventLocation: shift.eventLocation || 'TBD',
+      positionTitle: shift.positionTitle || 'Volunteer',
+      sessionName: shift.sessionName || undefined,
+      sessionStartTime: shift.shiftStartTime || undefined,
+      sessionEndTime: shift.shiftEndTime || undefined
+    }));
+  }, [volunteerShiftsResponse]);
 
   // Filter events
   const filteredEvents = useMemo(() => {
@@ -174,6 +196,7 @@ export const MyEventsPage: React.FC = () => {
               <EventCard
                 key={event.id}
                 event={event}
+                volunteerShifts={volunteerShifts}
                 className={event.isPastEvent ? 'past-event' : ''}
               />
             ))}

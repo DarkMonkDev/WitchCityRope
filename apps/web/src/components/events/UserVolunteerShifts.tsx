@@ -89,7 +89,8 @@ export const UserVolunteerShifts: React.FC<UserVolunteerShiftsProps> = ({ positi
                     >
                       {position.title}
                     </Text>
-                    {position.sessionName && (
+                    {/* Only show session name if event has multiple sessions (hide "Main Session" for single-session events) */}
+                    {position.sessionName && !position.sessionName.includes('Main Session') && (
                       <Badge size="xs" color="gray" variant="light">
                         {position.sessionName}
                       </Badge>

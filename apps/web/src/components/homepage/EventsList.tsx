@@ -207,32 +207,13 @@ export const EventsList: React.FC<EventsListProps> = ({
           marginBottom: 'var(--space-xl)'
         }}
       >
-        {displayEvents.map((event) => {
-          // Calculate price display from real ticket types
-          const ticketTypes = (event as any).ticketTypes || [];
-          let priceDisplay = '$0';
-
-          if (ticketTypes.length > 0) {
-            const prices = ticketTypes.map((t: any) => t.minPrice || t.maxPrice || 0);
-            const minPrice = Math.min(...prices);
-            const maxPrice = Math.max(...prices);
-
-            if (minPrice === maxPrice) {
-              priceDisplay = `$${minPrice.toFixed(2)}`;
-            } else {
-              priceDisplay = `$${minPrice.toFixed(2)}-${maxPrice.toFixed(2)}`;
-            }
-          }
-
-          return (
-            <EventCard
-              key={event.id}
-              event={event}
-              price={priceDisplay}
-              onClick={() => handleEventClick(event.id)}
-            />
-          );
-        })}
+        {displayEvents.map((event) => (
+          <EventCard
+            key={event.id}
+            event={event}
+            onClick={() => handleEventClick(event.id)}
+          />
+        ))}
       </Box>
 
       {showViewMore && (
