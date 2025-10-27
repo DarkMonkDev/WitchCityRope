@@ -43,6 +43,15 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
       // Invalidate queries to refresh the volunteer positions list
       queryClient.invalidateQueries({ queryKey: ['volunteerPositions', position.eventId] });
 
+      // Invalidate user volunteer shifts to update dashboard and event detail
+      queryClient.invalidateQueries({ queryKey: ['userVolunteerShifts'] });
+
+      // Invalidate user events for dashboard (volunteer signup auto-creates RSVP)
+      queryClient.invalidateQueries({ queryKey: ['user-events'] });
+
+      // Invalidate participation status for event detail page
+      queryClient.invalidateQueries({ queryKey: ['participation', 'event', position.eventId] });
+
       setShowSignupConfirm(false);
     },
     onError: (error: any) => {
