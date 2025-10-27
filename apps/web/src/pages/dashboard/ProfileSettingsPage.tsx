@@ -226,8 +226,8 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
       }}
     >
       <Stack gap="md">
-        {/* 3-column layout for all fields */}
-        <SimpleGrid cols={3} spacing="md">
+        {/* Responsive 3-column layout: 1 col on mobile, 2 on tablet, 3 on desktop */}
+        <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
           <TextInput
             label="Scene Name"
             placeholder="Your scene name"
@@ -270,7 +270,7 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
           />
         </SimpleGrid>
 
-        <SimpleGrid cols={3} spacing="md">
+        <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
           <TextInput
             label="Email"
             placeholder="your@email.com"
@@ -314,7 +314,7 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
           />
         </SimpleGrid>
 
-        <SimpleGrid cols={3} spacing="md">
+        <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
           <TextInput
             label="FetLife Username"
             placeholder="Your FetLife username"
@@ -342,7 +342,7 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
               },
             }}
           />
-          {/* Empty third column */}
+          {/* Empty third column on desktop */}
           <Box />
         </SimpleGrid>
 
@@ -468,8 +468,8 @@ const ChangePasswordForm: React.FC = () => {
       }}
     >
       <Stack gap="md">
-        {/* 3-column layout for password fields - stacks on smaller screens */}
-        <SimpleGrid cols={3} spacing="md">
+        {/* Responsive 3-column layout: 1 col on mobile, 2 on tablet, 3 on desktop */}
+        <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
           <TextInput
             label="Current Password"
             type="password"
