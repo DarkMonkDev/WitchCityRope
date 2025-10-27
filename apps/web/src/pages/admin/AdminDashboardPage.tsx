@@ -1,6 +1,6 @@
 import React from 'react';
 import { Container, Title, Text, Grid, Paper, Box, Group, Badge } from '@mantine/core';
-import { IconCalendarEvent, IconUsers, IconSettings, IconChartBar, IconArrowRight, IconClipboardCheck, IconFileText, IconAlertTriangle } from '@tabler/icons-react';
+import { IconCalendarEvent, IconUsers, IconSettings, IconChartBar, IconClipboardCheck, IconFileText, IconAlertTriangle } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 import { useVettingStats } from '../../features/admin/vetting/hooks/useVettingStats';
 import { useSafetyDashboard } from '../../features/safety/hooks/useSafetyIncidents';
@@ -187,10 +187,6 @@ export const AdminDashboardPage: React.FC = () => {
                   </Text>
                 </Box>
               )}
-
-              <Group justify="flex-end" mt="md">
-                <IconArrowRight size={16} style={{ color: card.color }} />
-              </Group>
             </Paper>
           </Grid.Col>
         ))}
