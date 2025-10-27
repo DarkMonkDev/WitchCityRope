@@ -37,7 +37,7 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
   const [filters, setFilters] = useState<ApplicationFilterRequest>(() => ({
     page: 1,
     pageSize: 25,
-    statusFilters: ['UnderReview', 'InterviewApproved'], // Default checked statuses
+    statusFilters: ['UnderReview', 'InterviewApproved', 'FinalReview'], // Default checked statuses
     priorityFilters: [],
     experienceLevelFilters: [],
     skillsFilters: [],
@@ -116,6 +116,7 @@ export const VettingApplicationsList: React.FC<VettingApplicationsListProps> = (
   const statusOptions = useMemo(() => [
     { value: 'UnderReview', label: 'Under Review' },
     { value: 'InterviewApproved', label: 'Approved for Interview' },
+    { value: 'FinalReview', label: 'Final Review' },
     { value: 'Approved', label: 'Approved' },
     { value: 'OnHold', label: 'On Hold' },
     { value: 'Denied', label: 'Denied' }
