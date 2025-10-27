@@ -71,7 +71,6 @@ import { EventPaymentPage } from '../features/payments'
 import { PaymentTestPage } from '../pages/PaymentTestPage'
 import { PaymentSuccessPage } from '../pages/payments/PaymentSuccessPage'
 import { PaymentCancelPage } from '../pages/payments/PaymentCancelPage'
-import { CheckoutPage } from '../pages/checkout/CheckoutPage'
 
 /**
  * React Router v7 configuration following validated patterns
