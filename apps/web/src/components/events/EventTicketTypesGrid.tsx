@@ -1,6 +1,5 @@
 import React from 'react';
-import { Table, Text, Group, ActionIcon, Badge } from '@mantine/core';
-import { IconEdit, IconTrash } from '@tabler/icons-react';
+import { Table, Text, Group, Badge } from '@mantine/core';
 import { WCRButton } from '../ui';
 import type { components } from '@witchcityrope/shared-types';
 
@@ -32,12 +31,6 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
   onAddTicketType,
   hasSessions = true, // Default to true for backward compatibility
 }) => {
-  const handleDeleteClick = (ticketTypeId: string, ticketTypeName: string) => {
-    if (window.confirm(`Are you sure you want to delete ticket type "${ticketTypeName}"?`)) {
-      onDeleteTicketType(ticketTypeId);
-    }
-  };
-
   const formatPriceRange = (ticketType: EventTicketType) => {
     const formatPrice = (price: number) =>
       new Intl.NumberFormat('en-US', {
@@ -80,8 +73,8 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
   return (
     <div>
       <Text size="sm" c="dimmed" mb="lg">
-        Configure different ticket options for your event. Each ticket type can include multiple sessions. 
-        Click Edit to modify complex settings.
+        Configure different ticket options for your event. Each ticket type can include multiple sessions.
+        Click on a row to edit ticket details.
       </Text>
 
       <Table
@@ -98,9 +91,6 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
       >
         <Table.Thead style={{ backgroundColor: 'var(--mantine-color-burgundy-6)' }}>
           <Table.Tr>
-            <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
-              Edit
-            </Table.Th>
             <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
               Ticket Name
             </Table.Th>
@@ -119,24 +109,15 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
             <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
               Sales End
             </Table.Th>
-            <Table.Th style={{ color: 'white', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
-              Delete
-            </Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
           {ticketTypes.map((ticketType) => (
-            <Table.Tr key={ticketType.id}>
-              <Table.Td>
-                <WCRButton
-                  size="compact-xs"
-                  variant="outline"
-                  leftSection={<IconEdit size={14} />}
-                  onClick={() => onEditTicketType(ticketType.id)}
-                >
-                  Edit
-                </WCRButton>
-              </Table.Td>
+            <Table.Tr
+              key={ticketType.id}
+              onClick={() => onEditTicketType(ticketType.id)}
+              style={{ cursor: 'pointer' }}
+            >
               <Table.Td>
                 <Text size="sm" fw={500}>
                   {ticketType.name}
@@ -171,21 +152,11 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
                   {formatSalesEndDate(ticketType.salesEndDate)}
                 </Text>
               </Table.Td>
-              <Table.Td>
-                <ActionIcon
-                  variant="filled"
-                  color="red"
-                  size="sm"
-                  onClick={() => handleDeleteClick(ticketType.id, ticketType.name)}
-                >
-                  <IconTrash size={14} />
-                </ActionIcon>
-              </Table.Td>
             </Table.Tr>
           ))}
           {ticketTypes.length === 0 && (
             <Table.Tr>
-              <Table.Td colSpan={8}>
+              <Table.Td colSpan={6}>
                 <Text ta="center" c="dimmed" py="xl">
                   No ticket types created yet. Click "Add Ticket Type" to get started.
                 </Text>
@@ -205,9 +176,9 @@ export const EventTicketTypesGrid: React.FC<EventTicketTypesGridProps> = ({
         >
           Add Ticket Type
         </WCRButton>
-        
+
         <Text size="xs" c="dimmed" fs="italic">
-          💡 Tip: Click Edit for complex settings like session selection and sale periods. Simple fields can be edited inline.
+          💡 Tip: Click on a row to edit ticket details in a modal dialog.
         </Text>
       </Group>
     </div>
