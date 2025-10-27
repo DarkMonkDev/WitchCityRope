@@ -71,8 +71,6 @@ export const AdminDashboardPage: React.FC = () => {
       title: 'Content Management',
       description: 'Manage CMS pages and view revision history',
       icon: <IconFileText size={32} />,
-      count: 3,
-      countLabel: 'CMS Pages',
       link: '/admin/cms/revisions',
       color: '#FF6B35',
     },
@@ -159,19 +157,19 @@ export const AdminDashboardPage: React.FC = () => {
                   {card.badge}
                 </Badge>
               )}
-              
+
               <Box style={{ color: card.color }} mb="md">
                 {card.icon}
               </Box>
-              
+
               <Title order={3} size="h4" mb="xs" style={{ color: '#2B2B2B' }}>
                 {card.title}
               </Title>
-              
+
               <Text size="sm" c="dimmed" mb="md" style={{ flex: 1 }}>
                 {card.description}
               </Text>
-              
+
               {card.count !== undefined && (
                 <Box
                   p="sm"
@@ -189,55 +187,13 @@ export const AdminDashboardPage: React.FC = () => {
                   </Text>
                 </Box>
               )}
-              
+
               <Group justify="flex-end" mt="md">
                 <IconArrowRight size={16} style={{ color: card.color }} />
               </Group>
             </Paper>
           </Grid.Col>
         ))}
-      </Grid>
-
-      {/* Recent Activity Section */}
-      <Grid>
-        <Grid.Col span={{ base: 12, lg: 8 }}>
-          <Paper shadow="sm" p="xl" radius="md" style={{ background: '#FFF8F0' }}>
-            <Title order={3} mb="md" style={{ color: '#880124' }}>
-              Recent Events Activity
-            </Title>
-            <Box>
-              <Text c="dimmed" ta="center" py="xl">
-                Recent event activity will appear here once events are created
-              </Text>
-            </Box>
-          </Paper>
-        </Grid.Col>
-        
-        <Grid.Col span={{ base: 12, lg: 4 }}>
-          <Paper shadow="sm" p="xl" radius="md" style={{ background: '#FFF8F0' }}>
-            <Title order={3} mb="md" style={{ color: '#880124' }}>
-              Quick Stats
-            </Title>
-            <Box>
-              <Group justify="space-between" mb="md">
-                <Text size="sm" c="dimmed">Upcoming Events</Text>
-                <Text fw={600}>5</Text>
-              </Group>
-              <Group justify="space-between" mb="md">
-                <Text size="sm" c="dimmed">Total Registrations</Text>
-                <Text fw={600}>87</Text>
-              </Group>
-              <Group justify="space-between" mb="md">
-                <Text size="sm" c="dimmed">This Month's Revenue</Text>
-                <Text fw={600}>$2,450</Text>
-              </Group>
-              <Group justify="space-between">
-                <Text size="sm" c="dimmed">Active Members</Text>
-                <Text fw={600}>156</Text>
-              </Group>
-            </Box>
-          </Paper>
-        </Grid.Col>
       </Grid>
     </Container>
   );
