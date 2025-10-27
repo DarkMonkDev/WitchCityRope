@@ -364,13 +364,9 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({
     return 'var(--color-error)'
   }
 
-  // Check if event has paid tickets (maxPrice > 0)
-  const hasPaidTickets = (event as any).ticketTypes?.some((tt: any) => (tt.maxPrice || 0) > 0)
-
-  // Determine button text and action
+  // Determine participation status for badges
   const hasTicket = participation?.hasTicket || false
   const hasRSVP = participation?.hasRSVP || false
-  const shouldShowPurchaseButton = hasRSVP && !hasTicket && hasPaidTickets
 
   return (
     <Paper
@@ -593,37 +589,6 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({
             {event.registrationCount || 0}/{event.capacity || 20}
           </Text>
         </Box>
-
-        {/* Action Button */}
-        <Group justify="center" mt="md" pb="xs">
-          <Button
-            data-testid={shouldShowPurchaseButton ? "button-purchase-ticket" : "button-learn-more"}
-            className="btn btn-primary"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation()
-              // Use setTimeout to ensure navigation happens AFTER React finishes current render cycle
-              setTimeout(() => {
-                navigate(`/events/${event.id}`)
-              }, 0)
-            }}
-            style={{
-              background: shouldShowPurchaseButton
-                ? 'linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%)'
-                : 'linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%)',
-              color: shouldShowPurchaseButton ? 'white' : 'var(--color-midnight)',
-              border: 'none',
-              padding: '10px 24px',
-              fontSize: '13px',
-              letterSpacing: '1px',
-              fontFamily: 'var(--font-heading)',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-            }}
-          >
-            {shouldShowPurchaseButton ? 'Purchase Ticket' : 'Learn More'}
-          </Button>
-        </Group>
       </Box>
     </Paper>
   )
