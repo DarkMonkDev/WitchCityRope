@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { useVettingStats } from '../../features/admin/vetting/hooks/useVettingStats';
 import { useSafetyDashboard } from '../../features/safety/hooks/useSafetyIncidents';
 import { useEvents } from '../../lib/api/hooks/useEvents';
+import { useMembers } from '../../features/admin/members/hooks/useMembers';
 
 interface DashboardCard {
   title: string;
@@ -23,9 +24,31 @@ export const AdminDashboardPage: React.FC = () => {
   const { data: safetyDashboard } = useSafetyDashboard();
   const { data: events } = useEvents();
 
+  // Fetch all members (no filters)
+  const { data: membersData } = useMembers({
+    page: 1,
+    pageSize: 10000, // Large number to get all members
+    roleFilters: [],
+    searchQuery: '',
+    sortBy: 'CreatedAt',
+    sortDirection: 'Desc',
+  });
+
   // Calculate upcoming events (events with future start dates)
   const upcomingEventsCount = events
     ? events.filter(event => new Date(event.startDate) > new Date()).length
+    : 0;
+
+  // Calculate active members count
+  // Criteria: isActive = true AND vettingStatus in (0=UnderReview, 1=InterviewApproved/AwaitingInterview, 3=Vetted)
+  const activeMembersCount = membersData?.users
+    ? membersData.users.filter(
+        (member) =>
+          member.isActive &&
+          (member.vettingStatus === 0 || // Under Review
+            member.vettingStatus === 1 || // Interview Approved / Awaiting Interview
+            member.vettingStatus === 3) // Vetted
+      ).length
     : 0;
 
   // Calculate active incidents (not on hold or closed)
@@ -50,7 +73,7 @@ export const AdminDashboardPage: React.FC = () => {
       title: 'Member Management',
       description: 'Manage community members, roles, and permissions',
       icon: <IconUsers size={32} />,
-      count: 156,
+      count: activeMembersCount,
       countLabel: 'Active Members',
       link: '/admin/members',
       color: '#DAA520',
