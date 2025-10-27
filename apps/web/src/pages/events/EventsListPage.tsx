@@ -368,6 +368,12 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({
   const hasTicket = participation?.hasTicket || false
   const hasRSVP = participation?.hasRSVP || false
 
+  // Check if event has paid tickets (maxPrice > 0)
+  const hasPaidTickets = (event as any).ticketTypes?.some((tt: any) => (tt.maxPrice || 0) > 0)
+
+  // Show Purchase Ticket button only if user has RSVPed but not purchased ticket and event has paid tickets
+  const shouldShowPurchaseButton = hasRSVP && !hasTicket && hasPaidTickets
+
   return (
     <Paper
       className="event-card"
@@ -589,6 +595,37 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({
             {event.registrationCount || 0}/{event.capacity || 20}
           </Text>
         </Box>
+
+        {/* Purchase Ticket Button - Only show for RSVPed users without tickets */}
+        {shouldShowPurchaseButton && (
+          <Group justify="center" mt="md" pb="xs">
+            <Button
+              data-testid="button-purchase-ticket"
+              className="btn btn-primary"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation()
+                // Use setTimeout to ensure navigation happens AFTER React finishes current render cycle
+                setTimeout(() => {
+                  navigate(`/events/${event.id}`)
+                }, 0)
+              }}
+              style={{
+                background: 'linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%)',
+                color: 'white',
+                border: 'none',
+                padding: '10px 24px',
+                fontSize: '13px',
+                letterSpacing: '1px',
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+              }}
+            >
+              Purchase Ticket
+            </Button>
+          </Group>
+        )}
       </Box>
     </Paper>
   )
