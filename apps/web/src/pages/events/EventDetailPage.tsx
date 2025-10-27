@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   Container, Stack, Title, Text, Breadcrumbs,
@@ -24,6 +24,11 @@ import styles from './EventDetailPage.module.css';
 export const EventDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [selectedTicket, setSelectedTicket] = useState('single');
+
+  // Scroll to top when page loads or event ID changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
 
   const { data: event, isLoading, error } = useEvent(id!, !!id);
   const { data: participation, isLoading: participationLoading } = useParticipation(id!, !!id);
