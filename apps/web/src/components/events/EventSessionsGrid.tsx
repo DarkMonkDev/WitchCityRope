@@ -13,15 +13,8 @@ export interface EventSession {
   registeredCount: number;
 }
 
-export interface EventTicketTypeForSold {
-  id: string;
-  sessionIdentifiers: string[];
-  quantityAvailable?: number;
-}
-
 interface EventSessionsGridProps {
   sessions: EventSession[];
-  ticketTypes?: EventTicketTypeForSold[];
   onEditSession: (sessionId: string) => void;
   onDeleteSession: (sessionId: string) => void;
   onAddSession: () => void;
@@ -29,7 +22,6 @@ interface EventSessionsGridProps {
 
 export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
   sessions,
-  ticketTypes = [],
   onEditSession,
   onDeleteSession,
   onAddSession,
@@ -50,20 +42,6 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const displayHour = hour % 12 || 12;
     return `${displayHour}:${minutes} ${ampm}`;
-  };
-
-  // Calculate total tickets sold that include this session
-  const getTicketsSoldForSession = (sessionIdentifier: string): number => {
-    if (!ticketTypes || ticketTypes.length === 0) return 0;
-
-    return ticketTypes
-      .filter(tt => tt.sessionIdentifiers.includes(sessionIdentifier))
-      .reduce((total, tt) => {
-        // quantityAvailable is what's left - we need sold tickets
-        // For now, return 0 as we don't have sold data in the form
-        // This will need to be updated when we have actual ticket sales data
-        return total + 0;
-      }, 0);
   };
 
   const getSoldColor = (sold: number, capacity: number) => {
@@ -118,47 +96,44 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
-          {sessions.map((session) => {
-            const ticketsSold = getTicketsSoldForSession(session.sessionIdentifier);
-            return (
-              <Table.Tr
-                key={session.id}
-                data-testid="session-row"
-                onClick={() => onEditSession(session.id)}
-                style={{ cursor: 'pointer' }}
-              >
-                <Table.Td>
-                  <Text fw={700} size="sm" data-testid="session-id">
-                    {session.sessionIdentifier}
-                  </Text>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm" data-testid="session-name">{session.name}</Text>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm">{formatDate(session.date)}</Text>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm">{formatTime(session.startTime)}</Text>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm">{formatTime(session.endTime)}</Text>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="sm">{session.capacity}</Text>
-                </Table.Td>
-                <Table.Td>
-                  <Text
-                    fw={700}
-                    size="sm"
-                    style={{ color: getSoldColor(ticketsSold, session.capacity) }}
-                  >
-                    {ticketsSold}
-                  </Text>
-                </Table.Td>
-              </Table.Tr>
-            );
-          })}
+          {sessions.map((session) => (
+            <Table.Tr
+              key={session.id}
+              data-testid="session-row"
+              onClick={() => onEditSession(session.id)}
+              style={{ cursor: 'pointer' }}
+            >
+              <Table.Td>
+                <Text fw={700} size="sm" data-testid="session-id">
+                  {session.sessionIdentifier}
+                </Text>
+              </Table.Td>
+              <Table.Td>
+                <Text size="sm" data-testid="session-name">{session.name}</Text>
+              </Table.Td>
+              <Table.Td>
+                <Text size="sm">{formatDate(session.date)}</Text>
+              </Table.Td>
+              <Table.Td>
+                <Text size="sm">{formatTime(session.startTime)}</Text>
+              </Table.Td>
+              <Table.Td>
+                <Text size="sm">{formatTime(session.endTime)}</Text>
+              </Table.Td>
+              <Table.Td>
+                <Text size="sm">{session.capacity}</Text>
+              </Table.Td>
+              <Table.Td>
+                <Text
+                  fw={700}
+                  size="sm"
+                  style={{ color: getSoldColor(session.registeredCount, session.capacity) }}
+                >
+                  {session.registeredCount}
+                </Text>
+              </Table.Td>
+            </Table.Tr>
+          ))}
           {sessions.length === 0 && (
             <Table.Tr>
               <Table.Td colSpan={7}>

@@ -715,7 +715,6 @@ export const EventForm: React.FC<EventFormProps> = ({
                 </Title>
                 <EventSessionsGrid
                   sessions={form.values.sessions}
-                  ticketTypes={form.values.ticketTypes}
                   onEditSession={handleEditSession}
                   onDeleteSession={handleDeleteSession}
                   onAddSession={handleAddSession}
