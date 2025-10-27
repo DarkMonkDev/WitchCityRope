@@ -1,9 +1,9 @@
 # Witch City Rope - Development Progress
 
 ## Current Development Status
-**Last Updated**: 2025-10-26
-**Current Focus**: Participation System Fixes ✅ | Cache Invalidation ✅
-**Project Status**: Auto-cancel RSVP, duplicate cards fixed, cache refresh working
+**Last Updated**: 2025-10-27
+**Current Focus**: Staging Deployment ✅ | Documentation Updates ✅
+**Project Status**: Latest code deployed to staging with fresh database, deployment documentation updated
 **Next Phase**: E2E test stabilization, Incident Reporting Backend API Implementation
 
 ### Historical Archive
@@ -15,6 +15,100 @@ For complete development history, see:
 > **Note**: During 2025-08-22 canonical document location consolidation, extensive historical development details were moved from this file to maintain focused current status while preserving complete project history.
 
 ## Current Development Sessions
+
+### October 27, 2025: Staging Deployment & Documentation Updates ✅
+**Type**: Deployment + Documentation
+**Status**: ✅ **COMPLETE** - Latest code deployed to staging with fresh database
+**Time Invested**: ~2 hours
+**Impact**: **HIGH** - Staging environment updated, critical deployment lessons documented
+
+**🎯 STAGING DEPLOYMENT COMPLETED**
+
+**✅ DEPLOYMENT ACHIEVEMENTS:**
+
+**1. Docker Image Build & Registry Push**:
+- **API Image**: Built from commit 09198cb9 with production target
+- **Web Image**: Built React + Vite production bundle (1.16MB)
+- **Registry**: Pushed to registry.digitalocean.com/witchcityrope
+- **Tag**: Used `:latest` (historical convention, NOT `:staging`)
+- **Build Time**: API ~20s, Web ~10s
+
+**2. Database Reset & Migration**:
+- **Problem**: Needed fresh database for schema changes
+- **Solution**: Dropped BOTH `public` and `cms` schemas (critical!)
+- **Reason**: Leftover cms.ContentPages caused "relation already exists" errors
+- **Result**: Clean database with automatic migrations on API startup
+- **Migrations Applied**: 7 migrations including latest schema changes
+- **Seed Data**: 27 records created (19 users)
+
+**3. Container Deployment**:
+- **Server**: DigitalOcean droplet 104.131.165.14
+- **Containers**: witchcity-api-staging, witchcity-web-staging, witchcity-redis-staging
+- **Status**: All containers healthy and operational
+- **Health Checks**: API and Web both returning 200 OK
+- **Database**: PostgreSQL managed by DigitalOcean
+
+**4. Critical Lessons Learned**:
+- **Image Tagging**: ALWAYS use `:latest` not `:staging` for staging deployments
+- **Schema Clearing**: Must drop BOTH public AND cms schemas for fresh database
+- **Registry Auth**: Copy working credentials from server (don't regenerate tokens)
+- **Shared Server**: Multiple apps on same droplet - only touch WitchCityRope containers
+
+**📚 DOCUMENTATION UPDATES:**
+
+**1. Staging Deployment Guide** (`/docs/functional-areas/deployment/staging-deployment-guide.md`):
+- **Added**: Complete DigitalOcean-specific deployment procedures (v2.0)
+- **Added**: Critical Docker image tagging convention section
+- **Added**: Fresh database deployment section with both schemas
+- **Added**: DigitalOcean Container Registry authentication guide
+- **Added**: Quick deployment section (6-step standard process)
+- **Added**: Shared server warning (critical safety reminder)
+- **Impact**: Future deployments won't repeat today's debugging
+
+**2. File Registry** (`/docs/architecture/file-registry.md`):
+- **Logged**: Deployment guide updates with full details
+- **Purpose**: Track documentation changes for project cleanliness
+
+**🔧 TECHNICAL DETAILS:**
+
+**Build Commands**:
+```bash
+# API (production target)
+docker build -f apps/api/Dockerfile -t registry.digitalocean.com/witchcityrope/witchcityrope-api:latest --target production .
+
+# Web (production build with Vite)
+docker build -f apps/web/Dockerfile -t registry.digitalocean.com/witchcityrope/witchcityrope-web:latest --target production \
+  --build-arg VITE_API_BASE_URL= \
+  --build-arg VITE_APP_TITLE="WitchCityRope" \
+  --build-arg VITE_APP_VERSION="09198cb9" .
+```
+
+**Database Clear Command**:
+```bash
+PGPASSWORD='...' psql -h witchcityrope-prod-db-do-user-27362036-0.m.db.ondigitalocean.com \
+  -p 25060 -U doadmin -d witchcityrope_staging \
+  -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; DROP SCHEMA IF EXISTS cms CASCADE;"
+```
+
+**Deployment Verification**:
+- ✅ API Health: https://staging.notfai.com/api/health (200 OK, 19 users)
+- ✅ Web: https://staging.notfai.com/ (200 OK)
+- ✅ Containers: All healthy
+- ✅ Database: Migrations applied, seed data loaded
+
+**📦 FILES MODIFIED (2 files):**
+- `/docs/functional-areas/deployment/staging-deployment-guide.md` - Complete rewrite with DigitalOcean procedures
+- `/docs/architecture/file-registry.md` - Logged documentation changes
+
+**🔑 KEY LEARNINGS:**
+1. **Tagging Convention**: Historical convention uses `:latest` for staging (not `:staging`)
+2. **Schema Awareness**: CMS schema exists separately, must be dropped with public schema
+3. **Credential Management**: Server credentials are pre-tested, don't regenerate unnecessarily
+4. **Documentation Value**: Capturing deployment issues prevents future repetition
+
+**🚀 STATUS**: Staging environment updated with latest code, ready for testing
+
+---
 
 ### October 26, 2025: Participation System Fixes & Cache Invalidation ✅
 **Type**: Bug Fixes + Feature Enhancement

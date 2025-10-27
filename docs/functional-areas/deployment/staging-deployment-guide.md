@@ -2,18 +2,165 @@
 
 ## Overview
 
-This comprehensive guide covers deploying WitchCityRope to a staging environment for final testing before production release. The staging environment mirrors production as closely as possible while providing additional debugging capabilities.
+This comprehensive guide covers deploying WitchCityRope to the staging environment on DigitalOcean. The staging environment uses DigitalOcean Container Registry for Docker images and a managed PostgreSQL database.
+
+**Current Staging Environment:**
+- **Server**: DigitalOcean Droplet at 104.131.165.14
+- **Domain**: https://staging.notfai.com
+- **User**: witchcity
+- **Registry**: registry.digitalocean.com/witchcityrope
+- **Database**: DigitalOcean Managed PostgreSQL
+- **SSH Key**: `/home/chad/.ssh/id_ed25519_witchcityrope`
+
+## ⚠️ CRITICAL: Shared Server Warning
+
+**IMPORTANT**: The staging server hosts multiple applications. When deploying:
+- Only touch WitchCityRope containers (witchcity-api-staging, witchcity-web-staging, witchcity-redis-staging)
+- Never run `docker stop $(docker ps -q)` or similar commands that affect all containers
+- Always use the specific compose file: `docker-compose -f docker-compose.staging.yml`
 
 ## Prerequisites
 
-- Linux server (Ubuntu 20.04+ or similar)
-- Docker and Docker Compose installed
-- .NET 8.0 SDK (for migrations)
-- Domain configured: `staging.witchcityrope.com`
-- SSL certificates (Let's Encrypt or self-signed)
-- Access to staging secrets/credentials
+- SSH access to DigitalOcean droplet (witchcity user)
+- SSH key configured: `/home/chad/.ssh/id_ed25519_witchcityrope`
+- Docker and Docker Compose installed locally
+- DigitalOcean Container Registry access (credentials in `~/.docker/config.json` on server)
+- Access to `.env.staging` file on server at `/opt/witchcityrope/staging/`
 
-## Quick Start
+## Quick Deployment (Standard)
+
+This is the standard deployment process when you want to deploy the latest code to staging:
+
+```bash
+# 1. Build images locally with :latest tag (CRITICAL: Always use :latest, NOT :staging)
+docker build -f apps/api/Dockerfile -t registry.digitalocean.com/witchcityrope/witchcityrope-api:latest --target production .
+docker build -f apps/web/Dockerfile -t registry.digitalocean.com/witchcityrope/witchcityrope-web:latest --target production \
+  --build-arg VITE_API_BASE_URL= \
+  --build-arg VITE_APP_TITLE="WitchCityRope" \
+  --build-arg VITE_APP_VERSION="$(git rev-parse --short HEAD)" .
+
+# 2. Push to DigitalOcean Container Registry
+docker push registry.digitalocean.com/witchcityrope/witchcityrope-api:latest
+docker push registry.digitalocean.com/witchcityrope/witchcityrope-web:latest
+
+# 3. SSH to server and deploy
+ssh -i /home/chad/.ssh/id_ed25519_witchcityrope witchcity@104.131.165.14
+
+# 4. On server: Pull and restart
+cd /opt/witchcityrope/staging
+docker-compose -f docker-compose.staging.yml pull
+docker-compose -f docker-compose.staging.yml up -d
+
+# 5. Verify deployment
+docker-compose -f docker-compose.staging.yml ps
+docker logs witchcity-api-staging --tail 50
+
+# 6. Test endpoints
+curl https://staging.notfai.com/api/health
+```
+
+## 🚨 CRITICAL: Docker Image Tagging Convention
+
+**ALWAYS USE `:latest` TAG FOR STAGING DEPLOYMENTS**
+
+The staging environment is configured to use the `:latest` tag, NOT `:staging`:
+
+```bash
+# ✅ CORRECT - Use :latest tag
+docker build ... -t registry.digitalocean.com/witchcityrope/witchcityrope-api:latest
+docker build ... -t registry.digitalocean.com/witchcityrope/witchcityrope-web:latest
+
+# ❌ WRONG - Don't use :staging tag (compose file won't find it)
+docker build ... -t registry.digitalocean.com/witchcityrope/witchcityrope-api:staging
+```
+
+**Why this matters:**
+- The `docker-compose.staging.yml` file has `IMAGE_TAG=staging` in `.env.staging`, but the compose file uses `${IMAGE_TAG:-latest}` which defaults to `latest`
+- Historical convention has always been to use `:latest` for staging
+- If you push with `:staging` tag, the containers will continue running the old `:latest` images
+
+## Fresh Database Deployment (Schema Changes)
+
+When deploying with significant schema changes or when you need to reseed the database:
+
+```bash
+# 1. Build and push images (same as standard deployment above)
+docker build -f apps/api/Dockerfile -t registry.digitalocean.com/witchcityrope/witchcityrope-api:latest --target production .
+docker build -f apps/web/Dockerfile -t registry.digitalocean.com/witchcityrope/witchcityrope-web:latest --target production \
+  --build-arg VITE_API_BASE_URL= \
+  --build-arg VITE_APP_TITLE="WitchCityRope" \
+  --build-arg VITE_APP_VERSION="$(git rev-parse --short HEAD)" .
+
+docker push registry.digitalocean.com/witchcityrope/witchcityrope-api:latest
+docker push registry.digitalocean.com/witchcityrope/witchcityrope-web:latest
+
+# 2. Stop containers
+ssh -i /home/chad/.ssh/id_ed25519_witchcityrope witchcity@104.131.165.14
+cd /opt/witchcityrope/staging
+docker-compose -f docker-compose.staging.yml down
+
+# 3. Clear database (ONLY witchcityrope_staging database!)
+# First, get the connection string from the server
+cat /opt/witchcityrope/staging/.env.staging | grep ConnectionStrings__DefaultConnection
+
+# From your local machine, connect and clear both schemas:
+# Connection: postgresql://doadmin:AVNS_mqJO_UoxKtm4S6GMP0p@witchcityrope-prod-db-do-user-27362036-0.m.db.ondigitalocean.com:25060/witchcityrope_staging?sslmode=require
+
+PGPASSWORD='AVNS_mqJO_UoxKtm4S6GMP0p' psql \
+  -h witchcityrope-prod-db-do-user-27362036-0.m.db.ondigitalocean.com \
+  -p 25060 \
+  -U doadmin \
+  -d witchcityrope_staging \
+  -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; DROP SCHEMA IF EXISTS cms CASCADE;"
+
+# 4. Pull new images and start containers (migrations will run automatically)
+ssh -i /home/chad/.ssh/id_ed25519_witchcityrope witchcity@104.131.165.14
+cd /opt/witchcityrope/staging
+docker-compose -f docker-compose.staging.yml pull
+docker-compose -f docker-compose.staging.yml up -d
+
+# 5. Monitor database initialization (migrations + seed data)
+docker logs witchcity-api-staging -f | grep -i "database initialization"
+
+# You should see:
+# - "Applying migration '...'  (for each migration)
+# - "Database initialization completed successfully in XXXXms. Migrations: N, Seed Records: N"
+
+# 6. Verify containers are healthy
+docker-compose -f docker-compose.staging.yml ps
+
+# 7. Test endpoints
+curl https://staging.notfai.com/api/health | jq .
+curl -I https://staging.notfai.com/
+```
+
+**CRITICAL**: The database clearing command drops BOTH schemas:
+- `public` schema: Contains all application tables (Users, Events, Sessions, etc.)
+- `cms` schema: Contains CMS tables (ContentPages, ContentRevisions)
+
+If you only drop the `public` schema, leftover tables in `cms` schema will cause migration failures with "relation already exists" errors.
+
+## DigitalOcean Container Registry Authentication
+
+The server already has registry credentials configured. If you need to authenticate locally:
+
+```bash
+# Option 1: Copy working credentials from server (RECOMMENDED)
+mkdir -p ~/.docker
+ssh -i /home/chad/.ssh/id_ed25519_witchcityrope witchcity@104.131.165.14 "cat ~/.docker/config.json" > ~/.docker/config.json
+
+# Option 2: Generate new token (if needed)
+# 1. Go to DigitalOcean Console → API → Tokens/Keys → Container Registry
+# 2. Generate new token
+# 3. Login with token:
+docker login registry.digitalocean.com -u <your-email> -p <token>
+```
+
+**Why copy from server?** The server's credentials are already tested and working. Generating new tokens can sometimes fail if the token has wrong permissions or expires.
+
+## Quick Start (Legacy Documentation)
+
+**NOTE**: The sections below are legacy documentation for self-hosted deployments. The current staging environment uses DigitalOcean infrastructure as described above.
 
 ```bash
 # Clone repository
