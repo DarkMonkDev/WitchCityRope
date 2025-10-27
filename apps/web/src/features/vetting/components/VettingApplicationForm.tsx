@@ -71,12 +71,21 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
       // Remove email and sceneName from form - they're shown at top but not editable
     },
     validate: {
-      realName: (value) => {
-        if (!value || value.trim().length < 2) {
-          return fieldValidationMessages.realName.minLength;
+      firstName: (value) => {
+        if (!value || value.trim().length < 1) {
+          return fieldValidationMessages.firstName.required;
         }
-        if (value.length > 100) {
-          return fieldValidationMessages.realName.maxLength;
+        if (value.length > 50) {
+          return fieldValidationMessages.firstName.maxLength;
+        }
+        return null;
+      },
+      lastName: (value) => {
+        if (!value || value.trim().length < 1) {
+          return fieldValidationMessages.lastName.required;
+        }
+        if (value.length > 50) {
+          return fieldValidationMessages.lastName.maxLength;
         }
         return null;
       },
@@ -139,7 +148,8 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
       }
 
       const request: SimplifiedCreateApplicationRequest = {
-        realName: formData.realName,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         pronouns: formData.pronouns || undefined,
         preferredSceneName: user?.sceneName || userSceneName, // Get from auth context
         fetLifeHandle: formData.fetLifeHandle || undefined,
@@ -313,7 +323,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
             <Box>
               <Title order={4} mb="sm">What we'll ask you:</Title>
               <List size="sm" spacing="xs">
-                <List.Item>Your real name</List.Item>
+                <List.Item>Your first and last name</List.Item>
                 <List.Item>Your pronouns (optional)</List.Item>
                 <List.Item>Your FetLife handle (optional)</List.Item>
                 <List.Item>Any other names or handles (optional)</List.Item>
@@ -377,14 +387,30 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
 
           <form onSubmit={form.onSubmit(handleFormSubmit)} data-testid="vetting-application-form">
             <Stack gap="lg">
-              {/* Real Name */}
+              {/* First Name */}
               <EnhancedTextInput
-                label="Real Name"
-                placeholder="Enter your real name"
+                label="First Name"
+                placeholder="Enter your first name"
                 required
-                description={fieldValidationMessages.realName.required}
-                data-testid="real-name-input"
-                {...form.getInputProps('realName')}
+                description={fieldValidationMessages.firstName.required}
+                data-testid="first-name-input"
+                {...form.getInputProps('firstName')}
+                styles={{
+                  input: {
+                    height: 56,
+                    fontSize: 16,
+                  },
+                }}
+              />
+
+              {/* Last Name */}
+              <EnhancedTextInput
+                label="Last Name"
+                placeholder="Enter your last name"
+                required
+                description={fieldValidationMessages.lastName.required}
+                data-testid="last-name-input"
+                {...form.getInputProps('lastName')}
                 styles={{
                   input: {
                     height: 56,
@@ -529,7 +555,8 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                   disabled={
                     Object.keys(form.errors).length > 0 ||
                     !isAuthenticated ||
-                    !form.values.realName?.trim() ||
+                    !form.values.firstName?.trim() ||
+                    !form.values.lastName?.trim() ||
                     !form.values.whyJoin?.trim() ||
                     !form.values.experienceWithRope?.trim() ||
                     form.values.agreeToCommunityStandards !== true

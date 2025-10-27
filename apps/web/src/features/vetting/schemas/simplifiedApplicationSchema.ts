@@ -8,9 +8,14 @@ import { z } from 'zod';
  * Based on the approved UI mockups with reduced complexity
  */
 export const simplifiedApplicationSchema = z.object({
-  realName: z.string()
-    .min(2, 'Real name must be at least 2 characters')
-    .max(100, 'Real name must be less than 100 characters')
+  firstName: z.string()
+    .min(1, 'First name is required')
+    .max(50, 'First name must be less than 50 characters')
+    .trim(),
+
+  lastName: z.string()
+    .min(1, 'Last name is required')
+    .max(50, 'Last name must be less than 50 characters')
     .trim(),
 
   pronouns: z.string()
@@ -45,7 +50,8 @@ export type SimplifiedApplicationFormData = z.infer<typeof simplifiedApplication
  * Default form values
  */
 export const defaultFormValues: SimplifiedApplicationFormData = {
-  realName: '',
+  firstName: '',
+  lastName: '',
   pronouns: '',
   fetLifeHandle: '',
   otherNames: '',
@@ -58,10 +64,15 @@ export const defaultFormValues: SimplifiedApplicationFormData = {
  * Field validation helper functions
  */
 export const fieldValidationMessages = {
-  realName: {
-    required: 'Your real name is required for our records',
-    minLength: 'Real name must be at least 2 characters',
-    maxLength: 'Real name must be less than 100 characters',
+  firstName: {
+    required: 'First name is required',
+    minLength: 'First name must be at least 1 character',
+    maxLength: 'First name must be less than 50 characters',
+  },
+  lastName: {
+    required: 'Last name is required',
+    minLength: 'Last name must be at least 1 character',
+    maxLength: 'Last name must be less than 50 characters',
   },
   pronouns: {
     maxLength: 'Pronouns must be less than 50 characters',

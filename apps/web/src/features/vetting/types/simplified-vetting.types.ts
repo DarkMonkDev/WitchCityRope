@@ -6,7 +6,8 @@
  * Based on the approved UI mockups which reduced complexity
  */
 export interface SimplifiedApplicationFormData {
-  realName: string;
+  firstName: string;
+  lastName: string;
   pronouns?: string; // Optional field
   fetLifeHandle?: string; // Optional
   otherNames?: string; // Optional field
@@ -20,7 +21,8 @@ export interface SimplifiedApplicationFormData {
  * Maps to SimplifiedApplicationRequest on backend
  */
 export interface SimplifiedCreateApplicationRequest {
-  realName: string;
+  firstName: string;
+  lastName: string;
   pronouns?: string;
   preferredSceneName: string; // Matches backend's PreferredSceneName
   fetLifeHandle?: string;

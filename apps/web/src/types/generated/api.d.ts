@@ -64,6 +64,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/metadata/valid-roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get valid user roles
+         * @description Returns the list of valid role names that can be assigned to users in the system
+         */
+        get: operations["GetValidRoles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/current-user": {
         parameters: {
             query?: never;
@@ -94,8 +114,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Authenticate user with email and password
-         * @description Validates user credentials and returns JWT token with user information
+         * Authenticate user with email and password (with optional return URL)
+         * @description Validates user credentials, performs OWASP-compliant return URL validation, and returns JWT token with user information. If returnUrl is provided and valid, it will be included in response for post-login redirect.
          */
         post: operations["Login"];
         delete?: never;
@@ -356,6 +376,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/users/{userId}/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update user roles (admin only)
+         * @description Updates user roles in the admin user management system.
+         *     Accepts a list of roles: 'Teacher', 'SafetyTeam', 'Administrator'.
+         *     Empty list = Regular member (no special roles).
+         *     Roles are stored as comma-separated string (e.g., 'Teacher,SafetyTeam').
+         *     Role changes are logged for audit purposes.
+         */
+        put: operations["UpdateUserRoles"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/users/by-role/{role}": {
         parameters: {
             query?: never;
@@ -568,6 +612,130 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/events/{id}/volunteer-positions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get volunteer positions for an event
+         * @description Returns volunteer positions for a specific event. Shows public-facing positions only for non-authenticated users. Authenticated users see their signup status.
+         */
+        get: operations["GetEventVolunteerPositions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/volunteer-positions/{id}/signup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sign up for a volunteer position
+         * @description Sign up for a volunteer position. Requires authentication. Automatically RSVPs user to social events if not already registered.
+         */
+        post: operations["SignupForVolunteerPosition"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/user/volunteer-shifts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get user's upcoming volunteer shifts
+         * @description Returns list of upcoming events where the user has signed up to volunteer. Includes event details, position title, and shift times.
+         */
+        get: operations["GetUserVolunteerShifts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/volunteer-positions/{positionId}/signups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get members assigned to a volunteer position
+         * @description Returns list of members currently assigned to a volunteer position with their contact information. Requires Admin or SafetyTeam role. Shows scene name, email, FetLife, Discord, and signup status.
+         */
+        get: operations["GetVolunteerPositionSignups"];
+        put?: never;
+        /**
+         * Assign a member to a volunteer position
+         * @description Assigns a member to a volunteer position. Requires Admin or SafetyTeam role. Checks position capacity and existing participations. Auto-RSVPs user to event if needed. Returns 409 Conflict if position is full or user already assigned.
+         */
+        post: operations["AssignMemberToVolunteerPosition"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/volunteer-signups/{signupId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove a member assignment from a volunteer position
+         * @description Removes a member assignment from a volunteer position by cancelling the signup. Requires Admin or SafetyTeam role. Only allows removal if volunteer has not checked in yet. Updates position slots count. Returns 409 Conflict if already cancelled or checked in.
+         */
+        delete: operations["RemoveVolunteerAssignment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search for active members
+         * @description Search all active members by scene name, real name, email, or Discord name. Requires Admin or SafetyTeam role. Minimum 3 characters required. Returns up to 50 results ordered by scene name. Excludes inactive users.
+         */
+        get: operations["SearchUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/test-helpers/users": {
         parameters: {
             query?: never;
@@ -621,6 +789,126 @@ export interface paths {
          */
         get: operations["TestHelpersHealth"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/{userId}/details": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get comprehensive member details including participation summary */
+        get: operations["GetMemberDetails"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/{userId}/vetting-details": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get vetting application details and questionnaire responses */
+        get: operations["GetMemberVettingDetails"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/{userId}/event-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get paginated event registration and attendance history */
+        get: operations["GetMemberEventHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/{userId}/incidents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get safety incidents involving this member */
+        get: operations["GetMemberIncidents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/{userId}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get all notes for this member (vetting, general, administrative, status changes) */
+        get: operations["GetMemberNotes"];
+        put?: never;
+        /** Create a new note for this member */
+        post: operations["CreateMemberNote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/{userId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update member status (active/inactive) - auto-creates status change note */
+        put: operations["UpdateMemberStatus"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/{userId}/role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update member role */
+        put: operations["UpdateMemberRole"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1240,6 +1528,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/vetting/email-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Retrieve all active email templates (Admin only) */
+        get: operations["GetEmailTemplates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vetting/email-templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Retrieve a single email template by ID (Admin only) */
+        get: operations["GetEmailTemplate"];
+        /** Update email template content (Admin only) */
+        put: operations["UpdateEmailTemplate"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/vetting/public/applications": {
         parameters: {
             query?: never;
@@ -1251,23 +1574,6 @@ export interface paths {
         put?: never;
         /** Submit a simplified vetting application (public endpoint) */
         post: operations["SubmitPublicVettingApplication"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/vetting/public/applications/full": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Submit a complete vetting application with all fields */
-        post: operations["SubmitVettingApplicationFull"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1914,9 +2220,27 @@ export interface components {
             /** Format: date-time */
             timestamp?: string;
         };
+        ApiResponseOfEmailTemplateResponse: {
+            success?: boolean;
+            data?: components["schemas"]["EmailTemplateResponse2"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
         ApiResponseOfEventDto: {
             success?: boolean;
             data?: components["schemas"]["EventDto2"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfListOfEmailTemplateResponse: {
+            success?: boolean;
+            data?: components["schemas"]["EmailTemplateResponse"][] | null;
             error?: string | null;
             details?: string | null;
             message?: string | null;
@@ -1944,6 +2268,42 @@ export interface components {
         ApiResponseOfListOfUserEventDto: {
             success?: boolean;
             data?: components["schemas"]["UserEventDto"][] | null;
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfListOfUserSearchResultDto: {
+            success?: boolean;
+            data?: components["schemas"]["UserSearchResultDto"][] | null;
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfListOfUserVolunteerShiftDto: {
+            success?: boolean;
+            data?: components["schemas"]["UserVolunteerShiftDto"][] | null;
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfListOfVolunteerAssignmentDto: {
+            success?: boolean;
+            data?: components["schemas"]["VolunteerAssignmentDto"][] | null;
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfListOfVolunteerPositionDto: {
+            success?: boolean;
+            data?: components["schemas"]["VolunteerPositionDto2"][] | null;
             error?: string | null;
             details?: string | null;
             message?: string | null;
@@ -2016,6 +2376,24 @@ export interface components {
         ApiResponseOfVettingStatusDto: {
             success?: boolean;
             data?: components["schemas"]["VettingStatusDto"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfVolunteerAssignmentDto: {
+            success?: boolean;
+            data?: components["schemas"]["VolunteerAssignmentDto2"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfVolunteerSignupDto: {
+            success?: boolean;
+            data?: components["schemas"]["VolunteerSignupDto"];
             error?: string | null;
             details?: string | null;
             message?: string | null;
@@ -2186,6 +2564,8 @@ export interface components {
             /** Format: date-time */
             lastActivityAt?: string | null;
             sceneName?: string;
+            email?: string;
+            fetLifeHandle?: string | null;
             experienceLevel?: string;
             /** Format: int32 */
             yearsExperience?: number;
@@ -2207,6 +2587,10 @@ export interface components {
         AssignCoordinatorRequest: {
             /** Format: uuid */
             coordinatorId?: string | null;
+        };
+        AssignVolunteerRequest: {
+            /** Format: uuid */
+            userId?: string;
         };
         AuditLogDto: {
             /** Format: uuid */
@@ -2230,8 +2614,8 @@ export interface components {
             lastLoginAt?: string | null;
             role?: string;
             roles?: string[];
-            isVetted?: boolean;
             isActive?: boolean;
+            isVetted?: boolean;
         };
         AuthUserResponse2: {
             /** Format: uuid */
@@ -2244,8 +2628,8 @@ export interface components {
             lastLoginAt?: string | null;
             role?: string;
             roles?: string[];
-            isVetted?: boolean;
             isActive?: boolean;
+            isVetted?: boolean;
         } | null;
         CapacityInfoDto: {
             /** Format: int32 */
@@ -2305,28 +2689,6 @@ export interface components {
             title?: string;
             fullContent?: string | null;
         };
-        CreateApplicationRequest: {
-            fullName: string;
-            sceneName: string;
-            pronouns?: string | null;
-            email: string;
-            phone?: string | null;
-            /** Format: int32 */
-            experienceLevel: number;
-            /** Format: int32 */
-            yearsExperience: number;
-            experienceDescription: string;
-            safetyKnowledge: string;
-            consentUnderstanding: string;
-            whyJoinCommunity: string;
-            skillsInterests: string[];
-            expectationsGoals: string;
-            agreesToGuidelines: boolean;
-            references: components["schemas"]["ReferenceRequest"][];
-            agreesToTerms: boolean;
-            isAnonymous: boolean;
-            consentToContact: boolean;
-        };
         CreateIncidentRequest: {
             /** Format: uuid */
             reporterId?: string | null;
@@ -2371,7 +2733,8 @@ export interface components {
             role?: string | null;
             /** Format: date-time */
             dateOfBirth?: string | null;
-            isVetted?: boolean;
+            /** Format: int32 */
+            vettingStatus?: number;
             bio?: string | null;
             pronouns?: string | null;
         };
@@ -2380,6 +2743,10 @@ export interface components {
             eventId: string;
             notes?: string | null;
             paymentMethodId?: string | null;
+        };
+        CreateUserNoteRequest: {
+            content?: string;
+            noteType?: string;
         };
         DashboardStatisticsResponse: {
             /** Format: int32 */
@@ -2400,6 +2767,52 @@ export interface components {
             userCount?: number;
             version?: string;
         };
+        EmailTemplateResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: int32 */
+            templateType?: number;
+            templateTypeName?: string;
+            subject?: string;
+            htmlBody?: string;
+            plainTextBody?: string;
+            variables?: string;
+            isActive?: boolean;
+            /** Format: int32 */
+            version?: number;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+            /** Format: date-time */
+            lastModified?: string;
+            /** Format: uuid */
+            updatedBy?: string;
+            updatedByEmail?: string;
+        };
+        EmailTemplateResponse2: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: int32 */
+            templateType?: number;
+            templateTypeName?: string;
+            subject?: string;
+            htmlBody?: string;
+            plainTextBody?: string;
+            variables?: string;
+            isActive?: boolean;
+            /** Format: int32 */
+            version?: number;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+            /** Format: date-time */
+            lastModified?: string;
+            /** Format: uuid */
+            updatedBy?: string;
+            updatedByEmail?: string;
+        } | null;
         EnhancedParticipationStatusDto: {
             hasRSVP?: boolean;
             hasTicket?: boolean;
@@ -2461,6 +2874,33 @@ export interface components {
             volunteerPositions?: components["schemas"]["VolunteerPositionDto"][];
             teacherIds?: string[];
         } | null;
+        EventHistoryRecord: {
+            /** Format: uuid */
+            eventId?: string;
+            eventTitle?: string;
+            eventType?: string;
+            /** Format: date-time */
+            eventDate?: string;
+            registrationType?: string;
+            participationStatus?: string | null;
+            /** Format: date-time */
+            registeredAt?: string | null;
+            /** Format: date-time */
+            cancelledAt?: string | null;
+            /** Format: double */
+            amountPaid?: number | null;
+        };
+        EventHistoryResponse: {
+            events?: components["schemas"]["EventHistoryRecord"][];
+            /** Format: int32 */
+            totalCount?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            pageSize?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
         EventParticipationDto: {
             /** Format: uuid */
             id?: string;
@@ -2610,12 +3050,14 @@ export interface components {
         LoginRequest: {
             email: string;
             password: string;
+            returnUrl?: string | null;
         };
         LoginResponse: {
             token?: string;
             /** Format: date-time */
             expiresAt?: string;
             user?: components["schemas"]["AuthUserResponse"];
+            returnUrl?: string | null;
         };
         ManualEntryData: {
             name: string;
@@ -2632,6 +3074,53 @@ export interface components {
             dietaryRestrictions?: string | null;
             accessibilityNeeds?: string | null;
             hasCompletedWaiver?: boolean;
+        };
+        MemberDetailsResponse: {
+            /** Format: uuid */
+            userId?: string;
+            sceneName?: string;
+            email?: string | null;
+            discordName?: string | null;
+            fetLifeHandle?: string | null;
+            role?: string;
+            isActive?: boolean;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            lastLoginAt?: string | null;
+            /** Format: int32 */
+            totalEventsAttended?: number;
+            /** Format: int32 */
+            totalEventsRegistered?: number;
+            /** Format: int32 */
+            activeRegistrations?: number;
+            /** Format: date-time */
+            lastEventAttended?: string | null;
+            /** Format: int32 */
+            vettingStatus?: number;
+            vettingStatusDisplay?: string;
+            hasVettingApplication?: boolean;
+        };
+        MemberIncidentRecord: {
+            /** Format: uuid */
+            incidentId?: string;
+            referenceNumber?: string;
+            title?: string;
+            /** Format: date-time */
+            incidentDate?: string;
+            /** Format: date-time */
+            reportedAt?: string;
+            status?: string;
+            location?: string;
+            description?: string;
+            involvedParties?: string | null;
+            witnesses?: string | null;
+            userInvolvementType?: string;
+        };
+        MemberIncidentsResponse: {
+            incidents?: components["schemas"]["MemberIncidentRecord"][];
+            /** Format: int32 */
+            totalCount?: number;
         };
         MyApplicationStatusResponse: {
             hasApplication?: boolean;
@@ -2782,6 +3271,8 @@ export interface components {
             isManualEntry?: boolean;
             manualEntryData?: components["schemas"]["ManualEntryData"];
         };
+        /** @enum {unknown} */
+        PricingType: "Fixed" | "SlidingScale";
         ProblemDetails: {
             type?: string | null;
             title?: string | null;
@@ -2847,13 +3338,6 @@ export interface components {
             /** Format: date-time */
             formExpiresAt?: string | null;
             response?: components["schemas"]["ReferenceResponseDto"];
-        };
-        ReferenceRequest: {
-            name: string;
-            email: string;
-            relationship: string;
-            /** Format: int32 */
-            order?: number;
         };
         ReferenceResponseDto: {
             relationshipDuration?: string;
@@ -2981,6 +3465,8 @@ export interface components {
             /** Format: int32 */
             inProgressCount?: number;
             /** Format: int32 */
+            reviewingFinalReportCount?: number;
+            /** Format: int32 */
             resolvedCount?: number;
             /** Format: int32 */
             thisMonth?: number;
@@ -3022,6 +3508,8 @@ export interface components {
             agreeToCommunityStandards: boolean;
             pronouns?: string | null;
             otherNames?: string | null;
+            firstName: string;
+            lastName: string;
         };
         SimplifiedApplicationResponse: {
             /** Format: uuid */
@@ -3081,12 +3569,16 @@ export interface components {
         TicketTypeDto: {
             id?: string;
             name?: string;
-            type?: string;
+            pricingType?: components["schemas"]["PricingType"];
             sessionIdentifiers?: string[];
             /** Format: double */
-            minPrice?: number;
+            price?: number | null;
             /** Format: double */
-            maxPrice?: number;
+            minPrice?: number | null;
+            /** Format: double */
+            maxPrice?: number | null;
+            /** Format: double */
+            defaultPrice?: number | null;
             /** Format: int32 */
             quantityAvailable?: number;
             /** Format: date-time */
@@ -3102,6 +3594,11 @@ export interface components {
             content: string;
             changeDescription?: string | null;
         };
+        UpdateEmailTemplateRequest: {
+            subject: string;
+            htmlBody: string;
+            plainTextBody: string;
+        };
         UpdateEventRequest: {
             title?: string | null;
             shortDescription?: string | null;
@@ -3114,7 +3611,6 @@ export interface components {
             location?: string | null;
             /** Format: int32 */
             capacity?: number | null;
-            pricingTiers?: string | null;
             isPublished?: boolean | null;
             sessions?: components["schemas"]["SessionDto"][] | null;
             ticketTypes?: components["schemas"]["TicketTypeDto"][] | null;
@@ -3124,6 +3620,13 @@ export interface components {
         UpdateGoogleDriveRequest: {
             googleDriveFolderUrl?: string | null;
             googleDriveFinalReportUrl?: string | null;
+        };
+        UpdateMemberRoleRequest: {
+            role?: string;
+        };
+        UpdateMemberStatusRequest: {
+            isActive?: boolean;
+            reason?: string | null;
         };
         UpdateNoteRequest: {
             content?: string;
@@ -3155,10 +3658,12 @@ export interface components {
             role?: string | null;
             pronouns?: string | null;
             isActive?: boolean | null;
-            isVetted?: boolean | null;
             emailConfirmed?: boolean | null;
             /** Format: int32 */
             vettingStatus?: number | null;
+        };
+        UpdateUserRolesRequest: {
+            roles: string[];
         };
         UserCoordinatorDto: {
             /** Format: uuid */
@@ -3174,10 +3679,10 @@ export interface components {
             id?: string;
             email?: string;
             sceneName?: string;
+            discordName?: string | null;
             role?: string;
             pronouns?: string;
             isActive?: boolean;
-            isVetted?: boolean;
             emailConfirmed?: boolean;
             /** Format: date-time */
             createdAt?: string;
@@ -3185,6 +3690,7 @@ export interface components {
             lastLoginAt?: string | null;
             /** Format: int32 */
             vettingStatus?: number;
+            hasVettingApplication?: boolean;
         };
         UserEventDto: {
             /** Format: uuid */
@@ -3213,6 +3719,20 @@ export interface components {
             totalPages?: number;
             hasPreviousPage?: boolean;
             hasNextPage?: boolean;
+        };
+        UserNoteResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            userId?: string;
+            content?: string;
+            noteType?: string;
+            /** Format: uuid */
+            authorId?: string | null;
+            authorSceneName?: string | null;
+            /** Format: date-time */
+            createdAt?: string;
+            isArchived?: boolean;
         };
         UserOptionDto: {
             id?: string;
@@ -3251,6 +3771,28 @@ export interface components {
             phoneNumber?: string | null;
             vettingStatus?: string;
         } | null;
+        UserSearchResultDto: {
+            /** Format: uuid */
+            userId?: string;
+            sceneName?: string;
+            email?: string;
+            discordName?: string | null;
+            realName?: string | null;
+        };
+        UserVolunteerShiftDto: {
+            /** Format: uuid */
+            signupId?: string;
+            eventTitle?: string;
+            eventLocation?: string;
+            /** Format: date-time */
+            eventDate?: string;
+            positionTitle?: string;
+            sessionName?: string | null;
+            /** Format: date-time */
+            shiftStartTime?: string | null;
+            /** Format: date-time */
+            shiftEndTime?: string | null;
+        };
         ValidationProblemDetails: {
             type?: string | null;
             title?: string | null;
@@ -3262,6 +3804,44 @@ export interface components {
                 [key: string]: string[];
             };
         };
+        ValidRolesResponse: {
+            roles?: string[];
+        };
+        VettingDetailsResponse: {
+            hasApplication?: boolean;
+            /** Format: uuid */
+            applicationId?: string | null;
+            applicationNumber?: string | null;
+            /** Format: date-time */
+            submittedAt?: string | null;
+            /** Format: int32 */
+            workflowStatus?: number | null;
+            workflowStatusDisplay?: string | null;
+            /** Format: date-time */
+            lastReviewedAt?: string | null;
+            /** Format: date-time */
+            decisionMadeAt?: string | null;
+            sceneName?: string | null;
+            realName?: string | null;
+            email?: string | null;
+            phone?: string | null;
+            fetLifeHandle?: string | null;
+            pronouns?: string | null;
+            aboutYourself?: string | null;
+            /** Format: int32 */
+            experienceLevel?: number | null;
+            /** Format: int32 */
+            yearsExperience?: number | null;
+            experienceDescription?: string | null;
+            safetyKnowledge?: string | null;
+            consentUnderstanding?: string | null;
+            whyJoinCommunity?: string | null;
+            skillsInterests?: string | null;
+            expectationsGoals?: string | null;
+            agreesToGuidelines?: boolean | null;
+            agreesToTerms?: boolean | null;
+            adminNotes?: string | null;
+        };
         VettingStatusDto: {
             status?: string;
             /** Format: date-time */
@@ -3269,6 +3849,42 @@ export interface components {
             message?: string;
             interviewScheduleUrl?: string | null;
             reapplyInfoUrl?: string | null;
+        } | null;
+        VolunteerAssignmentDto: {
+            /** Format: uuid */
+            signupId?: string;
+            /** Format: uuid */
+            userId?: string;
+            /** Format: uuid */
+            volunteerPositionId?: string;
+            sceneName?: string;
+            email?: string;
+            fetLifeName?: string | null;
+            discordName?: string | null;
+            status?: string;
+            /** Format: date-time */
+            signedUpAt?: string;
+            hasCheckedIn?: boolean;
+            /** Format: date-time */
+            checkedInAt?: string | null;
+        };
+        VolunteerAssignmentDto2: {
+            /** Format: uuid */
+            signupId?: string;
+            /** Format: uuid */
+            userId?: string;
+            /** Format: uuid */
+            volunteerPositionId?: string;
+            sceneName?: string;
+            email?: string;
+            fetLifeName?: string | null;
+            discordName?: string | null;
+            status?: string;
+            /** Format: date-time */
+            signedUpAt?: string;
+            hasCheckedIn?: boolean;
+            /** Format: date-time */
+            checkedInAt?: string | null;
         } | null;
         VolunteerPositionDto: {
             id?: string;
@@ -3278,13 +3894,59 @@ export interface components {
             slotsNeeded?: number;
             /** Format: int32 */
             slotsFilled?: number;
-            requiresExperience?: boolean;
-            requirements?: string;
             sessionId?: string | null;
             /** Format: int32 */
             slotsRemaining?: number;
             isFullyStaffed?: boolean;
         };
+        VolunteerPositionDto2: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            eventId?: string;
+            /** Format: uuid */
+            sessionId?: string | null;
+            title?: string;
+            description?: string;
+            /** Format: int32 */
+            slotsNeeded?: number;
+            /** Format: int32 */
+            slotsFilled?: number;
+            /** Format: int32 */
+            slotsRemaining?: number;
+            isPublicFacing?: boolean;
+            isFullyStaffed?: boolean;
+            sessionName?: string | null;
+            /** Format: date-time */
+            sessionStartTime?: string | null;
+            /** Format: date-time */
+            sessionEndTime?: string | null;
+            hasUserSignedUp?: boolean;
+            /** Format: uuid */
+            userSignupId?: string | null;
+        };
+        VolunteerSignupDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            volunteerPositionId?: string;
+            /** Format: uuid */
+            userId?: string;
+            status?: string;
+            /** Format: date-time */
+            signedUpAt?: string;
+            hasCheckedIn?: boolean;
+            /** Format: date-time */
+            checkedInAt?: string | null;
+            hasCompleted?: boolean;
+            /** Format: date-time */
+            completedAt?: string | null;
+            positionTitle?: string;
+            eventTitle?: string;
+            /** Format: date-time */
+            eventStartDate?: string;
+        } | null;
+        VolunteerSignupRequest: Record<string, never>;
         /** @enum {unknown} */
         WhereOccurred: "AtEvent" | "Online" | "PrivatePlay" | "OtherSpace";
         WorkflowHistoryDto: {
@@ -3379,6 +4041,26 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    GetValidRoles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidRolesResponse"];
+                };
             };
         };
     };
@@ -3931,8 +4613,8 @@ export interface operations {
             query: {
                 SearchTerm?: string;
                 Role?: string;
+                RoleFilters?: string[];
                 IsActive?: boolean;
-                IsVetted?: boolean;
                 Page: number;
                 PageSize: number;
                 SortBy: string;
@@ -4080,6 +4762,67 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UpdateUserRoles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateUserRolesRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4417,6 +5160,7 @@ export interface operations {
     CancelParticipation: {
         parameters: {
             query?: {
+                type?: string;
                 reason?: string;
             };
             header?: never;
@@ -4727,6 +5471,376 @@ export interface operations {
             };
         };
     };
+    GetEventVolunteerPositions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfListOfVolunteerPositionDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SignupForVolunteerPosition: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VolunteerSignupRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfVolunteerSignupDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetUserVolunteerShifts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfListOfUserVolunteerShiftDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetVolunteerPositionSignups: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                positionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfListOfVolunteerAssignmentDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AssignMemberToVolunteerPosition: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                positionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignVolunteerRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfVolunteerAssignmentDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    RemoveVolunteerAssignment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                signupId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SearchUsers: {
+        parameters: {
+            query?: {
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfListOfUserSearchResultDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     CreateTestUser: {
         parameters: {
             query?: never;
@@ -4808,6 +5922,438 @@ export interface operations {
                 content: {
                     "application/json": unknown;
                 };
+            };
+        };
+    };
+    GetMemberDetails: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberDetailsResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetMemberVettingDetails: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VettingDetailsResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetMemberEventHistory: {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+            };
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventHistoryResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetMemberIncidents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberIncidentsResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetMemberNotes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserNoteResponse"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CreateMemberNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateUserNoteRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserNoteResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UpdateMemberStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMemberStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UpdateMemberRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMemberRoleRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -6395,6 +7941,182 @@ export interface operations {
             };
         };
     };
+    GetEmailTemplates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfListOfEmailTemplateResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                };
+            };
+        };
+    };
+    GetEmailTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfEmailTemplateResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                };
+            };
+        };
+    };
+    UpdateEmailTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateEmailTemplateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfEmailTemplateResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                };
+            };
+        };
+    };
     SubmitPublicVettingApplication: {
         parameters: {
             query?: never;
@@ -6428,48 +8150,6 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
-                };
-            };
-        };
-    };
-    SubmitVettingApplicationFull: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateApplicationRequest"];
-            };
-        };
-        responses: {
-            /** @description Created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponseOfApplicationSubmissionResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
                 headers: {
                     [name: string]: unknown;
                 };
