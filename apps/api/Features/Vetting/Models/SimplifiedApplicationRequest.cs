@@ -9,11 +9,18 @@ namespace WitchCityRope.Api.Features.Vetting.Models;
 public class SimplifiedApplicationRequest
 {
     /// <summary>
-    /// Applicant's real/legal name
+    /// Applicant's first name
     /// </summary>
     [Required]
-    [StringLength(100, MinimumLength = 2)]
-    public string RealName { get; set; } = string.Empty;
+    [StringLength(50, MinimumLength = 1)]
+    public string FirstName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Applicant's last name
+    /// </summary>
+    [Required]
+    [StringLength(50, MinimumLength = 1)]
+    public string LastName { get; set; } = string.Empty;
 
     /// <summary>
     /// Preferred scene name for community use

@@ -42,8 +42,11 @@ public class VettingApplication
     // Applicant Information (from wireframe design)
     public Guid? UserId { get; set; }  // FK to User (nullable for anonymous submissions)
     public string SceneName { get; set; } = string.Empty;
-    public string RealName { get; set; } = string.Empty;
-    public string? FullName { get; set; } // Full legal name (may differ from RealName)
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    [Obsolete("Use FirstName and LastName instead")]
+    public string RealName { get; set; } = string.Empty; // Kept for backward compatibility
+    public string? FullName { get; set; } // Full legal name (may differ from FirstName/LastName)
     public string Email { get; set; } = string.Empty;
     public string? Phone { get; set; }
     public string? FetLifeHandle { get; set; }

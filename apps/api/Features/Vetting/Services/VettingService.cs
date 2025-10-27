@@ -1093,7 +1093,9 @@ public class VettingService : IVettingService
             var application = new VettingApplication
             {
                 SceneName = request.PreferredSceneName,
-                RealName = request.RealName,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                RealName = $"{request.FirstName} {request.LastName}", // Backward compatibility
                 Email = request.Email,
                 Pronouns = request.Pronouns,
                 FetLifeHandle = request.FetLifeHandle,
