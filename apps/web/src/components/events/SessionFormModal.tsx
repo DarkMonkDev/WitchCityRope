@@ -194,24 +194,15 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
             />
           </Group>
 
-          <Group grow>
-            <NumberInput
-              label="Capacity"
-              placeholder="Maximum attendees"
-              min={1}
-              max={1000}
-              required
-              data-testid="input-session-capacity"
-              {...form.getInputProps('capacity')}
-            />
-            <NumberInput
-              label="Already Registered"
-              placeholder="Current registrations"
-              min={0}
-              disabled={!session} // Only editable for existing sessions
-              {...form.getInputProps('registeredCount')}
-            />
-          </Group>
+          <NumberInput
+            label="Capacity"
+            placeholder="Maximum attendees"
+            min={1}
+            max={1000}
+            required
+            data-testid="input-session-capacity"
+            {...form.getInputProps('capacity')}
+          />
 
           <Group justify="flex-end" mt="md">
             <Button variant="outline" onClick={onClose} data-testid="button-cancel-session">

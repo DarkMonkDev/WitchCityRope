@@ -171,7 +171,7 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
         </Table.Tbody>
       </Table>
 
-      <Group mt="md" justify="space-between" align="center">
+      <Group mt="md">
         <WCRButton
           variant="secondary"
           size="lg"
@@ -180,10 +180,6 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
         >
           Add Session
         </WCRButton>
-
-        <Text size="xs" c="dimmed" fs="italic">
-          💡 Tip: Click on a row to edit session details in a modal dialog.
-        </Text>
       </Group>
     </div>
   );
