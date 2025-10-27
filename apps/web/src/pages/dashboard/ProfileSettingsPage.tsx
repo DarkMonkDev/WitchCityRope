@@ -13,7 +13,9 @@ import {
   Loader,
   Center,
   Alert,
+  SimpleGrid,
 } from '@mantine/core'
+import { Link } from 'react-router-dom'
 import { useForm } from '@mantine/form'
 import { IconAlertCircle, IconCheck } from '@tabler/icons-react'
 import { notifications } from '@mantine/notifications'
@@ -25,11 +27,10 @@ import type {
 } from '../../types/dashboard.types'
 
 /**
- * Profile Settings Page with 4 tabs
- * - Personal: Scene name, email, pronouns, bio
- * - Social: Discord, FetLife, phone
- * - Security: Change password
- * - Vetting: Read-only vetting status with membership hold option
+ * Profile Settings Page with 3 tabs
+ * - Personal: Scene name, email, pronouns, bio, Discord, FetLife, phone (3-column layout)
+ * - Change Password: Change password
+ * - Vetting & Membership: Read-only vetting status with membership hold option
  */
 export const ProfileSettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string | null>('personal')
@@ -73,19 +74,54 @@ export const ProfileSettingsPage: React.FC = () => {
   return (
     <Box style={{ background: 'var(--color-cream)', minHeight: '100vh' }} pb="xl">
       <Container size="xl" py="xl">
-        {/* Page Title */}
-        <Title
-          order={1}
-          mb="xl"
-          tt="uppercase"
-          style={{
-            fontFamily: 'var(--font-heading)',
-            color: 'var(--color-burgundy)',
-            fontSize: '2rem',
-          }}
-        >
-          Profile Settings
-        </Title>
+        {/* Page Title with View Dashboard Button */}
+        <Group justify="space-between" align="center" mb="xl">
+          <Title
+            order={1}
+            tt="uppercase"
+            style={{
+              fontFamily: 'var(--font-heading)',
+              color: 'var(--color-burgundy)',
+              fontSize: '2rem',
+            }}
+          >
+            Profile Settings
+          </Title>
+          <Button
+            component={Link}
+            to="/dashboard"
+            variant="filled"
+            color="burgundy"
+            styles={{
+              root: {
+                borderRadius: '12px 6px 12px 6px',
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                transition: 'all 0.3s ease',
+                height: 'auto',
+                paddingTop: '10px',
+                paddingBottom: '10px',
+                paddingLeft: '20px',
+                paddingRight: '20px',
+                lineHeight: '1.2',
+                display: 'flex',
+                alignItems: 'center',
+                backgroundColor: 'var(--color-burgundy)',
+                color: 'white',
+                '&:hover': {
+                  borderRadius: '6px 12px 6px 12px',
+                  backgroundColor: 'var(--color-burgundy-dark)',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 4px 12px rgba(183, 109, 117, 0.3)',
+                },
+              },
+            }}
+          >
+            View Dashboard
+          </Button>
+        </Group>
 
         {/* Tabs */}
         <Tabs
@@ -110,17 +146,12 @@ export const ProfileSettingsPage: React.FC = () => {
         >
           <Tabs.List>
             <Tabs.Tab value="personal">Personal</Tabs.Tab>
-            <Tabs.Tab value="social">Social</Tabs.Tab>
-            <Tabs.Tab value="security">Security</Tabs.Tab>
-            <Tabs.Tab value="vetting">Vetting</Tabs.Tab>
+            <Tabs.Tab value="security">Change Password</Tabs.Tab>
+            <Tabs.Tab value="vetting">Vetting & Membership</Tabs.Tab>
           </Tabs.List>
 
           <Tabs.Panel value="personal">
             <PersonalInfoForm profile={profile} />
-          </Tabs.Panel>
-
-          <Tabs.Panel value="social">
-            <SocialLinksForm profile={profile} />
           </Tabs.Panel>
 
           <Tabs.Panel value="security">
@@ -136,16 +167,12 @@ export const ProfileSettingsPage: React.FC = () => {
   )
 }
 
-// Personal Info Form Component
+// Personal Info Form Component (includes social fields in 3-column layout)
 const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) => {
   const updateProfileMutation = useUpdateProfile()
 
-  // CRITICAL FIX: Only include fields that are displayed in this form
-  // DO NOT include social fields (discordName, fetLifeName, phoneNumber)
-  // Those are managed by the SocialLinksForm component
-  const form = useForm<
-    Pick<UpdateProfileDto, 'sceneName' | 'firstName' | 'lastName' | 'email' | 'pronouns' | 'bio'>
-  >({
+  // All fields in one form with 3-column layout
+  const form = useForm<UpdateProfileDto>({
     initialValues: {
       sceneName: profile.sceneName,
       firstName: profile.firstName || '',
@@ -153,33 +180,15 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
       email: profile.email,
       pronouns: profile.pronouns || '',
       bio: profile.bio || '',
-    },
-  })
-
-  const handleSubmit = (
-    values: Pick<
-      UpdateProfileDto,
-      'sceneName' | 'firstName' | 'lastName' | 'email' | 'pronouns' | 'bio'
-    >
-  ) => {
-    // CRITICAL FIX: Preserve empty strings from form values
-    // Don't merge with profile props - use form state directly
-    // Only add social fields from profile (not managed by this form)
-    const updateData: UpdateProfileDto = {
-      sceneName: values.sceneName,
-      firstName: values.firstName, // Keep empty string if user cleared it
-      lastName: values.lastName, // Keep empty string if user cleared it
-      email: values.email,
-      pronouns: values.pronouns, // Keep empty string if user cleared it
-      bio: values.bio, // Keep empty string if user cleared it
-      // Social fields from profile (managed by separate form)
       discordName: profile.discordName || '',
       fetLifeName: profile.fetLifeName || '',
       phoneNumber: profile.phoneNumber || '',
-    }
+    },
+  })
 
-    console.log('🔍 PersonalInfoForm - Submitting with merged data:', updateData)
-    updateProfileMutation.mutate(updateData)
+  const handleSubmit = (values: UpdateProfileDto) => {
+    console.log('🔍 PersonalInfoForm - Submitting all fields:', values)
+    updateProfileMutation.mutate(values)
   }
 
   // Handle success/error with useEffect or mutation state
@@ -217,8 +226,8 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
       }}
     >
       <Stack gap="md">
-        {/* Side-by-side inputs using Group with grow */}
-        <Group grow align="flex-start">
+        {/* 3-column layout for all fields */}
+        <SimpleGrid cols={3} spacing="md">
           <TextInput
             label="Scene Name"
             placeholder="Your scene name"
@@ -233,24 +242,6 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
               },
             }}
           />
-          <TextInput
-            label="Email"
-            placeholder="your@email.com"
-            type="email"
-            required
-            data-testid="email-input"
-            {...form.getInputProps('email')}
-            styles={{
-              label: {
-                fontFamily: 'var(--font-heading)',
-                fontWeight: 600,
-                color: 'var(--color-burgundy)',
-              },
-            }}
-          />
-        </Group>
-
-        <Group grow align="flex-start">
           <TextInput
             label="First Name"
             placeholder="Optional"
@@ -277,21 +268,83 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
               },
             }}
           />
-        </Group>
+        </SimpleGrid>
 
-        <TextInput
-          label="Pronouns"
-          placeholder="e.g., they/them, she/her, he/him"
-          data-testid="pronouns-input"
-          {...form.getInputProps('pronouns')}
-          styles={{
-            label: {
-              fontFamily: 'var(--font-heading)',
-              fontWeight: 600,
-              color: 'var(--color-burgundy)',
-            },
-          }}
-        />
+        <SimpleGrid cols={3} spacing="md">
+          <TextInput
+            label="Email"
+            placeholder="your@email.com"
+            type="email"
+            required
+            data-testid="email-input"
+            {...form.getInputProps('email')}
+            styles={{
+              label: {
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 600,
+                color: 'var(--color-burgundy)',
+              },
+            }}
+          />
+          <TextInput
+            label="Pronouns"
+            placeholder="e.g., they/them, she/her, he/him"
+            data-testid="pronouns-input"
+            {...form.getInputProps('pronouns')}
+            styles={{
+              label: {
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 600,
+                color: 'var(--color-burgundy)',
+              },
+            }}
+          />
+          <TextInput
+            label="Discord Username"
+            placeholder="Username#1234"
+            data-testid="discord-name-input"
+            {...form.getInputProps('discordName')}
+            styles={{
+              label: {
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 600,
+                color: 'var(--color-burgundy)',
+              },
+            }}
+          />
+        </SimpleGrid>
+
+        <SimpleGrid cols={3} spacing="md">
+          <TextInput
+            label="FetLife Username"
+            placeholder="Your FetLife username"
+            data-testid="fetlife-name-input"
+            {...form.getInputProps('fetLifeName')}
+            styles={{
+              label: {
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 600,
+                color: 'var(--color-burgundy)',
+              },
+            }}
+          />
+          <TextInput
+            label="Phone Number"
+            placeholder="555-123-4567"
+            type="tel"
+            data-testid="phone-number-input"
+            {...form.getInputProps('phoneNumber')}
+            styles={{
+              label: {
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 600,
+                color: 'var(--color-burgundy)',
+              },
+            }}
+          />
+          {/* Empty third column */}
+          <Box />
+        </SimpleGrid>
 
         <Textarea
           label="Bio"
@@ -300,143 +353,6 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
           maxLength={2000}
           data-testid="bio-input"
           {...form.getInputProps('bio')}
-          styles={{
-            label: {
-              fontFamily: 'var(--font-heading)',
-              fontWeight: 600,
-              color: 'var(--color-burgundy)',
-            },
-          }}
-        />
-
-        <Group justify="flex-end">
-          <Button
-            type="submit"
-            color="burgundy"
-            loading={updateProfileMutation.isPending}
-            styles={{
-              root: {
-                borderRadius: '12px 6px 12px 6px',
-                fontFamily: 'var(--font-heading)',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                height: 'auto',
-                paddingTop: '12px',
-                paddingBottom: '12px',
-                paddingLeft: '24px',
-                paddingRight: '24px',
-                lineHeight: '1.2',
-                display: 'flex',
-                alignItems: 'center',
-              },
-            }}
-          >
-            Save Changes
-          </Button>
-        </Group>
-      </Stack>
-    </Box>
-  )
-}
-
-// Social Links Form Component
-const SocialLinksForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) => {
-  const updateProfileMutation = useUpdateProfile()
-
-  const form = useForm<Pick<UpdateProfileDto, 'discordName' | 'fetLifeName' | 'phoneNumber'>>({
-    initialValues: {
-      discordName: profile.discordName || '',
-      fetLifeName: profile.fetLifeName || '',
-      phoneNumber: profile.phoneNumber || '',
-    },
-  })
-
-  const handleSubmit = (
-    values: Pick<UpdateProfileDto, 'discordName' | 'fetLifeName' | 'phoneNumber'>
-  ) => {
-    // Merge with other required fields from profile
-    const updateData: UpdateProfileDto = {
-      sceneName: profile.sceneName,
-      firstName: profile.firstName || '',
-      lastName: profile.lastName || '',
-      email: profile.email,
-      pronouns: profile.pronouns || '',
-      bio: profile.bio || '',
-      ...values,
-    }
-
-    updateProfileMutation.mutate(updateData)
-  }
-
-  // Handle success/error
-  React.useEffect(() => {
-    if (updateProfileMutation.isSuccess) {
-      notifications.show({
-        title: 'Success',
-        message: 'Social links updated successfully',
-        color: 'green',
-        icon: <IconCheck />,
-      })
-    }
-    if (updateProfileMutation.isError) {
-      notifications.show({
-        title: 'Error',
-        message:
-          updateProfileMutation.error instanceof Error
-            ? updateProfileMutation.error.message
-            : 'Failed to update social links',
-        color: 'red',
-        icon: <IconAlertCircle />,
-      })
-    }
-  }, [updateProfileMutation.isSuccess, updateProfileMutation.isError, updateProfileMutation.error])
-
-  return (
-    <Box
-      component="form"
-      onSubmit={form.onSubmit(handleSubmit)}
-      p="md"
-      style={{
-        background: 'white',
-        borderRadius: '12px',
-        border: '1px solid var(--color-taupe)',
-      }}
-    >
-      <Stack gap="md">
-        <TextInput
-          label="Discord Username"
-          placeholder="Username#1234"
-          data-testid="discord-name-input"
-          {...form.getInputProps('discordName')}
-          styles={{
-            label: {
-              fontFamily: 'var(--font-heading)',
-              fontWeight: 600,
-              color: 'var(--color-burgundy)',
-            },
-          }}
-        />
-
-        <TextInput
-          label="FetLife Username"
-          placeholder="Your FetLife username"
-          data-testid="fetlife-name-input"
-          {...form.getInputProps('fetLifeName')}
-          styles={{
-            label: {
-              fontFamily: 'var(--font-heading)',
-              fontWeight: 600,
-              color: 'var(--color-burgundy)',
-            },
-          }}
-        />
-
-        <TextInput
-          label="Phone Number"
-          placeholder="555-123-4567"
-          type="tel"
-          data-testid="phone-number-input"
-          {...form.getInputProps('phoneNumber')}
           styles={{
             label: {
               fontFamily: 'var(--font-heading)',

@@ -138,8 +138,8 @@ export const MyEventsPage: React.FC = () => {
           <Button
             component={Link}
             to="/dashboard/profile-settings"
-            variant="outline"
-            color="rose-gold"
+            variant="filled"
+            color="burgundy"
             styles={{
               root: {
                 borderRadius: '12px 6px 12px 6px',
@@ -156,8 +156,13 @@ export const MyEventsPage: React.FC = () => {
                 lineHeight: '1.2',
                 display: 'flex',
                 alignItems: 'center',
+                backgroundColor: 'var(--color-burgundy)',
+                color: 'white',
                 '&:hover': {
                   borderRadius: '6px 12px 6px 12px',
+                  backgroundColor: 'var(--color-burgundy-dark)',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 4px 12px rgba(183, 109, 117, 0.3)',
                 },
               },
             }}
