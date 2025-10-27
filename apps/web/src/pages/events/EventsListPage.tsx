@@ -24,6 +24,9 @@ import { useEvents } from '../../lib/api/hooks/useEvents'
 import { formatEventDate, formatEventDateTime, formatEventTime, calculateEventPriceRange } from '../../utils/eventUtils'
 import type { EventDto } from '../../lib/api/types/events.types'
 import { useNavigate } from 'react-router-dom'
+import { useParticipation } from '../../hooks/useParticipation'
+import { useCurrentUser } from '../../lib/api/hooks/useAuth'
+import { Badge } from '@mantine/core'
 
 // Mock function to get user role - replace with actual auth context
 const useAuth = () => ({
@@ -347,6 +350,12 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({
   'data-testid': testId,
 }) => {
   const navigate = useNavigate()
+  const { data: currentUser } = useCurrentUser()
+  const isAuthenticated = !!currentUser
+
+  // Fetch participation status for authenticated users
+  const { data: participation } = useParticipation(event.id, isAuthenticated)
+
   const availableSpots = (event.capacity || 20) - (event.registrationCount || 0)
 
   const getSpotColor = () => {
@@ -354,6 +363,14 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({
     if (availableSpots > 3) return 'var(--color-warning)'
     return 'var(--color-error)'
   }
+
+  // Check if event has paid tickets (maxPrice > 0)
+  const hasPaidTickets = (event as any).ticketTypes?.some((tt: any) => (tt.maxPrice || 0) > 0)
+
+  // Determine button text and action
+  const hasTicket = participation?.hasTicket || false
+  const hasRSVP = participation?.hasRSVP || false
+  const shouldShowPurchaseButton = hasRSVP && !hasTicket && hasPaidTickets
 
   return (
     <Paper
@@ -514,16 +531,55 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({
             borderTop: '1px solid var(--color-taupe)',
           }}
         >
-          <Text
-            fw={700}
-            style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: '18px',
-              color: 'var(--color-burgundy)',
-            }}
-          >
-            {calculateEventPriceRange((event as any).ticketTypes || [])}
-          </Text>
+          {/* Price or Ticket Purchased Badge */}
+          {hasTicket ? (
+            <Badge
+              color="green"
+              variant="light"
+              size="lg"
+              styles={{
+                root: {
+                  fontFamily: 'var(--font-heading)',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                }
+              }}
+            >
+              Ticket Purchased
+            </Badge>
+          ) : (
+            <Group gap="xs" align="center">
+              <Text
+                fw={700}
+                style={{
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: '18px',
+                  color: 'var(--color-burgundy)',
+                }}
+              >
+                {calculateEventPriceRange((event as any).ticketTypes || [])}
+              </Text>
+              {hasRSVP && (
+                <Badge
+                  color="blue"
+                  variant="light"
+                  size="md"
+                  styles={{
+                    root: {
+                      fontFamily: 'var(--font-heading)',
+                      fontWeight: 600,
+                      fontSize: '12px',
+                      textTransform: 'uppercase',
+                    }
+                  }}
+                >
+                  RSVPed
+                </Badge>
+              )}
+            </Group>
+          )}
 
           <Text
             fw={600}
@@ -541,7 +597,7 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({
         {/* Action Button */}
         <Group justify="center" mt="md" pb="xs">
           <Button
-            data-testid="button-learn-more"
+            data-testid={shouldShowPurchaseButton ? "button-purchase-ticket" : "button-learn-more"}
             className="btn btn-primary"
             size="sm"
             onClick={(e) => {
@@ -552,9 +608,10 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({
               }, 0)
             }}
             style={{
-              background:
-                'linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%)',
-              color: 'var(--color-midnight)',
+              background: shouldShowPurchaseButton
+                ? 'linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%)'
+                : 'linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-dark) 100%)',
+              color: shouldShowPurchaseButton ? 'white' : 'var(--color-midnight)',
               border: 'none',
               padding: '10px 24px',
               fontSize: '13px',
@@ -564,7 +621,7 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({
               textTransform: 'uppercase',
             }}
           >
-            Learn More
+            {shouldShowPurchaseButton ? 'Purchase Ticket' : 'Learn More'}
           </Button>
         </Group>
       </Box>
@@ -580,6 +637,8 @@ interface EventTableViewProps {
 
 const EventTableView: React.FC<EventTableViewProps> = ({ events, onEventClick }) => {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+  const { data: currentUser } = useCurrentUser()
+  const isAuthenticated = !!currentUser
 
   const handleSort = () => {
     setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'))
@@ -695,29 +754,56 @@ const EventTableView: React.FC<EventTableViewProps> = ({ events, onEventClick })
         </Table.Thead>
         <Table.Tbody>
           {events.map((event, index) => {
-            const availableSpots = (event.capacity || 20) - (event.registrationCount || 0)
-            const getSpotColor = () => {
-              if (availableSpots > 10) return 'var(--color-success)'
-              if (availableSpots > 3) return 'var(--color-warning)'
-              return 'var(--color-error)'
-            }
+            return <EventTableRow key={event.id} event={event} index={index} isAuthenticated={isAuthenticated} onEventClick={onEventClick} />
+          })}
+        </Table.Tbody>
+      </Table>
+    </Paper>
+  )
+}
 
-            return (
-              <Table.Tr
-                key={event.id}
-                style={{
-                  cursor: 'pointer',
-                  backgroundColor: index % 2 === 1 ? 'rgba(250, 246, 242, 0.8)' : 'transparent',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(136, 1, 36, 0.08)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor =
-                    index % 2 === 1 ? 'rgba(250, 246, 242, 0.8)' : 'transparent'
-                }}
-                onClick={() => onEventClick(event.id)}
-              >
+// Event Table Row Component with Participation Status
+interface EventTableRowProps {
+  event: EventDto
+  index: number
+  isAuthenticated: boolean
+  onEventClick: (eventId: string) => void
+}
+
+const EventTableRow: React.FC<EventTableRowProps> = ({ event, index, isAuthenticated, onEventClick }) => {
+  // Fetch participation status for authenticated users
+  const { data: participation } = useParticipation(event.id, isAuthenticated)
+
+  const availableSpots = (event.capacity || 20) - (event.registrationCount || 0)
+  const getSpotColor = () => {
+    if (availableSpots > 10) return 'var(--color-success)'
+    if (availableSpots > 3) return 'var(--color-warning)'
+    return 'var(--color-error)'
+  }
+
+  // Check if event has paid tickets (maxPrice > 0)
+  const hasPaidTickets = (event as any).ticketTypes?.some((tt: any) => (tt.maxPrice || 0) > 0)
+
+  // Determine participation status
+  const hasTicket = participation?.hasTicket || false
+  const hasRSVP = participation?.hasRSVP || false
+  const shouldShowPurchaseButton = hasRSVP && !hasTicket && hasPaidTickets
+
+  return (
+    <Table.Tr
+      style={{
+        cursor: 'pointer',
+        backgroundColor: index % 2 === 1 ? 'rgba(250, 246, 242, 0.8)' : 'transparent',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = 'rgba(136, 1, 36, 0.08)'
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor =
+          index % 2 === 1 ? 'rgba(250, 246, 242, 0.8)' : 'transparent'
+      }}
+      onClick={() => onEventClick(event.id)}
+    >
                 <Table.Td
                   style={{
                     padding: 'var(--space-md)',
@@ -759,7 +845,54 @@ const EventTableView: React.FC<EventTableViewProps> = ({ events, onEventClick })
                     textAlign: 'center',
                   }}
                 >
-                  {calculateEventPriceRange((event as any).ticketTypes || [])}
+                  {hasTicket ? (
+                    <Badge
+                      color="green"
+                      variant="light"
+                      size="lg"
+                      styles={{
+                        root: {
+                          fontFamily: 'var(--font-heading)',
+                          fontWeight: 700,
+                          fontSize: '14px',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                        }
+                      }}
+                    >
+                      Ticket Purchased
+                    </Badge>
+                  ) : (
+                    <Group gap="xs" align="center" justify="center">
+                      <Text
+                        fw={700}
+                        style={{
+                          fontFamily: 'var(--font-heading)',
+                          fontSize: '1.3rem',
+                          color: 'var(--color-burgundy)',
+                        }}
+                      >
+                        {calculateEventPriceRange((event as any).ticketTypes || [])}
+                      </Text>
+                      {hasRSVP && (
+                        <Badge
+                          color="blue"
+                          variant="light"
+                          size="md"
+                          styles={{
+                            root: {
+                              fontFamily: 'var(--font-heading)',
+                              fontWeight: 600,
+                              fontSize: '12px',
+                              textTransform: 'uppercase',
+                            }
+                          }}
+                        >
+                          RSVPed
+                        </Badge>
+                      )}
+                    </Group>
+                  )}
                 </Table.Td>
                 <Table.Td
                   style={{
@@ -781,9 +914,9 @@ const EventTableView: React.FC<EventTableViewProps> = ({ events, onEventClick })
                       onEventClick(event.id)
                     }}
                     style={{
-                      background: 'var(--color-cream)',
-                      border: '2px solid var(--color-rose-gold)',
-                      color: 'var(--color-burgundy)',
+                      background: shouldShowPurchaseButton ? 'var(--color-burgundy)' : 'var(--color-cream)',
+                      border: shouldShowPurchaseButton ? 'none' : '2px solid var(--color-rose-gold)',
+                      color: shouldShowPurchaseButton ? 'white' : 'var(--color-burgundy)',
                       padding: '6px 12px',
                       margin: '0 4px',
                       borderRadius: '8px 4px 8px 4px',
@@ -794,26 +927,25 @@ const EventTableView: React.FC<EventTableViewProps> = ({ events, onEventClick })
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.borderRadius = '4px 8px 4px 8px'
-                      e.currentTarget.style.background = 'var(--color-burgundy)'
-                      e.currentTarget.style.color = 'white'
+                      if (!shouldShowPurchaseButton) {
+                        e.currentTarget.style.background = 'var(--color-burgundy)'
+                        e.currentTarget.style.color = 'white'
+                      }
                       e.currentTarget.style.transform = 'scale(1.05)'
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.borderRadius = '8px 4px 8px 4px'
-                      e.currentTarget.style.background = 'var(--color-cream)'
-                      e.currentTarget.style.color = 'var(--color-burgundy)'
+                      if (!shouldShowPurchaseButton) {
+                        e.currentTarget.style.background = 'var(--color-cream)'
+                        e.currentTarget.style.color = 'var(--color-burgundy)'
+                      }
                       e.currentTarget.style.transform = 'scale(1)'
                     }}
                   >
-                    Learn More
+                    {shouldShowPurchaseButton ? 'Purchase Ticket' : 'Learn More'}
                   </Button>
                 </Table.Td>
               </Table.Tr>
-            )
-          })}
-        </Table.Tbody>
-      </Table>
-    </Paper>
   )
 }
 
