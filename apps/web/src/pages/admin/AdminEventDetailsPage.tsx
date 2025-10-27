@@ -92,16 +92,28 @@ export const AdminEventDetailsPage: React.FC = () => {
 
     // Map volunteer positions from API response - now using consistent field names
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const volunteerPositions = ((event as any)?.volunteerPositions || []).map((vp: any) => ({
-      id: vp.id || '',
-      title: vp.title || '',
-      description: vp.description || '',
-      sessions: vp.sessionId ? `Session ${vp.sessionId}` : 'All Sessions',
-      startTime: '18:00', // Default as API doesn't include these
-      endTime: '21:00', // Default as API doesn't include these
-      slotsNeeded: vp.slotsNeeded || 0,
-      slotsFilled: vp.slotsFilled || 0,
-    }))
+    const volunteerPositions = ((event as any)?.volunteerPositions || []).map((vp: any) => {
+      // Find session name from sessions array if sessionId is present
+      let sessionDisplay = 'All Sessions';
+      if (vp.sessionId && event.sessions) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const session = (event.sessions as any[]).find((s: any) => s.id === vp.sessionId);
+        if (session?.name) {
+          sessionDisplay = session.name;
+        }
+      }
+
+      return {
+        id: vp.id || '',
+        title: vp.title || '',
+        description: vp.description || '',
+        sessions: sessionDisplay,
+        startTime: '18:00', // Default as API doesn't include these
+        endTime: '21:00', // Default as API doesn't include these
+        slotsNeeded: vp.slotsNeeded || 0,
+        slotsFilled: vp.slotsFilled || 0,
+      };
+    })
 
     // Map ticket types from API response, adding pricingType if missing
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
