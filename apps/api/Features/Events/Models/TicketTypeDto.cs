@@ -95,12 +95,21 @@ public class TicketTypeDto
         // Determine session identifiers based on the session relationship
         if (ticketType.Session != null)
         {
+            // Single-session ticket
             SessionIdentifiers = new List<string> { ticketType.Session.SessionCode };
+        }
+        else if (ticketType.Event?.Sessions != null && ticketType.Event.Sessions.Any())
+        {
+            // Multi-session ticket - includes all sessions from the event
+            SessionIdentifiers = ticketType.Event.Sessions
+                .OrderBy(s => s.StartTime)
+                .Select(s => s.SessionCode)
+                .ToList();
         }
         else
         {
-            // Multi-session ticket - would need to be determined based on business logic
-            SessionIdentifiers = new List<string>(); // Empty for now
+            // Fallback: no sessions available
+            SessionIdentifiers = new List<string>();
         }
     }
 
