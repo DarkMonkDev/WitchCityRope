@@ -1,9 +1,10 @@
 import React from 'react'
-import { Card, Text, Badge, Box, Stack, Group } from '@mantine/core'
+import { Card, Text, Badge, Box, Stack, Group, Button } from '@mantine/core'
 import { useNavigate } from 'react-router-dom'
-import { IconHeart } from '@tabler/icons-react'
+import { IconHeart, IconShoppingCart } from '@tabler/icons-react'
 import type { UserEventDto } from '../../../types/dashboard.types'
 import type { VolunteerShiftWithEvent } from '../../../components/dashboard/UserVolunteerShifts'
+import { useEvent } from '../../../lib/api/hooks/useEvents'
 
 interface EventCardProps {
   event: UserEventDto
@@ -35,6 +36,22 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
     'Ticket Purchased': 'green',
     Attended: 'grape',
   }
+
+  // Check if we should show Purchase Ticket button:
+  // - User has RSVP but no ticket
+  // - Event is a social event
+  const shouldCheckForPaidTickets = !event.hasTicket &&
+                                     event.registrationStatus === 'RSVP Confirmed' &&
+                                     event.isSocialEvent
+
+  // Fetch full event details only when we need to check for paid tickets
+  const { data: fullEvent } = useEvent(event.id, shouldCheckForPaidTickets)
+
+  // Check if event has paid tickets (maxPrice > 0)
+  const hasPaidTickets = fullEvent?.ticketTypes?.some((tt: any) => (tt.maxPrice || 0) > 0) || false
+
+  // Show purchase button if all conditions are met
+  const showPurchaseButton = shouldCheckForPaidTickets && hasPaidTickets
 
   const formatEventDateTime = (startDate: string, endDate?: string) => {
     const start = new Date(startDate)
@@ -87,6 +104,14 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
   const handleCardClick = () => {
     setTimeout(() => {
       navigate(`/events/${event.id}`)
+    }, 0)
+  }
+
+  // Handle purchase ticket button click
+  const handlePurchaseClick = (e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent card click
+    setTimeout(() => {
+      navigate(`/checkout/${event.id}`)
     }, 0)
   }
 
@@ -293,6 +318,25 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
             </Badge>
           )}
         </Box>
+
+        {/* Purchase Ticket Button - Show for social events with RSVP but no ticket purchased */}
+        {showPurchaseButton && (
+          <Button
+            onClick={handlePurchaseClick}
+            leftSection={<IconShoppingCart size={16} />}
+            color="burgundy"
+            fullWidth
+            style={{
+              marginTop: '8px',
+              fontFamily: 'var(--font-heading)',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}
+          >
+            Purchase Ticket
+          </Button>
+        )}
       </Stack>
     </Card>
   )
