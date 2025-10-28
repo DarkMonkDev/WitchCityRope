@@ -42,6 +42,7 @@ import { AdminVettingPage } from '../pages/admin/AdminVettingPage'
 import { AdminVettingApplicationDetailPage } from '../pages/admin/AdminVettingApplicationDetailPage'
 import { AdminMembersPage } from '../pages/admin/AdminMembersPage'
 import { AdminMemberDetailsPage } from '../pages/admin/AdminMemberDetailsPage'
+import { AdminSettingsPage } from '../pages/admin/AdminSettingsPage'
 import { EmailTemplates } from '../features/admin/vetting/pages/EmailTemplates'
 import { TestPage } from '../pages/TestPage'
 import { VettingTestPage } from '../pages/VettingTestPage'
@@ -352,6 +353,11 @@ export const router = createBrowserRouter([
       {
         path: 'admin/members/:id',
         element: <AdminMemberDetailsPage />,
+        loader: adminLoader,
+      },
+      {
+        path: 'admin/settings',
+        element: <AdminSettingsPage />,
         loader: adminLoader,
       },
       // CMS admin routes

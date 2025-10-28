@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Enums;
+using WitchCityRope.Api.Core.Entities;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Features.Cms;
@@ -103,6 +104,7 @@ public class SeedDataService : ISeedDataService
             await SeedVettingEmailTemplatesAsync(cancellationToken);
             await SeedSafetyIncidentsAsync(cancellationToken);
             await CmsSeedData.SeedInitialPagesAsync(_context);
+            await SeedSettingsAsync(cancellationToken);
 
             // Calculate records created
             var finalUserCount = await _userManager.Users.CountAsync(cancellationToken);
@@ -3752,6 +3754,46 @@ The WitchCityRope Vetting Team",
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Created {Count} safety incident test records", incidents.Count);
+    }
+
+    /// <summary>
+    /// Seeds default system settings including timezone and pre-start buffer
+    /// </summary>
+    private async Task SeedSettingsAsync(CancellationToken cancellationToken = default)
+    {
+        if (await _context.Settings.AnyAsync(cancellationToken))
+        {
+            _logger.LogInformation("Settings already exist, skipping seed");
+            return;
+        }
+
+        var now = DateTime.UtcNow;
+        var settings = new List<Setting>
+        {
+            new Setting
+            {
+                Id = Guid.NewGuid(),
+                Key = "EventTimeZone",
+                Value = "America/New_York",
+                Description = "IANA timezone ID for event scheduling (Eastern Time)",
+                CreatedAt = now,
+                UpdatedAt = now
+            },
+            new Setting
+            {
+                Id = Guid.NewGuid(),
+                Key = "PreStartBufferMinutes",
+                Value = "0",
+                Description = "Minutes before event start to close ticket sales and RSVP registrations",
+                CreatedAt = now,
+                UpdatedAt = now
+            }
+        };
+
+        await _context.Settings.AddRangeAsync(settings, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Created {Count} default settings", settings.Count);
     }
 }
 

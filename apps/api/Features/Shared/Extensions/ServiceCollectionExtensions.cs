@@ -2,6 +2,7 @@ using FluentValidation;
 using WitchCityRope.Api.Features.Health.Services;
 using WitchCityRope.Api.Features.Authentication.Services;
 using WitchCityRope.Api.Features.Events.Services;
+using WitchCityRope.Api.Features.Events.Interfaces;
 using WitchCityRope.Api.Features.Users.Services;
 using WitchCityRope.Api.Features.Dashboard.Services;
 using WitchCityRope.Api.Features.Safety.Services;
@@ -15,6 +16,8 @@ using WitchCityRope.Api.Features.Participation.Services;
 using WitchCityRope.Api.Features.TestHelpers.Services;
 using WitchCityRope.Api.Features.Cms;
 using WitchCityRope.Api.Features.Volunteers.Services;
+using WitchCityRope.Api.Features.Admin.Settings.Interfaces;
+using WitchCityRope.Api.Features.Admin.Settings.Services;
 using WitchCityRope.Api.Services;
 
 namespace WitchCityRope.Api.Features.Shared.Extensions;
@@ -40,6 +43,10 @@ public static class ServiceCollectionExtensions
 
         // Events feature services
         services.AddScoped<Events.Services.EventService>();
+        services.AddScoped<ITimeZoneService, TimeZoneService>();
+
+        // Admin feature services
+        services.AddScoped<ISettingsService, SettingsService>();
 
         // Users feature services
         services.AddScoped<UserManagementService>();

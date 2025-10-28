@@ -195,6 +195,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<VettingBulkOperationLog> VettingBulkOperationLogs { get; set; }
 
     /// <summary>
+    /// Settings table for application-wide configuration
+    /// </summary>
+    public DbSet<WitchCityRope.Api.Core.Entities.Setting> Settings { get; set; }
+
+    /// <summary>
     /// Payments table for payment processing with sliding scale pricing
     /// </summary>
     public DbSet<Payment> Payments { get; set; }
@@ -951,6 +956,37 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         // Apply CMS configurations
         modelBuilder.ApplyConfiguration(new ContentPageConfiguration());
         modelBuilder.ApplyConfiguration(new ContentRevisionConfiguration());
+
+        // Settings entity configuration
+        modelBuilder.Entity<WitchCityRope.Api.Core.Entities.Setting>(entity =>
+        {
+            entity.ToTable("Settings", "public");
+            entity.HasKey(s => s.Id);
+
+            // Unique constraint on Key to prevent duplicate settings
+            entity.HasIndex(s => s.Key)
+                  .IsUnique()
+                  .HasDatabaseName("IX_Settings_Key");
+
+            entity.Property(s => s.Key)
+                  .IsRequired()
+                  .HasMaxLength(100);
+
+            entity.Property(s => s.Value)
+                  .IsRequired()
+                  .HasMaxLength(500);
+
+            entity.Property(s => s.Description)
+                  .HasMaxLength(500);
+
+            entity.Property(s => s.CreatedAt)
+                  .IsRequired()
+                  .HasColumnType("timestamptz");
+
+            entity.Property(s => s.UpdatedAt)
+                  .IsRequired()
+                  .HasColumnType("timestamptz");
+        });
 
         // UserNote entity configuration
         modelBuilder.Entity<WitchCityRope.Api.Data.Entities.UserNote>(entity =>

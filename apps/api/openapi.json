@@ -1220,6 +1220,77 @@
         }
       }
     },
+    "/api/admin/settings": {
+      "get": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Get all application settings",
+        "description": "Returns all configurable settings (admin only)",
+        "operationId": "GetAdminSettings",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Update application settings",
+        "description": "Updates one or more application settings (admin only)",
+        "operationId": "UpdateAdminSettings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSettingsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/api/events/{eventId}/participation": {
       "get": {
         "tags": [
@@ -7844,13 +7915,12 @@
       },
       "LoginRequest": {
         "required": [
-          "email",
-          "password",
-          "emailOrSceneName"
+          "emailOrSceneName",
+          "password"
         ],
         "type": "object",
         "properties": {
-          "email": {
+          "emailOrSceneName": {
             "type": "string"
           },
           "password": {
@@ -7859,9 +7929,6 @@
           "returnUrl": {
             "type": "string",
             "nullable": true
-          },
-          "emailOrSceneName": {
-            "type": "string"
           }
         }
       },
@@ -9649,6 +9716,20 @@
           }
         }
       },
+      "UpdateSettingsRequest": {
+        "required": [
+          "settings"
+        ],
+        "type": "object",
+        "properties": {
+          "settings": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "UpdateStatusRequest": {
         "type": "object",
         "properties": {
@@ -10544,6 +10625,9 @@
     },
     {
       "name": "Dashboard"
+    },
+    {
+      "name": "Settings"
     },
     {
       "name": "Participation"

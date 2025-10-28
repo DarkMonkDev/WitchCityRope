@@ -5,26 +5,31 @@ using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Participation.Models;
 using WitchCityRope.Api.Features.Shared.Models;
 using WitchCityRope.Api.Features.Volunteers.Services;
+using WitchCityRope.Api.Features.Events.Interfaces;
 
 namespace WitchCityRope.Api.Features.Participation.Services;
 
 /// <summary>
 /// Service for managing event participation (RSVPs and tickets)
 /// Follows vertical slice architecture with direct EF access
+/// Enforces registration/cancellation cutoff times based on event start time and configured buffer
 /// </summary>
 public class ParticipationService : IParticipationService
 {
     private readonly ApplicationDbContext _context;
     private readonly VolunteerAssignmentService _volunteerAssignmentService;
+    private readonly ITimeZoneService _timeZoneService;
     private readonly ILogger<ParticipationService> _logger;
 
     public ParticipationService(
         ApplicationDbContext context,
         VolunteerAssignmentService volunteerAssignmentService,
+        ITimeZoneService timeZoneService,
         ILogger<ParticipationService> logger)
     {
         _context = context;
         _volunteerAssignmentService = volunteerAssignmentService;
+        _timeZoneService = timeZoneService;
         _logger = logger;
     }
 
@@ -195,6 +200,14 @@ public class ParticipationService : IParticipationService
                 return Result<ParticipationStatusDto>.Failure("RSVPs are only allowed for social events");
             }
 
+            // Check if registration is still open based on event start time and buffer
+            var isOpen = await _timeZoneService.IsRegistrationOpenAsync(eventEntity.StartDate, cancellationToken);
+            if (!isOpen)
+            {
+                _logger.LogWarning("RSVP attempt for event {EventId} after registration cutoff", request.EventId);
+                return Result<ParticipationStatusDto>.Failure("RSVP period has closed for this event");
+            }
+
             // Check if user already has an ACTIVE participation for this event
             // Cancelled RSVPs should not prevent new RSVPs - this allows re-RSVPing
             var existingParticipation = await _context.EventParticipations
@@ -313,6 +326,14 @@ public class ParticipationService : IParticipationService
             // Social events support optional ticket purchases in addition to free RSVPs
             // Class events require ticket purchases
             // Both event types can have tickets
+
+            // Check if registration is still open based on event start time and buffer
+            var isOpen = await _timeZoneService.IsRegistrationOpenAsync(eventEntity.StartDate, cancellationToken);
+            if (!isOpen)
+            {
+                _logger.LogWarning("Ticket purchase attempt for event {EventId} after registration cutoff", request.EventId);
+                return Result<ParticipationStatusDto>.Failure("Registration has closed for this event");
+            }
 
             // Check if user already has a TICKET for this event
             // Allow ticket purchase even if user has RSVP'd (social events support both)
@@ -483,6 +504,23 @@ public class ParticipationService : IParticipationService
             if (!participation.CanBeCancelled())
             {
                 return Result.Failure("Participation cannot be cancelled in its current status");
+            }
+
+            // Check if cancellation is still allowed based on event start time and buffer
+            var eventEntity = await _context.Events
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Id == eventId, cancellationToken);
+
+            if (eventEntity == null)
+            {
+                return Result.Failure("Event not found");
+            }
+
+            var isOpen = await _timeZoneService.IsRegistrationOpenAsync(eventEntity.StartDate, cancellationToken);
+            if (!isOpen)
+            {
+                _logger.LogWarning("Cancellation attempt for event {EventId} after cancellation cutoff", eventId);
+                return Result.Failure("Cancellation period has ended for this event");
             }
 
             // BUSINESS RULE: If cancelling a ticket, also cancel any associated RSVP
