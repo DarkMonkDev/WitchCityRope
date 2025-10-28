@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Models;
+using WitchCityRope.Api.Services.Seeding;
 
 namespace WitchCityRope.Api.Services;
 
@@ -350,20 +351,4 @@ public enum InitializationErrorType
     SeedDataCreationError,
     TimeoutExceeded,
     ConfigurationError
-}
-
-/// <summary>
-/// Result model for tracking initialization operations and outcomes.
-/// Provides detailed information for logging, monitoring, and health checks.
-/// </summary>
-public class InitializationResult
-{
-    public bool Success { get; set; }
-    public TimeSpan Duration { get; set; }
-    public int MigrationsApplied { get; set; }
-    public int SeedRecordsCreated { get; set; }
-    public List<string> Errors { get; set; } = new();
-    public List<string> Warnings { get; set; } = new();
-    public string Environment { get; set; } = string.Empty;
-    public DateTime CompletedAt { get; set; }
 }

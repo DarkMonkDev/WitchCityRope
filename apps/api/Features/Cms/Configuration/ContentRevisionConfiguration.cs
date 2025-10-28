@@ -9,7 +9,7 @@ namespace WitchCityRope.Api.Features.Cms.Configuration
         public void Configure(EntityTypeBuilder<ContentRevision> builder)
         {
             // Table configuration
-            builder.ToTable("ContentRevisions", "cms");
+            builder.ToTable("ContentRevisions", "public");
 
             // Primary key
             builder.HasKey(cr => cr.Id);

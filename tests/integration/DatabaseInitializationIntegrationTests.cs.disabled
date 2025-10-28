@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using FluentAssertions;
 using Testcontainers.PostgreSql;
 using WitchCityRope.Core.Services;
+using WitchCityRope.Api.Services.Seeding;
 using WitchCityRope.Infrastructure.Data;
 using WitchCityRope.Core.Entities;
 using Xunit.Abstractions;

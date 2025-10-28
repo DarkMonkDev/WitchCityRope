@@ -69,9 +69,10 @@ public class EventSeeder
         var sampleEvents = new[]
         {
             // Upcoming Events (3 classes and 3 social events)
+            // Updated dates to ensure events are in the future (relative to current date)
             CreateSeedEvent(
                 title: "Introduction to Rope Safety",
-                daysFromNow: 7,
+                daysFromNow: 7,  // Next week
                 startHour: 18,
                 capacity: 20,
                 eventType: EventType.Class,
@@ -166,7 +167,7 @@ public class EventSeeder
 
             CreateSeedEvent(
                 title: "Suspension Basics",
-                daysFromNow: 14,
+                daysFromNow: 14,  // 2 weeks from now
                 startHour: 18,
                 capacity: 12,
                 eventType: EventType.Class,
@@ -283,7 +284,7 @@ public class EventSeeder
 
             CreateSeedEvent(
                 title: "Advanced Floor Work",
-                daysFromNow: 21,
+                daysFromNow: 21,  // 3 weeks from now
                 startHour: 18,
                 capacity: 10,
                 eventType: EventType.Class,
@@ -407,7 +408,7 @@ public class EventSeeder
 
             CreateSeedEvent(
                 title: "Community Rope Jam",
-                daysFromNow: 28,
+                daysFromNow: 28,  // 4 weeks from now
                 startHour: 19,
                 capacity: 40,
                 eventType: EventType.Social,
@@ -550,7 +551,7 @@ public class EventSeeder
 
             CreateSeedEvent(
                 title: "Rope Social & Discussion",
-                daysFromNow: 35,
+                daysFromNow: 35,  // 5 weeks from now
                 startHour: 19,
                 capacity: 30,
                 eventType: EventType.Social,
@@ -697,7 +698,7 @@ public class EventSeeder
 
             CreateSeedEvent(
                 title: "New Members Meetup",
-                daysFromNow: 42,
+                daysFromNow: 42,  // 6 weeks from now
                 startHour: 18,
                 capacity: 25,
                 eventType: EventType.Social,

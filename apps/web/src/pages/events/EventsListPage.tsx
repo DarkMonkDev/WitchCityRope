@@ -54,8 +54,9 @@ export const EventsListPage: React.FC = () => {
 
   const { data: events, isLoading, error, refetch } = useEvents(apiFilters)
 
-  // Use real API data only - ensure events is always an array
-  const eventsArray: EventDto[] = Array.isArray(events) ? events : []
+  // CRITICAL: Use API data directly - DO NOT mask errors with fallback arrays
+  // If events is undefined/null, it means there's an error that should be shown to the user
+  const eventsArray: EventDto[] = events || []
 
   // Debug logging for E2E test troubleshooting
   console.log('🎯 EventsListPage render state:', {
@@ -63,7 +64,6 @@ export const EventsListPage: React.FC = () => {
     hasError: !!error,
     eventsData: events,
     eventsArrayLength: eventsArray.length,
-    eventsIsArray: Array.isArray(events),
     eventsSample: eventsArray[0]?.title || 'No events',
   })
 
@@ -78,15 +78,39 @@ export const EventsListPage: React.FC = () => {
   }
 
   if (error) {
+    // Extract error details for diagnostics
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    const isNetworkError = errorMessage.toLowerCase().includes('network') ||
+                           errorMessage.toLowerCase().includes('fetch')
+    const isServerError = errorMessage.toLowerCase().includes('server') ||
+                          errorMessage.toLowerCase().includes('api')
+
     return (
       <Container size="xl" py="xl">
         <Alert data-testid="events-error" color="red" title="Failed to Load Events">
           <Stack gap="sm">
-            <Text size="sm">
-              Unable to load events. Please check your connection and try again.
+            <Text size="sm" fw={600}>
+              Unable to load events from the server.
             </Text>
-            <Button size="xs" variant="outline" onClick={() => refetch()}>
-              Retry
+            <Text size="sm">
+              <strong>Error:</strong> {errorMessage}
+            </Text>
+            {isNetworkError && (
+              <Text size="sm" c="dimmed">
+                • Check your internet connection
+              </Text>
+            )}
+            {isServerError && (
+              <Text size="sm" c="dimmed">
+                • The API server may be down or unreachable
+                <br />
+                • Check if Docker containers are running
+                <br />
+                • Verify API is accessible at http://localhost:5655
+              </Text>
+            )}
+            <Button size="sm" variant="outline" onClick={() => refetch()} mt="sm">
+              Retry Connection
             </Button>
           </Stack>
         </Alert>

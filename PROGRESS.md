@@ -1,9 +1,9 @@
 # Witch City Rope - Development Progress
 
 ## Current Development Status
-**Last Updated**: 2025-10-27
-**Current Focus**: Staging Deployment ✅ | Documentation Updates ✅
-**Project Status**: Latest code deployed to staging with fresh database, deployment documentation updated
+**Last Updated**: 2025-10-28
+**Current Focus**: Database Schema Consolidation ✅ | Error Handling Improvements ✅
+**Project Status**: CMS schema migrated to public, API error handling fixed to show diagnostics
 **Next Phase**: E2E test stabilization, Incident Reporting Backend API Implementation
 
 ### Historical Archive
@@ -15,6 +15,65 @@ For complete development history, see:
 > **Note**: During 2025-08-22 canonical document location consolidation, extensive historical development details were moved from this file to maintain focused current status while preserving complete project history.
 
 ## Current Development Sessions
+
+### October 28, 2025: Database Schema Consolidation & Error Handling ✅
+**Type**: Refactoring + Bug Fix
+**Status**: ✅ **COMPLETE** - CMS schema consolidated, error handling improved
+**Time Invested**: ~1.5 hours
+**Impact**: **MEDIUM-HIGH** - Simplified architecture, improved production diagnostics
+
+**🎯 SCHEMA CONSOLIDATION**
+
+**✅ CMS SCHEMA MIGRATION:**
+- **Problem**: CMS tables in separate `cms` schema causing agent confusion
+- **Solution**: Migrated ContentPages and ContentRevisions to `public` schema
+- **Migration**: `20251028041828_MoveCmsToPublicSchema`
+- **Changes**:
+  - Updated ContentPageConfiguration to use public schema
+  - Updated ContentRevisionConfiguration to use public schema
+  - Created migration to move tables: `ALTER TABLE cms."ContentPages" SET SCHEMA public`
+  - Dropped empty `cms` schema after migration
+- **Verification**: All 10 CMS pages seeded successfully, endpoints working
+- **Documentation**: Updated database design docs with migration history
+
+**✅ API ERROR HANDLING FIX:**
+- **Problem**: Public events page showing "No Events Found" when API was down
+- **Root Cause**: Fallback empty arrays (`|| []`) masking API errors
+- **Impact**: Users couldn't diagnose production issues
+- **Solution**:
+  - Removed fallback in `useEvents` hook - now throws proper errors
+  - Enhanced error display with diagnostic information:
+    - Shows actual error message from API
+    - Detects network vs server errors
+    - Provides troubleshooting steps (check Docker, verify API at localhost:5655)
+    - Added "Retry Connection" button
+- **Files Modified**:
+  - `/apps/web/src/lib/api/hooks/useEvents.ts` - Removed `|| []` fallback
+  - `/apps/web/src/pages/events/EventsListPage.tsx` - Enhanced error display
+
+**✅ TOOLING VERIFICATION:**
+- **Entity Framework Tools**: Confirmed at version 9.0.10 (matches runtime)
+- **Slash Commands**: Confirmed `/orchestrate` command available
+
+**📊 TECHNICAL DETAILS:**
+- **Database**: 10 CMS pages, 0 revisions (initial seed)
+- **Schema**: All tables now in `public` schema (simplified)
+- **Migration Status**: Applied successfully, backwards compatible via Down() method
+- **API Health**: All endpoints operational after migration
+
+**🔧 FILES MODIFIED:**
+1. `apps/api/Features/Cms/Configuration/ContentPageConfiguration.cs` - Changed schema to public
+2. `apps/api/Features/Cms/Configuration/ContentRevisionConfiguration.cs` - Changed schema to public
+3. `apps/api/Migrations/20251028041828_MoveCmsToPublicSchema.cs` - Migration file
+4. `apps/web/src/lib/api/hooks/useEvents.ts` - Removed error masking
+5. `apps/web/src/pages/events/EventsListPage.tsx` - Enhanced error display
+6. `docs/functional-areas/content-management-system/new-work/2025-10-17-cms-implementation/design/database-design.md` - Updated with migration history
+
+**🎓 LESSONS LEARNED:**
+- Separate schemas add complexity without clear benefit for small systems (<10 tables)
+- Fallback empty arrays mask critical production errors
+- Error messages should guide users to specific diagnostic steps
+- Always verify tools are installed at correct versions before updating
 
 ### October 27, 2025: Staging Deployment & Documentation Updates ✅
 **Type**: Deployment + Documentation

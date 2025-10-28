@@ -48,21 +48,26 @@ public class ParticipationSeeder
     {
         _logger.LogInformation("Starting event participations creation");
 
-        // Check if participations already exist (idempotent operation)
-        var existingParticipationCount = await _context.EventParticipations.CountAsync(cancellationToken);
-        if (existingParticipationCount > 0)
-        {
-            _logger.LogInformation("Event participations already exist ({Count}), skipping participation seeding", existingParticipationCount);
-            return;
-        }
-
         var events = await _context.Events.Include(e => e.TicketTypes).ToListAsync(cancellationToken);
         var users = await _userManager.Users.ToListAsync(cancellationToken);
         var participationsToAdd = new List<EventParticipation>();
         var ticketPurchasesToAdd = new List<TicketPurchase>();
+        var eventsProcessed = 0;
 
         foreach (var eventItem in events)
         {
+            // Check if THIS specific event already has participations (idempotent per-event check)
+            var hasParticipations = await _context.EventParticipations
+                .AnyAsync(ep => ep.EventId == eventItem.Id, cancellationToken);
+
+            if (hasParticipations)
+            {
+                _logger.LogDebug("Event {EventTitle} already has participations, skipping", eventItem.Title);
+                continue; // Skip this event, but continue processing other events
+            }
+
+            eventsProcessed++;
+
             if (eventItem.EventType == EventType.Social)
             {
                 // Social events: Create RSVPs for multiple users
@@ -150,8 +155,8 @@ public class ParticipationSeeder
         }
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Event participations creation completed. Created: {ParticipationCount} participations and {PurchaseCount} ticket purchases",
-            participationsToAdd.Count, ticketPurchasesToAdd.Count);
+        _logger.LogInformation("Event participations creation completed. Processed {EventsProcessed} events. Created: {ParticipationCount} participations and {PurchaseCount} ticket purchases",
+            eventsProcessed, participationsToAdd.Count, ticketPurchasesToAdd.Count);
     }
 
     /// <summary>

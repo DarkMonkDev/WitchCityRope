@@ -1,3 +1,36 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// ARCHIVED: SeedDataService.cs - Refactored into /Services/Seeding/ directory
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Original File: /apps/api/Services/SeedDataService.cs
+// Archive Date: 2025-10-27
+// Archive Reason: Monolithic file (3,799 lines) violated Single Responsibility Principle
+//
+// Refactored Into:
+//   - SeedCoordinator.cs (221 lines) - Orchestrator implementing ISeedDataService
+//   - UserSeeder.cs (351 lines) - User and role seeding
+//   - SettingsSeeder.cs (69 lines) - Application settings
+//   - CmsSeeder.cs (38 lines) - CMS content
+//   - SafetySeeder.cs (278 lines) - Safety incidents
+//   - ParticipationSeeder.cs (152 lines) - Event participations
+//   - SessionTicketSeeder.cs (338 lines) - Sessions and ticket types
+//   - VolunteerSeeder.cs (440 lines) - Volunteer positions
+//   - TicketPurchaseSeeder.cs (382 lines) - Ticket purchases
+//   - VettingSeeder.cs (899 lines) - Vetting applications
+//   - EventSeeder.cs (948 lines) - Events
+//
+// Total Refactored: 4,116 lines across 11 files
+//
+// Location: /apps/api/Services/Seeding/
+// Public API: Unchanged (ISeedDataService.SeedAllDataAsync)
+//
+// This file is kept as reference but will not be compiled or used.
+// DO NOT MODIFY THIS FILE - It is archived for historical reference only.
+//
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Original file content follows:
+
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
@@ -8,6 +41,8 @@ using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Features.Cms;
 using WitchCityRope.Models;
+using WitchCityRope.Api.Features.Users.Constants;
+using WitchCityRope.Api.Services.Seeding;
 
 namespace WitchCityRope.Api.Services;
 
@@ -154,7 +189,7 @@ public class SeedDataService : ISeedDataService
     {
         _logger.LogInformation("Starting role creation");
 
-        var roles = new[] { "Administrator", "Teacher", "SafetyTeam" };
+        var roles = UserRoleConstants.ValidRoles;
         var createdCount = 0;
 
         foreach (var roleName in roles)
@@ -231,7 +266,7 @@ public class SeedDataService : ISeedDataService
                 FetLifeName = "RopeMasterSalem",
                 PhoneNumber = "978-555-0101",
                 Bio = "Experienced rope artist and community organizer with over 10 years in the scene. Passionate about creating safe spaces for rope bondage education and practice. Administrator of WitchCityRope since 2020.",
-                Role = "Administrator",
+                Role = UserRole.Administrator.ToRoleString(),
                 PronouncedName = "Rope Master",
                 Pronouns = "they/them",
                 VettingStatus = 3,  // Approved
@@ -246,7 +281,7 @@ public class SeedDataService : ISeedDataService
                 FetLifeName = "SafetyFirstSalem",
                 PhoneNumber = "978-555-0102",
                 Bio = "Certified safety instructor with backgrounds in emergency medicine and risk management. Teaching rope safety and suspension techniques for 8+ years. Dedicated to making rope bondage accessible and safe for everyone.",
-                Role = "Teacher",
+                Role = UserRole.Teacher.ToRoleString(),
                 PronouncedName = "Safety First",
                 Pronouns = "she/her",
                 VettingStatus = 3,  // Approved
@@ -307,7 +342,7 @@ public class SeedDataService : ISeedDataService
                 FetLifeName = "SafetyCoordRiley",
                 PhoneNumber = "978-555-0106",
                 Bio = "Safety team coordinator with EMT certification. 6 years experience in rope bondage with focus on risk-aware practices. Available for incident response and safety consultations. Committed to community wellbeing.",
-                Role = "SafetyTeam",
+                Role = UserRole.SafetyTeam.ToRoleString(),
                 PronouncedName = "Safety Coordinator",
                 Pronouns = "they/them",
                 VettingStatus = 3,  // Approved
@@ -322,7 +357,7 @@ public class SeedDataService : ISeedDataService
                 FetLifeName = "IncidentHandlerJess",
                 PhoneNumber = "978-555-0107",
                 Bio = "Safety team member specializing in incident documentation and follow-up. Background in crisis intervention and conflict resolution. Dedicated to ensuring our community remains safe and accountable.",
-                Role = "SafetyTeam",
+                Role = UserRole.SafetyTeam.ToRoleString(),
                 PronouncedName = "Incident Handler",
                 Pronouns = "she/her",
                 VettingStatus = 3,  // Approved

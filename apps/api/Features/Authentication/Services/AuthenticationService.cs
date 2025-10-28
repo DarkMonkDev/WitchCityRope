@@ -87,10 +87,12 @@ public class AuthenticationService
             // Try to find user by email first (most common case, indexed)
             var user = await _userManager.FindByEmailAsync(request.EmailOrSceneName);
 
-            // If not found by email, try by scene name
+            // If not found by email, try by scene name (case-insensitive)
             if (user == null)
             {
-                user = await _context.Users.FirstOrDefaultAsync(u => u.SceneName == request.EmailOrSceneName, cancellationToken);
+                user = await _context.Users.FirstOrDefaultAsync(
+                    u => EF.Functions.ILike(u.SceneName, request.EmailOrSceneName),
+                    cancellationToken);
             }
 
             if (user == null)

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using FluentAssertions;
 using WitchCityRope.Api.Services;
+using WitchCityRope.Api.Services.Seeding;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Models;

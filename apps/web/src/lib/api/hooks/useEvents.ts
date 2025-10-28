@@ -154,9 +154,15 @@ export function useEvents(filters: EventFilters = {}) {
       const { data } = await apiClient.get<ApiResponse<ApiEvent[]>>('/api/events', {
         params: filters,
       })
-      // Access events from the wrapped response data
-      const events = data?.data || []
-      return events.map(transformApiEvent)
+
+      // CRITICAL: Throw error if API didn't return data
+      // This ensures proper error handling in the UI instead of showing empty state
+      if (!data?.data) {
+        throw new Error('API returned no data - possible server connection issue')
+      }
+
+      // Return transformed events array
+      return data.data.map(transformApiEvent)
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     enabled: true,

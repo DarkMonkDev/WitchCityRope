@@ -19,6 +19,7 @@ using WitchCityRope.Api.Features.Volunteers.Services;
 using WitchCityRope.Api.Features.Admin.Settings.Interfaces;
 using WitchCityRope.Api.Features.Admin.Settings.Services;
 using WitchCityRope.Api.Services;
+using WitchCityRope.Api.Services.Seeding;
 
 namespace WitchCityRope.Api.Features.Shared.Extensions;
 
@@ -113,8 +114,24 @@ public static class ServiceCollectionExtensions
         // CMS feature services
         services.AddCmsServices();
 
+        // Seed data service - Refactored into specialized seeders (2025-10-27)
+        // Previously was a single 3,800-line SeedDataService.cs file
+        // Now orchestrated by SeedCoordinator with 10 focused seeder components
+        services.AddScoped<UserSeeder>();
+        services.AddScoped<SettingsSeeder>();
+        services.AddScoped<CmsSeeder>();
+        services.AddScoped<SafetySeeder>();
+        services.AddScoped<ParticipationSeeder>();
+        services.AddScoped<SessionTicketSeeder>();
+        services.AddScoped<VolunteerSeeder>();
+        services.AddScoped<TicketPurchaseSeeder>();
+        services.AddScoped<VettingSeeder>();
+        services.AddScoped<EventSeeder>();
+
+        // Register the seed coordinator as the main ISeedDataService implementation
+        services.AddScoped<WitchCityRope.Api.Services.Seeding.ISeedDataService, SeedCoordinator>();
+
         // Database initialization services
-        services.AddScoped<ISeedDataService, SeedDataService>();
         services.AddHostedService<DatabaseInitializationService>();
 
         // Test Helper services (Development/Test only)

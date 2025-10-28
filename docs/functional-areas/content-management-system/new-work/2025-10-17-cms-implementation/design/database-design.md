@@ -1,8 +1,8 @@
 # Database Design: Content Management System (CMS)
-<!-- Last Updated: 2025-10-17 -->
-<!-- Version: 1.0 -->
+<!-- Last Updated: 2025-10-28 -->
+<!-- Version: 1.1 -->
 <!-- Owner: Database Designer Agent -->
-<!-- Status: Ready for Implementation -->
+<!-- Status: Implemented - Schema Updated to public -->
 
 ## Executive Summary
 
@@ -43,7 +43,7 @@ This document provides the complete database schema design for the WitchCityRope
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ auth.AspNetUsers                                            │
+│ public.Users (AspNetUsers)                                  │
 │ ────────────────                                            │
 │ Id (VARCHAR(450)) PK                                        │
 │ UserName                                                    │
@@ -56,7 +56,7 @@ This document provides the complete database schema design for the WitchCityRope
            │                    │                    │
            │                    │                    │
 ┌──────────┴─────────────────┐  │  ┌─────────────────┴──────────┐
-│ cms.ContentPages           │  │  │ cms.ContentRevisions       │
+│ public.ContentPages        │  │  │ public.ContentRevisions    │
 │ ──────────────────         │  │  │ ────────────────────       │
 │ Id (INTEGER) PK            │  │  │ Id (INTEGER) PK            │
 │ Slug (VARCHAR) UNIQUE      │  │  │ ContentPageId (INTEGER) FK │
@@ -75,14 +75,19 @@ This document provides the complete database schema design for the WitchCityRope
 
 ### Schema Organization
 
-**CMS Schema**: `cms`
-- Separate from `auth` (Identity), `public` (events), etc.
-- Clean namespace organization
-- Easy to backup/restore independently
+**CMS Schema**: `public` (Updated 2025-10-28)
+- Originally implemented in separate `cms` schema
+- **MIGRATED TO** `public` schema to match all other application tables
+- Simplified architecture - single schema for all application tables
+- Reduced agent confusion from multiple schema patterns
 
 **Tables**:
-1. **cms.ContentPages**: Current version of each CMS page
-2. **cms.ContentRevisions**: Complete history of all content changes
+1. **public.ContentPages**: Current version of each CMS page
+2. **public.ContentRevisions**: Complete history of all content changes
+
+**Migration History**:
+- **2025-10-17**: Initial implementation with `cms` schema
+- **2025-10-28**: Migrated to `public` schema via `20251028041828_MoveCmsToPublicSchema` migration
 
 **Relationships**:
 - ContentPages → AspNetUsers (CreatedBy, LastModifiedBy)

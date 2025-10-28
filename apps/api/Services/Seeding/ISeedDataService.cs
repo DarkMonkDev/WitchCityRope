@@ -3,16 +3,19 @@ namespace WitchCityRope.Api.Services.Seeding;
 /// <summary>
 /// Service interface for managing database seed data operations.
 /// Provides comprehensive test data population for development and staging environments.
-/// Extracted from original Services namespace for better organization.
+/// Implemented by SeedCoordinator which orchestrates specialized seeder components.
 /// </summary>
 public interface ISeedDataService
 {
     /// <summary>
-    /// Populates all seed data categories in a single transactional operation.
-    /// Uses EF Core transaction management for consistency and rollback capability.
+    /// Seeds all data for development and testing in a transactional manner.
+    /// Coordinates specialized seeders for users, events, vetting, safety, and more.
     ///
-    /// This method coordinates seeding of users, events, and configuration data
-    /// while ensuring idempotent behavior (safe to run multiple times).
+    /// Implementation (SeedCoordinator) ensures:
+    /// - Idempotent operations (safe to run multiple times)
+    /// - Transaction-based consistency with rollback capability
+    /// - Proper dependency order (roles before users, events before sessions, etc.)
+    /// - Comprehensive error handling and logging
     /// </summary>
     /// <param name="cancellationToken">Cancellation token for async operation</param>
     /// <returns>
@@ -20,6 +23,7 @@ public interface ISeedDataService
     /// - Success status and error details
     /// - Count of records created
     /// - Duration and timing information
+    /// - Environment name
     /// - Warnings for non-critical issues
     /// </returns>
     Task<InitializationResult> SeedAllDataAsync(CancellationToken cancellationToken = default);

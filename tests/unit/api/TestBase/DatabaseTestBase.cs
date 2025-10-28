@@ -8,6 +8,7 @@ using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Services;
+using WitchCityRope.Api.Services.Seeding;
 using WitchCityRope.Api.Tests.Fixtures;
 
 namespace WitchCityRope.Api.Tests.TestBase;
