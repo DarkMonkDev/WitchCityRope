@@ -3,6 +3,7 @@ import { Group, Button, Box } from '@mantine/core'
 import { useUser, useIsAuthenticated } from '../../stores/authStore'
 import { useMenuVisibility } from '../../features/vetting/hooks/useMenuVisibility'
 import { useEffect, useState } from 'react'
+import type { components } from '@witchcityrope/shared-types'
 
 /**
  * Navigation Component - Main header navigation
@@ -73,7 +74,8 @@ export const Navigation: React.FC = () => {
       >
         {/* Admin link - only for administrators */}
         {/* Backend now returns user.roles - proper role-based access control */}
-        {user?.role === 'Administrator' && (
+        {/* Type-safe role check using auto-generated UserRole */}
+        {user?.role === ('Administrator' as components['schemas']['UserRole']) && (
           <Box
             component={Link}
             to="/admin"

@@ -38,6 +38,7 @@ import { useQuery } from '@tanstack/react-query';
 import { vettingApi } from '../api/vettingApi';
 import type { ApplicationSummaryDto, ApplicationDetailResponse } from '../types/vetting.types';
 import { APPLICATION_STATUS_CONFIGS, EXPERIENCE_LEVEL_CONFIGS } from '../types/vetting.types';
+import type { components } from '@witchcityrope/shared-types';
 
 interface ReviewerDashboardPageProps {
   className?: string;
@@ -77,7 +78,9 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
   };
 
   // Check if user has reviewer permissions
-  const hasReviewerAccess = user?.role === 'VettingReviewer' || user?.role === 'VettingAdmin' || user?.role === 'Administrator';
+  // Note: VettingReviewer and VettingAdmin roles were deleted - only Administrators can access vetting dashboard
+  type UserRole = components['schemas']['UserRole'];
+  const hasReviewerAccess = user?.role === ('Administrator' as UserRole);
 
   if (!hasReviewerAccess) {
     return (

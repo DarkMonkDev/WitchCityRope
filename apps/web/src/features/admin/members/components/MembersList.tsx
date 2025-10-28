@@ -33,8 +33,10 @@ import {
   IconSortAscending,
   IconSortDescending,
 } from '@tabler/icons-react';
+import { useQuery } from '@tanstack/react-query';
 import { useMembers } from '../hooks/useMembers';
 import type { UserDto, MemberFilterRequest } from '../types/members.types';
+import type { components } from '@witchcityrope/shared-types';
 
 export const MembersList: React.FC = () => {
   const navigate = useNavigate();
@@ -97,25 +99,36 @@ export const MembersList: React.FC = () => {
     [filters.sortBy, filters.sortDirection]
   );
 
-  // Role filter options matching the current valid roles
-  const roleOptions = useMemo(
-    () => [
-      { value: 'Teacher', label: 'Teacher' },
-      { value: 'Administrator', label: 'Administrator' },
-      { value: 'SafetyTeam', label: 'Safety Team' },
-    ],
-    []
-  );
+  // Fetch available roles from API (auto-generated from backend enum)
+  type UserRole = components['schemas']['UserRole'];
+  type AvailableRolesResponse = components['schemas']['AvailableRolesResponse'];
 
-  // Format role names for display (e.g., "SafetyTeam" -> "Safety Team")
-  const formatRoleName = (role: string): string => {
-    const roleMap: Record<string, string> = {
-      'SafetyTeam': 'Safety Team',
-      'Teacher': 'Teacher',
-      'Administrator': 'Administrator',
-    };
-    return roleMap[role] || role;
-  };
+  const { data: rolesData } = useQuery<AvailableRolesResponse>({
+    queryKey: ['availableRoles'],
+    queryFn: async () => {
+      const response = await fetch('/api/users/roles/available', {
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to fetch roles');
+      return response.json();
+    },
+    staleTime: 1000 * 60 * 60, // Cache for 1 hour (roles don't change often)
+  });
+
+  // Role filter options from API (type-safe, auto-generated from backend enum)
+  const roleOptions = useMemo(() => {
+    if (!rolesData?.roles) return [];
+    return rolesData.roles.map((roleDto) => ({
+      value: roleDto.role as string,
+      label: roleDto.displayName || roleDto.role as string,
+    }));
+  }, [rolesData]);
+
+  // Format role names for display using API data
+  const formatRoleName = useCallback((role: string): string => {
+    const roleDto = rolesData?.roles?.find((r) => r.role === role);
+    return roleDto?.displayName || role;
+  }, [rolesData]);
 
   // Get status badge color based on vetting status
   // VettingStatus enum: 0=UnderReview, 1=InterviewApproved, 2=FinalReview, 3=Approved, 4=Denied, 5=OnHold, 6=Withdrawn

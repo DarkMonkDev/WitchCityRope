@@ -10,6 +10,7 @@ import { CmsCancelModal } from './CmsCancelModal'
 import { useCmsPage } from '../hooks/useCmsPage'
 import { useUser } from '../../../stores/authStore'
 import { useViewportSize } from '@mantine/hooks'
+import type { components } from '@witchcityrope/shared-types'
 
 interface CmsPageProps {
   slug: string
@@ -19,7 +20,9 @@ interface CmsPageProps {
 
 export const CmsPage: React.FC<CmsPageProps> = ({ slug, defaultTitle, defaultContent }) => {
   const user = useUser()
-  const isAdmin = user?.role === 'Administrator'
+  // Type-safe role check using auto-generated UserRole type
+  type UserRole = components['schemas']['UserRole']
+  const isAdmin = user?.role === ('Administrator' as UserRole)
   const { width: viewportWidth } = useViewportSize()
 
   const { content, isLoading, save, isSaving, error } = useCmsPage(slug)

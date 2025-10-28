@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using WitchCityRope.Api.Features.Users.Models;
 using WitchCityRope.Api.Features.Users.Services;
+using WitchCityRope.Api.Features.Users.Constants;
 
 namespace WitchCityRope.Api.Features.Users.Endpoints;
 
@@ -141,7 +142,7 @@ public static class UserEndpoints
                         detail: error,
                         statusCode: 500);
             })
-            .RequireAuthorization(policy => policy.RequireRole("Administrator", "Admin")) // Administrator or Admin role required
+            .RequireAuthorization(policy => policy.RequireRole(UserRole.Administrator.ToRoleString())) // Administrator role required
             .WithName("GetUsers")
             .WithSummary("Get paginated list of users (admin only)")
             .WithDescription("Returns a paginated list of users with optional filtering and sorting")
@@ -166,7 +167,7 @@ public static class UserEndpoints
                         detail: error,
                         statusCode: response == null ? 404 : 400);
             })
-            .RequireAuthorization(policy => policy.RequireRole("Administrator", "Admin")) // Administrator or Admin role required
+            .RequireAuthorization(policy => policy.RequireRole(UserRole.Administrator.ToRoleString())) // Administrator role required
             .WithName("GetUser")
             .WithSummary("Get user by ID (admin only)")
             .WithDescription("Returns detailed user information by user ID")
@@ -194,7 +195,7 @@ public static class UserEndpoints
                         statusCode: error.Contains("not found") ? 404 :
                                   error.Contains("already taken") ? 409 : 400);
             })
-            .RequireAuthorization(policy => policy.RequireRole("Administrator", "Admin")) // Administrator or Admin role required
+            .RequireAuthorization(policy => policy.RequireRole(UserRole.Administrator.ToRoleString())) // Administrator role required
             .WithName("UpdateUser")
             .WithSummary("Update user by ID (admin only)")
             .WithDescription("Updates user information including role, status, and profile data")
@@ -223,7 +224,7 @@ public static class UserEndpoints
                         statusCode: error.Contains("not found") ? 404 :
                                   error.Contains("Invalid") ? 400 : 500);
             })
-            .RequireAuthorization(policy => policy.RequireRole("Administrator", "Admin")) // Administrator or Admin role required
+            .RequireAuthorization(policy => policy.RequireRole(UserRole.Administrator.ToRoleString())) // Administrator role required
             .WithName("UpdateUserRoles")
             .WithSummary("Update user roles (admin only)")
             .WithDescription(@"Updates user roles in the admin user management system.
@@ -263,7 +264,60 @@ Role changes are logged for audit purposes.")
             .Produces(401)
             .Produces(500);
 
+        // Get available roles (for role selection UI)
+        app.MapGet("/api/users/roles/available", () =>
+            {
+                var roles = UserRoleConstants.GetAllRoles()
+                    .Select(role => new UserRoleDto
+                    {
+                        Role = role,
+                        DisplayName = FormatRoleDisplayName(role),
+                        Description = GetRoleDescription(role)
+                    })
+                    .ToList();
+
+                return Results.Ok(new AvailableRolesResponse { Roles = roles });
+            })
+            .RequireAuthorization() // Only authenticated users can access
+            .WithName("GetAvailableRoles")
+            .WithSummary("Get all available user roles")
+            .WithDescription("Returns all available roles in the system with display names and descriptions. UserRole enum is auto-generated to TypeScript.")
+            .WithTags("Users")
+            .Produces<AvailableRolesResponse>(200)
+            .Produces(401);
+
         // Map member details endpoints (admin-only comprehensive member information)
         app.MapMemberDetailsEndpoints();
+    }
+
+    /// <summary>
+    /// Formats role enum value to display name (e.g., "SafetyTeam" -> "Safety Team")
+    /// </summary>
+    private static string FormatRoleDisplayName(UserRole role)
+    {
+        return role switch
+        {
+            UserRole.SafetyTeam => "Safety Team",
+            UserRole.CheckInStaff => "Check-In Staff",
+            UserRole.EventOrganizer => "Event Organizer",
+            _ => role.ToString()
+        };
+    }
+
+    /// <summary>
+    /// Gets description for each role
+    /// </summary>
+    private static string GetRoleDescription(UserRole role)
+    {
+        return role switch
+        {
+            UserRole.Teacher => "Can create and teach events/classes",
+            UserRole.SafetyTeam => "Part of the safety coordination team",
+            UserRole.Administrator => "Full administrative access to the system",
+            UserRole.CheckInStaff => "Can manage check-in at events",
+            UserRole.EventOrganizer => "Can organize and manage events",
+            UserRole.Member => "Regular member with no special privileges",
+            _ => string.Empty
+        };
     }
 }

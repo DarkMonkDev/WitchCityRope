@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using WitchCityRope.Api.Features.Safety.Models;
 using WitchCityRope.Api.Features.Safety.Services;
+using WitchCityRope.Api.Features.Users.Constants;
 
 namespace WitchCityRope.Api.Features.Safety.Endpoints;
 
@@ -100,7 +101,9 @@ public static class SafetyEndpoints
         .WithName("GetAdminIncidentsList")
         .WithSummary("Get paginated incident list with filters")
         .WithDescription("Get filtered and paginated list of incidents (Admin: all, Coordinator: assigned only)")
-        .RequireAuthorization(policy => policy.RequireRole("Administrator", "Coordinator"))
+        .RequireAuthorization(policy => policy.RequireRole(
+            UserRole.Administrator.ToRoleString(),
+            UserRole.SafetyTeam.ToRoleString())) // SafetyTeam members are coordinators
         .Produces<PaginatedIncidentListResponse>(200)
         .Produces(401)
         .Produces(403)
@@ -127,7 +130,9 @@ public static class SafetyEndpoints
         .WithName("GetDashboardStatistics")
         .WithSummary("Get dashboard statistics")
         .WithDescription("Get unassigned count, old unassigned flag, and recent incidents")
-        .RequireAuthorization(policy => policy.RequireRole("Administrator", "Coordinator"))
+        .RequireAuthorization(policy => policy.RequireRole(
+            UserRole.Administrator.ToRoleString(),
+            UserRole.SafetyTeam.ToRoleString())) // SafetyTeam members are coordinators
         .Produces<DashboardStatisticsResponse>(200)
         .Produces(401)
         .Produces(403)
@@ -150,7 +155,9 @@ public static class SafetyEndpoints
         .WithName("GetCoordinatorsList")
         .WithSummary("Get all users for coordinator assignment")
         .WithDescription("Get list of all users with active incident counts for assignment dropdown")
-        .RequireAuthorization(policy => policy.RequireRole("Administrator", "Coordinator"))
+        .RequireAuthorization(policy => policy.RequireRole(
+            UserRole.Administrator.ToRoleString(),
+            UserRole.SafetyTeam.ToRoleString())) // SafetyTeam members are coordinators
         .Produces<IEnumerable<UserCoordinatorDto>>(200)
         .Produces(401)
         .Produces(403)
@@ -239,7 +246,7 @@ public static class SafetyEndpoints
         .WithName("AssignCoordinator")
         .WithSummary("Assign coordinator to incident")
         .WithDescription("Assign or unassign coordinator (Admin only)")
-        .RequireAuthorization(policy => policy.RequireRole("Administrator"))
+        .RequireAuthorization(policy => policy.RequireRole(UserRole.Administrator.ToRoleString()))
         .Produces<IncidentSummaryDto>(200)
         .Produces(401)
         .Produces(403)
@@ -275,7 +282,9 @@ public static class SafetyEndpoints
         .WithName("UpdateIncidentStatus")
         .WithSummary("Update incident status")
         .WithDescription("Update status with optional reason (Admin/Coordinator)")
-        .RequireAuthorization(policy => policy.RequireRole("Administrator", "Coordinator"))
+        .RequireAuthorization(policy => policy.RequireRole(
+            UserRole.Administrator.ToRoleString(),
+            UserRole.SafetyTeam.ToRoleString())) // SafetyTeam members are coordinators
         .Produces<StatusUpdateResponse>(200)
         .Produces(401)
         .Produces(403)
@@ -313,7 +322,9 @@ public static class SafetyEndpoints
         .WithName("UpdateGoogleDriveLinks")
         .WithSummary("Update Google Drive links")
         .WithDescription("Update folder and final report URLs (Admin/Coordinator)")
-        .RequireAuthorization(policy => policy.RequireRole("Administrator", "Coordinator"))
+        .RequireAuthorization(policy => policy.RequireRole(
+            UserRole.Administrator.ToRoleString(),
+            UserRole.SafetyTeam.ToRoleString())) // SafetyTeam members are coordinators
         .Produces<GoogleDriveUpdateResponse>(200)
         .Produces(401)
         .Produces(403)
@@ -347,7 +358,9 @@ public static class SafetyEndpoints
         .WithName("GetIncidentNotes")
         .WithSummary("Get all notes for incident")
         .WithDescription("Get notes with privacy filtering (Admin/Coordinator)")
-        .RequireAuthorization(policy => policy.RequireRole("Administrator", "Coordinator"))
+        .RequireAuthorization(policy => policy.RequireRole(
+            UserRole.Administrator.ToRoleString(),
+            UserRole.SafetyTeam.ToRoleString())) // SafetyTeam members are coordinators
         .Produces<NotesListResponse>(200)
         .Produces(401)
         .Produces(403)
@@ -384,7 +397,9 @@ public static class SafetyEndpoints
         .WithName("AddIncidentNote")
         .WithSummary("Add manual note to incident")
         .WithDescription("Add coordinator/admin note to incident")
-        .RequireAuthorization(policy => policy.RequireRole("Administrator", "Coordinator"))
+        .RequireAuthorization(policy => policy.RequireRole(
+            UserRole.Administrator.ToRoleString(),
+            UserRole.SafetyTeam.ToRoleString())) // SafetyTeam members are coordinators
         .Produces<IncidentNoteDto>(200)
         .Produces(401)
         .Produces(403)
@@ -422,7 +437,9 @@ public static class SafetyEndpoints
         .WithName("UpdateIncidentNote")
         .WithSummary("Update manual note")
         .WithDescription("Update existing manual note (author or admin only)")
-        .RequireAuthorization(policy => policy.RequireRole("Administrator", "Coordinator"))
+        .RequireAuthorization(policy => policy.RequireRole(
+            UserRole.Administrator.ToRoleString(),
+            UserRole.SafetyTeam.ToRoleString())) // SafetyTeam members are coordinators
         .Produces<IncidentNoteDto>(200)
         .Produces(401)
         .Produces(403)
@@ -452,7 +469,9 @@ public static class SafetyEndpoints
         .WithName("DeleteIncidentNote")
         .WithSummary("Delete manual note")
         .WithDescription("Delete manual note (author or admin only)")
-        .RequireAuthorization(policy => policy.RequireRole("Administrator", "Coordinator"))
+        .RequireAuthorization(policy => policy.RequireRole(
+            UserRole.Administrator.ToRoleString(),
+            UserRole.SafetyTeam.ToRoleString())) // SafetyTeam members are coordinators
         .Produces(204)
         .Produces(401)
         .Produces(403)

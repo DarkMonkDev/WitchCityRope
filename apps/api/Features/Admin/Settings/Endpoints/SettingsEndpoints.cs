@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using WitchCityRope.Api.Features.Admin.Settings.Models;
 using WitchCityRope.Api.Features.Admin.Settings.Interfaces;
+using WitchCityRope.Api.Features.Users.Constants;
 
 namespace WitchCityRope.Api.Features.Admin.Settings.Endpoints;
 
@@ -19,7 +20,7 @@ public static class SettingsEndpoints
             var settings = await settingsService.GetAllSettingsAsync(cancellationToken);
             return Results.Ok(settings);
         })
-        .RequireAuthorization(policy => policy.RequireRole("Administrator"))
+        .RequireAuthorization(policy => policy.RequireRole(UserRole.Administrator.ToRoleString()))
         .WithName("GetAdminSettings")
         .WithSummary("Get all application settings")
         .WithDescription("Returns all configurable settings (admin only)")
@@ -78,7 +79,7 @@ public static class SettingsEndpoints
 
             return Results.Ok(new { Message = "Settings updated successfully" });
         })
-        .RequireAuthorization(policy => policy.RequireRole("Administrator"))
+        .RequireAuthorization(policy => policy.RequireRole(UserRole.Administrator.ToRoleString()))
         .WithName("UpdateAdminSettings")
         .WithSummary("Update application settings")
         .WithDescription("Updates one or more application settings (admin only)")

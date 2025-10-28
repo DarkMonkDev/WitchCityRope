@@ -6,6 +6,7 @@ using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Features.Vetting.Models;
 using WitchCityRope.Api.Features.Vetting.Services;
 using WitchCityRope.Api.Models;
+using WitchCityRope.Api.Features.Users.Constants;
 
 namespace WitchCityRope.Api.Features.Vetting.Endpoints;
 
@@ -162,7 +163,7 @@ public static class VettingEndpoints
         // Email Template Management Endpoints (Admin only)
         // GET: Retrieve all email templates
         group.MapGet("/email-templates", GetEmailTemplates)
-            .RequireAuthorization(policy => policy.RequireRole("Administrator"))
+            .RequireAuthorization(policy => policy.RequireRole(UserRole.Administrator.ToRoleString()))
             .WithName("GetEmailTemplates")
             .WithSummary("Retrieve all active email templates (Admin only)")
             .Produces<ApiResponse<List<EmailTemplateResponse>>>(200)
@@ -172,7 +173,7 @@ public static class VettingEndpoints
 
         // GET: Retrieve single email template by ID
         group.MapGet("/email-templates/{id}", GetEmailTemplate)
-            .RequireAuthorization(policy => policy.RequireRole("Administrator"))
+            .RequireAuthorization(policy => policy.RequireRole(UserRole.Administrator.ToRoleString()))
             .WithName("GetEmailTemplate")
             .WithSummary("Retrieve a single email template by ID (Admin only)")
             .Produces<ApiResponse<EmailTemplateResponse>>(200)
@@ -183,7 +184,7 @@ public static class VettingEndpoints
 
         // PUT: Update email template
         group.MapPut("/email-templates/{id}", UpdateEmailTemplate)
-            .RequireAuthorization(policy => policy.RequireRole("Administrator"))
+            .RequireAuthorization(policy => policy.RequireRole(UserRole.Administrator.ToRoleString()))
             .WithName("UpdateEmailTemplate")
             .WithSummary("Update email template content (Admin only)")
             .Produces<ApiResponse<EmailTemplateResponse>>(200)
@@ -566,7 +567,7 @@ public static class VettingEndpoints
         {
             // Check if user has Administrator role FIRST - before extracting user ID
             var userRole = user.FindFirst(ClaimTypes.Role)?.Value;
-            if (userRole != "Administrator")
+            if (userRole != UserRole.Administrator.ToRoleString())
             {
                 return Results.Json(new ApiResponse<object>
                 {

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Models;
+using WitchCityRope.Api.Features.Users.Constants;
 
 namespace WitchCityRope.Api.Services.Seeding;
 
@@ -42,7 +43,7 @@ public class UserSeeder
     {
         _logger.LogInformation("Starting role creation");
 
-        var roles = new[] { "Administrator", "Teacher", "SafetyTeam" };
+        var roles = UserRoleConstants.ValidRoles;
         var createdCount = 0;
 
         foreach (var roleName in roles)
@@ -119,7 +120,7 @@ public class UserSeeder
                 FetLifeName = "RopeMasterSalem",
                 PhoneNumber = "978-555-0101",
                 Bio = "Experienced rope artist and community organizer with over 10 years in the scene. Passionate about creating safe spaces for rope bondage education and practice. Administrator of WitchCityRope since 2020.",
-                Role = "Administrator",
+                Role = UserRole.Administrator.ToRoleString(),
                 PronouncedName = "Rope Master",
                 Pronouns = "they/them",
                 VettingStatus = 3,  // Approved
@@ -134,7 +135,7 @@ public class UserSeeder
                 FetLifeName = "SafetyFirstSalem",
                 PhoneNumber = "978-555-0102",
                 Bio = "Certified safety instructor with backgrounds in emergency medicine and risk management. Teaching rope safety and suspension techniques for 8+ years. Dedicated to making rope bondage accessible and safe for everyone.",
-                Role = "Teacher",
+                Role = UserRole.Teacher.ToRoleString(),
                 PronouncedName = "Safety First",
                 Pronouns = "she/her",
                 VettingStatus = 3,  // Approved
@@ -195,7 +196,7 @@ public class UserSeeder
                 FetLifeName = "SafetyCoordRiley",
                 PhoneNumber = "978-555-0106",
                 Bio = "Safety team coordinator with EMT certification. 6 years experience in rope bondage with focus on risk-aware practices. Available for incident response and safety consultations. Committed to community wellbeing.",
-                Role = "SafetyTeam",
+                Role = UserRole.SafetyTeam.ToRoleString(),
                 PronouncedName = "Safety Coordinator",
                 Pronouns = "they/them",
                 VettingStatus = 3,  // Approved
@@ -210,7 +211,7 @@ public class UserSeeder
                 FetLifeName = "IncidentHandlerJess",
                 PhoneNumber = "978-555-0107",
                 Bio = "Safety team member specializing in incident documentation and follow-up. Background in crisis intervention and conflict resolution. Dedicated to ensuring our community remains safe and accountable.",
-                Role = "SafetyTeam",
+                Role = UserRole.SafetyTeam.ToRoleString(),
                 PronouncedName = "Incident Handler",
                 Pronouns = "she/her",
                 VettingStatus = 3,  // Approved

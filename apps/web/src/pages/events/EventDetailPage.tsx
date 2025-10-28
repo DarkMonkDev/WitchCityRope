@@ -19,6 +19,7 @@ import { useVolunteerPositions } from '../../features/volunteers/hooks/useVolunt
 import { VolunteerPositionCard } from '../../features/volunteers/components/VolunteerPositionCard';
 import { VolunteerEncouragementBox } from '../../components/events/VolunteerEncouragementBox';
 import { UserVolunteerShifts } from '../../components/events/UserVolunteerShifts';
+import type { components } from '@witchcityrope/shared-types';
 import styles from './EventDetailPage.module.css';
 
 export const EventDetailPage: React.FC = () => {
@@ -38,8 +39,9 @@ export const EventDetailPage: React.FC = () => {
   const cancelRSVPMutation = useCancelRSVP();
   const cancelTicketMutation = useCancelTicket();
 
-  // Check if current user is admin
-  const isAdmin = (currentUser as any)?.role === 'Administrator';
+  // Check if current user is admin (type-safe using auto-generated UserRole)
+  type UserRole = components['schemas']['UserRole'];
+  const isAdmin = (currentUser as any)?.role === ('Administrator' as UserRole);
   
   if (isLoading) {
     return (

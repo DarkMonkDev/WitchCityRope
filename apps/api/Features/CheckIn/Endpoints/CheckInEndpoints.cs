@@ -4,6 +4,7 @@ using FluentValidation;
 using WitchCityRope.Api.Features.CheckIn.Models;
 using WitchCityRope.Api.Features.CheckIn.Services;
 using WitchCityRope.Api.Features.CheckIn.Validation;
+using WitchCityRope.Api.Features.Users.Constants;
 
 namespace WitchCityRope.Api.Features.CheckIn.Endpoints;
 
@@ -42,7 +43,10 @@ public static class CheckInEndpoints
                     detail: result.Error,
                     statusCode: 500);
         })
-        .RequireAuthorization(policy => policy.RequireRole("CheckInStaff", "EventOrganizer", "Administrator"))
+        .RequireAuthorization(policy => policy.RequireRole(
+            UserRole.CheckInStaff.ToRoleString(),
+            UserRole.EventOrganizer.ToRoleString(),
+            UserRole.Administrator.ToRoleString()))
         .WithName("GetEventAttendees")
         .WithSummary("Get attendees for event check-in")
         .WithDescription("Returns attendees list with search and filtering for check-in interface");
@@ -83,7 +87,10 @@ public static class CheckInEndpoints
                     statusCode: result.Error.Contains("not found") ? 404 :
                                result.Error.Contains("capacity") ? 409 : 500);
         })
-        .RequireAuthorization(policy => policy.RequireRole("CheckInStaff", "EventOrganizer", "Administrator"))
+        .RequireAuthorization(policy => policy.RequireRole(
+            UserRole.CheckInStaff.ToRoleString(),
+            UserRole.EventOrganizer.ToRoleString(),
+            UserRole.Administrator.ToRoleString()))
         .WithName("ProcessCheckIn")
         .WithSummary("Process attendee check-in")
         .WithDescription("Check in an attendee for the event with capacity validation");
@@ -103,7 +110,10 @@ public static class CheckInEndpoints
                     detail: result.Error,
                     statusCode: result.Error.Contains("not found") ? 404 : 500);
         })
-        .RequireAuthorization(policy => policy.RequireRole("CheckInStaff", "EventOrganizer", "Administrator"))
+        .RequireAuthorization(policy => policy.RequireRole(
+            UserRole.CheckInStaff.ToRoleString(),
+            UserRole.EventOrganizer.ToRoleString(),
+            UserRole.Administrator.ToRoleString()))
         .WithName("GetEventDashboard")
         .WithSummary("Get event check-in dashboard")
         .WithDescription("Returns real-time check-in statistics and recent activity");
@@ -133,7 +143,10 @@ public static class CheckInEndpoints
                     detail: result.Error,
                     statusCode: 500);
         })
-        .RequireAuthorization(policy => policy.RequireRole("CheckInStaff", "EventOrganizer", "Administrator"))
+        .RequireAuthorization(policy => policy.RequireRole(
+            UserRole.CheckInStaff.ToRoleString(),
+            UserRole.EventOrganizer.ToRoleString(),
+            UserRole.Administrator.ToRoleString()))
         .WithName("SyncOfflineCheckIns")
         .WithSummary("Sync offline check-in data")
         .WithDescription("Process pending check-ins from offline operation with conflict detection");
@@ -173,7 +186,10 @@ public static class CheckInEndpoints
                     detail: result.Error,
                     statusCode: result.Error.Contains("already registered") ? 409 : 500);
         })
-        .RequireAuthorization(policy => policy.RequireRole("CheckInStaff", "EventOrganizer", "Administrator"))
+        .RequireAuthorization(policy => policy.RequireRole(
+            UserRole.CheckInStaff.ToRoleString(),
+            UserRole.EventOrganizer.ToRoleString(),
+            UserRole.Administrator.ToRoleString()))
         .WithName("CreateManualEntry")
         .WithSummary("Create manual entry for walk-in attendee")
         .WithDescription("Register and check in a walk-in attendee who isn't pre-registered");
@@ -203,7 +219,10 @@ public static class CheckInEndpoints
                     detail: result.Error,
                     statusCode: 500);
         })
-        .RequireAuthorization(policy => policy.RequireRole("CheckInStaff", "EventOrganizer", "Administrator"))
+        .RequireAuthorization(policy => policy.RequireRole(
+            UserRole.CheckInStaff.ToRoleString(),
+            UserRole.EventOrganizer.ToRoleString(),
+            UserRole.Administrator.ToRoleString()))
         .WithName("GetPendingSyncCount")
         .WithSummary("Get pending sync operations count")
         .WithDescription("Returns the number of pending offline operations for the current user");

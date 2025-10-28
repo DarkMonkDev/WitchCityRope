@@ -879,6 +879,31 @@
         }
       }
     },
+    "/api/users/roles/available": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get all available user roles",
+        "description": "Returns all available roles in the system with display names and descriptions. UserRole enum is auto-generated to TypeScript.",
+        "operationId": "GetAvailableRoles",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvailableRolesResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
     "/api/users/{userId}/events": {
       "get": {
         "tags": [
@@ -6733,6 +6758,17 @@
         },
         "nullable": true
       },
+      "AvailableRolesResponse": {
+        "type": "object",
+        "properties": {
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserRoleDto"
+            }
+          }
+        }
+      },
       "CapacityInfoDto": {
         "type": "object",
         "properties": {
@@ -10070,6 +10106,30 @@
           }
         },
         "nullable": true
+      },
+      "UserRole": {
+        "enum": [
+          "Member",
+          "Teacher",
+          "SafetyTeam",
+          "Administrator",
+          "CheckInStaff",
+          "EventOrganizer"
+        ]
+      },
+      "UserRoleDto": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
       },
       "UserSearchResultDto": {
         "type": "object",

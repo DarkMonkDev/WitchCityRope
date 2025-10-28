@@ -4,6 +4,7 @@ using System.Security.Claims;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Cms.Dtos;
 using WitchCityRope.Api.Features.Cms.Services;
+using WitchCityRope.Api.Features.Users.Constants;
 
 namespace WitchCityRope.Api.Features.Cms
 {
@@ -28,7 +29,7 @@ namespace WitchCityRope.Api.Features.Cms
                 .WithName("UpdateCmsPage")
                 .WithSummary("Update content page")
                 .WithDescription("Updates page content and creates a revision. Requires Administrator role.")
-                .RequireAuthorization(policy => policy.RequireRole("Administrator"))
+                .RequireAuthorization(policy => policy.RequireRole(UserRole.Administrator.ToRoleString()))
                 .Produces<ContentPageDto>(200)
                 .Produces(400)
                 .Produces(401)
@@ -39,7 +40,7 @@ namespace WitchCityRope.Api.Features.Cms
                 .WithName("GetCmsPageRevisions")
                 .WithSummary("Get page revision history")
                 .WithDescription("Fetches all revisions for a content page. Requires Administrator role.")
-                .RequireAuthorization(policy => policy.RequireRole("Administrator"))
+                .RequireAuthorization(policy => policy.RequireRole(UserRole.Administrator.ToRoleString()))
                 .Produces<List<ContentRevisionDto>>(200)
                 .Produces(401)
                 .Produces(404);
@@ -49,7 +50,7 @@ namespace WitchCityRope.Api.Features.Cms
                 .WithName("GetAllCmsPages")
                 .WithSummary("List all content pages")
                 .WithDescription("Lists all content pages with revision counts. Requires Administrator role.")
-                .RequireAuthorization(policy => policy.RequireRole("Administrator"))
+                .RequireAuthorization(policy => policy.RequireRole(UserRole.Administrator.ToRoleString()))
                 .Produces<List<CmsPageSummaryDto>>(200)
                 .Produces(401);
         }

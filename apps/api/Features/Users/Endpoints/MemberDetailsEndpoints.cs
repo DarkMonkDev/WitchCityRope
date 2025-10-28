@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using WitchCityRope.Api.Features.Users.Models.MemberDetails;
 using WitchCityRope.Api.Features.Users.Services;
+using WitchCityRope.Api.Features.Users.Constants;
 
 namespace WitchCityRope.Api.Features.Users.Endpoints;
 
@@ -14,7 +15,7 @@ public static class MemberDetailsEndpoints
     public static void MapMemberDetailsEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/users/{userId:guid}")
-            .RequireAuthorization(policy => policy.RequireRole("Administrator"))
+            .RequireAuthorization(policy => policy.RequireRole(UserRole.Administrator.ToRoleString()))
             .WithTags("Member Details")
             .WithOpenApi();
 

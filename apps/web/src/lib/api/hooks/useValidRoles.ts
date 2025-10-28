@@ -30,10 +30,28 @@ export function useValidRoles() {
 
 /**
  * Convert roles array to Mantine Select/MultiSelect data format
+ * Matches backend FormatRoleDisplayName logic in UserEndpoints.cs
+ *
+ * Note: For a more robust solution with descriptions, consider using
+ * the /api/users/roles/available endpoint which provides UserRoleDto[]
+ * with display names and descriptions from the backend.
  */
 export function formatRolesForSelect(roles: string[]) {
+  const formatLabel = (role: string): string => {
+    switch (role) {
+      case 'SafetyTeam':
+        return 'Safety Team';
+      case 'CheckInStaff':
+        return 'Check-In Staff';
+      case 'EventOrganizer':
+        return 'Event Organizer';
+      default:
+        return role;
+    }
+  };
+
   return roles.map(role => ({
     value: role,
-    label: role === 'SafetyTeam' ? 'Safety Team' : role,
+    label: formatLabel(role),
   }));
 }

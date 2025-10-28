@@ -420,6 +420,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/users/roles/available": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all available user roles
+         * @description Returns all available roles in the system with display names and descriptions. UserRole enum is auto-generated to TypeScript.
+         */
+        get: operations["GetAvailableRoles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/users/{userId}/events": {
         parameters: {
             query?: never;
@@ -498,6 +518,30 @@ export interface paths {
          * @description Changes the user's password after verifying current password
          */
         post: operations["ChangeUserDashboardPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all application settings
+         * @description Returns all configurable settings (admin only)
+         */
+        get: operations["GetAdminSettings"];
+        /**
+         * Update application settings
+         * @description Updates one or more application settings (admin only)
+         */
+        put: operations["UpdateAdminSettings"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2631,6 +2675,9 @@ export interface components {
             isActive?: boolean;
             isVetted?: boolean;
         } | null;
+        AvailableRolesResponse: {
+            roles?: components["schemas"]["UserRoleDto"][];
+        };
         CapacityInfoDto: {
             /** Format: int32 */
             current?: number;
@@ -3048,10 +3095,9 @@ export interface components {
         /** @enum {unknown} */
         IncidentType: "SafetyConcern" | "BoundaryViolation" | "Harassment" | "OtherConcern";
         LoginRequest: {
-            email: string;
+            emailOrSceneName: string;
             password: string;
             returnUrl?: string | null;
-            emailOrSceneName: string;
         };
         LoginResponse: {
             token?: string;
@@ -3650,6 +3696,11 @@ export interface components {
             sceneName?: string;
             pronouns?: string;
         };
+        UpdateSettingsRequest: {
+            settings: {
+                [key: string]: string;
+            };
+        };
         UpdateStatusRequest: {
             newStatus?: components["schemas"]["IncidentStatus"];
             reason?: string | null;
@@ -3773,6 +3824,13 @@ export interface components {
             phoneNumber?: string | null;
             vettingStatus?: string;
         } | null;
+        /** @enum {unknown} */
+        UserRole: "Member" | "Teacher" | "SafetyTeam" | "Administrator" | "CheckInStaff" | "EventOrganizer";
+        UserRoleDto: {
+            role?: components["schemas"]["UserRole"];
+            displayName?: string;
+            description?: string;
+        };
         UserSearchResultDto: {
             /** Format: uuid */
             userId?: string;
@@ -4868,6 +4926,33 @@ export interface operations {
             };
         };
     };
+    GetAvailableRoles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvailableRolesResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     GetUserRegisteredEvents: {
         parameters: {
             query?: {
@@ -5120,6 +5205,94 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ApiResponseOfboolean"];
                 };
+            };
+        };
+    };
+    GetAdminSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UpdateAdminSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSettingsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
