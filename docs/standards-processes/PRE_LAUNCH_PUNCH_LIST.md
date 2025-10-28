@@ -1,5 +1,5 @@
 # Pre-Launch Functionality Punch List
-<!-- Last Updated: 2025-10-27 -->
+<!-- Last Updated: 2025-10-28 -->
 <!-- Version: 1.8 -->
 <!-- Owner: Project Team -->
 <!-- Status: Active -->
@@ -31,7 +31,7 @@ Use the orchestrator command when testing reveals missing functionality:
 | Category | Total Items | Complete | In Progress | Blocked | Not Started | % Complete |
 |----------|-------------|----------|-------------|---------|-------------|------------|
 | **Core Authentication & Authorization** | 3 | 3 | 0 | 0 | 0 | 100% |
-| **Event Management & RSVP** | 11 | 7 | 2 | 0 | 2 | 64% |
+| **Event Management & RSVP** | 12 | 7 | 2 | 0 | 3 | 58% |
 | **Vetting System** | 9 | 4 | 1 | 0 | 4 | 44% |
 | **Payment Processing** | 4 | 2 | 1 | 0 | 1 | 50% |
 | **Admin Tools** | 7 | 1 | 1 | 0 | 5 | 14% |
@@ -42,7 +42,7 @@ Use the orchestrator command when testing reveals missing functionality:
 | **Testing & Quality** | 4 | 3 | 0 | 0 | 1 | 75% |
 | **Documentation** | 2 | 1 | 0 | 0 | 1 | 50% |
 | **Incident Reporting** | 2 | 2 | 0 | 0 | 0 | 100% |
-| **TOTAL** | 57 | 31 | 4 | 0 | 22 | 54% |
+| **TOTAL** | 58 | 31 | 4 | 0 | 23 | 53% |
 
 ---
 
@@ -125,6 +125,14 @@ Use the orchestrator command when testing reveals missing functionality:
   - **Dependencies**: PayPal webhook integration (complete), event system
   - **Status**: In Progress
   - **Notes**: PayPal webhook integration complete (2025-09-14). Frontend purchase flow partially implemented.
+
+- [ ] **Ticket Refund/Cancellation in Historical Data** (Priority: Medium)
+  - **Description**: Add ticket refund functionality to historical event seed data (ParticipationSeeder.cs)
+  - **Business Value**: Admin UI testing - enables testing of refunded ticket display and historical event management
+  - **Effort**: Small (2-3 hours)
+  - **Dependencies**: Historical event seeding (95% complete)
+  - **Status**: Not Started
+  - **Notes**: Currently 0 refunded tickets in historical data (expected 2). Non-blocking for launch - core participation and check-in data is 100% complete. Historical data verification completed 2025-10-28 with 95% feature completion. Add refund logic to `CreateHistoricalWorkshopTicketsAsync()` method in TicketPurchaseSeeder.cs to create 2 refunded workshop tickets with proper ParticipationStatus.Refunded status.
 
 - [x] **Public Events Anonymous Access** (Priority: High) ✅ ALREADY WORKING
   - **Description**: Allow browsing events without authentication
@@ -734,3 +742,4 @@ Use the orchestrator command when testing reveals missing functionality:
 | 2025-10-17 | 1.5 | Added Venue Management System (HIGH priority), enhanced Admin Members Management with detailed requirements for search/sorting and role management - total now 49 items | Claude Code |
 | 2025-10-23 | 1.6 | Marked CMS Implementation as COMPLETE (2025-10-17). Added Volunteer Position Signup System (COMPLETE 2025-10-20). Added Incident Reporting category with frontend COMPLETE (2025-10-18) and backend API in progress. Updated dashboard: 52 total items, 16 complete (31%), 9 in progress, 27 not started. | Claude Code |
 | 2025-10-25 | 1.7 | MAJOR UPDATE: Infrastructure reality check. Marked 6/7 infrastructure items COMPLETE (staging/prod environments operational, environment config complete, database backups configured, deployment process working). Updated test pass rates from 56% to 100% (Oct 24 completion). Added PayPal Sandbox Test Card Auto-Fill item. Overall launch readiness: 45% → 54%. All CRITICAL launch blockers now COMPLETE! | Librarian Agent |
+| 2025-10-28 | 1.8 | Added Ticket Refund/Cancellation in Historical Data (MEDIUM priority) to Event Management category. Historical event seeding reached 95% completion (65 participations, 35 check-ins, 14 volunteer signups) with 4 critical bugs fixed. Updated dashboard: 58 total items (was 57), 31 complete, 23 not started. Overall launch readiness: 54% → 53%. | Claude Code |
