@@ -16,7 +16,6 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
     private string _location;
     private string _eventType;
     private int _capacity;
-    private decimal[]? _pricingTiers;
 
     public CreateEventRequestBuilder()
     {
@@ -28,7 +27,6 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
         _location = "Salem Community Center";
         _eventType = "Workshop";
         _capacity = 20;
-        _pricingTiers = new decimal[] { 20m }; // Default single pricing tier
     }
 
     public CreateEventRequestBuilder WithTitle(string title)
@@ -73,31 +71,6 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
         return This;
     }
 
-    public CreateEventRequestBuilder WithPricingTiers(decimal[] pricingTiers)
-    {
-        _pricingTiers = pricingTiers;
-        return This;
-    }
-
-    public CreateEventRequestBuilder WithFreePricing()
-    {
-        _pricingTiers = new decimal[] { 0m };
-        return This;
-    }
-
-    public CreateEventRequestBuilder WithSingleTier(decimal amount)
-    {
-        _pricingTiers = new decimal[] { amount };
-        return This;
-    }
-
-    public CreateEventRequestBuilder WithNoPricing()
-    {
-        _pricingTiers = new decimal[0];
-        return This;
-    }
-
-
     /// <summary>
     /// Creates a valid workshop event for testing
     /// </summary>
@@ -106,8 +79,7 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
         return WithTitle("Rope Fundamentals Workshop")
             .WithDescription("Learn the basics of rope bondage safety and techniques")
             .WithEventType("Workshop")
-            .WithCapacity(12)
-            .WithSingleTier(25m);
+            .WithCapacity(12);
     }
 
     /// <summary>
@@ -118,8 +90,7 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
         return WithTitle("Evening Rope Performance")
             .WithDescription("Artistic rope performance by experienced practitioners")
             .WithEventType("Performance")
-            .WithCapacity(50)
-            .WithSingleTier(15m);
+            .WithCapacity(50);
     }
 
     /// <summary>
@@ -130,16 +101,7 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
         return WithTitle("Rope Social & Practice")
             .WithDescription("Open practice time and social gathering")
             .WithEventType("Social")
-            .WithCapacity(30)
-            .WithFreePricing();
-    }
-
-    /// <summary>
-    /// Creates an event with multiple pricing tiers for testing
-    /// </summary>
-    public CreateEventRequestBuilder WithMultipleTiers()
-    {
-        return WithPricingTiers(new decimal[] { 15m, 25m, 35m });
+            .WithCapacity(30);
     }
 
     /// <summary>
@@ -162,9 +124,6 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
             .WithEndDate(nextMonth.Date.AddHours(21)); // 9 PM next month
     }
 
-    // Note: CreateEventRequest doesn't exist yet in the API
-    // This is a placeholder that will need to be updated when the DTO is implemented
-    // For now, we'll create a generic structure that matches the UpdateEventRequest pattern
     public override CreateEventRequest Build()
     {
         return new CreateEventRequest
@@ -175,8 +134,7 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
             EndDate = _endDate,
             Location = _location,
             EventType = _eventType,
-            Capacity = _capacity,
-            PricingTiers = _pricingTiers
+            Capacity = _capacity
         };
     }
 }

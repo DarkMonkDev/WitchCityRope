@@ -139,10 +139,12 @@ test.describe('Login with Email or Scene Name', () => {
       expect(sceneName).toBeTruthy();
       expect(sceneName.length).toBeGreaterThan(0);
 
-      // Clear auth state after fetching scene name
-      await clearAuthState(page);
+      // Navigate to login page FIRST (localStorage requires a domain context)
       await page.goto(`${BASE_URL}/login`);
       await page.waitForLoadState('networkidle');
+
+      // Clear auth state AFTER navigation
+      await clearAuthState(page);
 
       // Act - Login with scene name instead of email
       await fillAndSubmitLogin(page, sceneName, testAccount.password);
@@ -164,10 +166,12 @@ test.describe('Login with Email or Scene Name', () => {
       const sceneName = await getUserSceneName(page, testAccount.email, testAccount.password);
       const wrongPassword = 'WrongPassword123!';
 
-      // Clear auth state
-      await clearAuthState(page);
+      // Navigate to login page FIRST (localStorage requires a domain context)
       await page.goto(`${BASE_URL}/login`);
       await page.waitForLoadState('networkidle');
+
+      // Clear auth state AFTER navigation
+      await clearAuthState(page);
 
       // Act - Login with scene name and wrong password
       await fillAndSubmitLogin(page, sceneName, wrongPassword);
@@ -309,10 +313,12 @@ test.describe('Login with Email or Scene Name', () => {
         return;
       }
 
-      // Clear auth state
-      await clearAuthState(page);
+      // Navigate to login page FIRST (localStorage requires a domain context)
       await page.goto(`${BASE_URL}/login`);
       await page.waitForLoadState('networkidle');
+
+      // Clear auth state AFTER navigation
+      await clearAuthState(page);
 
       // Act - Try to login with uppercase scene name
       await fillAndSubmitLogin(page, upperCaseSceneName, testAccount.password);

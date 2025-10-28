@@ -14,7 +14,6 @@ public class UpdateEventRequestBuilder
     private DateTime? _startDate = null;
     private DateTime? _endDate = null;
     private int? _capacity = null;
-    private string? _pricingTiers = null;
 
     public UpdateEventRequestBuilder WithTitle(string title)
     {
@@ -49,12 +48,6 @@ public class UpdateEventRequestBuilder
     public UpdateEventRequestBuilder WithCapacity(int capacity)
     {
         _capacity = capacity;
-        return this;
-    }
-
-    public UpdateEventRequestBuilder WithPricingTiers(string pricingTiers)
-    {
-        _pricingTiers = pricingTiers;
         return this;
     }
 
@@ -127,8 +120,7 @@ public class UpdateEventRequestBuilder
             Location = _location,
             StartDate = _startDate,
             EndDate = _endDate,
-            Capacity = _capacity,
-            PricingTiers = _pricingTiers
+            Capacity = _capacity
         };
     }
 

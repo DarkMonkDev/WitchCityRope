@@ -29,6 +29,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
     private Mock<UserManager<ApplicationUser>> _mockUserManager = null!;
     private Mock<SignInManager<ApplicationUser>> _mockSignInManager = null!;
     private Mock<IJwtService> _mockJwtService = null!;
+    private Mock<ReturnUrlValidator> _mockReturnUrlValidator = null!;
     private Mock<ILogger<AuthenticationService>> _mockLogger = null!;
     private AuthenticationService _service = null!;
 
@@ -53,6 +54,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
             _mockUserManager.Object, contextAccessor.Object, userPrincipalFactory.Object, null!, null!, null!, null!);
 
         _mockJwtService = new Mock<IJwtService>();
+        _mockReturnUrlValidator = new Mock<ReturnUrlValidator>();
         _mockLogger = new Mock<ILogger<AuthenticationService>>();
 
         _service = new AuthenticationService(
@@ -60,6 +62,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
             _mockUserManager.Object,
             _mockSignInManager.Object,
             _mockJwtService.Object,
+            _mockReturnUrlValidator.Object,
             _mockLogger.Object);
     }
 

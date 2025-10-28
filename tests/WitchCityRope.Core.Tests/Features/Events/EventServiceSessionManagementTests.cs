@@ -776,7 +776,6 @@ public class EventServiceSessionManagementTests : IAsyncLifetime
             EventType = eventType,
             Capacity = 20,
             IsPublished = true,
-            PricingTiers = "{}",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

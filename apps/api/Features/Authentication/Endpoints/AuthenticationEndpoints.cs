@@ -93,7 +93,7 @@ public static class AuthenticationEndpoints
                 return Results.Problem(
                     title: "Login Failed",
                     detail: error,
-                    statusCode: error.Contains("Invalid email or password") ? 401 : 400);
+                    statusCode: error.Contains("Invalid email") && error.Contains("password") ? 401 : 400);
             })
             .WithName("Login")
             .WithSummary("Authenticate user with email and password (with optional return URL)")

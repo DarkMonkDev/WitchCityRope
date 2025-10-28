@@ -35,8 +35,8 @@ export class AuthHelpers {
     await page.goto('http://localhost:5173/login');
     await page.waitForLoadState('networkidle');
 
-    // Fill form using data-testid selectors (lines 171, 214 in LoginPage.tsx)
-    await page.locator('[data-testid="email-input"]').fill(credentials.email);
+    // Fill form using data-testid selectors (updated for email-or-scenename field)
+    await page.locator('[data-testid="email-or-scenename-input"]').fill(credentials.email);
     await page.locator('[data-testid="password-input"]').fill(credentials.password);
 
     // Click login button using data-testid (line 270 in LoginPage.tsx)
@@ -58,8 +58,8 @@ export class AuthHelpers {
     await page.goto('http://localhost:5173/login');
     await page.waitForLoadState('networkidle');
 
-    // Fill form using data-testid selectors
-    await page.locator('[data-testid="email-input"]').fill(credentials.email);
+    // Fill form using data-testid selectors (updated for email-or-scenename field)
+    await page.locator('[data-testid="email-or-scenename-input"]').fill(credentials.email);
     await page.locator('[data-testid="password-input"]').fill(credentials.password);
 
     // Click login button
@@ -79,8 +79,8 @@ export class AuthHelpers {
     await page.goto('http://localhost:5173/login');
     await page.waitForLoadState('networkidle');
 
-    // Fill form using data-testid selectors
-    await page.locator('[data-testid="email-input"]').fill(credentials.email);
+    // Fill form using data-testid selectors (updated for email-or-scenename field)
+    await page.locator('[data-testid="email-or-scenename-input"]').fill(credentials.email);
     await page.locator('[data-testid="password-input"]').fill(credentials.password);
 
     // Click login button
@@ -191,7 +191,7 @@ export class AuthHelpers {
    */
   static async waitForLoginReady(page: Page) {
     // Wait for all form elements to be visible and ready
-    await page.locator('[data-testid="email-input"]').waitFor({ 
+    await page.locator('[data-testid="email-or-scenename-input"]').waitFor({ 
       state: 'visible', 
       timeout: TIMEOUTS.MEDIUM 
     });
@@ -218,19 +218,19 @@ export class AuthHelpers {
    */
   static async verifyLoginFormElements(page: Page) {
     // Check all required form elements exist
-    await expect(page.locator('[data-testid="email-input"]')).toBeVisible();
+    await expect(page.locator('[data-testid="email-or-scenename-input"]')).toBeVisible();
     await expect(page.locator('[data-testid="password-input"]')).toBeVisible();
     await expect(page.locator('[data-testid="login-button"]')).toBeVisible();
     
     // Verify form can be interacted with
-    await page.locator('[data-testid="email-input"]').fill('test@test.com');
-    await expect(page.locator('[data-testid="email-input"]')).toHaveValue('test@test.com');
+    await page.locator('[data-testid="email-or-scenename-input"]').fill('test@test.com');
+    await expect(page.locator('[data-testid="email-or-scenename-input"]')).toHaveValue('test@test.com');
     
     await page.locator('[data-testid="password-input"]').fill('testpassword');
     await expect(page.locator('[data-testid="password-input"]')).toHaveValue('testpassword');
     
     // Clear for clean state
-    await page.locator('[data-testid="email-input"]').clear();
+    await page.locator('[data-testid="email-or-scenename-input"]').clear();
     await page.locator('[data-testid="password-input"]').clear();
   }
 
@@ -248,7 +248,7 @@ export class AuthHelpers {
     await page.goto('/register');
     
     // Fill registration form (assuming similar data-testid pattern)
-    await page.locator('[data-testid="email-input"]').fill(credentials.email);
+    await page.locator('[data-testid="email-or-scenename-input"]').fill(credentials.email);
     await page.locator('[data-testid="scene-name-input"]').fill(credentials.sceneName);
     await page.locator('[data-testid="password-input"]').fill(credentials.password);
     

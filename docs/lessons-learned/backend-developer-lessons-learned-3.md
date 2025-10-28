@@ -1647,3 +1647,47 @@ session.CurrentAttendees = ticketsSold;
 
 ---
 
+## Test Builder Files Must Stay Aligned with Architecture Changes
+
+**Date**: 2025-10-27
+**Context**: After migrating from PricingTiers to Sessions/TicketTypes architecture, test helper classes in `WitchCityRope.Tests.Common` were not updated, causing all backend tests to fail compilation.
+
+**Problem**: Test builder classes referenced removed properties:
+- `UpdateEventRequestBuilder` referenced `PricingTiers` field (line 131)
+- `CreateEventRequestBuilder` referenced `PricingTiers` field (line 179) and related methods
+- Event test helper methods referenced `Event.PricingTiers` property
+
+**Impact**:
+- **ALL** backend unit tests blocked from compilation (not just event tests)
+- **ALL** integration tests blocked from running
+- Login feature tests couldn't verify functionality despite being unrelated to events
+- One compilation error in `Tests.Common` cascades to all dependent test projects
+
+**Root Cause**: Architecture changes to domain models and DTOs didn't trigger updates to test builder classes.
+
+**Solution Applied**:
+1. Commented out PricingTiers fields in test builders
+2. Commented out PricingTiers-related methods (WithPricingTiers, WithSingleTier, etc.)
+3. Removed PricingTiers from Build() method object initializers
+4. Added explanatory comments: "PricingTiers removed - use Sessions/TicketTypes instead"
+
+**Files Fixed**:
+- `/tests/WitchCityRope.Tests.Common/Builders/UpdateEventRequestBuilder.cs`
+- `/tests/WitchCityRope.Tests.Common/Builders/CreateEventRequestBuilder.cs`
+- `/tests/WitchCityRope.Core.Tests/Features/Events/EventServiceOrganizerManagementTests.cs`
+- `/tests/WitchCityRope.Core.Tests/Features/Events/EventServiceSessionManagementTests.cs`
+- `/tests/WitchCityRope.Core.Tests/Features/Authentication/AuthenticationServiceTests.cs` (added ReturnUrlValidator parameter)
+
+**Prevention Checklist**:
+- [ ] Run `dotnet build tests/` after ANY domain model or DTO changes
+- [ ] Update test builders in `WitchCityRope.Tests.Common/Builders/` when properties change
+- [ ] Search for removed property names across test projects: `grep -r "RemovedProperty" tests/`
+- [ ] Test builders are SHARED infrastructure - failures cascade to all tests
+- [ ] Comment out obsolete test code rather than delete (preserves context for future)
+
+**Pattern**: Test builders are infrastructure code that must be kept in sync with domain models. A single outdated builder blocks ALL tests that depend on `Tests.Common`, not just the tests for that specific feature.
+
+**Tags**: #critical #test-infrastructure #test-builders #architecture-migration #compilation-errors #pricingtiers #sessions-tickettypes #cascading-failures
+
+---
+

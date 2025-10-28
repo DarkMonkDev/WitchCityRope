@@ -57,7 +57,7 @@ async function getUserSceneName(page: Page, email: string, password: string): Pr
   expect(loginResponse.ok()).toBe(true);
   const loginData = await loginResponse.json();
 
-  return loginData.data.user.sceneName;
+  return loginData.user.sceneName;
 }
 
 /**
@@ -80,12 +80,12 @@ async function fillAndSubmitLogin(page: Page, identifier: string, password: stri
 
 test.describe('Login with Email or Scene Name', () => {
   test.beforeEach(async ({ page }) => {
-    // Ensure clean auth state before each test
-    await clearAuthState(page);
-
-    // Navigate to login page
+    // Navigate to login page FIRST (localStorage requires a domain context)
     await page.goto(`${BASE_URL}/login`);
     await page.waitForLoadState('networkidle');
+
+    // Clear auth state AFTER navigation (localStorage is now accessible)
+    await clearAuthState(page);
   });
 
   test.describe('P1 CRITICAL: Email Login Path', () => {
@@ -123,7 +123,7 @@ test.describe('Login with Email or Scene Name', () => {
       await expect(errorAlert).toBeVisible({ timeout: 5000 });
 
       const errorText = await errorAlert.textContent();
-      expect(errorText).toContain('Invalid');
+      expect(errorText).toContain('incorrect');
 
       // Verify still on login page (no redirect)
       await expect(page).toHaveURL(`${BASE_URL}/login`);
@@ -201,7 +201,7 @@ test.describe('Login with Email or Scene Name', () => {
       await expect(errorAlert).toBeVisible({ timeout: 5000 });
 
       const errorText = await errorAlert.textContent();
-      expect(errorText).toContain('Invalid');
+      expect(errorText).toContain('incorrect');
 
       // Verify still on login page (no redirect)
       await expect(page).toHaveURL(`${BASE_URL}/login`);
