@@ -127,7 +127,7 @@ public class LoginRequestBuilder
     {
         return new LoginRequest
         {
-            Email = _email,
+            EmailOrSceneName = _email,
             Password = _password
         };
     }

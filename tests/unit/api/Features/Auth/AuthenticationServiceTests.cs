@@ -204,7 +204,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
         _signInManager.CheckPasswordSignInAsync(user, password, true)
             .Returns(Task.FromResult(SignInResult.Success));
 
-        var request = new LoginRequest { Email = email, Password = password };
+        var request = new LoginRequest { EmailOrSceneName = email, Password = password };
         var httpContext = CreateMockHttpContext();
 
         // Act
@@ -231,12 +231,12 @@ public class AuthenticationServiceTests : IAsyncLifetime
         // Arrange
         var request = new LoginRequest
         {
-            Email = "nonexistent@example.com",
+            EmailOrSceneName = "nonexistent@example.com",
             Password = "SomePassword123!"
         };
         var httpContext = CreateMockHttpContext();
 
-        _userManager.FindByEmailAsync(request.Email).Returns(Task.FromResult<ApplicationUser?>(null));
+        _userManager.FindByEmailAsync(request.EmailOrSceneName).Returns(Task.FromResult<ApplicationUser?>(null));
 
         // Act
         var (success, response, error) = await _service.LoginAsync(request, httpContext);
@@ -261,7 +261,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
         _signInManager.CheckPasswordSignInAsync(user, Arg.Any<string>(), true)
             .Returns(Task.FromResult(SignInResult.Failed));
 
-        var request = new LoginRequest { Email = email, Password = "WrongPassword123!" };
+        var request = new LoginRequest { EmailOrSceneName = email, Password = "WrongPassword123!" };
         var httpContext = CreateMockHttpContext();
 
         // Act
@@ -287,7 +287,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
         _signInManager.CheckPasswordSignInAsync(user, Arg.Any<string>(), true)
             .Returns(Task.FromResult(SignInResult.Success));
 
-        var request = new LoginRequest { Email = email, Password = "Test123!" };
+        var request = new LoginRequest { EmailOrSceneName = email, Password = "Test123!" };
         var httpContext = CreateMockHttpContext();
 
         // Act
@@ -310,7 +310,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
         _signInManager.CheckPasswordSignInAsync(user, Arg.Any<string>(), true)
             .Returns(Task.FromResult(SignInResult.LockedOut));
 
-        var request = new LoginRequest { Email = email, Password = "Test123!" };
+        var request = new LoginRequest { EmailOrSceneName = email, Password = "Test123!" };
         var httpContext = CreateMockHttpContext();
 
         // Act
@@ -342,7 +342,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
 
         var request = new LoginRequest
         {
-            Email = email,
+            EmailOrSceneName = email,
             Password = "Test123!",
             ReturnUrl = returnUrl
         };
@@ -374,7 +374,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
 
         var request = new LoginRequest
         {
-            Email = email,
+            EmailOrSceneName = email,
             Password = "Test123!",
             ReturnUrl = maliciousUrl
         };
@@ -697,7 +697,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
         // Arrange
         var request = new LoginRequest
         {
-            Email = maliciousInput,
+            EmailOrSceneName = maliciousInput,
             Password = "Test123!"
         };
         var httpContext = CreateMockHttpContext();
@@ -778,7 +778,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
         _signInManager.CheckPasswordSignInAsync(user, Arg.Any<string>(), true)
             .Returns(Task.FromResult(SignInResult.NotAllowed)); // Identity returns NotAllowed for inactive users
 
-        var request = new LoginRequest { Email = email, Password = "Test123!" };
+        var request = new LoginRequest { EmailOrSceneName = email, Password = "Test123!" };
         var httpContext = CreateMockHttpContext();
 
         // Act
@@ -801,7 +801,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
 
         _userManager.FindByEmailAsync(email).Returns(Task.FromResult<ApplicationUser?>(null));
 
-        var request = new LoginRequest { Email = email, Password = "Test123!" };
+        var request = new LoginRequest { EmailOrSceneName = email, Password = "Test123!" };
         var httpContext = CreateMockHttpContext();
 
         // Act

@@ -11,8 +11,8 @@ describe('MSW Request Interception', () => {
   it('should intercept login requests with correct response structure', async () => {
     const credentials = {
       email: 'admin@witchcityrope.com',
+      emailOrSceneName: 'admin@witchcityrope.com',
       password: 'Test123!',
-      rememberMe: false
     }
 
     const response = await authService.login(credentials)
@@ -63,8 +63,8 @@ describe('MSW Request Interception', () => {
   it('should handle unauthorized requests', async () => {
     const credentials = {
       email: 'invalid@example.com',
+      emailOrSceneName: 'invalid@example.com',
       password: 'wrongpassword',
-      rememberMe: false
     }
 
     await expect(authService.login(credentials)).rejects.toThrow()

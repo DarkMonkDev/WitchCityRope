@@ -9,11 +9,10 @@ namespace WitchCityRope.Api.Features.Authentication.Models;
 public class LoginRequest
 {
     /// <summary>
-    /// User's email address
+    /// User's email address or scene name
     /// </summary>
-    [Required(ErrorMessage = "Email is required")]
-    [EmailAddress(ErrorMessage = "Valid email address is required")]
-    public string Email { get; set; } = string.Empty;
+    [Required(ErrorMessage = "Email or Scene Name is required")]
+    public string EmailOrSceneName { get; set; } = string.Empty;
 
     /// <summary>
     /// User's password

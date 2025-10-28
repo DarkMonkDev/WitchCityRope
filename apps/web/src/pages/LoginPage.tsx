@@ -17,7 +17,7 @@ import { IconAlertCircle } from '@tabler/icons-react'
 import { useLogin } from '../features/auth/api/mutations'
 
 type LoginFormData = {
-  email: string
+  emailOrSceneName: string // Changed from 'email' - accepts either email or scene name
   password: string
   rememberMe: boolean
   returnUrl?: string // Optional return URL to send to backend
@@ -41,15 +41,14 @@ export const LoginPage: React.FC = () => {
   const form = useForm<LoginFormData>({
     mode: 'uncontrolled',
     initialValues: {
-      email: '',
+      emailOrSceneName: '',
       password: '',
       rememberMe: false,
       returnUrl, // Include return URL in form values
     },
     validate: {
-      email: (value) => {
-        if (!value) return 'Email is required'
-        if (!/^\S+@\S+\.\S+$/.test(value)) return 'Invalid email format'
+      emailOrSceneName: (value) => {
+        if (!value || !value.trim()) return 'Email or Scene Name is required'
         return null
       },
       password: (value) => (!value ? 'Password is required' : null),
@@ -173,15 +172,14 @@ export const LoginPage: React.FC = () => {
                     letterSpacing: '0.5px',
                   }}
                 >
-                  Email Address
+                  Email or Scene Name
                 </Text>
                 <TextInput
-                  type="email"
-                  placeholder="your@email.com"
+                  placeholder="email@example.com or YourSceneName"
                   required
-                  data-testid="email-input"
-                  key={form.key('email')}
-                  {...form.getInputProps('email')}
+                  data-testid="email-or-scenename-input"
+                  key={form.key('emailOrSceneName')}
+                  {...form.getInputProps('emailOrSceneName')}
                   styles={{
                     input: {
                       fontFamily: 'var(--font-body)',
@@ -201,6 +199,16 @@ export const LoginPage: React.FC = () => {
                     },
                   }}
                 />
+                <Text
+                  size="xs"
+                  c="dimmed"
+                  style={{
+                    marginTop: 'var(--space-xs)',
+                    fontFamily: 'var(--font-body)',
+                  }}
+                >
+                  You can log in with either your email address or your scene name
+                </Text>
               </Box>
 
               <Box>

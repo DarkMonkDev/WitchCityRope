@@ -7845,7 +7845,8 @@
       "LoginRequest": {
         "required": [
           "email",
-          "password"
+          "password",
+          "emailOrSceneName"
         ],
         "type": "object",
         "properties": {
@@ -7858,6 +7859,9 @@
           "returnUrl": {
             "type": "string",
             "nullable": true
+          },
+          "emailOrSceneName": {
+            "type": "string"
           }
         }
       },

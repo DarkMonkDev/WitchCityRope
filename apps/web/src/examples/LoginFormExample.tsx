@@ -33,7 +33,8 @@ export const LoginFormExample: React.FC = () => {
   const onSubmit = async (data: LoginFormData) => {
     try {
       clearError();
-      await login(data);
+      // Add emailOrSceneName field (backend requires it)
+      await login({ ...data, emailOrSceneName: data.email });
 
       // Redirect to the page they were trying to visit or to welcome page
       const from = location.state?.from?.pathname || '/welcome';

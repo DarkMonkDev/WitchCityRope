@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -227,7 +228,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
 
         var loginRequest = new LoginRequest
         {
-            Email = testUser.Email,
+            EmailOrSceneName = testUser.Email,
             Password = "SecurePassword123!"
         };
 
@@ -243,7 +244,8 @@ public class AuthenticationServiceTests : IAsyncLifetime
             .Returns(jwtToken);
 
         // Act
-        var (success, response, error) = await _service.LoginAsync(loginRequest);
+        var mockHttpContext = new Mock<HttpContext>().Object;
+        var (success, response, error) = await _service.LoginAsync(loginRequest, mockHttpContext);
 
         // Assert
         success.Should().BeTrue();
@@ -268,16 +270,17 @@ public class AuthenticationServiceTests : IAsyncLifetime
         // Arrange
         var loginRequest = new LoginRequest
         {
-            Email = "nonexistent@witchcityrope.com",
+            EmailOrSceneName = "nonexistent@witchcityrope.com",
             Password = "WrongPassword"
         };
 
         // Mock UserManager to return null (user not found)
-        _mockUserManager.Setup(x => x.FindByEmailAsync(loginRequest.Email))
+        _mockUserManager.Setup(x => x.FindByEmailAsync(loginRequest.EmailOrSceneName))
             .ReturnsAsync((ApplicationUser?)null);
 
         // Act
-        var (success, response, error) = await _service.LoginAsync(loginRequest);
+        var mockHttpContext = new Mock<HttpContext>().Object;
+        var (success, response, error) = await _service.LoginAsync(loginRequest, mockHttpContext);
 
         // Assert
         success.Should().BeFalse();
@@ -305,7 +308,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
 
         var loginRequest = new LoginRequest
         {
-            Email = testUser.Email,
+            EmailOrSceneName = testUser.Email,
             Password = "SecurePassword123!"
         };
 
@@ -317,13 +320,239 @@ public class AuthenticationServiceTests : IAsyncLifetime
             .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.LockedOut);
 
         // Act
-        var (success, response, error) = await _service.LoginAsync(loginRequest);
+        var mockHttpContext = new Mock<HttpContext>().Object;
+        var (success, response, error) = await _service.LoginAsync(loginRequest, mockHttpContext);
 
         // Assert
         success.Should().BeFalse();
         response.Should().BeNull();
         error.Should().Contain("temporarily locked");
     }
+
+    #region Email or Scene Name Login Tests
+
+    /// <summary>
+    /// Verify user can login with valid email address
+    /// Tests new feature: Login with email OR scene name
+    /// </summary>
+    [Fact]
+    public async Task LoginAsync_WithValidEmail_ShouldSucceed()
+    {
+        // Arrange
+        var testUser = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            Email = "emailtest@witchcityrope.com",
+            UserName = "emailtest@witchcityrope.com",
+            SceneName = "EmailTestUser",
+            EmailConfirmed = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var loginRequest = new LoginRequest
+        {
+            EmailOrSceneName = testUser.Email, // Login with email
+            Password = "SecurePassword123!"
+        };
+
+        // Mock dependencies - email lookup succeeds
+        _mockUserManager.Setup(x => x.FindByEmailAsync(testUser.Email))
+            .ReturnsAsync(testUser);
+
+        _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(testUser, loginRequest.Password, true))
+            .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.Success);
+
+        var jwtToken = new WitchCityRope.Api.Models.Auth.JwtToken { Token = "test-jwt-token", ExpiresAt = DateTime.UtcNow.AddHours(1) };
+        _mockJwtService.Setup(x => x.GenerateToken(testUser))
+            .Returns(jwtToken);
+
+        // Act
+        var mockHttpContext = new Mock<HttpContext>().Object;
+        var (success, response, error) = await _service.LoginAsync(loginRequest, mockHttpContext);
+
+        // Assert
+        success.Should().BeTrue();
+        response.Should().NotBeNull();
+        response!.Token.Should().Be("test-jwt-token");
+        response.User.Email.Should().Be(testUser.Email);
+        response.User.SceneName.Should().Be(testUser.SceneName);
+        error.Should().BeEmpty();
+
+        // Verify user lookup was done by email (primary path)
+        _mockUserManager.Verify(x => x.FindByEmailAsync(testUser.Email), Times.Once);
+    }
+
+    /// <summary>
+    /// Verify user can login with valid scene name
+    /// Tests new feature: Login with email OR scene name (fallback lookup)
+    /// </summary>
+    [Fact]
+    public async Task LoginAsync_WithValidSceneName_ShouldSucceed()
+    {
+        // Arrange
+        var testUser = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            Email = "scenetest@witchcityrope.com",
+            UserName = "scenetest@witchcityrope.com",
+            SceneName = "SceneTestUser",
+            EmailConfirmed = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Add user to context for scene name lookup
+        _context.Users.Add(testUser);
+        await _context.SaveChangesAsync();
+
+        var loginRequest = new LoginRequest
+        {
+            EmailOrSceneName = testUser.SceneName, // Login with scene name (not email)
+            Password = "SecurePassword123!"
+        };
+
+        // Mock dependencies - email lookup fails (returns null), scene name lookup succeeds
+        _mockUserManager.Setup(x => x.FindByEmailAsync(testUser.SceneName))
+            .ReturnsAsync((ApplicationUser?)null); // Not an email
+
+        _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(testUser, loginRequest.Password, true))
+            .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.Success);
+
+        var jwtToken = new WitchCityRope.Api.Models.Auth.JwtToken { Token = "scene-jwt-token", ExpiresAt = DateTime.UtcNow.AddHours(1) };
+        _mockJwtService.Setup(x => x.GenerateToken(testUser))
+            .Returns(jwtToken);
+
+        // Act
+        var mockHttpContext = new Mock<HttpContext>().Object;
+        var (success, response, error) = await _service.LoginAsync(loginRequest, mockHttpContext);
+
+        // Assert
+        success.Should().BeTrue();
+        response.Should().NotBeNull();
+        response!.Token.Should().Be("scene-jwt-token");
+        response.User.Email.Should().Be(testUser.Email);
+        response.User.SceneName.Should().Be(testUser.SceneName);
+        error.Should().BeEmpty();
+
+        // Verify email lookup was tried first
+        _mockUserManager.Verify(x => x.FindByEmailAsync(testUser.SceneName), Times.Once);
+    }
+
+    /// <summary>
+    /// Verify login fails with invalid email or scene name
+    /// Tests new feature: Generic error message (doesn't reveal which field failed)
+    /// </summary>
+    [Fact]
+    public async Task LoginAsync_WithInvalidEmailOrSceneName_ShouldFail()
+    {
+        // Arrange
+        var loginRequest = new LoginRequest
+        {
+            EmailOrSceneName = "nonexistent@example.com", // Neither email nor scene name exists
+            Password = "AnyPassword123!"
+        };
+
+        // Mock both lookups returning null
+        _mockUserManager.Setup(x => x.FindByEmailAsync(loginRequest.EmailOrSceneName))
+            .ReturnsAsync((ApplicationUser?)null);
+
+        // Act
+        var mockHttpContext = new Mock<HttpContext>().Object;
+        var (success, response, error) = await _service.LoginAsync(loginRequest, mockHttpContext);
+
+        // Assert
+        success.Should().BeFalse();
+        response.Should().BeNull();
+        error.Should().Contain("Invalid email/scene name or password");
+        // Error message should be generic (security: don't reveal which field is wrong)
+    }
+
+    /// <summary>
+    /// Verify login fails with valid email but wrong password
+    /// Tests new feature: Password validation works with email login
+    /// </summary>
+    [Fact]
+    public async Task LoginAsync_WithValidEmailButWrongPassword_ShouldFail()
+    {
+        // Arrange
+        var testUser = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            Email = "wrongpassword@witchcityrope.com",
+            UserName = "wrongpassword@witchcityrope.com",
+            SceneName = "WrongPasswordUser",
+            EmailConfirmed = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var loginRequest = new LoginRequest
+        {
+            EmailOrSceneName = testUser.Email,
+            Password = "WrongPassword123!"
+        };
+
+        // Mock user found but password check fails
+        _mockUserManager.Setup(x => x.FindByEmailAsync(testUser.Email))
+            .ReturnsAsync(testUser);
+
+        _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(testUser, loginRequest.Password, true))
+            .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.Failed);
+
+        // Act
+        var mockHttpContext = new Mock<HttpContext>().Object;
+        var (success, response, error) = await _service.LoginAsync(loginRequest, mockHttpContext);
+
+        // Assert
+        success.Should().BeFalse();
+        response.Should().BeNull();
+        error.Should().Contain("Invalid email/scene name or password");
+    }
+
+    /// <summary>
+    /// Verify login fails with valid scene name but wrong password
+    /// Tests new feature: Password validation works with scene name login
+    /// </summary>
+    [Fact]
+    public async Task LoginAsync_WithValidSceneNameButWrongPassword_ShouldFail()
+    {
+        // Arrange
+        var testUser = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            Email = "scenewrongpass@witchcityrope.com",
+            UserName = "scenewrongpass@witchcityrope.com",
+            SceneName = "SceneWrongPassUser",
+            EmailConfirmed = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Add user to context for scene name lookup
+        _context.Users.Add(testUser);
+        await _context.SaveChangesAsync();
+
+        var loginRequest = new LoginRequest
+        {
+            EmailOrSceneName = testUser.SceneName, // Login with scene name
+            Password = "WrongPassword123!"
+        };
+
+        // Mock email lookup fails, password check fails
+        _mockUserManager.Setup(x => x.FindByEmailAsync(testUser.SceneName))
+            .ReturnsAsync((ApplicationUser?)null);
+
+        _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(testUser, loginRequest.Password, true))
+            .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.Failed);
+
+        // Act
+        var mockHttpContext = new Mock<HttpContext>().Object;
+        var (success, response, error) = await _service.LoginAsync(loginRequest, mockHttpContext);
+
+        // Assert
+        success.Should().BeFalse();
+        response.Should().BeNull();
+        error.Should().Contain("Invalid email/scene name or password");
+    }
+
+    #endregion
 
     /// <summary>
     /// Verify GetCurrentUserAsync with valid user ID returns user

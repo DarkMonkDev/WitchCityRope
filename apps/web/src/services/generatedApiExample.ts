@@ -17,6 +17,7 @@ export async function loginExample(email: string, password: string): Promise<Use
   try {
     const loginRequest: LoginRequest = {
       email,
+      emailOrSceneName: email, // Can be either email or scene name
       password,
       // rememberMe: false // Not available in LoginRequest
     };

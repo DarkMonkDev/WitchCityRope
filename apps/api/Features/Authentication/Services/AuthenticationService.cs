@@ -84,12 +84,19 @@ public class AuthenticationService
     {
         try
         {
-            // Direct UserManager query for authentication
-            var user = await _userManager.FindByEmailAsync(request.Email);
+            // Try to find user by email first (most common case, indexed)
+            var user = await _userManager.FindByEmailAsync(request.EmailOrSceneName);
+
+            // If not found by email, try by scene name
             if (user == null)
             {
-                _logger.LogWarning("Login attempt with non-existent email: {Email}", request.Email);
-                return (false, null, "Invalid email or password");
+                user = await _context.Users.FirstOrDefaultAsync(u => u.SceneName == request.EmailOrSceneName, cancellationToken);
+            }
+
+            if (user == null)
+            {
+                _logger.LogWarning("Login attempt with non-existent email or scene name: {Identifier}", request.EmailOrSceneName);
+                return (false, null, "Invalid email/scene name or password");
             }
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
@@ -141,16 +148,16 @@ public class AuthenticationService
 
             if (result.IsLockedOut)
             {
-                _logger.LogWarning("Account locked out for user: {Email}", request.Email);
+                _logger.LogWarning("Account locked out for user: {Identifier}", request.EmailOrSceneName);
                 return (false, null, "Account is temporarily locked due to failed login attempts");
             }
 
-            _logger.LogWarning("Invalid login attempt for {Email}", request.Email);
-            return (false, null, "Invalid email or password");
+            _logger.LogWarning("Invalid login attempt for {Identifier}", request.EmailOrSceneName);
+            return (false, null, "Invalid email/scene name or password");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Login failed for {Email}", request.Email);
+            _logger.LogError(ex, "Login failed for {Identifier}", request.EmailOrSceneName);
             return (false, null, "Login could not be completed at this time");
         }
     }

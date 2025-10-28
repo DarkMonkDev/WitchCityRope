@@ -1,6 +1,6 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-10-24 (Test Initialization Pattern Fixed - 95.1% Passing) -->
-<!-- Version: 8.7 - Participation test initialization pattern fixed, overall 95.1% pass rate -->
+<!-- Last Updated: 2025-10-27 21:10 UTC (Login with Email or Scene Name Tests RE-EXECUTION COMPLETED) -->
+<!-- Version: 9.0 - Re-execution confirms ALL tests still blocked, claimed fixes NOT applied -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
 
@@ -42,7 +42,174 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 
 ### Current Test Status (October 2025)
 
-**Latest Updates** (2025-10-24 - TEST INITIALIZATION PATTERN FIXED - 95.1% PASSING):
+**Latest Updates** (2025-10-27 21:10 UTC - LOGIN WITH EMAIL OR SCENE NAME TESTS RE-EXECUTION COMPLETED - CRITICAL FINDINGS):
+
+- 🔴 **LOGIN WITH EMAIL OR SCENE NAME FEATURE TESTS - RE-EXECUTION CONFIRMS BLOCKERS REMAIN** (2025-10-27 21:10 UTC):
+  - **Purpose**: Comprehensive test coverage for new authentication feature allowing login with email OR scene name
+  - **Feature**: Users can now login using either email address or scene name (backend tries email first, then scene name lookup)
+  - **Test Execution Status**: 🔴 **CRITICAL - 0/27 TESTS EXECUTED - CLAIMED FIXES NOT APPLIED**
+  - **Re-Execution Results**:
+    - **Backend Unit Tests** (5 tests): ❌ **NOT RUN - Compilation blocked by NEW error**
+      - ✅ NuGet package conflict RESOLVED (9.0.6 → 9.0.10 upgrade successful)
+      - ❌ NEW BLOCKER: `PricingTiers` compilation errors in Tests.Common project
+      - Error: 'UpdateEventRequest' does not contain a definition for 'PricingTiers'
+      - Error: 'CreateEventRequest' does not contain a definition for 'PricingTiers'
+      - Location: UpdateEventRequestBuilder.cs:131, CreateEventRequestBuilder.cs:179
+      - Root cause: Architectural change (Sessions/TicketTypes migration) not propagated to test helpers
+      - **Impact**: Blocks ALL backend test compilation (not just login tests)
+      - Fix required: Remove PricingTiers references from test builder classes (5 min)
+      - Owner: backend-developer
+    - **Backend Integration Tests** (7 tests): ❌ **NOT ATTEMPTED - Blocked by unit test compilation failure**
+      - Cannot run integration tests when Tests.Common project fails to compile
+      - Tests created but never executed
+    - **E2E Tests** (15 tests): ❌ **ALL 14 FAILED - localStorage bug NOT FIXED**
+      - ✅ Tests executed (14 of 15 tests ran)
+      - ❌ ALL 14 tests failed with SAME localStorage error as before
+      - Error: "SecurityError: Failed to read localStorage - Access is denied"
+      - Root cause: clearAuthState() STILL called before page.goto() (line 84)
+      - **CRITICAL**: Claimed fix was NOT actually applied to test file
+      - Test file still has wrong code order in beforeEach hook
+      - Fix required: Move clearAuthState() after page.goto() (3 min)
+      - Owner: test-developer
+  - **Environment Health**: ✅ **100% OPERATIONAL**
+    - Docker containers: All healthy (Web: 5173, API: 5655, DB: 5434)
+    - API health: http://localhost:5655/health → 200 OK
+    - Database: 7 test users seeded
+    - No local dev server conflicts
+    - OpenAPI spec exported: 93 endpoints
+  - **Test Coverage Created** (ready to run after fixes):
+    - P1 CRITICAL: Email/scene name login paths (6 tests)
+    - P1 Validation: Empty field validation (3 tests)
+    - Edge Cases: Whitespace, case sensitivity, UI text (6 tests)
+  - **Business Impact**: ⚠️ **FEATURE FUNCTIONALITY UNKNOWN - CANNOT VERIFY**
+    - Cannot confirm email login works
+    - Cannot confirm scene name login works
+    - Cannot verify error handling
+    - Cannot test validation logic
+    - **RISK**: Feature may be deployed without verification
+  - **Critical Blockers** (2 CONFIRMED):
+    1. 🔴 PricingTiers compilation errors block ALL backend tests (backend-developer, 5 min)
+    2. 🔴 localStorage bug blocks ALL E2E tests (test-developer, 3 min)
+  - **Critical Findings from Re-Execution**:
+    - ❌ **CLAIMED FIXES NOT APPLIED**: Context said fixes were done, reality shows code unchanged
+    - ❌ **NEW REGRESSION**: PricingTiers architectural change broke test infrastructure
+    - ❌ **VERIFICATION GAP**: No one actually ran tests after claiming fixes
+    - ✅ **NuGet fix confirmed**: Package version conflict successfully resolved
+  - **Files Created**:
+    - `/tests/unit/api/Features/Auth/LoginIntegrationTests.cs` - NEW integration test file (NOT EXECUTED)
+    - `/tests/playwright/auth/login-with-scene-name.spec.ts` - NEW E2E test file (ALL FAILED)
+    - `/apps/web/tests/playwright/auth/login-with-scene-name.spec.ts` - Copied to correct location
+  - **Files Modified**:
+    - `/tests/WitchCityRope.Core.Tests/Features/Authentication/AuthenticationServiceTests.cs` - Added 5 unit tests (NOT EXECUTED)
+  - **Test Reports**:
+    - `/test-results/login-scene-name-test-execution-report-2025-10-27.md` - Initial failure analysis (from context)
+    - `/test-results/login-scene-name-final-test-execution-report-2025-10-27.md` - Re-execution comprehensive analysis
+    - `/test-results/login-scene-name-unit-tests-rerun-2025-10-27.log` - Unit test compilation failure details
+    - `/test-results/login-scene-name-e2e-tests-rerun-2025-10-27.log` - E2E localStorage failure details
+  - **Status**: 🔴 **CRITICAL - CLAIMED FIXES NOT APPLIED - AWAITING ACTUAL FIXES**
+  - **Next Actions** (UPDATED):
+    1. backend-developer: Remove PricingTiers from test builders (5 min) - **NEW BLOCKER**
+    2. test-developer: Fix E2E localStorage bug (3 min) - **STILL BROKEN**
+    3. test-executor: Re-run tests after fixes ACTUALLY applied (15 min)
+  - **Time to Resolution**: 23 minutes (8 min fixes + 15 min re-test)
+  - **catalog_updated**: true (2025-10-27 21:10 UTC - re-execution completed, blockers confirmed still present)
+
+**Previous Updates** (2025-10-27 20:45 UTC - LOGIN WITH EMAIL OR SCENE NAME TESTS EXECUTION ATTEMPTED):
+
+- 🔴 **LOGIN WITH EMAIL OR SCENE NAME FEATURE TESTS - BLOCKED** (2025-10-27 20:45 UTC):
+  - **Purpose**: Comprehensive test coverage for new authentication feature allowing login with email OR scene name
+  - **Feature**: Users can now login using either email address or scene name (backend tries email first, then scene name lookup)
+  - **Test Execution Status**: ⚠️ **BLOCKED - 0/27 TESTS EXECUTED DUE TO INFRASTRUCTURE ISSUES**
+  - **Execution Results**:
+    - **Backend Unit Tests** (5 tests): ❌ **NOT RUN - NuGet package version conflict**
+      - Error: Microsoft.Extensions.* package downgrade from 9.0.10 to 9.0.6
+      - Fix required: Update package versions in WitchCityRope.Core.Tests.csproj
+      - Estimated fix: 10 minutes (backend-developer)
+    - **Backend Integration Tests** (7 tests): ❌ **NOT RUN - 23 compilation errors**
+      - Root cause: Breaking API changes not propagated to existing tests
+      - Errors: LoginRequest.Email → EmailOrSceneName (10), logger parameters (5), other changes (8)
+      - Files affected: 8 test files need updates
+      - Estimated fix: 2-3 hours (backend-developer)
+    - **E2E Tests** (15 tests): ❌ **ALL FAILED - Test infrastructure bug**
+      - Error: "SecurityError: Failed to read localStorage - Access is denied"
+      - Root cause: clearAuthState() called before page.goto() in beforeEach hook
+      - Location: Line 84 in login-with-scene-name.spec.ts
+      - Fix required: Move clearAuthState() after page.goto()
+      - Estimated fix: 5 minutes (test-developer)
+  - **Environment Health**: ✅ **100% OPERATIONAL**
+    - Docker containers: All healthy (Web: 5173, API: 5655, DB: 5434)
+    - API health: http://localhost:5655/health → 200 OK
+    - Database: 7 test users seeded
+    - No local dev server conflicts
+  - **Test Coverage Created** (ready to run after fixes):
+    - P1 CRITICAL: Email/scene name login paths (6 tests)
+    - P1 Validation: Empty field validation (3 tests)
+    - Edge Cases: Whitespace, case sensitivity, UI text (6 tests)
+  - **Business Impact**: ⚠️ **FEATURE FUNCTIONALITY UNKNOWN - CANNOT VERIFY**
+    - Cannot confirm email login works
+    - Cannot confirm scene name login works
+    - Cannot verify error handling
+    - Cannot test validation logic
+  - **Critical Blockers** (3):
+    1. 🔴 NuGet package conflict blocks unit tests (backend-developer, 10 min)
+    2. 🔴 23 compilation errors block integration tests (backend-developer, 2-3 hours)
+    3. 🔴 localStorage bug blocks E2E tests (test-developer, 5 min)
+  - **Files Created**:
+    - `/tests/unit/api/Features/Auth/LoginIntegrationTests.cs` - NEW integration test file (NOT EXECUTED)
+    - `/tests/playwright/auth/login-with-scene-name.spec.ts` - NEW E2E test file (BLOCKED)
+    - `/apps/web/tests/playwright/auth/login-with-scene-name.spec.ts` - Copied to correct location
+  - **Files Modified**:
+    - `/tests/WitchCityRope.Core.Tests/Features/Authentication/AuthenticationServiceTests.cs` - Added 5 unit tests (NOT EXECUTED)
+  - **Test Reports**:
+    - `/test-results/login-scene-name-test-execution-report-2025-10-27.md` - Comprehensive failure analysis
+    - `/test-results/login-scene-name-integration-tests.log` - Compilation error details
+    - `/test-results/login-scene-name-e2e-tests.log` - E2E infrastructure failures
+  - **Status**: 🔴 **BLOCKED - AWAITING FIXES FROM test-developer AND backend-developer**
+  - **Next Actions**:
+    1. test-developer: Fix E2E localStorage bug (5 min)
+    2. backend-developer: Fix package versions (10 min) + update tests (2-3 hours)
+    3. test-executor: Re-run tests after fixes applied
+  - **catalog_updated**: true (2025-10-27 20:45 UTC - execution attempted, blockers identified)
+
+**Previous Updates** (2025-10-27 20:41 UTC - LOGIN WITH EMAIL OR SCENE NAME TESTS CREATED):
+
+- ✅ **LOGIN WITH EMAIL OR SCENE NAME FEATURE TESTS CREATED** (2025-10-27 20:41 UTC):
+  - **Purpose**: Comprehensive test coverage for new authentication feature allowing login with email OR scene name
+  - **Feature**: Users can now login using either email address or scene name (backend tries email first, then scene name lookup)
+  - **Test Coverage Created**:
+    - **Backend Unit Tests** (5 new tests): `/tests/WitchCityRope.Core.Tests/Features/Authentication/AuthenticationServiceTests.cs`
+      - ✅ `LoginAsync_WithValidEmail_ShouldSucceed` - Email lookup path validation
+      - ✅ `LoginAsync_WithValidSceneName_ShouldSucceed` - Scene name fallback lookup validation
+      - ✅ `LoginAsync_WithInvalidEmailOrSceneName_ShouldFail` - Generic error message (security)
+      - ✅ `LoginAsync_WithValidEmailButWrongPassword_ShouldFail` - Password validation with email
+      - ✅ `LoginAsync_WithValidSceneNameButWrongPassword_ShouldFail` - Password validation with scene name
+    - **Backend Integration Tests** (7 new tests): `/tests/unit/api/Features/Auth/LoginIntegrationTests.cs` (NEW FILE)
+      - ✅ `LoginEndpoint_WithValidEmail_Returns200AndAuthCookie` - HTTP endpoint with email
+      - ✅ `LoginEndpoint_WithValidSceneName_Returns200AndAuthCookie` - HTTP endpoint with scene name
+      - ✅ `LoginEndpoint_WithInvalidCredentials_Returns401` - Invalid identifier rejection
+      - ✅ `LoginEndpoint_WithValidEmailButWrongPassword_Returns401` - Password validation
+      - ✅ `LoginEndpoint_WithValidSceneNameButWrongPassword_Returns401` - Password validation
+      - ✅ `LoginEndpoint_WithEmptyEmailOrSceneName_Returns400` - Required field validation
+      - ✅ `LoginEndpoint_WithEmptyPassword_Returns400` - Required field validation
+    - **E2E Tests** (15 new tests): `/tests/playwright/auth/login-with-scene-name.spec.ts` (NEW FILE)
+      - ✅ Email Login Path (2 tests): Valid email login, wrong password error
+      - ✅ Scene Name Login Path (2 tests): Valid scene name login, wrong password error
+      - ✅ Error Handling (2 tests): Invalid email/scene name, non-existent scene name
+      - ✅ Validation (3 tests): Empty email/scene name, empty password, both empty
+      - ✅ Edge Cases (6 tests): Whitespace handling, case sensitivity, placeholder text, helper text
+  - **Total New Tests**: 27 comprehensive tests across all layers
+  - **Backend Changes Updated**: LoginRequest.EmailOrSceneName field, AuthenticationService dual lookup logic
+  - **Frontend Changes Updated**: LoginPage.tsx with emailOrSceneName input and validation
+  - **Test Execution**: NOT RUN YET - Awaiting test-executor agent
+  - **Files Created**:
+    - `/tests/unit/api/Features/Auth/LoginIntegrationTests.cs` - NEW integration test file
+    - `/tests/playwright/auth/login-with-scene-name.spec.ts` - NEW E2E test file
+  - **Files Modified**:
+    - `/tests/WitchCityRope.Core.Tests/Features/Authentication/AuthenticationServiceTests.cs` - Added 5 unit tests + updated 3 existing
+  - **Status**: ✅ **ALL TESTS CREATED - READY FOR EXECUTION**
+  - **catalog_updated**: true (2025-10-27 20:41 UTC)
+
+**Previous Updates** (2025-10-24 - TEST INITIALIZATION PATTERN FIXED - 95.1% PASSING):
 
 - ✅ **PARTICIPATION TEST INITIALIZATION PATTERN FIXED** (2025-10-24):
   - **Purpose**: Fix NullReferenceException in Participation tests caused by service initialization in constructor
@@ -86,365 +253,59 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
   - **Status**: ⚠️ **INFRASTRUCTURE FIX COMPLETE - BUSINESS LOGIC ISSUES REMAIN**
   - **catalog_updated**: true (2025-10-24 21:30 UTC)
 
-**Previous Updates** (2025-10-24 - PARTICIPATION TESTS AFTER ASNOTRACKING FIX - ROOT CAUSE IDENTIFIED):
-
-- ⚠️ **PARTICIPATION TESTS AFTER ASNOTRACKING() FIX - STILL FAILING** (2025-10-24):
-  - **Purpose**: Verify that removing `.AsNoTracking()` from ParticipationService user queries resolved NullReferenceException issues
-  - **Overall Status**: ⚠️ **68.8% PASS RATE - 22/32 PASSING** (10 tests still failing with NullReferenceException)
-  - **Test Execution Summary**:
-    - Total tests: 32 tests (Participation + related tests)
-    - Passing: 22 (68.8%)
-    - Failing: 10 (31.3%)
-    - Duration: 26.1 seconds
-  - **Fix Applied**: ✅ `.AsNoTracking()` removed from lines 168 and 329 in ParticipationService.cs
-  - **Result**: ❌ **FIX INSUFFICIENT - NullReferenceException STILL OCCURRING**
-  - **Root Cause Identified**: The real issue is NOT `.AsNoTracking()` but accessing `ApplicationUser.IsVetted` property
-  - **Technical Analysis**:
-    - `ApplicationUser.IsVetted` is a `[NotMapped]` computed property: `VettingStatus == 3`
-    - Entity Framework cannot properly materialize `[NotMapped]` properties in queries
-    - Line 179 accesses `user.IsVetted` which causes NullReferenceException
-    - Stack trace points to line 168 because exception occurs during entity materialization
-  - **Failing Tests** (10):
-    - **ParticipationServiceDiagnosticTest** (1 test):
-      - ❌ `Diagnostic_CreateRSVP_WithValidUser_ShowsActualError` - NullReferenceException at line 168
-    - **ParticipationServiceTests** (7 tests):
-      - ❌ `CreateRSVPAsync_WithValidVettedUser_CreatesRSVPSuccessfully`
-      - ❌ `CreateRSVPAsync_WithNonVettedUser_ReturnsFailure`
-      - ❌ `CreateRSVPAsync_ForClassEvent_ReturnsFailure`
-      - ❌ `CreateRSVPAsync_ForFullEvent_ReturnsFailure`
-      - ❌ `CancelParticipationAsync_WithActiveParticipation_CancelsSuccessfully`
-      - ❌ `GetUserParticipationsAsync_WithMultipleParticipations_ReturnsAllParticipations`
-      - ❌ `GetParticipationStatusAsync_WithNoParticipation_ReturnsNull`
-    - **ParticipationServiceTests_Extended** (2 tests):
-      - ❌ `CreateTicketPurchaseAsync_WithValidAuthenticatedUser_CreatesTicketSuccessfully`
-      - ❌ `CreateTicketPurchaseAsync_AfterCancelledTicket_FailsDueToUniqueConstraint`
-  - **Passing Tests** (22):
-    - ✅ ParticipationServiceTests_Extended: 12 tests (ticket purchases, cancellations, validations)
-    - ✅ VolunteerServiceTests: 3 tests (auto-RSVP, duplicate prevention)
-    - ✅ MemberDetailsServiceBusinessLogicTests: 7 tests (participation filtering, history mapping)
-  - **CORRECT FIX REQUIRED** (Backend Developer):
-    - **Option 1 (Recommended)**: Replace `user.IsVetted` with `user.VettingStatus == 3` at lines 179, 340
-    - **Option 2**: Use projection to safely map IsVetted before accessing
-    - **Option 3**: Create database computed column for IsVetted (architecture change)
-  - **Business Impact**:
-    - ❌ **Users cannot RSVP for events** - CRITICAL BLOCKER
-    - ❌ **Users cannot purchase tickets** - CRITICAL BLOCKER
-    - ❌ **Vetting validation broken** - SECURITY RISK
-    - ❌ **Event capacity checks failing** - BUSINESS RULE VIOLATION
-  - **Detailed Report**: `/test-results/participation-tests-after-asnotracking-fix-2025-10-24-ANALYSIS.md`
-  - **Test Log**: `/test-results/participation-tests-after-asnotracking-fix-2025-10-24.log`
-  - **Status**: ⚠️ **ROOT CAUSE IDENTIFIED - BACKEND DEVELOPER FIX REQUIRED**
-  - **catalog_updated**: true (2025-10-24 05:12 UTC)
-
-**Previous Updates** (2025-10-24 - PARTICIPATION DIAGNOSTIC TEST ENHANCED):
-
-- 🔍 **PARTICIPATION DIAGNOSTIC TEST ENHANCED WITH CONSOLE OUTPUT** (2025-10-24):
-  - **Purpose**: Add Console.WriteLine statements to capture debugging information even when ILogger is mocked
-  - **Test File**: `/tests/unit/api/Features/Participation/ParticipationServiceDiagnosticTest.cs`
-  - **Changes Made**:
-    - Added Console.WriteLine before CreateRSVPAsync call with request parameters
-    - Added Console.WriteLine after CreateRSVPAsync call with result status
-    - Added Console.WriteLine for full exception details on failure
-    - Added FAILURE ANALYSIS block with user vetting status and event type
-  - **Why This Matters**: ILogger is mocked, so standard logging doesn't appear in test output
-  - **Console.WriteLine Advantage**: Appears in xUnit test output regardless of mocking
-  - **Status**: ✅ **ENHANCED FOR DEBUGGING**
-  - **catalog_updated**: true
-
-**Previous Updates** (2025-10-23 - SEEDDATASERVICE INTEGRATION TEST CONVERSION):
-
-- 🔄 **SEEDDATASERVICE CONVERTED TO INTEGRATION TESTS** (2025-10-23):
-  - **Purpose**: Convert 17 failing unit tests to integration tests with TestContainers
-  - **Overall Status**: ⚠️ **75% PASS RATE - 12/16 PASSING** (was 0/17 with mocks)
-  - **Test File**: `/tests/unit/api/Services/SeedDataServiceTests.cs`
-  - **Test Conversion**:
-    - Total tests: 16 (1 skipped as obsolete)
-    - Passing: 12 tests (75%)
-    - Failing: 3 tests (19% - assertion adjustments needed)
-    - Skipped: 1 test (6% - private method test)
-  - **Technical Approach**:
-    - **Before**: Moq mocks with complex `IAsyncQueryProvider` setup (100% failure rate)
-    - **After**: Real PostgreSQL via TestContainers (postgres:16-alpine)
-    - Real UserManager with NSubstitute partial mocks
-    - Real RoleManager for identity operations
-    - Real database queries (no more async query provider issues)
-  - **Key Improvements**:
-    - Eliminated complex `IAsyncQueryProvider` mocking
-    - Tests now validate actual database behavior
-    - Unique test data with GUIDs prevents conflicts
-    - Proper transaction rollback testing
-    - Real Identity framework integration
-  - **Passing Tests** (12):
-    1. ✅ `IsSeedDataRequiredAsync_WithEmptyDatabase_ReturnsTrue`
-    2. ✅ `IsSeedDataRequiredAsync_WithNoUsers_ReturnsTrue`
-    3. ✅ `IsSeedDataRequiredAsync_WithNoEvents_ReturnsTrue`
-    4. ✅ `SeedUsersAsync_WithNoExistingUsers_CreatesAllTestAccounts`
-    5. ✅ `SeedUsersAsync_WithExistingUsers_SkipsExistingAccounts`
-    6. ✅ `SeedUsersAsync_CreatesUsersWithCorrectProperties`
-    7. ✅ `SeedUsersAsync_WithUserCreationFailure_ThrowsException`
-    8. ✅ `SeedEventsAsync_WithNoExistingEvents_CreatesAllSampleEvents`
-    9. ✅ `SeedEventsAsync_WithExistingEvents_SkipsCreation`
-    10. ✅ `SeedVettingStatusesAsync_CompletesSuccessfully`
-    11. ✅ `SeedAllDataAsync_WithException_RollsBackTransactionAndRethrows`
-    12. ✅ `SeedAllDataAsync_WithCancellation_StopsGracefully`
-  - **Remaining Failures** (3 - assertion adjustments only):
-    1. ❌ `IsSeedDataRequiredAsync_WithExistingEvents_ReturnsFalse` - Need to verify all 5 data types seeded
-    2. ❌ `IsSeedDataRequiredAsync_WithBothUsersAndEvents_ReturnsFalse` - Same issue
-    3. ❌ `SeedEventsAsync_CreatesEventsWithCorrectProperties` - Event count and property assertions
-  - **Net Impact**: +12 passing tests (from 0 to 12)
-  - **Test Suite Impact**: Overall pass rate improved from 84.9% (377/444) to 87.6% (389/444)
-  - **Duration**: ~28 seconds for full test suite
-  - **Backup Created**: `SeedDataServiceTests.cs.backup-before-integration-conversion`
-  - **Documentation**: `/test-results/seeddata-integration-conversion-summary.md`
-  - **Status**: ✅ **MAJOR IMPROVEMENT - 75% PASSING vs 0% BEFORE**
-  - **Next Steps**: Fix remaining 3 assertion issues (30 min estimated)
-  - **catalog_updated**: true
-
-**Previous Updates** (2025-10-23 - PHASE 3 MEMBERDETAILS BUSINESS LOGIC TESTS COMPLETE):
-
-- ✅ **PHASE 3: MEMBERDETAILS BUSINESS LOGIC TESTS - 100% COMPLETE** (2025-10-23 23:59 UTC):
-  - **Purpose**: Business logic validation for MemberDetailsService complementing Phase 1 security tests
-  - **Overall Status**: ✅ **100% PASS RATE - 25/25 TESTS PASSING** ✅
-  - **Test File**: `/tests/unit/api/Features/Users/MemberDetailsServiceBusinessLogicTests.cs`
-  - **Test Count**: 25 comprehensive business logic tests (complements 25 existing security tests)
-  - **Test Coverage**:
-    - ✅ **Participation Statistics**: Calculates active/total counts, filters past events, handles new users (3 tests)
-    - ✅ **Vetting Status Mapping**: Maps 8 vetting status enum values to display strings (2 tests)
-    - ✅ **Event History Assembly**: Chronological ordering, pagination with 25+ events (2 tests)
-    - ✅ **Participation Type Mapping**: RSVP vs Ticket types, 4 participation statuses (2 tests)
-    - ✅ **Note Management**: Validates note types, creates audit notes on status changes (2 tests)
-    - ✅ **Empty Data Handling**: No vetting application, no incidents (2 tests)
-    - ✅ **Edge Cases**: Partial user data, metadata JSON parsing (2 tests)
-  - **Technical Approach**:
-    - Real PostgreSQL via TestContainers (postgres:16-alpine)
-    - Real Entity Framework Core operations
-    - Proper database constraint handling (CancelledAt for Cancelled/Refunded status)
-    - Helper methods for test data creation
-  - **Key Patterns Implemented**:
-    - Server-side projection calculations (participation counts at database level)
-    - Proper UTC DateTime handling for past event filtering
-    - Database constraint compliance (CancelledAt must be set for certain statuses)
-    - Metadata JSON parsing for payment amounts
-  - **Database Constraints Fixed**:
-    - EventParticipations table constraint: CancelledAt required when status is Cancelled/Refunded
-    - Test helper now sets CancelledAt and CancellationReason appropriately
-  - **Combined MemberDetails Coverage**:
-    - Total tests: 50 (25 security + 25 business logic)
-    - Security validation: Complete (Phase 1)
-    - Business logic validation: Complete (Phase 3)
-    - Coverage: Comprehensive for production deployment
-  - **Environment**: TestContainers with PostgreSQL 16-alpine
-  - **Duration**: ~59 seconds for full test suite
-  - **Status**: ✅ **PRODUCTION READY - ALL MEMBERDETAILS BUSINESS LOGIC VALIDATED**
-  - **catalog_updated**: true
-
-**Previous Updates** (2025-10-23 - C# BACKEND UNIT TEST FAILURES ANALYZED):
-
-- 🔍 **C# BACKEND UNIT TESTS FAILURE ANALYSIS COMPLETE** (2025-10-23):
-  - **Purpose**: Systematic categorization of 52 failing backend API unit tests for prioritized fixing
-  - **Overall Status**: ⚠️ **84.9% PASS RATE - 377/444 PASSING** (52 failures analyzed and categorized)
-  - **Test Execution Summary**:
-    - Total tests: 444 tests
-    - Passing: 377 (84.9%)
-    - Failing: 52 (11.7%)
-    - Skipped: 15 (3.4%)
-    - Duration: 6.6 minutes
-  - **Failure Categories** (by root cause):
-    - 🔴 **Database Mocking Issues**: 28 tests (53.8%) - Incorrect `IAsyncQueryProvider` setup
-    - 🔴 **Test Data Setup Issues**: 15 tests (28.8%) - Missing email templates, vetting status seeds
-    - 🔴 **Business Logic Gaps**: 9 tests (17.3%) - RSVP validation missing, wrong error messages
-    - 🟡 **Dashboard Query Issues**: 3 tests (5.8%) - Empty result sets from event queries
-    - 🟢 **Minor Assertion Issues**: 1 test (1.9%) - PayPal amount comparison needs property access
-  - **Impact by Feature Area**:
-    - 🔴 **BLOCKER - Vetting Email Service**: 13 tests (P1) - Critical communication pathway
-    - 🔴 **HIGH - Participation/RSVP**: 9 tests (P1) - Core user experience broken
-    - 🔴 **HIGH - Vetting Logic**: 2 tests (P1) - Wrong status assignments
-    - 🟡 **MEDIUM - SeedDataService**: 17 tests (P2) - Development tooling
-    - 🟡 **MEDIUM - Dashboard Service**: 3 tests (P2) - User event display
-    - 🟡 **MEDIUM - Health Checks**: 8 tests (P2-P3) - Infrastructure monitoring
-    - 🟢 **LOW - PayPal Mock**: 1 test (P3) - Test assertion fix
-  - **Prioritized Fix Plan**:
-    - **Phase 1 (P1 - Week 1)**: 24 tests - Launch blockers - 8.3 hours estimated
-      - Vetting Email Service (13 tests - 4h) - Add template seeds
-      - Participation Service (9 tests - 3.5h) - Add validation logic
-      - Vetting Service Logic (2 tests - 50m) - Fix status state machine
-    - **Phase 2 (P2 - Week 2)**: 23 tests - Infrastructure - 7 hours estimated
-      - SeedDataService (17 tests - 5.5h) - Fix async mocking or convert to integration tests
-      - Dashboard Service (3 tests - 1h) - Fix test data and queries
-      - DB Health Checks (3 tests - 30m) - Fix exception reflection
-    - **Phase 3 (P3 - Week 3)**: 6 tests - Edge cases - 2.17 hours estimated
-      - DB Init Service (5 tests - 2h) - Concurrency and timeout handling
-      - PayPal Assertion (1 test - 10m) - Property comparison fix
-  - **Expected Progress**:
-    - After Phase 1: 401/444 passing (90.3%) ✅ **LAUNCH READY**
-    - After Phase 2: 421/444 passing (94.8%)
-    - After Phase 3: 427/444 passing (96.2%) 🎯 **PRODUCTION READY**
-  - **Launch Readiness**: ⚠️ **YELLOW - CRITICAL FIXES NEEDED**
-    - **Must Fix**: Vetting email notifications, RSVP validation (24 tests - Week 1)
-    - **Should Fix**: Seed data service, dashboard queries (23 tests - Week 2)
-    - **Nice to Have**: Health check edge cases (6 tests - Week 3)
-  - **Total Estimated Effort**: 17.5 hours across 3 weeks
-  - **Report**: `/test-results/failing-tests-analysis-2025-10-23.md` (comprehensive 700+ line report)
-  - **Next Steps**:
-    - ✅ **COMPLETED**: Analysis and categorization of all 52 failures
-    - 🔄 **REQUIRED**: Delegate Phase 1 fixes to backend-developer (vetting, participation, RSVP)
-    - 📊 **TRACKING**: Update TEST_CATALOG after each phase completion
-  - **catalog_updated**: true (2025-10-23 comprehensive failure analysis complete)
-
-**Previous Updates** (2025-10-23 - PHASE 2 EVENTS/VOLUNTEERS/CHECKIN INTEGRATION TESTS CREATED):
-
-- 🎉 **PHASE 2: EVENTS, VOLUNTEERS, AND CHECK-IN INTEGRATION TESTS - 93.1% PASS RATE** (2025-10-23 UPDATE):
-  - **Purpose**: Comprehensive integration tests for core business logic using TestContainers pattern
-  - **Overall Status**: ⚠️ **93.1% PASS RATE - 54/58 TESTS PASSING** (Excellent progress, 4 tests blocked by service bug)
-  - **Test Files Status**:
-    - `/tests/unit/api/Features/Events/EventServiceTests.cs` - 22 tests - ✅ **100% PASSING** (22/22) ✅
-    - `/tests/unit/api/Features/Volunteers/VolunteerServiceTests.cs` - 17 tests - ✅ **100% PASSING** (17/17) ✅ **(FIXED)**
-    - `/tests/unit/api/Features/CheckIn/CheckInServiceTests.cs` - 19 tests - ⚠️ **78.9% PASSING** (15/19) **(BLOCKED - Service Bug)**
-  - **Test Coverage Areas**:
-    - ✅ Events: CRUD operations, capacity enforcement, date validation, authorization (COMPLETE)
-    - ✅ Volunteers: Signup, auto-RSVP, capacity management, check-in integration (COMPLETE - ALL FIXED)
-    - ⚠️ CheckIn: Attendee check-in, capacity enforcement, waiver validation, audit trails (BLOCKED by service bug)
-  - **Technical Approach**:
-    - Real PostgreSQL via TestContainers (postgres:16-alpine)
-    - Real Entity Framework Core operations (no database mocks)
-    - Real business logic validation (capacity, dates, permissions)
-    - Database isolation per test class with cleanup
-  - **Key Patterns Implemented**:
-    - Helper methods for test data creation
-    - Proper user/event setup for foreign key constraints
-    - Social event type for RSVP counting
-    - Comprehensive edge case coverage
-  - **Volunteer Tests - FIXED ✅**:
-    - **Problem**: Foreign key constraint violations - tests created VolunteerSignup records with non-existent UserIds
-    - **Solution**: Added CreateTestUser() helper to create ApplicationUser records before signups
-    - **Result**: 17/17 tests now passing (100%)
-    - **Files Modified**: `/tests/unit/api/Features/Volunteers/VolunteerServiceTests.cs`
-  - **CheckIn Tests - BLOCKED BY SERVICE BUG ⚠️**:
-    - **Problem**: CheckInService.GetEventCapacityAsync() has incorrect LINQ query for CheckedInCount
-    - **Location**: `/apps/api/Features/CheckIn/Services/CheckInService.cs` line ~214
-    - **Bug**: Uses `e.Sessions.SelectMany(s => s.TicketTypes).SelectMany(tt => tt.Purchases).Count(...)` instead of `_context.CheckIns.Count(c => c.EventId == eventId)`
-    - **Impact**: CheckedInCount always returns 0 in tests (no Sessions/TicketTypes created)
-    - **Failing Tests**: 4/19 tests blocked (GetEventDashboardAsync_ReturnsComprehensiveData, GetCheckInCountAsync_ReturnsAccurateCount, ManualCheckInAsync_ByAdmin_CreatesAuditLog, CheckIn_CachesCapacityInformation)
-    - **Fix Required**: Backend-developer must fix service method
-    - **Estimated Fix Time**: 15-30 minutes
-  - **Status**: ⚠️ **93.1% PASSING - 4 TESTS BLOCKED BY SERVICE BUG**
-  - **Reports**:
-    - Diagnosis: `/test-results/phase2-test-diagnosis-2025-10-23.md`
-    - Final Results: `/test-results/phase2-final-results-2025-10-23.md`
-  - **Next Steps**:
-    - ❌ **BLOCKED**: test-executor cannot fix service code
-    - ✅ **COMPLETED**: Volunteer test fixes (17/17 passing)
-    - 🔄 **REQUIRED**: Backend-developer fixes CheckInService.GetEventCapacityAsync()
-    - 📊 **READY FOR RE-TEST**: After service fix, expect 58/58 passing (100%)
-  - **catalog_updated**: true (2025-10-23 Phase 2 test execution complete)
-
-**Previous Updates** (2025-10-23 - PHASE 1 AUTH/SECURITY UNIT TESTS 100% COMPLETE):
-
-- ✅ **PHASE 1: AUTHENTICATION & SECURITY UNIT TESTS - 100% COMPLETE** (2025-10-23 20:46 UTC):
-  - **Purpose**: Unit-level security validation for AuthenticationService with comprehensive OWASP coverage
-  - **Overall Status**: ✅ **100% PASS RATE - 27/27 TESTS PASSING** ✅
-  - **Test File**: `/tests/unit/api/Features/Auth/AuthenticationServiceTests.cs`
-  - **Test Count**: 27 comprehensive unit tests
-  - **Test Coverage**:
-    - ✅ **Login Tests**: Valid credentials, invalid email, invalid password, locked account, inactive user (6 tests)
-    - ✅ **Return URL Validation**: Valid local URLs, malicious external URLs (2 tests)
-    - ✅ **Registration Tests**: Valid data, duplicate email/scene name, weak password, invalid email (5 tests)
-    - ✅ **User Retrieval**: Valid user ID, invalid user ID (2 tests)
-    - ✅ **Service Tokens**: Valid credentials, mismatched email, unconfirmed email (3 tests)
-    - ✅ **Security Tests (OWASP)**: SQL injection, XSS, malicious input handling (4 tests)
-    - ✅ **Password Security**: Password hashing verification (1 test)
-    - ✅ **Role Assignment**: Default member role assignment (1 test)
-    - ✅ **Additional Security**: Deleted user, case-insensitive email (3 tests)
-  - **Technical Approach**:
-    - Real PostgreSQL via TestContainers (no mocks for database)
-    - Real ASP.NET Core Identity components (UserManager, SignInManager)
-    - Real JWT token generation and validation
-    - Real ReturnUrlValidator (not mocked - uses actual validation logic)
-    - NSubstitute for service dependencies only
-  - **Key Fixes Applied**:
-    - Fixed async mocking with Task.FromResult() wrappers
-    - UserManager.CreateAsync now saves to real database
-    - ReturnUrlValidator uses REAL instance (not mocked) for accurate validation
-  - **Environment**: TestContainers with PostgreSQL 16-alpine
-  - **Duration**: ~51 seconds for full test suite
-  - **Status**: ✅ **PRODUCTION READY - ALL AUTHENTICATION SECURITY PATHS VALIDATED**
-  - **Fixes**: 2 return URL validation tests fixed by removing invalid mock setups
-  - **catalog_updated**: true
-
-**Previous Updates** (2025-10-23 23:29 UTC - E2E BASELINE ASSESSMENT COMPLETE):
-
-- ✅ **E2E TEST BASELINE ASSESSMENT COMPLETE** (2025-10-23 23:29 UTC):
-  - **Purpose**: Establish current E2E test suite status for Phase 3 stabilization planning
-  - **Overall Status**: ⚠️ **70.3% PASS RATE - STABLE BUT NEEDS FIXES BEFORE LAUNCH**
-  - **Test Execution Summary**:
-    - Total tests: 425 tests across 93 test files
-    - Passing: 299 (70.3%)
-    - Failing: 75 (17.6%)
-    - Skipped: 51 (12.0%)
-    - Flaky: 0 (0%) ✅ **EXCELLENT**
-    - Duration: 4.4 minutes (262 seconds)
-  - **Critical Findings**:
-    - ✅ **ZERO authentication failures** - Login system fully operational
-    - ✅ **ZERO flaky tests** - High reliability and consistency
-    - ✅ **Core workflows operational** - Users can register, login, browse events, RSVP
-    - ⚠️ **6 failing test files** - Specific issues with vetting admin UI and console errors
-    - ⚠️ **51 skipped tests** - Need review for launch readiness
-  - **Failure Categories**:
-    - Navigation timeouts: 2 tests (vetting detail navigation)
-    - Element not found: 2 tests (vetting data setup issues)
-    - Console errors: 1 test (application generates 3 unexpected errors)
-    - Deprecated API: 1 test (archived diagnostic test)
-  - **Environment Health**: ✅ **100% HEALTHY**
-    - Docker containers: All operational (Web: 5173, API: 5655, DB: 5434)
-    - API health: Responding correctly
-    - Database: 7 test users seeded
-    - No local dev server conflicts
-  - **Launch Readiness**: ⚠️ **YELLOW - 70% READY**
-    - Must fix: Console errors, vetting navigation (high priority)
-    - Should fix: Vetting test data setup, skipped test review (medium priority)
-    - Core functionality: ✅ **OPERATIONAL**
-  - **Report**: `/test-results/e2e-baseline-2025-10-23.md` (comprehensive 347-line analysis)
-  - **Status**: ⚠️ **BASELINE ESTABLISHED - SYSTEMATIC FIXES REQUIRED**
-  - **catalog_updated**: true
-
 ---
 
 ### Test Categories
 
 #### E2E Tests (Playwright) - BASELINE COMPLETE ✅
 **Location**: `/apps/web/tests/playwright/`
-**Count**: 89 spec files (83 in root, 6 in subdirectories)
-**Total Tests**: 425 test cases
-**Status**: ⚠️ **70.3% PASS RATE - STABLE, NEEDS SYSTEMATIC FIXES**
+**Count**: 89 spec files (83 in root, 6 in subdirectories) + 1 NEW (login-with-scene-name.spec.ts)
+**Total Tests**: 425 test cases + 15 NEW (login with email/scene name)
+**Status**: ⚠️ **70.3% PASS RATE - STABLE, NEEDS SYSTEMATIC FIXES** + NEW TESTS BLOCKED
 
-**Pass Rate Details** (2025-10-23 Baseline):
+**Pass Rate Details** (2025-10-23 Baseline - excludes new login tests):
 - **Passing**: 299 tests (70.3%)
 - **Failing**: 75 tests (17.6%)
 - **Skipped**: 51 tests (12.0%)
 - **Flaky**: 0 tests (0%) ✅
 
+**Login Feature Tests** (2025-10-27 NEW - BLOCKED):
+- **Created**: 15 tests
+- **Executed**: 14 tests (1 not executed)
+- **Passing**: 0 tests (0%)
+- **Failing**: 14 tests (100%)
+- **Blocker**: localStorage bug in beforeEach hook (clearAuthState called before page.goto)
+
 **Key Strengths**:
-- ✅ Authentication system: 100% operational (zero auth failures)
+- ✅ Authentication system: 100% operational (zero auth failures in baseline tests)
 - ✅ Test reliability: Zero flaky tests detected
 - ✅ Environment stability: Docker containers healthy
 - ✅ Core user workflows: Login, events, RSVP, profile all working
 
-**Known Issues** (6 failing test files):
+**Known Issues** (6 failing test files from baseline + 1 NEW):
 1. `console-error-check.spec.ts` - Application generates 3 console errors (HIGH PRIORITY)
 2. `vetting-notes-display.spec.ts` - Test data setup issue (MEDIUM)
 3. `vetting-notes-direct.spec.ts` - Element visibility issue (MEDIUM)
 4. `test-dom-check.spec.ts` - Navigation timeout (LOW)
 5. `test-with-reload.spec.ts` - Navigation timeout (LOW)
 6. `_archived/diagnostic-tests/page-load-diagnostic.spec.ts` - Deprecated API (LOW)
+7. **NEW**: `login-with-scene-name.spec.ts` - localStorage access error (HIGH PRIORITY - blocks new feature)
 
 **Detailed Report**: `/test-results/e2e-baseline-2025-10-23.md`
+**New Feature Report**: `/test-results/login-scene-name-final-test-execution-report-2025-10-27.md`
 
 #### Unit Tests (C# Backend) - PARTICIPATION TESTS STILL FAILING ⚠️
 **Location**: `/tests/unit/api/`
-**Count**: 476 tests total (399 passing, 62 failing, 15 skipped)
+**Count**: 476 tests total (399 passing, 62 failing, 15 skipped) + 5 NEW (login with email/scene name - NOT EXECUTED)
 **Status**: ⚠️ **83.8% PASS RATE - PARTICIPATION TESTS NEED FIX** (2025-10-24)
 **Pass Rate**: 399/476 (83.8%)
 **Latest Execution**: Participation tests after AsNoTracking() fix (2025-10-24)
+
+**NEW TESTS** (2025-10-27 - NOT EXECUTED):
+- **Created**: 5 new AuthenticationService unit tests for email/scene name login
+- **Status**: ❌ **COMPILATION BLOCKED** - PricingTiers errors in Tests.Common project
+- **Blocker**: Architectural change not propagated to test helper classes
+- **Impact**: Blocks ALL backend test compilation (not just new tests)
 
 **Participation Test Results** (2025-10-24):
 - **Total Participation Tests**: 32
@@ -464,20 +325,27 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 2. 🔴 Vetting Email Service (13 tests) - No email notifications sent to users
 3. 🔴 Participation/RSVP Service (9 tests - original analysis) - Broken event registration
 4. 🔴 Vetting Status Logic (2 tests) - Wrong status assignments
+5. 🔴 **NEW**: Test Compilation (ALL tests) - PricingTiers architectural change broke test builders
 
-**Estimated Fix Time**: 18 hours total (Participation: 30 min, Others: 17.5 hours)
+**Estimated Fix Time**: 18 hours total (Participation: 30 min, PricingTiers: 5 min, Others: 17.5 hours)
 **Detailed Analysis**: `/test-results/failing-tests-analysis-2025-10-23.md`
 **Participation Analysis**: `/test-results/participation-tests-after-asnotracking-fix-2025-10-24-ANALYSIS.md`
+**Login Tests**: Not executed yet
+
+#### Integration Tests
+**Location**: `/tests/integration/`
+**Status**: Real PostgreSQL with TestContainers + 7 NEW (login with email/scene name - NOT EXECUTED)
+
+**NEW TESTS** (2025-10-27 - NOT EXECUTED):
+- **Created**: 7 new integration tests for login HTTP endpoints
+- **Status**: ❌ **NOT ATTEMPTED** - Blocked by unit test compilation failure
+- **File**: `/tests/unit/api/Features/Auth/LoginIntegrationTests.cs` (NEW)
 
 #### Unit Tests (React)
 **Location**: `/apps/web/src/features/*/components/__tests__/` and `/apps/web/src/pages/__tests__/`
 **Count**: 20+ test files (updated with incident reporting)
 **Framework**: Vitest + React Testing Library
 **Status**: ❌ **COMPILATION BLOCKED** (2025-10-20 - TypeScript errors)
-
-#### Integration Tests
-**Location**: `/tests/integration/`
-**Status**: Real PostgreSQL with TestContainers
 
 #### CMS Pages (Database + API Verification)
 **Location**: `/apps/api/Features/Cms/`
@@ -501,6 +369,8 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 - **Timeout Config**: `/apps/web/docs/testing/TIMEOUT_CONFIGURATION.md`
 
 ### Recent Test Reports
+- **Login Scene Name Final Report**: `/test-results/login-scene-name-final-test-execution-report-2025-10-27.md` 🔴 **RE-EXECUTION CONFIRMS BLOCKERS** (2025-10-27 21:10 UTC)
+- **Login Scene Name Initial**: `/test-results/login-scene-name-test-execution-report-2025-10-27.md` 🔴 **BLOCKED** (2025-10-27 20:45 UTC)
 - **Participation After Fix**: `/test-results/participation-tests-after-asnotracking-fix-2025-10-24-ANALYSIS.md` ⚠️ **ROOT CAUSE IDENTIFIED** (2025-10-24)
 - **Backend Failure Analysis**: `/test-results/failing-tests-analysis-2025-10-23.md` ⚠️ **52 FAILURES CATEGORIZED** (2025-10-23)
 - **E2E Baseline**: `/test-results/e2e-baseline-2025-10-23.md` ⚠️ **70.3% PASS RATE** (2025-10-23 23:29)
@@ -512,80 +382,106 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 ## 🚀 Running Tests
 
 ### Unit Tests (C# Backend)
-**STATUS**: ⚠️ **83.8% PASSING** - Participation tests need [NotMapped] property fix
+**STATUS**: ⚠️ **COMPILATION BLOCKED** - PricingTiers errors in Tests.Common
 
 ```bash
-# Run all unit tests
+# Cannot run until PricingTiers errors fixed
 dotnet test tests/unit/api/WitchCityRope.Api.Tests.csproj
 
-# Run Participation tests specifically
-dotnet test tests/unit/api/WitchCityRope.Api.Tests.csproj --filter "FullyQualifiedName~Participation"
+# Error:
+# 'UpdateEventRequest' does not contain a definition for 'PricingTiers'
+# 'CreateEventRequest' does not contain a definition for 'PricingTiers'
 
-# Latest Results (2025-10-24):
-# Total: 476 tests
-# Passed: 399 (83.8%)
-# Failed: 62 (13.0%) - Includes 10 Participation tests with [NotMapped] issue
-# Skipped: 15 (3.2%)
-# Duration: Varies by test category
+# Fix required: Remove PricingTiers from test builders (5 min)
 ```
 
 ### E2E Tests (Playwright)
-**STATUS**: ⚠️ **70.3% PASSING** - Baseline established
+**STATUS**: ⚠️ **70.3% PASSING (baseline)** + **NEW TESTS FAILING (login feature)**
 
 ```bash
 cd apps/web
 npm run test:e2e
 
-# Current Results (2025-10-23):
+# Baseline Results (2025-10-23):
 # Total: 425 tests
 # Passed: 299 (70.3%)
 # Failed: 75 (17.6%)
 # Skipped: 51 (12.0%)
 # Flaky: 0 (0%)
 # Duration: 4.4 minutes
+
+# NEW Login Feature Tests (2025-10-27):
+# Total: 14 tests executed (1 not executed)
+# Passed: 0 (0%)
+# Failed: 14 (100%)
+# Blocker: localStorage bug in beforeEach hook
+# Fix required: Move clearAuthState() after page.goto() (3 min)
 ```
 
 ---
 
 ## 📊 Test Metrics & Goals
 
-### Current Coverage (2025-10-24 - PARTICIPATION ROOT CAUSE IDENTIFIED)
+### Current Coverage (2025-10-27 21:10 UTC - LOGIN WITH EMAIL OR SCENE NAME TESTS RE-EXECUTION COMPLETE)
 - **Environment Status**: ✅ **OPERATIONAL** (containers healthy)
 - **CMS Pages**: 10 pages - ✅ **ALL OPERATIONAL**
-- **E2E Tests**: 425 tests - ⚠️ **70.3% PASSING** (299/425) - Zero flaky tests
+- **E2E Tests**: 425 tests (baseline) - ⚠️ **70.3% PASSING** + 15 NEW (login) - 🔴 **0% PASSING (14/14 failed)**
 - **React Unit Tests**: 20+ test files - ❌ **COMPILATION BLOCKED**
-- **C# Backend Tests**: 476 tests - ⚠️ **83.8% PASSING** (399/476) - **62 FAILURES** (10 Participation + 52 others)
-  - **CRITICAL**: Participation tests (10 failing) - [NotMapped] property access issue
+- **C# Backend Tests**: 476 tests (baseline) - ⚠️ **COMPILATION BLOCKED** + 5 NEW (login) - 🔴 **CANNOT RUN**
+  - **CRITICAL**: PricingTiers architectural change broke test infrastructure
+  - **NEW TESTS**: 5 unit + 7 integration tests created but not executed
   - P1 Blockers: 34 tests (Participation + vetting + RSVP + status logic)
   - P2 Important: 23 tests (seed data, dashboard, health)
   - P3 Nice-to-Have: 5 tests (edge cases, minor fixes)
-- **Integration Tests**: 5 test files - Status pending verification
+- **Login with Email/Scene Name Tests**: 27 tests created - 🔴 **0 EXECUTED SUCCESSFULLY**
+  - Backend unit tests: 5 tests - ❌ Compilation blocked
+  - Backend integration tests: 7 tests - ❌ Not attempted
+  - E2E tests: 15 tests - ❌ 14 failed (localStorage bug), 1 not executed
 
 ### Backend Test Roadmap
 | Phase | Tests | Pass Rate | Status | Target Date |
 |-------|-------|-----------|--------|-------------|
 | Current | 399/476 | 83.8% | ⚠️ Root Cause ID'd | 2025-10-24 |
-| After Participation Fix | 409/476 | 85.9% | 🎯 Quick Win | Immediate |
-| After Phase 1 | 433/476 | 91.0% | 🎯 Launch Ready | Week 1 |
-| After Phase 2 | 453/476 | 95.2% | ✅ Stable | Week 2 |
-| After Phase 3 | 459/476 | 96.4% | 🎯 Production | Week 3 |
+| After PricingTiers Fix | 404/481 | 84.0% | 🎯 Quick Win (5 min) | Immediate |
+| After Participation Fix | 414/481 | 86.1% | 🎯 Quick Win (30 min) | Immediate |
+| After Phase 1 | 438/481 | 91.1% | 🎯 Launch Ready | Week 1 |
+| After Phase 2 | 458/481 | 95.2% | ✅ Stable | Week 2 |
+| After Phase 3 | 464/481 | 96.5% | 🎯 Production | Week 3 |
 
 ---
 
 ## 🚨 Launch Readiness Status
 
-### Backend API Tests: 🔴 **RED - CRITICAL FIX REQUIRED IMMEDIATELY**
+### Login with Email or Scene Name Feature: 🔴 **RED - CRITICAL - CANNOT TEST**
 
-**MUST FIX IMMEDIATELY** (10 tests - Participation):
-1. 🔴 **BLOCKER**: Fix `ApplicationUser.IsVetted` [NotMapped] property access
-   - **Location**: ParticipationService.cs lines 179, 340
-   - **Fix**: Replace `user.IsVetted` with `user.VettingStatus == 3`
-   - **Estimated Time**: 30 minutes
-   - **Impact**: Users cannot RSVP or purchase tickets (CRITICAL)
+**CRITICAL BLOCKERS** (2 - prevent ALL testing):
+1. 🔴 **PricingTiers compilation errors** - Backend tests cannot compile (backend-developer, 5 min)
+2. 🔴 **localStorage access error** - E2E tests fail before test logic (test-developer, 3 min)
+
+**Feature Status**: ❓ **UNKNOWN - CANNOT VERIFY FUNCTIONALITY**
+- Cannot test email login
+- Cannot test scene name login
+- Cannot verify error handling
+- Cannot validate form behavior
+- **RISK**: Feature may be deployed without any test verification
+
+**Critical Finding**: Claimed fixes were NOT actually applied. Re-execution confirms:
+- ✅ NuGet package conflict resolved
+- ❌ PricingTiers errors introduced (NEW regression)
+- ❌ localStorage bug still present (fix not applied)
+
+### Backend API Tests: 🔴 **RED - COMPILATION BLOCKED**
+
+**MUST FIX IMMEDIATELY** (New issue - 2025-10-27):
+1. 🔴 **BLOCKER**: Remove PricingTiers from test builders
+   - **Location**: Tests.Common/Builders/ (2 files)
+   - **Fix**: Remove obsolete PricingTiers references
+   - **Estimated Time**: 5 minutes
+   - **Impact**: Blocks ALL backend test compilation
 
 **Must Fix Before Launch** (24 tests - P1):
-1. ❌ Vetting Email Service (13 tests) - Users won't receive status updates
-2. ❌ Participation/RSVP Logic (9 tests - original analysis) - Event registration broken
+1. ❌ Participation/RSVP (10 tests) - [NotMapped] property access
+2. ❌ Vetting Email Service (13 tests) - Users won't receive status updates
 3. ❌ Vetting Status Transitions (2 tests) - Wrong statuses assigned
 
 **Should Fix Before Launch** (23 tests - P2):
@@ -596,17 +492,20 @@ npm run test:e2e
 **Can Fix After Launch** (5 tests - P3):
 1. ✅ DB Init Edge Cases (5 tests) - Infrastructure resilience
 
-### E2E Tests: ⚠️ **YELLOW - 70% READY**
+### E2E Tests: ⚠️ **YELLOW - 70% READY (baseline)** + 🔴 **RED - NEW TESTS FAILING**
 
 **Must Fix Before Launch**:
-1. ❌ Console errors in application (HIGH PRIORITY)
-2. ❌ Vetting admin navigation (HIGH PRIORITY)
+1. ❌ Console errors in application (HIGH PRIORITY - baseline)
+2. ❌ Vetting admin navigation (HIGH PRIORITY - baseline)
+3. ❌ **NEW**: localStorage bug in login tests (HIGH PRIORITY - NEW FEATURE BLOCKER)
 
-**Core Functionality**: ✅ **OPERATIONAL**
+**Core Functionality**: ✅ **OPERATIONAL (baseline tests)**
 - Users can register, login, browse events, and RSVP
 - Admin can manage events and vetting
 - Profile updates persist correctly
 - Ticket system functional
+
+**NEW Feature**: ❓ **UNKNOWN (new login tests blocked)**
 
 ---
 
@@ -631,3 +530,4 @@ guest@witchcityrope.com / Test123! - Guest/Attendee
 *For testing standards, see TESTING_GUIDE.md*
 *For comprehensive failure analysis, see `/test-results/failing-tests-analysis-2025-10-23.md`*
 *For Participation test analysis, see `/test-results/participation-tests-after-asnotracking-fix-2025-10-24-ANALYSIS.md`*
+*For Login with Email/Scene Name test execution, see `/test-results/login-scene-name-final-test-execution-report-2025-10-27.md`*

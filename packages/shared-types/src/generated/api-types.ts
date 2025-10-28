@@ -3051,6 +3051,7 @@ export interface components {
             email: string;
             password: string;
             returnUrl?: string | null;
+            emailOrSceneName: string;
         };
         LoginResponse: {
             token?: string;
@@ -3580,10 +3581,10 @@ export interface components {
             defaultPrice?: number | null;
             /** Format: int32 */
             quantityAvailable?: number;
-            /** Format: date-time */
-            salesEndDate?: string | null;
             /** Format: int32 */
             quantitySold?: number;
+            /** Format: date-time */
+            salesEndDate?: string | null;
         };
         TokenClaims: {
             userId?: string;

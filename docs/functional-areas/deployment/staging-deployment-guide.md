@@ -35,6 +35,7 @@ This is the standard deployment process when you want to deploy the latest code 
 # 1. Build images locally with :latest tag (CRITICAL: Always use :latest, NOT :staging)
 docker build -f apps/api/Dockerfile -t registry.digitalocean.com/witchcityrope/witchcityrope-api:latest --target production .
 docker build -f apps/web/Dockerfile -t registry.digitalocean.com/witchcityrope/witchcityrope-web:latest --target production \
+  --build-arg BUILD_MODE=staging \
   --build-arg VITE_API_BASE_URL= \
   --build-arg VITE_APP_TITLE="WitchCityRope" \
   --build-arg VITE_APP_VERSION="$(git rev-parse --short HEAD)" .
@@ -87,6 +88,7 @@ When deploying with significant schema changes or when you need to reseed the da
 # 1. Build and push images (same as standard deployment above)
 docker build -f apps/api/Dockerfile -t registry.digitalocean.com/witchcityrope/witchcityrope-api:latest --target production .
 docker build -f apps/web/Dockerfile -t registry.digitalocean.com/witchcityrope/witchcityrope-web:latest --target production \
+  --build-arg BUILD_MODE=staging \
   --build-arg VITE_API_BASE_URL= \
   --build-arg VITE_APP_TITLE="WitchCityRope" \
   --build-arg VITE_APP_VERSION="$(git rev-parse --short HEAD)" .

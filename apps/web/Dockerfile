@@ -92,7 +92,11 @@ ENV VITE_APP_VERSION=$VITE_APP_VERSION
 # Build application using direct paths to node_modules executables
 WORKDIR /app/apps/web
 # Skip tsc type checking for now - just build with Vite (type errors to be fixed later)
-RUN /app/node_modules/.bin/vite build
+# Build with staging mode for non-production deployments (enables test card auto-fill)
+# Use --mode staging to set import.meta.env.MODE = 'staging'
+# This enables developer tools like PayPal test card auto-loading
+ARG BUILD_MODE=production
+RUN /app/node_modules/.bin/vite build --mode ${BUILD_MODE}
 
 # Verify build output
 RUN ls -la dist/
