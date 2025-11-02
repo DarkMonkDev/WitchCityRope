@@ -794,3 +794,255 @@ After fix:
 
 ---
 
+## 🚨 CRITICAL: MANTINE FORM OBJECT IN USEEFFECT DEPENDENCIES CAUSES INFINITE NOTIFICATION LOOP 🚨
+**Date**: 2025-11-02
+**Category**: React Hooks / Mantine Forms / Infinite Loops
+**Severity**: CRITICAL - UNUSABLE UX WITH INFINITE POPUPS
+
+### What We Learned
+**FORM OBJECT IN USEEFFECT DEPENDENCIES CREATES INFINITE LOOP**: Including the Mantine `form` object (from `useForm()`) in a `useEffect` dependency array causes infinite re-renders and notification spam when `form.reset()` is called.
+
+**USER SYMPTOMS**:
+- Click "Change Password" button
+- 5 success notifications appear immediately
+- 3 seconds later, 5 more success notifications appear
+- Pattern repeats infinitely until page refresh
+
+**ROOT CAUSE**: Mantine's `useForm()` creates a NEW form object on every render. When `form` is in the dependency array AND `form.reset()` is called inside the effect:
+
+1. User submits form successfully
+2. `useEffect` runs because `isSuccess` changed
+3. Notification shows ✅
+4. `form.reset()` is called
+5. **Mantine creates NEW form object** (new reference)
+6. `useEffect` sees `form` reference changed → runs again
+7. Shows notification again → infinite loop!
+
+### 🛑 BROKEN PATTERN
+
+```typescript
+// ❌ WRONG: form object in dependency array causes infinite loop
+const ChangePasswordForm: React.FC = () => {
+  const changePasswordMutation = useChangePassword()
+
+  const form = useForm<ChangePasswordDto>({
+    initialValues: { currentPassword: '', newPassword: '', confirmPassword: '' }
+  })
+
+  const handleSubmit = (values: ChangePasswordDto) => {
+    changePasswordMutation.mutate(values)
+  }
+
+  // ❌ CRITICAL BUG: form in dependency array
+  React.useEffect(() => {
+    if (changePasswordMutation.isSuccess) {
+      notifications.show({
+        title: 'Success',
+        message: 'Password changed successfully',
+        color: 'green',
+      })
+      form.reset()  // Creates NEW form object → triggers useEffect again!
+    }
+    if (changePasswordMutation.isError) {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to change password',
+        color: 'red',
+      })
+    }
+  }, [
+    changePasswordMutation.isSuccess,
+    changePasswordMutation.isError,
+    changePasswordMutation.error,
+    form,  // ❌ CAUSES INFINITE LOOP!
+  ])
+
+  return <form onSubmit={form.onSubmit(handleSubmit)}>{/* ... */}</form>
+}
+```
+
+**Why This Breaks**:
+1. `form` object is created by `useForm()` - creates new reference on every component render
+2. `form` is in dependency array - effect runs when reference changes
+3. `form.reset()` triggers re-render - Mantine updates internal state
+4. New `form` reference created → effect runs again
+5. **Infinite loop**: notifications spam user, form becomes unusable
+
+### ✅ CRITICAL SOLUTION: SPLIT USEEFFECTS, REMOVE FORM DEPENDENCY
+
+```typescript
+// ✅ CORRECT: Split into two useEffects, remove form from dependencies
+const ChangePasswordForm: React.FC = () => {
+  const changePasswordMutation = useChangePassword()
+
+  const form = useForm<ChangePasswordDto>({
+    initialValues: { currentPassword: '', newPassword: '', confirmPassword: '' }
+  })
+
+  const handleSubmit = (values: ChangePasswordDto) => {
+    changePasswordMutation.mutate(values)
+  }
+
+  // ✅ CORRECT: Success effect with ONLY isSuccess dependency
+  React.useEffect(() => {
+    if (changePasswordMutation.isSuccess) {
+      notifications.show({
+        title: 'Success',
+        message: 'Password changed successfully',
+        color: 'green',
+        icon: <IconCheck />,
+      })
+      form.reset()  // Safe because form NOT in dependency array
+    }
+  }, [changePasswordMutation.isSuccess])  // ✅ No 'form' dependency
+
+  // ✅ CORRECT: Error effect separate
+  React.useEffect(() => {
+    if (changePasswordMutation.isError) {
+      notifications.show({
+        title: 'Error',
+        message:
+          changePasswordMutation.error instanceof Error
+            ? changePasswordMutation.error.message
+            : 'Failed to change password',
+        color: 'red',
+        icon: <IconAlertCircle />,
+      })
+    }
+  }, [changePasswordMutation.isError, changePasswordMutation.error])
+
+  return <form onSubmit={form.onSubmit(handleSubmit)}>{/* ... */}</form>
+}
+```
+
+### 🛑 NEVER INCLUDE MANTINE FORM IN DEPENDENCIES
+
+**CRITICAL RULE**: NEVER include Mantine `form` object in `useEffect` dependency arrays:
+
+```typescript
+// ❌ WRONG: Any of these patterns cause infinite loops
+useEffect(() => {
+  // ... code that calls form.reset() or form.setValues()
+}, [form])  // WRONG!
+
+useEffect(() => {
+  // ... notification + form.reset()
+}, [isSuccess, form])  // WRONG!
+
+useEffect(() => {
+  // ... any form method call
+}, [someState, form])  // WRONG!
+
+// ✅ CORRECT: Never include form in dependencies
+useEffect(() => {
+  if (isSuccess) {
+    form.reset()  // Safe because form not in dependency array
+  }
+}, [isSuccess])  // ✅ Correct!
+
+useEffect(() => {
+  if (someCondition) {
+    form.setValues({ field: 'value' })  // Safe
+  }
+}, [someCondition])  // ✅ Correct!
+```
+
+### 📋 WHY FORM REFERENCE CHANGES
+
+**Mantine form object changes reference when**:
+1. `form.reset()` is called - Updates internal state
+2. `form.setValues()` is called - Updates internal state
+3. `form.setFieldValue()` is called - Updates internal state
+4. Any validation runs - May update internal state
+5. **Component re-renders** - Mantine may create new reference
+
+**Key insight**: Even though `form` object looks stable, Mantine's internal implementation may create new references on state updates.
+
+### 🔧 DEBUGGING CHECKLIST
+
+When you see infinite notifications or infinite re-renders:
+
+1. **Check useEffect dependencies** - Is `form` object included?
+2. **Check if form methods called in effect** - `reset()`, `setValues()`, etc.?
+3. **Remove form from dependencies** - Trust that closure will access current form
+4. **Split into multiple useEffects** - Separate success/error handling
+5. **Use mutation callbacks instead** - Consider `onSuccess`/`onError` on mutation
+
+### 📋 ALTERNATIVE PATTERN: MUTATION CALLBACKS
+
+**Instead of useEffect, use mutation callbacks**:
+
+```typescript
+// ✅ ALTERNATIVE: Use onSuccess/onError callbacks
+const changePasswordMutation = useMutation({
+  mutationFn: (data: ChangePasswordDto) =>
+    dashboardService.changePassword(user!.id, data),
+  onSuccess: () => {
+    notifications.show({
+      title: 'Success',
+      message: 'Password changed successfully',
+      color: 'green',
+      icon: <IconCheck />,
+    })
+    form.reset()  // Safe here, no dependency issues
+  },
+  onError: (error) => {
+    notifications.show({
+      title: 'Error',
+      message: error instanceof Error
+        ? error.message
+        : 'Failed to change password',
+      color: 'red',
+      icon: <IconAlertCircle />,
+    })
+  }
+})
+
+// No useEffect needed!
+```
+
+**When to use each pattern**:
+- **Mutation callbacks**: Best for simple success/error notifications
+- **useEffect**: When you need access to component state or multiple effects
+
+### 💥 FILES AFFECTED
+
+- `/apps/web/src/pages/dashboard/ProfileSettingsPage.tsx` - Lines 432-456
+  - **Before**: Single useEffect with `form` in dependencies (BROKEN)
+  - **After**: Two separate useEffects without `form` dependency (FIXED)
+
+### 🎯 VERIFICATION STEPS
+
+After fix:
+1. **Navigate to Profile Settings page** → Change Password tab
+2. **Fill out password form** with valid data
+3. **Click "Change Password"**
+4. **Verify**: Only ONE success notification appears ✅
+5. **Verify**: Form clears after success ✅
+6. **Verify**: No repeating notifications ✅
+7. **Check browser console**: No infinite render warnings ✅
+
+### 💥 CONSEQUENCES OF IGNORING
+
+- ❌ Infinite notification spam (5 popups every 3 seconds)
+- ❌ Form completely unusable after first submission
+- ❌ Browser performance degrades (infinite re-renders)
+- ❌ Notification queue fills up (memory leak potential)
+- ❌ User confusion and frustration
+- ❌ Production incidents and support tickets
+
+### 🚨 RELATED PATTERNS TO WATCH FOR
+
+**Similar issues occur with**:
+- Any object created by custom hook in dependency array
+- Date objects, function objects, array/object literals in dependencies
+- Zustand store objects (if entire store is passed)
+- Context values that change reference frequently
+
+**General rule**: Only include **primitive values** or **stable references** in dependency arrays.
+
+### Tags
+#critical #infinite-loop #useEffect #mantine-forms #form-reset #notifications #dependency-array #react-hooks #user-experience #performance
+
+---
+

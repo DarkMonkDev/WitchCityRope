@@ -70,6 +70,17 @@ public class Event
     public string Location { get; set; } = string.Empty;
 
     /// <summary>
+    /// Foreign key to Venue table (optional)
+    /// Nullable to support gradual migration and events without assigned venue
+    /// </summary>
+    public int? VenueId { get; set; }
+
+    /// <summary>
+    /// Navigation property to venue
+    /// </summary>
+    public Venue? Venue { get; set; }
+
+    /// <summary>
     /// Whether the event is published/visible
     /// </summary>
     [Required]
@@ -118,10 +129,10 @@ public class Event
     /// Gets the current number of confirmed attendees based on CORRECT business logic:
     /// - Social Events: CurrentAttendees = RSVPs (everyone must RSVP to attend, tickets are optional donations)
     /// - Class Events: CurrentAttendees = Tickets (only paid tickets, no RSVPs)
-    /// 
+    ///
     /// Returns varied capacity states for frontend testing:
     /// - Some events SOLD OUT (100% capacity) - shows green progress bar
-    /// - Some events nearly sold out (85-95%) - shows green progress bar  
+    /// - Some events nearly sold out (85-95%) - shows green progress bar
     /// - Some events moderately filled (50-80%) - shows yellow progress bar
     /// - Some events low attendance (<50%) - shows red progress bar
     /// </summary>

@@ -28,7 +28,7 @@ export function convertEventFormDataToUpdateDto(
   }
 
   if (formData.venueId?.trim()) {
-    updateDto.location = formData.venueId.trim();
+    updateDto.venueId = parseInt(formData.venueId.trim(), 10);
   }
 
   // Include eventType mapping
@@ -182,7 +182,7 @@ export function getChangedEventFields(
   }
 
   if (current.venueId?.trim() !== initial.venueId?.trim()) {
-    changes.location = current.venueId?.trim();
+    changes.venueId = parseInt(current.venueId?.trim() || '0', 10);
   }
 
   if (current.eventType !== initial.eventType) {

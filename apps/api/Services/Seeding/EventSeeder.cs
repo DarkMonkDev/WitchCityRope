@@ -48,8 +48,13 @@ public class EventSeeder
     /// Each event includes:
     /// - Complete title, descriptions (short and long HTML), policies (HTML)
     /// - Proper UTC DateTime handling
-    /// - Appropriate capacity, location, pricing
+    /// - Appropriate capacity, venue assignment, pricing
     /// - Published status
+    ///
+    /// Venue Assignment Strategy:
+    /// - Classes/Workshops → Main Studio
+    /// - Social Events → Community Space
+    /// - Special Events → Outdoor Space
     ///
     /// Note: Sessions and ticket types are created by SessionTicketSeeder (separate seeder).
     /// </summary>
@@ -65,6 +70,18 @@ public class EventSeeder
             return;
         }
 
+        // Fetch venues for event assignment
+        var venues = await _context.Venues.ToListAsync(cancellationToken);
+        var mainStudio = venues.FirstOrDefault(v => v.Name == "Main Studio");
+        var communitySpace = venues.FirstOrDefault(v => v.Name == "Community Space");
+        var outdoorSpace = venues.FirstOrDefault(v => v.Name == "Outdoor Space");
+
+        // Log warning if venues are missing (shouldn't happen if VenueSeeder runs first)
+        if (mainStudio == null || communitySpace == null || outdoorSpace == null)
+        {
+            _logger.LogWarning("One or more venues not found. Events will be created without venue assignments. Ensure VenueSeeder runs before EventSeeder.");
+        }
+
         // Create diverse set of events per functional specification
         var sampleEvents = new[]
         {
@@ -76,6 +93,7 @@ public class EventSeeder
                 startHour: 18,
                 capacity: 20,
                 eventType: EventType.Class,
+                venue: mainStudio,
                 price: 25.00m,
                 shortDescription: "Learn the fundamentals of safe rope bondage practices in this comprehensive beginner workshop.",
                 longDescription: @"<p>This comprehensive introduction to rope safety is designed for absolute beginners and those looking to refresh their fundamental knowledge.</p>
@@ -171,6 +189,7 @@ public class EventSeeder
                 startHour: 18,
                 capacity: 12,
                 eventType: EventType.Class,
+                venue: mainStudio,
                 price: 65.00m,
                 shortDescription: "Introduction to suspension techniques with emphasis on safety and proper rigging.",
                 longDescription: @"<p>Take your rope skills to the next level with this comprehensive introduction to suspension bondage. This intermediate-level workshop covers the essential techniques, safety considerations, and rigging fundamentals needed to begin exploring suspension safely.</p>
@@ -288,6 +307,7 @@ public class EventSeeder
                 startHour: 18,
                 capacity: 10,
                 eventType: EventType.Class,
+                venue: mainStudio,
                 price: 55.00m,
                 shortDescription: "Explore complex floor-based rope bondage techniques for experienced practitioners.",
                 longDescription: @"<p>This advanced workshop is designed for experienced rope practitioners looking to expand their floor bondage repertoire with complex ties, creative positions, and artistic expression. We'll explore sophisticated techniques that challenge both rigger and model while maintaining safety and comfort.</p>
@@ -412,6 +432,7 @@ public class EventSeeder
                 startHour: 19,
                 capacity: 40,
                 eventType: EventType.Social,
+                venue: communitySpace,
                 price: 15.00m,
                 shortDescription: "Casual practice session for all skill levels. Bring your rope and practice with the community.",
                 longDescription: @"<p>Join us for our monthly Community Rope Jam - a relaxed, social practice session where rope enthusiasts of all skill levels can come together to practice, learn, and connect with fellow community members.</p>
@@ -555,6 +576,7 @@ public class EventSeeder
                 startHour: 19,
                 capacity: 30,
                 eventType: EventType.Social,
+                venue: communitySpace,
                 price: 10.00m,
                 shortDescription: "Monthly social gathering for community connection and discussion of rope topics.",
                 longDescription: @"<p>Join us for our monthly Rope Social & Discussion - a casual gathering focused on community building, conversation, and connection. This is a chance to meet fellow rope enthusiasts, discuss topics of interest, and strengthen our community bonds.</p>
@@ -702,6 +724,7 @@ public class EventSeeder
                 startHour: 18,
                 capacity: 25,
                 eventType: EventType.Social,
+                venue: communitySpace,
                 price: 5.00m,
                 shortDescription: "Welcome gathering for new community members to meet established practitioners and learn about upcoming events.",
                 longDescription: @"<p>Welcome to the WitchCityRope community! This special meetup is designed specifically for new members to get oriented, meet friendly faces, and learn about all the opportunities our community offers.</p>
@@ -857,6 +880,7 @@ public class EventSeeder
                 startHour: 18,
                 capacity: 20,
                 eventType: EventType.Social,
+                venue: communitySpace,
                 price: 10.00m,
                 shortDescription: "Past event: Introductory session for newcomers to rope bondage.",
                 longDescription: @"<p>This past event was an introductory practice session designed for absolute beginners and those new to the rope community.</p>
@@ -887,6 +911,7 @@ public class EventSeeder
                 startHour: 17,
                 capacity: 15,
                 eventType: EventType.Class,
+                venue: mainStudio,
                 price: 40.00m,
                 shortDescription: "Past event: Multi-session fundamentals course for serious students.",
                 longDescription: @"<p>This past 4-week course provided comprehensive instruction in rope bondage fundamentals for dedicated students.</p>
@@ -923,7 +948,7 @@ public class EventSeeder
                 duration: 7,
                 capacity: 20,
                 eventType: EventType.Class,
-                location: "Studio Space",
+                venue: mainStudio,
                 shortDescription: "Advanced rope suspension workshop focusing on complex ties and safety protocols.",
                 longDescription: @"<p>This advanced workshop covered sophisticated suspension bondage techniques for experienced practitioners.</p>
 
@@ -954,7 +979,7 @@ public class EventSeeder
                 duration: 8.5m,
                 capacity: 25,
                 eventType: EventType.Class,
-                location: "Salem Community Center",
+                venue: mainStudio,
                 shortDescription: "Full-day intensive workshop covering rope bondage fundamentals from basics to practice.",
                 longDescription: @"<p>This full-day intensive provided comprehensive instruction in rope bondage fundamentals.</p>
 
@@ -985,7 +1010,7 @@ public class EventSeeder
                 duration: 4,
                 capacity: 30,
                 eventType: EventType.Social,
-                location: "The Gathering Space",
+                venue: communitySpace,
                 shortDescription: "Open practice session for all skill levels. Bring your rope and a partner!",
                 longDescription: @"<p>This was our monthly open practice session where rope enthusiasts of all levels gathered to practice and connect.</p>
 
@@ -1016,7 +1041,7 @@ public class EventSeeder
                 duration: 3,
                 capacity: 40,
                 eventType: EventType.Social,
-                location: "Salem Community Center",
+                venue: communitySpace,
                 shortDescription: "Social mixer to welcome new members and connect with the community.",
                 longDescription: @"<p>This welcome mixer provided new members an opportunity to meet the community and learn about upcoming events.</p>
 
@@ -1058,6 +1083,7 @@ public class EventSeeder
         int startHour,
         int capacity,
         EventType eventType,
+        Venue? venue,
         decimal price,
         string shortDescription,
         string longDescription,
@@ -1078,7 +1104,7 @@ public class EventSeeder
             EndDate = DateTime.SpecifyKind(endDate, DateTimeKind.Utc),
             Capacity = capacity,
             EventType = eventType,
-            Location = eventType == EventType.Social ? "Community Space" : "Main Workshop Room",
+            VenueId = venue?.Id,                      // Assign venue if available
             IsPublished = true,
             // CreatedAt/UpdatedAt will be set by ApplicationDbContext.UpdateAuditFields()
         };
@@ -1096,7 +1122,7 @@ public class EventSeeder
         decimal duration,
         int capacity,
         EventType eventType,
-        string location,
+        Venue? venue,
         string shortDescription,
         string longDescription,
         string policies)
@@ -1116,7 +1142,7 @@ public class EventSeeder
             EndDate = DateTime.SpecifyKind(endDate, DateTimeKind.Utc),
             Capacity = capacity,
             EventType = eventType,
-            Location = location,
+            VenueId = venue?.Id,                      // Assign venue if available
             IsPublished = true,
             CreatedAt = DateTime.UtcNow.AddDays(daysFromNow - 5),
             UpdatedAt = DateTime.UtcNow.AddDays(daysFromNow)

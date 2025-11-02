@@ -2,15 +2,14 @@ import React, { useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useForm } from '@mantine/form'
 import {
-  Container,
-  Paper,
   Title,
   TextInput,
   PasswordInput,
-  Button,
   Text,
   Alert,
-  Stack
+  Stack,
+  Box,
+  Flex,
 } from '@mantine/core'
 import { IconAlertCircle } from '@tabler/icons-react'
 import { useRegister } from '../features/auth/api/mutations'
@@ -74,80 +73,265 @@ export const RegisterPage: React.FC = () => {
   }
 
   return (
-    <Container size={420} my={40}>
-      <Title ta="center" c="wcr.6" fw={900}>
-        Join WitchCityRope
-      </Title>
-      <Text c="dimmed" size="sm" ta="center" mt={5}>
-        Already have an account?{' '}
-        <Link to="/login" style={{ color: 'var(--mantine-color-wcr-6)' }}>
-          Login here
-        </Link>
-      </Text>
+    <Flex
+      align="center"
+      justify="center"
+      data-testid="page-register"
+      style={{
+        minHeight: 'calc(100vh - 120px)',
+        padding: 'var(--space-xl) var(--space-md)',
+      }}
+    >
+      {/* Auth Card matching wireframe design */}
+      <Box
+        style={{
+          background: 'var(--color-ivory)',
+          borderRadius: '24px',
+          boxShadow: '0 20px 25px rgba(0,0,0,0.1)',
+          width: '100%',
+          maxWidth: '480px',
+          overflow: 'hidden',
+          position: 'relative',
+        }}
+      >
+        {/* Decorative header band with burgundy gradient */}
+        <Box
+          style={{
+            background: 'linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%)',
+            padding: 'var(--space-2xl) var(--space-xl) var(--space-xl)',
+            textAlign: 'center',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Subtle radial overlay effect */}
+          <Box
+            style={{
+              position: 'absolute',
+              top: '-50%',
+              left: '-50%',
+              width: '200%',
+              height: '200%',
+              background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
+              transform: 'rotate(45deg)',
+              pointerEvents: 'none',
+            }}
+          />
 
-      <Paper withBorder shadow="md" p={30} mt={30} radius="md">
-        <form onSubmit={form.onSubmit(handleSubmit)} data-testid="register-form">
-          <Stack gap="md">
-            {registerMutation.error && (
-              <Alert
-                icon={<IconAlertCircle />}
-                color="red"
-                data-testid="register-error"
+          <Title
+            style={{
+              fontFamily: 'var(--font-heading)',
+              fontSize: '32px',
+              fontWeight: 800,
+              color: 'var(--color-ivory)',
+              marginBottom: 'var(--space-xs)',
+              position: 'relative',
+            }}
+          >
+            Join Our Community
+          </Title>
+        </Box>
+
+        {/* Form container */}
+        <Box style={{ padding: 'var(--space-xl)' }}>
+          <form onSubmit={form.onSubmit(handleSubmit)} data-testid="register-form">
+            <Stack gap="md">
+              {registerMutation.error && (
+                <Alert icon={<IconAlertCircle />} color="red" data-testid="register-error">
+                  {registerMutation.error.message || 'Registration failed. Please try again.'}
+                </Alert>
+              )}
+
+              <Box>
+                <Text
+                  component="label"
+                  style={{
+                    display: 'block',
+                    fontFamily: 'var(--font-heading)',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: 'var(--color-smoke)',
+                    marginBottom: 'var(--space-xs)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  Email
+                </Text>
+                <TextInput
+                  placeholder="your@email.com"
+                  required
+                  data-testid="email-input"
+                  key={form.key('email')}
+                  {...form.getInputProps('email')}
+                  styles={{
+                    input: {
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '16px',
+                      border: '2px solid var(--color-taupe)',
+                      borderRadius: '8px',
+                      background: 'var(--color-ivory)',
+                      color: 'var(--color-charcoal)',
+                      padding: 'var(--space-sm) var(--space-md)',
+                      '&:focus': {
+                        borderColor: 'var(--color-burgundy)',
+                        boxShadow: '0 0 0 3px rgba(136, 1, 36, 0.1)',
+                      },
+                      '&::placeholder': {
+                        color: 'var(--color-stone)',
+                      },
+                    },
+                  }}
+                />
+              </Box>
+
+              <Box>
+                <Text
+                  component="label"
+                  style={{
+                    display: 'block',
+                    fontFamily: 'var(--font-heading)',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: 'var(--color-smoke)',
+                    marginBottom: 'var(--space-xs)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  Scene / Preferred Name
+                </Text>
+                <TextInput
+                  placeholder="Your display name"
+                  required
+                  data-testid="scene-name-input"
+                  key={form.key('sceneName')}
+                  {...form.getInputProps('sceneName')}
+                  styles={{
+                    input: {
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '16px',
+                      border: '2px solid var(--color-taupe)',
+                      borderRadius: '8px',
+                      background: 'var(--color-ivory)',
+                      color: 'var(--color-charcoal)',
+                      padding: 'var(--space-sm) var(--space-md)',
+                      '&:focus': {
+                        borderColor: 'var(--color-burgundy)',
+                        boxShadow: '0 0 0 3px rgba(136, 1, 36, 0.1)',
+                      },
+                      '&::placeholder': {
+                        color: 'var(--color-stone)',
+                      },
+                    },
+                  }}
+                />
+                <Text
+                  size="sm"
+                  c="dimmed"
+                  style={{
+                    marginTop: 'var(--space-xs)',
+                    fontSize: '12px',
+                    color: 'var(--color-smoke)',
+                  }}
+                >
+                  Your display name in the community (3-50 characters)
+                </Text>
+              </Box>
+
+              <Box>
+                <Text
+                  component="label"
+                  style={{
+                    display: 'block',
+                    fontFamily: 'var(--font-heading)',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: 'var(--color-smoke)',
+                    marginBottom: 'var(--space-xs)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  Password
+                </Text>
+                <PasswordInput
+                  placeholder="Enter your password"
+                  required
+                  data-testid="password-input"
+                  key={form.key('password')}
+                  {...form.getInputProps('password')}
+                  styles={{
+                    input: {
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '16px',
+                      border: '2px solid var(--color-taupe)',
+                      borderRadius: '8px',
+                      background: 'var(--color-ivory)',
+                      color: 'var(--color-charcoal)',
+                      padding: 'var(--space-sm) var(--space-md)',
+                      '&:focus': {
+                        borderColor: 'var(--color-burgundy)',
+                        boxShadow: '0 0 0 3px rgba(136, 1, 36, 0.1)',
+                      },
+                      '&::placeholder': {
+                        color: 'var(--color-stone)',
+                      },
+                    },
+                  }}
+                />
+                <Text
+                  size="sm"
+                  c="dimmed"
+                  style={{
+                    marginTop: 'var(--space-xs)',
+                    fontSize: '12px',
+                    color: 'var(--color-smoke)',
+                  }}
+                >
+                  8+ characters with uppercase, lowercase, number, and special character
+                </Text>
+              </Box>
+
+              {/* Create Account button using Box to match login page styling */}
+              <Box
+                component="button"
+                type="submit"
+                disabled={registerMutation.isPending}
+                data-testid="register-button"
+                className="btn btn-primary"
+                style={{
+                  marginTop: 'var(--space-sm)',
+                  width: '100%',
+                }}
               >
-                {registerMutation.error.message || 'Registration failed. Please try again.'}
-              </Alert>
-            )}
+                {registerMutation.isPending ? 'Creating Account...' : 'Create Account'}
+              </Box>
+            </Stack>
+          </form>
+        </Box>
 
-            <TextInput
-              label="Email"
-              placeholder="your@email.com"
-              required
-              data-testid="email-input"
-              key={form.key('email')}
-              {...form.getInputProps('email')}
-            />
-
-            <TextInput
-              label="Scene Name"
-              placeholder="Your display name"
-              description="Your display name in the community (3-50 characters)"
-              required
-              data-testid="scene-name-input"
-              key={form.key('sceneName')}
-              {...form.getInputProps('sceneName')}
-            />
-
-            <PasswordInput
-              label="Password"
-              placeholder="Your password"
-              description="8+ characters with uppercase, lowercase, number, and special character"
-              required
-              data-testid="password-input"
-              key={form.key('password')}
-              {...form.getInputProps('password')}
-            />
-
-            <Button
-              type="submit"
-              fullWidth
-              loading={registerMutation.isPending}
-              color="wcr.6"
-              data-testid="register-button"
-              styles={{
-                root: {
-                  height: '44px',
-                  paddingTop: '12px',
-                  paddingBottom: '12px',
-                  fontSize: '14px',
-                  lineHeight: '1.2'
-                }
-              }}
+        {/* Footer with login link */}
+        <Box
+          style={{
+            textAlign: 'center',
+            padding: 'var(--space-md)',
+            background: 'var(--color-cream)',
+            borderTop: '1px solid var(--color-taupe)',
+          }}
+        >
+          <Stack gap="md" align="center">
+            <Box
+              component={Link}
+              to="/login"
+              data-testid="link-login"
+              className="btn btn-secondary"
             >
-              {registerMutation.isPending ? 'Creating Account...' : 'Create Account'}
-            </Button>
+              Already Have An Account? Sign In
+            </Box>
           </Stack>
-        </form>
-      </Paper>
-    </Container>
+        </Box>
+      </Box>
+    </Flex>
   )
 }

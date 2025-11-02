@@ -548,6 +548,78 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/venues": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all venues (admin only)
+         * @description Returns all venues including inactive ones. Requires Administrator role.
+         */
+        get: operations["GetAllVenues"];
+        put?: never;
+        /**
+         * Create new venue (admin only)
+         * @description Creates a new venue. Requires Administrator role.
+         */
+        post: operations["CreateVenue"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/venues/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get active venues only (admin only)
+         * @description Returns only active venues. Requires Administrator role.
+         */
+        get: operations["GetActiveVenues"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/venues/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get single venue (admin only)
+         * @description Returns a single venue by ID. Requires Administrator role.
+         */
+        get: operations["GetVenue"];
+        /**
+         * Update venue (admin only)
+         * @description Updates an existing venue. Requires Administrator role.
+         */
+        put: operations["UpdateVenue"];
+        post?: never;
+        /**
+         * Soft delete venue (admin only)
+         * @description Soft deletes a venue by setting IsActive to false. Preserves venue data for historical events. Requires Administrator role.
+         */
+        delete: operations["DeleteVenue"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/events/{eventId}/participation": {
         parameters: {
             query?: never;
@@ -2336,6 +2408,15 @@ export interface components {
             /** Format: date-time */
             timestamp?: string;
         };
+        ApiResponseOfListOfVenueDto: {
+            success?: boolean;
+            data?: components["schemas"]["VenueDto"][] | null;
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
         ApiResponseOfListOfVolunteerAssignmentDto: {
             success?: boolean;
             data?: components["schemas"]["VolunteerAssignmentDto"][] | null;
@@ -2411,6 +2492,15 @@ export interface components {
         ApiResponseOfUserProfileDto: {
             success?: boolean;
             data?: components["schemas"]["UserProfileDto"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfVenueDto: {
+            success?: boolean;
+            data?: components["schemas"]["VenueDto2"];
             error?: string | null;
             details?: string | null;
             message?: string | null;
@@ -2795,6 +2885,11 @@ export interface components {
             content?: string;
             noteType?: string;
         };
+        CreateVenueRequest: {
+            name?: string;
+            directions?: string | null;
+            notes?: string | null;
+        };
         DashboardStatisticsResponse: {
             /** Format: int32 */
             unassignedCount?: number;
@@ -2894,6 +2989,8 @@ export interface components {
             ticketTypes?: components["schemas"]["TicketTypeDto"][];
             volunteerPositions?: components["schemas"]["VolunteerPositionDto"][];
             teacherIds?: string[];
+            /** Format: int32 */
+            venueId?: number | null;
         };
         EventDto2: {
             id?: string;
@@ -2920,6 +3017,8 @@ export interface components {
             ticketTypes?: components["schemas"]["TicketTypeDto"][];
             volunteerPositions?: components["schemas"]["VolunteerPositionDto"][];
             teacherIds?: string[];
+            /** Format: int32 */
+            venueId?: number | null;
         } | null;
         EventHistoryRecord: {
             /** Format: uuid */
@@ -3658,6 +3757,8 @@ export interface components {
             endDate?: string | null;
             location?: string | null;
             /** Format: int32 */
+            venueId?: number | null;
+            /** Format: int32 */
             capacity?: number | null;
             isPublished?: boolean | null;
             sessions?: components["schemas"]["SessionDto"][] | null;
@@ -3717,6 +3818,12 @@ export interface components {
         };
         UpdateUserRolesRequest: {
             roles: string[];
+        };
+        UpdateVenueRequest: {
+            name?: string;
+            directions?: string | null;
+            notes?: string | null;
+            isActive?: boolean;
         };
         UserCoordinatorDto: {
             /** Format: uuid */
@@ -3867,6 +3974,30 @@ export interface components {
         ValidRolesResponse: {
             roles?: string[];
         };
+        VenueDto: {
+            /** Format: int32 */
+            id?: number;
+            name?: string;
+            directions?: string | null;
+            notes?: string | null;
+            isActive?: boolean;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        VenueDto2: {
+            /** Format: int32 */
+            id?: number;
+            name?: string;
+            directions?: string | null;
+            notes?: string | null;
+            isActive?: boolean;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        } | null;
         VettingDetailsResponse: {
             hasApplication?: boolean;
             /** Format: uuid */
@@ -5282,6 +5413,299 @@ export interface operations {
             };
             /** @description Forbidden */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetAllVenues: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfListOfVenueDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CreateVenue: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateVenueRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfVenueDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetActiveVenues: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfListOfVenueDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetVenue: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfVenueDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UpdateVenue: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateVenueRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfVenueDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    DeleteVenue: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

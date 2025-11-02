@@ -47,6 +47,7 @@ public class SeedCoordinator : ISeedDataService
     private readonly TicketPurchaseSeeder _ticketPurchaseSeeder;
     private readonly VettingSeeder _vettingSeeder;
     private readonly EventSeeder _eventSeeder;
+    private readonly VenueSeeder _venueSeeder;
     private readonly ILogger<SeedCoordinator> _logger;
 
     public SeedCoordinator(
@@ -62,6 +63,7 @@ public class SeedCoordinator : ISeedDataService
         TicketPurchaseSeeder ticketPurchaseSeeder,
         VettingSeeder vettingSeeder,
         EventSeeder eventSeeder,
+        VenueSeeder venueSeeder,
         ILogger<SeedCoordinator> logger)
     {
         _context = context;
@@ -76,6 +78,7 @@ public class SeedCoordinator : ISeedDataService
         _ticketPurchaseSeeder = ticketPurchaseSeeder;
         _vettingSeeder = vettingSeeder;
         _eventSeeder = eventSeeder;
+        _venueSeeder = venueSeeder;
         _logger = logger;
     }
 
@@ -127,6 +130,9 @@ public class SeedCoordinator : ISeedDataService
 
             _logger.LogDebug("Seeding CMS content...");
             await _cmsSeeder.SeedCmsContentAsync(cancellationToken);
+
+            _logger.LogDebug("Seeding venues...");
+            await _venueSeeder.SeedVenuesAsync(cancellationToken);
 
             _logger.LogDebug("Seeding events...");
             await _eventSeeder.SeedEventsAsync(cancellationToken);

@@ -79,8 +79,9 @@ export const AdminEventDetailsPage: React.FC = () => {
 
   // Convert EventDto to EventFormData - defined as a callback to use in effects
   const convertEventToFormData = useCallback((event: EventDtoType): EventFormData => {
-    // Extract venue from location field (API returns location as string)
-    const venueId = event.location || ''
+    // Extract venueId from API response (now using VenueId field instead of Location)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const venueId = (event as any)?.venueId?.toString() || ''
 
     // Map eventType from API response
     const eventType =

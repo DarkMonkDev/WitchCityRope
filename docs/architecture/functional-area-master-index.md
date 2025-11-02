@@ -1,6 +1,6 @@
 # Functional Area Master Index
-<!-- Last Updated: 2025-10-23 - Backend API Audit Added -->
-<!-- Version: 2.3 -->
+<!-- Last Updated: 2025-11-02 - Venue Management Added -->
+<!-- Version: 2.4 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -34,6 +34,7 @@ This master index is maintained by the librarian agent to provide quick lookups 
 | **Testing Infrastructure** | `/docs/functional-areas/testing-infrastructure/` | `/docs/functional-areas/testing-infrastructure/new-work/2025-09-12-containerized-testing/` | **Research and planning for containerized testing infrastructure** - Investigate fresh Docker containers with blank PostgreSQL databases, GitHub Actions CI/CD compatibility, and orphaned container prevention | **Research Phase** | 2025-09-12 |
 | **User Management** | `/docs/functional-areas/user-management/` | `/docs/functional-areas/user-management/new-work/2025-10-19-admin-members-list/` | **ACTIVE DEVELOPMENT** - Admin members management screen showing all registered members with filtering, sorting, and management capabilities. Similar to vetting and incident reporting dashboards. | **Phase 1 - Requirements (Not Started)** | 2025-10-19 |
 | **Vetting System** | `/docs/functional-areas/vetting-system/` | `/docs/functional-areas/vetting-system/new-work/2025-10-04-how-to-join-conditional-visibility/` | **FEATURE COMPLETE** ✅ - Conditional "How to Join" menu visibility based on vetting status. 46 tests passing, TDD approach, full TypeScript coverage. Backend API complete, React implementation production-ready. **READY FOR QA** | **IMPLEMENTATION COMPLETE** | 2025-10-04 |
+| **Venue Management** | `/docs/functional-areas/venue-management/` | `/docs/functional-areas/venue-management/requirements/` | **NEW FEATURE** - Admin venue management system for event locations - CRUD operations for venues (Name, Directions, Notes, IsActive), 3 seed venues, soft delete pattern, integration with event creation/editing forms. Clean implementation without migration concerns. | **Phase 1 - Requirements & Planning** | 2025-11-02 |
 | ~~**API Cleanup**~~ | `/docs/functional-areas/api-cleanup/` | **MIGRATION COMPLETE** ✅ | **✅ RESOLVED** - Successfully archived legacy API projects and migrated all valuable features to modern API. Architecture consistency restored. | **COMPLETE** | 2025-09-13 |
 | ~~**Authentication-Identity**~~ | `/docs/_archive/authentication-identity-legacy-2025-08-12/` | **ARCHIVED** | Legacy authentication docs - ARCHIVED to prevent confusion | Archived | 2025-08-12 |
 | ~~**Vertical Slice Home Page**~~ | `/docs/_archive/vertical-slice-home-page-2025-08-16/` | **ARCHIVED** | Test implementation of complete workflow process - MISSION ACCOMPLISHED, all value extracted | 🗄️ ARCHIVED | 2025-08-19 |

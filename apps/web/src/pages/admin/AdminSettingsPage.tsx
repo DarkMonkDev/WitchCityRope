@@ -3,7 +3,6 @@ import {
   Container,
   Title,
   Text,
-  Paper,
   Stack,
   Select,
   TextInput,
@@ -12,10 +11,12 @@ import {
   Group,
   Loader,
   Box,
+  Grid,
 } from '@mantine/core';
-import { IconCheck, IconAlertCircle, IconSettings } from '@tabler/icons-react';
+import { IconCheck, IconAlertCircle, IconSettings, IconClock } from '@tabler/icons-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../api/client';
+import { VenueManagementCard } from '../../components/admin/VenueManagementCard';
 
 interface Settings {
   EventTimeZone: string;
@@ -82,12 +83,6 @@ export const AdminSettingsPage: React.FC = () => {
     updateMutation.mutate(localSettings);
   };
 
-  const handleReset = () => {
-    if (settings) {
-      setLocalSettings(settings);
-    }
-  };
-
   const hasChanges =
     settings &&
     (localSettings.EventTimeZone !== settings.EventTimeZone ||
@@ -98,7 +93,7 @@ export const AdminSettingsPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Container size="md" py="xl">
+      <Container size={1400} py="xl">
         <Group justify="center">
           <Loader size="lg" />
         </Group>
@@ -108,7 +103,7 @@ export const AdminSettingsPage: React.FC = () => {
 
   if (error) {
     return (
-      <Container size="md" py="xl">
+      <Container size={1400} py="xl">
         <Alert icon={<IconAlertCircle />} title="Error" color="red">
           Failed to load settings. Please try again later.
         </Alert>
@@ -117,7 +112,7 @@ export const AdminSettingsPage: React.FC = () => {
   }
 
   return (
-    <Container size="md" py="xl">
+    <Container size={1400} py="xl">
       {/* Header */}
       <Group mb="xl">
         <IconSettings size={32} color="#8B8680" />
@@ -135,10 +130,6 @@ export const AdminSettingsPage: React.FC = () => {
           Settings
         </Title>
       </Group>
-
-      <Text size="sm" c="dimmed" mb="xl">
-        Configure system settings for event management
-      </Text>
 
       {/* Success Alert */}
       {updateMutation.isSuccess && (
@@ -164,90 +155,290 @@ export const AdminSettingsPage: React.FC = () => {
         </Alert>
       )}
 
-      {/* Settings Form */}
-      <Paper shadow="sm" p="xl" radius="md" withBorder>
-        <Stack gap="lg">
-          {/* Event Timezone Setting */}
-          <Select
-            label="Event Timezone"
-            description="The timezone where your events occur. All event times will be interpreted in this timezone."
-            data={US_TIMEZONES}
-            value={localSettings.EventTimeZone}
-            onChange={(value) =>
-              setLocalSettings((prev) => ({
-                ...prev,
-                EventTimeZone: value || 'America/New_York',
-              }))
-            }
-            required
-            styles={{
-              label: { fontWeight: 600, color: '#2B2B2B' },
-              description: { fontSize: '14px' },
+      {/* Two-Column Grid Layout */}
+      <Grid gutter="xl">
+        {/* Left Column - Time Zone Settings Card */}
+        <Grid.Col span={{ base: 12, md: 6 }}>
+          <Box
+            style={{
+              background: 'var(--color-ivory)',
+              borderRadius: '16px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+              overflow: 'hidden',
+              height: '100%',
             }}
-          />
-
-          {/* Pre-Start Buffer Setting */}
-          <TextInput
-            label="Pre-Start Buffer (Minutes)"
-            description="Minutes before event start when registration and cancellations close. Set to 0 to allow until event starts."
-            placeholder="0"
-            value={localSettings.PreStartBufferMinutes}
-            onChange={(e) =>
-              setLocalSettings((prev) => ({
-                ...prev,
-                PreStartBufferMinutes: e.target.value,
-              }))
-            }
-            type="number"
-            min={0}
-            required
-            error={hasValidationError ? 'Must be a non-negative number' : undefined}
-            styles={{
-              label: { fontWeight: 600, color: '#2B2B2B' },
-              description: { fontSize: '14px' },
-            }}
-          />
-
-          {/* Action Buttons */}
-          <Group justify="space-between" mt="md">
-            <Button
-              variant="subtle"
-              color="gray"
-              onClick={handleReset}
-              disabled={!hasChanges || updateMutation.isPending}
+          >
+            {/* Card Header */}
+            <Box
+              style={{
+                background: 'linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%)',
+                padding: 'var(--space-lg) var(--space-xl)',
+                borderBottom: '1px solid var(--color-taupe)',
+              }}
             >
-              Reset Changes
-            </Button>
+              <Group gap="sm">
+                <IconClock size={24} color="var(--color-ivory)" />
+                <Title
+                  order={3}
+                  style={{
+                    fontFamily: 'var(--font-heading)',
+                    fontSize: '20px',
+                    fontWeight: 700,
+                    color: 'var(--color-ivory)',
+                  }}
+                >
+                  Time Zone Settings
+                </Title>
+              </Group>
+            </Box>
 
-            <Button
-              variant="filled"
-              color="#880124"
-              onClick={handleSave}
-              disabled={!hasChanges || hasValidationError || updateMutation.isPending}
-              loading={updateMutation.isPending}
-            >
-              Save Settings
-            </Button>
-          </Group>
-        </Stack>
-      </Paper>
+            {/* Card Body */}
+            <Box style={{ padding: 'var(--space-xl)' }}>
+              <Stack gap="lg">
+                {/* Event Timezone and Buffer Time - Two Column Layout */}
+                <Grid gutter="md">
+                  {/* Event Timezone Setting */}
+                  <Grid.Col span={{ base: 12, sm: 6 }}>
+                    <Box>
+                      <Text
+                        component="label"
+                        style={{
+                          display: 'block',
+                          fontFamily: 'var(--font-heading)',
+                          fontSize: '14px',
+                          fontWeight: 600,
+                          color: 'var(--color-smoke)',
+                          marginBottom: 'var(--space-xs)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                        }}
+                      >
+                        Event Timezone
+                      </Text>
+                      <Select
+                        data={US_TIMEZONES}
+                        value={localSettings.EventTimeZone}
+                        onChange={(value) =>
+                          setLocalSettings((prev) => ({
+                            ...prev,
+                            EventTimeZone: value || 'America/New_York',
+                          }))
+                        }
+                        required
+                        styles={{
+                          input: {
+                            fontFamily: 'var(--font-body)',
+                            fontSize: '16px',
+                            border: '2px solid var(--color-taupe)',
+                            borderRadius: '8px',
+                            background: 'var(--color-ivory)',
+                            color: 'var(--color-charcoal)',
+                            padding: 'var(--space-sm) var(--space-md)',
+                            '&:focus': {
+                              borderColor: 'var(--color-burgundy)',
+                              boxShadow: '0 0 0 3px rgba(136, 1, 36, 0.1)',
+                            },
+                          },
+                        }}
+                      />
+                      <Text
+                        size="sm"
+                        style={{
+                          fontSize: '12px',
+                          color: 'var(--color-smoke)',
+                          marginTop: 'var(--space-xs)',
+                        }}
+                      >
+                        The timezone where your events occur. All event times will be interpreted in this timezone.
+                      </Text>
+                    </Box>
+                  </Grid.Col>
 
-      {/* Information Box */}
-      <Paper shadow="xs" p="md" mt="xl" style={{ background: '#F5F5F5', borderLeft: '4px solid #880124' }}>
-        <Text size="sm" fw={600} mb="xs">
-          About These Settings
-        </Text>
-        <Box>
-          <Text size="sm" c="dimmed">
-            <strong>Timezone:</strong> All events are assumed to occur in the selected timezone. Users in different
-            timezones will see times converted to their local timezone when viewing events.
-          </Text>
-          <Text size="sm" c="dimmed" mt="xs">
-            <strong>Buffer Time:</strong> Prevents last-minute registrations and cancellations. For example, setting
-            this to 30 means registration closes 30 minutes before the event starts.
-          </Text>
-        </Box>
-      </Paper>
+                  {/* Pre-Start Buffer Setting */}
+                  <Grid.Col span={{ base: 12, sm: 6 }}>
+                    <Box>
+                      <Text
+                        component="label"
+                        style={{
+                          display: 'block',
+                          fontFamily: 'var(--font-heading)',
+                          fontSize: '14px',
+                          fontWeight: 600,
+                          color: 'var(--color-smoke)',
+                          marginBottom: 'var(--space-xs)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                        }}
+                      >
+                        Pre-Start Buffer (Minutes)
+                      </Text>
+                      <TextInput
+                        placeholder="0"
+                        value={localSettings.PreStartBufferMinutes}
+                        onChange={(e) =>
+                          setLocalSettings((prev) => ({
+                            ...prev,
+                            PreStartBufferMinutes: e.target.value,
+                          }))
+                        }
+                        type="number"
+                        min={0}
+                        required
+                        error={hasValidationError ? 'Must be a non-negative number' : undefined}
+                        styles={{
+                          input: {
+                            fontFamily: 'var(--font-body)',
+                            fontSize: '16px',
+                            border: '2px solid var(--color-taupe)',
+                            borderRadius: '8px',
+                            background: 'var(--color-ivory)',
+                            color: 'var(--color-charcoal)',
+                            padding: 'var(--space-sm) var(--space-md)',
+                            '&:focus': {
+                              borderColor: 'var(--color-burgundy)',
+                              boxShadow: '0 0 0 3px rgba(136, 1, 36, 0.1)',
+                            },
+                          },
+                        }}
+                      />
+                      <Text
+                        size="sm"
+                        style={{
+                          fontSize: '12px',
+                          color: 'var(--color-smoke)',
+                          marginTop: 'var(--space-xs)',
+                        }}
+                      >
+                        Minutes before event start when registration and cancellations close. Set to 0 to allow until event starts.
+                      </Text>
+                    </Box>
+                  </Grid.Col>
+                </Grid>
+
+                {/* Action Buttons */}
+                <Group justify="flex-end" mt="md">
+                  <Button
+                    variant="filled"
+                    color="#880124"
+                    onClick={handleSave}
+                    disabled={!hasChanges || hasValidationError || updateMutation.isPending}
+                    loading={updateMutation.isPending}
+                    styles={{
+                      root: {
+                        fontWeight: 600,
+                        height: '44px',
+                        paddingTop: '12px',
+                        paddingBottom: '12px',
+                        fontSize: '14px',
+                        lineHeight: '1.2',
+                      },
+                    }}
+                  >
+                    Save Settings
+                  </Button>
+                </Group>
+
+                {/* Settings information - moved from right column */}
+                <Box mt="md">
+                  <Stack gap="md">
+                    <Box>
+                      <Text
+                        fw={600}
+                        size="sm"
+                        style={{
+                          fontFamily: 'var(--font-heading)',
+                          fontSize: '14px',
+                          color: 'var(--color-smoke)',
+                          marginBottom: 'var(--space-xs)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                        }}
+                      >
+                        Timezone
+                      </Text>
+                      <Text
+                        size="sm"
+                        c="dimmed"
+                        style={{
+                          fontSize: '14px',
+                          lineHeight: '1.6',
+                          color: 'var(--color-smoke)',
+                        }}
+                      >
+                        All events are assumed to occur in the selected timezone. Users in different
+                        timezones will see times converted to their local timezone when viewing events.
+                      </Text>
+                    </Box>
+
+                    <Box>
+                      <Text
+                        fw={600}
+                        size="sm"
+                        style={{
+                          fontFamily: 'var(--font-heading)',
+                          fontSize: '14px',
+                          color: 'var(--color-smoke)',
+                          marginBottom: 'var(--space-xs)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                        }}
+                      >
+                        Buffer Time
+                      </Text>
+                      <Text
+                        size="sm"
+                        c="dimmed"
+                        style={{
+                          fontSize: '14px',
+                          lineHeight: '1.6',
+                          color: 'var(--color-smoke)',
+                        }}
+                      >
+                        Prevents last-minute registrations and cancellations. For example, setting
+                        this to 30 means registration closes 30 minutes before the event starts.
+                      </Text>
+                    </Box>
+
+                    <Box>
+                      <Text
+                        fw={600}
+                        size="sm"
+                        style={{
+                          fontFamily: 'var(--font-heading)',
+                          fontSize: '14px',
+                          color: 'var(--color-smoke)',
+                          marginBottom: 'var(--space-xs)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                        }}
+                      >
+                        Note
+                      </Text>
+                      <Text
+                        size="sm"
+                        c="dimmed"
+                        style={{
+                          fontSize: '14px',
+                          lineHeight: '1.6',
+                          color: 'var(--color-smoke)',
+                        }}
+                      >
+                        Changes to these settings will affect all future event registrations and
+                        cancellations. Existing registrations will not be affected.
+                      </Text>
+                    </Box>
+                  </Stack>
+                </Box>
+              </Stack>
+            </Box>
+          </Box>
+        </Grid.Col>
+
+        {/* Right Column - Venue Management Card */}
+        <Grid.Col span={{ base: 12, md: 6 }}>
+          <VenueManagementCard />
+        </Grid.Col>
+      </Grid>
     </Container>
   );
 };

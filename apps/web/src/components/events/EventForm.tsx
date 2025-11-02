@@ -14,9 +14,16 @@ import {
   Table,
   ActionIcon,
   Alert,
+  Modal,
+  Textarea,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { api } from '../../api/client'
+import { notifications } from '@mantine/notifications'
+import { IconCheck, IconAlertCircle } from '@tabler/icons-react'
 import { MantineTiptapEditor } from '../forms/MantineTiptapEditor'
+import type { components } from '@witchcityrope/shared-types'
 
 import { EventSessionsGrid, EventSession } from './EventSessionsGrid'
 import { EventTicketTypesGrid, EventTicketType } from './EventTicketTypesGrid'
@@ -103,9 +110,20 @@ export const EventForm: React.FC<EventFormProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<string>('basic-info')
   const [activeEmailTemplate, setActiveEmailTemplate] = useState<string>('confirmation')
+  const queryClient = useQueryClient()
 
   // Fetch teachers from API
   const { data: teachersData, isLoading: teachersLoading, error: teachersError } = useTeachers()
+
+  // Fetch active venues from API
+  type VenueDto = components['schemas']['VenueDto']
+  const { data: venuesData } = useQuery<VenueDto[]>({
+    queryKey: ['admin', 'venues', 'active'],
+    queryFn: async () => {
+      const response = await api.get<{ data: VenueDto[] }>('/api/admin/venues/active')
+      return response.data.data || []
+    },
+  })
 
   // Fetch event participations for admin view (only if eventId provided)
   const {
@@ -117,8 +135,14 @@ export const EventForm: React.FC<EventFormProps> = ({
   // Modal state management
   const [sessionModalOpen, setSessionModalOpen] = useState(false)
   const [ticketModalOpen, setTicketModalOpen] = useState(false)
+  const [venueModalOpen, setVenueModalOpen] = useState(false)
   const [editingSession, setEditingSession] = useState<EventSession | null>(null)
   const [editingTicketType, setEditingTicketType] = useState<EventTicketType | null>(null)
+
+  // Venue form state
+  const [venueName, setVenueName] = useState('')
+  const [venueDirections, setVenueDirections] = useState('')
+  const [venueNotes, setVenueNotes] = useState('')
 
   // Form state management
   const form = useForm<EventFormData>({
@@ -198,17 +222,78 @@ export const EventForm: React.FC<EventFormProps> = ({
     }
   }, [form.values]) // Remove onFormChange from dependency array to prevent loops
 
-  // Mock data for dropdowns
-  const venues = [
-    { value: 'main-studio', label: 'Main Studio' },
-    { value: 'meditation-room', label: 'Meditation Room' },
-    { value: 'outdoor-space', label: 'Outdoor Space' },
-    { value: 'off-site', label: 'Off-site Location' },
-  ]
+  // Format venues for Select dropdown from API data
+  const venues =
+    venuesData && Array.isArray(venuesData)
+      ? venuesData.map((venue) => ({
+          value: venue.id!.toString(),
+          label: venue.name!,
+        }))
+      : []
 
   // Format teachers for MultiSelect (with fallback to empty array)
   const availableTeachers =
     teachersData && Array.isArray(teachersData) ? formatTeachersForMultiSelect(teachersData) : []
+
+  // Create venue mutation
+  type CreateVenueRequest = components['schemas']['CreateVenueRequest']
+  const createVenueMutation = useMutation({
+    mutationFn: async (data: CreateVenueRequest) => {
+      const response = await api.post<{ data: VenueDto }>('/api/admin/venues', data)
+      return response.data.data
+    },
+    onSuccess: (newVenue) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'venues', 'active'] })
+      notifications.show({
+        title: 'Success',
+        message: 'Venue created successfully',
+        color: 'green',
+        icon: <IconCheck />,
+      })
+      // Set the newly created venue as selected
+      if (newVenue?.id) {
+        form.setFieldValue('venueId', newVenue.id.toString())
+      }
+      // Reset form and close modal
+      setVenueName('')
+      setVenueDirections('')
+      setVenueNotes('')
+      setVenueModalOpen(false)
+    },
+    onError: (error: any) => {
+      notifications.show({
+        title: 'Error',
+        message: error.response?.data?.message || 'Failed to create venue',
+        color: 'red',
+        icon: <IconAlertCircle />,
+      })
+    },
+  })
+
+  // Venue modal handlers
+  const handleAddVenueClick = () => {
+    setVenueName('')
+    setVenueDirections('')
+    setVenueNotes('')
+    setVenueModalOpen(true)
+  }
+
+  const handleCreateVenue = () => {
+    if (!venueName.trim()) {
+      notifications.show({
+        title: 'Validation Error',
+        message: 'Venue name is required',
+        color: 'red',
+      })
+      return
+    }
+
+    createVenueMutation.mutate({
+      name: venueName.trim(),
+      directions: venueDirections.trim() || null,
+      notes: venueNotes.trim() || null,
+    })
+  }
 
   // Session management handlers
   const handleEditSession = (sessionId: string) => {
@@ -357,12 +442,6 @@ export const EventForm: React.FC<EventFormProps> = ({
   }
 
   const handleSubmit = form.onSubmit((values) => {
-    // DEBUG: Log form values when submitted
-    console.log('🔍 [DEBUG] EventForm submitting values:', {
-      teacherIds: values.teacherIds,
-      formKeys: Object.keys(values),
-      fullValues: values,
-    })
     onSubmit(values)
   })
 
@@ -612,8 +691,8 @@ export const EventForm: React.FC<EventFormProps> = ({
                     required
                     {...form.getInputProps('venueId')}
                   />
-                  <WCRButton variant="outline" size="md">
-                    Add Venue
+                  <WCRButton variant="outline" size="md" onClick={handleAddVenueClick}>
+                    Create New Venue
                   </WCRButton>
                 </Group>
               </div>
@@ -656,27 +735,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                   searchable
                   disabled={teachersLoading || !!teachersError}
                   {...form.getInputProps('teacherIds')}
-                  onChange={(value) => {
-                    console.log('🔍 [DEBUG] MultiSelect onChange called with:', value)
-                    console.log(
-                      '🔍 [DEBUG] Value type:',
-                      typeof value,
-                      Array.isArray(value) ? 'array' : 'not array'
-                    )
-                    form.setFieldValue('teacherIds', value)
-                    console.log('🔍 [DEBUG] Form teacherIds after set:', form.values.teacherIds)
-                  }}
                 />
-                {/* DEBUG: Show current teacherIds and API status */}
-                <Text size="xs" c="dimmed" mt="xs">
-                  Debug - Current teacherIds: {JSON.stringify(form.values.teacherIds)}
-                  <br />
-                  Teachers loading: {teachersLoading ? 'Yes' : 'No'}
-                  <br />
-                  Teachers available: {availableTeachers.length}
-                  <br />
-                  Teachers error: {teachersError ? String(teachersError) : 'None'}
-                </Text>
               </div>
 
               {/* Save Buttons */}
@@ -1007,7 +1066,6 @@ export const EventForm: React.FC<EventFormProps> = ({
                     value={getTemplateContent()}
                     onChange={(content) => {
                       // Update content logic - will be implemented when form state is connected
-                      console.log('Content changed:', content)
                     }}
                     minRows={10}
                     placeholder="Enter email content..."
@@ -1545,6 +1603,63 @@ export const EventForm: React.FC<EventFormProps> = ({
         ticketType={editingTicketType ? convertTicketTypeForModal(editingTicketType) : null}
         availableSessions={form.values.sessions || []}
       />
+
+      {/* Add Venue Modal */}
+      <Modal
+        opened={venueModalOpen}
+        onClose={() => setVenueModalOpen(false)}
+        title="Add New Venue"
+        centered
+        size="md"
+      >
+        <Stack gap="md">
+          <TextInput
+            label="Venue Name"
+            placeholder="Enter venue name"
+            value={venueName}
+            onChange={(e) => setVenueName(e.currentTarget.value)}
+            required
+            withAsterisk
+          />
+
+          <Textarea
+            label="Directions"
+            placeholder="Enter directions to the venue (optional)"
+            value={venueDirections}
+            onChange={(e) => setVenueDirections(e.currentTarget.value)}
+            minRows={3}
+            maxRows={6}
+            maxLength={500}
+          />
+
+          <Textarea
+            label="Notes"
+            placeholder="Enter any additional notes about the venue (optional)"
+            value={venueNotes}
+            onChange={(e) => setVenueNotes(e.currentTarget.value)}
+            minRows={3}
+            maxRows={6}
+            maxLength={1000}
+          />
+
+          <Group justify="flex-end" mt="md">
+            <WCRButton
+              variant="outline"
+              onClick={() => setVenueModalOpen(false)}
+              disabled={createVenueMutation.isPending}
+            >
+              Cancel
+            </WCRButton>
+            <WCRButton
+              variant="primary"
+              onClick={handleCreateVenue}
+              loading={createVenueMutation.isPending}
+            >
+              Create Venue
+            </WCRButton>
+          </Group>
+        </Stack>
+      </Modal>
 
       {/* Modal removed - now using inline editing in VolunteerPositionsGrid */}
     </Card>

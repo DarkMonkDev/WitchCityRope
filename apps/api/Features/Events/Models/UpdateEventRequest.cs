@@ -40,8 +40,15 @@ public class UpdateEventRequest
 
     /// <summary>
     /// Updated event location (optional)
+    /// DEPRECATED: Use VenueId instead
     /// </summary>
     public string? Location { get; set; }
+
+    /// <summary>
+    /// Updated venue ID (optional)
+    /// References the Venues table
+    /// </summary>
+    public int? VenueId { get; set; }
 
     /// <summary>
     /// Updated maximum number of attendees (optional)

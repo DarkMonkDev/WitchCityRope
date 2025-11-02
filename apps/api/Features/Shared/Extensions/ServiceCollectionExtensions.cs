@@ -116,10 +116,11 @@ public static class ServiceCollectionExtensions
 
         // Seed data service - Refactored into specialized seeders (2025-10-27)
         // Previously was a single 3,800-line SeedDataService.cs file
-        // Now orchestrated by SeedCoordinator with 10 focused seeder components
+        // Now orchestrated by SeedCoordinator with 11 focused seeder components
         services.AddScoped<UserSeeder>();
         services.AddScoped<SettingsSeeder>();
         services.AddScoped<CmsSeeder>();
+        services.AddScoped<VenueSeeder>();
         services.AddScoped<SafetySeeder>();
         services.AddScoped<ParticipationSeeder>();
         services.AddScoped<SessionTicketSeeder>();

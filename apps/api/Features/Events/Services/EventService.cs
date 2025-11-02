@@ -85,6 +85,7 @@ public class EventService
                 Policies = e.Policies,
                 StartDate = e.StartDate,
                 EndDate = e.EndDate,
+                VenueId = e.VenueId,
                 Location = e.Location,
                 EventType = e.EventType.ToString(),
                 Capacity = e.Capacity,
@@ -169,6 +170,7 @@ public class EventService
                 Policies = eventEntity.Policies,
                 StartDate = eventEntity.StartDate,
                 EndDate = eventEntity.EndDate,
+                VenueId = eventEntity.VenueId,
                 Location = eventEntity.Location,
                 EventType = eventEntity.EventType.ToString(),
                 Capacity = eventEntity.Capacity,
@@ -328,6 +330,11 @@ public class EventService
                 eventEntity.Location = request.Location.Trim();
             }
 
+            if (request.VenueId.HasValue)
+            {
+                eventEntity.VenueId = request.VenueId.Value;
+            }
+
             if (request.Capacity.HasValue)
             {
                 eventEntity.Capacity = request.Capacity.Value;
@@ -388,6 +395,7 @@ public class EventService
                 Policies = eventEntity.Policies,
                 StartDate = eventEntity.StartDate,
                 EndDate = eventEntity.EndDate,
+                VenueId = eventEntity.VenueId,
                 Location = eventEntity.Location,
                 EventType = eventEntity.EventType.ToString(),
                 Capacity = eventEntity.Capacity,

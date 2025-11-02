@@ -12,6 +12,7 @@ using WitchCityRope.Api.Features.Volunteers.Endpoints;
 using WitchCityRope.Api.Features.Cms;
 using WitchCityRope.Api.Features.Metadata.Endpoints;
 using WitchCityRope.Api.Features.Admin.Settings.Endpoints;
+using WitchCityRope.Api.Endpoints.Admin;
 
 namespace WitchCityRope.Api.Features.Shared.Extensions;
 
@@ -47,6 +48,7 @@ public static class WebApplicationExtensions
 
         // Admin feature endpoints
         app.MapSettingsEndpoints();
+        app.MapVenueEndpoints();
 
         // Safety feature endpoints
         app.MapSafetyEndpoints();

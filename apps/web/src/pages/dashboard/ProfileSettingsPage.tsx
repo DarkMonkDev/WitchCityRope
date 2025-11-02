@@ -4,6 +4,7 @@ import {
   Title,
   Tabs,
   TextInput,
+  PasswordInput,
   Textarea,
   Button,
   Group,
@@ -416,6 +417,9 @@ const ChangePasswordForm: React.FC = () => {
         if (!/(?=.*\d)/.test(value)) {
           return 'Password must contain number'
         }
+        if (!/[^A-Za-z0-9]/.test(value)) {
+          return 'Password must contain at least one special character'
+        }
         return null
       },
       confirmPassword: (value, values) =>
@@ -438,6 +442,9 @@ const ChangePasswordForm: React.FC = () => {
       })
       form.reset()
     }
+  }, [changePasswordMutation.isSuccess])
+
+  React.useEffect(() => {
     if (changePasswordMutation.isError) {
       notifications.show({
         title: 'Error',
@@ -449,12 +456,7 @@ const ChangePasswordForm: React.FC = () => {
         icon: <IconAlertCircle />,
       })
     }
-  }, [
-    changePasswordMutation.isSuccess,
-    changePasswordMutation.isError,
-    changePasswordMutation.error,
-    form,
-  ])
+  }, [changePasswordMutation.isError, changePasswordMutation.error])
 
   return (
     <Box
@@ -470,9 +472,8 @@ const ChangePasswordForm: React.FC = () => {
       <Stack gap="md">
         {/* Responsive 3-column layout: 1 col on mobile, 2 on tablet, 3 on desktop */}
         <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-          <TextInput
+          <PasswordInput
             label="Current Password"
-            type="password"
             required
             {...form.getInputProps('currentPassword')}
             styles={{
@@ -484,9 +485,8 @@ const ChangePasswordForm: React.FC = () => {
             }}
           />
 
-          <TextInput
+          <PasswordInput
             label="New Password"
-            type="password"
             required
             {...form.getInputProps('newPassword')}
             styles={{
@@ -498,9 +498,8 @@ const ChangePasswordForm: React.FC = () => {
             }}
           />
 
-          <TextInput
+          <PasswordInput
             label="Confirm New Password"
-            type="password"
             required
             {...form.getInputProps('confirmPassword')}
             styles={{
@@ -514,7 +513,7 @@ const ChangePasswordForm: React.FC = () => {
         </SimpleGrid>
 
         <Text size="sm" c="dimmed">
-          Password must be at least 8 characters and contain uppercase, lowercase, and number.
+          8+ characters with uppercase, lowercase, number, and special character
         </Text>
 
         <Group justify="flex-end">

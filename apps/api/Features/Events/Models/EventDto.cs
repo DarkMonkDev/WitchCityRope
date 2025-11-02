@@ -18,7 +18,19 @@ public class EventDto
     public string? Policies { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
+
+    /// <summary>
+    /// Venue ID reference (preferred over deprecated Location string)
+    /// References the Venues table
+    /// </summary>
+    public int? VenueId { get; set; }
+
+    /// <summary>
+    /// DEPRECATED: Use VenueId instead
+    /// Legacy location string field maintained for backward compatibility
+    /// </summary>
     public string Location { get; set; } = string.Empty;
+
     public string EventType { get; set; } = string.Empty;
     public int Capacity { get; set; }
 

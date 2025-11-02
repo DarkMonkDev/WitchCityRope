@@ -90,6 +90,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<Event> Events { get; set; }
 
     /// <summary>
+    /// Venues table for venue management
+    /// </summary>
+    public DbSet<Venue> Venues { get; set; }
+
+    /// <summary>
     /// Sessions table for event sessions
     /// </summary>
     public DbSet<Session> Sessions { get; set; }
@@ -410,6 +415,59 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
                       "EventOrganizers",
                       j => j.HasOne<ApplicationUser>().WithMany().HasForeignKey("UserId"),
                       j => j.HasOne<Event>().WithMany().HasForeignKey("EventId"));
+
+            // Configure relationship with Venue (optional foreign key)
+            entity.HasOne(e => e.Venue)
+                  .WithMany(v => v.Events)
+                  .HasForeignKey(e => e.VenueId)
+                  .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // Venue entity configuration
+        modelBuilder.Entity<Venue>(entity =>
+        {
+            entity.ToTable("Venues", "public");
+            entity.HasKey(v => v.Id);
+
+            // Name: required, max 100, unique case-insensitive
+            entity.Property(v => v.Name)
+                  .IsRequired()
+                  .HasMaxLength(100);
+
+            entity.HasIndex(v => v.Name)
+                  .IsUnique()
+                  .HasDatabaseName("IX_Venues_Name");
+
+            // Directions: optional, max 500
+            entity.Property(v => v.Directions)
+                  .HasMaxLength(500);
+
+            // Notes: optional, max 1000
+            entity.Property(v => v.Notes)
+                  .HasMaxLength(1000);
+
+            // IsActive: required, default true
+            entity.Property(v => v.IsActive)
+                  .IsRequired()
+                  .HasDefaultValue(true);
+
+            entity.HasIndex(v => v.IsActive)
+                  .HasDatabaseName("IX_Venues_IsActive");
+
+            // CreatedAt/UpdatedAt: UTC timestamps
+            entity.Property(v => v.CreatedAt)
+                  .IsRequired()
+                  .HasColumnType("timestamptz");
+
+            entity.Property(v => v.UpdatedAt)
+                  .IsRequired()
+                  .HasColumnType("timestamptz");
+
+            // Navigation property to Events
+            entity.HasMany(v => v.Events)
+                  .WithOne(e => e.Venue)
+                  .HasForeignKey(e => e.VenueId)
+                  .OnDelete(DeleteBehavior.SetNull);  // Preserve events if venue soft-deleted
         });
 
         // Session entity configuration
@@ -1177,6 +1235,21 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         // Handle VolunteerPosition entities
         var volunteerEntries = ChangeTracker.Entries<VolunteerPosition>();
         foreach (var entry in volunteerEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        // Handle Venue entities
+        var venueEntries = ChangeTracker.Entries<Venue>();
+        foreach (var entry in venueEntries)
         {
             if (entry.State == EntityState.Added)
             {
