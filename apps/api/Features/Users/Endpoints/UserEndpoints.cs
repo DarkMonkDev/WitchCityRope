@@ -286,6 +286,39 @@ Role changes are logged for audit purposes.")
             .Produces<AvailableRolesResponse>(200)
             .Produces(401);
 
+        // Get public user profile by ID (authenticated users only)
+        // Used for displaying teacher bios, instructor information, etc.
+        // NOTE: Uses /api/public/ prefix to avoid route collision with dashboard endpoints
+        app.MapGet("/api/public/users/{userId}/profile", async (
+            string userId,
+            UserManagementService userService,
+            CancellationToken cancellationToken) =>
+            {
+                var (success, response, error) = await userService.GetProfileAsync(userId, cancellationToken);
+
+                if (!success || response == null)
+                {
+                    return Results.Problem(
+                        title: "Get Profile Failed",
+                        detail: error ?? "User not found",
+                        statusCode: 404);
+                }
+
+                return Results.Ok(new
+                {
+                    success = true,
+                    data = response,
+                    message = "Profile retrieved successfully"
+                });
+            })
+            .AllowAnonymous() // Public endpoint - no authentication required
+            .WithName("GetUserProfileById")
+            .WithSummary("Get public user profile by ID")
+            .WithDescription("Returns public profile information (bio, scene name, etc.) for any user. Used for displaying teacher bios on event pages. No authentication required.")
+            .WithTags("Users")
+            .Produces<UserDto>(200)
+            .Produces(404);
+
         // Map member details endpoints (admin-only comprehensive member information)
         app.MapMemberDetailsEndpoints();
     }
