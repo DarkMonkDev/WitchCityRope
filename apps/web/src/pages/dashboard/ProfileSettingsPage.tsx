@@ -26,6 +26,7 @@ import type {
   ChangePasswordDto,
   UserProfileDto,
 } from '../../types/dashboard.types'
+import { debugLog } from '../../utils/debug'
 
 /**
  * Profile Settings Page with 3 tabs
@@ -188,7 +189,7 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
   })
 
   const handleSubmit = (values: UpdateProfileDto) => {
-    console.log('🔍 PersonalInfoForm - Submitting all fields:', values)
+    debugLog('🔍 PersonalInfoForm - Submitting all fields:', values)
     updateProfileMutation.mutate(values)
   }
 

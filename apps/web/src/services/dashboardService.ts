@@ -6,6 +6,7 @@ import type {
   UpdateProfileDto,
   ChangePasswordDto,
 } from '../types/dashboard.types';
+import { debugLog } from '../utils/debug';
 
 /**
  * Dashboard API service
@@ -71,7 +72,7 @@ export const dashboardService = {
     const url = `/api/users/${userId}/profile`;
 
     // DEBUG: Log the exact payload being sent to API
-    console.log('🔍 UPDATE PROFILE REQUEST:', {
+    debugLog('🔍 UPDATE PROFILE REQUEST:', {
       url,
       userId,
       payload: data,
@@ -81,7 +82,7 @@ export const dashboardService = {
 
     const response = await apiClient.put<{ success: boolean; data: UserProfileDto }>(url, data);
 
-    console.log('✅ UPDATE PROFILE RESPONSE:', {
+    debugLog('✅ UPDATE PROFILE RESPONSE:', {
       status: response.status,
       data: response.data
     });

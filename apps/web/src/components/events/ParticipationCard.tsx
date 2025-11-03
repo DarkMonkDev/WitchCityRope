@@ -47,6 +47,7 @@ import type { PaymentEventInfo } from '../../features/payments/types/payment.typ
 import { useConfirmPayPalPayment } from '../../lib/api/hooks/usePayments';
 import { PaymentSummary } from '../../features/payments/components/PaymentSummary';
 import type { components } from '@witchcityrope/shared-types/generated/api-types';
+import { debugLog } from '../../utils/debug';
 
 type TicketTypeDto = components["schemas"]["TicketTypeDto"];
 
@@ -100,15 +101,15 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   const isAuthenticated = !!user;
 
   // DEBUG: Log all relevant data for RSVP button troubleshooting
-  console.log('🔍 ParticipationCard DEBUG DATA:');
-  console.log('  - eventType:', eventType);
-  console.log('  - user (full object):', user);
-  console.log('  - isAuthenticated:', isAuthenticated);
-  console.log('  - participation:', participation);
-  console.log('  - participation?.canRSVP:', participation?.canRSVP);
-  console.log('  - participation?.hasRSVP:', participation?.hasRSVP);
-  console.log('  - isLoading:', isLoading);
-  console.log('  - isLoadingUser:', isLoadingUser);
+  debugLog('🔍 ParticipationCard DEBUG DATA:');
+  debugLog('  - eventType:', eventType);
+  debugLog('  - user (full object):', user);
+  debugLog('  - isAuthenticated:', isAuthenticated);
+  debugLog('  - participation:', participation);
+  debugLog('  - participation?.canRSVP:', participation?.canRSVP);
+  debugLog('  - participation?.hasRSVP:', participation?.hasRSVP);
+  debugLog('  - isLoading:', isLoading);
+  debugLog('  - isLoadingUser:', isLoadingUser);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelType, setCancelType] = useState<'rsvp' | 'ticket'>('rsvp');
   const [cancelReason, setCancelReason] = useState('');
@@ -176,55 +177,55 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   // Handle both legacy (roles array) and new (isVetted boolean + role string) user structures
   let isVetted = false;
 
-  console.log('🔍 VETTING LOGIC DEBUG:');
-  console.log('  - user exists:', !!user);
-  console.log('  - user type:', typeof user);
+  debugLog('🔍 VETTING LOGIC DEBUG:');
+  debugLog('  - user exists:', !!user);
+  debugLog('  - user type:', typeof user);
 
   if (user && typeof user === 'object') {
-    console.log('  - user.isVetted:', (user as any).isVetted);
-    console.log('  - user.role:', (user as any).role);
-    console.log('  - user.roles:', (user as any).roles);
+    debugLog('  - user.isVetted:', (user as any).isVetted);
+    debugLog('  - user.role:', (user as any).role);
+    debugLog('  - user.roles:', (user as any).roles);
 
     // New structure: Check isVetted boolean OR admin/teacher role
     if ('isVetted' in user && user.isVetted === true) {
       isVetted = true;
-      console.log('  ✅ isVetted = true (via isVetted boolean)');
+      debugLog('  ✅ isVetted = true (via isVetted boolean)');
     } else if ('role' in user && typeof user.role === 'string') {
       const adminTeacherRoles = ['Administrator', 'Teacher'];
       isVetted = adminTeacherRoles.includes(user.role);
-      console.log(`  - Checking role '${user.role}' against [${adminTeacherRoles.join(', ')}]: ${isVetted}`);
-      if (isVetted) console.log('  ✅ isVetted = true (via admin/teacher role)');
+      debugLog(`  - Checking role '${user.role}' against [${adminTeacherRoles.join(', ')}]: ${isVetted}`);
+      if (isVetted) debugLog('  ✅ isVetted = true (via admin/teacher role)');
     }
 
     // Legacy structure: Check roles array (fallback)
     if (!isVetted && 'roles' in user && Array.isArray(user.roles)) {
       const legacyRoles = ['Vetted', 'Teacher', 'Administrator'];
       isVetted = user.roles.some(role => legacyRoles.includes(role));
-      console.log(`  - Checking roles array [${user.roles.join(', ')}] against [${legacyRoles.join(', ')}]: ${isVetted}`);
-      if (isVetted) console.log('  ✅ isVetted = true (via legacy roles array)');
+      debugLog(`  - Checking roles array [${user.roles.join(', ')}] against [${legacyRoles.join(', ')}]: ${isVetted}`);
+      if (isVetted) debugLog('  ✅ isVetted = true (via legacy roles array)');
     }
   }
 
-  console.log('  🎯 FINAL isVetted result:', isVetted);
+  debugLog('  🎯 FINAL isVetted result:', isVetted);
 
   // Enhanced participation debugging
-  console.log('🔍 PARTICIPATION STATUS DEBUG:');
-  console.log('  - participation is null:', participation === null);
-  console.log('  - participation is undefined:', participation === undefined);
-  console.log('  - participation type:', typeof participation);
-  console.log('  - participation value:', participation);
-  console.log('  - isLoading:', isLoading);
-  console.log('  - isLoadingUser:', isLoadingUser);
+  debugLog('🔍 PARTICIPATION STATUS DEBUG:');
+  debugLog('  - participation is null:', participation === null);
+  debugLog('  - participation is undefined:', participation === undefined);
+  debugLog('  - participation type:', typeof participation);
+  debugLog('  - participation value:', participation);
+  debugLog('  - isLoading:', isLoading);
+  debugLog('  - isLoadingUser:', isLoadingUser);
 
   // Handle invalid participation data and normalize structure
   let validParticipation = (participation && typeof participation === 'object') ? participation : null;
 
   // Check if participation has the old structure (from API) and normalize it
   if (validParticipation && 'participationType' in validParticipation && !('hasRSVP' in validParticipation)) {
-    console.log('🔍 Converting old participation structure to new format');
+    debugLog('🔍 Converting old participation structure to new format');
     const participationAny = validParticipation as any;
-    console.log('🔍 Participation metadata:', participationAny.metadata);
-    console.log('🔍 Extracted amount:', extractAmountFromMetadata(participationAny.metadata));
+    debugLog('🔍 Participation metadata:', participationAny.metadata);
+    debugLog('🔍 Extracted amount:', extractAmountFromMetadata(participationAny.metadata));
     const hasRSVP = participationAny.participationType === 'RSVP' && participationAny.status === 'Active';
     const hasTicket = participationAny.participationType === 'Ticket' && participationAny.status === 'Active';
 
@@ -254,7 +255,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
       } : null
     } as ParticipationStatusDto;
 
-    console.log('🔍 Converted participation:', validParticipation);
+    debugLog('🔍 Converted participation:', validParticipation);
   }
 
   if (eventType === 'social' && !isVetted) {
@@ -336,7 +337,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   };
 
   const handlePayPalSuccess = async (paymentDetails: any) => {
-    console.log('🔍 PayPal payment successful:', paymentDetails);
+    debugLog('🔍 PayPal payment successful:', paymentDetails);
 
     try {
       // Confirm payment with backend and create ticket
@@ -362,7 +363,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   };
 
   const handlePayPalCancel = () => {
-    console.log('🔍 PayPal payment cancelled');
+    debugLog('🔍 PayPal payment cancelled');
     setShowPayPal(false);
   };
 
@@ -525,12 +526,12 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                     (() => {
                       const canRSVPCondition = validParticipation?.canRSVP || validParticipation === null || isLoading;
 
-                      console.log('🔍 RSVP BUTTON LOGIC DEBUG:');
-                      console.log('  - validParticipation?.hasRSVP:', validParticipation?.hasRSVP);
-                      console.log('  - validParticipation?.canRSVP:', validParticipation?.canRSVP);
-                      console.log('  - validParticipation === null:', validParticipation === null);
-                      console.log('  - isLoading:', isLoading);
-                      console.log('  - canRSVPCondition:', canRSVPCondition);
+                      debugLog('🔍 RSVP BUTTON LOGIC DEBUG:');
+                      debugLog('  - validParticipation?.hasRSVP:', validParticipation?.hasRSVP);
+                      debugLog('  - validParticipation?.canRSVP:', validParticipation?.canRSVP);
+                      debugLog('  - validParticipation === null:', validParticipation === null);
+                      debugLog('  - isLoading:', isLoading);
+                      debugLog('  - canRSVPCondition:', canRSVPCondition);
 
                       return canRSVPCondition ? (
                         <Button

@@ -19,6 +19,7 @@ import {
 import { IconArrowLeft, IconAlertCircle } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import type { components } from '@witchcityrope/shared-types/generated/api-types';
+import { debugLog } from '../../../utils/debug';
 
 import { SlidingScaleSelector } from '../components/SlidingScaleSelector';
 import { PaymentForm } from '../components/PaymentForm';
@@ -96,12 +97,12 @@ export const EventPaymentPage: React.FC = () => {
           return;
         }
 
-        console.log('EventPaymentPage: Loading event details for eventId:', eventId);
+        debugLog('EventPaymentPage: Loading event details for eventId:', eventId);
 
         // Fetch real event data from API using generated types
         const eventDetails: EventDto = await eventsManagementService.getEventDetails(eventId);
 
-        console.log('EventPaymentPage: Received event details:', eventDetails);
+        debugLog('EventPaymentPage: Received event details:', eventDetails);
 
         // Extract ticket types
         const eventTicketTypes = eventDetails?.ticketTypes || [];
@@ -157,9 +158,9 @@ export const EventPaymentPage: React.FC = () => {
           registrationId: registrationId
         };
 
-        console.log('EventPaymentPage: Transformed payment event info:', paymentEventInfo);
-        console.log('EventPaymentPage: Ticket types:', eventTicketTypes);
-        console.log('EventPaymentPage: Selected ticket type IDs:', initialSelectedIds);
+        debugLog('EventPaymentPage: Transformed payment event info:', paymentEventInfo);
+        debugLog('EventPaymentPage: Ticket types:', eventTicketTypes);
+        debugLog('EventPaymentPage: Selected ticket type IDs:', initialSelectedIds);
         setEventInfo(paymentEventInfo);
       } catch (err: any) {
         console.error('EventPaymentPage: Error loading event info:', err);
@@ -181,7 +182,7 @@ export const EventPaymentPage: React.FC = () => {
    * Handle successful payment
    */
   const handlePaymentSuccess = async (paymentDetails: any) => {
-    console.log('Payment success received:', paymentDetails);
+    debugLog('Payment success received:', paymentDetails);
 
     // Calculate total amount from selected tickets
     const totalAmount = Object.values(ticketPrices).reduce((sum, price) => sum + price, 0);
@@ -205,11 +206,11 @@ export const EventPaymentPage: React.FC = () => {
 
     try {
       // CRITICAL: Actually create the ticket purchase in the database
-      console.log('🔍 Creating ticket purchase for event:', eventId);
-      console.log('🔍 Payment details:', paymentData);
-      console.log('🔍 Total amount:', totalAmount);
-      console.log('🔍 Selected tickets:', selectedTickets.map(t => ({ id: t.id, name: t.name })));
-      console.log('🔍 Ticket prices:', ticketPrices);
+      debugLog('🔍 Creating ticket purchase for event:', eventId);
+      debugLog('🔍 Payment details:', paymentData);
+      debugLog('🔍 Total amount:', totalAmount);
+      debugLog('🔍 Selected tickets:', selectedTickets.map(t => ({ id: t.id, name: t.name })));
+      debugLog('🔍 Ticket prices:', ticketPrices);
 
       if (!eventId) {
         throw new Error('Event ID is required');
@@ -232,7 +233,7 @@ export const EventPaymentPage: React.FC = () => {
         paymentMethodId: paymentData.transactionId
       });
 
-      console.log('✅ Ticket purchase created successfully in database');
+      debugLog('✅ Ticket purchase created successfully in database');
 
       // Move to confirmation step
       setCurrentStep(2);
@@ -309,19 +310,19 @@ export const EventPaymentPage: React.FC = () => {
   const firstSelectedTicket = selectedTickets[0];
 
   // DEBUG: Log the ticket type to see what value it actually has
-  console.log('🔍 CHECKOUT DEBUG:');
-  console.log('  - Selected ticket IDs:', selectedTicketTypeIds);
-  console.log('  - Selected tickets:', selectedTickets);
-  console.log('  - First selected ticket:', firstSelectedTicket);
-  console.log('  - All ticket types:', ticketTypes);
+  debugLog('🔍 CHECKOUT DEBUG:');
+  debugLog('  - Selected ticket IDs:', selectedTicketTypeIds);
+  debugLog('  - Selected tickets:', selectedTickets);
+  debugLog('  - First selected ticket:', firstSelectedTicket);
+  debugLog('  - All ticket types:', ticketTypes);
 
   // Check if ANY selected ticket has sliding scale pricing
   const hasAnySlidingScaleTicket = selectedTickets.some(ticket => ticket.pricingType === 'SlidingScale');
   const firstSlidingTicket = selectedTickets.find(ticket => ticket.pricingType === 'SlidingScale');
   const isSingleTicketSelected = selectedTickets.length === 1;
-  console.log('  - hasAnySlidingScaleTicket:', hasAnySlidingScaleTicket);
-  console.log('  - firstSlidingTicket:', firstSlidingTicket);
-  console.log('  - isSingleTicketSelected:', isSingleTicketSelected);
+  debugLog('  - hasAnySlidingScaleTicket:', hasAnySlidingScaleTicket);
+  debugLog('  - firstSlidingTicket:', firstSlidingTicket);
+  debugLog('  - isSingleTicketSelected:', isSingleTicketSelected);
 
   /**
    * Handle ticket type checkbox toggle

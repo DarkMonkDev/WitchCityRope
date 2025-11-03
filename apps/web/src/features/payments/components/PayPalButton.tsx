@@ -34,12 +34,12 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
   const discountAmount = amount * (slidingScalePercentage / 100);
   const finalAmount = amount - discountAmount;
 
-  console.log('🔍 PayPal Button Configuration:');
-  console.log('  - paypalClientId:', paypalClientId ? `${paypalClientId.slice(0, 10)}...` : 'NOT SET');
-  console.log('  - paypalMode:', paypalMode);
-  console.log('  - originalAmount:', amount);
-  console.log('  - slidingScalePercentage:', slidingScalePercentage);
-  console.log('  - finalAmount:', finalAmount);
+  debugLog('🔍 PayPal Button Configuration:');
+  debugLog('  - paypalClientId:', paypalClientId ? `${paypalClientId.slice(0, 10)}...` : 'NOT SET');
+  debugLog('  - paypalMode:', paypalMode);
+  debugLog('  - originalAmount:', amount);
+  debugLog('  - slidingScalePercentage:', slidingScalePercentage);
+  debugLog('  - finalAmount:', finalAmount);
 
   // Check if PayPal is properly configured
   if (!paypalClientId) {
@@ -61,7 +61,7 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
       setIsProcessing(true);
       setError(null);
 
-      console.log('🔍 Creating PayPal order:', {
+      debugLog('🔍 Creating PayPal order:', {
         eventId: eventInfo.id,
         eventTitle: eventInfo.title,
         amount: finalAmount,
@@ -100,11 +100,11 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
   const onApprove = async (data: any, actions: any) => {
     try {
       setIsProcessing(true);
-      console.log('🔍 PayPal payment approved:', data);
+      debugLog('🔍 PayPal payment approved:', data);
 
       // Capture the payment
       const details = await actions.order.capture();
-      console.log('✅ PayPal payment captured:', details);
+      debugLog('✅ PayPal payment captured:', details);
 
       // Call success callback with payment details
       onPaymentSuccess?.(details);
@@ -128,7 +128,7 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
   };
 
   const onCancel = () => {
-    console.log('🔍 PayPal payment cancelled');
+    debugLog('🔍 PayPal payment cancelled');
     onPaymentCancel?.();
     setIsProcessing(false);
   };

@@ -3,6 +3,7 @@ import { RouterProvider } from 'react-router-dom'
 import { router } from './routes/router'
 import { useAuthActions } from './stores/authStore'
 import { useAuthRefresh } from './hooks/useAuthRefresh'
+import { debugLog, debugError } from './utils/debug'
 import './App.css'
 
 /**
@@ -25,10 +26,10 @@ function App() {
   // Check authentication status on app load (only once)
   useEffect(() => {
     if (!hasCheckedAuth.current) {
-      console.log('🔍 App.tsx: Initial auth check starting...');
+      debugLog('🔍 App.tsx: Initial auth check starting...');
       hasCheckedAuth.current = true;
       checkAuth().catch((error) => {
-        console.error('🔍 App.tsx: Initial auth check failed:', error);
+        debugError('🔍 App.tsx: Initial auth check failed:', error);
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

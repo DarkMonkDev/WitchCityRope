@@ -21,12 +21,12 @@ export const legacyEventsKeys = {
  * Hook to fetch list of events using current API
  */
 export function useLegacyEvents() {
-  console.log('🔍 useLegacyEvents hook called');
+  debugLog('🔍 useLegacyEvents hook called');
   
   return useQuery({
     queryKey: legacyEventsKeys.eventsList(),
     queryFn: () => {
-      console.log('🔍 useLegacyEvents queryFn executing...');
+      debugLog('🔍 useLegacyEvents queryFn executing...');
       return legacyEventsApiService.getEvents();
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -38,7 +38,7 @@ export function useLegacyEvents() {
     retry: (failureCount, error: any) => {
       // Don't retry on client errors (4xx)
       if (error?.response?.status >= 400 && error?.response?.status < 500) {
-        console.log('🔍 Not retrying client error:', error?.response?.status);
+        debugLog('🔍 Not retrying client error:', error?.response?.status);
         return false;
       }
       return failureCount < 3;
@@ -50,12 +50,12 @@ export function useLegacyEvents() {
  * Hook to fetch event details using current API
  */
 export function useLegacyEventDetails(eventId: string, enabled: boolean = true) {
-  console.log('🔍 useLegacyEventDetails hook called', { eventId, enabled });
+  debugLog('🔍 useLegacyEventDetails hook called', { eventId, enabled });
   
   return useQuery({
     queryKey: legacyEventsKeys.eventDetails(eventId),
     queryFn: () => {
-      console.log('🔍 useLegacyEventDetails queryFn executing for eventId:', eventId);
+      debugLog('🔍 useLegacyEventDetails queryFn executing for eventId:', eventId);
       return legacyEventsApiService.getEventDetails(eventId);
     },
     enabled: !!eventId && enabled,
@@ -68,12 +68,12 @@ export function useLegacyEventDetails(eventId: string, enabled: boolean = true) 
     retry: (failureCount, error: any) => {
       // Don't retry on specific error messages
       if (error?.message === 'Event not found') {
-        console.log('🔍 Not retrying - event not found');
+        debugLog('🔍 Not retrying - event not found');
         return false;
       }
       // Don't retry on client errors (4xx)
       if (error?.response?.status >= 400 && error?.response?.status < 500) {
-        console.log('🔍 Not retrying client error:', error?.response?.status);
+        debugLog('🔍 Not retrying client error:', error?.response?.status);
         return false;
       }
       return failureCount < 3;

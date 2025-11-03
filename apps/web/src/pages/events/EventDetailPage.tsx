@@ -19,8 +19,13 @@ import { useVolunteerPositions } from '../../features/volunteers/hooks/useVolunt
 import { VolunteerPositionCard } from '../../features/volunteers/components/VolunteerPositionCard';
 import { VolunteerEncouragementBox } from '../../components/events/VolunteerEncouragementBox';
 import { UserVolunteerShifts } from '../../components/events/UserVolunteerShifts';
+import { useVenue } from '../../lib/api/hooks/useVenues';
+import { useTeacherProfiles } from '../../lib/api/hooks/useTeacherProfiles';
 import type { components } from '@witchcityrope/shared-types';
 import styles from './EventDetailPage.module.css';
+
+type VenueDto = components['schemas']['VenueDto'];
+type UserProfileDto = components['schemas']['UserProfileDto'];
 
 export const EventDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -35,6 +40,8 @@ export const EventDetailPage: React.FC = () => {
   const { data: participation, isLoading: participationLoading } = useParticipation(id!, !!id);
   const { data: currentUser } = useCurrentUser();
   const { data: volunteerPositions, isLoading: volunteerLoading } = useVolunteerPositions(id!, !!id);
+  const { data: venue, isLoading: venueLoading } = useVenue((event as any)?.venueId, !!event) as { data: VenueDto | null; isLoading: boolean };
+  const { data: teachers = [], isLoading: teachersLoading } = useTeacherProfiles((event as any)?.teacherIds) as { data: UserProfileDto[]; isLoading: boolean };
   const createRSVPMutation = useCreateRSVP();
   const cancelRSVPMutation = useCancelRSVP();
   const cancelTicketMutation = useCancelTicket();
@@ -88,8 +95,7 @@ export const EventDetailPage: React.FC = () => {
   };
 
   const handlePurchaseTicket = (amount: number, slidingScalePercentage?: number) => {
-    console.log('Purchasing ticket for:', (event as any)?.title, 'Amount:', amount, 'Sliding Scale:', slidingScalePercentage);
-    console.log('✅ PayPal payment flow completed - ticket should be created by PayPal integration');
+    // PayPal integration handles ticket creation
   };
 
   const handleCancel = (type: 'rsvp' | 'ticket', reason?: string) => {
@@ -122,11 +128,6 @@ export const EventDetailPage: React.FC = () => {
     // Fall back to first ticket type
     return ticketTypes[0]?.minPrice || ticketTypes[0]?.maxPrice || 50;
   };
-
-  // DEBUG: Log event type determination
-  console.log('🔍 EventDetailPage DEBUG:');
-  console.log('  - event.eventType:', (event as any)?.eventType);
-  console.log('  - determined eventType:', eventType);
 
   // Determine volunteer box visibility
   const hasVolunteerPositions = Array.isArray(volunteerPositions) && volunteerPositions.length > 0;
@@ -302,7 +303,7 @@ export const EventDetailPage: React.FC = () => {
                 </Group>
                 <Group gap="xs" style={{ color: 'var(--color-dusty-rose)', fontSize: '20px' }}>
                   <IconMapPin size={20} />
-                  <Text size="lg">{(event as any)?.location}</Text>
+                  <Text size="lg">{venue?.name || (event as any)?.location || 'TBD'}</Text>
                 </Group>
               </Group>
             </Box>
@@ -322,6 +323,22 @@ export const EventDetailPage: React.FC = () => {
             />
           </ContentSection>
 
+          {/* Venue Details - Only shown to users with RSVP or Ticket */}
+          {venue && venue.directions && (participation?.hasRSVP || participation?.hasTicket) && (
+            <ContentSection title={`Directions To ${venue.name}`}>
+              <Text
+                style={{
+                  fontSize: '17px',
+                  lineHeight: 1.8,
+                  color: 'var(--color-charcoal)',
+                  whiteSpace: 'pre-line',
+                }}
+              >
+                {venue.directions}
+              </Text>
+            </ContentSection>
+          )}
+
           {/* Volunteer Positions */}
           {volunteerPositions && Array.isArray(volunteerPositions) && volunteerPositions.length > 0 && canVolunteerBasedOnEventType && (
             <div id="volunteer-opportunities-section">
@@ -339,6 +356,41 @@ export const EventDetailPage: React.FC = () => {
                 </Stack>
               </ContentSection>
             </div>
+          )}
+
+          {/* Teachers Section - Always visible */}
+          {teachers && teachers.length > 0 && (
+            <ContentSection title="Teachers">
+              <Stack gap="lg">
+                {teachers.map((teacher) => (
+                  <Box key={teacher.id}>
+                    <Text
+                      style={{
+                        fontFamily: 'var(--font-heading)',
+                        fontSize: '20px',
+                        fontWeight: 700,
+                        color: 'var(--color-burgundy)',
+                        marginBottom: 'var(--space-xs)',
+                      }}
+                    >
+                      {teacher.sceneName || `${teacher.firstName} ${teacher.lastName}`}
+                    </Text>
+                    {teacher.bio && (
+                      <Text
+                        style={{
+                          fontSize: '17px',
+                          lineHeight: 1.8,
+                          color: 'var(--color-charcoal)',
+                          whiteSpace: 'pre-line',
+                        }}
+                      >
+                        {teacher.bio}
+                      </Text>
+                    )}
+                  </Box>
+                ))}
+              </Stack>
+            </ContentSection>
           )}
 
           {/* Policies */}

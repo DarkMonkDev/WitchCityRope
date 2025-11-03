@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { devtools, persist, createJSONStorage } from 'zustand/middleware';
 import type { UserDto } from '../types/shared';
+import { debugLog } from '../utils/debug';
 
 // Auth state interface from functional specification
 interface AuthState {
@@ -73,40 +74,40 @@ const useAuthStore = create<AuthStore>()(
             // Prevent repeated auth checks within a short time period
             if (currentState.lastAuthCheck) {
               // Handle case where lastAuthCheck might be a string from localStorage
-              const lastCheckTime = typeof currentState.lastAuthCheck === 'string' 
+              const lastCheckTime = typeof currentState.lastAuthCheck === 'string'
                 ? new Date(currentState.lastAuthCheck).getTime()
                 : currentState.lastAuthCheck.getTime();
               const timeSinceLastCheck = Date.now() - lastCheckTime;
               if (timeSinceLastCheck < 30000) { // 30 seconds cooldown to prevent auth check on every action
-                console.log('🔍 Auth check skipped - recent check within 30 seconds');
+                debugLog('🔍 Auth check skipped - recent check within 30 seconds');
                 return;
               }
             }
-            
+
             // Skip auth check if already loading to prevent concurrent calls
             if (currentState.isLoading) {
-              console.log('🔍 Auth check skipped - already loading');
+              debugLog('🔍 Auth check skipped - already loading');
               return;
             }
-            
+
             set({ isLoading: true }, false, 'auth/checkAuth/start');
-            
+
             try {
-              console.log('🔍 Checking auth with API...');
+              debugLog('🔍 Checking auth with API...');
               // Use fetch directly with credentials to check auth via cookies
               // Use relative URL to leverage Vite proxy in development
               const response = await fetch('/api/auth/user', {
                 credentials: 'include'
               });
-              
+
               if (!response.ok) {
                 if (response.status === 401) {
                   // User is not authenticated
-                  console.log('🔍 Auth check: User not authenticated');
+                  debugLog('🔍 Auth check: User not authenticated');
                   set(
-                    { 
+                    {
                       user: null,
-                      isAuthenticated: false, 
+                      isAuthenticated: false,
                       isLoading: false,
                       lastAuthCheck: new Date()
                     },
@@ -117,18 +118,18 @@ const useAuthStore = create<AuthStore>()(
                 }
                 throw new Error('Failed to check authentication');
               }
-              
+
               const data = await response.json();
-              
+
               // Handle nested response structure: { success: true, data: {...} }
               const user = data.data || data;
-              
-              console.log('🔍 Auth check successful:', user.sceneName);
+
+              debugLog('🔍 Auth check successful:', user.sceneName);
               // Update state directly instead of calling login action to avoid circular updates
               set(
-                { 
-                  user, 
-                  isAuthenticated: true, 
+                {
+                  user,
+                  isAuthenticated: true,
                   isLoading: false,
                   lastAuthCheck: new Date()
                 },
@@ -136,7 +137,7 @@ const useAuthStore = create<AuthStore>()(
                 'auth/checkAuth/success'
               );
             } catch (error) {
-              console.log('🔍 Auth check failed:', error.message);
+              debugLog('🔍 Auth check failed:', error.message);
               // Update state directly instead of calling logout action
               set(
                 { 

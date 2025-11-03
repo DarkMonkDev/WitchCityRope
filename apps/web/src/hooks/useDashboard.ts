@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dashboardService } from '../services/dashboardService';
 import { useUser } from '../stores/authStore';
 import type { UpdateProfileDto, ChangePasswordDto, UserEventDto, VettingStatusDto, UserProfileDto } from '../types/dashboard.types';
+import { debugLog, debugError } from '../utils/debug';
 
 /**
  * TanStack Query hooks for dashboard functionality
@@ -15,20 +16,20 @@ import type { UpdateProfileDto, ChangePasswordDto, UserEventDto, VettingStatusDt
 export const useUserEvents = (includePast = false) => {
   const user = useUser();
 
-  console.log('🔍 useUserEvents - user:', user);
-  console.log('🔍 useUserEvents - user.id:', user?.id);
-  console.log('🔍 useUserEvents - includePast:', includePast);
+  debugLog('🔍 useUserEvents - user:', user);
+  debugLog('🔍 useUserEvents - user.id:', user?.id);
+  debugLog('🔍 useUserEvents - includePast:', includePast);
 
   return useQuery<UserEventDto[], Error>({
     queryKey: ['user-events', user?.id, includePast],
     queryFn: async () => {
-      console.log('🔍 Calling dashboardService.getUserEvents with userId:', user!.id);
+      debugLog('🔍 Calling dashboardService.getUserEvents with userId:', user!.id);
       try {
         const result = await dashboardService.getUserEvents(user!.id, includePast);
-        console.log('✅ getUserEvents result:', result);
+        debugLog('✅ getUserEvents result:', result);
         return result;
       } catch (error) {
-        console.error('❌ getUserEvents error:', error);
+        debugError('❌ getUserEvents error:', error);
         throw error;
       }
     },

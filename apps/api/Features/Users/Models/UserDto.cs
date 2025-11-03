@@ -12,6 +12,7 @@ public class UserDto
     public string Email { get; set; } = string.Empty;
     public string SceneName { get; set; } = string.Empty;
     public string? DiscordName { get; set; }
+    public string? Bio { get; set; }
     public string Role { get; set; } = string.Empty;
     public string Pronouns { get; set; } = string.Empty;
     public bool IsActive { get; set; }
@@ -35,6 +36,7 @@ public class UserDto
         Email = user.Email ?? string.Empty;
         SceneName = user.SceneName;
         DiscordName = user.DiscordName;
+        Bio = user.Bio;
         Role = user.Role;
         Pronouns = user.Pronouns;
         IsActive = user.IsActive;

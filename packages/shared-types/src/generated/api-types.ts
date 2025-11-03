@@ -440,6 +440,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/public/users/{userId}/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get public user profile by ID
+         * @description Returns public profile information (bio, scene name, etc.) for any user. Used for displaying teacher bios on event pages. No authentication required.
+         */
+        get: operations["GetUserProfileById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/users/{userId}/events": {
         parameters: {
             query?: never;
@@ -615,6 +635,46 @@ export interface paths {
          * @description Soft deletes a venue by setting IsActive to false. Preserves venue data for historical events. Requires Administrator role.
          */
         delete: operations["DeleteVenue"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/venues/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get single venue (authenticated users)
+         * @description Returns a single active venue by ID. Requires authentication. Notes field is not exposed to public.
+         */
+        get: operations["GetPublicVenue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/venues": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all active venues (authenticated users)
+         * @description Returns all active venues. Requires authentication. Notes field is not exposed to public.
+         */
+        get: operations["GetPublicVenues"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -2974,6 +3034,8 @@ export interface components {
             startDate?: string;
             /** Format: date-time */
             endDate?: string;
+            /** Format: int32 */
+            venueId?: number | null;
             location?: string;
             eventType?: string;
             /** Format: int32 */
@@ -2989,8 +3051,6 @@ export interface components {
             ticketTypes?: components["schemas"]["TicketTypeDto"][];
             volunteerPositions?: components["schemas"]["VolunteerPositionDto"][];
             teacherIds?: string[];
-            /** Format: int32 */
-            venueId?: number | null;
         };
         EventDto2: {
             id?: string;
@@ -3002,6 +3062,8 @@ export interface components {
             startDate?: string;
             /** Format: date-time */
             endDate?: string;
+            /** Format: int32 */
+            venueId?: number | null;
             location?: string;
             eventType?: string;
             /** Format: int32 */
@@ -3017,8 +3079,6 @@ export interface components {
             ticketTypes?: components["schemas"]["TicketTypeDto"][];
             volunteerPositions?: components["schemas"]["VolunteerPositionDto"][];
             teacherIds?: string[];
-            /** Format: int32 */
-            venueId?: number | null;
         } | null;
         EventHistoryRecord: {
             /** Format: uuid */
@@ -3840,6 +3900,7 @@ export interface components {
             email?: string;
             sceneName?: string;
             discordName?: string | null;
+            bio?: string | null;
             role?: string;
             pronouns?: string;
             isActive?: boolean;
@@ -5084,6 +5145,35 @@ export interface operations {
             };
         };
     };
+    GetUserProfileById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     GetUserRegisteredEvents: {
         parameters: {
             query?: {
@@ -5706,6 +5796,83 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetPublicVenue: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfVenueDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetPublicVenues: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfListOfVenueDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -3,6 +3,7 @@
 
 import { apiClient } from '../client';
 import type { PaymentResponse, ProcessPaymentRequest } from '../../../features/payments/types/payment.types';
+import { debugLog } from '../../../utils/debug';
 
 export interface CreateTicketPurchaseRequest {
   eventId: string;
@@ -47,7 +48,7 @@ export const paymentsService = {
    * Uses the existing backend endpoint: POST /api/events/{eventId}/tickets
    */
   async purchaseTicket(request: CreateTicketPurchaseRequest): Promise<TicketPurchaseResponse> {
-    console.log('🔍 Purchasing ticket:', request);
+    debugLog('🔍 Purchasing ticket:', request);
 
     const response = await apiClient.post<TicketPurchaseResponse>(
       `/api/events/${request.eventId}/tickets`,
@@ -58,7 +59,7 @@ export const paymentsService = {
       }
     );
 
-    console.log('✅ Ticket purchase response:', response.data);
+    debugLog('✅ Ticket purchase response:', response.data);
     return response.data;
   },
 
@@ -67,7 +68,7 @@ export const paymentsService = {
    * This would integrate with the backend PayPal service
    */
   async createPayPalOrder(request: PayPalOrderRequest): Promise<PayPalOrderResponse> {
-    console.log('🔍 Creating PayPal order:', request);
+    debugLog('🔍 Creating PayPal order:', request);
 
     // TODO: Implement backend PayPal order creation endpoint
     // For now, return mock data to simulate the flow
@@ -80,7 +81,7 @@ export const paymentsService = {
       currency: request.currency || 'USD'
     };
 
-    console.log('✅ Mock PayPal order created:', mockResponse);
+    debugLog('✅ Mock PayPal order created:', mockResponse);
     return mockResponse;
   },
 
@@ -89,7 +90,7 @@ export const paymentsService = {
    * This would integrate with the backend to confirm payment and create ticket
    */
   async confirmPayPalPayment(orderId: string, paymentDetails: any): Promise<TicketPurchaseResponse> {
-    console.log('🔍 Confirming PayPal payment:', { orderId, paymentDetails });
+    debugLog('🔍 Confirming PayPal payment:', { orderId, paymentDetails });
 
     // Extract event ID from payment details or store it during order creation
     const eventId = paymentDetails?.purchase_units?.[0]?.custom_id || '';
@@ -101,7 +102,7 @@ export const paymentsService = {
       paymentMethodId: orderId
     });
 
-    console.log('✅ PayPal payment confirmed and ticket created:', ticketResponse);
+    debugLog('✅ PayPal payment confirmed and ticket created:', ticketResponse);
     return ticketResponse;
   },
 
@@ -109,14 +110,14 @@ export const paymentsService = {
    * Get payment status for an event registration
    */
   async getPaymentStatus(eventId: string): Promise<any> {
-    console.log('🔍 Getting payment status for event:', eventId);
+    debugLog('🔍 Getting payment status for event:', eventId);
 
     try {
       const response = await apiClient.get(`/api/events/${eventId}/payment-status`);
-      console.log('✅ Payment status:', response.data);
+      debugLog('✅ Payment status:', response.data);
       return response.data;
     } catch (error) {
-      console.log('ℹ️ No payment status found or endpoint not implemented:', error);
+      debugLog('ℹ️ No payment status found or endpoint not implemented:', error);
       return null;
     }
   }

@@ -6,6 +6,7 @@ import {
   CreateRSVPRequest,
   UserParticipationDto
 } from '../types/participation.types';
+import { debugLog, debugError } from '../utils/debug';
 
 // Query keys for participation data
 export const participationKeys = {
@@ -19,9 +20,9 @@ export function useParticipation(eventId: string, enabled = true) {
   return useQuery<ParticipationStatusDto>({
     queryKey: participationKeys.eventStatus(eventId),
     queryFn: async (): Promise<ParticipationStatusDto> => {
-      console.log('🔍 useParticipation: Fetching participation for event:', eventId);
+      debugLog('🔍 useParticipation: Fetching participation for event:', eventId);
       const { data } = await apiClient.get(`/api/events/${eventId}/participation`);
-      console.log('🔍 useParticipation: API response:', data);
+      debugLog('🔍 useParticipation: API response:', data);
 
       // Validate API response
       if (!data || typeof data === 'string') {
@@ -63,7 +64,7 @@ export function useCreateRSVP() {
       });
     },
     onError: (error: any) => {
-      console.error('Failed to create RSVP:', error);
+      debugError('Failed to create RSVP:', error);
     }
   });
 }
@@ -118,7 +119,7 @@ export function useCancelRSVP() {
       });
     },
     onError: (error: any) => {
-      console.error('Failed to cancel RSVP:', error);
+      debugError('Failed to cancel RSVP:', error);
     }
   });
 }
@@ -183,7 +184,7 @@ export function useCancelTicket() {
       });
     },
     onError: (error: any) => {
-      console.error('Failed to cancel ticket:', error);
+      debugError('Failed to cancel ticket:', error);
     }
   });
 }

@@ -13,8 +13,9 @@ import { wcrTheme } from './theme'
 import { queryClient } from './lib/api/queryClient'
 import { enableMocking } from './mocks'
 import { AuthProvider } from './contexts/AuthContext'
+import { debugLog, debugError } from './utils/debug'
 
-console.log('🔍 Starting React app initialization...')
+debugLog('🔍 Starting React app initialization...')
 
 // Create error boundary to catch React render errors
 interface ErrorBoundaryProps {
@@ -28,12 +29,12 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
   }
 
   static getDerivedStateFromError(error: Error) {
-    console.error('🚨 React Error Boundary caught error:', error)
+    debugError('🚨 React Error Boundary caught error:', error)
     return { hasError: true, error }
   }
 
   componentDidCatch(error: Error, errorInfo: any) {
-    console.error('🚨 React Error Boundary - Component stack:', errorInfo)
+    debugError('🚨 React Error Boundary - Component stack:', errorInfo)
   }
 
   render() {
@@ -57,14 +58,14 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
 
 // Initialize MSW in the background - don't block React rendering
 enableMocking().catch(error => {
-  console.error('🚨 MSW initialization failed:', error)
+  debugError('🚨 MSW initialization failed:', error)
   // Continue with app initialization even if MSW fails
 })
 
-console.log('🔍 Creating React root...')
+debugLog('🔍 Creating React root...')
 const root = createRoot(document.getElementById('root')!)
 
-console.log('🔍 Rendering React app with error boundary...')
+debugLog('🔍 Rendering React app with error boundary...')
 root.render(
   <StrictMode>
     <ErrorBoundary>
@@ -83,4 +84,4 @@ root.render(
   </StrictMode>
 )
 
-console.log('🔍 React app render complete!')
+debugLog('🔍 React app render complete!')

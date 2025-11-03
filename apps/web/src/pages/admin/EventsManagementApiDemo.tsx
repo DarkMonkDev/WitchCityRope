@@ -35,18 +35,18 @@ export const EventsManagementApiDemo: React.FC = () => {
 
   // Debug logging for component lifecycle
   useEffect(() => {
-    console.log('🔍 EventsManagementApiDemo component mounted');
+    debugLog('🔍 EventsManagementApiDemo component mounted');
     return () => {
-      console.log('🔍 EventsManagementApiDemo component unmounted');
+      debugLog('🔍 EventsManagementApiDemo component unmounted');
     };
   }, []);
 
   useEffect(() => {
-    console.log('🔍 ActiveTab changed to:', activeTab);
+    debugLog('🔍 ActiveTab changed to:', activeTab);
   }, [activeTab]);
 
   useEffect(() => {
-    console.log('🔍 SelectedEventId changed to:', selectedEventId);
+    debugLog('🔍 SelectedEventId changed to:', selectedEventId);
   }, [selectedEventId]);
   
   // Re-enable legacy events API (should work now that dev server is stable)
@@ -67,7 +67,7 @@ export const EventsManagementApiDemo: React.FC = () => {
   const events = null;
   const eventsLoading = false;
   const eventsError = null;
-  const refetchEvents = () => console.log('Refetch disabled for debugging');
+  const refetchEvents = () => debugLog('Refetch disabled for debugging');
   
   const eventDetails = null;
   const detailsLoading = false;
