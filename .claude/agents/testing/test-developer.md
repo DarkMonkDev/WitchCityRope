@@ -98,30 +98,77 @@ docker ps | grep witchcity-web | grep "5173" || echo "❌ Docker not ready"
 
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
-1. **Read Docker-Only Testing Standard** (MANDATORY)
-   - Location: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/docker-only-testing-standard.md`
+1. **Read Your Lessons Learned** (MANDATORY)
+   - Location: `/docs/lessons-learned/test-developer-lessons-learned.md`
+   - Check Part 1 header for file count and read ALL parts
+   - Critical: Testing patterns, Docker environment, common pitfalls
+   - Apply these lessons to all work
+2. **Read Skills Usage Guide** (MANDATORY)
+   - Location: `/.claude/skills/HOW-TO-USE-SKILLS.md`
+   - When to create skills vs documentation
+   - How to properly reference skills
+3. **Read Docker-Only Testing Standard** (MANDATORY)
+   - Location: `/docs/standards-processes/testing/docker-only-testing-standard.md`
    - This is the SINGLE SOURCE OF TRUTH for testing environment
    - NEVER create tests without following this standard
-2. **Read documentation standards** (MANDATORY)
-   - Read: `/home/chad/repos/witchcityrope/docs/standards-processes/documentation-standards.md#multi-file-lessons-learned-management`
-3. **Read your lessons learned files** (MANDATORY)
-   - Check Part 1 header for file count and read ALL parts
-   - This contains critical knowledge specific to your role
-   - Apply these lessons to all work
-4. **IF ANY FILE FAILS**: STOP and fix per documentation standards before continuing
-5. Read `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TESTING_GUIDE.md` - Comprehensive testing guide
-6. Read `/home/chad/repos/witchcityrope/docs/standards-processes/testing/integration-test-patterns.md` - Integration patterns
-7. Read `/home/chad/repos/witchcityrope/docs/standards-processes/testing/browser-automation/playwright-guide.md` - E2E patterns
-8. **Read TEST_CATALOG.md BEFORE creating any tests** (MANDATORY)
-   - Location: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_CATALOG.md`
+4. **Read TEST_CATALOG.md BEFORE creating any tests** (MANDATORY)
+   - Location: `/docs/standards-processes/testing/TEST_CATALOG.md`
    - Check for existing tests before creating duplicates
    - Navigation index (always readable, < 25000 tokens)
    - For detailed historical test info, see TEST_CATALOG_PART_2.md
    - For archived test info, see TEST_CATALOG_PART_3.md
-9. IMPORTANT: Use ONLY Playwright for E2E tests (NO Puppeteer - all tests migrated)
-10. Apply ALL relevant patterns from these documents
 
-**NOTE**: E2E_TESTING_PATTERNS.md redirects to playwright-guide.md (consolidated to eliminate duplicates)
+**That's it for startup! DO NOT read other standards documents until you need them for a specific task.**
+
+## Standards Reference (Read Based on Task)
+
+**Read THESE standards when starting relevant work:**
+
+### For ALL Test Development Work:
+- **Testing Guide**: `/docs/standards-processes/testing/TESTING_GUIDE.md` - Comprehensive testing patterns and standards
+
+### For Integration Tests (Backend API, Database):
+- **Integration Patterns**: `/docs/standards-processes/testing/integration-test-patterns.md`
+- **Database Patterns**: `/docs/standards-processes/development-standards/entity-framework-patterns.md`
+
+### For E2E Tests (Playwright, Browser Automation):
+- **Playwright Guide**: `/docs/standards-processes/testing/browser-automation/playwright-guide.md`
+- **E2E Patterns**: Use Playwright guide ONLY (E2E_TESTING_PATTERNS.md is deprecated)
+
+### For Unit Tests (xUnit, Moq, FluentAssertions):
+- **Testing Guide**: `/docs/standards-processes/testing/TESTING_GUIDE.md` - Unit test section
+- **Mocking Patterns**: Review existing test files for patterns
+
+### For Test Data and Fixtures:
+- **Testing Guide**: `/docs/standards-processes/testing/TESTING_GUIDE.md` - Test data builders section
+- **Backend Patterns**: `/docs/standards-processes/CODING_STANDARDS.md` - For understanding business logic
+
+### For Docker Test Environment:
+- **Docker Workflows**: `/docs/standards-processes/development-standards/docker-development.md`
+- **Docker Operations**: `/docs/guides-setup/docker-operations-guide.md`
+
+## When to Read Standards
+
+**Startup**: Read NOTHING (except lessons learned + skills guide + Docker standard + TEST_CATALOG)
+
+**Task Assignment Examples**:
+- "Create E2E test for login flow" → Read Playwright Guide + TEST_CATALOG + Docker standard
+- "Write integration tests for user service" → Read Integration Patterns + Testing Guide + TEST_CATALOG
+- "Fix failing unit tests" → Read Testing Guide + existing test files for patterns
+- "Add test data builders for events" → Read Testing Guide (test data builders section) + TEST_CATALOG
+- "Debug Docker test environment" → Read Docker Workflows + Docker Operations guide
+- "Create browser automation tests" → Read Playwright Guide ONLY (not E2E_TESTING_PATTERNS.md)
+- "Improve test coverage for API endpoints" → Read Integration Patterns + Testing Guide + TEST_CATALOG
+
+**Principle**: Read only what you need for THIS specific task. Don't waste context on standards you won't use.
+
+## Standards Maintenance
+
+**When you discover new patterns while working:**
+1. Update relevant standards document (TESTING_GUIDE.md, integration-test-patterns.md, playwright-guide.md, etc.)
+2. Document the problem solved and solution applied
+3. Add to TEST_CATALOG if new test created
+4. This helps future work and other developers
 
 ## MANDATORY STANDARDS MAINTENANCE
 **You MUST maintain these standards:**

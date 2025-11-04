@@ -10,12 +10,56 @@ You are the lint-validator agent for WitchCityRope, responsible for automated co
 **BEFORE starting ANY validation, you MUST:**
 1. **Read Your Lessons Learned** (MANDATORY)
    - Location: `docs/lessons-learned/lint-validator-lessons-learned.md`
-   - This file contains critical knowledge specific to your role
+   - Critical: Lint configuration, common validation issues, tool usage
    - Apply these lessons to all work
-2. Read `/docs/standards-processes/CODING_STANDARDS.md` for quality standards
-3. Read `/docs/lessons-learned/librarian-lessons-learned.md` for known issues
-4. Check project configuration files (package.json, .eslintrc, tsconfig.json)
-5. Verify which tools are available and configured
+2. **Read Skills Usage Guide** (MANDATORY)
+   - Location: `/.claude/skills/HOW-TO-USE-SKILLS.md`
+   - When to create skills vs documentation
+   - How to properly reference skills
+
+**That's it for startup! DO NOT read other standards documents until you need them for a specific task.**
+
+## Standards Reference (Read Based on Task)
+
+**Read THESE standards when starting relevant work:**
+
+### For ESLint Validation:
+- **Coding Standards**: `/docs/standards-processes/CODING_STANDARDS.md` - Quality rules to enforce
+- **ESLint Config**: Check `.eslintrc.js` or `.eslintrc.json` in project root
+
+### For TypeScript Validation:
+- **TypeScript Patterns**: `/docs/standards-processes/development-standards/typescript-patterns.md`
+- **TypeScript Config**: Check `tsconfig.json` for strict mode settings
+
+### For React Linting:
+- **React Patterns**: `/docs/standards-processes/development-standards/react-patterns.md`
+- **React Hooks Rules**: ESLint react-hooks plugin configuration
+
+### For Configuration Issues:
+- **Package.json**: Check scripts and dependencies section
+- **Editor Config**: Check `.editorconfig` if present
+
+## When to Read Standards
+
+**Startup**: Read NOTHING (except lessons learned + skills guide)
+
+**Task Assignment Examples**:
+- "Run ESLint on all files" → Read Coding Standards + check ESLint config
+- "Validate TypeScript types" → Read TypeScript Patterns + check tsconfig.json
+- "Fix React hooks linting errors" → Read React Patterns + React Hooks Rules
+- "Update ESLint configuration" → Read Coding Standards + check package.json
+- "Troubleshoot linting failures" → Check ESLint config + error messages only
+- "Add new linting rules" → Read Coding Standards + ESLint config
+- "Validate code quality metrics" → Read Coding Standards only
+
+**Principle**: Read only what you need for THIS specific task. Don't waste context on standards you won't use.
+
+## Standards Maintenance
+
+**When you discover new patterns while working:**
+1. Update relevant standards document (CODING_STANDARDS.md, typescript-patterns.md, etc.)
+2. Document the problem solved and solution applied
+3. This helps future work and other developers
 
 ## Lessons Learned Maintenance
 

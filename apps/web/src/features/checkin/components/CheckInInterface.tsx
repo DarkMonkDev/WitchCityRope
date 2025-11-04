@@ -16,11 +16,12 @@ import {
   TextInput,
   Textarea,
   Table,
-  Badge
+  Badge,
+  Menu
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { IconPlus } from '@tabler/icons-react';
+import { IconPlus, IconCash, IconQrcode } from '@tabler/icons-react';
 
 import { CheckInHeader } from './CheckInHeader';
 import { CheckInModal } from './CheckInModal';
@@ -376,14 +377,8 @@ export function CheckInInterface({
       return savedState;
     }
 
-    // Determine initial state based on payment status
-    const paymentStatus = (attendee as any).paymentStatus;
-    if (paymentStatus === 'rsvp') {
-      // RSVP only - payment optional, can skip to covidTest or show paidAtDoor first
-      return 'paidAtDoor';
-    }
-
-    // Ticket purchased - start with covid test
+    // All new attendees start with covid test
+    // Door payment is handled in separate column
     return 'covidTest';
   }, [buttonStates]);
 
@@ -425,7 +420,7 @@ export function CheckInInterface({
     openQRPayment();
   }, [openQRPayment]);
 
-  // Submit cash payment (UPDATED for functional spec v2.0)
+  // Submit cash payment (UPDATED for functional spec v2.0 + auto-check-in)
   const handleCashPaymentSubmit = useCallback(async (data: CashPaymentData) => {
     if (!paymentAttendee) return;
 
@@ -444,22 +439,19 @@ export function CheckInInterface({
         sessionToken
       );
 
-      // Update button state to covidTest after payment
-      setButtonStates(prev => {
-        const updated = new Map(prev);
-        updated.set(paymentAttendee.attendeeId, 'covidTest');
-        return updated;
-      });
+      // AUTO-CHECK-IN: Immediately check in the attendee after cash payment
+      await handleCheckIn(paymentAttendee);
 
-      // Refresh attendee list to show ticket purchase status
+      // Refresh attendee list to show ticket purchase and check-in status
       refetchAttendees();
+      refetchDashboard();
 
       closeCashPayment();
       setPaymentAttendee(null);
 
       notifications.show({
-        title: 'Ticket Purchased',
-        message: `$${data.amount.toFixed(2)} cash ticket purchased for ${paymentAttendee.sceneName || paymentAttendee.email}`,
+        title: 'Payment & Check-In Complete',
+        message: `$${data.amount.toFixed(2)} cash ticket purchased and ${paymentAttendee.sceneName || paymentAttendee.email} checked in`,
         color: 'green'
       });
     } catch (error) {
@@ -470,7 +462,7 @@ export function CheckInInterface({
         color: 'red'
       });
     }
-  }, [paymentAttendee, eventId, sessionToken, closeCashPayment, refetchAttendees]);
+  }, [paymentAttendee, eventId, sessionToken, closeCashPayment, refetchAttendees, refetchDashboard, handleCheckIn]);
 
   // Handle QR payment completion
   const handleQRPaymentComplete = useCallback(() => {
@@ -648,6 +640,14 @@ export function CheckInInterface({
                   }}>
                     Status
                   </Table.Th>
+                  <Table.Th style={{
+                    color: 'white',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px'
+                  }}>
+                    Door Payment
+                  </Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -689,7 +689,7 @@ export function CheckInInterface({
                         {(attendee as any).paymentStatus || 'Unpaid'}
                       </Badge>
                     </Table.Td>
-                    {/* Action column - Streamlined check-in button */}
+                    {/* Status column - Streamlined check-in button (COVID + Check-In only) */}
                     <Table.Td style={{ padding: 8 }}>
                       <CheckInButton
                         attendee={{
@@ -704,6 +704,56 @@ export function CheckInInterface({
                         onCashPayment={() => handleCashPaymentClick(attendee)}
                         onQRPayment={() => handleQRPaymentClick(attendee)}
                       />
+                    </Table.Td>
+                    {/* Door Payment column - Separate payment handling */}
+                    <Table.Td style={{ padding: 8 }}>
+                      {(attendee as any).paymentStatus === 'rsvp' || (attendee as any).paymentStatus === 'Unpaid' ? (
+                        <Menu shadow="md" width={200}>
+                          <Menu.Target>
+                            <Button
+                              variant="outline"
+                              color="gray"
+                              size="md"
+                              aria-label={`Record door payment for ${attendee.sceneName || attendee.email}`}
+                              styles={{
+                                root: {
+                                  borderRadius: '12px 6px 12px 6px',
+                                  fontFamily: 'Montserrat, sans-serif',
+                                  fontWeight: 600,
+                                  fontSize: '14px',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.5px',
+                                  transition: 'all 0.3s ease',
+                                  height: '44px',
+                                  paddingTop: '12px',
+                                  paddingBottom: '12px',
+                                  lineHeight: '1.2'
+                                }
+                              }}
+                            >
+                              Paid at Door ▼
+                            </Button>
+                          </Menu.Target>
+                          <Menu.Dropdown>
+                            <Menu.Item
+                              leftSection={<IconCash size={16} />}
+                              onClick={() => handleCashPaymentClick(attendee)}
+                            >
+                              Cash Payment
+                            </Menu.Item>
+                            <Menu.Item
+                              leftSection={<IconQrcode size={16} />}
+                              onClick={() => handleQRPaymentClick(attendee)}
+                            >
+                              Digital Payment (QR)
+                            </Menu.Item>
+                          </Menu.Dropdown>
+                        </Menu>
+                      ) : (
+                        <Text size="md" fw={600} c="green">
+                          Paid
+                        </Text>
+                      )}
                     </Table.Td>
                   </Table.Tr>
                 ))}

@@ -11,35 +11,72 @@ You are a senior React developer for WitchCityRope, implementing high-quality co
 ### MANDATORY STARTUP PROCEDURE - ULTRA CRITICAL
 **BEFORE starting ANY work, you MUST complete ALL these steps:**
 
-1. **Read documentation standards** (ULTRA CRITICAL)
-   - Read: `docs/standards-processes/documentation-standards.md#multi-file-lessons-learned-management`
-2. **Read your lessons learned files** (ULTRA CRITICAL)
+1. **Read Your Lessons Learned** (ULTRA CRITICAL)
+   - Location: `/docs/lessons-learned/react-developer-lessons-learned.md`
    - Check Part 1 header for file count and read ALL parts
-   - This contains CRITICAL knowledge specific to your role
+   - Critical: Role-specific knowledge, mistakes to avoid
    - Apply these lessons to ALL work - NO EXCEPTIONS
-3. **IF ANY FILE FAILS**: STOP and fix per documentation standards before continuing
 
-4. **Check Architecture Decisions** (MANDATORY)
-   - Read `docs/architecture/decisions/` for current ADRs
-   - Read `ARCHITECTURE.md` for tech stack
-   - Note: UI Framework is Mantine v7 (ADR-004)
-   - Note: Authentication uses httpOnly cookies
+2. **Read Skills Usage Guide** (ULTRA CRITICAL)
+   - Location: `/.claude/skills/HOW-TO-USE-SKILLS.md`
+   - When to create skills vs documentation
+   - How to properly reference skills
 
-5. **Read React Architecture Guide** (MANDATORY)
-   - Read `docs/architecture/react-migration/react-architecture.md` - Core React architecture decisions
+**That's it for startup! DO NOT read standards documents until you need them for a specific task.**
 
-6. **Follow Project Standards** (MANDATORY)
-   - NEVER create unnecessary directories - follow the established feature structure
-   - Apply ALL relevant patterns from these documents
-   - Read existing handoff documents before starting work
+## Standards Reference (Read Based on Task)
 
-7. **Validate Startup Complete** (MANDATORY)
-   - Confirm you have read all required documents
-   - NO WORK can begin until this procedure is 100% complete
+**Read THESE standards when starting relevant work:**
 
-## MANDATORY STANDARDS MAINTENANCE
-**You MUST maintain these standards:**
-1. Update `/docs/standards-processes/development-standards/react-patterns.md` for new patterns (create if needed)
+### For ALL React Development Work:
+- **Core Standard**: `/docs/standards-processes/CODING_STANDARDS.md` - TypeScript/JavaScript coding standards
+- **React Architecture**: `/docs/architecture/react-migration/react-architecture.md` - Core React architecture decisions
+
+### For Component Development:
+- **React Patterns**: `/docs/standards-processes/development-standards/react-patterns.md` - React hooks, component patterns
+- **Mantine UI Standards**: Review existing components for Mantine v7 patterns (ADR-004)
+
+### For State Management Work:
+- **Zustand Patterns**: Review existing stores for state management patterns
+- **TanStack Query Patterns**: Review existing queries for data fetching patterns
+
+### For Routing Work:
+- **React Router v7**: Review existing routes for routing patterns
+- **Navigation Patterns**: Review app structure for navigation patterns
+
+### For Form/Validation Work:
+- **Form Patterns**: Review existing forms for controlled component patterns
+- **Validation Patterns**: Review existing validation logic
+
+### For TypeScript Work:
+- **TypeScript Patterns**: `/docs/standards-processes/development-standards/typescript-patterns.md` - Type safety patterns
+- **DTO Alignment**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md` - CRITICAL for API integration
+
+### For Docker Development:
+- **Docker Workflows**: `/docs/standards-processes/development-standards/docker-development.md`
+- **Container Operations**: Use container-restart skill
+
+## When to Read Standards
+
+**Startup**: Read NOTHING (except lessons learned + skills guide)
+
+**Task Assignment Examples**:
+- "Create new user profile component" → Read React Architecture + React Patterns + Mantine UI Standards
+- "Implement login form" → Read React Patterns + Form Patterns + DTO Alignment + Auth patterns
+- "Add routing for admin panel" → Read React Router v7 + Navigation Patterns
+- "Optimize state management for events" → Read Zustand Patterns + React Patterns
+- "Fix TypeScript type errors" → Read TypeScript Patterns + DTO Alignment
+- "Debug Vite hot reload issues" → Read Docker Workflows + use container-restart skill
+- "Create data table component" → Read React Architecture + Mantine UI Standards + TanStack Query Patterns
+
+**Principle**: Read only what you need for THIS specific task. Don't waste context on standards you won't use.
+
+## Standards Maintenance
+
+**When you discover new patterns while working:**
+1. Update relevant standards document (react-patterns.md, typescript-patterns.md, etc.)
+2. Document the problem solved and solution applied
+3. This helps future work and other developers
 
 ## Docker Development Requirements
 

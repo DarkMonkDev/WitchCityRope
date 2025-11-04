@@ -427,22 +427,73 @@ docker ps | grep witchcity | grep -E "5173|5655|5433" || echo "❌ Docker contai
 
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
-1. **Read Docker-Only Testing Standard** (MANDATORY)
-   - Location: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/docker-only-testing-standard.md`
+1. **Read Your Lessons Learned** (MANDATORY)
+   - Location: `/docs/lessons-learned/test-executor-lessons-learned.md`
+   - Check Part 1 header for file count and read ALL parts
+   - Critical: Docker environment, test execution patterns, common failures
+   - Apply these lessons to all work
+2. **Read Skills Usage Guide** (MANDATORY)
+   - Location: `/.claude/skills/HOW-TO-USE-SKILLS.md`
+   - When to use container-restart skill
+   - How to properly reference skills
+3. **Read Docker-Only Testing Standard** (MANDATORY)
+   - Location: `/docs/standards-processes/testing/docker-only-testing-standard.md`
    - This is the SINGLE SOURCE OF TRUTH for test environment
    - NEVER execute tests without following this standard
-2. **Read documentation standards** (MANDATORY)
-   - Read: `/home/chad/repos/witchcityrope/docs/standards-processes/documentation-standards.md#multi-file-lessons-learned-management`
-3. **Read your lessons learned files** (MANDATORY)
-   - Check Part 1 header for file count and read ALL parts
-   - This contains critical knowledge specific to your role
-   - Apply these lessons to all work
-4. **IF ANY FILE FAILS**: STOP and fix per documentation standards before continuing
-5. **Read TEST_CATALOG.md** (MANDATORY)
-   - Location: `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_CATALOG.md`
+4. **Read TEST_CATALOG.md** (MANDATORY)
+   - Location: `/docs/standards-processes/testing/TEST_CATALOG.md`
    - Understand current test coverage before execution
    - Identify which tests to run for specific features
-6. Read `/home/chad/repos/witchcityrope/docs/standards-processes/progress-maintenance-process.md` - Progress tracking standards
+
+**That's it for startup! DO NOT read other standards documents until you need them for a specific task.**
+
+## Standards Reference (Read Based on Task)
+
+**Read THESE standards when starting relevant work:**
+
+### For Docker Container Management:
+- **Docker Workflows**: `/docs/standards-processes/development-standards/docker-development.md`
+- **Docker Operations**: `/docs/guides-setup/docker-operations-guide.md`
+- **Container Restart Skill**: `/.claude/skills/SKILLS-REGISTRY.md` - container-restart skill
+
+### For Database Setup (Migrations, Seeding):
+- **Database Migrations**: `/docs/standards-processes/backend/database-migrations-guide.md`
+- **Seed Data**: Review seed scripts in `/scripts/` directory
+
+### For Test Execution Reporting:
+- **Progress Tracking**: `/docs/standards-processes/progress-maintenance-process.md`
+- **TEST_CATALOG Updates**: `/docs/standards-processes/testing/TEST_CATALOG.md` - Update after every run
+
+### For Environment Troubleshooting:
+- **Docker Troubleshooting**: `/docs/guides-setup/docker-operations-guide.md` - Debugging section
+- **Health Checks**: Review health check endpoints in API code
+
+### For CI/CD Integration:
+- **GitHub Actions**: Review `.github/workflows/` configurations
+- **Deployment**: `/docs/functional-areas/deployment/` - If test execution relates to deployment
+
+## When to Read Standards
+
+**Startup**: Read NOTHING (except lessons learned + skills guide + Docker standard + TEST_CATALOG)
+
+**Task Assignment Examples**:
+- "Run all E2E tests" → Read Docker Workflows + use container-restart skill + update TEST_CATALOG
+- "Execute integration tests" → Read Docker Workflows + check health endpoints + update TEST_CATALOG
+- "Fix failing Docker environment" → Read Docker Workflows + Docker Operations guide
+- "Run database migrations for testing" → Read Database Migrations guide + Docker Operations
+- "Set up test database with seed data" → Read Database Migrations + Seed Data scripts
+- "Troubleshoot container health issues" → Read Docker Troubleshooting section only
+- "Update TEST_CATALOG with results" → Read TEST_CATALOG structure + Progress Tracking
+
+**Principle**: Read only what you need for THIS specific task. Don't waste context on standards you won't use.
+
+## Standards Maintenance
+
+**When you discover new patterns while working:**
+1. Update relevant standards document (docker-operations-guide.md, docker-development.md, etc.)
+2. Document the problem solved and solution applied
+3. Update TEST_CATALOG with new metrics or status changes
+4. This helps future work and other agents
 
 ## Available Skills (Reference Only)
 

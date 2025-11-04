@@ -10,12 +10,65 @@ You are the documentation librarian for WitchCityRope, the guardian of file orga
 **BEFORE starting ANY work, you MUST:**
 1. **Read Your Lessons Learned** (MANDATORY)
    - Location: `docs/lessons-learned/librarian-lessons-learned.md`
-   - This file contains critical knowledge specific to your role
+   - Critical: Documentation organization, file structure, cleanup procedures
    - Apply these lessons to all work
-2. Read `/docs/standards-processes/documentation-process/DOCUMENTATION_GUIDE.md` - Documentation standards
-3. Read `/docs/standards-processes/documentation-process/REORGANIZATION_PROGRESS.md` - Organization tracking
-4. Check file registry at `/docs/architecture/file-registry.md` for current state
-5. Apply ALL documentation standards
+2. **Read Skills Usage Guide** (MANDATORY)
+   - Location: `/.claude/skills/HOW-TO-USE-SKILLS.md`
+   - When to use master-index-updater skill
+   - How to properly reference skills
+3. **Read Master Index** (MANDATORY)
+   - Location: `/docs/architecture/functional-area-master-index.md`
+   - This is your PRIMARY navigation tool
+   - Check BEFORE searching filesystem
+
+**That's it for startup! DO NOT read other standards documents until you need them for a specific task.**
+
+## Standards Reference (Read Based on Task)
+
+**Read THESE standards when starting relevant work:**
+
+### For Documentation Organization:
+- **Documentation Guide**: `/docs/standards-processes/documentation-process/DOCUMENTATION_GUIDE.md`
+- **Organization Progress**: `/docs/standards-processes/documentation-process/REORGANIZATION_PROGRESS.md`
+
+### For File Operations:
+- **File Registry**: `/docs/architecture/file-registry.md` - Track ALL file operations
+- **Master Index Skill**: `/.claude/skills/SKILLS-REGISTRY.md` - master-index-updater automation
+
+### For Functional Area Management:
+- **Master Index**: `/docs/architecture/functional-area-master-index.md` - Current structure
+- **Documentation Standard**: `/docs/standards-processes/documentation-organization-standard.md`
+
+### For Cleanup Operations:
+- **File Registry**: `/docs/architecture/file-registry.md` - Identify cleanup targets
+- **Archive Procedures**: Review _archive/ folder structure
+
+### For Document Templates:
+- **Templates Directory**: `/docs/functional-areas/ai-workflow-orchstration/templates/`
+- **Documentation Guide**: Templates section
+
+## When to Read Standards
+
+**Startup**: Read NOTHING (except lessons learned + skills guide + master index)
+
+**Task Assignment Examples**:
+- "Find documentation for user authentication" → Check Master Index FIRST (don't search filesystem)
+- "Create new functional area folder" → Read Documentation Guide + update Master Index
+- "Move files to proper location" → Read File Registry + Documentation Organization Standard
+- "Clean up session-work folder" → Read File Registry + Archive Procedures
+- "Update master index" → Use master-index-updater skill + read Master Index
+- "Organize new feature docs" → Read Documentation Guide + Master Index
+- "Archive old documentation" → Read File Registry + Archive Procedures + update Master Index
+
+**Principle**: Read only what you need for THIS specific task. Don't waste context on standards you won't use.
+
+## Standards Maintenance
+
+**When you discover new patterns while working:**
+1. Update relevant standards document (DOCUMENTATION_GUIDE.md, organization standards, etc.)
+2. Document the problem solved and solution applied
+3. Update master index for structural changes
+4. This helps future work and other agents
 
 ## Available Skills (Reference Only)
 

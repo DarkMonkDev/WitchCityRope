@@ -96,23 +96,61 @@ This restriction exists because:
 
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
-1. **Read documentation standards** (MANDATORY)
-   - Read: `docs/standards-processes/documentation-standards.md#multi-file-lessons-learned-management`
-2. **Read your lessons learned files** (MANDATORY)
+1. **Read Your Lessons Learned** (MANDATORY)
+   - Location: `/docs/lessons-learned/backend-developer-lessons-learned.md`
    - Check Part 1 header for file count and read ALL parts
-   - This contains critical knowledge specific to your role
+   - Critical: Role-specific knowledge, mistakes to avoid
    - Apply these lessons to all work
-3. **IF ANY FILE FAILS**: STOP and fix per documentation standards before continuing
-4. Read `/docs/standards-processes/CODING_STANDARDS.md` - C# coding standards with SOLID principles
-5. Read `/docs/standards-processes/development-standards/entity-framework-patterns.md` - EF Core patterns
-6. Read `/docs/standards-processes/development-standards/docker-development.md` - Docker workflows
-7. Apply ALL relevant patterns from these documents
+2. **Read Skills Usage Guide** (MANDATORY)
+   - Location: `/.claude/skills/HOW-TO-USE-SKILLS.md`
+   - When to create skills vs documentation
+   - How to properly reference skills
 
-## MANDATORY STANDARDS MAINTENANCE
-**You MUST maintain these standards:**
-1. Update `/docs/standards-processes/CODING_STANDARDS.md` when discovering new C# patterns
-2. Update `/docs/standards-processes/development-standards/entity-framework-patterns.md` for EF optimizations
-3. Document Docker issues in `/docs/standards-processes/development-standards/docker-development.md`
+**That's it for startup! DO NOT read standards documents until you need them for a specific task.**
+
+## Standards Reference (Read Based on Task)
+
+**Read THESE standards when starting relevant work:**
+
+### For ALL Backend Development Work:
+- **Core Standard**: `/docs/standards-processes/CODING_STANDARDS.md` - C# coding standards with SOLID principles
+
+### For Database Work (EF Core, Migrations, Models):
+- **EF Core Patterns**: `/docs/standards-processes/development-standards/entity-framework-patterns.md`
+- **Database Migrations**: `/docs/standards-processes/backend/database-migrations-guide.md`
+
+### For API Development (Endpoints, Controllers, Services):
+- **Vertical Slice Architecture**: `/docs/architecture/react-migration/vertical-slice-architecture-guide.md`
+- **API Design Patterns**: Review DTO alignment strategy
+
+### For Authentication/Security Work:
+- **Security Patterns**: `/docs/standards-processes/backend/security-patterns.md` (if exists)
+- **Auth Patterns**: Review existing auth endpoints for patterns
+
+### For Docker Development:
+- **Docker Workflows**: `/docs/standards-processes/development-standards/docker-development.md`
+- **Container Operations**: Use container-restart skill
+
+## When to Read Standards
+
+**Startup**: Read NOTHING (except lessons learned + skills guide)
+
+**Task Assignment Examples**:
+- "Implement user registration endpoint" → Read CODING_STANDARDS.md + EF Core Patterns + Vertical Slice Architecture
+- "Fix database query performance issue" → Read EF Core Patterns only
+- "Add new migration for User table" → Read Database Migrations guide only
+- "Debug Docker compilation errors" → Read Docker Workflows + use container-restart skill
+- "Refactor authentication service" → Read CODING_STANDARDS.md + Security Patterns
+- "Add new API endpoint" → Read CODING_STANDARDS.md + Vertical Slice Architecture
+
+**Principle**: Read only what you need for THIS specific task. Don't waste context on standards you won't use.
+
+## Standards Maintenance
+
+**When you discover new patterns while working:**
+1. Update relevant standards document (CODING_STANDARDS.md, entity-framework-patterns.md, etc.)
+2. Document the problem solved and solution applied
+3. This helps future work and other developers
 
 ## Docker Development Requirements
 

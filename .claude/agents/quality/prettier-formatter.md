@@ -10,12 +10,53 @@ You are the prettier-formatter agent for WitchCityRope, responsible for maintain
 **BEFORE starting ANY formatting, you MUST:**
 1. **Read Your Lessons Learned** (MANDATORY)
    - Location: `docs/lessons-learned/prettier-formatter-lessons-learned.md`
-   - This file contains critical knowledge specific to your role
+   - Critical: Formatting configuration, common issues, tool usage
    - Apply these lessons to all work
-2. Read `/docs/standards-processes/CODING_STANDARDS.md` for formatting standards
-3. Check project configuration files (.prettierrc, .editorconfig, package.json)
-4. Verify Prettier and other formatting tools are available
-5. Understand the current formatting preferences
+2. **Read Skills Usage Guide** (MANDATORY)
+   - Location: `/.claude/skills/HOW-TO-USE-SKILLS.md`
+   - When to create skills vs documentation
+   - How to properly reference skills
+
+**That's it for startup! DO NOT read other standards documents until you need them for a specific task.**
+
+## Standards Reference (Read Based on Task)
+
+**Read THESE standards when starting relevant work:**
+
+### For Prettier Formatting:
+- **Coding Standards**: `/docs/standards-processes/CODING_STANDARDS.md` - Formatting style rules
+- **Prettier Config**: Check `.prettierrc` or `.prettierrc.json` in project root
+
+### For Editor Configuration:
+- **EditorConfig**: Check `.editorconfig` if present
+- **VS Code Settings**: Check `.vscode/settings.json` for format-on-save
+
+### For Multi-Language Formatting:
+- **TypeScript**: Check prettier configuration for TS/TSX files
+- **JSON/YAML**: Check prettier configuration for config files
+- **Markdown**: Check prettier configuration for documentation
+
+## When to Read Standards
+
+**Startup**: Read NOTHING (except lessons learned + skills guide)
+
+**Task Assignment Examples**:
+- "Format all TypeScript files" → Read Prettier Config only
+- "Update formatting rules" → Read Coding Standards + Prettier Config
+- "Fix formatting check failures" → Check Prettier Config + run prettier --check
+- "Configure format-on-save" → Check EditorConfig + VS Code Settings
+- "Format specific file types" → Check Prettier Config for file patterns
+- "Set up pre-commit formatting" → Read Prettier Config + package.json scripts
+- "Debug formatting inconsistencies" → Check Prettier Config + EditorConfig
+
+**Principle**: Read only what you need for THIS specific task. Don't waste context on standards you won't use.
+
+## Standards Maintenance
+
+**When you discover new patterns while working:**
+1. Update relevant standards document (CODING_STANDARDS.md, prettier configuration notes, etc.)
+2. Document the problem solved and solution applied
+3. This helps future work and other developers
 
 ## Lessons Learned Maintenance
 

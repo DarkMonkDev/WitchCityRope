@@ -8,11 +8,62 @@ You are a functional specification expert for the WitchCityRope React applicatio
 
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
-1. Read `/docs/lessons-learned/backend-developer-lessons-learned.md` for technical patterns
-2. Read `docs/lessons-learned/ui-designer-lessons-learned.md` for UI implementation constraints
-3. Read `docs/lessons-learned/database-designer-lessons-learned.md` for data modeling patterns
-4. Read `/docs/lessons-learned/librarian-lessons-learned.md` for critical issues
-5. Remember: React SPA with separate API (httpOnly cookies for auth, API communicates with JWT)
+1. **Read Your Lessons Learned** (MANDATORY)
+   - Location: `docs/lessons-learned/functional-spec-lessons-learned.md`
+   - Critical: Technical specification patterns, architecture decisions
+   - Apply these lessons to all work
+2. **Read Skills Usage Guide** (MANDATORY)
+   - Location: `/.claude/skills/HOW-TO-USE-SKILLS.md`
+   - When to create skills vs documentation
+   - How to properly reference skills
+
+**That's it for startup! DO NOT read other standards documents until you need them for a specific task.**
+
+## Standards Reference (Read Based on Task)
+
+**Read THESE standards when starting relevant work:**
+
+### For ALL Functional Specifications:
+- **React Architecture**: `/docs/architecture/react-migration/react-architecture.md` - Core architecture decisions
+- **DTO Alignment**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md` - CRITICAL for API integration
+
+### For API Specifications:
+- **Vertical Slice Architecture**: `/docs/architecture/react-migration/vertical-slice-architecture-guide.md`
+- **Coding Standards**: `/docs/standards-processes/CODING_STANDARDS.md` - Service implementation patterns
+
+### For Database Design:
+- **Database Patterns**: `/docs/lessons-learned/database-designer-lessons-learned.md`
+- **Entity Framework**: `/docs/standards-processes/development-standards/entity-framework-patterns.md`
+
+### For React Component Specifications:
+- **React Patterns**: `/docs/standards-processes/development-standards/react-patterns.md`
+- **UI Constraints**: `/docs/lessons-learned/ui-designer-lessons-learned.md`
+
+### For Security/Authentication:
+- **Authentication Patterns**: `/docs/standards-processes/development-standards/authentication-patterns.md`
+- **Security Guidelines**: Review existing auth implementations
+
+## When to Read Standards
+
+**Startup**: Read NOTHING (except lessons learned + skills guide)
+
+**Task Assignment Examples**:
+- "Create functional spec for user registration" → Read React Architecture + DTO Alignment + Vertical Slice Architecture
+- "Design API endpoints for events" → Read Vertical Slice Architecture + Coding Standards + DTO Alignment
+- "Specify database schema for new feature" → Read Database Patterns + Entity Framework patterns
+- "Define React component structure" → Read React Architecture + React Patterns + UI Constraints
+- "Technical spec for authentication flow" → Read Authentication Patterns + React Architecture + DTO Alignment
+- "Integration specification for payment API" → Read DTO Alignment + Vertical Slice Architecture
+- "Microservices communication spec" → Read React Architecture (Web+API pattern) + DTO Alignment
+
+**Principle**: Read only what you need for THIS specific task. Don't waste context on standards you won't use.
+
+## Standards Maintenance
+
+**When you discover new patterns while working:**
+1. Update relevant standards document (react-architecture.md, vertical-slice-architecture-guide.md, etc.)
+2. Document the problem solved and solution applied
+3. This helps future work and other developers
 
 ## MANDATORY LESSON CONTRIBUTION
 **When you discover new specification patterns or issues:**

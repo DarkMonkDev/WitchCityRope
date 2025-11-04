@@ -2,17 +2,14 @@
 // Source: /docs/functional-areas/events/new-work/2025-11-03-streamlined-checkin-workflow/design/ui-specifications.md
 // Updated for functional spec v2.0 - adds ticket type selector, allows $0.00
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Modal,
   NumberInput,
-  Textarea,
   Button,
   Text,
-  Group,
   Stack,
-  Select,
-  Checkbox
+  Select
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
@@ -32,11 +29,10 @@ export interface CashPaymentModalProps {
 
 /**
  * Modal for recording cash payments at the door
- * Updated for functional spec v2.0:
- * - Added ticket type selector (required)
- * - Allows $0.00 amounts for free tickets
- * - Validates amount between $0.00 and $1,000
- * - Includes optional notes field for special circumstances
+ * Updated workflow:
+ * 1. Click "COVID Test Complete" button
+ * 2. After COVID test, "Record Payment" button appears
+ * 3. Fill ticket type and amount, submit
  */
 export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
   opened,
@@ -45,12 +41,13 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
   ticketTypes,
   onSubmit
 }) => {
-  const form = useForm<CashPaymentData & { covidTestComplete: boolean }>({
+  const [covidTestComplete, setCovidTestComplete] = useState(false);
+
+  const form = useForm<CashPaymentData>({
     initialValues: {
       ticketTypeId: '',
       amount: 0,
       notes: '',
-      covidTestComplete: false,
     },
     validate: {
       ticketTypeId: (value) => {
@@ -60,10 +57,6 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
       amount: (value) => {
         if (value < 0) return 'Amount cannot be negative';
         if (value > 1000) return 'Amount cannot exceed $1,000.00';
-        return null;
-      },
-      covidTestComplete: (value) => {
-        if (!value) return 'COVID test must be completed before check-in';
         return null;
       },
     },
@@ -81,13 +74,18 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
     return 'Price not set';
   };
 
+  const handleCovidTestComplete = () => {
+    setCovidTestComplete(true);
+  };
+
   const handleSubmit = async (values: CashPaymentData) => {
     try {
       await onSubmit(values);
       form.reset();
+      setCovidTestComplete(false); // Reset for next use
       onClose();
       notifications.show({
-        title: 'Payment Recorded',
+        title: 'Payment & Check-In Complete',
         message: `$${values.amount.toFixed(2)} cash payment recorded`,
         color: 'green',
         icon: <IconCheck />,
@@ -103,13 +101,23 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
     }
   };
 
+  const handleClose = () => {
+    form.reset();
+    setCovidTestComplete(false); // Reset state on close
+    onClose();
+  };
+
+  // Debug: Log ticket types to console
+  console.log('CashPaymentModal ticketTypes:', ticketTypes);
+
   return (
     <Modal
       opened={opened}
-      onClose={onClose}
+      onClose={handleClose}
       title="Record Cash Payment"
       centered
       size="md"
+      closeOnClickOutside={true}
       styles={{
         title: {
           fontFamily: 'Montserrat, sans-serif',
@@ -132,7 +140,7 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
             Attendee: {attendee.name}
           </Text>
 
-          {/* Ticket Type Selector (UPDATED - handles both fixed and sliding scale) */}
+          {/* Ticket Type Selector - Always visible */}
           <Select
             label="Ticket Type"
             placeholder="Select ticket type"
@@ -142,6 +150,7 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
             }))}
             required
             size="md"
+            disabled={!covidTestComplete}
             styles={{
               label: {
                 fontFamily: 'Montserrat, sans-serif',
@@ -154,36 +163,9 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
             }}
             {...form.getInputProps('ticketTypeId')}
             aria-label="Select ticket type"
-            aria-describedby="ticket-type-helper"
-          />
-          <Text id="ticket-type-helper" size="xs" c="dimmed">
-            Choose the ticket type being purchased
-          </Text>
-
-          {/* COVID Test Checkbox (NEW - required before check-in) */}
-          <Checkbox
-            label="COVID test complete"
-            description="Attendee has completed COVID test screening"
-            required
-            size="md"
-            styles={{
-              label: {
-                fontFamily: 'Montserrat, sans-serif',
-                fontWeight: 600,
-                fontSize: '14px',
-                color: '#4A4A4A',
-              },
-              description: {
-                fontSize: '12px',
-                color: '#6B7280',
-                marginTop: '4px',
-              },
-            }}
-            {...form.getInputProps('covidTestComplete', { type: 'checkbox' })}
-            aria-label="COVID test complete"
           />
 
-          {/* Amount Input (UPDATED - allows $0.00) */}
+          {/* Amount Input - Always visible but disabled until COVID test */}
           <NumberInput
             label="Amount Paid"
             placeholder="0.00"
@@ -194,36 +176,7 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
             required
             hideControls
             size="md"
-            styles={{
-              label: {
-                fontFamily: 'Montserrat, sans-serif',
-                fontWeight: 600,
-                fontSize: '14px',
-                textTransform: 'uppercase',
-                color: '#4A4A4A', // smoke
-                marginBottom: '8px',
-              },
-            }}
-            {...form.getInputProps('amount')}
-            aria-label="Payment amount in dollars"
-            aria-describedby="amount-helper"
-          />
-          <Text id="amount-helper" size="xs" c="dimmed">
-            Enter the cash amount received (can be $0.00 for free tickets)
-          </Text>
-
-          {/* Payment Method (Read-Only) */}
-          <Text size="sm" c="dimmed">
-            <Text fw={600} component="span">Payment Method:</Text> Cash
-          </Text>
-
-          {/* Notes Textarea (UPDATED - 500 chars max per spec) */}
-          <Textarea
-            label="Notes (Optional)"
-            placeholder="For special circumstances (e.g., sliding scale, discount, comp ticket)"
-            minRows={3}
-            maxRows={5}
-            maxLength={500}
+            disabled={!covidTestComplete}
             styles={{
               label: {
                 fontFamily: 'Montserrat, sans-serif',
@@ -234,41 +187,51 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
                 marginBottom: '8px',
               },
             }}
-            {...form.getInputProps('notes')}
+            {...form.getInputProps('amount')}
+            aria-label="Payment amount in dollars"
           />
-          <Text size="xs" c="dimmed" ta="right">
-            {(form.values.notes?.length || 0)}/500 characters
+          <Text size="xs" c="dimmed">
+            Enter the cash amount received (can be $0.00 for free tickets)
           </Text>
 
-          {/* Action Buttons */}
-          <Group
-            justify="flex-end"
-            mt="md"
-            gap="sm"
-          >
+          {/* Payment Method (Read-Only) */}
+          <Text size="sm" c="dimmed">
+            <Text fw={600} component="span">Payment Method:</Text> Cash
+          </Text>
+
+          {/* Action Button - Shows COVID Test Complete first, then Record Payment */}
+          {!covidTestComplete ? (
             <Button
-              variant="outline"
-              color="red"
-              onClick={onClose}
+              onClick={handleCovidTestComplete}
+              fullWidth
+              size="lg"
               styles={{
                 root: {
+                  background: 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)',
+                  color: 'white',
                   borderRadius: '12px 6px 12px 6px',
                   fontFamily: 'Montserrat, sans-serif',
                   fontWeight: 600,
-                  fontSize: '14px',
+                  fontSize: '16px',
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px',
-                  height: '44px',
-                  paddingTop: '12px',
-                  paddingBottom: '12px',
-                  lineHeight: '1.2'
+                  height: '56px',
+                  boxShadow: '0 4px 15px rgba(76, 175, 80, 0.4)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #45a049 0%, #4CAF50 100%)',
+                    boxShadow: '0 6px 20px rgba(76, 175, 80, 0.5)',
+                    borderRadius: '6px 12px 6px 12px'
+                  }
                 }
               }}
             >
-              Cancel
+              COVID Test Complete
             </Button>
+          ) : (
             <Button
               type="submit"
+              fullWidth
+              size="lg"
               styles={{
                 root: {
                   background: 'linear-gradient(135deg, #FFBF00 0%, #FF8C00 100%)',
@@ -276,13 +239,10 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
                   borderRadius: '12px 6px 12px 6px',
                   fontFamily: 'Montserrat, sans-serif',
                   fontWeight: 600,
-                  fontSize: '14px',
+                  fontSize: '16px',
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px',
-                  height: '44px',
-                  paddingTop: '12px',
-                  paddingBottom: '12px',
-                  lineHeight: '1.2',
+                  height: '56px',
                   boxShadow: '0 4px 15px rgba(255, 191, 0, 0.4)',
                   '&:hover': {
                     background: 'linear-gradient(135deg, #FF8C00 0%, #FFBF00 100%)',
@@ -294,7 +254,7 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
             >
               Record Payment
             </Button>
-          </Group>
+          )}
         </Stack>
       </form>
     </Modal>
