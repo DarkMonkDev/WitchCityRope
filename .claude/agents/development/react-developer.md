@@ -33,15 +33,15 @@ You are a senior React developer for WitchCityRope, implementing high-quality co
 - **React Architecture**: `/docs/architecture/react-migration/react-architecture.md` - Core React architecture decisions
 
 ### For Component Development:
-- **React Patterns**: `/docs/standards-processes/development-standards/react-patterns.md` - React hooks, component patterns
-- **Mantine UI Standards**: Review existing components for Mantine v7 patterns (ADR-004)
+- **React Patterns**: `/docs/standards-processes/frontend/react-patterns.md` - React hooks, component patterns
+- **Mantine UI Standards**: `/docs/standards-processes/frontend/mantine-ui-standards.md` - Mantine v7 components
 
 ### For State Management Work:
-- **Zustand Patterns**: Review existing stores for state management patterns
+- **State Management**: `/docs/standards-processes/frontend/state-management-patterns.md` - Zustand, React Query patterns
 - **TanStack Query Patterns**: Review existing queries for data fetching patterns
 
 ### For Routing Work:
-- **React Router v7**: Review existing routes for routing patterns
+- **Routing Patterns**: `/docs/standards-processes/frontend/routing-patterns.md` - React Router v7, navigation
 - **Navigation Patterns**: Review app structure for navigation patterns
 
 ### For Form/Validation Work:
@@ -49,11 +49,11 @@ You are a senior React developer for WitchCityRope, implementing high-quality co
 - **Validation Patterns**: Review existing validation logic
 
 ### For TypeScript Work:
-- **TypeScript Patterns**: `/docs/standards-processes/development-standards/typescript-patterns.md` - Type safety patterns
+- **TypeScript Patterns**: `/docs/standards-processes/frontend/typescript-patterns.md` - Type safety patterns
 - **DTO Alignment**: `/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md` - CRITICAL for API integration
 
 ### For Docker Development:
-- **Docker Workflows**: `/docs/standards-processes/development-standards/docker-development.md`
+- **Docker Patterns**: `/docs/standards-processes/architecture/docker-patterns.md`
 - **Container Operations**: Use container-restart skill
 
 ## When to Read Standards

@@ -21,19 +21,27 @@
 | Document | Purpose | When to Read | Size |
 |----------|---------|--------------|------|
 | [backend/service-layer-patterns.md](./backend/service-layer-patterns.md) | Service implementation patterns, API controllers | Implementing services/endpoints | 206 lines |
+| [backend/api-design-patterns.md](./backend/api-design-patterns.md) | REST API design, HTTP methods, endpoint conventions | Designing/implementing API endpoints | 400 lines |
 | [backend/error-handling-patterns.md](./backend/error-handling-patterns.md) | Result pattern, structured logging, exception handling | Implementing error handling | 160 lines |
+| [backend/database-patterns.md](./backend/database-patterns.md) | EF Core query patterns, migrations reference | Database queries, data access | 100 lines |
+| [backend/vertical-slice-architecture.md](./backend/vertical-slice-architecture.md) | Feature-based code organization patterns | Understanding project structure, new features | 150 lines |
 | [backend/performance-standards.md](./backend/performance-standards.md) | Performance benchmarks, query optimization, caching | Performance work, optimization | 162 lines |
 | [backend/security-patterns.md](./backend/security-patterns.md) | Input validation, sanitization, security checklist | Handling user input, auth | 175 lines |
 | [backend/database-migrations-guide.md](./backend/database-migrations-guide.md) | EF Core migrations, seed data | Database changes | 627 lines |
-| [backend/vertical-slice-implementation-guide.md](./backend/vertical-slice-implementation-guide.md) | Vertical slice architecture patterns | New feature development | 736 lines |
-| [development-standards/entity-framework-patterns.md](./development-standards/entity-framework-patterns.md) | EF Core patterns, query optimization | Database queries | ~600 lines |
-| [development-standards/authentication-patterns.md](./development-standards/authentication-patterns.md) | Authentication service patterns | Auth implementation | ~400 lines |
+| [backend/vertical-slice-implementation-guide.md](./backend/vertical-slice-implementation-guide.md) | Complete vertical slice implementation | Detailed feature development | 736 lines |
+| [development-standards/entity-framework-patterns.md](./development-standards/entity-framework-patterns.md) | Comprehensive EF Core patterns | Advanced database queries | 409 lines |
+| [development-standards/authentication-patterns.md](./development-standards/authentication-patterns.md) | Authentication service patterns | Auth implementation | 449 lines |
 
 ## Frontend Development Standards
 
 | Document | Purpose | When to Read | Size |
 |----------|---------|--------------|------|
-| [development-standards/react-patterns.md](./development-standards/react-patterns.md) | React component patterns, hooks, state management | React development | ~800 lines |
+| [frontend/react-patterns.md](./frontend/react-patterns.md) | React component patterns, hooks, best practices | React component development | 242 lines |
+| [frontend/typescript-patterns.md](./frontend/typescript-patterns.md) | TypeScript type safety, DTOs, type guards | Working with TypeScript types | 350 lines |
+| [frontend/mantine-ui-standards.md](./frontend/mantine-ui-standards.md) | Mantine v7 component usage, theming, UI consistency | UI implementation with Mantine | 250 lines |
+| [frontend/routing-patterns.md](./frontend/routing-patterns.md) | React Router v7, navigation, protected routes | Implementing routes/navigation | 300 lines |
+| [frontend/state-management-patterns.md](./frontend/state-management-patterns.md) | Zustand, React Query, Context patterns | State management implementation | 400 lines |
+| [development-standards/react-patterns.md](./development-standards/react-patterns.md) | Legacy location (use frontend/ above) | Backward compatibility | 242 lines |
 | [ui-implementation-standards.md](./ui-implementation-standards.md) | UI component standards | UI implementation | ~300 lines |
 | [forms-standardization.md](./forms-standardization.md) | Form patterns and validation | Form implementation | ~200 lines |
 
@@ -51,6 +59,8 @@
 
 | Document | Purpose | When to Read | Size |
 |----------|---------|--------------|------|
+| [architecture/microservices-patterns.md](./architecture/microservices-patterns.md) | Web + API microservices, service communication | Understanding system architecture | 350 lines |
+| [architecture/docker-patterns.md](./architecture/docker-patterns.md) | Docker development patterns, container management | Docker/container work | 250 lines |
 | [architecture-discovery-process.md](./architecture-discovery-process.md) | Understanding existing architecture | Exploring codebase | ~300 lines |
 | [api-contract-validation.md](./api-contract-validation.md) | API contract validation | API changes | ~200 lines |
 
@@ -123,16 +133,27 @@ Read:
 ```
 Read:
 1. CODING_STANDARDS.md (general principles)
-2. development-standards/react-patterns.md (React patterns)
-3. ui-implementation-standards.md (UI standards)
+2. frontend/react-patterns.md (React patterns)
+3. frontend/mantine-ui-standards.md (UI components)
+4. frontend/typescript-patterns.md (type safety)
 ```
 
 **Task**: Implement login form
 ```
 Read:
-1. development-standards/react-patterns.md (React patterns)
+1. frontend/react-patterns.md (React patterns)
 2. forms-standardization.md (form patterns)
-3. development-standards/authentication-patterns.md (auth integration)
+3. frontend/state-management-patterns.md (form state)
+4. development-standards/authentication-patterns.md (auth integration)
+```
+
+**Task**: Add new API endpoint
+```
+Read:
+1. backend/api-design-patterns.md (endpoint conventions)
+2. backend/service-layer-patterns.md (service implementation)
+3. backend/error-handling-patterns.md (error responses)
+4. frontend/typescript-patterns.md (DTO types)
 ```
 
 ### Test Developer Tasks
