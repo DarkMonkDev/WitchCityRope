@@ -37,6 +37,8 @@ import {
   useEventParticipations,
   type EventParticipationDto,
 } from '../../lib/api/hooks/useEventParticipations'
+import { useUpdateEvent } from '../../lib/api/hooks/useEvents'
+import { eventKeys } from '../../lib/api/utils/cache'
 
 // Helper function to extract purchase amount from metadata JSON
 const extractAmountFromMetadata = (metadata?: string): number => {
@@ -347,6 +349,9 @@ export const EventForm: React.FC<EventFormProps> = ({
     error: participationsError,
   } = useEventParticipations(eventId || '', !!eventId)
 
+  // Mutation for updating event data immediately
+  const updateEventMutation = useUpdateEvent()
+
   // Modal state management
   const [sessionModalOpen, setSessionModalOpen] = useState(false)
   const [ticketModalOpen, setTicketModalOpen] = useState(false)
@@ -529,20 +534,52 @@ export const EventForm: React.FC<EventFormProps> = ({
     setSessionModalOpen(true)
   }
 
-  const handleSessionSubmit = (sessionData: Omit<EventSession, 'id'>) => {
+  const handleSessionSubmit = async (sessionData: Omit<EventSession, 'id'>) => {
+    let updatedSessions: EventSession[]
+
     if (editingSession) {
       // Update existing session
-      const updatedSessions = form.values.sessions.map((session) =>
+      updatedSessions = form.values.sessions.map((session) =>
         session.id === editingSession.id ? { ...sessionData, id: editingSession.id } : session
       )
-      form.setFieldValue('sessions', updatedSessions)
     } else {
       // Add new session
       const newSession: EventSession = {
         ...sessionData,
         id: crypto.randomUUID(),
       }
-      form.setFieldValue('sessions', [...form.values.sessions, newSession])
+      updatedSessions = [...form.values.sessions, newSession]
+    }
+
+    // Update form state immediately for UI feedback
+    form.setFieldValue('sessions', updatedSessions)
+
+    // If we have an eventId, save to database immediately
+    if (eventId) {
+      try {
+        await updateEventMutation.mutateAsync({
+          id: eventId,
+          sessions: updatedSessions,
+        })
+
+        notifications.show({
+          title: 'Session Saved',
+          message: `Session "${sessionData.name}" has been saved successfully.`,
+          color: 'green',
+          icon: <IconCheck size={16} />,
+        })
+
+        // Refresh the event data
+        queryClient.invalidateQueries({ queryKey: eventKeys.detail(eventId) })
+      } catch (error) {
+        notifications.show({
+          title: 'Save Failed',
+          message:
+            error instanceof Error ? error.message : 'Failed to save session. Please try again.',
+          color: 'red',
+          icon: <IconAlertCircle size={16} />,
+        })
+      }
     }
   }
 
@@ -567,7 +604,7 @@ export const EventForm: React.FC<EventFormProps> = ({
     setTicketModalOpen(true)
   }
 
-  const handleTicketTypeSubmit = (ticketTypeData: Omit<ModalTicketType, 'id'>) => {
+  const handleTicketTypeSubmit = async (ticketTypeData: Omit<ModalTicketType, 'id'>) => {
     // Convert from modal format to grid format
     const gridFormatTicketType: Omit<EventTicketType, 'id'> = {
       name: ticketTypeData.name,
@@ -581,21 +618,83 @@ export const EventForm: React.FC<EventFormProps> = ({
       salesEndDate: ticketTypeData.saleEndDate?.toISOString(),
     }
 
+    let updatedTicketTypes: EventTicketType[]
+
     if (editingTicketType) {
       // Update existing ticket type
-      const updatedTicketTypes = form.values.ticketTypes.map((ticketType) =>
+      updatedTicketTypes = form.values.ticketTypes.map((ticketType) =>
         ticketType.id === editingTicketType.id
           ? { ...gridFormatTicketType, id: editingTicketType.id }
           : ticketType
       )
-      form.setFieldValue('ticketTypes', updatedTicketTypes)
     } else {
       // Add new ticket type
       const newTicketType: EventTicketType = {
         ...gridFormatTicketType,
         id: crypto.randomUUID(),
       }
-      form.setFieldValue('ticketTypes', [...form.values.ticketTypes, newTicketType])
+      updatedTicketTypes = [...form.values.ticketTypes, newTicketType]
+    }
+
+    // Update form state immediately for UI feedback
+    form.setFieldValue('ticketTypes', updatedTicketTypes)
+
+    // If we have an eventId, save to database immediately
+    if (eventId) {
+      try {
+        // Transform ticket types to only include relevant price fields based on pricing type
+        const ticketTypesForApi = updatedTicketTypes.map((ticket) => {
+          const baseTicket = {
+            id: ticket.id,
+            name: ticket.name,
+            pricingType: ticket.pricingType,
+            quantityAvailable: ticket.quantityAvailable,
+            sessionIdentifiers: ticket.sessionIdentifiers,
+            salesEndDate: ticket.salesEndDate,
+          }
+
+          // Only include price fields relevant to the pricing type
+          if (ticket.pricingType === 'Fixed') {
+            return {
+              ...baseTicket,
+              price: ticket.price,
+            }
+          } else {
+            // SlidingScale
+            return {
+              ...baseTicket,
+              minPrice: ticket.minPrice,
+              maxPrice: ticket.maxPrice,
+              defaultPrice: ticket.defaultPrice,
+            }
+          }
+        })
+
+        await updateEventMutation.mutateAsync({
+          id: eventId,
+          ticketTypes: ticketTypesForApi,
+        })
+
+        notifications.show({
+          title: 'Ticket Type Saved',
+          message: `Ticket type "${ticketTypeData.name}" has been saved successfully.`,
+          color: 'green',
+          icon: <IconCheck size={16} />,
+        })
+
+        // Refresh the event data
+        queryClient.invalidateQueries({ queryKey: eventKeys.detail(eventId) })
+      } catch (error) {
+        notifications.show({
+          title: 'Save Failed',
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Failed to save ticket type. Please try again.',
+          color: 'red',
+          icon: <IconAlertCircle size={16} />,
+        })
+      }
     }
   }
 

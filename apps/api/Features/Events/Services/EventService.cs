@@ -509,9 +509,24 @@ public class EventService
                 // Update existing ticket type
                 existingTicketType.Name = ticketTypeDto.Name;
                 existingTicketType.Description = $"{ticketTypeDto.PricingType} ticket";
-                existingTicketType.Price = ticketTypeDto.MinPrice;
-                existingTicketType.Available = ticketTypeDto.QuantityAvailable;
                 existingTicketType.PricingType = ticketTypeDto.PricingType;
+                existingTicketType.Available = ticketTypeDto.QuantityAvailable;
+
+                // Set pricing fields based on pricing type
+                if (ticketTypeDto.PricingType == WitchCityRope.Models.PricingType.Fixed)
+                {
+                    existingTicketType.Price = ticketTypeDto.Price;
+                    existingTicketType.MinPrice = null;
+                    existingTicketType.MaxPrice = null;
+                    existingTicketType.DefaultPrice = null;
+                }
+                else // SlidingScale
+                {
+                    existingTicketType.Price = null;
+                    existingTicketType.MinPrice = ticketTypeDto.MinPrice;
+                    existingTicketType.MaxPrice = ticketTypeDto.MaxPrice;
+                    existingTicketType.DefaultPrice = ticketTypeDto.DefaultPrice;
+                }
 
                 // Update session linkage
                 if (ticketTypeDto.SessionIdentifiers.Count == 1)
@@ -536,11 +551,26 @@ public class EventService
                     EventId = eventEntity.Id,
                     Name = ticketTypeDto.Name,
                     Description = $"{ticketTypeDto.PricingType} ticket",
-                    Price = ticketTypeDto.MinPrice,
                     Available = ticketTypeDto.QuantityAvailable,
                     Sold = 0, // Start with 0 sold for new ticket types
                     PricingType = ticketTypeDto.PricingType
                 };
+
+                // Set pricing fields based on pricing type
+                if (ticketTypeDto.PricingType == WitchCityRope.Models.PricingType.Fixed)
+                {
+                    newTicketType.Price = ticketTypeDto.Price;
+                    newTicketType.MinPrice = null;
+                    newTicketType.MaxPrice = null;
+                    newTicketType.DefaultPrice = null;
+                }
+                else // SlidingScale
+                {
+                    newTicketType.Price = null;
+                    newTicketType.MinPrice = ticketTypeDto.MinPrice;
+                    newTicketType.MaxPrice = ticketTypeDto.MaxPrice;
+                    newTicketType.DefaultPrice = ticketTypeDto.DefaultPrice;
+                }
 
                 // Let Entity Framework generate the ID for new ticket types
                 // The ID from frontend is just a temporary client-side ID

@@ -390,12 +390,11 @@ export const AdminEventDetailsPage: React.FC = () => {
         {!isEditMode && (
           <Group gap="md">
             <WCRButton
-              leftSection={<IconLink size={16} />}
               onClick={() => setKioskModalOpen(true)}
               variant="outline"
               size="md"
             >
-              Generate Kiosk Link
+              Checkin Link
             </WCRButton>
 
             <SegmentedControl
