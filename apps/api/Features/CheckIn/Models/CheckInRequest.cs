@@ -13,8 +13,10 @@ public class CheckInRequest
     [Required]
     public string CheckInTime { get; set; } = string.Empty;
 
-    [Required]
-    public string StaffMemberId { get; set; } = string.Empty;
+    /// <summary>
+    /// Optional staff member ID (GUID format). If not provided, kiosk mode is assumed (Guid.Empty used).
+    /// </summary>
+    public string? StaffMemberId { get; set; }
 
     public string? Notes { get; set; }
     public bool OverrideCapacity { get; set; } = false;

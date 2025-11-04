@@ -58,4 +58,16 @@ public class EventParticipationDto
     /// Stored as JSONB in PostgreSQL
     /// </summary>
     public string? Metadata { get; set; }
+
+    /// <summary>
+    /// Whether the attendee has checked in to the event
+    /// Determined by presence of EventAttendees record with RegistrationStatus = 'checked-in' or 'confirmed'
+    /// </summary>
+    public bool HasCheckedIn { get; set; }
+
+    /// <summary>
+    /// When the attendee checked in (if applicable)
+    /// Populated from EventAttendees.UpdatedAt when RegistrationStatus changed to 'checked-in'
+    /// </summary>
+    public DateTime? CheckInTime { get; set; }
 }

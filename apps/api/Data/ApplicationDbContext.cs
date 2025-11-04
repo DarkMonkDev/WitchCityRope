@@ -160,6 +160,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<OfflineSyncQueue> OfflineSyncQueues { get; set; }
 
     /// <summary>
+    /// CheckInSessionTokens table for kiosk mode session tokens
+    /// </summary>
+    public DbSet<CheckInSessionToken> CheckInSessionTokens { get; set; }
+
+    /// <summary>
     /// VettingApplications table for member vetting applications
     /// </summary>
     public DbSet<VettingApplication> VettingApplications { get; set; }
@@ -989,6 +994,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         modelBuilder.ApplyConfiguration(new CheckInConfiguration());
         modelBuilder.ApplyConfiguration(new CheckInAuditLogConfiguration());
         modelBuilder.ApplyConfiguration(new OfflineSyncQueueConfiguration());
+        modelBuilder.ApplyConfiguration(new CheckInSessionTokenConfiguration());
 
         // Apply Vetting System configurations
         modelBuilder.ApplyConfiguration(new VettingApplicationConfiguration());
@@ -1376,6 +1382,22 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
                 if (entry.Entity.LocalTimestamp.Kind != DateTimeKind.Utc)
                 {
                     entry.Entity.LocalTimestamp = DateTime.SpecifyKind(entry.Entity.LocalTimestamp, DateTimeKind.Utc);
+                }
+            }
+        }
+
+        // Handle CheckInSessionToken entities
+        var sessionTokenEntries = ChangeTracker.Entries<CheckInSessionToken>();
+        foreach (var entry in sessionTokenEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
+
+                // Ensure ExpiresAt is UTC
+                if (entry.Entity.ExpiresAt.Kind != DateTimeKind.Utc)
+                {
+                    entry.Entity.ExpiresAt = DateTime.SpecifyKind(entry.Entity.ExpiresAt, DateTimeKind.Utc);
                 }
             }
         }

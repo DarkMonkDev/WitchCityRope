@@ -32,6 +32,7 @@ public class SyncService : ISyncService
     /// </summary>
     public async Task<Result<SyncResponse>> ProcessOfflineSyncAsync(
         SyncRequest request,
+        string sessionToken,
         CancellationToken cancellationToken = default)
     {
         var conflicts = new List<SyncConflict>();
@@ -42,12 +43,61 @@ public class SyncService : ISyncService
         {
             foreach (var pendingCheckIn in request.PendingCheckIns)
             {
-                var result = await ProcessPendingCheckInAsync(pendingCheckIn, cancellationToken);
+                var result = await ProcessPendingCheckInAsync(pendingCheckIn, sessionToken, cancellationToken);
 
                 if (result.IsSuccess)
                 {
                     processedCount++;
-                    // TODO: Add to updated attendees list
+
+                    // Get updated attendee information for successful check-ins
+                    // Fetch raw data first (SQL translatable)
+                    var rawAttendee = await _context.EventAttendees
+                        .Include(ea => ea.User)
+                        .Include(ea => ea.CheckIns)
+                        .Where(ea => ea.Id == Guid.Parse(pendingCheckIn.AttendeeId))
+                        .Select(ea => new
+                        {
+                            ea.Id,
+                            ea.UserId,
+                            SceneName = ea.User.SceneName ?? string.Empty,
+                            Email = ea.User.Email ?? string.Empty,
+                            RegistrationStatus = ea.RegistrationStatus, // String from database
+                            ea.TicketNumber,
+                            CheckInTime = ea.CheckIns.OrderByDescending(c => c.CheckInTime)
+                                                     .Select(c => c.CheckInTime.ToString("O"))
+                                                     .FirstOrDefault(),
+                            ea.IsFirstTime,
+                            ea.DietaryRestrictions,
+                            ea.AccessibilityNeeds,
+                            Pronouns = ea.User.Pronouns,
+                            ea.HasCompletedWaiver,
+                            ea.WaitlistPosition
+                        })
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    // Convert to DTO with enum parsing
+                    var attendeeInfo = rawAttendee == null ? null : new AttendeeResponse
+                    {
+                        AttendeeId = rawAttendee.Id.ToString(),
+                        UserId = rawAttendee.UserId.ToString(),
+                        SceneName = rawAttendee.SceneName,
+                        Email = rawAttendee.Email,
+                        RegistrationStatus = ParseRegistrationStatus(rawAttendee.RegistrationStatus),
+                        TicketNumber = rawAttendee.TicketNumber,
+                        CheckInTime = rawAttendee.CheckInTime,
+                        IsFirstTime = rawAttendee.IsFirstTime,
+                        DietaryRestrictions = rawAttendee.DietaryRestrictions,
+                        AccessibilityNeeds = rawAttendee.AccessibilityNeeds,
+                        Pronouns = rawAttendee.Pronouns,
+                        HasCompletedWaiver = rawAttendee.HasCompletedWaiver,
+                        WaitlistPosition = rawAttendee.WaitlistPosition
+                    };
+
+                    if (attendeeInfo != null)
+                    {
+                        updatedAttendees.Add(attendeeInfo);
+                    }
                 }
                 else
                 {
@@ -135,6 +185,7 @@ public class SyncService : ISyncService
     /// </summary>
     private async Task<Result<CheckInResponse>> ProcessPendingCheckInAsync(
         PendingCheckIn pendingCheckIn,
+        string sessionToken,
         CancellationToken cancellationToken)
     {
         try
@@ -149,7 +200,7 @@ public class SyncService : ISyncService
                 ManualEntryData = pendingCheckIn.ManualEntryData
             };
 
-            return await _checkInService.CheckInAttendeeAsync(checkInRequest, cancellationToken);
+            return await _checkInService.CheckInAttendeeAsync(checkInRequest, sessionToken, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -234,5 +285,23 @@ public class SyncService : ISyncService
             _logger.LogError(ex, "Error analyzing conflict for {LocalId}", pending.LocalId);
             return null;
         }
+    }
+
+    /// <summary>
+    /// Helper method to convert string registration status to enum
+    /// Handles case-insensitive mapping of database string values to RegistrationStatus enum
+    /// </summary>
+    /// <param name="status">String status from database (confirmed, waitlist, checked-in, no-show)</param>
+    /// <returns>Corresponding RegistrationStatus enum value, defaults to Confirmed if unknown</returns>
+    private static RegistrationStatus ParseRegistrationStatus(string status)
+    {
+        return status?.ToLowerInvariant() switch
+        {
+            "confirmed" => RegistrationStatus.Confirmed,
+            "waitlist" => RegistrationStatus.Waitlist,
+            "checked-in" or "checkedin" => RegistrationStatus.CheckedIn,
+            "no-show" or "noshow" => RegistrationStatus.NoShow,
+            _ => RegistrationStatus.Confirmed // Default to Confirmed for unknown values
+        };
     }
 }

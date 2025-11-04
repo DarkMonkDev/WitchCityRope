@@ -18,6 +18,7 @@ public static class CheckInServiceExtensions
         // Register services
         services.AddScoped<ICheckInService, CheckInService>();
         services.AddScoped<ISyncService, SyncService>();
+        services.AddScoped<ISessionTokenService, SessionTokenService>();
 
         // Register validators
         services.AddScoped<IValidator<CheckInRequest>, CheckInRequestValidator>();

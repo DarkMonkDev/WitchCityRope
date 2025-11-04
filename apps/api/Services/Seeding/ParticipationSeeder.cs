@@ -52,6 +52,7 @@ public class ParticipationSeeder
         var users = await _userManager.Users.ToListAsync(cancellationToken);
         var participationsToAdd = new List<EventParticipation>();
         var ticketPurchasesToAdd = new List<TicketPurchase>();
+        var attendeesToAdd = new List<EventAttendee>();
         var eventsProcessed = 0;
 
         foreach (var eventItem in events)
@@ -75,18 +76,76 @@ public class ParticipationSeeder
                                eventItem.Title.Contains("New Members Meetup") ? 8 :
                                eventItem.Title.Contains("Rope Social & Discussion") ? 6 : 3;
 
+                // Find donation ticket type for this social event
+                var donationTicketType = eventItem.TicketTypes.FirstOrDefault(tt => tt.Name.Contains("Donation"));
+                var donationCount = (int)Math.Ceiling(rsvpCount / 2.0); // At least half purchase donations
+
                 for (int i = 0; i < Math.Min(rsvpCount, users.Count); i++)
                 {
                     var user = users[i];
+                    var createdAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 10));
+
+                    // Create RSVP participation
                     var participation = new EventParticipation(eventItem.Id, user.Id, ParticipationType.RSVP)
                     {
                         Id = Guid.NewGuid(),
                         Status = ParticipationStatus.Active,
-                        CreatedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 10)),
-                        UpdatedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 10)),
+                        CreatedAt = createdAt,
+                        UpdatedAt = createdAt,
                         Notes = i == 0 ? "Looking forward to this event!" : null
                     };
                     participationsToAdd.Add(participation);
+
+                    // Create EventAttendee record so attendee appears in check-in system
+                    var attendee = new EventAttendee
+                    {
+                        Id = Guid.NewGuid(),
+                        EventId = eventItem.Id,
+                        UserId = user.Id,
+                        RegistrationStatus = "confirmed",
+                        HasCompletedWaiver = true,
+                        CreatedAt = createdAt,
+                        UpdatedAt = createdAt
+                    };
+
+                    // At least half of RSVPs also purchase donation tickets
+                    if (i < donationCount && donationTicketType != null)
+                    {
+                        var donationAmount = (decimal)Random.Shared.Next(5, 26); // $5-$25 donation
+
+                        // Create donation ticket participation
+                        var donationParticipation = new EventParticipation(eventItem.Id, user.Id, ParticipationType.Ticket)
+                        {
+                            Id = Guid.NewGuid(),
+                            Status = ParticipationStatus.Active,
+                            CreatedAt = createdAt,
+                            UpdatedAt = createdAt,
+                            Metadata = $"{{\"ticketType\":\"Suggested Donation\",\"price\":{donationAmount},\"paymentMethod\":\"PayPal\"}}"
+                        };
+                        participationsToAdd.Add(donationParticipation);
+
+                        // Create TicketPurchase record
+                        var ticketPurchase = new TicketPurchase
+                        {
+                            Id = Guid.NewGuid(),
+                            TicketTypeId = donationTicketType.Id,
+                            UserId = user.Id,
+                            Quantity = 1,
+                            TotalPrice = donationAmount,
+                            PaymentStatus = "Completed",
+                            PaymentMethod = "PayPal",
+                            PaymentReference = $"DN-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
+                            PurchaseDate = createdAt,
+                            CreatedAt = createdAt,
+                            UpdatedAt = createdAt
+                        };
+                        ticketPurchasesToAdd.Add(ticketPurchase);
+
+                        // Update attendee with donation ticket number
+                        attendee.TicketNumber = $"DN-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}";
+                    }
+
+                    attendeesToAdd.Add(attendee);
                 }
             }
             else // Class events
@@ -108,14 +167,15 @@ public class ParticipationSeeder
                 {
                     var user = users[i];
                     var purchaseAmount = (decimal)Random.Shared.Next(15, 65);
+                    var createdAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20));
 
                     // Create EventParticipation record
                     var participation = new EventParticipation(eventItem.Id, user.Id, ParticipationType.Ticket)
                     {
                         Id = Guid.NewGuid(),
                         Status = ParticipationStatus.Active,
-                        CreatedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20)),
-                        UpdatedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20)),
+                        CreatedAt = createdAt,
+                        UpdatedAt = createdAt,
                         Metadata = $"{{\"purchaseAmount\": {purchaseAmount}, \"paymentMethod\": \"PayPal\"}}"
                     };
                     participationsToAdd.Add(participation);
@@ -131,17 +191,32 @@ public class ParticipationSeeder
                         PaymentStatus = "Completed",
                         PaymentMethod = "PayPal",
                         PaymentReference = $"PP-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
-                        PurchaseDate = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20)),
-                        CreatedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20)),
-                        UpdatedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20))
+                        PurchaseDate = createdAt,
+                        CreatedAt = createdAt,
+                        UpdatedAt = createdAt
                     };
                     ticketPurchasesToAdd.Add(ticketPurchase);
+
+                    // Create EventAttendee record so attendee appears in check-in system
+                    var attendee = new EventAttendee
+                    {
+                        Id = Guid.NewGuid(),
+                        EventId = eventItem.Id,
+                        UserId = user.Id,
+                        TicketNumber = $"TKT-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
+                        RegistrationStatus = "confirmed",
+                        CreatedAt = createdAt,
+                        UpdatedAt = createdAt,
+                        HasCompletedWaiver = true
+                    };
+                    attendeesToAdd.Add(attendee);
                 }
             }
         }
 
         await _context.EventParticipations.AddRangeAsync(participationsToAdd, cancellationToken);
         await _context.TicketPurchases.AddRangeAsync(ticketPurchasesToAdd, cancellationToken);
+        await _context.EventAttendees.AddRangeAsync(attendeesToAdd, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
         // Update TicketType.Sold counts based on purchases
@@ -155,8 +230,8 @@ public class ParticipationSeeder
         }
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Event participations creation completed. Processed {EventsProcessed} events. Created: {ParticipationCount} participations and {PurchaseCount} ticket purchases",
-            eventsProcessed, participationsToAdd.Count, ticketPurchasesToAdd.Count);
+        _logger.LogInformation("Event participations creation completed. Processed {EventsProcessed} events. Created: {ParticipationCount} participations, {AttendeeCount} attendees, and {PurchaseCount} ticket purchases",
+            eventsProcessed, participationsToAdd.Count, attendeesToAdd.Count, ticketPurchasesToAdd.Count);
     }
 
     /// <summary>
@@ -178,12 +253,12 @@ public class ParticipationSeeder
                 45, // days ago
                 14, // total RSVPs
                 9,  // check-ins
-                5,  // donation tickets
+                7,  // donation tickets (at least half)
                 "guest@witchcityrope.com", // canceled user
                 10.00m, // donation amount
                 cancellationToken);
 
-            _logger.LogInformation("Created 14 RSVPs for Monthly Rope Practice Night (9 check-ins, 5 no-shows, 1 canceled)");
+            _logger.LogInformation("Created 14 RSVPs for Monthly Rope Practice Night (9 check-ins, 5 no-shows, 1 canceled, 7 donations)");
         }
 
         var welcomeMixerExists = await _context.EventParticipations
@@ -197,12 +272,12 @@ public class ParticipationSeeder
                 30, // days ago
                 15, // total RSVPs
                 10, // check-ins
-                7,  // donation tickets
+                8,  // donation tickets (at least half)
                 "vetted@witchcityrope.com", // canceled user
                 5.00m, // donation amount
                 cancellationToken);
 
-            _logger.LogInformation("Created 15 RSVPs for New Member Welcome Mixer (10 check-ins, 5 no-shows, 1 canceled)");
+            _logger.LogInformation("Created 15 RSVPs for New Member Welcome Mixer (10 check-ins, 5 no-shows, 1 canceled, 8 donations)");
         }
     }
 
@@ -299,6 +374,7 @@ public class ParticipationSeeder
                 EventId = eventId,
                 UserId = user.Id,
                 RegistrationStatus = "confirmed",
+                HasCompletedWaiver = true,
                 CreatedAt = rsvpCreatedAt,
                 UpdatedAt = rsvpCreatedAt
             };

@@ -13,7 +13,7 @@ import {
   Modal,
   SegmentedControl,
 } from '@mantine/core'
-import { IconArrowLeft } from '@tabler/icons-react'
+import { IconArrowLeft, IconLink } from '@tabler/icons-react'
 import { notifications } from '@mantine/notifications'
 import { useEvent, useUpdateEvent } from '../../lib/api/hooks/useEvents'
 import { useQueryClient } from '@tanstack/react-query'
@@ -25,6 +25,7 @@ import {
   getChangedEventFields,
 } from '../../utils/eventDataTransformation'
 import type { components } from '@witchcityrope/shared-types'
+import { GenerateCheckInLinkModal } from '../../features/checkin/components/GenerateCheckInLinkModal'
 
 // Type alias for cleaner usage
 type EventDtoType = components['schemas']['EventDto']
@@ -72,6 +73,7 @@ export const AdminEventDetailsPage: React.FC = () => {
   const [pendingStatus, setPendingStatus] = useState<string>('')
   const [formDirty, setFormDirty] = useState(false)
   const [initialFormData, setInitialFormData] = useState<EventFormData | null>(null)
+  const [kioskModalOpen, setKioskModalOpen] = useState(false)
 
   // Always call hooks unconditionally - use empty string if no id
   const { data: event, isLoading, error } = useEvent(id || '', !!id)
@@ -386,37 +388,48 @@ export const AdminEventDetailsPage: React.FC = () => {
         </Title>
 
         {!isEditMode && (
-          <SegmentedControl
-            value={publishStatus}
-            onChange={handleStatusChange}
-            data={[
-              { label: 'DRAFT', value: 'draft' },
-              { label: 'PUBLISHED', value: 'published' },
-            ]}
-            size="lg"
-            styles={{
-              root: {
-                backgroundColor: 'var(--mantine-color-gray-1)',
-              },
-              control: {
-                fontFamily: 'Source Sans 3, sans-serif',
-                fontSize: '1.5rem',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-                padding: '12px 24px',
-                height: 'auto',
-              },
-              label: {
-                fontFamily: 'Source Sans 3, sans-serif',
-                fontSize: '1.5rem',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-                color: 'var(--mantine-color-wcr-7)',
-              },
-            }}
-          />
+          <Group gap="md">
+            <WCRButton
+              leftSection={<IconLink size={16} />}
+              onClick={() => setKioskModalOpen(true)}
+              variant="outline"
+              size="md"
+            >
+              Generate Kiosk Link
+            </WCRButton>
+
+            <SegmentedControl
+              value={publishStatus}
+              onChange={handleStatusChange}
+              data={[
+                { label: 'DRAFT', value: 'draft' },
+                { label: 'PUBLISHED', value: 'published' },
+              ]}
+              size="lg"
+              styles={{
+                root: {
+                  backgroundColor: 'var(--mantine-color-gray-1)',
+                },
+                control: {
+                  fontFamily: 'Source Sans 3, sans-serif',
+                  fontSize: '1.5rem',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  padding: '12px 24px',
+                  height: 'auto',
+                },
+                label: {
+                  fontFamily: 'Source Sans 3, sans-serif',
+                  fontSize: '1.5rem',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  color: 'var(--mantine-color-wcr-7)',
+                },
+              }}
+            />
+          </Group>
         )}
       </Group>
 
@@ -469,6 +482,14 @@ export const AdminEventDetailsPage: React.FC = () => {
           </Group>
         </Stack>
       </Modal>
+
+      {/* Kiosk Link Generation Modal */}
+      <GenerateCheckInLinkModal
+        opened={kioskModalOpen}
+        onClose={() => setKioskModalOpen(false)}
+        eventId={id || ''}
+        eventTitle={(event as any)?.title || 'Event'}
+      />
     </Container>
   )
 }

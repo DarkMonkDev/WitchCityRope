@@ -15,6 +15,7 @@ public interface ISyncService
     /// </summary>
     Task<Result<SyncResponse>> ProcessOfflineSyncAsync(
         SyncRequest request,
+        string sessionToken,
         CancellationToken cancellationToken = default);
 
     /// <summary>

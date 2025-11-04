@@ -5,6 +5,7 @@ using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.CheckIn.Entities;
 using WitchCityRope.Api.Features.CheckIn.Models;
 using WitchCityRope.Api.Features.Shared.Models;
+using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Features.CheckIn.Services;
 
@@ -85,32 +86,50 @@ public class CheckInService : ICheckInService
 
             // SERVER-SIDE PROJECTION: Project to DTO at database level
             // Benefits: Only loads needed fields, calculates check-in time at database level
-            var attendeeResponses = await query
+            // Fetch data with anonymous projection first (translatable to SQL)
+            var rawAttendees = await query
                 .OrderBy(ea => ea.RegistrationStatus)
                 .ThenBy(ea => ea.WaitlistPosition ?? 0)
                 .ThenBy(ea => ea.User.SceneName)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .Select(ea => new AttendeeResponse
+                .Select(ea => new
                 {
-                    // Projected at database level - only loads these fields
-                    AttendeeId = ea.Id.ToString(),
-                    UserId = ea.UserId.ToString(),
+                    ea.Id,
+                    ea.UserId,
                     SceneName = ea.User.SceneName ?? string.Empty,
                     Email = ea.User.Email ?? string.Empty,
-                    RegistrationStatus = ea.RegistrationStatus,
-                    TicketNumber = ea.TicketNumber,
+                    RegistrationStatus = ea.RegistrationStatus, // String from database
+                    ea.TicketNumber,
                     CheckInTime = ea.CheckIns.OrderByDescending(c => c.CheckInTime)
                                              .Select(c => c.CheckInTime.ToString("O"))
                                              .FirstOrDefault(),
-                    IsFirstTime = ea.IsFirstTime,
-                    DietaryRestrictions = ea.DietaryRestrictions,
-                    AccessibilityNeeds = ea.AccessibilityNeeds,
+                    ea.IsFirstTime,
+                    ea.DietaryRestrictions,
+                    ea.AccessibilityNeeds,
                     Pronouns = ea.User.Pronouns,
-                    HasCompletedWaiver = ea.HasCompletedWaiver,
-                    WaitlistPosition = ea.WaitlistPosition
+                    ea.HasCompletedWaiver,
+                    ea.WaitlistPosition
                 })
                 .ToListAsync(cancellationToken);
+
+            // Convert to DTOs in memory with enum parsing
+            var attendeeResponses = rawAttendees.Select(ea => new AttendeeResponse
+            {
+                AttendeeId = ea.Id.ToString(),
+                UserId = ea.UserId.ToString(),
+                SceneName = ea.SceneName,
+                Email = ea.Email,
+                RegistrationStatus = ParseRegistrationStatus(ea.RegistrationStatus),
+                TicketNumber = ea.TicketNumber,
+                CheckInTime = ea.CheckInTime,
+                IsFirstTime = ea.IsFirstTime,
+                DietaryRestrictions = ea.DietaryRestrictions,
+                AccessibilityNeeds = ea.AccessibilityNeeds,
+                Pronouns = ea.Pronouns,
+                HasCompletedWaiver = ea.HasCompletedWaiver,
+                WaitlistPosition = ea.WaitlistPosition
+            }).ToList();
 
             var response = new CheckInAttendeesResponse
             {
@@ -144,11 +163,21 @@ public class CheckInService : ICheckInService
     /// </summary>
     public async Task<Result<CheckInResponse>> CheckInAttendeeAsync(
         CheckInRequest request,
+        string sessionToken,
         CancellationToken cancellationToken = default)
     {
         try
         {
             using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+            // Get session token entity to retrieve creator's user ID for audit logging
+            var sessionTokenEntity = await _context.CheckInSessionTokens
+                .FirstOrDefaultAsync(t => t.Token == sessionToken, cancellationToken);
+
+            if (sessionTokenEntity == null)
+            {
+                return Result<CheckInResponse>.Failure("Invalid session token");
+            }
 
             // Get attendee with event info
             var attendee = await _context.EventAttendees
@@ -181,11 +210,11 @@ public class CheckInService : ICheckInService
                 return Result<CheckInResponse>.Failure("Event at capacity. Override required for waitlist check-in.");
             }
 
-            // Create check-in record
+            // Create check-in record - use token creator's user ID for audit trail
             var checkIn = new Entities.CheckIn(
                 attendee.Id,
                 attendee.EventId,
-                Guid.Parse(request.StaffMemberId))
+                sessionTokenEntity.CreatedByUserId)
             {
                 CheckInTime = DateTime.Parse(request.CheckInTime).ToUniversalTime(),
                 Notes = request.Notes,
@@ -200,21 +229,22 @@ public class CheckInService : ICheckInService
             // Update attendee status
             attendee.RegistrationStatus = "checked-in";
             attendee.UpdatedAt = DateTime.UtcNow;
-            attendee.UpdatedBy = Guid.Parse(request.StaffMemberId);
+            attendee.UpdatedBy = sessionTokenEntity.CreatedByUserId;
 
-            // Create audit log
+            // Create audit log - log token prefix for security audit
+            var tokenPrefix = sessionToken.Length > 8 ? sessionToken.Substring(0, 8) : sessionToken;
             var auditLog = new CheckInAuditLog(
                 attendee.EventId,
                 "check-in",
                 $"Check-in completed for {attendee.User.SceneName}",
-                Guid.Parse(request.StaffMemberId))
+                sessionTokenEntity.CreatedByUserId)
             {
                 EventAttendeeId = attendee.Id,
                 NewValues = JsonSerializer.Serialize(new
                 {
                     status = "checked-in",
                     checkInTime = checkIn.CheckInTime,
-                    staffMember = request.StaffMemberId,
+                    sessionToken = tokenPrefix + "...", // First 8 chars for audit
                     overrideCapacity = request.OverrideCapacity
                 })
             };
@@ -240,8 +270,8 @@ public class CheckInService : ICheckInService
                 AuditLogId = auditLog.Id.ToString()
             };
 
-            _logger.LogInformation("Successful check-in for attendee {AttendeeId} by staff {StaffId}",
-                attendee.Id, request.StaffMemberId);
+            _logger.LogInformation("Successful check-in for attendee {AttendeeId} using session token {TokenPrefix}",
+                attendee.Id, tokenPrefix);
 
             return Result<CheckInResponse>.Success(response);
         }
@@ -298,6 +328,26 @@ public class CheckInService : ICheckInService
             var eventStatus = now < eventInfo.StartDate ? "upcoming" :
                              now > eventInfo.EndDate ? "ended" : "active";
 
+            // Get staff members who have checked people in today for this event
+            var today = DateTime.UtcNow.Date;
+            var staffOnDuty = await _context.CheckIns
+                .Where(c => c.EventId == eventId && c.CheckInTime >= today)
+                .GroupBy(c => new { c.StaffMemberId, c.StaffMember.SceneName, c.StaffMember.Role })
+                .Select(g => new StaffMember
+                {
+                    UserId = g.Key.StaffMemberId.ToString(),
+                    SceneName = g.Key.SceneName,
+                    Role = g.Key.Role,
+                    LastActivity = g.Max(c => c.CheckInTime).ToString("O")
+                })
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
+
+            // Get pending sync count
+            var pendingCount = await _context.OfflineSyncQueues
+                .Where(q => q.EventId == eventId && q.SyncStatus != "completed")
+                .CountAsync(cancellationToken);
+
             var response = new DashboardResponse
             {
                 EventId = eventId.ToString(),
@@ -306,10 +356,10 @@ public class CheckInService : ICheckInService
                 EventStatus = eventStatus,
                 Capacity = capacity,
                 RecentCheckIns = recentCheckIns,
-                StaffOnDuty = new List<StaffMember>(), // TODO: Implement staff tracking
+                StaffOnDuty = staffOnDuty,
                 SyncStatus = new SyncStatus
                 {
-                    PendingCount = 0, // TODO: Implement from sync service
+                    PendingCount = pendingCount,
                     LastSync = DateTime.UtcNow.ToString("O"),
                     ConflictCount = 0
                 }
@@ -330,36 +380,190 @@ public class CheckInService : ICheckInService
     public async Task<Result<CheckInResponse>> CreateManualEntryAsync(
         Guid eventId,
         ManualEntryData request,
-        Guid staffMemberId,
+        string sessionToken,
         CancellationToken cancellationToken = default)
     {
         try
         {
             using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
 
+            // Get session token entity to retrieve creator's user ID for audit logging
+            var sessionTokenEntity = await _context.CheckInSessionTokens
+                .FirstOrDefaultAsync(t => t.Token == sessionToken, cancellationToken);
+
+            if (sessionTokenEntity == null)
+            {
+                return Result<CheckInResponse>.Failure("Invalid session token");
+            }
+
+            // Verify event exists
+            var eventInfo = await _context.Events
+                .FirstOrDefaultAsync(e => e.Id == eventId, cancellationToken);
+
+            if (eventInfo == null)
+            {
+                return Result<CheckInResponse>.Failure("Event not found");
+            }
+
+            // Check capacity before allowing manual entry
+            var capacity = await GetEventCapacityAsync(eventId, cancellationToken);
+            if (capacity.IsAtCapacity)
+            {
+                return Result<CheckInResponse>.Failure("Event at capacity. Cannot add walk-in attendee.");
+            }
+
             // Check if user already exists by email
             var existingUser = await _context.Users
                 .FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
+
+            ApplicationUser user;
+            bool userCreated = false;
 
             if (existingUser != null)
             {
                 // Check if they're already registered for this event
                 var existingAttendee = await _context.EventAttendees
+                    .Include(ea => ea.CheckIns)
                     .FirstOrDefaultAsync(ea => ea.EventId == eventId && ea.UserId == existingUser.Id, cancellationToken);
 
                 if (existingAttendee != null)
                 {
+                    // If already registered but not checked in, allow check-in
+                    if (existingAttendee.CheckIns.Any())
+                    {
+                        return Result<CheckInResponse>.Failure("User is already checked in to this event");
+                    }
                     return Result<CheckInResponse>.Failure("User is already registered for this event");
                 }
+
+                user = existingUser;
+            }
+            else
+            {
+                // Create new user for walk-in
+                user = new ApplicationUser
+                {
+                    Id = Guid.NewGuid(),
+                    Email = request.Email,
+                    NormalizedEmail = request.Email.ToUpperInvariant(),
+                    UserName = request.Email,
+                    NormalizedUserName = request.Email.ToUpperInvariant(),
+                    SceneName = request.Name,
+                    PhoneNumber = request.Phone,
+                    Role = "Member",
+                    VettingStatus = 0, // Unvetted
+                    IsActive = true,
+                    EmailConfirmed = false,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    // Required fields with defaults
+                    EncryptedLegalName = string.Empty,
+                    DateOfBirth = DateTime.UtcNow.AddYears(-18), // Default to minimum age
+                    PronouncedName = string.Empty,
+                    Pronouns = string.Empty
+                };
+
+                _context.Users.Add(user);
+                userCreated = true;
+
+                _logger.LogInformation("Created new user {UserId} for walk-in: {Email}", user.Id, user.Email);
             }
 
-            // For now, we'll create a manual entry record without creating a full user
-            // In a full implementation, this would create a temporary user or work with the registration system
+            // Generate unique ticket number
+            var ticketNumber = $"WALKIN-{DateTime.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}";
 
-            // TODO: Implement proper manual entry user creation
-            // This is a simplified implementation for the initial version
+            // Create EventAttendee record
+            var attendee = new EventAttendee(eventId, user.Id, "confirmed")
+            {
+                TicketNumber = ticketNumber,
+                DietaryRestrictions = request.DietaryRestrictions,
+                AccessibilityNeeds = request.AccessibilityNeeds,
+                HasCompletedWaiver = request.HasCompletedWaiver,
+                IsFirstTime = true, // Assume walk-ins are first-timers unless specified otherwise
+                CreatedBy = sessionTokenEntity.CreatedByUserId,
+                UpdatedBy = sessionTokenEntity.CreatedByUserId
+            };
 
-            return Result<CheckInResponse>.Failure("Manual entry not yet fully implemented");
+            _context.EventAttendees.Add(attendee);
+
+            // Create CheckIn record
+            var checkIn = new Entities.CheckIn(
+                attendee.Id,
+                eventId,
+                sessionTokenEntity.CreatedByUserId)
+            {
+                CheckInTime = DateTime.UtcNow,
+                IsManualEntry = true,
+                Notes = $"Walk-in manual entry via kiosk. {(userCreated ? "New user created." : "Existing user.")}",
+                ManualEntryData = JsonSerializer.Serialize(new
+                {
+                    name = request.Name,
+                    email = request.Email,
+                    phone = request.Phone,
+                    dietaryRestrictions = request.DietaryRestrictions,
+                    accessibilityNeeds = request.AccessibilityNeeds,
+                    hasCompletedWaiver = request.HasCompletedWaiver,
+                    userCreated = userCreated
+                })
+            };
+
+            _context.CheckIns.Add(checkIn);
+
+            // Update attendee status to checked-in
+            attendee.RegistrationStatus = "checked-in";
+
+            // Create audit log - log token prefix for security audit
+            var tokenPrefix = sessionToken.Length > 8 ? sessionToken.Substring(0, 8) : sessionToken;
+            var auditLog = new CheckInAuditLog(
+                eventId,
+                "manual-entry",
+                $"Walk-in manual entry for {request.Name} ({request.Email})",
+                sessionTokenEntity.CreatedByUserId)
+            {
+                EventAttendeeId = attendee.Id,
+                NewValues = JsonSerializer.Serialize(new
+                {
+                    userId = user.Id,
+                    attendeeId = attendee.Id,
+                    ticketNumber = ticketNumber,
+                    status = "checked-in",
+                    checkInTime = checkIn.CheckInTime,
+                    sessionToken = tokenPrefix + "...", // First 8 chars for audit
+                    userCreated = userCreated,
+                    name = request.Name,
+                    email = request.Email
+                })
+            };
+
+            _context.CheckInAuditLogs.Add(auditLog);
+
+            // Save all changes
+            await _context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            // Update capacity cache
+            _cache.Remove($"event_capacity_{eventId}");
+
+            // Get updated capacity info
+            var updatedCapacity = await GetEventCapacityAsync(eventId, cancellationToken);
+
+            var response = new CheckInResponse
+            {
+                Success = true,
+                AttendeeId = attendee.Id.ToString(),
+                CheckInTime = checkIn.CheckInTime.ToString("O"),
+                Message = userCreated
+                    ? $"Walk-in successful. New user created and checked in."
+                    : $"Walk-in successful. Existing user checked in.",
+                CurrentCapacity = updatedCapacity,
+                AuditLogId = auditLog.Id.ToString()
+            };
+
+            _logger.LogInformation(
+                "Manual entry completed for event {EventId}. User: {UserId}, Attendee: {AttendeeId}, Token: {TokenPrefix}, UserCreated: {UserCreated}",
+                eventId, user.Id, attendee.Id, tokenPrefix, userCreated);
+
+            return Result<CheckInResponse>.Success(response);
         }
         catch (Exception ex)
         {
@@ -390,7 +594,10 @@ public class CheckInService : ICheckInService
                     .Count(ea => ea.EventId == eventId && ea.RegistrationStatus == "waitlist"),
                 AvailableSpots = e.Capacity - _context.CheckIns.Count(c => c.EventId == eventId),
                 IsAtCapacity = _context.CheckIns.Count(c => c.EventId == eventId) >= e.Capacity,
-                CanOverride = true // TODO: Implement based on user permissions
+                // CanOverride indicates if system supports capacity override
+                // User-specific permission checks should be done in CheckInAttendeeAsync
+                // EventOrganizer and Administrator roles can override
+                CanOverride = true
             })
             .FirstOrDefaultAsync(cancellationToken) ?? new CapacityInfo();
 
@@ -398,5 +605,23 @@ public class CheckInService : ICheckInService
         _cache.Set(cacheKey, capacity, TimeSpan.FromMinutes(2));
 
         return capacity;
+    }
+
+    /// <summary>
+    /// Helper method to convert string registration status to enum
+    /// Handles case-insensitive mapping of database string values to RegistrationStatus enum
+    /// </summary>
+    /// <param name="status">String status from database (confirmed, waitlist, checked-in, no-show)</param>
+    /// <returns>Corresponding RegistrationStatus enum value, defaults to Confirmed if unknown</returns>
+    private static RegistrationStatus ParseRegistrationStatus(string status)
+    {
+        return status?.ToLowerInvariant() switch
+        {
+            "confirmed" => RegistrationStatus.Confirmed,
+            "waitlist" => RegistrationStatus.Waitlist,
+            "checked-in" or "checkedin" => RegistrationStatus.CheckedIn,
+            "no-show" or "noshow" => RegistrationStatus.NoShow,
+            _ => RegistrationStatus.Confirmed // Default to Confirmed for unknown values
+        };
     }
 }

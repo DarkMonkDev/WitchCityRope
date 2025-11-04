@@ -19,9 +19,14 @@ public class PayPalService : IPayPalService
     private readonly PayPalHttpClient _client;
     private readonly ILogger<PayPalService> _logger;
     private readonly string _webhookId;
+    private readonly IPaymentNotificationService? _notificationService;
 
-    public PayPalService(IConfiguration configuration, ILogger<PayPalService> logger)
+    public PayPalService(
+        IConfiguration configuration,
+        ILogger<PayPalService> logger,
+        IPaymentNotificationService? notificationService = null)
     {
+        _notificationService = notificationService;
         // Initialize PayPal environment (sandbox vs live)
         var clientId = configuration["PayPal:ClientId"]
             ?? throw new InvalidOperationException("PayPal ClientId not configured");
@@ -507,7 +512,7 @@ public class PayPalService : IPayPalService
         return Task.FromResult(Result.Success());
     }
 
-    private Task<Result> HandleCaptureCompletedTypedAsync(PayPalWebhookEvent webhookEvent, CancellationToken cancellationToken)
+    private async Task<Result> HandleCaptureCompletedTypedAsync(PayPalWebhookEvent webhookEvent, CancellationToken cancellationToken)
     {
         // Extract capture ID and update payment status in database
         // This would involve finding the payment by encrypted PayPal Order ID
@@ -515,8 +520,157 @@ public class PayPalService : IPayPalService
 
         _logger.LogInformation("PayPal capture completed: {EventId}, Summary: {Summary}",
             webhookEvent.Id, webhookEvent.Summary);
+
         // TODO: Update payment status in database
-        return Task.FromResult(Result.Success());
+
+        // Send SSE notification if kiosk session token is present in metadata
+        // This enables real-time payment updates for QR code payments
+        if (_notificationService != null && webhookEvent.Resource != null)
+        {
+            try
+            {
+                // Extract session token from PayPal order metadata (if present)
+                // Session token should be stored in custom_id or metadata during order creation
+                var sessionToken = ExtractSessionTokenFromResource(webhookEvent.Resource);
+                var attendeeId = ExtractAttendeeIdFromResource(webhookEvent.Resource);
+                var eventId = ExtractEventIdFromResource(webhookEvent.Resource);
+                var amount = ExtractAmountFromResource(webhookEvent.Resource);
+                var captureId = ExtractCaptureIdFromResource(webhookEvent.Resource);
+
+                if (!string.IsNullOrEmpty(sessionToken) &&
+                    attendeeId.HasValue &&
+                    eventId.HasValue &&
+                    amount.HasValue &&
+                    !string.IsNullOrEmpty(captureId))
+                {
+                    // Send notification to kiosk
+                    var notificationSent = await _notificationService.NotifyPaymentComplete(
+                        sessionToken,
+                        attendeeId.Value,
+                        eventId.Value,
+                        Guid.Parse(captureId), // PayPal capture ID as payment ID
+                        amount.Value,
+                        "PayPal");
+
+                    if (notificationSent)
+                    {
+                        _logger.LogInformation(
+                            "SSE notification sent for PayPal payment: Attendee {AttendeeId}, Amount ${Amount}",
+                            attendeeId.Value, amount.Value);
+                    }
+                    else
+                    {
+                        _logger.LogWarning(
+                            "Failed to send SSE notification for PayPal payment (session may be inactive): {SessionToken}",
+                            sessionToken);
+                    }
+                }
+                else
+                {
+                    _logger.LogDebug(
+                        "PayPal payment completed without kiosk session token (online payment, not door payment)");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't fail webhook processing
+                _logger.LogError(ex,
+                    "Error sending SSE notification for PayPal payment completion");
+            }
+        }
+
+        return Result.Success();
+    }
+
+    /// <summary>
+    /// Extract kiosk session token from PayPal resource metadata.
+    /// Session token is stored in custom fields when QR code payment is initiated at the door.
+    /// </summary>
+    private string? ExtractSessionTokenFromResource(Dictionary<string, object> resource)
+    {
+        // Try multiple possible locations for session token
+        // PayPal stores custom data in different places depending on API version
+        if (resource.TryGetValue("custom_id", out var customId) && customId is string sessionToken)
+        {
+            return sessionToken;
+        }
+
+        if (resource.TryGetValue("invoice_id", out var invoiceId) && invoiceId is string invoice)
+        {
+            // Check if invoice_id contains session token (format: {sessionToken}_{invoiceId})
+            var parts = invoice.Split('_');
+            if (parts.Length > 1)
+            {
+                return parts[0];
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Extract attendee ID from PayPal resource metadata.
+    /// </summary>
+    private Guid? ExtractAttendeeIdFromResource(Dictionary<string, object> resource)
+    {
+        // Attendee ID should be in custom fields or description
+        if (resource.TryGetValue("custom_id", out var customId) && customId is string custom)
+        {
+            // Format might be: attendee_{guid}
+            if (custom.StartsWith("attendee_") && Guid.TryParse(custom.Substring(9), out var attendeeId))
+            {
+                return attendeeId;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Extract event ID from PayPal resource metadata.
+    /// </summary>
+    private Guid? ExtractEventIdFromResource(Dictionary<string, object> resource)
+    {
+        // Event ID should be in custom fields or description
+        if (resource.TryGetValue("description", out var description) && description is string desc)
+        {
+            // Parse event ID from description (format might include event ID)
+            // This is a placeholder - actual implementation depends on how event ID is stored
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Extract payment amount from PayPal resource.
+    /// </summary>
+    private decimal? ExtractAmountFromResource(Dictionary<string, object> resource)
+    {
+        if (resource.TryGetValue("amount", out var amountObj) && amountObj is Dictionary<string, object> amount)
+        {
+            if (amount.TryGetValue("value", out var value) && value is string valueStr)
+            {
+                if (decimal.TryParse(valueStr, out var amountValue))
+                {
+                    return amountValue;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Extract capture ID from PayPal resource.
+    /// </summary>
+    private string? ExtractCaptureIdFromResource(Dictionary<string, object> resource)
+    {
+        if (resource.TryGetValue("id", out var id) && id is string captureId)
+        {
+            return captureId;
+        }
+
+        return null;
     }
 
     private Task<Result> HandleCaptureFailedTypedAsync(PayPalWebhookEvent webhookEvent, CancellationToken cancellationToken)

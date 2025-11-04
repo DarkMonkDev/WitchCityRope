@@ -9,7 +9,7 @@ public class AttendeeResponse
     public string UserId { get; set; } = string.Empty;
     public string SceneName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
-    public string RegistrationStatus { get; set; } = string.Empty;
+    public RegistrationStatus RegistrationStatus { get; set; }
     public string? TicketNumber { get; set; }
     public string? CheckInTime { get; set; }
     public bool IsFirstTime { get; set; }

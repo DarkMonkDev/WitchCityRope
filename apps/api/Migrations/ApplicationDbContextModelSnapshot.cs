@@ -409,6 +409,65 @@ namespace WitchCityRope.Api.Migrations
                         });
                 });
 
+            modelBuilder.Entity("WitchCityRope.Api.Features.CheckIn.Entities.CheckInSessionToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<bool>("IsRevoked")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTime?>("LastUsedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<Guid?>("RevokedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(88)
+                        .HasColumnType("character varying(88)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId")
+                        .HasDatabaseName("IX_CheckInSessionTokens_CreatedByUserId");
+
+                    b.HasIndex("EventId")
+                        .HasDatabaseName("IX_CheckInSessionTokens_EventId");
+
+                    b.HasIndex("Token")
+                        .IsUnique()
+                        .HasDatabaseName("IX_CheckInSessionTokens_Token");
+
+                    b.HasIndex("EventId", "ExpiresAt")
+                        .HasDatabaseName("IX_CheckInSessionTokens_EventId_ExpiresAt_Active")
+                        .HasFilter("\"IsRevoked\" = false");
+
+                    b.HasIndex("Token", "ExpiresAt", "IsRevoked")
+                        .HasDatabaseName("IX_CheckInSessionTokens_Token_ExpiresAt_IsRevoked");
+
+                    b.ToTable("CheckInSessionTokens", "public");
+                });
+
             modelBuilder.Entity("WitchCityRope.Api.Features.CheckIn.Entities.EventAttendee", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2887,6 +2946,17 @@ namespace WitchCityRope.Api.Migrations
                     b.Navigation("Event");
 
                     b.Navigation("EventAttendee");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.CheckIn.Entities.CheckInSessionToken", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Models.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Event");
                 });
 
             modelBuilder.Entity("WitchCityRope.Api.Features.CheckIn.Entities.EventAttendee", b =>

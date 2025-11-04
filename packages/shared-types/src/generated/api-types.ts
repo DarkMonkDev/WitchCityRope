@@ -1480,6 +1480,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/checkin/session-tokens/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Generate check-in session token for event
+         * @description Admin generates a token that grants kiosk access to event check-in operations
+         */
+        post: operations["GenerateCheckInToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/checkin/session-tokens/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke active check-in session token
+         * @description Admin revokes a token for security incidents or lost devices
+         */
+        post: operations["RevokeCheckInToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/checkin/session-tokens/event/{eventId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all active session tokens for event
+         * @description Admin monitoring of active kiosk sessions
+         */
+        get: operations["GetActiveCheckInTokens"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/checkin/sync/pending-count": {
         parameters: {
             query?: never;
@@ -1489,7 +1549,7 @@ export interface paths {
         };
         /**
          * Get pending sync operations count
-         * @description Returns the number of pending offline operations for the current user
+         * @description Returns the number of pending offline operations for the current session
          */
         get: operations["GetPendingSyncCount"];
         put?: never;
@@ -1845,6 +1905,163 @@ export interface paths {
          * @description Lists all content pages with revision counts. Requires Administrator role.
          */
         get: operations["GetAllCmsPages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosk/payment-stream/{sessionToken}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    sessionToken: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/event-stream": unknown;
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/event-stream": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/event-stream": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosk/events/{eventId}/payments/cash": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    eventId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CashPaymentRequest"];
+                    "application/*+json": components["schemas"]["CashPaymentRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CashPaymentResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/kiosk/payments/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         put?: never;
         post?: never;
         delete?: never;
@@ -2786,6 +3003,22 @@ export interface components {
             /** Format: uuid */
             userId?: string;
         };
+        AttendeeResponse: {
+            attendeeId?: string;
+            userId?: string;
+            sceneName?: string;
+            email?: string;
+            registrationStatus?: components["schemas"]["RegistrationStatus"];
+            ticketNumber?: string | null;
+            checkInTime?: string | null;
+            isFirstTime?: boolean;
+            dietaryRestrictions?: string | null;
+            accessibilityNeeds?: string | null;
+            pronouns?: string | null;
+            hasCompletedWaiver?: boolean;
+            /** Format: int32 */
+            waitlistPosition?: number | null;
+        };
         AuditLogDto: {
             /** Format: uuid */
             id?: string;
@@ -2828,6 +3061,18 @@ export interface components {
         AvailableRolesResponse: {
             roles?: components["schemas"]["UserRoleDto"][];
         };
+        CapacityInfo: {
+            /** Format: int32 */
+            totalCapacity?: number;
+            /** Format: int32 */
+            checkedInCount?: number;
+            /** Format: int32 */
+            waitlistCount?: number;
+            /** Format: int32 */
+            availableSpots?: number;
+            isAtCapacity?: boolean;
+            canOverride?: boolean;
+        };
         CapacityInfoDto: {
             /** Format: int32 */
             current?: number;
@@ -2836,19 +3081,63 @@ export interface components {
             /** Format: int32 */
             available?: number;
         } | null;
+        CashPaymentRequest: {
+            /** Format: uuid */
+            attendeeId?: string;
+            /** Format: double */
+            amount?: number;
+            notes?: string | null;
+            sessionToken?: string | null;
+        };
+        CashPaymentResponse: {
+            success?: boolean;
+            /** Format: uuid */
+            paymentId?: string;
+            /** Format: date-time */
+            timestamp?: string;
+            message?: string;
+            /** Format: uuid */
+            attendeeId?: string;
+            /** Format: uuid */
+            eventId?: string;
+            /** Format: double */
+            amount?: number;
+            currency?: string;
+        };
         ChangePasswordDto: {
             currentPassword: string;
             newPassword: string;
             confirmPassword: string;
         };
+        CheckInAttendeesResponse: {
+            eventId?: string;
+            eventTitle?: string;
+            eventDate?: string;
+            /** Format: int32 */
+            totalCapacity?: number;
+            /** Format: int32 */
+            checkedInCount?: number;
+            /** Format: int32 */
+            availableSpots?: number;
+            attendees?: components["schemas"]["AttendeeResponse"][];
+            pagination?: components["schemas"]["PaginationInfo"];
+        };
         CheckInRequest: {
             attendeeId: string;
             checkInTime: string;
-            staffMemberId: string;
+            staffMemberId?: string | null;
             notes?: string | null;
             overrideCapacity?: boolean;
             isManualEntry?: boolean;
             manualEntryData?: components["schemas"]["ManualEntryData"];
+        };
+        CheckInResponse: {
+            success?: boolean;
+            attendeeId?: string;
+            checkInTime?: string;
+            message?: string;
+            currentCapacity?: components["schemas"]["CapacityInfo"];
+            auditLogId?: string | null;
         };
         CmsPageSummaryDto: {
             /** Format: int32 */
@@ -2949,6 +3238,16 @@ export interface components {
             name?: string;
             directions?: string | null;
             notes?: string | null;
+        };
+        DashboardResponse: {
+            eventId?: string;
+            eventTitle?: string;
+            eventDate?: string;
+            eventStatus?: string;
+            capacity?: components["schemas"]["CapacityInfo"];
+            recentCheckIns?: components["schemas"]["RecentCheckIn"][];
+            staffOnDuty?: components["schemas"]["StaffMember"][];
+            syncStatus?: components["schemas"]["SyncStatus"];
         };
         DashboardStatisticsResponse: {
             /** Format: int32 */
@@ -3121,6 +3420,15 @@ export interface components {
             notes?: string | null;
             canCancel?: boolean;
             metadata?: string | null;
+            hasCheckedIn?: boolean;
+            /** Format: date-time */
+            checkInTime?: string | null;
+        };
+        GenerateTokenRequest: {
+            /** Format: uuid */
+            eventId?: string;
+            /** Format: double */
+            expirationHours?: number | null;
         };
         GoogleDriveUpdateResponse: {
             /** Format: uuid */
@@ -3405,6 +3713,16 @@ export interface components {
             /** Format: int32 */
             totalPages?: number;
         };
+        PaginationInfo: {
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            pageSize?: number;
+            /** Format: int32 */
+            totalCount?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
         /** @enum {unknown} */
         ParticipationStatus: "Active" | "Cancelled" | "Refunded" | "Waitlisted";
         ParticipationStatusDto: {
@@ -3423,7 +3741,7 @@ export interface components {
         /** @enum {unknown} */
         ParticipationType: "RSVP" | "Ticket";
         /** @enum {unknown} */
-        PaymentMethodType: "SavedCard" | "NewCard" | "BankTransfer" | "PayPal" | "Venmo";
+        PaymentMethodType: "SavedCard" | "NewCard" | "BankTransfer" | "PayPal" | "Venmo" | "Cash";
         PaymentResponse: {
             /** Format: uuid */
             id?: string;
@@ -3528,6 +3846,13 @@ export interface components {
             pronouns?: string | null;
             additionalInfo?: string | null;
         };
+        RecentCheckIn: {
+            attendeeId?: string;
+            sceneName?: string;
+            checkInTime?: string;
+            staffMemberName?: string;
+            isManualEntry?: boolean;
+        };
         ReferenceDetailDto: {
             /** Format: uuid */
             id?: string;
@@ -3603,6 +3928,8 @@ export interface components {
             password: string;
             sceneName: string;
         };
+        /** @enum {unknown} */
+        RegistrationStatus: "Confirmed" | "Waitlist" | "CheckedIn" | "NoShow";
         ReviewDecisionDto: {
             /** Format: uuid */
             id?: string;
@@ -3644,6 +3971,9 @@ export interface components {
             confirmationMessage?: string;
             actionsTriggered?: string[];
         } | null;
+        RevokeTokenRequest: {
+            token?: string;
+        };
         RsvpDetailsDto: {
             /** Format: uuid */
             id?: string;
@@ -3696,6 +4026,17 @@ export interface components {
             /** Format: int32 */
             registrationCount?: number;
         };
+        SessionTokenResponse: {
+            token?: string;
+            /** Format: uuid */
+            eventId?: string;
+            eventTitle?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            expiresAt?: string;
+            checkInUrl?: string;
+        };
         SimpleNoteRequest: {
             note: string;
             isPrivate?: boolean | null;
@@ -3728,6 +4069,12 @@ export interface components {
             pronouns?: string | null;
             otherNames?: string | null;
         } | null;
+        StaffMember: {
+            userId?: string;
+            sceneName?: string;
+            role?: string;
+            lastActivity?: string;
+        };
         StatusChangeRequest: {
             status: string;
             reasoning: string;
@@ -3756,6 +4103,13 @@ export interface components {
             deviceId: string;
             pendingCheckIns: components["schemas"]["PendingCheckIn"][];
             lastSyncTimestamp: string;
+        };
+        SyncStatus: {
+            /** Format: int32 */
+            pendingCount?: number;
+            lastSync?: string;
+            /** Format: int32 */
+            conflictCount?: number;
         };
         TicketDetailsDto: {
             /** Format: uuid */
@@ -3993,7 +4347,7 @@ export interface components {
             vettingStatus?: string;
         } | null;
         /** @enum {unknown} */
-        UserRole: "Member" | "Teacher" | "SafetyTeam" | "Administrator" | "CheckInStaff" | "EventOrganizer";
+        UserRole: "Member" | "Teacher" | "SafetyTeam" | "Administrator" | "EventOrganizer";
         UserRoleDto: {
             role?: components["schemas"]["UserRole"];
             displayName?: string;
@@ -7907,7 +8261,9 @@ export interface operations {
                 page?: number;
                 pageSize?: number;
             };
-            header?: never;
+            header?: {
+                "X-CheckIn-Token"?: string;
+            };
             path: {
                 eventId: string;
             };
@@ -7920,6 +8276,29 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
+                content: {
+                    "application/json": components["schemas"]["CheckInAttendeesResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
                 content?: never;
             };
         };
@@ -7927,7 +8306,9 @@ export interface operations {
     ProcessCheckIn: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-CheckIn-Token"?: string;
+            };
             path: {
                 eventId: string;
             };
@@ -7944,6 +8325,50 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
+                content: {
+                    "application/json": components["schemas"]["CheckInResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
                 content?: never;
             };
         };
@@ -7951,7 +8376,9 @@ export interface operations {
     GetEventDashboard: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-CheckIn-Token"?: string;
+            };
             path: {
                 eventId: string;
             };
@@ -7964,6 +8391,36 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
+                content: {
+                    "application/json": components["schemas"]["DashboardResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
                 content?: never;
             };
         };
@@ -7971,7 +8428,9 @@ export interface operations {
     SyncOfflineCheckIns: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-CheckIn-Token"?: string;
+            };
             path: {
                 eventId: string;
             };
@@ -7995,7 +8454,9 @@ export interface operations {
     CreateManualEntry: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-CheckIn-Token"?: string;
+            };
             path: {
                 eventId: string;
             };
@@ -8016,10 +8477,94 @@ export interface operations {
             };
         };
     };
-    GetPendingSyncCount: {
+    GenerateCheckInToken: {
         parameters: {
             query?: never;
             header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerateTokenRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionTokenResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    RevokeCheckInToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevokeTokenRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetActiveCheckInTokens: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionTokenResponse"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetPendingSyncCount: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CheckIn-Token"?: string;
+            };
             path?: never;
             cookie?: never;
         };

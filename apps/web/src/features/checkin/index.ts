@@ -2,10 +2,9 @@
 // Main exports for the CheckIn system
 
 // Components
-export { 
-  AttendeeSearch, 
+export {
+  AttendeeSearch,
   CompactAttendeeSearch,
-  AttendeeList,
   CheckInConfirmation,
   CheckInInterface
 } from './components';

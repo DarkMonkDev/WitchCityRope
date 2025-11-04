@@ -12,7 +12,6 @@ namespace WitchCityRope.Api.Features.Users.Constants;
 /// - Teacher: Can create and teach events/classes
 /// - SafetyTeam: Part of the safety coordination team
 /// - Administrator: Full administrative access to the system
-/// - CheckInStaff: Can manage check-in at events
 /// - EventOrganizer: Can organize and manage events
 /// </remarks>
 [JsonConverter(typeof(JsonStringEnumConverter))]
@@ -41,12 +40,6 @@ public enum UserRole
     /// Can manage users, content, settings, and all system features.
     /// </summary>
     Administrator,
-
-    /// <summary>
-    /// Can manage check-in at events.
-    /// Has access to check-in kiosks and attendance tracking.
-    /// </summary>
-    CheckInStaff,
 
     /// <summary>
     /// Can organize and manage events.

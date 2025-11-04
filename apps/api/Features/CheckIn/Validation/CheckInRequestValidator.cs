@@ -22,11 +22,11 @@ public class CheckInRequestValidator : AbstractValidator<CheckInRequest>
             .Must(BeValidDateTime)
             .WithMessage("Check-in time must be a valid ISO 8601 datetime");
 
+        // StaffMemberId is optional (nullable) - if not provided, kiosk mode is assumed
         RuleFor(x => x.StaffMemberId)
-            .NotEmpty()
-            .WithMessage("Staff member ID is required")
-            .Must(BeValidGuid)
-            .WithMessage("Staff member ID must be a valid GUID");
+            .Must(BeValidGuidOrEmpty!)
+            .When(x => !string.IsNullOrEmpty(x.StaffMemberId))
+            .WithMessage("Staff member ID must be a valid GUID when provided");
 
         RuleFor(x => x.Notes)
             .MaximumLength(500)
@@ -51,6 +51,11 @@ public class CheckInRequestValidator : AbstractValidator<CheckInRequest>
     private static bool BeValidGuid(string value)
     {
         return Guid.TryParse(value, out _);
+    }
+
+    private static bool BeValidGuidOrEmpty(string? value)
+    {
+        return string.IsNullOrEmpty(value) || Guid.TryParse(value, out _);
     }
 
     private static bool BeValidDateTime(string value)

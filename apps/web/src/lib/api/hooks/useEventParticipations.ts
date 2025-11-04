@@ -2,19 +2,10 @@ import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '../client'
 import { eventKeys } from '../utils/cache'
 import type { ApiResponse } from '../types/api.types'
+import type { components } from '@witchcityrope/shared-types'
 
-export interface EventParticipationDto {
-  id: string
-  userId: string
-  userSceneName: string
-  userEmail: string
-  participationType: 'RSVP' | 'Ticket'
-  status: 'Active' | 'Cancelled'
-  participationDate: string
-  notes?: string
-  canCancel: boolean
-  metadata?: string | null
-}
+// Use generated type from OpenAPI spec - NEVER manually define this
+export type EventParticipationDto = components['schemas']['EventParticipationDto']
 
 /**
  * Hook to fetch all participations (RSVPs and tickets) for a specific event

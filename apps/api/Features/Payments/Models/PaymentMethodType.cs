@@ -28,5 +28,10 @@ public enum PaymentMethodType
     /// <summary>
     /// Venmo payment (future enhancement)
     /// </summary>
-    Venmo = 4
+    Venmo = 4,
+
+    /// <summary>
+    /// Cash payment at the door
+    /// </summary>
+    Cash = 5
 }

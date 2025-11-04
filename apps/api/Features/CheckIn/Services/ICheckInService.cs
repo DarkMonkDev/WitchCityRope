@@ -27,6 +27,7 @@ public interface ICheckInService
     /// </summary>
     Task<Result<CheckInResponse>> CheckInAttendeeAsync(
         CheckInRequest request,
+        string sessionToken,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -44,6 +45,6 @@ public interface ICheckInService
     Task<Result<CheckInResponse>> CreateManualEntryAsync(
         Guid eventId,
         ManualEntryData request,
-        Guid staffMemberId,
+        string sessionToken,
         CancellationToken cancellationToken = default);
 }

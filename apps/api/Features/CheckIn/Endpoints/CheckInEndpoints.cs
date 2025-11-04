@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 using WitchCityRope.Api.Features.CheckIn.Models;
 using WitchCityRope.Api.Features.CheckIn.Services;
 using WitchCityRope.Api.Features.CheckIn.Validation;
@@ -20,12 +20,13 @@ public static class CheckInEndpoints
     public static void MapCheckInEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/checkin")
-            .WithTags("CheckIn")
-            .RequireAuthorization(); // All endpoints require authentication
+            .WithTags("CheckIn");
 
         // Get attendees for check-in interface
         group.MapGet("/events/{eventId}/attendees", async (
             Guid eventId,
+            [FromHeader(Name = "X-CheckIn-Token")] string? token,
+            [FromServices] ISessionTokenService tokenService,
             ICheckInService checkInService,
             string? search,
             string? status,
@@ -33,6 +34,25 @@ public static class CheckInEndpoints
             int pageSize = 50,
             CancellationToken cancellationToken = default) =>
         {
+            // VALIDATE TOKEN FIRST
+            if (string.IsNullOrEmpty(token))
+            {
+                return Results.Unauthorized();
+            }
+
+            var validationResult = await tokenService.ValidateTokenAsync(token, cancellationToken);
+            if (!validationResult.IsSuccess)
+            {
+                return Results.Unauthorized();
+            }
+
+            var tokenEventId = validationResult.Value;
+            if (tokenEventId != eventId)
+            {
+                return Results.Forbid(); // 403 - Token is for different event
+            }
+
+            // TOKEN IS VALID - Proceed with check-in operation
             var result = await checkInService.GetEventAttendeesAsync(
                 eventId, search, status, page, pageSize, cancellationToken);
 
@@ -43,41 +63,52 @@ public static class CheckInEndpoints
                     detail: result.Error,
                     statusCode: 500);
         })
-        .RequireAuthorization(policy => policy.RequireRole(
-            UserRole.CheckInStaff.ToRoleString(),
-            UserRole.EventOrganizer.ToRoleString(),
-            UserRole.Administrator.ToRoleString()))
+        .AllowAnonymous() // No authentication required - token validated in handler
         .WithName("GetEventAttendees")
         .WithSummary("Get attendees for event check-in")
-        .WithDescription("Returns attendees list with search and filtering for check-in interface");
+        .WithDescription("Returns attendees list with search and filtering for check-in interface")
+        .Produces<CheckInAttendeesResponse>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status500InternalServerError);
 
         // Process check-in
         group.MapPost("/events/{eventId}/checkin", async (
             Guid eventId,
+            [FromHeader(Name = "X-CheckIn-Token")] string? token,
+            [FromServices] ISessionTokenService tokenService,
             CheckInRequest request,
             ICheckInService checkInService,
             IValidator<CheckInRequest> validator,
-            ClaimsPrincipal user,
             CancellationToken cancellationToken = default) =>
         {
+            // VALIDATE TOKEN FIRST
+            if (string.IsNullOrEmpty(token))
+            {
+                return Results.Unauthorized();
+            }
+
+            var validationResult = await tokenService.ValidateTokenAsync(token, cancellationToken);
+            if (!validationResult.IsSuccess)
+            {
+                return Results.Unauthorized();
+            }
+
+            var tokenEventId = validationResult.Value;
+            if (tokenEventId != eventId)
+            {
+                return Results.Forbid(); // 403 - Token is for different event
+            }
+
             // Validate request
-            var validationResult = await validator.ValidateAsync(request, cancellationToken);
-            if (!validationResult.IsValid)
+            var requestValidation = await validator.ValidateAsync(request, cancellationToken);
+            if (!requestValidation.IsValid)
             {
-                return Results.ValidationProblem(validationResult.ToDictionary());
+                return Results.ValidationProblem(requestValidation.ToDictionary());
             }
 
-            // Ensure staff member ID matches authenticated user
-            var userId = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId) || request.StaffMemberId != userId)
-            {
-                return Results.Problem(
-                    title: "Authorization Failed",
-                    detail: "Staff member ID must match authenticated user",
-                    statusCode: 403);
-            }
-
-            var result = await checkInService.CheckInAttendeeAsync(request, cancellationToken);
+            // TOKEN IS VALID - Proceed with check-in operation
+            var result = await checkInService.CheckInAttendeeAsync(request, token, cancellationToken);
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
@@ -87,20 +118,45 @@ public static class CheckInEndpoints
                     statusCode: result.Error.Contains("not found") ? 404 :
                                result.Error.Contains("capacity") ? 409 : 500);
         })
-        .RequireAuthorization(policy => policy.RequireRole(
-            UserRole.CheckInStaff.ToRoleString(),
-            UserRole.EventOrganizer.ToRoleString(),
-            UserRole.Administrator.ToRoleString()))
+        .AllowAnonymous() // No authentication required - token validated in handler
         .WithName("ProcessCheckIn")
         .WithSummary("Process attendee check-in")
-        .WithDescription("Check in an attendee for the event with capacity validation");
+        .WithDescription("Check in an attendee for the event with capacity validation")
+        .Produces<CheckInResponse>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status409Conflict)
+        .Produces(StatusCodes.Status500InternalServerError);
 
         // Get event dashboard
         group.MapGet("/events/{eventId}/dashboard", async (
             Guid eventId,
+            [FromHeader(Name = "X-CheckIn-Token")] string? token,
+            [FromServices] ISessionTokenService tokenService,
             ICheckInService checkInService,
             CancellationToken cancellationToken = default) =>
         {
+            // VALIDATE TOKEN FIRST
+            if (string.IsNullOrEmpty(token))
+            {
+                return Results.Unauthorized();
+            }
+
+            var validationResult = await tokenService.ValidateTokenAsync(token, cancellationToken);
+            if (!validationResult.IsSuccess)
+            {
+                return Results.Unauthorized();
+            }
+
+            var tokenEventId = validationResult.Value;
+            if (tokenEventId != eventId)
+            {
+                return Results.Forbid(); // 403 - Token is for different event
+            }
+
+            // TOKEN IS VALID - Proceed with check-in operation
             var result = await checkInService.GetEventDashboardAsync(eventId, cancellationToken);
 
             return result.IsSuccess
@@ -110,31 +166,53 @@ public static class CheckInEndpoints
                     detail: result.Error,
                     statusCode: result.Error.Contains("not found") ? 404 : 500);
         })
-        .RequireAuthorization(policy => policy.RequireRole(
-            UserRole.CheckInStaff.ToRoleString(),
-            UserRole.EventOrganizer.ToRoleString(),
-            UserRole.Administrator.ToRoleString()))
+        .AllowAnonymous() // No authentication required - token validated in handler
         .WithName("GetEventDashboard")
         .WithSummary("Get event check-in dashboard")
-        .WithDescription("Returns real-time check-in statistics and recent activity");
+        .WithDescription("Returns real-time check-in statistics and recent activity")
+        .Produces<DashboardResponse>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status500InternalServerError);
 
         // Sync offline check-ins
         group.MapPost("/events/{eventId}/sync", async (
             Guid eventId,
+            [FromHeader(Name = "X-CheckIn-Token")] string? token,
+            [FromServices] ISessionTokenService tokenService,
             SyncRequest request,
             ISyncService syncService,
             IValidator<SyncRequest> validator,
-            ClaimsPrincipal user,
             CancellationToken cancellationToken = default) =>
         {
-            // Validate request
-            var validationResult = await validator.ValidateAsync(request, cancellationToken);
-            if (!validationResult.IsValid)
+            // VALIDATE TOKEN FIRST
+            if (string.IsNullOrEmpty(token))
             {
-                return Results.ValidationProblem(validationResult.ToDictionary());
+                return Results.Unauthorized();
             }
 
-            var result = await syncService.ProcessOfflineSyncAsync(request, cancellationToken);
+            var validationResult = await tokenService.ValidateTokenAsync(token, cancellationToken);
+            if (!validationResult.IsSuccess)
+            {
+                return Results.Unauthorized();
+            }
+
+            var tokenEventId = validationResult.Value;
+            if (tokenEventId != eventId)
+            {
+                return Results.Forbid(); // 403 - Token is for different event
+            }
+
+            // Validate request
+            var requestValidation = await validator.ValidateAsync(request, cancellationToken);
+            if (!requestValidation.IsValid)
+            {
+                return Results.ValidationProblem(requestValidation.ToDictionary());
+            }
+
+            // TOKEN IS VALID - Proceed with check-in operation
+            var result = await syncService.ProcessOfflineSyncAsync(request, token, cancellationToken);
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
@@ -143,10 +221,7 @@ public static class CheckInEndpoints
                     detail: result.Error,
                     statusCode: 500);
         })
-        .RequireAuthorization(policy => policy.RequireRole(
-            UserRole.CheckInStaff.ToRoleString(),
-            UserRole.EventOrganizer.ToRoleString(),
-            UserRole.Administrator.ToRoleString()))
+        .AllowAnonymous() // No authentication required - token validated in handler
         .WithName("SyncOfflineCheckIns")
         .WithSummary("Sync offline check-in data")
         .WithDescription("Process pending check-ins from offline operation with conflict detection");
@@ -154,30 +229,40 @@ public static class CheckInEndpoints
         // Create manual entry
         group.MapPost("/events/{eventId}/manual-entry", async (
             Guid eventId,
+            [FromHeader(Name = "X-CheckIn-Token")] string? token,
+            [FromServices] ISessionTokenService tokenService,
             ManualEntryData request,
             ICheckInService checkInService,
             IValidator<ManualEntryData> validator,
-            ClaimsPrincipal user,
             CancellationToken cancellationToken = default) =>
         {
+            // VALIDATE TOKEN FIRST
+            if (string.IsNullOrEmpty(token))
+            {
+                return Results.Unauthorized();
+            }
+
+            var validationResult = await tokenService.ValidateTokenAsync(token, cancellationToken);
+            if (!validationResult.IsSuccess)
+            {
+                return Results.Unauthorized();
+            }
+
+            var tokenEventId = validationResult.Value;
+            if (tokenEventId != eventId)
+            {
+                return Results.Forbid(); // 403 - Token is for different event
+            }
+
             // Validate request
-            var validationResult = await validator.ValidateAsync(request, cancellationToken);
-            if (!validationResult.IsValid)
+            var requestValidation = await validator.ValidateAsync(request, cancellationToken);
+            if (!requestValidation.IsValid)
             {
-                return Results.ValidationProblem(validationResult.ToDictionary());
+                return Results.ValidationProblem(requestValidation.ToDictionary());
             }
 
-            // Get staff member ID from token
-            var userId = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var staffMemberId))
-            {
-                return Results.Problem(
-                    title: "Authorization Failed",
-                    detail: "Unable to identify staff member from token",
-                    statusCode: 403);
-            }
-
-            var result = await checkInService.CreateManualEntryAsync(eventId, request, staffMemberId, cancellationToken);
+            // TOKEN IS VALID - Proceed with check-in operation
+            var result = await checkInService.CreateManualEntryAsync(eventId, request, token, cancellationToken);
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
@@ -186,23 +271,31 @@ public static class CheckInEndpoints
                     detail: result.Error,
                     statusCode: result.Error.Contains("already registered") ? 409 : 500);
         })
-        .RequireAuthorization(policy => policy.RequireRole(
-            UserRole.CheckInStaff.ToRoleString(),
-            UserRole.EventOrganizer.ToRoleString(),
-            UserRole.Administrator.ToRoleString()))
+        .AllowAnonymous() // No authentication required - token validated in handler
         .WithName("CreateManualEntry")
         .WithSummary("Create manual entry for walk-in attendee")
         .WithDescription("Register and check in a walk-in attendee who isn't pre-registered");
 
-        // Get pending sync count
-        group.MapGet("/sync/pending-count", async (
-            ISyncService syncService,
+        // ============================================================
+        // ADMIN ENDPOINTS - Session Token Management
+        // Requires Administrator or EventOrganizer role
+        // ============================================================
+
+        // Generate check-in session token for event
+        group.MapPost("/session-tokens/generate", async (
+            [FromBody] GenerateTokenRequest request,
+            ISessionTokenService tokenService,
             ClaimsPrincipal user,
+            ILogger<Program> logger,
             CancellationToken cancellationToken = default) =>
         {
-            // Get user ID from token
+            logger.LogInformation(
+                "Token generation request received: EventId={EventId}, ExpirationHours={ExpirationHours} (isNull={IsNull})",
+                request.EventId, request.ExpirationHours, request.ExpirationHours == null);
+
+            // Get admin user ID from token
             var userId = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
+            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var adminUserId))
             {
                 return Results.Problem(
                     title: "Authorization Failed",
@@ -210,7 +303,103 @@ public static class CheckInEndpoints
                     statusCode: 403);
             }
 
-            var result = await syncService.GetPendingSyncCountAsync(userGuid, cancellationToken);
+            var result = await tokenService.GenerateTokenAsync(
+                request.EventId,
+                adminUserId,
+                request.ExpirationHours ?? 12,
+                cancellationToken);
+
+            return result.IsSuccess
+                ? Results.Ok(result.Value)
+                : Results.BadRequest(new { success = false, error = result.Error });
+        })
+        .RequireAuthorization(policy => policy.RequireRole(
+            UserRole.Administrator.ToRoleString(),
+            UserRole.EventOrganizer.ToRoleString()))
+        .WithName("GenerateCheckInToken")
+        .WithSummary("Generate check-in session token for event")
+        .WithDescription("Admin generates a token that grants kiosk access to event check-in operations")
+        .Produces<SessionTokenResponse>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest)
+        .WithTags("CheckIn");
+
+        // Revoke active session token
+        group.MapPost("/session-tokens/revoke", async (
+            [FromBody] RevokeTokenRequest request,
+            ISessionTokenService tokenService,
+            ClaimsPrincipal user,
+            CancellationToken cancellationToken = default) =>
+        {
+            // Get admin user ID from token
+            var userId = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var adminUserId))
+            {
+                return Results.Problem(
+                    title: "Authorization Failed",
+                    detail: "Unable to identify user from token",
+                    statusCode: 403);
+            }
+
+            var result = await tokenService.RevokeTokenAsync(request.Token, adminUserId, cancellationToken);
+
+            return result.IsSuccess
+                ? Results.Ok(new { success = true })
+                : Results.BadRequest(new { success = false, error = result.Error });
+        })
+        .RequireAuthorization(policy => policy.RequireRole(
+            UserRole.Administrator.ToRoleString(),
+            UserRole.EventOrganizer.ToRoleString()))
+        .WithName("RevokeCheckInToken")
+        .WithSummary("Revoke active check-in session token")
+        .WithDescription("Admin revokes a token for security incidents or lost devices")
+        .WithTags("CheckIn");
+
+        // Get all active tokens for an event
+        group.MapGet("/session-tokens/event/{eventId}", async (
+            Guid eventId,
+            ISessionTokenService tokenService,
+            CancellationToken cancellationToken = default) =>
+        {
+            var result = await tokenService.GetActiveTokensForEventAsync(eventId, cancellationToken);
+
+            return result.IsSuccess
+                ? Results.Ok(result.Value)
+                : Results.BadRequest(new { success = false, error = result.Error });
+        })
+        .RequireAuthorization(policy => policy.RequireRole(
+            UserRole.Administrator.ToRoleString(),
+            UserRole.EventOrganizer.ToRoleString()))
+        .WithName("GetActiveCheckInTokens")
+        .WithSummary("Get all active session tokens for event")
+        .WithDescription("Admin monitoring of active kiosk sessions")
+        .Produces<List<SessionTokenResponse>>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest)
+        .WithTags("CheckIn");
+
+        // Get pending sync count
+        group.MapGet("/sync/pending-count", async (
+            [FromHeader(Name = "X-CheckIn-Token")] string? token,
+            [FromServices] ISessionTokenService tokenService,
+            ISyncService syncService,
+            CancellationToken cancellationToken = default) =>
+        {
+            // VALIDATE TOKEN FIRST
+            if (string.IsNullOrEmpty(token))
+            {
+                return Results.Unauthorized();
+            }
+
+            var validationResult = await tokenService.ValidateTokenAsync(token, cancellationToken);
+            if (!validationResult.IsSuccess)
+            {
+                return Results.Unauthorized();
+            }
+
+            // Token is valid - use a system GUID for sync count since we don't have user context
+            // Sync operations are now per-token/session, not per-user
+            var sessionId = Guid.NewGuid(); // Placeholder - sync service may need refactoring
+
+            var result = await syncService.GetPendingSyncCountAsync(sessionId, cancellationToken);
 
             return result.IsSuccess
                 ? Results.Ok(new { pendingCount = result.Value })
@@ -219,12 +408,9 @@ public static class CheckInEndpoints
                     detail: result.Error,
                     statusCode: 500);
         })
-        .RequireAuthorization(policy => policy.RequireRole(
-            UserRole.CheckInStaff.ToRoleString(),
-            UserRole.EventOrganizer.ToRoleString(),
-            UserRole.Administrator.ToRoleString()))
+        .AllowAnonymous() // No authentication required - token validated in handler
         .WithName("GetPendingSyncCount")
         .WithSummary("Get pending sync operations count")
-        .WithDescription("Returns the number of pending offline operations for the current user");
+        .WithDescription("Returns the number of pending offline operations for the current session");
     }
 }

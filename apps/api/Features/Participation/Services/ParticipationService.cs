@@ -729,6 +729,7 @@ public class ParticipationService : IParticipationService
 
     /// <summary>
     /// Get all participations for a specific event (admin only)
+    /// Includes check-in status from EventAttendees table
     /// </summary>
     public async Task<Result<List<EventParticipationDto>>> GetEventParticipationsAsync(
         Guid eventId,
@@ -738,23 +739,40 @@ public class ParticipationService : IParticipationService
         {
             _logger.LogInformation("Getting participations for event {EventId}", eventId);
 
+            // Join with EventAttendees to get check-in status
+            // An attendee has checked in if they have a record with RegistrationStatus = 'checked-in' or 'confirmed'
             var participations = await _context.EventParticipations
                 .AsNoTracking()
                 .Include(ep => ep.User)
                 .Where(ep => ep.EventId == eventId)
-                .OrderByDescending(ep => ep.CreatedAt)
-                .Select(ep => new EventParticipationDto
+                .GroupJoin(
+                    _context.EventAttendees.Where(ea => ea.EventId == eventId),
+                    ep => ep.UserId,
+                    ea => ea.UserId,
+                    (ep, attendees) => new { Participation = ep, Attendees = attendees })
+                .SelectMany(
+                    x => x.Attendees.DefaultIfEmpty(),
+                    (x, attendee) => new { x.Participation, Attendee = attendee })
+                .OrderByDescending(x => x.Participation.CreatedAt)
+                .Select(x => new EventParticipationDto
                 {
-                    Id = ep.Id,
-                    UserId = ep.UserId,
-                    UserSceneName = ep.User.SceneName ?? ep.User.Email ?? "Unknown",
-                    UserEmail = ep.User.Email ?? "",
-                    ParticipationType = ep.ParticipationType,
-                    Status = ep.Status,
-                    ParticipationDate = ep.CreatedAt,
-                    Notes = ep.Notes,
-                    CanCancel = ep.Status == ParticipationStatus.Active,
-                    Metadata = ep.Metadata
+                    Id = x.Participation.Id,
+                    UserId = x.Participation.UserId,
+                    UserSceneName = x.Participation.User.SceneName ?? x.Participation.User.Email ?? "Unknown",
+                    UserEmail = x.Participation.User.Email ?? "",
+                    ParticipationType = x.Participation.ParticipationType,
+                    Status = x.Participation.Status,
+                    ParticipationDate = x.Participation.CreatedAt,
+                    Notes = x.Participation.Notes,
+                    CanCancel = x.Participation.Status == ParticipationStatus.Active,
+                    Metadata = x.Participation.Metadata,
+                    // Check-in status: true ONLY if EventAttendees record exists with 'checked-in' status
+                    // NOTE: 'confirmed' means they bought tickets/registered, NOT that they checked in
+                    HasCheckedIn = x.Attendee != null && x.Attendee.RegistrationStatus == "checked-in",
+                    // Check-in time from UpdatedAt when status changed to checked-in
+                    CheckInTime = x.Attendee != null && x.Attendee.RegistrationStatus == "checked-in"
+                                  ? x.Attendee.UpdatedAt
+                                  : (DateTime?)null
                 })
                 .ToListAsync(cancellationToken);
 

@@ -29,12 +29,13 @@ export const checkinKeys = {
 /**
  * Hook for getting event attendees with search and filtering
  * Optimized for mobile interface with real-time updates
+ * Uses sessionToken for kiosk mode authentication
  */
-export function useEventAttendees(params: AttendeeSearchParams, enabled: boolean = true) {
+export function useEventAttendees(params: AttendeeSearchParams, sessionToken: string, enabled: boolean = true) {
   return useQuery({
     queryKey: checkinKeys.eventAttendees(params.eventId, params),
-    queryFn: () => checkinApi.getEventAttendees(params),
-    enabled,
+    queryFn: () => checkinApi.getEventAttendees(params, sessionToken),
+    enabled: enabled && !!sessionToken,
     staleTime: 2 * 60 * 1000, // 2 minutes - balance freshness vs performance
     refetchOnWindowFocus: true, // Refresh when returning to app
     refetchOnReconnect: true, // Refresh when coming back online
@@ -44,8 +45,9 @@ export function useEventAttendees(params: AttendeeSearchParams, enabled: boolean
 /**
  * Hook for processing attendee check-ins
  * Includes offline queuing and optimistic updates
+ * Uses sessionToken for kiosk mode authentication
  */
-export function useCheckInAttendee(eventId: string) {
+export function useCheckInAttendee(eventId: string, sessionToken: string) {
   const queryClient = useQueryClient();
   const { queueOfflineAction, isOnline } = useOfflineSync();
 
@@ -59,7 +61,7 @@ export function useCheckInAttendee(eventId: string) {
           data: request,
           timestamp: new Date().toISOString()
         });
-        
+
         // Return optimistic response
         return {
           success: true,
@@ -77,7 +79,7 @@ export function useCheckInAttendee(eventId: string) {
         };
       }
 
-      return checkinApi.checkInAttendee(eventId, request);
+      return checkinApi.checkInAttendee(eventId, request, sessionToken);
     },
     onMutate: async (newCheckIn) => {
       // Cancel outgoing refetches to prevent optimistic update conflicts
@@ -116,24 +118,32 @@ export function useCheckInAttendee(eventId: string) {
     },
     onSuccess: (data, variables) => {
       // Invalidate related queries for fresh data
-      queryClient.invalidateQueries({ 
-        queryKey: checkinKeys.eventAttendees(eventId) 
+      queryClient.invalidateQueries({
+        queryKey: checkinKeys.eventAttendees(eventId)
       });
-      queryClient.invalidateQueries({ 
-        queryKey: checkinKeys.eventDashboard(eventId) 
+      queryClient.invalidateQueries({
+        queryKey: checkinKeys.eventDashboard(eventId)
       });
-      queryClient.invalidateQueries({ 
-        queryKey: checkinKeys.eventCapacity(eventId) 
+      queryClient.invalidateQueries({
+        queryKey: checkinKeys.eventCapacity(eventId)
       });
 
-      // Show success notification
+      // Debug: Log notification trigger
+      console.log('🔔 Triggering check-in success notification:', data);
+
+      // Show success notification with unique ID for debugging
+      const notificationId = `checkin-success-${Date.now()}`;
       notifications.show({
+        id: notificationId,
         title: 'Check-in Successful',
-        message: data.message,
+        message: data.message || 'Attendee successfully checked in',
         color: 'green',
-        icon: '✅',
-        autoClose: 3000,
+        autoClose: 8000, // Increased to 8 seconds for test detection
+        withCloseButton: true,
       });
+
+      // Debug: Verify notification was called
+      console.log('🔔 Notification.show() called with ID:', notificationId);
     },
     onError: (error, variables, context) => {
       // Rollback optimistic updates on error
@@ -159,8 +169,9 @@ export function useCheckInAttendee(eventId: string) {
 /**
  * Hook for creating manual entries (walk-in attendees)
  * Includes validation and capacity checks
+ * Uses sessionToken for kiosk mode authentication
  */
-export function useCreateManualEntry(eventId: string) {
+export function useCreateManualEntry(eventId: string, sessionToken: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -172,7 +183,7 @@ export function useCreateManualEntry(eventId: string) {
       staffMemberId: string;
       manualEntryData: ManualEntryData;
       notes?: string;
-    }) => checkinApi.createManualEntry(eventId, staffMemberId, manualEntryData, notes),
+    }) => checkinApi.createManualEntry(eventId, staffMemberId, manualEntryData, sessionToken, notes),
     onSuccess: (data) => {
       // Invalidate attendee lists to show new entry
       queryClient.invalidateQueries({ 
@@ -205,12 +216,13 @@ export function useCreateManualEntry(eventId: string) {
 /**
  * Hook for getting real-time event dashboard data
  * Includes capacity, recent check-ins, and sync status
+ * Uses sessionToken for kiosk mode authentication
  */
-export function useEventDashboard(eventId: string, enabled: boolean = true) {
+export function useEventDashboard(eventId: string, sessionToken: string, enabled: boolean = true) {
   return useQuery({
     queryKey: checkinKeys.eventDashboard(eventId),
-    queryFn: () => checkinApi.getEventDashboard(eventId),
-    enabled,
+    queryFn: () => checkinApi.getEventDashboard(eventId, sessionToken),
+    enabled: enabled && !!sessionToken,
     staleTime: 1 * 60 * 1000, // 1 minute for dashboard freshness
     refetchInterval: 30 * 1000, // Auto-refresh every 30 seconds
     refetchOnWindowFocus: true,
@@ -221,12 +233,13 @@ export function useEventDashboard(eventId: string, enabled: boolean = true) {
 /**
  * Hook for getting current event capacity
  * Used for real-time capacity monitoring
+ * Uses sessionToken for kiosk mode authentication
  */
-export function useEventCapacity(eventId: string, enabled: boolean = true) {
+export function useEventCapacity(eventId: string, sessionToken: string, enabled: boolean = true) {
   return useQuery({
     queryKey: checkinKeys.eventCapacity(eventId),
-    queryFn: () => checkinApi.getEventCapacity(eventId),
-    enabled,
+    queryFn: () => checkinApi.getEventCapacity(eventId, sessionToken),
+    enabled: enabled && !!sessionToken,
     staleTime: 2 * 60 * 1000, // 2 minutes
     refetchInterval: 60 * 1000, // Refresh every minute
   });
@@ -248,12 +261,12 @@ export function useActiveEvents(enabled: boolean = true) {
 
 /**
  * Hook for exporting attendance data
- * For organizers and staff with export permissions
+ * Uses sessionToken for kiosk mode authentication
  */
-export function useExportAttendance(eventId: string) {
+export function useExportAttendance(eventId: string, sessionToken: string) {
   return useMutation({
-    mutationFn: (format: 'csv' | 'pdf' = 'csv') => 
-      checkinApi.exportAttendance(eventId, format),
+    mutationFn: (format: 'csv' | 'pdf' = 'csv') =>
+      checkinApi.exportAttendance(eventId, sessionToken, format),
     onSuccess: (blob, format) => {
       // Trigger download
       const url = window.URL.createObjectURL(blob);

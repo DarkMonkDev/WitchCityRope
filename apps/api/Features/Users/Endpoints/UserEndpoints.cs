@@ -331,7 +331,6 @@ Role changes are logged for audit purposes.")
         return role switch
         {
             UserRole.SafetyTeam => "Safety Team",
-            UserRole.CheckInStaff => "Check-In Staff",
             UserRole.EventOrganizer => "Event Organizer",
             _ => role.ToString()
         };
@@ -347,7 +346,6 @@ Role changes are logged for audit purposes.")
             UserRole.Teacher => "Can create and teach events/classes",
             UserRole.SafetyTeam => "Part of the safety coordination team",
             UserRole.Administrator => "Full administrative access to the system",
-            UserRole.CheckInStaff => "Can manage check-in at events",
             UserRole.EventOrganizer => "Can organize and manage events",
             UserRole.Member => "Regular member with no special privileges",
             _ => string.Empty

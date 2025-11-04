@@ -79,6 +79,7 @@ public static class ServiceCollectionExtensions
 
         // Payment feature services
         services.AddScoped<IPaymentService, PaymentService>();
+        services.AddSingleton<IPaymentNotificationService, PaymentNotificationService>(); // Singleton for in-memory SSE channel management
 
         // Conditionally register PayPal service based on configuration
         var useMockPayPal = configuration.GetValue<bool>("USE_MOCK_PAYMENT_SERVICE");

@@ -1,54 +1,56 @@
-// CheckInInterface - Main mobile-first check-in interface
+// CheckInInterface - Desktop table-based check-in interface
 // Primary staff interface for processing attendee check-ins
+// Source: /docs/design/wireframes/event-checkin-visual.html (lines 199-741)
 
 import React, { useState, useCallback, useMemo } from 'react';
 import {
-  Container,
+  Box,
   Stack,
   Group,
   Text,
-  Card,
-  Badge,
   Button,
-  ActionIcon,
   Alert,
   Loader,
   Center,
   Modal,
   TextInput,
-  Textarea
+  Textarea,
+  Table,
+  Badge
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { IconDashboard, IconPlus, IconSettings } from '@tabler/icons-react';
+import { IconPlus } from '@tabler/icons-react';
 
-import { AttendeeSearch } from './AttendeeSearch';
-import { AttendeeList } from './AttendeeList';
-import { CheckInConfirmation } from './CheckInConfirmation';
-import { CheckInDashboard } from './CheckInDashboard';
+import { CheckInHeader } from './CheckInHeader';
+import { CheckInModal } from './CheckInModal';
 import { CompactSyncStatus } from './SyncStatus';
+import { checkInTheme } from '../styles/theme';
+import { CheckInButton, CheckInButtonState } from './CheckInButton';
+import { CashPaymentModal, CashPaymentData } from './CashPaymentModal';
+import { QRPaymentModal } from './QRPaymentModal';
 
-import { 
-  useEventAttendees, 
-  useCheckInAttendee, 
+import {
+  useEventAttendees,
+  useCheckInAttendee,
   useEventDashboard,
-  useCreateManualEntry 
+  useCreateManualEntry
 } from '../hooks/useCheckIn';
 import { useOfflineSync } from '../hooks/useOfflineSync';
+import { checkinApi } from '../api/checkinApi';
 
-import type { 
-  CheckInAttendee, 
+import type {
+  CheckInAttendee,
   AttendeeSearchParams,
   ManualEntryData,
   CheckInResponse,
-  CheckInDashboard as CheckInDashboardType
+  CheckInDashboard as CheckInDashboardType,
+  RegistrationStatus
 } from '../types/checkin.types';
-import { RegistrationStatus } from '../types/checkin.types';
-import { TOUCH_TARGETS } from '../types/checkin.types';
 
 interface CheckInInterfaceProps {
   eventId: string;
-  staffMemberId: string;
+  sessionToken: string;
   eventTitle?: string;
   onNavigateToDashboard?: () => void;
 }
@@ -109,9 +111,10 @@ function ManualEntryModal({
       onClose={handleClose}
       title="Manual Entry - Walk-in Attendee"
       size="md"
+      data-testid="manual-entry-modal"
       styles={{
-        title: { 
-          fontFamily: 'Montserrat, sans-serif',
+        title: {
+          fontFamily: checkInTheme.fonts.heading,
           fontWeight: 600
         }
       }}
@@ -120,6 +123,8 @@ function ManualEntryModal({
         <Stack gap="md">
           <TextInput
             label="Full Name"
+            name="name"
+            data-testid="walk-in-name"
             required
             value={formData.name}
             onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
@@ -128,6 +133,8 @@ function ManualEntryModal({
 
           <TextInput
             label="Email Address"
+            name="email"
+            data-testid="walk-in-email"
             type="email"
             required
             value={formData.email}
@@ -137,6 +144,8 @@ function ManualEntryModal({
 
           <TextInput
             label="Phone Number"
+            name="phone"
+            data-testid="walk-in-phone"
             value={formData.phone}
             onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
             placeholder="Optional phone number"
@@ -163,6 +172,20 @@ function ManualEntryModal({
             placeholder="Additional notes about this check-in"
             rows={3}
           />
+
+          <Group>
+            <input
+              type="checkbox"
+              name="hasCompletedWaiver"
+              data-testid="walk-in-waiver"
+              checked={formData.hasCompletedWaiver}
+              onChange={(e) => setFormData(prev => ({ ...prev, hasCompletedWaiver: e.target.checked }))}
+              id="waiver-checkbox"
+            />
+            <label htmlFor="waiver-checkbox">
+              <Text size="sm">Waiver completed and signed *</Text>
+            </label>
+          </Group>
 
           <Alert color="yellow" variant="light">
             <Text size="sm">
@@ -193,11 +216,12 @@ function ManualEntryModal({
 }
 
 /**
- * Main check-in interface optimized for mobile staff use
+ * Main check-in interface with desktop table view (KIOSK MODE)
+ * Uses session token instead of user authentication
  */
 export function CheckInInterface({
   eventId,
-  staffMemberId,
+  sessionToken,
   eventTitle,
   onNavigateToDashboard
 }: CheckInInterfaceProps) {
@@ -206,11 +230,18 @@ export function CheckInInterface({
   const [statusFilter, setStatusFilter] = useState<RegistrationStatus | 'all'>('all');
   const [selectedAttendee, setSelectedAttendee] = useState<CheckInAttendee | null>(null);
   const [checkInResponse, setCheckInResponse] = useState<CheckInResponse | null>(null);
-  const [showDashboard, setShowDashboard] = useState(false);
+
+  // Button state tracking per attendee (for streamlined workflow)
+  const [buttonStates, setButtonStates] = useState<Map<string, CheckInButtonState>>(new Map());
+
+  // Selected attendee for payment modals
+  const [paymentAttendee, setPaymentAttendee] = useState<CheckInAttendee | null>(null);
 
   // Modal states
   const [confirmationOpened, { open: openConfirmation, close: closeConfirmation }] = useDisclosure(false);
   const [manualEntryOpened, { open: openManualEntry, close: closeManualEntry }] = useDisclosure(false);
+  const [cashPaymentOpened, { open: openCashPayment, close: closeCashPayment }] = useDisclosure(false);
+  const [qrPaymentOpened, { open: openQRPayment, close: closeQRPayment }] = useDisclosure(false);
 
   // Offline sync
   const { isOnline, pendingCount } = useOfflineSync();
@@ -221,31 +252,31 @@ export function CheckInInterface({
     search: searchTerm || undefined,
     status: statusFilter === 'all' ? undefined : statusFilter,
     page: 1,
-    pageSize: 50
+    pageSize: 100
   }), [eventId, searchTerm, statusFilter]);
 
-  // API hooks
+  // API hooks (pass sessionToken for authentication)
   const {
     data: attendeesResponse,
     isLoading: loadingAttendees,
     error: attendeesError,
     refetch: refetchAttendees
-  } = useEventAttendees(searchParams);
+  } = useEventAttendees(searchParams, sessionToken);
 
   const {
     data: dashboard,
     isLoading: loadingDashboard,
     error: dashboardError,
     refetch: refetchDashboard
-  } = useEventDashboard(eventId) as {
+  } = useEventDashboard(eventId, sessionToken) as {
     data: CheckInDashboardType | undefined;
     isLoading: boolean;
     error: Error | null;
     refetch: () => void;
   };
 
-  const checkInMutation = useCheckInAttendee(eventId);
-  const manualEntryMutation = useCreateManualEntry(eventId);
+  const checkInMutation = useCheckInAttendee(eventId, sessionToken);
+  const manualEntryMutation = useCreateManualEntry(eventId, sessionToken);
 
   // Event handlers
   const handleSearch = useCallback((term: string) => {
@@ -256,181 +287,275 @@ export function CheckInInterface({
     setStatusFilter(status);
   }, []);
 
+  const handleSelectAttendee = useCallback((attendee: CheckInAttendee) => {
+    setSelectedAttendee(attendee);
+    openConfirmation();
+  }, [openConfirmation]);
+
   const handleCheckIn = useCallback(async (attendee: CheckInAttendee) => {
     try {
       const checkInTime = new Date().toISOString();
       const response = await checkInMutation.mutateAsync({
         attendeeId: attendee.attendeeId,
         checkInTime,
-        staffMemberId,
+        staffMemberId: undefined, // Kiosk mode - no authenticated staff member
         notes: undefined,
         overrideCapacity: false,
         isManualEntry: false
       }) as CheckInResponse;
 
-      setSelectedAttendee(attendee);
       setCheckInResponse(response);
-      openConfirmation();
+      closeConfirmation();
+
+      notifications.show({
+        title: 'Check-in Successful',
+        message: `${attendee.sceneName || attendee.email} has been checked in`,
+        color: 'green'
+      });
+
+      refetchAttendees();
+      refetchDashboard();
     } catch (error) {
       console.error('Check-in failed:', error);
-      // Error is handled by the mutation's onError
     }
-  }, [checkInMutation, staffMemberId, openConfirmation]);
+  }, [checkInMutation, sessionToken, closeConfirmation, refetchAttendees, refetchDashboard]);
 
   const handleManualEntry = useCallback(async (data: ManualEntryData, notes?: string) => {
     try {
       const response = await manualEntryMutation.mutateAsync({
-        staffMemberId,
+        staffMemberId: undefined, // Kiosk mode - no authenticated staff member
         manualEntryData: data,
         notes
       });
 
-      // Create a temporary attendee object for confirmation
-      const tempAttendee: CheckInAttendee = {
-        attendeeId: 'manual-' + Date.now(),
-        userId: 'manual',
-        sceneName: data.name,
-        email: data.email,
-        registrationStatus: RegistrationStatus.CheckedIn,
-        isFirstTime: true, // Assume manual entries are first-time
-        hasCompletedWaiver: data.hasCompletedWaiver,
-        dietaryRestrictions: data.dietaryRestrictions || undefined,
-        accessibilityNeeds: data.accessibilityNeeds || undefined
-      };
-
-      setSelectedAttendee(tempAttendee);
-      setCheckInResponse(response as CheckInResponse);
       closeManualEntry();
-      openConfirmation();
+
+      notifications.show({
+        title: 'Walk-in Added',
+        message: `${data.name} has been checked in`,
+        color: 'green'
+      });
+
+      refetchAttendees();
+      refetchDashboard();
     } catch (error) {
       console.error('Manual entry failed:', error);
-      // Error is handled by the mutation's onError
     }
-  }, [manualEntryMutation, staffMemberId, closeManualEntry, openConfirmation]);
+  }, [manualEntryMutation, sessionToken, closeManualEntry, refetchAttendees, refetchDashboard]);
 
-  const handleConfirmationContinue = useCallback(() => {
-    closeConfirmation();
-    setSelectedAttendee(null);
-    setCheckInResponse(null);
-    refetchAttendees();
-  }, [closeConfirmation, refetchAttendees]);
+  // Get button state for an attendee
+  const getButtonState = useCallback((attendee: CheckInAttendee): CheckInButtonState => {
+    // Check if already checked in
+    if (attendee.registrationStatus === "CheckedIn") {
+      return 'complete';
+    }
 
-  const handleNewCheckIn = useCallback(() => {
-    closeConfirmation();
-    setSelectedAttendee(null);
-    setCheckInResponse(null);
-    setSearchTerm('');
-    setStatusFilter('all');
-    refetchAttendees();
-  }, [closeConfirmation, refetchAttendees]);
+    // Check for saved state
+    const savedState = buttonStates.get(attendee.attendeeId);
+    if (savedState) {
+      return savedState;
+    }
 
-  // Dashboard view toggle
-  if (showDashboard) {
-    return (
-      <Container size="lg" py="md">
-        <Stack gap="lg">
-          <Group justify="space-between" align="center">
-            <Button
-              variant="outline"
-              onClick={() => setShowDashboard(false)}
-              size="sm"
-            >
-              ← Back to Check-In
-            </Button>
-            <CompactSyncStatus />
-          </Group>
+    // Determine initial state based on payment status
+    const paymentStatus = (attendee as any).paymentStatus;
+    if (paymentStatus === 'rsvp') {
+      // RSVP only - payment optional, can skip to covidTest or show paidAtDoor first
+      return 'paidAtDoor';
+    }
 
-          <CheckInDashboard
-            dashboard={dashboard || {} as CheckInDashboardType}
-            isLoading={loadingDashboard}
-            error={dashboardError?.message || null}
-            onRefresh={refetchDashboard}
-            canExport={true}
-          />
-        </Stack>
-      </Container>
-    );
-  }
+    // Ticket purchased - start with covid test
+    return 'covidTest';
+  }, [buttonStates]);
+
+  // Filter attendees
+  const filteredAttendees = useMemo(() => {
+    const attendees = (attendeesResponse as any)?.attendees || [];
+    return attendees.filter((attendee: CheckInAttendee) => {
+      if (statusFilter === 'all') return true;
+      return attendee.registrationStatus === statusFilter;
+    });
+  }, [attendeesResponse, statusFilter]);
+
+  // Handle button state changes
+  const handleButtonStateChange = useCallback((attendeeId: string, newState: CheckInButtonState) => {
+    setButtonStates(prev => {
+      const updated = new Map(prev);
+      updated.set(attendeeId, newState);
+      return updated;
+    });
+
+    // If final check-in, persist to database
+    if (newState === 'complete') {
+      const attendee = filteredAttendees.find((a: CheckInAttendee) => a.attendeeId === attendeeId);
+      if (attendee) {
+        handleCheckIn(attendee);
+      }
+    }
+  }, [filteredAttendees, handleCheckIn]);
+
+  // Handle cash payment modal
+  const handleCashPaymentClick = useCallback((attendee: CheckInAttendee) => {
+    setPaymentAttendee(attendee);
+    openCashPayment();
+  }, [openCashPayment]);
+
+  // Handle QR payment modal
+  const handleQRPaymentClick = useCallback((attendee: CheckInAttendee) => {
+    setPaymentAttendee(attendee);
+    openQRPayment();
+  }, [openQRPayment]);
+
+  // Submit cash payment
+  const handleCashPaymentSubmit = useCallback(async (data: CashPaymentData) => {
+    if (!paymentAttendee) return;
+
+    try {
+      await checkinApi.recordCashPayment(
+        eventId,
+        paymentAttendee.attendeeId,
+        data.amount,
+        sessionToken,
+        data.notes
+      );
+
+      // Update button state to covidTest after payment
+      setButtonStates(prev => {
+        const updated = new Map(prev);
+        updated.set(paymentAttendee.attendeeId, 'covidTest');
+        return updated;
+      });
+
+      closeCashPayment();
+      setPaymentAttendee(null);
+
+      notifications.show({
+        title: 'Payment Recorded',
+        message: `$${data.amount.toFixed(2)} cash payment recorded for ${paymentAttendee.sceneName || paymentAttendee.email}`,
+        color: 'green'
+      });
+    } catch (error) {
+      console.error('Cash payment failed:', error);
+      notifications.show({
+        title: 'Payment Failed',
+        message: 'Failed to record payment. Please try again.',
+        color: 'red'
+      });
+    }
+  }, [paymentAttendee, eventId, sessionToken, closeCashPayment]);
+
+  // Handle QR payment completion
+  const handleQRPaymentComplete = useCallback(() => {
+    if (!paymentAttendee) return;
+
+    // Update button state to covidTest after payment
+    setButtonStates(prev => {
+      const updated = new Map(prev);
+      updated.set(paymentAttendee.attendeeId, 'covidTest');
+      return updated;
+    });
+
+    closeQRPayment();
+    setPaymentAttendee(null);
+
+    notifications.show({
+      title: 'Payment Complete',
+      message: `Digital payment received for ${paymentAttendee.sceneName || paymentAttendee.email}`,
+      color: 'green'
+    });
+  }, [paymentAttendee, closeQRPayment]);
+
+  // Calculate stats
+  const stats = useMemo(() => {
+    const attendees = (attendeesResponse as any)?.attendees || [];
+    return {
+      notArrived: attendees.filter((a: CheckInAttendee) =>
+        a.registrationStatus !== "CheckedIn"
+      ).length,
+      total: dashboard?.capacity.totalCapacity || 0,
+      needWaiver: attendees.filter((a: CheckInAttendee) => !a.hasCompletedWaiver).length,
+      checkedIn: dashboard?.capacity.checkedInCount || 0
+    };
+  }, [attendeesResponse, dashboard]);
 
   return (
-    <Container size="md" py="md">
-      <Stack gap="lg">
-        {/* Header */}
-        <Card shadow="sm" padding="md" radius="md">
-          <Group justify="space-between" align="center">
-            <Stack gap="xs">
-              <Text 
-                size="lg" 
-                fw={700}
-                style={{ fontFamily: 'Bodoni Moda, serif' }}
-                truncate
-              >
-                {eventTitle || 'Event Check-In'}
-              </Text>
-              
-              {dashboard && (
-                <Group align="center" gap="xs">
-                  <Badge color="blue" variant="filled">
-                    {dashboard.capacity.checkedInCount} / {dashboard.capacity.totalCapacity}
-                  </Badge>
-                  <Text size="sm" c="dimmed">
-                    {dashboard.capacity.availableSpots} spots available
-                  </Text>
-                </Group>
-              )}
-            </Stack>
+    <Box style={{
+      minHeight: '100vh',
+      background: checkInTheme.colors.cream
+    }}>
+      {/* Inline styles for clickable rows */}
+      <style>{`
+        .clickable-row:hover {
+          background-color: rgba(139, 121, 94, 0.08) !important;
+        }
+      `}</style>
+      {/* Header Bar */}
+      <CheckInHeader
+        eventTitle={dashboard?.eventTitle || eventTitle || 'Event Check-In'}
+        eventDate={dashboard?.eventDate ? new Date(dashboard.eventDate) : new Date()}
+        onExit={() => window.location.href = '/admin/events'}
+        checkedInCount={dashboard?.capacity.checkedInCount || 0}
+        totalCount={((attendeesResponse as any)?.attendees || []).length}
+      />
 
-            <Group align="center" gap="xs">
-              <CompactSyncStatus />
-              
-              <ActionIcon
-                variant="subtle"
-                onClick={() => setShowDashboard(true)}
-                size="lg"
-                aria-label="View dashboard"
-                style={{
-                  minWidth: TOUCH_TARGETS.MINIMUM,
-                  minHeight: TOUCH_TARGETS.MINIMUM
-                }}
-              >
-                <IconDashboard size={20} />
-              </ActionIcon>
-            </Group>
-          </Group>
-        </Card>
+      {/* Main Content */}
+      <Box style={{ maxWidth: 1400, margin: '0 auto', padding: 40 }}>
+        {/* Controls Bar - Search + Filter Tabs */}
+        <Box style={{
+          background: checkInTheme.colors.ivory,
+          padding: 24,
+          borderRadius: 12,
+          marginBottom: 32,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+          border: `1px solid ${checkInTheme.colors.taupe}`
+        }}>
+          {/* Search Box */}
+          <TextInput
+            placeholder="Search by name..."
+            value={searchTerm}
+            onChange={(e) => handleSearch(e.target.value)}
+            style={{ flex: 1, maxWidth: 400 }}
+            styles={{
+              input: {
+                border: '2px solid #B8B0A8',
+                borderRadius: 8,
+                fontSize: 16,
+                background: checkInTheme.colors.cream
+              }
+            }}
+          />
+        </Box>
 
-        {/* Search Interface */}
-        <AttendeeSearch
-          onSearch={handleSearch}
-          onStatusFilter={handleStatusFilter}
-          searchValue={searchTerm}
-          statusFilter={statusFilter}
-          isLoading={loadingAttendees}
-          resultCount={(attendeesResponse as any)?.attendees?.length}
-          placeholder="Search name, email, or ticket #"
-        />
-
-        {/* Manual Entry Button */}
-        <Button
-          leftSection={<IconPlus size={16} />}
-          onClick={openManualEntry}
-          variant="outline"
-          color="blue"
-          size="lg"
-          fullWidth
-          style={{
-            minHeight: TOUCH_TARGETS.BUTTON_HEIGHT,
-            borderRadius: '12px 6px 12px 6px',
-            fontFamily: 'Montserrat, sans-serif',
-            fontWeight: 600
-          }}
-        >
-          ➕ Manual Entry (Walk-in)
-        </Button>
+        {/* Add Walk-In Button - HIDDEN (on hold per user request) */}
+        {/* <Box style={{ marginBottom: 24 }}>
+          <Button
+            leftSection={<IconPlus size={20} />}
+            onClick={openManualEntry}
+            styles={{
+              root: {
+                background: checkInTheme.gradients.amber,
+                color: checkInTheme.colors.midnight,
+                fontFamily: checkInTheme.fonts.heading,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                fontSize: 16,
+                padding: '14px 32px',
+                borderRadius: 8,
+                boxShadow: '0 2px 8px rgba(255, 191, 0, 0.3)',
+                height: 'auto'
+              }
+            }}
+          >
+            Add Walk-In
+          </Button>
+        </Box> */}
 
         {/* Offline Alert */}
         {!isOnline && (
-          <Alert color="yellow" variant="light">
+          <Alert color="yellow" variant="light" style={{ marginBottom: 24 }}>
             <Group align="center" gap="xs">
               <Text size="sm" fw={500}>
                 Offline Mode - {pendingCount} actions queued
@@ -439,34 +564,169 @@ export function CheckInInterface({
           </Alert>
         )}
 
-        {/* Attendee List */}
-        <AttendeeList
-          attendees={(attendeesResponse as any)?.attendees || []}
-          onCheckIn={handleCheckIn}
-          isLoading={loadingAttendees}
-          error={attendeesError?.message || (attendeesError ? String(attendeesError) : undefined)}
-          isCheckingIn={checkInMutation.isPending}
-          checkingInAttendeeId={(checkInMutation as any).variables?.attendeeId}
-        />
+        {/* Attendee Table */}
+        <Box style={{
+          background: 'white',
+          borderRadius: 12,
+          overflow: 'hidden',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+        }}>
+          {loadingAttendees ? (
+            <Center p="xl">
+              <Loader size="lg" />
+            </Center>
+          ) : attendeesError ? (
+            <Alert color="red" m="md">
+              Error loading attendees: {attendeesError.message}
+            </Alert>
+          ) : filteredAttendees.length === 0 ? (
+            <Box p="xl" style={{ textAlign: 'center' }}>
+              <Text c="dimmed" size="lg">No attendees found</Text>
+            </Box>
+          ) : (
+            <Table striped highlightOnHover withTableBorder>
+              <Table.Thead style={{ backgroundColor: 'var(--mantine-color-burgundy-6)' }}>
+                <Table.Tr>
+                  <Table.Th style={{
+                    color: 'white',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px'
+                  }}>
+                    Name
+                  </Table.Th>
+                  <Table.Th style={{
+                    color: 'white',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px'
+                  }}>
+                    Pronouns
+                  </Table.Th>
+                  <Table.Th style={{
+                    color: 'white',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px'
+                  }}>
+                    Payment
+                  </Table.Th>
+                  <Table.Th style={{
+                    color: 'white',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px'
+                  }}>
+                    Status
+                  </Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {filteredAttendees.map((attendee: CheckInAttendee) => (
+                  <Table.Tr
+                    key={attendee.attendeeId}
+                  >
+                    <Table.Td style={{ padding: 8 }}>
+                      <Text fw={600} size="16px">
+                        {attendee.sceneName || attendee.email}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td style={{ padding: 8 }}>
+                      <Text size="14px" c="dimmed">
+                        {attendee.pronouns || '—'}
+                      </Text>
+                    </Table.Td>
+                    {/* Payment column - TODO: Make conditional based on event type */}
+                    <Table.Td style={{ padding: 8 }}>
+                      <Badge
+                        styles={{
+                          root: {
+                            background: (attendee as any).paymentStatus === 'Paid'
+                              ? checkInTheme.colors.successLight
+                              : checkInTheme.colors.errorLight,
+                            color: (attendee as any).paymentStatus === 'Paid'
+                              ? checkInTheme.colors.success
+                              : checkInTheme.colors.error,
+                            border: '1px solid',
+                            borderColor: (attendee as any).paymentStatus === 'Paid'
+                              ? checkInTheme.colors.success
+                              : checkInTheme.colors.error,
+                            fontFamily: checkInTheme.fonts.heading,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px'
+                          }
+                        }}
+                      >
+                        {(attendee as any).paymentStatus || 'Unpaid'}
+                      </Badge>
+                    </Table.Td>
+                    {/* Action column - Streamlined check-in button */}
+                    <Table.Td style={{ padding: 8 }}>
+                      <CheckInButton
+                        attendee={{
+                          id: attendee.attendeeId,
+                          name: attendee.sceneName || attendee.email,
+                          pronouns: attendee.pronouns,
+                          paymentStatus: (attendee as any).paymentStatus || 'rsvp',
+                          isCheckedIn: attendee.registrationStatus === "CheckedIn"
+                        }}
+                        currentState={getButtonState(attendee)}
+                        onStateChange={(newState) => handleButtonStateChange(attendee.attendeeId, newState)}
+                        onCashPayment={() => handleCashPaymentClick(attendee)}
+                        onQRPayment={() => handleQRPaymentClick(attendee)}
+                      />
+                    </Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          )}
+        </Box>
+      </Box>
 
-        {/* Check-in Confirmation Modal */}
-        <CheckInConfirmation
-          isOpen={confirmationOpened}
-          onClose={closeConfirmation}
-          attendee={selectedAttendee}
-          checkInResponse={checkInResponse}
-          onContinue={handleConfirmationContinue}
-          onNewCheckIn={handleNewCheckIn}
-        />
+      {/* Check-in Modal */}
+      <CheckInModal
+        isOpen={confirmationOpened}
+        onClose={closeConfirmation}
+        attendee={selectedAttendee}
+        onConfirm={handleCheckIn}
+      />
 
-        {/* Manual Entry Modal */}
-        <ManualEntryModal
-          isOpen={manualEntryOpened}
-          onClose={closeManualEntry}
-          onSubmit={handleManualEntry}
-          isLoading={manualEntryMutation.isPending}
+      {/* Manual Entry Modal */}
+      <ManualEntryModal
+        isOpen={manualEntryOpened}
+        onClose={closeManualEntry}
+        onSubmit={handleManualEntry}
+        isLoading={manualEntryMutation.isPending}
+      />
+
+      {/* Cash Payment Modal */}
+      {paymentAttendee && (
+        <CashPaymentModal
+          opened={cashPaymentOpened}
+          onClose={closeCashPayment}
+          attendee={{
+            id: paymentAttendee.attendeeId,
+            name: paymentAttendee.sceneName || paymentAttendee.email
+          }}
+          onSubmit={handleCashPaymentSubmit}
         />
-      </Stack>
-    </Container>
+      )}
+
+      {/* QR Payment Modal */}
+      {paymentAttendee && (
+        <QRPaymentModal
+          opened={qrPaymentOpened}
+          onClose={closeQRPayment}
+          attendee={{
+            id: paymentAttendee.attendeeId,
+            name: paymentAttendee.sceneName || paymentAttendee.email
+          }}
+          eventId={eventId}
+          sessionToken={sessionToken}
+          onPaymentComplete={handleQRPaymentComplete}
+        />
+      )}
+    </Box>
   );
 }

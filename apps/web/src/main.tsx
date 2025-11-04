@@ -74,7 +74,7 @@ root.render(
           {/* AuthProvider wraps the entire app to provide authentication context */}
           {/* This allows any component to access auth state and functions via useAuth() hook */}
           <AuthProvider>
-            <Notifications />
+            <Notifications position="top-right" zIndex={2000} />
             <App />
             <ReactQueryDevtools initialIsOpen={false} />
           </AuthProvider>

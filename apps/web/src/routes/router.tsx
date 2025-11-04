@@ -46,6 +46,7 @@ import { AdminSettingsPage } from '../pages/admin/AdminSettingsPage'
 import { EmailTemplates } from '../features/admin/vetting/pages/EmailTemplates'
 import { TestPage } from '../pages/TestPage'
 import { VettingTestPage } from '../pages/VettingTestPage'
+import { TestNotifications } from '../pages/TestNotifications'
 
 // Safety system pages
 import { SafetyReportPage } from '../pages/safety/SafetyReportPage'
@@ -53,9 +54,9 @@ import { SafetyStatusPage } from '../pages/safety/SafetyStatusPage'
 import { MyReportsPage } from '../pages/MyReportsPage'
 import { MyReportDetailView } from '../pages/MyReportDetailView'
 
-// CheckIn system pages - temporarily disabled due to TypeScript errors
-// import { CheckInPage } from '../pages/checkin/CheckInPage';
-// import { CheckInDashboardPage } from '../pages/checkin/CheckInDashboardPage';
+// CheckIn system pages
+import { CheckInPage } from '../pages/checkin/CheckInPage';
+import { CheckInDashboardPage } from '../pages/checkin/CheckInDashboardPage';
 
 // Vetting system pages
 import { VettingApplicationPage } from '../features/vetting/pages/VettingApplicationPage'
@@ -97,6 +98,10 @@ export const router = createBrowserRouter([
         element: <VettingTestPage />,
       },
       {
+        path: 'test-notifications',
+        element: <TestNotifications />,
+      },
+      {
         path: 'login',
         element: <LoginPage />,
       },
@@ -132,18 +137,6 @@ export const router = createBrowserRouter([
         path: 'events/:id',
         element: <EventDetailPage />,
       },
-
-      // CheckIn system routes (protected) - temporarily disabled due to TypeScript errors
-      // {
-      //   path: "events/:eventId/checkin",
-      //   element: <CheckInPage />,
-      //   loader: authLoader
-      // },
-      // {
-      //   path: "events/:eventId/checkin/dashboard",
-      //   element: <CheckInDashboardPage />,
-      //   loader: authLoader
-      // },
 
       // Safety system routes (public)
       {
@@ -372,5 +365,18 @@ export const router = createBrowserRouter([
         loader: adminLoader,
       },
     ],
+  },
+  // CheckIn system routes (KIOSK MODE - NO MAIN NAVIGATION)
+  // Uses session tokens for access control - NO user login required
+  // These routes are OUTSIDE RootLayout to provide clean kiosk experience
+  {
+    path: "events/:eventId/checkin",
+    element: <CheckInPage />,
+    errorElement: <RootErrorBoundary />
+  },
+  {
+    path: "events/:eventId/checkin/dashboard",
+    element: <CheckInDashboardPage />,
+    errorElement: <RootErrorBoundary />
   },
 ])

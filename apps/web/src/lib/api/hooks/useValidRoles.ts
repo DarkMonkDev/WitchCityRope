@@ -41,8 +41,6 @@ export function formatRolesForSelect(roles: string[]) {
     switch (role) {
       case 'SafetyTeam':
         return 'Safety Team';
-      case 'CheckInStaff':
-        return 'Check-In Staff';
       case 'EventOrganizer':
         return 'Event Organizer';
       default:

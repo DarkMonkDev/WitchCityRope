@@ -68,6 +68,221 @@ const extractTicketNameFromMetadata = (metadata?: string): string => {
   }
 }
 
+// Attendees Tab Panel Component
+interface AttendeesTabPanelProps {
+  eventId?: string
+}
+
+const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId }) => {
+  const [sortColumn, setSortColumn] = useState<'name' | 'paid' | 'attended'>('name')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
+
+  // Fetch participations (RSVPs and tickets)
+  const { data: participations = [], isLoading } = useEventParticipations(
+    eventId || '',
+    !!eventId
+  ) as { data: EventParticipationDto[]; isLoading: boolean }
+
+  // Sort participations based on current sort settings
+  const sortedParticipations = React.useMemo(() => {
+    const sorted = [...participations]
+
+    sorted.sort((a, b) => {
+      let compareValue = 0
+
+      if (sortColumn === 'name') {
+        compareValue = a.userSceneName.localeCompare(b.userSceneName)
+      } else if (sortColumn === 'paid') {
+        const amountA = extractAmountFromMetadata(a.metadata)
+        const amountB = extractAmountFromMetadata(b.metadata)
+        compareValue = amountA - amountB
+      } else if (sortColumn === 'attended') {
+        // Sort by check-in status (true/false)
+        // Convert boolean to number: true=1, false=0
+        const aCheckedIn = a.hasCheckedIn ?? false
+        const bCheckedIn = b.hasCheckedIn ?? false
+        compareValue = Number(aCheckedIn) - Number(bCheckedIn)
+      }
+
+      return sortDirection === 'asc' ? compareValue : -compareValue
+    })
+
+    return sorted
+  }, [participations, sortColumn, sortDirection])
+
+  const handleSort = (column: 'name' | 'paid' | 'attended') => {
+    if (sortColumn === column) {
+      // Toggle direction if clicking same column
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      // Set new column and default to ascending
+      setSortColumn(column)
+      setSortDirection('asc')
+    }
+  }
+
+  const getSortIcon = (column: 'name' | 'paid' | 'attended') => {
+    if (sortColumn !== column) return null
+    return sortDirection === 'asc' ? ' ↑' : ' ↓'
+  }
+
+  if (!eventId) {
+    return (
+      <Text ta="center" c="dimmed" py="xl">
+        Save the event first to view attendees.
+      </Text>
+    )
+  }
+
+  return (
+    <Stack gap="xl">
+      <div data-testid="attendees-list">
+        <Title
+          order={2}
+          c="burgundy"
+          mb="md"
+          style={{
+            borderBottom: '2px solid var(--mantine-color-burgundy-3)',
+            paddingBottom: '8px',
+          }}
+        >
+          Event Attendees
+        </Title>
+        <Text size="sm" c="dimmed" mb="lg">
+          People with tickets (workshops) or RSVPs (social events) for this event.
+        </Text>
+
+        {isLoading ? (
+          <Text ta="center" c="dimmed" py="xl">
+            Loading attendees...
+          </Text>
+        ) : sortedParticipations.length === 0 ? (
+          <Text ta="center" c="dimmed" py="xl">
+            No attendees yet. Attendees will appear here when people purchase tickets or RSVP.
+          </Text>
+        ) : (
+          <Table
+            striped
+            highlightOnHover
+            withTableBorder
+            data-testid="attendees-table"
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+            }}
+          >
+            <Table.Thead style={{ backgroundColor: 'var(--mantine-color-burgundy-6)' }}>
+              <Table.Tr>
+                <Table.Th
+                  onClick={() => handleSort('name')}
+                  style={{
+                    color: 'white',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                  }}
+                >
+                  Name{getSortIcon('name')}
+                </Table.Th>
+                <Table.Th
+                  style={{
+                    color: 'white',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px',
+                  }}
+                >
+                  Email
+                </Table.Th>
+                <Table.Th
+                  onClick={() => handleSort('paid')}
+                  style={{
+                    color: 'white',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                  }}
+                >
+                  Paid{getSortIcon('paid')}
+                </Table.Th>
+                <Table.Th
+                  onClick={() => handleSort('attended')}
+                  style={{
+                    color: 'white',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                  }}
+                >
+                  Attended{getSortIcon('attended')}
+                </Table.Th>
+                <Table.Th
+                  style={{
+                    color: 'white',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px',
+                  }}
+                >
+                  Status
+                </Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {sortedParticipations.map((participation) => {
+                const paidAmount = extractAmountFromMetadata(participation.metadata)
+                // Use check-in status from backend (generated DTO property)
+                const hasCheckedIn = participation.hasCheckedIn ?? false
+
+                return (
+                  <Table.Tr key={participation.id}>
+                    <Table.Td>
+                      <Text fw={500}>{participation.userSceneName}</Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm" c="dimmed">
+                        {participation.userEmail}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm" fw={500}>
+                        ${paidAmount.toFixed(2)}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Badge
+                        color={hasCheckedIn ? 'green' : 'gray'}
+                        variant={hasCheckedIn ? 'filled' : 'light'}
+                      >
+                        {hasCheckedIn ? 'Yes' : 'No'}
+                      </Badge>
+                    </Table.Td>
+                    <Table.Td>
+                      {participation.status === 'Cancelled' ? (
+                        <Badge color="gray" variant="filled">
+                          Cancelled
+                        </Badge>
+                      ) : null}
+                    </Table.Td>
+                  </Table.Tr>
+                )
+              })}
+            </Table.Tbody>
+          </Table>
+        )}
+      </div>
+    </Stack>
+  )
+}
+
 export interface EventFormData {
   // Basic Info
   eventType: 'class' | 'social'
@@ -1478,104 +1693,7 @@ export const EventForm: React.FC<EventFormProps> = ({
 
           {/* Attendees Tab - New tab for people who actually attended */}
           <Tabs.Panel value="attendees" pt="xl" data-testid="attendees-tab">
-            <Stack gap="xl">
-              {/* Attendees List */}
-              <div data-testid="attendees-list">
-                <Title
-                  order={2}
-                  c="burgundy"
-                  mb="md"
-                  style={{
-                    borderBottom: '2px solid var(--mantine-color-burgundy-3)',
-                    paddingBottom: '8px',
-                  }}
-                >
-                  Event Attendees
-                </Title>
-                <Text size="sm" c="dimmed" mb="lg">
-                  View and manage people who actually attended (checked in) to this event.
-                </Text>
-
-                <Table
-                  striped
-                  highlightOnHover
-                  withTableBorder
-                  data-testid="attendees-table"
-                  style={{
-                    backgroundColor: 'white',
-                    borderRadius: '12px',
-                    overflow: 'hidden',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-                  }}
-                >
-                  <Table.Thead style={{ backgroundColor: 'var(--mantine-color-burgundy-6)' }}>
-                    <Table.Tr>
-                      <Table.Th
-                        style={{
-                          color: 'white',
-                          fontWeight: 600,
-                          textTransform: 'uppercase',
-                          letterSpacing: '1px',
-                        }}
-                      >
-                        Name
-                      </Table.Th>
-                      <Table.Th
-                        style={{
-                          color: 'white',
-                          fontWeight: 600,
-                          textTransform: 'uppercase',
-                          letterSpacing: '1px',
-                        }}
-                      >
-                        Type
-                      </Table.Th>
-                      <Table.Th
-                        style={{
-                          color: 'white',
-                          fontWeight: 600,
-                          textTransform: 'uppercase',
-                          letterSpacing: '1px',
-                        }}
-                      >
-                        Session(s)
-                      </Table.Th>
-                      <Table.Th
-                        style={{
-                          color: 'white',
-                          fontWeight: 600,
-                          textTransform: 'uppercase',
-                          letterSpacing: '1px',
-                        }}
-                      >
-                        Check-in Time
-                      </Table.Th>
-                      <Table.Th
-                        style={{
-                          color: 'white',
-                          fontWeight: 600,
-                          textTransform: 'uppercase',
-                          letterSpacing: '1px',
-                        }}
-                      >
-                        Actions
-                      </Table.Th>
-                    </Table.Tr>
-                  </Table.Thead>
-                  <Table.Tbody>
-                    {/* Empty state for now - will be populated with real attendee data */}
-                    <Table.Tr>
-                      <Table.Td colSpan={5}>
-                        <Text ta="center" c="dimmed" py="xl">
-                          No attendees checked in yet. Attendee check-ins will appear here during
-                          the event.
-                        </Text>
-                      </Table.Td>
-                    </Table.Tr>
-                  </Table.Tbody>
-                </Table>
-              </div>
-            </Stack>
+            <AttendeesTabPanel eventId={eventId} />
           </Tabs.Panel>
         </Tabs>
       </form>

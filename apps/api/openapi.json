@@ -904,6 +904,41 @@
         }
       }
     },
+    "/api/public/users/{userId}/profile": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get public user profile by ID",
+        "description": "Returns public profile information (bio, scene name, etc.) for any user. Used for displaying teacher bios on event pages. No authentication required.",
+        "operationId": "GetUserProfileById",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/users/{userId}/events": {
       "get": {
         "tags": [
@@ -3592,6 +3627,13 @@
             }
           },
           {
+            "name": "X-CheckIn-Token",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "search",
             "in": "query",
             "schema": {
@@ -3626,7 +3668,23 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckInAttendeesResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -3648,6 +3706,13 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "X-CheckIn-Token",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -3662,7 +3727,32 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckInResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -3684,11 +3774,37 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "X-CheckIn-Token",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -3709,6 +3825,13 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CheckIn-Token",
+            "in": "header",
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -3746,6 +3869,13 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "X-CheckIn-Token",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -3765,14 +3895,122 @@
         }
       }
     },
+    "/api/checkin/session-tokens/generate": {
+      "post": {
+        "tags": [
+          "CheckIn"
+        ],
+        "summary": "Generate check-in session token for event",
+        "description": "Admin generates a token that grants kiosk access to event check-in operations",
+        "operationId": "GenerateCheckInToken",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionTokenResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/checkin/session-tokens/revoke": {
+      "post": {
+        "tags": [
+          "CheckIn"
+        ],
+        "summary": "Revoke active check-in session token",
+        "description": "Admin revokes a token for security incidents or lost devices",
+        "operationId": "RevokeCheckInToken",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RevokeTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/checkin/session-tokens/event/{eventId}": {
+      "get": {
+        "tags": [
+          "CheckIn"
+        ],
+        "summary": "Get all active session tokens for event",
+        "description": "Admin monitoring of active kiosk sessions",
+        "operationId": "GetActiveCheckInTokens",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SessionTokenResponse"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
     "/api/checkin/sync/pending-count": {
       "get": {
         "tags": [
           "CheckIn"
         ],
         "summary": "Get pending sync operations count",
-        "description": "Returns the number of pending offline operations for the current user",
+        "description": "Returns the number of pending offline operations for the current session",
         "operationId": "GetPendingSyncCount",
+        "parameters": [
+          {
+            "name": "X-CheckIn-Token",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -5097,6 +5335,138 @@
           },
           "401": {
             "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/kiosk/payment-stream/{sessionToken}": {
+      "get": {
+        "tags": [
+          "KioskPaymentEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "sessionToken",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/event-stream": { }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/kiosk/events/{eventId}/payments/cash": {
+      "post": {
+        "tags": [
+          "KioskPaymentEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CashPaymentRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CashPaymentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CashPaymentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/kiosk/payments/health": {
+      "get": {
+        "tags": [
+          "KioskPaymentEndpoints"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -7026,6 +7396,57 @@
           }
         }
       },
+      "AttendeeResponse": {
+        "type": "object",
+        "properties": {
+          "attendeeId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "sceneName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "registrationStatus": {
+            "$ref": "#/components/schemas/RegistrationStatus"
+          },
+          "ticketNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "checkInTime": {
+            "type": "string",
+            "nullable": true
+          },
+          "isFirstTime": {
+            "type": "boolean"
+          },
+          "dietaryRestrictions": {
+            "type": "string",
+            "nullable": true
+          },
+          "accessibilityNeeds": {
+            "type": "string",
+            "nullable": true
+          },
+          "pronouns": {
+            "type": "string",
+            "nullable": true
+          },
+          "hasCompletedWaiver": {
+            "type": "boolean"
+          },
+          "waitlistPosition": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        }
+      },
       "AuditLogDto": {
         "type": "object",
         "properties": {
@@ -7144,6 +7565,33 @@
           }
         }
       },
+      "CapacityInfo": {
+        "type": "object",
+        "properties": {
+          "totalCapacity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "checkedInCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "waitlistCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "availableSpots": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isAtCapacity": {
+            "type": "boolean"
+          },
+          "canOverride": {
+            "type": "boolean"
+          }
+        }
+      },
       "CapacityInfoDto": {
         "type": "object",
         "properties": {
@@ -7161,6 +7609,61 @@
           }
         },
         "nullable": true
+      },
+      "CashPaymentRequest": {
+        "type": "object",
+        "properties": {
+          "attendeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "sessionToken": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CashPaymentResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "paymentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "message": {
+            "type": "string"
+          },
+          "attendeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "currency": {
+            "type": "string"
+          }
+        }
       },
       "ChangePasswordDto": {
         "required": [
@@ -7184,11 +7687,45 @@
           }
         }
       },
+      "CheckInAttendeesResponse": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string"
+          },
+          "eventTitle": {
+            "type": "string"
+          },
+          "eventDate": {
+            "type": "string"
+          },
+          "totalCapacity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "checkedInCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "availableSpots": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "attendees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttendeeResponse"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationInfo"
+          }
+        }
+      },
       "CheckInRequest": {
         "required": [
           "attendeeId",
-          "checkInTime",
-          "staffMemberId"
+          "checkInTime"
         ],
         "type": "object",
         "properties": {
@@ -7199,7 +7736,8 @@
             "type": "string"
           },
           "staffMemberId": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "notes": {
             "type": "string",
@@ -7213,6 +7751,30 @@
           },
           "manualEntryData": {
             "$ref": "#/components/schemas/ManualEntryData"
+          }
+        }
+      },
+      "CheckInResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "attendeeId": {
+            "type": "string"
+          },
+          "checkInTime": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "currentCapacity": {
+            "$ref": "#/components/schemas/CapacityInfo"
+          },
+          "auditLogId": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -7518,6 +8080,41 @@
           "notes": {
             "type": "string",
             "nullable": true
+          }
+        }
+      },
+      "DashboardResponse": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string"
+          },
+          "eventTitle": {
+            "type": "string"
+          },
+          "eventDate": {
+            "type": "string"
+          },
+          "eventStatus": {
+            "type": "string"
+          },
+          "capacity": {
+            "$ref": "#/components/schemas/CapacityInfo"
+          },
+          "recentCheckIns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecentCheckIn"
+            }
+          },
+          "staffOnDuty": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StaffMember"
+            }
+          },
+          "syncStatus": {
+            "$ref": "#/components/schemas/SyncStatus"
           }
         }
       },
@@ -7979,6 +8576,28 @@
           },
           "metadata": {
             "type": "string",
+            "nullable": true
+          },
+          "hasCheckedIn": {
+            "type": "boolean"
+          },
+          "checkInTime": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "GenerateTokenRequest": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expirationHours": {
+            "type": "number",
+            "format": "double",
             "nullable": true
           }
         }
@@ -8774,6 +9393,27 @@
           }
         }
       },
+      "PaginationInfo": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "ParticipationStatus": {
         "enum": [
           "Active",
@@ -8828,7 +9468,8 @@
           "NewCard",
           "BankTransfer",
           "PayPal",
-          "Venmo"
+          "Venmo",
+          "Cash"
         ]
       },
       "PaymentResponse": {
@@ -9136,6 +9777,26 @@
           }
         }
       },
+      "RecentCheckIn": {
+        "type": "object",
+        "properties": {
+          "attendeeId": {
+            "type": "string"
+          },
+          "sceneName": {
+            "type": "string"
+          },
+          "checkInTime": {
+            "type": "string"
+          },
+          "staffMemberName": {
+            "type": "string"
+          },
+          "isManualEntry": {
+            "type": "boolean"
+          }
+        }
+      },
       "ReferenceDetailDto": {
         "type": "object",
         "properties": {
@@ -9346,6 +10007,14 @@
           }
         }
       },
+      "RegistrationStatus": {
+        "enum": [
+          "Confirmed",
+          "Waitlist",
+          "CheckedIn",
+          "NoShow"
+        ]
+      },
       "ReviewDecisionDto": {
         "type": "object",
         "properties": {
@@ -9470,6 +10139,14 @@
         },
         "nullable": true
       },
+      "RevokeTokenRequest": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          }
+        }
+      },
       "RsvpDetailsDto": {
         "type": "object",
         "properties": {
@@ -9587,6 +10264,32 @@
           "registrationCount": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "SessionTokenResponse": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "eventTitle": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "checkInUrl": {
+            "type": "string"
           }
         }
       },
@@ -9724,6 +10427,23 @@
         },
         "nullable": true
       },
+      "StaffMember": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "sceneName": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "lastActivity": {
+            "type": "string"
+          }
+        }
+      },
       "StatusChangeRequest": {
         "required": [
           "status",
@@ -9811,6 +10531,22 @@
           },
           "lastSyncTimestamp": {
             "type": "string"
+          }
+        }
+      },
+      "SyncStatus": {
+        "type": "object",
+        "properties": {
+          "pendingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lastSync": {
+            "type": "string"
+          },
+          "conflictCount": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -10290,6 +11026,10 @@
             "type": "string",
             "nullable": true
           },
+          "bio": {
+            "type": "string",
+            "nullable": true
+          },
           "role": {
             "type": "string"
           },
@@ -10538,7 +11278,6 @@
           "Teacher",
           "SafetyTeam",
           "Administrator",
-          "CheckInStaff",
           "EventOrganizer"
         ]
       },
@@ -11212,6 +11951,9 @@
     },
     {
       "name": "CMS"
+    },
+    {
+      "name": "KioskPaymentEndpoints"
     },
     {
       "name": "PaymentEndpoints"

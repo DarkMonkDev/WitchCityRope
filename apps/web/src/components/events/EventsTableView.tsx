@@ -2,7 +2,7 @@ import React from 'react'
 import { Table, ActionIcon, Button, Text, Group, Skeleton, Badge } from '@mantine/core'
 import { IconCaretUp, IconCaretDown, IconSelector } from '@tabler/icons-react'
 import { notifications } from '@mantine/notifications'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import type { EventDto } from '@witchcityrope/shared-types'
 import { CapacityDisplay } from './CapacityDisplay'
 import type { AdminEventFiltersState } from '../../hooks/useAdminEventFilters'
@@ -107,6 +107,29 @@ const getEventTypeBadgeColor = (eventType?: string | null): string => {
     default:
       return 'gray'
   }
+}
+
+// Helper function to check if event has any sessions starting today
+const hasSessionToday = (event: EventDto): boolean => {
+  if (!event.sessions || event.sessions.length === 0) {
+    return false
+  }
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0) // Reset time to start of day
+
+  const tomorrow = new Date(today)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+
+  return event.sessions.some((session) => {
+    if (!session.date) return false
+
+    const sessionDate = new Date(session.date)
+    sessionDate.setHours(0, 0, 0, 0) // Reset time to start of day
+
+    // Check if session date is today
+    return sessionDate >= today && sessionDate < tomorrow
+  })
 }
 
 // Helper function to get sort icon
@@ -341,10 +364,36 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
 
             {/* Title Column - Takes most space */}
             <Table.Td style={{ minWidth: '200px' }}>
-              <Text fw={600} c="wcr.7" size="md" lineClamp={2}>
-                {event.title}
-                {!event.isPublished ? ' - DRAFT' : ''}
-              </Text>
+              <Group gap="sm" align="center">
+                <Text fw={600} c="wcr.7" size="md" lineClamp={2}>
+                  {event.title}
+                  {!event.isPublished ? ' - DRAFT' : ''}
+                </Text>
+                {hasSessionToday(event) && (
+                  <Button
+                    component={Link}
+                    to={`/events/${event.id}/checkin`}
+                    variant="filled"
+                    color="blue"
+                    size="compact-sm"
+                    onClick={(e) => e.stopPropagation()}
+                    styles={{
+                      root: {
+                        fontWeight: 600,
+                        height: '32px',
+                        paddingTop: '6px',
+                        paddingBottom: '6px',
+                        paddingLeft: '12px',
+                        paddingRight: '12px',
+                        fontSize: '13px',
+                        lineHeight: '1.4',
+                      },
+                    }}
+                  >
+                    Check In
+                  </Button>
+                )}
+              </Group>
             </Table.Td>
 
             {/* Time Column */}
