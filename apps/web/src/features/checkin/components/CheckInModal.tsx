@@ -199,14 +199,14 @@ export function CheckInModal({
           <Badge
             styles={{
               root: {
-                background: attendee.paymentStatus === 'Paid'
+                background: (attendee.paymentStatus === 'ticket' || attendee.paymentStatus === 'paidAtDoor')
                   ? checkInTheme.colors.successLight
                   : checkInTheme.colors.errorLight,
-                color: attendee.paymentStatus === 'Paid'
+                color: (attendee.paymentStatus === 'ticket' || attendee.paymentStatus === 'paidAtDoor')
                   ? checkInTheme.colors.success
                   : checkInTheme.colors.error,
                 border: '1px solid',
-                borderColor: attendee.paymentStatus === 'Paid'
+                borderColor: (attendee.paymentStatus === 'ticket' || attendee.paymentStatus === 'paidAtDoor')
                   ? checkInTheme.colors.success
                   : checkInTheme.colors.error,
                 fontFamily: checkInTheme.fonts.heading,
@@ -217,7 +217,9 @@ export function CheckInModal({
               }
             }}
           >
-            {attendee.paymentStatus || 'Unpaid'}
+            {attendee.paymentStatus === 'ticket' ? 'Ticket Purchased' :
+             attendee.paymentStatus === 'paidAtDoor' ? 'Paid at Door' :
+             attendee.paymentStatus === 'rsvp' ? 'RSVP Only' : 'Unpaid'}
           </Badge>
         </Box>
 

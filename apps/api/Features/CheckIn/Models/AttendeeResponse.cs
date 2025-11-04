@@ -18,6 +18,13 @@ public class AttendeeResponse
     public string? Pronouns { get; set; }
     public bool HasCompletedWaiver { get; set; }
     public int? WaitlistPosition { get; set; }
+
+    /// <summary>
+    /// Payment status for the attendee - used to determine check-in button state
+    /// "rsvp" = No ticket purchased, show "Paid at Door" button
+    /// "paid" = Has ticket purchase, show "Covid Test" button
+    /// </summary>
+    public string PaymentStatus { get; set; } = "rsvp";
 }
 
 /// <summary>

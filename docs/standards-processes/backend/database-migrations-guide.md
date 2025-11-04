@@ -177,7 +177,7 @@ cd ../..
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v
 
 # Start containers (migration applies automatically)
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+# Use container-restart skill for correct startup with health checks
 
 # Check logs to verify migration applied
 docker logs witchcity-api --tail 100 | grep -i migration
@@ -341,7 +341,7 @@ docker exec -it witchcity-postgres psql -U postgres -d witchcityrope_dev -c "DEL
 
 # Or reset completely (only for development!)
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+# Use container-restart skill for correct startup with health checks
 ```
 
 ### Problem 4: Schema and Migrations Out of Sync
@@ -457,7 +457,7 @@ If automatic migration fails, check:
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v
 
 # 2. Start fresh (migrations apply automatically)
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+# Use container-restart skill for correct startup with health checks
 
 # 3. Check logs
 docker logs witchcity-api --tail 100
@@ -597,7 +597,7 @@ wc -l Migrations/*_InitialMigration.cs
 # 6. Test with fresh database
 cd ../..
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+# Use container-restart skill for correct startup with health checks
 
 # 7. Verify migration applied
 docker logs witchcity-api --tail 100 | grep migration

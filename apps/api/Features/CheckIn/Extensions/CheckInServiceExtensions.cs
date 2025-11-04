@@ -25,6 +25,7 @@ public static class CheckInServiceExtensions
         services.AddScoped<IValidator<ManualEntryData>, ManualEntryDataValidator>();
         services.AddScoped<IValidator<SyncRequest>, SyncRequestValidator>();
         services.AddScoped<IValidator<PendingCheckIn>, PendingCheckInValidator>();
+        services.AddScoped<IValidator<CashPaymentRequest>, CashPaymentRequestValidator>();
 
         return services;
     }

@@ -1,6 +1,6 @@
 # Functional Area Master Index
-<!-- Last Updated: 2025-11-02 - Venue Management Added -->
-<!-- Version: 2.4 -->
+<!-- Last Updated: 2025-11-04 - Plugins & Marketplace Research Added -->
+<!-- Version: 2.5 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -11,7 +11,7 @@ This master index is maintained by the librarian agent to provide quick lookups 
 
 | Functional Area | Base Path | Current Work Path | Description | Status | Last Updated |
 |-----------------|-----------|-------------------|-------------|--------|--------------|
-| **AI Workflow Orchestration** | `/docs/functional-areas/ai-workflow-orchstration/` | Technology Research Complete | Workflow automation and agent coordination with technology-researcher sub-agent integrated | Enhanced | 2025-08-17 |
+| **AI Workflow Orchestration** | `/docs/functional-areas/ai-workflow-orchstration/` | `/docs/functional-areas/ai-workflow-orchstration/new-work/2025-11-04-plugins-marketplace-research/` | **ACTIVE RESEARCH** - Comprehensive analysis of Claude Code plugins & marketplace (released Oct 9, 2025). Analyzing 227+ community plugins, comparing vs our 16-agent system, identifying Blazor artifacts, and developing marketplace strategy. Deliverables: Official docs analysis, community survey, agent audit, comparative analysis, improvement recommendations, marketplace submission strategy. Timeline: 2025-11-04 to 2025-11-08 | **Phase 1 - Research (Started)** | 2025-11-04 |
 | **API Architecture Modernization** | `/docs/functional-areas/api-architecture-modernization/` | `/docs/functional-areas/api-architecture-modernization/new-work/2025-08-22-minimal-api-research/` | ✅ COMPLETE - Simplified vertical slice architecture with 49ms response times, $28K+ annual savings, zero breaking changes | IMPLEMENTATION COMPLETE | 2025-08-22 |
 | **API Data Alignment** | `/docs/functional-areas/api-data-alignment/` | `/docs/functional-areas/api-data-alignment/new-work/2025-08-19-dto-database-alignment-strategy/` | DTO alignment strategy for React migration - API DTOs as source of truth, TypeScript interface alignment requirements | Enhanced | 2025-08-19 |
 | **Authentication** | `/docs/functional-areas/authentication/` | **BFF PATTERN COMPLETE** ✅ | **Secure BFF authentication with httpOnly cookies** - Production-ready implementation with silent token refresh, XSS protection, zero authentication timeouts. Migration from localStorage JWT complete. | **COMPLETE** | 2025-09-12 |
@@ -219,6 +219,24 @@ This master index is maintained by the librarian agent to provide quick lookups 
 - **Performance**: Modern API maintains 49ms response times with enhanced feature set
 - **Documentation**: Complete migration documentation created with archive warnings
 - **Completion Date**: 2025-09-13 (1 day - faster than estimated)
+
+### 🔍 ACTIVE: Plugins & Marketplace Research (November 2025)
+- **Current Work**: `/docs/functional-areas/ai-workflow-orchstration/new-work/2025-11-04-plugins-marketplace-research/`
+- **Status**: Phase 1 - Research & Analysis (STARTED)
+- **Objective**: Analyze brand new Claude Code plugins & marketplace (released Oct 9, 2025), compare vs our 16-agent system, identify Blazor artifacts, develop marketplace strategy
+- **Scope**: 227+ community plugins survey, current agent audit, competitive analysis, best practices integration, marketplace submission candidates
+- **Timeline**: 2025-11-04 to 2025-11-08 (3-5 days)
+- **Session**: 2025-11-04 (Started)
+- **Progress Tracking**: `/docs/functional-areas/ai-workflow-orchstration/new-work/2025-11-04-plugins-marketplace-research/progress.md`
+- **Key Deliverables**:
+  - Official documentation analysis
+  - Community plugins survey (30+ plugins)
+  - Complete audit of all 16 agents
+  - Blazor artifact identification and cleanup plan
+  - Comparative analysis vs Seth Hobson (85+ agents) and top marketplace plugins
+  - Agent improvement recommendations
+  - Marketplace submission strategy
+  - Best practices integration plan
 
 ### 🔍 ACTIVE: API Standards & Best Practices Audit (October 2025)
 - **Current Work**: `/docs/standards-processes/backend-api-audit-2025-10-23/`

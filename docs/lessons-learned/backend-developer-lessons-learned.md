@@ -27,10 +27,11 @@
 - **Standards Index** - `/home/chad/repos/witchcityrope/docs/standards-processes/CANONICAL-DOCUMENT-LOCATIONS.md` - Document locations
 
 ### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
+- **Skills Usage Guide** - `/.claude/skills/HOW-TO-USE-SKILLS.md` - Complete guide on when/how to use skills
 - **Workflow Process** - `/home/chad/repos/witchcityrope/docs/standards-processes/workflow-orchestration-process.md` - Handoff procedures
 - **Agent Boundaries** - `/home/chad/repos/witchcityrope/docs/standards-processes/agent-boundaries.md` - What each agent does
 - **Coding Standards** - `/home/chad/repos/witchcityrope/docs/standards-processes/CODING_STANDARDS.md` - General standards
-- **Documentation Standards** - `/home/chad/repos/witchcityrope/docs/standards-processes/documentation-standards.md` - How to document
+- **Lessons Learned Standards** - Use lessons-learned-validator skill - How to document lessons learned
 
 ### Validation Gates (MUST COMPLETE):
 - [ ] **Read DTO Alignment Strategy FIRST** - Prevents TypeScript error floods
@@ -84,8 +85,8 @@
 **Part 3**: `/home/chad/repos/witchcityrope/docs/lessons-learned/backend-developer-lessons-learned-3.md` (OVERFLOW LESSONS FILE)
 **Read ALL**: Part 1, Part 2, AND Part 3 are MANDATORY
 **Write to**: Part 3 ONLY - **NEVER ADD NEW LESSONS TO PART 1 OR PART 2**
-**Maximum file size**: 1700 lines (to stay under token limits). All parts can be up to 1700 lines each
-**IF READ FAILS**: STOP and fix per documentation-standards.md
+**Maximum file size**: 2,000 lines (to stay under token limits). All parts can be up to 2,000 lines each
+**IF READ FAILS**: STOP and use lessons-learned-validator skill to fix immediately
 
 ## 🚨 ULTRA CRITICAL: NEW LESSONS GO TO PART 3, NOT HERE! 🚨
 **PART 1 PURPOSE**: Startup procedures and critical navigation ONLY
@@ -95,7 +96,7 @@
 ## ⛔ CRITICAL: HARD BLOCK - DO NOT PROCEED IF FILES UNREADABLE
 If you cannot read ANY file:
 1. STOP ALL WORK
-2. Fix using procedure in documentation-standards.md
+2. Fix using lessons-learned-validator skill
 3. Set LESSONS_LEARNED_READABLE=false until fixed
 4. NO WORK until LESSONS_LEARNED_READABLE=true
 

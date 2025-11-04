@@ -41,6 +41,10 @@
 - **PREVENT duplicate documentation**
 - **MAINTAIN navigation indexes**
 
+**Skills Usage**: See `/.claude/skills/HOW-TO-USE-SKILLS.md` for complete guide on when/how to use skills
+
+---
+
 ## Prevention Pattern: Standards Adherence Enforcement
 
 **Problem**: Agents create arbitrary rules without checking existing validation standards.

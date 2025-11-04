@@ -1,0 +1,30 @@
+{
+  "name": "witchcityrope-agents",
+  "version": "1.0.0",
+  "description": "Comprehensive agent system for React + .NET development with sophisticated orchestration, quality gates, and tool restriction enforcement",
+  "author": {
+    "name": "WitchCityRope Team",
+    "email": "info@witchcityrope.com"
+  },
+  "homepage": "https://github.com/DarkMonkDev/WitchCityRope",
+  "repository": "https://github.com/DarkMonkDev/WitchCityRope.git",
+  "license": "MIT",
+  "keywords": [
+    "react",
+    "typescript",
+    "dotnet",
+    "orchestration",
+    "full-stack",
+    "postgresql",
+    "entity-framework",
+    "workflow",
+    "quality-gates",
+    "tool-restriction",
+    "lessons-learned",
+    "phase-validation",
+    "mantine"
+  ],
+  "agents": "./.claude/agents/",
+  "commands": "./.claude/commands/",
+  "skills": "./.claude/skills/"
+}

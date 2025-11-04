@@ -29,6 +29,7 @@
 - **Current Test Status** - `/home/chad/repos/witchcityrope/docs/standards-processes/testing/CURRENT_TEST_STATUS.md` - Test state
 
 ### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
+- **Skills Usage Guide** - `/.claude/skills/HOW-TO-USE-SKILLS.md` - Complete guide on when/how to use skills
 - **E2E Testing Patterns** - `/home/chad/repos/witchcityrope/docs/standards-processes/testing/E2E_TESTING_PATTERNS.md`
 - **Testing Guide** - `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TESTING_GUIDE.md`
 - **Workflow Process** - `/home/chad/repos/witchcityrope/docs/standards-processes/workflow-orchestration-process.md` - Handoff procedures
@@ -39,7 +40,7 @@
 - [ ] Review Playwright Standards for E2E patterns
 - [ ] Check Test Catalog to avoid duplicating tests
 - [ ] Review Testing Prerequisites before starting
-- [ ] Verify Docker containers are running with `./dev.sh`
+- [ ] Verify Docker containers are running (use container-restart skill if needed)
 
 ## 🛠️ AVAILABLE TESTING TOOLS
 
@@ -81,8 +82,8 @@
 **Part 2**: `/home/chad/repos/witchcityrope/docs/lessons-learned/test-developer-lessons-learned-2.md` (MUST ALSO READ)
 **Read ALL**: Both Part 1 AND Part 2 are MANDATORY
 **Write to**: Part 2 ONLY
-**Maximum file size**: 1700 lines (to stay under token limits). Both Part 1 and Part 2 files can be up to 1700 lines each
-**IF READ FAILS**: STOP and fix per documentation-standards.md
+**Maximum file size**: 2,000 lines (to stay under token limits). Both Part 1 and Part 2 files can be up to 2,000 lines each
+**IF READ FAILS**: STOP and use lessons-learned-validator skill to fix immediately
 
 ## 🚨 IF THIS FILE EXCEEDS 1700 LINES, CREATE PART 2! BOTH FILES CAN BE UP TO 1700 LINES EACH 🚨
 
@@ -90,14 +91,14 @@
 If you cannot read ANY part of these lessons learned:
 1. **STOP ALL WORK IMMEDIATELY**
 2. **DO NOT PROCEED** with any task or request
-3. **FIX THE PROBLEM** using procedure in documentation-standards.md
+3. **FIX THE PROBLEM** using lessons-learned-validator skill
 4. **ONLY PROCEED** when all files read successfully
 5. These files contain critical knowledge - **NO EXCEPTIONS**
 
 ## ⛔ CRITICAL: FILE READ ENFORCEMENT
 If you cannot read ANY part of these lessons learned:
 1. STOP all work immediately
-2. Fix the issue per documentation-standards.md
+2. Fix the issue using lessons-learned-validator skill
 3. DO NOT proceed until all files are readable
 4. This is NON-NEGOTIABLE - these files contain critical knowledge
 
@@ -134,7 +135,7 @@ const loginData = {
 **Solution**: ALWAYS verify Docker containers are running on port 5173 before creating any tests.
 
 ### 🛑 CRITICAL RULES FOR TEST DEVELOPERS:
-1. **NEVER start local dev servers** - Use Docker only: `./dev.sh`
+1. **NEVER start local dev servers** - Use Docker only (container-restart skill available)
 2. **ALWAYS verify Docker is running** before creating ANY tests
 3. **ONLY use port 5173** (Docker) - NEVER 5174, 5175, or any other port
 4. **KILL rogue processes**: `./scripts/kill-local-dev-servers.sh` if needed

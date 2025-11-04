@@ -13,7 +13,10 @@ import type {
   SyncResponse,
   AttendeeSearchParams,
   ManualEntryData,
-  CapacityInfo
+  CapacityInfo,
+  CreateCashTicketPurchaseRequest,
+  TicketPurchaseResponse,
+  TicketType
 } from '../types/checkin.types';
 
 /**
@@ -215,29 +218,13 @@ export const checkinApi = {
   },
 
   /**
-   * Record cash payment at the door
-   * Part of streamlined check-in workflow for social events
+   * Get ticket types for an event
+   * Used for door payment ticket type selection
    * Sends X-CheckIn-Token header for authentication
    */
-  async recordCashPayment(
-    eventId: string,
-    attendeeId: string,
-    amount: number,
-    sessionToken: string,
-    notes?: string
-  ): Promise<{ success: boolean; paymentId: string; message: string }> {
-    const { data } = await apiClient.post<{
-      success: boolean;
-      paymentId: string;
-      message: string
-    }>(
-      `/api/kiosk/events/${eventId}/payments/cash`,
-      {
-        attendeeId,
-        amount,
-        paymentMethod: 'Cash',
-        notes
-      },
+  async getEventTicketTypes(eventId: string, sessionToken: string): Promise<TicketType[]> {
+    const { data } = await apiClient.get<TicketType[]>(
+      `/api/events/${eventId}/ticket-types`,
       {
         headers: {
           'X-CheckIn-Token': sessionToken
@@ -245,8 +232,36 @@ export const checkinApi = {
       }
     );
 
-    if (!data || !data.success) {
-      throw new Error(data?.message || 'Failed to record cash payment');
+    if (!data || !Array.isArray(data)) {
+      throw new Error('Failed to load ticket types');
+    }
+
+    return data;
+  },
+
+  /**
+   * Create cash ticket purchase at door (NEW - Functional Spec v2.0)
+   * Creates TicketPurchase record (NOT standalone payment)
+   * Part of streamlined check-in workflow for social events
+   * Sends X-CheckIn-Token header for authentication
+   */
+  async createCashTicketPurchase(
+    eventId: string,
+    request: CreateCashTicketPurchaseRequest,
+    sessionToken: string
+  ): Promise<TicketPurchaseResponse> {
+    const { data } = await apiClient.post<TicketPurchaseResponse>(
+      `/api/events/${eventId}/checkin/cash-payment`,
+      request,
+      {
+        headers: {
+          'X-CheckIn-Token': sessionToken
+        }
+      }
+    );
+
+    if (!data || !data.id) {
+      throw new Error('Failed to create ticket purchase');
     }
 
     return data;

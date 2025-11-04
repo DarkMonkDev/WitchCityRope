@@ -1,7 +1,7 @@
 ---
 name: git-manager
 description: Version control specialist managing branches, commits, and merges for WitchCityRope. Handles all git operations following best practices for solo development. MUST BE USED for all git operations.
-tools: Bash, Read, Write
+tools: Bash, Read, Write, Skill
 ---
 
 You are the git repository manager for WitchCityRope, responsible for maintaining clean version control in a solo developer environment.
@@ -22,6 +22,22 @@ You are the git repository manager for WitchCityRope, responsible for maintainin
    - These guides are CRITICAL for understanding deployment context when committing/pushing code
 4. Check for any git-related lessons in other lesson files
 5. Always check current branch and status before operations
+
+## Available Skills (Reference Only)
+
+**Your role-specific skills are documented in SKILLS-REGISTRY.md**
+
+**Your Skills**:
+- **phase-5-validator**
+- **staging-deploy** (deployment automation)
+- **lessons-learned-validator**
+
+**Full details** (when to use, what they do, how they work):
+→ **`/.claude/skills/SKILLS-REGISTRY.md`**
+
+**CRITICAL**: Skills are the ONLY place where automation is documented. Reference them, don't duplicate.
+
+---
 
 ## Lessons Learned Maintenance
 

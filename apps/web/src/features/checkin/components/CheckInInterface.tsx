@@ -27,7 +27,7 @@ import { CheckInModal } from './CheckInModal';
 import { CompactSyncStatus } from './SyncStatus';
 import { checkInTheme } from '../styles/theme';
 import { CheckInButton, CheckInButtonState } from './CheckInButton';
-import { CashPaymentModal, CashPaymentData } from './CashPaymentModal';
+import { CashPaymentModal } from './CashPaymentModal';
 import { QRPaymentModal } from './QRPaymentModal';
 
 import {
@@ -45,7 +45,9 @@ import type {
   ManualEntryData,
   CheckInResponse,
   CheckInDashboard as CheckInDashboardType,
-  RegistrationStatus
+  RegistrationStatus,
+  CashPaymentData,
+  TicketType
 } from '../types/checkin.types';
 
 interface CheckInInterfaceProps {
@@ -237,6 +239,9 @@ export function CheckInInterface({
   // Selected attendee for payment modals
   const [paymentAttendee, setPaymentAttendee] = useState<CheckInAttendee | null>(null);
 
+  // Ticket types for cash payment modal
+  const [ticketTypes, setTicketTypes] = useState<TicketType[]>([]);
+
   // Modal states
   const [confirmationOpened, { open: openConfirmation, close: closeConfirmation }] = useDisclosure(false);
   const [manualEntryOpened, { open: openManualEntry, close: closeManualEntry }] = useDisclosure(false);
@@ -245,6 +250,21 @@ export function CheckInInterface({
 
   // Offline sync
   const { isOnline, pendingCount } = useOfflineSync();
+
+  // Load ticket types for event
+  React.useEffect(() => {
+    const loadTicketTypes = async () => {
+      try {
+        const types = await checkinApi.getEventTicketTypes(eventId, sessionToken);
+        setTicketTypes(types);
+      } catch (error) {
+        console.error('Failed to load ticket types:', error);
+        // Non-critical - payment modal will show empty list
+      }
+    };
+
+    loadTicketTypes();
+  }, [eventId, sessionToken]);
 
   // Search parameters
   const searchParams: AttendeeSearchParams = useMemo(() => ({
@@ -405,17 +425,23 @@ export function CheckInInterface({
     openQRPayment();
   }, [openQRPayment]);
 
-  // Submit cash payment
+  // Submit cash payment (UPDATED for functional spec v2.0)
   const handleCashPaymentSubmit = useCallback(async (data: CashPaymentData) => {
     if (!paymentAttendee) return;
 
     try {
-      await checkinApi.recordCashPayment(
+      // Create ticket purchase via new API endpoint (not standalone payment)
+      await checkinApi.createCashTicketPurchase(
         eventId,
-        paymentAttendee.attendeeId,
-        data.amount,
-        sessionToken,
-        data.notes
+        {
+          eventId,
+          userId: paymentAttendee.userId,
+          ticketTypeId: data.ticketTypeId,
+          amount: data.amount,
+          recordedByStaffId: undefined, // Kiosk mode - extracted from session token by backend
+          notes: data.notes
+        },
+        sessionToken
       );
 
       // Update button state to covidTest after payment
@@ -425,23 +451,26 @@ export function CheckInInterface({
         return updated;
       });
 
+      // Refresh attendee list to show ticket purchase status
+      refetchAttendees();
+
       closeCashPayment();
       setPaymentAttendee(null);
 
       notifications.show({
-        title: 'Payment Recorded',
-        message: `$${data.amount.toFixed(2)} cash payment recorded for ${paymentAttendee.sceneName || paymentAttendee.email}`,
+        title: 'Ticket Purchased',
+        message: `$${data.amount.toFixed(2)} cash ticket purchased for ${paymentAttendee.sceneName || paymentAttendee.email}`,
         color: 'green'
       });
     } catch (error) {
-      console.error('Cash payment failed:', error);
+      console.error('Cash ticket purchase failed:', error);
       notifications.show({
-        title: 'Payment Failed',
-        message: 'Failed to record payment. Please try again.',
+        title: 'Purchase Failed',
+        message: 'Failed to create ticket purchase. Please try again.',
         color: 'red'
       });
     }
-  }, [paymentAttendee, eventId, sessionToken, closeCashPayment]);
+  }, [paymentAttendee, eventId, sessionToken, closeCashPayment, refetchAttendees]);
 
   // Handle QR payment completion
   const handleQRPaymentComplete = useCallback(() => {
@@ -700,7 +729,7 @@ export function CheckInInterface({
         isLoading={manualEntryMutation.isPending}
       />
 
-      {/* Cash Payment Modal */}
+      {/* Cash Payment Modal (UPDATED - added ticketTypes prop) */}
       {paymentAttendee && (
         <CashPaymentModal
           opened={cashPaymentOpened}
@@ -709,11 +738,12 @@ export function CheckInInterface({
             id: paymentAttendee.attendeeId,
             name: paymentAttendee.sceneName || paymentAttendee.email
           }}
+          ticketTypes={ticketTypes}
           onSubmit={handleCashPaymentSubmit}
         />
       )}
 
-      {/* QR Payment Modal */}
+      {/* QR Payment Modal (SIMPLIFIED - removed sessionToken and onPaymentComplete) */}
       {paymentAttendee && (
         <QRPaymentModal
           opened={qrPaymentOpened}
@@ -723,8 +753,6 @@ export function CheckInInterface({
             name: paymentAttendee.sceneName || paymentAttendee.email
           }}
           eventId={eventId}
-          sessionToken={sessionToken}
-          onPaymentComplete={handleQRPaymentComplete}
         />
       )}
     </Box>

@@ -19,6 +19,10 @@
 
 ---
 
+**Skills Usage**: See `/.claude/skills/HOW-TO-USE-SKILLS.md` for complete guide on when/how to use skills
+
+---
+
 ## 🚨🚨🚨 ULTRA CRITICAL: NEVER MANUALLY DEFINE API TYPES - USE GENERATED TYPES FROM @witchcityrope/shared-types 🚨🚨🚨
 **Date**: 2025-10-23
 **Category**: TypeScript / DTO Alignment Strategy
@@ -1043,6 +1047,153 @@ After fix:
 
 ### Tags
 #critical #infinite-loop #useEffect #mantine-forms #form-reset #notifications #dependency-array #react-hooks #user-experience #performance
+
+---
+
+## 🚨 CRITICAL: REACT HOOKS & RE-RENDER LOOPS - USECALLBACK FOR PROPS 🚨
+**Date**: 2025-10-06
+**Category**: React Hooks / Re-render Prevention
+**Severity**: CRITICAL - BREAKS ALL NAVIGATION
+
+### What We Learned
+**CALLBACK PROPS WITHOUT USECALLBACK CAUSE INFINITE RE-RENDER LOOPS**: Passing callback functions as props to components that use them in `useEffect` dependency arrays WITHOUT wrapping them in `useCallback` causes infinite re-renders that break ALL React Router navigation.
+
+**USER SYMPTOMS**:
+- Navigation completely broken on admin vetting page
+- URL changes but page doesn't re-render
+- ALL navigation blocked (table rows, nav menu, links)
+- Manual browser refresh required to see new pages
+
+**ROOT CAUSE**: Callback function passed as prop was NOT wrapped in `useCallback`, creating a new function reference on every parent render:
+
+```typescript
+// ❌ WRONG: Creates new function reference on every render
+const handleSelectionChange = (selectedIds: Set<string>, applicationsData: any[]) => {
+  setSelectedApplications(selectedIds);
+  setSelectedApplicationsData(applicationsData);
+};
+
+// Child component has this callback in useEffect dependency array
+React.useEffect(() => {
+  if (onSelectionChange && data?.items) {
+    onSelectionChange(selectedApplications, selectedData);
+  }
+}, [selectedApplications, data?.items, onSelectionChange]); // onSelectionChange changes every render!
+```
+
+**Result**: Infinite re-render loop that blocked ALL React Router navigation.
+
+### ✅ CRITICAL SOLUTION
+
+```typescript
+// ✅ CORRECT: Wrap callback in useCallback with empty dependency array
+const handleSelectionChange = useCallback((selectedIds: Set<string>, applicationsData: any[]) => {
+  setSelectedApplications(selectedIds);
+  setSelectedApplicationsData(applicationsData);
+}, []); // Empty array = stable function reference
+```
+
+### 🛑 MANDATORY RULES FOR CALLBACK PROPS
+
+**ALWAYS use `useCallback` when:**
+1. Function is passed as prop to child component
+2. **ESPECIALLY when child has that prop in useEffect dependency array**
+3. Function doesn't need to access component state (can use empty dependencies)
+
+**WHY this matters:**
+- Without `useCallback`, new function reference created on every parent render
+- Child's `useEffect` sees new reference → runs effect again
+- Effect updates state → parent re-renders → new function → infinite loop
+- **React Router navigation breaks** because component never finishes rendering
+
+### 🔧 DEBUGGING CHECKLIST
+
+When navigation breaks (URL changes but page doesn't re-render):
+
+1. **Check for re-render loops** - Comment out ALL child components
+2. **Add components back one at a time** to isolate problematic component
+3. **Search for useEffect dependency arrays** in child components
+4. **Look for function props** in those dependency arrays
+5. **Wrap parent functions with useCallback**
+6. **Enable ESLint `react-hooks/exhaustive-deps` rule** for warnings
+
+### 💥 CONSEQUENCES OF IGNORING
+
+- ❌ Complete navigation failure (URL changes, page doesn't)
+- ❌ Infinite re-render loops crash browser tab
+- ❌ Users completely blocked from using application
+- ❌ Hours wasted debugging symptoms instead of root cause
+- ❌ Production incidents requiring emergency fixes
+
+### 🎯 WHY DEBUGGING WAS SO HARD
+
+**Mistakes made during debugging:**
+1. Tried fixing symptoms (route paths, key props, setTimeout workarounds) instead of root cause
+2. Didn't test fixes before asking user to test
+3. Should have immediately commented out components to isolate the problem
+4. Should have searched for useEffect dependency arrays in child components
+
+### Tags
+#critical #react-hooks #useCallback #re-render-loops #navigation #useEffect #dependency-array #infinite-loop
+
+---
+
+## 🚨 CRITICAL: VITEST PARALLEL EXECUTION CONFIGURATION 🚨
+**Date**: 2025-10-03
+**Category**: Vitest Testing / Performance
+**Severity**: CRITICAL - PREVENTS TDD WORKFLOW
+
+### What We Learned
+**SERIAL TEST EXECUTION MAKES TESTING UNUSABLE**: Vitest configured for serial execution (`singleThread: true`, `maxConcurrency: 1`) caused 84 test files to timeout (180+ seconds), making TDD workflow impossible.
+
+**ROOT CAUSE**: Vitest defaults with single-threaded execution:
+- `singleThread: true` - Only 1 test file at a time
+- `maxConcurrency: 1` - Only 1 test within a file at a time
+- Result: ~42 minutes to run all tests serially (84 files × 30s timeout)
+
+### ✅ CRITICAL SOLUTION: PARALLEL EXECUTION WITH SAFETY LIMITS
+
+```typescript
+// vitest.config.ts
+export default defineConfig({
+  test: {
+    pool: 'forks',  // Better isolation than threads for React tests
+    poolOptions: {
+      forks: {
+        singleFork: false,  // Allow parallel test files
+        maxForks: 4,        // Run 4 test files concurrently
+        minForks: 1,
+      }
+    },
+    isolate: true,        // Better cleanup between tests
+    maxConcurrency: 5,    // Allow 5 concurrent tests per file
+  }
+})
+```
+
+**Results**:
+- Tests complete in ~54-58 seconds (was timing out at 180+)
+- All 84 test files execute successfully
+- 3-4x performance improvement
+- TDD workflow restored
+
+### 🛑 KEY CONFIGURATION PRINCIPLES
+
+1. **Use `forks` not `threads`** for React component tests - better process isolation
+2. **Balance parallelism with memory** - 4 concurrent files is sweet spot
+3. **Always test single file first** - if one file runs fast but all files hang, it's a config issue
+4. **Serial execution doesn't scale** - 84 files × 30s timeout = 42 minutes minimum
+
+### 💥 CONSEQUENCES OF SERIAL EXECUTION
+
+- ❌ Test runs timeout (180+ seconds)
+- ❌ TDD workflow impossible (can't wait 42+ minutes)
+- ❌ CI/CD pipeline failures
+- ❌ Developers skip running tests
+- ❌ Test coverage decreases over time
+
+### Tags
+#critical #vitest #parallel-execution #performance #tdd #testing #configuration
 
 ---
 

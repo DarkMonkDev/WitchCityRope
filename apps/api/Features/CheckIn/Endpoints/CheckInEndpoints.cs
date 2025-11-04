@@ -226,6 +226,64 @@ public static class CheckInEndpoints
         .WithSummary("Sync offline check-in data")
         .WithDescription("Process pending check-ins from offline operation with conflict detection");
 
+        // Record cash payment for door purchase
+        group.MapPost("/events/{eventId}/cash-payment", async (
+            Guid eventId,
+            [FromHeader(Name = "X-CheckIn-Token")] string? token,
+            [FromServices] ISessionTokenService tokenService,
+            CashPaymentRequest request,
+            ICheckInService checkInService,
+            IValidator<CashPaymentRequest> validator,
+            CancellationToken cancellationToken = default) =>
+        {
+            // VALIDATE TOKEN FIRST
+            if (string.IsNullOrEmpty(token))
+            {
+                return Results.Unauthorized();
+            }
+
+            var validationResult = await tokenService.ValidateTokenAsync(token, cancellationToken);
+            if (!validationResult.IsSuccess)
+            {
+                return Results.Unauthorized();
+            }
+
+            var tokenEventId = validationResult.Value;
+            if (tokenEventId != eventId)
+            {
+                return Results.Forbid(); // 403 - Token is for different event
+            }
+
+            // Validate request
+            var requestValidation = await validator.ValidateAsync(request, cancellationToken);
+            if (!requestValidation.IsValid)
+            {
+                return Results.ValidationProblem(requestValidation.ToDictionary());
+            }
+
+            // TOKEN IS VALID - Proceed with cash payment recording
+            var result = await checkInService.RecordCashPaymentAsync(eventId, request, cancellationToken);
+
+            return result.IsSuccess
+                ? Results.Ok(result.Value)
+                : Results.Problem(
+                    title: "Cash Payment Failed",
+                    detail: result.Error,
+                    statusCode: result.Error.Contains("not found") ? 404 :
+                               result.Error.Contains("already has a ticket") ? 409 : 500);
+        })
+        .AllowAnonymous() // No authentication required - token validated in handler
+        .WithName("RecordCashPayment")
+        .WithSummary("Record door cash payment for attendee")
+        .WithDescription("Creates a TicketPurchase record for cash payment at event door with staff attribution")
+        .Produces<CashPaymentResponse>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status409Conflict)
+        .Produces(StatusCodes.Status500InternalServerError);
+
         // Create manual entry
         group.MapPost("/events/{eventId}/manual-entry", async (
             Guid eventId,

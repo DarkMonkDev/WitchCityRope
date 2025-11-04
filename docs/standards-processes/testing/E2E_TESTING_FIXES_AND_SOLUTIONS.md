@@ -123,16 +123,7 @@ async function testAuthenticatedForm(page, formUrl, testFunction) {
 
 ## Docker Development Notes
 
-**IMPORTANT**: Always use the development Docker compose files:
-```bash
-# Correct:
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-# OR
-./dev.sh
-
-# Incorrect (will fail):
-docker-compose up
-```
+**IMPORTANT**: Use **container-restart skill** for correct startup procedure with health checks and compilation validation.
 
 ## Testing Best Practices
 

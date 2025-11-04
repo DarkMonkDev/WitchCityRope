@@ -751,4 +751,435 @@ public class CheckInServiceTests : IAsyncLifetime
     }
 
     #endregion
+
+    #region RecordCashPaymentAsync Tests (Streamlined Check-In Workflow)
+
+    [Fact]
+    public async Task ProcessCashPayment_ValidRequest_CreatesTicketPurchase()
+    {
+        // Arrange
+        var testEvent = await CreateTestEvent("Test Event");
+        var testUser = await CreateTestUser("attendee@example.com", $"Attendee-{Guid.NewGuid():N}");
+        var staffUser = await CreateTestUser("staff@example.com", $"Staff-{Guid.NewGuid():N}");
+
+        var attendee = new EventAttendee
+        {
+            Id = Guid.NewGuid(),
+            EventId = testEvent.Id,
+            UserId = testUser.Id,
+            RegistrationStatus = "rsvp",
+            IsFirstTime = false,
+            HasCompletedWaiver = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.EventAttendees.Add(attendee);
+
+        var ticketType = new TicketType
+        {
+            Id = Guid.NewGuid(),
+            EventId = testEvent.Id,
+            Name = "General Admission",
+            Price = 20.00m,
+            Available = 50,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.TicketTypes.Add(ticketType);
+        await _context.SaveChangesAsync();
+
+        var request = new CashPaymentRequest
+        {
+            AttendeeId = testUser.Id,
+            TicketTypeId = ticketType.Id,
+            Amount = 20.00m,
+            RecordedByStaffId = staffUser.Id,
+            Notes = "Cash payment at door"
+        };
+
+        // Act
+        var result = await _service.RecordCashPaymentAsync(testEvent.Id, request);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value!.Success.Should().BeTrue();
+        result.Value.Amount.Should().Be(20.00m);
+
+        // Verify ticket purchase was created in database
+        var ticketPurchase = await _context.TicketPurchases
+            .FirstOrDefaultAsync(tp => tp.Id == result.Value.TicketPurchaseId);
+
+        ticketPurchase.Should().NotBeNull();
+        ticketPurchase!.UserId.Should().Be(testUser.Id);
+        ticketPurchase.TicketTypeId.Should().Be(ticketType.Id);
+        ticketPurchase.TotalPrice.Should().Be(20.00m);
+        ticketPurchase.PaymentMethod.Should().Be("Cash");
+        ticketPurchase.RecordedByStaffId.Should().Be(staffUser.Id);
+        ticketPurchase.Notes.Should().Be("Cash payment at door");
+    }
+
+    [Fact]
+    public async Task ProcessCashPayment_AttendeeNotRegistered_ReturnsError()
+    {
+        // Arrange
+        var testEvent = await CreateTestEvent("Test Event");
+        var unregisteredUser = await CreateTestUser("unregistered@example.com", $"Unregistered-{Guid.NewGuid():N}");
+        var staffUser = await CreateTestUser("staff@example.com", $"Staff-{Guid.NewGuid():N}");
+
+        var ticketType = new TicketType
+        {
+            Id = Guid.NewGuid(),
+            EventId = testEvent.Id,
+            Name = "General Admission",
+            Price = 20.00m,
+            Available = 50,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.TicketTypes.Add(ticketType);
+        await _context.SaveChangesAsync();
+
+        var request = new CashPaymentRequest
+        {
+            AttendeeId = unregisteredUser.Id, // Not registered for event
+            TicketTypeId = ticketType.Id,
+            Amount = 20.00m,
+            RecordedByStaffId = staffUser.Id
+        };
+
+        // Act
+        var result = await _service.RecordCashPaymentAsync(testEvent.Id, request);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Contain("not registered");
+    }
+
+    [Fact]
+    public async Task ProcessCashPayment_AttendeeAlreadyHasTicket_ReturnsError()
+    {
+        // Arrange
+        var testEvent = await CreateTestEvent("Test Event");
+        var testUser = await CreateTestUser("attendee@example.com", $"Attendee-{Guid.NewGuid():N}");
+        var staffUser = await CreateTestUser("staff@example.com", $"Staff-{Guid.NewGuid():N}");
+
+        var attendee = new EventAttendee
+        {
+            Id = Guid.NewGuid(),
+            EventId = testEvent.Id,
+            UserId = testUser.Id,
+            RegistrationStatus = "rsvp",
+            IsFirstTime = false,
+            HasCompletedWaiver = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.EventAttendees.Add(attendee);
+
+        var ticketType = new TicketType
+        {
+            Id = Guid.NewGuid(),
+            EventId = testEvent.Id,
+            Name = "General Admission",
+            Price = 20.00m,
+            Available = 50,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.TicketTypes.Add(ticketType);
+
+        // Create existing ticket purchase
+        var existingTicket = new TicketPurchase
+        {
+            Id = Guid.NewGuid(),
+            TicketTypeId = ticketType.Id,
+            UserId = testUser.Id,
+            PurchaseDate = DateTime.UtcNow,
+            Quantity = 1,
+            TotalPrice = 20.00m,
+            PaymentStatus = "Completed",
+            PaymentMethod = "PayPal",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.TicketPurchases.Add(existingTicket);
+        await _context.SaveChangesAsync();
+
+        var request = new CashPaymentRequest
+        {
+            AttendeeId = testUser.Id,
+            TicketTypeId = ticketType.Id,
+            Amount = 20.00m,
+            RecordedByStaffId = staffUser.Id
+        };
+
+        // Act
+        var result = await _service.RecordCashPaymentAsync(testEvent.Id, request);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Contain("already has a ticket");
+    }
+
+    [Fact]
+    public async Task ProcessCashPayment_InvalidTicketType_ReturnsError()
+    {
+        // Arrange
+        var testEvent = await CreateTestEvent("Test Event");
+        var testUser = await CreateTestUser("attendee@example.com", $"Attendee-{Guid.NewGuid():N}");
+        var staffUser = await CreateTestUser("staff@example.com", $"Staff-{Guid.NewGuid():N}");
+
+        var attendee = new EventAttendee
+        {
+            Id = Guid.NewGuid(),
+            EventId = testEvent.Id,
+            UserId = testUser.Id,
+            RegistrationStatus = "rsvp",
+            IsFirstTime = false,
+            HasCompletedWaiver = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.EventAttendees.Add(attendee);
+        await _context.SaveChangesAsync();
+
+        var request = new CashPaymentRequest
+        {
+            AttendeeId = testUser.Id,
+            TicketTypeId = Guid.NewGuid(), // Non-existent ticket type
+            Amount = 20.00m,
+            RecordedByStaffId = staffUser.Id
+        };
+
+        // Act
+        var result = await _service.RecordCashPaymentAsync(testEvent.Id, request);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Contain("Ticket type not found");
+    }
+
+    [Fact]
+    public async Task ProcessCashPayment_InvalidStaffId_ReturnsError()
+    {
+        // Arrange
+        var testEvent = await CreateTestEvent("Test Event");
+        var testUser = await CreateTestUser("attendee@example.com", $"Attendee-{Guid.NewGuid():N}");
+
+        var attendee = new EventAttendee
+        {
+            Id = Guid.NewGuid(),
+            EventId = testEvent.Id,
+            UserId = testUser.Id,
+            RegistrationStatus = "rsvp",
+            IsFirstTime = false,
+            HasCompletedWaiver = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.EventAttendees.Add(attendee);
+
+        var ticketType = new TicketType
+        {
+            Id = Guid.NewGuid(),
+            EventId = testEvent.Id,
+            Name = "General Admission",
+            Price = 20.00m,
+            Available = 50,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.TicketTypes.Add(ticketType);
+        await _context.SaveChangesAsync();
+
+        var request = new CashPaymentRequest
+        {
+            AttendeeId = testUser.Id,
+            TicketTypeId = ticketType.Id,
+            Amount = 20.00m,
+            RecordedByStaffId = Guid.NewGuid() // Non-existent staff user
+        };
+
+        // Act
+        var result = await _service.RecordCashPaymentAsync(testEvent.Id, request);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Contain("Staff member not found");
+    }
+
+    [Fact]
+    public async Task ProcessCashPayment_ZeroDollarAmount_CreatesTicketPurchase()
+    {
+        // Arrange - Per spec: Allows $0.00 for free tickets
+        var testEvent = await CreateTestEvent("Test Event");
+        var testUser = await CreateTestUser("attendee@example.com", $"Attendee-{Guid.NewGuid():N}");
+        var staffUser = await CreateTestUser("staff@example.com", $"Staff-{Guid.NewGuid():N}");
+
+        var attendee = new EventAttendee
+        {
+            Id = Guid.NewGuid(),
+            EventId = testEvent.Id,
+            UserId = testUser.Id,
+            RegistrationStatus = "rsvp",
+            IsFirstTime = false,
+            HasCompletedWaiver = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.EventAttendees.Add(attendee);
+
+        var ticketType = new TicketType
+        {
+            Id = Guid.NewGuid(),
+            EventId = testEvent.Id,
+            Name = "Free Ticket",
+            Price = 0.00m, // Free ticket type
+            Available = 50,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.TicketTypes.Add(ticketType);
+        await _context.SaveChangesAsync();
+
+        var request = new CashPaymentRequest
+        {
+            AttendeeId = testUser.Id,
+            TicketTypeId = ticketType.Id,
+            Amount = 0.00m, // Zero dollar amount
+            RecordedByStaffId = staffUser.Id,
+            Notes = "Free ticket - sliding scale minimum"
+        };
+
+        // Act
+        var result = await _service.RecordCashPaymentAsync(testEvent.Id, request);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value!.Amount.Should().Be(0.00m);
+
+        // Verify ticket purchase was created
+        var ticketPurchase = await _context.TicketPurchases
+            .FirstOrDefaultAsync(tp => tp.Id == result.Value.TicketPurchaseId);
+
+        ticketPurchase.Should().NotBeNull();
+        ticketPurchase!.TotalPrice.Should().Be(0.00m);
+    }
+
+    [Fact]
+    public async Task ProcessCashPayment_WithNotes_SavesNotes()
+    {
+        // Arrange
+        var testEvent = await CreateTestEvent("Test Event");
+        var testUser = await CreateTestUser("attendee@example.com", $"Attendee-{Guid.NewGuid():N}");
+        var staffUser = await CreateTestUser("staff@example.com", $"Staff-{Guid.NewGuid():N}");
+
+        var attendee = new EventAttendee
+        {
+            Id = Guid.NewGuid(),
+            EventId = testEvent.Id,
+            UserId = testUser.Id,
+            RegistrationStatus = "rsvp",
+            IsFirstTime = false,
+            HasCompletedWaiver = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.EventAttendees.Add(attendee);
+
+        var ticketType = new TicketType
+        {
+            Id = Guid.NewGuid(),
+            EventId = testEvent.Id,
+            Name = "General Admission",
+            Price = 20.00m,
+            Available = 50,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.TicketTypes.Add(ticketType);
+        await _context.SaveChangesAsync();
+
+        var testNotes = "Sliding scale - paid $15 instead of $20";
+        var request = new CashPaymentRequest
+        {
+            AttendeeId = testUser.Id,
+            TicketTypeId = ticketType.Id,
+            Amount = 15.00m,
+            RecordedByStaffId = staffUser.Id,
+            Notes = testNotes
+        };
+
+        // Act
+        var result = await _service.RecordCashPaymentAsync(testEvent.Id, request);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+
+        var ticketPurchase = await _context.TicketPurchases
+            .FirstOrDefaultAsync(tp => tp.Id == result.Value!.TicketPurchaseId);
+
+        ticketPurchase.Should().NotBeNull();
+        ticketPurchase!.Notes.Should().Be(testNotes);
+    }
+
+    [Fact]
+    public async Task ProcessCashPayment_WithoutNotes_SavesEmptyString()
+    {
+        // Arrange
+        var testEvent = await CreateTestEvent("Test Event");
+        var testUser = await CreateTestUser("attendee@example.com", $"Attendee-{Guid.NewGuid():N}");
+        var staffUser = await CreateTestUser("staff@example.com", $"Staff-{Guid.NewGuid():N}");
+
+        var attendee = new EventAttendee
+        {
+            Id = Guid.NewGuid(),
+            EventId = testEvent.Id,
+            UserId = testUser.Id,
+            RegistrationStatus = "rsvp",
+            IsFirstTime = false,
+            HasCompletedWaiver = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.EventAttendees.Add(attendee);
+
+        var ticketType = new TicketType
+        {
+            Id = Guid.NewGuid(),
+            EventId = testEvent.Id,
+            Name = "General Admission",
+            Price = 20.00m,
+            Available = 50,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.TicketTypes.Add(ticketType);
+        await _context.SaveChangesAsync();
+
+        var request = new CashPaymentRequest
+        {
+            AttendeeId = testUser.Id,
+            TicketTypeId = ticketType.Id,
+            Amount = 20.00m,
+            RecordedByStaffId = staffUser.Id,
+            Notes = null // No notes
+        };
+
+        // Act
+        var result = await _service.RecordCashPaymentAsync(testEvent.Id, request);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+
+        var ticketPurchase = await _context.TicketPurchases
+            .FirstOrDefaultAsync(tp => tp.Id == result.Value!.TicketPurchaseId);
+
+        ticketPurchase.Should().NotBeNull();
+        ticketPurchase!.Notes.Should().Be(string.Empty); // Empty string per implementation
+    }
+
+    #endregion
 }

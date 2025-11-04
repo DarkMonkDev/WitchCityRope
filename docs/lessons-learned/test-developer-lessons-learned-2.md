@@ -10,12 +10,12 @@
 **Read Part 1 first**: test-developer-lessons-learned.md - **CONTAINS MANDATORY STARTUP PROCEDURE**
 **Write to**: Part 2 ONLY
 **Max size**: 2,000 lines per file (NOT 2,500)
-**IF READ FAILS**: STOP and fix per documentation-standards.md
+**IF READ FAILS**: STOP and use lessons-learned-validator skill to fix immediately
 
 ## ⛔ CRITICAL: HARD BLOCK - DO NOT PROCEED IF FILES UNREADABLE
 If you cannot read ANY file:
 1. STOP ALL WORK
-2. Fix using procedure in documentation-standards.md
+2. Fix using lessons-learned-validator skill
 3. Set LESSONS_LEARNED_READABLE=false until fixed
 4. NO WORK until LESSONS_LEARNED_READABLE=true
 
@@ -37,6 +37,10 @@ If you cannot read ANY file:
 - TestContainers setup
 - Database persistence verification
 **CRITICAL**: Integration tests must verify all DTO fields map to entity properties
+
+---
+
+**Skills Usage**: See `/.claude/skills/HOW-TO-USE-SKILLS.md` for complete guide on when/how to use skills
 
 ---
 

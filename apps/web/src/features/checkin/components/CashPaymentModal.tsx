@@ -1,5 +1,6 @@
 // CashPaymentModal - Modal for recording cash payments at the door
 // Source: /docs/functional-areas/events/new-work/2025-11-03-streamlined-checkin-workflow/design/ui-specifications.md
+// Updated for functional spec v2.0 - adds ticket type selector, allows $0.00
 
 import React from 'react';
 import {
@@ -9,11 +10,14 @@ import {
   Button,
   Text,
   Group,
-  Stack
+  Stack,
+  Select,
+  Checkbox
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
+import type { CashPaymentData, TicketType } from '../types/checkin.types';
 
 export interface CashPaymentModalProps {
   opened: boolean;
@@ -22,38 +26,60 @@ export interface CashPaymentModalProps {
     id: string;
     name: string;
   };
+  ticketTypes: TicketType[];
   onSubmit: (data: CashPaymentData) => Promise<void>;
-}
-
-export interface CashPaymentData {
-  amount: number;
-  notes?: string;
 }
 
 /**
  * Modal for recording cash payments at the door
- * Validates amount between $0.01 and $1,000
- * Includes optional notes field for special circumstances
+ * Updated for functional spec v2.0:
+ * - Added ticket type selector (required)
+ * - Allows $0.00 amounts for free tickets
+ * - Validates amount between $0.00 and $1,000
+ * - Includes optional notes field for special circumstances
  */
 export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
   opened,
   onClose,
   attendee,
+  ticketTypes,
   onSubmit
 }) => {
-  const form = useForm<CashPaymentData>({
+  const form = useForm<CashPaymentData & { covidTestComplete: boolean }>({
     initialValues: {
+      ticketTypeId: '',
       amount: 0,
       notes: '',
+      covidTestComplete: false,
     },
     validate: {
+      ticketTypeId: (value) => {
+        if (!value) return 'Ticket type is required';
+        return null;
+      },
       amount: (value) => {
-        if (value < 0.01) return 'Amount must be at least $0.01';
+        if (value < 0) return 'Amount cannot be negative';
         if (value > 1000) return 'Amount cannot exceed $1,000.00';
+        return null;
+      },
+      covidTestComplete: (value) => {
+        if (!value) return 'COVID test must be completed before check-in';
         return null;
       },
     },
   });
+
+  // Helper function to format ticket price display
+  const formatTicketPrice = (ticket: TicketType): string => {
+    if (ticket.price !== undefined && ticket.price !== null) {
+      // Fixed price
+      return `$${ticket.price.toFixed(2)}`;
+    } else if (ticket.minPrice !== undefined && ticket.maxPrice !== undefined) {
+      // Sliding scale
+      return `$${ticket.minPrice.toFixed(2)} - $${ticket.maxPrice.toFixed(2)}`;
+    }
+    return 'Price not set';
+  };
 
   const handleSubmit = async (values: CashPaymentData) => {
     try {
@@ -106,13 +132,64 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
             Attendee: {attendee.name}
           </Text>
 
-          {/* Amount Input */}
+          {/* Ticket Type Selector (UPDATED - handles both fixed and sliding scale) */}
+          <Select
+            label="Ticket Type"
+            placeholder="Select ticket type"
+            data={ticketTypes.map(t => ({
+              value: t.id,
+              label: `${t.name} - ${formatTicketPrice(t)}`
+            }))}
+            required
+            size="md"
+            styles={{
+              label: {
+                fontFamily: 'Montserrat, sans-serif',
+                fontWeight: 600,
+                fontSize: '14px',
+                textTransform: 'uppercase',
+                color: '#4A4A4A',
+                marginBottom: '8px',
+              },
+            }}
+            {...form.getInputProps('ticketTypeId')}
+            aria-label="Select ticket type"
+            aria-describedby="ticket-type-helper"
+          />
+          <Text id="ticket-type-helper" size="xs" c="dimmed">
+            Choose the ticket type being purchased
+          </Text>
+
+          {/* COVID Test Checkbox (NEW - required before check-in) */}
+          <Checkbox
+            label="COVID test complete"
+            description="Attendee has completed COVID test screening"
+            required
+            size="md"
+            styles={{
+              label: {
+                fontFamily: 'Montserrat, sans-serif',
+                fontWeight: 600,
+                fontSize: '14px',
+                color: '#4A4A4A',
+              },
+              description: {
+                fontSize: '12px',
+                color: '#6B7280',
+                marginTop: '4px',
+              },
+            }}
+            {...form.getInputProps('covidTestComplete', { type: 'checkbox' })}
+            aria-label="COVID test complete"
+          />
+
+          {/* Amount Input (UPDATED - allows $0.00) */}
           <NumberInput
-            label="Amount"
+            label="Amount Paid"
             placeholder="0.00"
             prefix="$"
             decimalScale={2}
-            min={0.01}
+            min={0.00}
             max={1000}
             required
             hideControls
@@ -132,7 +209,7 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
             aria-describedby="amount-helper"
           />
           <Text id="amount-helper" size="xs" c="dimmed">
-            Enter the cash amount received
+            Enter the cash amount received (can be $0.00 for free tickets)
           </Text>
 
           {/* Payment Method (Read-Only) */}
@@ -140,13 +217,13 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
             <Text fw={600} component="span">Payment Method:</Text> Cash
           </Text>
 
-          {/* Notes Textarea */}
+          {/* Notes Textarea (UPDATED - 500 chars max per spec) */}
           <Textarea
             label="Notes (Optional)"
-            placeholder="For special circumstances (e.g., discount reason)"
+            placeholder="For special circumstances (e.g., sliding scale, discount, comp ticket)"
             minRows={3}
             maxRows={5}
-            maxLength={200}
+            maxLength={500}
             styles={{
               label: {
                 fontFamily: 'Montserrat, sans-serif',
@@ -160,7 +237,7 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
             {...form.getInputProps('notes')}
           />
           <Text size="xs" c="dimmed" ta="right">
-            {(form.values.notes?.length || 0)}/200 characters
+            {(form.values.notes?.length || 0)}/500 characters
           </Text>
 
           {/* Action Buttons */}

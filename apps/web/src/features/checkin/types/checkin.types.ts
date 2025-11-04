@@ -146,6 +146,8 @@ export interface CheckInAttendee {
   pronouns?: string;
   hasCompletedWaiver: boolean;
   waitlistPosition?: number;
+  paymentStatus?: 'ticket' | 'rsvp' | 'paidAtDoor';  // Added for streamlined workflow
+  hasTicketPurchase?: boolean;  // Added for functional spec v2.0
 }
 
 /**
@@ -283,3 +285,61 @@ export const TOUCH_TARGETS = {
   SEARCH_INPUT_HEIGHT: 56, // px - search input height for typing
   CARD_MIN_HEIGHT: 72 // px - minimum card height for attendee info
 } as const;
+
+// ============================================================================
+// STREAMLINED CHECK-IN WORKFLOW TYPES (frontend-only)
+// ============================================================================
+
+/**
+ * Ticket type information for door payment
+ * Frontend-only until backend adds TicketTypeDto
+ */
+export interface TicketType {
+  id: string;
+  name: string;
+  price: number;
+  description?: string;
+}
+
+/**
+ * Cash payment data for door ticket purchase
+ * Includes ticket type selection per functional spec v2.0
+ */
+export interface CashPaymentData {
+  ticketTypeId: string;
+  amount: number;
+  notes?: string;
+}
+
+/**
+ * Create cash ticket purchase request
+ * Maps to backend CreateCashTicketPurchaseRequest DTO
+ * TODO: Replace with auto-generated type when backend adds DTO
+ */
+export interface CreateCashTicketPurchaseRequest {
+  eventId: string;
+  userId: string;
+  ticketTypeId: string;
+  amount: number;
+  recordedByStaffId?: string;
+  notes?: string;
+}
+
+/**
+ * Ticket purchase response
+ * TODO: Replace with auto-generated type when backend adds DTO
+ */
+export interface TicketPurchaseResponse {
+  id: string;
+  eventId: string;
+  userId: string;
+  ticketTypeId: string;
+  quantity: number;
+  amount: number;
+  paymentMethod: string;
+  purchaseSource: string;
+  transactionTimestamp: string;
+  recordedByStaffId?: string;
+  notes?: string;
+  isPaymentCompleted: boolean;
+}

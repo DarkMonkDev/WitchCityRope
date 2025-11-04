@@ -1,11 +1,13 @@
-// QRPaymentModal - Display QR code for digital payment with real-time notification
-// Source: /docs/functional-areas/events/new-work/2025-11-03-streamlined-checkin-workflow/design/ui-specifications.md
+// QRPaymentModal - Display QR code for digital payment (simplified, non-blocking)
+// Source: /docs/functional-areas/events/new-work/2025-11-03-streamlined-checkin-workflow/functional-specification.md v2.0
+// SIMPLIFIED: No SSE, no real-time detection, display-only
+// Staff shows QR, closes modal, continues with others
+// Attendee completes payment on their phone via existing ticket sales page
+// Later, staff searches for attendee again - they'll have a ticket
 
-import React, { useState, useEffect } from 'react';
-import { Modal, Text, Stack, Button, Progress, ThemeIcon } from '@mantine/core';
-import { IconCheck } from '@tabler/icons-react';
+import React from 'react';
+import { Modal, Text, Stack, Button } from '@mantine/core';
 import { QRCodeSVG } from 'qrcode.react';
-import { useKioskPaymentStream } from '../hooks/useKioskPaymentStream';
 
 export interface QRPaymentModalProps {
   opened: boolean;
@@ -15,182 +17,134 @@ export interface QRPaymentModalProps {
     name: string;
   };
   eventId: string;
-  sessionToken: string;
-  onPaymentComplete: () => void;
 }
 
 /**
- * Modal for digital payment via QR code
- * Shows QR code that attendee scans to pay
- * Listens for real-time payment notifications via SSE
- * Displays success animation when payment received
+ * SIMPLIFIED Modal for digital payment via QR code
+ *
+ * Changes from v1.0:
+ * - Removed SSE/real-time payment detection
+ * - Removed useKioskPaymentStream hook
+ * - Removed payment success animation
+ * - Simple display-only modal
+ * - Staff closes immediately (non-blocking)
+ * - Links to existing ticket sales page
+ * - Manual status update workflow (staff searches again later)
  */
 export const QRPaymentModal: React.FC<QRPaymentModalProps> = ({
   opened,
   onClose,
   attendee,
-  eventId,
-  sessionToken,
-  onPaymentComplete
+  eventId
 }) => {
-  const [paymentReceived, setPaymentReceived] = useState(false);
-
-  // Real-time payment stream (SSE)
-  const { lastPayment, status } = useKioskPaymentStream(sessionToken);
-
-  // Watch for payment completion
-  useEffect(() => {
-    if (lastPayment?.attendeeId === attendee.id) {
-      console.log('[QR Payment] Payment received for attendee:', attendee.id);
-      setPaymentReceived(true);
-
-      // Show success for 2 seconds, then close
-      setTimeout(() => {
-        onPaymentComplete();
-        onClose();
-        setPaymentReceived(false); // Reset for next use
-      }, 2000);
-    }
-  }, [lastPayment, attendee.id, onPaymentComplete, onClose]);
-
-  // Reset payment state when modal closes
-  useEffect(() => {
-    if (!opened) {
-      setPaymentReceived(false);
-    }
-  }, [opened]);
-
-  // Generate QR code URL for payment
-  const paymentUrl = `${window.location.origin}/events/${eventId}/purchase?attendeeId=${attendee.id}&returnUrl=checkin`;
+  // Generate QR code URL - links to existing ticket sales page
+  // Per functional spec v2.0: Simple URL, no special parameters
+  // Route: /checkout/:eventId (from router.tsx line 164)
+  const ticketSalesUrl = `${window.location.origin}/checkout/${eventId}`;
 
   return (
     <Modal
       opened={opened}
       onClose={onClose}
-      title={paymentReceived ? 'Payment Received!' : 'Scan to Pay'}
+      title="Scan QR Code to Purchase Ticket"
       centered
       size="lg"
-      withCloseButton={!paymentReceived}
-      closeOnClickOutside={false}
       styles={{
         title: {
           fontFamily: 'Montserrat, sans-serif',
           fontWeight: 700,
           fontSize: '20px',
           textTransform: 'uppercase',
-          color: paymentReceived ? '#228B22' : '#880124',
+          color: '#880124', // burgundy
         },
       }}
     >
       <Stack gap="lg" align="center">
         {/* Attendee Name */}
         <Text size="lg" fw={600} c="charcoal">
-          Attendee: {attendee.name}
+          {attendee.name}
         </Text>
 
-        {/* QR Code or Success Icon */}
-        {paymentReceived ? (
-          <ThemeIcon
-            size={250}
-            radius="50%"
-            color="green"
-            style={{
-              animation: 'checkmark-pop 0.5s ease-out'
-            }}
-          >
-            <IconCheck size={150} stroke={3} />
-          </ThemeIcon>
-        ) : (
-          <QRCodeSVG
-            value={paymentUrl}
-            size={250}
-            bgColor="#FFF8F0" // ivory
-            fgColor="#2B2B2B" // charcoal
-            level="M" // Medium error correction
-            includeMargin
-            style={{
-              padding: '16px',
-              background: 'white',
-              borderRadius: '8px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-            }}
-          />
-        )}
+        {/* QR Code */}
+        <QRCodeSVG
+          value={ticketSalesUrl}
+          size={250}
+          bgColor="#FFF8F0" // ivory
+          fgColor="#2B2B2B" // charcoal
+          level="H" // High error correction
+          includeMargin
+          style={{
+            padding: '16px',
+            background: 'white',
+            borderRadius: '8px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          }}
+        />
 
-        {/* Instructions or Success Message */}
-        {paymentReceived ? (
-          <Text size="md" c="green" fw={600} ta="center">
-            Payment confirmed via PayPal
+        {/* Instructions - NON-BLOCKING WORKFLOW */}
+        <Stack gap="sm" style={{ width: '100%' }}>
+          <Text size="md" fw={600} c="charcoal" ta="center">
+            How it works:
           </Text>
-        ) : (
-          <>
-            <Text size="md" ta="center" c="charcoal">
-              Scan with your phone to complete payment
-            </Text>
+          <Text size="sm" c="dimmed" ta="left" pl="md">
+            1. Attendee scans QR code with their phone
+          </Text>
+          <Text size="sm" c="dimmed" ta="left" pl="md">
+            2. Opens our ticket sales page in their browser
+          </Text>
+          <Text size="sm" c="dimmed" ta="left" pl="md">
+            3. They log in (or sign up if new)
+          </Text>
+          <Text size="sm" c="dimmed" ta="left" pl="md">
+            4. They purchase ticket using PayPal
+          </Text>
+          <Text size="sm" c="dimmed" ta="left" pl="md">
+            5. <Text component="span" fw={600}>You can close this window now</Text> - don't wait!
+          </Text>
+          <Text size="sm" c="dimmed" ta="left" pl="md">
+            6. Continue checking in other attendees
+          </Text>
+          <Text size="sm" c="dimmed" ta="left" pl="md">
+            7. Later (1-2 minutes), search for this attendee again
+          </Text>
+          <Text size="sm" c="dimmed" ta="left" pl="md">
+            8. They'll show as "Ticket Purchased" - complete check-in
+          </Text>
+        </Stack>
 
-            <Text size="xs" c="dimmed" ta="center" style={{ wordBreak: 'break-all' }}>
-              {paymentUrl}
-            </Text>
+        {/* URL Display (for reference) */}
+        <Text size="xs" c="dimmed" ta="center" style={{ wordBreak: 'break-all' }}>
+          {ticketSalesUrl}
+        </Text>
 
-            {/* Progress Indicator */}
-            <Stack gap="xs" style={{ width: '100%' }}>
-              <Text size="sm" c="dimmed" ta="center">
-                {status === 'connected' ? '⏳ Waiting for payment...' : '🔄 Connecting...'}
-              </Text>
-              <Progress
-                value={100}
-                animated
-                color="red"
-                size="sm"
-                style={{ width: '100%' }}
-              />
-            </Stack>
-          </>
-        )}
-
-        {/* Cancel Button (only when waiting) */}
-        {!paymentReceived && (
-          <Button
-            variant="outline"
-            color="red"
-            onClick={onClose}
-            mt="md"
-            styles={{
-              root: {
-                borderRadius: '12px 6px 12px 6px',
-                fontFamily: 'Montserrat, sans-serif',
-                fontWeight: 600,
-                fontSize: '14px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                height: '44px',
-                paddingTop: '12px',
-                paddingBottom: '12px',
-                lineHeight: '1.2'
+        {/* Close Button - Non-blocking workflow */}
+        <Button
+          onClick={onClose}
+          fullWidth
+          size="lg"
+          styles={{
+            root: {
+              background: 'linear-gradient(135deg, #9D4EDD 0%, #7B2CBF 100%)',
+              color: '#FFF8F0',
+              borderRadius: '12px 6px 12px 6px',
+              fontFamily: 'Montserrat, sans-serif',
+              fontWeight: 600,
+              fontSize: '16px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              height: '56px',
+              boxShadow: '0 4px 15px rgba(157, 78, 221, 0.4)',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #7B2CBF 0%, #9D4EDD 100%)',
+                boxShadow: '0 6px 20px rgba(157, 78, 221, 0.5)',
+                borderRadius: '6px 12px 6px 12px'
               }
-            }}
-          >
-            Cancel
-          </Button>
-        )}
+            }
+          }}
+        >
+          Close (Continue Checking In Others)
+        </Button>
       </Stack>
-
-      {/* CSS for success animation */}
-      <style>{`
-        @keyframes checkmark-pop {
-          0% {
-            transform: scale(0);
-            opacity: 0;
-          }
-          50% {
-            transform: scale(1.2);
-          }
-          100% {
-            transform: scale(1);
-            opacity: 1;
-          }
-        }
-      `}</style>
     </Modal>
   );
 };

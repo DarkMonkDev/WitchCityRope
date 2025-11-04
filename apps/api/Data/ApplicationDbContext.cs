@@ -579,7 +579,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         // TicketPurchase entity configuration
         modelBuilder.Entity<TicketPurchase>(entity =>
         {
-            entity.ToTable("TicketPurchases", "public");
+            entity.ToTable("TicketPurchases", "public", t =>
+            {
+                // Check constraint for Notes max length
+                t.HasCheckConstraint(
+                    "CHK_TicketPurchases_Notes_MaxLength",
+                    "LENGTH(\"Notes\") <= 500 OR \"Notes\" IS NULL"
+                );
+            });
             entity.HasKey(p => p.Id);
 
             entity.Property(p => p.PurchaseDate)
@@ -601,7 +608,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
                   .HasMaxLength(200);
 
             entity.Property(p => p.Notes)
-                  .HasMaxLength(1000);
+                  .HasMaxLength(500);
+
+            // RecordedByStaffId configuration
+            entity.Property(p => p.RecordedByStaffId)
+                  .IsRequired(false);  // Nullable
 
             entity.Property(p => p.CreatedAt)
                   .IsRequired()
@@ -622,6 +633,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
                   .HasForeignKey(p => p.UserId)
                   .OnDelete(DeleteBehavior.Cascade);
 
+            // RecordedByStaff relationship
+            entity.HasOne(p => p.RecordedByStaff)
+                  .WithMany()
+                  .HasForeignKey(p => p.RecordedByStaffId)
+                  .OnDelete(DeleteBehavior.SetNull);  // Preserve purchase if staff deleted
+
             // Indexes
             entity.HasIndex(p => p.TicketTypeId)
                   .HasDatabaseName("IX_TicketPurchases_TicketTypeId");
@@ -631,6 +648,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
 
             entity.HasIndex(p => p.PaymentStatus)
                   .HasDatabaseName("IX_TicketPurchases_PaymentStatus");
+
+            // Partial index for door purchases audit trail
+            entity.HasIndex(p => p.RecordedByStaffId)
+                  .HasDatabaseName("IX_TicketPurchases_RecordedByStaffId")
+                  .HasFilter("\"RecordedByStaffId\" IS NOT NULL");
         });
 
         // VolunteerPosition entity configuration

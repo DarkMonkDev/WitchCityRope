@@ -2555,8 +2555,8 @@ namespace WitchCityRope.Api.Migrations
 
                     b.Property<string>("Notes")
                         .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("PaymentMethod")
                         .IsRequired()
@@ -2579,6 +2579,9 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
+                    b.Property<Guid?>("RecordedByStaffId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("TicketTypeId")
                         .HasColumnType("uuid");
 
@@ -2596,13 +2599,20 @@ namespace WitchCityRope.Api.Migrations
                     b.HasIndex("PaymentStatus")
                         .HasDatabaseName("IX_TicketPurchases_PaymentStatus");
 
+                    b.HasIndex("RecordedByStaffId")
+                        .HasDatabaseName("IX_TicketPurchases_RecordedByStaffId")
+                        .HasFilter("\"RecordedByStaffId\" IS NOT NULL");
+
                     b.HasIndex("TicketTypeId")
                         .HasDatabaseName("IX_TicketPurchases_TicketTypeId");
 
                     b.HasIndex("UserId")
                         .HasDatabaseName("IX_TicketPurchases_UserId");
 
-                    b.ToTable("TicketPurchases", "public");
+                    b.ToTable("TicketPurchases", "public", t =>
+                        {
+                            t.HasCheckConstraint("CHK_TicketPurchases_Notes_MaxLength", "LENGTH(\"Notes\") <= 500 OR \"Notes\" IS NULL");
+                        });
                 });
 
             modelBuilder.Entity("WitchCityRope.Api.Models.TicketType", b =>
@@ -3408,6 +3418,11 @@ namespace WitchCityRope.Api.Migrations
 
             modelBuilder.Entity("WitchCityRope.Api.Models.TicketPurchase", b =>
                 {
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "RecordedByStaff")
+                        .WithMany()
+                        .HasForeignKey("RecordedByStaffId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("WitchCityRope.Api.Models.TicketType", "TicketType")
                         .WithMany("Purchases")
                         .HasForeignKey("TicketTypeId")
@@ -3419,6 +3434,8 @@ namespace WitchCityRope.Api.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("RecordedByStaff");
 
                     b.Navigation("TicketType");
 

@@ -34,6 +34,10 @@
 
 ---
 
+**Skills Usage**: See `/.claude/skills/HOW-TO-USE-SKILLS.md` for complete guide on when/how to use skills
+
+---
+
 ## 🚨 CRITICAL: Enum Migration Breaking Changes Pattern (NEW) 🚨
 **Date**: 2025-10-18
 **Category**: Database Migration

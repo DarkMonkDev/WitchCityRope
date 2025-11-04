@@ -9,8 +9,8 @@
 **This is Part 2 of 3**
 **Read Part 1 first**: backend-developer-lessons-learned.md - **CONTAINS MANDATORY STARTUP PROCEDURE**
 **Write to**: Part 2 ONLY
-**Max size**: 1,700 lines per file (NOT 2,500)
-**IF READ FAILS**: STOP and fix per documentation-standards.md
+**Max size**: 2,000 lines per file (NOT 2,500)
+**IF READ FAILS**: STOP and use lessons-learned-validator skill to fix immediately
 
 ## ⚠️ CAPACITY WARNING
 **Current Status**: Part 2 is at capacity (1701 lines)
@@ -20,7 +20,7 @@
 ## ⛔ CRITICAL: HARD BLOCK - DO NOT PROCEED IF FILES UNREADABLE
 If you cannot read ANY file:
 1. STOP ALL WORK
-2. Fix using procedure in documentation-standards.md
+2. Fix using lessons-learned-validator skill
 3. Set LESSONS_LEARNED_READABLE=false until fixed
 4. NO WORK until LESSONS_LEARNED_READABLE=true
 
@@ -35,6 +35,11 @@ If you cannot read ANY file:
 - How frontend validates against backend spec
 **CRITICAL**: Frontend calls must match backend endpoints exactly (path, method, case)
 
+---
+
+**Skills Usage**: See `/.claude/skills/HOW-TO-USE-SKILLS.md` for complete guide on when/how to use skills
+
+---
 
 ## Service Initialization Order
 

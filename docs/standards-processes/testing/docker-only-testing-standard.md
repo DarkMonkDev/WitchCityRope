@@ -104,9 +104,7 @@ echo "✅ Docker-only environment verified for testing"
    ```
 
 4. **FOURTH**: Restart Docker if containers unhealthy
-   ```bash
-   ./dev.sh
-   ```
+   **Use container-restart skill** for correct restart procedure with health checks and compilation validation.
 
 5. **ONLY THEN**: Re-run tests after Docker environment verified
 
@@ -165,8 +163,7 @@ echo "✅ Docker-only environment verified for testing"
 ```bash
 # Check Docker container
 docker ps | grep witchcity-web
-# If not running:
-./dev.sh
+# If not running, use container-restart skill
 ```
 
 **"API endpoints returning 404"**
@@ -187,9 +184,8 @@ lsof -i :5173 -i :5655 | grep -v docker
 
 **"Connection refused errors"**
 ```bash
-# Restart all containers
-./dev.sh
-# Wait for containers to be healthy
+# Restart all containers using container-restart skill
+# Skill automatically waits for health checks
 docker ps --format "table {{.Names}}\t{{.Status}}" | grep witchcity
 ```
 

@@ -82,6 +82,10 @@
 
 ---
 
+**Skills Usage**: See `/.claude/skills/HOW-TO-USE-SKILLS.md` for complete guide on when/how to use skills
+
+---
+
 ## Admin Settings Card Pattern - November 2025
 
 ### CRITICAL: Consistent Card Header Design

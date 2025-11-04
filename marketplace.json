@@ -1,0 +1,46 @@
+{
+  "name": "witchcityrope-internal",
+  "owner": {
+    "name": "WitchCityRope Development Team",
+    "email": "dev@witchcityrope.com"
+  },
+  "description": "Internal marketplace for WitchCityRope agent system and company-wide shared plugins",
+  "plugins": [
+    {
+      "name": "witchcityrope-agents",
+      "source": "./",
+      "version": "1.0.0",
+      "description": "Complete agent system with 16 specialized agents, orchestration workflow, quality gates, and tool restriction philosophy. Includes React + .NET development patterns, comprehensive lessons learned, and phase-based validation.",
+      "author": {
+        "name": "WitchCityRope Team"
+      },
+      "keywords": [
+        "react",
+        "typescript",
+        "dotnet",
+        "postgresql",
+        "orchestration",
+        "workflow",
+        "full-stack"
+      ],
+      "features": [
+        "16 specialized agents (planning, development, testing, quality, utility)",
+        "5-phase orchestration workflow with mandatory human reviews",
+        "Quality gates by work type (Feature/Bug/Hotfix)",
+        "Tool restriction enforcement (The Three Laws)",
+        "14,814+ lines of lessons learned (30 files)",
+        "Phase validation with librarian blocking authority",
+        "Agent handoff system for information transfer",
+        "TEST_CATALOG for comprehensive test tracking",
+        "Master Index for file organization"
+      ],
+      "innovations": [
+        "The Three Laws of Agent Tools - Architectural enforcement philosophy",
+        "Lessons Learned Format Enforcement - Prevention pattern system",
+        "Phase Validation with Blocking Authority - Zero tolerance enforcement",
+        "Exclusive Test Ownership - Role-based file access control",
+        "Quality Gates by Work Type - Context-appropriate rigor"
+      ]
+    }
+  ]
+}

@@ -1,11 +1,33 @@
 # Business Requirements: Streamlined Check-In Workflow
-<!-- Last Updated: 2025-11-03 -->
-<!-- Version: 1.0 -->
+<!-- Last Updated: 2025-11-04 -->
+<!-- Version: 2.0 -->
 <!-- Owner: Business Requirements Agent -->
-<!-- Status: Draft -->
+<!-- Status: Draft - Revised with Simplified Approach -->
 
 ## Executive Summary
 The streamlined check-in workflow eliminates unnecessary modal popups for workshop check-ins, reducing the check-in process from 4 clicks to 2 clicks while maintaining proper payment tracking for social events. This enhancement improves staff efficiency during high-traffic arrival times while preserving all required payment and waiver validations.
+
+## 🚨 CRITICAL: Reuse Existing Flows
+
+**This feature does NOT create new payment flows.**
+
+**What's New:**
+- Cash payment option (select ticket type, enter amount, record with staff attribution)
+- QR code modal (displays URL to existing ticket sales page)
+- Streamlined check-in (remove modals for pre-paid attendees)
+
+**What's Reused:**
+- Existing ticket sales page (QR code links here)
+- Existing payment processing (PayPal)
+- Existing ticket purchase flow
+- Existing email receipts
+- Existing refund process
+
+**Do NOT:**
+- ❌ Create special payment processor integrations
+- ❌ Build real-time payment detection (SSE, webhooks, polling)
+- ❌ Create new payment flows
+- ❌ Build custom payment pages
 
 ## Business Context
 
@@ -88,22 +110,37 @@ The current check-in system requires staff to click a check-in button, wait for 
 
 **Option A: Cash Payment**
 - When I select "Cash Payment"
-- Then a modal opens with cash amount input field
-- And I enter the amount (e.g., $20.00)
+- Then a modal opens with:
+  - Ticket type selector dropdown
+  - Cash amount input field (allows $0.00)
+  - Optional notes field
+- And I select ticket type
+- And I enter the amount (e.g., $20.00 or $0.00)
+- And I optionally add notes
 - And I click "Record Payment"
-- Then payment is recorded as cash
+- Then payment is recorded as cash with:
+  - RecordedByStaffId (staff member who recorded)
+  - Amount entered (including $0.00 if free)
+  - Notes (if provided)
+  - Timestamp
+  - Ticket type
 - And modal closes
 - And button changes to "Covid Test Complete"
 
 **Option B: Digital Payment (QR Code)**
 - When I select "Digital Payment"
-- Then a QR code is displayed on screen
+- Then a QR code modal is displayed on screen
+- And QR code contains URL: `https://witchcityrope.com/events/{eventId}/tickets`
 - And attendee scans QR code with their phone
-- And they are redirected to website payment page
-- And they must sign in to link payment to their account
-- And they complete normal ticket purchase process
-- And kiosk interface updates when payment completes (see Story 5)
-- And button changes to "Covid Test Complete"
+- And they are taken to the EXISTING ticket sales page
+- And they log in (or sign up if new user)
+- And they complete the NORMAL ticket purchase process
+- And they receive email receipt per normal process
+- And staff closes the QR code modal (non-blocking)
+- And staff continues checking in other people
+- And later, staff searches for attendee again
+- And system shows "Check In" button (ticket purchase completed)
+- And staff completes check-in
 
 - And after payment is complete
 - Then I click "Covid Test Complete"
@@ -111,7 +148,7 @@ The current check-in system requires staff to click a check-in button, wait for 
 - And I click "Check In"
 - And attendee is checked in
 
-**Rationale**: Social events support both RSVP (free) and ticket purchase (paid). Door payment must be tracked to maintain accurate financial records.
+**Rationale**: Social events support both RSVP (free) and ticket purchase (paid). Door payment must be tracked to maintain accurate financial records. QR code workflow is asynchronous - staff don't wait for payment completion.
 
 ### Story 4: Button State Management
 **As a** check-in staff member
@@ -132,28 +169,28 @@ The current check-in system requires staff to click a check-in button, wait for 
 
 **Rationale**: Clear visual indicators prevent confusion and errors during high-volume check-in.
 
-### Story 5: Real-Time Payment Detection (QR Code)
+### Story 5: Async QR Code Payment Workflow (Non-Blocking)
 **As a** check-in staff member
-**I want to** see automatic updates when QR code payments complete
-**So that** I don't have to manually refresh to continue check-in
+**I want to** continue checking in other people while someone completes QR code payment
+**So that** one person's payment doesn't block the entire check-in line
 
 **Acceptance Criteria:**
-- Given an attendee is completing QR code payment
-- When they successfully complete payment on their phone
-- Then the kiosk interface updates automatically
-- And "Paid at Door" button changes to "Covid Test Complete"
-- And update occurs within 5 seconds of payment completion
-- And no manual refresh is required
+- Given an attendee is completing QR code payment on their phone
+- When I show them the QR code
+- Then I can close the QR code modal
+- And I continue checking in other attendees
+- And the payment completes on attendee's phone (normal ticket purchase)
+- And later, I search for that attendee again
+- And their status now shows they have a ticket
+- And I see "Check In" button (instead of "Paid at Door")
+- And I can complete their check-in
+- And NO real-time updates or webhooks are needed
 
-**Technical Note**: Implementation approach is TBD. Options include:
-- WebSocket connection from backend
-- Server-Sent Events (SSE)
-- API polling every X seconds
-- Webhook + push notification
+**Technical Note**: This is an asynchronous workflow, not real-time. Staff manually search for the attendee again after they complete payment. No Server-Sent Events, WebSockets, or polling required.
 
-**Open Question for Implementation Team**: What is the most reliable method for real-time payment detection in kiosk mode (session token, no user login)?
+**Rationale**: QR code payments take time (30-60 seconds). Staff shouldn't be blocked waiting. Attendee completes payment independently, then returns to check-in line when done.
 
-### Story 6: Covid Test Status (UI-Only Tracking)
+### Story 6: Covid Test Status (UI-Only Tracking, Always Shown)
 **As a** check-in staff member
 **I want to** track covid test completion without database overhead
 **So that** the workflow is clear without permanent storage requirements
@@ -166,10 +203,11 @@ The current check-in system requires staff to click a check-in button, wait for 
 - And covid test status is NOT stored in database
 - And page refresh clears covid test status
 - And attendee can still be checked in (database only tracks check-in)
+- And "Covid Test Complete" button is ALWAYS shown (not configurable)
 
-**Rationale**: Covid test completion is a workflow state, not a business requirement. No historical tracking is needed.
+**Rationale**: Covid test completion is a workflow state, not a business requirement. No historical tracking is needed. Always shown per user requirement.
 
-### Story 7: Cash Payment Recording
+### Story 7: Cash Payment Recording (Including $0 Payments)
 **As a** check-in staff member
 **I want to** record cash payments with proper documentation
 **So that** financial records are accurate and auditable
@@ -178,39 +216,50 @@ The current check-in system requires staff to click a check-in button, wait for 
 - Given an RSVP attendee paying cash at the door
 - When I click "Paid at Door" and select "Cash Payment"
 - Then a modal opens with:
-  - Amount input field (currency format, e.g., $20.00)
+  - Ticket type selector dropdown (required)
+  - Amount input field (currency format, allows $0.00)
   - Payment method: Cash (pre-selected, read-only)
   - Optional notes field (for special circumstances)
   - "Record Payment" button
-- And when I click "Record Payment"
-- Then payment record is created in database
-- And payment is linked to attendee and event
-- And payment timestamp is recorded
-- And staff member ID is recorded (audit trail)
+- And when I select ticket type
+- And I enter amount (including $0.00 for free tickets)
+- And I optionally add notes
+- And I click "Record Payment"
+- Then payment record is created in database with:
+  - Ticket type selected
+  - Amount entered ($0.00 or any amount)
+  - Payment method: Cash
+  - RecordedByStaffId (staff member who recorded)
+  - Timestamp
+  - Notes (if provided)
 - And modal closes
 - And button changes to "Covid Test Complete"
 
-**Rationale**: Cash payments must be tracked for financial reconciliation and refund processing.
+**Rationale**: Cash payments (including $0 free tickets) must be tracked for financial reconciliation and refund processing. Staff attribution creates audit trail.
 
-### Story 8: QR Code Generation
+### Story 8: QR Code Generation (Links to Existing Ticket Sales Page)
 **As an** event organizer
-**I want to** generate unique QR codes for door payments
-**So that** attendees can complete payments on their own devices
+**I want to** generate QR codes that link to existing ticket sales page
+**So that** attendees can complete payments using the normal ticket purchase flow
 
 **Acceptance Criteria:**
 - Given a social event attendee needs to pay at the door
 - When check-in staff selects "Digital Payment"
 - Then a QR code is generated containing:
-  - URL: `https://witchcityrope.com/events/{eventId}/purchase?attendeeId={attendeeId}&returnUrl=checkin`
-  - Unique attendee identifier
-  - Event identifier
-  - Return URL parameter (optional)
+  - URL: `https://witchcityrope.com/events/{eventId}/tickets`
+  - Standard link to existing ticket sales page
+  - NO special payment processor integration
+  - NO unique attendee parameters
 - And QR code is displayed prominently on screen
 - And attendee can scan with any QR code reader
-- And payment URL works on mobile devices
-- And payment is linked to correct attendee automatically
+- And attendee is taken to EXISTING ticket sales page
+- And attendee logs in (or signs up)
+- And attendee completes NORMAL ticket purchase process
+- And attendee receives email receipt per normal process
+- And payment is processed via existing PayPal integration
+- And staff can close modal and continue checking in others
 
-**Rationale**: QR codes provide contactless payment option and link payments to correct attendee records.
+**Rationale**: Reuse existing ticket purchase flow. QR code is just a convenient way to open the website on attendee's phone. No special payment integrations needed.
 
 ### Story 9: Payment Status Differentiation
 **As a** check-in staff member
@@ -232,7 +281,72 @@ The current check-in system requires staff to click a check-in button, wait for 
 
 **Rationale**: Clear status indicators prevent confusion about which workflow to follow.
 
+### Story 10: Multi-Session Ticket Support
+**As a** check-in staff member
+**I want to** allow door payments for multi-session tickets
+**So that** attendees can purchase tickets for events with multiple sessions
+
+**Acceptance Criteria:**
+- Given an event has multiple sessions
+- When an attendee selects "Cash Payment" at door
+- Then ticket type selector includes multi-session options
+- And attendee can purchase multi-session tickets same as online
+- And when attendee uses QR code
+- Then normal ticket sales page shows multi-session options
+- And attendee can select sessions same as online purchase
+- And check-in process is identical to single-session tickets
+
+**Rationale**: Door payments should support all ticket types available online, including multi-session tickets.
+
+## Answers to Open Questions
+
+### 1. Payment Processor Integration
+**Answer**: None - QR code links to existing ticket sales page. Reuse existing PayPal integration. No special payment processor needed.
+
+### 2. Covid Test Button Configuration
+**Answer**: "Covid Test Complete" button is ALWAYS shown. Not configurable per event. This is a consistent workflow step.
+
+### 3. $0 Payments
+**Answer**: Allowed. Cash payment modal accepts $0.00 for free tickets or comped entries.
+
+### 4. Payment Logging
+**Answer**:
+- **Cash payments**: Logged with RecordedByStaffId, amount, notes, timestamp, ticket type
+- **QR code payments**: Standard online purchases (logged per normal ticket purchase process, no special logging)
+
+### 5. QR Code Window Behavior
+**Answer**: Non-blocking. Staff shows QR code, attendee scans and starts payment, staff closes modal and continues checking in other people. Later staff searches for attendee again and they'll have a ticket.
+
+### 6. Refunds
+**Answer**: Use existing refund process. Not part of this feature. Door payments follow same refund policy as online purchases.
+
+### 7. Partial Payments
+**Answer**: No. Full payment required (or $0 for free).
+
+### 8. Multi-Session Tickets
+**Answer**: Yes. Same as online purchase. Cash payment modal has ticket type selector that includes multi-session options. QR code goes to normal ticket sales page which supports multi-session selection.
+
+### 9. Email Receipt
+**Answer**: Yes. QR code payments go through normal ticket purchase flow, which sends email receipts automatically. Cash payments follow existing cash payment receipt process.
+
 ## Business Rules
+
+### 🚨 CRITICAL: Door Payment = Ticket Purchase
+
+**DOOR PAYMENT CREATES A TICKET PURCHASE, NOT JUST A PAYMENT RECORD**
+
+When staff clicks "Paid at Door" and processes payment (cash or QR code):
+1. **A ticket purchase record is created** (same as online ticket purchase)
+2. **Attendee status changes from "RSVP Only" to "Ticket Purchased"**
+3. **Payment is linked to the ticket purchase record**
+4. **Attendee now has a ticket** (just purchased at door instead of online)
+5. **"Paid at Door" button disappears** (they already have a ticket)
+
+**Button Visibility Rules:**
+- "Paid at Door" button **ONLY appears** if attendee does NOT have a ticket
+- If attendee already purchased ticket online → NO "Paid at Door" button
+- If attendee paid at door → NO "Paid at Door" button (already has ticket)
+- Button visibility based on ticket purchase status, not payment status
 
 ### 🚨 CRITICAL: Payment Requirements by Event Type
 
@@ -241,19 +355,21 @@ The current check-in system requires staff to click a check-in button, wait for 
 1. **Workshops/Classes**: Payment ALWAYS REQUIRED (ticket purchase mandatory)
    - Attendees cannot RSVP without buying a ticket
    - All workshop attendees have already paid
-   - "Paid at Door" option NEVER appears for workshops
+   - "Paid at Door" option NEVER appears for workshops (ticket required for RSVP)
 
 2. **Social Events**: Payment is OPTIONAL
-   - Attendees can RSVP for FREE (no payment required)
+   - Attendees can RSVP for FREE (no payment or ticket required)
    - Attendees can check in with just an RSVP (no payment needed)
    - "Paid at Door" button provides OPTIONAL ticket purchase opportunity
    - Attendees are NOT required to pay to attend
    - Payment is only an option, not a requirement
+   - **Door payment creates a ticket** (not just a payment)
 
 **Why "Paid at Door" exists for social events:**
 - Some attendees may want to purchase a ticket to support the organization
 - Some attendees may want official proof of payment (receipt/ticket)
 - Provides flexibility for different attendee preferences
+- **Door purchase creates same ticket as online purchase**
 - But payment is NEVER mandatory for social event attendance
 
 ### Workflow Rules
@@ -269,9 +385,11 @@ The current check-in system requires staff to click a check-in button, wait for 
 ### Data Storage Rules
 1. **DO Store**:
    - Check-in records (attendeeId, eventId, timestamp, staffId)
-   - Payment records (amount, method, timestamp, staffId, attendeeId, eventId)
-   - Payment method (Cash or Digital)
+   - Payment records (amount, method, timestamp, staffId, attendeeId, eventId, ticketTypeId)
+   - Payment method (Cash or PayPal)
    - Optional payment notes
+   - RecordedByStaffId (for cash payments)
+   - Ticket type selected (for cash payments)
 
 2. **DO NOT Store**:
    - Covid test completion status (UI-only)
@@ -280,22 +398,30 @@ The current check-in system requires staff to click a check-in button, wait for 
 
 ### Payment Processing Rules
 1. **Cash Payments**:
-   - Require manual entry of amount
+   - Require ticket type selection
+   - Require manual entry of amount (allows $0.00)
+   - Allow optional notes
    - Default payment method to "Cash"
    - Record payment immediately upon "Record Payment" click
+   - Record staff member ID (RecordedByStaffId)
    - Link payment to attendee and event
+   - Create ticket purchase record
 
 2. **Digital Payments (QR Code)**:
+   - Link to existing ticket sales page: `https://witchcityrope.com/events/{eventId}/tickets`
    - Must go through standard PayPal ticket purchase flow
    - Must require user sign-in (links payment to account)
-   - Must update kiosk interface automatically
-   - Must link payment to correct attendee
+   - Staff closes QR modal and continues checking in others (non-blocking)
+   - NO real-time updates to kiosk interface
+   - Later, staff searches for attendee again and they'll have a ticket
+   - Follows normal ticket purchase process (email receipt, payment logging, etc.)
+   - Create ticket purchase record (via normal purchase flow)
 
 3. **Payment Security**:
    - NO credit card storage in WitchCityRope database
    - All digital payments via PayPal integration
    - Cash payments recorded as transaction records only
-   - Staff member ID required for all payment records (audit trail)
+   - Staff member ID required for all cash payment records (audit trail)
 
 ### Capacity and Validation Rules
 1. **Ticket Validation**:
@@ -311,7 +437,8 @@ The current check-in system requires staff to click a check-in button, wait for 
 
 ### Modal Usage Rules
 1. **Modal Required**:
-   - Cash payment amount entry
+   - Cash payment (ticket type selection, amount entry, notes)
+   - QR code display
    - Walk-in attendee creation
    - Error messages requiring acknowledgment
 
@@ -323,29 +450,48 @@ The current check-in system requires staff to click a check-in button, wait for 
 
 ### QR Code Rules
 1. **QR Code Content**:
-   - Must contain full URL with eventId and attendeeId
-   - Must be unique per attendee per event
+   - Must contain full URL to existing ticket sales page
+   - Format: `https://witchcityrope.com/events/{eventId}/tickets`
    - Must work with standard QR code readers
-   - Must redirect to mobile-friendly payment page
+   - Must redirect to mobile-friendly ticket sales page
 
-2. **QR Code Security**:
-   - URL parameters signed/validated to prevent tampering
-   - AttendeeId validated against event registration
-   - Payment completion requires user authentication
-   - Expired QR codes handled gracefully
+2. **QR Code Workflow**:
+   - Staff displays QR code modal
+   - Attendee scans with phone
+   - Attendee taken to existing ticket sales page
+   - Attendee logs in or signs up
+   - Attendee completes normal ticket purchase
+   - Staff closes modal (non-blocking)
+   - Staff continues checking in other people
+   - Later, staff searches for attendee again
+   - Attendee now has ticket, shows "Check In" button
 
 ## Data Structure Requirements
 
-### Payment Record Data
-- **paymentId**: string (UUID, required)
+### 🚨 CRITICAL: Door Payment Creates Ticket Purchase
+
+**Door payments MUST create ticket purchase records, not standalone payments.**
+
+### Ticket Purchase Record (Created by Door Payment)
+- **ticketPurchaseId**: string (UUID, required, primary key)
 - **eventId**: string (UUID, required, foreign key)
-- **attendeeId**: string (UUID, required, foreign key)
-- **amount**: decimal (required, minimum 0.01, two decimal places)
+- **userId**: string (UUID, required, foreign key - attendee who purchased)
+- **ticketTypeId**: string (UUID, required, foreign key - which ticket type purchased)
+- **quantity**: integer (required, default: 1)
+- **amount**: decimal (required, minimum 0.00, two decimal places, allows $0.00)
 - **paymentMethod**: string (required, enum: Cash, PayPal)
+- **purchaseSource**: string (required, enum: Online, DoorCash, DoorQR)
 - **transactionTimestamp**: DateTime (required, ISO 8601, UTC)
-- **recordedByStaffId**: string (UUID, required, foreign key to User)
-- **notes**: string (optional, 500 characters max)
-- **paymentSource**: string (required, enum: DoorCash, DoorDigital, Online)
+- **recordedByStaffId**: string (UUID, optional - only for door purchases, foreign key to User)
+- **notes**: string (optional, 500 characters max - only for cash payments)
+- **isPaymentCompleted**: boolean (required, default: true for door purchases)
+
+**Key Differences from Online Purchase:**
+- `recordedByStaffId` field populated (staff member who processed)
+- `purchaseSource` indicates door purchase method (DoorCash or DoorQR)
+- `notes` field available for cash payment tracking
+- `amount` can be $0.00 for free tickets
+- Otherwise identical to online ticket purchase
 
 ### Check-In Record Data (Existing)
 - **checkInId**: string (UUID, required)
@@ -353,8 +499,8 @@ The current check-in system requires staff to click a check-in button, wait for 
 - **attendeeId**: string (UUID, required)
 - **checkInTimestamp**: DateTime (required, ISO 8601, UTC)
 - **staffId**: string (UUID, required)
-- **hasTicket**: boolean (required, indicates pre-paid vs door payment)
-- **paymentId**: string (UUID, optional, foreign key if door payment)
+- **hasTicket**: boolean (required, true if ticket purchased before check-in)
+- **ticketPurchaseId**: string (UUID, optional, foreign key to ticket purchase)
 
 ### UI State Data (Not Stored in Database)
 - **covidTestComplete**: boolean (per attendee, React state)
@@ -368,8 +514,8 @@ The current check-in system requires staff to click a check-in button, wait for 
 - **Integration**: Must integrate with existing check-in system
 - **Session Token Auth**: Kiosk mode with session tokens (no user login)
 - **Payment Integration**: Must use existing PayPal integration for digital payments
-- **Real-Time Updates**: Method for payment detection TBD (technical research needed)
-- **Mobile Compatibility**: QR code payment flow must work on all mobile devices
+- **NO Real-Time Updates**: QR code payments are asynchronous, staff manually refresh/search
+- **Mobile Compatibility**: QR code links to existing mobile-optimized ticket sales page
 
 ### Business Constraints
 - **No Modal for Simple Cases**: Workshop and pre-paid check-ins must be modal-free
@@ -381,11 +527,12 @@ The current check-in system requires staff to click a check-in button, wait for 
 ### Assumptions
 - Workshop attendees always have pre-purchased tickets (no door sales)
 - Social event attendees may RSVP without payment
-- Staff devices have reliable internet connectivity for real-time updates
+- Staff devices have reliable internet connectivity
 - Staff understand difference between workshops and social events
 - Attendees paying via QR code have smartphones
-- PayPal payment page is mobile-optimized
-- Covid test checking is current policy (may change)
+- Existing ticket sales page is mobile-optimized
+- Covid test checking is current policy (always shown, not configurable)
+- QR code payments take 30-60 seconds (staff closes modal and continues)
 
 ## Security & Privacy Requirements
 
@@ -394,13 +541,13 @@ The current check-in system requires staff to click a check-in button, wait for 
 - **PayPal Integration**: All digital payments processed via PayPal
 - **Cash Records Only**: Cash payments recorded as transaction records only
 - **Audit Logging**: All payment records include staff member ID and timestamp
-- **QR Code Security**: URL parameters validated to prevent payment tampering
+- **Reuse Existing Flow**: QR code payments use existing secure ticket purchase flow
 
 ### Check-In Security
 - **Session Token Auth**: Kiosk access controlled via time-limited session tokens
 - **Staff Attribution**: All check-in actions linked to staff member
 - **Capacity Validation**: Cannot override capacity without proper authorization
-- **Payment Verification**: Cannot check in without payment confirmation
+- **Payment Verification**: Cannot check in without payment confirmation (workshops)
 
 ### Data Privacy
 - **Minimal PII**: Only necessary attendee information displayed
@@ -430,11 +577,11 @@ The current check-in system requires staff to click a check-in button, wait for 
 
 | User Type | Impact | Priority | Changes |
 |-----------|--------|----------|---------|
-| Check-In Staff | High positive - 40% faster check-ins, simpler workflow | Critical | 2-click check-in for workshops, clear button progression |
+| Check-In Staff | High positive - 40% faster check-ins, simpler workflow | Critical | 2-click check-in for workshops, clear button progression, non-blocking QR |
 | Event Organizers | Medium positive - faster processing, better door sales tracking | High | More attendees processed per minute, complete payment records |
 | Workshop Attendees | High positive - faster arrival processing | High | Reduced wait times during check-in |
 | Social Event Attendees (Pre-Paid) | High positive - same fast experience as workshops | High | Reduced wait times during check-in |
-| Social Event Attendees (RSVP) | Medium - flexible door payment options | Medium | Can pay cash or QR code at door |
+| Social Event Attendees (RSVP) | Medium - flexible door payment options | Medium | Can pay cash or QR code at door (optional) |
 | Admins | Low positive - cleaner payment reconciliation | Low | Complete payment audit trail |
 
 ## Examples/Scenarios
@@ -467,29 +614,31 @@ The current check-in system requires staff to click a check-in button, wait for 
 
 **Verification**: Check-in record shows hasTicket = true
 
-### Scenario 3: Social Event - Cash Payment at Door
+### Scenario 3: Social Event - Cash Payment at Door (Including $0)
 **Setup**: Community Rope Jam, attendee RSVP'd but didn't buy ticket
 
 1. Staff opens check-in interface
 2. Attendee "Sarah Johnson" shows "RSVP Only" yellow badge
 3. Staff clicks "Paid at Door" in Sarah's row
 4. Staff selects "Cash Payment" option
-5. Modal opens with amount input
-6. Staff enters "$20.00"
-7. Staff clicks "Record Payment"
-8. Modal closes
-9. Button changes to "Covid Test Complete"
-10. Staff clicks "Covid Test Complete"
-11. Button changes to "Check In"
-12. Staff clicks "Check In"
-13. Row updates to "✓ Checked In"
-14. **Total time: 15 seconds (5 clicks)**
+5. Modal opens with ticket type selector, amount input, notes field
+6. Staff selects ticket type: "General Admission"
+7. Staff enters "$20.00" (or "$0.00" for free ticket)
+8. Staff optionally adds notes (e.g., "Sliding scale payment")
+9. Staff clicks "Record Payment"
+10. Modal closes
+11. Button changes to "Covid Test Complete"
+12. Staff clicks "Covid Test Complete"
+13. Button changes to "Check In"
+14. Staff clicks "Check In"
+15. Row updates to "✓ Checked In"
+16. **Total time: 20 seconds (5 clicks + data entry)**
 
 **Verification**:
-- Payment record created (amount: $20.00, method: Cash, staff ID, timestamp)
-- Check-in record created with hasTicket = false, paymentId linked
+- Ticket purchase record created (ticketTypeId, amount: $20.00 or $0.00, method: Cash, purchaseSource: DoorCash, recordedByStaffId, timestamp, notes)
+- Check-in record created with hasTicket = true, ticketPurchaseId linked
 
-### Scenario 4: Social Event - QR Code Payment
+### Scenario 4: Social Event - QR Code Payment (Async Workflow)
 **Setup**: Community Rope Jam, attendee RSVP'd, prefers digital payment
 
 1. Staff opens check-in interface
@@ -497,23 +646,29 @@ The current check-in system requires staff to click a check-in button, wait for 
 3. Mike arrives at check-in
 4. Staff clicks "Paid at Door" in Mike's row
 5. Staff selects "Digital Payment" option
-6. QR code displays on kiosk screen
+6. QR code modal displays with URL: `https://witchcityrope.com/events/123/tickets`
 7. Mike scans QR code with phone
-8. Mike's phone opens: `witchcityrope.com/events/123/purchase?attendeeId=456`
-9. Mike signs in on his phone
-10. Mike completes PayPal payment ($20.00)
-11. **Kiosk interface auto-updates** (payment detected)
-12. Button changes to "Covid Test Complete"
-13. Staff clicks "Covid Test Complete"
-14. Button changes to "Check In"
-15. Staff clicks "Check In"
-16. Row updates to "✓ Checked In"
-17. **Total time: 45 seconds (4 clicks by staff, payment by attendee)**
+8. Mike's phone opens WitchCityRope website ticket sales page
+9. **Staff closes QR code modal (non-blocking)**
+10. **Staff continues checking in other attendees**
+11. Mike logs in on his phone
+12. Mike selects ticket type on phone
+13. Mike completes PayPal payment ($20.00) on phone
+14. Mike receives email receipt
+15. **Later (1-2 minutes), Mike returns to check-in line**
+16. Staff searches for "Mike Chen" again
+17. Mike now shows "Ticket Purchased" green badge (ticket purchase completed)
+18. Staff clicks "Covid Test Complete"
+19. Button changes to "Check In"
+20. Staff clicks "Check In"
+21. Row updates to "✓ Checked In"
+22. **Total time: 2-3 minutes total, but non-blocking for staff**
 
 **Verification**:
-- Payment record created (amount: $20.00, method: PayPal, timestamp)
-- Check-in record created with paymentId linked
-- Real-time update occurred within 5 seconds of payment
+- Ticket purchase record created via normal online purchase flow (ticketTypeId, amount: $20.00, method: PayPal, purchaseSource: Online)
+- Email receipt sent automatically
+- Check-in record created with hasTicket = true, ticketPurchaseId linked
+- NO real-time updates occurred - staff manually searched again
 
 ### Scenario 5: Page Refresh Behavior
 **Setup**: Staff accidentally refreshes browser during check-in
@@ -559,55 +714,22 @@ The current check-in system requires staff to click a check-in button, wait for 
 
 **Verification**: Door payment blocked, existing check-ins unaffected
 
-## Open Questions
+### Scenario 8: Multi-Session Ticket Door Purchase
+**Setup**: Workshop series with 3 sessions, attendee wants to buy all 3 at door
 
-### Technical Implementation Questions
-1. **Real-Time Payment Detection**: What is the best technology for push notifications to kiosk?
-   - Options: WebSocket, Server-Sent Events (SSE), API polling, webhook + push
-   - Requirement: Must work with session token auth (no user login)
-   - Requirement: Must update specific attendee row when their payment completes
+1. Staff opens check-in interface
+2. Attendee "Taylor Swift" shows "RSVP Only" for Session 1
+3. Staff clicks "Paid at Door"
+4. Staff selects "Cash Payment"
+5. Modal opens with ticket type selector
+6. Ticket types include: "Single Session ($20)", "3-Session Pass ($50)"
+7. Staff selects "3-Session Pass ($50)"
+8. Staff enters "$50.00"
+9. Staff clicks "Record Payment"
+10. Ticket purchase created for all 3 sessions
+11. Taylor can now check in to all 3 sessions with same ticket
 
-2. **QR Code Library**: Should we use a specific React QR code library?
-   - Recommendation needed from frontend team
-   - Must generate clear, scannable codes
-   - Must support URL encoding
-
-3. **Payment Flow Integration**: Should QR code payment go through same PayPal integration as normal tickets?
-   - Requirement: Must link payment to correct attendee
-   - Requirement: Must update check-in interface after completion
-   - Requirement: Must handle failures gracefully
-
-4. **Timeout Handling**: What if QR code payment takes too long?
-   - Should staff have manual refresh button?
-   - Should system show "Waiting for payment..." indicator?
-   - What is acceptable timeout period (2 minutes? 5 minutes?)
-
-5. **Error Handling**: What if QR code payment fails?
-   - Should attendee retry on their phone?
-   - Should staff offer cash payment alternative?
-   - Should failed attempts be logged?
-
-### Business Process Questions
-6. **Covid Test Policy**: Is "Covid Test Complete" button a permanent requirement?
-   - May change based on health policies
-   - Should this be configurable per event?
-   - Should it be removable entirely?
-
-7. **Walk-In Button**: User notes mentioned "hide walk-in button" - is walk-in registration still supported?
-   - If yes, how does it integrate with new workflow?
-   - If no, should walk-in functionality be removed?
-
-8. **Payment Amount**: For social events, is ticket price standardized or variable?
-   - If variable, how does staff know correct amount?
-   - Should price be displayed in check-in interface?
-
-9. **Refund Window**: If someone pays at door then cancels, are refunds allowed?
-   - Same refund policy as online purchases?
-   - Different policy for door payments?
-
-10. **Multiple Sessions**: How does door payment work for multi-session events?
-    - Can attendee pay for partial sessions at door?
-    - Does QR code specify which sessions?
+**Verification**: Multi-session ticket purchase recorded, all sessions linked to ticket
 
 ## Success Criteria
 
@@ -616,7 +738,7 @@ The current check-in system requires staff to click a check-in button, wait for 
 - ✅ Staff can process 20 attendees per minute (up from 12)
 - ✅ Zero payment tracking errors in first month
 - ✅ 100% of payments correctly attributed to staff members
-- ✅ Real-time payment updates within 5 seconds
+- ✅ QR code workflow non-blocking (staff closes modal and continues)
 
 ### User Experience Metrics
 - ✅ Staff training time reduced from 15 minutes to 5 minutes
@@ -629,13 +751,13 @@ The current check-in system requires staff to click a check-in button, wait for 
 - ✅ Zero check-in errors due to workflow confusion
 - ✅ 100% button state transitions work correctly
 - ✅ Payment records match cash collected (100% accuracy)
-- ✅ Real-time updates functional in 95% of cases
 - ✅ System handles capacity limits correctly (100% compliance)
+- ✅ QR code links to correct ticket sales page (100% accuracy)
 
 ### Business Metrics
 - ✅ Door payment adoption rate > 50% for RSVP attendees
 - ✅ Cash payment processing time < 30 seconds
-- ✅ Digital payment (QR code) completion time < 60 seconds
+- ✅ Digital payment (QR code) is non-blocking for staff
 - ✅ Event capacity compliance maintained (zero overages)
 - ✅ Payment reconciliation accuracy 100%
 
@@ -644,44 +766,45 @@ The current check-in system requires staff to click a check-in button, wait for 
 - [x] All user roles addressed (staff, organizers, attendees)
 - [x] Clear acceptance criteria for each story
 - [x] Business value clearly defined (40% efficiency improvement)
-- [x] Edge cases considered (page refresh, capacity limits, timeouts)
+- [x] Edge cases considered (page refresh, capacity limits, $0 payments)
 - [x] Security requirements documented (payment security, audit trails)
 - [x] Compliance requirements checked (PCI, financial, platform)
 - [x] Performance expectations set (3 seconds per check-in)
-- [x] Mobile experience considered (QR code payment flow)
-- [x] Examples provided (7 detailed scenarios)
+- [x] Mobile experience considered (QR code links to mobile-optimized page)
+- [x] Examples provided (8 detailed scenarios including async workflow)
 - [x] Success metrics defined (measurable targets)
 - [x] Data structures specified (payment records, check-in records)
 - [x] Business rules documented (workflow, storage, payment)
-- [x] Open questions identified (10 technical/business questions)
+- [x] Open questions answered (10 answers provided)
 - [x] User impact analysis completed (all user types)
 - [x] Constraints documented (technical, business, assumptions)
 - [x] Modal usage rules defined (when required vs not required)
-- [x] Real-time update requirements specified
+- [x] Async workflow requirements specified (non-blocking QR code)
 - [x] Error handling scenarios included
-- [x] Integration points identified (existing check-in, PayPal)
+- [x] Integration points identified (existing check-in, PayPal, ticket sales)
+- [x] Simplification emphasized (reuse existing flows, no new payment integrations)
 
 ## Next Steps
 
 ### For Product Manager
-1. **Review Open Questions**: Answer 10 technical and business questions
+1. **Review Simplified Approach**: Confirm async QR workflow meets needs
 2. **Validate Workflows**: Confirm button progression matches operational needs
-3. **Approve Real-Time Strategy**: Choose technology for payment detection
-4. **Confirm Covid Test Policy**: Is this button permanent or configurable?
-5. **Clarify Walk-In Support**: Should walk-in functionality be retained?
+3. **Approve Reuse Strategy**: Confirm reusing existing ticket sales page is acceptable
+4. **Confirm $0 Payments**: Validate that $0.00 cash payments are allowed
+5. **Review Multi-Session Support**: Confirm multi-session tickets can be purchased at door
 
 ### For Implementation Team
-1. **Technical Design**: Create technical design based on PM answers
+1. **Technical Design**: Create technical design based on simplified approach
 2. **UI Design**: Create wireframes for new button states and payment modals
-3. **API Design**: Design endpoints for payment recording and real-time updates
-4. **QR Code Research**: Select and test QR code library
-5. **Integration Planning**: Map integration points with existing check-in system
+3. **API Design**: Design endpoints for cash payment recording only (QR uses existing)
+4. **QR Code Research**: Select and test QR code library for modal display
+5. **Integration Planning**: Map integration points with existing check-in system and ticket sales page
 
 ### For Test Team
 1. **Test Plan**: Create comprehensive test plan for all workflows
 2. **Test Data**: Prepare test scenarios for workshops vs social events
 3. **Performance Tests**: Measure check-in time improvements
-4. **Load Tests**: Verify real-time updates under high volume
+4. **Async Tests**: Verify QR code workflow is non-blocking
 5. **Security Tests**: Validate payment security and audit trails
 
 ---
@@ -689,7 +812,9 @@ The current check-in system requires staff to click a check-in button, wait for 
 ## Document Validation
 
 **Created By**: Business Requirements Agent
-**Review Status**: Draft - Awaiting Product Manager Review
+**Review Status**: Draft - Revised with Simplified Approach - Awaiting Product Manager Review
+**Last Updated**: 2025-11-04
+**Version**: 2.0
 **Target Audience**: Product Manager, UI Designer, Backend Developer, React Developer, Test Developer
 **Related Documents**:
 - `/docs/functional-areas/events/new-work/2025-08-24-events-management/requirements/business-requirements.md`
@@ -700,3 +825,15 @@ The current check-in system requires staff to click a check-in button, wait for 
 - [ ] Product Manager (Chad Bennett)
 - [ ] Event Organizer Representative
 - [ ] Check-In Staff Representative
+
+**Key Changes in Version 2.0**:
+- ✅ Removed real-time payment detection (Story 5 rewritten)
+- ✅ Updated QR code to link to existing ticket sales page
+- ✅ Emphasized reuse of existing payment flows
+- ✅ Added $0.00 payment support
+- ✅ Made covid test always shown (not configurable)
+- ✅ Clarified async QR workflow (non-blocking)
+- ✅ Added answers to all open questions
+- ✅ Added multi-session ticket support
+- ✅ Added critical simplification note at top
+- ✅ Removed all mention of special payment processor integrations

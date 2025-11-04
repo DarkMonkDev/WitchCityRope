@@ -16,13 +16,7 @@ The default `docker-compose.yml` uses `target: ${BUILD_TARGET:-final}` which bui
 
 **ALWAYS use development build commands:**
 
-```bash
-# Option 1: Use docker-compose with dev override
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-
-# Option 2: Use the helper script (RECOMMENDED)
-./dev.sh
-```
+Use **container-restart skill** for correct startup procedure with health checks and compilation validation.
 
 ### ❌ WRONG Commands
 
@@ -63,12 +57,11 @@ The `./dev.sh` script provides an interactive menu:
 
 ### Manual Commands
 
-If not using the dev script, always include both compose files:
+**For container startup/restart**: Use **container-restart skill** for correct procedure with health checks and compilation validation.
+
+**For other operations**, always include both compose files:
 
 ```bash
-# Start services
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-
 # View logs
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml logs -f
 
@@ -102,26 +95,12 @@ docker-compose exec postgres psql -U postgres -d witchcityrope_db
 #### Quick Restart
 When changes aren't being picked up:
 
-```bash
-# Option 1: Use the restart script
-./restart-web.sh
-
-# Option 2: Manual restart
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml restart web
-```
+Use **container-restart skill** for correct restart procedure with health checks and compilation validation.
 
 #### Full Rebuild
 For major changes:
 
-```bash
-# Option 1: Use dev.sh menu option 7
-./dev.sh
-# Select option 7: Rebuild and restart
-
-# Option 2: Manual rebuild
-docker-compose down
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
-```
+Use **container-restart skill** for correct rebuild and restart procedure with health checks and compilation validation.
 
 ## Container Architecture
 
@@ -198,9 +177,7 @@ docker exec witchcity-postgres psql -U postgres -d witchcityrope_db -c "SELECT t
 
 **FIRST ACTION: Always restart containers before assuming code issues**
 
-```bash
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml restart web
-```
+Use **container-restart skill** for correct restart procedure with health checks and compilation validation.
 
 ### Build Failures
 
@@ -210,11 +187,7 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml restart web
    ```
 
 2. **Clear Docker cache and rebuild:**
-   ```bash
-   docker-compose down
-   docker system prune -f
-   docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
-   ```
+   Use **container-restart skill** for correct rebuild procedure with health checks and compilation validation.
 
 ## Container Health Monitoring
 

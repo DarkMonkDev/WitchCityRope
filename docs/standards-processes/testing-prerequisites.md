@@ -100,12 +100,7 @@ PGPASSWORD=WitchCity2024! psql -h localhost -p 5433 -U postgres -d witchcityrope
 
 #### Standard Fix: Full Restart
 ```bash
-# Preferred method - handles most issues
-./dev.sh
-
-# Alternative method
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+# Use container-restart skill for correct restart procedure with health checks and compilation validation
 ```
 
 #### Nuclear Option: Complete Reset

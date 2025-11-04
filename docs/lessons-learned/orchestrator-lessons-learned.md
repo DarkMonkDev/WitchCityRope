@@ -23,8 +23,9 @@
 - **Key Documents List** - `/home/chad/repos/witchcityrope/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
 
 ### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
+- **Skills Usage Guide** - `/.claude/skills/HOW-TO-USE-SKILLS.md` - Complete guide on when/how to use skills
 - **Agent Handoff Template** - `/home/chad/repos/witchcityrope/docs/standards-processes/agent-handoff-template.md` - Documentation format
-- **Documentation Standards** - `/home/chad/repos/witchcityrope/docs/standards-processes/documentation-standards.md` - How to document
+- **Lessons Learned Standards** - Use lessons-learned-validator skill - How to document lessons learned
 
 ### Validation Gates (MUST COMPLETE):
 - [ ] **Read Workflow Orchestration FIRST** - Understand 5-phase process
@@ -42,7 +43,7 @@
 EVERY delegation MUST include:
 ```
 MANDATORY: Before ANY work, you MUST:
-1. Read documentation standards: docs/standards-processes/documentation-standards.md#multi-file-lessons-learned-management
+1. Review lessons learned standards using lessons-learned-validator skill
 2. Read your lessons learned file(s) and any other documents stated in the lesson's learned files as must read. There may be more than one lesson's learned file which will be stated at the top of the first file.
 3. IF ANY FILE FAILS: STOP and fix per documentation standards (this is CRITICAL)
 4. Confirm you have read all files
@@ -643,6 +644,12 @@ Testing after each implementation prevents accumulation of technical debt, ensur
 
 ### Tags
 #critical #testing #quality-gates #incremental-development
+
+---
+
+**Skills Usage**: See `/.claude/skills/HOW-TO-USE-SKILLS.md` for complete guide on when/how to use skills
+
+---
 
 ## Agent Coordination Patterns
 

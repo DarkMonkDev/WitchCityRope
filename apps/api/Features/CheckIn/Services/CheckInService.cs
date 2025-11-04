@@ -97,6 +97,7 @@ public class CheckInService : ICheckInService
                 {
                     ea.Id,
                     ea.UserId,
+                    ea.EventId,
                     SceneName = ea.User.SceneName ?? string.Empty,
                     Email = ea.User.Email ?? string.Empty,
                     RegistrationStatus = ea.RegistrationStatus, // String from database
@@ -109,7 +110,12 @@ public class CheckInService : ICheckInService
                     ea.AccessibilityNeeds,
                     Pronouns = ea.User.Pronouns,
                     ea.HasCompletedWaiver,
-                    ea.WaitlistPosition
+                    ea.WaitlistPosition,
+                    // Check if user has a completed ticket purchase for this event
+                    HasTicket = _context.TicketPurchases
+                        .Any(tp => tp.UserId == ea.UserId &&
+                                   tp.TicketType!.EventId == ea.EventId &&
+                                   tp.PaymentStatus == "Completed")
                 })
                 .ToListAsync(cancellationToken);
 
@@ -128,7 +134,11 @@ public class CheckInService : ICheckInService
                 AccessibilityNeeds = ea.AccessibilityNeeds,
                 Pronouns = ea.Pronouns,
                 HasCompletedWaiver = ea.HasCompletedWaiver,
-                WaitlistPosition = ea.WaitlistPosition
+                WaitlistPosition = ea.WaitlistPosition,
+                // Set payment status based on ticket purchase
+                // "rsvp" = No ticket, show "Paid at Door" button
+                // "paid" = Has ticket, show "Covid Test Complete" button
+                PaymentStatus = ea.HasTicket ? "paid" : "rsvp"
             }).ToList();
 
             var response = new CheckInAttendeesResponse
@@ -605,6 +615,121 @@ public class CheckInService : ICheckInService
         _cache.Set(cacheKey, capacity, TimeSpan.FromMinutes(2));
 
         return capacity;
+    }
+
+    /// <summary>
+    /// Record a door cash payment for an attendee
+    /// Creates a TicketPurchase record with staff attribution
+    /// </summary>
+    public async Task<Result<CashPaymentResponse>> RecordCashPaymentAsync(
+        Guid eventId,
+        CashPaymentRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation(
+                "Recording cash payment for event {EventId}, attendee {AttendeeId}, amount {Amount}",
+                eventId, request.AttendeeId, request.Amount);
+
+            // Validate event exists
+            var eventExists = await _context.Events
+                .AsNoTracking()
+                .AnyAsync(e => e.Id == eventId, cancellationToken);
+
+            if (!eventExists)
+            {
+                return Result<CashPaymentResponse>.Failure("Event not found");
+            }
+
+            // Validate attendee exists and is registered for this event
+            var attendee = await _context.EventAttendees
+                .AsNoTracking()
+                .FirstOrDefaultAsync(
+                    ea => ea.EventId == eventId && ea.UserId == request.AttendeeId,
+                    cancellationToken);
+
+            if (attendee == null)
+            {
+                return Result<CashPaymentResponse>.Failure("Attendee is not registered for this event");
+            }
+
+            // Validate attendee doesn't already have a ticket for this event
+            var existingTicket = await _context.TicketPurchases
+                .AsNoTracking()
+                .AnyAsync(
+                    tp => tp.UserId == request.AttendeeId &&
+                          tp.TicketType!.EventId == eventId,
+                    cancellationToken);
+
+            if (existingTicket)
+            {
+                return Result<CashPaymentResponse>.Failure("Attendee already has a ticket for this event");
+            }
+
+            // Validate ticket type exists for this event
+            var ticketType = await _context.TicketTypes
+                .AsNoTracking()
+                .FirstOrDefaultAsync(
+                    tt => tt.Id == request.TicketTypeId && tt.EventId == eventId,
+                    cancellationToken);
+
+            if (ticketType == null)
+            {
+                return Result<CashPaymentResponse>.Failure("Ticket type not found for this event");
+            }
+
+            // Validate staff member exists
+            var staffExists = await _context.Users
+                .AsNoTracking()
+                .AnyAsync(u => u.Id == request.RecordedByStaffId, cancellationToken);
+
+            if (!staffExists)
+            {
+                return Result<CashPaymentResponse>.Failure("Staff member not found");
+            }
+
+            // Create ticket purchase record
+            var ticketPurchase = new TicketPurchase
+            {
+                Id = Guid.NewGuid(),
+                TicketTypeId = request.TicketTypeId,
+                UserId = request.AttendeeId,
+                PurchaseDate = DateTime.UtcNow,
+                Quantity = 1,
+                TotalPrice = request.Amount,
+                PaymentStatus = "Completed",
+                PaymentMethod = "Cash",
+                PaymentReference = $"DOOR-{DateTime.UtcNow:yyyyMMddHHmmss}",
+                Notes = request.Notes ?? string.Empty,
+                RecordedByStaffId = request.RecordedByStaffId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _context.TicketPurchases.Add(ticketPurchase);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Cash payment recorded successfully: TicketPurchase {TicketPurchaseId}, Amount {Amount}",
+                ticketPurchase.Id, request.Amount);
+
+            return Result<CashPaymentResponse>.Success(new CashPaymentResponse
+            {
+                TicketPurchaseId = ticketPurchase.Id,
+                Success = true,
+                Message = "Cash payment recorded successfully",
+                Amount = request.Amount,
+                RecordedAt = ticketPurchase.CreatedAt
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Error recording cash payment for event {EventId}, attendee {AttendeeId}",
+                eventId, request.AttendeeId);
+            return Result<CashPaymentResponse>.Failure($"Failed to record cash payment: {ex.Message}");
+        }
     }
 
     /// <summary>

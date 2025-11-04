@@ -61,8 +61,16 @@ public class TicketPurchase
 
     /// <summary>
     /// Special notes about the purchase (e.g., accessibility needs, dietary restrictions)
+    /// For door cash payments, may include cash tracking information.
     /// </summary>
     public string Notes { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Staff member who recorded a door purchase (cash or QR code).
+    /// NULL for online purchases.
+    /// Used for audit trail and accountability.
+    /// </summary>
+    public Guid? RecordedByStaffId { get; set; }
 
     /// <summary>
     /// Navigation property to ticket type
@@ -70,9 +78,15 @@ public class TicketPurchase
     public TicketType? TicketType { get; set; }
 
     /// <summary>
-    /// Navigation property to user
+    /// Navigation property to user (purchaser)
     /// </summary>
     public ApplicationUser? User { get; set; }
+
+    /// <summary>
+    /// Navigation property to staff member who recorded door purchase
+    /// NULL for online purchases
+    /// </summary>
+    public ApplicationUser? RecordedByStaff { get; set; }
 
     /// <summary>
     /// When record was created
@@ -95,4 +109,9 @@ public class TicketPurchase
     /// Gets whether this purchase represents an RSVP (free ticket)
     /// </summary>
     public bool IsRSVP => TotalPrice == 0;
+
+    /// <summary>
+    /// Gets whether this was a door purchase (processed at event)
+    /// </summary>
+    public bool IsDoorPurchase => RecordedByStaffId.HasValue;
 }

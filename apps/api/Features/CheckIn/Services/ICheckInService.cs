@@ -47,4 +47,13 @@ public interface ICheckInService
         ManualEntryData request,
         string sessionToken,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Record a door cash payment for an attendee
+    /// Creates a TicketPurchase record with staff attribution
+    /// </summary>
+    Task<Result<CashPaymentResponse>> RecordCashPaymentAsync(
+        Guid eventId,
+        CashPaymentRequest request,
+        CancellationToken cancellationToken = default);
 }
