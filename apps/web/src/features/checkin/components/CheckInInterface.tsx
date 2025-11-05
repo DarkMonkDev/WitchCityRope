@@ -39,6 +39,7 @@ import {
 } from '../hooks/useCheckIn';
 import { useOfflineSync } from '../hooks/useOfflineSync';
 import { checkinApi } from '../api/checkinApi';
+import { useEvent } from '../../../lib/api/hooks/useEvents';
 
 import type {
   CheckInAttendee,
@@ -282,6 +283,18 @@ export function CheckInInterface({
     page: 1,
     pageSize: 100
   }), [eventId, searchTerm, statusFilter]);
+
+  // Fetch event details to get event type for conditional Door Payment display
+  const { data: eventDetails } = useEvent(eventId, true);
+
+  // Determine if Door Payment column should be shown
+  // Hide for classes/workshops (attendees already have tickets)
+  // Show for social events (attendees may need to pay at door)
+  const showDoorPayment = useMemo(() => {
+    const eventType = eventDetails?.eventType?.toLowerCase();
+    // Show Door Payment for social events, hide for classes/workshops
+    return eventType === 'social';
+  }, [eventDetails?.eventType]);
 
   // API hooks (pass sessionToken for authentication)
   const {
@@ -605,7 +618,8 @@ export function CheckInInterface({
   }, [attendeesResponse, dashboard]);
 
   // Helper function to render a table of attendees
-  const renderAttendeeTable = useCallback((attendees: CheckInAttendee[]) => (
+  // showDoorPayment: Whether to show Door Payment column (false for classes/workshops, true for social)
+  const renderAttendeeTable = useCallback((attendees: CheckInAttendee[], showDoorPayment: boolean) => (
     <Table striped highlightOnHover withTableBorder>
       <Table.Thead style={{ backgroundColor: 'var(--mantine-color-burgundy-6)' }}>
         <Table.Tr>
@@ -655,29 +669,32 @@ export function CheckInInterface({
               )}
             </Box>
           </Table.Th>
-          <Table.Th
-            onClick={() => handleSort('payment')}
-            style={{
-              color: 'white',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '1px',
-              cursor: 'pointer',
-              userSelect: 'none',
-              transition: 'background-color 0.2s ease',
-              position: 'relative',
-              textAlign: 'center'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-          >
-            <Box style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-              Door Payment
-              {sortColumn === 'payment' && (
-                sortDirection === 'asc' ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />
-              )}
-            </Box>
-          </Table.Th>
+          {/* Door Payment column - Only show for social events */}
+          {showDoorPayment && (
+            <Table.Th
+              onClick={() => handleSort('payment')}
+              style={{
+                color: 'white',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                cursor: 'pointer',
+                userSelect: 'none',
+                transition: 'background-color 0.2s ease',
+                position: 'relative',
+                textAlign: 'center'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            >
+              <Box style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                Door Payment
+                {sortColumn === 'payment' && (
+                  sortDirection === 'asc' ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />
+                )}
+              </Box>
+            </Table.Th>
+          )}
         </Table.Tr>
       </Table.Thead>
       <Table.Tbody>
@@ -706,63 +723,65 @@ export function CheckInInterface({
                 onQRPayment={() => handleQRPaymentClick(attendee)}
               />
             </Table.Td>
-            {/* Door Payment column - Separate payment handling */}
-            <Table.Td style={{ padding: 8, textAlign: 'center' }}>
-              {(attendee as any).paymentStatus === 'rsvp' || (attendee as any).paymentStatus === 'Unpaid' ? (
-                <Menu shadow="md" width={200}>
-                  <Menu.Target>
-                    <Button
-                      variant="outline"
-                      color="gray"
-                      size="md"
-                      aria-label={`Record door payment for ${attendee.sceneName || attendee.email}`}
-                      styles={{
-                        root: {
-                          borderRadius: '12px 6px 12px 6px',
-                          fontFamily: 'Montserrat, sans-serif',
-                          fontWeight: 600,
-                          fontSize: '14px',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                          transition: 'all 0.3s ease',
-                          height: '32px',
-                          paddingTop: '6px',
-                          paddingBottom: '6px',
-                          paddingLeft: '12px',
-                          paddingRight: '12px',
-                          lineHeight: '1.2'
-                        }
-                      }}
-                    >
-                      Pay at Door ▼
-                    </Button>
-                  </Menu.Target>
-                  <Menu.Dropdown>
-                    <Menu.Item
-                      leftSection={<IconCash size={16} />}
-                      onClick={() => handleCashPaymentClick(attendee)}
-                    >
-                      Cash Payment
-                    </Menu.Item>
-                    <Menu.Item
-                      leftSection={<IconQrcode size={16} />}
-                      onClick={() => handleQRPaymentClick(attendee)}
-                    >
-                      Digital Payment (QR)
-                    </Menu.Item>
-                  </Menu.Dropdown>
-                </Menu>
-              ) : (
-                <Text size="md" fw={600} c="green">
-                  Paid
-                </Text>
-              )}
-            </Table.Td>
+            {/* Door Payment column - Only show for social events */}
+            {showDoorPayment && (
+              <Table.Td style={{ padding: 8, textAlign: 'center' }}>
+                {(attendee as any).paymentStatus === 'rsvp' || (attendee as any).paymentStatus === 'Unpaid' ? (
+                  <Menu shadow="md" width={200}>
+                    <Menu.Target>
+                      <Button
+                        variant="outline"
+                        color="gray"
+                        size="md"
+                        aria-label={`Record door payment for ${attendee.sceneName || attendee.email}`}
+                        styles={{
+                          root: {
+                            borderRadius: '12px 6px 12px 6px',
+                            fontFamily: 'Montserrat, sans-serif',
+                            fontWeight: 600,
+                            fontSize: '14px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
+                            transition: 'all 0.3s ease',
+                            height: '32px',
+                            paddingTop: '6px',
+                            paddingBottom: '6px',
+                            paddingLeft: '12px',
+                            paddingRight: '12px',
+                            lineHeight: '1.2'
+                          }
+                        }}
+                      >
+                        Pay at Door ▼
+                      </Button>
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                      <Menu.Item
+                        leftSection={<IconCash size={16} />}
+                        onClick={() => handleCashPaymentClick(attendee)}
+                      >
+                        Cash Payment
+                      </Menu.Item>
+                      <Menu.Item
+                        leftSection={<IconQrcode size={16} />}
+                        onClick={() => handleQRPaymentClick(attendee)}
+                      >
+                        Digital Payment (QR)
+                      </Menu.Item>
+                    </Menu.Dropdown>
+                  </Menu>
+                ) : (
+                  <Text size="md" fw={600} c="green">
+                    Paid
+                  </Text>
+                )}
+              </Table.Td>
+            )}
           </Table.Tr>
         ))}
       </Table.Tbody>
     </Table>
-  ), [sortColumn, sortDirection, handleSort, getButtonState, handleButtonStateChange, handleCashPaymentClick, handleQRPaymentClick]);
+  ), [sortColumn, sortDirection, handleSort, getButtonState, handleButtonStateChange, handleCashPaymentClick, handleQRPaymentClick, showDoorPayment]);
 
   return (
     <Box style={{
@@ -889,7 +908,7 @@ export function CheckInInterface({
               overflow: 'hidden',
               boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
             }}>
-              {renderAttendeeTable(leftColumnAttendees)}
+              {renderAttendeeTable(leftColumnAttendees, showDoorPayment)}
             </Box>
 
             {/* Right Column Table - Only show if there are attendees for it */}
@@ -900,7 +919,7 @@ export function CheckInInterface({
                 overflow: 'hidden',
                 boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
               }}>
-                {renderAttendeeTable(rightColumnAttendees)}
+                {renderAttendeeTable(rightColumnAttendees, showDoorPayment)}
               </Box>
             )}
           </Box>
