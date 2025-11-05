@@ -53,17 +53,13 @@ The database is automatically set up when you start the development environment:
 ```bash
 # Start all services including database
 ./dev.sh
-
-# Or manually:
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ```
+
+**For container management**: Use `container-restart` skill for starting, stopping, and inspecting containers.
 
 ### 2. Verify Database Connection
 
 ```bash
-# Check if PostgreSQL container is running
-docker ps | grep witchcity-postgres
-
 # Test database connection
 docker exec witchcity-postgres psql -U postgres -d witchcityrope_db -c "SELECT 1;"
 
@@ -183,16 +179,12 @@ sudo systemctl stop postgresql
 
 ### Container Won't Start
 
-```bash
-# Check container logs
-docker logs witchcityrope-db
+Use `container-restart` skill to:
+- Check container logs
+- Restart containers
+- Rebuild if needed
 
-# Remove old containers and volumes
-docker-compose down -v
-
-# Restart fresh
-./dev.sh
-```
+Or manually restart with `./dev.sh`
 
 ### Connection Refused
 
@@ -227,3 +219,195 @@ docker-compose exec web dotnet ef migrations remove
 - [Docker Development Guide](./docker-development.md) - Complete Docker setup
 - [Development Standards](../standards-processes/development-standards.md) - Coding standards
 - [Architecture Guide](../../ARCHITECTURE.md) - System architecture
+---
+
+# Staging Database Management
+
+This section covers database operations for the staging environment on DigitalOcean.
+
+## Staging Database Configuration
+
+- **Environment**: DigitalOcean Managed PostgreSQL
+- **Database Name**: `witchcityrope_staging`
+- **Schemas**: `public` (application tables), `cms` (CMS tables)
+- **Credentials Location**: `/opt/witchcityrope/staging/.env.staging` on server
+- **Connection Variable**: `ConnectionStrings__DefaultConnection`
+
+### Getting Staging Credentials
+
+Credentials are stored on the staging server in environment variables.
+
+**To retrieve connection string:**
+```bash
+ssh -i /home/chad/.ssh/id_ed25519_witchcityrope witchcity@104.131.165.14
+cat /opt/witchcityrope/staging/.env.staging | grep ConnectionStrings__DefaultConnection
+```
+
+**Connection string format:**
+```
+Host=HOST;Port=PORT;Database=witchcityrope_staging;Username=USERNAME;Password=PASSWORD;SSL Mode=Require
+```
+
+## When to Reset Staging Database
+
+### Option 1: Full Schema Reset (DROP SCHEMA)
+
+**Use when:**
+- Schema changes or migrations need clean slate
+- Migration conflicts with existing tables
+- "Relation already exists" errors
+- After major refactoring
+
+**DO NOT use when:**
+- Just need fresh seed data (use Option 2)
+
+**How:**
+Use the `database-reset-staging` skill - automates full process:
+```bash
+# Run from project root
+# Skill located at: /.claude/skills/database-reset-staging.md
+```
+
+**What it does:**
+1. Stops staging containers
+2. Drops BOTH `public` AND `cms` schemas (CASCADE)
+3. Recreates empty schemas
+4. Restarts containers
+5. Migrations run automatically
+6. Seed data populates automatically
+
+**⚠️ CRITICAL**: Both schemas must be dropped together. If you only drop `public`, leftover CMS tables will cause migration failures with "relation already exists" errors.
+
+### Option 2: Selective Data Reseed (DELETE FROM)
+
+**Use when:**
+- Schema is fine, just need fresh data
+- Testing specific seed scenarios
+- Updating seed data content
+
+**Manual procedure:**
+
+1. **Connect to database:**
+```bash
+# Get connection string first (see above)
+# Then connect with psql:
+PGPASSWORD='PASSWORD' psql -h HOST -p PORT -U USERNAME -d witchcityrope_staging
+```
+
+2. **Delete data (preserves schema):**
+```sql
+-- Delete in correct order to respect foreign keys
+DELETE FROM "EventParticipations";
+DELETE FROM "Sessions";
+DELETE FROM "TicketTypes";
+DELETE FROM "VolunteerPositions";
+DELETE FROM "Events";
+-- Add other tables as needed
+
+-- Verify deletion
+SELECT COUNT(*) FROM "Events";  -- Should return 0
+```
+
+3. **Restart API to trigger reseeding:**
+```bash
+# Use container-restart skill or manually:
+ssh -i /home/chad/.ssh/id_ed25519_witchcityrope witchcity@104.131.165.14
+cd /opt/witchcityrope/staging
+docker-compose -f docker-compose.staging.yml restart api
+```
+
+4. **Monitor seed population:**
+Use `container-restart` skill to watch logs and verify seed data population.
+
+## Decision Tree
+
+```
+Need to reset staging database?
+│
+├─ Schema changes or migration issues?
+│  └─ YES → Use database-reset-staging skill (Full DROP SCHEMA)
+│
+└─ Just need fresh data?
+   └─ YES → Use selective DELETE FROM procedure
+```
+
+## Database Verification
+
+After any reset operation:
+
+**Check schema exists:**
+```sql
+SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';
+-- Should return number > 0 after migrations
+```
+
+**Check seed data:**
+```sql
+SELECT COUNT(*) FROM "Users";
+SELECT COUNT(*) FROM "Events";
+-- Should match expected seed counts
+```
+
+**Test API health:**
+```bash
+curl https://staging.notfai.com/api/health | jq .
+# Should return: {"status": "Healthy", "databaseConnected": true}
+```
+
+## Troubleshooting
+
+### Issue: "Relation already exists" error during migrations
+
+**Cause**: CMS schema tables left behind after partial schema drop
+
+**Solution**: 
+- Use `database-reset-staging` skill (drops BOTH schemas)
+- Never manually drop only `public` schema
+
+### Issue: Seed data not populating after reset
+
+**Cause**: API seed conditions not met
+
+**Solution**:
+1. Verify API has `SeedData: true` in staging configuration
+2. Check API logs for seed execution
+3. Use `container-restart` skill to view detailed logs
+
+### Issue: Cannot connect to database
+
+**Cause**: Firewall, credentials, or SSL issue
+
+**Solution**:
+1. Verify credentials from `.env.staging` are correct
+2. Ensure SSL mode is set: `SSL Mode=Require`
+3. Check database is accessible from your network
+
+### Issue: Migrations fail after schema drop
+
+**Cause**: Code/database version mismatch
+
+**Solution**:
+1. Ensure latest code deployed: use `staging-deploy` skill first
+2. Check API logs for specific migration error
+3. Verify migration files are in correct order
+
+## Related Skills
+
+- **staging-deploy** - Deploy latest code to staging
+- **database-reset-staging** - Full schema reset automation
+- **container-restart** - Inspect logs and restart containers
+
+## Security Notes
+
+**⚠️ NEVER commit database credentials to git**
+
+- Credentials live only in server `.env.staging` file
+- Use SSH to retrieve when needed
+- Connection examples in this guide use placeholders only
+
+**⚠️ Staging only - never use these procedures on production**
+
+## Related Documentation
+
+- [Staging Deployment Guide](../functional-areas/deployment/staging-deployment-guide.md) - Deployment process
+- [Secrets Management Guide](./secrets-management-guide-2025-10-24.md) - Credential management
