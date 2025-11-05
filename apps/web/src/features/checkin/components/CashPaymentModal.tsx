@@ -75,7 +75,9 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
     return 'Price not set';
   };
 
-  const handleCovidTestComplete = () => {
+  const handleCovidTestComplete = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
     setCovidTestComplete(true);
   };
 
@@ -85,20 +87,23 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
       form.reset();
       setCovidTestComplete(false); // Reset for next use
       onClose();
-      notifications.show({
-        title: 'Payment & Check-In Complete',
-        message: `$${values.amount.toFixed(2)} cash payment recorded`,
-        color: 'green',
-        icon: <IconCheck />,
-      });
+      // KIOSK MODE: Notification disabled for streamlined UX
+      // notifications.show({
+      //   title: 'Payment & Check-In Complete',
+      //   message: `$${values.amount.toFixed(2)} cash payment recorded`,
+      //   color: 'green',
+      //   icon: <IconCheck />,
+      // });
     } catch (error) {
-      notifications.show({
-        title: 'Payment Failed',
-        message: 'Failed to record payment. Please try again.',
-        color: 'red',
-        icon: <IconX />,
-        autoClose: 5000,
-      });
+      // KIOSK MODE: Notification disabled for streamlined UX
+      // notifications.show({
+      //   title: 'Payment Failed',
+      //   message: 'Failed to record payment. Please try again.',
+      //   color: 'red',
+      //   icon: <IconX />,
+      //   autoClose: 5000,
+      // });
+      console.error('Payment failed:', error);
     }
   };
 

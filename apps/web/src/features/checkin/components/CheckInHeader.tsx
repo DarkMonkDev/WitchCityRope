@@ -32,15 +32,24 @@ export const CheckInHeader: React.FC<CheckInHeaderProps> = ({
       const diff = eventDate.getTime() - now.getTime()
 
       if (diff > 0) {
-        const hours = Math.floor(diff / (1000 * 60 * 60))
+        const totalHours = Math.floor(diff / (1000 * 60 * 60))
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
         const seconds = Math.floor((diff % (1000 * 60)) / 1000)
 
-        setTimeLeft(
-          `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-        )
+        // Show days if >= 24 hours, otherwise just show hours
+        if (totalHours >= 24) {
+          const days = Math.floor(totalHours / 24)
+          const hours = totalHours % 24
+          setTimeLeft(
+            `${days}d ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+          )
+        } else {
+          setTimeLeft(
+            `${totalHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+          )
+        }
       } else {
-        setTimeLeft('0:00:00')
+        setTimeLeft('00:00:00')
       }
     }
 
@@ -162,6 +171,9 @@ export const CheckInHeader: React.FC<CheckInHeaderProps> = ({
             style={{
               fontSize: '24px',
               fontWeight: 700,
+              fontFamily: 'ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, "DejaVu Sans Mono", monospace',
+              fontVariantNumeric: 'tabular-nums',
+              letterSpacing: '0.5px',
             }}
           >
             {timeLeft}

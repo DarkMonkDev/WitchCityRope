@@ -85,11 +85,12 @@ function ManualEntryModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email) {
-      notifications.show({
-        title: 'Missing Information',
-        message: 'Name and email are required',
-        color: 'red'
-      });
+      // KIOSK MODE: Notification disabled for streamlined UX
+      // notifications.show({
+      //   title: 'Missing Information',
+      //   message: 'Name and email are required',
+      //   color: 'red'
+      // });
       return;
     }
     onSubmit(formData, notes);
@@ -328,11 +329,12 @@ export function CheckInInterface({
       setCheckInResponse(response);
       closeConfirmation();
 
-      notifications.show({
-        title: 'Check-in Successful',
-        message: `${attendee.sceneName || attendee.email} has been checked in`,
-        color: 'green'
-      });
+      // KIOSK MODE: Notification disabled for streamlined UX
+      // notifications.show({
+      //   title: 'Check-in Successful',
+      //   message: `${attendee.sceneName || attendee.email} has been checked in`,
+      //   color: 'green'
+      // });
 
       refetchAttendees();
       refetchDashboard();
@@ -351,11 +353,12 @@ export function CheckInInterface({
 
       closeManualEntry();
 
-      notifications.show({
-        title: 'Walk-in Added',
-        message: `${data.name} has been checked in`,
-        color: 'green'
-      });
+      // KIOSK MODE: Notification disabled for streamlined UX
+      // notifications.show({
+      //   title: 'Walk-in Added',
+      //   message: `${data.name} has been checked in`,
+      //   color: 'green'
+      // });
 
       refetchAttendees();
       refetchDashboard();
@@ -425,8 +428,10 @@ export function CheckInInterface({
     if (!paymentAttendee) return;
 
     try {
+      console.log('💰 Starting cash payment for:', paymentAttendee.sceneName || paymentAttendee.email);
+
       // Create ticket purchase via new API endpoint (not standalone payment)
-      await checkinApi.createCashTicketPurchase(
+      const paymentResponse = await checkinApi.createCashTicketPurchase(
         eventId,
         {
           attendeeId: paymentAttendee.userId,  // Backend expects attendeeId (user's ID)
@@ -437,38 +442,51 @@ export function CheckInInterface({
         },
         sessionToken
       );
+      console.log('💰 Cash payment successful:', paymentResponse);
 
       // AUTO-CHECK-IN: Only check in if they're not already checked in
       const isAlreadyCheckedIn = paymentAttendee.registrationStatus === 'CheckedIn';
+      console.log('🔍 Check-in status - Already checked in?', isAlreadyCheckedIn);
+
       if (!isAlreadyCheckedIn) {
+        console.log('✅ Attempting auto-check-in...');
         await handleCheckIn(paymentAttendee);
+        console.log('✅ Auto-check-in completed');
       }
 
       // Refresh attendee list to show ticket purchase and check-in status
-      refetchAttendees();
-      refetchDashboard();
+      console.log('🔄 Refreshing attendee data...');
+      await Promise.all([
+        refetchAttendees(),
+        refetchDashboard()
+      ]);
+      console.log('🔄 Refresh complete');
 
       closeCashPayment();
       setPaymentAttendee(null);
+      console.log('💰 Cash payment flow complete');
 
+      // KIOSK MODE: Notifications disabled for streamlined UX
       // Show appropriate success message based on check-in status
-      const attendeeName = paymentAttendee.sceneName || paymentAttendee.email;
-      const message = isAlreadyCheckedIn
-        ? `$${data.amount.toFixed(2)} cash ticket purchased for ${attendeeName}`
-        : `$${data.amount.toFixed(2)} cash ticket purchased and ${attendeeName} checked in`;
+      // const attendeeName = paymentAttendee.sceneName || paymentAttendee.email;
+      // const message = isAlreadyCheckedIn
+      //   ? `$${data.amount.toFixed(2)} cash ticket purchased for ${attendeeName}`
+      //   : `$${data.amount.toFixed(2)} cash ticket purchased and ${attendeeName} checked in`;
 
-      notifications.show({
-        title: isAlreadyCheckedIn ? 'Payment Recorded' : 'Payment & Check-In Complete',
-        message,
-        color: 'green'
-      });
+      // notifications.show({
+      //   title: isAlreadyCheckedIn ? 'Payment Recorded' : 'Payment & Check-In Complete',
+      //   message,
+      //   color: 'green'
+      // });
     } catch (error) {
-      console.error('Cash ticket purchase failed:', error);
-      notifications.show({
-        title: 'Purchase Failed',
-        message: 'Failed to create ticket purchase. Please try again.',
-        color: 'red'
-      });
+      console.error('❌ Cash ticket purchase failed:', error);
+      console.error('❌ Error details:', error instanceof Error ? error.message : String(error));
+      // KIOSK MODE: Notification disabled for streamlined UX
+      // notifications.show({
+      //   title: 'Purchase Failed',
+      //   message: 'Failed to create ticket purchase. Please try again.',
+      //   color: 'red'
+      // });
     }
   }, [paymentAttendee, eventId, sessionToken, closeCashPayment, refetchAttendees, refetchDashboard, handleCheckIn]);
 
@@ -486,11 +504,12 @@ export function CheckInInterface({
     closeQRPayment();
     setPaymentAttendee(null);
 
-    notifications.show({
-      title: 'Payment Complete',
-      message: `Digital payment received for ${paymentAttendee.sceneName || paymentAttendee.email}`,
-      color: 'green'
-    });
+    // KIOSK MODE: Notification disabled for streamlined UX
+    // notifications.show({
+    //   title: 'Payment Complete',
+    //   message: `Digital payment received for ${paymentAttendee.sceneName || paymentAttendee.email}`,
+    //   color: 'green'
+    // });
   }, [paymentAttendee, closeQRPayment]);
 
   // Calculate stats

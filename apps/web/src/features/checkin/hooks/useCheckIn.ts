@@ -129,21 +129,18 @@ export function useCheckInAttendee(eventId: string, sessionToken: string) {
       });
 
       // Debug: Log notification trigger
-      console.log('🔔 Triggering check-in success notification:', data);
+      console.log('🔔 Check-in success (notification disabled for kiosk mode):', data);
 
-      // Show success notification with unique ID for debugging
-      const notificationId = `checkin-success-${Date.now()}`;
-      notifications.show({
-        id: notificationId,
-        title: 'Check-in Successful',
-        message: data.message || 'Attendee successfully checked in',
-        color: 'green',
-        autoClose: 8000, // Increased to 8 seconds for test detection
-        withCloseButton: true,
-      });
-
-      // Debug: Verify notification was called
-      console.log('🔔 Notification.show() called with ID:', notificationId);
+      // KIOSK MODE: Notification disabled for streamlined UX
+      // const notificationId = `checkin-success-${Date.now()}`;
+      // notifications.show({
+      //   id: notificationId,
+      //   title: 'Check-in Successful',
+      //   message: data.message || 'Attendee successfully checked in',
+      //   color: 'green',
+      //   autoClose: 8000,
+      //   withCloseButton: true,
+      // });
     },
     onError: (error, variables, context) => {
       // Rollback optimistic updates on error
@@ -154,14 +151,15 @@ export function useCheckInAttendee(eventId: string, sessionToken: string) {
         );
       }
 
-      // Show error notification
-      notifications.show({
-        title: 'Check-in Failed',
-        message: error instanceof Error ? error.message : 'Please try again',
-        color: 'red',
-        icon: '❌',
-        autoClose: 5000,
-      });
+      // KIOSK MODE: Notification disabled for streamlined UX
+      console.error('Check-in failed:', error);
+      // notifications.show({
+      //   title: 'Check-in Failed',
+      //   message: error instanceof Error ? error.message : 'Please try again',
+      //   color: 'red',
+      //   icon: '❌',
+      //   autoClose: 5000,
+      // });
     }
   });
 }
@@ -193,22 +191,26 @@ export function useCreateManualEntry(eventId: string, sessionToken: string) {
         queryKey: checkinKeys.eventDashboard(eventId) 
       });
 
-      notifications.show({
-        title: 'Manual Entry Created',
-        message: `${data.message} - Walk-in successfully checked in`,
-        color: 'green',
-        icon: '👤',
-        autoClose: 4000,
-      });
+      // KIOSK MODE: Notification disabled for streamlined UX
+      console.log('Manual entry created:', data);
+      // notifications.show({
+      //   title: 'Manual Entry Created',
+      //   message: `${data.message} - Walk-in successfully checked in`,
+      //   color: 'green',
+      //   icon: '👤',
+      //   autoClose: 4000,
+      // });
     },
     onError: (error) => {
-      notifications.show({
-        title: 'Manual Entry Failed',
-        message: error instanceof Error ? error.message : 'Failed to create manual entry',
-        color: 'red',
-        icon: '❌',
-        autoClose: 5000,
-      });
+      // KIOSK MODE: Notification disabled for streamlined UX
+      console.error('Manual entry failed:', error);
+      // notifications.show({
+      //   title: 'Manual Entry Failed',
+      //   message: error instanceof Error ? error.message : 'Failed to create manual entry',
+      //   color: 'red',
+      //   icon: '❌',
+      //   autoClose: 5000,
+      // });
     }
   });
 }
@@ -278,22 +280,26 @@ export function useExportAttendance(eventId: string, sessionToken: string) {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      notifications.show({
-        title: 'Export Complete',
-        message: `Attendance data exported successfully`,
-        color: 'green',
-        icon: '📤',
-        autoClose: 3000,
-      });
+      // KIOSK MODE: Notification disabled for streamlined UX
+      console.log('Export complete');
+      // notifications.show({
+      //   title: 'Export Complete',
+      //   message: `Attendance data exported successfully`,
+      //   color: 'green',
+      //   icon: '📤',
+      //   autoClose: 3000,
+      // });
     },
     onError: (error) => {
-      notifications.show({
-        title: 'Export Failed',
-        message: error instanceof Error ? error.message : 'Failed to export data',
-        color: 'red',
-        icon: '❌',
-        autoClose: 5000,
-      });
+      // KIOSK MODE: Notification disabled for streamlined UX
+      console.error('Export failed:', error);
+      // notifications.show({
+      //   title: 'Export Failed',
+      //   message: error instanceof Error ? error.message : 'Failed to export data',
+      //   color: 'red',
+      //   icon: '❌',
+      //   autoClose: 5000,
+      // });
     }
   });
 }
