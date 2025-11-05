@@ -4,6 +4,7 @@ using System.Text.Json;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.CheckIn.Entities;
 using WitchCityRope.Api.Features.CheckIn.Models;
+using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Shared.Models;
 using WitchCityRope.Api.Models;
 
@@ -66,6 +67,12 @@ public class CheckInService : ICheckInService
             {
                 query = query.Where(ea => ea.RegistrationStatus == status);
             }
+            else
+            {
+                // By default, exclude cancelled attendees from check-in list
+                // Only show confirmed and checked-in attendees
+                query = query.Where(ea => ea.RegistrationStatus != "cancelled");
+            }
 
             // Get total count for pagination
             var totalCount = await query.CountAsync(cancellationToken);
@@ -111,8 +118,14 @@ public class CheckInService : ICheckInService
                     Pronouns = ea.User.Pronouns,
                     ea.HasCompletedWaiver,
                     ea.WaitlistPosition,
-                    // Check if user has a completed ticket purchase for this event
-                    HasTicket = _context.TicketPurchases
+                    // Check if user has a ticket via online purchase (EventParticipation) OR door payment (TicketPurchase)
+                    HasTicket = _context.EventParticipations
+                        .Any(ep => ep.UserId == ea.UserId &&
+                                   ep.EventId == ea.EventId &&
+                                   ep.ParticipationType == ParticipationType.Ticket &&
+                                   ep.Status == ParticipationStatus.Active)
+                        ||
+                        _context.TicketPurchases
                         .Any(tp => tp.UserId == ea.UserId &&
                                    tp.TicketType!.EventId == ea.EventId &&
                                    tp.PaymentStatus == "Completed")

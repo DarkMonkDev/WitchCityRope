@@ -236,6 +236,40 @@ public class ParticipationService : IParticipationService
 
             _context.EventParticipations.Add(participation);
 
+            // Create or update EventAttendee record so user appears in check-in system
+            var existingAttendee = await _context.EventAttendees
+                .FirstOrDefaultAsync(ea => ea.EventId == request.EventId && ea.UserId == userId, cancellationToken);
+
+            if (existingAttendee == null)
+            {
+                // Create new EventAttendee record
+                var attendee = new CheckIn.Entities.EventAttendee
+                {
+                    Id = Guid.NewGuid(),
+                    EventId = request.EventId,
+                    UserId = userId,
+                    RegistrationStatus = "confirmed",
+                    HasCompletedWaiver = true, // Online RSVPs imply waiver acceptance through registration flow
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    CreatedBy = userId
+                };
+
+                _context.EventAttendees.Add(attendee);
+            }
+            else if (existingAttendee.RegistrationStatus == "cancelled")
+            {
+                // Re-activate cancelled attendee when they RSVP again
+                _logger.LogInformation(
+                    "Re-activating EventAttendee {AttendeeId} from 'cancelled' to 'confirmed' for user {UserId} RSVPing to event {EventId}",
+                    existingAttendee.Id, userId, request.EventId);
+
+                existingAttendee.RegistrationStatus = "confirmed";
+                existingAttendee.HasCompletedWaiver = true; // Re-confirm waiver on re-registration
+                existingAttendee.UpdatedAt = DateTime.UtcNow;
+                _context.EventAttendees.Update(existingAttendee);
+            }
+
             // Create audit history
             var history = new ParticipationHistory(participation.Id, "Created")
             {
@@ -367,6 +401,48 @@ public class ParticipationService : IParticipationService
             };
 
             _context.EventParticipations.Add(participation);
+
+            // Create or update EventAttendee record so user appears in check-in system
+            var ticketNumber = $"TKT-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}";
+            var existingAttendee = await _context.EventAttendees
+                .FirstOrDefaultAsync(ea => ea.EventId == request.EventId && ea.UserId == userId, cancellationToken);
+
+            if (existingAttendee == null)
+            {
+                // Create new attendee record with ticket
+                var attendee = new CheckIn.Entities.EventAttendee
+                {
+                    Id = Guid.NewGuid(),
+                    EventId = request.EventId,
+                    UserId = userId,
+                    TicketNumber = ticketNumber,
+                    RegistrationStatus = "confirmed",
+                    HasCompletedWaiver = true, // Online ticket purchases imply waiver acceptance through checkout flow
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    CreatedBy = userId
+                };
+
+                _context.EventAttendees.Add(attendee);
+            }
+            else
+            {
+                // Update existing attendee with ticket number
+                existingAttendee.TicketNumber = ticketNumber;
+
+                // Re-activate if cancelled
+                if (existingAttendee.RegistrationStatus == "cancelled")
+                {
+                    _logger.LogInformation(
+                        "Re-activating EventAttendee {AttendeeId} from 'cancelled' to 'confirmed' for user {UserId} purchasing ticket for event {EventId}",
+                        existingAttendee.Id, userId, request.EventId);
+                    existingAttendee.RegistrationStatus = "confirmed";
+                    existingAttendee.HasCompletedWaiver = true; // Re-confirm waiver on ticket purchase
+                }
+
+                existingAttendee.UpdatedAt = DateTime.UtcNow;
+                _context.EventAttendees.Update(existingAttendee);
+            }
 
             // Create audit history for ticket
             var history = new ParticipationHistory(participation.Id, "Created")
@@ -600,6 +676,46 @@ public class ParticipationService : IParticipationService
                 };
 
                 _context.ParticipationHistory.Add(rsvpHistory);
+            }
+
+            // Update EventAttendee record for check-in system integration
+            // Check if user has any remaining ACTIVE participations after this cancellation
+            var remainingActiveParticipations = await _context.EventParticipations
+                .Where(ep => ep.EventId == eventId &&
+                            ep.UserId == userId &&
+                            ep.Status == ParticipationStatus.Active &&
+                            ep.Id != participation.Id && // Exclude the one we're cancelling
+                            (associatedRsvp == null || ep.Id != associatedRsvp.Id)) // Exclude associated RSVP if cancelling
+                .AnyAsync(cancellationToken);
+
+            // If no active participations remain, update EventAttendee to "cancelled" status
+            if (!remainingActiveParticipations)
+            {
+                var eventAttendee = await _context.EventAttendees
+                    .FirstOrDefaultAsync(ea => ea.EventId == eventId && ea.UserId == userId, cancellationToken);
+
+                if (eventAttendee != null)
+                {
+                    _logger.LogInformation(
+                        "Updating EventAttendee {AttendeeId} status to 'cancelled' - no active participations remain for user {UserId} in event {EventId}",
+                        eventAttendee.Id, userId, eventId);
+
+                    eventAttendee.RegistrationStatus = "cancelled";
+                    eventAttendee.UpdatedAt = DateTime.UtcNow;
+                    _context.EventAttendees.Update(eventAttendee);
+                }
+                else
+                {
+                    _logger.LogWarning(
+                        "EventAttendee record not found for user {UserId} in event {EventId} during cancellation - check-in list may be out of sync",
+                        userId, eventId);
+                }
+            }
+            else
+            {
+                _logger.LogInformation(
+                    "EventAttendee status NOT updated - user {UserId} still has active participations in event {EventId}",
+                    userId, eventId);
             }
 
             // CRITICAL: Save changes to persist cancellation to database

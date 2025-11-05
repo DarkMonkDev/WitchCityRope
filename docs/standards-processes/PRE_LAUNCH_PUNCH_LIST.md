@@ -158,6 +158,14 @@ Use the orchestrator command when testing reveals missing functionality:
   - **Status**: Complete (2025-10-20)
   - **Notes**: Full stack implementation. 8 test volunteer signups, auto-RSVP integration, progress tracking, 5 new frontend files, vertical slice backend architecture. Production-ready.
 
+- [x] **Check-In System Integration Bug Fixes** (Priority: High) ✅ COMPLETE
+  - **Description**: Fix critical bugs preventing online RSVPs/tickets from appearing on check-in list and RSVP cancellations from updating check-in list
+  - **Business Value**: Event operations - check-in workflow was completely blocked for online registrations
+  - **Effort**: Medium (4-6 hours) - COMPLETED
+  - **Dependencies**: RSVP system, check-in system
+  - **Status**: Complete (2025-11-04)
+  - **Notes**: Fixed 4 critical bugs: (1) Online RSVPs/tickets not creating EventAttendee records, (2) Cancelled RSVPs not removing from check-in list, (3) Re-RSVP after cancellation not working, (4) Waiver validation blocking all online check-ins. Implemented dual data model sync between EventParticipations and EventAttendees tables. Status lifecycle: confirmed → cancelled → confirmed. Check-in workflow now fully operational for online registrations. See PROGRESS.md Nov 4 (Evening) entry.
+
 - [ ] **Event Volunteer Applications Display** (Priority: High)
   - **Description**: Grid table on Event Details Volunteers tab showing who volunteered for each task
   - **Business Value**: Event management - admins need to see volunteer signups and assign positions
