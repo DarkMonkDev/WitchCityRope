@@ -454,6 +454,17 @@ export function CheckInInterface({
     return sorted;
   }, [attendeesResponse, statusFilter, sortColumn, sortDirection]);
 
+  // Split attendees into two columns for side-by-side display
+  const leftColumnAttendees = useMemo(() => {
+    const midpoint = Math.ceil(filteredAttendees.length / 2);
+    return filteredAttendees.slice(0, midpoint);
+  }, [filteredAttendees]);
+
+  const rightColumnAttendees = useMemo(() => {
+    const midpoint = Math.ceil(filteredAttendees.length / 2);
+    return filteredAttendees.slice(midpoint);
+  }, [filteredAttendees]);
+
   // Handle button state changes
   const handleButtonStateChange = useCallback((attendeeId: string, newState: CheckInButtonState) => {
     setButtonStates(prev => {
@@ -593,15 +604,191 @@ export function CheckInInterface({
     };
   }, [attendeesResponse, dashboard]);
 
+  // Helper function to render a table of attendees
+  const renderAttendeeTable = useCallback((attendees: CheckInAttendee[]) => (
+    <Table striped highlightOnHover withTableBorder>
+      <Table.Thead style={{ backgroundColor: 'var(--mantine-color-burgundy-6)' }}>
+        <Table.Tr>
+          <Table.Th
+            onClick={() => handleSort('name')}
+            style={{
+              color: 'white',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
+              cursor: 'pointer',
+              userSelect: 'none',
+              transition: 'background-color 0.2s ease',
+              position: 'relative',
+              paddingLeft: '16px'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+          >
+            <Box style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              Name
+              {sortColumn === 'name' && (
+                sortDirection === 'asc' ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />
+              )}
+            </Box>
+          </Table.Th>
+          <Table.Th
+            onClick={() => handleSort('status')}
+            style={{
+              color: 'white',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
+              cursor: 'pointer',
+              userSelect: 'none',
+              transition: 'background-color 0.2s ease',
+              position: 'relative',
+              textAlign: 'center'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+          >
+            <Box style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              Status
+              {sortColumn === 'status' && (
+                sortDirection === 'asc' ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />
+              )}
+            </Box>
+          </Table.Th>
+          <Table.Th
+            onClick={() => handleSort('payment')}
+            style={{
+              color: 'white',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
+              cursor: 'pointer',
+              userSelect: 'none',
+              transition: 'background-color 0.2s ease',
+              position: 'relative',
+              textAlign: 'center'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+          >
+            <Box style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              Door Payment
+              {sortColumn === 'payment' && (
+                sortDirection === 'asc' ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />
+              )}
+            </Box>
+          </Table.Th>
+        </Table.Tr>
+      </Table.Thead>
+      <Table.Tbody>
+        {attendees.map((attendee: CheckInAttendee) => (
+          <Table.Tr
+            key={attendee.attendeeId}
+          >
+            <Table.Td style={{ padding: '8px 8px 8px 16px' }}>
+              <Text fw={600} size="16px">
+                {attendee.sceneName || attendee.email}
+              </Text>
+            </Table.Td>
+            {/* Status column - Streamlined check-in button (COVID + Check-In only) */}
+            <Table.Td style={{ padding: 8, textAlign: 'center' }}>
+              <CheckInButton
+                attendee={{
+                  id: attendee.attendeeId,
+                  name: attendee.sceneName || attendee.email,
+                  pronouns: attendee.pronouns,
+                  paymentStatus: (attendee as any).paymentStatus || 'rsvp',
+                  isCheckedIn: attendee.registrationStatus === "CheckedIn"
+                }}
+                currentState={getButtonState(attendee)}
+                onStateChange={(newState) => handleButtonStateChange(attendee.attendeeId, newState)}
+                onCashPayment={() => handleCashPaymentClick(attendee)}
+                onQRPayment={() => handleQRPaymentClick(attendee)}
+              />
+            </Table.Td>
+            {/* Door Payment column - Separate payment handling */}
+            <Table.Td style={{ padding: 8, textAlign: 'center' }}>
+              {(attendee as any).paymentStatus === 'rsvp' || (attendee as any).paymentStatus === 'Unpaid' ? (
+                <Menu shadow="md" width={200}>
+                  <Menu.Target>
+                    <Button
+                      variant="outline"
+                      color="gray"
+                      size="md"
+                      aria-label={`Record door payment for ${attendee.sceneName || attendee.email}`}
+                      styles={{
+                        root: {
+                          borderRadius: '12px 6px 12px 6px',
+                          fontFamily: 'Montserrat, sans-serif',
+                          fontWeight: 600,
+                          fontSize: '14px',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                          transition: 'all 0.3s ease',
+                          height: '32px',
+                          paddingTop: '6px',
+                          paddingBottom: '6px',
+                          paddingLeft: '12px',
+                          paddingRight: '12px',
+                          lineHeight: '1.2'
+                        }
+                      }}
+                    >
+                      Pay at Door ▼
+                    </Button>
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    <Menu.Item
+                      leftSection={<IconCash size={16} />}
+                      onClick={() => handleCashPaymentClick(attendee)}
+                    >
+                      Cash Payment
+                    </Menu.Item>
+                    <Menu.Item
+                      leftSection={<IconQrcode size={16} />}
+                      onClick={() => handleQRPaymentClick(attendee)}
+                    >
+                      Digital Payment (QR)
+                    </Menu.Item>
+                  </Menu.Dropdown>
+                </Menu>
+              ) : (
+                <Text size="md" fw={600} c="green">
+                  Paid
+                </Text>
+              )}
+            </Table.Td>
+          </Table.Tr>
+        ))}
+      </Table.Tbody>
+    </Table>
+  ), [sortColumn, sortDirection, handleSort, getButtonState, handleButtonStateChange, handleCashPaymentClick, handleQRPaymentClick]);
+
   return (
     <Box style={{
       minHeight: '100vh',
       background: checkInTheme.colors.cream
     }}>
-      {/* Inline styles for clickable rows */}
+      {/* Inline styles for clickable rows and two-column layout */}
       <style>{`
         .clickable-row:hover {
           background-color: rgba(139, 121, 94, 0.08) !important;
+        }
+
+        .table-columns-wrapper {
+          display: flex;
+          gap: 24px;
+        }
+
+        .table-column {
+          flex: 1;
+          min-width: 0;
+        }
+
+        @media (max-width: 1200px) {
+          .table-columns-wrapper {
+            flex-direction: column;
+          }
         }
       `}</style>
       {/* Header Bar */}
@@ -680,184 +867,44 @@ export function CheckInInterface({
           </Alert>
         )}
 
-        {/* Attendee Table */}
-        <Box style={{
-          background: 'white',
-          borderRadius: 12,
-          overflow: 'hidden',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
-        }}>
-          {loadingAttendees ? (
-            <Center p="xl">
-              <Loader size="lg" />
-            </Center>
-          ) : attendeesError ? (
-            <Alert color="red" m="md">
-              Error loading attendees: {attendeesError.message}
-            </Alert>
-          ) : filteredAttendees.length === 0 ? (
-            <Box p="xl" style={{ textAlign: 'center' }}>
-              <Text c="dimmed" size="lg">No attendees found</Text>
+        {/* Attendee Tables - Two Column Layout */}
+        {loadingAttendees ? (
+          <Center p="xl">
+            <Loader size="lg" />
+          </Center>
+        ) : attendeesError ? (
+          <Alert color="red" m="md">
+            Error loading attendees: {attendeesError.message}
+          </Alert>
+        ) : filteredAttendees.length === 0 ? (
+          <Box p="xl" style={{ textAlign: 'center' }}>
+            <Text c="dimmed" size="lg">No attendees found</Text>
+          </Box>
+        ) : (
+          <Box className="table-columns-wrapper">
+            {/* Left Column Table */}
+            <Box className="table-column" style={{
+              background: 'white',
+              borderRadius: 12,
+              overflow: 'hidden',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+            }}>
+              {renderAttendeeTable(leftColumnAttendees)}
             </Box>
-          ) : (
-            <Table striped highlightOnHover withTableBorder>
-              <Table.Thead style={{ backgroundColor: 'var(--mantine-color-burgundy-6)' }}>
-                <Table.Tr>
-                  <Table.Th
-                    onClick={() => handleSort('name')}
-                    style={{
-                      color: 'white',
-                      fontWeight: 600,
-                      textTransform: 'uppercase',
-                      letterSpacing: '1px',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      transition: 'background-color 0.2s ease',
-                      position: 'relative',
-                      paddingLeft: '16px'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                  >
-                    <Box style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      Name
-                      {sortColumn === 'name' && (
-                        sortDirection === 'asc' ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />
-                      )}
-                    </Box>
-                  </Table.Th>
-                  <Table.Th
-                    onClick={() => handleSort('status')}
-                    style={{
-                      color: 'white',
-                      fontWeight: 600,
-                      textTransform: 'uppercase',
-                      letterSpacing: '1px',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      transition: 'background-color 0.2s ease',
-                      position: 'relative',
-                      textAlign: 'center'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                  >
-                    <Box style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                      Status
-                      {sortColumn === 'status' && (
-                        sortDirection === 'asc' ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />
-                      )}
-                    </Box>
-                  </Table.Th>
-                  <Table.Th
-                    onClick={() => handleSort('payment')}
-                    style={{
-                      color: 'white',
-                      fontWeight: 600,
-                      textTransform: 'uppercase',
-                      letterSpacing: '1px',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      transition: 'background-color 0.2s ease',
-                      position: 'relative',
-                      textAlign: 'center'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                  >
-                    <Box style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                      Door Payment
-                      {sortColumn === 'payment' && (
-                        sortDirection === 'asc' ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />
-                      )}
-                    </Box>
-                  </Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {filteredAttendees.map((attendee: CheckInAttendee) => (
-                  <Table.Tr
-                    key={attendee.attendeeId}
-                  >
-                    <Table.Td style={{ padding: '8px 8px 8px 16px' }}>
-                      <Text fw={600} size="16px">
-                        {attendee.sceneName || attendee.email}
-                      </Text>
-                    </Table.Td>
-                    {/* Status column - Streamlined check-in button (COVID + Check-In only) */}
-                    <Table.Td style={{ padding: 8, textAlign: 'center' }}>
-                      <CheckInButton
-                        attendee={{
-                          id: attendee.attendeeId,
-                          name: attendee.sceneName || attendee.email,
-                          pronouns: attendee.pronouns,
-                          paymentStatus: (attendee as any).paymentStatus || 'rsvp',
-                          isCheckedIn: attendee.registrationStatus === "CheckedIn"
-                        }}
-                        currentState={getButtonState(attendee)}
-                        onStateChange={(newState) => handleButtonStateChange(attendee.attendeeId, newState)}
-                        onCashPayment={() => handleCashPaymentClick(attendee)}
-                        onQRPayment={() => handleQRPaymentClick(attendee)}
-                      />
-                    </Table.Td>
-                    {/* Door Payment column - Separate payment handling */}
-                    <Table.Td style={{ padding: 8, textAlign: 'center' }}>
-                      {(attendee as any).paymentStatus === 'rsvp' || (attendee as any).paymentStatus === 'Unpaid' ? (
-                        <Menu shadow="md" width={200}>
-                          <Menu.Target>
-                            <Button
-                              variant="outline"
-                              color="gray"
-                              size="md"
-                              aria-label={`Record door payment for ${attendee.sceneName || attendee.email}`}
-                              styles={{
-                                root: {
-                                  borderRadius: '12px 6px 12px 6px',
-                                  fontFamily: 'Montserrat, sans-serif',
-                                  fontWeight: 600,
-                                  fontSize: '14px',
-                                  textTransform: 'uppercase',
-                                  letterSpacing: '0.5px',
-                                  transition: 'all 0.3s ease',
-                                  height: '32px',
-                                  paddingTop: '6px',
-                                  paddingBottom: '6px',
-                                  paddingLeft: '12px',
-                                  paddingRight: '12px',
-                                  lineHeight: '1.2'
-                                }
-                              }}
-                            >
-                              Pay at Door ▼
-                            </Button>
-                          </Menu.Target>
-                          <Menu.Dropdown>
-                            <Menu.Item
-                              leftSection={<IconCash size={16} />}
-                              onClick={() => handleCashPaymentClick(attendee)}
-                            >
-                              Cash Payment
-                            </Menu.Item>
-                            <Menu.Item
-                              leftSection={<IconQrcode size={16} />}
-                              onClick={() => handleQRPaymentClick(attendee)}
-                            >
-                              Digital Payment (QR)
-                            </Menu.Item>
-                          </Menu.Dropdown>
-                        </Menu>
-                      ) : (
-                        <Text size="md" fw={600} c="green">
-                          Paid
-                        </Text>
-                      )}
-                    </Table.Td>
-                  </Table.Tr>
-                ))}
-              </Table.Tbody>
-            </Table>
-          )}
-        </Box>
+
+            {/* Right Column Table - Only show if there are attendees for it */}
+            {rightColumnAttendees.length > 0 && (
+              <Box className="table-column" style={{
+                background: 'white',
+                borderRadius: 12,
+                overflow: 'hidden',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+              }}>
+                {renderAttendeeTable(rightColumnAttendees)}
+              </Box>
+            )}
+          </Box>
+        )}
       </Box>
 
       {/* Check-in Modal */}
