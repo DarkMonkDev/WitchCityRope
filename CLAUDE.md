@@ -32,9 +32,16 @@
 3. **DECIDE**: Am I creating THE source, or should I reference existing source?
 4. **VERIFY**: If I'm writing more than a reference, WHY isn't this duplication?
 
+**HOW TO DECIDE WHERE THINGS LIVE:**
+→ **Complete guide**: `/.claude/skills/HOW-TO-USE-SKILLS.md` (MANDATORY reading)
+- Decision trees for skills vs docs
+- When to create a skill vs documentation
+- Correct reference patterns
+- Enforcement rules
+
 **WHEN YOU FIND DUPLICATION:**
 - **FIX IT IMMEDIATELY** - Don't wait, don't ask permission
-- **Choose ONE location** as source of truth (usually: skill > guide, agent definition > lessons learned)
+- **Use decision trees** from HOW-TO-USE-SKILLS.md to choose source location
 - **Replace duplicates** with references to the source
 
 **PRE-COMMIT HOOK ENFORCEMENT:**
