@@ -1,3 +1,7 @@
+using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
+using WitchCityRope.Api.Features.CheckIn.Models;
+using WitchCityRope.Api.Features.CheckIn.Services;
 using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Api.Models;
@@ -169,5 +173,113 @@ public static class EventEndpoints
             .Produces(401)
             .Produces(404)
             .Produces(500);
+
+        // Get ticket types for an event (used by check-in kiosk for door payments)
+        app.MapGet("/api/events/{id}/ticket-types", async (
+            string id,
+            HttpContext context,
+            EventService eventService,
+            CancellationToken cancellationToken) =>
+            {
+                // Kiosk mode: Check for X-CheckIn-Token header
+                var sessionToken = context.Request.Headers["X-CheckIn-Token"].FirstOrDefault();
+                if (string.IsNullOrEmpty(sessionToken))
+                {
+                    return Results.Json(new ApiResponse<List<TicketTypeDto>>
+                    {
+                        Success = false,
+                        Data = null,
+                        Error = "Missing check-in session token",
+                        Message = "X-CheckIn-Token header required for kiosk access"
+                    }, statusCode: 401);
+                }
+
+                // Get event with ticket types
+                var (success, response, error) = await eventService.GetEventAsync(id, cancellationToken);
+
+                if (success && response != null)
+                {
+                    return Results.Ok(response.TicketTypes);
+                }
+
+                // Return proper error
+                return Results.Json(new ApiResponse<List<TicketTypeDto>>
+                {
+                    Success = false,
+                    Data = null,
+                    Error = error ?? "Event not found or database error",
+                    Message = response == null ? "Event not found" : "Failed to retrieve ticket types"
+                }, statusCode: response == null ? 404 : 500);
+            })
+            .WithName("GetEventTicketTypes")
+            .WithSummary("Get ticket types for an event")
+            .WithDescription("Returns all ticket types for a specific event. Used by check-in kiosk for door payment processing. Requires X-CheckIn-Token header.")
+            .WithTags("Events")
+            .Produces<List<TicketTypeDto>>(200)
+            .Produces(401)
+            .Produces(404)
+            .Produces(500);
+
+        // Record cash payment for event attendee (kiosk mode door payment)
+        app.MapPost("/api/events/{eventId}/checkin/cash-payment", async (
+            Guid eventId,
+            [FromHeader(Name = "X-CheckIn-Token")] string? token,
+            [FromServices] ISessionTokenService tokenService,
+            CashPaymentRequest request,
+            ICheckInService checkInService,
+            IValidator<CashPaymentRequest> validator,
+            CancellationToken cancellationToken = default) =>
+        {
+            // VALIDATE TOKEN FIRST
+            if (string.IsNullOrEmpty(token))
+            {
+                return Results.Unauthorized();
+            }
+
+            var validationResult = await tokenService.ValidateTokenAsync(token, cancellationToken);
+            if (!validationResult.IsSuccess)
+            {
+                return Results.Unauthorized();
+            }
+
+            var tokenData = validationResult.Value;
+            if (tokenData.EventId != eventId)
+            {
+                return Results.Forbid(); // 403 - Token is for different event
+            }
+
+            // EXTRACT STAFF ID FROM TOKEN - Frontend can't provide this
+            request.RecordedByStaffId = tokenData.CreatedByStaffId;
+
+            // Validate request (now includes RecordedByStaffId from token)
+            var requestValidation = await validator.ValidateAsync(request, cancellationToken);
+            if (!requestValidation.IsValid)
+            {
+                return Results.ValidationProblem(requestValidation.ToDictionary());
+            }
+
+            // TOKEN IS VALID - Proceed with cash payment recording
+            var result = await checkInService.RecordCashPaymentAsync(eventId, request, cancellationToken);
+
+            return result.IsSuccess
+                ? Results.Ok(result.Value)
+                : Results.Problem(
+                    title: "Cash Payment Failed",
+                    detail: result.Error,
+                    statusCode: result.Error.Contains("not found") ? 404 :
+                               result.Error.Contains("already has a ticket") ? 409 : 500);
+        })
+        .AllowAnonymous() // No authentication required - token validated in handler
+        .WithName("RecordEventCashPayment")
+        .WithSummary("Record door cash payment for event attendee")
+        .WithDescription("Creates a TicketPurchase record for cash payment at event door with staff attribution. Uses event-centric routing pattern.")
+        .WithTags("Events", "CheckIn")
+        .Produces<CashPaymentResponse>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status409Conflict)
+        .Produces(StatusCodes.Status500InternalServerError);
     }
 }

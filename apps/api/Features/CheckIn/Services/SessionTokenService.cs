@@ -118,7 +118,7 @@ public class SessionTokenService : ISessionTokenService
     }
 
     /// <inheritdoc/>
-    public async Task<Result<Guid>> ValidateTokenAsync(
+    public async Task<Result<TokenValidationResult>> ValidateTokenAsync(
         string token,
         CancellationToken cancellationToken = default)
     {
@@ -136,14 +136,18 @@ public class SessionTokenService : ISessionTokenService
                         "Cached token {Token} is EXPIRED - removing from cache. ExpiresAt: {ExpiresAt}, Now: {Now}",
                         token.Substring(0, 10), cachedToken.ExpiresAt, DateTime.UtcNow);
                     _cache.Remove(cacheKey);
-                    return Result<Guid>.Failure("Session token is invalid, revoked, or expired");
+                    return Result<TokenValidationResult>.Failure("Session token is invalid, revoked, or expired");
                 }
 
                 // Validate other rules (revoked, etc.)
                 if (IsTokenValid(cachedToken))
                 {
                     _logger.LogDebug("Token {Token} validated from cache", token.Substring(0, 10));
-                    return Result<Guid>.Success(cachedToken.EventId);
+                    return Result<TokenValidationResult>.Success(new TokenValidationResult
+                    {
+                        EventId = cachedToken.EventId,
+                        CreatedByStaffId = cachedToken.CreatedByUserId
+                    });
                 }
                 else
                 {
@@ -160,7 +164,7 @@ public class SessionTokenService : ISessionTokenService
             if (sessionToken == null)
             {
                 _logger.LogWarning("Invalid check-in token attempted: {Token}", token.Substring(0, 10));
-                return Result<Guid>.Failure("Invalid session token");
+                return Result<TokenValidationResult>.Failure("Invalid session token");
             }
 
             // Validate token rules
@@ -169,7 +173,7 @@ public class SessionTokenService : ISessionTokenService
                 _logger.LogWarning(
                     "Token validation failed for {Token} - Revoked: {IsRevoked}, Expired: {Expired}",
                     token.Substring(0, 10), sessionToken.IsRevoked, sessionToken.ExpiresAt < DateTime.UtcNow);
-                return Result<Guid>.Failure("Session token is invalid, revoked, or expired");
+                return Result<TokenValidationResult>.Failure("Session token is invalid, revoked, or expired");
             }
 
             // Update last used timestamp (don't await - fire and forget for performance)
@@ -200,12 +204,16 @@ public class SessionTokenService : ISessionTokenService
             }
 
             _logger.LogDebug("Token {Token} validated from database", token.Substring(0, 10));
-            return Result<Guid>.Success(sessionToken.EventId);
+            return Result<TokenValidationResult>.Success(new TokenValidationResult
+            {
+                EventId = sessionToken.EventId,
+                CreatedByStaffId = sessionToken.CreatedByUserId
+            });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error validating session token");
-            return Result<Guid>.Failure("Token validation error");
+            return Result<TokenValidationResult>.Failure("Token validation error");
         }
     }
 

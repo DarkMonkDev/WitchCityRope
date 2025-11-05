@@ -46,8 +46,8 @@ public static class CheckInEndpoints
                 return Results.Unauthorized();
             }
 
-            var tokenEventId = validationResult.Value;
-            if (tokenEventId != eventId)
+            var tokenData = validationResult.Value;
+            if (tokenData.EventId != eventId)
             {
                 return Results.Forbid(); // 403 - Token is for different event
             }
@@ -94,8 +94,8 @@ public static class CheckInEndpoints
                 return Results.Unauthorized();
             }
 
-            var tokenEventId = validationResult.Value;
-            if (tokenEventId != eventId)
+            var tokenData = validationResult.Value;
+            if (tokenData.EventId != eventId)
             {
                 return Results.Forbid(); // 403 - Token is for different event
             }
@@ -150,8 +150,8 @@ public static class CheckInEndpoints
                 return Results.Unauthorized();
             }
 
-            var tokenEventId = validationResult.Value;
-            if (tokenEventId != eventId)
+            var tokenData = validationResult.Value;
+            if (tokenData.EventId != eventId)
             {
                 return Results.Forbid(); // 403 - Token is for different event
             }
@@ -198,8 +198,8 @@ public static class CheckInEndpoints
                 return Results.Unauthorized();
             }
 
-            var tokenEventId = validationResult.Value;
-            if (tokenEventId != eventId)
+            var tokenData = validationResult.Value;
+            if (tokenData.EventId != eventId)
             {
                 return Results.Forbid(); // 403 - Token is for different event
             }
@@ -248,13 +248,16 @@ public static class CheckInEndpoints
                 return Results.Unauthorized();
             }
 
-            var tokenEventId = validationResult.Value;
-            if (tokenEventId != eventId)
+            var tokenData = validationResult.Value;
+            if (tokenData.EventId != eventId)
             {
                 return Results.Forbid(); // 403 - Token is for different event
             }
 
-            // Validate request
+            // EXTRACT STAFF ID FROM TOKEN - Frontend can't provide this
+            request.RecordedByStaffId = tokenData.CreatedByStaffId;
+
+            // Validate request (now includes RecordedByStaffId from token)
             var requestValidation = await validator.ValidateAsync(request, cancellationToken);
             if (!requestValidation.IsValid)
             {
@@ -306,8 +309,8 @@ public static class CheckInEndpoints
                 return Results.Unauthorized();
             }
 
-            var tokenEventId = validationResult.Value;
-            if (tokenEventId != eventId)
+            var tokenData = validationResult.Value;
+            if (tokenData.EventId != eventId)
             {
                 return Results.Forbid(); // 403 - Token is for different event
             }

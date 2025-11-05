@@ -229,14 +229,14 @@ public class KioskPaymentEndpoints : ControllerBase
                 return Unauthorized(tokenValidation.Error);
             }
 
-            var tokenEventId = tokenValidation.Value; // Result<Guid>.Value contains the event ID
+            var tokenData = tokenValidation.Value; // Result<TokenValidationResult>.Value contains event ID and staff ID
 
             // Validate token is for this event
-            if (tokenEventId != eventId)
+            if (tokenData.EventId != eventId)
             {
                 _logger.LogWarning(
                     "Session token event mismatch: Token for event {TokenEventId}, payment for event {RequestEventId}",
-                    tokenEventId, eventId);
+                    tokenData.EventId, eventId);
 
                 return BadRequest("Session token is not valid for this event");
             }

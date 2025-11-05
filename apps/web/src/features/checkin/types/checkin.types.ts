@@ -313,33 +313,20 @@ export interface CashPaymentData {
 
 /**
  * Create cash ticket purchase request
- * Maps to backend CreateCashTicketPurchaseRequest DTO
+ * Maps to backend CashPaymentRequest DTO
  * TODO: Replace with auto-generated type when backend adds DTO
  */
 export interface CreateCashTicketPurchaseRequest {
-  eventId: string;
-  userId: string;
+  attendeeId: string;  // User ID (backend expects this field name)
   ticketTypeId: string;
   amount: number;
-  recordedByStaffId?: string;
   notes?: string;
+  // recordedByStaffId is automatically extracted from session token by backend
 }
 
 /**
- * Ticket purchase response
- * TODO: Replace with auto-generated type when backend adds DTO
+ * Cash payment response
+ * Source: C# CashPaymentResponse via NSwag generation
+ * ✅ AUTO-GENERATED TYPE - DO NOT MANUALLY EDIT
  */
-export interface TicketPurchaseResponse {
-  id: string;
-  eventId: string;
-  userId: string;
-  ticketTypeId: string;
-  quantity: number;
-  amount: number;
-  paymentMethod: string;
-  purchaseSource: string;
-  transactionTimestamp: string;
-  recordedByStaffId?: string;
-  notes?: string;
-  isPaymentCompleted: boolean;
-}
+export type CashPaymentResponse = components['schemas']['CashPaymentResponse'];

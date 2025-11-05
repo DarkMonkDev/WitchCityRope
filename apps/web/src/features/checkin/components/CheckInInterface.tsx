@@ -429,18 +429,20 @@ export function CheckInInterface({
       await checkinApi.createCashTicketPurchase(
         eventId,
         {
-          eventId,
-          userId: paymentAttendee.userId,
+          attendeeId: paymentAttendee.userId,  // Backend expects attendeeId (user's ID)
           ticketTypeId: data.ticketTypeId,
           amount: data.amount,
-          recordedByStaffId: undefined, // Kiosk mode - extracted from session token by backend
           notes: data.notes
+          // recordedByStaffId automatically extracted from session token by backend
         },
         sessionToken
       );
 
-      // AUTO-CHECK-IN: Immediately check in the attendee after cash payment
-      await handleCheckIn(paymentAttendee);
+      // AUTO-CHECK-IN: Only check in if they're not already checked in
+      const isAlreadyCheckedIn = paymentAttendee.registrationStatus === 'CheckedIn';
+      if (!isAlreadyCheckedIn) {
+        await handleCheckIn(paymentAttendee);
+      }
 
       // Refresh attendee list to show ticket purchase and check-in status
       refetchAttendees();
@@ -449,9 +451,15 @@ export function CheckInInterface({
       closeCashPayment();
       setPaymentAttendee(null);
 
+      // Show appropriate success message based on check-in status
+      const attendeeName = paymentAttendee.sceneName || paymentAttendee.email;
+      const message = isAlreadyCheckedIn
+        ? `$${data.amount.toFixed(2)} cash ticket purchased for ${attendeeName}`
+        : `$${data.amount.toFixed(2)} cash ticket purchased and ${attendeeName} checked in`;
+
       notifications.show({
-        title: 'Payment & Check-In Complete',
-        message: `$${data.amount.toFixed(2)} cash ticket purchased and ${paymentAttendee.sceneName || paymentAttendee.email} checked in`,
+        title: isAlreadyCheckedIn ? 'Payment Recorded' : 'Payment & Check-In Complete',
+        message,
         color: 'green'
       });
     } catch (error) {
@@ -622,22 +630,6 @@ export function CheckInInterface({
                     textTransform: 'uppercase',
                     letterSpacing: '1px'
                   }}>
-                    Pronouns
-                  </Table.Th>
-                  <Table.Th style={{
-                    color: 'white',
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: '1px'
-                  }}>
-                    Payment
-                  </Table.Th>
-                  <Table.Th style={{
-                    color: 'white',
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: '1px'
-                  }}>
                     Status
                   </Table.Th>
                   <Table.Th style={{
@@ -659,35 +651,6 @@ export function CheckInInterface({
                       <Text fw={600} size="16px">
                         {attendee.sceneName || attendee.email}
                       </Text>
-                    </Table.Td>
-                    <Table.Td style={{ padding: 8 }}>
-                      <Text size="14px" c="dimmed">
-                        {attendee.pronouns || '—'}
-                      </Text>
-                    </Table.Td>
-                    {/* Payment column - TODO: Make conditional based on event type */}
-                    <Table.Td style={{ padding: 8 }}>
-                      <Badge
-                        styles={{
-                          root: {
-                            background: (attendee as any).paymentStatus === 'Paid'
-                              ? checkInTheme.colors.successLight
-                              : checkInTheme.colors.errorLight,
-                            color: (attendee as any).paymentStatus === 'Paid'
-                              ? checkInTheme.colors.success
-                              : checkInTheme.colors.error,
-                            border: '1px solid',
-                            borderColor: (attendee as any).paymentStatus === 'Paid'
-                              ? checkInTheme.colors.success
-                              : checkInTheme.colors.error,
-                            fontFamily: checkInTheme.fonts.heading,
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.5px'
-                          }
-                        }}
-                      >
-                        {(attendee as any).paymentStatus || 'Unpaid'}
-                      </Badge>
                     </Table.Td>
                     {/* Status column - Streamlined check-in button (COVID + Check-In only) */}
                     <Table.Td style={{ padding: 8 }}>
@@ -731,7 +694,7 @@ export function CheckInInterface({
                                 }
                               }}
                             >
-                              Paid at Door ▼
+                              Pay at Door ▼
                             </Button>
                           </Menu.Target>
                           <Menu.Dropdown>

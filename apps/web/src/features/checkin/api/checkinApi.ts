@@ -249,8 +249,8 @@ export const checkinApi = {
     eventId: string,
     request: CreateCashTicketPurchaseRequest,
     sessionToken: string
-  ): Promise<TicketPurchaseResponse> {
-    const { data } = await apiClient.post<TicketPurchaseResponse>(
+  ): Promise<CashPaymentResponse> {
+    const { data } = await apiClient.post<CashPaymentResponse>(
       `/api/events/${eventId}/checkin/cash-payment`,
       request,
       {
@@ -260,7 +260,8 @@ export const checkinApi = {
       }
     );
 
-    if (!data || !data.id) {
+    // Validate response has required fields (auto-generated types have optional fields)
+    if (!data || !data.success || !data.ticketPurchaseId) {
       throw new Error('Failed to create ticket purchase');
     }
 

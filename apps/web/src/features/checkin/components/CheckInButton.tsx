@@ -55,6 +55,7 @@ export const CheckInButton: React.FC<CheckInButtonProps> = ({
       <Button
         onClick={() => onStateChange('checkIn')}
         disabled={disabled}
+        leftSection={<IconCheck size={20} />}
         aria-label={`Mark covid test complete for ${attendee.name}`}
         styles={{
           root: {
@@ -80,7 +81,7 @@ export const CheckInButton: React.FC<CheckInButtonProps> = ({
           }
         }}
       >
-        Covid Test Complete
+        Covid Test
       </Button>
     );
   }

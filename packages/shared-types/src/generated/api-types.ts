@@ -288,6 +288,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/events/{id}/ticket-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get ticket types for an event
+         * @description Returns all ticket types for a specific event. Used by check-in kiosk for door payment processing. Requires X-CheckIn-Token header.
+         */
+        get: operations["GetEventTicketTypes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{eventId}/checkin/cash-payment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record door cash payment for event attendee
+         * @description Creates a TicketPurchase record for cash payment at event door with staff attribution. Uses event-centric routing pattern.
+         */
+        post: operations["RecordEventCashPayment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/users/profile": {
         parameters: {
             query?: never;
@@ -1460,6 +1500,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/checkin/events/{eventId}/cash-payment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record door cash payment for attendee
+         * @description Creates a TicketPurchase record for cash payment at event door with staff attribution
+         */
+        post: operations["RecordCashPayment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/checkin/events/{eventId}/manual-entry": {
         parameters: {
             query?: never;
@@ -1988,8 +2048,8 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["CashPaymentRequest"];
-                    "application/*+json": components["schemas"]["CashPaymentRequest"];
+                    "application/json": components["schemas"]["CashPaymentRequest2"];
+                    "application/*+json": components["schemas"]["CashPaymentRequest2"];
                 };
             };
             responses: {
@@ -1999,7 +2059,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["CashPaymentResponse"];
+                        "application/json": components["schemas"]["CashPaymentResponse2"];
                     };
                 };
                 /** @description Bad Request */
@@ -3018,6 +3078,7 @@ export interface components {
             hasCompletedWaiver?: boolean;
             /** Format: int32 */
             waitlistPosition?: number | null;
+            paymentStatus?: string;
         };
         AuditLogDto: {
             /** Format: uuid */
@@ -3083,6 +3144,17 @@ export interface components {
         } | null;
         CashPaymentRequest: {
             /** Format: uuid */
+            attendeeId: string;
+            /** Format: uuid */
+            ticketTypeId: string;
+            /** Format: double */
+            amount: number;
+            notes?: string | null;
+            /** Format: uuid */
+            recordedByStaffId: string;
+        };
+        CashPaymentRequest2: {
+            /** Format: uuid */
             attendeeId?: string;
             /** Format: double */
             amount?: number;
@@ -3090,6 +3162,16 @@ export interface components {
             sessionToken?: string | null;
         };
         CashPaymentResponse: {
+            /** Format: uuid */
+            ticketPurchaseId?: string;
+            success?: boolean;
+            message?: string;
+            /** Format: double */
+            amount?: number;
+            /** Format: date-time */
+            recordedAt?: string;
+        };
+        CashPaymentResponse2: {
             success?: boolean;
             /** Format: uuid */
             paymentId?: string;
@@ -5073,6 +5155,119 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetEventTicketTypes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketTypeDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    RecordEventCashPayment: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CheckIn-Token"?: string;
+            };
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CashPaymentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CashPaymentResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8444,6 +8639,76 @@ export interface operations {
         responses: {
             /** @description OK */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    RecordCashPayment: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CheckIn-Token"?: string;
+            };
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CashPaymentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CashPaymentResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };

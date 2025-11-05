@@ -30,9 +30,10 @@ export interface CashPaymentModalProps {
 /**
  * Modal for recording cash payments at the door
  * Updated workflow:
- * 1. Click "COVID Test Complete" button
- * 2. After COVID test, "Record Payment" button appears
- * 3. Fill ticket type and amount, submit
+ * 1. Fill ticket type and amount (fields enabled from start)
+ * 2. Click "COVID Test Complete" button
+ * 3. Button changes to "Record Payment"
+ * 4. Click "Record Payment" to submit and auto-check-in
  */
 export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
   opened,
@@ -140,7 +141,7 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
             Attendee: {attendee.name}
           </Text>
 
-          {/* Ticket Type Selector - Always visible */}
+          {/* Ticket Type Selector - Always enabled */}
           <Select
             label="Ticket Type"
             placeholder="Select ticket type"
@@ -150,7 +151,6 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
             }))}
             required
             size="md"
-            disabled={!covidTestComplete}
             styles={{
               label: {
                 fontFamily: 'Montserrat, sans-serif',
@@ -165,7 +165,7 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
             aria-label="Select ticket type"
           />
 
-          {/* Amount Input - Always visible but disabled until COVID test */}
+          {/* Amount Input - Always enabled */}
           <NumberInput
             label="Amount Paid"
             placeholder="0.00"
@@ -176,7 +176,6 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
             required
             hideControls
             size="md"
-            disabled={!covidTestComplete}
             styles={{
               label: {
                 fontFamily: 'Montserrat, sans-serif',
@@ -199,12 +198,14 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
             <Text fw={600} component="span">Payment Method:</Text> Cash
           </Text>
 
-          {/* Action Button - Shows COVID Test Complete first, then Record Payment */}
+          {/* Action Button - Shows checkmark icon for Covid Test first, then Record Payment */}
           {!covidTestComplete ? (
             <Button
+              type="button"
               onClick={handleCovidTestComplete}
               fullWidth
               size="lg"
+              leftSection={<IconCheck size={24} />}
               styles={{
                 root: {
                   background: 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)',
@@ -225,7 +226,7 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
                 }
               }}
             >
-              COVID Test Complete
+              Covid Test
             </Button>
           ) : (
             <Button

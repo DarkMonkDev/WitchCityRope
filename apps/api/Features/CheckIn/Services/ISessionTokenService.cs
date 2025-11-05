@@ -28,13 +28,13 @@ public interface ISessionTokenService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Validate a session token and return associated event ID if valid
+    /// Validate a session token and return associated event ID and staff ID if valid
     /// Called on every check-in API request to verify kiosk access
     /// </summary>
     /// <param name="token">Token string from request header</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Event ID if valid, error if invalid/expired/revoked</returns>
-    Task<Result<Guid>> ValidateTokenAsync(
+    /// <returns>TokenValidationResult with event ID and staff ID if valid, error if invalid/expired/revoked</returns>
+    Task<Result<TokenValidationResult>> ValidateTokenAsync(
         string token,
         CancellationToken cancellationToken = default);
 
