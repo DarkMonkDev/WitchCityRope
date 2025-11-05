@@ -200,40 +200,49 @@ echo ""
 
 # Step 4: Pull images on server
 echo "4️⃣  Pulling images on server..."
-ssh -i $SSH_KEY $USER@$SERVER << 'ENDSSH'
-cd /opt/witchcityrope/staging
 echo "   Pulling latest images..."
-docker-compose -f docker-compose.staging.yml pull
+ssh -i $SSH_KEY $USER@$SERVER "cd /opt/witchcityrope/staging && docker-compose -f docker-compose.staging.yml pull"
+
 if [ $? -ne 0 ]; then
     echo "   ❌ FAIL: Image pull failed"
     exit 1
 fi
 echo "   ✅ Images pulled"
-ENDSSH
-
-if [ $? -ne 0 ]; then
-    echo "   ❌ FAIL: Server pull failed"
-    exit 1
-fi
 echo ""
 
 # Step 5: Deploy (restart containers)
 echo "5️⃣  Deploying containers..."
-ssh -i $SSH_KEY $USER@$SERVER << 'ENDSSH'
-cd /opt/witchcityrope/staging
 echo "   Restarting containers..."
-docker-compose -f docker-compose.staging.yml up -d
+ssh -i $SSH_KEY $USER@$SERVER "cd /opt/witchcityrope/staging && docker-compose -f docker-compose.staging.yml up -d"
+
 if [ $? -ne 0 ]; then
     echo "   ❌ FAIL: Container restart failed"
     exit 1
 fi
-echo "   ✅ Containers restarted"
-ENDSSH
+echo "   ✅ Containers restart command completed"
+echo ""
 
-if [ $? -ne 0 ]; then
-    echo "   ❌ FAIL: Deployment failed"
+# Step 5b: Verify containers were actually recreated (NEW)
+echo "5️⃣b Verifying containers were recreated..."
+CONTAINER_AGE=$(ssh -i $SSH_KEY $USER@$SERVER "docker inspect witchcity-api-staging --format='{{.State.StartedAt}}'" 2>/dev/null)
+if [ -z "$CONTAINER_AGE" ]; then
+    echo "   ❌ FAIL: Could not verify container restart"
     exit 1
 fi
+
+# Calculate age in seconds
+CURRENT_TIME=$(date +%s)
+CONTAINER_TIME=$(date -d "$CONTAINER_AGE" +%s 2>/dev/null || echo "0")
+AGE_SECONDS=$((CURRENT_TIME - CONTAINER_TIME))
+
+if [ $AGE_SECONDS -gt 120 ]; then
+    echo "   ❌ FAIL: Container is too old ($AGE_SECONDS seconds) - restart may have failed"
+    echo "   Container started at: $CONTAINER_AGE"
+    echo "   Manual restart required:"
+    echo "   ssh $USER@$SERVER 'cd /opt/witchcityrope/staging && docker-compose -f docker-compose.staging.yml up -d'"
+    exit 1
+fi
+echo "   ✅ Containers verified as newly created ($AGE_SECONDS seconds old)"
 echo ""
 
 # Step 6: Wait for containers to stabilize
@@ -244,14 +253,11 @@ echo ""
 
 # Step 7: Check container status
 echo "7️⃣  Checking container status..."
-ssh -i $SSH_KEY $USER@$SERVER << 'ENDSSH'
-cd /opt/witchcityrope/staging
 echo "   Container status:"
-docker-compose -f docker-compose.staging.yml ps
+ssh -i $SSH_KEY $USER@$SERVER "cd /opt/witchcityrope/staging && docker-compose -f docker-compose.staging.yml ps"
 echo ""
 echo "   Recent API logs:"
-docker logs witchcity-api-staging --tail 20
-ENDSSH
+ssh -i $SSH_KEY $USER@$SERVER "docker logs witchcity-api-staging --tail 20"
 echo ""
 
 # Step 8: Health checks
@@ -433,7 +439,7 @@ doctl registry login
 
 **Solution**:
 1. Wait longer (skill waits 30 seconds)
-2. Check logs: `ssh witchcity@104.131.165.14 "docker logs witchcity-api-staging"`
+2. Check logs via SSH to server and inspect container logs
 3. If serious: Rollback
 
 ### Issue: Smoke tests fail
@@ -564,17 +570,14 @@ On failure:
 3. Test changes before committing
 
 **To verify no duplication:**
-```bash
-bash .claude/skills/single-source-validator.md staging-deploy
-```
+- Use `single-source-validator` skill to check for duplicated commands
 
 ---
 
 ## Version History
 
+- **2025-11-05**: Fixed reliability - replaced SSH heredocs with direct commands, added container age verification
 - **2025-11-04**: Created as automation wrapper for staging deployment
-- Complements: `/docs/functional-areas/deployment/staging-deployment-guide.md`
-- Consolidates automation from multiple locations into single source
 
 ---
 
