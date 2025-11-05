@@ -215,7 +215,7 @@ export type EventSession = components['schemas']['SessionDto']  // Has registrat
 
 ### 6. E2E Testing - Playwright ONLY
 - ✅ **Location**: `/tests/playwright/`
-- ✅ **Run**: `npm run test:e2e:playwright`
+- ✅ **Run**: See Quick Commands section below
 - ❌ **NO Puppeteer**: All tests use Playwright
 
 ### 7. Docker Development Build
@@ -223,9 +223,9 @@ export type EventSession = components['schemas']['SessionDto']  // Has registrat
 # ❌ WRONG - Will fail:
 docker-compose up
 
-# ✅ CORRECT - Development build:
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-# OR
+# ✅ CORRECT - Use container-restart skill
+# The skill handles proper startup with dev overrides
+# OR manually:
 ./dev.sh
 ```
 
@@ -265,6 +265,34 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 - **Guest/Attendee**: guest@witchcityrope.com / Test123!
 - **Safety Coordinator 1**: coordinator1@witchcityrope.com / Test123! (SafetyTeam role)
 - **Safety Coordinator 2**: coordinator2@witchcityrope.com / Test123! (SafetyTeam role)
+
+## 📚 Just-In-Time Standards (Main Agent Quick Reference)
+
+**For Full Discovery**: See `/docs/standards-processes/STANDARDS-INDEX.md`
+
+**For Small Changes Only** (read before making changes):
+
+### Quick Frontend Fixes
+- [React Patterns](/docs/standards-processes/frontend/react-patterns.md) - Component changes, hooks, button patterns
+- [TypeScript Patterns](/docs/standards-processes/frontend/typescript-patterns.md) - Type fixes, DTO issues
+- [DTO Alignment Strategy](/docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md) - API integration (CRITICAL)
+
+### Quick Backend Fixes
+- [API Design Patterns](/docs/standards-processes/backend/api-design-patterns.md) - Endpoint changes, HTTP methods
+- [Error Handling](/docs/standards-processes/backend/error-handling-patterns.md) - Error responses, logging
+
+### Infrastructure & Operations
+- **Docker Issues**: Use `container-restart` skill (automation first - don't read docs)
+- **Deployment**: Use `staging-deploy` skill (automation first - don't read docs)
+- [Docker Patterns](/docs/standards-processes/architecture/docker-patterns.md) - Only if skill fails
+
+**When to Delegate Instead**:
+- Complex React features → Delegate to react-developer agent
+- Complex backend features → Delegate to backend-developer agent
+- Database schema changes → Delegate to database-designer agent
+- Full feature implementation → Use `/orchestrator` command
+
+**Principle**: For small changes, read just-in-time. For complex work, delegate to specialists.
 
 ## 🛠️ Claude-Specific Configuration
 
@@ -316,7 +344,7 @@ npm run build
 
 # Run tests
 npm run test                    # React unit tests
-npm run test:e2e:playwright    # E2E tests
+# E2E tests - See /tests/playwright/ directory
 dotnet test tests/WitchCityRope.Core.Tests/     # API tests
 
 # Health check before integration tests
