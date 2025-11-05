@@ -21,7 +21,7 @@ import {
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { IconPlus, IconCash, IconQrcode } from '@tabler/icons-react';
+import { IconPlus, IconCash, IconQrcode, IconChevronUp, IconChevronDown } from '@tabler/icons-react';
 
 import { CheckInHeader } from './CheckInHeader';
 import { CheckInModal } from './CheckInModal';
@@ -235,6 +235,12 @@ export function CheckInInterface({
   const [selectedAttendee, setSelectedAttendee] = useState<CheckInAttendee | null>(null);
   const [checkInResponse, setCheckInResponse] = useState<CheckInResponse | null>(null);
 
+  // Sorting state
+  type SortColumn = 'name' | 'status' | 'payment';
+  type SortDirection = 'asc' | 'desc';
+  const [sortColumn, setSortColumn] = useState<SortColumn>('name');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
   // Button state tracking per attendee (for streamlined workflow)
   const [buttonStates, setButtonStates] = useState<Map<string, CheckInButtonState>>(new Map());
 
@@ -308,6 +314,18 @@ export function CheckInInterface({
   const handleStatusFilter = useCallback((status: RegistrationStatus | 'all') => {
     setStatusFilter(status);
   }, []);
+
+  // Handle column header click for sorting
+  const handleSort = useCallback((column: SortColumn) => {
+    if (sortColumn === column) {
+      // Toggle direction if same column
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      // New column - default to ascending
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  }, [sortColumn]);
 
   const handleSelectAttendee = useCallback((attendee: CheckInAttendee) => {
     setSelectedAttendee(attendee);
@@ -385,14 +403,56 @@ export function CheckInInterface({
     return 'covidTest';
   }, [buttonStates]);
 
-  // Filter attendees
+  // Filter and sort attendees
   const filteredAttendees = useMemo(() => {
     const attendees = (attendeesResponse as any)?.attendees || [];
-    return attendees.filter((attendee: CheckInAttendee) => {
+
+    // First, filter by status
+    const filtered = attendees.filter((attendee: CheckInAttendee) => {
       if (statusFilter === 'all') return true;
       return attendee.registrationStatus === statusFilter;
     });
-  }, [attendeesResponse, statusFilter]);
+
+    // Then, sort by selected column
+    const sorted = [...filtered].sort((a: CheckInAttendee, b: CheckInAttendee) => {
+      let comparison = 0;
+
+      switch (sortColumn) {
+        case 'name':
+          // Sort by sceneName or email
+          const nameA = (a.sceneName || a.email || '').toLowerCase();
+          const nameB = (b.sceneName || b.email || '').toLowerCase();
+          comparison = nameA.localeCompare(nameB);
+          break;
+
+        case 'status':
+          // Sort by registration status (checked in first or last based on direction)
+          const statusA = a.registrationStatus === 'CheckedIn' ? 1 : 0;
+          const statusB = b.registrationStatus === 'CheckedIn' ? 1 : 0;
+          comparison = statusA - statusB;
+          break;
+
+        case 'payment':
+          // Sort by payment status
+          const paymentA = (a as any).paymentStatus || 'rsvp';
+          const paymentB = (b as any).paymentStatus || 'rsvp';
+          // Order: ticket > paidAtDoor > rsvp/Unpaid
+          const paymentOrder: Record<string, number> = {
+            'ticket': 0,
+            'paidAtDoor': 1,
+            'rsvp': 2,
+            'Unpaid': 2
+          };
+          comparison = (paymentOrder[paymentA] || 2) - (paymentOrder[paymentB] || 2);
+          break;
+      }
+
+      // Apply sort direction
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    return sorted;
+  }, [attendeesResponse, statusFilter, sortColumn, sortDirection]);
 
   // Handle button state changes
   const handleButtonStateChange = useCallback((attendeeId: string, newState: CheckInButtonState) => {
@@ -452,6 +512,14 @@ export function CheckInInterface({
         console.log('✅ Attempting auto-check-in...');
         await handleCheckIn(paymentAttendee);
         console.log('✅ Auto-check-in completed');
+
+        // Update button state to 'complete' after successful check-in
+        setButtonStates(prev => {
+          const updated = new Map(prev);
+          updated.set(paymentAttendee.attendeeId, 'complete');
+          return updated;
+        });
+        console.log('✅ Button state updated to complete');
       }
 
       // Refresh attendee list to show ticket purchase and check-in status
@@ -635,29 +703,74 @@ export function CheckInInterface({
             <Table striped highlightOnHover withTableBorder>
               <Table.Thead style={{ backgroundColor: 'var(--mantine-color-burgundy-6)' }}>
                 <Table.Tr>
-                  <Table.Th style={{
-                    color: 'white',
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: '1px'
-                  }}>
-                    Name
+                  <Table.Th
+                    onClick={() => handleSort('name')}
+                    style={{
+                      color: 'white',
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      letterSpacing: '1px',
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      transition: 'background-color 0.2s ease',
+                      position: 'relative',
+                      paddingLeft: '16px'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <Box style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      Name
+                      {sortColumn === 'name' && (
+                        sortDirection === 'asc' ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />
+                      )}
+                    </Box>
                   </Table.Th>
-                  <Table.Th style={{
-                    color: 'white',
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: '1px'
-                  }}>
-                    Status
+                  <Table.Th
+                    onClick={() => handleSort('status')}
+                    style={{
+                      color: 'white',
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      letterSpacing: '1px',
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      transition: 'background-color 0.2s ease',
+                      position: 'relative',
+                      textAlign: 'center'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <Box style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                      Status
+                      {sortColumn === 'status' && (
+                        sortDirection === 'asc' ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />
+                      )}
+                    </Box>
                   </Table.Th>
-                  <Table.Th style={{
-                    color: 'white',
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: '1px'
-                  }}>
-                    Door Payment
+                  <Table.Th
+                    onClick={() => handleSort('payment')}
+                    style={{
+                      color: 'white',
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      letterSpacing: '1px',
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      transition: 'background-color 0.2s ease',
+                      position: 'relative',
+                      textAlign: 'center'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <Box style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                      Door Payment
+                      {sortColumn === 'payment' && (
+                        sortDirection === 'asc' ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />
+                      )}
+                    </Box>
                   </Table.Th>
                 </Table.Tr>
               </Table.Thead>
@@ -666,13 +779,13 @@ export function CheckInInterface({
                   <Table.Tr
                     key={attendee.attendeeId}
                   >
-                    <Table.Td style={{ padding: 8 }}>
+                    <Table.Td style={{ padding: '8px 8px 8px 16px' }}>
                       <Text fw={600} size="16px">
                         {attendee.sceneName || attendee.email}
                       </Text>
                     </Table.Td>
                     {/* Status column - Streamlined check-in button (COVID + Check-In only) */}
-                    <Table.Td style={{ padding: 8 }}>
+                    <Table.Td style={{ padding: 8, textAlign: 'center' }}>
                       <CheckInButton
                         attendee={{
                           id: attendee.attendeeId,
@@ -688,7 +801,7 @@ export function CheckInInterface({
                       />
                     </Table.Td>
                     {/* Door Payment column - Separate payment handling */}
-                    <Table.Td style={{ padding: 8 }}>
+                    <Table.Td style={{ padding: 8, textAlign: 'center' }}>
                       {(attendee as any).paymentStatus === 'rsvp' || (attendee as any).paymentStatus === 'Unpaid' ? (
                         <Menu shadow="md" width={200}>
                           <Menu.Target>
@@ -706,9 +819,11 @@ export function CheckInInterface({
                                   textTransform: 'uppercase',
                                   letterSpacing: '0.5px',
                                   transition: 'all 0.3s ease',
-                                  height: '44px',
-                                  paddingTop: '12px',
-                                  paddingBottom: '12px',
+                                  height: '32px',
+                                  paddingTop: '6px',
+                                  paddingBottom: '6px',
+                                  paddingLeft: '12px',
+                                  paddingRight: '12px',
                                   lineHeight: '1.2'
                                 }
                               }}

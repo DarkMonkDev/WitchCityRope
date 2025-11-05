@@ -59,90 +59,96 @@ export const CheckInHeader: React.FC<CheckInHeaderProps> = ({
     return () => clearInterval(interval)
   }, [eventDate])
 
-  const formattedDate = eventDate.toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  })
-
-  const formattedTime = eventDate.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  })
-
   return (
-    <Box
-      style={{
-        background: checkInTheme.gradients.header,
-        color: checkInTheme.colors.ivory,
-        padding: `${checkInTheme.spacing.lg} ${checkInTheme.spacing.xl}`,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-      }}
-    >
-      {/* Left Section: Event Title and Date */}
-      <Box style={{ flex: '1' }}>
-        <Box
-          component="h1"
-          style={{
-            fontFamily: checkInTheme.fonts.heading,
-            fontSize: '32px',
-            fontWeight: 800,
-            letterSpacing: '-0.5px',
-            margin: 0,
-            marginBottom: checkInTheme.spacing.xs,
-          }}
-        >
-          {eventTitle}
-        </Box>
-        <Box
-          style={{
-            fontSize: '16px',
-            opacity: 0.9,
-            fontWeight: 500,
-          }}
-        >
-          {formattedDate} • {formattedTime}
-        </Box>
-      </Box>
+    <>
+      {/* Responsive layout styles */}
+      <style>{`
+        .checkin-header-container {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 16px;
+          flex-wrap: wrap;
+        }
 
-      {/* Center Section: Check-in Count */}
+        .checkin-header-left-wrapper {
+          display: flex;
+          gap: 4px;
+          align-items: center;
+          flex-wrap: wrap;
+          flex: 100 1 0%;
+          min-width: 0;
+        }
+
+        .checkin-header-title {
+          flex: 0 1 auto;
+          min-width: min-content;
+        }
+
+        .checkin-header-count {
+          flex: 1 1 auto;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-width: 250px;
+        }
+
+        .checkin-header-right {
+          flex: 1 0 auto;
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 16px;
+          min-width: fit-content;
+        }
+      `}</style>
+
       <Box
+        className="checkin-header-container"
         style={{
-          flex: '1',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
+          background: checkInTheme.gradients.header,
+          color: checkInTheme.colors.ivory,
+          padding: `${checkInTheme.spacing.lg} ${checkInTheme.spacing.xl}`,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
         }}
       >
-        <Box
-          style={{
-            fontFamily: checkInTheme.fonts.heading,
-            fontSize: '32px',
-            fontWeight: 800,
-            letterSpacing: '-0.5px',
-            color: checkInTheme.colors.ivory,
-            textAlign: 'center',
-          }}
-        >
-          {checkedInCount} of {totalCount} Checked In
-        </Box>
-      </Box>
+        {/* Left Wrapper: Title and Check-in Count */}
+        <Box className="checkin-header-left-wrapper">
+          {/* Event Title */}
+          <Box className="checkin-header-title">
+            <Box
+              component="h1"
+              style={{
+                fontFamily: checkInTheme.fonts.heading,
+                fontSize: '32px',
+                fontWeight: 800,
+                letterSpacing: '-0.5px',
+                margin: 0,
+              }}
+            >
+              {eventTitle}
+            </Box>
+          </Box>
 
-      {/* Right Section: Timer and Exit Button */}
-      <Box
-        style={{
-          flex: '1',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'flex-end',
-          gap: checkInTheme.spacing.md,
-        }}
-      >
+          {/* Check-in Count */}
+          <Box className="checkin-header-count">
+            <Box
+              style={{
+                fontFamily: checkInTheme.fonts.heading,
+                fontSize: '32px',
+                fontWeight: 800,
+                letterSpacing: '-0.5px',
+                color: checkInTheme.colors.ivory,
+                textAlign: 'center',
+              }}
+            >
+              {checkedInCount} of {totalCount} Checked In
+            </Box>
+          </Box>
+        </Box>
+
+        {/* Right Section: Timer and Exit Button */}
+        <Box className="checkin-header-right">
         <Box
           style={{
             background: 'rgba(255,255,255,0.15)',
@@ -207,7 +213,8 @@ export const CheckInHeader: React.FC<CheckInHeaderProps> = ({
         >
           ✕
         </Button>
+        </Box>
       </Box>
-    </Box>
+    </>
   )
 }

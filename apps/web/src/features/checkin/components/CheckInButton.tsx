@@ -41,7 +41,7 @@ export const CheckInButton: React.FC<CheckInButtonProps> = ({
         size="md"
         fw={600}
         c="green"
-        style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
       >
         <IconCheck size={20} />
         Checked In
@@ -68,9 +68,11 @@ export const CheckInButton: React.FC<CheckInButtonProps> = ({
             textTransform: 'uppercase',
             letterSpacing: '0.5px',
             transition: 'all 0.3s ease',
-            height: '44px',
-            paddingTop: '12px',
-            paddingBottom: '12px',
+            height: '32px',
+            paddingTop: '6px',
+            paddingBottom: '6px',
+            paddingLeft: '12px',
+            paddingRight: '12px',
             lineHeight: '1.2',
             boxShadow: '0 4px 15px rgba(157, 78, 221, 0.4)',
             '&:hover': {
@@ -105,9 +107,11 @@ export const CheckInButton: React.FC<CheckInButtonProps> = ({
             textTransform: 'uppercase',
             letterSpacing: '0.5px',
             transition: 'all 0.3s ease',
-            height: '44px',
-            paddingTop: '12px',
-            paddingBottom: '12px',
+            height: '32px',
+            paddingTop: '6px',
+            paddingBottom: '6px',
+            paddingLeft: '12px',
+            paddingRight: '12px',
             lineHeight: '1.2',
             boxShadow: '0 4px 15px rgba(34, 139, 34, 0.4)',
             '&:hover': {
