@@ -9,6 +9,28 @@
 **Current Version**: Mantine v7
 **Migration Status**: Migrated from Blazor to React + Mantine v7
 
+## 🎯 Responsive Context Strategy
+
+**WitchCityRope has different responsive requirements by feature area:**
+
+### Admin Areas (`/features/admin/*`)
+- **Desktop-only optimization** (1440px)
+- **NO mobile testing required**
+- Focus on data tables, forms, management interfaces
+- Use fixed layouts where appropriate
+
+### Check-In System (`/features/checkin/*`)
+- **Tablet + Desktop** (768px + 1440px)
+- **NO mobile support needed**
+- Kiosk-style interface for event check-in
+- Larger touch targets for tablets
+
+### Public Areas (`/features/public/*`, `/features/events/public/*`)
+- **Mobile-first approach** (375px + 768px + 1440px)
+- **All breakpoints required**
+- Optimize for community members browsing on phones
+- Progressive enhancement from mobile → desktop
+
 ## Component Import Pattern
 
 ```typescript
@@ -239,6 +261,74 @@ import { Button, Group } from '@mantine/core';
 </Group>
 ```
 
+## 🚨 MANDATORY Button Styling Checklist
+
+**EVERY Button component MUST include these styles to prevent text cutoff.**
+
+### Critical Issue: Recurring Button Text Cutoff
+**Documented**: 2025-09-22 AND 2025-10-05 (same bug twice!)
+**Cause**: Missing explicit height/padding in Button styles
+**Solution**: ALWAYS use this checklist
+
+### Mandatory Button Styles Pattern
+
+```typescript
+import { Button } from '@mantine/core';
+
+// ✅ CORRECT: All buttons MUST use this pattern
+<Button
+  variant="filled"
+  color="blue"
+  styles={{
+    root: {
+      height: '44px',           // REQUIRED: Explicit height
+      paddingTop: '12px',       // REQUIRED: Explicit top padding
+      paddingBottom: '12px',    // REQUIRED: Explicit bottom padding
+      fontSize: '14px',         // REQUIRED: Consistent font size
+      lineHeight: '1.2',        // REQUIRED: Prevents text cutoff
+      fontWeight: 600,          // Optional: Adjust as needed
+    }
+  }}
+>
+  Button Text
+</Button>
+
+// ❌ WRONG: Using size prop alone causes text cutoff
+<Button size="sm">
+  Button Text  {/* Text will be cut off! */}
+</Button>
+
+// ❌ WRONG: Style props without explicit height/padding
+<Button
+  variant="filled"
+  color="blue"
+  style={{ borderColor: '#880124' }}
+>
+  Button Text  {/* Text will still cut off! */}
+</Button>
+```
+
+### Button Implementation Checklist
+
+**Before committing ANY button, verify:**
+- [ ] `height: '44px'` is set in `styles.root`
+- [ ] `paddingTop: '12px'` is set in `styles.root`
+- [ ] `paddingBottom: '12px'` is set in `styles.root`
+- [ ] `fontSize: '14px'` is set in `styles.root`
+- [ ] `lineHeight: '1.2'` is set in `styles.root`
+- [ ] Button text is fully visible in Chrome DevTools screenshot
+- [ ] NO reliance on `size` prop alone
+
+### Why This Matters
+
+**Without explicit height/padding:**
+- Mantine's default Button styles conflict with custom CSS
+- Text gets cut off at top and bottom
+- Issue is invisible in code but obvious to users
+- Recurring bug costs developer time (documented twice)
+
+**Prevention is mandatory, not optional.**
+
 ## Color Scheme
 
 Use Mantine's built-in colors:
@@ -257,17 +347,119 @@ Use Mantine's built-in colors:
 
 ## Responsive Design
 
-Use Mantine's responsive props:
+### Mantine Breakpoints
+```typescript
+// Mantine v7 default breakpoints
+base: 0px      // Mobile (< 576px) - Use for mobile-first base styles
+xs: 576px      // Small mobile (≥ 576px)
+sm: 768px      // Tablet (≥ 768px)
+md: 1024px     // Desktop (≥ 1024px)
+lg: 1440px     // Large desktop (≥ 1440px)
+xl: 1920px     // Extra large (≥ 1920px)
+```
+
+### 🚨 CRITICAL: Always Use `base` Property for Mobile
+
+**Problem**: Mantine responsive props default to `xs` (576px), leaving mobile screens < 576px unstyled.
 
 ```typescript
-import { Stack } from '@mantine/core';
+// ❌ WRONG: Mobile screens < 576px get no spacing
+<Stack gap={{ sm: 'md', lg: 'lg' }}>
+  {/* On 375px mobile, gap is undefined! */}
+</Stack>
 
+// ✅ CORRECT: Use `base` for mobile-first styling
+<Stack gap={{ base: 'sm', sm: 'md', lg: 'lg' }}>
+  {/* base applies to ALL screens, then sm/lg override */}
+</Stack>
+```
+
+### Responsive Props Pattern
+
+```typescript
+import { Stack, Grid, Box } from '@mantine/core';
+
+// Mobile-first spacing (public areas)
 <Stack
   gap={{ base: 'sm', sm: 'md', lg: 'lg' }}
   p={{ base: 'xs', sm: 'sm', lg: 'md' }}
 >
-  {/* Responsive spacing and padding */}
+  {/* Progressive enhancement from mobile → desktop */}
 </Stack>
+
+// Grid with responsive columns
+<Grid>
+  <Grid.Col span={{ base: 12, sm: 6, lg: 4 }}>
+    {/* Full width mobile, half tablet, third desktop */}
+  </Grid.Col>
+</Grid>
+```
+
+### Show/Hide Elements Responsively
+
+**Performance-optimized visibility controls:**
+
+```typescript
+import { Box } from '@mantine/core';
+
+// ✅ CORRECT: Use hiddenFrom/visibleFrom (better performance)
+<Box hiddenFrom="sm">Mobile only content</Box>
+<Box visibleFrom="md">Desktop only content</Box>
+
+// ❌ AVOID: Responsive display prop (less performant)
+<Box display={{ base: 'block', sm: 'none' }}>Mobile only</Box>
+```
+
+### Layout Component Selection
+
+**Grid vs SimpleGrid vs Flex - Decision Tree:**
+
+```typescript
+// Use Grid when: Variable column widths, complex responsive layouts
+<Grid>
+  <Grid.Col span={{ base: 12, md: 8 }}>Main content</Grid.Col>
+  <Grid.Col span={{ base: 12, md: 4 }}>Sidebar</Grid.Col>
+</Grid>
+
+// Use SimpleGrid when: Equal-width columns, simple grids
+<SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
+  <Card>Item 1</Card>
+  <Card>Item 2</Card>
+  <Card>Item 3</Card>
+</SimpleGrid>
+
+// Use Flex when: Horizontal/vertical alignment, dynamic spacing
+<Flex
+  direction={{ base: 'column', sm: 'row' }}
+  gap="md"
+  justify="space-between"
+>
+  <Button>Cancel</Button>
+  <Button>Submit</Button>
+</Flex>
+```
+
+### Common Responsive Patterns
+
+```typescript
+// Mobile: Stack vertically, Desktop: Horizontal
+<Flex direction={{ base: 'column', md: 'row' }} gap="md">
+  <Box style={{ flex: 1 }}>Content 1</Box>
+  <Box style={{ flex: 1 }}>Content 2</Box>
+</Flex>
+
+// Responsive text sizing
+<Text size={{ base: 'sm', md: 'md', lg: 'lg' }}>
+  Scales with screen size
+</Text>
+
+// Responsive padding/margins
+<Box
+  p={{ base: 'xs', sm: 'md', lg: 'xl' }}
+  m={{ base: 0, md: 'md' }}
+>
+  Content
+</Box>
 ```
 
 ## Accessibility

@@ -125,6 +125,71 @@ You MUST maintain your lessons learned file:
 3. Use the established format: Problem → Solution → Example
 4. This helps future sessions avoid the same issues
 
+## 🚨 MANDATORY LAYOUT VALIDATION WORKFLOW 🚨
+
+**AFTER implementing ANY layout, styling, or UI changes, you MUST validate with Chrome DevTools MCP.**
+
+### Step 1: Determine Context (Check File Path)
+
+```
+/features/admin/*           → Desktop only (1440px)
+/features/checkin/*         → Tablet (768px) + Desktop (1440px)
+/features/public/*          → Mobile (375px) + Tablet (768px) + Desktop (1440px)
+/features/events/public/*   → Mobile (375px) + Tablet (768px) + Desktop (1440px)
+```
+
+**Admin areas are desktop-only. Check-in needs tablet+desktop. Public areas need all breakpoints.**
+
+### Step 2: Use Chrome DevTools MCP to Validate
+
+For each REQUIRED breakpoint:
+1. Navigate to the page in browser
+2. Use Chrome DevTools MCP `mcp__chrome-devtools__take_screenshot` tool
+3. Resize viewport to breakpoint width (375px, 768px, or 1440px)
+4. Take screenshot
+5. Analyze screenshot for issues
+
+### Step 3: Visual Validation Checklist
+
+Check EVERY screenshot for:
+- [ ] **Button text visible** (no cutoff at top/bottom)
+- [ ] **No overflow issues** (content fits within containers)
+- [ ] **Proper spacing** (padding/margins look correct)
+- [ ] **Alignment correct** (text, buttons, cards aligned properly)
+- [ ] **No overlapping elements**
+- [ ] **Responsive props working** (elements show/hide as expected)
+
+### Step 4: Only Proceed If Validation Passes
+
+**DO NOT** commit changes if:
+- ❌ Button text is cut off
+- ❌ Content overflows containers
+- ❌ Layout breaks at required breakpoints
+- ❌ Elements overlap incorrectly
+
+**FIX the issues, then re-validate.**
+
+### Example Workflow
+
+```bash
+# 1. Determine context
+File: /features/admin/users/UserManagement.tsx
+Context: Admin → Desktop only (1440px)
+
+# 2. Use MCP to validate
+- Take screenshot at 1440px
+- Check button text, overflow, spacing
+
+# 3. If issues found
+- Fix button styling (see Mantine UI Standards checklist)
+- Fix overflow (adjust container widths)
+- Re-validate with new screenshot
+
+# 4. Commit only when validation passes
+```
+
+---
+
 ## Critical Rules
 
 ### NEVER
@@ -134,6 +199,8 @@ You MUST maintain your lessons learned file:
 - ❌ Use inline styles instead of CSS modules or Mantine
 - ❌ Create uncontrolled components for forms
 - ❌ Use useEffect for derived state
+- ❌ **Skip visual validation after layout changes**
+- ❌ **Test mobile breakpoints for admin areas**
 
 ### ALWAYS
 - ✅ Use functional components with hooks
@@ -142,6 +209,8 @@ You MUST maintain your lessons learned file:
 - ✅ Use Mantine v7 components consistently (ADR-004)
 - ✅ Implement proper error boundaries
 - ✅ Use React.memo() for performance optimization when needed
+- ✅ **Validate layouts with Chrome DevTools MCP before committing**
+- ✅ **Check button text visibility in screenshots**
 
 ## Technical Expertise
 
