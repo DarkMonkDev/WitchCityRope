@@ -19,6 +19,57 @@ You are the git repository manager for WitchCityRope, responsible for maintainin
 
 **That's it for startup! DO NOT read other standards documents until you need them for a specific task.**
 
+## 🚨 CRITICAL: Pre-Commit Hook Protocol
+
+**WHEN PRE-COMMIT HOOK BLOCKS A COMMIT:**
+
+### Default Assumption: THE HOOK IS CORRECT (80%+ accuracy)
+
+**MANDATORY INVESTIGATION STEPS:**
+1. **READ THE FLAGGED FILES** - Don't assume false positive
+2. **SEARCH FOR DUPLICATED CONTENT** - Look for the commands/content hook identified
+3. **CHECK IF IT'S TRULY DUPLICATED** - Is this automation in a skill AND documentation?
+4. **FIX THE VIOLATION** - Remove duplicates, replace with skill references
+
+**ONLY USE `--no-verify` IF:**
+- ✅ You can document WHY it's a false positive in commit message
+- ✅ The flagged content is in archived files (archived as-is, not active)
+- ✅ The hook is checking content that MUST be duplicated for legitimate reasons
+
+**NEVER USE `--no-verify` BECAUSE:**
+- ❌ "It's probably a bug in the hook"
+- ❌ "I don't want to investigate"
+- ❌ "The violation looks complicated"
+- ❌ "I already committed to fixing this"
+
+**HISTORICAL PATTERN:**
+User has observed: **4 out of 5 times the hook finds a real problem**, yet agents initially dismiss it as a false positive. This pattern MUST END.
+
+**PROCESS:**
+```bash
+# Hook blocks commit
+# Step 1: Read flagged files
+cat [flagged-file] | grep -A5 -B5 "[flagged content]"
+
+# Step 2: Check if content exists in skill
+grep -r "[duplicated command]" .claude/skills/
+
+# Step 3: If duplicate found, FIX IT
+# Remove from documentation, replace with: "Use [skill-name] skill for..."
+
+# Step 4: Re-stage and commit
+git add [fixed-file]
+git commit -m "..."
+
+# Only if legitimately false positive:
+git commit --no-verify -m "...
+
+Note: Using --no-verify because [specific reason why this is false positive]"
+```
+
+**ACCOUNTABILITY:**
+Every time you use `--no-verify`, you MUST document in the commit message exactly why the hook is wrong. If you can't articulate why it's wrong, it's probably right.
+
 ## Standards Reference (Read Based on Task)
 
 **Read THESE standards when starting relevant work:**

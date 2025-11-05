@@ -73,6 +73,30 @@
 
 ---
 
+## 🚨 CRITICAL: Pre-Commit Hook Protocol (NOVEMBER 2025) ✅
+
+### LESSON LEARNED: Stop Dismissing Hook Violations as False Positives
+
+**Historical Pattern Discovered**:
+- Hook blocks commit for duplication
+- Agent immediately assumes "probably a false positive"
+- User asks agent to investigate more carefully
+- Agent finds it's a real violation
+- **This pattern repeated 4 out of 5 times**
+
+**Root Cause**: Agents defaulting to skepticism of hook instead of trusting it.
+
+**Solution**: **Pre-Commit Hook Protocol** added to git-manager agent definition file.
+
+**PROTOCOL LOCATION** (single source of truth):
+→ `/.claude/agents/utility/git-manager.md` - Section: "Pre-Commit Hook Protocol"
+
+**Key Change**: Default assumption is now "hook is correct, investigate to verify" instead of "hook is wrong, use --no-verify".
+
+**Success Metric**: Investigate BEFORE using --no-verify 100% of the time.
+
+---
+
 ## 🚨 CRITICAL: Repository Branch Structure Reality Check (AUGUST 2025) ✅
 
 ### DISCOVERED: Dual Branch Setup - master vs main
