@@ -6,6 +6,46 @@
 **COMMON ERROR**: Using January instead of the actual month. ALWAYS verify!
 **Example**: If env says "Today's date: 2025-09-11", use September 11, 2025, NOT January 11, 2025!
 
+### 🚨 CRITICAL: SINGLE SOURCE OF TRUTH - ZERO TOLERANCE 🚨
+
+**THIS IS NON-NEGOTIABLE. VIOLATIONS WILL BE IMMEDIATELY REJECTED.**
+
+**PRINCIPLE**: Every piece of information, code, command, or procedure EXISTS IN EXACTLY ONE LOCATION.
+
+**VIOLATIONS INCLUDE:**
+- ❌ **Writing the same bash command in both a skill AND documentation**
+- ❌ **Duplicating procedures across multiple files** (even with slight variations)
+- ❌ **Copying protocol steps into both agent definition AND lessons learned**
+- ❌ **Putting automation in both skills AND guides**
+- ❌ **Repeating configuration in multiple places**
+
+**CORRECT PATTERNS:**
+- ✅ **Skills**: Contain executable automation (THE source)
+- ✅ **Guides**: Reference skills ("Use X skill for..."), provide context/decisions
+- ✅ **Agent Definitions**: Contain protocols and procedures (THE source)
+- ✅ **Lessons Learned**: Document problems discovered, REFERENCE where solutions are (no duplication)
+- ✅ **Code**: Single implementation, others import/reference it
+
+**BEFORE WRITING ANYTHING:**
+1. **ASK**: "Does this information exist elsewhere?"
+2. **SEARCH**: Grep for similar content in project
+3. **DECIDE**: Am I creating THE source, or should I reference existing source?
+4. **VERIFY**: If I'm writing more than a reference, WHY isn't this duplication?
+
+**WHEN YOU FIND DUPLICATION:**
+- **FIX IT IMMEDIATELY** - Don't wait, don't ask permission
+- **Choose ONE location** as source of truth (usually: skill > guide, agent definition > lessons learned)
+- **Replace duplicates** with references to the source
+
+**PRE-COMMIT HOOK ENFORCEMENT:**
+- A git hook validates single-source-of-truth for bash commands
+- **When hook blocks**: ASSUME IT'S CORRECT - investigate thoroughly
+- **DO NOT immediately use --no-verify** - 80% of the time hook is right
+- See git-manager agent definition for hook protocol
+
+**ACCOUNTABILITY:**
+If you create duplication, you will be corrected. This correction is expensive (wastes user time, breaks trust, slows progress). THINK BEFORE YOU WRITE.
+
 ### 🚨 CRITICAL: DOCUMENTATION STRUCTURE ENFORCEMENT 🚨
 
 **NEVER CREATE FILES OR FOLDERS IN /docs/ ROOT**
