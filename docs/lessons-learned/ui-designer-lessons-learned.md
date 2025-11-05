@@ -13,7 +13,7 @@
 `docs/standards-processes/ui-implementation-standards.md`
 
 4. **React Patterns** - **REACT COMPONENT STANDARDS**
-`docs/standards-processes/development-standards/react-patterns.md`
+`docs/standards-processes/frontend/react-patterns.md`
 
 5. **Project Architecture** - **MANTINE UI FRAMEWORK**
 `ARCHITECTURE.md`
@@ -22,11 +22,22 @@
 - **File Registry** - `docs/architecture/file-registry.md` - Find any document
 - **Functional Areas Index** - `docs/architecture/functional-area-master-index.md` - Navigate features
 - **Key Documents List** - `docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+- **Standards Index** - `docs/standards-processes/STANDARDS-INDEX.md` - Task-based standards discovery (NEW)
 
 ### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
 - **Forms Standardization** - `docs/standards-processes/forms-standardization.md` - Form patterns
 - **Workflow Process** - `docs/standards-processes/workflow-orchestration-process.md` - Handoff procedures
 - **Agent Boundaries** - `docs/standards-processes/agent-boundaries.md` - What each agent does
+
+### 🎨 UI/UX-SPECIFIC STANDARDS (Just-In-Time Loading):
+**Reference**: `docs/standards-processes/STANDARDS-INDEX.md` for complete frontend standards list
+
+**Quick UI/UX Standards** (read when needed):
+- **Mantine UI Standards** - `docs/standards-processes/frontend/mantine-ui-standards.md` - Mantine v7 component usage
+- **React Patterns** - `docs/standards-processes/frontend/react-patterns.md` - Component patterns, hooks
+- **TypeScript Patterns** - `docs/standards-processes/frontend/typescript-patterns.md` - Type safety, DTO alignment
+- **Routing Patterns** - `docs/standards-processes/frontend/routing-patterns.md` - React Router v7 navigation
+- **State Management** - `docs/standards-processes/frontend/state-management-patterns.md` - Zustand, React Query
 
 ### Validation Gates (MUST COMPLETE):
 - [ ] **Read Design System v7 FIRST** - Current design language and components

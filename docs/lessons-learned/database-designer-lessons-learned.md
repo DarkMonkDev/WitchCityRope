@@ -19,11 +19,24 @@
 - **File Registry** - `/home/chad/repos/witchcityrope/docs/architecture/file-registry.md` - Find any document
 - **Functional Areas Index** - `/home/chad/repos/witchcityrope/docs/architecture/functional-area-master-index.md` - Navigate features
 - **Key Documents List** - `/home/chad/repos/witchcityrope/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
+- **Standards Index** - `/home/chad/repos/witchcityrope/docs/standards-processes/STANDARDS-INDEX.md` - Task-based standards discovery (NEW)
 
 ### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
 - **Port Configuration** - `/home/chad/repos/witchcityrope/docs/standards-processes/development-standards/port-configuration-management.md` - DB ports
 - **Workflow Process** - `/home/chad/repos/witchcityrope/docs/standards-processes/workflow-orchestration-process.md` - Handoff procedures
 - **Agent Boundaries** - `/home/chad/repos/witchcityrope/docs/standards-processes/agent-boundaries.md` - What each agent does
+
+### 💾 DATABASE-SPECIFIC STANDARDS (Just-In-Time Loading):
+**Reference**: `/home/chad/repos/witchcityrope/docs/standards-processes/STANDARDS-INDEX.md` for complete database standards list
+
+**Quick Database Standards** (read when needed):
+- **Database Patterns (Quick)** - `/home/chad/repos/witchcityrope/docs/standards-processes/backend/database-patterns.md` - EF Core quick reference
+- **Entity Framework Patterns (Comprehensive)** - `/home/chad/repos/witchcityrope/docs/standards-processes/development-standards/entity-framework-patterns.md` - Advanced EF Core
+- **Database Migrations Guide** - `/home/chad/repos/witchcityrope/docs/standards-processes/backend/database-migrations-guide.md` - Migration standards
+- **Vertical Slice Architecture** - `/home/chad/repos/witchcityrope/docs/standards-processes/backend/vertical-slice-architecture.md` - Feature organization
+
+**Cross-cutting Standards**:
+- **Microservices Patterns** - `/home/chad/repos/witchcityrope/docs/standards-processes/architecture/microservices-patterns.md` - Database in system architecture
 
 ### Validation Gates (MUST COMPLETE):
 - [ ] **Read Entity Framework Patterns FIRST** - Core database standards

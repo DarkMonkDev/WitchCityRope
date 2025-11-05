@@ -24,7 +24,7 @@
 - **File Registry** - `/home/chad/repos/witchcityrope/docs/architecture/file-registry.md` - Find any document
 - **Functional Areas Index** - `/home/chad/repos/witchcityrope/docs/architecture/functional-area-master-index.md` - Navigate features
 - **Key Documents List** - `/home/chad/repos/witchcityrope/docs/standards-processes/KEY-PROJECT-DOCUMENTS.md` - Critical docs
-- **Standards Index** - `/home/chad/repos/witchcityrope/docs/standards-processes/CANONICAL-DOCUMENT-LOCATIONS.md` - Document locations
+- **Standards Index** - `/home/chad/repos/witchcityrope/docs/standards-processes/STANDARDS-INDEX.md` - Task-based standards discovery (NEW)
 
 ### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
 - **Skills Usage Guide** - `/.claude/skills/HOW-TO-USE-SKILLS.md` - Complete guide on when/how to use skills
@@ -32,6 +32,20 @@
 - **Agent Boundaries** - `/home/chad/repos/witchcityrope/docs/standards-processes/agent-boundaries.md` - What each agent does
 - **Coding Standards** - `/home/chad/repos/witchcityrope/docs/standards-processes/CODING_STANDARDS.md` - General standards
 - **Lessons Learned Standards** - Use lessons-learned-validator skill - How to document lessons learned
+
+### 🎯 BACKEND-SPECIFIC STANDARDS (Just-In-Time Loading):
+**Reference**: `/home/chad/repos/witchcityrope/docs/standards-processes/STANDARDS-INDEX.md` for complete backend standards list
+
+**Quick Backend Standards** (read when needed):
+- **API Design Patterns** - `/home/chad/repos/witchcityrope/docs/standards-processes/backend/api-design-patterns.md` - Endpoint conventions, HTTP methods
+- **Database Patterns** - `/home/chad/repos/witchcityrope/docs/standards-processes/backend/database-patterns.md` - EF Core quick reference
+- **Vertical Slice Architecture** - `/home/chad/repos/witchcityrope/docs/standards-processes/backend/vertical-slice-architecture.md` - Feature-based organization
+- **Error Handling** - `/home/chad/repos/witchcityrope/docs/standards-processes/backend/error-handling-patterns.md` - Result pattern, logging
+- **Service Layer Patterns** - `/home/chad/repos/witchcityrope/docs/standards-processes/backend/service-layer-patterns.md` - Service implementation
+
+**Cross-cutting Standards**:
+- **Microservices Patterns** - `/home/chad/repos/witchcityrope/docs/standards-processes/architecture/microservices-patterns.md` - Web + API architecture
+- **Docker Patterns** - `/home/chad/repos/witchcityrope/docs/standards-processes/architecture/docker-patterns.md` - Container development
 
 ### Validation Gates (MUST COMPLETE):
 - [ ] **Read DTO Alignment Strategy FIRST** - Prevents TypeScript error floods
@@ -190,8 +204,8 @@ return Results.Ok(new ApiResponse<List<EventParticipationDto>>
 
 **MANDATORY PRE-TESTING CHECKLIST**:
 ```bash
-# 1. Verify Docker API container (CRITICAL)
-docker ps | grep witchcity-api | grep "5655"
+# 1. Use container-restart skill to verify and restart Docker containers
+# The skill handles container verification and startup automatically
 
 # 2. Verify API health (REQUIRED)
 curl -f http://localhost:5655/health && echo "API healthy"
