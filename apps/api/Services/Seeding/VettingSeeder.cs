@@ -109,8 +109,14 @@ public class VettingSeeder
                 Email = adminUser.Email!,
                 FetLifeHandle = "RopeMaster_Admin",
                 Pronouns = "they/them",
-                OtherNames = null,
-                AboutYourself = @"As an administrator and experienced practitioner, I've been involved in the rope bondage community for many years. I help manage the community and ensure a safe, welcoming environment for all members.",
+                OtherNames = "Master, RM", // Alternate names for admin
+                ExperienceLevel = 4, // Expert
+                YearsExperience = 10,
+                ExperienceDescription = "Professional rigger and educator with 10+ years experience in rope bondage. Have taught at multiple regional conferences and run regular workshops. Specialize in suspension and advanced floor work with strong emphasis on safety protocols.",
+                WhyJoinCommunity = "As a founding member, I want to help build a safe, consent-focused community in Salem where experienced practitioners and newcomers alike can learn and grow together. I'm passionate about education and creating a welcoming space for all.",
+                AgreesToGuidelines = true,
+                AgreesToTerms = true,
+                ConsentToContact = true,
                 WorkflowStatus = VettingStatus.Approved, // Approved (4)
                 SubmittedAt = DateTime.UtcNow.AddDays(-365), // Applied a year ago
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-364),
@@ -132,8 +138,14 @@ public class VettingSeeder
                 Email = vettedUser.Email!,
                 FetLifeHandle = "RopeEnthusiast_Test",
                 Pronouns = "he/him",
-                OtherNames = null,
-                AboutYourself = @"I'm a passionate rope enthusiast with 2+ years of experience in rope bondage. I've completed several safety courses and have been an active participant in rope communities in other cities. I'm knowledgeable about consent practices, risk management, and safety protocols. I'm excited to join this community and continue learning from experienced practitioners while sharing my own knowledge.",
+                OtherNames = "Enthusiast, RE",
+                ExperienceLevel = 3, // Advanced
+                YearsExperience = 5,
+                ExperienceDescription = "Experienced rigger with 5 years of practice, skilled in suspensions and complex floor work. Have assisted with teaching at local workshops and prioritize safety and communication in all rope sessions.",
+                WhyJoinCommunity = "I've recently moved to Salem and want to continue my rope journey with a supportive community. Looking forward to both learning from experienced practitioners and sharing my knowledge with newer members.",
+                AgreesToGuidelines = true,
+                AgreesToTerms = true,
+                ConsentToContact = true,
                 WorkflowStatus = VettingStatus.Approved, // Approved (4)
                 SubmittedAt = DateTime.UtcNow.AddDays(-180), // Applied 6 months ago
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-178),
@@ -157,13 +169,19 @@ public class VettingSeeder
                 FetLifeHandle = "RopeNovice2024",
                 Pronouns = "she/her",
                 OtherNames = "Alex",
-                AboutYourself = @"I'm new to rope bondage but deeply interested in learning about the art and community. I've been reading extensively about rope safety and attending introductory workshops in other cities. I'm drawn to both the aesthetic beauty and the trust-building aspects of rope. I have experience in other BDSM practices and understand the importance of consent, communication, and safety. I'm looking for a supportive community where I can learn from experienced practitioners and contribute positively to the group dynamic.",
+                ExperienceLevel = 1, // Beginner
+                YearsExperience = 0,
+                ExperienceDescription = "I'm completely new to rope bondage but have been researching for several months. I've read safety guides and watched educational videos. Very eager to learn from experienced practitioners in a safe environment.",
+                WhyJoinCommunity = "I want to learn rope bondage in a safe, consent-focused environment from experienced teachers. I'm committed to understanding the safety fundamentals and building a strong foundation.",
+                AgreesToGuidelines = true,
+                AgreesToTerms = true,
+                ConsentToContact = true,
                 WorkflowStatus = VettingStatus.UnderReview, // UnderReview (0)
                 SubmittedAt = DateTime.UtcNow.AddDays(-3),
                 AdminNotes = null
             },
 
-            // Application 3: Interview Approved - ready for scheduling
+            // Application 3: On Hold - needs more experience (CORRECTED STATUS)
             new VettingApplication
             {
                 Id = Guid.NewGuid(),
@@ -173,15 +191,21 @@ public class VettingSeeder
                 Email = "jordan.kim@email.com",
                 FetLifeHandle = "KnotLearner_JK",
                 Pronouns = "they/them",
-                OtherNames = null,
-                AboutYourself = @"I've been interested in rope bondage for over a year and have practiced with a partner at home. We've been focusing on safety and basic ties, but I want to expand my knowledge and learn from experienced riggers. I have a background in dance and appreciate the artistic and movement aspects of rope. I'm committed to ongoing education about consent, negotiation, and safety practices. I'm hoping to join a community where I can learn advanced techniques while building meaningful connections with like-minded people.",
-                WorkflowStatus = VettingStatus.InterviewApproved, // InterviewApproved (1)
+                OtherNames = "JK",
+                ExperienceLevel = 1, // Beginner
+                YearsExperience = 1,
+                ExperienceDescription = "I've attended a few workshops over the past year and practiced basic ties with a partner. Still learning fundamentals but very enthusiastic about rope and community.",
+                WhyJoinCommunity = "I want to deepen my rope knowledge and learn from more experienced practitioners. I'm particularly interested in understanding the deeper aspects of consent and communication in rope.",
+                AgreesToGuidelines = true,
+                AgreesToTerms = true,
+                ConsentToContact = true,
+                WorkflowStatus = VettingStatus.OnHold, // OnHold (5) - CORRECTED from InterviewApproved
                 SubmittedAt = DateTime.UtcNow.AddDays(-10),
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-7),
-                AdminNotes = "Good references and thoughtful application. Ready for interview to assess practical knowledge."
+                AdminNotes = "Good references and thoughtful application. Recommending more foundational experience - suggested attending beginner workshops for 3-6 months before reapplying."
             },
 
-            // Application 4: Approved - approved member with multiple roles
+            // Application 4: Denied - poor consent understanding (CORRECTED STATUS)
             new VettingApplication
             {
                 Id = Guid.NewGuid(),
@@ -192,14 +216,20 @@ public class VettingSeeder
                 FetLifeHandle = "TrustBuilder_MJ",
                 Pronouns = "he/him",
                 OtherNames = "Marc, MJ",
-                AboutYourself = @"I'm a 28-year-old professional who discovered rope bondage through a partner. I've been practicing for six months and am passionate about the psychological and emotional aspects of rope. I have experience as a rigger and understand the responsibility that comes with restraining another person. I've completed online safety courses and practiced extensively with enthusiastic partners. I'm seeking a community where I can continue learning and share experiences with others who value both technical skill and emotional intelligence in rope work.",
-                WorkflowStatus = VettingStatus.Approved, // Approved (3) - matches User.VettingStatus
+                ExperienceLevel = 2, // Intermediate
+                YearsExperience = 2,
+                ExperienceDescription = "I've been practicing rope bondage for 2 years and know most basic ties. I focus on speed and efficiency in tying and like to push boundaries to help my partners grow.",
+                WhyJoinCommunity = "I want access to more advanced techniques and to find new practice partners who are serious about rope. Looking to take my skills to the next level.",
+                AgreesToGuidelines = true,
+                AgreesToTerms = true,
+                ConsentToContact = true,
+                WorkflowStatus = VettingStatus.Denied, // Denied (4) - CORRECTED from Approved
                 SubmittedAt = DateTime.UtcNow.AddDays(-14),
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-10),
                 InterviewScheduledFor = DateTime.UtcNow.AddDays(-8),
                 DecisionMadeAt = DateTime.UtcNow.AddDays(-5),
                 LastReviewedAt = DateTime.UtcNow.AddDays(-5),
-                AdminNotes = "Interview completed. Applicant showed excellent understanding of consent and safety principles. Approved for membership with Teacher and SafetyTeam roles."
+                AdminNotes = "Application denied. Interview revealed concerning attitudes toward consent and pushing boundaries without proper communication. Focused on technical skills over partner safety and communication. Recommended to attend formal consent and communication workshops before reapplying."
             },
 
             // Application 5: Approved - recently approved member
@@ -213,7 +243,13 @@ public class VettingSeeder
                 FetLifeHandle = "SilkAndSteel_SC",
                 Pronouns = "she/her",
                 OtherNames = "Sarah C.",
-                AboutYourself = @"I'm an experienced practitioner with 3+ years of rope bondage experience, both as a rigger and rope bunny. I've taught workshops in my previous city and am looking to join the community here after relocating for work. I have extensive knowledge of safety protocols, medical considerations, and emergency procedures. I'm interested in both the technical aspects of rope work and the community building aspects. I'd love to contribute my knowledge while continuing to learn from other experienced practitioners.",
+                ExperienceLevel = 3, // Advanced
+                YearsExperience = 6,
+                ExperienceDescription = "I've been practicing rope bondage for 6 years with strong foundation in both technical skills and safety. Experience includes floor work, partial suspension, and have assisted teaching beginner workshops. I prioritize clear communication and safety protocols in all my rope work.",
+                WhyJoinCommunity = "I recently relocated to Salem for work and am looking to connect with the local rope community. I want to continue learning from other experienced practitioners while also sharing my knowledge and helping newcomers develop good safety habits.",
+                AgreesToGuidelines = true,
+                AgreesToTerms = true,
+                ConsentToContact = true,
                 WorkflowStatus = VettingStatus.Approved, // Approved (4)
                 SubmittedAt = DateTime.UtcNow.AddDays(-21),
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-18),
@@ -231,7 +267,7 @@ public class VettingSeeder
         {
             var additionalApplications = new List<VettingApplication>();
 
-            // Application 6: On Hold - additional information needed
+            // Application 6: Interview Approved - ready for interview (CORRECTED STATUS)
             additionalApplications.Add(new VettingApplication
             {
                 Id = Guid.NewGuid(),
@@ -242,14 +278,20 @@ public class VettingSeeder
                 FetLifeHandle = "EagerLearner99",
                 Pronouns = "she/they",
                 OtherNames = "Tay",
-                AboutYourself = @"I'm completely new to rope bondage but very eager to learn! I've watched videos online and read some books about safety. I don't have any hands-on experience yet but I'm excited to start learning with experienced people. I understand this is about more than just tying knots - it's about trust, communication, and building relationships. I'm committed to learning and following all safety guidelines.",
-                WorkflowStatus = VettingStatus.OnHold, // OnHold (6)
+                ExperienceLevel = 2, // Intermediate
+                YearsExperience = 2,
+                ExperienceDescription = "I've been practicing rope bondage for about 2 years, comfortable with single-column ties and basic suspension prep. I've taken several workshops and practice regularly with a trusted partner, always prioritizing safety and consent.",
+                WhyJoinCommunity = "I want to connect with like-minded individuals and expand my rope knowledge in a structured, safe environment. I'm particularly interested in learning more advanced techniques and understanding the deeper emotional aspects of rope work.",
+                AgreesToGuidelines = true,
+                AgreesToTerms = true,
+                ConsentToContact = true,
+                WorkflowStatus = VettingStatus.InterviewApproved, // InterviewApproved (1) - CORRECTED from OnHold
                 SubmittedAt = DateTime.UtcNow.AddDays(-12),
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-8),
-                AdminNotes = "Very enthusiastic but lacks practical experience. Recommended to attend beginner classes and gain basic experience before reapplying. On hold pending completion of safety course."
+                AdminNotes = "Good references and thoughtful application. Ready for interview to assess practical knowledge and community fit."
             });
 
-            // Application 7: Denied - doesn't meet community standards
+            // Application 7: Under Review - recent submission (CORRECTED STATUS)
             if (users.Count >= 6)
             {
                 additionalApplications.Add(new VettingApplication
@@ -262,12 +304,18 @@ public class VettingSeeder
                     FetLifeHandle = "QuickLearner_JT",
                     Pronouns = "he/him",
                     OtherNames = "Jamie T",
-                    AboutYourself = @"I've been interested in rope for a few months. I think I learn fast and want to get into the community quickly. I've watched some YouTube videos and practiced on myself. I'm ready to start tying people up and want to find partners to practice with.",
-                    WorkflowStatus = VettingStatus.Denied, // Denied (5)
+                    ExperienceLevel = 1, // Beginner
+                    YearsExperience = 1,
+                    ExperienceDescription = "I've attended a couple of beginner workshops and have been practicing basic ties for about a year. Still learning the fundamentals but dedicated to improving my skills and understanding of safety.",
+                    WhyJoinCommunity = "I'm looking for a supportive community where I can learn proper rope techniques and safety practices. I want to connect with experienced practitioners who can mentor me as I develop my skills.",
+                    AgreesToGuidelines = true,
+                    AgreesToTerms = true,
+                    ConsentToContact = true,
+                    WorkflowStatus = VettingStatus.UnderReview, // UnderReview (0) - CORRECTED from Denied
                     SubmittedAt = DateTime.UtcNow.AddDays(-20),
                     ReviewStartedAt = DateTime.UtcNow.AddDays(-17),
-                    DecisionMadeAt = DateTime.UtcNow.AddDays(-3),
-                    AdminNotes = "Application denied. Applicant shows poor understanding of consent and safety protocols. Focused on 'tying people up' rather than community and education. Recommended to attend formal education courses before reapplying."
+                    DecisionMadeAt = null,
+                    AdminNotes = null
                 });
             }
 
@@ -284,7 +332,13 @@ public class VettingSeeder
                     FetLifeHandle = "ThoughtfulRigger_AR",
                     Pronouns = "they/them",
                     OtherNames = "Riv, AR",
-                    AboutYourself = @"I've been practicing rope for about 8 months with a consistent partner. We've focused heavily on safety, communication, and building trust. I've completed several online courses about rope safety and anatomy. I'm particularly interested in the artistic and meditative aspects of rope bondage. I understand that joining a community is about contributing positively and learning from experienced practitioners, not just gaining access to events.",
+                    ExperienceLevel = 4, // Expert
+                    YearsExperience = 8,
+                    ExperienceDescription = "Professional rigger with 8 years of experience specializing in both performance and educational rope work. Have taught workshops at regional events and maintain a strong focus on safety, communication, and consent. Experienced with suspensions and complex floor work.",
+                    WhyJoinCommunity = "I'm interested in teaching and giving back to the local rope community. I have extensive experience and want to help create a safe, educational environment where practitioners of all levels can learn and grow.",
+                    AgreesToGuidelines = true,
+                    AgreesToTerms = true,
+                    ConsentToContact = true,
                     WorkflowStatus = VettingStatus.Approved, // Approved (3) - matches User.VettingStatus
                     SubmittedAt = DateTime.UtcNow.AddDays(-30),
                     ReviewStartedAt = DateTime.UtcNow.AddDays(-25),
@@ -308,7 +362,13 @@ public class VettingSeeder
                     FetLifeHandle = "CommunityBuilder_MK",
                     Pronouns = "she/her",
                     OtherNames = "Mo",
-                    AboutYourself = @"I'm relocating from another city where I was an active member of a rope community for 2+ years. I have experience both as a rigger and rope bunny, and I've helped organize events and workshops. I'm looking for a new community home where I can continue learning and contributing. I understand the importance of vetting processes and community standards, having helped with similar processes in my previous group.",
+                    ExperienceLevel = 3, // Advanced
+                    YearsExperience = 5,
+                    ExperienceDescription = "I've been an active member of the Boston rope community for 5 years, with experience in both performing and teaching. I'm skilled in floor work and partial suspensions, and have helped organize community events and workshops.",
+                    WhyJoinCommunity = "I'm relocating to Salem and want to continue my involvement in the rope community. I hope to bring my experience in community building and event organization to help support this group while continuing to learn and grow.",
+                    AgreesToGuidelines = true,
+                    AgreesToTerms = true,
+                    ConsentToContact = true,
                     WorkflowStatus = VettingStatus.InterviewApproved,
                     SubmittedAt = DateTime.UtcNow.AddDays(-8),
                     ReviewStartedAt = DateTime.UtcNow.AddDays(-5),
@@ -329,7 +389,13 @@ public class VettingSeeder
                     FetLifeHandle = "NervousNewbie_JM",
                     Pronouns = "he/him",
                     OtherNames = "Jordy",
-                    AboutYourself = @"I'm quite nervous about applying, but I've been interested in rope bondage for over a year. I've been reading extensively and watching educational content, but I haven't had practical experience yet. I'm drawn to the trust and communication aspects of rope, and I want to learn in a safe, supportive environment. I understand this is a serious community with high standards, and I'm committed to being a respectful and contributing member.",
+                    ExperienceLevel = 1, // Beginner
+                    YearsExperience = 0,
+                    ExperienceDescription = "I'm very new to rope bondage and honestly quite nervous but also excited to learn. I've been reading about safety and consent extensively and attended one beginner workshop. I want to make sure I learn the right way from the start.",
+                    WhyJoinCommunity = "I'm looking for a welcoming, educational environment where I can learn proper rope techniques and safety practices. I'm committed to being a respectful member and learning from more experienced practitioners.",
+                    AgreesToGuidelines = true,
+                    AgreesToTerms = true,
+                    ConsentToContact = true,
                     WorkflowStatus = VettingStatus.UnderReview,
                     SubmittedAt = DateTime.UtcNow.AddDays(-5),
                     AdminNotes = null
@@ -348,8 +414,14 @@ public class VettingSeeder
                     Email = "ropebunny@example.com",
                     FetLifeHandle = "RopeBunny_RC",
                     Pronouns = "she/her",
-                    OtherNames = "Riley",
-                    AboutYourself = @"I'm completely new to rope bondage but fascinated by the art form and the trust-building aspects. I've done extensive research online and read about safety practices, but I have no hands-on experience yet. I'm particularly drawn to the rope bunny role and want to learn from experienced riggers in a safe, educational environment. I understand the importance of consent, communication, and gradual skill building. I'm looking for a supportive community where I can learn the fundamentals and build meaningful connections with experienced practitioners.",
+                    OtherNames = "Riley C",
+                    ExperienceLevel = 2, // Intermediate
+                    YearsExperience = 3,
+                    ExperienceDescription = "I've been exploring rope bondage as a bottom for about 3 years. I've worked with several experienced riggers and have a solid understanding of my body, my limits, and clear communication. I'm interested in deepening my practice and understanding the technical aspects better.",
+                    WhyJoinCommunity = "I want to connect with the local rope community and continue learning about rope from the bottom's perspective. I'm also interested in understanding more about the technical side and potentially learning to tie as well.",
+                    AgreesToGuidelines = true,
+                    AgreesToTerms = true,
+                    ConsentToContact = true,
                     WorkflowStatus = VettingStatus.UnderReview,
                     SubmittedAt = DateTime.UtcNow.AddDays(-2),
                     AdminNotes = null
@@ -369,7 +441,13 @@ public class VettingSeeder
                     FetLifeHandle = "SafetyConscious_SR",
                     Pronouns = "they/them",
                     OtherNames = "Sam",
-                    AboutYourself = @"I'm an experienced rigger relocating from Portland, where I was an active member of the rope community for 4+ years. I have extensive experience with both floor work and suspension, and I've completed multiple safety courses including basic first aid and rope-specific emergency procedures. In my previous community, I helped mentor newcomers and occasionally assisted with safety monitoring at events. I prioritize safety above all else in rope work and am committed to ongoing education. I'm seeking a new community home where I can contribute my knowledge while continuing to learn from other experienced practitioners.",
+                    ExperienceLevel = 4, // Expert
+                    YearsExperience = 9,
+                    ExperienceDescription = "Professional rigger with 9 years of experience, specializing in safety education and risk awareness. Have taught workshops at national conferences and served as a safety monitor at major events. Extensive experience with suspensions, complex floor work, and emergency response protocols.",
+                    WhyJoinCommunity = "I'm relocating from Portland and am passionate about teaching safety-focused rope practices. I want to contribute my expertise to the Salem community and help build a strong safety culture while continuing to learn from other experienced practitioners.",
+                    AgreesToGuidelines = true,
+                    AgreesToTerms = true,
+                    ConsentToContact = true,
                     WorkflowStatus = VettingStatus.Approved, // Approved (3) - matches User.VettingStatus
                     SubmittedAt = DateTime.UtcNow.AddDays(-40),
                     ReviewStartedAt = DateTime.UtcNow.AddDays(-35),
@@ -393,7 +471,13 @@ public class VettingSeeder
                     FetLifeHandle = "PatientPractitioner_JC",
                     Pronouns = "he/him",
                     OtherNames = "Jim",
-                    AboutYourself = @"I'm a dedicated rope practitioner with 5+ years of experience. I've been teaching beginner workshops in my previous community for the past 2 years and have a particular passion for patient, methodical instruction. I believe in building strong fundamentals and emphasize safety, consent, and communication in all my teaching. I've completed advanced safety courses and have experience with both floor work and suspension. I'm seeking a new community where I can continue teaching and learning from other experienced practitioners.",
+                    ExperienceLevel = 4, // Expert
+                    YearsExperience = 12,
+                    ExperienceDescription = "Highly experienced rigger with 12 years in the rope community. I specialize in teaching beginners and have a patient, methodical approach to instruction. Have taught at regional conferences and maintain a strong emphasis on building solid fundamentals and understanding the 'why' behind techniques.",
+                    WhyJoinCommunity = "I'm passionate about education and mentoring new practitioners. After years of teaching, I understand the value of a strong community foundation. I want to contribute my teaching experience to help Salem develop skilled, safety-conscious practitioners.",
+                    AgreesToGuidelines = true,
+                    AgreesToTerms = true,
+                    ConsentToContact = true,
                     WorkflowStatus = VettingStatus.Approved, // Approved (3) - matches User.VettingStatus
                     SubmittedAt = DateTime.UtcNow.AddDays(-50),
                     ReviewStartedAt = DateTime.UtcNow.AddDays(-45),
@@ -737,24 +821,91 @@ The WitchCityRope Vetting Team",
     /// Creates audit log entries showing workflow progression for vetting applications.
     /// Generates realistic audit trail based on current workflow status.
     ///
-    /// Audit trail patterns:
-    /// - UnderReview: Initial submission only
-    /// - InterviewApproved: Submission → InterviewApproved
-    /// - FinalReview: Submission → InterviewApproved → FinalReview
-    /// - Approved: Submission → InterviewApproved → FinalReview → Approved
-    /// - OnHold: Submission → OnHold
-    /// - Denied: Submission → Denied
+    /// Audit trail patterns (matching actual system behavior):
+    /// - UnderReview: Application Submitted (UnderReview)
+    /// - InterviewApproved: Application Submitted → Status Changed (InterviewApproved)
+    /// - FinalReview: Application Submitted → Status Changed (InterviewApproved) → Status Changed (FinalReview)
+    /// - Approved: Application Submitted → Status Changed (InterviewApproved) → Status Changed (FinalReview) → Status Changed (Approved)
+    /// - OnHold: Application Submitted → Status Changed (OnHold)
+    /// - Denied: Application Submitted → Status Changed (Denied)
     ///
     /// Each log entry includes:
-    /// - Action description
+    /// - Action: "Application Submitted" or "Status Changed"
     /// - Performer (user who made the change)
     /// - Timestamp (proper workflow timing)
-    /// - Old/new status values
-    /// - Contextual notes about the decision
+    /// - OldValue/NewValue for status transitions
+    /// - Notes: Only populated for initial submission, null for all status changes
+    ///
+    /// NOTE: All workflow transitions use "Status Changed" action with empty notes.
+    /// This matches the actual system behavior where only the initial submission has notes.
     /// </summary>
     private async Task CreateVettingAuditLogsAsync(List<VettingApplication> applications, Guid adminUserId, CancellationToken cancellationToken)
     {
         var auditLogs = new List<VettingAuditLog>();
+
+        // Arrays of realistic reviewer notes for different stages
+        var initialReviewNotes = new[]
+        {
+            "Initial review: Application is well-written and shows good understanding of rope safety principles",
+            "Application reviewed - responses demonstrate clear commitment to consent and communication",
+            "Preliminary review complete - applicant has thoughtful answers about community involvement",
+            "First pass review: Strong written communication skills and appropriate safety awareness",
+            "Initial assessment: Application shows genuine interest in learning and community participation"
+        };
+
+        var referenceCheckNotes = new[]
+        {
+            "Called reference Sarah Johnson - extremely positive feedback about safety practices and community involvement",
+            "Reference check with John Smith completed - very positive feedback on applicant's reliability and consent practices",
+            "Spoke with reference Maria Garcia - glowing recommendation, particularly noted excellent communication skills",
+            "Reference check: Contact with previous community organizer was very positive, emphasized strong boundaries",
+            "Completed reference verification with Alex Kim - enthusiastic endorsement of applicant's character and safety mindset"
+        };
+
+        var interviewPrepNotes = new[]
+        {
+            "Prepared interview questions focused on consent understanding and conflict resolution scenarios",
+            "Interview preparation complete - reviewing applicant's background in rope work and safety training",
+            "Prepared interview guide covering safety protocols, boundary negotiation, and community expectations",
+            "Interview questions drafted focusing on practical experience and understanding of risk awareness",
+            "Completed interview prep - will focus on assessing communication style and community fit"
+        };
+
+        var postInterviewNotes = new[]
+        {
+            "Interview went well - applicant demonstrated clear communication and strong understanding of consent principles",
+            "Positive interview - excellent responses to scenario questions, particularly around boundary setting",
+            "Interview complete - impressed by applicant's maturity and thoughtful approach to rope practice",
+            "Strong interview performance - applicant showed good self-awareness and understanding of community values",
+            "Interview notes: Articulate communicator with realistic expectations and solid grasp of safety fundamentals"
+        };
+
+        var decisionReasoningNotes = new[]
+        {
+            "Recommending approval based on strong references and interview performance - good fit for community",
+            "All criteria met for approval - references excellent, interview strong, clear understanding of community values",
+            "Final review: Application demonstrates all required qualities for membership - recommending approval",
+            "Consensus among review team - applicant shows maturity, safety awareness, and good community alignment",
+            "Ready for approval - comprehensive review shows applicant meets all vetting requirements"
+        };
+
+        var onHoldNotes = new[]
+        {
+            "Applicant needs more foundational experience - suggested attending beginner workshops first",
+            "Additional training recommended before proceeding - safety course completion required",
+            "On hold pending completion of basic rope safety certification - applicant agrees this is appropriate",
+            "Needs more practical experience before interview - suggested 6 months of beginner classes"
+        };
+
+        var denialReasoningNotes = new[]
+        {
+            "Multiple red flags during review process - concerning attitude toward consent negotiation",
+            "Application shows fundamental misunderstanding of community values and safety priorities",
+            "Review committee consensus: Applicant not ready for membership at this time",
+            "Insufficient understanding of consent practices and safety protocols - denial recommended"
+        };
+
+        var random = new Random(42); // Fixed seed for consistent test data across runs
 
         foreach (var application in applications)
         {
@@ -779,6 +930,59 @@ The WitchCityRope Vetting Team",
                     break;
 
                 case VettingStatus.InterviewApproved:
+                    // UnderReview → Notes → InterviewApproved
+
+                    // Add 2-3 reviewer notes before interview approval
+                    var noteCount = random.Next(2, 4);
+                    var dayOffset = 1;
+
+                    // Initial review note
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
+                        Action = "Reviewer Comment",
+                        PerformedBy = adminUserId,
+                        PerformedAt = application.SubmittedAt.AddDays(dayOffset++),
+                        OldValue = null,
+                        NewValue = null,
+                        Notes = initialReviewNotes[random.Next(initialReviewNotes.Length)]
+                    });
+
+                    // Reference check note (if noteCount >= 3)
+                    if (noteCount >= 3)
+                    {
+                        auditLogs.Add(new VettingAuditLog
+                        {
+                            Id = Guid.NewGuid(),
+                            ApplicationId = application.Id,
+                            Action = "Note Added",
+                            PerformedBy = adminUserId,
+                            PerformedAt = application.SubmittedAt.AddDays(dayOffset++),
+                            OldValue = null,
+                            NewValue = null,
+                            Notes = referenceCheckNotes[random.Next(referenceCheckNotes.Length)]
+                        });
+                    }
+
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
+                        Action = "Status Changed",
+                        PerformedBy = adminUserId,
+                        PerformedAt = application.ReviewStartedAt ?? application.SubmittedAt.AddDays(3),
+                        OldValue = "UnderReview",
+                        NewValue = "InterviewApproved",
+                        Notes = null  // Empty - status changes use OldValue/NewValue only
+                    });
+                    break;
+
+                case VettingStatus.FinalReview:
+                    // UnderReview → InterviewApproved → FinalReview
+
+                    var interviewApprovedDate = application.ReviewStartedAt ?? application.SubmittedAt.AddDays(3);
+
                     // UnderReview → InterviewApproved
                     auditLogs.Add(new VettingAuditLog
                     {
@@ -786,81 +990,167 @@ The WitchCityRope Vetting Team",
                         ApplicationId = application.Id,
                         Action = "Status Changed",
                         PerformedBy = adminUserId,
-                        PerformedAt = application.ReviewStartedAt ?? application.SubmittedAt.AddDays(3),
+                        PerformedAt = interviewApprovedDate,
                         OldValue = "UnderReview",
                         NewValue = "InterviewApproved",
-                        Notes = "Application approved for interview stage - good references and thoughtful responses"
+                        Notes = null
                     });
-                    break;
 
-                case VettingStatus.FinalReview:
-                    // UnderReview → InterviewApproved → FinalReview (interview completion moves directly to final review)
+                    // InterviewApproved → FinalReview
                     auditLogs.Add(new VettingAuditLog
                     {
                         Id = Guid.NewGuid(),
                         ApplicationId = application.Id,
                         Action = "Status Changed",
                         PerformedBy = adminUserId,
-                        PerformedAt = application.ReviewStartedAt ?? application.SubmittedAt.AddDays(3),
-                        OldValue = "UnderReview",
-                        NewValue = "InterviewApproved",
-                        Notes = "Application approved for interview stage"
-                    });
-
-                    auditLogs.Add(new VettingAuditLog
-                    {
-                        Id = Guid.NewGuid(),
-                        ApplicationId = application.Id,
-                        Action = "Interview Completed",
-                        PerformedBy = adminUserId,
-                        PerformedAt = application.InterviewScheduledFor?.AddDays(-1) ?? DateTime.UtcNow.AddDays(-1),
+                        PerformedAt = application.InterviewScheduledFor ?? interviewApprovedDate.AddDays(7),
                         OldValue = "InterviewApproved",
                         NewValue = "FinalReview",
-                        Notes = $"Interview completed on {application.InterviewScheduledFor?.ToString("yyyy-MM-dd HH:mm") ?? "TBD"}, moved to final review"
+                        Notes = null
                     });
                     break;
 
                 case VettingStatus.Approved:
-                    // UnderReview → InterviewApproved → FinalReview → Approved
+                    // Full workflow: UnderReview → InterviewApproved → FinalReview → Approved
+                    // Includes both automatic status changes AND reviewer notes
+
+                    // Initial review note (day 1-2 after submission)
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
+                        Action = "Reviewer Comment",
+                        PerformedBy = adminUserId,
+                        PerformedAt = application.SubmittedAt.AddDays(random.Next(1, 3)),
+                        OldValue = null,
+                        NewValue = null,
+                        Notes = initialReviewNotes[random.Next(initialReviewNotes.Length)]
+                    });
+
+                    // Status change to InterviewApproved (EXACTLY 2 days after submission)
+                    var interviewApprovedAt = application.SubmittedAt.AddDays(2);
                     auditLogs.Add(new VettingAuditLog
                     {
                         Id = Guid.NewGuid(),
                         ApplicationId = application.Id,
                         Action = "Status Changed",
                         PerformedBy = adminUserId,
-                        PerformedAt = application.ReviewStartedAt ?? application.SubmittedAt.AddDays(2),
+                        PerformedAt = interviewApprovedAt,
                         OldValue = "UnderReview",
                         NewValue = "InterviewApproved",
-                        Notes = "Application approved for interview stage"
+                        Notes = null
                     });
 
+                    // Reference check note (1-3 days after interview approval)
                     auditLogs.Add(new VettingAuditLog
                     {
                         Id = Guid.NewGuid(),
                         ApplicationId = application.Id,
-                        Action = "Interview Completed",
+                        Action = "Note Added",
                         PerformedBy = adminUserId,
-                        PerformedAt = application.DecisionMadeAt?.AddDays(-5) ?? application.SubmittedAt.AddDays(15),
+                        PerformedAt = interviewApprovedAt.AddDays(random.Next(1, 4)),
+                        OldValue = null,
+                        NewValue = null,
+                        Notes = referenceCheckNotes[random.Next(referenceCheckNotes.Length)]
+                    });
+
+                    // Interview prep note (1 day before interview - day 3)
+                    var finalReviewAt = application.SubmittedAt.AddDays(4);
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
+                        Action = "Reviewer Comment",
+                        PerformedBy = adminUserId,
+                        PerformedAt = finalReviewAt.AddDays(-1),
+                        OldValue = null,
+                        NewValue = null,
+                        Notes = interviewPrepNotes[random.Next(interviewPrepNotes.Length)]
+                    });
+
+                    // Interview completed → FinalReview (EXACTLY 4 days after submission)
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
+                        Action = "Status Changed",
+                        PerformedBy = adminUserId,
+                        PerformedAt = finalReviewAt,
                         OldValue = "InterviewApproved",
                         NewValue = "FinalReview",
-                        Notes = "Interview completed with applicant - excellent candidate with strong community values. Moving to final review."
+                        Notes = null
                     });
 
+                    // Post-interview note (1 day after interview)
                     auditLogs.Add(new VettingAuditLog
                     {
                         Id = Guid.NewGuid(),
                         ApplicationId = application.Id,
-                        Action = "Application Approved",
+                        Action = "Note Added",
                         PerformedBy = adminUserId,
-                        PerformedAt = application.DecisionMadeAt ?? application.SubmittedAt.AddDays(18),
+                        PerformedAt = finalReviewAt.AddDays(1),
+                        OldValue = null,
+                        NewValue = null,
+                        Notes = postInterviewNotes[random.Next(postInterviewNotes.Length)]
+                    });
+
+                    // Decision reasoning note (same day as approval - before the status change)
+                    var approvalDate = application.SubmittedAt.AddDays(5);
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
+                        Action = "Reviewer Comment",
+                        PerformedBy = adminUserId,
+                        PerformedAt = approvalDate.AddMinutes(-30), // 30 minutes before approval
+                        OldValue = null,
+                        NewValue = null,
+                        Notes = decisionReasoningNotes[random.Next(decisionReasoningNotes.Length)]
+                    });
+
+                    // Final approval (EXACTLY 5 days after submission)
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
+                        Action = "Status Changed",
+                        PerformedBy = adminUserId,
+                        PerformedAt = approvalDate,
                         OldValue = "FinalReview",
                         NewValue = "Approved",
-                        Notes = "Application approved for full membership - welcome to the community!"
+                        Notes = null
                     });
                     break;
 
                 case VettingStatus.OnHold:
-                    // UnderReview → OnHold
+                    // UnderReview → Notes → OnHold
+
+                    // Initial review note
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
+                        Action = "Reviewer Comment",
+                        PerformedBy = adminUserId,
+                        PerformedAt = application.SubmittedAt.AddDays(1),
+                        OldValue = null,
+                        NewValue = null,
+                        Notes = initialReviewNotes[random.Next(initialReviewNotes.Length)]
+                    });
+
+                    // On hold reasoning note
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
+                        Action = "Note Added",
+                        PerformedBy = adminUserId,
+                        PerformedAt = application.SubmittedAt.AddDays(3),
+                        OldValue = null,
+                        NewValue = null,
+                        Notes = onHoldNotes[random.Next(onHoldNotes.Length)]
+                    });
+
                     auditLogs.Add(new VettingAuditLog
                     {
                         Id = Guid.NewGuid(),
@@ -870,22 +1160,49 @@ The WitchCityRope Vetting Team",
                         PerformedAt = application.ReviewStartedAt ?? application.SubmittedAt.AddDays(4),
                         OldValue = "UnderReview",
                         NewValue = "OnHold",
-                        Notes = "Additional information needed - applicant should complete safety course before proceeding"
+                        Notes = null  // Empty - status changes use OldValue/NewValue only
                     });
                     break;
 
                 case VettingStatus.Denied:
-                    // UnderReview → Denied
+                    // UnderReview → Notes → Denied
+
+                    // Initial review note
                     auditLogs.Add(new VettingAuditLog
                     {
                         Id = Guid.NewGuid(),
                         ApplicationId = application.Id,
-                        Action = "Application Denied",
+                        Action = "Reviewer Comment",
+                        PerformedBy = adminUserId,
+                        PerformedAt = application.SubmittedAt.AddDays(2),
+                        OldValue = null,
+                        NewValue = null,
+                        Notes = "Application review in progress - some concerns noted about consent understanding"
+                    });
+
+                    // Denial reasoning note
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
+                        Action = "Note Added",
+                        PerformedBy = adminUserId,
+                        PerformedAt = application.SubmittedAt.AddDays(5),
+                        OldValue = null,
+                        NewValue = null,
+                        Notes = denialReasoningNotes[random.Next(denialReasoningNotes.Length)]
+                    });
+
+                    auditLogs.Add(new VettingAuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        ApplicationId = application.Id,
+                        Action = "Status Changed",
                         PerformedBy = adminUserId,
                         PerformedAt = application.DecisionMadeAt ?? application.SubmittedAt.AddDays(7),
                         OldValue = "UnderReview",
                         NewValue = "Denied",
-                        Notes = "Application denied - insufficient understanding of consent and safety protocols"
+                        Notes = null  // Empty - status changes use OldValue/NewValue only
                     });
                     break;
             }

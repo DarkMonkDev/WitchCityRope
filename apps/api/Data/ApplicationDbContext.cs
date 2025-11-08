@@ -1476,7 +1476,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         {
             if (entry.State == EntityState.Added)
             {
-                entry.Entity.PerformedAt = DateTime.UtcNow;
+                // Only set PerformedAt if it hasn't been explicitly set (still at default)
+                if (entry.Entity.PerformedAt == default)
+                {
+                    entry.Entity.PerformedAt = DateTime.UtcNow;
+                }
             }
         }
 
