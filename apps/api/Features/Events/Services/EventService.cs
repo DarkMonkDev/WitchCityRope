@@ -56,7 +56,9 @@ public class EventService
                         .ThenInclude(p => p.User) // Load user to match with EventParticipation
                 .Include(e => e.VolunteerPositions)
                 .Include(e => e.Organizers)
-                .Include(e => e.EventAttendances); // This loads all attendances for the event
+                .Include(e => e.EventAttendances) // Load all attendances for the event
+                    .ThenInclude(ea => ea.TicketPurchase) // CRITICAL: Load TicketPurchase for sold count calculation
+                        .ThenInclude(tp => tp.TicketType); // CRITICAL: Load TicketType for session matching
 
             // Apply filters based on admin vs public access
             if (includeUnpublished)
@@ -139,7 +141,9 @@ public class EventService
                         .ThenInclude(p => p.User) // Load user to match with EventParticipation
                 .Include(e => e.VolunteerPositions)
                 .Include(e => e.Organizers)
-                .Include(e => e.EventAttendances) // This loads all attendances for the event
+                .Include(e => e.EventAttendances) // Load all attendances for the event
+                    .ThenInclude(ea => ea.TicketPurchase) // CRITICAL: Load TicketPurchase for sold count calculation
+                        .ThenInclude(tp => tp.TicketType) // CRITICAL: Load TicketType for session matching
                 .FirstOrDefaultAsync(e => e.Id == parsedId, cancellationToken);
 
             if (eventEntity == null)
