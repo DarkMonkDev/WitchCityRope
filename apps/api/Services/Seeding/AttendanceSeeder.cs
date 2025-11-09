@@ -154,16 +154,121 @@ public class AttendanceSeeder
             }
             else // Class events
             {
-                // Class events: Create ticket purchases for multiple users
+                // Special handling for Suspension Basics: Multiple ticket types
+                if (eventItem.Title.Contains("Suspension Basics"))
+                {
+                    // Create 2 "All 2 Days" tickets
+                    var all2DaysTicket = eventItem.TicketTypes.FirstOrDefault(tt => tt.Name == "All 2 Days");
+                    if (all2DaysTicket != null)
+                    {
+                        for (int i = 0; i < 2 && i < users.Count; i++)
+                        {
+                            var user = users[i];
+                            var purchaseAmount = (decimal)Random.Shared.Next(15, 65);
+                            var createdAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20));
+
+                            var ticketPurchase = new TicketPurchase
+                            {
+                                Id = Guid.NewGuid(),
+                                TicketTypeId = all2DaysTicket.Id,
+                                UserId = user.Id,
+                                Quantity = 1,
+                                TotalPrice = purchaseAmount,
+                                PaymentStatus = "Completed",
+                                PaymentMethod = "PayPal",
+                                PaymentReference = $"PP-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
+                                PurchaseDate = createdAt,
+                                CreatedAt = createdAt,
+                                UpdatedAt = createdAt
+                            };
+                            ticketPurchasesToAdd.Add(ticketPurchase);
+
+                            var attendance = new EventAttendance(eventItem.Id, user.Id, AttendanceType.Ticket)
+                            {
+                                Id = Guid.NewGuid(),
+                                Status = AttendanceStatus.Active,
+                                TicketPurchaseId = ticketPurchase.Id,
+                                CreatedAt = createdAt,
+                                UpdatedAt = createdAt,
+                                Metadata = $"{{\"purchaseAmount\": {purchaseAmount}, \"paymentMethod\": \"PayPal\"}}"
+                            };
+                            attendancesToAdd.Add(attendance);
+
+                            var attendee = new EventAttendee
+                            {
+                                Id = Guid.NewGuid(),
+                                EventId = eventItem.Id,
+                                UserId = user.Id,
+                                TicketNumber = $"TKT-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
+                                RegistrationStatus = "confirmed",
+                                CreatedAt = createdAt,
+                                UpdatedAt = createdAt,
+                                HasCompletedWaiver = true
+                            };
+                            attendeesToAdd.Add(attendee);
+                        }
+                    }
+
+                    // Create 4 "Day 1 Only" tickets (using different users)
+                    var day1OnlyTicket = eventItem.TicketTypes.FirstOrDefault(tt => tt.Name == "Day 1 Only");
+                    if (day1OnlyTicket != null)
+                    {
+                        for (int i = 2; i < 6 && i < users.Count; i++) // Start at index 2 to use different users
+                        {
+                            var user = users[i];
+                            var purchaseAmount = (decimal)Random.Shared.Next(15, 65);
+                            var createdAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20));
+
+                            var ticketPurchase = new TicketPurchase
+                            {
+                                Id = Guid.NewGuid(),
+                                TicketTypeId = day1OnlyTicket.Id,
+                                UserId = user.Id,
+                                Quantity = 1,
+                                TotalPrice = purchaseAmount,
+                                PaymentStatus = "Completed",
+                                PaymentMethod = "PayPal",
+                                PaymentReference = $"PP-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
+                                PurchaseDate = createdAt,
+                                CreatedAt = createdAt,
+                                UpdatedAt = createdAt
+                            };
+                            ticketPurchasesToAdd.Add(ticketPurchase);
+
+                            var attendance = new EventAttendance(eventItem.Id, user.Id, AttendanceType.Ticket)
+                            {
+                                Id = Guid.NewGuid(),
+                                Status = AttendanceStatus.Active,
+                                TicketPurchaseId = ticketPurchase.Id,
+                                CreatedAt = createdAt,
+                                UpdatedAt = createdAt,
+                                Metadata = $"{{\"purchaseAmount\": {purchaseAmount}, \"paymentMethod\": \"PayPal\"}}"
+                            };
+                            attendancesToAdd.Add(attendance);
+
+                            var attendee = new EventAttendee
+                            {
+                                Id = Guid.NewGuid(),
+                                EventId = eventItem.Id,
+                                UserId = user.Id,
+                                TicketNumber = $"TKT-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
+                                RegistrationStatus = "confirmed",
+                                CreatedAt = createdAt,
+                                UpdatedAt = createdAt,
+                                HasCompletedWaiver = true
+                            };
+                            attendeesToAdd.Add(attendee);
+                        }
+                    }
+
+                    continue; // Skip the general ticket creation logic below
+                }
+
+                // General ticket creation for other class events
                 var ticketCount = eventItem.Title.Contains("Introduction to Rope Safety") ? 5 :
-                                 eventItem.Title.Contains("Suspension Basics") ? 6 :  // Increased from 4 to 6
                                  eventItem.Title.Contains("Advanced Floor Work") ? 3 : 2;
 
-                // Get the appropriate ticket type for this event
-                // For Suspension Basics, use "All 2 Days" ticket type specifically
-                var ticketType = eventItem.Title.Contains("Suspension Basics")
-                    ? eventItem.TicketTypes.FirstOrDefault(tt => tt.Name == "All 2 Days")
-                    : eventItem.TicketTypes.FirstOrDefault();
+                var ticketType = eventItem.TicketTypes.FirstOrDefault();
 
                 if (ticketType == null)
                 {
