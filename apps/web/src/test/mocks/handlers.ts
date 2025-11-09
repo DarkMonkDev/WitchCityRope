@@ -788,4 +788,250 @@ export const handlers = [
   http.post(`${API_BASE_URL}/api/safety/admin/incidents/:incidentId/assign`, () => {
     return HttpResponse.json({ success: true })
   }),
+
+  // Venue endpoints
+  // Get active venues (relative URL)
+  http.get('/api/admin/venues/active', () => {
+    return HttpResponse.json({
+      data: [
+        {
+          id: 'venue-1',
+          name: 'Salem Community Center',
+          address: '123 Main St',
+          city: 'Salem',
+          state: 'MA',
+          zipCode: '01970',
+          capacity: 100,
+          isActive: true,
+          createdAt: '2025-08-19T00:00:00Z',
+          updatedAt: '2025-08-19T10:00:00Z'
+        },
+        {
+          id: 'venue-2',
+          name: 'Witch City Workshop Space',
+          address: '456 Essex St',
+          city: 'Salem',
+          state: 'MA',
+          zipCode: '01970',
+          capacity: 50,
+          isActive: true,
+          createdAt: '2025-08-19T00:00:00Z',
+          updatedAt: '2025-08-19T10:00:00Z'
+        }
+      ]
+    })
+  }),
+
+  // Get active venues (absolute URL)
+  http.get(`${API_BASE_URL}/api/admin/venues/active`, () => {
+    return HttpResponse.json({
+      data: [
+        {
+          id: 'venue-1',
+          name: 'Salem Community Center',
+          address: '123 Main St',
+          city: 'Salem',
+          state: 'MA',
+          zipCode: '01970',
+          capacity: 100,
+          isActive: true,
+          createdAt: '2025-08-19T00:00:00Z',
+          updatedAt: '2025-08-19T10:00:00Z'
+        },
+        {
+          id: 'venue-2',
+          name: 'Witch City Workshop Space',
+          address: '456 Essex St',
+          city: 'Salem',
+          state: 'MA',
+          zipCode: '01970',
+          capacity: 50,
+          isActive: true,
+          createdAt: '2025-08-19T00:00:00Z',
+          updatedAt: '2025-08-19T10:00:00Z'
+        }
+      ]
+    })
+  }),
+
+  // OPTIONS preflight for venues endpoint (CORS)
+  http.options('/api/admin/venues/active', () => {
+    return new HttpResponse(null, { status: 200 })
+  }),
+
+  http.options(`${API_BASE_URL}/api/admin/venues/active`, () => {
+    return new HttpResponse(null, { status: 200 })
+  }),
+
+  // Event participations endpoints (relative URL)
+  http.get('/api/admin/events/:eventId/participations', ({ params }) => {
+    // Return mock participations for testing
+    // Alice has BOTH RSVP and Ticket (2 separate records)
+    // Bob has just a Ticket (1 record)
+    // Charlie has just an RSVP (1 record)
+    const mockParticipations = [
+      // Alice's RSVP record
+      {
+        id: 'attendance-1',
+        eventId: params.eventId,
+        userId: 'user-1',
+        userSceneName: 'Alice Wonderland',
+        userEmail: 'alice@example.com',
+        participationType: 'RSVP',
+        status: 'Active',
+        participationDate: '2025-11-01T10:00:00Z',
+        notes: 'Looking forward to it!',
+        canCancel: true,
+        metadata: null,
+        hasCheckedIn: false,
+        checkInTime: null,
+        ticketTypeName: null,
+        sessionNames: 'All Sessions'
+      },
+      // Alice's Ticket record (same user, different participation type)
+      {
+        id: 'attendance-2',
+        eventId: params.eventId,
+        userId: 'user-1',
+        userSceneName: 'Alice Wonderland',
+        userEmail: 'alice@example.com',
+        participationType: 'Ticket',
+        status: 'Active',
+        participationDate: '2025-11-01T10:05:00Z',
+        notes: null,
+        canCancel: true,
+        metadata: '{"price":25.00,"paymentMethod":"PayPal"}',
+        hasCheckedIn: false,
+        checkInTime: null,
+        ticketTypeName: 'Suggested Donation',
+        sessionNames: 'All Sessions'
+      },
+      // Bob has just a ticket (class event)
+      {
+        id: 'attendance-3',
+        eventId: params.eventId,
+        userId: 'user-2',
+        userSceneName: 'Bob Builder',
+        userEmail: 'bob@example.com',
+        participationType: 'Ticket',
+        status: 'Active',
+        participationDate: '2025-11-02T10:00:00Z',
+        notes: null,
+        canCancel: true,
+        metadata: '{"price":35.00,"paymentMethod":"Stripe"}',
+        hasCheckedIn: false,
+        checkInTime: null,
+        ticketTypeName: 'Standard Ticket',
+        sessionNames: 'Session 1'
+      },
+      // Charlie has just RSVP (social event, no donation)
+      {
+        id: 'attendance-4',
+        eventId: params.eventId,
+        userId: 'user-3',
+        userSceneName: 'Charlie Chaplin',
+        userEmail: 'charlie@example.com',
+        participationType: 'RSVP',
+        status: 'Active',
+        participationDate: '2025-11-03T10:00:00Z',
+        notes: 'Can\'t wait!',
+        canCancel: true,
+        metadata: null,
+        hasCheckedIn: false,
+        checkInTime: null,
+        ticketTypeName: null,
+        sessionNames: 'All Sessions'
+      }
+    ]
+
+    return HttpResponse.json({
+      data: mockParticipations
+    })
+  }),
+
+  // Event participations endpoints (absolute URL)
+  http.get(`${API_BASE_URL}/api/admin/events/:eventId/participations`, ({ params }) => {
+    // Return mock participations for testing
+    // Alice has BOTH RSVP and Ticket (2 separate records)
+    // Bob has just a Ticket (1 record)
+    // Charlie has just an RSVP (1 record)
+    const mockParticipations = [
+      // Alice's RSVP record
+      {
+        id: 'attendance-1',
+        eventId: params.eventId,
+        userId: 'user-1',
+        userSceneName: 'Alice Wonderland',
+        userEmail: 'alice@example.com',
+        participationType: 'RSVP',
+        status: 'Active',
+        participationDate: '2025-11-01T10:00:00Z',
+        notes: 'Looking forward to it!',
+        canCancel: true,
+        metadata: null,
+        hasCheckedIn: false,
+        checkInTime: null,
+        ticketTypeName: null,
+        sessionNames: 'All Sessions'
+      },
+      // Alice's Ticket record (same user, different participation type)
+      {
+        id: 'attendance-2',
+        eventId: params.eventId,
+        userId: 'user-1',
+        userSceneName: 'Alice Wonderland',
+        userEmail: 'alice@example.com',
+        participationType: 'Ticket',
+        status: 'Active',
+        participationDate: '2025-11-01T10:05:00Z',
+        notes: null,
+        canCancel: true,
+        metadata: '{"price":25.00,"paymentMethod":"PayPal"}',
+        hasCheckedIn: false,
+        checkInTime: null,
+        ticketTypeName: 'Suggested Donation',
+        sessionNames: 'All Sessions'
+      },
+      // Bob has just a ticket (class event)
+      {
+        id: 'attendance-3',
+        eventId: params.eventId,
+        userId: 'user-2',
+        userSceneName: 'Bob Builder',
+        userEmail: 'bob@example.com',
+        participationType: 'Ticket',
+        status: 'Active',
+        participationDate: '2025-11-02T10:00:00Z',
+        notes: null,
+        canCancel: true,
+        metadata: '{"price":35.00,"paymentMethod":"Stripe"}',
+        hasCheckedIn: false,
+        checkInTime: null,
+        ticketTypeName: 'Standard Ticket',
+        sessionNames: 'Session 1'
+      },
+      // Charlie has just RSVP (social event, no donation)
+      {
+        id: 'attendance-4',
+        eventId: params.eventId,
+        userId: 'user-3',
+        userSceneName: 'Charlie Chaplin',
+        userEmail: 'charlie@example.com',
+        participationType: 'RSVP',
+        status: 'Active',
+        participationDate: '2025-11-03T10:00:00Z',
+        notes: 'Can\'t wait!',
+        canCancel: true,
+        metadata: null,
+        hasCheckedIn: false,
+        checkInTime: null,
+        ticketTypeName: null,
+        sessionNames: 'All Sessions'
+      }
+    ]
+
+    return HttpResponse.json({
+      data: mockParticipations
+    })
+  }),
 ]

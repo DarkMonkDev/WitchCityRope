@@ -828,6 +828,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/events/{eventId}/participations/{userId}/remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove RSVP with cascading effects (admin only)
+         * @description Removes user's RSVP and processes ticket refund if exists. Auto-cancels volunteer shifts. Admin role required.
+         */
+        delete: operations["AdminRemoveRsvp"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/events/{eventId}/tickets/{userId}/refund": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refund ticket with optional RSVP removal (admin only)
+         * @description Refunds user's ticket and optionally removes RSVP. Auto-cancels volunteer shifts. Admin role required.
+         */
+        post: operations["AdminRefundTicket"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/events/{id}/volunteer-positions": {
         parameters: {
             query?: never;
@@ -1913,6 +1953,158 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/email-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all global email templates for a category
+         * @description Returns all active global email templates for the specified category. Admin access required.
+         */
+        get: operations["GetGlobalTemplatesByCategory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/email-templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a global email template by ID
+         * @description Returns a single global email template. Admin access required.
+         */
+        get: operations["GetGlobalTemplateById"];
+        /**
+         * Update a global email template
+         * @description Updates a global email template and increments version. Admin access required.
+         */
+        put: operations["UpdateGlobalTemplate"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/email-templates/events/{eventId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all email templates for an event
+         * @description Returns merged list of global templates and event-specific overrides. Admin or event organizer access required.
+         */
+        get: operations["GetEventTemplates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/email-templates/events/{eventId}/{type}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a specific email template for an event
+         * @description Returns global template if no override exists, or event-specific template if customized. Admin or event organizer access required.
+         */
+        get: operations["GetEventTemplateByType"];
+        /**
+         * Create or update event email template override
+         * @description Creates new override on first save (copy-on-edit), updates existing on subsequent saves. Admin or event organizer access required.
+         */
+        put: operations["UpdateEventTemplate"];
+        post?: never;
+        /**
+         * Delete event email template override
+         * @description Removes event-specific override, future requests will return global template. Admin or event organizer access required.
+         */
+        delete: operations["DeleteEventTemplate"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/email-templates/ad-hoc/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send an ad-hoc bulk email
+         * @description Sends bulk email via SendGrid and creates audit trail. Admin access required.
+         */
+        post: operations["SendAdHocEmail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/email-templates/ad-hoc/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get ad-hoc email send history
+         * @description Returns sent ad-hoc email history, optionally filtered by event. Admin access required.
+         */
+        get: operations["GetAdHocEmailHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/email-templates/ad-hoc/history/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a specific sent ad-hoc email
+         * @description Returns details of a specific sent ad-hoc email. Admin access required.
+         */
+        get: operations["GetAdHocEmailById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/cms/pages/{slug}": {
         parameters: {
             query?: never;
@@ -2647,6 +2839,25 @@ export interface components {
             recentIncidents?: components["schemas"]["IncidentSummaryResponse"][];
             pendingActions?: components["schemas"]["ActionItem"][];
         };
+        AdminRefundTicketRequest: {
+            alsoRemoveRsvp?: boolean;
+        };
+        AdminRefundTicketResponse: {
+            ticketRefunded?: boolean;
+            /** Format: double */
+            refundAmount?: number;
+            rsvpRemoved?: boolean;
+            volunteerShiftsRemoved?: boolean;
+            volunteerShiftNames?: string[];
+        };
+        AdminRemoveRsvpResponse: {
+            rsvpRemoved?: boolean;
+            ticketRefunded?: boolean;
+            /** Format: double */
+            refundAmount?: number | null;
+            volunteerShiftsRemoved?: boolean;
+            volunteerShiftNames?: string[];
+        };
         ApiResponseOfApplicationDetailResponse: {
             success?: boolean;
             data?: components["schemas"]["ApplicationDetailResponse"];
@@ -2710,6 +2921,20 @@ export interface components {
             /** Format: date-time */
             timestamp?: string;
         };
+        ApiResponseOfEventEmailTemplateDto: {
+            success?: boolean;
+            data?: components["schemas"]["EventEmailTemplateDto2"];
+            error?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfGlobalEmailTemplateDto: {
+            success?: boolean;
+            data?: components["schemas"]["GlobalEmailTemplateDto2"];
+            error?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
         ApiResponseOfListOfEmailTemplateResponse: {
             success?: boolean;
             data?: components["schemas"]["EmailTemplateResponse"][] | null;
@@ -2728,12 +2953,33 @@ export interface components {
             /** Format: date-time */
             timestamp?: string;
         };
+        ApiResponseOfListOfEventEmailTemplateDto: {
+            success?: boolean;
+            data?: components["schemas"]["EventEmailTemplateDto"][] | null;
+            error?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
         ApiResponseOfListOfEventParticipationDto: {
             success?: boolean;
             data?: components["schemas"]["EventParticipationDto"][] | null;
             error?: string | null;
             details?: string | null;
             message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfListOfGlobalEmailTemplateDto: {
+            success?: boolean;
+            data?: components["schemas"]["GlobalEmailTemplateDto"][] | null;
+            error?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfListOfSentAdHocEmailDto: {
+            success?: boolean;
+            data?: components["schemas"]["SentAdHocEmailDto2"][] | null;
+            error?: string | null;
             /** Format: date-time */
             timestamp?: string;
         };
@@ -2833,6 +3079,13 @@ export interface components {
             error?: string | null;
             details?: string | null;
             message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfSentAdHocEmailDto: {
+            success?: boolean;
+            data?: components["schemas"]["SentAdHocEmailDto"];
+            error?: string | null;
             /** Format: date-time */
             timestamp?: string;
         };
@@ -3475,6 +3728,50 @@ export interface components {
             volunteerPositions?: components["schemas"]["VolunteerPositionDto"][];
             teacherIds?: string[];
         } | null;
+        EventEmailTemplateDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            eventId?: string;
+            /** Format: uuid */
+            globalTemplateId?: string;
+            templateType?: string;
+            templateTypeName?: string;
+            subject?: string;
+            htmlBody?: string;
+            plainTextBody?: string;
+            targetSessions?: string[];
+            isCustomized?: boolean;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+            /** Format: uuid */
+            updatedBy?: string;
+            updatedByEmail?: string;
+        };
+        EventEmailTemplateDto2: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            eventId?: string;
+            /** Format: uuid */
+            globalTemplateId?: string;
+            templateType?: string;
+            templateTypeName?: string;
+            subject?: string;
+            htmlBody?: string;
+            plainTextBody?: string;
+            targetSessions?: string[];
+            isCustomized?: boolean;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+            /** Format: uuid */
+            updatedBy?: string;
+            updatedByEmail?: string;
+        } | null;
         EventHistoryRecord: {
             /** Format: uuid */
             eventId?: string;
@@ -3528,6 +3825,48 @@ export interface components {
             /** Format: double */
             expirationHours?: number | null;
         };
+        GlobalEmailTemplateDto: {
+            /** Format: uuid */
+            id?: string;
+            category?: string;
+            templateType?: string;
+            templateTypeName?: string;
+            subject?: string;
+            htmlBody?: string;
+            plainTextBody?: string;
+            variables?: string[];
+            isActive?: boolean;
+            /** Format: int32 */
+            version?: number;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+            /** Format: uuid */
+            updatedBy?: string;
+            updatedByEmail?: string;
+        };
+        GlobalEmailTemplateDto2: {
+            /** Format: uuid */
+            id?: string;
+            category?: string;
+            templateType?: string;
+            templateTypeName?: string;
+            subject?: string;
+            htmlBody?: string;
+            plainTextBody?: string;
+            variables?: string[];
+            isActive?: boolean;
+            /** Format: int32 */
+            version?: number;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+            /** Format: uuid */
+            updatedBy?: string;
+            updatedByEmail?: string;
+        } | null;
         GoogleDriveUpdateResponse: {
             /** Format: uuid */
             id?: string;
@@ -4121,6 +4460,54 @@ export interface components {
             /** Format: int32 */
             thisMonth?: number;
         };
+        SendAdHocEmailRequest: {
+            subject: string;
+            htmlBody: string;
+            plainTextBody: string;
+            recipientGroup: string;
+            /** Format: uuid */
+            eventId?: string | null;
+        };
+        SentAdHocEmailDto: {
+            /** Format: uuid */
+            id?: string;
+            subject?: string;
+            htmlBody?: string;
+            plainTextBody?: string;
+            recipientGroup?: string;
+            /** Format: int32 */
+            recipientCount?: number;
+            /** Format: uuid */
+            eventId?: string | null;
+            eventTitle?: string | null;
+            sendGridMessageId?: string | null;
+            deliveryStatus?: string;
+            /** Format: date-time */
+            sentAt?: string;
+            /** Format: uuid */
+            sentBy?: string;
+            sentByEmail?: string;
+        } | null;
+        SentAdHocEmailDto2: {
+            /** Format: uuid */
+            id?: string;
+            subject?: string;
+            htmlBody?: string;
+            plainTextBody?: string;
+            recipientGroup?: string;
+            /** Format: int32 */
+            recipientCount?: number;
+            /** Format: uuid */
+            eventId?: string | null;
+            eventTitle?: string | null;
+            sendGridMessageId?: string | null;
+            deliveryStatus?: string;
+            /** Format: date-time */
+            sentAt?: string;
+            /** Format: uuid */
+            sentBy?: string;
+            sentByEmail?: string;
+        };
         ServiceTokenRequest: {
             userId?: string;
             email?: string;
@@ -4293,6 +4680,17 @@ export interface components {
             ticketTypes?: components["schemas"]["TicketTypeDto"][] | null;
             teacherIds?: string[] | null;
             volunteerPositions?: components["schemas"]["VolunteerPositionDto"][] | null;
+        };
+        UpdateEventTemplateRequest: {
+            subject: string;
+            htmlBody: string;
+            plainTextBody: string;
+            targetSessions?: string[];
+        };
+        UpdateGlobalTemplateRequest: {
+            subject: string;
+            htmlBody: string;
+            plainTextBody: string;
         };
         UpdateGoogleDriveRequest: {
             googleDriveFolderUrl?: string | null;
@@ -6817,6 +7215,112 @@ export interface operations {
             };
             /** @description Forbidden */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminRemoveRsvp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRemoveRsvpResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminRefundTicket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminRefundTicketRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRefundTicketResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9887,6 +10391,447 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
+            };
+        };
+    };
+    GetGlobalTemplatesByCategory: {
+        parameters: {
+            query: {
+                category: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfListOfGlobalEmailTemplateDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetGlobalTemplateById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfGlobalEmailTemplateDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UpdateGlobalTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateGlobalTemplateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfGlobalEmailTemplateDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetEventTemplates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfListOfEventEmailTemplateDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetEventTemplateByType: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                type: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfEventEmailTemplateDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UpdateEventTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                type: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateEventTemplateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfEventEmailTemplateDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    DeleteEventTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                type: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SendAdHocEmail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendAdHocEmailRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfSentAdHocEmailDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetAdHocEmailHistory: {
+        parameters: {
+            query?: {
+                eventId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfListOfSentAdHocEmailDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetAdHocEmailById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfSentAdHocEmailDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

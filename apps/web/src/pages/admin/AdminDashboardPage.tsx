@@ -1,6 +1,6 @@
 import React from 'react';
 import { Container, Title, Text, Grid, Paper, Box, Group, Badge } from '@mantine/core';
-import { IconCalendarEvent, IconUsers, IconSettings, IconChartBar, IconClipboardCheck, IconFileText, IconAlertTriangle } from '@tabler/icons-react';
+import { IconCalendarEvent, IconUsers, IconSettings, IconChartBar, IconClipboardCheck, IconFileText, IconAlertTriangle, IconMail } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 import { useVettingStats } from '../../features/admin/vetting/hooks/useVettingStats';
 import { useSafetyDashboard } from '../../features/safety/hooks/useSafetyIncidents';
@@ -98,11 +98,18 @@ export const AdminDashboardPage: React.FC = () => {
       testId: 'incident-reports-card',
     },
     {
+      title: 'Email Templates',
+      description: 'Manage global email templates for all categories',
+      icon: <IconMail size={32} />,
+      link: '/admin/email-templates',
+      color: '#FF6B35',
+    },
+    {
       title: 'Content Management',
       description: 'Manage CMS pages and view revision history',
       icon: <IconFileText size={32} />,
       link: '/admin/cms/revisions',
-      color: '#FF6B35',
+      color: '#2E8B57',
     },
     {
       title: 'Analytics',

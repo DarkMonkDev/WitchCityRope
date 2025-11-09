@@ -18,6 +18,7 @@ using WitchCityRope.Api.Features.Cms;
 using WitchCityRope.Api.Features.Volunteers.Services;
 using WitchCityRope.Api.Features.Admin.Settings.Interfaces;
 using WitchCityRope.Api.Features.Admin.Settings.Services;
+using WitchCityRope.Api.Features.EmailTemplates.Services;
 using WitchCityRope.Api.Services;
 using WitchCityRope.Api.Services.Seeding;
 
@@ -112,6 +113,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<VolunteerService>();
         services.AddScoped<VolunteerAssignmentService>();
 
+        // Email Templates feature services
+        services.AddScoped<IEmailTemplateService, EmailTemplateService>();
+
         // CMS feature services
         services.AddCmsServices();
 
@@ -129,6 +133,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<TicketPurchaseSeeder>();
         services.AddScoped<VettingSeeder>();
         services.AddScoped<EventSeeder>();
+        services.AddScoped<EmailTemplateSeeder>();
 
         // Register the seed coordinator as the main ISeedDataService implementation
         services.AddScoped<WitchCityRope.Api.Services.Seeding.ISeedDataService, SeedCoordinator>();

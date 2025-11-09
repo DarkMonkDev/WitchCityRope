@@ -48,6 +48,7 @@ public class SeedCoordinator : ISeedDataService
     private readonly VettingSeeder _vettingSeeder;
     private readonly EventSeeder _eventSeeder;
     private readonly VenueSeeder _venueSeeder;
+    private readonly EmailTemplateSeeder _emailTemplateSeeder;
     private readonly ILogger<SeedCoordinator> _logger;
 
     public SeedCoordinator(
@@ -64,6 +65,7 @@ public class SeedCoordinator : ISeedDataService
         VettingSeeder vettingSeeder,
         EventSeeder eventSeeder,
         VenueSeeder venueSeeder,
+        EmailTemplateSeeder emailTemplateSeeder,
         ILogger<SeedCoordinator> logger)
     {
         _context = context;
@@ -79,6 +81,7 @@ public class SeedCoordinator : ISeedDataService
         _vettingSeeder = vettingSeeder;
         _eventSeeder = eventSeeder;
         _venueSeeder = venueSeeder;
+        _emailTemplateSeeder = emailTemplateSeeder;
         _logger = logger;
     }
 
@@ -167,6 +170,9 @@ public class SeedCoordinator : ISeedDataService
             _logger.LogDebug("Seeding vetting email templates...");
             await _vettingSeeder.SeedVettingEmailTemplatesAsync(cancellationToken);
 
+            _logger.LogDebug("Seeding email templates (Events, Admin, Incident, Ad Hoc)...");
+            await _emailTemplateSeeder.SeedAsync(cancellationToken);
+
             _logger.LogDebug("Seeding safety incidents...");
             await _safetySeeder.SeedSafetyIncidentsAsync(cancellationToken);
 
@@ -225,11 +231,12 @@ public class SeedCoordinator : ISeedDataService
         var vettingApplicationCount = await _context.VettingApplications.CountAsync(cancellationToken);
         var ticketPurchaseCount = await _context.TicketPurchases.CountAsync(cancellationToken);
         var safetyIncidentCount = await _context.SafetyIncidents.CountAsync(cancellationToken);
+        var globalEmailTemplateCount = await _context.GlobalEmailTemplates.CountAsync(cancellationToken);
 
-        var isRequired = userCount == 0 || eventCount == 0 || vettingApplicationCount == 0 || ticketPurchaseCount == 0 || safetyIncidentCount == 0;
+        var isRequired = userCount == 0 || eventCount == 0 || vettingApplicationCount == 0 || ticketPurchaseCount == 0 || safetyIncidentCount == 0 || globalEmailTemplateCount == 0;
 
-        _logger.LogDebug("Seed data check: Users={UserCount}, Events={EventCount}, VettingApplications={VettingApplicationCount}, TicketPurchases={TicketPurchaseCount}, SafetyIncidents={SafetyIncidentCount}, Required={IsRequired}",
-            userCount, eventCount, vettingApplicationCount, ticketPurchaseCount, safetyIncidentCount, isRequired);
+        _logger.LogDebug("Seed data check: Users={UserCount}, Events={EventCount}, VettingApplications={VettingApplicationCount}, TicketPurchases={TicketPurchaseCount}, SafetyIncidents={SafetyIncidentCount}, GlobalEmailTemplates={GlobalEmailTemplateCount}, Required={IsRequired}",
+            userCount, eventCount, vettingApplicationCount, ticketPurchaseCount, safetyIncidentCount, globalEmailTemplateCount, isRequired);
 
         return isRequired;
     }

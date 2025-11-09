@@ -24,9 +24,10 @@ namespace WitchCityRope.IntegrationTests.Api.Features.Vetting;
 /// NOTE: Uses Sequential collection to prevent database deadlocks from parallel test execution
 /// </summary>
 [Collection("Sequential")]
-public class VettingProfileUpdateIntegrationTests : IntegrationTestBase
+public class VettingProfileUpdateIntegrationTests : IntegrationTestBase, IDisposable
 {
     private readonly WebApplicationFactory<Program> _factory;
+    private bool _disposed;
 
     public VettingProfileUpdateIntegrationTests(DatabaseTestFixture fixture)
         : base(fixture)
@@ -51,6 +52,18 @@ public class VettingProfileUpdateIntegrationTests : IntegrationTestBase
                     });
                 });
             });
+    }
+
+    /// <summary>
+    /// Dispose WebApplicationFactory to release file system watchers and prevent inotify limit exhaustion
+    /// </summary>
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            _factory?.Dispose();
+            _disposed = true;
+        }
     }
 
     #region Full Profile Update Tests

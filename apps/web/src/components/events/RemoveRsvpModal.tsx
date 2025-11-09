@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   Stack,
@@ -36,6 +36,13 @@ export const RemoveRsvpModal: React.FC<RemoveRsvpModalProps> = ({
 }) => {
   const [confirmed, setConfirmed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!opened) {
+      setConfirmed(false);
+    }
+  }, [opened]);
 
   const handleSubmit = async () => {
     if (!confirmed) {

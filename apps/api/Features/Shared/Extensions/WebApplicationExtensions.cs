@@ -12,6 +12,7 @@ using WitchCityRope.Api.Features.Volunteers.Endpoints;
 using WitchCityRope.Api.Features.Cms;
 using WitchCityRope.Api.Features.Metadata.Endpoints;
 using WitchCityRope.Api.Features.Admin.Settings.Endpoints;
+using WitchCityRope.Api.Features.EmailTemplates.Endpoints;
 using WitchCityRope.Api.Endpoints.Admin;
 using WitchCityRope.Api.Endpoints;
 
@@ -69,6 +70,9 @@ public static class WebApplicationExtensions
         // Volunteer feature endpoints
         app.MapVolunteerEndpoints();
         app.MapVolunteerAssignmentEndpoints();
+
+        // Email Templates feature endpoints
+        app.MapEmailTemplateEndpoints();
 
         // CMS feature endpoints
         app.MapCmsEndpoints();

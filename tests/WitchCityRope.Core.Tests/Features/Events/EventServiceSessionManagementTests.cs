@@ -378,6 +378,7 @@ public class EventServiceSessionManagementTests : IAsyncLifetime
             EventId = testEvent.Id,
             Name = "Original Ticket",
             Description = "Original description",
+            PricingType = WitchCityRope.Models.PricingType.Fixed,
             Price = 20.00m,
             Available = 15
             // Sold is now a computed property (read-only)
@@ -395,8 +396,8 @@ public class EventServiceSessionManagementTests : IAsyncLifetime
                 {
                     Id = ticketType.Id.ToString(),
                     Name = "Updated Ticket",
-                    MinPrice = 25.00m,
-                    MaxPrice = 25.00m,
+                    PricingType = WitchCityRope.Models.PricingType.Fixed,
+                    Price = 25.00m, // Use Price for fixed pricing (not MinPrice/MaxPrice)
                     QuantityAvailable = 20,
 
                     SessionIdentifiers = new List<string>()

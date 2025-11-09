@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   Stack,
@@ -38,6 +38,14 @@ export const RefundTicketModal: React.FC<RefundTicketModalProps> = ({
   const [alsoRemoveRsvp, setAlsoRemoveRsvp] = useState(true); // Default: checked
   const [confirmed, setConfirmed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!opened) {
+      setConfirmed(false);
+      setAlsoRemoveRsvp(true); // Reset to default
+    }
+  }, [opened]);
 
   const handleSubmit = async () => {
     if (!confirmed) {

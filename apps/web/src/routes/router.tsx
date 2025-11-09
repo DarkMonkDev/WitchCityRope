@@ -44,6 +44,7 @@ import { AdminMembersPage } from '../pages/admin/AdminMembersPage'
 import { AdminMemberDetailsPage } from '../pages/admin/AdminMemberDetailsPage'
 import { AdminSettingsPage } from '../pages/admin/AdminSettingsPage'
 import { EmailTemplates } from '../features/admin/vetting/pages/EmailTemplates'
+import { EmailTemplatesAdminPage } from '../pages/admin/EmailTemplatesAdminPage'
 import { TestPage } from '../pages/TestPage'
 import { VettingTestPage } from '../pages/VettingTestPage'
 import { TestNotifications } from '../pages/TestNotifications'
@@ -376,6 +377,11 @@ export const router = createBrowserRouter([
       {
         path: 'admin/settings',
         element: <AdminSettingsPage />,
+        loader: adminLoader,
+      },
+      {
+        path: 'admin/email-templates',
+        element: <EmailTemplatesAdminPage />,
         loader: adminLoader,
       },
       // CMS admin routes

@@ -15,9 +15,10 @@ namespace WitchCityRope.IntegrationTests;
 /// Provides generic test methods to verify DTO properties correctly map to Entity properties.
 /// CRITICAL: These tests catch DTO/Entity mismatches that cause bugs like the profile update issue.
 /// </summary>
-public abstract class DtoMappingTestBase : IntegrationTestBase
+public abstract class DtoMappingTestBase : IntegrationTestBase, IDisposable
 {
     protected readonly Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program> Factory;
+    private bool _disposed;
 
     protected DtoMappingTestBase(DatabaseTestFixture fixture) : base(fixture)
     {
@@ -44,6 +45,18 @@ public abstract class DtoMappingTestBase : IntegrationTestBase
                     });
                 });
             });
+    }
+
+    /// <summary>
+    /// Dispose WebApplicationFactory to release file system watchers and prevent inotify limit exhaustion
+    /// </summary>
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            Factory?.Dispose();
+            _disposed = true;
+        }
     }
 
     /// <summary>

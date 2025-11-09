@@ -1197,3 +1197,224 @@ export default defineConfig({
 
 ---
 
+## 🚨 CRITICAL: MODAL STATE RESET WITH USEEFFECT ON OPENED PROP 🚨
+**Date**: 2025-11-09
+**Category**: Mantine Modals / React State Management
+**Severity**: CRITICAL - POOR UX WITHOUT STATE RESET
+
+### What We Learned
+**MODAL CHECKBOXES DON'T RESET AUTOMATICALLY**: Mantine Modal components don't automatically reset internal state when `opened` prop changes. Confirmation checkboxes remain checked after modal closes and reopens, leading to confusing UX.
+
+**SYMPTOMS**:
+- User confirms action → Modal closes → User reopens modal
+- Confirmation checkbox still checked from previous interaction
+- User can accidentally submit without re-confirming
+- Poor UX - appears as if previous state is "stuck"
+
+**ROOT CAUSE**: React state persists between modal open/close cycles. The `opened` prop controls visibility, not state lifecycle.
+
+### ✅ CRITICAL SOLUTION: USEEFFECT TO RESET STATE
+
+```typescript
+// ❌ WRONG: State persists across modal open/close
+export const RemoveRsvpModal: React.FC<Props> = ({ opened, onClose, onConfirm }) => {
+  const [confirmed, setConfirmed] = useState(false);
+  // No reset logic - checkbox stays checked after close!
+
+  return (
+    <Modal opened={opened} onClose={onClose}>
+      <Checkbox checked={confirmed} onChange={(e) => setConfirmed(e.currentTarget.checked)} />
+    </Modal>
+  );
+};
+
+// ✅ CORRECT: Reset state when modal closes
+import { useEffect } from 'react';
+
+export const RemoveRsvpModal: React.FC<Props> = ({ opened, onClose, onConfirm }) => {
+  const [confirmed, setConfirmed] = useState(false);
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!opened) {
+      setConfirmed(false);
+    }
+  }, [opened]);
+
+  return (
+    <Modal opened={opened} onClose={onClose}>
+      <Checkbox checked={confirmed} onChange={(e) => setConfirmed(e.currentTarget.checked)} />
+    </Modal>
+  );
+};
+
+// ✅ CORRECT: Multiple state values to reset
+export const RefundTicketModal: React.FC<Props> = ({ opened, onClose, onConfirm }) => {
+  const [confirmed, setConfirmed] = useState(false);
+  const [alsoRemoveRsvp, setAlsoRemoveRsvp] = useState(true);
+
+  // Reset ALL state when modal closes
+  useEffect(() => {
+    if (!opened) {
+      setConfirmed(false);
+      setAlsoRemoveRsvp(true); // Reset to default
+    }
+  }, [opened]);
+
+  return (
+    <Modal opened={opened} onClose={onClose}>
+      <Checkbox checked={confirmed} onChange={(e) => setConfirmed(e.currentTarget.checked)} />
+      <Checkbox checked={alsoRemoveRsvp} onChange={(e) => setAlsoRemoveRsvp(e.currentTarget.checked)} />
+    </Modal>
+  );
+};
+```
+
+### 🛑 MANDATORY PATTERN FOR ALL MODALS
+
+**ALWAYS add useEffect to reset state when:**
+- Modal has form inputs (checkboxes, text fields, selects)
+- Modal has confirmation checkboxes
+- Modal has multi-step state
+- Modal has toggle options that affect behavior
+- ANY internal state that should not persist between opens
+
+**WHY this matters:**
+- `opened` prop controls **visibility**, not **lifecycle**
+- React component instance persists - state doesn't auto-reset
+- Manual reset required for clean UX
+
+### 📋 IMPLEMENTATION CHECKLIST
+
+When creating modal components:
+1. **Identify all state variables** that need reset
+2. **Add useEffect** with `opened` in dependency array
+3. **Check `if (!opened)`** - reset when modal closes
+4. **Reset to initial/default values** - don't assume false/empty
+5. **Test**: Open modal → interact → close → reopen → verify clean state
+
+### 🔧 TESTING PATTERN
+
+```typescript
+it('resets confirmation checkbox when modal closes', async () => {
+  const { rerender } = renderWithProviders();
+
+  // Check the checkbox
+  await user.click(screen.getByTestId('confirmation-checkbox'));
+  expect(screen.getByTestId('confirmation-checkbox')).toBeChecked();
+
+  // Close modal
+  rerender(<Modal opened={false} />);
+
+  // Reopen modal
+  rerender(<Modal opened={true} />);
+
+  // Checkbox should be unchecked
+  expect(screen.getByTestId('confirmation-checkbox')).not.toBeChecked();
+});
+```
+
+### 💥 CONSEQUENCES OF IGNORING
+
+- ❌ Checkboxes remain checked after close
+- ❌ Users can accidentally confirm actions without realizing
+- ❌ Form inputs retain old values
+- ❌ Confusing UX - "Why is this already filled out?"
+- ❌ Potential data integrity issues (wrong values submitted)
+
+### 🚨 RELATED PATTERNS
+
+**Similar issues with:**
+- Mantine Drawer components
+- Custom modal implementations
+- Any component controlled by visibility prop
+
+**General Rule**: If component visibility is controlled by prop, state lifecycle must be managed manually.
+
+### Tags
+#critical #mantine-modal #state-reset #useEffect #ux #modal-state #checkbox-reset #form-state
+
+---
+
+## 🚨 CRITICAL: TESTING LIBRARY GETBYTEXT FAILS WITH DUPLICATE TEXT - USE GETBYROLE WITH LEVEL 🚨
+**Date**: 2025-11-09
+**Category**: React Testing Library / Mantine Modals
+**Severity**: CRITICAL - BREAKS TESTS
+
+### What We Learned
+**GETBYTEXT FAILS WHEN TEXT APPEARS MULTIPLE TIMES**: Mantine Modal creates nested heading elements (`<h2>` wrapper + `<h3>` actual title), causing `getByText` to find multiple matches.
+
+**ERROR**:
+```
+TestingLibraryElementError: Found multiple elements with the text: /Remove RSVP?/i
+
+Elements:
+  <h2 class="mantine-Modal-title">
+    <h3>Remove RSVP?</h3>
+  </h2>
+```
+
+**ROOT CAUSE**: Mantine Modal wraps custom title in `<h2 class="mantine-Modal-title">`. If title is a heading element (`<h3>`), Testing Library finds BOTH headings.
+
+### ✅ CRITICAL SOLUTION: USE GETBYROLE WITH LEVEL
+
+```typescript
+// ❌ WRONG: getByText finds multiple headings
+expect(screen.getByText(/Remove RSVP?/i)).toBeInTheDocument();
+// Error: Found multiple elements
+
+// ❌ WRONG: getByRole without level still ambiguous
+expect(screen.getByRole('heading', { name: /Remove RSVP?/i })).toBeInTheDocument();
+// Error: Found multiple elements (h2 and h3)
+
+// ✅ CORRECT: Specify heading level
+expect(screen.getByRole('heading', { name: /Remove RSVP?/i, level: 3 })).toBeInTheDocument();
+// Success: Targets only the h3
+```
+
+### 📋 MANTINE MODAL TITLE STRUCTURE
+
+```typescript
+// Component code
+<Modal
+  title={
+    <Title order={3}>Remove RSVP?</Title>  // This is <h3>
+  }
+>
+```
+
+**Renders as**:
+```html
+<h2 class="mantine-Modal-title" id="...">
+  <h3 class="mantine-Title-root" data-order="3">
+    Remove RSVP?
+  </h3>
+</h2>
+```
+
+### 🛑 BEST PRACTICES FOR MODAL TITLE TESTING
+
+**Option 1: Use getByRole with level** (Recommended):
+```typescript
+screen.getByRole('heading', { name: /Modal Title/i, level: 3 })
+```
+
+**Option 2: Use data-testid on modal** (Fallback):
+```typescript
+screen.getByTestId('modal-name')
+```
+
+**DON'T use** `getByText` for modal titles - too ambiguous.
+
+### 💥 CONSEQUENCES OF IGNORING
+
+- ❌ Tests fail with "Found multiple elements" error
+- ❌ Cannot reliably query modal titles
+- ❌ False test failures block CI/CD
+- ❌ Developer frustration debugging "working" code
+
+### Tags
+#critical #testing-library #mantine-modal #getByRole #test-queries #multiple-elements
+
+---
+

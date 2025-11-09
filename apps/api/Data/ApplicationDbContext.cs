@@ -13,6 +13,8 @@ using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Participation.Configuration;
 using WitchCityRope.Api.Features.Cms.Entities;
 using WitchCityRope.Api.Features.Cms.Configuration;
+using WitchCityRope.Api.Features.EmailTemplates.Entities;
+using WitchCityRope.Api.Features.EmailTemplates.Entities.Configuration;
 
 namespace WitchCityRope.Api.Data;
 
@@ -258,6 +260,21 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     /// UserNotes table for unified user notes system (vetting, general, administrative, status changes)
     /// </summary>
     public DbSet<WitchCityRope.Api.Data.Entities.UserNote> UserNotes => Set<WitchCityRope.Api.Data.Entities.UserNote>();
+
+    /// <summary>
+    /// GlobalEmailTemplates table for global email templates across all categories
+    /// </summary>
+    public DbSet<GlobalEmailTemplate> GlobalEmailTemplates { get; set; }
+
+    /// <summary>
+    /// EventEmailTemplates table for event-specific email template overrides
+    /// </summary>
+    public DbSet<EventEmailTemplate> EventEmailTemplates { get; set; }
+
+    /// <summary>
+    /// SentAdHocEmails table for ad-hoc email audit trail
+    /// </summary>
+    public DbSet<SentAdHocEmail> SentAdHocEmails { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -1039,6 +1056,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         modelBuilder.ApplyConfiguration(new ContentPageConfiguration());
         modelBuilder.ApplyConfiguration(new ContentRevisionConfiguration());
 
+        // Apply Email Templates configurations
+        modelBuilder.ApplyConfiguration(new GlobalEmailTemplateConfiguration());
+        modelBuilder.ApplyConfiguration(new EventEmailTemplateConfiguration());
+        modelBuilder.ApplyConfiguration(new SentAdHocEmailConfiguration());
+
         // Settings entity configuration
         modelBuilder.Entity<WitchCityRope.Api.Core.Entities.Setting>(entity =>
         {
@@ -1656,6 +1678,48 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             if (entry.State == EntityState.Added)
             {
                 entry.Entity.CreatedAt = DateTime.UtcNow;
+            }
+        }
+
+        // Handle GlobalEmailTemplate entities
+        var globalEmailTemplateEntries = ChangeTracker.Entries<GlobalEmailTemplate>();
+        foreach (var entry in globalEmailTemplateEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+                // Increment version on update
+                entry.Entity.Version++;
+            }
+        }
+
+        // Handle EventEmailTemplate entities
+        var eventEmailTemplateEntries = ChangeTracker.Entries<EventEmailTemplate>();
+        foreach (var entry in eventEmailTemplateEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        // Handle SentAdHocEmail entities
+        var sentAdHocEmailEntries = ChangeTracker.Entries<SentAdHocEmail>();
+        foreach (var entry in sentAdHocEmailEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.SentAt = DateTime.UtcNow;
             }
         }
     }

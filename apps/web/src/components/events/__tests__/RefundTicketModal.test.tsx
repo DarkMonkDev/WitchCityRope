@@ -43,7 +43,7 @@ describe('RefundTicketModal', () => {
     renderWithProviders();
 
     expect(screen.getByTestId('refund-ticket-modal')).toBeInTheDocument();
-    expect(screen.getByText(/Refund Ticket?/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Refund Ticket?/i, level: 3 })).toBeInTheDocument();
     expect(screen.getByText('John Smith')).toBeInTheDocument();
     expect(screen.getByText(/"Rope Intensive Weekend"/i)).toBeInTheDocument();
 
@@ -155,6 +155,9 @@ describe('RefundTicketModal', () => {
 
     // Uncheck alsoRemoveRsvp
     await user.click(alsoRemoveRsvpCheckbox);
+
+    // Re-check confirmation checkbox (it was reset when modal closed after first submit)
+    await user.click(confirmationCheckbox);
 
     // Click submit again
     await user.click(submitButton);

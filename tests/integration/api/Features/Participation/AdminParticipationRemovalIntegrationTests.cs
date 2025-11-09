@@ -11,12 +11,14 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using WitchCityRope.Api.Data;
+using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.CheckIn.Entities;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Participation.Models;
 using WitchCityRope.Api.Features.Payments.Entities;
 using WitchCityRope.Api.Features.Payments.Models;
 using WitchCityRope.Api.Models;
+using WitchCityRope.Models;
 using WitchCityRope.Tests.Common.Fixtures;
 using Xunit;
 
@@ -80,15 +82,17 @@ public class AdminParticipationRemovalIntegrationTests : IntegrationTestBase
         result.Should().NotBeNull();
         result!.RsvpRemoved.Should().BeTrue("RSVP should be removed");
 
-        // Verify database state
+        // Verify database state - should have exactly one RSVP attendance
         await using var context = CreateDbContext();
-        var rsvp = await context.EventAttendances
-            .FirstOrDefaultAsync(ea => ea.EventId == eventId &&
-                                      ea.UserId == userId &&
-                                      ea.AttendanceType == AttendanceType.RSVP);
+        var allAttendances = await context.EventAttendances
+            .Where(ea => ea.EventId == eventId && ea.UserId == userId)
+            .ToListAsync();
 
-        rsvp.Should().NotBeNull("RSVP record should still exist");
-        rsvp!.Status.Should().Be(AttendanceStatus.Cancelled, "RSVP should be cancelled");
+        allAttendances.Should().ContainSingle("should have only RSVP attendance (no donation)");
+
+        var rsvp = allAttendances.Single();
+        rsvp.AttendanceType.Should().Be(AttendanceType.RSVP, "should be RSVP type");
+        rsvp.Status.Should().Be(AttendanceStatus.Cancelled, "RSVP should be cancelled");
         rsvp.CancelledAt.Should().NotBeNull("cancellation timestamp should be set");
         rsvp.CancellationReason.Should().Contain("admin", "cancellation reason should mention admin");
     }
@@ -101,6 +105,7 @@ public class AdminParticipationRemovalIntegrationTests : IntegrationTestBase
         var (userClient, userId) = await CreateAuthenticatedUserAsync("user-ticket@example.com");
 
         var eventId = await CreateTestEventAsync();
+        // CRITICAL: For social events, donation buyers have BOTH RSVP + Ticket attendance
         await CreateRsvpAsync(eventId, userId);
         var ticketId = await CreateTicketAsync(eventId, userId, 25.00m);
 
@@ -117,20 +122,20 @@ public class AdminParticipationRemovalIntegrationTests : IntegrationTestBase
         result.TicketRefunded.Should().BeTrue("ticket should be refunded");
         result.RefundAmount.Should().Be(25.00m, "refund amount should match ticket price");
 
-        // Verify database state
+        // Verify database state - BOTH attendances should be cancelled/refunded
         await using var context = CreateDbContext();
+        var allAttendances = await context.EventAttendances
+            .Where(ea => ea.EventId == eventId && ea.UserId == userId)
+            .ToListAsync();
 
-        var ticket = await context.EventAttendances
-            .FirstOrDefaultAsync(ea => ea.Id == ticketId);
-        ticket.Should().NotBeNull("ticket record should still exist");
-        ticket!.Status.Should().Be(AttendanceStatus.Refunded, "ticket should be refunded");
+        allAttendances.Should().HaveCount(2, "should have RSVP + Ticket attendances for donation buyer");
 
-        var rsvp = await context.EventAttendances
-            .FirstOrDefaultAsync(ea => ea.EventId == eventId &&
-                                      ea.UserId == userId &&
-                                      ea.AttendanceType == AttendanceType.RSVP);
-        rsvp.Should().NotBeNull("RSVP record should still exist");
-        rsvp!.Status.Should().Be(AttendanceStatus.Cancelled, "RSVP should be cancelled");
+        var ticket = allAttendances.Single(ea => ea.AttendanceType == AttendanceType.Ticket);
+        ticket.Id.Should().Be(ticketId);
+        ticket.Status.Should().Be(AttendanceStatus.Refunded, "ticket should be refunded");
+
+        var rsvp = allAttendances.Single(ea => ea.AttendanceType == AttendanceType.RSVP);
+        rsvp.Status.Should().Be(AttendanceStatus.Cancelled, "RSVP should be cancelled");
     }
 
     [Fact]
@@ -159,8 +164,17 @@ public class AdminParticipationRemovalIntegrationTests : IntegrationTestBase
         result.VolunteerShiftNames.Should().ContainSingle()
             .Which.Should().Be("Test Volunteer Position", "volunteer position title should be included");
 
-        // Verify database state
+        // Verify database state - should have exactly one RSVP attendance
         await using var context = CreateDbContext();
+        var allAttendances = await context.EventAttendances
+            .Where(ea => ea.EventId == eventId && ea.UserId == userId)
+            .ToListAsync();
+
+        allAttendances.Should().ContainSingle("should have only RSVP attendance (no donation)");
+        var rsvp = allAttendances.Single();
+        rsvp.AttendanceType.Should().Be(AttendanceType.RSVP);
+        rsvp.Status.Should().Be(AttendanceStatus.Cancelled, "RSVP should be cancelled");
+
         var volunteerSignup = await context.VolunteerSignups
             .FirstOrDefaultAsync(vs => vs.UserId == userId && vs.VolunteerPositionId == volunteerPositionId);
 
@@ -209,6 +223,8 @@ public class AdminParticipationRemovalIntegrationTests : IntegrationTestBase
         var (userClient, userId) = await CreateAuthenticatedUserAsync("user-refund@example.com");
 
         var eventId = await CreateTestEventAsync();
+        // CRITICAL: For social events, donation buyers have BOTH RSVP + Ticket attendance
+        await CreateRsvpAsync(eventId, userId);
         var ticketId = await CreateTicketAsync(eventId, userId, 35.00m);
 
         var request = new AdminRefundTicketRequest { AlsoRemoveRsvp = false };
@@ -227,14 +243,21 @@ public class AdminParticipationRemovalIntegrationTests : IntegrationTestBase
         result.RefundAmount.Should().Be(35.00m, "refund amount should match ticket price");
         result.RsvpRemoved.Should().BeFalse("RSVP should not be removed when AlsoRemoveRsvp is false");
 
-        // Verify database state
+        // Verify database state - Ticket refunded, RSVP should remain active
         await using var context = CreateDbContext();
-        var ticket = await context.EventAttendances
-            .FirstOrDefaultAsync(ea => ea.Id == ticketId);
+        var allAttendances = await context.EventAttendances
+            .Where(ea => ea.EventId == eventId && ea.UserId == userId)
+            .ToListAsync();
 
-        ticket.Should().NotBeNull("ticket record should still exist");
-        ticket!.Status.Should().Be(AttendanceStatus.Refunded, "ticket should be refunded");
+        allAttendances.Should().HaveCount(2, "should have RSVP + Ticket attendances for donation buyer");
+
+        var ticket = allAttendances.Single(ea => ea.AttendanceType == AttendanceType.Ticket);
+        ticket.Id.Should().Be(ticketId);
+        ticket.Status.Should().Be(AttendanceStatus.Refunded, "ticket should be refunded");
         ticket.CancelledAt.Should().NotBeNull("cancellation timestamp should be set");
+
+        var rsvp = allAttendances.Single(ea => ea.AttendanceType == AttendanceType.RSVP);
+        rsvp.Status.Should().Be(AttendanceStatus.Active, "RSVP should remain active when AlsoRemoveRsvp is false");
     }
 
     [Fact]
@@ -245,6 +268,7 @@ public class AdminParticipationRemovalIntegrationTests : IntegrationTestBase
         var (userClient, userId) = await CreateAuthenticatedUserAsync("user-both@example.com");
 
         var eventId = await CreateTestEventAsync();
+        // CRITICAL: For social events, donation buyers have BOTH RSVP + Ticket attendance
         await CreateRsvpAsync(eventId, userId);
         var ticketId = await CreateTicketAsync(eventId, userId, 40.00m);
 
@@ -264,19 +288,20 @@ public class AdminParticipationRemovalIntegrationTests : IntegrationTestBase
         result.RefundAmount.Should().Be(40.00m, "refund amount should match ticket price");
         result.RsvpRemoved.Should().BeTrue("RSVP should be removed when AlsoRemoveRsvp is true");
 
-        // Verify database state
+        // Verify database state - BOTH attendances should be refunded/cancelled
         await using var context = CreateDbContext();
+        var allAttendances = await context.EventAttendances
+            .Where(ea => ea.EventId == eventId && ea.UserId == userId)
+            .ToListAsync();
 
-        var ticket = await context.EventAttendances
-            .FirstOrDefaultAsync(ea => ea.Id == ticketId);
-        ticket!.Status.Should().Be(AttendanceStatus.Refunded, "ticket should be refunded");
+        allAttendances.Should().HaveCount(2, "should have RSVP + Ticket attendances for donation buyer");
 
-        var rsvp = await context.EventAttendances
-            .FirstOrDefaultAsync(ea => ea.EventId == eventId &&
-                                      ea.UserId == userId &&
-                                      ea.AttendanceType == AttendanceType.RSVP);
-        rsvp.Should().NotBeNull("RSVP record should still exist");
-        rsvp!.Status.Should().Be(AttendanceStatus.Cancelled, "RSVP should be cancelled");
+        var ticket = allAttendances.Single(ea => ea.AttendanceType == AttendanceType.Ticket);
+        ticket.Id.Should().Be(ticketId);
+        ticket.Status.Should().Be(AttendanceStatus.Refunded, "ticket should be refunded");
+
+        var rsvp = allAttendances.Single(ea => ea.AttendanceType == AttendanceType.RSVP);
+        rsvp.Status.Should().Be(AttendanceStatus.Cancelled, "RSVP should be cancelled when AlsoRemoveRsvp is true");
     }
 
     [Fact]
@@ -287,6 +312,8 @@ public class AdminParticipationRemovalIntegrationTests : IntegrationTestBase
         var (userClient, userId) = await CreateAuthenticatedUserAsync("user-volunteer2@example.com");
 
         var eventId = await CreateTestEventAsync();
+        // CRITICAL: For social events, donation buyers have BOTH RSVP + Ticket attendance
+        await CreateRsvpAsync(eventId, userId);
         var ticketId = await CreateTicketAsync(eventId, userId, 30.00m);
         var volunteerPositionId = await CreateVolunteerPositionAsync(eventId, "Cleanup Crew");
         await CreateVolunteerSignupAsync(userId, volunteerPositionId);
@@ -308,8 +335,21 @@ public class AdminParticipationRemovalIntegrationTests : IntegrationTestBase
         result.VolunteerShiftNames.Should().ContainSingle()
             .Which.Should().Be("Cleanup Crew", "volunteer position title should be included");
 
-        // Verify database state
+        // Verify database state - Ticket refunded, RSVP remains active
         await using var context = CreateDbContext();
+        var allAttendances = await context.EventAttendances
+            .Where(ea => ea.EventId == eventId && ea.UserId == userId)
+            .ToListAsync();
+
+        allAttendances.Should().HaveCount(2, "should have RSVP + Ticket attendances for donation buyer");
+
+        var ticket = allAttendances.Single(ea => ea.AttendanceType == AttendanceType.Ticket);
+        ticket.Id.Should().Be(ticketId);
+        ticket.Status.Should().Be(AttendanceStatus.Refunded, "ticket should be refunded");
+
+        var rsvp = allAttendances.Single(ea => ea.AttendanceType == AttendanceType.RSVP);
+        rsvp.Status.Should().Be(AttendanceStatus.Active, "RSVP should remain active when AlsoRemoveRsvp is false");
+
         var volunteerSignup = await context.VolunteerSignups
             .FirstOrDefaultAsync(vs => vs.UserId == userId && vs.VolunteerPositionId == volunteerPositionId);
 
@@ -387,7 +427,34 @@ public class AdminParticipationRemovalIntegrationTests : IntegrationTestBase
         await context.SaveChangesAsync();
 
         // Create JWT token with Administrator role
-        var token = GenerateJwtToken(userId.ToString(), email, new[] { "Administrator" });
+        var token = GenerateJwtToken(userId, email, "Administrator");
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        return (client, userId);
+    }
+
+    private async Task<(HttpClient client, Guid userId)> CreateAuthenticatedUserAsync(string email)
+    {
+        var client = _factory.CreateClient();
+        var userId = Guid.NewGuid();
+
+        // Create regular user in database
+        await using var context = CreateDbContext();
+        var user = new WitchCityRope.Api.Models.ApplicationUser
+        {
+            Id = userId,
+            Email = email,
+            SceneName = $"User_{Guid.NewGuid():N}"[..15],
+            FirstName = "Test",
+            LastName = "User",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        context.Users.Add(user);
+        await context.SaveChangesAsync();
+
+        // Create JWT token with Member role
+        var token = GenerateJwtToken(userId, email, "Member");
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         return (client, userId);
@@ -403,9 +470,10 @@ public class AdminParticipationRemovalIntegrationTests : IntegrationTestBase
             Id = eventId,
             Title = $"Test Event {Guid.NewGuid():N}"[..30],
             Description = "Test event for admin participation removal tests",
-            EventType = EventType.SocialEvent,
-            StartTime = DateTime.UtcNow.AddDays(7),
-            EndTime = DateTime.UtcNow.AddDays(7).AddHours(3),
+            EventType = EventType.Social,
+            Location = "Test Location",
+            StartDate = DateTime.UtcNow.AddDays(7),
+            EndDate = DateTime.UtcNow.AddDays(7).AddHours(3),
             Capacity = 50,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -438,6 +506,52 @@ public class AdminParticipationRemovalIntegrationTests : IntegrationTestBase
     {
         await using var context = CreateDbContext();
 
+        // CRITICAL: For social event donation tickets, we need to create a TicketPurchase first
+        // This matches the business logic in AttendanceSeeder.cs
+
+        // First, get or create a ticket type for this event
+        var ticketType = await context.TicketTypes
+            .FirstOrDefaultAsync(tt => tt.EventId == eventId && tt.Name.Contains("Donation"));
+
+        if (ticketType == null)
+        {
+            // Create a donation ticket type if it doesn't exist
+            ticketType = new TicketType
+            {
+                Id = Guid.NewGuid(),
+                EventId = eventId,
+                Name = "Suggested Donation",
+                Description = "Optional donation ticket for social event",
+                PricingType = PricingType.SlidingScale,
+                MinPrice = 0,
+                MaxPrice = 50,
+                DefaultPrice = amount,
+                Available = 999, // Large number for donation tickets
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            context.TicketTypes.Add(ticketType);
+            await context.SaveChangesAsync();
+        }
+
+        // Create TicketPurchase record (matches AttendanceSeeder pattern)
+        var ticketPurchase = new TicketPurchase
+        {
+            Id = Guid.NewGuid(),
+            TicketTypeId = ticketType.Id,
+            UserId = userId,
+            Quantity = 1,
+            TotalPrice = amount,
+            PaymentStatus = "Completed",
+            PaymentMethod = "PayPal",
+            PaymentReference = $"TEST-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
+            PurchaseDate = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        context.TicketPurchases.Add(ticketPurchase);
+
+        // Create EventAttendance linked to TicketPurchase (matches AttendanceSeeder pattern)
         var ticketId = Guid.NewGuid();
         var ticket = new EventAttendance
         {
@@ -446,12 +560,14 @@ public class AdminParticipationRemovalIntegrationTests : IntegrationTestBase
             UserId = userId,
             AttendanceType = AttendanceType.Ticket,
             Status = AttendanceStatus.Active,
+            TicketPurchaseId = ticketPurchase.Id, // CRITICAL: Link to TicketPurchase
+            Metadata = $"{{\"ticketType\":\"Suggested Donation\",\"price\":{amount},\"paymentMethod\":\"PayPal\"}}",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
         context.EventAttendances.Add(ticket);
 
-        // Create associated payment
+        // Create associated payment (for refund processing)
         var payment = new Payment
         {
             Id = Guid.NewGuid(),

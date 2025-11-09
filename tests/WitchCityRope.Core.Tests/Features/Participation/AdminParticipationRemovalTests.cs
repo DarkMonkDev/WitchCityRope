@@ -26,45 +26,35 @@ namespace WitchCityRope.Core.Tests.Features.Participation;
 /// <summary>
 /// Unit tests for admin RSVP removal and ticket refund endpoints
 /// Tests authorization, cascading effects (volunteer shifts, ticket refunds), and response DTOs
+/// NOTE: Uses InMemoryDatabase for DbContext to avoid mocking issues
 /// </summary>
 [Trait("Category", "Unit")]
-public class AdminParticipationRemovalTests
+public class AdminParticipationRemovalTests : IDisposable
 {
-    private readonly Mock<ApplicationDbContext> _mockContext;
+    private readonly ApplicationDbContext _context;
     private readonly Mock<IRefundService> _mockRefundService;
-    private readonly Mock<VolunteerAssignmentService> _mockVolunteerService;
-    private readonly Mock<DbSet<EventAttendance>> _mockEventAttendances;
-    private readonly Mock<DbSet<EventAttendee>> _mockEventAttendees;
-    private readonly Mock<DbSet<Payment>> _mockPayments;
-    private readonly Mock<DbSet<VolunteerSignup>> _mockVolunteerSignups;
-    private readonly Mock<DbSet<VolunteerPosition>> _mockVolunteerPositions;
     private readonly Guid _eventId;
     private readonly Guid _userId;
     private readonly Guid _adminUserId;
 
     public AdminParticipationRemovalTests()
     {
-        _mockContext = new Mock<ApplicationDbContext>();
+        // Create InMemoryDatabase context
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+        _context = new ApplicationDbContext(options);
+
         _mockRefundService = new Mock<IRefundService>();
-        _mockVolunteerService = new Mock<VolunteerAssignmentService>(
-            Mock.Of<ApplicationDbContext>(),
-            null // Logger can be null for unit tests
-        );
-
-        _mockEventAttendances = new Mock<DbSet<EventAttendance>>();
-        _mockEventAttendees = new Mock<DbSet<EventAttendee>>();
-        _mockPayments = new Mock<DbSet<Payment>>();
-        _mockVolunteerSignups = new Mock<DbSet<VolunteerSignup>>();
-        _mockVolunteerPositions = new Mock<DbSet<VolunteerPosition>>();
-
-        _mockContext.Setup(c => c.EventAttendances).Returns(_mockEventAttendances.Object);
-        _mockContext.Setup(c => c.EventAttendees).Returns(_mockEventAttendees.Object);
-        _mockContext.Setup(c => c.Payments).Returns(_mockPayments.Object);
-        _mockContext.Setup(c => c.VolunteerSignups).Returns(_mockVolunteerSignups.Object);
 
         _eventId = Guid.NewGuid();
         _userId = Guid.NewGuid();
         _adminUserId = Guid.NewGuid();
+    }
+
+    public void Dispose()
+    {
+        _context?.Dispose();
     }
 
     #region Admin Remove RSVP Tests
@@ -77,9 +67,9 @@ public class AdminParticipationRemovalTests
         var ticket = CreateTicketParticipation();
         var payment = CreatePayment(ticket.Id, 25.00m);
 
-        SetupDbSet(_mockEventAttendances, new[] { rsvp, ticket });
-        SetupDbSet(_mockPayments, new[] { payment });
-        SetupDbSet(_mockVolunteerSignups, Array.Empty<VolunteerSignup>());
+        _context.EventAttendances.AddRange(rsvp, ticket);
+        _context.Payments.Add(payment);
+        await _context.SaveChangesAsync();
 
         var mockRefund = new PaymentRefund
         {
@@ -117,17 +107,8 @@ public class AdminParticipationRemovalTests
         // Arrange
         var rsvp = CreateRsvpParticipation();
 
-        SetupDbSet(_mockEventAttendances, new[] { rsvp });
-        SetupDbSet(_mockPayments, Array.Empty<Payment>());
-        SetupDbSet(_mockVolunteerSignups, Array.Empty<VolunteerSignup>());
-
-        _mockVolunteerService
-            .Setup(s => s.CancelAllVolunteerSignupsForUserEventAsync(
-                _userId,
-                _eventId,
-                It.IsAny<string>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync((success: true, cancelledCount: 0, error: null));
+        _context.EventAttendances.Add(rsvp);
+        await _context.SaveChangesAsync();
 
         // Act
         var response = new AdminRemoveRsvpResponse
@@ -153,17 +134,10 @@ public class AdminParticipationRemovalTests
         var rsvp = CreateRsvpParticipation();
         var volunteerSignup = CreateVolunteerSignup("Door Monitor");
 
-        SetupDbSet(_mockEventAttendances, new[] { rsvp });
-        SetupDbSet(_mockPayments, Array.Empty<Payment>());
-        SetupDbSet(_mockVolunteerSignups, new[] { volunteerSignup });
-
-        _mockVolunteerService
-            .Setup(s => s.CancelAllVolunteerSignupsForUserEventAsync(
-                _userId,
-                _eventId,
-                It.IsAny<string>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync((success: true, cancelledCount: 1, error: null));
+        _context.EventAttendances.Add(rsvp);
+        _context.VolunteerPositions.Add(volunteerSignup.VolunteerPosition);
+        _context.VolunteerSignups.Add(volunteerSignup);
+        await _context.SaveChangesAsync();
 
         // Act
         var response = new AdminRemoveRsvpResponse
@@ -203,10 +177,10 @@ public class AdminParticipationRemovalTests
     public void AdminRemoveRsvp_ParticipationNotFound_Returns404()
     {
         // Arrange - Empty event attendances (no RSVP exists)
-        SetupDbSet(_mockEventAttendances, Array.Empty<EventAttendance>());
+        // No data added to context
 
         // Act
-        var rsvpExists = _mockEventAttendances.Object
+        var rsvpExists = _context.EventAttendances
             .Any(ea => ea.EventId == _eventId &&
                       ea.UserId == _userId &&
                       ea.AttendanceType == AttendanceType.RSVP &&
@@ -239,9 +213,9 @@ public class AdminParticipationRemovalTests
         var payment = CreatePayment(ticket.Id, 35.00m);
         var request = new AdminRefundTicketRequest { AlsoRemoveRsvp = true };
 
-        SetupDbSet(_mockEventAttendances, new[] { rsvp, ticket });
-        SetupDbSet(_mockPayments, new[] { payment });
-        SetupDbSet(_mockVolunteerSignups, Array.Empty<VolunteerSignup>());
+        _context.EventAttendances.AddRange(rsvp, ticket);
+        _context.Payments.Add(payment);
+        await _context.SaveChangesAsync();
 
         var mockRefund = new PaymentRefund
         {
@@ -281,9 +255,9 @@ public class AdminParticipationRemovalTests
         var payment = CreatePayment(ticket.Id, 35.00m);
         var request = new AdminRefundTicketRequest { AlsoRemoveRsvp = false };
 
-        SetupDbSet(_mockEventAttendances, new[] { rsvp, ticket });
-        SetupDbSet(_mockPayments, new[] { payment });
-        SetupDbSet(_mockVolunteerSignups, Array.Empty<VolunteerSignup>());
+        _context.EventAttendances.AddRange(rsvp, ticket);
+        _context.Payments.Add(payment);
+        await _context.SaveChangesAsync();
 
         var mockRefund = new PaymentRefund
         {
@@ -321,9 +295,9 @@ public class AdminParticipationRemovalTests
         var payment = CreatePayment(ticket.Id, 40.00m);
         var request = new AdminRefundTicketRequest { AlsoRemoveRsvp = true };
 
-        SetupDbSet(_mockEventAttendances, new[] { ticket });
-        SetupDbSet(_mockPayments, new[] { payment });
-        SetupDbSet(_mockVolunteerSignups, Array.Empty<VolunteerSignup>());
+        _context.EventAttendances.Add(ticket);
+        _context.Payments.Add(payment);
+        await _context.SaveChangesAsync();
 
         var mockRefund = new PaymentRefund
         {
@@ -363,9 +337,11 @@ public class AdminParticipationRemovalTests
         var volunteerSignup2 = CreateVolunteerSignup("Cleanup Crew");
         var request = new AdminRefundTicketRequest { AlsoRemoveRsvp = false };
 
-        SetupDbSet(_mockEventAttendances, new[] { ticket });
-        SetupDbSet(_mockPayments, new[] { payment });
-        SetupDbSet(_mockVolunteerSignups, new[] { volunteerSignup1, volunteerSignup2 });
+        _context.EventAttendances.Add(ticket);
+        _context.Payments.Add(payment);
+        _context.VolunteerPositions.AddRange(volunteerSignup1.VolunteerPosition, volunteerSignup2.VolunteerPosition);
+        _context.VolunteerSignups.AddRange(volunteerSignup1, volunteerSignup2);
+        await _context.SaveChangesAsync();
 
         var mockRefund = new PaymentRefund
         {
@@ -417,10 +393,10 @@ public class AdminParticipationRemovalTests
     public void AdminRefundTicket_TicketNotFound_Returns404()
     {
         // Arrange - Empty event attendances (no ticket exists)
-        SetupDbSet(_mockEventAttendances, Array.Empty<EventAttendance>());
+        // No data added to context
 
         // Act
-        var ticketExists = _mockEventAttendances.Object
+        var ticketExists = _context.EventAttendances
             .Any(ea => ea.EventId == _eventId &&
                       ea.UserId == _userId &&
                       ea.AttendanceType == AttendanceType.Ticket &&
@@ -437,8 +413,6 @@ public class AdminParticipationRemovalTests
         var ticket = CreateTicketParticipation();
         ticket.Status = AttendanceStatus.Refunded;
         ticket.CancelledAt = DateTime.UtcNow.AddHours(-1);
-
-        SetupDbSet(_mockEventAttendances, new[] { ticket });
 
         // Act
         var isActiveTicket = ticket.Status == AttendanceStatus.Active;
@@ -460,10 +434,15 @@ public class AdminParticipationRemovalTests
         var volunteerSignup2 = CreateVolunteerSignup("Floor Monitor");
         var volunteerSignup3 = CreateVolunteerSignup("Photography");
 
-        SetupDbSet(_mockVolunteerSignups, new[] { volunteerSignup1, volunteerSignup2, volunteerSignup3 });
+        _context.VolunteerPositions.AddRange(
+            volunteerSignup1.VolunteerPosition,
+            volunteerSignup2.VolunteerPosition,
+            volunteerSignup3.VolunteerPosition);
+        _context.VolunteerSignups.AddRange(volunteerSignup1, volunteerSignup2, volunteerSignup3);
+        _context.SaveChanges();
 
         // Act
-        var shiftNames = _mockVolunteerSignups.Object
+        var shiftNames = _context.VolunteerSignups
             .Where(vs => vs.UserId == _userId)
             .Select(vs => vs.VolunteerPosition.Title)
             .ToList();
@@ -480,10 +459,12 @@ public class AdminParticipationRemovalTests
         // Arrange
         var volunteerSignup = CreateVolunteerSignup("Sound/Music");
 
-        SetupDbSet(_mockVolunteerSignups, new[] { volunteerSignup });
+        _context.VolunteerPositions.Add(volunteerSignup.VolunteerPosition);
+        _context.VolunteerSignups.Add(volunteerSignup);
+        _context.SaveChanges();
 
         // Act
-        var shiftNames = _mockVolunteerSignups.Object
+        var shiftNames = _context.VolunteerSignups
             .Where(vs => vs.UserId == _userId)
             .Select(vs => vs.VolunteerPosition.Title)
             .ToList();
@@ -558,15 +539,6 @@ public class AdminParticipationRemovalTests
             Status = VolunteerSignupStatus.Confirmed,
             CreatedAt = DateTime.UtcNow.AddDays(-6)
         };
-    }
-
-    private void SetupDbSet<T>(Mock<DbSet<T>> mockSet, IEnumerable<T> data) where T : class
-    {
-        var queryable = data.AsQueryable();
-        mockSet.As<IQueryable<T>>().Setup(m => m.Provider).Returns(queryable.Provider);
-        mockSet.As<IQueryable<T>>().Setup(m => m.Expression).Returns(queryable.Expression);
-        mockSet.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(queryable.ElementType);
-        mockSet.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(queryable.GetEnumerator());
     }
 
     #endregion

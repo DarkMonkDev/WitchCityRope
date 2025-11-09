@@ -5541,6 +5541,454 @@
         }
       }
     },
+    "/api/email-templates": {
+      "get": {
+        "tags": [
+          "Email Templates"
+        ],
+        "summary": "Get all global email templates for a category",
+        "description": "Returns all active global email templates for the specified category. Admin access required.",
+        "operationId": "GetGlobalTemplatesByCategory",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfListOfGlobalEmailTemplateDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/email-templates/{id}": {
+      "get": {
+        "tags": [
+          "Email Templates"
+        ],
+        "summary": "Get a global email template by ID",
+        "description": "Returns a single global email template. Admin access required.",
+        "operationId": "GetGlobalTemplateById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfGlobalEmailTemplateDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Email Templates"
+        ],
+        "summary": "Update a global email template",
+        "description": "Updates a global email template and increments version. Admin access required.",
+        "operationId": "UpdateGlobalTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGlobalTemplateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfGlobalEmailTemplateDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/email-templates/events/{eventId}": {
+      "get": {
+        "tags": [
+          "Email Templates"
+        ],
+        "summary": "Get all email templates for an event",
+        "description": "Returns merged list of global templates and event-specific overrides. Admin or event organizer access required.",
+        "operationId": "GetEventTemplates",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfListOfEventEmailTemplateDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/email-templates/events/{eventId}/{type}": {
+      "get": {
+        "tags": [
+          "Email Templates"
+        ],
+        "summary": "Get a specific email template for an event",
+        "description": "Returns global template if no override exists, or event-specific template if customized. Admin or event organizer access required.",
+        "operationId": "GetEventTemplateByType",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfEventEmailTemplateDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Email Templates"
+        ],
+        "summary": "Create or update event email template override",
+        "description": "Creates new override on first save (copy-on-edit), updates existing on subsequent saves. Admin or event organizer access required.",
+        "operationId": "UpdateEventTemplate",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEventTemplateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfEventEmailTemplateDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Email Templates"
+        ],
+        "summary": "Delete event email template override",
+        "description": "Removes event-specific override, future requests will return global template. Admin or event organizer access required.",
+        "operationId": "DeleteEventTemplate",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/email-templates/ad-hoc/send": {
+      "post": {
+        "tags": [
+          "Email Templates"
+        ],
+        "summary": "Send an ad-hoc bulk email",
+        "description": "Sends bulk email via SendGrid and creates audit trail. Admin access required.",
+        "operationId": "SendAdHocEmail",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendAdHocEmailRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfSentAdHocEmailDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/email-templates/ad-hoc/history": {
+      "get": {
+        "tags": [
+          "Email Templates"
+        ],
+        "summary": "Get ad-hoc email send history",
+        "description": "Returns sent ad-hoc email history, optionally filtered by event. Admin access required.",
+        "operationId": "GetAdHocEmailHistory",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfListOfSentAdHocEmailDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/email-templates/ad-hoc/history/{id}": {
+      "get": {
+        "tags": [
+          "Email Templates"
+        ],
+        "summary": "Get a specific sent ad-hoc email",
+        "description": "Returns details of a specific sent ad-hoc email. Admin access required.",
+        "operationId": "GetAdHocEmailById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfSentAdHocEmailDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
     "/api/cms/pages/{slug}": {
       "get": {
         "tags": [
@@ -6683,6 +7131,44 @@
           }
         }
       },
+      "ApiResponseOfEventEmailTemplateDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/EventEmailTemplateDto2"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseOfGlobalEmailTemplateDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/GlobalEmailTemplateDto2"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ApiResponseOfListOfEmailTemplateResponse": {
         "type": "object",
         "properties": {
@@ -6745,6 +7231,29 @@
           }
         }
       },
+      "ApiResponseOfListOfEventEmailTemplateDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventEmailTemplateDto"
+            },
+            "nullable": true
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ApiResponseOfListOfEventParticipationDto": {
         "type": "object",
         "properties": {
@@ -6767,6 +7276,52 @@
             "nullable": true
           },
           "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseOfListOfGlobalEmailTemplateDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GlobalEmailTemplateDto"
+            },
+            "nullable": true
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseOfListOfSentAdHocEmailDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SentAdHocEmailDto2"
+            },
+            "nullable": true
+          },
+          "error": {
             "type": "string",
             "nullable": true
           },
@@ -7086,6 +7641,25 @@
             "nullable": true
           },
           "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseOfSentAdHocEmailDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/SentAdHocEmailDto"
+          },
+          "error": {
             "type": "string",
             "nullable": true
           },
@@ -8926,6 +9500,119 @@
         },
         "nullable": true
       },
+      "EventEmailTemplateDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "globalTemplateId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "templateType": {
+            "type": "string"
+          },
+          "templateTypeName": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "htmlBody": {
+            "type": "string"
+          },
+          "plainTextBody": {
+            "type": "string"
+          },
+          "targetSessions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isCustomized": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "updatedByEmail": {
+            "type": "string"
+          }
+        }
+      },
+      "EventEmailTemplateDto2": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "globalTemplateId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "templateType": {
+            "type": "string"
+          },
+          "templateTypeName": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "htmlBody": {
+            "type": "string"
+          },
+          "plainTextBody": {
+            "type": "string"
+          },
+          "targetSessions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isCustomized": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "updatedByEmail": {
+            "type": "string"
+          }
+        },
+        "nullable": true
+      },
       "EventHistoryRecord": {
         "type": "object",
         "properties": {
@@ -9062,6 +9749,117 @@
             "nullable": true
           }
         }
+      },
+      "GlobalEmailTemplateDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "category": {
+            "type": "string"
+          },
+          "templateType": {
+            "type": "string"
+          },
+          "templateTypeName": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "htmlBody": {
+            "type": "string"
+          },
+          "plainTextBody": {
+            "type": "string"
+          },
+          "variables": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "updatedByEmail": {
+            "type": "string"
+          }
+        }
+      },
+      "GlobalEmailTemplateDto2": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "category": {
+            "type": "string"
+          },
+          "templateType": {
+            "type": "string"
+          },
+          "templateTypeName": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "htmlBody": {
+            "type": "string"
+          },
+          "plainTextBody": {
+            "type": "string"
+          },
+          "variables": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "updatedByEmail": {
+            "type": "string"
+          }
+        },
+        "nullable": true
       },
       "GoogleDriveUpdateResponse": {
         "type": "object",
@@ -10725,6 +11523,141 @@
           }
         }
       },
+      "SendAdHocEmailRequest": {
+        "required": [
+          "subject",
+          "htmlBody",
+          "plainTextBody",
+          "recipientGroup"
+        ],
+        "type": "object",
+        "properties": {
+          "subject": {
+            "maxLength": 200,
+            "type": "string"
+          },
+          "htmlBody": {
+            "type": "string"
+          },
+          "plainTextBody": {
+            "type": "string"
+          },
+          "recipientGroup": {
+            "maxLength": 100,
+            "type": "string"
+          },
+          "eventId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        }
+      },
+      "SentAdHocEmailDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "htmlBody": {
+            "type": "string"
+          },
+          "plainTextBody": {
+            "type": "string"
+          },
+          "recipientGroup": {
+            "type": "string"
+          },
+          "recipientCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "eventId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "eventTitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "sendGridMessageId": {
+            "type": "string",
+            "nullable": true
+          },
+          "deliveryStatus": {
+            "type": "string"
+          },
+          "sentAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sentBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sentByEmail": {
+            "type": "string"
+          }
+        },
+        "nullable": true
+      },
+      "SentAdHocEmailDto2": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "htmlBody": {
+            "type": "string"
+          },
+          "plainTextBody": {
+            "type": "string"
+          },
+          "recipientGroup": {
+            "type": "string"
+          },
+          "recipientCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "eventId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "eventTitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "sendGridMessageId": {
+            "type": "string",
+            "nullable": true
+          },
+          "deliveryStatus": {
+            "type": "string"
+          },
+          "sentAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sentBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sentByEmail": {
+            "type": "string"
+          }
+        }
+      },
       "ServiceTokenRequest": {
         "type": "object",
         "properties": {
@@ -11276,6 +12209,52 @@
               "$ref": "#/components/schemas/VolunteerPositionDto"
             },
             "nullable": true
+          }
+        }
+      },
+      "UpdateEventTemplateRequest": {
+        "required": [
+          "subject",
+          "htmlBody",
+          "plainTextBody"
+        ],
+        "type": "object",
+        "properties": {
+          "subject": {
+            "maxLength": 200,
+            "type": "string"
+          },
+          "htmlBody": {
+            "type": "string"
+          },
+          "plainTextBody": {
+            "type": "string"
+          },
+          "targetSessions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "UpdateGlobalTemplateRequest": {
+        "required": [
+          "subject",
+          "htmlBody",
+          "plainTextBody"
+        ],
+        "type": "object",
+        "properties": {
+          "subject": {
+            "maxLength": 200,
+            "type": "string"
+          },
+          "htmlBody": {
+            "type": "string"
+          },
+          "plainTextBody": {
+            "type": "string"
           }
         }
       },
@@ -12492,6 +13471,9 @@
     },
     {
       "name": "Vetting - Public"
+    },
+    {
+      "name": "Email Templates"
     },
     {
       "name": "CMS"

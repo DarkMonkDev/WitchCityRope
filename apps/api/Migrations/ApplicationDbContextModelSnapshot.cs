@@ -802,6 +802,266 @@ namespace WitchCityRope.Api.Migrations
                         });
                 });
 
+            modelBuilder.Entity("WitchCityRope.Api.Features.EmailTemplates.Entities.EventEmailTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("GlobalTemplateId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("HtmlBody")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsCustomized")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("PlainTextBody")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RecipientGroup")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.PrimitiveCollection<string[]>("TargetSessions")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text[]")
+                        .HasDefaultValue(new string[0]);
+
+                    b.Property<string>("TemplateType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId")
+                        .HasDatabaseName("IX_EventEmailTemplates_EventId");
+
+                    b.HasIndex("UpdatedAt")
+                        .IsDescending()
+                        .HasDatabaseName("IX_EventEmailTemplates_UpdatedAt");
+
+                    b.HasIndex("UpdatedBy")
+                        .HasDatabaseName("IX_EventEmailTemplates_UpdatedBy");
+
+                    b.HasIndex("EventId", "TemplateType")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_EventEmailTemplates_EventId_Type");
+
+                    b.ToTable("EventEmailTemplates", null, t =>
+                        {
+                            t.HasCheckConstraint("CHK_EventEmailTemplates_HtmlBody_NotEmpty", "LENGTH(TRIM(\"HtmlBody\")) > 0");
+
+                            t.HasCheckConstraint("CHK_EventEmailTemplates_PlainTextBody_NotEmpty", "LENGTH(TRIM(\"PlainTextBody\")) > 0");
+
+                            t.HasCheckConstraint("CHK_EventEmailTemplates_Subject_NotEmpty", "LENGTH(TRIM(\"Subject\")) > 0");
+                        });
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.EmailTemplates.Entities.GlobalEmailTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("HtmlBody")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("PlainTextBody")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("TemplateType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Variables")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValue("[]");
+
+                    b.Property<int>("Version")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Category")
+                        .HasDatabaseName("IX_GlobalEmailTemplates_Category");
+
+                    b.HasIndex("UpdatedAt")
+                        .IsDescending()
+                        .HasDatabaseName("IX_GlobalEmailTemplates_UpdatedAt");
+
+                    b.HasIndex("UpdatedBy")
+                        .HasDatabaseName("IX_GlobalEmailTemplates_UpdatedBy");
+
+                    b.HasIndex("Variables")
+                        .HasDatabaseName("IX_GlobalEmailTemplates_Variables_Gin");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Variables"), "gin");
+
+                    b.HasIndex("Category", "TemplateType")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_GlobalEmailTemplates_Category_Type");
+
+                    b.ToTable("GlobalEmailTemplates", null, t =>
+                        {
+                            t.HasCheckConstraint("CHK_GlobalEmailTemplates_Category", "\"Category\" IN (0, 1, 2, 3, 4)");
+
+                            t.HasCheckConstraint("CHK_GlobalEmailTemplates_HtmlBody_NotEmpty", "LENGTH(TRIM(\"HtmlBody\")) > 0");
+
+                            t.HasCheckConstraint("CHK_GlobalEmailTemplates_PlainTextBody_NotEmpty", "LENGTH(TRIM(\"PlainTextBody\")) > 0");
+
+                            t.HasCheckConstraint("CHK_GlobalEmailTemplates_Subject_NotEmpty", "LENGTH(TRIM(\"Subject\")) > 0");
+
+                            t.HasCheckConstraint("CHK_GlobalEmailTemplates_Version", "\"Version\" >= 1");
+                        });
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.EmailTemplates.Entities.SentAdHocEmail", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("DeliveryStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Pending");
+
+                    b.Property<Guid?>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("HtmlBody")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PlainTextBody")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("RecipientCount")
+                        .HasColumnType("integer");
+
+                    b.PrimitiveCollection<string[]>("RecipientEmails")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text[]")
+                        .HasDefaultValue(new string[0]);
+
+                    b.Property<string>("RecipientGroup")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("SendGridMessageId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("SentAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid>("SentBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeliveryStatus")
+                        .HasDatabaseName("IX_SentAdHocEmails_DeliveryStatus")
+                        .HasFilter("\"DeliveryStatus\" IN ('Pending', 'Failed')");
+
+                    b.HasIndex("EventId")
+                        .HasDatabaseName("IX_SentAdHocEmails_EventId")
+                        .HasFilter("\"EventId\" IS NOT NULL");
+
+                    b.HasIndex("SentAt")
+                        .IsDescending()
+                        .HasDatabaseName("IX_SentAdHocEmails_SentAt");
+
+                    b.HasIndex("SentBy")
+                        .HasDatabaseName("IX_SentAdHocEmails_SentBy");
+
+                    b.ToTable("SentAdHocEmails", null, t =>
+                        {
+                            t.HasCheckConstraint("CHK_SentAdHocEmails_DeliveryStatus", "\"DeliveryStatus\" IN ('Pending', 'Sent', 'Delivered', 'Failed', 'Bounced')");
+
+                            t.HasCheckConstraint("CHK_SentAdHocEmails_RecipientCount", "\"RecipientCount\" >= 0");
+
+                            t.HasCheckConstraint("CHK_SentAdHocEmails_Subject_NotEmpty", "LENGTH(TRIM(\"Subject\")) > 0");
+                        });
+                });
+
             modelBuilder.Entity("WitchCityRope.Api.Features.Participation.Entities.AttendanceHistory", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3026,6 +3286,54 @@ namespace WitchCityRope.Api.Migrations
                     b.Navigation("ContentPage");
 
                     b.Navigation("CreatedByUser");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.EmailTemplates.Entities.EventEmailTemplate", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Models.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+
+                    b.Navigation("UpdatedByUser");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.EmailTemplates.Entities.GlobalEmailTemplate", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("UpdatedByUser");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.EmailTemplates.Entities.SentAdHocEmail", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Models.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "SentByUser")
+                        .WithMany()
+                        .HasForeignKey("SentBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+
+                    b.Navigation("SentByUser");
                 });
 
             modelBuilder.Entity("WitchCityRope.Api.Features.Participation.Entities.AttendanceHistory", b =>

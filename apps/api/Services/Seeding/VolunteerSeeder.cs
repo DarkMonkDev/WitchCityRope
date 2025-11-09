@@ -453,9 +453,27 @@ public class VolunteerSeeder
     {
         _logger.LogInformation("Starting historical volunteer positions creation");
 
+        // Load historical event IDs from database (EventSeeder might have skipped seeding if events already exist)
+        var advancedSuspensionEvent = await _context.Events
+            .FirstOrDefaultAsync(e => e.Title == "Advanced Suspension Techniques", cancellationToken);
+        var ropeFundamentalsEvent = await _context.Events
+            .FirstOrDefaultAsync(e => e.Title == "Rope Fundamentals Intensive", cancellationToken);
+        var practiceNightEvent = await _context.Events
+            .FirstOrDefaultAsync(e => e.Title == "Monthly Practice Night", cancellationToken);
+        var welcomeMixerEvent = await _context.Events
+            .FirstOrDefaultAsync(e => e.Title == "New Members Welcome Mixer", cancellationToken);
+
+        // If events don't exist, skip volunteer position seeding
+        if (advancedSuspensionEvent == null || ropeFundamentalsEvent == null ||
+            practiceNightEvent == null || welcomeMixerEvent == null)
+        {
+            _logger.LogWarning("Historical events not found in database, skipping volunteer positions");
+            return;
+        }
+
         // Check if historical volunteer positions already exist
         var historicalPositionsExist = await _context.VolunteerPositions
-            .AnyAsync(vp => vp.EventId == eventSeeder.AdvancedSuspensionEventId, cancellationToken);
+            .AnyAsync(vp => vp.EventId == advancedSuspensionEvent.Id, cancellationToken);
 
         if (historicalPositionsExist)
         {
@@ -469,7 +487,7 @@ public class VolunteerSeeder
             // Workshop 1: Advanced Suspension Techniques (75 days ago)
             new
             {
-                EventId = eventSeeder.AdvancedSuspensionEventId,
+                EventId = advancedSuspensionEvent.Id,
                 DaysAgo = 77,
                 Positions = new[]
                 {
@@ -495,7 +513,7 @@ public class VolunteerSeeder
             // Workshop 2: Rope Fundamentals Intensive (60 days ago)
             new
             {
-                EventId = eventSeeder.RopeFundamentalsEventId,
+                EventId = ropeFundamentalsEvent.Id,
                 DaysAgo = 62,
                 Positions = new[]
                 {
@@ -521,7 +539,7 @@ public class VolunteerSeeder
             // Social Event 1: Monthly Rope Practice Night (45 days ago)
             new
             {
-                EventId = eventSeeder.PracticeNightEventId,
+                EventId = practiceNightEvent.Id,
                 DaysAgo = 47,
                 Positions = new[]
                 {
@@ -547,7 +565,7 @@ public class VolunteerSeeder
             // Social Event 2: New Member Welcome Mixer (30 days ago)
             new
             {
-                EventId = eventSeeder.WelcomeMixerEventId,
+                EventId = welcomeMixerEvent.Id,
                 DaysAgo = 32,
                 Positions = new[]
                 {

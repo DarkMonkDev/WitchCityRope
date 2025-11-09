@@ -42,7 +42,7 @@ describe('RemoveRsvpModal', () => {
     renderWithProviders();
 
     expect(screen.getByTestId('remove-rsvp-modal')).toBeInTheDocument();
-    expect(screen.getByText(/Remove RSVP?/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Remove RSVP?/i, level: 3 })).toBeInTheDocument();
     expect(screen.getByText('Jane Doe')).toBeInTheDocument();
     expect(screen.getByText(/"Monthly Rope Jam"/i)).toBeInTheDocument();
     expect(screen.getByText(/You are about to remove the RSVP for:/i)).toBeInTheDocument();

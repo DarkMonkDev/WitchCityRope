@@ -16,6 +16,7 @@ import {
   Alert,
   Modal,
   Textarea,
+  Button,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -41,6 +42,7 @@ import {
 } from '../../lib/api/hooks/useEventParticipations'
 import { useUpdateEvent } from '../../lib/api/hooks/useEvents'
 import { eventKeys } from '../../lib/api/utils/cache'
+import { emailTemplatesApi, type EventEmailTemplateDto, type UpdateEventTemplateRequest } from '../../services/emailTemplates.api'
 
 // Helper function to extract purchase amount from metadata JSON
 const extractAmountFromMetadata = (metadata?: string): number => {
@@ -356,6 +358,36 @@ export const EventForm: React.FC<EventFormProps> = ({
   // Mutation for updating event data immediately
   const updateEventMutation = useUpdateEvent()
 
+  // Email template mutations
+  const resetTemplateMutation = useMutation({
+    mutationFn: async ({ eventId, templateType }: { eventId: string; templateType: string }) => {
+      await emailTemplatesApi.deleteEventTemplate(eventId, templateType)
+    },
+    onSuccess: () => {
+      if (eventId) {
+        // Refresh templates list
+        emailTemplatesApi.getEventTemplates(eventId).then(setEventTemplates)
+      }
+      notifications.show({
+        title: 'Success',
+        message: 'Template reset to default',
+        color: 'green',
+        icon: <IconCheck />,
+      })
+      setResetModalOpen(false)
+      setTemplateToReset(null)
+    },
+    onError: (error) => {
+      console.error('Failed to reset template:', error)
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to reset template to default',
+        color: 'red',
+        icon: <IconAlertCircle />,
+      })
+    },
+  })
+
   // Modal state management
   const [sessionModalOpen, setSessionModalOpen] = useState(false)
   const [ticketModalOpen, setTicketModalOpen] = useState(false)
@@ -380,6 +412,12 @@ export const EventForm: React.FC<EventFormProps> = ({
   // Tickets table sorting
   const [ticketsSortColumn, setTicketsSortColumn] = useState<'name' | 'ticketType' | 'status' | 'sessions' | 'date' | 'amount'>('name')
   const [ticketsSortDirection, setTicketsSortDirection] = useState<'asc' | 'desc'>('asc')
+
+  // Email templates state
+  const [eventTemplates, setEventTemplates] = useState<EventEmailTemplateDto[]>([])
+  const [isLoadingTemplates, setIsLoadingTemplates] = useState(false)
+  const [resetModalOpen, setResetModalOpen] = useState(false)
+  const [templateToReset, setTemplateToReset] = useState<EventEmailTemplateDto | null>(null)
 
   // Helper function to toggle sort
   const handleRsvpSort = (column: typeof rsvpSortColumn) => {
@@ -485,6 +523,29 @@ export const EventForm: React.FC<EventFormProps> = ({
       previousValues.current = form.values
     }
   }, [form.values]) // Remove onFormChange from dependency array to prevent loops
+
+  // Fetch event email templates when Emails tab is active
+  useEffect(() => {
+    if (activeTab === 'emails' && eventId) {
+      setIsLoadingTemplates(true)
+      emailTemplatesApi.getEventTemplates(eventId)
+        .then((templates) => {
+          setEventTemplates(templates)
+        })
+        .catch((error) => {
+          console.error('Failed to fetch event templates:', error)
+          notifications.show({
+            title: 'Error',
+            message: 'Failed to load email templates',
+            color: 'red',
+            icon: <IconAlertCircle />,
+          })
+        })
+        .finally(() => {
+          setIsLoadingTemplates(false)
+        })
+    }
+  }, [activeTab, eventId])
 
   // Format venues for Select dropdown from API data
   const venues =
@@ -849,46 +910,87 @@ export const EventForm: React.FC<EventFormProps> = ({
     queryClient.invalidateQueries({ queryKey: ['events', eventId, 'participations'] })
   }
 
+  // Email template state for editing
+  const [templateSubject, setTemplateSubject] = useState<string>('')
+  const [templateContent, setTemplateContent] = useState<string>('')
+  const [targetSessions, setTargetSessions] = useState<string[]>(['all'])
+
+  // Get currently selected template
+  const selectedTemplate = eventTemplates.find(t => t.templateType === activeEmailTemplate)
+
+  // Update editor state when active template changes
+  useEffect(() => {
+    if (selectedTemplate) {
+      setTemplateSubject(selectedTemplate.subject || '')
+      setTemplateContent(selectedTemplate.htmlBody || '')
+      setTargetSessions(selectedTemplate.targetSessions || ['all'])
+    } else {
+      // Reset editor for ad-hoc or when no template selected
+      setTemplateSubject('')
+      setTemplateContent('')
+      setTargetSessions(['all'])
+    }
+  }, [activeEmailTemplate, selectedTemplate])
+
   // Email template helper functions
   const getActiveTemplateTitle = () => {
-    switch (activeEmailTemplate) {
-      case 'ad-hoc':
-        return 'Ad-Hoc Email'
-      case 'confirmation':
-        return 'Confirmation Email'
-      case 'reminder-1day':
-        return 'Reminder - 1 Day Before'
-      case 'cancellation':
-        return 'Cancellation Notice'
-      default:
-        return 'Unknown Template'
+    if (activeEmailTemplate === 'ad-hoc') {
+      return 'Ad-Hoc Email'
     }
+    return selectedTemplate?.templateTypeName || activeEmailTemplate
   }
 
   const getTemplateSubject = () => {
-    switch (activeEmailTemplate) {
-      case 'confirmation':
-        return 'Welcome to {event} - Registration Confirmed!'
-      case 'reminder-1day':
-        return 'Reminder: {event} starts tomorrow!'
-      case 'cancellation':
-        return 'Important: {event} has been cancelled'
-      default:
-        return ''
-    }
+    return templateSubject
   }
 
   const getTemplateContent = () => {
-    switch (activeEmailTemplate) {
-      case 'confirmation':
-        return "<p><strong>Hi {name},</strong></p><p>Your registration for <strong>{event}</strong> has been confirmed!</p><p><strong>Event Details:</strong></p><ul><li><strong>Date:</strong> {date}</li><li><strong>Time:</strong> {time}</li><li><strong>Venue:</strong> {venue}</li><li><strong>Address:</strong> {venue_address}</li></ul><p>We're excited to see you there!</p><p>Best regards,<br>WitchCityRope Team</p>"
-      case 'reminder-1day':
-        return '<p>Hello {name},</p><p>This is a friendly reminder that <strong>{event}</strong> starts tomorrow!</p><p><strong>What to bring:</strong><br/>- Comfortable clothes<br/>- Water bottle<br/>- Positive attitude</p><p>See you there!</p>'
-      case 'cancellation':
-        return '<p>Dear {name},</p><p>We regret to inform you that <strong>{event}</strong> has been cancelled.</p><p><strong>Reason:</strong> [To be filled in when needed]</p><p>You will receive a full refund within 3-5 business days.</p><p>We apologize for any inconvenience.</p>'
-      default:
-        return ''
-    }
+    return templateContent
+  }
+
+  // Save template mutation
+  const saveTemplateMutation = useMutation({
+    mutationFn: async ({ eventId, templateType, request }: {
+      eventId: string;
+      templateType: string;
+      request: UpdateEventTemplateRequest;
+    }) => {
+      await emailTemplatesApi.updateEventTemplate(eventId, templateType, request)
+    },
+    onSuccess: () => {
+      if (eventId) {
+        emailTemplatesApi.getEventTemplates(eventId).then(setEventTemplates)
+      }
+      notifications.show({
+        title: 'Success',
+        message: 'Template saved successfully',
+        color: 'green',
+        icon: <IconCheck />,
+      })
+    },
+    onError: () => {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to save template',
+        color: 'red',
+        icon: <IconAlertCircle />,
+      })
+    },
+  })
+
+  const handleSaveTemplate = () => {
+    if (!eventId || !activeEmailTemplate || activeEmailTemplate === 'ad-hoc') return
+
+    saveTemplateMutation.mutate({
+      eventId,
+      templateType: activeEmailTemplate,
+      request: {
+        subject: templateSubject,
+        htmlBody: templateContent,
+        plainTextBody: templateContent.replace(/<[^>]*>/g, ''), // Strip HTML for plain text
+        targetSessions: targetSessions,
+      },
+    })
   }
 
   return (
@@ -1224,166 +1326,99 @@ export const EventForm: React.FC<EventFormProps> = ({
                 one-time messages.
               </Text>
 
-              {/* Template Cards Container - EXACT WIREFRAME MATCH */}
-              <Group gap="md" style={{ flexWrap: 'wrap' }}>
-                {/* Send Ad-Hoc Email Card - Always Present */}
-                <Card
-                  withBorder
-                  p="md"
-                  style={{
-                    cursor: 'pointer',
-                    borderColor:
-                      activeEmailTemplate === 'ad-hoc'
-                        ? 'var(--mantine-color-burgundy-6)'
-                        : 'var(--mantine-color-rose-3)',
-                    backgroundColor:
-                      activeEmailTemplate === 'ad-hoc' ? 'rgba(136, 1, 36, 0.05)' : 'white',
-                    minWidth: '220px',
-                    flex: 1,
-                    maxWidth: '300px',
-                    position: 'relative',
-                    transition: 'all 0.3s ease',
-                  }}
-                  onClick={() => setActiveEmailTemplate('ad-hoc')}
-                >
-                  <Text fw={600} c="burgundy" mb={4}>
-                    Send Ad-Hoc Email
-                  </Text>
-                  <Text size="sm" c="stone" mb="xs">
-                    Send one-time messages to specific groups
-                  </Text>
-                  <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
-                    Any recipients
-                  </Text>
-                </Card>
-
-                {/* Confirmation Email Card - Required, cannot be removed */}
-                <Card
-                  withBorder
-                  p="md"
-                  style={{
-                    cursor: 'pointer',
-                    borderColor:
-                      activeEmailTemplate === 'confirmation'
-                        ? 'var(--mantine-color-burgundy-6)'
-                        : 'var(--mantine-color-rose-3)',
-                    backgroundColor:
-                      activeEmailTemplate === 'confirmation' ? 'rgba(136, 1, 36, 0.05)' : 'white',
-                    minWidth: '220px',
-                    flex: 1,
-                    maxWidth: '300px',
-                    position: 'relative',
-                    transition: 'all 0.3s ease',
-                  }}
-                  onClick={() => setActiveEmailTemplate('confirmation')}
-                >
-                  <ActionIcon
-                    size="sm"
-                    radius="xl"
-                    color="red"
-                    style={{ position: 'absolute', top: 8, right: 8, opacity: 0.5 }}
-                    disabled
-                    title="Required template"
-                  >
-                    ×
-                  </ActionIcon>
-                  <Text fw={600} c="burgundy" mb={4}>
-                    Confirmation Email
-                  </Text>
-                  <Text size="sm" c="stone" mb="xs">
-                    Sent immediately when ticket is purchased
-                  </Text>
-                  <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
-                    All sessions
-                  </Text>
-                </Card>
-
-                {/* Reminder - 1 Day Before Card */}
-                <Card
-                  withBorder
-                  p="md"
-                  style={{
-                    cursor: 'pointer',
-                    borderColor:
-                      activeEmailTemplate === 'reminder-1day'
-                        ? 'var(--mantine-color-burgundy-6)'
-                        : 'var(--mantine-color-rose-3)',
-                    backgroundColor:
-                      activeEmailTemplate === 'reminder-1day' ? 'rgba(136, 1, 36, 0.05)' : 'white',
-                    minWidth: '220px',
-                    flex: 1,
-                    maxWidth: '300px',
-                    position: 'relative',
-                    transition: 'all 0.3s ease',
-                  }}
-                  onClick={() => setActiveEmailTemplate('reminder-1day')}
-                >
-                  <ActionIcon
-                    size="sm"
-                    radius="xl"
-                    color="red"
-                    style={{ position: 'absolute', top: 8, right: 8 }}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      // Remove template logic
+              {/* Template Cards Container - Dynamic from API */}
+              {isLoadingTemplates ? (
+                <Text c="dimmed">Loading email templates...</Text>
+              ) : (
+                <Group gap="md" style={{ flexWrap: 'wrap' }}>
+                  {/* Send Ad-Hoc Email Card - Always Present */}
+                  <Card
+                    withBorder
+                    p="md"
+                    style={{
+                      cursor: 'pointer',
+                      borderColor:
+                        activeEmailTemplate === 'ad-hoc'
+                          ? 'var(--mantine-color-burgundy-6)'
+                          : 'var(--mantine-color-rose-3)',
+                      backgroundColor:
+                        activeEmailTemplate === 'ad-hoc' ? 'rgba(136, 1, 36, 0.05)' : 'white',
+                      minWidth: '220px',
+                      flex: 1,
+                      maxWidth: '300px',
+                      position: 'relative',
+                      transition: 'all 0.3s ease',
                     }}
+                    onClick={() => setActiveEmailTemplate('ad-hoc')}
                   >
-                    ×
-                  </ActionIcon>
-                  <Text fw={600} c="burgundy" mb={4}>
-                    Reminder - 1 Day Before
-                  </Text>
-                  <Text size="sm" c="stone" mb="xs">
-                    Sent 1 day before event start
-                  </Text>
-                  <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
-                    S1 attendees only
-                  </Text>
-                </Card>
+                    <Text fw={600} c="burgundy" mb={4}>
+                      Send Ad-Hoc Email
+                    </Text>
+                    <Text size="sm" c="stone" mb="xs">
+                      Send one-time messages to specific groups
+                    </Text>
+                    <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
+                      Any recipients
+                    </Text>
+                  </Card>
 
-                {/* Cancellation Notice Card */}
-                <Card
-                  withBorder
-                  p="md"
-                  style={{
-                    cursor: 'pointer',
-                    borderColor:
-                      activeEmailTemplate === 'cancellation'
-                        ? 'var(--mantine-color-burgundy-6)'
-                        : 'var(--mantine-color-rose-3)',
-                    backgroundColor:
-                      activeEmailTemplate === 'cancellation' ? 'rgba(136, 1, 36, 0.05)' : 'white',
-                    minWidth: '220px',
-                    flex: 1,
-                    maxWidth: '300px',
-                    position: 'relative',
-                    transition: 'all 0.3s ease',
-                  }}
-                  onClick={() => setActiveEmailTemplate('cancellation')}
-                >
-                  <ActionIcon
-                    size="sm"
-                    radius="xl"
-                    color="red"
-                    style={{ position: 'absolute', top: 8, right: 8 }}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      // Remove template logic
-                    }}
-                  >
-                    ×
-                  </ActionIcon>
-                  <Text fw={600} c="burgundy" mb={4}>
-                    Cancellation Notice
-                  </Text>
-                  <Text size="sm" c="stone" mb="xs">
-                    Sent when event is cancelled
-                  </Text>
-                  <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
-                    All sessions
-                  </Text>
-                </Card>
-              </Group>
+                  {/* Dynamic Template Cards from API */}
+                  {eventTemplates.map((template) => (
+                    <Card
+                      key={template.id}
+                      withBorder
+                      p="md"
+                      style={{
+                        cursor: 'pointer',
+                        borderColor:
+                          activeEmailTemplate === template.templateType
+                            ? 'var(--mantine-color-burgundy-6)'
+                            : 'var(--mantine-color-rose-3)',
+                        backgroundColor:
+                          activeEmailTemplate === template.templateType
+                            ? 'rgba(136, 1, 36, 0.05)'
+                            : 'white',
+                        minWidth: '220px',
+                        flex: 1,
+                        maxWidth: '300px',
+                        position: 'relative',
+                        transition: 'all 0.3s ease',
+                      }}
+                      onClick={() => setActiveEmailTemplate(template.templateType!)}
+                    >
+                      {/* Customization Badge */}
+                      {template.isCustomized ? (
+                        <Badge
+                          color="green"
+                          size="sm"
+                          style={{ position: 'absolute', top: 8, right: 8 }}
+                        >
+                          ✓ Customized
+                        </Badge>
+                      ) : (
+                        <Badge
+                          color="gray"
+                          size="sm"
+                          variant="light"
+                          style={{ position: 'absolute', top: 8, right: 8 }}
+                        >
+                          (Default)
+                        </Badge>
+                      )}
+
+                      <Text fw={600} c="burgundy" mb={4}>
+                        {template.templateTypeName}
+                      </Text>
+                      <Text size="sm" c="stone" mb="xs">
+                        {template.subject}
+                      </Text>
+                      <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
+                        {template.targetSessions?.join(', ') || 'All sessions'}
+                      </Text>
+                    </Card>
+                  ))}
+                </Group>
+              )}
 
               {/* Add Template Controls */}
               <Group align="end" gap="sm">
@@ -1440,7 +1475,8 @@ export const EventForm: React.FC<EventFormProps> = ({
                       { value: 's2', label: 'S2' },
                       { value: 's3', label: 'S3' },
                     ]}
-                    defaultValue={['all']}
+                    value={targetSessions}
+                    onChange={setTargetSessions}
                     mb="md"
                   />
                 )}
@@ -1448,9 +1484,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                 <TextInput
                   label="Subject Line"
                   value={getTemplateSubject()}
-                  onChange={() => {
-                    // Update subject logic
-                  }}
+                  onChange={(e) => setTemplateSubject(e.currentTarget.value)}
                   mb="md"
                 />
 
@@ -1464,28 +1498,99 @@ export const EventForm: React.FC<EventFormProps> = ({
                   </Text>
                   <MantineTiptapEditor
                     value={getTemplateContent()}
-                    onChange={(content) => {
-                      // Update content logic - will be implemented when form state is connected
-                    }}
+                    onChange={setTemplateContent}
                     minRows={10}
                     placeholder="Enter email content..."
                   />
                 </div>
 
-                <Group mt="md">
-                  {activeEmailTemplate === 'ad-hoc' ? (
-                    <WCRButton variant="primary" size="lg">
-                      Send Email
-                    </WCRButton>
-                  ) : (
-                    <WCRButton variant="primary" size="lg">
-                      Save Changes
-                    </WCRButton>
-                  )}
+                <Group mt="md" justify="space-between">
+                  <div>
+                    {/* Reset to Default button - only show for customized templates */}
+                    {selectedTemplate && selectedTemplate.isCustomized && (
+                      <Button
+                        variant="light"
+                        color="red"
+                        onClick={() => {
+                          setTemplateToReset(selectedTemplate)
+                          setResetModalOpen(true)
+                        }}
+                        styles={{
+                          root: {
+                            fontWeight: 600,
+                            height: '44px',
+                            paddingTop: '12px',
+                            paddingBottom: '12px',
+                            fontSize: '14px',
+                            lineHeight: '1.2',
+                          },
+                        }}
+                      >
+                        Reset to Default
+                      </Button>
+                    )}
+                  </div>
+                  <div>
+                    {activeEmailTemplate === 'ad-hoc' ? (
+                      <WCRButton variant="primary" size="lg" disabled>
+                        Send Email
+                      </WCRButton>
+                    ) : (
+                      <WCRButton
+                        variant="primary"
+                        size="lg"
+                        onClick={handleSaveTemplate}
+                        disabled={!eventId || saveTemplateMutation.isPending}
+                      >
+                        {saveTemplateMutation.isPending ? 'Saving...' : 'Save Changes'}
+                      </WCRButton>
+                    )}
+                  </div>
                 </Group>
               </div>
             </Stack>
           </Tabs.Panel>
+
+          {/* Reset Template Confirmation Modal */}
+          <Modal
+            opened={resetModalOpen}
+            onClose={() => {
+              setResetModalOpen(false)
+              setTemplateToReset(null)
+            }}
+            title={<Title order={3}>Reset Template to Default?</Title>}
+          >
+            <Text mb="md">
+              Are you sure you want to reset <strong>{templateToReset?.templateTypeName}</strong> to
+              the global default template? This will delete your customizations and cannot be undone.
+            </Text>
+
+            <Group justify="flex-end" mt="lg">
+              <Button
+                variant="default"
+                onClick={() => {
+                  setResetModalOpen(false)
+                  setTemplateToReset(null)
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                color="red"
+                onClick={() => {
+                  if (eventId && templateToReset) {
+                    resetTemplateMutation.mutate({
+                      eventId,
+                      templateType: templateToReset.templateType!,
+                    })
+                  }
+                }}
+                loading={resetTemplateMutation.isPending}
+              >
+                Reset to Default
+              </Button>
+            </Group>
+          </Modal>
 
           {/* Volunteers Tab - Modal-based consistent with other tabs */}
           <Tabs.Panel value="volunteers" pt="xl" data-testid="panel-volunteers">
