@@ -480,7 +480,9 @@ public class MemberDetailsService : IMemberDetailsService
                 {
                     Id = val.Id,
                     NoteSource = "VettingAuditLog",
-                    Content = val.Notes ?? GetSimplifiedActionDescription(val.Action, val.OldValue, val.NewValue),
+                    Content = string.IsNullOrWhiteSpace(val.Notes)
+                        ? GetSimplifiedActionDescription(val.Action, val.OldValue, val.NewValue)
+                        : val.Notes,
                     Type = val.Action,
                     AuthorSceneName = val.PerformedByUser.SceneName,
                     Timestamp = val.PerformedAt,

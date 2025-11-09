@@ -47,7 +47,7 @@ export const AdminMembersPage: React.FC = () => {
       {/* Header */}
       <Title
         order={1}
-        mb="xl"
+        mb="xs"
         style={{
           fontFamily: "'Montserrat', sans-serif",
           fontSize: '32px',

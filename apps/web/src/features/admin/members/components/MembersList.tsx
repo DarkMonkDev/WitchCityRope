@@ -177,7 +177,7 @@ export const MembersList: React.FC = () => {
   return (
     <Stack gap="md">
       {/* Filters - Matching wireframe exactly */}
-      <Paper p="md" radius="md" style={{ background: '#FFF8F0' }}>
+      <Paper p="xs" radius="md" style={{ background: '#FFF8F0' }}>
         <Group gap="md" wrap="wrap" justify="space-between">
           <TextInput
             data-testid="search-input"
@@ -354,31 +354,6 @@ export const MembersList: React.FC = () => {
                 </Group>
               </Table.Th>
 
-              {/* Active Status column - sortable and center-aligned */}
-              <Table.Th
-                style={{
-                  backgroundColor: '#880124',
-                  borderBottom: 'none',
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                }}
-                onClick={() => handleSort('IsActive')}
-              >
-                <Group gap={4} justify="center">
-                  <Text
-                    fw={600}
-                    size="sm"
-                    style={{
-                      color: 'white',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                    }}
-                  >
-                    ACTIVE STATUS
-                  </Text>
-                  {getSortIcon('IsActive')}
-                </Group>
-              </Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -429,13 +404,6 @@ export const MembersList: React.FC = () => {
                 {/* Vetting Status - center-aligned */}
                 <Table.Td style={{ textAlign: 'center' }}>
                   {getVettingStatusBadge(member)}
-                </Table.Td>
-
-                {/* Active Status - center-aligned */}
-                <Table.Td style={{ textAlign: 'center' }}>
-                  <Badge color={member.isActive ? 'green' : 'gray'}>
-                    {member.isActive ? 'Active' : 'Inactive'}
-                  </Badge>
                 </Table.Td>
               </Table.Tr>
             ))}

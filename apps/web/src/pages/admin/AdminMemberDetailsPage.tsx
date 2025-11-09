@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Container, Title, Breadcrumbs, Anchor, Tabs, Card, Alert, Text, Group, Badge } from '@mantine/core'
+import { VettingStatusBadge } from '../../features/admin/vetting/components/VettingStatusBadge'
 import { IconAlertCircle } from '@tabler/icons-react'
 import {
   useMemberDetails,
@@ -70,14 +71,23 @@ export const AdminMemberDetailsPage: React.FC = () => {
                 {role.trim().toUpperCase()}
               </Badge>
             ))}
-            {/* Status Badge */}
-            <Badge
-              color={memberDetails.isActive ? 'green' : 'gray'}
-              size="lg"
-              variant="filled"
-            >
-              {memberDetails.isActive ? 'ACTIVE' : 'INACTIVE'}
-            </Badge>
+            {/* Vetting Status Badge */}
+            {memberDetails.vettingStatusDisplay && (
+              <VettingStatusBadge
+                status={memberDetails.vettingStatusDisplay}
+                size="lg"
+              />
+            )}
+            {/* Inactive Badge - only shown if user is inactive */}
+            {!memberDetails.isActive && (
+              <Badge
+                color="gray"
+                size="lg"
+                variant="filled"
+              >
+                INACTIVE
+              </Badge>
+            )}
           </Group>
         )}
       </Group>

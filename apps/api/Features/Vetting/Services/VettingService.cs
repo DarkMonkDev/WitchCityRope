@@ -414,6 +414,20 @@ public class VettingService : IVettingService
             application.DecisionMadeAt = request.IsFinalDecision ? DateTime.UtcNow : null;
             application.InterviewScheduledFor = request.ProposedInterviewTime;
 
+            // Update User.VettingStatus to match application status
+            if (application.UserId.HasValue)
+            {
+                var applicantUser = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Id == application.UserId.Value, cancellationToken);
+
+                if (applicantUser != null)
+                {
+                    applicantUser.VettingStatus = (int)newStatus;
+                    applicantUser.UpdatedAt = DateTime.UtcNow;
+                    _context.Users.Update(applicantUser);
+                }
+            }
+
             // Create UserNote for decision reasoning if provided
             if (!string.IsNullOrWhiteSpace(request.Reasoning) && application.UserId.HasValue)
             {
