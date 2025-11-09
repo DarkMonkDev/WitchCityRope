@@ -4,6 +4,8 @@
 
 This document defines mandatory Docker development practices for the WitchCityRope project. Following these standards prevents common build failures and ensures consistent development environments.
 
+> **📚 Single Source of Truth**: The `container-restart` skill (`.claude/skills/container-restart/SKILL.md`) is the authoritative source for Docker container operations. The commands shown in this guide are for quick reference only. For automated operations, always use the skill.
+
 ## 🚨 CRITICAL: Development vs Production Builds
 
 ### The Most Common Mistake

@@ -6,6 +6,8 @@ WitchCityRope uses Docker containers for all development work to ensure consiste
 
 **IMPORTANT**: Local development servers (npm run dev without Docker) are DISABLED to prevent confusion and environment inconsistencies.
 
+> **📚 Single Source of Truth**: The `container-restart` skill (`.claude/skills/container-restart/SKILL.md`) is the authoritative source for Docker container operations. The commands shown in this guide are for quick reference only. For automated operations, always use the skill.
+
 ## Quick Start
 
 ```bash
