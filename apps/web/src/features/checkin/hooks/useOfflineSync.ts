@@ -135,7 +135,8 @@ export function useOfflineSync() {
         };
 
         try {
-          const response = await checkinApi.syncOfflineData(eventId, syncRequest);
+          // TODO: Get sessionToken from CheckIn context when available
+          const response = await checkinApi.syncOfflineData(eventId, syncRequest, '');
           totalProcessed += response.processedCount;
           allConflicts.push(...response.conflicts);
 

@@ -18,7 +18,7 @@ export interface EventSessionDto {
   startTime: string; // HH:MM format
   endTime: string; // HH:MM format
   capacity: number;
-  registeredCount: number;
+  registrationCount: number;
   isRequired: boolean;
   createdAt: string;
   updatedAt: string;

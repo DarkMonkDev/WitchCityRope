@@ -1,6 +1,7 @@
 import React from 'react'
-import { Stack, Title, Card, Text, Paper, Alert, Grid } from '@mantine/core'
-import { IconAlertCircle } from '@tabler/icons-react'
+import { Stack, Title, Card, Text, Paper, Alert, Grid, Group, Button } from '@mantine/core'
+import { IconAlertCircle, IconExternalLink } from '@tabler/icons-react'
+import { useNavigate } from 'react-router-dom'
 import { useMemberVetting } from '../../lib/api/hooks/useMemberDetails'
 
 interface MemberVettingTabProps {
@@ -9,6 +10,7 @@ interface MemberVettingTabProps {
 }
 
 export const MemberVettingTab: React.FC<MemberVettingTabProps> = ({ memberId, userVettingStatus }) => {
+  const navigate = useNavigate()
   const { data: vettingDetails, isLoading, error } = useMemberVetting(memberId)
 
   if (isLoading) {
@@ -82,17 +84,45 @@ export const MemberVettingTab: React.FC<MemberVettingTabProps> = ({ memberId, us
     <Stack gap="xl">
       {/* Application Information Section - Always show */}
       <div>
-        <Title
-          order={2}
-          c="burgundy"
-          mb="md"
-          style={{
-            borderBottom: '2px solid var(--mantine-color-burgundy-3)',
-            paddingBottom: '8px',
-          }}
-        >
-          Application Information
-        </Title>
+        <Group justify="space-between" align="center" mb="md">
+          <Title
+            order={2}
+            c="burgundy"
+            style={{
+              borderBottom: '2px solid var(--mantine-color-burgundy-3)',
+              paddingBottom: '8px',
+            }}
+          >
+            Application Information
+          </Title>
+          {vettingDetails?.applicationId && (
+            <Button
+              size="sm"
+              variant="light"
+              color="grape"
+              rightSection={<IconExternalLink size={16} />}
+              onClick={() => {
+                // Use setTimeout to ensure navigation happens after React finishes current render cycle
+                // This allows Outlet to properly unmount old component and mount new one
+                setTimeout(() => {
+                  navigate(`/admin/vetting/applications/${vettingDetails.applicationId}`)
+                }, 0)
+              }}
+              styles={{
+                root: {
+                  fontWeight: 600,
+                  height: '44px',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                  fontSize: '14px',
+                  lineHeight: '1.2',
+                },
+              }}
+            >
+              View Application
+            </Button>
+          )}
+        </Group>
         <Card withBorder p="md" radius="md">
           <Grid>
             <Grid.Col span={6}>

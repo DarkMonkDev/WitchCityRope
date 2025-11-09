@@ -479,6 +479,119 @@
         }
       }
     },
+    "/api/events/{id}/ticket-types": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Get ticket types for an event",
+        "description": "Returns all ticket types for a specific event. Used by check-in kiosk for door payment processing. Requires X-CheckIn-Token header.",
+        "operationId": "GetEventTicketTypes",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TicketTypeDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/events/{eventId}/checkin/cash-payment": {
+      "post": {
+        "tags": [
+          "Events",
+          "CheckIn"
+        ],
+        "summary": "Record door cash payment for event attendee",
+        "description": "Creates a TicketPurchase record for cash payment at event door with staff attribution. Uses event-centric routing pattern.",
+        "operationId": "RecordEventCashPayment",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CheckIn-Token",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CashPaymentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CashPaymentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/api/users/profile": {
       "get": {
         "tags": [
@@ -2640,7 +2753,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/UserNoteResponse"
+                    "$ref": "#/components/schemas/MemberNoteHistoryResponse"
                   }
                 }
               }
@@ -3848,6 +3961,74 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/checkin/events/{eventId}/cash-payment": {
+      "post": {
+        "tags": [
+          "CheckIn"
+        ],
+        "summary": "Record door cash payment for attendee",
+        "description": "Creates a TicketPurchase record for cash payment at event door with staff attribution",
+        "operationId": "RecordCashPayment",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CheckIn-Token",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CashPaymentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CashPaymentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -5404,12 +5585,12 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CashPaymentRequest"
+                "$ref": "#/components/schemas/CashPaymentRequest2"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/CashPaymentRequest"
+                "$ref": "#/components/schemas/CashPaymentRequest2"
               }
             }
           },
@@ -5421,7 +5602,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CashPaymentResponse"
+                  "$ref": "#/components/schemas/CashPaymentResponse2"
                 }
               }
             }
@@ -6051,9 +6232,6 @@
         "properties": {
           "content": {
             "type": "string"
-          },
-          "isPrivate": {
-            "type": "boolean"
           },
           "tags": {
             "type": "string",
@@ -6879,7 +7057,11 @@
           "email": {
             "type": "string"
           },
-          "phone": {
+          "fetLifeHandle": {
+            "type": "string",
+            "nullable": true
+          },
+          "otherNames": {
             "type": "string",
             "nullable": true
           },
@@ -6893,34 +7075,10 @@
           "experienceDescription": {
             "type": "string"
           },
-          "safetyKnowledge": {
-            "type": "string"
-          },
-          "consentUnderstanding": {
-            "type": "string"
-          },
           "whyJoinCommunity": {
             "type": "string"
           },
-          "skillsInterests": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "expectationsGoals": {
-            "type": "string"
-          },
           "agreesToGuidelines": {
-            "type": "boolean"
-          },
-          "isAnonymous": {
-            "type": "boolean"
-          },
-          "agreesToTerms": {
-            "type": "boolean"
-          },
-          "consentToContact": {
             "type": "boolean"
           },
           "assignedReviewerName": {
@@ -6964,10 +7122,6 @@
             "items": {
               "$ref": "#/components/schemas/WorkflowHistoryDto"
             }
-          },
-          "adminNotes": {
-            "type": "string",
-            "nullable": true
           },
           "tags": {
             "type": "array",
@@ -7335,9 +7489,6 @@
             "type": "integer",
             "format": "int32"
           },
-          "isAnonymous": {
-            "type": "boolean"
-          },
           "assignedReviewerName": {
             "type": "string",
             "nullable": true
@@ -7368,12 +7519,6 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
-          },
-          "skillsTags": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           }
         }
       },
@@ -7444,6 +7589,9 @@
             "type": "integer",
             "format": "int32",
             "nullable": true
+          },
+          "paymentStatus": {
+            "type": "string"
           }
         }
       },
@@ -7611,6 +7759,40 @@
         "nullable": true
       },
       "CashPaymentRequest": {
+        "required": [
+          "attendeeId",
+          "ticketTypeId",
+          "amount",
+          "recordedByStaffId"
+        ],
+        "type": "object",
+        "properties": {
+          "attendeeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ticketTypeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "maximum": 10000,
+            "minimum": 0,
+            "type": "number",
+            "format": "double"
+          },
+          "notes": {
+            "maxLength": 500,
+            "type": "string",
+            "nullable": true
+          },
+          "recordedByStaffId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "CashPaymentRequest2": {
         "type": "object",
         "properties": {
           "attendeeId": {
@@ -7632,6 +7814,29 @@
         }
       },
       "CashPaymentResponse": {
+        "type": "object",
+        "properties": {
+          "ticketPurchaseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "recordedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CashPaymentResponse2": {
         "type": "object",
         "properties": {
           "success": {
@@ -8665,9 +8870,6 @@
           "type": {
             "$ref": "#/components/schemas/IncidentNoteType"
           },
-          "isPrivate": {
-            "type": "boolean"
-          },
           "authorId": {
             "type": "string",
             "format": "uuid",
@@ -8794,6 +8996,23 @@
             "nullable": true
           },
           "assignedUserName": {
+            "type": "string",
+            "nullable": true
+          },
+          "coordinatorId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "coordinatorName": {
+            "type": "string",
+            "nullable": true
+          },
+          "googleDriveFolderUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "googleDriveFinalReportUrl": {
             "type": "string",
             "nullable": true
           },
@@ -9109,18 +9328,26 @@
             "type": "integer",
             "format": "int32"
           },
-          "totalEventsRegistered": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "activeRegistrations": {
-            "type": "integer",
-            "format": "int32"
-          },
           "lastEventAttended": {
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "futureEvents": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPastEventsRegistered": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cancelledRegistrations": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "noShows": {
+            "type": "integer",
+            "format": "int32"
           },
           "vettingStatus": {
             "type": "integer",
@@ -9189,6 +9416,40 @@
           "totalCount": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "MemberNoteHistoryResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "noteSource": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "authorSceneName": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "oldValue": {
+            "type": "string",
+            "nullable": true
+          },
+          "newValue": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -10815,9 +11076,6 @@
           "content": {
             "type": "string"
           },
-          "isPrivate": {
-            "type": "boolean"
-          },
           "tags": {
             "type": "string",
             "nullable": true
@@ -11267,7 +11525,7 @@
             "nullable": true
           },
           "vettingStatus": {
-            "type": "string"
+            "$ref": "#/components/schemas/VettingStatus"
           }
         },
         "nullable": true
@@ -11571,18 +11829,25 @@
           "agreesToTerms": {
             "type": "boolean",
             "nullable": true
-          },
-          "adminNotes": {
-            "type": "string",
-            "nullable": true
           }
         }
+      },
+      "VettingStatus": {
+        "enum": [
+          "UnderReview",
+          "InterviewApproved",
+          "FinalReview",
+          "Approved",
+          "Denied",
+          "OnHold",
+          "Withdrawn"
+        ]
       },
       "VettingStatusDto": {
         "type": "object",
         "properties": {
           "status": {
-            "type": "string"
+            "$ref": "#/components/schemas/VettingStatus"
           },
           "lastUpdatedAt": {
             "type": "string",
@@ -11905,6 +12170,9 @@
       "name": "Events"
     },
     {
+      "name": "CheckIn"
+    },
+    {
       "name": "Users"
     },
     {
@@ -11939,9 +12207,6 @@
     },
     {
       "name": "Safety"
-    },
-    {
-      "name": "CheckIn"
     },
     {
       "name": "Vetting"

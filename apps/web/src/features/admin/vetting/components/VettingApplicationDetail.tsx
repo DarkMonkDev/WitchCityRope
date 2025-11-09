@@ -15,7 +15,8 @@ import {
   Box,
   Alert,
   ActionIcon,
-  Card
+  Card,
+  Anchor
 } from '@mantine/core';
 import {
   IconArrowLeft,
@@ -40,6 +41,8 @@ import { OnHoldModal } from './OnHoldModal';
 import { SendReminderModal } from './SendReminderModal';
 import { DenyApplicationModal } from './DenyApplicationModal';
 import type { ApplicationDetailResponse, ReviewDecisionRequest } from '../types/vetting.types';
+import { NotesSection } from '@/components/notes/NotesSection';
+import { VettingNoteRenderer } from './VettingNoteRenderer';
 
 interface VettingApplicationDetailProps {
   applicationId: string;
@@ -50,8 +53,6 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
   applicationId,
   onBack
 }) => {
-  const [notesModalOpen, setNotesModalOpen] = useState(false);
-  const [newNote, setNewNote] = useState('');
   const [onHoldModalOpen, setOnHoldModalOpen] = useState(false);
   const [reminderModalOpen, setReminderModalOpen] = useState(false);
   const [denyModalOpen, setDenyModalOpen] = useState(false);
@@ -146,38 +147,6 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
     return new Date(dateString).toLocaleDateString();
   };
 
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const dateStr = date.toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-    const timeStr = date.toLocaleTimeString(undefined, {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
-    return `${dateStr} - ${timeStr}`;
-  };
-
-  // Helper to detect system-generated notes and extract status
-  const isSystemGeneratedNote = (noteText: string): { isSystem: boolean; status?: string } => {
-    // Map system-generated note text to corresponding status values
-    // These match the simplified descriptions from backend GetSimplifiedActionDescription()
-    const systemNotes: Record<string, string> = {
-      'Approved for interview': 'InterviewApproved',
-      'Interview completed': 'FinalReview',
-      'Application approved': 'Approved',
-      'Application denied': 'Denied',
-      'Application placed on hold': 'OnHold',
-      'Returned to review': 'UnderReview',
-      'Application withdrawn': 'Withdrawn'
-    };
-
-    const status = systemNotes[noteText];
-    return { isSystem: !!status, status };
-  };
 
   const handleAdvanceStage = () => {
     if (!application || !nextStageConfig) return;
@@ -236,17 +205,15 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
     setDenyModalOpen(true);
   };
 
-  const handleSaveNote = async () => {
-    if (!newNote.trim()) return;
-
+  const handleSaveNote = async (content: string) => {
     try {
-      await vettingAdminApi.addApplicationNote(applicationId, newNote.trim());
-      setNewNote('');
+      await vettingAdminApi.addApplicationNote(applicationId, content);
       refetch();
       // Note: Success notification will be shown by the API service
     } catch (error: any) {
       console.error('Failed to save note:', error);
       // Error notification will be shown by the API service
+      throw error; // Re-throw to let NotesSection handle loading state
     }
   };
 
@@ -467,11 +434,22 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
                     </Group>
                     <Group gap="md" wrap="nowrap">
                       <Text fw={600} style={{ minWidth: '140px' }}>FetLife Handle:</Text>
-                      <Text>@{application.sceneName}</Text>
+                      {application.fetLifeHandle ? (
+                        <Anchor
+                          href={`https://fetlife.com/${application.fetLifeHandle.trim()}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: '#880124' }}
+                        >
+                          {application.fetLifeHandle}
+                        </Anchor>
+                      ) : (
+                        <Text c="dimmed">Not provided</Text>
+                      )}
                     </Group>
                     <Group gap="md" wrap="nowrap">
                       <Text fw={600} style={{ minWidth: '140px' }}>Other Names/Handles:</Text>
-                      <Text>{application.phone || 'Not provided'}</Text>
+                      <Text>{application.otherNames || 'Not provided'}</Text>
                     </Group>
                   </Stack>
                 </Grid.Col>
@@ -499,137 +477,13 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
       </Grid>
 
       {/* Admin Notes Section */}
-      <Card p="xl">
-        <Group justify="space-between" align="center" mb="md">
-          <Title order={3} style={{ color: '#880124' }}>
-            Notes
-          </Title>
-          <button
-            className={newNote.trim() ? "btn btn-primary" : "btn"}
-            onClick={handleSaveNote}
-            disabled={!newNote.trim()}
-            data-testid="save-note-button"
-            type="button"
-          >
-            Save Note
-          </button>
-        </Group>
-
-        <Stack gap="md">
-          {/* Add Note Text Area */}
-          <Textarea
-            placeholder="Add a note about this application..."
-            value={newNote}
-            onChange={(e) => setNewNote(e.currentTarget.value)}
-            minRows={4}
-            data-testid="add-note-textarea"
-            styles={{
-              input: {
-                borderRadius: '8px',
-                border: '1px solid #E0E0E0',
-              }
-            }}
-          />
-
-          {/* Notes List */}
-          {application.notes.length > 0 ? (
-            <Stack gap="sm">
-              {application.notes.map((note) => {
-                // Check if this is a system-generated status change note
-                const { isSystem, status } = isSystemGeneratedNote(note.content);
-
-                return (
-                  <Paper key={note.id} p="md" style={{ background: '#F5F5F5', borderRadius: '8px' }}>
-                    <Group justify="space-between" mb="xs">
-                      <Group gap="xs">
-                        {/* Show status badge for system-generated notes */}
-                        {isSystem && status ? (
-                          <VettingStatusBadge status={status} size="sm" />
-                        ) : (
-                          <IconNotes size={16} style={{ color: '#880124' }} />
-                        )}
-                        <Text fw={600} size="sm">{note.reviewerName}</Text>
-                      </Group>
-                      <Text size="sm" c="dimmed">
-                        {formatTime(note.createdAt)}
-                      </Text>
-                    </Group>
-                    <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
-                      {note.content}
-                    </Text>
-                    {note.tags && note.tags.length > 0 && (
-                      <Group gap="xs" mt="xs">
-                        {note.tags.map((tag, idx) => (
-                          <Badge key={idx} size="sm" variant="light" color="gray">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </Group>
-                    )}
-                  </Paper>
-                );
-              })}
-            </Stack>
-          ) : (
-            <Text c="dimmed" size="sm" ta="center" py="md">
-              No notes added yet
-            </Text>
-          )}
-        </Stack>
-      </Card>
-
-      {/* Add Note Modal */}
-      <Modal
-        opened={notesModalOpen}
-        onClose={() => setNotesModalOpen(false)}
-        title="Add Note"
-        centered
-      >
-        <Stack gap="md">
-          <Textarea
-            placeholder="Enter your note..."
-            value={newNote}
-            onChange={(e) => setNewNote(e.currentTarget.value)}
-            minRows={4}
-          />
-          <Group justify="flex-end">
-            <Button
-              variant="light"
-              onClick={() => setNotesModalOpen(false)}
-              styles={{
-                root: {
-                  height: '44px',
-                  paddingTop: '12px',
-                  paddingBottom: '12px',
-                  fontSize: '14px',
-                  lineHeight: '1.2'
-                }
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                // TODO: Implement add note functionality
-                setNewNote('');
-                setNotesModalOpen(false);
-              }}
-              disabled={!newNote.trim()}
-              styles={{
-                root: {
-                  height: '44px',
-                  paddingTop: '12px',
-                  paddingBottom: '12px',
-                  fontSize: '14px',
-                  lineHeight: '1.2'
-                }
-              }}
-            >
-              Add Note
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+      <NotesSection
+        notes={application.notes}
+        onSaveNote={handleSaveNote}
+        renderNoteHeader={VettingNoteRenderer}
+        placeholder="Add a note about this application..."
+        title="Notes"
+      />
 
       {/* OnHold Modal */}
       <OnHoldModal

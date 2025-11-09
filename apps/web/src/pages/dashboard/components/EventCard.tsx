@@ -48,7 +48,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
   const { data: fullEvent } = useEvent(event.id, shouldCheckForPaidTickets)
 
   // Check if event has paid tickets (maxPrice > 0)
-  const hasPaidTickets = fullEvent?.ticketTypes?.some((tt: any) => (tt.maxPrice || 0) > 0) || false
+  const hasPaidTickets = (fullEvent as any)?.ticketTypes?.some((tt: any) => (tt.maxPrice || 0) > 0) || false
 
   // Show purchase button if all conditions are met
   const showPurchaseButton = shouldCheckForPaidTickets && hasPaidTickets

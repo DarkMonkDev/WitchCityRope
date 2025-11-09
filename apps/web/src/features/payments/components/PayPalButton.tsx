@@ -3,6 +3,7 @@ import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js';
 import { Alert, Button, Box, Text, Loader, Stack } from '@mantine/core';
 import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
 import type { PaymentEventInfo } from '../types/payment.types';
+import { debugLog } from '../../../utils/debug';
 
 export interface PayPalButtonProps {
   eventInfo: PaymentEventInfo;

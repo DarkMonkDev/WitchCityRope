@@ -25,7 +25,7 @@
 ### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
 - **Skills Usage Guide** - `/.claude/skills/HOW-TO-USE-SKILLS.md` - Complete guide on when/how to use skills
 - **Agent Handoff Template** - `/home/chad/repos/witchcityrope/docs/standards-processes/agent-handoff-template.md` - Documentation format
-- **Lessons Learned Standards** - Use lessons-learned-validator skill - How to document lessons learned
+- **Lessons Learned Standards** - Use lessons-learned-validator skill ONLY to validate/fix lessons learned updates - NOT for routine reading
 
 ### Validation Gates (MUST COMPLETE):
 - [ ] **Read Workflow Orchestration FIRST** - Understand 5-phase process
@@ -43,11 +43,20 @@
 EVERY delegation MUST include:
 ```
 MANDATORY: Before ANY work, you MUST:
-1. Review lessons learned standards using lessons-learned-validator skill
-2. Read your lessons learned file(s) and any other documents stated in the lesson's learned files as must read. There may be more than one lesson's learned file which will be stated at the top of the first file.
-3. IF ANY FILE FAILS: STOP and fix per documentation standards (this is CRITICAL)
-4. Confirm you have read all files
-5. Then proceed with: [actual task]
+1. Read your lessons learned file(s) and any other documents stated in the lessons learned files as must read. There may be more than one lessons learned file which will be stated at the top of the first file.
+2. IF ANY LESSONS LEARNED FILE FAILS TO READ OR HAS FORMAT/SIZE ISSUES:
+   - Use the lessons-learned-validator skill to diagnose and fix the problem
+   - STOP and fix per documentation standards (this is CRITICAL)
+   - Then retry reading the file
+3. Follow your agent's mandatory startup procedure
+4. Then proceed with: [actual task]
+
+NOTE: The lessons-learned-validator skill is for diagnosing/fixing lessons learned file problems, not for routine reading at startup.
+
+⚠️ POTENTIAL RACE CONDITION: If agent encounters lessons learned file problems during early startup, skills may not be loaded yet. If skill invocation fails with "Unknown skill" error, agent should:
+1. Continue with degraded functionality (skip problematic lessons learned file)
+2. Report the skill loading issue back to orchestrator
+3. Orchestrator can investigate and fix the lessons learned file manually
 ```
 
 ## 🚨 ULTRA CRITICAL: ALWAYS DELEGATE TO SUB-AGENTS IF POSSIBLE

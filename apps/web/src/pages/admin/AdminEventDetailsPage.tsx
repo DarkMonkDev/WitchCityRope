@@ -388,47 +388,37 @@ export const AdminEventDetailsPage: React.FC = () => {
         </Title>
 
         {!isEditMode && (
-          <Group gap="md">
-            <WCRButton
-              onClick={() => setKioskModalOpen(true)}
-              variant="outline"
-              size="md"
-            >
-              Checkin Link
-            </WCRButton>
-
-            <SegmentedControl
-              value={publishStatus}
-              onChange={handleStatusChange}
-              data={[
-                { label: 'DRAFT', value: 'draft' },
-                { label: 'PUBLISHED', value: 'published' },
-              ]}
-              size="lg"
-              styles={{
-                root: {
-                  backgroundColor: 'var(--mantine-color-gray-1)',
-                },
-                control: {
-                  fontFamily: 'Source Sans 3, sans-serif',
-                  fontSize: '1.5rem',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '1px',
-                  padding: '12px 24px',
-                  height: 'auto',
-                },
-                label: {
-                  fontFamily: 'Source Sans 3, sans-serif',
-                  fontSize: '1.5rem',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '1px',
-                  color: 'var(--mantine-color-wcr-7)',
-                },
-              }}
-            />
-          </Group>
+          <SegmentedControl
+            value={publishStatus}
+            onChange={handleStatusChange}
+            data={[
+              { label: 'DRAFT', value: 'draft' },
+              { label: 'PUBLISHED', value: 'published' },
+            ]}
+            size="lg"
+            styles={{
+              root: {
+                backgroundColor: 'var(--mantine-color-gray-1)',
+              },
+              control: {
+                fontFamily: 'Source Sans 3, sans-serif',
+                fontSize: '1.5rem',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                padding: '12px 24px',
+                height: 'auto',
+              },
+              label: {
+                fontFamily: 'Source Sans 3, sans-serif',
+                fontSize: '1.5rem',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                color: 'var(--mantine-color-wcr-7)',
+              },
+            }}
+          />
         )}
       </Group>
 
@@ -442,6 +432,16 @@ export const AdminEventDetailsPage: React.FC = () => {
           onFormChange={handleFormChange}
           formDirty={formDirty}
           eventId={id}
+          tabsRightSection={
+            <WCRButton
+              onClick={() => setKioskModalOpen(true)}
+              variant="outline"
+              size="md"
+              leftSection={<IconLink size={16} />}
+            >
+              Checkin Link
+            </WCRButton>
+          }
         />
       ) : (
         <LoadingOverlay visible />

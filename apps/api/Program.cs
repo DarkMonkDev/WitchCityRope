@@ -40,6 +40,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+    // EnumSchemaTransformer removed - built-in transformer handles enums automatically
 });
 
 // Database configuration for PostgreSQL

@@ -2,7 +2,8 @@
 
 **Purpose**: Single source of truth for ALL available Skills and when to use them
 **Audience**: Agents, Orchestrator, Human Developers
-**Status**: 16 Skills Active (as of 2025-11-04)
+**Status**: 17 Skills Active (as of 2025-11-08)
+**Structure**: Each skill is now in `skill-name/SKILL.md` format (Claude Code compatible)
 
 ---
 

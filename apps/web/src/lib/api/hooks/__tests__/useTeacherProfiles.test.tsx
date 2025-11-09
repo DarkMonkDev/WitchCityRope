@@ -49,9 +49,6 @@ describe('useTeacherProfiles', () => {
         bio: 'Bio for teacher one',
         pronouns: 'they/them',
         discordName: 'teacher1#1234',
-        isActive: true,
-        emailConfirmed: true,
-        createdAt: '2025-01-01T00:00:00Z',
       },
       {
         userId: 'teacher2',
@@ -62,9 +59,6 @@ describe('useTeacherProfiles', () => {
         bio: 'Bio for teacher two',
         pronouns: 'she/her',
         discordName: 'teacher2#5678',
-        isActive: true,
-        emailConfirmed: true,
-        createdAt: '2025-01-01T00:00:00Z',
       },
     ];
 
@@ -133,9 +127,6 @@ describe('useTeacherProfiles', () => {
       bio: 'Bio for teacher one',
       pronouns: 'they/them',
       discordName: 'teacher1#1234',
-      isActive: true,
-      emailConfirmed: true,
-      createdAt: '2025-01-01T00:00:00Z',
     };
 
     server.use(
@@ -218,9 +209,6 @@ describe('useTeacherProfiles', () => {
       bio: 'Teaching rope bondage for 10 years',
       pronouns: 'he/him',
       discordName: 'solo#9999',
-      isActive: true,
-      emailConfirmed: true,
-      createdAt: '2025-01-01T00:00:00Z',
     };
 
     server.use(
@@ -255,9 +243,6 @@ describe('useTeacherProfiles', () => {
       bio: 'Cached bio',
       pronouns: 'they/them',
       discordName: 'cached#1111',
-      isActive: true,
-      emailConfirmed: true,
-      createdAt: '2025-01-01T00:00:00Z',
     };
 
     let fetchCount = 0;

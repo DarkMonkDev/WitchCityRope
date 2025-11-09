@@ -17,9 +17,11 @@ public class MemberDetailsResponse
 
     // Participation summary
     public int TotalEventsAttended { get; set; }
-    public int TotalEventsRegistered { get; set; }
-    public int ActiveRegistrations { get; set; }
     public DateTime? LastEventAttended { get; set; }
+    public int FutureEvents { get; set; }
+    public int TotalPastEventsRegistered { get; set; }
+    public int CancelledRegistrations { get; set; }
+    public int NoShows { get; set; }
 
     // Vetting status
     public int VettingStatus { get; set; }
@@ -59,9 +61,6 @@ public class VettingDetailsResponse
     public string? ExpectationsGoals { get; set; }
     public bool? AgreesToGuidelines { get; set; }
     public bool? AgreesToTerms { get; set; }
-
-    // Admin notes (from VettingApplication.AdminNotes field)
-    public string? AdminNotes { get; set; }
 }
 
 /// <summary>
@@ -132,6 +131,54 @@ public class UserNoteResponse
     public string? AuthorSceneName { get; set; }
     public DateTime CreatedAt { get; set; }
     public bool IsArchived { get; set; }
+}
+
+/// <summary>
+/// Unified note history response combining UserNotes and VettingAuditLogs for complete audit trail
+/// Provides chronological view of both general member notes AND vetting workflow history
+/// </summary>
+public class MemberNoteHistoryResponse
+{
+    /// <summary>
+    /// Note ID
+    /// </summary>
+    public Guid Id { get; set; }
+
+    /// <summary>
+    /// Source of the note: "UserNote" or "VettingAuditLog"
+    /// </summary>
+    public string NoteSource { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Content of the note
+    /// </summary>
+    public string Content { get; set; } = string.Empty;
+
+    /// <summary>
+    /// For UserNotes: note type (Vetting, General, etc.)
+    /// For VettingAuditLogs: action (Status Changed, Reviewer Comment, etc.)
+    /// </summary>
+    public string Type { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Author scene name (null for system-generated actions)
+    /// </summary>
+    public string? AuthorSceneName { get; set; }
+
+    /// <summary>
+    /// Timestamp when note/action occurred
+    /// </summary>
+    public DateTime Timestamp { get; set; }
+
+    /// <summary>
+    /// For VettingAuditLogs: old value (status changes)
+    /// </summary>
+    public string? OldValue { get; set; }
+
+    /// <summary>
+    /// For VettingAuditLogs: new value (status changes)
+    /// </summary>
+    public string? NewValue { get; set; }
 }
 
 /// <summary>

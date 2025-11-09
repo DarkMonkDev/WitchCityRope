@@ -1,3 +1,5 @@
+using WitchCityRope.Api.Features.Vetting.Entities;
+
 namespace WitchCityRope.Api.Features.Dashboard.Models;
 
 /// <summary>
@@ -56,7 +58,7 @@ public class UserProfileDto
     public string? PhoneNumber { get; set; }
 
     /// <summary>
-    /// Current vetting status for display
+    /// Current vetting status enum value
     /// </summary>
-    public string VettingStatus { get; set; } = string.Empty;
+    public VettingStatus VettingStatus { get; set; } = VettingStatus.UnderReview;
 }

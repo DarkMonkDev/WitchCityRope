@@ -139,7 +139,7 @@ export const MemberEventsTab: React.FC<MemberEventsTabProps> = ({ memberId }) =>
               </Table.Td>
               <Table.Td>
                 <Group gap="xs" justify="center">
-                  {event.attended ? (
+                  {(event as any).attended ? (
                     <IconCheck size={20} color="green" stroke={2.5} />
                   ) : (
                     <IconX size={20} color="red" stroke={2.5} />

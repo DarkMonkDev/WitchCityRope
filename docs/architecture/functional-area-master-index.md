@@ -1,6 +1,6 @@
 # Functional Area Master Index
-<!-- Last Updated: 2025-11-04 - Plugins & Marketplace Research Added -->
-<!-- Version: 2.5 -->
+<!-- Last Updated: 2025-11-04 - Frontend Debugging Research Added -->
+<!-- Version: 2.6 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -24,6 +24,7 @@ This master index is maintained by the librarian agent to provide quick lookups 
 | **Docker Authentication** | `/docs/functional-areas/docker-authentication/` | Phase 2 Complete - Pending Human Approval | Containerize existing working authentication system (React + .NET API + PostgreSQL) | Phase 2 Design Complete | 2025-08-17 |
 | **E2E Test Stabilization** | `/docs/functional-areas/testing/` | `/docs/functional-areas/testing/new-work/2025-10-07-e2e-stabilization/` | **✅ COMPLETE** - 100% pass rate (6/6) on launch-critical tests achieved through systematic 4-phase approach - **CRITICAL AUTH FIX**: Cross-origin cookie issue resolved via Vite proxy implementation (commit 6aa3c530) - **READY FOR DEPLOYMENT** - 13 tests properly marked with .skip() for unimplemented features - Comprehensive documentation: 1,275+ lines across 5 documents - Session handoff complete | **COMPLETE - READY FOR PRODUCTION** | 2025-10-08 |
 | **Enhancements** | `/docs/functional-areas/enhancements/` | N/A | User interface enhancements and feature improvements | Active | 2025-08-22 |
+| **Frontend Debugging Research** | `/docs/functional-areas/frontend-debugging-research/` | `/docs/functional-areas/frontend-debugging-research/new-work/2025-11-04-layout-debugging-agent-research/` | **NEW RESEARCH PROJECT** - Research to solve persistent frontend layout/styling debugging issues with Claude Code agents. Focus: MCP tools evaluation (Chrome DevTools), agent knowledge base design, debugging patterns documentation. Deliverables: Problem analysis, MCP tools evaluation, knowledge base architecture, agent improvement recommendations. Research only - no implementation | **Phase 1 - Research (Started)** | 2025-11-04 |
 | **Events Management** | `/docs/functional-areas/events/` | `/docs/functional-areas/events/new-work/2025-08-24-events-management/` | **ACTIVE DEVELOPMENT** - React migration from Blazor implementation - Event creation, RSVP, ticketing, admin management | **Phase 1 - Requirements** | 2025-08-24 |
 | **Homepage** | `/docs/functional-areas/homepage/` | N/A | Landing page and main navigation entry point with complete workflow structure and design assets | Enhanced | 2025-08-19 |
 | **HTML Editor Migration** | `/docs/functional-areas/html-editor-migration/` | **IMPLEMENTATION COMPLETE** ✅ | **TinyMCE to @mantine/tiptap migration COMPLETE** - Eliminated API key requirements and testing quota issues. New MantineTiptapEditor component with variable insertion, ~70% bundle size reduction, zero configuration needed. All 5 phases complete: Component Migration, Configuration Cleanup, Test Suite Updates, Code Formatting, Documentation. **PRODUCTION READY** | **COMPLETE** | 2025-10-08 |
@@ -219,6 +220,24 @@ This master index is maintained by the librarian agent to provide quick lookups 
 - **Performance**: Modern API maintains 49ms response times with enhanced feature set
 - **Documentation**: Complete migration documentation created with archive warnings
 - **Completion Date**: 2025-09-13 (1 day - faster than estimated)
+
+### 🔍 ACTIVE: Frontend Debugging Research (November 2025)
+- **Current Work**: `/docs/functional-areas/frontend-debugging-research/new-work/2025-11-04-layout-debugging-agent-research/`
+- **Status**: Phase 1 - Research & Analysis (STARTED)
+- **Objective**: Research and document solutions for persistent frontend layout/styling debugging issues with Claude Code agents
+- **Scope**: MCP tools evaluation (Chrome DevTools), agent knowledge base design, debugging patterns documentation
+- **Type**: Research Only (NO implementation work)
+- **Timeline**: 2025-11-04 to TBD (open-ended research)
+- **Session**: 2025-11-04 (Started)
+- **Progress Tracking**: `/docs/functional-areas/frontend-debugging-research/new-work/2025-11-04-layout-debugging-agent-research/progress.md`
+- **Key Deliverables**:
+  - Problem analysis and current state assessment
+  - MCP tools evaluation (Chrome DevTools, browser automation)
+  - Agent capability gaps identification
+  - Knowledge base architecture design
+  - Debugging decision trees and troubleshooting guides
+  - Agent improvement recommendations
+  - Implementation roadmap
 
 ### 🔍 ACTIVE: Plugins & Marketplace Research (November 2025)
 - **Current Work**: `/docs/functional-areas/ai-workflow-orchstration/new-work/2025-11-04-plugins-marketplace-research/`

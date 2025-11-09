@@ -5,7 +5,6 @@
 export {
   AttendeeSearch,
   CompactAttendeeSearch,
-  CheckInConfirmation,
   CheckInInterface
 } from './components';
 export { CheckInDashboard } from './components/CheckInDashboard';

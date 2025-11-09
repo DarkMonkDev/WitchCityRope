@@ -80,6 +80,10 @@ public class IncidentResponse
     public IncidentStatus Status { get; set; }
     public Guid? AssignedTo { get; set; }
     public string? AssignedUserName { get; set; }
+    public Guid? CoordinatorId { get; set; }
+    public string? CoordinatorName { get; set; }
+    public string? GoogleDriveFolderUrl { get; set; }
+    public string? GoogleDriveFinalReportUrl { get; set; }
     public List<AuditLogDto> AuditTrail { get; set; } = new();
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

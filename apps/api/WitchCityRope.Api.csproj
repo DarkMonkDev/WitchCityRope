@@ -7,6 +7,11 @@
     <UserSecretsId>51c30e23-eda7-47d3-b7ba-81004187bc0d</UserSecretsId>
   </PropertyGroup>
 
+  <!-- Exclude archived files from compilation -->
+  <ItemGroup>
+    <Compile Remove="_archive/**/*.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.10" />
     <PackageReference Include="PayPalCheckoutSdk" Version="1.0.4" />

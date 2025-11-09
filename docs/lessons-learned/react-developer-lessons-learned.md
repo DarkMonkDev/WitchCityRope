@@ -31,7 +31,7 @@
 - **Skills Usage Guide** - `/.claude/skills/HOW-TO-USE-SKILLS.md` - Complete guide on when/how to use skills
 - **Workflow Process** - `/home/chad/repos/witchcityrope/docs/standards-processes/workflow-orchestration-process.md` - Handoff procedures
 - **Agent Boundaries** - `/home/chad/repos/witchcityrope/docs/standards-processes/agent-boundaries.md` - What each agent does
-- **Lessons Learned Standards** - Use lessons-learned-validator skill - How to document lessons learned
+- **Lessons Learned Standards** - Use lessons-learned-validator skill ONLY to validate/fix lessons learned updates - NOT for routine reading
 
 ### Validation Gates (MUST COMPLETE WHEN STARTING A NEW SESSION):
 - [ ] **Read React Architecture Guide FIRST** - Core React architecture decisions and patterns

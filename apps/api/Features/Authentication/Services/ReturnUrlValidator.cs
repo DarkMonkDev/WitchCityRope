@@ -265,7 +265,8 @@ public class ReturnUrlValidator
             "/events/",
             "/demo/",
             "/vetting/",
-            "/profile/"
+            "/profile/",
+            "/checkout/"
         };
 
         foreach (var prefix in allowedPrefixes)

@@ -8,6 +8,7 @@ import type {
   VolunteerHistoryResponse,
   MemberIncidentsResponse,
   UserNoteResponse,
+  MemberNoteHistoryResponse,
   CreateUserNoteRequest,
   UpdateMemberStatusRequest,
   UpdateMemberRoleRequest,
@@ -142,10 +143,10 @@ export function useMemberIncidents(userId: string, enabled: boolean = true) {
 
 // Fetch member notes (unified notes system)
 export function useMemberNotes(userId: string, enabled: boolean = true) {
-  return useQuery<UserNoteResponse[]>({
+  return useQuery<MemberNoteHistoryResponse[]>({
     queryKey: memberDetailsKeys.notes(userId),
-    queryFn: async (): Promise<UserNoteResponse[]> => {
-      const { data } = await apiClient.get<ApiResponse<UserNoteResponse[]>>(
+    queryFn: async (): Promise<MemberNoteHistoryResponse[]> => {
+      const { data } = await apiClient.get<ApiResponse<MemberNoteHistoryResponse[]>>(
         `/api/users/${userId}/notes`
       )
       return data.data || []

@@ -31,7 +31,7 @@
 - **Workflow Process** - `/home/chad/repos/witchcityrope/docs/standards-processes/workflow-orchestration-process.md` - Handoff procedures
 - **Agent Boundaries** - `/home/chad/repos/witchcityrope/docs/standards-processes/agent-boundaries.md` - What each agent does
 - **Coding Standards** - `/home/chad/repos/witchcityrope/docs/standards-processes/CODING_STANDARDS.md` - General standards
-- **Lessons Learned Standards** - Use lessons-learned-validator skill - How to document lessons learned
+- **Lessons Learned Standards** - Use lessons-learned-validator skill ONLY to validate/fix lessons learned updates - NOT for routine reading
 
 ### 🎯 BACKEND-SPECIFIC STANDARDS (Just-In-Time Loading):
 **Reference**: `/home/chad/repos/witchcityrope/docs/standards-processes/STANDARDS-INDEX.md` for complete backend standards list

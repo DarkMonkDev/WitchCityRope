@@ -69,7 +69,6 @@ public class VettingEndpointsTests
                     SceneName = "TestUser",
                     ExperienceLevel = "Beginner",
                     YearsExperience = 1,
-                    IsAnonymous = false,
                     AssignedReviewerName = null,
                     ReviewStartedAt = null,
                     Priority = 1,
@@ -83,8 +82,7 @@ public class VettingEndpointsTests
                     },
                     HasRecentNotes = false,
                     HasPendingActions = true,
-                    InterviewScheduledFor = null,
-                    SkillsTags = new List<string> { "Rope" }
+                    InterviewScheduledFor = null
                 }
             },
             TotalCount = 1,
@@ -193,7 +191,6 @@ public class VettingEndpointsTests
             ExperienceDescription = "Basic rope knowledge",
             WhyJoinCommunity = "Want to learn more",
             AgreesToGuidelines = true,
-            IsAnonymous = false,
             References = new List<ReferenceDetailDto>(),
             Notes = new List<ApplicationNoteDto>(),
             Decisions = new List<ReviewDecisionDto>()

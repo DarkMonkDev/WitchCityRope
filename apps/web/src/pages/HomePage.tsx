@@ -1,12 +1,11 @@
 import React from 'react';
 import { Box } from '@mantine/core';
-import { 
-  HeroSection, 
-  EventsList, 
-  FeatureGrid, 
-  CTASection, 
-  RopeDivider,
-  Footer 
+import {
+  HeroSection,
+  EventsList,
+  FeatureGrid,
+  CTASection,
+  RopeDivider
 } from '../components/homepage';
 import { useUser, useIsAuthenticated } from '../stores/authStore';
 
@@ -30,9 +29,6 @@ export const HomePage: React.FC = () => {
 
       {/* Call to Action Section */}
       <CTASection />
-
-      {/* Footer */}
-      <Footer />
     </Box>
   );
 };

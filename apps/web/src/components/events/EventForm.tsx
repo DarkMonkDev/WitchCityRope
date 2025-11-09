@@ -314,6 +314,7 @@ interface EventFormProps {
   onFormChange?: () => void
   formDirty?: boolean
   eventId?: string // For fetching participation data
+  tabsRightSection?: React.ReactNode // Optional content to display to the right of tabs
 }
 
 export const EventForm: React.FC<EventFormProps> = ({
@@ -324,6 +325,7 @@ export const EventForm: React.FC<EventFormProps> = ({
   onFormChange,
   formDirty = false,
   eventId,
+  tabsRightSection,
 }) => {
   const [activeTab, setActiveTab] = useState<string>('basic-info')
   const [activeEmailTemplate, setActiveEmailTemplate] = useState<string>('confirmation')
@@ -822,26 +824,32 @@ export const EventForm: React.FC<EventFormProps> = ({
               backgroundColor: 'var(--mantine-color-gray-0)',
               borderBottom: '2px solid var(--mantine-color-burgundy-3)',
               padding: 'var(--mantine-spacing-md)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
             }}
           >
-            <Tabs.Tab value="basic-info" data-testid="tab-basic-info">
-              Basic Info
-            </Tabs.Tab>
-            <Tabs.Tab value="setup" data-testid="setup-tab">
-              Sessions / Ticket Types
-            </Tabs.Tab>
-            <Tabs.Tab value="volunteers" data-testid="tab-volunteers">
-              Volunteers
-            </Tabs.Tab>
-            <Tabs.Tab value="emails" data-testid="tab-emails">
-              Emails
-            </Tabs.Tab>
-            <Tabs.Tab value="rsvp-tickets" data-testid="rsvp-tickets-tab">
-              RSVP/Tickets
-            </Tabs.Tab>
-            <Tabs.Tab value="attendees" data-testid="attendees-tab">
-              Attendees
-            </Tabs.Tab>
+            <Group gap="xs">
+              <Tabs.Tab value="basic-info" data-testid="tab-basic-info">
+                Basic Info
+              </Tabs.Tab>
+              <Tabs.Tab value="setup" data-testid="setup-tab">
+                Sessions / Ticket Types
+              </Tabs.Tab>
+              <Tabs.Tab value="volunteers" data-testid="tab-volunteers">
+                Volunteers
+              </Tabs.Tab>
+              <Tabs.Tab value="emails" data-testid="tab-emails">
+                Emails
+              </Tabs.Tab>
+              <Tabs.Tab value="rsvp-tickets" data-testid="rsvp-tickets-tab">
+                RSVP/Tickets
+              </Tabs.Tab>
+              <Tabs.Tab value="attendees" data-testid="attendees-tab">
+                Attendees
+              </Tabs.Tab>
+            </Group>
+            {tabsRightSection && <div style={{ marginLeft: 'auto' }}>{tabsRightSection}</div>}
           </Tabs.List>
 
           {/* Basic Info Tab */}

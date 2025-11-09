@@ -13,7 +13,7 @@ export interface EventSessionDto {
   startTime: string; // HH:MM format
   endTime: string; // HH:MM format
   capacity: number;
-  registeredCount: number;
+  registrationCount: number;
   isRequired: boolean;
   createdAt: string;
   updatedAt: string;
@@ -58,7 +58,7 @@ const transformEventSession = (dto: EventSessionDto): EventSession => ({
   startTime: dto.startTime,
   endTime: dto.endTime,
   capacity: dto.capacity,
-  registeredCount: dto.registeredCount,
+  registrationCount: dto.registrationCount,
 });
 
 // Fetch event sessions for a specific event

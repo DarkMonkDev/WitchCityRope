@@ -118,7 +118,7 @@ public class UserDashboardProfileService : IUserDashboardProfileService
             // Map to DTO with appropriate message
             var dto = new VettingStatusDto
             {
-                Status = vettingStatus.ToString(),
+                Status = vettingStatus,
                 LastUpdatedAt = user.UpdatedAt
             };
 
@@ -192,7 +192,7 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                 DiscordName = user.DiscordName,
                 FetLifeName = user.FetLifeName,
                 PhoneNumber = user.PhoneNumber,
-                VettingStatus = ((VettingStatus)user.VettingStatus).ToString()
+                VettingStatus = (VettingStatus)user.VettingStatus
             };
 
             return Result<UserProfileDto>.Success(profile);
@@ -258,7 +258,7 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                         DiscordName = user.DiscordName,
                         FetLifeName = user.FetLifeName,
                         PhoneNumber = user.PhoneNumber,
-                        VettingStatus = ((VettingStatus)user.VettingStatus).ToString()
+                        VettingStatus = (VettingStatus)user.VettingStatus
                     };
 
                     _logger.LogInformation("Successfully updated profile for user {UserId} on attempt {Attempt}", userId, attempt + 1);

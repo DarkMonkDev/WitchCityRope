@@ -12,5 +12,4 @@ public class VettingApplicationSummary
     public string Status { get; set; } = string.Empty;
     public DateTime SubmittedAt { get; set; }
     public DateTime LastUpdated { get; set; }
-    public string? AdminNotes { get; set; }
 }

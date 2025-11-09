@@ -958,10 +958,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
                   .IsRequired()
                   .HasConversion<int>();
 
-            entity.Property(e => e.IsPrivate)
-                  .IsRequired()
-                  .HasDefaultValue(false);
-
             // Optional fields
             entity.Property(e => e.Tags)
                   .HasMaxLength(200);

@@ -17,7 +17,7 @@ export function convertEventSessionFromDto(dto: EventSessionDto): EventSession {
     startTime: startDateTime.toTimeString().slice(0, 5), // HH:MM format
     endTime: endDateTime.toTimeString().slice(0, 5), // HH:MM format
     capacity: dto.capacity,
-    registeredCount: dto.registeredCount
+    registrationCount: dto.registrationCount
   }
 }
 

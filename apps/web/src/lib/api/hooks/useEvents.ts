@@ -101,7 +101,7 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
   const transformedTicketTypes: EventTicketTypeDto[] = (apiEvent.ticketTypes || []).map(ticket => ({
     id: ticket.id,
     name: ticket.name,
-    pricingType: ticket.pricingType,
+    pricingType: ticket.pricingType as 'Fixed' | 'SlidingScale',
     price: ticket.price,
     minPrice: ticket.minPrice,
     maxPrice: ticket.maxPrice,
@@ -137,8 +137,6 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
     eventType: apiEvent.eventType,
     capacity: apiEvent.capacity || apiEvent.maxAttendees || 20, // Use capacity first, then maxAttendees
     registrationCount: apiEvent.registrationCount || apiEvent.currentAttendees || apiEvent.currentRSVPs || apiEvent.currentTickets || 0,
-    createdAt: new Date().toISOString(), // Placeholder - should come from API
-    updatedAt: new Date().toISOString(), // Placeholder - should come from API
     // Map new fields from API response with proper transformation
     sessions: transformedSessions,
     ticketTypes: transformedTicketTypes,

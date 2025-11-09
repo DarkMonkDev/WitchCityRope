@@ -40,7 +40,6 @@ const mockApplications: ApplicationSummaryDto[] = [
     sceneName: 'TestUser1',
     experienceLevel: 'Beginner',
     yearsExperience: 1,
-    isAnonymous: false,
     assignedReviewerName: null,
     reviewStartedAt: null,
     priority: 1,
@@ -53,8 +52,7 @@ const mockApplications: ApplicationSummaryDto[] = [
     },
     hasRecentNotes: false,
     hasPendingActions: true,
-    interviewScheduledFor: null,
-    skillsTags: ['Rope', 'Bondage']
+    interviewScheduledFor: null
   },
   {
     id: 'app-2',
@@ -65,7 +63,6 @@ const mockApplications: ApplicationSummaryDto[] = [
     sceneName: 'TestUser2',
     experienceLevel: 'Intermediate',
     yearsExperience: 3,
-    isAnonymous: false,
     assignedReviewerName: 'Admin User',
     reviewStartedAt: '2025-09-18T15:00:00Z',
     priority: 2,
@@ -78,8 +75,7 @@ const mockApplications: ApplicationSummaryDto[] = [
     },
     hasRecentNotes: true,
     hasPendingActions: false,
-    interviewScheduledFor: null,
-    skillsTags: ['Rope', 'Suspension']
+    interviewScheduledFor: null
   }
 ];
 

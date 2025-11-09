@@ -65,19 +65,11 @@ export type VettingStatusApiResponse = ApiResponseOfMyApplicationStatusResponse;
 // ============================================================================
 
 /**
- * VettingStatus enum values (Frontend constants)
- * Note: Backend uses string type, not enum. These are frontend constants for type safety.
- * MUST match backend string values exactly.
+ * VettingStatus enum - AUTO-GENERATED from backend
+ * @generated from C# VettingStatus enum via OpenAPI
+ * DO NOT manually edit - regenerate types if backend changes
  */
-export type VettingStatus =
-  | 'UnderReview'
-  | 'InterviewApproved'
-  | 'InterviewCompleted'
-  | 'FinalReview'
-  | 'Approved'
-  | 'Denied'
-  | 'OnHold'
-  | 'Withdrawn';
+export type VettingStatus = components['schemas']['VettingStatus'];
 
 /**
  * Menu visibility decision result

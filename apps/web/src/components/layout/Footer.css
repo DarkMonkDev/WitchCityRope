@@ -1,0 +1,294 @@
+/* Footer Component Styles - Accordion Mobile-First Design */
+/* Design Spec: /docs/functional-areas/footer-design/new-work/2025-11-08-footer-research/design/footer-design-specification.md */
+
+/* ========================================
+   Footer Container
+   ======================================== */
+
+.footer {
+  background-color: var(--color-midnight, #1A1A2E);
+  color: var(--color-taupe, #B8B0A8);
+  border-top: 3px solid var(--color-rose-gold, #B76D75);
+  padding: var(--space-xl, 40px) 0;
+  width: 100%;
+}
+
+.footer-content {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0px 40px;
+}
+
+/* ========================================
+   Section Titles
+   ======================================== */
+
+.footer-section-title {
+  font-family: var(--font-heading, 'Montserrat', sans-serif);
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--color-rose-gold, #B76D75);
+  position: relative;
+  display: inline-block;
+  margin-bottom: 10px;
+  margin-top: 0;
+}
+
+/* Underline Animation - Center-Outward */
+.footer-section-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-rose-gold, #B76D75), transparent);
+  transition: width 0.3s ease;
+}
+
+/* ========================================
+   Mobile Styles (<768px)
+   ======================================== */
+
+@media (max-width: 767px) {
+  /* Remove all padding on mobile */
+  .footer {
+    padding: 0;
+  }
+
+  .footer-content {
+    padding: 0 20px;
+  }
+
+  /* Show underline when section is expanded */
+  .footer-section [aria-expanded="true"] + div .footer-section-title::after,
+  .footer-section[data-active] .footer-section-title::after {
+    width: 100%;
+  }
+
+  .footer-bottom {
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  .footer-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* ========================================
+   Desktop Styles (≥768px)
+   ======================================== */
+
+@media (min-width: 768px) {
+  .footer-desktop-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    column-gap: var(--space-xl, 40px);
+    row-gap: 0;
+  }
+
+  .footer-section {
+    border-bottom: none;
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Position content within grid cells */
+  .footer-desktop-grid .footer-section:nth-child(1) {
+    align-items: flex-start; /* Left column: content stays left */
+  }
+
+  .footer-desktop-grid .footer-section:nth-child(2) {
+    align-items: center; /* Middle column: content centered */
+  }
+
+  .footer-desktop-grid .footer-section:nth-child(3) {
+    align-items: flex-end; /* Right column: content aligned right */
+  }
+
+  /* Ensure text stays left-aligned inside all columns */
+  .footer-desktop-grid .footer-section .footer-section-title,
+  .footer-desktop-grid .footer-section .footer-links,
+  .footer-desktop-grid .footer-section .social-links {
+    text-align: left;
+  }
+
+  /* Show underline on hover */
+  .footer-section:hover .footer-section-title::after {
+    width: 100%;
+  }
+
+  .footer-section-title {
+    margin-bottom: 10px;
+  }
+
+  .footer-bottom {
+    grid-column: 1 / -1;
+    margin-top: 24px;
+    border-top: 1px solid rgba(183, 109, 117, 0.2);
+  }
+
+  .footer-meta {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+/* ========================================
+   Footer Links
+   ======================================== */
+
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links li {
+  margin-bottom: 12px;
+}
+
+.footer-links li:last-child {
+  margin-bottom: 0;
+}
+
+.footer-links a {
+  color: var(--color-taupe, #B8B0A8);
+  text-decoration: none;
+  font-family: var(--font-body, 'Source Sans 3', sans-serif);
+  font-size: 14px;
+  font-weight: 400;
+  transition: color 0.2s ease;
+  display: inline-block;
+}
+
+.footer-links a:hover {
+  color: var(--color-rose-gold, #B76D75);
+}
+
+.footer-links a:focus {
+  outline: 2px solid var(--color-rose-gold, #B76D75);
+  outline-offset: 2px;
+}
+
+/* ========================================
+   Social Links
+   ======================================== */
+
+.social-links {
+  margin-top: var(--space-sm, 16px);
+}
+
+.social-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-taupe, #B8B0A8);
+  text-decoration: none;
+  font-family: var(--font-body, 'Source Sans 3', sans-serif);
+  font-size: 14px;
+  font-weight: 400;
+  transition: color 0.2s ease;
+}
+
+.social-link:hover {
+  color: var(--color-rose-gold, #B76D75);
+}
+
+.social-link:focus {
+  outline: 2px solid var(--color-rose-gold, #B76D75);
+  outline-offset: 2px;
+}
+
+/* Desktop: Stack social links vertically */
+@media (min-width: 768px) {
+  .footer-desktop-grid .social-links {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+/* ========================================
+   Footer Bottom Section
+   ======================================== */
+
+.privacy-notice {
+  font-family: var(--font-body, 'Source Sans 3', sans-serif);
+  font-size: 13px;
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.6;
+  color: var(--color-taupe, #B8B0A8);
+  margin-top: 10px;
+  margin-bottom: var(--space-sm, 16px);
+}
+
+.footer-meta {
+  font-family: var(--font-body, 'Source Sans 3', sans-serif);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--color-taupe, #B8B0A8);
+  display: flex;
+  gap: 12px;
+}
+
+.footer-email {
+  color: var(--color-taupe, #B8B0A8);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.footer-email:hover {
+  color: var(--color-rose-gold, #B76D75);
+}
+
+.footer-email:focus {
+  outline: 2px solid var(--color-rose-gold, #B76D75);
+  outline-offset: 2px;
+}
+
+/* ========================================
+   Reduced Motion Support
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .footer-section-title::after,
+  .footer-links a,
+  .social-link,
+  .footer-email {
+    transition: none;
+  }
+}
+
+/* ========================================
+   Mantine Accordion Overrides (Mobile)
+   ======================================== */
+
+/* These styles ensure accordion works correctly on mobile */
+.footer-section .mantine-Accordion-item {
+  background-color: transparent;
+}
+
+.footer-section .mantine-Accordion-control {
+  padding: var(--space-sm, 16px) 0;
+}
+
+.footer-section .mantine-Accordion-label {
+  padding-bottom: 0 !important;
+}
+
+.footer-section .mantine-Accordion-panel {
+  padding-bottom: 0 !important;
+}
+
+.footer-section .mantine-Accordion-chevron {
+  color: var(--color-rose-gold, #B76D75);
+}

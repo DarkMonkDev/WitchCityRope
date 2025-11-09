@@ -48,31 +48,21 @@ public class VettingApplication
     public string RealName { get; set; } = string.Empty; // Kept for backward compatibility
     public string? FullName { get; set; } // Full legal name (may differ from FirstName/LastName)
     public string Email { get; set; } = string.Empty;
-    public string? Phone { get; set; }
     public string? FetLifeHandle { get; set; }
     public string? Pronouns { get; set; }
     public string? OtherNames { get; set; }
-    public string AboutYourself { get; set; } = string.Empty;
 
     // Experience & Knowledge (from CreateApplicationRequest)
     public int ExperienceLevel { get; set; } // 1=Beginner, 2=Intermediate, 3=Advanced, 4=Expert
     public int YearsExperience { get; set; }
     public string? ExperienceDescription { get; set; }
-    public string? SafetyKnowledge { get; set; }
-    public string? ConsentUnderstanding { get; set; }
 
     // Community Understanding (from CreateApplicationRequest)
     public string? WhyJoinCommunity { get; set; }
-    public string? SkillsInterests { get; set; } // Comma-separated list
-    public string? ExpectationsGoals { get; set; }
     public bool AgreesToGuidelines { get; set; }
-
-    // References (JSON serialized)
-    public string? References { get; set; }
 
     // Terms & Consent (from CreateApplicationRequest)
     public bool AgreesToTerms { get; set; }
-    public bool IsAnonymous { get; set; }
     public bool ConsentToContact { get; set; }
 
     // Application Status and Management
@@ -83,7 +73,6 @@ public class VettingApplication
     /// </summary>
     public VettingStatus WorkflowStatus { get; set; }
     public DateTime SubmittedAt { get; set; }
-    public string? AdminNotes { get; set; }  // Simple text field for admin notes
 
     // Additional tracking fields
     public DateTime? ReviewStartedAt { get; set; }

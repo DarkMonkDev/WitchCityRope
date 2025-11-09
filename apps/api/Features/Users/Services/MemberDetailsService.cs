@@ -53,18 +53,8 @@ public class MemberDetailsService : IMemberDetailsService
 
             // SERVER-SIDE PROJECTION: Calculate participation counts at database level
             // Benefits: Eliminates loading full participations, more efficient counting
-            var activeRegistrations = await _context.EventParticipations
-                .AsNoTracking()
-                .Where(ep => ep.UserId == userId
-                          && ep.Status == WitchCityRope.Api.Features.Participation.Entities.ParticipationStatus.Active)
-                .CountAsync(cancellationToken);
 
-            var totalRegistered = await _context.EventParticipations
-                .AsNoTracking()
-                .Where(ep => ep.UserId == userId)
-                .CountAsync(cancellationToken);
-
-            // SERVER-SIDE PROJECTION: Calculate past events count and last event at database level
+            // TotalEventsAttended: Active registrations for past events (event ended)
             var totalAttended = await _context.EventParticipations
                 .AsNoTracking()
                 .Where(ep => ep.UserId == userId
@@ -72,6 +62,7 @@ public class MemberDetailsService : IMemberDetailsService
                           && ep.Event.EndDate < DateTime.UtcNow)
                 .CountAsync(cancellationToken);
 
+            // LastEventAttended: Most recent past event with Active status
             var lastEventAttended = await _context.EventParticipations
                 .AsNoTracking()
                 .Where(ep => ep.UserId == userId
@@ -80,6 +71,32 @@ public class MemberDetailsService : IMemberDetailsService
                 .OrderByDescending(ep => ep.Event.EndDate)
                 .Select(ep => ep.Event.EndDate)
                 .FirstOrDefaultAsync(cancellationToken);
+
+            // FutureEvents: Active registrations where event hasn't started yet
+            var futureEvents = await _context.EventParticipations
+                .AsNoTracking()
+                .Where(ep => ep.UserId == userId
+                          && ep.Status == WitchCityRope.Api.Features.Participation.Entities.ParticipationStatus.Active
+                          && ep.Event.StartDate > DateTime.UtcNow)
+                .CountAsync(cancellationToken);
+
+            // TotalPastEventsRegistered: ALL registrations (any status) for past events
+            var totalPastEventsRegistered = await _context.EventParticipations
+                .AsNoTracking()
+                .Where(ep => ep.UserId == userId
+                          && ep.Event.EndDate < DateTime.UtcNow)
+                .CountAsync(cancellationToken);
+
+            // CancelledRegistrations: Count of Cancelled OR Refunded status
+            var cancelledRegistrations = await _context.EventParticipations
+                .AsNoTracking()
+                .Where(ep => ep.UserId == userId
+                          && (ep.Status == WitchCityRope.Api.Features.Participation.Entities.ParticipationStatus.Cancelled
+                           || ep.Status == WitchCityRope.Api.Features.Participation.Entities.ParticipationStatus.Refunded))
+                .CountAsync(cancellationToken);
+
+            // NoShows: Calculated as TotalPastEventsRegistered - TotalEventsAttended
+            var noShows = totalPastEventsRegistered - totalAttended;
 
             // Map vetting status to display string
             var vettingStatusDisplay = user.VettingStatus switch
@@ -106,9 +123,11 @@ public class MemberDetailsService : IMemberDetailsService
                 CreatedAt = user.CreatedAt,
                 LastLoginAt = user.LastLoginAt,
                 TotalEventsAttended = totalAttended,
-                TotalEventsRegistered = totalRegistered,
-                ActiveRegistrations = activeRegistrations,
                 LastEventAttended = lastEventAttended,
+                FutureEvents = futureEvents,
+                TotalPastEventsRegistered = totalPastEventsRegistered,
+                CancelledRegistrations = cancelledRegistrations,
+                NoShows = noShows,
                 VettingStatus = user.VettingStatus,
                 VettingStatusDisplay = vettingStatusDisplay,
                 HasVettingApplication = user.HasVettingApplication
@@ -176,23 +195,20 @@ public class MemberDetailsService : IMemberDetailsService
                 SceneName = application.SceneName,
                 RealName = application.RealName,
                 Email = application.Email,
-                Phone = application.Phone,
+                Phone = null, // Field removed from entity
                 FetLifeHandle = application.FetLifeHandle,
                 Pronouns = application.Pronouns,
-                AboutYourself = application.AboutYourself,
+                AboutYourself = application.OtherNames, // Migrated to OtherNames
                 ExperienceLevel = application.ExperienceLevel,
                 YearsExperience = application.YearsExperience,
                 ExperienceDescription = application.ExperienceDescription,
-                SafetyKnowledge = application.SafetyKnowledge,
-                ConsentUnderstanding = application.ConsentUnderstanding,
+                SafetyKnowledge = null, // Field removed from entity
+                ConsentUnderstanding = null, // Field removed from entity
                 WhyJoinCommunity = application.WhyJoinCommunity,
-                SkillsInterests = application.SkillsInterests,
-                ExpectationsGoals = application.ExpectationsGoals,
+                SkillsInterests = null, // Field removed from entity
+                ExpectationsGoals = null, // Field removed from entity
                 AgreesToGuidelines = application.AgreesToGuidelines,
-                AgreesToTerms = application.AgreesToTerms,
-
-                // Admin notes from vetting application
-                AdminNotes = application.AdminNotes
+                AgreesToTerms = application.AgreesToTerms
             };
 
             _logger.LogInformation("Retrieved vetting details for user {UserId}", userId);
@@ -384,42 +400,112 @@ public class MemberDetailsService : IMemberDetailsService
     }
 
     /// <summary>
+    /// Converts vetting audit log actions to simplified, user-friendly descriptions
+    /// EXACT COPY from VettingService.GetSimplifiedActionDescription()
+    /// </summary>
+    private static string GetSimplifiedActionDescription(string action, string? oldValue, string? newValue)
+    {
+        // Map status transitions to extremely simple past tense descriptions (2-4 words max)
+        if (action.Contains("Status Changed") && !string.IsNullOrWhiteSpace(newValue))
+        {
+            return newValue switch
+            {
+                "InterviewApproved" => "Approved for interview",
+                "FinalReview" => "Interview completed",
+                "Approved" => "Application approved",
+                "Denied" => "Application denied",
+                "OnHold" => "Application placed on hold",
+                "UnderReview" => "Returned to review",
+                "Withdrawn" => "Application withdrawn",
+                _ => $"Status changed to {newValue}"
+            };
+        }
+
+        if (action.Contains("Approval"))
+        {
+            return "Application approved";
+        }
+
+        if (action.Contains("Denied"))
+        {
+            return "Application denied";
+        }
+
+        // Default fallback
+        return action;
+    }
+
+    /// <summary>
     /// Get all notes for a member (unified notes system)
     /// Endpoint 5: GET /api/users/{id}/notes
-    /// Returns ALL note types together
+    /// Returns ALL note types together including UserNotes AND VettingAuditLogs
     /// </summary>
-    public async Task<(bool Success, List<UserNoteResponse>? Response, string Error)> GetMemberNotesAsync(
+    public async Task<(bool Success, List<MemberNoteHistoryResponse>? Response, string Error)> GetMemberNotesAsync(
         Guid userId,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var notes = await _context.UserNotes
+            _logger.LogInformation("Fetching complete note history for user {UserId}", userId);
+
+            // Fetch UserNotes (general notes)
+            var userNotes = await _context.UserNotes
                 .AsNoTracking()
                 .Include(un => un.Author)
                 .Where(un => un.UserId == userId && !un.IsArchived)
-                .OrderByDescending(un => un.CreatedAt)
+                .Select(un => new MemberNoteHistoryResponse
+                {
+                    Id = un.Id,
+                    NoteSource = "UserNote",
+                    Content = un.Content,
+                    Type = un.NoteType,
+                    AuthorSceneName = un.Author != null ? un.Author.SceneName : null,
+                    Timestamp = un.CreatedAt,
+                    OldValue = null,
+                    NewValue = null
+                })
                 .ToListAsync(cancellationToken);
 
-            var response = notes.Select(note => new UserNoteResponse
-            {
-                Id = note.Id,
-                UserId = note.UserId,
-                Content = note.Content,
-                NoteType = note.NoteType,
-                AuthorId = note.AuthorId,
-                AuthorSceneName = note.Author?.SceneName,
-                CreatedAt = note.CreatedAt,
-                IsArchived = note.IsArchived
-            }).ToList();
+            // Fetch VettingAuditLogs for all user's vetting applications
+            // Load raw data first, then apply transformation in memory
+            var vettingAuditLogsRaw = await _context.VettingAuditLogs
+                .AsNoTracking()
+                .Include(val => val.PerformedByUser)
+                .Where(val => _context.VettingApplications
+                    .Any(va => va.UserId == userId && va.Id == val.ApplicationId))
+                .ToListAsync(cancellationToken);
 
-            _logger.LogInformation("Retrieved {Count} notes for user {UserId}", response.Count, userId);
-            return (true, response, string.Empty);
+            // Transform to response DTOs with simplified descriptions
+            var vettingAuditLogs = vettingAuditLogsRaw
+                .Select(val => new MemberNoteHistoryResponse
+                {
+                    Id = val.Id,
+                    NoteSource = "VettingAuditLog",
+                    Content = val.Notes ?? GetSimplifiedActionDescription(val.Action, val.OldValue, val.NewValue),
+                    Type = val.Action,
+                    AuthorSceneName = val.PerformedByUser.SceneName,
+                    Timestamp = val.PerformedAt,
+                    OldValue = val.OldValue,
+                    NewValue = val.NewValue
+                })
+                .ToList();
+
+            // Combine and sort by timestamp (newest first)
+            var combinedNotes = userNotes
+                .Concat(vettingAuditLogs)
+                .OrderByDescending(n => n.Timestamp)
+                .ToList();
+
+            _logger.LogInformation(
+                "Retrieved {UserNotesCount} user notes and {AuditLogCount} audit logs for user {UserId}",
+                userNotes.Count, vettingAuditLogs.Count, userId);
+
+            return (true, combinedNotes, string.Empty);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to get notes for user {UserId}", userId);
-            return (false, null, "Failed to retrieve notes");
+            _logger.LogError(ex, "Failed to get complete note history for user {UserId}", userId);
+            return (false, null, "Failed to retrieve note history");
         }
     }
 

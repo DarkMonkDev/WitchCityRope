@@ -53,9 +53,10 @@ public class EventService
                     .ThenInclude(tt => tt.Session)
                 .Include(e => e.TicketTypes)
                     .ThenInclude(tt => tt.Purchases) // Include purchases for dynamic QuantitySold calculation
+                        .ThenInclude(p => p.User) // Load user to match with EventParticipation
                 .Include(e => e.VolunteerPositions)
                 .Include(e => e.Organizers)
-                .Include(e => e.EventParticipations);
+                .Include(e => e.EventParticipations); // This loads all participations for the event
 
             // Apply filters based on admin vs public access
             if (includeUnpublished)
@@ -94,7 +95,7 @@ public class EventService
                 CurrentRSVPs = e.GetCurrentRSVPCount(),
                 CurrentTickets = e.GetCurrentTicketCount(),
                 Sessions = e.Sessions.Select(s => new SessionDto(s)).ToList(),
-                TicketTypes = e.TicketTypes.Select(tt => new TicketTypeDto(tt)).ToList(),
+                TicketTypes = e.TicketTypes.Select(tt => new TicketTypeDto(tt, e.EventParticipations)).ToList(),
                 VolunteerPositions = e.VolunteerPositions.Select(vp => new VolunteerPositionDto(vp)).ToList(),
                 TeacherIds = e.Organizers.Select(o => o.Id.ToString()).ToList()
             }).ToList();
@@ -135,9 +136,10 @@ public class EventService
                     .ThenInclude(tt => tt.Session)
                 .Include(e => e.TicketTypes)
                     .ThenInclude(tt => tt.Purchases)
+                        .ThenInclude(p => p.User) // Load user to match with EventParticipation
                 .Include(e => e.VolunteerPositions)
                 .Include(e => e.Organizers)
-                .Include(e => e.EventParticipations)
+                .Include(e => e.EventParticipations) // This loads all participations for the event
                 .FirstOrDefaultAsync(e => e.Id == parsedId, cancellationToken);
 
             if (eventEntity == null)
@@ -147,15 +149,25 @@ public class EventService
             }
 
             // Calculate CurrentAttendees for each session from actual ticket purchases
+            // Create a lookup of active user IDs from event participations
+            var activeUserIds = eventEntity.EventParticipations
+                .Where(ep => ep.Status == WitchCityRope.Api.Features.Participation.Entities.ParticipationStatus.Active)
+                .Select(ep => ep.UserId)
+                .ToHashSet();
+
             foreach (var session in eventEntity.Sessions)
             {
                 // Count completed ticket purchases for this session
                 // For single-session tickets: TicketType.SessionId == session.Id
                 // For multi-session tickets: Would need additional logic (not implemented yet)
+                // CRITICAL: Exclude cancelled/refunded tickets by checking EventParticipation.Status
+                // Only count Active participations (status = 1), exclude Cancelled (2), Refunded (3), Waitlisted (4)
                 var ticketsSold = eventEntity.TicketTypes
                     .Where(tt => tt.SessionId == session.Id)
                     .SelectMany(tt => tt.Purchases)
-                    .Where(p => p.IsPaymentCompleted)
+                    .Where(p =>
+                        p.IsPaymentCompleted &&
+                        activeUserIds.Contains(p.UserId))
                     .Sum(p => p.Quantity);
 
                 session.CurrentAttendees = ticketsSold;
@@ -179,7 +191,7 @@ public class EventService
                 CurrentRSVPs = eventEntity.GetCurrentRSVPCount(),
                 CurrentTickets = eventEntity.GetCurrentTicketCount(),
                 Sessions = eventEntity.Sessions.Select(s => new SessionDto(s)).ToList(),
-                TicketTypes = eventEntity.TicketTypes.Select(tt => new TicketTypeDto(tt)).ToList(),
+                TicketTypes = eventEntity.TicketTypes.Select(tt => new TicketTypeDto(tt, eventEntity.EventParticipations)).ToList(),
                 VolunteerPositions = eventEntity.VolunteerPositions.Select(vp => new VolunteerPositionDto(vp)).ToList(),
                 TeacherIds = eventEntity.Organizers.Select(o => o.Id.ToString()).ToList()
             };
@@ -404,7 +416,7 @@ public class EventService
                 CurrentRSVPs = eventEntity.GetCurrentRSVPCount(),
                 CurrentTickets = eventEntity.GetCurrentTicketCount(),
                 Sessions = eventEntity.Sessions.Select(s => new SessionDto(s)).ToList(),
-                TicketTypes = eventEntity.TicketTypes.Select(tt => new TicketTypeDto(tt)).ToList(),
+                TicketTypes = eventEntity.TicketTypes.Select(tt => new TicketTypeDto(tt, eventEntity.EventParticipations)).ToList(),
                 VolunteerPositions = eventEntity.VolunteerPositions.Select(vp => new VolunteerPositionDto(vp)).ToList(),
                 TeacherIds = eventEntity.Organizers.Select(o => o.Id.ToString()).ToList()
             };

@@ -121,8 +121,7 @@ public class VettingSeeder
                 SubmittedAt = DateTime.UtcNow.AddDays(-365), // Applied a year ago
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-364),
                 InterviewScheduledFor = DateTime.UtcNow.AddDays(-362),
-                DecisionMadeAt = DateTime.UtcNow.AddDays(-360),
-                AdminNotes = "Community administrator - founding member with extensive experience. Approved."
+                DecisionMadeAt = DateTime.UtcNow.AddDays(-360)
             }
         };
 
@@ -150,8 +149,7 @@ public class VettingSeeder
                 SubmittedAt = DateTime.UtcNow.AddDays(-180), // Applied 6 months ago
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-178),
                 InterviewScheduledFor = DateTime.UtcNow.AddDays(-175),
-                DecisionMadeAt = DateTime.UtcNow.AddDays(-170),
-                AdminNotes = "Experienced practitioner with excellent references. Strong understanding of safety and consent. Approved for full membership."
+                DecisionMadeAt = DateTime.UtcNow.AddDays(-170)
             });
         }
 
@@ -177,8 +175,7 @@ public class VettingSeeder
                 AgreesToTerms = true,
                 ConsentToContact = true,
                 WorkflowStatus = VettingStatus.UnderReview, // UnderReview (0)
-                SubmittedAt = DateTime.UtcNow.AddDays(-3),
-                AdminNotes = null
+                SubmittedAt = DateTime.UtcNow.AddDays(-3)
             },
 
             // Application 3: On Hold - needs more experience (CORRECTED STATUS)
@@ -201,8 +198,7 @@ public class VettingSeeder
                 ConsentToContact = true,
                 WorkflowStatus = VettingStatus.OnHold, // OnHold (5) - CORRECTED from InterviewApproved
                 SubmittedAt = DateTime.UtcNow.AddDays(-10),
-                ReviewStartedAt = DateTime.UtcNow.AddDays(-7),
-                AdminNotes = "Good references and thoughtful application. Recommending more foundational experience - suggested attending beginner workshops for 3-6 months before reapplying."
+                ReviewStartedAt = DateTime.UtcNow.AddDays(-7)
             },
 
             // Application 4: Denied - poor consent understanding (CORRECTED STATUS)
@@ -228,8 +224,7 @@ public class VettingSeeder
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-10),
                 InterviewScheduledFor = DateTime.UtcNow.AddDays(-8),
                 DecisionMadeAt = DateTime.UtcNow.AddDays(-5),
-                LastReviewedAt = DateTime.UtcNow.AddDays(-5),
-                AdminNotes = "Application denied. Interview revealed concerning attitudes toward consent and pushing boundaries without proper communication. Focused on technical skills over partner safety and communication. Recommended to attend formal consent and communication workshops before reapplying."
+                LastReviewedAt = DateTime.UtcNow.AddDays(-5)
             },
 
             // Application 5: Approved - recently approved member
@@ -253,8 +248,7 @@ public class VettingSeeder
                 WorkflowStatus = VettingStatus.Approved, // Approved (4)
                 SubmittedAt = DateTime.UtcNow.AddDays(-21),
                 ReviewStartedAt = DateTime.UtcNow.AddDays(-18),
-                DecisionMadeAt = DateTime.UtcNow.AddDays(-2),
-                AdminNotes = "Excellent references from previous community. Strong technical knowledge and teaching experience. Approved for full membership."
+                DecisionMadeAt = DateTime.UtcNow.AddDays(-2)
             }
         };
 
@@ -287,8 +281,7 @@ public class VettingSeeder
                 ConsentToContact = true,
                 WorkflowStatus = VettingStatus.InterviewApproved, // InterviewApproved (1) - CORRECTED from OnHold
                 SubmittedAt = DateTime.UtcNow.AddDays(-12),
-                ReviewStartedAt = DateTime.UtcNow.AddDays(-8),
-                AdminNotes = "Good references and thoughtful application. Ready for interview to assess practical knowledge and community fit."
+                ReviewStartedAt = DateTime.UtcNow.AddDays(-8)
             });
 
             // Application 7: Under Review - recent submission (CORRECTED STATUS)
@@ -314,8 +307,7 @@ public class VettingSeeder
                     WorkflowStatus = VettingStatus.UnderReview, // UnderReview (0) - CORRECTED from Denied
                     SubmittedAt = DateTime.UtcNow.AddDays(-20),
                     ReviewStartedAt = DateTime.UtcNow.AddDays(-17),
-                    DecisionMadeAt = null,
-                    AdminNotes = null
+                    DecisionMadeAt = null
                 });
             }
 
@@ -344,8 +336,7 @@ public class VettingSeeder
                     ReviewStartedAt = DateTime.UtcNow.AddDays(-25),
                     InterviewScheduledFor = DateTime.UtcNow.AddDays(-20),
                     DecisionMadeAt = DateTime.UtcNow.AddDays(-15),
-                    LastReviewedAt = DateTime.UtcNow.AddDays(-15),
-                    AdminNotes = "Experienced practitioner with strong safety focus. Approved for Teacher role."
+                    LastReviewedAt = DateTime.UtcNow.AddDays(-15)
                 });
             }
 
@@ -371,8 +362,7 @@ public class VettingSeeder
                     ConsentToContact = true,
                     WorkflowStatus = VettingStatus.InterviewApproved,
                     SubmittedAt = DateTime.UtcNow.AddDays(-8),
-                    ReviewStartedAt = DateTime.UtcNow.AddDays(-5),
-                    AdminNotes = "Strong references from previous community leaders. Ready for interview to discuss integration into local group."
+                    ReviewStartedAt = DateTime.UtcNow.AddDays(-5)
                 });
             }
 
@@ -397,8 +387,7 @@ public class VettingSeeder
                     AgreesToTerms = true,
                     ConsentToContact = true,
                     WorkflowStatus = VettingStatus.UnderReview,
-                    SubmittedAt = DateTime.UtcNow.AddDays(-5),
-                    AdminNotes = null
+                    SubmittedAt = DateTime.UtcNow.AddDays(-5)
                 });
             }
 
@@ -423,8 +412,7 @@ public class VettingSeeder
                     AgreesToTerms = true,
                     ConsentToContact = true,
                     WorkflowStatus = VettingStatus.UnderReview,
-                    SubmittedAt = DateTime.UtcNow.AddDays(-2),
-                    AdminNotes = null
+                    SubmittedAt = DateTime.UtcNow.AddDays(-2)
                 });
             }
 
@@ -453,8 +441,7 @@ public class VettingSeeder
                     ReviewStartedAt = DateTime.UtcNow.AddDays(-35),
                     InterviewScheduledFor = DateTime.UtcNow.AddDays(-30),
                     DecisionMadeAt = DateTime.UtcNow.AddDays(-25),
-                    LastReviewedAt = DateTime.UtcNow.AddDays(-25),
-                    AdminNotes = "Highly experienced with excellent references from Portland community. Strong safety background. Approved for Teacher role."
+                    LastReviewedAt = DateTime.UtcNow.AddDays(-25)
                 });
             }
 
@@ -483,8 +470,7 @@ public class VettingSeeder
                     ReviewStartedAt = DateTime.UtcNow.AddDays(-45),
                     InterviewScheduledFor = DateTime.UtcNow.AddDays(-40),
                     DecisionMadeAt = DateTime.UtcNow.AddDays(-35),
-                    LastReviewedAt = DateTime.UtcNow.AddDays(-35),
-                    AdminNotes = "Excellent teaching credentials with strong references from previous community. Patient and methodical approach to instruction. Approved for Teacher role."
+                    LastReviewedAt = DateTime.UtcNow.AddDays(-35)
                 });
             }
 
@@ -496,6 +482,76 @@ public class VettingSeeder
 
         await _context.VettingApplications.AddRangeAsync(sampleApplications, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
+
+        // Create UserNotes for applications (replacing legacy AdminNotes field)
+        var userNotes = new List<WitchCityRope.Api.Data.Entities.UserNote>();
+
+        // Map of application indices to their historical admin notes
+        var notesMap = new Dictionary<int, string>
+        {
+            { 0, "Community administrator - founding member with extensive experience. Approved." },
+            { 1, "Experienced practitioner with excellent references. Strong understanding of safety and consent. Approved for full membership." },
+            { 3, "Good references and thoughtful application. Recommending more foundational experience - suggested attending beginner workshops for 3-6 months before reapplying." },
+            { 4, "Application denied. Interview revealed concerning attitudes toward consent and pushing boundaries without proper communication. Focused on technical skills over partner safety and communication. Recommended to attend formal consent and communication workshops before reapplying." },
+            { 5, "Excellent references from previous community. Strong technical knowledge and teaching experience. Approved for full membership." }
+        };
+
+        // Add notes from main sample applications list
+        for (int i = 0; i < Math.Min(sampleApplications.Count, 6); i++)
+        {
+            var app = sampleApplications[i];
+            if (notesMap.ContainsKey(i) && app.UserId.HasValue)
+            {
+                userNotes.Add(new WitchCityRope.Api.Data.Entities.UserNote
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = app.UserId.Value,
+                    Content = notesMap[i],
+                    NoteType = "Vetting",
+                    AuthorId = null, // System-generated note
+                    CreatedAt = app.DecisionMadeAt ?? app.SubmittedAt,
+                    IsArchived = false
+                });
+            }
+        }
+
+        // Add notes for additional applications (indices 6-12 in full list)
+        if (sampleApplications.Count > 6)
+        {
+            var additionalNotesMap = new Dictionary<int, string>
+            {
+                { 6, "Good references and thoughtful application. Ready for interview to assess practical knowledge and community fit." },
+                { 8, "Experienced practitioner with strong safety focus. Approved for Teacher role." },
+                { 9, "Strong references from previous community leaders. Ready for interview to discuss integration into local group." },
+                { 12, "Highly experienced with excellent references from Portland community. Strong safety background. Approved for Teacher role." },
+                { 13, "Excellent teaching credentials with strong references from previous community. Patient and methodical approach to instruction. Approved for Teacher role." }
+            };
+
+            for (int i = 6; i < sampleApplications.Count; i++)
+            {
+                var app = sampleApplications[i];
+                if (additionalNotesMap.ContainsKey(i) && app.UserId.HasValue)
+                {
+                    userNotes.Add(new WitchCityRope.Api.Data.Entities.UserNote
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = app.UserId.Value,
+                        Content = additionalNotesMap[i],
+                        NoteType = "Vetting",
+                        AuthorId = null, // System-generated note
+                        CreatedAt = app.DecisionMadeAt ?? app.ReviewStartedAt ?? app.SubmittedAt,
+                        IsArchived = false
+                    });
+                }
+            }
+        }
+
+        if (userNotes.Any())
+        {
+            await _context.UserNotes.AddRangeAsync(userNotes, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation("Created {Count} UserNotes for vetting applications", userNotes.Count);
+        }
 
         // Sync User.VettingStatus for applications in terminal states (Approved, Denied, OnHold)
         // User.VettingStatus is the source of truth for permissions/access control

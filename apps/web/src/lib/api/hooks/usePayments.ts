@@ -29,6 +29,14 @@ export function usePurchaseTicket() {
         queryKey: ['events', variables.eventId, 'participations']
       });
 
+      // Invalidate check-in queries so kiosk shows updated ticket status
+      queryClient.invalidateQueries({
+        queryKey: ['checkin', 'attendees', variables.eventId]
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['checkin', 'dashboard', variables.eventId]
+      });
+
       // Show success notification
       notifications.show({
         title: 'Ticket Purchased Successfully!',
@@ -100,6 +108,14 @@ export function useConfirmPayPalPayment() {
         // Invalidate admin event participations table
         queryClient.invalidateQueries({
           queryKey: ['events', eventId, 'participations']
+        });
+
+        // Invalidate check-in queries so kiosk shows updated ticket status
+        queryClient.invalidateQueries({
+          queryKey: ['checkin', 'attendees', eventId]
+        });
+        queryClient.invalidateQueries({
+          queryKey: ['checkin', 'dashboard', eventId]
         });
       }
 

@@ -56,7 +56,7 @@ export async function authLoader({ request }: LoaderFunctionArgs) {
   }
 
   // User is not authenticated - redirect to login with return URL
-  const returnTo = encodeURIComponent(requestUrl.pathname);
-  console.log('Redirecting to login with returnTo:', returnTo);
-  throw redirect(`/login?returnTo=${returnTo}`);
+  const returnUrl = encodeURIComponent(requestUrl.pathname + requestUrl.search);
+  console.log('Redirecting to login with returnUrl:', returnUrl);
+  throw redirect(`/login?returnUrl=${returnUrl}`);
 }

@@ -28,10 +28,6 @@ public class VettingApplicationConfiguration : IEntityTypeConfiguration<VettingA
             .IsRequired()
             .HasMaxLength(255);
 
-        builder.Property(x => x.AboutYourself)
-            .IsRequired()
-            .HasMaxLength(2000);
-
         // Optional fields
         builder.Property(x => x.FetLifeHandle)
             .HasMaxLength(100);
@@ -41,9 +37,6 @@ public class VettingApplicationConfiguration : IEntityTypeConfiguration<VettingA
 
         builder.Property(x => x.OtherNames)
             .HasMaxLength(200);
-
-        builder.Property(x => x.AdminNotes)
-            .HasMaxLength(4000);
 
         // Workflow status enum
         builder.Property(x => x.WorkflowStatus)

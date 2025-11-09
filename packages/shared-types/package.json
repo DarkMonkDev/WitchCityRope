@@ -4,6 +4,20 @@
   "description": "Auto-generated TypeScript types from WitchCityRope API",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./generated/api-types": {
+      "types": "./dist/generated/api-types.d.ts",
+      "default": "./dist/generated/api-types.js"
+    },
+    "./generated/*": {
+      "types": "./dist/generated/*.d.ts",
+      "default": "./dist/generated/*.js"
+    }
+  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "generate": "node scripts/generate-types-openapi.js",

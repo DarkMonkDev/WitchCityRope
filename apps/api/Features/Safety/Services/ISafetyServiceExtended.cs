@@ -64,6 +64,16 @@ public interface ISafetyServiceExtended : ISafetyService
         bool isAdmin,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Update involved parties and witnesses
+    /// </summary>
+    Task<Result<UpdatePeopleResponse>> UpdatePeopleAsync(
+        Guid incidentId,
+        UpdatePeopleRequest request,
+        Guid userId,
+        bool isAdmin,
+        CancellationToken cancellationToken = default);
+
     // PHASE 4: Notes System
 
     /// <summary>

@@ -1332,6 +1332,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/safety/admin/incidents/{incidentId}/people": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update involved parties and witnesses
+         * @description Update involved parties and/or witnesses information (Admin/Coordinator)
+         */
+        put: operations["UpdateIncidentPeople"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/safety/admin/incidents/{incidentId}/notes": {
         parameters: {
             query?: never;
@@ -2620,7 +2640,6 @@ export interface components {
         };
         AddNoteRequest: {
             content?: string;
-            isPrivate?: boolean;
             tags?: string | null;
         };
         AdminDashboardResponse: {
@@ -2884,20 +2903,14 @@ export interface components {
             sceneName?: string;
             pronouns?: string | null;
             email?: string;
-            phone?: string | null;
+            fetLifeHandle?: string | null;
+            otherNames?: string | null;
             experienceLevel?: string;
             /** Format: int32 */
             yearsExperience?: number;
             experienceDescription?: string;
-            safetyKnowledge?: string;
-            consentUnderstanding?: string;
             whyJoinCommunity?: string;
-            skillsInterests?: string[];
-            expectationsGoals?: string;
             agreesToGuidelines?: boolean;
-            isAnonymous?: boolean;
-            agreesToTerms?: boolean;
-            consentToContact?: boolean;
             assignedReviewerName?: string | null;
             /** Format: date-time */
             reviewStartedAt?: string | null;
@@ -2909,7 +2922,6 @@ export interface components {
             notes?: components["schemas"]["ApplicationNoteDto"][];
             decisions?: components["schemas"]["ReviewDecisionDto"][];
             workflowHistory?: components["schemas"]["WorkflowHistoryDto"][];
-            adminNotes?: string | null;
             tags?: string[];
             attachments?: string[];
             /** Format: date-time */
@@ -3040,7 +3052,6 @@ export interface components {
             experienceLevel?: string;
             /** Format: int32 */
             yearsExperience?: number;
-            isAnonymous?: boolean;
             assignedReviewerName?: string | null;
             /** Format: date-time */
             reviewStartedAt?: string | null;
@@ -3053,7 +3064,6 @@ export interface components {
             hasPendingActions?: boolean;
             /** Format: date-time */
             interviewScheduledFor?: string | null;
-            skillsTags?: string[];
         };
         AssignCoordinatorRequest: {
             /** Format: uuid */
@@ -3537,7 +3547,6 @@ export interface components {
             incidentId?: string;
             content?: string;
             type?: components["schemas"]["IncidentNoteType"];
-            isPrivate?: boolean;
             /** Format: uuid */
             authorId?: string | null;
             authorName?: string | null;
@@ -3581,6 +3590,11 @@ export interface components {
             /** Format: uuid */
             assignedTo?: string | null;
             assignedUserName?: string | null;
+            /** Format: uuid */
+            coordinatorId?: string | null;
+            coordinatorName?: string | null;
+            googleDriveFolderUrl?: string | null;
+            googleDriveFinalReportUrl?: string | null;
             auditTrail?: components["schemas"]["AuditLogDto"][];
             /** Format: date-time */
             createdAt?: string;
@@ -3686,12 +3700,16 @@ export interface components {
             lastLoginAt?: string | null;
             /** Format: int32 */
             totalEventsAttended?: number;
-            /** Format: int32 */
-            totalEventsRegistered?: number;
-            /** Format: int32 */
-            activeRegistrations?: number;
             /** Format: date-time */
             lastEventAttended?: string | null;
+            /** Format: int32 */
+            futureEvents?: number;
+            /** Format: int32 */
+            totalPastEventsRegistered?: number;
+            /** Format: int32 */
+            cancelledRegistrations?: number;
+            /** Format: int32 */
+            noShows?: number;
             /** Format: int32 */
             vettingStatus?: number;
             vettingStatusDisplay?: string;
@@ -3717,6 +3735,18 @@ export interface components {
             incidents?: components["schemas"]["MemberIncidentRecord"][];
             /** Format: int32 */
             totalCount?: number;
+        };
+        MemberNoteHistoryResponse: {
+            /** Format: uuid */
+            id?: string;
+            noteSource?: string;
+            content?: string;
+            type?: string;
+            authorSceneName?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+            oldValue?: string | null;
+            newValue?: string | null;
         };
         MyApplicationStatusResponse: {
             hasApplication?: boolean;
@@ -4275,8 +4305,20 @@ export interface components {
         };
         UpdateNoteRequest: {
             content?: string;
-            isPrivate?: boolean;
             tags?: string | null;
+        };
+        UpdatePeopleRequest: {
+            involvedParties?: string | null;
+            witnesses?: string | null;
+        };
+        UpdatePeopleResponse: {
+            /** Format: uuid */
+            id?: string;
+            involvedParties?: string | null;
+            witnesses?: string | null;
+            /** Format: date-time */
+            lastUpdatedAt?: string;
+            systemNoteCreated?: boolean;
         };
         UpdateProfileDto: {
             sceneName: string;
@@ -4426,7 +4468,7 @@ export interface components {
             discordName?: string | null;
             fetLifeName?: string | null;
             phoneNumber?: string | null;
-            vettingStatus?: string;
+            vettingStatus?: components["schemas"]["VettingStatus"];
         } | null;
         /** @enum {unknown} */
         UserRole: "Member" | "Teacher" | "SafetyTeam" | "Administrator" | "EventOrganizer";
@@ -4528,10 +4570,11 @@ export interface components {
             expectationsGoals?: string | null;
             agreesToGuidelines?: boolean | null;
             agreesToTerms?: boolean | null;
-            adminNotes?: string | null;
         };
+        /** @enum {unknown} */
+        VettingStatus: "UnderReview" | "InterviewApproved" | "FinalReview" | "Approved" | "Denied" | "OnHold" | "Withdrawn";
         VettingStatusDto: {
-            status?: string;
+            status?: components["schemas"]["VettingStatus"];
             /** Format: date-time */
             lastUpdatedAt?: string;
             message?: string;
@@ -7460,7 +7503,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserNoteResponse"][];
+                    "application/json": components["schemas"]["MemberNoteHistoryResponse"][];
                 };
             };
             /** @description Unauthorized */
@@ -8102,6 +8145,67 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GoogleDriveUpdateResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UpdateIncidentPeople: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePeopleRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdatePeopleResponse"];
                 };
             };
             /** @description Unauthorized */

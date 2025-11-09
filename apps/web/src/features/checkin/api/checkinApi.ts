@@ -16,6 +16,7 @@ import type {
   CapacityInfo,
   CreateCashTicketPurchaseRequest,
   TicketPurchaseResponse,
+  CashPaymentResponse,
   TicketType
 } from '../types/checkin.types';
 

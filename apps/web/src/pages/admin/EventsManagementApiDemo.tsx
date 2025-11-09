@@ -28,6 +28,7 @@ import { useLegacyEvents, useLegacyEventDetails } from '../../hooks/useLegacyEve
 import { apiClient } from '../../lib/api/client';
 import type { EventSummaryDto } from '@witchcityrope/shared-types';
 import type { LegacyEventDto } from '../../api/services/legacyEventsApi.service';
+import { debugLog } from '../../utils/debug';
 
 export const EventsManagementApiDemo: React.FC = () => {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);

@@ -8,9 +8,9 @@ namespace WitchCityRope.Api.Features.Dashboard.Models;
 public class VettingStatusDto
 {
     /// <summary>
-    /// Vetting status: "Pending", "Approved", "OnHold", "Denied", "Vetted"
+    /// Vetting status enum value
     /// </summary>
-    public string Status { get; set; } = string.Empty;
+    public VettingStatus Status { get; set; } = VettingStatus.UnderReview;
 
     /// <summary>
     /// When the vetting status was last updated

@@ -1447,11 +1447,6 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<Guid>("IncidentId")
                         .HasColumnType("uuid");
 
-                    b.Property<bool>("IsPrivate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
                     b.Property<string>("Tags")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
@@ -1705,15 +1700,6 @@ namespace WitchCityRope.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("AboutYourself")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
-                    b.Property<string>("AdminNotes")
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)");
-
                     b.Property<bool>("AgreesToGuidelines")
                         .HasColumnType("boolean");
 
@@ -1727,9 +1713,6 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<bool>("ConsentToContact")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("ConsentUnderstanding")
-                        .HasColumnType("text");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1740,9 +1723,6 @@ namespace WitchCityRope.Api.Migrations
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
-
-                    b.Property<string>("ExpectationsGoals")
-                        .HasColumnType("text");
 
                     b.Property<string>("ExperienceDescription")
                         .HasColumnType("text");
@@ -1763,9 +1743,6 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<DateTime?>("InterviewScheduledFor")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<bool>("IsAnonymous")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("LastName")
                         .HasColumnType("text");
 
@@ -1776,9 +1753,6 @@ namespace WitchCityRope.Api.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<string>("Phone")
-                        .HasColumnType("text");
-
                     b.Property<string>("Pronouns")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
@@ -1788,22 +1762,13 @@ namespace WitchCityRope.Api.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<string>("References")
-                        .HasColumnType("text");
-
                     b.Property<DateTime?>("ReviewStartedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("SafetyKnowledge")
-                        .HasColumnType("text");
 
                     b.Property<string>("SceneName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
-
-                    b.Property<string>("SkillsInterests")
-                        .HasColumnType("text");
 
                     b.Property<string>("StatusToken")
                         .IsRequired()

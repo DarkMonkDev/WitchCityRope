@@ -291,10 +291,10 @@ export function CheckInInterface({
   // Hide for classes/workshops (attendees already have tickets)
   // Show for social events (attendees may need to pay at door)
   const showDoorPayment = useMemo(() => {
-    const eventType = eventDetails?.eventType?.toLowerCase();
+    const eventType = (eventDetails as any)?.eventType?.toLowerCase();
     // Show Door Payment for social events, hide for classes/workshops
     return eventType === 'social';
-  }, [eventDetails?.eventType]);
+  }, [(eventDetails as any)?.eventType]);
 
   // API hooks (pass sessionToken for authentication)
   const {
@@ -719,8 +719,6 @@ export function CheckInInterface({
                 }}
                 currentState={getButtonState(attendee)}
                 onStateChange={(newState) => handleButtonStateChange(attendee.attendeeId, newState)}
-                onCashPayment={() => handleCashPaymentClick(attendee)}
-                onQRPayment={() => handleQRPaymentClick(attendee)}
               />
             </Table.Td>
             {/* Door Payment column - Only show for social events */}

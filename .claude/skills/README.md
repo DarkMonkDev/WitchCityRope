@@ -206,19 +206,47 @@ bash .claude/skills/test-catalog-updater.md unit 45 0 45 12.3 85
 
 ## File Structure
 
+**Updated 2025-11-08**: Restructured to Claude Code compatible format (each skill in subdirectory with SKILL.md)
+
 ```
 /.claude/skills/
 ├── README.md                                  # This file
-├── phase-1-validator.md                      # Requirements validation
-├── phase-2-validator.md                      # Design validation
-├── phase-3-validator.md                      # Implementation validation
-├── phase-4-validator.md                      # Testing validation (100% required)
-├── phase-5-validator.md                      # Finalization validation
-├── handoff-document-generator.md             # Agent handoff automation
-├── lessons-learned-validator.md              # Lesson quality checking
-├── test-catalog-updater.md                   # TEST_CATALOG maintenance
-├── quality-gate-calculator.md                # Context-appropriate gates
-└── master-index-updater.md                   # Navigation maintenance
+├── SKILLS-REGISTRY.md                         # Central skill discovery
+├── HOW-TO-USE-SKILLS.md                      # Usage guide
+├── phase-1-validator/
+│   └── SKILL.md                               # Requirements validation
+├── phase-2-validator/
+│   └── SKILL.md                               # Design validation
+├── phase-3-validator/
+│   └── SKILL.md                               # Implementation validation
+├── phase-4-validator/
+│   └── SKILL.md                               # Testing validation (100% required)
+├── phase-5-validator/
+│   └── SKILL.md                               # Finalization validation
+├── handoff-document-generator/
+│   └── SKILL.md                               # Agent handoff automation
+├── lessons-learned-validator/
+│   └── SKILL.md                               # Lesson quality checking
+├── test-catalog-updater/
+│   └── SKILL.md                               # TEST_CATALOG maintenance
+├── quality-gate-calculator/
+│   └── SKILL.md                               # Context-appropriate gates
+├── master-index-updater/
+│   └── SKILL.md                               # Navigation maintenance
+├── container-restart/
+│   └── SKILL.md                               # Docker container management
+├── staging-deploy/
+│   └── SKILL.md                               # Staging deployment automation
+├── database-reset-staging/
+│   └── SKILL.md                               # Staging database reset
+├── single-source-validator/
+│   └── SKILL.md                               # Single source of truth validation
+├── code-format/
+│   └── SKILL.md                               # Code formatting automation
+├── code-quality-check/
+│   └── SKILL.md                               # Quality checks (lint, type)
+└── code-quality-fix/
+    └── SKILL.md                               # Auto-fix quality issues
 ```
 
 ## Skill Characteristics
@@ -274,17 +302,19 @@ Skills often include bash scripts:
 ## Maintenance
 
 ### Adding New Skills
-1. Create skill in `.claude/skills/`
-2. Use YAML frontmatter:
+1. Create skill directory in `.claude/skills/skill-name/`
+2. Create `SKILL.md` file in the directory (exact name required)
+3. Use YAML frontmatter:
    ```yaml
    ---
    name: skill-name
    description: What it does
    ---
    ```
-3. Follow progressive disclosure pattern
-4. Include automation scripts if applicable
-5. Document in this README
+4. Follow progressive disclosure pattern
+5. Include automation scripts if applicable in same directory
+6. Document in this README and SKILLS-REGISTRY.md
+7. Skills are auto-discovered by Claude Code - no config file needed
 
 ### Updating Existing Skills
 - Skills should evolve based on usage

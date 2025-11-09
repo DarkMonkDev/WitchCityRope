@@ -20,7 +20,7 @@ export const CoordinatorAssignmentModal: React.FC<CoordinatorAssignmentModalProp
   const queryClient = useQueryClient();
 
   // Fetch available coordinators: GET /api/safety/admin/users/coordinators
-  const { data: users } = useQuery<Array<{ id: string; realName: string; role: string; activeIncidentCount: number }>>({
+  const { data: users } = useQuery<Array<{ id: string; sceneName: string; realName: string; role: string; activeIncidentCount: number }>>({
     queryKey: ['safety', 'coordinators'],
     queryFn: async () => {
       const response = await fetch('/api/safety/admin/users/coordinators', {
@@ -80,7 +80,7 @@ export const CoordinatorAssignmentModal: React.FC<CoordinatorAssignmentModalProp
           data-testid="coordinator-search-input"
           data={users?.map((user: any) => ({
             value: user.id,
-            label: `${user.realName} (${user.role}) - ${user.activeIncidentCount} active`,
+            label: `${user.sceneName} (${user.realName})`,
           })) || []}
           value={selectedUserId}
           onChange={(value) => setSelectedUserId(value || '')}

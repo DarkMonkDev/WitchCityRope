@@ -63,7 +63,7 @@ public static class MemberDetailsEndpoints
         group.MapGet("/notes", GetMemberNotes)
             .WithName("GetMemberNotes")
             .WithSummary("Get all notes for this member (vetting, general, administrative, status changes)")
-            .Produces<List<UserNoteResponse>>(200)
+            .Produces<List<MemberNoteHistoryResponse>>(200)
             .Produces(401)
             .Produces(403)
             .Produces(404)

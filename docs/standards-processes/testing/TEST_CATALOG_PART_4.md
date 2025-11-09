@@ -1,8 +1,8 @@
 # WitchCityRope Test Catalog - Part 4: Complete Test File Listings
-<!-- Last Updated: 2025-10-10 -->
-<!-- Version: 1.0 -->
+<!-- Last Updated: 2025-11-08 -->
+<!-- Version: 1.1 - Vetting Profile Update Tests Added -->
 <!-- Owner: Testing Team -->
-<!-- Purpose: Comprehensive listing of all 271 test files across all test types -->
+<!-- Purpose: Comprehensive listing of all 274 test files across all test types -->
 
 ## 📋 Navigation
 
@@ -14,20 +14,26 @@
 
 ## 📊 Test Inventory Summary
 
-### Total Test Files: 271
+### Total Test Files: 274
 *(Excludes build artifacts in bin/obj directories)*
 
 | Test Type | Count | Status | Framework |
 |-----------|-------|--------|-----------|
-| **E2E Playwright Tests** | 89 | ✅ Active | Playwright + TypeScript |
+| **E2E Playwright Tests** | 90 | ✅ Active | Playwright + TypeScript |
 | **React Unit Tests** | 20 | ✅ Active | Vitest + React Testing Library |
-| **C# Backend Tests (Active)** | 56 | ✅ Active | xUnit + Moq + FluentAssertions |
-| **C# Integration Tests** | 5 | ✅ Active | xUnit + TestContainers |
+| **C# Backend Tests (Active)** | 57 | ✅ Active | xUnit + Moq + FluentAssertions |
+| **C# Integration Tests** | 6 | ✅ Active | xUnit + TestContainers |
 | **C# Performance Tests** | 3 | ✅ Active | xUnit + k6 |
 | **C# System Tests** | 1 | ✅ Active | xUnit |
 | **Legacy/Obsolete Tests** | 29+ | ⚠️ Legacy | xUnit (disabled/obsolete) |
 | **Test Infrastructure** | 71+ | 📚 Support | Helpers, Fixtures, Builders |
-| **TOTAL** | **271** | - | - |
+| **TOTAL** | **274** | - | - |
+
+**Latest Additions** (2025-11-08):
+- ✨ NEW: Vetting Profile Update Tests (3 files)
+  - Unit: VettingServiceProfileUpdateTests.cs (10 tests)
+  - Integration: VettingProfileUpdateIntegrationTests.cs (5 tests)
+  - E2E: e2e/vetting/vetting-profile-update.spec.ts (4 tests)
 
 ---
 
@@ -275,6 +281,17 @@
 54. **simple-vetting-test.spec.ts**
     - Purpose: Simplified vetting tests
     - Tests: Core vetting features
+
+55. **e2e/vetting/vetting-profile-update.spec.ts** ✨ NEW (2025-11-08)
+    - Purpose: Automatic profile updates during vetting application submission
+    - Tests: 4 test scenarios
+    - Coverage:
+      - User submits application with all fields → profile fully updated
+      - User submits with minimal fields → existing optional fields preserved (skipped)
+      - Profile updates visible in user dashboard after submission
+      - Admin can see updated profile (skipped)
+    - Feature: firstName, lastName, pronouns, fetLifeHandle auto-update
+    - Implementation: VettingService.SubmitSimplifiedApplicationAsync
 
 ### Diagnostic/Verification Tests (15+ files)
 
@@ -736,6 +753,17 @@
     - Purpose: Vetting endpoint integration testing
     - Tests: Vetting API integration
 
+36. **api/Features/Vetting/VettingProfileUpdateIntegrationTests.cs** ✨ NEW (2025-11-08)
+    - Purpose: Integration tests for automatic profile updates during vetting submission
+    - Tests: 5 test scenarios
+    - Coverage:
+      - POST /api/vetting/applications/simplified - full profile update with database persistence
+      - Partial update - optional fields preserved when not provided
+      - Database persistence verification (new context)
+      - Existing user data preserved (pronouns and FetLifeName scenarios)
+      - Authentication required (401 for unauthenticated requests)
+    - Feature: Full stack testing of profile update feature with real database
+
 ### New Unit Tests (17 files)
 
 **Purpose**: Unit tests with new flat structure
@@ -794,6 +822,21 @@
 47. **Features/Vetting/Services/VettingServiceStatusChangeTests.cs**
     - Purpose: Vetting status change testing
     - Tests: Status transition logic
+
+48. **Features/Vetting/VettingServiceProfileUpdateTests.cs** ✨ NEW (2025-11-08)
+    - Purpose: Automatic profile updates during vetting application submission
+    - Tests: 10 test scenarios
+    - Coverage:
+      - Happy path - all fields provided
+      - Optional fields not provided (existing values preserved)
+      - Only pronouns provided (FetLife handle unchanged)
+      - Only fetLifeHandle provided (pronouns unchanged)
+      - Required fields always updated (firstName, lastName)
+      - UpdatedAt timestamp verification
+      - Transaction atomicity (user not found)
+      - Application creation verification
+      - User vetting status updated
+    - Feature: Unit tests for VettingService.SubmitSimplifiedApplicationAsync
 
 #### Other Feature Tests (5 files)
 

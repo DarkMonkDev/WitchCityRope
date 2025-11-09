@@ -48,11 +48,6 @@ const statusConfig: Record<
     color: 'teal',
     icon: CheckCircle
   },
-  InterviewCompleted: {
-    displayName: 'Interview Completed',
-    color: 'blue',
-    icon: CheckCircle
-  },
   FinalReview: {
     displayName: 'Final Review',
     color: 'blue',

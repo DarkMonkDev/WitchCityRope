@@ -1,22 +1,13 @@
 import React, { useState } from 'react';
-import { Card, Title, Stack, Textarea, Checkbox, Button, Group, Text, Badge, Paper } from '@mantine/core';
+import { Card, Title, Stack, Textarea, Button, Group, Text, Badge, Paper } from '@mantine/core';
 import { IconNote, IconTrash } from '@tabler/icons-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { showNotification } from '@mantine/notifications';
+import type { components } from '@witchcityrope/shared-types';
 
-enum IncidentNoteType {
-  Manual = 'Manual',
-  System = 'System'
-}
-
-interface IncidentNoteDto {
-  id: string;
-  content: string;
-  authorName?: string;
-  createdAt: string;
-  type: IncidentNoteType;
-  isPrivate: boolean;
-}
+// Use auto-generated types from API
+type IncidentNoteDto = components['schemas']['IncidentNoteDto'];
+type IncidentNoteType = components['schemas']['IncidentNoteType'];
 
 interface InvestigationNotesProps {
   incidentId: string;
@@ -33,7 +24,6 @@ const formatDate = (date: string): string => {
 
 export const InvestigationNotes: React.FC<InvestigationNotesProps> = ({ incidentId }) => {
   const [noteContent, setNoteContent] = useState('');
-  const [isPrivate, setIsPrivate] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch notes: GET /api/safety/admin/incidents/{id}/notes
@@ -55,7 +45,7 @@ export const InvestigationNotes: React.FC<InvestigationNotesProps> = ({ incident
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ content: noteContent, isPrivate }),
+        body: JSON.stringify({ content: noteContent }),
       });
       if (!response.ok) throw new Error('Failed to add note');
       return response.json();
@@ -63,7 +53,6 @@ export const InvestigationNotes: React.FC<InvestigationNotesProps> = ({ incident
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['safety', 'notes', incidentId] });
       setNoteContent('');
-      setIsPrivate(false);
       showNotification({
         title: 'Success',
         message: 'Note added successfully',
@@ -122,13 +111,6 @@ export const InvestigationNotes: React.FC<InvestigationNotesProps> = ({ incident
           minRows={3}
         />
 
-        <Checkbox
-          label="Private note (only visible to administrators)"
-          data-testid="add-note-privacy"
-          checked={isPrivate}
-          onChange={(e) => setIsPrivate(e.currentTarget.checked)}
-        />
-
         <Button
           onClick={() => addNoteMutation.mutate()}
           loading={addNoteMutation.isPending}
@@ -162,16 +144,13 @@ export const InvestigationNotes: React.FC<InvestigationNotesProps> = ({ incident
               <Group justify="space-between" mb="xs">
                 <Group gap="xs">
                   <Text fw={600} size="sm">{note.authorName || 'System'}</Text>
-                  {note.type === IncidentNoteType.System && (
+                  {note.type === 'System' && (
                     <Badge color="gray" size="sm">System</Badge>
-                  )}
-                  {note.isPrivate && (
-                    <Badge color="purple" size="sm">Private</Badge>
                   )}
                 </Group>
                 <Group gap="xs">
                   <Text size="xs" c="dimmed">{formatDate(note.createdAt)}</Text>
-                  {note.type === IncidentNoteType.Manual && (
+                  {note.type === 'Manual' && (
                     <Button
                       size="xs"
                       variant="subtle"

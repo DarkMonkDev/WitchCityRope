@@ -9,6 +9,7 @@ import { PeopleInvolvedCard } from '@/features/safety/components/PeopleInvolvedC
 import { InvestigationNotes } from '@/features/safety/components/InvestigationNotes';
 import { GoogleDriveLinksSection } from '@/features/safety/components/GoogleDriveLinksSection';
 import { CoordinatorAssignmentModal } from '@/features/safety/components/CoordinatorAssignmentModal';
+import { EditPeopleModal } from '@/features/safety/components/EditPeopleModal';
 import { IncidentStatusBadge } from '@/features/safety/components/IncidentStatusBadge';
 
 type IncidentStatus = 'ReportSubmitted' | 'InformationGathering' | 'ReviewingFinalReport' | 'OnHold' | 'Closed';
@@ -56,6 +57,8 @@ export const AdminIncidentDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [editInvolvedPartiesOpen, setEditInvolvedPartiesOpen] = useState(false);
+  const [editWitnessesOpen, setEditWitnessesOpen] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState('');
 
@@ -166,6 +169,14 @@ export const AdminIncidentDetailPage: React.FC = () => {
 
   const handlePutOnHold = () => {
     statusMutation.mutate({ newStatus: 'OnHold' });
+  };
+
+  const handleResumeFromHold = () => {
+    // When resuming from hold, return to the last active status
+    // We'll determine this from the incident's status history
+    // For now, default to InformationGathering as the most common resume point
+    const resumeStatus: IncidentStatus = 'InformationGathering';
+    statusMutation.mutate({ newStatus: resumeStatus, notes: 'Resumed from hold' });
   };
 
   const handleClose = () => {
@@ -311,28 +322,38 @@ export const AdminIncidentDetailPage: React.FC = () => {
               )}
             </div>
 
-            {/* Assign Coordinator Button */}
-            <button
-              className="btn btn-secondary"
-              onClick={() => setAssignModalOpen(true)}
-              data-testid="assign-coordinator-button"
-              type="button"
-              style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-            >
-              <IconUserPlus size={16} />
-              <span>{incident.coordinatorName ? 'Reassign' : 'Assign'} Coordinator</span>
-            </button>
+            {/* Assign Coordinator Button - Only show if no coordinator assigned */}
+            {!incident.coordinatorName && (
+              <button
+                className="btn btn-secondary"
+                onClick={() => setAssignModalOpen(true)}
+                data-testid="assign-coordinator-button"
+                type="button"
+                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+              >
+                <IconUserPlus size={16} />
+                <span>Assign Coordinator</span>
+              </button>
+            )}
           </Group>
-
-          {/* Coordinator info */}
-          {incident.coordinatorName && (
-            <Text mb="md" size="sm">
-              <strong>Assigned to:</strong> {incident.coordinatorName}
-            </Text>
-          )}
 
           {/* Status Action Buttons - All on One Line */}
           <Group gap="md" wrap="nowrap">
+            {/* Resume from Hold - Only show when status is OnHold */}
+            {incident.status === 'OnHold' && (
+              <button
+                className="btn btn-primary"
+                onClick={handleResumeFromHold}
+                disabled={statusMutation.isPending}
+                data-testid="resume-from-hold-button"
+                type="button"
+                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+              >
+                <IconCheck size={16} />
+                <span>Resume from Hold</span>
+              </button>
+            )}
+
             {/* Primary Action: Advance to Next Stage */}
             {nextStageConfig && availableActions.canAdvanceStage && (
               <button
@@ -388,7 +409,6 @@ export const AdminIncidentDetailPage: React.FC = () => {
           reporterEmail={incident.reporterEmail}
           requestedFollowUp={incident.requestedFollowUp}
           incidentDate={incident.incidentDate}
-          reportedAt={incident.reportedAt}
           location={incident.location}
           contactEmail={incident.contactEmail}
           contactName={incident.contactName}
@@ -405,12 +425,14 @@ export const AdminIncidentDetailPage: React.FC = () => {
         />
 
         {/* People Involved - reuse existing component */}
-        {(incident.involvedParties || incident.witnesses) && (
-          <PeopleInvolvedCard
-            involvedParties={incident.involvedParties}
-            witnesses={incident.witnesses}
-          />
-        )}
+        <PeopleInvolvedCard
+          involvedParties={incident.involvedParties}
+          witnesses={incident.witnesses}
+          coordinatorName={incident.coordinatorName}
+          onEditCoordinator={() => setAssignModalOpen(true)}
+          onEditInvolvedParties={() => setEditInvolvedPartiesOpen(true)}
+          onEditWitnesses={() => setEditWitnessesOpen(true)}
+        />
 
         {/* Google Drive Links */}
         <GoogleDriveLinksSection
@@ -429,6 +451,20 @@ export const AdminIncidentDetailPage: React.FC = () => {
         onClose={() => setAssignModalOpen(false)}
         incidentId={id!}
         currentCoordinatorId={incident.coordinatorId}
+      />
+      <EditPeopleModal
+        opened={editInvolvedPartiesOpen}
+        onClose={() => setEditInvolvedPartiesOpen(false)}
+        incidentId={id!}
+        type="involvedParties"
+        currentValue={incident.involvedParties}
+      />
+      <EditPeopleModal
+        opened={editWitnessesOpen}
+        onClose={() => setEditWitnessesOpen(false)}
+        incidentId={id!}
+        type="witnesses"
+        currentValue={incident.witnesses}
       />
     </Container>
   );

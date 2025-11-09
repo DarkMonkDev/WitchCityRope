@@ -37,6 +37,7 @@ export function useEventAttendees(params: AttendeeSearchParams, sessionToken: st
     queryFn: () => checkinApi.getEventAttendees(params, sessionToken),
     enabled: enabled && !!sessionToken,
     staleTime: 2 * 60 * 1000, // 2 minutes - balance freshness vs performance
+    refetchInterval: 5 * 1000, // Auto-refresh every 5 seconds
     refetchOnWindowFocus: true, // Refresh when returning to app
     refetchOnReconnect: true, // Refresh when coming back online
   });

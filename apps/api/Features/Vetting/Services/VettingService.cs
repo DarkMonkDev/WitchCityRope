@@ -119,7 +119,6 @@ public class VettingService : IVettingService
                     FetLifeHandle = app.FetLifeHandle,
                     ExperienceLevel = "Beginner", // Default for now
                     YearsExperience = 0, // Default for now
-                    IsAnonymous = false, // Default for now
                     AssignedReviewerName = null, // Not implemented yet
                     ReviewStartedAt = app.ReviewStartedAt,
                     Priority = 1, // Default priority
@@ -133,8 +132,7 @@ public class VettingService : IVettingService
                     },
                     HasRecentNotes = false, // Default for now
                     HasPendingActions = app.WorkflowStatus == VettingStatus.UnderReview,
-                    InterviewScheduledFor = app.InterviewScheduledFor,
-                    SkillsTags = new List<string>()
+                    InterviewScheduledFor = app.InterviewScheduledFor
                 })
                 .ToListAsync(cancellationToken);
 
@@ -252,18 +250,13 @@ public class VettingService : IVettingService
                 SceneName = application.SceneName,
                 Pronouns = application.Pronouns,
                 Email = application.Email,
+                FetLifeHandle = application.FetLifeHandle,
+                OtherNames = application.OtherNames,
                 ExperienceLevel = "Beginner", // Default for now
                 YearsExperience = 0,
-                ExperienceDescription = "", // Not in simplified entity
-                SafetyKnowledge = "", // Not in simplified entity
-                ConsentUnderstanding = "", // Not in simplified entity
-                WhyJoinCommunity = application.AboutYourself, // Using available field
-                SkillsInterests = new List<string>(),
-                ExpectationsGoals = "", // Field removed
+                ExperienceDescription = application.ExperienceDescription ?? string.Empty,
+                WhyJoinCommunity = application.WhyJoinCommunity ?? string.Empty,
                 AgreesToGuidelines = true, // Default
-                IsAnonymous = false,
-                AgreesToTerms = true,
-                ConsentToContact = true,
                 AssignedReviewerName = null,
                 ReviewStartedAt = application.ReviewStartedAt,
                 Priority = 1,
@@ -421,14 +414,20 @@ public class VettingService : IVettingService
             application.DecisionMadeAt = request.IsFinalDecision ? DateTime.UtcNow : null;
             application.InterviewScheduledFor = request.ProposedInterviewTime;
 
-            // Add admin notes if provided - Format with date and without seconds
-            if (!string.IsNullOrWhiteSpace(request.Reasoning))
+            // Create UserNote for decision reasoning if provided
+            if (!string.IsNullOrWhiteSpace(request.Reasoning) && application.UserId.HasValue)
             {
-                var existingNotes = application.AdminNotes ?? "";
-                var newNote = $"[{DateTime.UtcNow:MMM d, yyyy - h:mm tt}] Decision: {request.Reasoning}";
-                application.AdminNotes = string.IsNullOrEmpty(existingNotes)
-                    ? newNote
-                    : $"{existingNotes}\n\n{newNote}";
+                var statusChangeNote = new WitchCityRope.Api.Data.Entities.UserNote
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = application.UserId.Value,
+                    Content = $"Decision: {request.Reasoning}",
+                    NoteType = "Vetting",
+                    AuthorId = userId,
+                    CreatedAt = DateTime.UtcNow,
+                    IsArchived = false
+                };
+                _context.UserNotes.Add(statusChangeNote);
             }
 
             // Create audit log entry for status change
@@ -503,12 +502,24 @@ public class VettingService : IVettingService
                     "Application not found", $"No application found with ID {applicationId}");
             }
 
-            // Add note to admin notes field (simplified implementation) - Format with date and without seconds
-            var existingNotes = application.AdminNotes ?? "";
-            var newNote = $"[{DateTime.UtcNow:MMM d, yyyy - h:mm tt}] Note: {request.Content}";
-            application.AdminNotes = string.IsNullOrEmpty(existingNotes)
-                ? newNote
-                : $"{existingNotes}\n\n{newNote}";
+            // Create UserNote for the note content
+            if (!application.UserId.HasValue)
+            {
+                return Result<NoteResponse>.Failure(
+                    "Invalid application", "Cannot add notes to applications without a linked user.");
+            }
+
+            var userNote = new WitchCityRope.Api.Data.Entities.UserNote
+            {
+                Id = Guid.NewGuid(),
+                UserId = application.UserId.Value,
+                Content = request.Content,
+                NoteType = "Vetting",
+                AuthorId = userId,
+                CreatedAt = DateTime.UtcNow,
+                IsArchived = false
+            };
+            _context.UserNotes.Add(userNote);
 
             application.UpdatedAt = DateTime.UtcNow;
 
@@ -634,12 +645,13 @@ public class VettingService : IVettingService
                 Status = application.WorkflowStatus.ToString(),
                 SceneName = application.SceneName ?? "Not provided",
                 Email = application.Email,
+                FetLifeHandle = application.FetLifeHandle,
+                OtherNames = application.OtherNames,
                 SubmittedAt = application.SubmittedAt,
                 UpdatedAt = application.UpdatedAt,
                 ExperienceLevel = "Beginner", // Default for simplified entity
-                WhyJoinCommunity = application.AboutYourself ?? "Not provided",
+                WhyJoinCommunity = application.WhyJoinCommunity ?? "Not provided",
                 Pronouns = application.Pronouns ?? "Not provided",
-                AdminNotes = null, // Don't show admin notes to the applicant
                 Tags = new List<string>(), // Simplified implementation
                 Attachments = new List<string>(), // Simplified implementation
                 WorkflowHistory = application.AuditLogs?.Select(log => new WorkflowHistoryDto
@@ -711,48 +723,6 @@ public class VettingService : IVettingService
         };
     }
 
-    /// <summary>
-    /// Parse AdminNotes field into ApplicationNoteDto array for API responses
-    /// AdminNotes format: "[2025-09-23 14:30] Note: Content\n\n[2025-09-23 15:45] Decision: Reasoning"
-    /// </summary>
-    private static List<ApplicationNoteDto> ParseAdminNotesToDto(string? adminNotes)
-    {
-        if (string.IsNullOrWhiteSpace(adminNotes))
-            return new List<ApplicationNoteDto>();
-
-        var notes = new List<ApplicationNoteDto>();
-        var noteEntries = adminNotes.Split("\n\n", StringSplitOptions.RemoveEmptyEntries);
-
-        foreach (var entry in noteEntries)
-        {
-            // Parse format: "[2025-09-23 14:30] Note: Content" or "[2025-09-23 14:30] Decision: Reasoning"
-            var match = System.Text.RegularExpressions.Regex.Match(entry, @"\[([^\]]+)\]\s*(Note|Decision):\s*(.+)", System.Text.RegularExpressions.RegexOptions.Singleline);
-
-            if (match.Success)
-            {
-                var dateTimeStr = match.Groups[1].Value;
-                var noteType = match.Groups[2].Value;
-                var content = match.Groups[3].Value.Trim();
-
-                if (DateTime.TryParse(dateTimeStr, out var createdAt))
-                {
-                    notes.Add(new ApplicationNoteDto
-                    {
-                        Id = Guid.NewGuid(), // Generate ID for display purposes
-                        Content = content,
-                        Type = noteType,
-                        IsPrivate = true, // All admin notes are private
-                        Tags = new List<string>(),
-                        ReviewerName = "Administrator",
-                        CreatedAt = createdAt,
-                        UpdatedAt = createdAt
-                    });
-                }
-            }
-        }
-
-        return notes.OrderByDescending(n => n.CreatedAt).ToList();
-    }
 
     /// <summary>
     /// Get application status by status token (public endpoint)
@@ -962,7 +932,6 @@ public class VettingService : IVettingService
                 SceneName = request.SceneName,
                 RealName = request.RealName,
                 Email = request.Email,
-                Phone = request.PhoneNumber,
                 Pronouns = request.Pronouns,
                 ApplicationNumber = applicationNumber,
                 StatusToken = statusToken,
@@ -977,9 +946,6 @@ public class VettingService : IVettingService
                 // Community understanding
                 WhyJoinCommunity = request.Interests,
                 AgreesToGuidelines = request.AgreeToRules,
-
-                // References (simple string format)
-                References = request.References,
 
                 // Terms
                 AgreesToTerms = request.AgreeToRules,
@@ -1113,8 +1079,8 @@ public class VettingService : IVettingService
                 WhyJoinCommunity = request.WhyJoin,
                 AgreesToGuidelines = request.AgreeToCommunityStandards,
 
-                // Other names/handles
-                AboutYourself = request.OtherNames ?? string.Empty,
+                // Other names/handles - map to correct field
+                OtherNames = request.OtherNames,
 
                 // Terms
                 AgreesToTerms = request.AgreeToCommunityStandards,
@@ -1123,13 +1089,35 @@ public class VettingService : IVettingService
 
             _context.VettingApplications.Add(application);
 
-            // Update user's VettingStatus and HasVettingApplication so dashboard shows correct status
+            // Update user's VettingStatus, HasVettingApplication, and profile fields
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
             if (user != null)
             {
+                // Update vetting status
                 user.VettingStatus = (int)VettingStatus.UnderReview;
                 user.HasVettingApplication = true;
-                _logger.LogInformation("Updated user {UserId} VettingStatus to UnderReview and HasVettingApplication to true", user.Id);
+
+                // Update profile information from application
+                user.FirstName = request.FirstName;
+                user.LastName = request.LastName;
+
+                // Only update optional fields if they have values (keep null if not provided)
+                if (!string.IsNullOrWhiteSpace(request.Pronouns))
+                {
+                    user.Pronouns = request.Pronouns;
+                }
+
+                if (!string.IsNullOrWhiteSpace(request.FetLifeHandle))
+                {
+                    user.FetLifeName = request.FetLifeHandle;
+                }
+
+                user.UpdatedAt = DateTime.UtcNow;
+
+                _logger.LogInformation(
+                    "Updated user profile during vetting application submission: UserId={UserId}, Email={Email}, FirstName={FirstName}, LastName={LastName}, Pronouns={Pronouns}, FetLifeHandle={FetLifeHandle}",
+                    user.Id, user.Email, request.FirstName, request.LastName,
+                    request.Pronouns ?? "(not provided)", request.FetLifeHandle ?? "(not provided)");
             }
 
             await _context.SaveChangesAsync(cancellationToken);
@@ -1318,14 +1306,20 @@ public class VettingService : IVettingService
                     break;
             }
 
-            // Add admin notes if provided - Format with date and without seconds
-            if (!string.IsNullOrWhiteSpace(adminNotes))
+            // Create UserNote for status change with admin notes if provided
+            if (!string.IsNullOrWhiteSpace(adminNotes) && application.UserId.HasValue)
             {
-                var existingNotes = application.AdminNotes ?? "";
-                var newNote = $"[{DateTime.UtcNow:MMM d, yyyy - h:mm tt}] Status change to {newStatus}: {adminNotes}";
-                application.AdminNotes = string.IsNullOrEmpty(existingNotes)
-                    ? newNote
-                    : $"{existingNotes}\n\n{newNote}";
+                var statusChangeNote = new WitchCityRope.Api.Data.Entities.UserNote
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = application.UserId.Value,
+                    Content = $"Status change to {newStatus}: {adminNotes}",
+                    NoteType = "Vetting",
+                    AuthorId = adminUserId,
+                    CreatedAt = DateTime.UtcNow,
+                    IsArchived = false
+                };
+                _context.UserNotes.Add(statusChangeNote);
             }
 
             // Create audit log for status change (same-state updates are now rejected)
@@ -1506,13 +1500,24 @@ public class VettingService : IVettingService
             application.DecisionMadeAt = DateTime.UtcNow;
             application.UpdatedAt = DateTime.UtcNow;
 
-            // Add approval notes - Format with date and without seconds
+            // Keep noteText in scope for audit log
             var noteText = adminNotes ?? "Application approved";
-            var existingNotes = application.AdminNotes ?? "";
-            var newNote = $"[{DateTime.UtcNow:MMM d, yyyy - h:mm tt}] Approved: {noteText}";
-            application.AdminNotes = string.IsNullOrEmpty(existingNotes)
-                ? newNote
-                : $"{existingNotes}\n\n{newNote}";
+
+            // Create UserNote for approval
+            if (application.UserId.HasValue)
+            {
+                var approvalNote = new WitchCityRope.Api.Data.Entities.UserNote
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = application.UserId.Value,
+                    Content = $"Approved: {noteText}",
+                    NoteType = "Vetting",
+                    AuthorId = adminUserId,
+                    CreatedAt = DateTime.UtcNow,
+                    IsArchived = false
+                };
+                _context.UserNotes.Add(approvalNote);
+            }
 
             // Update user role and vetting status if user is linked
             if (application.UserId.HasValue)

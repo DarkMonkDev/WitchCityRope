@@ -36,7 +36,7 @@ export const AdminDashboardPage: React.FC = () => {
 
   // Calculate upcoming events (events with future start dates)
   const upcomingEventsCount = events
-    ? events.filter(event => new Date(event.startDate) > new Date()).length
+    ? (events as any).filter((event: any) => new Date(event.startDate) > new Date()).length
     : 0;
 
   // Calculate active members count
@@ -54,9 +54,9 @@ export const AdminDashboardPage: React.FC = () => {
   // Calculate active incidents (not on hold or closed)
   // Active statuses: ReportSubmitted, InformationGathering, ReviewingFinalReport
   const activeIncidentsCount = safetyDashboard
-    ? safetyDashboard.statistics.newCount +
-      safetyDashboard.statistics.inProgressCount +
-      safetyDashboard.statistics.reviewingFinalReportCount
+    ? (safetyDashboard as any).statistics.newCount +
+      (safetyDashboard as any).statistics.inProgressCount +
+      (safetyDashboard as any).statistics.reviewingFinalReportCount
     : 0;
 
   const dashboardCards: DashboardCard[] = [

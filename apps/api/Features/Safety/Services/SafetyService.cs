@@ -164,11 +164,11 @@ public class SafetyService : ISafetyService
             }
 
             // OPTIMIZATION: Already optimized - single query with nested includes
-            // This prevents N+1 when accessing Reporter, AssignedUser, AuditLogs, and related Users
+            // This prevents N+1 when accessing Reporter, Coordinator, AuditLogs, and related Users
             // Impact: Reduces from 4+ queries to 1 (75%+ reduction)
             var incident = await _context.SafetyIncidents
                 .Include(i => i.Reporter)
-                .Include(i => i.AssignedUser)
+                .Include(i => i.Coordinator)
                 .Include(i => i.AuditLogs)
                     .ThenInclude(a => a.User)
                 .FirstOrDefaultAsync(i => i.Id == incidentId, cancellationToken);
@@ -209,8 +209,12 @@ public class SafetyService : ISafetyService
                 IsAnonymous = incident.IsAnonymous,
                 RequestFollowUp = incident.RequestFollowUp,
                 Status = incident.Status,
-                AssignedTo = incident.AssignedTo,
-                AssignedUserName = incident.AssignedUser?.SceneName,
+                AssignedTo = incident.CoordinatorId,
+                AssignedUserName = incident.Coordinator?.SceneName,
+                CoordinatorId = incident.CoordinatorId,
+                CoordinatorName = incident.Coordinator?.SceneName,
+                GoogleDriveFolderUrl = incident.GoogleDriveFolderUrl,
+                GoogleDriveFinalReportUrl = incident.GoogleDriveFinalReportUrl,
                 AuditTrail = incident.AuditLogs.Select(a => new AuditLogDto
                 {
                     Id = a.Id,

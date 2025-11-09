@@ -22,7 +22,6 @@ public class VettingApplicationDetail
     public bool AgreeToCommunityStandards { get; set; }
 
     // Admin information
-    public string? AdminNotes { get; set; }
     public List<VettingAuditEntry> AuditLog { get; set; } = new();
 }
 

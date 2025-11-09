@@ -78,15 +78,12 @@ export const VettingReviewGrid: React.FC<VettingReviewGridProps> = ({
   // Status filter options
   const statusOptions = useMemo(() => [
     { value: '', label: 'All Statuses' },
-    { value: 'Draft', label: 'Draft' },
-    { value: 'Submitted', label: 'Submitted' },
     { value: 'UnderReview', label: 'Under Review' },
     { value: 'InterviewApproved', label: 'Interview Approved' },
-    { value: 'PendingInterview', label: 'Pending Interview' },
-    { value: 'InterviewCompleted', label: 'Interview Completed' },
-    { value: 'OnHold', label: 'On Hold' },
+    { value: 'FinalReview', label: 'Final Review' },
     { value: 'Approved', label: 'Approved' },
     { value: 'Denied', label: 'Denied' },
+    { value: 'OnHold', label: 'On Hold' },
     { value: 'Withdrawn', label: 'Withdrawn' }
   ], []);
 

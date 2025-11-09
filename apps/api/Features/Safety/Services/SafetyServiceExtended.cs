@@ -573,13 +573,116 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
         }
     }
 
+    /// <summary>
+    /// Update involved parties and witnesses for incident
+    /// Creates system note on update
+    /// </summary>
+    public async Task<Result<UpdatePeopleResponse>> UpdatePeopleAsync(
+        Guid incidentId,
+        UpdatePeopleRequest request,
+        Guid userId,
+        bool isAdmin,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var incident = await _context.SafetyIncidents
+                .FirstOrDefaultAsync(i => i.Id == incidentId, cancellationToken);
+
+            if (incident == null)
+            {
+                return Result<UpdatePeopleResponse>.Failure("Incident not found");
+            }
+
+            // Check authorization
+            var canAccess = await CanUserAccessIncidentAsync(userId, incident, cancellationToken);
+            if (!canAccess)
+            {
+                return Result<UpdatePeopleResponse>.Failure("Access denied - you can only update incidents assigned to you");
+            }
+
+            var user = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+            // Track what changed for system note
+            var changes = new List<string>();
+
+            // Update involved parties if provided
+            if (request.InvolvedParties != null)
+            {
+                var encrypted = !string.IsNullOrEmpty(request.InvolvedParties)
+                    ? await _encryptionService.EncryptAsync(request.InvolvedParties)
+                    : null;
+                incident.EncryptedInvolvedParties = encrypted;
+                changes.Add("involved parties");
+            }
+
+            // Update witnesses if provided
+            if (request.Witnesses != null)
+            {
+                var encrypted = !string.IsNullOrEmpty(request.Witnesses)
+                    ? await _encryptionService.EncryptAsync(request.Witnesses)
+                    : null;
+                incident.EncryptedWitnesses = encrypted;
+                changes.Add("witnesses");
+            }
+
+            incident.UpdatedAt = DateTime.UtcNow;
+            incident.UpdatedBy = userId;
+
+            // Create system note
+            var noteContent = changes.Count > 0
+                ? $"{string.Join(" and ", changes)} updated by {user?.SceneName}"
+                : $"People involved information updated by {user?.SceneName}";
+
+            await CreateSystemNoteAsync(incidentId, noteContent, userId, cancellationToken);
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            // Log update
+            await _auditService.LogActionAsync(
+                incidentId,
+                userId,
+                "PeopleUpdated",
+                noteContent,
+                cancellationToken: cancellationToken);
+
+            _logger.LogInformation("Incident {IncidentId} people information updated by user {UserId}: {Changes}",
+                incidentId, userId, string.Join(", ", changes));
+
+            // Decrypt for response
+            var involvedParties = !string.IsNullOrEmpty(incident.EncryptedInvolvedParties)
+                ? await _encryptionService.DecryptAsync(incident.EncryptedInvolvedParties)
+                : null;
+            var witnesses = !string.IsNullOrEmpty(incident.EncryptedWitnesses)
+                ? await _encryptionService.DecryptAsync(incident.EncryptedWitnesses)
+                : null;
+
+            var response = new UpdatePeopleResponse
+            {
+                Id = incident.Id,
+                InvolvedParties = involvedParties,
+                Witnesses = witnesses,
+                LastUpdatedAt = incident.UpdatedAt,
+                SystemNoteCreated = true
+            };
+
+            return Result<UpdatePeopleResponse>.Success(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update people for incident {IncidentId}", incidentId);
+            return Result<UpdatePeopleResponse>.Failure("Failed to update people information");
+        }
+    }
+
     #endregion
 
     #region Phase 4: Notes System
 
     /// <summary>
     /// Get all notes for an incident
-    /// Filters private notes based on authorization
     /// </summary>
     public async Task<Result<NotesListResponse>> GetNotesAsync(
         Guid incidentId,
@@ -605,19 +708,11 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
                 return Result<NotesListResponse>.Failure("Access denied");
             }
 
-            var query = _context.IncidentNotes
+            var notes = await _context.IncidentNotes
                 .Include(n => n.Author)
                 .Where(n => n.IncidentId == incidentId)
-                .AsNoTracking();
-
-            // Non-admins and non-coordinators cannot see private notes
-            if (!isAdmin && incident.CoordinatorId != userId)
-            {
-                query = query.Where(n => !n.IsPrivate);
-            }
-
-            var notes = await query
                 .OrderByDescending(n => n.CreatedAt)
+                .AsNoTracking()
                 .ToListAsync(cancellationToken);
 
             // Decrypt notes (they are stored encrypted)
@@ -631,7 +726,6 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
                     IncidentId = note.IncidentId,
                     Content = content,
                     Type = note.Type,
-                    IsPrivate = note.IsPrivate,
                     AuthorId = note.AuthorId,
                     AuthorName = note.Author?.SceneName,
                     Tags = note.Tags,
@@ -694,7 +788,6 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
                 IncidentId = incidentId,
                 Content = encryptedContent,
                 Type = IncidentNoteType.Manual,
-                IsPrivate = request.IsPrivate,
                 AuthorId = userId,
                 Tags = request.Tags,
                 CreatedAt = DateTime.UtcNow
@@ -720,7 +813,6 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
                 IncidentId = note.IncidentId,
                 Content = request.Content, // Return decrypted
                 Type = note.Type,
-                IsPrivate = note.IsPrivate,
                 AuthorId = note.AuthorId,
                 AuthorName = user?.SceneName,
                 Tags = note.Tags,
@@ -774,7 +866,6 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
             var encryptedContent = await _encryptionService.EncryptAsync(request.Content);
 
             note.Content = encryptedContent;
-            note.IsPrivate = request.IsPrivate;
             note.Tags = request.Tags;
             note.UpdatedAt = DateTime.UtcNow;
 
@@ -788,7 +879,6 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
                 IncidentId = note.IncidentId,
                 Content = request.Content, // Return decrypted
                 Type = note.Type,
-                IsPrivate = note.IsPrivate,
                 AuthorId = note.AuthorId,
                 AuthorName = note.Author?.SceneName,
                 Tags = note.Tags,
@@ -983,7 +1073,6 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
             IncidentId = incidentId,
             Content = encryptedContent,
             Type = IncidentNoteType.System,
-            IsPrivate = false, // System notes are visible to all authorized users
             AuthorId = null, // System notes have no author
             CreatedAt = DateTime.UtcNow
         };

@@ -13,7 +13,7 @@ const mockSessions: EventSession[] = [
     startTime: '19:00',
     endTime: '21:00',
     capacity: 20,
-    registeredCount: 8,
+    registrationCount: 8,
   },
   {
     id: '2',
@@ -23,7 +23,7 @@ const mockSessions: EventSession[] = [
     startTime: '19:00',
     endTime: '21:00',
     capacity: 20,
-    registeredCount: 15,
+    registrationCount: 15,
   },
   {
     id: '3',
@@ -33,7 +33,7 @@ const mockSessions: EventSession[] = [
     startTime: '19:00',
     endTime: '21:00',
     capacity: 20,
-    registeredCount: 8,
+    registrationCount: 8,
   },
 ];
 

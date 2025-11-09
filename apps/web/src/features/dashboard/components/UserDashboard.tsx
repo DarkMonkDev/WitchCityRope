@@ -266,9 +266,9 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ className }) => {
                   </Text>
                 )}
 
-                {(dashboard.vettingStatus as string) === 'InterviewCompleted' && (
+                {(dashboard.vettingStatus as string) === 'FinalReview' && (
                   <Text size="xs" c="dimmed" mt="xs">
-                    ✅ Your interview is complete. Your application is being reviewed. We'll notify you of our decision soon!
+                    ✅ Your interview is complete. Your application is in final review. We'll notify you of our decision soon!
                   </Text>
                 )}
 

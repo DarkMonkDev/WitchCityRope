@@ -40,8 +40,9 @@ public interface IMemberDetailsService
 
     /// <summary>
     /// Get all notes for a member (unified notes system)
+    /// Returns combined UserNotes AND VettingAuditLogs for complete history
     /// </summary>
-    Task<(bool Success, List<UserNoteResponse>? Response, string Error)> GetMemberNotesAsync(
+    Task<(bool Success, List<MemberNoteHistoryResponse>? Response, string Error)> GetMemberNotesAsync(
         Guid userId,
         CancellationToken cancellationToken = default);
 

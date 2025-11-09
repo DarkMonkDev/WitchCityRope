@@ -14,7 +14,6 @@ public class IncidentNote
         Id = Guid.NewGuid();
         Content = string.Empty;
         Type = IncidentNoteType.Manual;
-        IsPrivate = false;
         CreatedAt = DateTime.UtcNow;
     }
 
@@ -40,12 +39,6 @@ public class IncidentNote
     /// </summary>
     [Required]
     public IncidentNoteType Type { get; set; }
-
-    /// <summary>
-    /// Private notes visible only to coordinators/admins
-    /// </summary>
-    [Required]
-    public bool IsPrivate { get; set; }
 
     /// <summary>
     /// Note author - NULL for system-generated notes

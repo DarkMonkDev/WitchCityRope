@@ -1154,7 +1154,7 @@ public static class VettingEndpoints
                     EmailSent = false, // Not tracked in current implementation
                     NextSteps = GetNextStepsMessage(application.WorkflowStatus),
                     Pronouns = application.Pronouns,
-                    OtherNames = application.AboutYourself
+                    OtherNames = application.OtherNames
                 };
 
                 return Results.Json(new ApiResponse<SimplifiedApplicationResponse>

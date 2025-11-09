@@ -28,11 +28,6 @@ public class IncidentNoteDto
     public IncidentNoteType Type { get; set; }
 
     /// <summary>
-    /// Whether note is private (visible only to coordinators/admins)
-    /// </summary>
-    public bool IsPrivate { get; set; }
-
-    /// <summary>
     /// Author user ID (NULL for system notes)
     /// </summary>
     public Guid? AuthorId { get; set; }

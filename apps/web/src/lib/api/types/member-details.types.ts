@@ -59,6 +59,13 @@ export type MemberIncidentsResponse = components['schemas']['MemberIncidentsResp
 export type UserNoteResponse = components['schemas']['UserNoteResponse']
 
 /**
+ * Member note history response (unified notes system)
+ * Combines UserNotes and VettingAuditLogs into single chronological timeline
+ * @generated from MemberNoteHistoryResponse DTO
+ */
+export type MemberNoteHistoryResponse = components['schemas']['MemberNoteHistoryResponse']
+
+/**
  * Create user note request
  * @generated from CreateUserNoteRequest DTO
  */

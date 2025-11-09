@@ -297,7 +297,9 @@ export const TOUCH_TARGETS = {
 export interface TicketType {
   id: string;
   name: string;
-  price: number;
+  price?: number; // For fixed-price tickets
+  minPrice?: number; // For sliding-scale tickets
+  maxPrice?: number; // For sliding-scale tickets
   description?: string;
 }
 
@@ -330,3 +332,15 @@ export interface CreateCashTicketPurchaseRequest {
  * ✅ AUTO-GENERATED TYPE - DO NOT MANUALLY EDIT
  */
 export type CashPaymentResponse = components['schemas']['CashPaymentResponse'];
+
+/**
+ * Ticket purchase response
+ * Frontend-only until backend adds TicketPurchaseResponse DTO
+ * TODO: Replace with auto-generated type when backend implements it
+ */
+export interface TicketPurchaseResponse {
+  success: boolean;
+  ticketId: string;
+  participationId: string;
+  message?: string;
+}

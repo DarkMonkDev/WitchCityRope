@@ -242,9 +242,17 @@ export const EventPaymentPage: React.FC = () => {
     } catch (error: any) {
       console.error('❌ Failed to create ticket purchase:', error);
 
+      // Extract the most helpful error message from API response
+      const errorMessage =
+        error.response?.data?.detail ||
+        error.response?.data?.title ||
+        error.response?.data?.message ||
+        error.message ||
+        'Payment succeeded but ticket creation failed. Please contact support.';
+
       notifications.show({
         title: 'Purchase Error',
-        message: error?.message || 'Payment succeeded but ticket creation failed. Please contact support.',
+        message: errorMessage,
         color: 'red',
         autoClose: false
       });
@@ -288,7 +296,7 @@ export const EventPaymentPage: React.FC = () => {
    * Navigate to user registrations
    */
   const handleViewRegistrations = () => {
-    navigate('/profile/registrations');
+    navigate('/dashboard');
   };
 
   /**
@@ -404,14 +412,17 @@ export const EventPaymentPage: React.FC = () => {
       <Stack gap="xl">
         {/* Header */}
         <Group justify="space-between" align="center">
-          <Button
-            variant="subtle"
-            leftSection={<IconArrowLeft size={16} />}
-            onClick={handleBack}
-            color="wcr"
-          >
-            Back
-          </Button>
+          {/* Hide Back button on confirmation screen (Step 3) */}
+          {currentStep < 2 && (
+            <Button
+              variant="subtle"
+              leftSection={<IconArrowLeft size={16} />}
+              onClick={handleBack}
+              color="wcr"
+            >
+              Back
+            </Button>
+          )}
           <Text c="dimmed" size="sm">
             Secure Payment • SSL Encrypted
           </Text>

@@ -83,7 +83,14 @@ export const VolunteerPositionInlineForm: React.FC<VolunteerPositionInlineFormPr
     }
   }, [position]);
 
-  const handleSubmit = form.onSubmit((values) => {
+  const handleSubmit = () => {
+    const values = form.values;
+    const validationResult = form.validate();
+
+    if (validationResult.hasErrors) {
+      return;
+    }
+
     const positionData: Omit<VolunteerPosition, 'id' | 'slotsFilled'> = {
       title: values.title,
       description: values.description,
@@ -94,7 +101,7 @@ export const VolunteerPositionInlineForm: React.FC<VolunteerPositionInlineFormPr
       isPublicFacing: values.isPublicFacing,
     };
     onSubmit(positionData);
-  });
+  };
 
   const handleDeleteClick = () => {
     if (position && onDelete) {

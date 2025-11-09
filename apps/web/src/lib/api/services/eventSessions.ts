@@ -8,9 +8,9 @@ export interface EventSessionDto {
   sessionIdentifier: string // S1, S2, S3, etc.
   name: string
   startDateTime: string // ISO date string
-  endDateTime: string // ISO date string  
+  endDateTime: string // ISO date string
   capacity: number
-  registeredCount: number
+  registrationCount: number
   createdAt: string
   updatedAt: string
 }

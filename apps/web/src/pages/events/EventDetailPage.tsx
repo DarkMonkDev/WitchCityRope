@@ -363,7 +363,7 @@ export const EventDetailPage: React.FC = () => {
             <ContentSection title="Teachers">
               <Stack gap="lg">
                 {teachers.map((teacher) => (
-                  <Box key={teacher.id}>
+                  <Box key={(teacher as any).id}>
                     <Text
                       style={{
                         fontFamily: 'var(--font-heading)',
@@ -423,7 +423,6 @@ export const EventDetailPage: React.FC = () => {
               onPurchaseTicket={handlePurchaseTicket}
               onCancel={handleCancel}
               ticketPrice={getTicketPrice()}
-              ticketTypes={(event as any)?.ticketTypes || []}
               eventStartDateTime={(event as any)?.startDate}
               eventEndDateTime={(event as any)?.endDate}
               eventInstructor={(event as any)?.instructor}

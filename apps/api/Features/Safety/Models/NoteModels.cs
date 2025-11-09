@@ -11,11 +11,6 @@ public class AddNoteRequest
     public string Content { get; set; } = string.Empty;
 
     /// <summary>
-    /// Whether note is private (visible only to coordinators/admins)
-    /// </summary>
-    public bool IsPrivate { get; set; }
-
-    /// <summary>
     /// Optional tags (comma-separated)
     /// </summary>
     public string? Tags { get; set; }
@@ -30,11 +25,6 @@ public class UpdateNoteRequest
     /// Updated content (min 3 chars)
     /// </summary>
     public string Content { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Whether note is private
-    /// </summary>
-    public bool IsPrivate { get; set; }
 
     /// <summary>
     /// Optional tags (comma-separated)

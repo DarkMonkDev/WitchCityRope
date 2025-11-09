@@ -346,7 +346,7 @@ public class VettingPublicServiceTests : IAsyncLifetime
             StatusToken = Guid.NewGuid().ToString("N"),
             WorkflowStatus = VettingStatus.Approved,
             SubmittedAt = DateTime.UtcNow.AddDays(-15),
-            AboutYourself = "I am interested in learning rope bondage.",
+            OtherNames = "DetailedAlternateName",
             Pronouns = "they/them"
         };
         _context.VettingApplications.Add(application);

@@ -127,7 +127,6 @@ export interface DashboardEventDto {
 export type VettingStatus =
   | 'UnderReview'
   | 'InterviewApproved'
-  | 'InterviewCompleted'
   | 'FinalReview'
   | 'Approved'
   | 'Denied'
@@ -181,12 +180,6 @@ export const DashboardUtils = {
           label: 'Interview Approved',
           color: 'cyan',
           description: 'Approved for interview - waiting to schedule',
-        }
-      case 'InterviewCompleted':
-        return {
-          label: 'Interview Completed',
-          color: 'blue',
-          description: 'Interview completed - awaiting final review',
         }
       case 'FinalReview':
         return {

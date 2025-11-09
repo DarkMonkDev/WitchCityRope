@@ -99,7 +99,7 @@ describe('Authentication Flow Integration Tests', () => {
       })
 
       // Verify role was set correctly
-      expect(authState.user.roles).toContain('Admin')
+      expect(authState.user.role).toBe('Admin')
 
       // Verify navigation was triggered
       expect(mockNavigate).toHaveBeenCalledWith('/dashboard', {

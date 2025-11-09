@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Footer Mockup - Accordion Mobile-First</title>
+    <style>
+        /* CSS Variables - Design System v7 */
+        :root {
+            --color-burgundy: #880124;
+            --color-rose-gold: #B76D75;
+            --color-midnight: #1A1A2E;
+            --color-taupe: #B8B0A8;
+            --color-ivory: #FFF8F0;
+            --color-charcoal: #2B2B2B;
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            --space-sm: 16px;
+            --space-md: 24px;
+            --space-lg: 32px;
+            --space-xl: 40px;
+        }
+
+        /* Import Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Source+Sans+3:wght@400;600&display=swap');
+
+        /* Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--color-ivory);
+            padding: 40px 20px;
+        }
+
+        /* Page Container - for preview */
+        .preview-container {
+            max-width: 1440px;
+            margin: 0 auto;
+            background: var(--color-ivory);
+        }
+
+        .preview-header {
+            background: var(--color-burgundy);
+            color: var(--color-ivory);
+            padding: var(--space-lg);
+            text-align: center;
+            margin-bottom: 40px;
+            border-radius: 8px;
+        }
+
+        .preview-header h1 {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .preview-header p {
+            margin-top: 8px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* === FOOTER COMPONENT STARTS HERE === */
+
+        /* Footer Container */
+        .footer {
+            background-color: var(--color-midnight);
+            color: var(--color-taupe);
+            border-top: 3px solid var(--color-rose-gold);
+            padding: var(--space-xl) 0;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Footer Section (Accordion Item) */
+        .footer-section {
+            border-bottom: 1px solid rgba(183, 109, 117, 0.2);
+            margin-bottom: var(--space-sm);
+        }
+
+        .footer-section:last-of-type {
+            border-bottom: none;
+        }
+
+        /* Section Header (Accordion Toggle) */
+        .footer-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-sm) 0;
+            margin-top: 0;
+            cursor: pointer;
+            user-select: none;
+            background: transparent;
+            border: none;
+            width: 100%;
+            text-align: left;
+            position: relative;
+        }
+
+        .footer-section-title {
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--color-ivory);
+            transition: color 0.2s ease;
+            position: relative;
+            display: inline-block;
+            padding-bottom: 4px;
+        }
+
+        /* Underline Animation - Base: Hidden by default */
+        .footer-section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--color-rose-gold), transparent);
+            transition: width 0.3s ease;
+        }
+
+        .accordion-icon {
+            font-size: 20px;
+            color: var(--color-rose-gold);
+            transition: transform 0.3s ease;
+        }
+
+        .accordion-icon.expanded {
+            transform: rotate(180deg);
+        }
+
+        /* Section Body (Accordion Content) */
+        .footer-section-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+        }
+
+        .footer-section-body.expanded {
+            max-height: 500px;
+            padding-bottom: var(--space-md);
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: var(--color-taupe);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s ease;
+            display: inline-block;
+        }
+
+        .footer-links a:hover {
+            color: var(--color-rose-gold);
+        }
+
+        /* Social Media Links */
+        .social-links {
+            display: flex;
+            gap: var(--space-md);
+            margin-top: var(--space-sm);
+        }
+
+        .social-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--color-taupe);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s ease;
+        }
+
+        .social-link:hover {
+            color: var(--color-rose-gold);
+        }
+
+        .social-icon {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        /* Footer Bottom Section */
+        .footer-bottom {
+            margin-top: 0;  /* Mobile: NO spacing above footer bottom */
+            padding-top: 0; /* Mobile: NO padding above footer bottom */
+            /* Mobile: NO divider line - removed border-top */
+        }
+
+        .privacy-notice {
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: var(--space-sm);
+            color: var(--color-taupe);
+            font-style: italic;
+        }
+
+        .footer-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            font-size: 13px;
+        }
+
+        .footer-meta a {
+            color: var(--color-taupe);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .footer-meta a:hover {
+            color: var(--color-rose-gold);
+        }
+
+        /* Mobile-Only: Show underline when section is expanded */
+        @media (max-width: 767px) {
+            .footer-section-header[aria-expanded="true"] .footer-section-title::after {
+                width: 100%;
+            }
+        }
+
+        /* Desktop Styles (≥768px) */
+        @media (min-width: 768px) {
+            .footer-content {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                row-gap: 0;
+                column-gap: var(--space-xl);
+                padding: 0 40px;
+            }
+
+            .footer-section {
+                border-bottom: none;
+                margin-bottom: 0;
+            }
+
+            .footer-section-header {
+                cursor: default;
+                padding: 0 0 12px 0;  /* CHANGE 1: Reduced from 24px (var(--space-md)) to 12px */
+            }
+
+            /* Desktop: Show underline only on hover */
+            .footer-section-header:hover .footer-section-title::after {
+                width: 100%;
+            }
+
+            .accordion-icon {
+                display: none;
+            }
+
+            .footer-section-body {
+                max-height: none;
+                padding-bottom: 0;
+            }
+
+            .footer-bottom {
+                grid-column: 1 / -1;
+                margin-top: 0;  /* Desktop: REMOVED - No spacing on container */
+                padding-top: 0; /* Keep padding at 0 */
+                border-top: 1px solid rgba(183, 109, 117, 0.2);  /* Desktop: Add divider line */
+            }
+
+            .privacy-notice {
+                margin-top: 10px;  /* Desktop: Spacing above privacy notice (reduced from 16px to 10px) */
+            }
+
+            .footer-meta {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+
+        /* Accessibility - Remove focus box, rely on underline for visual feedback */
+        .footer-section-header:focus {
+            outline: none;
+        }
+
+        .footer-links a:focus,
+        .social-link:focus,
+        .footer-meta a:focus {
+            outline: 2px solid var(--color-rose-gold);
+            outline-offset: 2px;
+        }
+
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            .accordion-icon,
+            .footer-section-body,
+            .footer-links a,
+            .social-link,
+            .footer-meta a,
+            .footer-section-title::after {
+                transition: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Preview Header -->
+    <div class="preview-container">
+        <div class="preview-header">
+            <h1>Option 4: Accordion Mobile-First Footer (Updated)</h1>
+            <p>Resize browser window to see responsive behavior (Mobile: &lt;768px | Desktop: ≥768px)</p>
+        </div>
+
+        <!-- === FOOTER COMPONENT === -->
+        <footer class="footer">
+            <div class="footer-content">
+                <!-- About Section -->
+                <div class="footer-section">
+                    <button class="footer-section-header" aria-expanded="false" aria-controls="about-content">
+                        <h3 class="footer-section-title">About</h3>
+                        <span class="accordion-icon" aria-hidden="true">▼</span>
+                    </button>
+                    <div id="about-content" class="footer-section-body">
+                        <ul class="footer-links">
+                            <li><a href="/about">About Us</a></li>
+                            <li><a href="/code-of-conduct">Code of Conduct</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Legal Section -->
+                <div class="footer-section">
+                    <button class="footer-section-header" aria-expanded="false" aria-controls="legal-content">
+                        <h3 class="footer-section-title">Legal</h3>
+                        <span class="accordion-icon" aria-hidden="true">▼</span>
+                    </button>
+                    <div id="legal-content" class="footer-section-body">
+                        <ul class="footer-links">
+                            <li><a href="/privacy-policy">Privacy Policy</a></li>
+                            <li><a href="/terms-of-service">Terms of Service</a></li>
+                            <li><a href="/refund-policy">Refund Policy</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Connect Section -->
+                <div class="footer-section">
+                    <button class="footer-section-header" aria-expanded="false" aria-controls="connect-content">
+                        <h3 class="footer-section-title">Connect</h3>
+                        <span class="accordion-icon" aria-hidden="true">▼</span>
+                    </button>
+                    <div id="connect-content" class="footer-section-body">
+                        <ul class="footer-links">
+                            <li><a href="/contact">Contact Us</a></li>
+                        </ul>
+                        <div class="social-links">
+                            <a href="https://fetlife.com/witchcityrope" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Follow us on FetLife">
+                                <svg class="social-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                                <span>FetLife</span>
+                            </a>
+                            <a href="https://instagram.com/witchcityrope" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Follow us on Instagram">
+                                <svg class="social-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2m-.2 2A3.6 3.6 0 0 0 4 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 0 0 3.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 17.25 8 1.25 1.25 0 0 1 16 6.75a1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/>
+                                </svg>
+                                <span>Instagram</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Bottom -->
+                <div class="footer-bottom">
+                    <p class="privacy-notice">
+                        We protect the privacy of our members. Location details are shared only with vetted members and ticket holders.
+                    </p>
+                    <div class="footer-meta">
+                        <div>&copy; 2025 WitchCityRope. All rights reserved.</div>
+                        <a href="mailto:info@witchcityrope.com">info@witchcityrope.com</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- JavaScript for Accordion Functionality (Mobile Only) -->
+    <script>
+        (function() {
+            // Shared function to set accordion state based on viewport width
+            function updateAccordionState() {
+                const sections = document.querySelectorAll('.footer-section');
+
+                sections.forEach(section => {
+                    const header = section.querySelector('.footer-section-header');
+                    const body = section.querySelector('.footer-section-body');
+                    const icon = section.querySelector('.accordion-icon');
+
+                    if (!header || !body || !icon) return;
+
+                    if (window.innerWidth >= 768) {
+                        // Desktop: Expand all sections
+                        body.classList.add('expanded');
+                        header.setAttribute('aria-expanded', 'true');
+                        icon.classList.add('expanded');
+                    } else {
+                        // Mobile: Collapse all sections
+                        body.classList.remove('expanded');
+                        header.setAttribute('aria-expanded', 'false');
+                        icon.classList.remove('expanded');
+                    }
+                });
+            }
+
+            // Initialize accordion click handlers
+            function initAccordion() {
+                const sections = document.querySelectorAll('.footer-section');
+
+                sections.forEach(section => {
+                    const header = section.querySelector('.footer-section-header');
+                    const body = section.querySelector('.footer-section-body');
+                    const icon = section.querySelector('.accordion-icon');
+
+                    if (!header || !body || !icon) return;
+
+                    header.addEventListener('click', function() {
+                        // Only allow accordion behavior on mobile
+                        if (window.innerWidth >= 768) return;
+
+                        const isExpanded = header.getAttribute('aria-expanded') === 'true';
+
+                        // Toggle current section
+                        header.setAttribute('aria-expanded', !isExpanded);
+                        body.classList.toggle('expanded');
+                        icon.classList.toggle('expanded');
+                    });
+                });
+            }
+
+            // Initialize on DOMContentLoaded
+            document.addEventListener('DOMContentLoaded', function() {
+                initAccordion();
+                updateAccordionState(); // CRITICAL FIX: Initialize state on page load
+            });
+
+            // Handle window resize with debouncing
+            let resizeTimer;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(updateAccordionState, 250);
+            });
+        })();
+    </script>
+</body>
+</html>

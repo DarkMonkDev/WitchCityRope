@@ -1,5 +1,78 @@
 ```
 
+## 🚨 CRITICAL: QuantitySold Logic - Count Unique Attendees, Not Total Purchases 🚨
+
+**Problem**: QuantitySold counting total purchase quantities instead of unique registered attendees
+**Date**: 2025-11-08
+**Impact**: Sold counts inflated when users make multiple purchases for same event (showed 7 sold instead of 4)
+
+**Root Cause**:
+- One user can have multiple `TicketPurchase` records for the same event
+- Original logic summed `Quantity` across all purchases: `.Sum(p => p.Quantity)`
+- This counted total tickets bought (7) instead of unique attendees (4)
+- Example: User with 3 separate purchases (Quantity=1 each) counted as 3 sold, should be 1
+
+**Business Rule Clarification**:
+- **QuantitySold** = count of unique registered attendees with active participations
+- NOT total quantity across all purchases
+- One person buying multiple tickets still counts as 1 attendee
+
+**Database Schema Note**:
+- `TicketPurchase` has NO `ParticipationId` column (design doc intended it, not implemented)
+- Relationship is User → EventParticipation (1:1 per user per event)
+- Relationship is User → TicketPurchases (1:many per user per ticket type)
+
+**Fix Applied**:
+```csharp
+// BEFORE (WRONG) - Sums total quantity across all purchases
+QuantitySold = ticketType.Purchases
+    .Where(p => p.IsPaymentCompleted && participationLookup.Contains(p.UserId))
+    .Sum(p => p.Quantity);  // 7 for example event
+
+// AFTER (CORRECT) - Counts unique users with completed purchases
+QuantitySold = ticketType.Purchases
+    .Where(p => p.IsPaymentCompleted && participationLookup.Contains(p.UserId))
+    .Select(p => p.UserId)
+    .Distinct()
+    .Count();  // 4 for example event
+```
+
+**Testing Verification**:
+```bash
+# Event: Suspension Basics (ae9ce9ab-731b-40f7-9641-ddfcf1e6e985)
+# Database: 4 users with active participations, 7 total purchases
+# - User 0ba24c40: 3 purchases
+# - User c8cea270: 2 purchases
+# - Users 7a75b112 and 7ef976ca: 1 purchase each
+
+# BEFORE: quantitySold = 7 (all purchases)
+# AFTER: quantitySold = 4 (unique users)
+
+curl http://localhost:5655/api/events/{eventId} | jq '.data.ticketTypes[].quantitySold'
+# Result: 0, 1, 4 (correct unique user counts)
+```
+
+**Fallback Logic Also Updated**:
+When no participations provided, also counts unique users instead of summing quantities:
+```csharp
+// Fallback maintains consistency - count unique users, not total quantity
+QuantitySold = ticketType.Purchases
+    .Where(p => p.IsPaymentCompleted)
+    .Select(p => p.UserId)
+    .Distinct()
+    .Count();
+```
+
+**Files Modified**:
+- `/home/chad/repos/witchcityrope/apps/api/Features/Events/Models/TicketTypeDto.cs` (lines 97-130)
+
+**Prevention**:
+- Business logic for "sold count" must be clearly defined: unique attendees vs total tickets
+- When `Quantity` field exists, clarify whether it represents multiple tickets for one person or group purchases
+- Consider adding database constraints if one user should only have one purchase per ticket type
+
+---
+
 **Endpoint Fix (HTTP Status Code)**:
 ```csharp
 // BEFORE (WRONG) - Returns 400 for duplicates

@@ -56,7 +56,7 @@ export const EventsListPage: React.FC = () => {
 
   // CRITICAL: Use API data directly - DO NOT mask errors with fallback arrays
   // If events is undefined/null, it means there's an error that should be shown to the user
-  const eventsArray: EventDto[] = events || []
+  const eventsArray: EventDto[] = (events as EventDto[]) || []
 
   // Debug logging for E2E test troubleshooting
   console.log('🎯 EventsListPage render state:', {

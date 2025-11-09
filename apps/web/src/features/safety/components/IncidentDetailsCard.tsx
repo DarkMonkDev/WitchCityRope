@@ -1,5 +1,5 @@
 import React from 'react';
-import { Paper, Stack, Text, Title, Badge, Group } from '@mantine/core';
+import { Paper, Stack, Text, Title, Badge, Group, Grid, Anchor } from '@mantine/core';
 import { IconLock, IconMail, IconCalendar } from '@tabler/icons-react';
 import {
   IncidentType,
@@ -17,7 +17,6 @@ interface IncidentDetailsCardProps {
   reporterEmail?: string;
   requestedFollowUp: boolean;
   incidentDate?: string;
-  reportedAt?: string;
   location?: string;
   contactEmail?: string;
   contactName?: string;
@@ -38,7 +37,7 @@ const formatDateTime = (dateString: string): string => {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', {
     year: 'numeric',
-    month: 'long',
+    month: 'short',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit'
@@ -52,7 +51,6 @@ export const IncidentDetailsCard: React.FC<IncidentDetailsCardProps> = ({
   reporterEmail,
   requestedFollowUp,
   incidentDate,
-  reportedAt,
   location,
   contactEmail,
   contactName,
@@ -70,48 +68,119 @@ export const IncidentDetailsCard: React.FC<IncidentDetailsCardProps> = ({
 }) => {
   return (
     <Paper p="xl" radius="md" style={{ border: '1px solid #E0E0E0' }}>
-      <Title order={3} style={{ color: '#880124' }} mb="lg">
-        Incident Details
-      </Title>
+      {/* Header with title and incident type badge */}
+      <Group justify="space-between" mb="lg">
+        <Title order={3} style={{ color: '#880124' }}>
+          Incident Details
+        </Title>
+        {incidentType && (
+          <Badge size="lg" color="orange">{INCIDENT_TYPE_LABELS[incidentType]}</Badge>
+        )}
+      </Group>
 
       <Stack gap="md">
-        {/* Type of Incident */}
-        {incidentType && (
-          <div>
-            <Text size="xs" c="dimmed" mb={4}>Type of Incident</Text>
-            <Badge size="lg" color="orange">{INCIDENT_TYPE_LABELS[incidentType]}</Badge>
-          </div>
-        )}
-
-        {/* Incident Date & Location */}
-        <Group gap="xl">
+        {/* Three-column grid for incident fields */}
+        <Grid gutter="xl">
+          {/* Row 1: Incident Date | Reporter | Created */}
           {incidentDate && (
-            <div>
-              <Text size="xs" c="dimmed" mb={4}>
-                <IconCalendar size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />
-                Incident Date
-              </Text>
-              <Text size="sm" fw={600}>{formatDateTime(incidentDate)}</Text>
-            </div>
+            <Grid.Col span={4}>
+              <Group gap={4} wrap="nowrap" align="flex-start">
+                <Text size="sm" c="dimmed">Incident Date:</Text>
+                <Text size="sm" fw={600}>{formatDateTime(incidentDate)}</Text>
+              </Group>
+            </Grid.Col>
           )}
 
-          {reportedAt && (
-            <div>
-              <Text size="xs" c="dimmed" mb={4}>Reported On</Text>
-              <Text size="sm">{formatDateTime(reportedAt)}</Text>
-            </div>
+          <Grid.Col span={4}>
+            <Group gap={4} wrap="nowrap" align="flex-start">
+              <Text size="sm" c="dimmed">Reporter:</Text>
+              {isAnonymous ? (
+                <Badge color="gray" leftSection={<IconLock size={12} />} size="sm">
+                  Anonymous
+                </Badge>
+              ) : (
+                <Text size="sm" fw={600}>{reporterName || 'Identified Reporter'}</Text>
+              )}
+            </Group>
+          </Grid.Col>
+
+          <Grid.Col span={4}>
+            <Group gap={4} wrap="nowrap" align="flex-start">
+              <Text size="sm" c="dimmed">Created:</Text>
+              <Text size="sm">{formatDateTime(createdAt)}</Text>
+            </Group>
+          </Grid.Col>
+
+          {/* Row 2: Last Updated | Contact Info */}
+          <Grid.Col span={4}>
+            <Group gap={4} wrap="nowrap" align="flex-start">
+              <Text size="sm" c="dimmed">Last Updated:</Text>
+              <Text size="sm">{formatDateTime(updatedAt)}</Text>
+            </Group>
+          </Grid.Col>
+
+          <Grid.Col span={4}>
+            {!isAnonymous && (contactName || contactEmail) ? (
+              <Stack gap="xs">
+                {contactName && (
+                  <Group gap={4} wrap="nowrap" align="flex-start">
+                    <Text size="sm" c="dimmed">Contact Info:</Text>
+                    <Text size="sm" fw={500}>{contactName}</Text>
+                  </Group>
+                )}
+                {contactEmail && (
+                  <Group gap={4} wrap="nowrap" align="flex-start">
+                    <Text size="sm" c="dimmed">Email:</Text>
+                    <Anchor href={`mailto:${contactEmail}`} size="sm">
+                      {contactEmail}
+                    </Anchor>
+                  </Group>
+                )}
+              </Stack>
+            ) : (
+              <div />
+            )}
+          </Grid.Col>
+
+          {/* Row 3: Where Did This Occur | Location Details | Anonymity Preferences */}
+          {whereOccurred && (
+            <Grid.Col span={4}>
+              <Group gap={4} wrap="nowrap" align="flex-start">
+                <Text size="sm" c="dimmed">Where Did This Occur?</Text>
+                <Text size="sm" fw={500}>{WHERE_OCCURRED_LABELS[whereOccurred]}</Text>
+              </Group>
+            </Grid.Col>
           )}
-        </Group>
 
-        {/* Where Occurred */}
-        {whereOccurred && (
-          <div>
-            <Text size="xs" c="dimmed" mb={4}>Where Did This Occur?</Text>
-            <Text size="sm" fw={500}>{WHERE_OCCURRED_LABELS[whereOccurred]}</Text>
-          </div>
-        )}
+          {location && (
+            <Grid.Col span={4}>
+              <Group gap={4} wrap="nowrap" align="flex-start">
+                <Text size="sm" c="dimmed">Location Details:</Text>
+                <Text size="sm" fw={500}>{location}</Text>
+              </Group>
+            </Grid.Col>
+          )}
 
-        {/* Event Name */}
+          <Grid.Col span={4}>
+            {(anonymousDuringInvestigation !== undefined || anonymousInFinalReport !== undefined) ? (
+              <div>
+                <Text size="sm" c="dimmed" mb={4}>Anonymity Preferences</Text>
+                <Stack gap="xs">
+                  <Badge color={anonymousDuringInvestigation ? "blue" : "gray"} size="sm">
+                    {anonymousDuringInvestigation ? "Anonymous During Investigation" : "Identified During Investigation"}
+                  </Badge>
+                  <Badge color={anonymousInFinalReport ? "blue" : "gray"} size="sm">
+                    {anonymousInFinalReport ? "Anonymous In Final Report" : "Identified In Final Report"}
+                  </Badge>
+                </Stack>
+              </div>
+            ) : (
+              <div />
+            )}
+          </Grid.Col>
+        </Grid>
+
+        {/* Additional fields outside grid */}
         {eventName && (
           <div>
             <Text size="xs" c="dimmed" mb={4}>Event Name</Text>
@@ -119,74 +188,9 @@ export const IncidentDetailsCard: React.FC<IncidentDetailsCardProps> = ({
           </div>
         )}
 
-        {/* Location Details */}
-        {location && (
-          <div>
-            <Text size="xs" c="dimmed" mb={4}>Location Details</Text>
-            <Text size="sm" fw={500}>{location}</Text>
-          </div>
-        )}
-
-        {/* Description */}
-        <div>
-          <Text size="sm" c="dimmed" mb="xs">Description</Text>
-          <Text size="sm" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
-            {description}
-          </Text>
-        </div>
-
-        {/* Reporter Information */}
-        <div>
-          <Text size="sm" c="dimmed" mb="xs">Reporter</Text>
-          {isAnonymous ? (
-            <Group gap="xs">
-              <Badge color="gray" leftSection={<IconLock size={12} />}>
-                Anonymous Report
-              </Badge>
-              <Text size="sm" c="dimmed">No follow-up capability</Text>
-            </Group>
-          ) : (
-            <Stack gap="xs">
-              <Group gap="xs">
-                <Text size="sm" fw={600}>{reporterName || 'Identified Reporter'}</Text>
-                {requestedFollowUp && (
-                  <Badge color="blue" size="sm" leftSection={<IconMail size={12} />}>
-                    Follow-up Requested
-                  </Badge>
-                )}
-              </Group>
-              {reporterEmail && (
-                <Text size="sm" c="dimmed">{reporterEmail}</Text>
-              )}
-            </Stack>
-          )}
-        </div>
-
-        {/* Contact Information (for non-anonymous reports) */}
-        {!isAnonymous && (contactName || contactEmail) && (
-          <div>
-            <Text size="xs" c="dimmed" mb={4}>Contact Information</Text>
-            <Stack gap="xs">
-              {contactName && (
-                <Group gap="xs">
-                  <Text size="sm" fw={600}>Name:</Text>
-                  <Text size="sm">{contactName}</Text>
-                </Group>
-              )}
-              {contactEmail && (
-                <Group gap="xs">
-                  <IconMail size={16} color="#666" />
-                  <Text size="sm">{contactEmail}</Text>
-                </Group>
-              )}
-            </Stack>
-          </div>
-        )}
-
-        {/* Has Spoken To Person */}
         {hasSpokenToPerson && (
           <div>
-            <Text size="xs" c="dimmed" mb={4}>Has Spoken To Person Involved?</Text>
+            <Text size="xs" c="dimmed" mb={4}>Has Spoken To Person?</Text>
             <Text size="sm" fw={500}>{SPOKEN_TO_PERSON_LABELS[hasSpokenToPerson]}</Text>
           </div>
         )}
@@ -211,37 +215,13 @@ export const IncidentDetailsCard: React.FC<IncidentDetailsCardProps> = ({
           </div>
         )}
 
-        {/* Anonymity Preferences */}
-        {(anonymousDuringInvestigation !== undefined || anonymousInFinalReport !== undefined) && (
-          <div>
-            <Text size="xs" c="dimmed" mb={4}>Anonymity Preferences</Text>
-            <Stack gap="xs">
-              <Group gap="xs">
-                <Badge color={anonymousDuringInvestigation ? "blue" : "gray"} size="sm">
-                  {anonymousDuringInvestigation ? "Anonymous During Investigation" : "Identified During Investigation"}
-                </Badge>
-              </Group>
-              <Group gap="xs">
-                <Badge color={anonymousInFinalReport ? "blue" : "gray"} size="sm">
-                  {anonymousInFinalReport ? "Anonymous In Final Report" : "Identified In Final Report"}
-                </Badge>
-              </Group>
-            </Stack>
-          </div>
-        )}
-
-        {/* Timestamps */}
-        <Group gap="xl">
-          <div>
-            <Text size="xs" c="dimmed" mb={4}>Created</Text>
-            <Text size="sm">{formatDateTime(createdAt)}</Text>
-          </div>
-
-          <div>
-            <Text size="xs" c="dimmed" mb={4}>Last Updated</Text>
-            <Text size="sm">{formatDateTime(updatedAt)}</Text>
-          </div>
-        </Group>
+        {/* Description - MUST BE LAST FIELD */}
+        <div>
+          <Text size="xs" c="dimmed" mb={4}>Description</Text>
+          <Text size="sm" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+            {description}
+          </Text>
+        </div>
       </Stack>
     </Paper>
   );

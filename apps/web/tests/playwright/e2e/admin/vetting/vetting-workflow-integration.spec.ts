@@ -333,14 +333,15 @@ test.describe('Vetting Workflow Integration', () => {
   /**
    * TEST 6: Send reminder email workflow
    * Validates: Reminder modal, custom message, email trigger
+   * NOTE: Status filter updated to use FinalReview instead of InterviewCompleted
    */
   test('admin can send reminder email to applicant', async () => {
-    // Arrange - Navigate to application in InterviewCompleted or OnHold status
+    // Arrange - Navigate to application in FinalReview or OnHold status
     await AuthHelpers.loginAs(page, 'admin');
     await page.goto('/admin/vetting');
 
     const onHoldRow = page.locator('table tbody tr')
-      .filter({ has: page.locator('text=/hold|interview/i') })
+      .filter({ has: page.locator('text=/hold|final.*review/i') })
       .first();
 
     if (await onHoldRow.count() > 0) {
@@ -377,7 +378,7 @@ test.describe('Vetting Workflow Integration', () => {
         console.log('Send reminder button not found');
       }
     } else {
-      console.log('No applications in OnHold or InterviewCompleted status');
+      console.log('No applications in OnHold or FinalReview status');
     }
   });
 });

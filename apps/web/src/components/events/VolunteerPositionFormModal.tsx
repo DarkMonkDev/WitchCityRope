@@ -75,7 +75,7 @@ export const VolunteerPositionFormModal: React.FC<VolunteerPositionFormModalProp
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault(); // Prevent default form submission that causes page refresh
-    
+
     form.onSubmit((values) => {
       const positionData: Omit<VolunteerPosition, 'id' | 'slotsFilled'> = {
         title: values.title,
@@ -84,6 +84,7 @@ export const VolunteerPositionFormModal: React.FC<VolunteerPositionFormModalProp
         startTime: values.startTime,
         endTime: values.endTime,
         slotsNeeded: values.slotsNeeded,
+        isPublicFacing: false, // Default to not public-facing
       };
       onSubmit(positionData);
       form.reset();

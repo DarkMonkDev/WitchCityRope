@@ -71,7 +71,10 @@ public class ParticipationSeeder
 
             if (eventItem.EventType == EventType.Social)
             {
-                // Social events: Create RSVPs for multiple users
+                // Social events: Create RSVPs for multiple VETTED users only
+                // Business rule: Only vetted members (VettingStatus >= 3/Approved) can attend social events
+                var vettedUsers = users.Where(u => u.VettingStatus >= 3).ToList();
+
                 var rsvpCount = eventItem.Title.Contains("Community Rope Jam") ? 5 :
                                eventItem.Title.Contains("New Members Meetup") ? 8 :
                                eventItem.Title.Contains("Rope Social & Discussion") ? 6 : 3;
@@ -80,9 +83,9 @@ public class ParticipationSeeder
                 var donationTicketType = eventItem.TicketTypes.FirstOrDefault(tt => tt.Name.Contains("Donation"));
                 var donationCount = (int)Math.Ceiling(rsvpCount / 2.0); // At least half purchase donations
 
-                for (int i = 0; i < Math.Min(rsvpCount, users.Count); i++)
+                for (int i = 0; i < Math.Min(rsvpCount, vettedUsers.Count); i++)
                 {
-                    var user = users[i];
+                    var user = vettedUsers[i];
                     var createdAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 10));
 
                     // Create RSVP participation
@@ -303,9 +306,10 @@ public class ParticipationSeeder
             return;
         }
 
-        // 2. Get users from database (excluding canceled user for active RSVPs)
+        // 2. Get VETTED users from database (excluding canceled user for active RSVPs)
+        // Business rule: Only vetted members (VettingStatus >= 3/Approved) can attend social events
         var users = await _userManager.Users.ToListAsync(cancellationToken);
-        var availableUsers = users.Where(u => u.Email != canceledUserEmail).ToList();
+        var availableUsers = users.Where(u => u.Email != canceledUserEmail && u.VettingStatus >= 3).ToList();
 
         if (availableUsers.Count < totalRsvps)
         {

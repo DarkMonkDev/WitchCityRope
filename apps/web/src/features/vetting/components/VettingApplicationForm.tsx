@@ -15,7 +15,8 @@ import {
   Paper,
   List,
   ThemeIcon,
-  Anchor
+  Anchor,
+  SimpleGrid
 } from '@mantine/core';
 import {
   EnhancedTextInput,
@@ -387,68 +388,70 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
 
           <form onSubmit={form.onSubmit(handleFormSubmit)} data-testid="vetting-application-form">
             <Stack gap="lg">
-              {/* First Name */}
-              <EnhancedTextInput
-                label="First Name"
-                placeholder="Enter your first name"
-                required
-                description={fieldValidationMessages.firstName.required}
-                data-testid="first-name-input"
-                {...form.getInputProps('firstName')}
-                styles={{
-                  input: {
-                    height: 56,
-                    fontSize: 16,
-                  },
-                }}
-              />
+              {/* First four fields in 2-column grid (responsive: 1 column on mobile/tablet, 2 columns on desktop) */}
+              <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
+                {/* First Name */}
+                <EnhancedTextInput
+                  label="First Name"
+                  placeholder="Enter your first name"
+                  required
+                  description={fieldValidationMessages.firstName.required}
+                  data-testid="first-name-input"
+                  {...form.getInputProps('firstName')}
+                  styles={{
+                    input: {
+                      height: 56,
+                      fontSize: 16,
+                    },
+                  }}
+                />
 
-              {/* Last Name */}
-              <EnhancedTextInput
-                label="Last Name"
-                placeholder="Enter your last name"
-                required
-                description={fieldValidationMessages.lastName.required}
-                data-testid="last-name-input"
-                {...form.getInputProps('lastName')}
-                styles={{
-                  input: {
-                    height: 56,
-                    fontSize: 16,
-                  },
-                }}
-              />
+                {/* Last Name */}
+                <EnhancedTextInput
+                  label="Last Name"
+                  placeholder="Enter your last name"
+                  required
+                  description={fieldValidationMessages.lastName.required}
+                  data-testid="last-name-input"
+                  {...form.getInputProps('lastName')}
+                  styles={{
+                    input: {
+                      height: 56,
+                      fontSize: 16,
+                    },
+                  }}
+                />
 
-              {/* Pronouns */}
-              <EnhancedTextInput
-                label="Pronouns"
-                placeholder="Enter your pronouns (optional)"
-                description={fieldValidationMessages.pronouns.optional}
-                data-testid="pronouns-input"
-                {...form.getInputProps('pronouns')}
-                styles={{
-                  input: {
-                    height: 56,
-                    fontSize: 16,
-                  },
-                }}
-              />
+                {/* Pronouns */}
+                <EnhancedTextInput
+                  label="Pronouns"
+                  placeholder="Enter your pronouns (optional)"
+                  description={fieldValidationMessages.pronouns.optional}
+                  data-testid="pronouns-input"
+                  {...form.getInputProps('pronouns')}
+                  styles={{
+                    input: {
+                      height: 56,
+                      fontSize: 16,
+                    },
+                  }}
+                />
 
-
-              {/* FetLife Handle */}
-              <EnhancedTextInput
-                label="FetLife Handle"
-                placeholder="Enter your FetLife handle (optional)"
-                description={fieldValidationMessages.fetLifeHandle.optional}
-                data-testid="fetlife-handle-input"
-                {...form.getInputProps('fetLifeHandle')}
-                styles={{
-                  input: {
-                    height: 56,
-                    fontSize: 16,
-                  },
-                }}
-              />
+                {/* FetLife Handle */}
+                <EnhancedTextInput
+                  label="FetLife Handle"
+                  placeholder="Enter your FetLife handle (optional)"
+                  description={fieldValidationMessages.fetLifeHandle.optional}
+                  data-testid="fetlife-handle-input"
+                  {...form.getInputProps('fetLifeHandle')}
+                  styles={{
+                    input: {
+                      height: 56,
+                      fontSize: 16,
+                    },
+                  }}
+                />
+              </SimpleGrid>
 
               {/* Other Names */}
               <EnhancedTextarea
@@ -514,19 +517,29 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                 }}
               >
                 <Stack gap="md">
+                  {/* Title and intro text stacked vertically */}
                   <Title order={4} c="wcr.7">Community Standards Agreement</Title>
-
                   <Text size="sm" mb="xs">
                     By submitting this application, you acknowledge that:
                   </Text>
 
-                  <List size="sm" spacing="xs" c="dimmed">
-                    <List.Item>You are at least 21 years old</List.Item>
-                    <List.Item>You are comfortable with nudity, sex, and BDSM being discussed</List.Item>
-                    <List.Item>You understand the importance of consent and boundaries</List.Item>
-                    <List.Item>You will conduct yourself respectfully</List.Item>
-                    <List.Item>You agree to follow our Code of Conduct</List.Item>
-                  </List>
+                  {/* Bulleted list in 2-column layout */}
+                  <SimpleGrid cols={{ base: 1, md: 2 }} spacing="xs">
+                    <List size="sm" c="dimmed">
+                      <List.Item>You are at least 21 years old</List.Item>
+                      <List.Item>You are comfortable with nudity, sex, and BDSM being discussed</List.Item>
+                      <List.Item>You understand the importance of consent and boundaries</List.Item>
+                    </List>
+                    <List size="sm" c="dimmed">
+                      <List.Item>You will conduct yourself respectfully</List.Item>
+                      <List.Item>
+                        You agree to follow our{' '}
+                        <Anchor href="/code-of-conduct" target="_blank" rel="noopener noreferrer">
+                          Code of Conduct
+                        </Anchor>
+                      </List.Item>
+                    </List>
+                  </SimpleGrid>
 
                   <Checkbox
                     label={<Text fw={600}>I agree to all of the above items</Text>}

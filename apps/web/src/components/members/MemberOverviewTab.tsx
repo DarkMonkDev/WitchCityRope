@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
-import { Stack, Title, Card, Text, Group, Badge, Grid, Paper, Alert, MultiSelect } from '@mantine/core'
+import { Stack, Title, Card, Text, Group, Badge, Grid, Paper, Alert, MultiSelect, Anchor } from '@mantine/core'
 import { IconAlertCircle } from '@tabler/icons-react'
-import { useMemberDetails, useMemberNotes, useMemberVetting, useUpdateMemberRole } from '../../lib/api/hooks/useMemberDetails'
-import { MemberNotesSection } from './MemberNotesSection'
+import { useMemberDetails, useMemberNotes, useMemberVetting, useUpdateMemberRole, useCreateMemberNote } from '../../lib/api/hooks/useMemberDetails'
+import { NotesSection } from '../notes/NotesSection'
+import { MemberNoteRenderer } from '../notes/MemberNoteRenderer'
 import { notifications } from '@mantine/notifications'
 import { useValidRoles, formatRolesForSelect } from '../../lib/api/hooks/useValidRoles'
 
@@ -12,9 +13,10 @@ interface MemberOverviewTabProps {
 
 export const MemberOverviewTab: React.FC<MemberOverviewTabProps> = ({ memberId }) => {
   const { data: memberDetails, isLoading, error, refetch } = useMemberDetails(memberId)
-  const { data: notes } = useMemberNotes(memberId)
+  const { data: notes, refetch: refetchNotes } = useMemberNotes(memberId)
   const { data: vettingDetails } = useMemberVetting(memberId)
   const updateRoleMutation = useUpdateMemberRole()
+  const createNoteMutation = useCreateMemberNote()
   const { data: validRoles = [] } = useValidRoles()
 
   // Format roles for MultiSelect
@@ -43,6 +45,34 @@ export const MemberOverviewTab: React.FC<MemberOverviewTabProps> = ({ memberId }
         message: error.message || 'Failed to update role',
         color: 'red',
       })
+    }
+  }
+
+  // Handle save note
+  const handleSaveNote = async (content: string) => {
+    try {
+      await createNoteMutation.mutateAsync({
+        userId: memberId,
+        request: {
+          content,
+        },
+      })
+
+      notifications.show({
+        title: 'Success',
+        message: 'Note added successfully',
+        color: 'green',
+      })
+
+      // Refresh notes list
+      refetchNotes()
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to add note. Please try again.',
+        color: 'red',
+      })
+      throw error // Re-throw to let NotesSection handle loading state
     }
   }
 
@@ -95,73 +125,84 @@ export const MemberOverviewTab: React.FC<MemberOverviewTabProps> = ({ memberId }
         </Title>
         <Card withBorder p="md" radius="md">
           <Grid>
-            <Grid.Col span={6}>
-              <Text size="sm" c="dimmed" mb={4}>
-                Scene Name
-              </Text>
-              <Text fw={500}>{memberDetails.sceneName}</Text>
+            <Grid.Col span={{ base: 6, md: 4 }}>
+              <Group gap="xs" wrap="nowrap">
+                <Text size="sm" c="dimmed">Scene Name:</Text>
+                <Text fw={500}>{memberDetails.sceneName}</Text>
+              </Group>
             </Grid.Col>
-            <Grid.Col span={6}>
-              <Text size="sm" c="dimmed" mb={4}>
-                Real Name
-              </Text>
-              <Text fw={500}>{vettingDetails?.realName || 'N/A'}</Text>
+            <Grid.Col span={{ base: 6, md: 4 }}>
+              <Group gap="xs" wrap="nowrap">
+                <Text size="sm" c="dimmed">Real Name:</Text>
+                <Text fw={500}>{vettingDetails?.realName || 'N/A'}</Text>
+              </Group>
             </Grid.Col>
             {vettingDetails?.otherNames && (
-              <Grid.Col span={6}>
-                <Text size="sm" c="dimmed" mb={4}>
-                  Other Names
-                </Text>
-                <Text fw={500}>{vettingDetails.otherNames}</Text>
+              <Grid.Col span={{ base: 6, md: 4 }}>
+                <Group gap="xs" wrap="nowrap">
+                  <Text size="sm" c="dimmed">Other Names:</Text>
+                  <Text fw={500}>{vettingDetails.otherNames}</Text>
+                </Group>
               </Grid.Col>
             )}
-            <Grid.Col span={6}>
-              <Text size="sm" c="dimmed" mb={4}>
-                Email
-              </Text>
-              <Text fw={500}>{memberDetails.email || 'N/A'}</Text>
+            <Grid.Col span={{ base: 6, md: 4 }}>
+              <Group gap="xs" wrap="nowrap">
+                <Text size="sm" c="dimmed">Email:</Text>
+                <Text fw={500}>{memberDetails.email || 'N/A'}</Text>
+              </Group>
             </Grid.Col>
-            <Grid.Col span={6}>
-              <Text size="sm" c="dimmed" mb={4}>
-                Phone
-              </Text>
-              <Text fw={500}>{vettingDetails?.phone || 'N/A'}</Text>
+            <Grid.Col span={{ base: 6, md: 4 }}>
+              <Group gap="xs" wrap="nowrap">
+                <Text size="sm" c="dimmed">Phone:</Text>
+                <Text fw={500}>{vettingDetails?.phone || 'N/A'}</Text>
+              </Group>
             </Grid.Col>
-            <Grid.Col span={6}>
-              <Text size="sm" c="dimmed" mb={4}>
-                Discord Name
-              </Text>
-              <Text fw={500}>{memberDetails.discordName || '-'}</Text>
+            <Grid.Col span={{ base: 6, md: 4 }}>
+              <Group gap="xs" wrap="nowrap">
+                <Text size="sm" c="dimmed">Discord Name:</Text>
+                <Text fw={500}>{memberDetails.discordName || '-'}</Text>
+              </Group>
             </Grid.Col>
-            <Grid.Col span={6}>
-              <Text size="sm" c="dimmed" mb={4}>
-                FetLife Handle
-              </Text>
-              <Text fw={500}>{memberDetails.fetLifeHandle || '-'}</Text>
+            <Grid.Col span={{ base: 6, md: 4 }}>
+              <Group gap="xs" wrap="nowrap">
+                <Text size="sm" c="dimmed">FetLife Handle:</Text>
+                {memberDetails.fetLifeHandle ? (
+                  <Anchor
+                    href={`https://fetlife.com/${memberDetails.fetLifeHandle.trim()}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    fw={500}
+                  >
+                    {memberDetails.fetLifeHandle.trim()}
+                  </Anchor>
+                ) : (
+                  <Text fw={500}>-</Text>
+                )}
+              </Group>
             </Grid.Col>
-            <Grid.Col span={6}>
-              <Text size="sm" c="dimmed" mb={4}>
-                Pronouns
-              </Text>
-              <Text fw={500}>{vettingDetails?.pronouns || 'N/A'}</Text>
+            <Grid.Col span={{ base: 6, md: 4 }}>
+              <Group gap="xs" wrap="nowrap">
+                <Text size="sm" c="dimmed">Pronouns:</Text>
+                <Text fw={500}>{vettingDetails?.pronouns || 'N/A'}</Text>
+              </Group>
             </Grid.Col>
-            <Grid.Col span={6}>
-              <Text size="sm" c="dimmed" mb={4}>
-                Last Login
-              </Text>
-              <Text fw={500}>
-                {memberDetails.lastLoginAt
-                  ? new Date(memberDetails.lastLoginAt).toLocaleDateString()
-                  : 'Never'}
-              </Text>
+            <Grid.Col span={{ base: 6, md: 4 }}>
+              <Group gap="xs" wrap="nowrap">
+                <Text size="sm" c="dimmed">Last Login:</Text>
+                <Text fw={500}>
+                  {memberDetails.lastLoginAt
+                    ? new Date(memberDetails.lastLoginAt).toLocaleDateString()
+                    : 'Never'}
+                </Text>
+              </Group>
             </Grid.Col>
-            <Grid.Col span={6}>
-              <Text size="sm" c="dimmed" mb={4}>
-                Vetting Status
-              </Text>
-              <Badge color="purple" variant="light">
-                {memberDetails.vettingStatusDisplay}
-              </Badge>
+            <Grid.Col span={{ base: 6, md: 4 }}>
+              <Group gap="xs" wrap="nowrap">
+                <Text size="sm" c="dimmed">Vetting Status:</Text>
+                <Badge color="purple" variant="light">
+                  {memberDetails.vettingStatusDisplay}
+                </Badge>
+              </Group>
             </Grid.Col>
           </Grid>
         </Card>
@@ -209,46 +250,58 @@ export const MemberOverviewTab: React.FC<MemberOverviewTabProps> = ({ memberId }
         </Title>
         <Card withBorder p="md" radius="md">
           <Grid>
-            <Grid.Col span={6}>
-              <Text size="sm" c="dimmed" mb={4}>
-                Events Attended
-              </Text>
-              <Text size="xl" fw={700} c="burgundy">
-                {memberDetails.totalEventsAttended}
-              </Text>
+            <Grid.Col span={{ base: 6, md: 4 }}>
+              <Group gap="xs" wrap="nowrap">
+                <Text size="sm" c="dimmed">Events Attended:</Text>
+                <Text fw={500} c="burgundy">{memberDetails.totalEventsAttended}</Text>
+              </Group>
             </Grid.Col>
-            <Grid.Col span={6}>
-              <Text size="sm" c="dimmed" mb={4}>
-                Events Registered
-              </Text>
-              <Text size="xl" fw={700} c="blue">
-                {memberDetails.totalEventsRegistered}
-              </Text>
+            <Grid.Col span={{ base: 6, md: 4 }}>
+              <Group gap="xs" wrap="nowrap">
+                <Text size="sm" c="dimmed">Last Event Attended:</Text>
+                <Text fw={500}>
+                  {memberDetails.lastEventAttended
+                    ? new Date(memberDetails.lastEventAttended).toLocaleDateString()
+                    : 'Never'}
+                </Text>
+              </Group>
             </Grid.Col>
-            <Grid.Col span={6}>
-              <Text size="sm" c="dimmed" mb={4}>
-                Active Registrations
-              </Text>
-              <Text size="xl" fw={700} c="green">
-                {memberDetails.activeRegistrations}
-              </Text>
+            <Grid.Col span={{ base: 6, md: 4 }}>
+              <Group gap="xs" wrap="nowrap">
+                <Text size="sm" c="dimmed">Future Events:</Text>
+                <Text fw={500} c="blue">{memberDetails.futureEvents ?? 0}</Text>
+              </Group>
             </Grid.Col>
-            <Grid.Col span={6}>
-              <Text size="sm" c="dimmed" mb={4}>
-                Last Event Attended
-              </Text>
-              <Text fw={500}>
-                {memberDetails.lastEventAttended
-                  ? new Date(memberDetails.lastEventAttended).toLocaleDateString()
-                  : 'Never'}
-              </Text>
+            <Grid.Col span={{ base: 6, md: 4 }}>
+              <Group gap="xs" wrap="nowrap">
+                <Text size="sm" c="dimmed">Total Past Events Registered:</Text>
+                <Text fw={500}>{memberDetails.totalPastEventsRegistered ?? 0}</Text>
+              </Group>
+            </Grid.Col>
+            <Grid.Col span={{ base: 6, md: 4 }}>
+              <Group gap="xs" wrap="nowrap">
+                <Text size="sm" c="dimmed">Canceled:</Text>
+                <Text fw={500} c="orange">{memberDetails.cancelledRegistrations ?? 0}</Text>
+              </Group>
+            </Grid.Col>
+            <Grid.Col span={{ base: 6, md: 4 }}>
+              <Group gap="xs" wrap="nowrap">
+                <Text size="sm" c="dimmed">No-Show:</Text>
+                <Text fw={500} c="red">{memberDetails.noShows ?? 0}</Text>
+              </Group>
             </Grid.Col>
           </Grid>
         </Card>
       </div>
 
       {/* Notes Section */}
-      <MemberNotesSection memberId={memberId} notes={notes || []} />
+      <NotesSection
+        notes={notes || []}
+        onSaveNote={handleSaveNote}
+        renderFullNote={MemberNoteRenderer}
+        placeholder="Add a note about this member..."
+        title="Notes & Vetting History"
+      />
     </Stack>
   )
 }

@@ -332,6 +332,46 @@ public static class SafetyEndpoints
         .Produces(422)
         .Produces(500);
 
+        // Update involved parties and witnesses
+        group.MapPut("/admin/incidents/{incidentId:guid}/people", async (
+            Guid incidentId,
+            UpdatePeopleRequest request,
+            ISafetyServiceExtended safetyService,
+            IValidator<UpdatePeopleRequest> validator,
+            ClaimsPrincipal user,
+            CancellationToken cancellationToken) =>
+        {
+            var validationResult = await validator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+            {
+                return Results.ValidationProblem(validationResult.ToDictionary());
+            }
+
+            var userId = Guid.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException());
+            var isAdmin = user.IsInRole("Administrator");
+
+            var result = await safetyService.UpdatePeopleAsync(incidentId, request, userId, isAdmin, cancellationToken);
+
+            return result.IsSuccess
+                ? Results.Ok(result.Value)
+                : Results.Problem(
+                    title: "People Update Failed",
+                    detail: result.Error,
+                    statusCode: result.Error.Contains("Access denied") ? 403 : result.Error.Contains("not found") ? 404 : 500);
+        })
+        .WithName("UpdateIncidentPeople")
+        .WithSummary("Update involved parties and witnesses")
+        .WithDescription("Update involved parties and/or witnesses information (Admin/Coordinator)")
+        .RequireAuthorization(policy => policy.RequireRole(
+            UserRole.Administrator.ToRoleString(),
+            UserRole.SafetyTeam.ToRoleString())) // SafetyTeam members are coordinators
+        .Produces<UpdatePeopleResponse>(200)
+        .Produces(401)
+        .Produces(403)
+        .Produces(404)
+        .Produces(422)
+        .Produces(500);
+
         #endregion
 
         #region Notes System (Phase 4)

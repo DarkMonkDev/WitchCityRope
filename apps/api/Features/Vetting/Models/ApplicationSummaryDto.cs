@@ -18,7 +18,6 @@ public class ApplicationSummaryDto
     public string? FetLifeHandle { get; set; }
     public string ExperienceLevel { get; set; } = string.Empty;
     public int YearsExperience { get; set; }
-    public bool IsAnonymous { get; set; }
 
     // Review information
     public string? AssignedReviewerName { get; set; }
@@ -33,9 +32,6 @@ public class ApplicationSummaryDto
     public bool HasRecentNotes { get; set; }
     public bool HasPendingActions { get; set; }
     public DateTime? InterviewScheduledFor { get; set; }
-
-    // Skills/interests tags (for filtering)
-    public List<string> SkillsTags { get; set; } = new();
 }
 
 /// <summary>
