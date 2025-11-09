@@ -65,6 +65,10 @@ import { VettingApplicationPage } from '../features/vetting/pages/VettingApplica
 import { ResourcesPage } from '../features/cms/pages/ResourcesPage'
 import { ContactUsPage } from '../features/cms/pages/ContactUsPage'
 import { PrivateLessonsPage } from '../features/cms/pages/PrivateLessonsPage'
+import { AboutUsPage } from '../features/cms/pages/AboutUsPage'
+import { CodeOfConductPage } from '../features/cms/pages/CodeOfConductPage'
+import { PrivacyPolicyPage } from '../features/cms/pages/PrivacyPolicyPage'
+import { TermsOfServicePage } from '../features/cms/pages/TermsOfServicePage'
 import { CmsRevisionListPage } from '../features/cms/pages/CmsRevisionListPage'
 import { CmsRevisionDetailPage } from '../features/cms/pages/CmsRevisionDetailPage'
 
@@ -126,6 +130,22 @@ export const router = createBrowserRouter([
       {
         path: 'private-lessons',
         element: <PrivateLessonsPage />,
+      },
+      {
+        path: 'about-us',
+        element: <AboutUsPage />,
+      },
+      {
+        path: 'code-of-conduct',
+        element: <CodeOfConductPage />,
+      },
+      {
+        path: 'privacy-policy',
+        element: <PrivacyPolicyPage />,
+      },
+      {
+        path: 'terms-of-service',
+        element: <TermsOfServicePage />,
       },
 
       // Events system routes

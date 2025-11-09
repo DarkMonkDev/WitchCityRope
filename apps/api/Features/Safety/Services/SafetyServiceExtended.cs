@@ -862,6 +862,22 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
                 return Result<IncidentNoteDto>.Failure("System notes cannot be edited");
             }
 
+            // Decrypt old content for audit log
+            var oldContent = await _encryptionService.DecryptAsync(note.Content);
+
+            // Create audit log with old and new values
+            var oldValues = new
+            {
+                Content = oldContent,
+                Tags = note.Tags
+            };
+
+            var newValues = new
+            {
+                Content = request.Content,
+                Tags = request.Tags
+            };
+
             // Encrypt updated content
             var encryptedContent = await _encryptionService.EncryptAsync(request.Content);
 
@@ -870,6 +886,16 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
             note.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync(cancellationToken);
+
+            // Log audit trail with old and new content
+            await _auditService.LogActionAsync(
+                note.IncidentId,
+                userId,
+                "NOTE_UPDATED",
+                $"Investigation note {noteId} updated",
+                oldValues,
+                newValues,
+                cancellationToken);
 
             _logger.LogInformation("Note {NoteId} updated by user {UserId}", noteId, userId);
 
@@ -908,6 +934,7 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
         try
         {
             var note = await _context.IncidentNotes
+                .Include(n => n.Author)
                 .FirstOrDefaultAsync(n => n.Id == noteId, cancellationToken);
 
             if (note == null)
@@ -926,8 +953,33 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
                 return Result<bool>.Failure("System notes cannot be deleted");
             }
 
+            // Decrypt content for audit log before deletion
+            var deletedContent = await _encryptionService.DecryptAsync(note.Content);
+
+            // Create audit log with deleted note details
+            var deletedValues = new
+            {
+                NoteId = note.Id,
+                Content = deletedContent,
+                Tags = note.Tags,
+                AuthorId = note.AuthorId,
+                AuthorName = note.Author?.SceneName,
+                CreatedAt = note.CreatedAt,
+                UpdatedAt = note.UpdatedAt
+            };
+
             _context.IncidentNotes.Remove(note);
             await _context.SaveChangesAsync(cancellationToken);
+
+            // Log audit trail with full deleted note content
+            await _auditService.LogActionAsync(
+                note.IncidentId,
+                userId,
+                "NOTE_DELETED",
+                $"Investigation note {noteId} deleted by {(isAdmin ? "admin" : "author")}",
+                deletedValues,
+                null,
+                cancellationToken);
 
             _logger.LogInformation("Note {NoteId} deleted by user {UserId}", noteId, userId);
 

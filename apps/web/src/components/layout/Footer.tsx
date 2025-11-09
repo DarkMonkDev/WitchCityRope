@@ -89,7 +89,7 @@ export const Footer: React.FC = () => {
               </Accordion.Control>
               <Accordion.Panel>
                 <ul className="footer-links">
-                  <li><Link to="/about">About Us</Link></li>
+                  <li><Link to="/about-us">About Us</Link></li>
                   <li><Link to="/code-of-conduct">Code of Conduct</Link></li>
                 </ul>
               </Accordion.Panel>
@@ -104,7 +104,6 @@ export const Footer: React.FC = () => {
                 <ul className="footer-links">
                   <li><Link to="/privacy-policy">Privacy Policy</Link></li>
                   <li><Link to="/terms-of-service">Terms of Service</Link></li>
-                  <li><Link to="/refund-policy">Refund Policy</Link></li>
                 </ul>
               </Accordion.Panel>
             </Accordion.Item>
@@ -116,7 +115,7 @@ export const Footer: React.FC = () => {
               </Accordion.Control>
               <Accordion.Panel>
                 <ul className="footer-links">
-                  <li><Link to="/contact">Contact Us</Link></li>
+                  <li><Link to="/contact-us">Contact Us</Link></li>
                 </ul>
                 <Group gap="md" mt="sm" className="social-links">
                   <Anchor
@@ -150,7 +149,7 @@ export const Footer: React.FC = () => {
             <div className="footer-section">
               <h3 className="footer-section-title">About</h3>
               <ul className="footer-links">
-                <li><Link to="/about">About Us</Link></li>
+                <li><Link to="/about-us">About Us</Link></li>
                 <li><Link to="/code-of-conduct">Code of Conduct</Link></li>
               </ul>
             </div>
@@ -161,7 +160,6 @@ export const Footer: React.FC = () => {
               <ul className="footer-links">
                 <li><Link to="/privacy-policy">Privacy Policy</Link></li>
                 <li><Link to="/terms-of-service">Terms of Service</Link></li>
-                <li><Link to="/refund-policy">Refund Policy</Link></li>
               </ul>
             </div>
 
@@ -169,7 +167,7 @@ export const Footer: React.FC = () => {
             <div className="footer-section">
               <h3 className="footer-section-title">Connect</h3>
               <ul className="footer-links">
-                <li><Link to="/contact">Contact Us</Link></li>
+                <li><Link to="/contact-us">Contact Us</Link></li>
               </ul>
               <Group gap="md" mt="sm" className="social-links">
                 <Anchor

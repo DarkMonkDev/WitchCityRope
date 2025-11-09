@@ -2,6 +2,7 @@ import React, { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { MantineProvider } from '@mantine/core'
 import { Notifications } from '@mantine/notifications'
+import { ModalsProvider } from '@mantine/modals'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import '@mantine/core/styles.css'
@@ -71,13 +72,15 @@ root.render(
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <MantineProvider theme={wcrTheme}>
-          {/* AuthProvider wraps the entire app to provide authentication context */}
-          {/* This allows any component to access auth state and functions via useAuth() hook */}
-          <AuthProvider>
-            <Notifications position="top-right" zIndex={2000} />
-            <App />
-            <ReactQueryDevtools initialIsOpen={false} />
-          </AuthProvider>
+          <ModalsProvider>
+            {/* AuthProvider wraps the entire app to provide authentication context */}
+            {/* This allows any component to access auth state and functions via useAuth() hook */}
+            <AuthProvider>
+              <Notifications position="top-right" zIndex={2000} />
+              <App />
+              <ReactQueryDevtools initialIsOpen={false} />
+            </AuthProvider>
+          </ModalsProvider>
         </MantineProvider>
       </QueryClientProvider>
     </ErrorBoundary>

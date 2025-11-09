@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { Box } from '@mantine/core';
 import { Navigation } from './Navigation';
 import { UtilityBar } from './UtilityBar';
@@ -13,10 +13,15 @@ import { ScrollToTop } from '../ScrollToTop';
  * - UtilityBar at the top
  * - Navigation header
  * - Main content area with Outlet for route rendering
- * - Footer (accordion mobile-first design)
+ * - Footer (accordion mobile-first design) - hidden on admin pages
  * - Matches the exact wireframe design structure
  */
 export const RootLayout: React.FC = () => {
+  const location = useLocation();
+
+  // Hide footer on admin pages
+  const isAdminPage = location.pathname.startsWith('/admin');
+
   return (
     <Box style={{ minHeight: '100vh', background: 'var(--color-cream)', display: 'flex', flexDirection: 'column' }}>
       {/* Scroll to top on route changes */}
@@ -33,8 +38,8 @@ export const RootLayout: React.FC = () => {
         <Outlet />
       </Box>
 
-      {/* Footer */}
-      <Footer />
+      {/* Footer - hidden on admin pages */}
+      {!isAdminPage && <Footer />}
     </Box>
   );
 };

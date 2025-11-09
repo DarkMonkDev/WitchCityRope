@@ -237,6 +237,31 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml logs -f
 - `dotnet watch` restarts API within 3-5 seconds
 - Check logs: `docker logs witchcity-api -f`
 
+**Adding NPM Packages (Requires Container Rebuild)**:
+1. Install package locally (updates package.json and package-lock.json):
+   ```bash
+   cd apps/web
+   npm install <package-name>@<version>
+   ```
+2. Stop all containers:
+   ```bash
+   docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
+   ```
+3. Rebuild web service without cache:
+   ```bash
+   docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --no-cache web
+   ```
+4. Start containers:
+   ```bash
+   docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+   ```
+5. Verify package installed in container:
+   ```bash
+   docker exec witchcity-web ls /app/node_modules/<package-name>
+   ```
+
+**CRITICAL**: Never manually install packages in running containers with `docker exec` - changes won't persist across container restarts. Always rebuild the container.
+
 **Database Schema Changes**:
 1. Edit entity models in `/apps/api/Models/` or `/apps/api/Features/`
 2. Create migration: `cd apps/api && dotnet ef migrations add YourChange`

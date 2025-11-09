@@ -314,7 +314,7 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
             Id = eventId,
             Title = isClassEvent ? "Test Class Event" : "Test Social Event",
             Description = "Test event for integration testing",
-            EventType = isClassEvent ? EventType.Class.ToString() : EventType.Social.ToString(),
+            EventType = isClassEvent ? EventType.Class : EventType.Social,
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),
             Capacity = 50,

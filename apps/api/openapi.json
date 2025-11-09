@@ -7599,6 +7599,20 @@
           }
         }
       },
+      "AttendanceStatus": {
+        "enum": [
+          "Active",
+          "Cancelled",
+          "Refunded",
+          "Waitlisted"
+        ]
+      },
+      "AttendanceType": {
+        "enum": [
+          "RSVP",
+          "Ticket"
+        ]
+      },
       "AttendeeResponse": {
         "type": "object",
         "properties": {
@@ -8821,10 +8835,10 @@
             "type": "string"
           },
           "participationType": {
-            "$ref": "#/components/schemas/ParticipationType"
+            "$ref": "#/components/schemas/AttendanceType"
           },
           "status": {
-            "$ref": "#/components/schemas/ParticipationStatus"
+            "$ref": "#/components/schemas/AttendanceStatus"
           },
           "participationDate": {
             "type": "string",
@@ -8848,6 +8862,13 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "ticketTypeName": {
+            "type": "string",
+            "nullable": true
+          },
+          "sessionNames": {
+            "type": "string"
           }
         }
       },
@@ -9733,14 +9754,6 @@
           }
         }
       },
-      "ParticipationStatus": {
-        "enum": [
-          "Active",
-          "Cancelled",
-          "Refunded",
-          "Waitlisted"
-        ]
-      },
       "ParticipationStatusDto": {
         "type": "object",
         "properties": {
@@ -9753,10 +9766,10 @@
             "format": "uuid"
           },
           "participationType": {
-            "$ref": "#/components/schemas/ParticipationType"
+            "$ref": "#/components/schemas/AttendanceType"
           },
           "status": {
-            "$ref": "#/components/schemas/ParticipationStatus"
+            "$ref": "#/components/schemas/AttendanceStatus"
           },
           "participationDate": {
             "type": "string",
@@ -9774,12 +9787,6 @@
             "nullable": true
           }
         }
-      },
-      "ParticipationType": {
-        "enum": [
-          "RSVP",
-          "Ticket"
-        ]
       },
       "PaymentMethodType": {
         "enum": [
@@ -11560,10 +11567,10 @@
             "type": "string"
           },
           "participationType": {
-            "$ref": "#/components/schemas/ParticipationType"
+            "$ref": "#/components/schemas/AttendanceType"
           },
           "status": {
-            "$ref": "#/components/schemas/ParticipationStatus"
+            "$ref": "#/components/schemas/AttendanceStatus"
           },
           "participationDate": {
             "type": "string",

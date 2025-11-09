@@ -1,6 +1,6 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-11-08 (Pre-Redesign Baseline) -->
-<!-- Version: 10.23 - Baseline test execution before sold count/capacity redesign -->
+<!-- Last Updated: 2025-11-08 (Post-Redesign Test Execution) -->
+<!-- Version: 10.24 - Full test suite execution after sold count/capacity redesign -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
 
@@ -42,7 +42,111 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 
 ### Current Test Status (November 2025)
 
-**Latest Updates** (2025-11-08 - PRE-REDESIGN BASELINE):
+**Latest Updates** (2025-11-08 - POST-REDESIGN FULL TEST SUITE EXECUTION):
+
+- ⚠️ **FULL TEST SUITE EXECUTION - SOLD COUNT/CAPACITY REDESIGN** (2025-11-08):
+  - **Purpose**: Verify sold count/capacity redesign implementation after entity rename
+  - **Status**: ⚠️ **MIXED RESULTS** - Frontend stable, backend tests blocked
+  - **Commit**: TBD (post EventParticipation → EventAttendance rename)
+
+  **Test Results Summary**:
+
+  1. ✅ **Frontend Unit Tests - STABLE** (96.4% pass rate - UNCHANGED FROM BASELINE):
+     - **Total Tests**: 467 (422 runnable, 45 skipped)
+     - **Passed**: 407/422 (96.4%)
+     - **Failed**: 15/422 (3.6%)
+     - **Duration**: 18.10s (1.6s faster than baseline!)
+     - **Status**: ✅ EXCELLENT - Redesign did NOT break frontend tests
+
+  2. ❌ **Backend Unit Tests - COMPILATION FAILED** (NEW ERRORS):
+     - **Error 1**: CS0246 - 'ParticipationService' not found (6 errors)
+     - **Error 2**: CS0246 - 'SeedDataService' not found (2 errors)
+     - **Location**: `/tests/unit/api/Features/Participation/*.cs`, `/tests/unit/api/Services/SeedDataServiceTests.cs`
+     - **Impact**: CANNOT run backend unit tests
+     - **Related to redesign**: YES (ParticipationService), NO (SeedDataService - pre-existing)
+     - **Root Cause**: EventParticipation renamed to EventAttendance, tests still reference old service
+
+  3. ❌ **Backend Integration Tests - COMPILATION FAILED** (SAME AS BASELINE):
+     - **Error**: CS0029 - Cannot convert string to EventType enum
+     - **Location**: `/tests/integration/api/Features/Participation/ParticipationEndpointsAccessControlTests.cs:317`
+     - **Impact**: CANNOT run integration tests
+     - **Related to redesign**: POSSIBLY - Event data structures changed
+     - **Root Cause**: Test assigns string literal "Workshop" instead of EventType.Workshop
+
+  4. ⏳ **E2E Tests - RUNNING**:
+     - Status: Started in background, results pending
+     - Location: `/apps/web/tests/playwright/`
+     - Critical: Will verify sold count calculation end-to-end
+
+  **Critical Findings**:
+  - ✅ **Frontend completely unaffected** by redesign (96.4% pass rate maintained)
+  - ❌ **Backend tests BLOCKED** by entity rename (ParticipationService → missing)
+  - ⚠️ **Cannot verify backend logic** changes (sold count calculation, attendance tracking)
+  - ⏳ **E2E tests are CRITICAL** to verify redesign success
+
+  **Frontend Test Failures (Same 15 tests as baseline)**:
+  - **VettingApplicationsList**: VettingStatus enum mismatch (6 tests)
+  - **useTeacherProfiles**: MSW handler timing issues (6 tests)
+  - **auth-flow-simplified**: API mock state issues (3 tests)
+  - **Impact**: ZERO - All unrelated to event capacity redesign
+
+  **Backend Compilation Errors Breakdown**:
+
+  **NEW ERRORS (Redesign-Related)**:
+  - ParticipationServiceDiagnosticTest.cs: Missing ParticipationService (2 errors)
+  - ParticipationServiceTests.cs: Missing ParticipationService (2 errors)
+  - ParticipationServiceTests_Extended.cs: Missing ParticipationService (2 errors)
+  - **Fix needed**: Update imports to reference new service name (likely EventAttendanceService)
+
+  **PRE-EXISTING ERRORS**:
+  - SeedDataServiceTests.cs: Missing SeedDataService (2 errors)
+  - **Fix needed**: Investigate service refactoring, update test references
+
+  **Integration Test Error**:
+  - ParticipationEndpointsAccessControlTests.cs:317: String → EventType enum conversion
+  - **Fix needed**: Change `"Workshop"` to `EventType.Workshop`
+
+  **Environment Health**:
+  - ✅ Docker containers: web, api, postgres healthy
+  - ⚠️ Test server: unhealthy (not blocking current work)
+  - ✅ API service: Responding correctly on port 5655
+  - ✅ Web service: Responding correctly on port 5173
+  - ✅ Database: Migration applied successfully (EventAttendance schema in place)
+
+  **Risk Assessment**:
+  - ✅ **Low risk**: Frontend stability confirmed, no regression
+  - ⚠️ **Medium risk**: Cannot verify backend sold count calculation logic
+  - 🔴 **High risk IF**: E2E tests fail (would indicate frontend-backend integration broken)
+  - ✅ **Mitigation**: E2E tests will provide end-to-end verification
+
+  **Detailed Report**: `/test-results/full-test-suite-execution-post-redesign-20251108.md`
+
+  **Comparison to Baseline**:
+
+  | Metric | Baseline | Post-Redesign | Change |
+  |--------|----------|---------------|--------|
+  | Frontend Pass Rate | 96.4% | 96.4% | ✅ IDENTICAL |
+  | Frontend Duration | 19.74s | 18.10s | ✅ 1.6s faster |
+  | Backend Unit Tests | ❌ BLOCKED (SeedDataService) | ❌ BLOCKED (ParticipationService + SeedDataService) | ⚠️ NEW ERRORS |
+  | Backend Integration Tests | ❌ BLOCKED (EventType) | ❌ BLOCKED (EventType) | No change |
+
+  **Critical Actions Required**:
+  1. **Fix ParticipationService references** in backend unit tests (BLOCKING)
+  2. **Fix EventType enum conversion** in integration tests (BLOCKING)
+  3. **Wait for E2E results** to verify end-to-end redesign (CRITICAL)
+  4. **Investigate SeedDataService** missing type (pre-existing issue)
+
+  **Success Indicators**:
+  - ✅ Frontend tests stable (ACHIEVED)
+  - ❌ Backend tests passing (BLOCKED - cannot verify)
+  - ⏳ E2E tests passing (PENDING)
+  - ⏳ Sold count calculation correct (PENDING E2E)
+
+  **catalog_updated**: true (2025-11-08 - Post-redesign test execution documented)
+
+---
+
+**Previous Updates** (2025-11-08 - PRE-REDESIGN BASELINE):
 
 - ✅ **BASELINE TEST EXECUTION - SOLD COUNT/CAPACITY REDESIGN** (2025-11-08):
   - **Purpose**: Establish test baseline before implementing sold count/capacity redesign
@@ -193,21 +297,21 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 - **Total**: 90+ test files
 - **Status**: Active, primary testing approach
 - **Location**: `/apps/web/tests/playwright/`
-- **Recent Result**: Not run in latest baseline (deferred until after redesign)
+- **Recent Result**: Running in background (process ID: ec22d6)
 - **Details**: See Part 4 for complete listing
 
 ### React Unit Tests
 - **Total**: 467 tests (422 runnable, 45 skipped)
 - **Status**: Active, excellent coverage
 - **Location**: `/apps/web/src/**/__tests__/`
-- **Recent Result**: 407/422 passing (96.4% pass rate)
+- **Recent Result**: 407/422 passing (96.4% pass rate - STABLE after redesign)
 - **Details**: See Part 4 for complete listing
 
 ### C# Backend Tests
 - **Total**: 56+ test files
-- **Status**: Blocked by compilation errors (pre-existing)
+- **Status**: Blocked by compilation errors (redesign-related + pre-existing)
 - **Location**: `/tests/WitchCityRope.*.Tests/`
-- **Recent Issue**: SeedDataServiceTests.cs + EventType enum errors
+- **Recent Issue**: ParticipationService (NEW), SeedDataService, EventType enum
 - **Details**: See Part 4 for complete listing
 
 ### Legacy Tests (Archived)
@@ -232,6 +336,7 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 - **Part 3 - Archived**: `/docs/standards-processes/testing/TEST_CATALOG_PART_3.md`
 - **Part 4 - Complete Listings**: `/docs/standards-processes/testing/TEST_CATALOG_PART_4.md`
 - **Baseline Report**: `/test-results/test-baseline-2025-11-08-pre-redesign.md`
+- **Post-Redesign Report**: `/test-results/full-test-suite-execution-post-redesign-20251108.md`
 - **Notes Verification Report**: `/test-results/notes-unification-verification-2025-11-08.md`
 
 ### Standards
@@ -245,21 +350,23 @@ This is a **navigation index** for the WitchCityRope test catalog. The full cata
 
 **Last Updated**: 2025-11-08
 **Updated By**: test-executor
-**Update Type**: Pre-redesign baseline test execution
-**Next Review**: After sold count/capacity redesign implementation
+**Update Type**: Post-redesign full test suite execution
+**Next Review**: After E2E test completion and backend test fixes
 
 **Recent Changes**:
-- Added pre-redesign baseline test execution entry (commit 67cab464)
-- Documented frontend test results (407/422 passing, 96.4% pass rate)
-- Recorded backend test compilation failures (SeedDataServiceTests, EventType enum)
-- Created detailed baseline report in /test-results/
-- Identified all event-related tests currently passing (critical for redesign)
+- Added post-redesign test execution entry (commit TBD)
+- Documented frontend test stability (407/422 passing, 96.4% pass rate - UNCHANGED)
+- Recorded NEW backend unit test compilation failures (ParticipationService errors)
+- Noted E2E tests running in background (critical for redesign verification)
+- Created comprehensive detailed report in /test-results/
+- Identified backend tests BLOCKED by entity rename (cannot verify business logic)
 
 **Maintenance Notes**:
 - Keep this index under 700 lines for agent accessibility
 - Move older updates to Part 2 when needed
 - Update after each major test execution or discovery
 - Document both successes and failures for future reference
+- **CRITICAL**: E2E test results must be added when available
 
 ---
 
