@@ -156,11 +156,15 @@ public class AttendanceSeeder
             {
                 // Class events: Create ticket purchases for multiple users
                 var ticketCount = eventItem.Title.Contains("Introduction to Rope Safety") ? 5 :
-                                 eventItem.Title.Contains("Suspension Basics") ? 4 :
+                                 eventItem.Title.Contains("Suspension Basics") ? 6 :  // Increased from 4 to 6
                                  eventItem.Title.Contains("Advanced Floor Work") ? 3 : 2;
 
-                // Get the first ticket type for this event (most events have one ticket type)
-                var ticketType = eventItem.TicketTypes.FirstOrDefault();
+                // Get the appropriate ticket type for this event
+                // For Suspension Basics, use "All 2 Days" ticket type specifically
+                var ticketType = eventItem.Title.Contains("Suspension Basics")
+                    ? eventItem.TicketTypes.FirstOrDefault(tt => tt.Name == "All 2 Days")
+                    : eventItem.TicketTypes.FirstOrDefault();
+
                 if (ticketType == null)
                 {
                     _logger.LogWarning("No ticket types found for event {EventTitle}, skipping ticket purchases", eventItem.Title);
