@@ -21,7 +21,7 @@ import { useForm } from '@mantine/form'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../api/client'
 import { notifications } from '@mantine/notifications'
-import { IconCheck, IconAlertCircle } from '@tabler/icons-react'
+import { IconCheck, IconAlertCircle, IconChevronUp, IconChevronDown } from '@tabler/icons-react'
 import { MantineTiptapEditor } from '../forms/MantineTiptapEditor'
 import type { components } from '@witchcityrope/shared-types'
 
@@ -365,6 +365,41 @@ export const EventForm: React.FC<EventFormProps> = ({
   const [venueName, setVenueName] = useState('')
   const [venueDirections, setVenueDirections] = useState('')
   const [venueNotes, setVenueNotes] = useState('')
+
+  // RSVP table sorting
+  const [rsvpSortColumn, setRsvpSortColumn] = useState<'name' | 'email' | 'status' | 'date'>('name')
+  const [rsvpSortDirection, setRsvpSortDirection] = useState<'asc' | 'desc'>('asc')
+
+  // Tickets table sorting
+  const [ticketsSortColumn, setTicketsSortColumn] = useState<'name' | 'ticketType' | 'status' | 'sessions' | 'date' | 'amount'>('name')
+  const [ticketsSortDirection, setTicketsSortDirection] = useState<'asc' | 'desc'>('asc')
+
+  // Helper function to toggle sort
+  const handleRsvpSort = (column: typeof rsvpSortColumn) => {
+    if (rsvpSortColumn === column) {
+      setRsvpSortDirection(rsvpSortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setRsvpSortColumn(column)
+      setRsvpSortDirection('asc')
+    }
+  }
+
+  const handleTicketsSort = (column: typeof ticketsSortColumn) => {
+    if (ticketsSortColumn === column) {
+      setTicketsSortDirection(ticketsSortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setTicketsSortColumn(column)
+      setTicketsSortDirection('asc')
+    }
+  }
+
+  // Helper function to render sort icon
+  const renderSortIcon = (columnName: string, currentColumn: string, currentDirection: 'asc' | 'desc') => {
+    if (columnName !== currentColumn) return null
+    return currentDirection === 'asc' ?
+      <IconChevronUp size={14} style={{ marginLeft: 4 }} /> :
+      <IconChevronDown size={14} style={{ marginLeft: 4 }} />
+  }
 
   // Form state management
   const form = useForm<EventFormData>({
@@ -1474,44 +1509,68 @@ export const EventForm: React.FC<EventFormProps> = ({
                     <Table.Thead style={{ backgroundColor: 'var(--mantine-color-burgundy-6)' }}>
                       <Table.Tr>
                         <Table.Th
+                          onClick={() => handleRsvpSort('name')}
                           style={{
                             color: 'white',
                             fontWeight: 600,
                             textTransform: 'uppercase',
                             letterSpacing: '1px',
+                            cursor: 'pointer',
+                            userSelect: 'none',
                           }}
                         >
-                          Name
+                          <Group gap={4}>
+                            Name
+                            {renderSortIcon('name', rsvpSortColumn, rsvpSortDirection)}
+                          </Group>
                         </Table.Th>
                         <Table.Th
+                          onClick={() => handleRsvpSort('email')}
                           style={{
                             color: 'white',
                             fontWeight: 600,
                             textTransform: 'uppercase',
                             letterSpacing: '1px',
+                            cursor: 'pointer',
+                            userSelect: 'none',
                           }}
                         >
-                          Email
+                          <Group gap={4}>
+                            Email
+                            {renderSortIcon('email', rsvpSortColumn, rsvpSortDirection)}
+                          </Group>
                         </Table.Th>
                         <Table.Th
+                          onClick={() => handleRsvpSort('status')}
                           style={{
                             color: 'white',
                             fontWeight: 600,
                             textTransform: 'uppercase',
                             letterSpacing: '1px',
+                            cursor: 'pointer',
+                            userSelect: 'none',
                           }}
                         >
-                          Status
+                          <Group gap={4}>
+                            Status
+                            {renderSortIcon('status', rsvpSortColumn, rsvpSortDirection)}
+                          </Group>
                         </Table.Th>
                         <Table.Th
+                          onClick={() => handleRsvpSort('date')}
                           style={{
                             color: 'white',
                             fontWeight: 600,
                             textTransform: 'uppercase',
                             letterSpacing: '1px',
+                            cursor: 'pointer',
+                            userSelect: 'none',
                           }}
                         >
-                          RSVP Date
+                          <Group gap={4}>
+                            RSVP Date
+                            {renderSortIcon('date', rsvpSortColumn, rsvpSortDirection)}
+                          </Group>
                         </Table.Th>
                         <Table.Th
                           style={{
@@ -1546,6 +1605,35 @@ export const EventForm: React.FC<EventFormProps> = ({
                         (participationsData as EventParticipationDto[]).length > 0 ? (
                         (participationsData as EventParticipationDto[])
                           .filter((p) => p.participationType === 'RSVP')
+                          .sort((a, b) => {
+                            let aVal: any, bVal: any
+                            switch (rsvpSortColumn) {
+                              case 'name':
+                                aVal = a.userSceneName.toLowerCase()
+                                bVal = b.userSceneName.toLowerCase()
+                                break
+                              case 'email':
+                                aVal = a.userEmail.toLowerCase()
+                                bVal = b.userEmail.toLowerCase()
+                                break
+                              case 'status':
+                                aVal = a.status
+                                bVal = b.status
+                                break
+                              case 'date':
+                                aVal = new Date(a.participationDate).getTime()
+                                bVal = new Date(b.participationDate).getTime()
+                                break
+                              default:
+                                aVal = a.userSceneName
+                                bVal = b.userSceneName
+                            }
+                            if (rsvpSortDirection === 'asc') {
+                              return aVal < bVal ? -1 : aVal > bVal ? 1 : 0
+                            } else {
+                              return aVal > bVal ? -1 : aVal < bVal ? 1 : 0
+                            }
+                          })
                           .map((participation) => (
                             <Table.Tr key={participation.id}>
                               <Table.Td>
@@ -1640,64 +1728,100 @@ export const EventForm: React.FC<EventFormProps> = ({
                   <Table.Thead style={{ backgroundColor: 'var(--mantine-color-burgundy-6)' }}>
                     <Table.Tr>
                       <Table.Th
+                        onClick={() => handleTicketsSort('name')}
                         style={{
                           color: 'white',
                           fontWeight: 600,
                           textTransform: 'uppercase',
                           letterSpacing: '1px',
+                          cursor: 'pointer',
+                          userSelect: 'none',
                         }}
                       >
-                        Ticket Holder
+                        <Group gap={4}>
+                          Ticket Holder
+                          {renderSortIcon('name', ticketsSortColumn, ticketsSortDirection)}
+                        </Group>
                       </Table.Th>
                       <Table.Th
+                        onClick={() => handleTicketsSort('ticketType')}
                         style={{
                           color: 'white',
                           fontWeight: 600,
                           textTransform: 'uppercase',
                           letterSpacing: '1px',
+                          cursor: 'pointer',
+                          userSelect: 'none',
                         }}
                       >
-                        Ticket Name
+                        <Group gap={4}>
+                          Ticket Name
+                          {renderSortIcon('ticketType', ticketsSortColumn, ticketsSortDirection)}
+                        </Group>
                       </Table.Th>
                       <Table.Th
+                        onClick={() => handleTicketsSort('status')}
                         style={{
                           color: 'white',
                           fontWeight: 600,
                           textTransform: 'uppercase',
                           letterSpacing: '1px',
+                          cursor: 'pointer',
+                          userSelect: 'none',
                         }}
                       >
-                        Status
+                        <Group gap={4}>
+                          Status
+                          {renderSortIcon('status', ticketsSortColumn, ticketsSortDirection)}
+                        </Group>
                       </Table.Th>
                       <Table.Th
+                        onClick={() => handleTicketsSort('sessions')}
                         style={{
                           color: 'white',
                           fontWeight: 600,
                           textTransform: 'uppercase',
                           letterSpacing: '1px',
+                          cursor: 'pointer',
+                          userSelect: 'none',
                         }}
                       >
-                        Sessions
+                        <Group gap={4}>
+                          Sessions
+                          {renderSortIcon('sessions', ticketsSortColumn, ticketsSortDirection)}
+                        </Group>
                       </Table.Th>
                       <Table.Th
+                        onClick={() => handleTicketsSort('date')}
                         style={{
                           color: 'white',
                           fontWeight: 600,
                           textTransform: 'uppercase',
                           letterSpacing: '1px',
+                          cursor: 'pointer',
+                          userSelect: 'none',
                         }}
                       >
-                        Purchase Date
+                        <Group gap={4}>
+                          Purchase Date
+                          {renderSortIcon('date', ticketsSortColumn, ticketsSortDirection)}
+                        </Group>
                       </Table.Th>
                       <Table.Th
+                        onClick={() => handleTicketsSort('amount')}
                         style={{
                           color: 'white',
                           fontWeight: 600,
                           textTransform: 'uppercase',
                           letterSpacing: '1px',
+                          cursor: 'pointer',
+                          userSelect: 'none',
                         }}
                       >
-                        Amount Paid
+                        <Group gap={4}>
+                          Amount Paid
+                          {renderSortIcon('amount', ticketsSortColumn, ticketsSortDirection)}
+                        </Group>
                       </Table.Th>
                       <Table.Th
                         style={{
@@ -1732,6 +1856,43 @@ export const EventForm: React.FC<EventFormProps> = ({
                       (participationsData as EventParticipationDto[]).length > 0 ? (
                       (participationsData as EventParticipationDto[])
                         .filter((p) => p.participationType === 'Ticket')
+                        .sort((a, b) => {
+                          let aVal: any, bVal: any
+                          switch (ticketsSortColumn) {
+                            case 'name':
+                              aVal = a.userSceneName.toLowerCase()
+                              bVal = b.userSceneName.toLowerCase()
+                              break
+                            case 'ticketType':
+                              aVal = (a.ticketTypeName ?? '').toLowerCase()
+                              bVal = (b.ticketTypeName ?? '').toLowerCase()
+                              break
+                            case 'status':
+                              aVal = a.status
+                              bVal = b.status
+                              break
+                            case 'sessions':
+                              aVal = a.sessionNames.toLowerCase()
+                              bVal = b.sessionNames.toLowerCase()
+                              break
+                            case 'date':
+                              aVal = new Date(a.participationDate).getTime()
+                              bVal = new Date(b.participationDate).getTime()
+                              break
+                            case 'amount':
+                              aVal = extractAmountFromMetadata(a.metadata)
+                              bVal = extractAmountFromMetadata(b.metadata)
+                              break
+                            default:
+                              aVal = a.userSceneName
+                              bVal = b.userSceneName
+                          }
+                          if (ticketsSortDirection === 'asc') {
+                            return aVal < bVal ? -1 : aVal > bVal ? 1 : 0
+                          } else {
+                            return aVal > bVal ? -1 : aVal < bVal ? 1 : 0
+                          }
+                        })
                         .map((participation) => (
                           <Table.Tr key={participation.id}>
                             <Table.Td>
