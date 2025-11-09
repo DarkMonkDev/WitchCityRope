@@ -41,7 +41,7 @@ public class SeedCoordinator : ISeedDataService
     private readonly SettingsSeeder _settingsSeeder;
     private readonly CmsSeeder _cmsSeeder;
     private readonly SafetySeeder _safetySeeder;
-    private readonly ParticipationSeeder _participationSeeder;
+    private readonly AttendanceSeeder _attendanceSeeder;
     private readonly SessionTicketSeeder _sessionTicketSeeder;
     private readonly VolunteerSeeder _volunteerSeeder;
     private readonly TicketPurchaseSeeder _ticketPurchaseSeeder;
@@ -57,7 +57,7 @@ public class SeedCoordinator : ISeedDataService
         SettingsSeeder settingsSeeder,
         CmsSeeder cmsSeeder,
         SafetySeeder safetySeeder,
-        ParticipationSeeder participationSeeder,
+        AttendanceSeeder attendanceSeeder,
         SessionTicketSeeder sessionTicketSeeder,
         VolunteerSeeder volunteerSeeder,
         TicketPurchaseSeeder ticketPurchaseSeeder,
@@ -72,7 +72,7 @@ public class SeedCoordinator : ISeedDataService
         _settingsSeeder = settingsSeeder;
         _cmsSeeder = cmsSeeder;
         _safetySeeder = safetySeeder;
-        _participationSeeder = participationSeeder;
+        _attendanceSeeder = attendanceSeeder;
         _sessionTicketSeeder = sessionTicketSeeder;
         _volunteerSeeder = volunteerSeeder;
         _ticketPurchaseSeeder = ticketPurchaseSeeder;
@@ -146,11 +146,11 @@ public class SeedCoordinator : ISeedDataService
             _logger.LogDebug("Seeding historical workshop tickets with check-ins and cancellations...");
             await _ticketPurchaseSeeder.SeedHistoricalWorkshopTicketsAsync(_eventSeeder, cancellationToken);
 
-            _logger.LogDebug("Seeding event participations...");
-            await _participationSeeder.SeedEventParticipationsAsync(cancellationToken);
+            _logger.LogDebug("Seeding event attendances...");
+            await _attendanceSeeder.SeedEventParticipationsAsync(cancellationToken);
 
             _logger.LogDebug("Seeding historical social event RSVPs with check-ins and cancellations...");
-            await _participationSeeder.SeedHistoricalSocialEventRSVPs(_eventSeeder, cancellationToken);
+            await _attendanceSeeder.SeedHistoricalSocialEventRSVPs(_eventSeeder, cancellationToken);
 
             _logger.LogDebug("Seeding volunteer positions...");
             await _volunteerSeeder.SeedVolunteerPositionsAsync(cancellationToken);

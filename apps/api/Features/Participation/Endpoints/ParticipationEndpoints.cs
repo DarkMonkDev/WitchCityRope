@@ -23,7 +23,7 @@ public static class ParticipationEndpoints
         app.MapGet("/api/events/{eventId:guid}/participation",
             [Authorize] async (
                 Guid eventId,
-                IParticipationService participationService,
+                IAttendanceService attendanceService,
                 ClaimsPrincipal user,
                 CancellationToken cancellationToken) =>
             {
@@ -35,7 +35,7 @@ public static class ParticipationEndpoints
                         statusCode: 401);
                 }
 
-                var result = await participationService.GetParticipationStatusAsync(eventId, userId, cancellationToken);
+                var result = await attendanceService.GetParticipationStatusAsync(eventId, userId, cancellationToken);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -57,10 +57,10 @@ public static class ParticipationEndpoints
             [Authorize] async (
                 Guid eventId,
                 CreateRSVPRequest request,
-                IParticipationService participationService,
+                IAttendanceService attendanceService,
                 IVettingAccessControlService vettingAccessControlService,
                 ClaimsPrincipal user,
-                ILogger<IParticipationService> logger,
+                ILogger<IAttendanceService> logger,
                 CancellationToken cancellationToken) =>
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
@@ -105,7 +105,7 @@ public static class ParticipationEndpoints
                 // Ensure the eventId in URL matches the request
                 request.EventId = eventId;
 
-                var result = await participationService.CreateRSVPAsync(request, userId, cancellationToken);
+                var result = await attendanceService.CreateRSVPAsync(request, userId, cancellationToken);
 
                 if (!result.IsSuccess)
                 {
@@ -157,10 +157,10 @@ public static class ParticipationEndpoints
             [Authorize] async (
                 Guid eventId,
                 CreateTicketPurchaseRequest request,
-                IParticipationService participationService,
+                IAttendanceService attendanceService,
                 IVettingAccessControlService vettingAccessControlService,
                 ClaimsPrincipal user,
-                ILogger<IParticipationService> logger,
+                ILogger<IAttendanceService> logger,
                 CancellationToken cancellationToken) =>
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
@@ -205,7 +205,7 @@ public static class ParticipationEndpoints
                 // Ensure the eventId in URL matches the request
                 request.EventId = eventId;
 
-                var result = await participationService.CreateTicketPurchaseAsync(request, userId, cancellationToken);
+                var result = await attendanceService.CreateTicketPurchaseAsync(request, userId, cancellationToken);
 
                 if (!result.IsSuccess)
                 {
@@ -256,7 +256,7 @@ public static class ParticipationEndpoints
         app.MapDelete("/api/events/{eventId:guid}/participation",
             [Authorize] async (
                 Guid eventId,
-                IParticipationService participationService,
+                IAttendanceService attendanceService,
                 ClaimsPrincipal user,
                 string? type = null,
                 string? reason = null,
@@ -270,15 +270,15 @@ public static class ParticipationEndpoints
                         statusCode: 401);
                 }
 
-                // Parse participation type if provided (rsvp, ticket, or null for most recent)
-                ParticipationType? participationType = type?.ToLower() switch
+                // Parse attendance type if provided (rsvp, ticket, or null for most recent)
+                AttendanceType? attendanceType = type?.ToLower() switch
                 {
-                    "rsvp" => ParticipationType.RSVP,
-                    "ticket" => ParticipationType.Ticket,
+                    "rsvp" => AttendanceType.RSVP,
+                    "ticket" => AttendanceType.Ticket,
                     _ => null
                 };
 
-                var result = await participationService.CancelParticipationAsync(eventId, userId, participationType, reason, cancellationToken);
+                var result = await attendanceService.CancelParticipationAsync(eventId, userId, attendanceType, reason, cancellationToken);
 
                 if (!result.IsSuccess)
                 {
@@ -318,7 +318,7 @@ public static class ParticipationEndpoints
         // Get user's participations
         app.MapGet("/api/user/participations",
             [Authorize] async (
-                IParticipationService participationService,
+                IAttendanceService attendanceService,
                 ClaimsPrincipal user,
                 CancellationToken cancellationToken) =>
             {
@@ -330,7 +330,7 @@ public static class ParticipationEndpoints
                         statusCode: 401);
                 }
 
-                var result = await participationService.GetUserParticipationsAsync(userId, cancellationToken);
+                var result = await attendanceService.GetUserParticipationsAsync(userId, cancellationToken);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -351,7 +351,7 @@ public static class ParticipationEndpoints
         app.MapDelete("/api/events/{eventId:guid}/rsvp",
             [Authorize] async (
                 Guid eventId,
-                IParticipationService participationService,
+                IAttendanceService attendanceService,
                 ClaimsPrincipal user,
                 string? reason = null,
                 CancellationToken cancellationToken = default) =>
@@ -365,7 +365,7 @@ public static class ParticipationEndpoints
                 }
 
                 // Backward compatibility: explicitly cancel RSVP type
-                var result = await participationService.CancelParticipationAsync(eventId, userId, ParticipationType.RSVP, reason, cancellationToken);
+                var result = await attendanceService.CancelParticipationAsync(eventId, userId, AttendanceType.RSVP, reason, cancellationToken);
 
                 if (!result.IsSuccess)
                 {
@@ -406,10 +406,10 @@ public static class ParticipationEndpoints
         app.MapGet("/api/admin/events/{eventId:guid}/participations",
             [Authorize(Roles = "Administrator")] async (
                 Guid eventId,
-                IParticipationService participationService,
+                IAttendanceService attendanceService,
                 CancellationToken cancellationToken) =>
             {
-                var result = await participationService.GetEventParticipationsAsync(eventId, cancellationToken);
+                var result = await attendanceService.GetEventParticipationsAsync(eventId, cancellationToken);
 
                 if (result.IsSuccess)
                 {

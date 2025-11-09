@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using WitchCityRope.Models;
+using WitchCityRope.Api.Features.Participation.Entities;
 
 namespace WitchCityRope.Api.Models;
 
@@ -69,10 +71,35 @@ public class TicketType
     public int Available { get; set; }
 
     /// <summary>
-    /// Number of tickets sold
+    /// Number of tickets sold for this ticket type.
+    ///
+    /// BUSINESS LOGIC:
+    /// - Counts active attendances (Status = Active) only
+    /// - Automatically excludes cancelled/refunded attendances
+    /// - Self-healing: Recalculates on every API call
+    /// - No manual increment/decrement needed
+    ///
+    /// DESIGN DECISION:
+    /// Calculated property (not stored) to prevent sync issues.
+    /// Previous approach: Manually incremented Sold field became stale when tickets cancelled.
+    /// Current approach: Always queries current EventAttendance records for accuracy.
+    ///
+    /// FUTURE: Supports multi-ticket purchases (counts all attendances regardless of quantity)
     /// </summary>
-    [Required]
-    public int Sold { get; set; } = 0;
+    [NotMapped] // Do NOT store in database
+    public int Sold
+    {
+        get
+        {
+            if (Event?.EventAttendances == null) return 0;
+
+            return Event.EventAttendances.Count(ea =>
+                ea.Status == AttendanceStatus.Active &&
+                ea.AttendanceType == AttendanceType.Ticket &&
+                ea.TicketPurchase != null &&
+                ea.TicketPurchase.TicketTypeId == Id);
+        }
+    }
 
     /// <summary>
     /// Navigation property to parent event

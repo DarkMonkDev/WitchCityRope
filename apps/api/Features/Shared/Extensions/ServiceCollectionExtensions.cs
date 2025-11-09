@@ -105,8 +105,8 @@ public static class ServiceCollectionExtensions
         // FluentValidation for Payment feature
         services.AddValidatorsFromAssemblyContaining<ProcessPaymentApiRequestValidator>();
 
-        // Participation feature services
-        services.AddScoped<IParticipationService, ParticipationService>();
+        // Attendance feature services (renamed from Participation)
+        services.AddScoped<IAttendanceService, AttendanceService>();
 
         // Volunteer feature services
         services.AddScoped<VolunteerService>();
@@ -123,7 +123,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<CmsSeeder>();
         services.AddScoped<VenueSeeder>();
         services.AddScoped<SafetySeeder>();
-        services.AddScoped<ParticipationSeeder>();
+        services.AddScoped<AttendanceSeeder>();
         services.AddScoped<SessionTicketSeeder>();
         services.AddScoped<VolunteerSeeder>();
         services.AddScoped<TicketPurchaseSeeder>();

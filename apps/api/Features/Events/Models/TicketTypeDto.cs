@@ -67,10 +67,10 @@ public class TicketTypeDto
     /// Constructor to map from TicketType entity
     /// </summary>
     /// <param name="ticketType">The ticket type to map from</param>
-    /// <param name="eventParticipations">Optional event participations for status checking</param>
+    /// <param name="eventAttendances">Optional event attendances for status checking</param>
     public TicketTypeDto(
         WitchCityRope.Api.Models.TicketType ticketType,
-        IEnumerable<WitchCityRope.Api.Features.Participation.Entities.EventParticipation>? eventParticipations = null)
+        IEnumerable<WitchCityRope.Api.Features.Participation.Entities.EventAttendance>? eventAttendances = null)
     {
         Id = ticketType.Id.ToString();
         Name = ticketType.Name;
@@ -95,17 +95,17 @@ public class TicketTypeDto
         QuantityAvailable = ticketType.Available;
 
         // Calculate QuantitySold dynamically from actual ticket purchases (not stored Sold column)
-        // Business Rule: QuantitySold = count of unique registered attendees with active participations
+        // Business Rule: QuantitySold = count of unique registered attendees with active attendances
         // NOT total quantity across all purchases (one user buying multiple tickets counts as 1 sold)
-        // CRITICAL: Exclude cancelled/refunded tickets by checking EventParticipation.Status
-        // Only count Active participations (status = 1), exclude Cancelled (2), Refunded (3), Waitlisted (4)
-        if (eventParticipations != null)
+        // CRITICAL: Exclude cancelled/refunded tickets by checking EventAttendance.Status
+        // Only count Active attendances (status = 1), exclude Cancelled (2), Refunded (3), Waitlisted (4)
+        if (eventAttendances != null)
         {
-            // When event participations are provided, count unique users with active participations
+            // When event attendances are provided, count unique users with active attendances
             // who have completed at least one payment for this ticket type
-            var participationLookup = eventParticipations
-                .Where(ep => ep.Status == WitchCityRope.Api.Features.Participation.Entities.ParticipationStatus.Active)
-                .Select(ep => ep.UserId)
+            var attendanceLookup = eventAttendances
+                .Where(ea => ea.Status == WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Active)
+                .Select(ea => ea.UserId)
                 .ToHashSet();
 
             // Count unique users with completed purchases, not total quantity
@@ -113,14 +113,14 @@ public class TicketTypeDto
             QuantitySold = ticketType.Purchases
                 .Where(p =>
                     p.IsPaymentCompleted &&
-                    participationLookup.Contains(p.UserId))
+                    attendanceLookup.Contains(p.UserId))
                 .Select(p => p.UserId)
                 .Distinct()
                 .Count();
         }
         else
         {
-            // Fallback: If no participations provided, count unique users with completed payments
+            // Fallback: If no attendances provided, count unique users with completed payments
             // Changed from Sum(p.Quantity) to match business logic of counting unique attendees
             QuantitySold = ticketType.Purchases
                 .Where(p => p.IsPaymentCompleted)

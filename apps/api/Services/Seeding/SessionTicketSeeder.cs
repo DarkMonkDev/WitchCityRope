@@ -149,8 +149,7 @@ public class SessionTicketSeeder
             Name = "Main Session",
             StartTime = eventItem.StartDate,
             EndTime = eventItem.EndDate,
-            Capacity = eventItem.Capacity,
-            CurrentAttendees = eventItem.GetCurrentAttendeeCount()
+            Capacity = eventItem.Capacity
         };
 
         sessionsToAdd.Add(session);
@@ -170,8 +169,7 @@ public class SessionTicketSeeder
             Name = "Day 1",
             StartTime = eventItem.StartDate,
             EndTime = eventItem.StartDate.AddHours(3),
-            Capacity = eventItem.Capacity / 2,
-            CurrentAttendees = 0
+            Capacity = eventItem.Capacity / 2
         };
 
         // Day 2: 8:00 PM - 10:00 PM
@@ -182,8 +180,7 @@ public class SessionTicketSeeder
             Name = "Day 2",
             StartTime = eventItem.StartDate.AddHours(2),
             EndTime = eventItem.StartDate.AddHours(4),
-            Capacity = eventItem.Capacity / 2,
-            CurrentAttendees = 0
+            Capacity = eventItem.Capacity / 2
         };
 
         sessionsToAdd.Add(day1Session);
@@ -205,8 +202,7 @@ public class SessionTicketSeeder
                 Name = $"Day {day}",
                 StartTime = eventItem.StartDate.AddDays(day - 1),
                 EndTime = eventItem.StartDate.AddDays(day - 1).AddHours(8), // 8 hour sessions
-                Capacity = (int)Math.Ceiling(eventItem.Capacity / (double)numberOfDays),
-                CurrentAttendees = eventItem.GetCurrentAttendeeCount() / numberOfDays
+                Capacity = (int)Math.Ceiling(eventItem.Capacity / (double)numberOfDays)
             };
 
             sessionsToAdd.Add(daySession);
@@ -233,7 +229,6 @@ public class SessionTicketSeeder
                 Description = "Free attendance - RSVP required",
                 Price = 0,
                 Available = session.Capacity,
-                Sold = eventItem.GetCurrentRSVPCount(),
                 PricingType = PricingType.Fixed
             };
 
@@ -248,7 +243,6 @@ public class SessionTicketSeeder
                 MaxPrice = 40m,
                 DefaultPrice = 20m,
                 Available = session.Capacity,
-                Sold = eventItem.GetCurrentTicketCount(),
                 PricingType = PricingType.SlidingScale
             };
 
@@ -266,7 +260,6 @@ public class SessionTicketSeeder
                 Description = "Full access to the workshop",
                 Price = price,
                 Available = session.Capacity,
-                Sold = eventItem.GetCurrentAttendeeCount(),
                 PricingType = PricingType.Fixed
             };
 
@@ -295,7 +288,6 @@ public class SessionTicketSeeder
                     Description = $"Free RSVP for Day {i + 1} only",
                     Price = 0,
                     Available = session.Capacity,
-                    Sold = (int)(session.Capacity * 0.3), // 30% sold on average
                     PricingType = PricingType.Fixed
                 };
 
@@ -314,7 +306,6 @@ public class SessionTicketSeeder
                 MaxPrice = 40m,
                 DefaultPrice = 20m,
                 Available = eventItem.Capacity,
-                Sold = eventItem.GetCurrentAttendeeCount(),
                 PricingType = PricingType.SlidingScale
             };
 
@@ -336,7 +327,6 @@ public class SessionTicketSeeder
                     Description = $"Access to Day {i + 1} activities only",
                     Price = dailyPrice,
                     Available = session.Capacity,
-                    Sold = (int)(session.Capacity * 0.3), // 30% sold on average
                     PricingType = PricingType.Fixed
                 };
 
@@ -352,7 +342,6 @@ public class SessionTicketSeeder
                 Description = $"Full access to all {sessions.Count} days - SAVE ${(dailyPrice * sessions.Count - basePrice):F0}!",
                 Price = basePrice,
                 Available = eventItem.Capacity,
-                Sold = eventItem.GetCurrentAttendeeCount(),
                 PricingType = PricingType.Fixed
             };
 
@@ -374,8 +363,7 @@ public class SessionTicketSeeder
             Name = "Morning Session - Foundation",
             StartTime = eventItem.StartDate,
             EndTime = eventItem.StartDate.AddHours(3),
-            Capacity = eventItem.Capacity,
-            CurrentAttendees = 0
+            Capacity = eventItem.Capacity
         };
 
         // Session 2: Afternoon Session - Advanced (1 PM - 4 PM)
@@ -386,8 +374,7 @@ public class SessionTicketSeeder
             Name = "Afternoon Session - Advanced",
             StartTime = eventItem.StartDate.AddHours(4), // 1 PM
             EndTime = eventItem.StartDate.AddHours(7),   // 4 PM
-            Capacity = eventItem.Capacity,
-            CurrentAttendees = 0
+            Capacity = eventItem.Capacity
         };
 
         sessionsToAdd.Add(morningSession);
@@ -408,8 +395,7 @@ public class SessionTicketSeeder
             Name = "Basics and Safety",
             StartTime = eventItem.StartDate,
             EndTime = eventItem.StartDate.AddHours(2.5),
-            Capacity = eventItem.Capacity,
-            CurrentAttendees = 0
+            Capacity = eventItem.Capacity
         };
 
         // Session 2: Core Ties (12 PM - 2:30 PM)
@@ -420,8 +406,7 @@ public class SessionTicketSeeder
             Name = "Core Ties",
             StartTime = eventItem.StartDate.AddHours(3),
             EndTime = eventItem.StartDate.AddHours(5.5),
-            Capacity = eventItem.Capacity,
-            CurrentAttendees = 0
+            Capacity = eventItem.Capacity
         };
 
         // Session 3: Practice and Review (3 PM - 5:30 PM)
@@ -432,8 +417,7 @@ public class SessionTicketSeeder
             Name = "Practice and Review",
             StartTime = eventItem.StartDate.AddHours(6),
             EndTime = eventItem.StartDate.AddHours(8.5),
-            Capacity = eventItem.Capacity,
-            CurrentAttendees = 0
+            Capacity = eventItem.Capacity
         };
 
         sessionsToAdd.Add(basicsSession);
@@ -456,7 +440,6 @@ public class SessionTicketSeeder
             Description = "Access to both morning and afternoon sessions",
             Price = 80.00m,
             Available = 15,
-            Sold = 0, // Will be set by ticket purchases
             PricingType = PricingType.Fixed
         });
 
@@ -469,7 +452,6 @@ public class SessionTicketSeeder
             Description = "Access to one session (morning or afternoon)",
             Price = 45.00m,
             Available = 10,
-            Sold = 0,
             PricingType = PricingType.Fixed
         });
 
@@ -482,7 +464,6 @@ public class SessionTicketSeeder
             Description = "Discounted full workshop access",
             Price = 65.00m,
             Available = 5,
-            Sold = 0,
             PricingType = PricingType.Fixed
         });
     }
@@ -502,7 +483,6 @@ public class SessionTicketSeeder
             Description = "Access to all three sessions",
             Price = 100.00m,
             Available = 20,
-            Sold = 0,
             PricingType = PricingType.Fixed
         });
 
@@ -515,7 +495,6 @@ public class SessionTicketSeeder
             Description = "Access to any two sessions",
             Price = 60.00m,
             Available = 10,
-            Sold = 0,
             PricingType = PricingType.Fixed
         });
 
@@ -528,7 +507,6 @@ public class SessionTicketSeeder
             Description = "Access to one session",
             Price = 35.00m,
             Available = 5,
-            Sold = 0,
             PricingType = PricingType.Fixed
         });
     }
@@ -555,7 +533,6 @@ public class SessionTicketSeeder
             MaxPrice = suggestedPrice * 4,
             DefaultPrice = suggestedPrice,
             Available = eventItem.Capacity,
-            Sold = 0,
             PricingType = PricingType.SlidingScale
         });
     }

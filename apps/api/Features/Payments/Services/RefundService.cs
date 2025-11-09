@@ -191,17 +191,17 @@ public class RefundService : IRefundService
             {
                 try
                 {
-                    // Get event participation to find the event ID
-                    var eventParticipation = await _context.EventParticipations
+                    // Get event attendance to find the event ID
+                    var eventAttendance = await _context.EventAttendances
                         .AsNoTracking()
                         .FirstOrDefaultAsync(ep => ep.Id == payment.EventRegistrationId, cancellationToken);
 
-                    if (eventParticipation != null)
+                    if (eventAttendance != null)
                     {
                         // Cancel all volunteer signups for this user and event
                         var cancellationResult = await _volunteerAssignmentService.CancelAllVolunteerSignupsForUserEventAsync(
                             payment.UserId,
-                            eventParticipation.EventId,
+                            eventAttendance.EventId,
                             "Refunded Ticket, so automatically canceled volunteer spot",
                             cancellationToken);
 
@@ -209,19 +209,19 @@ public class RefundService : IRefundService
                         {
                             _logger.LogInformation(
                                 "Auto-cancelled {Count} volunteer signups for user {UserId} at event {EventId} due to ticket refund",
-                                cancellationResult.cancelledCount, payment.UserId, eventParticipation.EventId);
+                                cancellationResult.cancelledCount, payment.UserId, eventAttendance.EventId);
                         }
                         else if (!cancellationResult.success)
                         {
                             _logger.LogWarning(
                                 "Failed to auto-cancel volunteer signups for user {UserId} at event {EventId}: {Error}",
-                                payment.UserId, eventParticipation.EventId, cancellationResult.error);
+                                payment.UserId, eventAttendance.EventId, cancellationResult.error);
                         }
                     }
                     else
                     {
                         _logger.LogWarning(
-                            "EventParticipation {EventRegistrationId} not found, cannot auto-cancel volunteer signups",
+                            "EventAttendance {EventRegistrationId} not found, cannot auto-cancel volunteer signups",
                             payment.EventRegistrationId);
                     }
                 }

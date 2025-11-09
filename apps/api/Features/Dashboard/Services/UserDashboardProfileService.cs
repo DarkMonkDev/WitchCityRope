@@ -37,32 +37,32 @@ public class UserDashboardProfileService : IUserDashboardProfileService
         {
             _logger.LogInformation("Fetching events for user {UserId}, includePast={IncludePast}", userId, includePast);
 
-            // SERVER-SIDE PROJECTION: Query EventParticipations and project to DTO at database level
-            // EventParticipations is the central table for both RSVP and ticket participation types
+            // SERVER-SIDE PROJECTION: Query EventAttendances and project to DTO at database level
+            // EventAttendances is the central table for both RSVP and ticket attendance types
             // Benefits: Only loads needed event fields, no Include() overhead
-            var query = _context.EventParticipations
+            var query = _context.EventAttendances
                 .AsNoTracking()
-                .Where(ep => ep.UserId == userId)
-                .Where(ep => ep.Status == ParticipationStatus.Active) // Only active participations (not cancelled)
+                .Where(ea => ea.UserId == userId)
+                .Where(ea => ea.Status == AttendanceStatus.Active) // Only active attendances (not cancelled)
                 .AsQueryable();
 
             // Filter by date if not including past events
             if (!includePast)
             {
-                query = query.Where(ep => ep.Event.EndDate >= DateTime.UtcNow);
+                query = query.Where(ea => ea.Event.EndDate >= DateTime.UtcNow);
             }
 
-            // SERVER-SIDE PROJECTION: Group by event and aggregate participation data
-            // This ensures one UserEventDto per event even if user has multiple participation types (RSVP + Ticket)
+            // SERVER-SIDE PROJECTION: Group by event and aggregate attendance data
+            // This ensures one UserEventDto per event even if user has multiple attendance types (RSVP + Ticket)
             var events = await query
-                .GroupBy(ep => new {
-                    ep.Event.Id,
-                    ep.Event.Title,
-                    ep.Event.StartDate,
-                    ep.Event.EndDate,
-                    ep.Event.Location,
-                    ep.Event.ShortDescription,
-                    ep.Event.EventType
+                .GroupBy(ea => new {
+                    ea.Event.Id,
+                    ea.Event.Title,
+                    ea.Event.StartDate,
+                    ea.Event.EndDate,
+                    ea.Event.Location,
+                    ea.Event.ShortDescription,
+                    ea.Event.EventType
                 })
                 .Select(g => new UserEventDto
                 {
@@ -74,13 +74,13 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                     Location = g.Key.Location,
                     Description = g.Key.ShortDescription,
                     IsSocialEvent = g.Key.EventType == WitchCityRope.Api.Enums.EventType.Social,
-                    // HasTicket is true if ANY participation for this event is a Ticket
-                    HasTicket = g.Any(ep => ep.ParticipationType == ParticipationType.Ticket),
+                    // HasTicket is true if ANY attendance for this event is a Ticket
+                    HasTicket = g.Any(ea => ea.AttendanceType == AttendanceType.Ticket),
                     // Calculate registration status at database level
                     // Priority: Attended > Ticket Purchased > RSVP Confirmed
                     RegistrationStatus = g.Key.EndDate < DateTime.UtcNow
                         ? "Attended"
-                        : g.Any(ep => ep.ParticipationType == ParticipationType.Ticket)
+                        : g.Any(ea => ea.AttendanceType == AttendanceType.Ticket)
                             ? (g.Key.EventType == WitchCityRope.Api.Enums.EventType.Social ? "Ticket Purchased (Social Event)" : "Ticket Purchased")
                             : "RSVP Confirmed"
                 })

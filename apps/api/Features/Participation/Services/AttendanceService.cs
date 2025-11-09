@@ -10,22 +10,22 @@ using WitchCityRope.Api.Features.Events.Interfaces;
 namespace WitchCityRope.Api.Features.Participation.Services;
 
 /// <summary>
-/// Service for managing event participation (RSVPs and tickets)
+/// Service for managing event attendance (RSVPs and tickets)
 /// Follows vertical slice architecture with direct EF access
 /// Enforces registration/cancellation cutoff times based on event start time and configured buffer
 /// </summary>
-public class ParticipationService : IParticipationService
+public class AttendanceService : IAttendanceService
 {
     private readonly ApplicationDbContext _context;
     private readonly VolunteerAssignmentService _volunteerAssignmentService;
     private readonly ITimeZoneService _timeZoneService;
-    private readonly ILogger<ParticipationService> _logger;
+    private readonly ILogger<AttendanceService> _logger;
 
-    public ParticipationService(
+    public AttendanceService(
         ApplicationDbContext context,
         VolunteerAssignmentService volunteerAssignmentService,
         ITimeZoneService timeZoneService,
-        ILogger<ParticipationService> logger)
+        ILogger<AttendanceService> logger)
     {
         _context = context;
         _volunteerAssignmentService = volunteerAssignmentService;
@@ -34,7 +34,7 @@ public class ParticipationService : IParticipationService
     }
 
     /// <summary>
-    /// Get user's participation status for a specific event
+    /// Get user's attendance status for a specific event
     /// Returns enhanced DTO with hasRSVP/hasTicket flags and nested details
     /// Matches frontend ParticipationCard component expectations
     /// </summary>
@@ -45,7 +45,7 @@ public class ParticipationService : IParticipationService
     {
         try
         {
-            _logger.LogInformation("Getting enhanced participation status for user {UserId} in event {EventId}", userId, eventId);
+            _logger.LogInformation("Getting enhanced attendance status for user {UserId} in event {EventId}", userId, eventId);
 
             // Get event details for capacity calculation
             var eventEntity = await _context.Events
@@ -54,72 +54,72 @@ public class ParticipationService : IParticipationService
 
             if (eventEntity == null)
             {
-                _logger.LogWarning("Event {EventId} not found when fetching participation status", eventId);
+                _logger.LogWarning("Event {EventId} not found when fetching attendance status", eventId);
                 return Result<EnhancedParticipationStatusDto?>.Failure("Event not found");
             }
 
-            // Get all ACTIVE participations for this event (for capacity calculation)
-            var activeParticipationsCount = await _context.EventParticipations
-                .Where(ep => ep.EventId == eventId && ep.Status == ParticipationStatus.Active)
+            // Get all ACTIVE attendances for this event (for capacity calculation)
+            var activeAttendancesCount = await _context.EventAttendances
+                .Where(ea => ea.EventId == eventId && ea.Status == AttendanceStatus.Active)
                 .CountAsync(cancellationToken);
 
             // BUSINESS RULE: Users can have BOTH RSVP and Ticket for social events
-            // Query for both participation types separately
-            var rsvpParticipation = await _context.EventParticipations
+            // Query for both attendance types separately
+            var rsvpAttendance = await _context.EventAttendances
                 .AsNoTracking()
-                .Where(ep => ep.EventId == eventId &&
-                            ep.UserId == userId &&
-                            ep.Status == ParticipationStatus.Active &&
-                            ep.ParticipationType == ParticipationType.RSVP)
+                .Where(ea => ea.EventId == eventId &&
+                            ea.UserId == userId &&
+                            ea.Status == AttendanceStatus.Active &&
+                            ea.AttendanceType == AttendanceType.RSVP)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            var ticketParticipation = await _context.EventParticipations
+            var ticketAttendance = await _context.EventAttendances
                 .AsNoTracking()
-                .Where(ep => ep.EventId == eventId &&
-                            ep.UserId == userId &&
-                            ep.Status == ParticipationStatus.Active &&
-                            ep.ParticipationType == ParticipationType.Ticket)
+                .Where(ea => ea.EventId == eventId &&
+                            ea.UserId == userId &&
+                            ea.Status == AttendanceStatus.Active &&
+                            ea.AttendanceType == AttendanceType.Ticket)
                 .FirstOrDefaultAsync(cancellationToken);
 
             // Build enhanced DTO with nested structure
             var dto = new EnhancedParticipationStatusDto
             {
-                HasRSVP = rsvpParticipation != null,
-                HasTicket = ticketParticipation != null,
-                CanRSVP = rsvpParticipation == null && activeParticipationsCount < eventEntity.Capacity,
-                CanPurchaseTicket = ticketParticipation == null && activeParticipationsCount < eventEntity.Capacity,
+                HasRSVP = rsvpAttendance != null,
+                HasTicket = ticketAttendance != null,
+                CanRSVP = rsvpAttendance == null && activeAttendancesCount < eventEntity.Capacity,
+                CanPurchaseTicket = ticketAttendance == null && activeAttendancesCount < eventEntity.Capacity,
                 Capacity = new CapacityInfoDto
                 {
-                    Current = activeParticipationsCount,
+                    Current = activeAttendancesCount,
                     Total = eventEntity.Capacity,
-                    Available = Math.Max(0, eventEntity.Capacity - activeParticipationsCount)
+                    Available = Math.Max(0, eventEntity.Capacity - activeAttendancesCount)
                 }
             };
 
             // Populate RSVP details if exists
-            if (rsvpParticipation != null)
+            if (rsvpAttendance != null)
             {
                 dto.Rsvp = new RsvpDetailsDto
                 {
-                    Id = rsvpParticipation.Id,
-                    Status = rsvpParticipation.Status.ToString(),
-                    CreatedAt = rsvpParticipation.CreatedAt,
-                    CanceledAt = rsvpParticipation.CancelledAt,
-                    CancelReason = rsvpParticipation.CancellationReason,
-                    Notes = rsvpParticipation.Notes
+                    Id = rsvpAttendance.Id,
+                    Status = rsvpAttendance.Status.ToString(),
+                    CreatedAt = rsvpAttendance.CreatedAt,
+                    CanceledAt = rsvpAttendance.CancelledAt,
+                    CancelReason = rsvpAttendance.CancellationReason,
+                    Notes = rsvpAttendance.Notes
                 };
             }
 
             // Populate Ticket details if exists
-            if (ticketParticipation != null)
+            if (ticketAttendance != null)
             {
                 // Extract purchase amount from notes JSON (payment details stored in Notes field)
                 decimal? amount = null;
-                if (!string.IsNullOrWhiteSpace(ticketParticipation.Notes))
+                if (!string.IsNullOrWhiteSpace(ticketAttendance.Notes))
                 {
                     try
                     {
-                        var notesData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, System.Text.Json.JsonElement>>(ticketParticipation.Notes);
+                        var notesData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, System.Text.Json.JsonElement>>(ticketAttendance.Notes);
                         if (notesData != null && notesData.TryGetValue("purchaseAmount", out var amountElement))
                         {
                             amount = amountElement.GetDecimal();
@@ -127,34 +127,34 @@ public class ParticipationService : IParticipationService
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning(ex, "Failed to parse notes for participation {ParticipationId}", ticketParticipation.Id);
+                        _logger.LogWarning(ex, "Failed to parse notes for attendance {AttendanceId}", ticketAttendance.Id);
                     }
                 }
 
                 dto.Ticket = new TicketDetailsDto
                 {
-                    Id = ticketParticipation.Id,
-                    Status = ticketParticipation.Status.ToString(),
+                    Id = ticketAttendance.Id,
+                    Status = ticketAttendance.Status.ToString(),
                     Amount = amount,
-                    PaymentStatus = ticketParticipation.Status == ParticipationStatus.Active ? "Completed" :
-                                   ticketParticipation.Status == ParticipationStatus.Refunded ? "Refunded" : "Unknown",
-                    CreatedAt = ticketParticipation.CreatedAt,
-                    CanceledAt = ticketParticipation.CancelledAt,
-                    CancelReason = ticketParticipation.CancellationReason,
-                    Notes = ticketParticipation.Notes
+                    PaymentStatus = ticketAttendance.Status == AttendanceStatus.Active ? "Completed" :
+                                   ticketAttendance.Status == AttendanceStatus.Refunded ? "Refunded" : "Unknown",
+                    CreatedAt = ticketAttendance.CreatedAt,
+                    CanceledAt = ticketAttendance.CancelledAt,
+                    CancelReason = ticketAttendance.CancellationReason,
+                    Notes = ticketAttendance.Notes
                 };
             }
 
             _logger.LogInformation(
-                "Participation status for user {UserId} in event {EventId}: HasRSVP={HasRSVP}, HasTicket={HasTicket}, CanRSVP={CanRSVP}, Capacity={Current}/{Total}",
+                "Attendance status for user {UserId} in event {EventId}: HasRSVP={HasRSVP}, HasTicket={HasTicket}, CanRSVP={CanRSVP}, Capacity={Current}/{Total}",
                 userId, eventId, dto.HasRSVP, dto.HasTicket, dto.CanRSVP, dto.Capacity.Current, dto.Capacity.Total);
 
             return Result<EnhancedParticipationStatusDto?>.Success(dto);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting participation status for user {UserId} in event {EventId}", userId, eventId);
-            return Result<EnhancedParticipationStatusDto?>.Failure("Failed to get participation status", ex.Message);
+            _logger.LogError(ex, "Error getting attendance status for user {UserId} in event {EventId}", userId, eventId);
+            return Result<EnhancedParticipationStatusDto?>.Failure("Failed to get attendance status", ex.Message);
         }
     }
 
@@ -208,33 +208,33 @@ public class ParticipationService : IParticipationService
                 return Result<ParticipationStatusDto>.Failure("RSVP period has closed for this event");
             }
 
-            // Check if user already has an ACTIVE participation for this event
+            // Check if user already has an ACTIVE attendance for this event
             // Cancelled RSVPs should not prevent new RSVPs - this allows re-RSVPing
-            var existingParticipation = await _context.EventParticipations
-                .FirstOrDefaultAsync(ep => ep.EventId == request.EventId && ep.UserId == userId && ep.Status == ParticipationStatus.Active, cancellationToken);
+            var existingAttendance = await _context.EventAttendances
+                .FirstOrDefaultAsync(ea => ea.EventId == request.EventId && ea.UserId == userId && ea.Status == AttendanceStatus.Active, cancellationToken);
 
-            if (existingParticipation != null)
+            if (existingAttendance != null)
             {
-                return Result<ParticipationStatusDto>.Failure("User already has an active participation for this event");
+                return Result<ParticipationStatusDto>.Failure("User already has an active attendance for this event");
             }
 
             // Check event capacity
-            var currentParticipationCount = await _context.EventParticipations
-                .CountAsync(ep => ep.EventId == request.EventId && ep.Status == ParticipationStatus.Active, cancellationToken);
+            var currentAttendanceCount = await _context.EventAttendances
+                .CountAsync(ea => ea.EventId == request.EventId && ea.Status == AttendanceStatus.Active, cancellationToken);
 
-            if (currentParticipationCount >= eventEntity.Capacity)
+            if (currentAttendanceCount >= eventEntity.Capacity)
             {
                 return Result<ParticipationStatusDto>.Failure("Event is at full capacity");
             }
 
             // Create the RSVP
-            var participation = new EventParticipation(request.EventId, userId, ParticipationType.RSVP)
+            var attendance = new EventAttendance(request.EventId, userId, AttendanceType.RSVP)
             {
                 Notes = request.Notes,
                 CreatedBy = userId
             };
 
-            _context.EventParticipations.Add(participation);
+            _context.EventAttendances.Add(attendance);
 
             // Create or update EventAttendee record so user appears in check-in system
             var existingAttendee = await _context.EventAttendees
@@ -271,49 +271,49 @@ public class ParticipationService : IParticipationService
             }
 
             // Create audit history
-            var history = new ParticipationHistory(participation.Id, "Created")
+            var history = new AttendanceHistory(attendance.Id, "Created")
             {
                 NewValues = System.Text.Json.JsonSerializer.Serialize(new
                 {
-                    EventId = participation.EventId,
-                    UserId = participation.UserId,
-                    ParticipationType = participation.ParticipationType,
-                    Notes = participation.Notes
+                    EventId = attendance.EventId,
+                    UserId = attendance.UserId,
+                    AttendanceType = attendance.AttendanceType,
+                    Notes = attendance.Notes
                 }),
                 ChangedBy = userId,
                 ChangeReason = "RSVP created by user"
             };
 
-            _context.ParticipationHistory.Add(history);
+            _context.AttendanceHistory.Add(history);
 
             // CRITICAL: Save changes to persist RSVP to database
             await _context.SaveChangesAsync(cancellationToken);
 
             // Verify persistence (defensive check)
-            var savedParticipation = await _context.EventParticipations
+            var savedAttendance = await _context.EventAttendances
                 .AsNoTracking()
-                .FirstOrDefaultAsync(ep => ep.Id == participation.Id, cancellationToken);
+                .FirstOrDefaultAsync(ea => ea.Id == attendance.Id, cancellationToken);
 
-            if (savedParticipation == null)
+            if (savedAttendance == null)
             {
-                _logger.LogError("CRITICAL: RSVP {ParticipationId} for user {UserId} in event {EventId} failed to persist to database",
-                    participation.Id, userId, request.EventId);
+                _logger.LogError("CRITICAL: RSVP {AttendanceId} for user {UserId} in event {EventId} failed to persist to database",
+                    attendance.Id, userId, request.EventId);
                 return Result<ParticipationStatusDto>.Failure("Failed to save RSVP to database");
             }
 
-            _logger.LogInformation("Successfully created and verified RSVP {ParticipationId} for user {UserId} in event {EventId} (Status: {Status})",
-                savedParticipation.Id, userId, request.EventId, savedParticipation.Status);
+            _logger.LogInformation("Successfully created and verified RSVP {AttendanceId} for user {UserId} in event {EventId} (Status: {Status})",
+                savedAttendance.Id, userId, request.EventId, savedAttendance.Status);
 
             var dto = new ParticipationStatusDto
             {
-                EventId = participation.EventId,
-                UserId = participation.UserId,
-                ParticipationType = participation.ParticipationType,
-                Status = participation.Status,
-                ParticipationDate = participation.CreatedAt,
-                Notes = participation.Notes,
-                CanCancel = participation.CanBeCancelled(),
-                Metadata = participation.Metadata
+                EventId = attendance.EventId,
+                UserId = attendance.UserId,
+                ParticipationType = attendance.AttendanceType,
+                Status = attendance.Status,
+                ParticipationDate = attendance.CreatedAt,
+                Notes = attendance.Notes,
+                CanCancel = attendance.CanBeCancelled(),
+                Metadata = attendance.Metadata
             };
 
             return Result<ParticipationStatusDto>.Success(dto);
@@ -371,12 +371,12 @@ public class ParticipationService : IParticipationService
 
             // Check if user already has a TICKET for this event
             // Allow ticket purchase even if user has RSVP'd (social events support both)
-            var existingTicket = await _context.EventParticipations
-                .FirstOrDefaultAsync(ep =>
-                    ep.EventId == request.EventId &&
-                    ep.UserId == userId &&
-                    ep.Status == ParticipationStatus.Active &&
-                    ep.ParticipationType == ParticipationType.Ticket,
+            var existingTicket = await _context.EventAttendances
+                .FirstOrDefaultAsync(ea =>
+                    ea.EventId == request.EventId &&
+                    ea.UserId == userId &&
+                    ea.Status == AttendanceStatus.Active &&
+                    ea.AttendanceType == AttendanceType.Ticket,
                     cancellationToken);
 
             if (existingTicket != null)
@@ -385,22 +385,22 @@ public class ParticipationService : IParticipationService
             }
 
             // Check event capacity
-            var currentParticipationCount = await _context.EventParticipations
-                .CountAsync(ep => ep.EventId == request.EventId && ep.Status == ParticipationStatus.Active, cancellationToken);
+            var currentAttendanceCount = await _context.EventAttendances
+                .CountAsync(ea => ea.EventId == request.EventId && ea.Status == AttendanceStatus.Active, cancellationToken);
 
-            if (currentParticipationCount >= eventEntity.Capacity)
+            if (currentAttendanceCount >= eventEntity.Capacity)
             {
                 return Result<ParticipationStatusDto>.Failure("Event is at full capacity");
             }
 
             // Create the ticket purchase
-            var participation = new EventParticipation(request.EventId, userId, ParticipationType.Ticket)
+            var attendance = new EventAttendance(request.EventId, userId, AttendanceType.Ticket)
             {
                 Notes = request.Notes,
                 CreatedBy = userId
             };
 
-            _context.EventParticipations.Add(participation);
+            _context.EventAttendances.Add(attendance);
 
             // Create or update EventAttendee record so user appears in check-in system
             var ticketNumber = $"TKT-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}";
@@ -445,54 +445,54 @@ public class ParticipationService : IParticipationService
             }
 
             // Create audit history for ticket
-            var history = new ParticipationHistory(participation.Id, "Created")
+            var history = new AttendanceHistory(attendance.Id, "Created")
             {
                 NewValues = System.Text.Json.JsonSerializer.Serialize(new
                 {
-                    EventId = participation.EventId,
-                    UserId = participation.UserId,
-                    ParticipationType = participation.ParticipationType,
-                    Notes = participation.Notes,
+                    EventId = attendance.EventId,
+                    UserId = attendance.UserId,
+                    AttendanceType = attendance.AttendanceType,
+                    Notes = attendance.Notes,
                     PaymentMethodId = request.PaymentMethodId
                 }),
                 ChangedBy = userId,
                 ChangeReason = "Ticket purchased by user"
             };
 
-            _context.ParticipationHistory.Add(history);
+            _context.AttendanceHistory.Add(history);
 
             // BUSINESS RULE: Auto-RSVP for social events when purchasing a ticket
             // If this is a social event and user doesn't already have an RSVP, create one automatically
             if (eventEntity.EventType == EventType.Social)
             {
-                var existingRsvp = await _context.EventParticipations
-                    .FirstOrDefaultAsync(ep =>
-                        ep.EventId == request.EventId &&
-                        ep.UserId == userId &&
-                        ep.Status == ParticipationStatus.Active &&
-                        ep.ParticipationType == ParticipationType.RSVP,
+                var existingRsvp = await _context.EventAttendances
+                    .FirstOrDefaultAsync(ea =>
+                        ea.EventId == request.EventId &&
+                        ea.UserId == userId &&
+                        ea.Status == AttendanceStatus.Active &&
+                        ea.AttendanceType == AttendanceType.RSVP,
                         cancellationToken);
 
                 if (existingRsvp == null)
                 {
                     _logger.LogInformation("Auto-creating RSVP for user {UserId} in social event {EventId} (ticket purchase)", userId, request.EventId);
 
-                    var autoRsvp = new EventParticipation(request.EventId, userId, ParticipationType.RSVP)
+                    var autoRsvp = new EventAttendance(request.EventId, userId, AttendanceType.RSVP)
                     {
                         Notes = "Auto-created RSVP from ticket purchase",
                         CreatedBy = userId
                     };
 
-                    _context.EventParticipations.Add(autoRsvp);
+                    _context.EventAttendances.Add(autoRsvp);
 
                     // Create audit history for auto-RSVP
-                    var rsvpHistory = new ParticipationHistory(autoRsvp.Id, "Created")
+                    var rsvpHistory = new AttendanceHistory(autoRsvp.Id, "Created")
                     {
                         NewValues = System.Text.Json.JsonSerializer.Serialize(new
                         {
                             EventId = autoRsvp.EventId,
                             UserId = autoRsvp.UserId,
-                            ParticipationType = autoRsvp.ParticipationType,
+                            AttendanceType = autoRsvp.AttendanceType,
                             Notes = autoRsvp.Notes,
                             AutoCreated = true
                         }),
@@ -500,7 +500,7 @@ public class ParticipationService : IParticipationService
                         ChangeReason = "Auto-created RSVP from ticket purchase"
                     };
 
-                    _context.ParticipationHistory.Add(rsvpHistory);
+                    _context.AttendanceHistory.Add(rsvpHistory);
                 }
             }
 
@@ -508,30 +508,30 @@ public class ParticipationService : IParticipationService
             await _context.SaveChangesAsync(cancellationToken);
 
             // Verify persistence (defensive check)
-            var savedParticipation = await _context.EventParticipations
+            var savedAttendance = await _context.EventAttendances
                 .AsNoTracking()
-                .FirstOrDefaultAsync(ep => ep.Id == participation.Id, cancellationToken);
+                .FirstOrDefaultAsync(ea => ea.Id == attendance.Id, cancellationToken);
 
-            if (savedParticipation == null)
+            if (savedAttendance == null)
             {
-                _logger.LogError("CRITICAL: Ticket purchase {ParticipationId} for user {UserId} in event {EventId} failed to persist to database",
-                    participation.Id, userId, request.EventId);
+                _logger.LogError("CRITICAL: Ticket purchase {AttendanceId} for user {UserId} in event {EventId} failed to persist to database",
+                    attendance.Id, userId, request.EventId);
                 return Result<ParticipationStatusDto>.Failure("Failed to save ticket purchase to database");
             }
 
-            _logger.LogInformation("Successfully created and verified ticket purchase {ParticipationId} for user {UserId} in event {EventId} (Status: {Status})",
-                savedParticipation.Id, userId, request.EventId, savedParticipation.Status);
+            _logger.LogInformation("Successfully created and verified ticket purchase {AttendanceId} for user {UserId} in event {EventId} (Status: {Status})",
+                savedAttendance.Id, userId, request.EventId, savedAttendance.Status);
 
             var dto = new ParticipationStatusDto
             {
-                EventId = participation.EventId,
-                UserId = participation.UserId,
-                ParticipationType = participation.ParticipationType,
-                Status = participation.Status,
-                ParticipationDate = participation.CreatedAt,
-                Notes = participation.Notes,
-                CanCancel = participation.CanBeCancelled(),
-                Metadata = participation.Metadata
+                EventId = attendance.EventId,
+                UserId = attendance.UserId,
+                ParticipationType = attendance.AttendanceType,
+                Status = attendance.Status,
+                ParticipationDate = attendance.CreatedAt,
+                Notes = attendance.Notes,
+                CanCancel = attendance.CanBeCancelled(),
+                Metadata = attendance.Metadata
             };
 
             return Result<ParticipationStatusDto>.Success(dto);
@@ -544,42 +544,42 @@ public class ParticipationService : IParticipationService
     }
 
     /// <summary>
-    /// Cancel user's participation in an event
+    /// Cancel user's attendance in an event
     /// </summary>
     public async Task<Result> CancelParticipationAsync(
         Guid eventId,
         Guid userId,
-        ParticipationType? participationType = null,
+        AttendanceType? attendanceType = null,
         string? reason = null,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            _logger.LogInformation("Cancelling participation for user {UserId} in event {EventId}, Type: {Type}",
-                userId, eventId, participationType?.ToString() ?? "Most Recent");
+            _logger.LogInformation("Cancelling attendance for user {UserId} in event {EventId}, Type: {Type}",
+                userId, eventId, attendanceType?.ToString() ?? "Most Recent");
 
-            // Find the ACTIVE participation for cancellation
-            // If participationType is specified, filter by that type; otherwise get most recent
-            var query = _context.EventParticipations
-                .Where(ep => ep.EventId == eventId && ep.UserId == userId && ep.Status == ParticipationStatus.Active);
+            // Find the ACTIVE attendance for cancellation
+            // If attendanceType is specified, filter by that type; otherwise get most recent
+            var query = _context.EventAttendances
+                .Where(ea => ea.EventId == eventId && ea.UserId == userId && ea.Status == AttendanceStatus.Active);
 
-            if (participationType.HasValue)
+            if (attendanceType.HasValue)
             {
-                query = query.Where(ep => ep.ParticipationType == participationType.Value);
+                query = query.Where(ea => ea.AttendanceType == attendanceType.Value);
             }
 
-            var participation = await query
-                .OrderByDescending(ep => ep.CreatedAt)
+            var attendance = await query
+                .OrderByDescending(ea => ea.CreatedAt)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            if (participation == null)
+            if (attendance == null)
             {
-                return Result.Failure("No active participation found for this event");
+                return Result.Failure("No active attendance found for this event");
             }
 
-            if (!participation.CanBeCancelled())
+            if (!attendance.CanBeCancelled())
             {
-                return Result.Failure("Participation cannot be cancelled in its current status");
+                return Result.Failure("Attendance cannot be cancelled in its current status");
             }
 
             // Check if cancellation is still allowed based on event start time and buffer
@@ -600,53 +600,53 @@ public class ParticipationService : IParticipationService
             }
 
             // BUSINESS RULE: If cancelling a ticket, also cancel any associated RSVP
-            EventParticipation? associatedRsvp = null;
-            if (participation.ParticipationType == ParticipationType.Ticket)
+            EventAttendance? associatedRsvp = null;
+            if (attendance.AttendanceType == AttendanceType.Ticket)
             {
-                associatedRsvp = await _context.EventParticipations
-                    .Where(ep => ep.EventId == eventId &&
-                                ep.UserId == userId &&
-                                ep.Status == ParticipationStatus.Active &&
-                                ep.ParticipationType == ParticipationType.RSVP)
+                associatedRsvp = await _context.EventAttendances
+                    .Where(ea => ea.EventId == eventId &&
+                                ea.UserId == userId &&
+                                ea.Status == AttendanceStatus.Active &&
+                                ea.AttendanceType == AttendanceType.RSVP)
                     .FirstOrDefaultAsync(cancellationToken);
 
                 if (associatedRsvp != null)
                 {
                     _logger.LogInformation("Found associated RSVP {RsvpId} - will also cancel when cancelling ticket {TicketId}",
-                        associatedRsvp.Id, participation.Id);
+                        associatedRsvp.Id, attendance.Id);
                 }
             }
 
             // Store old values for audit
             var oldValues = System.Text.Json.JsonSerializer.Serialize(new
             {
-                Status = participation.Status,
-                CancelledAt = participation.CancelledAt,
-                CancellationReason = participation.CancellationReason
+                Status = attendance.Status,
+                CancelledAt = attendance.CancelledAt,
+                CancellationReason = attendance.CancellationReason
             });
 
-            // Cancel the participation
-            participation.Cancel(reason);
-            participation.UpdatedBy = userId;
+            // Cancel the attendance
+            attendance.Cancel(reason);
+            attendance.UpdatedBy = userId;
 
             // Explicitly mark entity as modified to ensure EF Core tracks the change
-            _context.EventParticipations.Update(participation);
+            _context.EventAttendances.Update(attendance);
 
             // Create audit history
-            var history = new ParticipationHistory(participation.Id, "Cancelled")
+            var history = new AttendanceHistory(attendance.Id, "Cancelled")
             {
                 OldValues = oldValues,
                 NewValues = System.Text.Json.JsonSerializer.Serialize(new
                 {
-                    Status = participation.Status,
-                    CancelledAt = participation.CancelledAt,
-                    CancellationReason = participation.CancellationReason
+                    Status = attendance.Status,
+                    CancelledAt = attendance.CancelledAt,
+                    CancellationReason = attendance.CancellationReason
                 }),
                 ChangedBy = userId,
                 ChangeReason = reason ?? "Cancelled by user"
             };
 
-            _context.ParticipationHistory.Add(history);
+            _context.AttendanceHistory.Add(history);
 
             // Cancel associated RSVP if exists
             if (associatedRsvp != null)
@@ -660,9 +660,9 @@ public class ParticipationService : IParticipationService
 
                 associatedRsvp.Cancel("Auto-cancelled when ticket was cancelled");
                 associatedRsvp.UpdatedBy = userId;
-                _context.EventParticipations.Update(associatedRsvp);
+                _context.EventAttendances.Update(associatedRsvp);
 
-                var rsvpHistory = new ParticipationHistory(associatedRsvp.Id, "Cancelled")
+                var rsvpHistory = new AttendanceHistory(associatedRsvp.Id, "Cancelled")
                 {
                     OldValues = rsvpOldValues,
                     NewValues = System.Text.Json.JsonSerializer.Serialize(new
@@ -675,21 +675,21 @@ public class ParticipationService : IParticipationService
                     ChangeReason = "Auto-cancelled when ticket was cancelled"
                 };
 
-                _context.ParticipationHistory.Add(rsvpHistory);
+                _context.AttendanceHistory.Add(rsvpHistory);
             }
 
             // Update EventAttendee record for check-in system integration
-            // Check if user has any remaining ACTIVE participations after this cancellation
-            var remainingActiveParticipations = await _context.EventParticipations
-                .Where(ep => ep.EventId == eventId &&
-                            ep.UserId == userId &&
-                            ep.Status == ParticipationStatus.Active &&
-                            ep.Id != participation.Id && // Exclude the one we're cancelling
-                            (associatedRsvp == null || ep.Id != associatedRsvp.Id)) // Exclude associated RSVP if cancelling
+            // Check if user has any remaining ACTIVE attendances after this cancellation
+            var remainingActiveAttendances = await _context.EventAttendances
+                .Where(ea => ea.EventId == eventId &&
+                            ea.UserId == userId &&
+                            ea.Status == AttendanceStatus.Active &&
+                            ea.Id != attendance.Id && // Exclude the one we're cancelling
+                            (associatedRsvp == null || ea.Id != associatedRsvp.Id)) // Exclude associated RSVP if cancelling
                 .AnyAsync(cancellationToken);
 
-            // If no active participations remain, update EventAttendee to "cancelled" status
-            if (!remainingActiveParticipations)
+            // If no active attendances remain, update EventAttendee to "cancelled" status
+            if (!remainingActiveAttendances)
             {
                 var eventAttendee = await _context.EventAttendees
                     .FirstOrDefaultAsync(ea => ea.EventId == eventId && ea.UserId == userId, cancellationToken);
@@ -697,7 +697,7 @@ public class ParticipationService : IParticipationService
                 if (eventAttendee != null)
                 {
                     _logger.LogInformation(
-                        "Updating EventAttendee {AttendeeId} status to 'cancelled' - no active participations remain for user {UserId} in event {EventId}",
+                        "Updating EventAttendee {AttendeeId} status to 'cancelled' - no active attendances remain for user {UserId} in event {EventId}",
                         eventAttendee.Id, userId, eventId);
 
                     eventAttendee.RegistrationStatus = "cancelled";
@@ -714,7 +714,7 @@ public class ParticipationService : IParticipationService
             else
             {
                 _logger.LogInformation(
-                    "EventAttendee status NOT updated - user {UserId} still has active participations in event {EventId}",
+                    "EventAttendee status NOT updated - user {UserId} still has active attendances in event {EventId}",
                     userId, eventId);
             }
 
@@ -722,35 +722,35 @@ public class ParticipationService : IParticipationService
             await _context.SaveChangesAsync(cancellationToken);
 
             // Verify persistence (defensive check)
-            var cancelledParticipation = await _context.EventParticipations
+            var cancelledAttendance = await _context.EventAttendances
                 .AsNoTracking()
-                .FirstOrDefaultAsync(ep => ep.Id == participation.Id, cancellationToken);
+                .FirstOrDefaultAsync(ea => ea.Id == attendance.Id, cancellationToken);
 
-            if (cancelledParticipation == null)
+            if (cancelledAttendance == null)
             {
-                _logger.LogError("CRITICAL: Participation {ParticipationId} disappeared after cancellation for user {UserId} in event {EventId}",
-                    participation.Id, userId, eventId);
+                _logger.LogError("CRITICAL: Attendance {AttendanceId} disappeared after cancellation for user {UserId} in event {EventId}",
+                    attendance.Id, userId, eventId);
                 return Result.Failure("Failed to verify cancellation in database");
             }
 
-            if (cancelledParticipation.Status != ParticipationStatus.Cancelled)
+            if (cancelledAttendance.Status != AttendanceStatus.Cancelled)
             {
-                _logger.LogError("CRITICAL: Participation {ParticipationId} cancellation not persisted - Status is {Status} instead of Cancelled",
-                    participation.Id, cancelledParticipation.Status);
+                _logger.LogError("CRITICAL: Attendance {AttendanceId} cancellation not persisted - Status is {Status} instead of Cancelled",
+                    attendance.Id, cancelledAttendance.Status);
                 return Result.Failure("Cancellation did not persist to database");
             }
 
-            _logger.LogInformation("Successfully cancelled and verified participation {ParticipationId} for user {UserId} in event {EventId} (Status: {Status}, CancelledAt: {CancelledAt})",
-                cancelledParticipation.Id, userId, eventId, cancelledParticipation.Status, cancelledParticipation.CancelledAt);
+            _logger.LogInformation("Successfully cancelled and verified attendance {AttendanceId} for user {UserId} in event {EventId} (Status: {Status}, CancelledAt: {CancelledAt})",
+                cancelledAttendance.Id, userId, eventId, cancelledAttendance.Status, cancelledAttendance.CancelledAt);
 
             // Verify associated RSVP cancellation if it existed
             if (associatedRsvp != null)
             {
-                var cancelledRsvp = await _context.EventParticipations
+                var cancelledRsvp = await _context.EventAttendances
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(ep => ep.Id == associatedRsvp.Id, cancellationToken);
+                    .FirstOrDefaultAsync(ea => ea.Id == associatedRsvp.Id, cancellationToken);
 
-                if (cancelledRsvp == null || cancelledRsvp.Status != ParticipationStatus.Cancelled)
+                if (cancelledRsvp == null || cancelledRsvp.Status != AttendanceStatus.Cancelled)
                 {
                     _logger.LogError("CRITICAL: Associated RSVP {RsvpId} cancellation not persisted properly",
                         associatedRsvp.Id);
@@ -761,7 +761,7 @@ public class ParticipationService : IParticipationService
                     cancelledRsvp.Id, cancelledRsvp.Status, cancelledRsvp.CancelledAt);
             }
 
-            // Auto-cancel volunteer signups when participation is cancelled
+            // Auto-cancel volunteer signups when attendance is cancelled
             try
             {
                 var cancellationResult = await _volunteerAssignmentService.CancelAllVolunteerSignupsForUserEventAsync(
@@ -773,7 +773,7 @@ public class ParticipationService : IParticipationService
                 if (cancellationResult.success && cancellationResult.cancelledCount > 0)
                 {
                     _logger.LogInformation(
-                        "Auto-cancelled {Count} volunteer signups for user {UserId} at event {EventId} due to participation cancellation",
+                        "Auto-cancelled {Count} volunteer signups for user {UserId} at event {EventId} due to attendance cancellation",
                         cancellationResult.cancelledCount, userId, eventId);
                 }
                 else if (!cancellationResult.success)
@@ -795,13 +795,13 @@ public class ParticipationService : IParticipationService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error cancelling participation for user {UserId} in event {EventId}", userId, eventId);
-            return Result.Failure("Failed to cancel participation", ex.Message);
+            _logger.LogError(ex, "Error cancelling attendance for user {UserId} in event {EventId}", userId, eventId);
+            return Result.Failure("Failed to cancel attendance", ex.Message);
         }
     }
 
     /// <summary>
-    /// Get all of user's current participations
+    /// Get all of user's current attendances
     /// </summary>
     public async Task<Result<List<UserParticipationDto>>> GetUserParticipationsAsync(
         Guid userId,
@@ -809,42 +809,42 @@ public class ParticipationService : IParticipationService
     {
         try
         {
-            _logger.LogInformation("Getting participations for user {UserId}", userId);
+            _logger.LogInformation("Getting attendances for user {UserId}", userId);
 
-            var participations = await _context.EventParticipations
+            var attendances = await _context.EventAttendances
                 .AsNoTracking()
-                .Include(ep => ep.Event)
-                .Where(ep => ep.UserId == userId)
-                .OrderByDescending(ep => ep.CreatedAt)
-                .Select(ep => new UserParticipationDto
+                .Include(ea => ea.Event)
+                .Where(ea => ea.UserId == userId)
+                .OrderByDescending(ea => ea.CreatedAt)
+                .Select(ea => new UserParticipationDto
                 {
-                    Id = ep.Id,
-                    EventId = ep.EventId,
-                    EventTitle = ep.Event.Title,
-                    EventStartDate = ep.Event.StartDate,
-                    EventEndDate = ep.Event.EndDate,
-                    EventLocation = ep.Event.Location,
-                    ParticipationType = ep.ParticipationType,
-                    Status = ep.Status,
-                    ParticipationDate = ep.CreatedAt,
-                    Notes = ep.Notes,
-                    CanCancel = ep.Status == ParticipationStatus.Active
+                    Id = ea.Id,
+                    EventId = ea.EventId,
+                    EventTitle = ea.Event.Title,
+                    EventStartDate = ea.Event.StartDate,
+                    EventEndDate = ea.Event.EndDate,
+                    EventLocation = ea.Event.Location,
+                    ParticipationType = ea.AttendanceType,
+                    Status = ea.Status,
+                    ParticipationDate = ea.CreatedAt,
+                    Notes = ea.Notes,
+                    CanCancel = ea.Status == AttendanceStatus.Active
                 })
                 .ToListAsync(cancellationToken);
 
-            _logger.LogInformation("Found {Count} participations for user {UserId}", participations.Count, userId);
+            _logger.LogInformation("Found {Count} attendances for user {UserId}", attendances.Count, userId);
 
-            return Result<List<UserParticipationDto>>.Success(participations);
+            return Result<List<UserParticipationDto>>.Success(attendances);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting participations for user {UserId}", userId);
-            return Result<List<UserParticipationDto>>.Failure("Failed to get user participations", ex.Message);
+            _logger.LogError(ex, "Error getting attendances for user {UserId}", userId);
+            return Result<List<UserParticipationDto>>.Failure("Failed to get user attendances", ex.Message);
         }
     }
 
     /// <summary>
-    /// Get all participations for a specific event (admin only)
+    /// Get all attendances for a specific event (admin only)
     /// Includes check-in status from EventAttendees table
     /// </summary>
     public async Task<Result<List<EventParticipationDto>>> GetEventParticipationsAsync(
@@ -853,35 +853,35 @@ public class ParticipationService : IParticipationService
     {
         try
         {
-            _logger.LogInformation("Getting participations for event {EventId}", eventId);
+            _logger.LogInformation("Getting attendances for event {EventId}", eventId);
 
             // Join with EventAttendees to get check-in status
             // An attendee has checked in if they have a record with RegistrationStatus = 'checked-in' or 'confirmed'
-            var participations = await _context.EventParticipations
+            var attendances = await _context.EventAttendances
                 .AsNoTracking()
-                .Include(ep => ep.User)
-                .Where(ep => ep.EventId == eventId)
+                .Include(ea => ea.User)
+                .Where(ea => ea.EventId == eventId)
                 .GroupJoin(
                     _context.EventAttendees.Where(ea => ea.EventId == eventId),
-                    ep => ep.UserId,
                     ea => ea.UserId,
-                    (ep, attendees) => new { Participation = ep, Attendees = attendees })
+                    ea => ea.UserId,
+                    (ea, attendees) => new { Attendance = ea, Attendees = attendees })
                 .SelectMany(
                     x => x.Attendees.DefaultIfEmpty(),
-                    (x, attendee) => new { x.Participation, Attendee = attendee })
-                .OrderByDescending(x => x.Participation.CreatedAt)
+                    (x, attendee) => new { x.Attendance, Attendee = attendee })
+                .OrderByDescending(x => x.Attendance.CreatedAt)
                 .Select(x => new EventParticipationDto
                 {
-                    Id = x.Participation.Id,
-                    UserId = x.Participation.UserId,
-                    UserSceneName = x.Participation.User.SceneName ?? x.Participation.User.Email ?? "Unknown",
-                    UserEmail = x.Participation.User.Email ?? "",
-                    ParticipationType = x.Participation.ParticipationType,
-                    Status = x.Participation.Status,
-                    ParticipationDate = x.Participation.CreatedAt,
-                    Notes = x.Participation.Notes,
-                    CanCancel = x.Participation.Status == ParticipationStatus.Active,
-                    Metadata = x.Participation.Metadata,
+                    Id = x.Attendance.Id,
+                    UserId = x.Attendance.UserId,
+                    UserSceneName = x.Attendance.User.SceneName ?? x.Attendance.User.Email ?? "Unknown",
+                    UserEmail = x.Attendance.User.Email ?? "",
+                    ParticipationType = x.Attendance.AttendanceType,
+                    Status = x.Attendance.Status,
+                    ParticipationDate = x.Attendance.CreatedAt,
+                    Notes = x.Attendance.Notes,
+                    CanCancel = x.Attendance.Status == AttendanceStatus.Active,
+                    Metadata = x.Attendance.Metadata,
                     // Check-in status: true ONLY if EventAttendees record exists with 'checked-in' status
                     // NOTE: 'confirmed' means they bought tickets/registered, NOT that they checked in
                     HasCheckedIn = x.Attendee != null && x.Attendee.RegistrationStatus == "checked-in",
@@ -892,14 +892,14 @@ public class ParticipationService : IParticipationService
                 })
                 .ToListAsync(cancellationToken);
 
-            _logger.LogInformation("Found {Count} participations for event {EventId}", participations.Count, eventId);
+            _logger.LogInformation("Found {Count} attendances for event {EventId}", attendances.Count, eventId);
 
-            return Result<List<EventParticipationDto>>.Success(participations);
+            return Result<List<EventParticipationDto>>.Success(attendances);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting participations for event {EventId}", eventId);
-            return Result<List<EventParticipationDto>>.Failure("Failed to get event participations", ex.Message);
+            _logger.LogError(ex, "Error getting attendances for event {EventId}", eventId);
+            return Result<List<EventParticipationDto>>.Failure("Failed to get event attendances", ex.Message);
         }
     }
 }

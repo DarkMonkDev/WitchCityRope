@@ -5,12 +5,12 @@ using WitchCityRope.Api.Features.Shared.Models;
 namespace WitchCityRope.Api.Features.Participation.Services;
 
 /// <summary>
-/// Service for managing event participation (RSVPs and tickets)
+/// Service for managing event attendance (RSVPs and tickets)
 /// </summary>
-public interface IParticipationService
+public interface IAttendanceService
 {
     /// <summary>
-    /// Get user's participation status for a specific event
+    /// Get user's attendance status for a specific event
     /// Returns enhanced DTO with hasRSVP/hasTicket flags, nested details, and capacity info
     /// </summary>
     Task<Result<EnhancedParticipationStatusDto?>> GetParticipationStatusAsync(
@@ -35,24 +35,24 @@ public interface IParticipationService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Cancel user's participation in an event
+    /// Cancel user's attendance in an event
     /// </summary>
     Task<Result> CancelParticipationAsync(
         Guid eventId,
         Guid userId,
-        ParticipationType? participationType = null,
+        AttendanceType? attendanceType = null,
         string? reason = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Get all of user's current participations
+    /// Get all of user's current attendances
     /// </summary>
     Task<Result<List<UserParticipationDto>>> GetUserParticipationsAsync(
         Guid userId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Get all participations for a specific event (admin only)
+    /// Get all attendances for a specific event (admin only)
     /// </summary>
     Task<Result<List<EventParticipationDto>>> GetEventParticipationsAsync(
         Guid eventId,

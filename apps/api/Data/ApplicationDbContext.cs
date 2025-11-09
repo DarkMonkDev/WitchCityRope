@@ -235,14 +235,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<PaymentFailure> PaymentFailures { get; set; }
 
     /// <summary>
-    /// EventParticipations table for RSVP and ticket participation tracking
+    /// EventAttendances table for RSVP and ticket attendance tracking
     /// </summary>
-    public DbSet<EventParticipation> EventParticipations { get; set; }
+    public DbSet<EventAttendance> EventAttendances { get; set; }
 
     /// <summary>
-    /// ParticipationHistory table for participation audit trails
+    /// AttendanceHistory table for attendance audit trails
     /// </summary>
-    public DbSet<ParticipationHistory> ParticipationHistory { get; set; }
+    public DbSet<AttendanceHistory> AttendanceHistory { get; set; }
 
     /// <summary>
     /// ContentPages table for CMS content management
@@ -1031,9 +1031,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         modelBuilder.ApplyConfiguration(new PaymentAuditLogConfiguration());
         modelBuilder.ApplyConfiguration(new PaymentFailureConfiguration());
 
-        // Apply Participation System configurations
-        modelBuilder.ApplyConfiguration(new EventParticipationConfiguration());
-        modelBuilder.ApplyConfiguration(new ParticipationHistoryConfiguration());
+        // Apply Attendance System configurations
+        modelBuilder.ApplyConfiguration(new EventAttendanceConfiguration());
+        modelBuilder.ApplyConfiguration(new AttendanceHistoryConfiguration());
 
         // Apply CMS configurations
         modelBuilder.ApplyConfiguration(new ContentPageConfiguration());
@@ -1599,9 +1599,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             }
         }
 
-        // Handle EventParticipation entities
-        var eventParticipationEntries = ChangeTracker.Entries<EventParticipation>();
-        foreach (var entry in eventParticipationEntries)
+        // Handle EventAttendance entities
+        var eventAttendanceEntries = ChangeTracker.Entries<EventAttendance>();
+        foreach (var entry in eventAttendanceEntries)
         {
             if (entry.State == EntityState.Added)
             {
@@ -1614,9 +1614,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             }
         }
 
-        // Handle ParticipationHistory entities
-        var participationHistoryEntries = ChangeTracker.Entries<ParticipationHistory>();
-        foreach (var entry in participationHistoryEntries)
+        // Handle AttendanceHistory entities
+        var attendanceHistoryEntries = ChangeTracker.Entries<AttendanceHistory>();
+        foreach (var entry in attendanceHistoryEntries)
         {
             if (entry.State == EntityState.Added)
             {

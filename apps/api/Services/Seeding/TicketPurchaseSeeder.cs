@@ -391,7 +391,7 @@ public class TicketPurchaseSeeder
     /// - Creates one cancelled ticket with refund
     ///
     /// Architecture:
-    /// - EventParticipation: Central table for all participation (ParticipationType.Ticket)
+    /// - EventParticipation: Central table for all participation (AttendanceType.Ticket)
     /// - EventAttendee: Registration details linking users to events
     /// - CheckIn: Actual check-in records for those who attended
     /// </summary>
@@ -471,18 +471,36 @@ public class TicketPurchaseSeeder
                 var shouldCheckIn = i < checkInsNeeded;
                 var purchaseDate = DateTime.UtcNow.AddDays(-(daysAgo + 2 + i));
 
-                // Create EventParticipation (central ticket purchase record)
-                var participation = new EventParticipation(evt.Id, user.Id, ParticipationType.Ticket)
+                // Create TicketPurchase FIRST (so we have the ID for linking)
+                var ticketPurchase = new TicketPurchase
                 {
                     Id = Guid.NewGuid(),
-                    Status = ParticipationStatus.Active,
+                    TicketTypeId = ticketType.Id,
+                    UserId = user.Id,
+                    Quantity = 1,
+                    TotalPrice = ticketType.Price ?? 0m,
+                    PaymentStatus = "Completed",
+                    PaymentMethod = "Stripe",
+                    PaymentReference = $"HIST-{Guid.NewGuid().ToString()[..8].ToUpper()}",
+                    PurchaseDate = purchaseDate,
+                    CreatedAt = purchaseDate,
+                    UpdatedAt = purchaseDate
+                };
+                _context.TicketPurchases.Add(ticketPurchase);
+
+                // Create EventAttendance LINKED to purchase
+                var participation = new EventAttendance(evt.Id, user.Id, AttendanceType.Ticket)
+                {
+                    Id = Guid.NewGuid(),
+                    Status = AttendanceStatus.Active,
+                    TicketPurchaseId = ticketPurchase.Id, // CRITICAL: Link to purchase
                     CreatedAt = purchaseDate,
                     UpdatedAt = purchaseDate,
                     CreatedBy = user.Id,
                     UpdatedBy = user.Id,
                     Metadata = $"{{\"ticketType\":\"{ticketTypeName}\",\"price\":{ticketType.Price},\"paymentMethod\":\"Stripe\"}}"
                 };
-                _context.EventParticipations.Add(participation);
+                _context.EventAttendances.Add(participation);
 
                 // Create EventAttendee (registration details)
                 var attendee = new EventAttendee(evt.Id, user.Id, "confirmed")
@@ -546,6 +564,23 @@ public class TicketPurchaseSeeder
                     var canceledPurchaseDate = DateTime.UtcNow.AddDays(-(daysAgo + 5));
                     var canceledDate = DateTime.UtcNow.AddDays(-(daysAgo + 1));
 
+                    // Create TicketPurchase FIRST for canceled ticket
+                    var canceledPurchase = new TicketPurchase
+                    {
+                        Id = Guid.NewGuid(),
+                        TicketTypeId = canceledType.Id,
+                        UserId = canceledUser.Id,
+                        Quantity = 1,
+                        TotalPrice = canceledType.Price ?? 0m,
+                        PaymentStatus = "Refunded",
+                        PaymentMethod = "Stripe",
+                        PaymentReference = $"REFUND-{Guid.NewGuid().ToString()[..8].ToUpper()}",
+                        PurchaseDate = canceledPurchaseDate,
+                        CreatedAt = canceledPurchaseDate,
+                        UpdatedAt = canceledDate
+                    };
+                    _context.TicketPurchases.Add(canceledPurchase);
+
                     // Create EventAttendee for canceled ticket (to ensure ticket number uniqueness)
                     var canceledAttendee = new EventAttendee(evt.Id, canceledUser.Id, "cancelled")
                     {
@@ -559,11 +594,12 @@ public class TicketPurchaseSeeder
                     };
                     _context.EventAttendees.Add(canceledAttendee);
 
-                    // Create canceled EventParticipation (NO CheckIn for canceled)
-                    var canceledParticipation = new EventParticipation(evt.Id, canceledUser.Id, ParticipationType.Ticket)
+                    // Create canceled EventAttendance LINKED to purchase (NO CheckIn for canceled)
+                    var canceledParticipation = new EventAttendance(evt.Id, canceledUser.Id, AttendanceType.Ticket)
                     {
                         Id = Guid.NewGuid(),
-                        Status = ParticipationStatus.Refunded,
+                        Status = AttendanceStatus.Refunded,
+                        TicketPurchaseId = canceledPurchase.Id, // CRITICAL: Link to purchase
                         CreatedAt = canceledPurchaseDate,
                         UpdatedAt = canceledDate,
                         CancelledAt = canceledDate,
@@ -572,7 +608,7 @@ public class TicketPurchaseSeeder
                         UpdatedBy = canceledUser.Id,
                         Metadata = $"{{\"ticketType\":\"{canceledTicketType}\",\"price\":{canceledType.Price},\"paymentMethod\":\"Stripe\",\"refundedAt\":\"{canceledDate:O}\"}}"
                     };
-                    _context.EventParticipations.Add(canceledParticipation);
+                    _context.EventAttendances.Add(canceledParticipation);
 
                     _logger.LogInformation("Created canceled ticket for user {UserId} (refunded {CanceledDate})", canceledUser.Id, canceledDate);
                 }
@@ -592,7 +628,7 @@ public class TicketPurchaseSeeder
         _logger.LogInformation("Starting historical workshop tickets creation");
 
         // Check if historical tickets already exist
-        var existingHistoricalTickets = await _context.EventParticipations
+        var existingHistoricalTickets = await _context.EventAttendances
             .Where(ep => ep.EventId == eventSeeder.AdvancedSuspensionEventId || ep.EventId == eventSeeder.RopeFundamentalsEventId)
             .CountAsync(cancellationToken);
 

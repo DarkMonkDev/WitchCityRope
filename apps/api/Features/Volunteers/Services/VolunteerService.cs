@@ -192,29 +192,29 @@ public class VolunteerService
 
             if (position.Event?.EventType == Enums.EventType.Social)
             {
-                var existingParticipation = await _context.EventParticipations
-                    .FirstOrDefaultAsync(ep => ep.EventId == eventId
-                        && ep.UserId == userGuid
-                        && ep.Status == ParticipationStatus.Active, cancellationToken);
+                var existingAttendance = await _context.EventAttendances
+                    .FirstOrDefaultAsync(ea => ea.EventId == eventId
+                        && ea.UserId == userGuid
+                        && ea.Status == AttendanceStatus.Active, cancellationToken);
 
-                if (existingParticipation == null)
+                if (existingAttendance == null)
                 {
-                    var participation = new EventParticipation
+                    var attendance = new EventAttendance
                     {
                         Id = Guid.NewGuid(),
                         EventId = eventId,
                         UserId = userGuid,
-                        ParticipationType = ParticipationType.RSVP,
-                        Status = ParticipationStatus.Active,
+                        AttendanceType = AttendanceType.RSVP,
+                        Status = AttendanceStatus.Active,
                         CreatedAt = DateTime.UtcNow
                     };
 
-                    _context.EventParticipations.Add(participation);
+                    _context.EventAttendances.Add(attendance);
                     _logger.LogInformation("Auto-RSVPed user {UserId} to social event {EventId} after volunteer signup", userId, eventId);
                 }
                 else
                 {
-                    _logger.LogInformation("User {UserId} already has active participation for event {EventId}, skipping auto-RSVP", userId, eventId);
+                    _logger.LogInformation("User {UserId} already has active attendance for event {EventId}, skipping auto-RSVP", userId, eventId);
                 }
             }
             else

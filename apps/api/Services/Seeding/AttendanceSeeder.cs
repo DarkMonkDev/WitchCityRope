@@ -9,22 +9,22 @@ using WitchCityRope.Api.Models;
 namespace WitchCityRope.Api.Services.Seeding;
 
 /// <summary>
-/// Handles seeding of event participation records (RSVPs and ticket-based attendance).
+/// Handles seeding of event attendance records (RSVPs and ticket-based attendance).
 /// Extracted from SeedDataService.cs for better maintainability.
-/// Responsible for creating EventParticipation records and corresponding TicketPurchase records.
+/// Responsible for creating EventAttendance records and corresponding TicketPurchase records.
 /// </summary>
-public class ParticipationSeeder
+public class AttendanceSeeder
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly EventSeeder _eventSeeder;
-    private readonly ILogger<ParticipationSeeder> _logger;
+    private readonly ILogger<AttendanceSeeder> _logger;
 
-    public ParticipationSeeder(
+    public AttendanceSeeder(
         ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
         EventSeeder eventSeeder,
-        ILogger<ParticipationSeeder> logger)
+        ILogger<AttendanceSeeder> logger)
     {
         _context = context;
         _userManager = userManager;
@@ -33,37 +33,37 @@ public class ParticipationSeeder
     }
 
     /// <summary>
-    /// Seeds event participation records for both social events (RSVPs) and class events (ticket purchases).
-    /// Idempotent operation - skips if participations already exist.
+    /// Seeds event attendance records for both social events (RSVPs) and class events (ticket purchases).
+    /// Idempotent operation - skips if attendances already exist.
     ///
-    /// Creates EventParticipation records:
-    /// - Social events: RSVP type participations (no cost, free attendance)
-    /// - Class events: Ticket type participations with corresponding TicketPurchase records
+    /// Creates EventAttendance records:
+    /// - Social events: RSVP type attendances (no cost, free attendance)
+    /// - Class events: Ticket type attendances with corresponding TicketPurchase records
     ///
-    /// For class events, also creates TicketPurchase records and updates TicketType.Sold counts.
+    /// For class events, also creates TicketPurchase records.
     ///
-    /// Note: This handles participations for ALL events (upcoming and historical).
+    /// Note: This handles attendances for ALL events (upcoming and historical).
     /// </summary>
     public async Task SeedEventParticipationsAsync(CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Starting event participations creation");
+        _logger.LogInformation("Starting event attendances creation");
 
         var events = await _context.Events.Include(e => e.TicketTypes).ToListAsync(cancellationToken);
         var users = await _userManager.Users.ToListAsync(cancellationToken);
-        var participationsToAdd = new List<EventParticipation>();
+        var attendancesToAdd = new List<EventAttendance>();
         var ticketPurchasesToAdd = new List<TicketPurchase>();
         var attendeesToAdd = new List<EventAttendee>();
         var eventsProcessed = 0;
 
         foreach (var eventItem in events)
         {
-            // Check if THIS specific event already has participations (idempotent per-event check)
-            var hasParticipations = await _context.EventParticipations
-                .AnyAsync(ep => ep.EventId == eventItem.Id, cancellationToken);
+            // Check if THIS specific event already has attendances (idempotent per-event check)
+            var hasAttendances = await _context.EventAttendances
+                .AnyAsync(ea => ea.EventId == eventItem.Id, cancellationToken);
 
-            if (hasParticipations)
+            if (hasAttendances)
             {
-                _logger.LogDebug("Event {EventTitle} already has participations, skipping", eventItem.Title);
+                _logger.LogDebug("Event {EventTitle} already has attendances, skipping", eventItem.Title);
                 continue; // Skip this event, but continue processing other events
             }
 
@@ -88,16 +88,16 @@ public class ParticipationSeeder
                     var user = vettedUsers[i];
                     var createdAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 10));
 
-                    // Create RSVP participation
-                    var participation = new EventParticipation(eventItem.Id, user.Id, ParticipationType.RSVP)
+                    // Create RSVP attendance
+                    var attendance = new EventAttendance(eventItem.Id, user.Id, AttendanceType.RSVP)
                     {
                         Id = Guid.NewGuid(),
-                        Status = ParticipationStatus.Active,
+                        Status = AttendanceStatus.Active,
                         CreatedAt = createdAt,
                         UpdatedAt = createdAt,
                         Notes = i == 0 ? "Looking forward to this event!" : null
                     };
-                    participationsToAdd.Add(participation);
+                    attendancesToAdd.Add(attendance);
 
                     // Create EventAttendee record so attendee appears in check-in system
                     var attendee = new EventAttendee
@@ -116,18 +116,7 @@ public class ParticipationSeeder
                     {
                         var donationAmount = (decimal)Random.Shared.Next(5, 26); // $5-$25 donation
 
-                        // Create donation ticket participation
-                        var donationParticipation = new EventParticipation(eventItem.Id, user.Id, ParticipationType.Ticket)
-                        {
-                            Id = Guid.NewGuid(),
-                            Status = ParticipationStatus.Active,
-                            CreatedAt = createdAt,
-                            UpdatedAt = createdAt,
-                            Metadata = $"{{\"ticketType\":\"Suggested Donation\",\"price\":{donationAmount},\"paymentMethod\":\"PayPal\"}}"
-                        };
-                        participationsToAdd.Add(donationParticipation);
-
-                        // Create TicketPurchase record
+                        // Create TicketPurchase record FIRST (so we have the ID)
                         var ticketPurchase = new TicketPurchase
                         {
                             Id = Guid.NewGuid(),
@@ -143,6 +132,18 @@ public class ParticipationSeeder
                             UpdatedAt = createdAt
                         };
                         ticketPurchasesToAdd.Add(ticketPurchase);
+
+                        // Create donation ticket attendance LINKED to purchase
+                        var donationAttendance = new EventAttendance(eventItem.Id, user.Id, AttendanceType.Ticket)
+                        {
+                            Id = Guid.NewGuid(),
+                            Status = AttendanceStatus.Active,
+                            TicketPurchaseId = ticketPurchase.Id, // CRITICAL: Link to purchase
+                            CreatedAt = createdAt,
+                            UpdatedAt = createdAt,
+                            Metadata = $"{{\"ticketType\":\"Suggested Donation\",\"price\":{donationAmount},\"paymentMethod\":\"PayPal\"}}"
+                        };
+                        attendancesToAdd.Add(donationAttendance);
 
                         // Update attendee with donation ticket number
                         attendee.TicketNumber = $"DN-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}";
@@ -172,18 +173,7 @@ public class ParticipationSeeder
                     var purchaseAmount = (decimal)Random.Shared.Next(15, 65);
                     var createdAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20));
 
-                    // Create EventParticipation record
-                    var participation = new EventParticipation(eventItem.Id, user.Id, ParticipationType.Ticket)
-                    {
-                        Id = Guid.NewGuid(),
-                        Status = ParticipationStatus.Active,
-                        CreatedAt = createdAt,
-                        UpdatedAt = createdAt,
-                        Metadata = $"{{\"purchaseAmount\": {purchaseAmount}, \"paymentMethod\": \"PayPal\"}}"
-                    };
-                    participationsToAdd.Add(participation);
-
-                    // Create corresponding TicketPurchase record
+                    // Create TicketPurchase record FIRST (so we have the ID)
                     var ticketPurchase = new TicketPurchase
                     {
                         Id = Guid.NewGuid(),
@@ -199,6 +189,18 @@ public class ParticipationSeeder
                         UpdatedAt = createdAt
                     };
                     ticketPurchasesToAdd.Add(ticketPurchase);
+
+                    // Create EventAttendance record LINKED to purchase
+                    var attendance = new EventAttendance(eventItem.Id, user.Id, AttendanceType.Ticket)
+                    {
+                        Id = Guid.NewGuid(),
+                        Status = AttendanceStatus.Active,
+                        TicketPurchaseId = ticketPurchase.Id, // CRITICAL: Link to purchase
+                        CreatedAt = createdAt,
+                        UpdatedAt = createdAt,
+                        Metadata = $"{{\"purchaseAmount\": {purchaseAmount}, \"paymentMethod\": \"PayPal\"}}"
+                    };
+                    attendancesToAdd.Add(attendance);
 
                     // Create EventAttendee record so attendee appears in check-in system
                     var attendee = new EventAttendee
@@ -217,24 +219,16 @@ public class ParticipationSeeder
             }
         }
 
-        await _context.EventParticipations.AddRangeAsync(participationsToAdd, cancellationToken);
+        await _context.EventAttendances.AddRangeAsync(attendancesToAdd, cancellationToken);
         await _context.TicketPurchases.AddRangeAsync(ticketPurchasesToAdd, cancellationToken);
         await _context.EventAttendees.AddRangeAsync(attendeesToAdd, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Update TicketType.Sold counts based on purchases
-        foreach (var ticketPurchase in ticketPurchasesToAdd)
-        {
-            var ticketType = await _context.TicketTypes.FindAsync(new object[] { ticketPurchase.TicketTypeId }, cancellationToken);
-            if (ticketType != null)
-            {
-                ticketType.Sold += ticketPurchase.Quantity;
-            }
-        }
-        await _context.SaveChangesAsync(cancellationToken);
+        // DELETE: TicketType.Sold is now a calculated property, no manual updates needed
+        // Previous code manually incremented Sold counts - now it's calculated from EventAttendances
 
-        _logger.LogInformation("Event participations creation completed. Processed {EventsProcessed} events. Created: {ParticipationCount} participations, {AttendeeCount} attendees, and {PurchaseCount} ticket purchases",
-            eventsProcessed, participationsToAdd.Count, attendeesToAdd.Count, ticketPurchasesToAdd.Count);
+        _logger.LogInformation("Event attendances creation completed. Processed {EventsProcessed} events. Created: {AttendanceCount} attendances, {AttendeeCount} attendees, and {PurchaseCount} ticket purchases",
+            eventsProcessed, attendancesToAdd.Count, attendeesToAdd.Count, ticketPurchasesToAdd.Count);
     }
 
     /// <summary>
@@ -244,9 +238,9 @@ public class ParticipationSeeder
     /// </summary>
     public async Task SeedHistoricalSocialEventRSVPs(EventSeeder eventSeeder, CancellationToken cancellationToken)
     {
-        // Check if historical social event participations already exist
-        var practiceNightExists = await _context.EventParticipations
-            .AnyAsync(ep => ep.EventId == eventSeeder.PracticeNightEventId, cancellationToken);
+        // Check if historical social event attendances already exist
+        var practiceNightExists = await _context.EventAttendances
+            .AnyAsync(ea => ea.EventId == eventSeeder.PracticeNightEventId, cancellationToken);
 
         if (!practiceNightExists)
         {
@@ -264,8 +258,8 @@ public class ParticipationSeeder
             _logger.LogInformation("Created 14 RSVPs for Monthly Rope Practice Night (9 check-ins, 5 no-shows, 1 canceled, 7 donations)");
         }
 
-        var welcomeMixerExists = await _context.EventParticipations
-            .AnyAsync(ep => ep.EventId == eventSeeder.WelcomeMixerEventId, cancellationToken);
+        var welcomeMixerExists = await _context.EventAttendances
+            .AnyAsync(ea => ea.EventId == eventSeeder.WelcomeMixerEventId, cancellationToken);
 
         if (!welcomeMixerExists)
         {
@@ -285,7 +279,7 @@ public class ParticipationSeeder
     }
 
     /// <summary>
-    /// Helper method to create comprehensive historical social event participation data.
+    /// Helper method to create comprehensive historical social event attendance data.
     /// Creates RSVPs with varied notes, optional donation tickets, check-ins for attendees, and one cancellation.
     /// </summary>
     private async Task CreateHistoricalSocialEventParticipationsAsync(
@@ -302,7 +296,7 @@ public class ParticipationSeeder
         var evt = await _context.Events.FindAsync(new object[] { eventId }, cancellationToken);
         if (evt == null)
         {
-            _logger.LogWarning("Event {EventId} not found, skipping participation seeding", eventId);
+            _logger.LogWarning("Event {EventId} not found, skipping attendance seeding", eventId);
             return;
         }
 
@@ -357,19 +351,19 @@ public class ParticipationSeeder
             var shouldBuyDonation = i < donationTickets && donationTicketType != null;
             var rsvpCreatedAt = DateTime.UtcNow.AddDays(-(daysAgo + 3 + i / 3));
 
-            // Create RSVP EventParticipation
-            var rsvp = new EventParticipation
+            // Create RSVP EventAttendance
+            var rsvp = new EventAttendance
             {
                 Id = Guid.NewGuid(),
                 EventId = eventId,
                 UserId = user.Id,
-                ParticipationType = ParticipationType.RSVP,
-                Status = ParticipationStatus.Active,
+                AttendanceType = AttendanceType.RSVP,
+                Status = AttendanceStatus.Active,
                 Notes = rsvpNotes[i % rsvpNotes.Length],
                 CreatedAt = rsvpCreatedAt,
                 UpdatedAt = rsvpCreatedAt
             };
-            _context.EventParticipations.Add(rsvp);
+            _context.EventAttendances.Add(rsvp);
 
             // Create EventAttendee for active RSVPs
             var attendee = new EventAttendee
@@ -383,21 +377,40 @@ public class ParticipationSeeder
                 UpdatedAt = rsvpCreatedAt
             };
 
-            // Create optional donation ticket participation
+            // Create optional donation ticket purchase and attendance
             if (shouldBuyDonation && donationTicketType != null)
             {
-                var donation = new EventParticipation
+                // Create TicketPurchase FIRST
+                var donationPurchase = new TicketPurchase
+                {
+                    Id = Guid.NewGuid(),
+                    TicketTypeId = donationTicketType.Id,
+                    UserId = user.Id,
+                    Quantity = 1,
+                    TotalPrice = donationAmount,
+                    PaymentStatus = "Completed",
+                    PaymentMethod = "Stripe",
+                    PaymentReference = $"DN-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
+                    PurchaseDate = rsvpCreatedAt,
+                    CreatedAt = rsvpCreatedAt,
+                    UpdatedAt = rsvpCreatedAt
+                };
+                _context.TicketPurchases.Add(donationPurchase);
+
+                // Create donation attendance LINKED to purchase
+                var donation = new EventAttendance
                 {
                     Id = Guid.NewGuid(),
                     EventId = eventId,
                     UserId = user.Id,
-                    ParticipationType = ParticipationType.Ticket,
-                    Status = ParticipationStatus.Active,
+                    AttendanceType = AttendanceType.Ticket,
+                    Status = AttendanceStatus.Active,
+                    TicketPurchaseId = donationPurchase.Id, // CRITICAL: Link to purchase
                     Metadata = $"{{\"ticketType\":\"{donationTicketType.Name}\",\"price\":{donationAmount},\"paymentMethod\":\"Stripe\"}}",
                     CreatedAt = rsvpCreatedAt,
                     UpdatedAt = rsvpCreatedAt
                 };
-                _context.EventParticipations.Add(donation);
+                _context.EventAttendances.Add(donation);
 
                 // Update EventAttendee with donation ticket info
                 attendee.TicketNumber = $"DN-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}";
@@ -429,20 +442,20 @@ public class ParticipationSeeder
         var canceledUser = await _userManager.FindByEmailAsync(canceledUserEmail);
         if (canceledUser != null)
         {
-            var canceledRsvp = new EventParticipation
+            var canceledRsvp = new EventAttendance
             {
                 Id = Guid.NewGuid(),
                 EventId = eventId,
                 UserId = canceledUser.Id,
-                ParticipationType = ParticipationType.RSVP,
-                Status = ParticipationStatus.Cancelled,
+                AttendanceType = AttendanceType.RSVP,
+                Status = AttendanceStatus.Cancelled,
                 Notes = "Sorry, can't make it anymore",
                 CreatedAt = DateTime.UtcNow.AddDays(-(daysAgo + 5)),
                 CancelledAt = DateTime.UtcNow.AddDays(-(daysAgo + 1)),
                 CancellationReason = "Schedule conflict",
                 UpdatedAt = DateTime.UtcNow.AddDays(-(daysAgo + 1))
             };
-            _context.EventParticipations.Add(canceledRsvp);
+            _context.EventAttendances.Add(canceledRsvp);
             // NO EventAttendee or CheckIn for canceled RSVPs
         }
 

@@ -29,14 +29,14 @@ public class EventParticipationDto
     public string UserEmail { get; set; } = string.Empty;
 
     /// <summary>
-    /// Type of participation (RSVP or Ticket)
+    /// Type of attendance (RSVP or Ticket)
     /// </summary>
-    public ParticipationType ParticipationType { get; set; }
+    public AttendanceType ParticipationType { get; set; }
 
     /// <summary>
-    /// Current status of participation
+    /// Current status of attendance
     /// </summary>
-    public ParticipationStatus Status { get; set; }
+    public AttendanceStatus Status { get; set; }
 
     /// <summary>
     /// When user registered for the event

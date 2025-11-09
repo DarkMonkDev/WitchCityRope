@@ -120,10 +120,10 @@ public class Event
     public ICollection<ApplicationUser> Organizers { get; set; } = new List<ApplicationUser>();
 
     /// <summary>
-    /// Navigation property to event participations (RSVPs and tickets)
-    /// One-to-many relationship with EventParticipation
+    /// Navigation property to event attendances (RSVPs and tickets)
+    /// One-to-many relationship with EventAttendance
     /// </summary>
-    public ICollection<EventParticipation> EventParticipations { get; set; } = new List<EventParticipation>();
+    public ICollection<EventAttendance> EventAttendances { get; set; } = new List<EventAttendance>();
 
     /// <summary>
     /// Gets the current number of confirmed attendees based on CORRECT business logic:
@@ -154,19 +154,19 @@ public class Event
     /// Gets the current number of RSVPs for Social events (real implementation)
     /// Social Events: Everyone must RSVP to attend (this is the primary attendance count)
     /// Class Events: No RSVPs, returns 0
-    /// Requires EventParticipations navigation property to be loaded
+    /// Requires EventAttendances navigation property to be loaded
     /// </summary>
     public int GetCurrentRSVPCount()
     {
         // Only Social events have RSVPs
         if (EventType != Enums.EventType.Social) return 0;
 
-        // Count active RSVP participations if navigation property is loaded
-        if (EventParticipations?.Any() == true)
+        // Count active RSVP attendances if navigation property is loaded
+        if (EventAttendances?.Any() == true)
         {
-            return EventParticipations.Count(ep =>
-                ep.ParticipationType == ParticipationType.RSVP &&
-                ep.Status == ParticipationStatus.Active);
+            return EventAttendances.Count(ea =>
+                ea.AttendanceType == AttendanceType.RSVP &&
+                ea.Status == AttendanceStatus.Active);
         }
 
         // Fallback: If navigation property not loaded, return 0 (service should handle proper loading)
@@ -177,16 +177,16 @@ public class Event
     /// Gets the current number of paid ticket registrations (real implementation)
     /// Social Events: Optional tickets as donations/support (subset of RSVPs)
     /// Class Events: Required tickets (this is the primary attendance count)
-    /// Requires EventParticipations navigation property to be loaded
+    /// Requires EventAttendances navigation property to be loaded
     /// </summary>
     public int GetCurrentTicketCount()
     {
-        // Count active ticket participations if navigation property is loaded
-        if (EventParticipations?.Any() == true)
+        // Count active ticket attendances if navigation property is loaded
+        if (EventAttendances?.Any() == true)
         {
-            return EventParticipations.Count(ep =>
-                ep.ParticipationType == ParticipationType.Ticket &&
-                ep.Status == ParticipationStatus.Active);
+            return EventAttendances.Count(ea =>
+                ea.AttendanceType == AttendanceType.Ticket &&
+                ea.Status == AttendanceStatus.Active);
         }
 
         // Fallback: If navigation property not loaded, return 0 (service should handle proper loading)

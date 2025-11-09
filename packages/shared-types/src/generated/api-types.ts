@@ -3073,6 +3073,10 @@ export interface components {
             /** Format: uuid */
             userId?: string;
         };
+        /** @enum {unknown} */
+        AttendanceStatus: "Active" | "Cancelled" | "Refunded" | "Waitlisted";
+        /** @enum {unknown} */
+        AttendanceType: "RSVP" | "Ticket";
         AttendeeResponse: {
             attendeeId?: string;
             userId?: string;
@@ -3505,8 +3509,8 @@ export interface components {
             userId?: string;
             userSceneName?: string;
             userEmail?: string;
-            participationType?: components["schemas"]["ParticipationType"];
-            status?: components["schemas"]["ParticipationStatus"];
+            participationType?: components["schemas"]["AttendanceType"];
+            status?: components["schemas"]["AttendanceStatus"];
             /** Format: date-time */
             participationDate?: string;
             notes?: string | null;
@@ -3835,23 +3839,19 @@ export interface components {
             /** Format: int32 */
             totalPages?: number;
         };
-        /** @enum {unknown} */
-        ParticipationStatus: "Active" | "Cancelled" | "Refunded" | "Waitlisted";
         ParticipationStatusDto: {
             /** Format: uuid */
             eventId?: string;
             /** Format: uuid */
             userId?: string;
-            participationType?: components["schemas"]["ParticipationType"];
-            status?: components["schemas"]["ParticipationStatus"];
+            participationType?: components["schemas"]["AttendanceType"];
+            status?: components["schemas"]["AttendanceStatus"];
             /** Format: date-time */
             participationDate?: string;
             notes?: string | null;
             canCancel?: boolean;
             metadata?: string | null;
         };
-        /** @enum {unknown} */
-        ParticipationType: "RSVP" | "Ticket";
         /** @enum {unknown} */
         PaymentMethodType: "SavedCard" | "NewCard" | "BankTransfer" | "PayPal" | "Venmo" | "Cash";
         PaymentResponse: {
@@ -4449,8 +4449,8 @@ export interface components {
             /** Format: date-time */
             eventEndDate?: string;
             eventLocation?: string;
-            participationType?: components["schemas"]["ParticipationType"];
-            status?: components["schemas"]["ParticipationStatus"];
+            participationType?: components["schemas"]["AttendanceType"];
+            status?: components["schemas"]["AttendanceStatus"];
             /** Format: date-time */
             participationDate?: string;
             notes?: string | null;

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using WitchCityRope.Api.Features.Participation.Entities;
 
 namespace WitchCityRope.Api.Models;
 
@@ -87,6 +88,12 @@ public class TicketPurchase
     /// NULL for online purchases
     /// </summary>
     public ApplicationUser? RecordedByStaff { get; set; }
+
+    /// <summary>
+    /// Navigation property to event attendances created from this purchase
+    /// FUTURE: Will support one-to-many when Quantity > 1
+    /// </summary>
+    public ICollection<EventAttendance> EventAttendances { get; set; } = new List<EventAttendance>();
 
     /// <summary>
     /// When record was created

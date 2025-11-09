@@ -8,12 +8,12 @@ namespace WitchCityRope.Api.Features.Participation.Configuration;
 /// Entity Framework configuration for EventAttendance entity
 /// Implements PostgreSQL-specific patterns and constraints
 /// </summary>
-public class EventParticipationConfiguration : IEntityTypeConfiguration<EventAttendance>
+public class EventAttendanceConfiguration : IEntityTypeConfiguration<EventAttendance>
 {
     public void Configure(EntityTypeBuilder<EventAttendance> builder)
     {
         // Table mapping
-        builder.ToTable("EventParticipations", "public");
+        builder.ToTable("EventAttendances", "public");
         builder.HasKey(e => e.Id);
 
         // Property configurations with PostgreSQL patterns
@@ -33,6 +33,9 @@ public class EventParticipationConfiguration : IEntityTypeConfiguration<EventAtt
         builder.Property(e => e.Status)
                .IsRequired()
                .HasConversion<int>(); // Store as INTEGER
+
+        builder.Property(e => e.TicketPurchaseId)
+               .IsRequired(false); // Nullable
 
         // CRITICAL: UTC DateTime handling for PostgreSQL
         builder.Property(e => e.CreatedAt)
@@ -79,6 +82,11 @@ public class EventParticipationConfiguration : IEntityTypeConfiguration<EventAtt
                .HasForeignKey(e => e.UpdatedBy)
                .OnDelete(DeleteBehavior.SetNull);
 
+        builder.HasOne(e => e.TicketPurchase)
+               .WithMany(tp => tp.EventAttendances)
+               .HasForeignKey(e => e.TicketPurchaseId)
+               .OnDelete(DeleteBehavior.Cascade);
+
         // One-to-many relationship with AttendanceHistory
         builder.HasMany(e => e.History)
                .WithOne(h => h.Attendance)
@@ -87,39 +95,42 @@ public class EventParticipationConfiguration : IEntityTypeConfiguration<EventAtt
 
         // Indexes for performance
         builder.HasIndex(e => new { e.EventId, e.Status })
-               .HasDatabaseName("IX_EventParticipations_EventId_Status");
+               .HasDatabaseName("IX_EventAttendances_EventId_Status");
 
         builder.HasIndex(e => new { e.UserId, e.Status })
-               .HasDatabaseName("IX_EventParticipations_UserId_Status");
+               .HasDatabaseName("IX_EventAttendances_UserId_Status");
 
         builder.HasIndex(e => e.CreatedAt)
-               .HasDatabaseName("IX_EventParticipations_CreatedAt");
+               .HasDatabaseName("IX_EventAttendances_CreatedAt");
+
+        builder.HasIndex(e => e.TicketPurchaseId)
+               .HasDatabaseName("IX_EventAttendances_TicketPurchaseId");
 
         // GIN index for JSONB metadata
         builder.HasIndex(e => e.Metadata)
-               .HasDatabaseName("IX_EventParticipations_Metadata_Gin")
+               .HasDatabaseName("IX_EventAttendances_Metadata_Gin")
                .HasMethod("gin");
 
         // Business rule constraints
         builder.ToTable(t => t.HasCheckConstraint(
-            "CHK_EventParticipations_AttendanceType",
+            "CHK_EventAttendances_AttendanceType",
             "\"AttendanceType\" IN (1, 2)"));
 
         builder.ToTable(t => t.HasCheckConstraint(
-            "CHK_EventParticipations_Status",
+            "CHK_EventAttendances_Status",
             "\"Status\" IN (1, 2, 3, 4)"));
 
         builder.ToTable(t => t.HasCheckConstraint(
-            "CHK_EventParticipations_CancelledAt_Logic",
+            "CHK_EventAttendances_CancelledAt_Logic",
             "(\"Status\" IN (2, 3) AND \"CancelledAt\" IS NOT NULL) OR (\"Status\" NOT IN (2, 3) AND \"CancelledAt\" IS NULL)"));
 
-        // Partial unique constraint: one ACTIVE participation per user per event PER TYPE
+        // Partial unique constraint: one ACTIVE attendance per user per event PER TYPE
         // BUSINESS RULE: Users can have both RSVP and Ticket for the same event (social events)
         // AttendanceType included in constraint to allow this combination
-        // Allows users to re-RSVP/repurchase after cancelling (cancelled participations are not constrained)
+        // Allows users to re-RSVP/repurchase after cancelling (cancelled attendances are not constrained)
         builder.HasIndex(e => new { e.UserId, e.EventId, e.AttendanceType })
                .IsUnique()
-               .HasDatabaseName("UQ_EventParticipations_User_Event_Type_Active")
-               .HasFilter("\"Status\" = 1"); // Only enforce uniqueness for Active participations (Status = 1)
+               .HasDatabaseName("UQ_EventAttendances_User_Event_Type_Active")
+               .HasFilter("\"Status\" = 1"); // Only enforce uniqueness for Active attendances (Status = 1)
     }
 }

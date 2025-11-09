@@ -3433,6 +3433,64 @@
         }
       }
     },
+    "/api/safety/admin/incidents/{incidentId}/people": {
+      "put": {
+        "tags": [
+          "Safety"
+        ],
+        "summary": "Update involved parties and witnesses",
+        "description": "Update involved parties and/or witnesses information (Admin/Coordinator)",
+        "operationId": "UpdateIncidentPeople",
+        "parameters": [
+          {
+            "name": "incidentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePeopleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdatePeopleResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/api/safety/admin/incidents/{incidentId}/notes": {
       "get": {
         "tags": [
@@ -11079,6 +11137,43 @@
           "tags": {
             "type": "string",
             "nullable": true
+          }
+        }
+      },
+      "UpdatePeopleRequest": {
+        "type": "object",
+        "properties": {
+          "involvedParties": {
+            "type": "string",
+            "nullable": true
+          },
+          "witnesses": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "UpdatePeopleResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "involvedParties": {
+            "type": "string",
+            "nullable": true
+          },
+          "witnesses": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastUpdatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "systemNoteCreated": {
+            "type": "boolean"
           }
         }
       },

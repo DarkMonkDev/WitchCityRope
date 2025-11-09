@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using WitchCityRope.Api.Features.Participation.Entities;
 
 namespace WitchCityRope.Api.Models;
 
@@ -50,10 +52,39 @@ public class Session
     public int Capacity { get; set; }
 
     /// <summary>
-    /// Current number of confirmed attendees
+    /// Current number of attendees registered for this session.
+    ///
+    /// BUSINESS LOGIC:
+    /// - Counts active ticket attendances for this session
+    /// - Handles single-session tickets (SessionId = this session)
+    /// - Handles multi-session tickets (IsMultiSession flag)
+    ///
+    /// DESIGN DECISION:
+    /// Calculated property to ensure accuracy. Previous approach calculated
+    /// in EventService.cs but never persisted, leading to confusion.
+    ///
+    /// CAPACITY CALCULATION:
+    /// For workshops: Capacity based on ticket count (this property)
+    /// For social events: Capacity based on RSVP count (different calculation)
     /// </summary>
-    [Required]
-    public int CurrentAttendees { get; set; } = 0;
+    [NotMapped]
+    public int CurrentAttendees
+    {
+        get
+        {
+            if (Event?.EventAttendances == null) return 0;
+
+            return Event.EventAttendances.Count(ea =>
+                ea.Status == AttendanceStatus.Active &&
+                ea.AttendanceType == AttendanceType.Ticket &&
+                ea.TicketPurchase != null &&
+                // Ticket is for this session
+                (ea.TicketPurchase.TicketType.SessionId == Id ||
+                 // OR it's a multi-session ticket for this event
+                 (ea.TicketPurchase.TicketType.SessionId == null &&
+                  ea.TicketPurchase.TicketType.EventId == EventId)));
+        }
+    }
 
     /// <summary>
     /// Navigation property to parent event

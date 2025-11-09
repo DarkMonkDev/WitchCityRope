@@ -140,29 +140,29 @@ public class VolunteerAssignmentService
                 return (false, null, "User is already assigned to this volunteer position");
             }
 
-            // Check if user has any active participation for this event (ticket/RSVP/volunteer)
+            // Check if user has any active attendance for this event (ticket/RSVP/volunteer)
             var eventId = position.EventId;
-            var existingParticipation = await _context.EventParticipations
+            var existingAttendance = await _context.EventAttendances
                 .FirstOrDefaultAsync(ep => ep.EventId == eventId
                     && ep.UserId == userId
-                    && ep.Status == Participation.Entities.ParticipationStatus.Active, cancellationToken);
+                    && ep.Status == Participation.Entities.AttendanceStatus.Active, cancellationToken);
 
-            // If no participation exists, create an RSVP
-            if (existingParticipation == null)
+            // If no attendance exists, create an RSVP
+            if (existingAttendance == null)
             {
-                var participation = new Participation.Entities.EventParticipation
+                var attendance = new Participation.Entities.EventAttendance
                 {
                     Id = Guid.NewGuid(),
                     EventId = eventId,
                     UserId = userId,
-                    ParticipationType = Participation.Entities.ParticipationType.RSVP,
-                    Status = Participation.Entities.ParticipationStatus.Active,
+                    AttendanceType = Participation.Entities.AttendanceType.RSVP,
+                    Status = Participation.Entities.AttendanceStatus.Active,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     Notes = "Auto-created when assigned to volunteer position"
                 };
 
-                _context.EventParticipations.Add(participation);
+                _context.EventAttendances.Add(attendance);
                 _logger.LogInformation(
                     "Auto-created RSVP for user {UserId} when assigned to volunteer position {PositionId}",
                     userId, positionId);

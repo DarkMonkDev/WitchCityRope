@@ -56,7 +56,7 @@ public class EventService
                         .ThenInclude(p => p.User) // Load user to match with EventParticipation
                 .Include(e => e.VolunteerPositions)
                 .Include(e => e.Organizers)
-                .Include(e => e.EventParticipations); // This loads all participations for the event
+                .Include(e => e.EventAttendances); // This loads all attendances for the event
 
             // Apply filters based on admin vs public access
             if (includeUnpublished)
@@ -95,7 +95,7 @@ public class EventService
                 CurrentRSVPs = e.GetCurrentRSVPCount(),
                 CurrentTickets = e.GetCurrentTicketCount(),
                 Sessions = e.Sessions.Select(s => new SessionDto(s)).ToList(),
-                TicketTypes = e.TicketTypes.Select(tt => new TicketTypeDto(tt, e.EventParticipations)).ToList(),
+                TicketTypes = e.TicketTypes.Select(tt => new TicketTypeDto(tt, e.EventAttendances)).ToList(),
                 VolunteerPositions = e.VolunteerPositions.Select(vp => new VolunteerPositionDto(vp)).ToList(),
                 TeacherIds = e.Organizers.Select(o => o.Id.ToString()).ToList()
             }).ToList();
@@ -139,7 +139,7 @@ public class EventService
                         .ThenInclude(p => p.User) // Load user to match with EventParticipation
                 .Include(e => e.VolunteerPositions)
                 .Include(e => e.Organizers)
-                .Include(e => e.EventParticipations) // This loads all participations for the event
+                .Include(e => e.EventAttendances) // This loads all attendances for the event
                 .FirstOrDefaultAsync(e => e.Id == parsedId, cancellationToken);
 
             if (eventEntity == null)
@@ -149,9 +149,9 @@ public class EventService
             }
 
             // Calculate CurrentAttendees for each session from actual ticket purchases
-            // Create a lookup of active user IDs from event participations
-            var activeUserIds = eventEntity.EventParticipations
-                .Where(ep => ep.Status == WitchCityRope.Api.Features.Participation.Entities.ParticipationStatus.Active)
+            // Create a lookup of active user IDs from event attendances
+            var activeUserIds = eventEntity.EventAttendances
+                .Where(ea => ea.Status == WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Active)
                 .Select(ep => ep.UserId)
                 .ToHashSet();
 
@@ -160,8 +160,8 @@ public class EventService
                 // Count completed ticket purchases for this session
                 // For single-session tickets: TicketType.SessionId == session.Id
                 // For multi-session tickets: Would need additional logic (not implemented yet)
-                // CRITICAL: Exclude cancelled/refunded tickets by checking EventParticipation.Status
-                // Only count Active participations (status = 1), exclude Cancelled (2), Refunded (3), Waitlisted (4)
+                // CRITICAL: Exclude cancelled/refunded tickets by checking EventAttendance.Status
+                // Only count Active attendances (status = 1), exclude Cancelled (2), Refunded (3), Waitlisted (4)
                 var ticketsSold = eventEntity.TicketTypes
                     .Where(tt => tt.SessionId == session.Id)
                     .SelectMany(tt => tt.Purchases)
@@ -170,7 +170,8 @@ public class EventService
                         activeUserIds.Contains(p.UserId))
                     .Sum(p => p.Quantity);
 
-                session.CurrentAttendees = ticketsSold;
+                // DELETE: CurrentAttendees is now a calculated property, not a stored field
+                // session.CurrentAttendees = ticketsSold;
             }
 
             var eventDto = new EventDto
@@ -191,7 +192,7 @@ public class EventService
                 CurrentRSVPs = eventEntity.GetCurrentRSVPCount(),
                 CurrentTickets = eventEntity.GetCurrentTicketCount(),
                 Sessions = eventEntity.Sessions.Select(s => new SessionDto(s)).ToList(),
-                TicketTypes = eventEntity.TicketTypes.Select(tt => new TicketTypeDto(tt, eventEntity.EventParticipations)).ToList(),
+                TicketTypes = eventEntity.TicketTypes.Select(tt => new TicketTypeDto(tt, eventEntity.EventAttendances)).ToList(),
                 VolunteerPositions = eventEntity.VolunteerPositions.Select(vp => new VolunteerPositionDto(vp)).ToList(),
                 TeacherIds = eventEntity.Organizers.Select(o => o.Id.ToString()).ToList()
             };
@@ -248,7 +249,7 @@ public class EventService
                 .Include(e => e.TicketTypes)
                 .Include(e => e.VolunteerPositions)
                 .Include(e => e.Organizers)
-                .Include(e => e.EventParticipations) // Include participations for capacity validation
+                .Include(e => e.EventAttendances) // Include attendances for capacity validation
                 .FirstOrDefaultAsync(e => e.Id == parsedId, cancellationToken);
 
             if (eventEntity == null)
@@ -416,7 +417,7 @@ public class EventService
                 CurrentRSVPs = eventEntity.GetCurrentRSVPCount(),
                 CurrentTickets = eventEntity.GetCurrentTicketCount(),
                 Sessions = eventEntity.Sessions.Select(s => new SessionDto(s)).ToList(),
-                TicketTypes = eventEntity.TicketTypes.Select(tt => new TicketTypeDto(tt, eventEntity.EventParticipations)).ToList(),
+                TicketTypes = eventEntity.TicketTypes.Select(tt => new TicketTypeDto(tt, eventEntity.EventAttendances)).ToList(),
                 VolunteerPositions = eventEntity.VolunteerPositions.Select(vp => new VolunteerPositionDto(vp)).ToList(),
                 TeacherIds = eventEntity.Organizers.Select(o => o.Id.ToString()).ToList()
             };
@@ -475,8 +476,8 @@ public class EventService
                     Name = sessionDto.Name,
                     StartTime = sessionDto.StartTime.ToUniversalTime(),
                     EndTime = sessionDto.EndTime.ToUniversalTime(),
-                    Capacity = sessionDto.Capacity,
-                    CurrentAttendees = 0 // Will be calculated from actual ticket purchases/participations
+                    Capacity = sessionDto.Capacity
+                    // CurrentAttendees is now a calculated property, no need to set it
                 };
 
                 // Let Entity Framework generate the ID for new sessions
@@ -564,7 +565,7 @@ public class EventService
                     Name = ticketTypeDto.Name,
                     Description = $"{ticketTypeDto.PricingType} ticket",
                     Available = ticketTypeDto.QuantityAvailable,
-                    Sold = 0, // Start with 0 sold for new ticket types
+                    // DELETE: Sold is now a calculated property, not a stored field
                     PricingType = ticketTypeDto.PricingType
                 };
 

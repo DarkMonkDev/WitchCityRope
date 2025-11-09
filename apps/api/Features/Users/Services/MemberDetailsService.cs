@@ -55,44 +55,44 @@ public class MemberDetailsService : IMemberDetailsService
             // Benefits: Eliminates loading full participations, more efficient counting
 
             // TotalEventsAttended: Active registrations for past events (event ended)
-            var totalAttended = await _context.EventParticipations
+            var totalAttended = await _context.EventAttendances
                 .AsNoTracking()
                 .Where(ep => ep.UserId == userId
-                          && ep.Status == WitchCityRope.Api.Features.Participation.Entities.ParticipationStatus.Active
+                          && ep.Status == WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Active
                           && ep.Event.EndDate < DateTime.UtcNow)
                 .CountAsync(cancellationToken);
 
             // LastEventAttended: Most recent past event with Active status
-            var lastEventAttended = await _context.EventParticipations
+            var lastEventAttended = await _context.EventAttendances
                 .AsNoTracking()
                 .Where(ep => ep.UserId == userId
-                          && ep.Status == WitchCityRope.Api.Features.Participation.Entities.ParticipationStatus.Active
+                          && ep.Status == WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Active
                           && ep.Event.EndDate < DateTime.UtcNow)
                 .OrderByDescending(ep => ep.Event.EndDate)
                 .Select(ep => ep.Event.EndDate)
                 .FirstOrDefaultAsync(cancellationToken);
 
             // FutureEvents: Active registrations where event hasn't started yet
-            var futureEvents = await _context.EventParticipations
+            var futureEvents = await _context.EventAttendances
                 .AsNoTracking()
                 .Where(ep => ep.UserId == userId
-                          && ep.Status == WitchCityRope.Api.Features.Participation.Entities.ParticipationStatus.Active
+                          && ep.Status == WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Active
                           && ep.Event.StartDate > DateTime.UtcNow)
                 .CountAsync(cancellationToken);
 
             // TotalPastEventsRegistered: ALL registrations (any status) for past events
-            var totalPastEventsRegistered = await _context.EventParticipations
+            var totalPastEventsRegistered = await _context.EventAttendances
                 .AsNoTracking()
                 .Where(ep => ep.UserId == userId
                           && ep.Event.EndDate < DateTime.UtcNow)
                 .CountAsync(cancellationToken);
 
             // CancelledRegistrations: Count of Cancelled OR Refunded status
-            var cancelledRegistrations = await _context.EventParticipations
+            var cancelledRegistrations = await _context.EventAttendances
                 .AsNoTracking()
                 .Where(ep => ep.UserId == userId
-                          && (ep.Status == WitchCityRope.Api.Features.Participation.Entities.ParticipationStatus.Cancelled
-                           || ep.Status == WitchCityRope.Api.Features.Participation.Entities.ParticipationStatus.Refunded))
+                          && (ep.Status == WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Cancelled
+                           || ep.Status == WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Refunded))
                 .CountAsync(cancellationToken);
 
             // NoShows: Calculated as TotalPastEventsRegistered - TotalEventsAttended
@@ -233,8 +233,8 @@ public class MemberDetailsService : IMemberDetailsService
     {
         try
         {
-            // Get all participations with event details
-            var query = _context.EventParticipations
+            // Get all attendances with event details
+            var query = _context.EventAttendances
                 .AsNoTracking()
                 .Include(ep => ep.Event)
                 .Where(ep => ep.UserId == userId)
@@ -249,16 +249,15 @@ public class MemberDetailsService : IMemberDetailsService
 
             var events = participations.Select(ep =>
             {
-                var registrationType = ep.ParticipationType == WitchCityRope.Api.Features.Participation.Entities.ParticipationType.RSVP
+                var registrationType = ep.AttendanceType == WitchCityRope.Api.Features.Participation.Entities.AttendanceType.RSVP
                     ? "RSVP"
                     : "Ticket";
 
                 var participationStatus = ep.Status switch
                 {
-                    WitchCityRope.Api.Features.Participation.Entities.ParticipationStatus.Active => "Active",
-                    WitchCityRope.Api.Features.Participation.Entities.ParticipationStatus.Cancelled => "Cancelled",
-                    WitchCityRope.Api.Features.Participation.Entities.ParticipationStatus.Refunded => "Refunded",
-                    WitchCityRope.Api.Features.Participation.Entities.ParticipationStatus.Waitlisted => "Waitlisted",
+                    WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Active => "Active",
+                    WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Cancelled => "Cancelled",
+                    WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Refunded => "Refunded",
                     _ => "Unknown"
                 };
 

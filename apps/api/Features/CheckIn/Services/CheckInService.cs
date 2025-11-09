@@ -118,12 +118,12 @@ public class CheckInService : ICheckInService
                     Pronouns = ea.User.Pronouns,
                     ea.HasCompletedWaiver,
                     ea.WaitlistPosition,
-                    // Check if user has a ticket via online purchase (EventParticipation) OR door payment (TicketPurchase)
-                    HasTicket = _context.EventParticipations
-                        .Any(ep => ep.UserId == ea.UserId &&
-                                   ep.EventId == ea.EventId &&
-                                   ep.ParticipationType == ParticipationType.Ticket &&
-                                   ep.Status == ParticipationStatus.Active)
+                    // Check if user has a ticket via online purchase (EventAttendance) OR door payment (TicketPurchase)
+                    HasTicket = _context.EventAttendances
+                        .Any(ea2 => ea2.UserId == ea.UserId &&
+                                   ea2.EventId == ea.EventId &&
+                                   ea2.AttendanceType == AttendanceType.Ticket &&
+                                   ea2.Status == AttendanceStatus.Active)
                         ||
                         _context.TicketPurchases
                         .Any(tp => tp.UserId == ea.UserId &&
