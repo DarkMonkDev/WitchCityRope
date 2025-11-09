@@ -93,18 +93,19 @@
 ## 🚨 IF THIS FILE EXCEEDS 1700 LINES, add new lessons learned to PART 2! BOTH FILES CAN BE UP TO 1700 LINES EACH 🚨
 
 ## 📚 MULTI-FILE LESSONS LEARNED
-**Files**: 3 total
+**Files**: 4 total
 **Part 1**: `/home/chad/repos/witchcityrope/docs/lessons-learned/backend-developer-lessons-learned.md` (THIS FILE - STARTUP ONLY)
 **Part 2**: `/home/chad/repos/witchcityrope/docs/lessons-learned/backend-developer-lessons-learned-2.md` (MAIN LESSONS FILE)
 **Part 3**: `/home/chad/repos/witchcityrope/docs/lessons-learned/backend-developer-lessons-learned-3.md` (OVERFLOW LESSONS FILE)
-**Read ALL**: Part 1, Part 2, AND Part 3 are MANDATORY
-**Write to**: Part 3 ONLY - **NEVER ADD NEW LESSONS TO PART 1 OR PART 2**
+**Part 4**: `/home/chad/repos/witchcityrope/docs/lessons-learned/backend-developer-lessons-learned-4.md` (CURRENT LESSONS FILE)
+**Read ALL**: Part 1, Part 2, Part 3, AND Part 4 are MANDATORY
+**Write to**: Part 4 ONLY - **NEVER ADD NEW LESSONS TO PART 1, 2, OR 3**
 **Maximum file size**: 2,000 lines (to stay under token limits). All parts can be up to 2,000 lines each
 **IF READ FAILS**: STOP and use lessons-learned-validator skill to fix immediately
 
-## 🚨 ULTRA CRITICAL: NEW LESSONS GO TO PART 3, NOT HERE! 🚨
+## 🚨 ULTRA CRITICAL: NEW LESSONS GO TO PART 4, NOT HERE! 🚨
 **PART 1 PURPOSE**: Startup procedures and critical navigation ONLY
-**ALL NEW LESSONS**: Must go to Part 3 - `/home/chad/repos/witchcityrope/docs/lessons-learned/backend-developer-lessons-learned-3.md`
+**ALL NEW LESSONS**: Must go to Part 4 - `/home/chad/repos/witchcityrope/docs/lessons-learned/backend-developer-lessons-learned-4.md`
 **IF YOU ADD LESSONS HERE**: You are violating the split pattern!
 
 ## ⛔ CRITICAL: HARD BLOCK - DO NOT PROCEED IF FILES UNREADABLE
