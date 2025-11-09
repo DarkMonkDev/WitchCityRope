@@ -69,6 +69,7 @@ import { AboutUsPage } from '../features/cms/pages/AboutUsPage'
 import { CodeOfConductPage } from '../features/cms/pages/CodeOfConductPage'
 import { PrivacyPolicyPage } from '../features/cms/pages/PrivacyPolicyPage'
 import { TermsOfServicePage } from '../features/cms/pages/TermsOfServicePage'
+import { FaqPage } from '../features/cms/pages/FaqPage'
 import { CmsRevisionListPage } from '../features/cms/pages/CmsRevisionListPage'
 import { CmsRevisionDetailPage } from '../features/cms/pages/CmsRevisionDetailPage'
 
@@ -146,6 +147,10 @@ export const router = createBrowserRouter([
       {
         path: 'terms-of-service',
         element: <TermsOfServicePage />,
+      },
+      {
+        path: 'faq',
+        element: <FaqPage />,
       },
 
       // Events system routes

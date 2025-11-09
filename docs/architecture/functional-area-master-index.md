@@ -1,6 +1,6 @@
 # Functional Area Master Index
-<!-- Last Updated: 2025-11-04 - Frontend Debugging Research Added -->
-<!-- Version: 2.6 -->
+<!-- Last Updated: 2025-11-09 - Test Suite Updates Work Added -->
+<!-- Version: 2.7 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -32,6 +32,7 @@ This master index is maintained by the librarian agent to provide quick lookups 
 | **Navigation** | `/docs/functional-areas/navigation/` | **IMPLEMENTATION COMPLETE** ✅ | **Complete logged-in user navigation updates** - Dashboard button, Admin link, User greeting, Logout accessibility | **COMPLETE** | 2025-09-11 |
 | **Payment (PayPal/Venmo)** | `/docs/functional-areas/payment-paypal-venmo/` | **INTEGRATION COMPLETE** ✅ | **PayPal webhook integration with Cloudflare tunnel** - Real sandbox webhooks working, strongly-typed event processing, mock services for CI/CD | **COMPLETE** | 2025-09-14 |
 | **Payments (RSVP/Ticketing)** | `/docs/functional-areas/payments/` | `/docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/` | **IMPLEMENTATION COMPLETE** ✅ | **Complete RSVP and ticketing system** - Production-ready RSVP for social events, PayPal ticket purchases for classes, comprehensive participation management, 90% functional with minor API issues | **IMPLEMENTATION COMPLETE** | 2025-09-20 |
+| **Test Suite Updates** | `/docs/functional-areas/testing/` | `/docs/functional-areas/testing/new-work/2025-11-09-test-suite-updates/` | **ACTIVE WORK** - Test suite updates after significant API and frontend development. Scope: Backend unit tests, backend integration tests, React component tests. Approach: Assume tests are wrong, verify against implementation. Hybrid approach - quick wins first, then thorough updates. | **Phase 1 - Analysis (Started)** | 2025-11-09 |
 | **Testing Infrastructure** | `/docs/functional-areas/testing-infrastructure/` | `/docs/functional-areas/testing-infrastructure/new-work/2025-09-12-containerized-testing/` | **Research and planning for containerized testing infrastructure** - Investigate fresh Docker containers with blank PostgreSQL databases, GitHub Actions CI/CD compatibility, and orphaned container prevention | **Research Phase** | 2025-09-12 |
 | **User Management** | `/docs/functional-areas/user-management/` | `/docs/functional-areas/user-management/new-work/2025-10-19-admin-members-list/` | **ACTIVE DEVELOPMENT** - Admin members management screen showing all registered members with filtering, sorting, and management capabilities. Similar to vetting and incident reporting dashboards. | **Phase 1 - Requirements (Not Started)** | 2025-10-19 |
 | **Vetting System** | `/docs/functional-areas/vetting-system/` | `/docs/functional-areas/vetting-system/new-work/2025-10-04-how-to-join-conditional-visibility/` | **FEATURE COMPLETE** ✅ - Conditional "How to Join" menu visibility based on vetting status. 46 tests passing, TDD approach, full TypeScript coverage. Backend API complete, React implementation production-ready. **READY FOR QA** | **IMPLEMENTATION COMPLETE** | 2025-10-04 |
@@ -220,6 +221,25 @@ This master index is maintained by the librarian agent to provide quick lookups 
 - **Performance**: Modern API maintains 49ms response times with enhanced feature set
 - **Documentation**: Complete migration documentation created with archive warnings
 - **Completion Date**: 2025-09-13 (1 day - faster than estimated)
+
+### 🔍 ACTIVE: Test Suite Updates (November 2025)
+- **Current Work**: `/docs/functional-areas/testing/new-work/2025-11-09-test-suite-updates/`
+- **Status**: Phase 1 - Analysis (STARTED)
+- **Objective**: Update test suite to match recent API and frontend changes
+- **Scope**: Backend unit tests, backend integration tests, React component tests
+- **Approach**: Assume tests are wrong, verify against implementation
+- **Work Type**: Bug/Test Maintenance (Hybrid - quick wins first, then thorough)
+- **Timeline**: 2025-11-09 to TBD (flexible)
+- **Session**: 2025-11-09 (Started)
+- **Progress Tracking**: `/docs/functional-areas/testing/new-work/2025-11-09-test-suite-updates/progress.md`
+- **Key Deliverables**:
+  - Analysis of recent API/frontend changes
+  - Identification of affected test files
+  - Test update strategy
+  - Updated backend unit tests
+  - Updated backend integration tests
+  - Updated React component tests
+  - Test catalog updates
 
 ### 🔍 ACTIVE: Frontend Debugging Research (November 2025)
 - **Current Work**: `/docs/functional-areas/frontend-debugging-research/new-work/2025-11-04-layout-debugging-agent-research/`

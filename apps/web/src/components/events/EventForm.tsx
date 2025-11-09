@@ -904,61 +904,44 @@ export const EventForm: React.FC<EventFormProps> = ({
                   Event Details
                 </Title>
 
-                {/* Event Type Toggle */}
-                <Radio.Group {...form.getInputProps('eventType')} mb="lg">
-                  <Group grow>
-                    <Card
-                      withBorder
-                      p="md"
-                      radius="md"
-                      style={{
-                        cursor: 'pointer',
-                        borderColor:
-                          form.values.eventType === 'class'
-                            ? 'var(--mantine-color-burgundy-6)'
-                            : 'var(--mantine-color-gray-4)',
-                        backgroundColor:
-                          form.values.eventType === 'class' ? 'rgba(136, 1, 36, 0.1)' : 'white',
-                      }}
-                      onClick={() => form.setFieldValue('eventType', 'class')}
-                    >
+                {/* Event Type Toggle - First line in Event Details area */}
+                <Group align="center" mb="lg">
+                  <Text fw={500} size="sm">
+                    Event Type
+                  </Text>
+                  <Radio.Group {...form.getInputProps('eventType')}>
+                    <Group gap="sm">
+                      <WCRButton
+                        variant={form.values.eventType === 'class' ? 'primary' : 'outline'}
+                        size="sm"
+                        onClick={() => form.setFieldValue('eventType', 'class')}
+                        style={{
+                          borderColor:
+                            form.values.eventType === 'class'
+                              ? 'var(--mantine-color-burgundy-6)'
+                              : 'var(--mantine-color-gray-4)',
+                        }}
+                      >
+                        Class (Ticket Only)
+                      </WCRButton>
+                      <WCRButton
+                        variant={form.values.eventType === 'social' ? 'primary' : 'outline'}
+                        size="sm"
+                        onClick={() => form.setFieldValue('eventType', 'social')}
+                        style={{
+                          borderColor:
+                            form.values.eventType === 'social'
+                              ? 'var(--mantine-color-burgundy-6)'
+                              : 'var(--mantine-color-gray-4)',
+                        }}
+                      >
+                        Social Event (RSVP & Ticket)
+                      </WCRButton>
                       <Radio value="class" label="" style={{ display: 'none' }} />
-                      <div style={{ textAlign: 'center' }}>
-                        <Text fw={600} c="burgundy" size="lg">
-                          Class
-                        </Text>
-                        <Text size="sm" c="dimmed">
-                          Educational workshop requiring payment
-                        </Text>
-                      </div>
-                    </Card>
-                    <Card
-                      withBorder
-                      p="md"
-                      radius="md"
-                      style={{
-                        cursor: 'pointer',
-                        borderColor:
-                          form.values.eventType === 'social'
-                            ? 'var(--mantine-color-burgundy-6)'
-                            : 'var(--mantine-color-gray-4)',
-                        backgroundColor:
-                          form.values.eventType === 'social' ? 'rgba(136, 1, 36, 0.1)' : 'white',
-                      }}
-                      onClick={() => form.setFieldValue('eventType', 'social')}
-                    >
                       <Radio value="social" label="" style={{ display: 'none' }} />
-                      <div style={{ textAlign: 'center' }}>
-                        <Text fw={600} c="burgundy" size="lg">
-                          Social Event
-                        </Text>
-                        <Text size="sm" c="dimmed">
-                          Community gathering with volunteers
-                        </Text>
-                      </div>
-                    </Card>
-                  </Group>
-                </Radio.Group>
+                    </Group>
+                  </Radio.Group>
+                </Group>
 
                 {/* Event Title */}
                 <TextInput
@@ -991,12 +974,14 @@ export const EventForm: React.FC<EventFormProps> = ({
                   <Text size="xs" c="dimmed" mb="xs">
                     This detailed description will be visible on the public events page
                   </Text>
-                  <MantineTiptapEditor
-                    value={form.values.fullDescription}
-                    onChange={(content) => form.setFieldValue('fullDescription', content)}
-                    minRows={10}
-                    placeholder="Enter detailed event description..."
-                  />
+                  <div style={{ minHeight: form.values.fullDescription ? 'auto' : '100px' }}>
+                    <MantineTiptapEditor
+                      value={form.values.fullDescription}
+                      onChange={(content) => form.setFieldValue('fullDescription', content)}
+                      minRows={form.values.fullDescription ? undefined : 3}
+                      placeholder="Enter detailed event description..."
+                    />
+                  </div>
                   {form.errors.fullDescription && (
                     <Text size="xs" c="red" mt={5}>
                       {form.errors.fullDescription}
@@ -1013,12 +998,14 @@ export const EventForm: React.FC<EventFormProps> = ({
                     Studio-specific policies, prerequisites, safety requirements, etc. (managed by
                     studio/admin, teachers cannot edit)
                   </Text>
-                  <MantineTiptapEditor
-                    value={form.values.policies}
-                    onChange={(content) => form.setFieldValue('policies', content)}
-                    minRows={5}
-                    placeholder="Enter policies and procedures..."
-                  />
+                  <div style={{ minHeight: form.values.policies ? 'auto' : '100px' }}>
+                    <MantineTiptapEditor
+                      value={form.values.policies}
+                      onChange={(content) => form.setFieldValue('policies', content)}
+                      minRows={form.values.policies ? undefined : 3}
+                      placeholder="Enter policies and procedures..."
+                    />
+                  </div>
                   {form.errors.policies && (
                     <Text size="xs" c="red" mt={5}>
                       {form.errors.policies}
@@ -1027,73 +1014,76 @@ export const EventForm: React.FC<EventFormProps> = ({
                 </div>
               </div>
 
-              {/* Venue Section */}
-              <div>
-                <Title
-                  order={2}
-                  c="burgundy"
-                  mb="md"
-                  style={{
-                    borderBottom: '2px solid var(--mantine-color-burgundy-3)',
-                    paddingBottom: '8px',
-                  }}
-                >
-                  Venue
-                </Title>
-                <Group grow>
-                  <Select
-                    label="Venue"
-                    placeholder="Select venue..."
-                    data={venues}
-                    required
-                    {...form.getInputProps('venueId')}
+              {/* Venue and Teachers Section - Two Column Layout */}
+              <Group grow align="flex-start" gap="xl">
+                {/* Venue Section */}
+                <div>
+                  <Title
+                    order={2}
+                    c="burgundy"
+                    mb="md"
+                    style={{
+                      borderBottom: '2px solid var(--mantine-color-burgundy-3)',
+                      paddingBottom: '8px',
+                    }}
+                  >
+                    Venue
+                  </Title>
+                  <Stack gap="md">
+                    <Select
+                      label="Venue"
+                      placeholder="Select venue..."
+                      data={venues}
+                      required
+                      {...form.getInputProps('venueId')}
+                    />
+                    <WCRButton variant="outline" size="md" onClick={handleAddVenueClick}>
+                      Create New Venue
+                    </WCRButton>
+                  </Stack>
+                </div>
+
+                {/* Teachers/Instructors Section */}
+                <div>
+                  <Title
+                    order={2}
+                    c="burgundy"
+                    mb="md"
+                    style={{
+                      borderBottom: '2px solid var(--mantine-color-burgundy-3)',
+                      paddingBottom: '8px',
+                    }}
+                  >
+                    Teachers/Instructors
+                  </Title>
+                  {/* DEBUG: Log teacher selection data */}
+                  {/* {console.log('🔍 [DEBUG] Teacher selection data:', {
+                    teachersData,
+                    teachersLoading,
+                    teachersError,
+                    availableTeachers,
+                    currentTeacherIds: form.values.teacherIds,
+                    teacherInputProps: form.getInputProps('teacherIds')
+                  })} */}
+
+                  {teachersError && (
+                    <Alert color="red" mb="md" title="Error Loading Teachers">
+                      Failed to load teachers list. Using form without teacher selection.
+                    </Alert>
+                  )}
+
+                  <MultiSelect
+                    label="Select Teachers"
+                    placeholder={
+                      teachersLoading ? 'Loading teachers...' : 'Choose teachers for this event'
+                    }
+                    data={availableTeachers}
+                    searchable
+                    disabled={teachersLoading || !!teachersError}
+                    {...form.getInputProps('teacherIds')}
                   />
-                  <WCRButton variant="outline" size="md" onClick={handleAddVenueClick}>
-                    Create New Venue
-                  </WCRButton>
-                </Group>
-              </div>
-
-              {/* Teachers/Instructors Section */}
-              <div>
-                <Title
-                  order={2}
-                  c="burgundy"
-                  mb="md"
-                  style={{
-                    borderBottom: '2px solid var(--mantine-color-burgundy-3)',
-                    paddingBottom: '8px',
-                  }}
-                >
-                  Teachers/Instructors
-                </Title>
-                {/* DEBUG: Log teacher selection data */}
-                {/* {console.log('🔍 [DEBUG] Teacher selection data:', {
-                  teachersData,
-                  teachersLoading,
-                  teachersError,
-                  availableTeachers,
-                  currentTeacherIds: form.values.teacherIds,
-                  teacherInputProps: form.getInputProps('teacherIds')
-                })} */}
-
-                {teachersError && (
-                  <Alert color="red" mb="md" title="Error Loading Teachers">
-                    Failed to load teachers list. Using form without teacher selection.
-                  </Alert>
-                )}
-
-                <MultiSelect
-                  label="Select Teachers"
-                  placeholder={
-                    teachersLoading ? 'Loading teachers...' : 'Choose teachers for this event'
-                  }
-                  data={availableTeachers}
-                  searchable
-                  disabled={teachersLoading || !!teachersError}
-                  {...form.getInputProps('teacherIds')}
-                />
-              </div>
+                </div>
+              </Group>
 
               {/* Save Buttons */}
               <Group justify="flex-end" mt="xl">
