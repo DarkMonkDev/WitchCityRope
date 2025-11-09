@@ -860,6 +860,9 @@ public class AttendanceService : IAttendanceService
             var attendances = await _context.EventAttendances
                 .AsNoTracking()
                 .Include(ea => ea.User)
+                .Include(ea => ea.TicketPurchase)
+                    .ThenInclude(tp => tp.TicketType)
+                        .ThenInclude(tt => tt.Session)
                 .Where(ea => ea.EventId == eventId)
                 .GroupJoin(
                     _context.EventAttendees.Where(ea => ea.EventId == eventId),
@@ -888,7 +891,15 @@ public class AttendanceService : IAttendanceService
                     // Check-in time from UpdatedAt when status changed to checked-in
                     CheckInTime = x.Attendee != null && x.Attendee.RegistrationStatus == "checked-in"
                                   ? x.Attendee.UpdatedAt
-                                  : (DateTime?)null
+                                  : (DateTime?)null,
+                    // Ticket type name from TicketPurchase navigation (null for RSVPs)
+                    TicketTypeName = x.Attendance.TicketPurchase != null
+                                     ? x.Attendance.TicketPurchase.TicketType.Name
+                                     : null,
+                    // Session name from TicketType.Session if available, otherwise "All Sessions"
+                    SessionNames = x.Attendance.TicketPurchase != null && x.Attendance.TicketPurchase.TicketType.Session != null
+                                   ? x.Attendance.TicketPurchase.TicketType.Session.Name
+                                   : "All Sessions"
                 })
                 .ToListAsync(cancellationToken);
 

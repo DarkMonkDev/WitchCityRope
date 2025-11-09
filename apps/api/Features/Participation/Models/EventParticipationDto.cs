@@ -70,4 +70,16 @@ public class EventParticipationDto
     /// Populated from EventAttendees.UpdatedAt when RegistrationStatus changed to 'checked-in'
     /// </summary>
     public DateTime? CheckInTime { get; set; }
+
+    /// <summary>
+    /// Ticket type name (for ticket purchases only)
+    /// Null for RSVPs
+    /// </summary>
+    public string? TicketTypeName { get; set; }
+
+    /// <summary>
+    /// Comma-separated list of session names this ticket/RSVP applies to
+    /// "All Sessions" if no specific sessions or event has no sessions
+    /// </summary>
+    public string SessionNames { get; set; } = "All Sessions";
 }

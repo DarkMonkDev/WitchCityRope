@@ -3519,6 +3519,8 @@ export interface components {
             hasCheckedIn?: boolean;
             /** Format: date-time */
             checkInTime?: string | null;
+            ticketTypeName?: string | null;
+            sessionNames?: string;
         };
         GenerateTokenRequest: {
             /** Format: uuid */

@@ -1738,7 +1738,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                               <Text fw={500}>{participation.userSceneName}</Text>
                             </Table.Td>
                             <Table.Td>
-                              <Text size="sm">{extractTicketNameFromMetadata(participation.metadata)}</Text>
+                              <Text size="sm">{participation.ticketTypeName ?? 'RSVP'}</Text>
                             </Table.Td>
                             <Table.Td>
                               <Text size="sm" c={participation.status === 'Active' ? 'green' : 'red'}>
@@ -1746,7 +1746,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                               </Text>
                             </Table.Td>
                             <Table.Td>
-                              <Text size="sm">All Sessions</Text>
+                              <Text size="sm">{participation.sessionNames}</Text>
                             </Table.Td>
                             <Table.Td>
                               <Text size="sm">
