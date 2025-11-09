@@ -63,14 +63,14 @@ describe('useTeacherProfiles', () => {
     ];
 
     server.use(
-      http.get('http://localhost:5655/api/users/teacher1/profile', () => {
+      http.get('http://localhost:5655/api/public/users/teacher1/profile', () => {
         return HttpResponse.json({
           success: true,
           data: mockProfiles[0],
           message: 'Profile retrieved successfully',
         });
       }),
-      http.get('http://localhost:5655/api/users/teacher2/profile', () => {
+      http.get('http://localhost:5655/api/public/users/teacher2/profile', () => {
         return HttpResponse.json({
           success: true,
           data: mockProfiles[1],
@@ -130,14 +130,14 @@ describe('useTeacherProfiles', () => {
     };
 
     server.use(
-      http.get('http://localhost:5655/api/users/teacher1/profile', () => {
+      http.get('http://localhost:5655/api/public/users/teacher1/profile', () => {
         return HttpResponse.json({
           success: true,
           data: mockProfile,
           message: 'Profile retrieved successfully',
         });
       }),
-      http.get('http://localhost:5655/api/users/teacher2/profile', () => {
+      http.get('http://localhost:5655/api/public/users/teacher2/profile', () => {
         return HttpResponse.json(
           {
             success: false,
@@ -165,7 +165,7 @@ describe('useTeacherProfiles', () => {
 
   it('should handle all profiles failing gracefully', async () => {
     server.use(
-      http.get('http://localhost:5655/api/users/teacher1/profile', () => {
+      http.get('http://localhost:5655/api/public/users/teacher1/profile', () => {
         return HttpResponse.json(
           {
             success: false,
@@ -175,7 +175,7 @@ describe('useTeacherProfiles', () => {
           { status: 404 }
         );
       }),
-      http.get('http://localhost:5655/api/users/teacher2/profile', () => {
+      http.get('http://localhost:5655/api/public/users/teacher2/profile', () => {
         return HttpResponse.json(
           {
             success: false,
@@ -212,7 +212,7 @@ describe('useTeacherProfiles', () => {
     };
 
     server.use(
-      http.get('http://localhost:5655/api/users/teacher1/profile', () => {
+      http.get('http://localhost:5655/api/public/users/teacher1/profile', () => {
         return HttpResponse.json({
           success: true,
           data: mockProfile,
@@ -247,7 +247,7 @@ describe('useTeacherProfiles', () => {
 
     let fetchCount = 0;
     server.use(
-      http.get('http://localhost:5655/api/users/teacher1/profile', () => {
+      http.get('http://localhost:5655/api/public/users/teacher1/profile', () => {
         fetchCount++;
         return HttpResponse.json({
           success: true,
@@ -285,7 +285,7 @@ describe('useTeacherProfiles', () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     server.use(
-      http.get('http://localhost:5655/api/users/teacher1/profile', () => {
+      http.get('http://localhost:5655/api/public/users/teacher1/profile', () => {
         return HttpResponse.json(
           {
             success: false,

@@ -1,6 +1,6 @@
 # Functional Area Master Index
-<!-- Last Updated: 2025-11-09 - Test Suite Updates Work Added -->
-<!-- Version: 2.7 -->
+<!-- Last Updated: 2025-11-09 - Email Templates Admin Management Added -->
+<!-- Version: 2.8 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -23,9 +23,10 @@ This master index is maintained by the librarian agent to provide quick lookups 
 | **Design Refresh** | `/docs/functional-areas/design-refresh/` | `/docs/functional-areas/design-refresh/new-work/2025-08-20-modernization/` | Design system modernization with edgy/modern aesthetic, homepage navigation refresh, 5 design iterations, documentation reorganization | Phase 1 - Requirements | 2025-08-20 |
 | **Docker Authentication** | `/docs/functional-areas/docker-authentication/` | Phase 2 Complete - Pending Human Approval | Containerize existing working authentication system (React + .NET API + PostgreSQL) | Phase 2 Design Complete | 2025-08-17 |
 | **E2E Test Stabilization** | `/docs/functional-areas/testing/` | `/docs/functional-areas/testing/new-work/2025-10-07-e2e-stabilization/` | **✅ COMPLETE** - 100% pass rate (6/6) on launch-critical tests achieved through systematic 4-phase approach - **CRITICAL AUTH FIX**: Cross-origin cookie issue resolved via Vite proxy implementation (commit 6aa3c530) - **READY FOR DEPLOYMENT** - 13 tests properly marked with .skip() for unimplemented features - Comprehensive documentation: 1,275+ lines across 5 documents - Session handoff complete | **COMPLETE - READY FOR PRODUCTION** | 2025-10-08 |
+| **Email Templates** | `/docs/functional-areas/email-templates/` | `/docs/functional-areas/email-templates/new-work/2025-11-09-admin-management/` | **NEW FEATURE** - Centralized admin UI for managing global email templates across all categories (Vetting, Events, Admin, Incident, Ad Hoc) with event-specific template override capability. Features: Template CRUD operations, variable substitution system, template preview, event-level customization overrides. Similar patterns to CMS admin interface. | **Phase 1 - Requirements (Just Initialized)** | 2025-11-09 |
 | **Enhancements** | `/docs/functional-areas/enhancements/` | N/A | User interface enhancements and feature improvements | Active | 2025-08-22 |
-| **Frontend Debugging Research** | `/docs/functional-areas/frontend-debugging-research/` | `/docs/functional-areas/frontend-debugging-research/new-work/2025-11-04-layout-debugging-agent-research/` | **NEW RESEARCH PROJECT** - Research to solve persistent frontend layout/styling debugging issues with Claude Code agents. Focus: MCP tools evaluation (Chrome DevTools), agent knowledge base design, debugging patterns documentation. Deliverables: Problem analysis, MCP tools evaluation, knowledge base architecture, agent improvement recommendations. Research only - no implementation | **Phase 1 - Research (Started)** | 2025-11-04 |
 | **Events Management** | `/docs/functional-areas/events/` | `/docs/functional-areas/events/new-work/2025-08-24-events-management/` | **ACTIVE DEVELOPMENT** - React migration from Blazor implementation - Event creation, RSVP, ticketing, admin management | **Phase 1 - Requirements** | 2025-08-24 |
+| **Frontend Debugging Research** | `/docs/functional-areas/frontend-debugging-research/` | `/docs/functional-areas/frontend-debugging-research/new-work/2025-11-04-layout-debugging-agent-research/` | **NEW RESEARCH PROJECT** - Research to solve persistent frontend layout/styling debugging issues with Claude Code agents. Focus: MCP tools evaluation (Chrome DevTools), agent knowledge base design, debugging patterns documentation. Deliverables: Problem analysis, MCP tools evaluation, knowledge base architecture, agent improvement recommendations. Research only - no implementation | **Phase 1 - Research (Started)** | 2025-11-04 |
 | **Homepage** | `/docs/functional-areas/homepage/` | N/A | Landing page and main navigation entry point with complete workflow structure and design assets | Enhanced | 2025-08-19 |
 | **HTML Editor Migration** | `/docs/functional-areas/html-editor-migration/` | **IMPLEMENTATION COMPLETE** ✅ | **TinyMCE to @mantine/tiptap migration COMPLETE** - Eliminated API key requirements and testing quota issues. New MantineTiptapEditor component with variable insertion, ~70% bundle size reduction, zero configuration needed. All 5 phases complete: Component Migration, Configuration Cleanup, Test Suite Updates, Code Formatting, Documentation. **PRODUCTION READY** | **COMPLETE** | 2025-10-08 |
 | **Incident Reporting** | `/docs/functional-areas/incident-reporting/` | `/docs/functional-areas/incident-reporting/new-work/2025-10-17-initial-implementation/` | **NEW FEATURE** - Safety incident documentation and tracking system - Admin-focused interface for documenting safety incidents, consent violations, and community concerns. Similar patterns to vetting system (multi-phase workflow, status tracking). | **Phase 1 - Requirements (Not Started)** | 2025-10-17 |
@@ -221,6 +222,26 @@ This master index is maintained by the librarian agent to provide quick lookups 
 - **Performance**: Modern API maintains 49ms response times with enhanced feature set
 - **Documentation**: Complete migration documentation created with archive warnings
 - **Completion Date**: 2025-09-13 (1 day - faster than estimated)
+
+### 🆕 ACTIVE: Email Templates Admin Management (November 2025)
+- **Current Work**: `/docs/functional-areas/email-templates/new-work/2025-11-09-admin-management/`
+- **Status**: Phase 1 - Requirements (Just Initialized)
+- **Objective**: Centralized admin UI for managing global email templates across all categories (Vetting, Events, Admin, Incident, Ad Hoc) with event-specific template override capability
+- **Scope**: Template CRUD operations, variable substitution system, template preview, event-level overrides
+- **Approach**: Similar to CMS admin interface patterns
+- **Work Type**: Feature Development
+- **Timeline**: 2025-11-09 to TBD
+- **Session**: 2025-11-09 (Initialized)
+- **Progress Tracking**: `/docs/functional-areas/email-templates/new-work/2025-11-09-admin-management/progress.md`
+- **Quality Gates**: R:95% → D:90% → I:85% → T:100%
+- **Key Deliverables**:
+  - Business requirements document
+  - Functional specifications
+  - UI wireframes (template editor, preview, override management)
+  - Database schema (EmailTemplates, EventEmailTemplateOverrides)
+  - Backend API endpoints
+  - React admin interface
+  - Comprehensive test suite
 
 ### 🔍 ACTIVE: Test Suite Updates (November 2025)
 - **Current Work**: `/docs/functional-areas/testing/new-work/2025-11-09-test-suite-updates/`

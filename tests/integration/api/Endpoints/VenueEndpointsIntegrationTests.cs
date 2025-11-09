@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.DTOs;
 using WitchCityRope.Api.Features.Events.Models;
@@ -32,9 +35,31 @@ namespace WitchCityRope.IntegrationTests.Api.Endpoints;
 [Collection("Database")]
 public class VenueEndpointsIntegrationTests : IntegrationTestBase
 {
+    private readonly WebApplicationFactory<Program> _factory;
+
     public VenueEndpointsIntegrationTests(DatabaseTestFixture fixture)
         : base(fixture)
     {
+        _factory = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureServices(services =>
+                {
+                    // Remove the app's DbContext registration
+                    var descriptor = services.SingleOrDefault(
+                        d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
+                    if (descriptor != null)
+                    {
+                        services.Remove(descriptor);
+                    }
+
+                    // Add DbContext using the test container's connection string
+                    services.AddDbContext<ApplicationDbContext>(options =>
+                    {
+                        options.UseNpgsql(ConnectionString);
+                    });
+                });
+            });
     }
 
     #region Public Venue Endpoint Tests
@@ -462,14 +487,11 @@ public class VenueEndpointsIntegrationTests : IntegrationTestBase
 
     private HttpClient CreateHttpClient(string? bearerToken = null)
     {
-        var client = new HttpClient
-        {
-            BaseAddress = new Uri("http://localhost:5655")
-        };
+        var client = _factory.CreateClient();
 
         if (!string.IsNullOrEmpty(bearerToken))
         {
-            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {bearerToken}");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
         }
 
         return client;

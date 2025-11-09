@@ -81,12 +81,12 @@ public class AllDtosMappingTests : DtoMappingTestBase
                 (typeof(Session), new[] { "Date", "TeacherNames", "SessionIdentifier", "RegistrationCount" }), // Computed/related fields
 
             [typeof(WitchCityRope.Api.Features.Events.Models.TicketTypeDto)] =
-                (typeof(TicketType), new[] { "EventId", "SessionId", "EventTitle", "SessionName", "Type", "SessionIdentifiers", "MinPrice", "MaxPrice", "QuantityAvailable", "SalesEndDate" }), // Foreign keys and computed fields
+                (typeof(TicketType), new[] { "EventId", "SessionId", "EventTitle", "SessionName", "Type", "SessionIdentifiers", "MinPrice", "MaxPrice", "QuantityAvailable", "SalesEndDate", "QuantitySold" }), // Foreign keys and computed fields - QuantitySold is computed from EventAttendances
 
             // Participation DTOs
             [typeof(WitchCityRope.Api.Features.Participation.Models.EventParticipationDto)] =
                 (typeof(WitchCityRope.Api.Features.Participation.Entities.EventParticipation),
-                    new[] { "UserName", "UserEmail", "EventTitle", "UserSceneName", "ParticipationDate", "CanCancel" }), // Related entity data and computed fields
+                    new[] { "UserName", "UserEmail", "EventTitle", "UserSceneName", "ParticipationDate", "CanCancel", "HasCheckedIn", "CheckInTime", "TicketTypeName", "SessionNames" }), // Related entity data and computed fields - HasCheckedIn/CheckInTime computed from CheckIns table, TicketTypeName/SessionNames are denormalized for API efficiency
 
             // User DTOs
             [typeof(WitchCityRope.Api.Features.Users.Models.UserDto)] =

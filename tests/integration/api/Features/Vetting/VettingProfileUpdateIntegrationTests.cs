@@ -21,8 +21,9 @@ namespace WitchCityRope.IntegrationTests.Api.Features.Vetting;
 /// Integration tests for automatic user profile updates during vetting application submission
 /// Tests that firstName, lastName, pronouns, and fetLifeHandle are persisted to database
 /// when a user submits a simplified vetting application
+/// NOTE: Uses Sequential collection to prevent database deadlocks from parallel test execution
 /// </summary>
-[Collection("Database")]
+[Collection("Sequential")]
 public class VettingProfileUpdateIntegrationTests : IntegrationTestBase
 {
     private readonly WebApplicationFactory<Program> _factory;
@@ -77,7 +78,7 @@ public class VettingProfileUpdateIntegrationTests : IntegrationTestBase
         var response = await client.PostAsJsonAsync("/api/vetting/applications/simplified", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created, "POST to create new vetting application should return 201 Created");
 
         // Verify database persistence
         await using var context = CreateDbContext();
@@ -125,7 +126,7 @@ public class VettingProfileUpdateIntegrationTests : IntegrationTestBase
         var response = await client.PostAsJsonAsync("/api/vetting/applications/simplified", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created, "POST to create new vetting application should return 201 Created");
 
         // Verify database persistence
         await using var context = CreateDbContext();
@@ -164,7 +165,7 @@ public class VettingProfileUpdateIntegrationTests : IntegrationTestBase
         var response = await client.PostAsJsonAsync("/api/vetting/applications/simplified", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created, "POST to create new vetting application should return 201 Created");
 
         // Create a NEW database context to verify changes are actually committed
         await using var newContext = CreateDbContext();
@@ -210,7 +211,7 @@ public class VettingProfileUpdateIntegrationTests : IntegrationTestBase
         var response = await client.PostAsJsonAsync("/api/vetting/applications/simplified", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created, "POST to create new vetting application should return 201 Created");
 
         await using var context = CreateDbContext();
         var updatedUser = await context.Users.FindAsync(userId);
@@ -249,7 +250,7 @@ public class VettingProfileUpdateIntegrationTests : IntegrationTestBase
         var response = await client.PostAsJsonAsync("/api/vetting/applications/simplified", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created, "POST to create new vetting application should return 201 Created");
 
         await using var context = CreateDbContext();
         var updatedUser = await context.Users.FindAsync(userId);

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using WitchCityRope.Api.Data;
+using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Models;
@@ -50,7 +51,7 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
     public async Task UpdateEventAsync_AddOrganizers_AssignsOrganizersSuccessfully()
     {
         // Arrange - Create event and teacher users
-        var testEvent = CreateTestEvent("Workshop");
+        var testEvent = CreateTestEvent(EventType.Class);
         _context.Events.Add(testEvent);
 
         var teacher1 = CreateTestUser("teacher1@test.com", "Teacher One");
@@ -91,7 +92,7 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
     public async Task UpdateEventAsync_RemoveOrganizers_RemovesOrganizersSuccessfully()
     {
         // Arrange - Create event with existing organizers
-        var testEvent = CreateTestEvent("Workshop");
+        var testEvent = CreateTestEvent(EventType.Class);
         var teacher1 = CreateTestUser("teacher1@test.com", "Teacher One");
         var teacher2 = CreateTestUser("teacher2@test.com", "Teacher Two");
         testEvent.Organizers.Add(teacher1);
@@ -132,7 +133,7 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
     public async Task UpdateEventAsync_ReplaceOrganizers_UpdatesOrganizersSuccessfully()
     {
         // Arrange - Create event with existing organizer
-        var testEvent = CreateTestEvent("Workshop");
+        var testEvent = CreateTestEvent(EventType.Class);
         var oldTeacher = CreateTestUser("old@test.com", "Old Teacher");
         var newTeacher = CreateTestUser("new@test.com", "New Teacher");
         testEvent.Organizers.Add(oldTeacher);
@@ -172,7 +173,7 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
     public async Task UpdateEventAsync_AddOrganizerToEventWithExistingOrganizers_AddsAdditionalOrganizer()
     {
         // Arrange - Create event with one organizer, add another
-        var testEvent = CreateTestEvent("Workshop");
+        var testEvent = CreateTestEvent(EventType.Class);
         var existingTeacher = CreateTestUser("existing@test.com", "Existing Teacher");
         var newTeacher = CreateTestUser("new@test.com", "New Teacher");
         testEvent.Organizers.Add(existingTeacher);
@@ -213,7 +214,7 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
     public async Task UpdateEventAsync_AddVolunteerPositions_CreatesPositionsSuccessfully()
     {
         // Arrange - Create event without volunteer positions
-        var testEvent = CreateTestEvent("Community Event");
+        var testEvent = CreateTestEvent(EventType.Social);
         _context.Events.Add(testEvent);
         await _context.SaveChangesAsync();
 
@@ -224,20 +225,16 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
                 new VolunteerPositionDto
                 {
                     Title = "Setup Crew",
-                    Description = "Help set up the venue",
+                    Description = "Help set up the venue. Must be available 2 hours before event",
                     SlotsNeeded = 5,
-                    SlotsFilled = 0,
-                    RequiresExperience = false,
-                    Requirements = "Must be available 2 hours before event"
+                    SlotsFilled = 0
                 },
                 new VolunteerPositionDto
                 {
                     Title = "Safety Monitor",
-                    Description = "Monitor participant safety during event",
+                    Description = "Monitor participant safety during event. Previous safety monitoring experience required",
                     SlotsNeeded = 3,
-                    SlotsFilled = 0,
-                    RequiresExperience = true,
-                    Requirements = "Previous safety monitoring experience required"
+                    SlotsFilled = 0
                 }
             }
         };
@@ -263,17 +260,15 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
     public async Task UpdateEventAsync_UpdateVolunteerPositions_ModifiesPositionsSuccessfully()
     {
         // Arrange - Create event with existing volunteer position
-        var testEvent = CreateTestEvent("Community Event");
+        var testEvent = CreateTestEvent(EventType.Social);
         var volunteerPosition = new VolunteerPosition
         {
             Id = Guid.NewGuid(),
             EventId = testEvent.Id,
             Title = "Original Position",
-            Description = "Original description",
+            Description = "Original description with original requirements",
             SlotsNeeded = 3,
-            SlotsFilled = 0,
-            RequiresExperience = false,
-            Requirements = "Original requirements"
+            SlotsFilled = 0
         };
         testEvent.VolunteerPositions.Add(volunteerPosition);
         _context.Events.Add(testEvent);
@@ -287,11 +282,9 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
                 {
                     Id = volunteerPosition.Id.ToString(),
                     Title = "Updated Position",
-                    Description = "Updated description",
+                    Description = "Updated description with updated requirements",
                     SlotsNeeded = 5,
-                    SlotsFilled = 2,
-                    RequiresExperience = true,
-                    Requirements = "Updated requirements"
+                    SlotsFilled = 2
                 }
             }
         };
@@ -308,18 +301,16 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
             .FirstOrDefaultAsync(vp => vp.Id == volunteerPosition.Id);
         updatedPosition.Should().NotBeNull();
         updatedPosition!.Title.Should().Be("Updated Position");
-        updatedPosition.Description.Should().Be("Updated description");
+        updatedPosition.Description.Should().Be("Updated description with updated requirements");
         updatedPosition.SlotsNeeded.Should().Be(5);
         updatedPosition.SlotsFilled.Should().Be(2);
-        updatedPosition.RequiresExperience.Should().BeTrue();
-        updatedPosition.Requirements.Should().Be("Updated requirements");
     }
 
     [Fact]
     public async Task UpdateEventAsync_RemoveVolunteerPositions_DeletesPositionsSuccessfully()
     {
         // Arrange - Create event with multiple volunteer positions
-        var testEvent = CreateTestEvent("Community Event");
+        var testEvent = CreateTestEvent(EventType.Social);
         var position1 = new VolunteerPosition
         {
             Id = Guid.NewGuid(),
@@ -327,8 +318,7 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
             Title = "Keep This Position",
             Description = "Will remain",
             SlotsNeeded = 3,
-            SlotsFilled = 0,
-            RequiresExperience = false
+            SlotsFilled = 0
         };
         var position2 = new VolunteerPosition
         {
@@ -337,8 +327,7 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
             Title = "Remove This Position",
             Description = "Will be deleted",
             SlotsNeeded = 2,
-            SlotsFilled = 0,
-            RequiresExperience = false
+            SlotsFilled = 0
         };
         testEvent.VolunteerPositions.Add(position1);
         testEvent.VolunteerPositions.Add(position2);
@@ -355,8 +344,7 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
                     Title = "Keep This Position",
                     Description = "Will remain",
                     SlotsNeeded = 3,
-                    SlotsFilled = 0,
-                    RequiresExperience = false
+                    SlotsFilled = 0
                 }
                 // position2 not included - should be deleted
             }
@@ -385,7 +373,7 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
     public async Task UpdateEventAsync_LinkVolunteerPositionToSession_CreatesSessionLinkSuccessfully()
     {
         // Arrange - Create event with session and volunteer position
-        var testEvent = CreateTestEvent("Workshop");
+        var testEvent = CreateTestEvent(EventType.Class);
         var session = new Session
         {
             Id = Guid.NewGuid(),
@@ -394,8 +382,8 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
             Name = "Morning Session",
             StartTime = testEvent.StartDate,
             EndTime = testEvent.StartDate.AddHours(2),
-            Capacity = 15,
-            CurrentAttendees = 0
+            Capacity = 15
+            // CurrentAttendees is now a computed property (read-only)
         };
         testEvent.Sessions.Add(session);
         _context.Events.Add(testEvent);
@@ -424,7 +412,6 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
                     Description = "Help with session setup and cleanup",
                     SlotsNeeded = 2,
                     SlotsFilled = 0,
-                    RequiresExperience = false,
                     SessionId = session.Id.ToString() // Link to specific session
                 }
             }
@@ -465,7 +452,7 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
         // TODO: Fix EventService.UpdateEventAsync to handle complex multi-entity updates atomically
 
         // Arrange - Create event and related users
-        var testEvent = CreateTestEvent("Workshop");
+        var testEvent = CreateTestEvent(EventType.Class);
         var teacher = CreateTestUser("teacher@test.com", "Workshop Teacher");
 
         _context.Events.Add(testEvent);
@@ -494,11 +481,9 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
                 new VolunteerPositionDto
                 {
                     Title = "Workshop Assistant",
-                    Description = "Assist teacher during workshop",
+                    Description = "Assist teacher during workshop. Previous workshop experience preferred",
                     SlotsNeeded = 2,
-                    SlotsFilled = 0,
-                    RequiresExperience = true,
-                    Requirements = "Previous workshop experience preferred"
+                    SlotsFilled = 0
                 }
             }
         };
@@ -515,7 +500,6 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
                 {
                     Id = Guid.NewGuid().ToString(),
                     Name = "Workshop Ticket",
-                    Type = "paid",
                     MinPrice = 45.00m,
                     MaxPrice = 45.00m,
                     QuantityAvailable = 15,
@@ -554,17 +538,16 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
     public async Task GetEventAsync_WithOrganizersAndVolunteerPositions_ReturnsCompleteData()
     {
         // Arrange - Create event with all related data
-        var testEvent = CreateTestEvent("Community Workshop");
+        var testEvent = CreateTestEvent(EventType.Class);
         var teacher = CreateTestUser("teacher@test.com", "Community Teacher");
         var volunteerPosition = new VolunteerPosition
         {
             Id = Guid.NewGuid(),
             EventId = testEvent.Id,
             Title = "Event Coordinator",
-            Description = "Coordinate volunteers and setup",
+            Description = "Coordinate volunteers and setup. Experience required",
             SlotsNeeded = 1,
-            SlotsFilled = 0,
-            RequiresExperience = true
+            SlotsFilled = 0
         };
 
         testEvent.Organizers.Add(teacher);
@@ -590,7 +573,7 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
 
     #region Helper Methods
 
-    private Event CreateTestEvent(string eventType, string title = "Test Event")
+    private Event CreateTestEvent(EventType eventType, string title = "Test Event")
     {
         return new Event
         {

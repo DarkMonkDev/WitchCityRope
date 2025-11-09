@@ -81,8 +81,9 @@ describe('CoordinatorAssignmentModal', () => {
     await userEvent.click(select);
 
     // Check that options from MSW handler are displayed
+    // Format matches component: `${user.sceneName} (${user.realName})`
     await waitFor(() => {
-      expect(screen.getByText(/Alice Smith \(Admin\) - 2 active/)).toBeInTheDocument();
+      expect(screen.getByText(/Admin User \(Alice Smith\)/)).toBeInTheDocument();
     });
   });
 
@@ -106,8 +107,8 @@ describe('CoordinatorAssignmentModal', () => {
     const select = screen.getByTestId('coordinator-search-input');
     await userEvent.click(select);
 
-    // Select first option
-    const option = await screen.findByText(/Alice Smith \(Admin\) - 2 active/);
+    // Select first option - format matches component: `${user.sceneName} (${user.realName})`
+    const option = await screen.findByText(/Admin User \(Alice Smith\)/);
     await userEvent.click(option);
 
     await waitFor(() => {
@@ -138,10 +139,10 @@ describe('CoordinatorAssignmentModal', () => {
       expect(screen.getByTestId('coordinator-search-input')).toBeInTheDocument();
     });
 
-    // Select a user
+    // Select a user - format matches component: `${user.sceneName} (${user.realName})`
     const select = screen.getByTestId('coordinator-search-input');
     await userEvent.click(select);
-    const option = await screen.findByText(/Alice Smith \(Admin\) - 2 active/);
+    const option = await screen.findByText(/Admin User \(Alice Smith\)/);
     await userEvent.click(option);
 
     // Click assign button
@@ -161,10 +162,10 @@ describe('CoordinatorAssignmentModal', () => {
       expect(screen.getByTestId('coordinator-search-input')).toBeInTheDocument();
     });
 
-    // Select a user
+    // Select a user - format matches component: `${user.sceneName} (${user.realName})`
     const select = screen.getByTestId('coordinator-search-input');
     await userEvent.click(select);
-    const option = await screen.findByText(/Alice Smith \(Admin\) - 2 active/);
+    const option = await screen.findByText(/Admin User \(Alice Smith\)/);
     await userEvent.click(option);
 
     // Click assign button

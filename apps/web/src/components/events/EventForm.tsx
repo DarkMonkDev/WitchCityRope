@@ -31,6 +31,8 @@ import { SessionFormModal } from './SessionFormModal'
 import { TicketTypeFormModal, EventTicketType as ModalTicketType } from './TicketTypeFormModal'
 import { VolunteerPositionsGrid } from './VolunteerPositionsGrid'
 import { VolunteerPosition } from './VolunteerPositionFormModal'
+import { RemoveRsvpModal } from './RemoveRsvpModal'
+import { RefundTicketModal } from './RefundTicketModal'
 import { WCRButton } from '../ui'
 import { useTeachers, formatTeachersForMultiSelect } from '../../lib/api/hooks/useTeachers'
 import {
@@ -360,6 +362,11 @@ export const EventForm: React.FC<EventFormProps> = ({
   const [venueModalOpen, setVenueModalOpen] = useState(false)
   const [editingSession, setEditingSession] = useState<EventSession | null>(null)
   const [editingTicketType, setEditingTicketType] = useState<EventTicketType | null>(null)
+
+  // RSVP/Ticket removal modal state
+  const [removeRsvpModalOpen, setRemoveRsvpModalOpen] = useState(false)
+  const [refundTicketModalOpen, setRefundTicketModalOpen] = useState(false)
+  const [selectedParticipant, setSelectedParticipant] = useState<EventParticipationDto | null>(null)
 
   // Venue form state
   const [venueName, setVenueName] = useState('')
@@ -796,6 +803,52 @@ export const EventForm: React.FC<EventFormProps> = ({
     onSubmit(values)
   })
 
+  // RSVP/Ticket removal handlers
+  const handleRemoveRsvpClick = (participation: EventParticipationDto) => {
+    setSelectedParticipant(participation)
+    setRemoveRsvpModalOpen(true)
+  }
+
+  const handleRefundTicketClick = (participation: EventParticipationDto) => {
+    setSelectedParticipant(participation)
+    setRefundTicketModalOpen(true)
+  }
+
+  const handleRemoveRsvpConfirm = async () => {
+    if (!selectedParticipant || !eventId) return
+
+    // TODO: Replace with actual admin API endpoint when backend is ready
+    // await fetch(`/api/admin/events/${eventId}/participations/${selectedParticipant.userId}/remove`, { method: 'DELETE' })
+
+    notifications.show({
+      message: 'RSVP removed successfully',
+      color: 'green',
+      autoClose: 3000
+    })
+
+    // Refetch participations to update the tables
+    queryClient.invalidateQueries({ queryKey: ['events', eventId, 'participations'] })
+  }
+
+  const handleRefundTicketConfirm = async (alsoRemoveRsvp: boolean) => {
+    if (!selectedParticipant || !eventId) return
+
+    // TODO: Replace with actual admin API endpoint when backend is ready
+    // await fetch(`/api/admin/events/${eventId}/tickets/${selectedParticipant.userId}/refund`, {
+    //   method: 'POST',
+    //   body: JSON.stringify({ alsoRemoveRsvp })
+    // })
+
+    notifications.show({
+      message: 'Ticket refunded successfully',
+      color: 'green',
+      autoClose: 3000
+    })
+
+    // Refetch participations to update the tables
+    queryClient.invalidateQueries({ queryKey: ['events', eventId, 'participations'] })
+  }
+
   // Email template helper functions
   const getActiveTemplateTitle = () => {
     switch (activeEmailTemplate) {
@@ -943,25 +996,25 @@ export const EventForm: React.FC<EventFormProps> = ({
                   </Radio.Group>
                 </Group>
 
-                {/* Event Title */}
-                <TextInput
-                  label="Event Title"
-                  placeholder="Enter event title"
-                  required
-                  mb="md"
-                  {...form.getInputProps('title')}
-                />
+                {/* Event Title and Short Description - Two Column Layout */}
+                <Group grow align="flex-start" gap="md" mb="md">
+                  {/* Event Title */}
+                  <TextInput
+                    label="Event Title"
+                    placeholder="Enter event title"
+                    required
+                    {...form.getInputProps('title')}
+                  />
 
-                {/* Short Description */}
-                <TextInput
-                  label="Short Description"
-                  placeholder="Brief description for cards and grid views"
-                  description="Brief description for cards and grid views (160 characters max)"
-                  required
-                  maxLength={160}
-                  mb="md"
-                  {...form.getInputProps('shortDescription')}
-                />
+                  {/* Short Description */}
+                  <TextInput
+                    label="Short Description (160 Char Max)"
+                    placeholder="Brief description for cards and grid views"
+                    required
+                    maxLength={160}
+                    {...form.getInputProps('shortDescription')}
+                  />
+                </Group>
 
                 {/* Full Description */}
                 <div style={{ marginBottom: 'var(--mantine-spacing-md)' }}>
@@ -1648,26 +1701,17 @@ export const EventForm: React.FC<EventFormProps> = ({
                                 </Text>
                               </Table.Td>
                               <Table.Td>
-                                <Group gap="xs">
-                                  <ActionIcon
+                                {participation.status === 'Active' && (
+                                  <Text
                                     size="sm"
-                                    variant="light"
-                                    color="blue"
-                                    title="View Details"
+                                    c="red"
+                                    style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                                    onClick={() => handleRemoveRsvpClick(participation)}
+                                    data-testid={`remove-rsvp-${participation.id}`}
                                   >
-                                    👁️
-                                  </ActionIcon>
-                                  {participation.canCancel && (
-                                    <ActionIcon
-                                      size="sm"
-                                      variant="light"
-                                      color="red"
-                                      title="Cancel RSVP"
-                                    >
-                                      ❌
-                                    </ActionIcon>
-                                  )}
-                                </Group>
+                                    Remove
+                                  </Text>
+                                )}
                               </Table.Td>
                             </Table.Tr>
                           ))
@@ -1910,26 +1954,17 @@ export const EventForm: React.FC<EventFormProps> = ({
                               </Text>
                             </Table.Td>
                             <Table.Td>
-                              <Group gap="xs">
-                                <ActionIcon
+                              {participation.status === 'Active' && (
+                                <Text
                                   size="sm"
-                                  variant="light"
-                                  color="blue"
-                                  title="View Details"
+                                  c="red"
+                                  style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                                  onClick={() => handleRefundTicketClick(participation)}
+                                  data-testid={`refund-ticket-${participation.id}`}
                                 >
-                                  👁️
-                                </ActionIcon>
-                                {participation.canCancel && (
-                                  <ActionIcon
-                                    size="sm"
-                                    variant="light"
-                                    color="red"
-                                    title="Refund Ticket"
-                                  >
-                                    💰
-                                  </ActionIcon>
-                                )}
-                              </Group>
+                                  Refund
+                                </Text>
+                              )}
                             </Table.Td>
                           </Table.Tr>
                         ))
@@ -2038,6 +2073,51 @@ export const EventForm: React.FC<EventFormProps> = ({
       </Modal>
 
       {/* Modal removed - now using inline editing in VolunteerPositionsGrid */}
+
+      {/* RSVP Removal Modal */}
+      {selectedParticipant && (
+        <RemoveRsvpModal
+          opened={removeRsvpModalOpen}
+          onClose={() => {
+            setRemoveRsvpModalOpen(false)
+            setSelectedParticipant(null)
+          }}
+          participant={{
+            userId: selectedParticipant.userId,
+            name: selectedParticipant.userSceneName,
+            hasTicket: selectedParticipant.participationType === 'Ticket' ||
+                       (participationsData as EventParticipationDto[])?.some(
+                         p => p.userId === selectedParticipant.userId && p.participationType === 'Ticket'
+                       ),
+            ticketAmount: extractAmountFromMetadata(selectedParticipant.metadata),
+            volunteerShifts: [] // TODO: Add volunteer shift data when available
+          }}
+          eventName={form.values.title || 'this event'}
+          onConfirm={handleRemoveRsvpConfirm}
+        />
+      )}
+
+      {/* Ticket Refund Modal */}
+      {selectedParticipant && (
+        <RefundTicketModal
+          opened={refundTicketModalOpen}
+          onClose={() => {
+            setRefundTicketModalOpen(false)
+            setSelectedParticipant(null)
+          }}
+          participant={{
+            userId: selectedParticipant.userId,
+            name: selectedParticipant.userSceneName,
+            ticketAmount: extractAmountFromMetadata(selectedParticipant.metadata),
+            hasRsvp: (participationsData as EventParticipationDto[])?.some(
+              p => p.userId === selectedParticipant.userId && p.participationType === 'RSVP'
+            ) || false,
+            volunteerShifts: [] // TODO: Add volunteer shift data when available
+          }}
+          eventName={form.values.title || 'this event'}
+          onConfirm={handleRefundTicketConfirm}
+        />
+      )}
     </Card>
   )
 }

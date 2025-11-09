@@ -173,6 +173,7 @@ namespace WitchCityRope.IntegrationTests
 
         /// <summary>
         /// Cleans up after test completion - called after each test method
+        /// Enhanced with delay to ensure database connections close before next test
         /// </summary>
         public virtual async Task DisposeAsync()
         {
@@ -182,6 +183,10 @@ namespace WitchCityRope.IntegrationTests
 
                 // Additional cleanup if needed
                 // The database reset happens in InitializeAsync for the next test
+
+                // Allow time for connections to fully close before next test
+                // This prevents database deadlocks during Respawn cleanup
+                await Task.Delay(200);
 
                 Logger.LogInformation("Integration test disposal completed");
             }

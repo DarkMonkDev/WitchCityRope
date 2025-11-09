@@ -34,8 +34,20 @@ namespace WitchCityRope.Tests.Common.Fixtures
         private readonly Stopwatch _performanceTimer = new();
         private readonly ILogger<DatabaseTestFixture> _logger;
 
-        public string ConnectionString => _container?.GetConnectionString() ?? 
-            throw new InvalidOperationException("Database container not initialized");
+        public string ConnectionString
+        {
+            get
+            {
+                if (_container == null)
+                    throw new InvalidOperationException("Database container not initialized");
+
+                // Get base connection string from container and enhance with error details
+                var baseConnectionString = _container.GetConnectionString();
+
+                // Add Include Error Detail for better error messages in test failures
+                return $"{baseConnectionString};Include Error Detail=true";
+            }
+        }
 
         public string ContainerId => _container?.Id ?? 
             throw new InvalidOperationException("Database container not initialized");
@@ -294,7 +306,31 @@ namespace WitchCityRope.Tests.Common.Fixtures
 
             await using var connection = new NpgsqlConnection(ConnectionString);
             await connection.OpenAsync();
-            await _respawner.ResetAsync(connection);
+
+            // Retry logic for handling transient deadlock errors during database cleanup
+            int retries = 0;
+            const int maxRetries = 3;
+
+            while (retries < maxRetries)
+            {
+                try
+                {
+                    await _respawner.ResetAsync(connection);
+                    return; // Success - exit retry loop
+                }
+                catch (PostgresException ex) when (ex.SqlState == "40P01" && retries < maxRetries - 1)
+                {
+                    // Deadlock detected (40P01) - retry with exponential backoff
+                    retries++;
+                    var delayMs = 100 * (int)Math.Pow(2, retries); // 200ms, 400ms, 800ms
+
+                    _logger.LogWarning(
+                        "Database deadlock detected during reset (attempt {Attempt}/{MaxAttempts}). Retrying in {DelayMs}ms...",
+                        retries, maxRetries, delayMs);
+
+                    await Task.Delay(delayMs);
+                }
+            }
         }
     }
 

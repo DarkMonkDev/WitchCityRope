@@ -109,15 +109,25 @@ public class AttendanceSeeder
                         UpdatedAt = createdAt
                     };
 
-                    // CRITICAL FIX: Create ONLY ONE attendance per user
-                    // If buying donation ticket, create ONLY Ticket attendance (no separate RSVP)
-                    // If not buying donation, create RSVP attendance
-                    // This prevents duplicate attendances for donation buyers
+                    // CRITICAL FIX: Social event donation buyers get BOTH RSVP + Ticket attendance
+                    // RSVP is the base attendance (required for all social event attendees)
+                    // Donation ticket is ADDITIONAL attendance on top of RSVP
                     if (shouldBuyDonation)
                     {
-                        var donationAmount = (decimal)Random.Shared.Next(5, 26); // $5-$25 donation
+                        // Create RSVP attendance FIRST (required for ALL social event attendees)
+                        var rsvpAttendance = new EventAttendance(eventItem.Id, user.Id, AttendanceType.RSVP)
+                        {
+                            Id = Guid.NewGuid(),
+                            Status = AttendanceStatus.Active,
+                            Notes = notes,
+                            CreatedAt = createdAt,
+                            UpdatedAt = createdAt
+                        };
+                        attendancesToAdd.Add(rsvpAttendance);
 
-                        // Create TicketPurchase record FIRST (so we have the ID)
+                        var donationAmount = (decimal)Random.Shared.Next(0, 31); // $0-$30 donation
+
+                        // THEN create donation ticket purchase and attendance (in ADDITION to RSVP)
                         var ticketPurchase = new TicketPurchase
                         {
                             Id = Guid.NewGuid(),
@@ -134,16 +144,14 @@ public class AttendanceSeeder
                         };
                         ticketPurchasesToAdd.Add(ticketPurchase);
 
-                        // Create ONLY donation ticket attendance (not RSVP)
                         var ticketAttendance = new EventAttendance(eventItem.Id, user.Id, AttendanceType.Ticket)
                         {
                             Id = Guid.NewGuid(),
                             Status = AttendanceStatus.Active,
-                            TicketPurchaseId = ticketPurchase.Id, // CRITICAL: Link to purchase
-                            Notes = notes, // Include user's RSVP notes
+                            TicketPurchaseId = ticketPurchase.Id,
+                            Metadata = $"{{\"ticketType\":\"Suggested Donation\",\"price\":{donationAmount},\"paymentMethod\":\"PayPal\"}}",
                             CreatedAt = createdAt,
-                            UpdatedAt = createdAt,
-                            Metadata = $"{{\"ticketType\":\"Suggested Donation\",\"price\":{donationAmount},\"paymentMethod\":\"PayPal\"}}"
+                            UpdatedAt = createdAt
                         };
                         attendancesToAdd.Add(ticketAttendance);
 
@@ -152,7 +160,7 @@ public class AttendanceSeeder
                     }
                     else
                     {
-                        // Create RSVP attendance for non-donation users
+                        // Create RSVP attendance for non-donation users (unchanged)
                         var rsvpAttendance = new EventAttendance(eventItem.Id, user.Id, AttendanceType.RSVP)
                         {
                             Id = Guid.NewGuid(),
@@ -377,7 +385,6 @@ public class AttendanceSeeder
                 6,  // check-ins
                 4,  // donation tickets (at least half)
                 "guest@witchcityrope.com", // canceled user
-                10.00m, // donation amount
                 cancellationToken);
 
             _logger.LogInformation("Created 8 RSVPs for Monthly Rope Practice Night (6 check-ins, 2 no-shows, 1 canceled, 4 donations)");
@@ -397,7 +404,6 @@ public class AttendanceSeeder
                 5, // check-ins
                 4,  // donation tickets (at least half)
                 "vetted@witchcityrope.com", // canceled user
-                5.00m, // donation amount
                 cancellationToken);
 
             _logger.LogInformation("Created 8 RSVPs for New Member Welcome Mixer (5 check-ins, 3 no-shows, 1 canceled, 4 donations)");
@@ -407,6 +413,7 @@ public class AttendanceSeeder
     /// <summary>
     /// Helper method to create comprehensive historical social event attendance data.
     /// Creates RSVPs with varied notes, optional donation tickets, check-ins for attendees, and one cancellation.
+    /// Donation amounts are randomized from $0 to $30 per ticket.
     /// </summary>
     private async Task CreateHistoricalSocialEventParticipationsAsync(
         Guid eventId,
@@ -415,7 +422,6 @@ public class AttendanceSeeder
         int checkInsCount,
         int donationTickets,
         string canceledUserEmail,
-        decimal donationAmount,
         CancellationToken cancellationToken)
     {
         // 1. Get event from database
@@ -490,13 +496,29 @@ public class AttendanceSeeder
                 UpdatedAt = rsvpCreatedAt
             };
 
-            // CRITICAL FIX: Create ONLY ONE attendance per user
-            // If buying donation ticket, create ONLY Ticket attendance (no separate RSVP)
-            // If not buying donation, create RSVP attendance
-            // This prevents duplicate attendances for donation buyers
+            // CRITICAL FIX: Social event donation buyers get BOTH RSVP + Ticket attendance
+            // RSVP is the base attendance (required for all social event attendees)
+            // Donation ticket is ADDITIONAL attendance on top of RSVP
             if (shouldBuyDonation && donationTicketType != null)
             {
-                // Create TicketPurchase FIRST
+                // Create RSVP attendance FIRST (required for ALL social event attendees)
+                var rsvpAttendance = new EventAttendance
+                {
+                    Id = Guid.NewGuid(),
+                    EventId = eventId,
+                    UserId = user.Id,
+                    AttendanceType = AttendanceType.RSVP,
+                    Status = AttendanceStatus.Active,
+                    Notes = userNotes,
+                    CreatedAt = rsvpCreatedAt,
+                    UpdatedAt = rsvpCreatedAt
+                };
+                _context.EventAttendances.Add(rsvpAttendance);
+
+                // Generate random donation amount ($0-$30)
+                var donationAmount = (decimal)Random.Shared.Next(0, 31);
+
+                // THEN create donation ticket purchase and attendance (in ADDITION to RSVP)
                 var donationPurchase = new TicketPurchase
                 {
                     Id = Guid.NewGuid(),
@@ -513,7 +535,6 @@ public class AttendanceSeeder
                 };
                 _context.TicketPurchases.Add(donationPurchase);
 
-                // Create ONLY donation ticket attendance (not RSVP)
                 var ticketAttendance = new EventAttendance
                 {
                     Id = Guid.NewGuid(),
@@ -521,8 +542,7 @@ public class AttendanceSeeder
                     UserId = user.Id,
                     AttendanceType = AttendanceType.Ticket,
                     Status = AttendanceStatus.Active,
-                    TicketPurchaseId = donationPurchase.Id, // CRITICAL: Link to purchase
-                    Notes = userNotes, // Include user's RSVP notes
+                    TicketPurchaseId = donationPurchase.Id,
                     Metadata = $"{{\"ticketType\":\"{donationTicketType.Name}\",\"price\":{donationAmount},\"paymentMethod\":\"Stripe\"}}",
                     CreatedAt = rsvpCreatedAt,
                     UpdatedAt = rsvpCreatedAt
@@ -534,7 +554,7 @@ public class AttendanceSeeder
             }
             else
             {
-                // Create RSVP attendance for non-donation users
+                // Create RSVP attendance for non-donation users (unchanged)
                 var rsvpAttendance = new EventAttendance
                 {
                     Id = Guid.NewGuid(),

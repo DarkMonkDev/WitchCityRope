@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using WitchCityRope.Api.Data;
+using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Events.Models;
 using WitchCityRope.Api.Features.Events.Services;
 using WitchCityRope.Api.Models;
@@ -60,7 +61,7 @@ public class EventServiceTests : IAsyncLifetime
             StartDate = DateTime.UtcNow.AddDays(7), // Future event
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(3),
             Location = "Salem Community Center",
-            EventType = "Workshop",
+            EventType = EventType.Class,
             Capacity = 20,
             IsPublished = true, // Published
             CreatedAt = DateTime.UtcNow,
@@ -75,7 +76,7 @@ public class EventServiceTests : IAsyncLifetime
             StartDate = DateTime.UtcNow.AddDays(8),
             EndDate = DateTime.UtcNow.AddDays(8).AddHours(3),
             Location = "Salem Community Center",
-            EventType = "Workshop",
+            EventType = EventType.Class,
             Capacity = 15,
             IsPublished = false, // Not published
             CreatedAt = DateTime.UtcNow,
@@ -90,7 +91,7 @@ public class EventServiceTests : IAsyncLifetime
             StartDate = DateTime.UtcNow.AddDays(-1), // Past event
             EndDate = DateTime.UtcNow.AddDays(-1).AddHours(3),
             Location = "Salem Community Center",
-            EventType = "Workshop",
+            EventType = EventType.Class,
             Capacity = 25,
             IsPublished = true, // Published but past
             CreatedAt = DateTime.UtcNow.AddDays(-5),
@@ -145,7 +146,7 @@ public class EventServiceTests : IAsyncLifetime
             StartDate = DateTime.UtcNow.AddDays(5),
             EndDate = DateTime.UtcNow.AddDays(5).AddHours(4),
             Location = "Test Location",
-            EventType = "Workshop",
+            EventType = EventType.Class,
             Capacity = 30,
             IsPublished = true,
             CreatedAt = DateTime.UtcNow,
@@ -161,8 +162,8 @@ public class EventServiceTests : IAsyncLifetime
             Name = "Test Session",
             StartTime = testEvent.StartDate,
             EndTime = testEvent.StartDate.AddHours(2),
-            Capacity = 15,
-            CurrentAttendees = 0
+            Capacity = 15
+            // CurrentAttendees is now a computed property (read-only)
         };
 
         // Add ticket type
@@ -173,9 +174,9 @@ public class EventServiceTests : IAsyncLifetime
             Name = "General Admission",
             Description = "General admission ticket",
             Price = 25.00m,
-            Available = 30,
-            Sold = 0,
-            IsRsvpMode = false
+            Available = 30
+            // Sold is now a computed property (read-only)
+            // IsRsvpMode property no longer exists
         };
 
         testEvent.Sessions.Add(session);
@@ -248,7 +249,7 @@ public class EventServiceTests : IAsyncLifetime
             StartDate = DateTime.UtcNow.AddDays(10),
             EndDate = DateTime.UtcNow.AddDays(10).AddHours(3),
             Location = "Original Location",
-            EventType = "Workshop",
+            EventType = EventType.Class,
             Capacity = 20,
             IsPublished = false,
             CreatedAt = DateTime.UtcNow,
@@ -303,7 +304,7 @@ public class EventServiceTests : IAsyncLifetime
             StartDate = DateTime.UtcNow.AddDays(15),
             EndDate = DateTime.UtcNow.AddDays(15).AddHours(3),
             Location = "Original Location",
-            EventType = "Workshop",
+            EventType = EventType.Class,
             Capacity = 20,
             IsPublished = false,
             CreatedAt = DateTime.UtcNow,
@@ -348,7 +349,7 @@ public class EventServiceTests : IAsyncLifetime
             StartDate = DateTime.UtcNow.AddDays(-1), // Past event
             EndDate = DateTime.UtcNow.AddDays(-1).AddHours(3),
             Location = "Some Location",
-            EventType = "Workshop",
+            EventType = EventType.Class,
             Capacity = 20,
             IsPublished = true,
             CreatedAt = DateTime.UtcNow.AddDays(-5),
@@ -388,7 +389,7 @@ public class EventServiceTests : IAsyncLifetime
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(3),
             Location = "Some Location",
-            EventType = "Workshop",
+            EventType = EventType.Class,
             Capacity = 20,
             IsPublished = true,
             CreatedAt = DateTime.UtcNow,
@@ -436,7 +437,7 @@ public class EventServiceTests : IAsyncLifetime
             StartDate = DateTime.UtcNow.AddDays(10),
             EndDate = DateTime.UtcNow.AddDays(10).AddHours(3),
             Location = "Test Location",
-            EventType = "Workshop",
+            EventType = EventType.Class,
             Capacity = 20,
             IsPublished = false,
             CreatedAt = DateTime.UtcNow,
@@ -500,7 +501,7 @@ public class EventServiceTests : IAsyncLifetime
             StartDate = DateTime.UtcNow.AddDays(5),
             EndDate = DateTime.UtcNow.AddDays(5).AddHours(2),
             Location = "Test Location",
-            EventType = "Workshop",
+            EventType = EventType.Class,
             Capacity = 20,
             IsPublished = false,
             CreatedAt = DateTime.UtcNow,
