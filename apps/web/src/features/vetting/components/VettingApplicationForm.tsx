@@ -1,7 +1,7 @@
 // Simplified Vetting Application Form Component
 // Based on approved UI mockups with floating labels and streamlined process
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -151,7 +151,21 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
     validateInputOnBlur: true,
   });
 
-  // No need to update form values since email and sceneName are displayed separately
+  // Update form values when existing application data becomes available
+  useEffect(() => {
+    if (hasExistingApp && appData) {
+      form.setValues({
+        firstName: appData.firstName,
+        lastName: appData.lastName,
+        pronouns: appData.pronouns || '',
+        fetLifeHandle: appData.fetLifeHandle || '',
+        otherNames: appData.otherNames || '',
+        whyJoin: appData.whyJoin,
+        experienceWithRope: appData.experienceWithRope,
+        agreeToCommunityStandards: appData.agreeToCommunityStandards,
+      });
+    }
+  }, [hasExistingApp, appData]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Submit application mutation
   const submitMutation = useMutation({
