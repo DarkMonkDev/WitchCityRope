@@ -291,7 +291,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                     </Button>
 
                     <Title order={3} size="h3" c="wcr.7">
-                      OR
+                      or
                     </Title>
 
                     <Button
