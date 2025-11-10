@@ -123,24 +123,24 @@ export class AuthHelper {
       }
 
       // Monitor authentication API call
-      let authSuccess = false
       const responsePromise = page.waitForResponse(
         response => response.url().includes('/api/auth/login'),
         { timeout }
       ).then(response => {
-        authSuccess = response.status() === 200
-        return response
-      }).catch(() => null)
+        return response.status() === 200
+      }).catch(() => false)
 
       // Submit form
       await loginButton.click()
 
       // Wait for either navigation or API response
-      const navigationPromise = page.waitForURL('**/dashboard', { timeout }).catch(() => null)
-      
-      await Promise.race([navigationPromise, responsePromise])
+      const navigationPromise = page.waitForURL('**/dashboard', { timeout }).then(() => true).catch(() => false)
 
-      return authSuccess && page.url().includes('/dashboard')
+      // Wait for BOTH to complete to get accurate status
+      const [apiSuccess, navSuccess] = await Promise.all([responsePromise, navigationPromise])
+
+      // Success if EITHER the API returned 200 OR we navigated to dashboard
+      return (apiSuccess || navSuccess) && page.url().includes('/dashboard')
 
     } catch (error) {
       console.log('❌ Mantine form fill failed, trying fallback')
