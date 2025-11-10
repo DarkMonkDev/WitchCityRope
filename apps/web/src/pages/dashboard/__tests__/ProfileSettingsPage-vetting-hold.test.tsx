@@ -6,28 +6,30 @@ import { Notifications } from '@mantine/notifications';
 import { BrowserRouter } from 'react-router-dom';
 import { ProfileSettingsPage } from '../ProfileSettingsPage';
 
-// Mock the hooks and API services
-vi.mock('@/hooks/useCurrentUser', () => ({
-  useCurrentUser: vi.fn(),
+// Mock the auth store and API services
+vi.mock('@/stores/authStore', () => ({
+  useAuthStore: vi.fn(),
 }));
 
 vi.mock('@/services/vettingHold.api', () => ({
-  getHoldStatus: vi.fn(),
-  placeMembershipOnHold: vi.fn(),
-  requestReinstatement: vi.fn(),
+  vettingHoldService: {
+    getHoldStatus: vi.fn(),
+    placeMembershipOnHold: vi.fn(),
+    requestReinstatement: vi.fn(),
+  },
 }));
 
-import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { getHoldStatus, placeMembershipOnHold, requestReinstatement } from '@/services/vettingHold.api';
+import { useAuthStore } from '@/stores/authStore';
+import { vettingHoldService } from '@/services/vettingHold.api';
 
 describe('ProfileSettingsPage - Vetting Hold Integration', () => {
   const mockUser = {
     id: 'user-123',
     email: 'test@example.com',
     sceneName: 'TestUser',
-    firstName: 'Test',
-    lastName: 'User',
     vettingStatus: 3, // Approved
+    role: 'Member',
+    isActive: true,
   };
 
   const renderWithProviders = () => {
@@ -43,16 +45,17 @@ describe('ProfileSettingsPage - Vetting Hold Integration', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(useCurrentUser).mockReturnValue({
+    vi.mocked(useAuthStore).mockReturnValue({
       user: mockUser,
-      isLoading: false,
-      error: null,
-      refetch: vi.fn(),
+      isAuthenticated: true,
+      login: vi.fn(),
+      logout: vi.fn(),
+      checkAuth: vi.fn(),
     } as any);
   });
 
   it('shows "Put Membership On Hold" button when user is Approved', async () => {
-    vi.mocked(getHoldStatus).mockResolvedValue({
+    vi.mocked(vettingHoldService.getHoldStatus).mockResolvedValue({
       vettingStatus: 3,
       statusName: 'Approved',
       canPlaceOnHold: true,
@@ -70,14 +73,14 @@ describe('ProfileSettingsPage - Vetting Hold Integration', () => {
   });
 
   it('shows "Reinstate My Membership" button when user is OnHold', async () => {
-    vi.mocked(useCurrentUser).mockReturnValue({
+    vi.mocked(useAuthStore).mockReturnValue({
       user: { ...mockUser, vettingStatus: 5 }, // OnHold
       isLoading: false,
       error: null,
       refetch: vi.fn(),
     } as any);
 
-    vi.mocked(getHoldStatus).mockResolvedValue({
+    vi.mocked(vettingHoldService.getHoldStatus).mockResolvedValue({
       vettingStatus: 5,
       statusName: 'OnHold',
       canPlaceOnHold: false,
@@ -95,14 +98,14 @@ describe('ProfileSettingsPage - Vetting Hold Integration', () => {
   });
 
   it('shows "under review" alert when user is FinalReview', async () => {
-    vi.mocked(useCurrentUser).mockReturnValue({
+    vi.mocked(useAuthStore).mockReturnValue({
       user: { ...mockUser, vettingStatus: 2 }, // FinalReview
       isLoading: false,
       error: null,
       refetch: vi.fn(),
     } as any);
 
-    vi.mocked(getHoldStatus).mockResolvedValue({
+    vi.mocked(vettingHoldService.getHoldStatus).mockResolvedValue({
       vettingStatus: 2,
       statusName: 'FinalReview',
       canPlaceOnHold: false,
@@ -121,14 +124,14 @@ describe('ProfileSettingsPage - Vetting Hold Integration', () => {
   });
 
   it('hides button for other statuses', async () => {
-    vi.mocked(useCurrentUser).mockReturnValue({
+    vi.mocked(useAuthStore).mockReturnValue({
       user: { ...mockUser, vettingStatus: 1 }, // Submitted
       isLoading: false,
       error: null,
       refetch: vi.fn(),
     } as any);
 
-    vi.mocked(getHoldStatus).mockResolvedValue({
+    vi.mocked(vettingHoldService.getHoldStatus).mockResolvedValue({
       vettingStatus: 1,
       statusName: 'Submitted',
       canPlaceOnHold: false,
@@ -146,7 +149,7 @@ describe('ProfileSettingsPage - Vetting Hold Integration', () => {
 
   it('opens HoldMembershipModal when hold button clicked', async () => {
     const user = userEvent.setup();
-    vi.mocked(getHoldStatus).mockResolvedValue({
+    vi.mocked(vettingHoldService.getHoldStatus).mockResolvedValue({
       vettingStatus: 3,
       statusName: 'Approved',
       canPlaceOnHold: true,
@@ -166,14 +169,14 @@ describe('ProfileSettingsPage - Vetting Hold Integration', () => {
 
   it('opens ReinstateMembershipModal when reinstate button clicked', async () => {
     const user = userEvent.setup();
-    vi.mocked(useCurrentUser).mockReturnValue({
+    vi.mocked(useAuthStore).mockReturnValue({
       user: { ...mockUser, vettingStatus: 5 }, // OnHold
       isLoading: false,
       error: null,
       refetch: vi.fn(),
     } as any);
 
-    vi.mocked(getHoldStatus).mockResolvedValue({
+    vi.mocked(vettingHoldService.getHoldStatus).mockResolvedValue({
       vettingStatus: 5,
       statusName: 'OnHold',
       canPlaceOnHold: false,
@@ -200,14 +203,14 @@ describe('ProfileSettingsPage - Vetting Hold Integration', () => {
       writable: true,
     });
 
-    vi.mocked(useCurrentUser).mockReturnValue({
+    vi.mocked(useAuthStore).mockReturnValue({
       user: mockUser,
       isLoading: false,
       error: null,
       refetch: mockRefetch,
     } as any);
 
-    vi.mocked(getHoldStatus).mockResolvedValue({
+    vi.mocked(vettingHoldService.getHoldStatus).mockResolvedValue({
       vettingStatus: 3,
       statusName: 'Approved',
       canPlaceOnHold: true,
@@ -215,7 +218,7 @@ describe('ProfileSettingsPage - Vetting Hold Integration', () => {
       lastStatusChangeDate: null,
     });
 
-    vi.mocked(placeMembershipOnHold).mockResolvedValue({
+    vi.mocked(vettingHoldService.placeMembershipOnHold).mockResolvedValue({
       newStatus: 5,
       statusName: 'OnHold',
       changedAt: '2025-11-09T12:00:00Z',
@@ -246,14 +249,14 @@ describe('ProfileSettingsPage - Vetting Hold Integration', () => {
       writable: true,
     });
 
-    vi.mocked(useCurrentUser).mockReturnValue({
+    vi.mocked(useAuthStore).mockReturnValue({
       user: { ...mockUser, vettingStatus: 5 }, // OnHold
       isLoading: false,
       error: null,
       refetch: mockRefetch,
     } as any);
 
-    vi.mocked(getHoldStatus).mockResolvedValue({
+    vi.mocked(vettingHoldService.getHoldStatus).mockResolvedValue({
       vettingStatus: 5,
       statusName: 'OnHold',
       canPlaceOnHold: false,
@@ -261,7 +264,7 @@ describe('ProfileSettingsPage - Vetting Hold Integration', () => {
       lastStatusChangeDate: '2025-11-01T12:00:00Z',
     });
 
-    vi.mocked(requestReinstatement).mockResolvedValue({
+    vi.mocked(vettingHoldService.requestReinstatement).mockResolvedValue({
       newStatus: 2,
       statusName: 'FinalReview',
       changedAt: '2025-11-09T12:00:00Z',
@@ -285,7 +288,7 @@ describe('ProfileSettingsPage - Vetting Hold Integration', () => {
 
   it('handles API errors gracefully', async () => {
     const user = userEvent.setup();
-    vi.mocked(getHoldStatus).mockRejectedValue(new Error('API Error'));
+    vi.mocked(vettingHoldService.getHoldStatus).mockRejectedValue(new Error('API Error'));
 
     renderWithProviders();
 
@@ -296,7 +299,7 @@ describe('ProfileSettingsPage - Vetting Hold Integration', () => {
   });
 
   it('shows loading state while fetching hold status', () => {
-    vi.mocked(getHoldStatus).mockImplementation(
+    vi.mocked(vettingHoldService.getHoldStatus).mockImplementation(
       () => new Promise((resolve) => setTimeout(resolve, 1000))
     );
 
@@ -308,14 +311,14 @@ describe('ProfileSettingsPage - Vetting Hold Integration', () => {
   });
 
   it('displays last status change date when available', async () => {
-    vi.mocked(useCurrentUser).mockReturnValue({
+    vi.mocked(useAuthStore).mockReturnValue({
       user: { ...mockUser, vettingStatus: 5 }, // OnHold
       isLoading: false,
       error: null,
       refetch: vi.fn(),
     } as any);
 
-    vi.mocked(getHoldStatus).mockResolvedValue({
+    vi.mocked(vettingHoldService.getHoldStatus).mockResolvedValue({
       vettingStatus: 5,
       statusName: 'OnHold',
       canPlaceOnHold: false,

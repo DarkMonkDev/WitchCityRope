@@ -37,33 +37,39 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
   });
 
   test.describe('Basic Event Management UI Tests', () => {
-    test('create event modal opens', async ({ page }) => {
-      // Test basic modal functionality
+    test('create event navigates to new event page', async ({ page }) => {
+      // Test page navigation (NOT modal)
       await page.click('[data-testid="button-create-event"]');
-      
-      // Look for modal or form elements
-      const modal = page.locator('[data-testid="event-modal"], .modal, [role="dialog"]');
-      const form = page.locator('[data-testid="event-form"], form');
-      
-      const modalVisible = await modal.isVisible().catch(() => false);
-      const formVisible = await form.isVisible().catch(() => false);
-      
-      expect(modalVisible || formVisible).toBeTruthy();
-      console.log('✅ Event creation interface accessible');
+
+      // Should navigate to /admin/events/new (page navigation, not modal)
+      await page.waitForURL('**/admin/events/new');
+      expect(page.url()).toContain('/admin/events/new');
+
+      // Look for event form on the new page
+      const form = page.locator('[data-testid="event-form"]');
+      await expect(form).toBeVisible();
+
+      console.log('✅ Event creation page navigation working');
     });
 
     test('event form has required fields', async ({ page }) => {
       // Open event creation
       await page.click('[data-testid="button-create-event"]');
-      
-      // Check for key form fields (use flexible selectors)
-      const nameField = page.locator('[data-testid="event-name-input"], input[name="name"], input[placeholder*="name" i]');
-      const dateField = page.locator('[data-testid="event-date-input"], input[type="date"], input[name="date"]');
-      const timeField = page.locator('[data-testid="event-start-time-input"], input[type="time"], input[name*="time"]');
-      
-      await expect(nameField.first()).toBeVisible({ timeout: 5000 });
-      await expect(dateField.first()).toBeVisible({ timeout: 5000 });
-      
+      await page.waitForURL('**/admin/events/new');
+
+      // Check for key form fields using label-based selectors (Mantine pattern)
+      // Event Title field
+      const titleField = page.getByLabel('Event Title');
+      await expect(titleField).toBeVisible({ timeout: 5000 });
+
+      // Short Description field
+      const shortDescField = page.getByLabel(/Short Description/i);
+      await expect(shortDescField).toBeVisible({ timeout: 5000 });
+
+      // Venue dropdown
+      const venueField = page.getByLabel('Venue');
+      await expect(venueField).toBeVisible({ timeout: 5000 });
+
       console.log('✅ Basic event form fields are present');
     });
 

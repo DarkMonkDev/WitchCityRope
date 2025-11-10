@@ -7,20 +7,21 @@ import { HoldMembershipModal } from '../HoldMembershipModal';
 
 // Mock the vettingHold API
 vi.mock('@/services/vettingHold.api', () => ({
-  placeMembershipOnHold: vi.fn(),
+  vettingHoldService: {
+    placeMembershipOnHold: vi.fn(),
+  },
 }));
 
-import { placeMembershipOnHold } from '@/services/vettingHold.api';
+import { vettingHoldService } from '@/services/vettingHold.api';
 
 describe('HoldMembershipModal', () => {
   const mockOnClose = vi.fn();
-  const mockOnSuccess = vi.fn();
+  const mockOnConfirm = vi.fn().mockResolvedValue(undefined);
 
   const defaultProps = {
     opened: true,
     onClose: mockOnClose,
-    userId: 'user-123',
-    onSuccess: mockOnSuccess,
+    onConfirm: mockOnConfirm,
   };
 
   const renderWithProviders = (props = {}) => {
@@ -34,7 +35,7 @@ describe('HoldMembershipModal', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(placeMembershipOnHold).mockResolvedValue({
+    vi.mocked(vettingHoldService.placeMembershipOnHold).mockResolvedValue({
       newStatus: 5,
       statusName: 'OnHold',
       changedAt: '2025-11-09T12:00:00Z',
@@ -103,14 +104,14 @@ describe('HoldMembershipModal', () => {
     await user.click(confirmButton);
 
     await waitFor(() => {
-      expect(placeMembershipOnHold).toHaveBeenCalledTimes(1);
-      expect(placeMembershipOnHold).toHaveBeenCalledWith('user-123', 'Taking a break from community');
+      expect(vettingHoldService.placeMembershipOnHold).toHaveBeenCalledTimes(1);
+      expect(vettingHoldService.placeMembershipOnHold).toHaveBeenCalledWith('user-123', 'Taking a break from community');
     });
   });
 
   it('shows loading state during API call', async () => {
     const user = userEvent.setup();
-    vi.mocked(placeMembershipOnHold).mockImplementation(
+    vi.mocked(vettingHoldService.placeMembershipOnHold).mockImplementation(
       () => new Promise((resolve) => setTimeout(resolve, 100))
     );
 
@@ -162,14 +163,14 @@ describe('HoldMembershipModal', () => {
     await user.click(confirmButton);
 
     await waitFor(() => {
-      expect(mockOnSuccess).toHaveBeenCalledTimes(1);
+      expect(mockOnConfirm).toHaveBeenCalledTimes(1);
     });
   });
 
   it('shows error notification on API error', async () => {
     const user = userEvent.setup();
     const notificationsSpy = vi.spyOn(notifications, 'show');
-    vi.mocked(placeMembershipOnHold).mockRejectedValue(new Error('API Error'));
+    vi.mocked(vettingHoldService.placeMembershipOnHold).mockRejectedValue(new Error('API Error'));
 
     renderWithProviders();
 
@@ -190,7 +191,7 @@ describe('HoldMembershipModal', () => {
     });
 
     // onSuccess should NOT be called on error
-    expect(mockOnSuccess).not.toHaveBeenCalled();
+    expect(mockOnConfirm).not.toHaveBeenCalled();
   });
 
   it('resets form when modal closes', async () => {
@@ -266,6 +267,6 @@ describe('HoldMembershipModal', () => {
   it('does not call API when modal is closed', () => {
     renderWithProviders({ opened: false });
 
-    expect(placeMembershipOnHold).not.toHaveBeenCalled();
+    expect(vettingHoldService.placeMembershipOnHold).not.toHaveBeenCalled();
   });
 });

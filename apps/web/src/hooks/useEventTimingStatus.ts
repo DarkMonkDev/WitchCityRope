@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getPublicSettings } from '../services/settings.api';
+import { getPublicSettings, type PublicSettings } from '../services/settings.api';
 
 export interface EventTimingStatus {
   isPastEvent: boolean;
@@ -13,7 +13,7 @@ export interface EventTimingStatus {
 
 export const useEventTimingStatus = (eventStartDateTime?: string): EventTimingStatus | null => {
   // Fetch buffer setting
-  const { data: settings } = useQuery({
+  const { data: settings } = useQuery<PublicSettings>({
     queryKey: ['publicSettings'],
     queryFn: getPublicSettings,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes

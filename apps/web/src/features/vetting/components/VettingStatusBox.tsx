@@ -113,44 +113,7 @@ export const VettingStatusBox: React.FC<VettingStatusBoxProps> = ({
     day: 'numeric'
   })}`;
 
-  // For UnderReview status, use simplified layout
-  if (status === 'UnderReview') {
-    return (
-      <Paper
-        p="lg"
-        radius="md"
-        withBorder
-        style={{
-          borderColor: '#880124',
-          borderWidth: '2px'
-        }}
-      >
-        <Stack gap="md">
-          {/* Status Header */}
-          <Group justify="space-between" align="center">
-            <Group gap="sm">
-              <Icon size={24} color="#880124" />
-              <Text size="xl" fw={700} c="#2B2B2B">
-                {config.displayName}
-              </Text>
-            </Group>
-            <Text size="sm" c="#8B8680" fw={500}>
-              {formattedSubmittedDate}
-            </Text>
-          </Group>
-
-          {/* Status Description with Next Steps */}
-          <Box>
-            <Text size="md" c="#4A4A4A">
-              {statusDescription} {nextSteps}
-            </Text>
-          </Box>
-        </Stack>
-      </Paper>
-    );
-  }
-
-  // Default layout for other statuses
+  // Use simplified layout for all statuses
   return (
     <Paper
       p="lg"
@@ -170,73 +133,17 @@ export const VettingStatusBox: React.FC<VettingStatusBoxProps> = ({
               {config.displayName}
             </Text>
           </Group>
-          <Badge color={config.color} size="lg" variant="light">
-            {applicationNumber}
-          </Badge>
+          <Text size="sm" c="#8B8680" fw={500}>
+            {formattedSubmittedDate}
+          </Text>
         </Group>
 
-        {/* Status Description */}
+        {/* Status Description with Next Steps */}
         <Box>
           <Text size="md" c="#4A4A4A">
-            {statusDescription}
+            {statusDescription} {nextSteps}
           </Text>
         </Box>
-
-        {/* Dates */}
-        <Group gap="xl">
-          <Box>
-            <Text size="xs" c="#8B8680" tt="uppercase" fw={600}>
-              Submitted:
-            </Text>
-            <Text size="sm" c="#2B2B2B">
-              {submittedAt.toLocaleDateString(undefined, {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
-            </Text>
-          </Box>
-          <Box>
-            <Text size="xs" c="#8B8680" tt="uppercase" fw={600}>
-              Last Updated:
-            </Text>
-            <Text size="sm" c="#2B2B2B">
-              {lastUpdated.toLocaleDateString(undefined, {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
-            </Text>
-          </Box>
-        </Group>
-
-        {/* Next Steps */}
-        {nextSteps && (
-          <Box
-            p="md"
-            style={{
-              backgroundColor: '#FAF6F2',
-              borderRadius: '8px'
-            }}
-          >
-            <Text size="xs" c="#8B8680" tt="uppercase" fw={600} mb="xs">
-              Next Steps:
-            </Text>
-            <Text size="sm" c="#2B2B2B">
-              {nextSteps}
-            </Text>
-          </Box>
-        )}
-
-        {/* Estimated Time Remaining */}
-        {estimatedDaysRemaining !== undefined && estimatedDaysRemaining !== null && (
-          <Group gap="xs">
-            <Clock size={16} color="#8B8680" />
-            <Text size="sm" c="#8B8680">
-              Estimated: {estimatedDaysRemaining} days remaining
-            </Text>
-          </Group>
-        )}
       </Stack>
     </Paper>
   );

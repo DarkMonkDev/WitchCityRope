@@ -7,20 +7,21 @@ import { ReinstateMembershipModal } from '../ReinstateMembershipModal';
 
 // Mock the vettingHold API
 vi.mock('@/services/vettingHold.api', () => ({
-  requestReinstatement: vi.fn(),
+  vettingHoldService: {
+    requestReinstatement: vi.fn(),
+  },
 }));
 
-import { requestReinstatement } from '@/services/vettingHold.api';
+import { vettingHoldService } from '@/services/vettingHold.api';
 
 describe('ReinstateMembershipModal', () => {
   const mockOnClose = vi.fn();
-  const mockOnSuccess = vi.fn();
+  const mockOnConfirm = vi.fn().mockResolvedValue(undefined);
 
   const defaultProps = {
     opened: true,
     onClose: mockOnClose,
-    userId: 'user-123',
-    onSuccess: mockOnSuccess,
+    onConfirm: mockOnConfirm,
   };
 
   const renderWithProviders = (props = {}) => {
@@ -34,7 +35,7 @@ describe('ReinstateMembershipModal', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(requestReinstatement).mockResolvedValue({
+    vi.mocked(vettingHoldService.requestReinstatement).mockResolvedValue({
       newStatus: 2,
       statusName: 'FinalReview',
       changedAt: '2025-11-09T12:00:00Z',
@@ -103,14 +104,14 @@ describe('ReinstateMembershipModal', () => {
     await user.click(confirmButton);
 
     await waitFor(() => {
-      expect(requestReinstatement).toHaveBeenCalledTimes(1);
-      expect(requestReinstatement).toHaveBeenCalledWith('user-123', 'Ready to rejoin the community');
+      expect(vettingHoldService.requestReinstatement).toHaveBeenCalledTimes(1);
+      expect(vettingHoldService.requestReinstatement).toHaveBeenCalledWith('user-123', 'Ready to rejoin the community');
     });
   });
 
   it('shows loading state during API call', async () => {
     const user = userEvent.setup();
-    vi.mocked(requestReinstatement).mockImplementation(
+    vi.mocked(vettingHoldService.requestReinstatement).mockImplementation(
       () => new Promise((resolve) => setTimeout(resolve, 100))
     );
 
@@ -162,14 +163,14 @@ describe('ReinstateMembershipModal', () => {
     await user.click(confirmButton);
 
     await waitFor(() => {
-      expect(mockOnSuccess).toHaveBeenCalledTimes(1);
+      expect(mockOnConfirm).toHaveBeenCalledTimes(1);
     });
   });
 
   it('shows error notification on API error', async () => {
     const user = userEvent.setup();
     const notificationsSpy = vi.spyOn(notifications, 'show');
-    vi.mocked(requestReinstatement).mockRejectedValue(new Error('API Error'));
+    vi.mocked(vettingHoldService.requestReinstatement).mockRejectedValue(new Error('API Error'));
 
     renderWithProviders();
 
@@ -190,7 +191,7 @@ describe('ReinstateMembershipModal', () => {
     });
 
     // onSuccess should NOT be called on error
-    expect(mockOnSuccess).not.toHaveBeenCalled();
+    expect(mockOnConfirm).not.toHaveBeenCalled();
   });
 
   it('resets form when modal closes', async () => {
@@ -266,7 +267,7 @@ describe('ReinstateMembershipModal', () => {
   it('does not call API when modal is closed', () => {
     renderWithProviders({ opened: false });
 
-    expect(requestReinstatement).not.toHaveBeenCalled();
+    expect(vettingHoldService.requestReinstatement).not.toHaveBeenCalled();
   });
 
   it('limits reason to 500 characters', async () => {

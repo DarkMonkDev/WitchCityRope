@@ -30,7 +30,7 @@ describe.skip('EventForm - Admin Actions', () => {
 
   const defaultFormValues = {
     title: 'Test Event',
-    eventType: 'Social' as const,
+    eventType: 'social' as const,
     startTime: new Date('2025-12-01T19:00:00Z'),
     endTime: new Date('2025-12-01T22:00:00Z'),
     capacity: 50,
@@ -49,8 +49,9 @@ describe.skip('EventForm - Admin Actions', () => {
         <MantineProvider>
           <Notifications />
           <EventForm
-            initialValues={defaultFormValues}
+            initialData={defaultFormValues}
             onSubmit={mockOnSubmit}
+            onCancel={() => {}}
             eventId="event-123"
             {...props}
           />

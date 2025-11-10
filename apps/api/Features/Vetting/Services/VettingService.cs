@@ -974,6 +974,21 @@ public class VettingService : IVettingService
             {
                 user.HasVettingApplication = true;
                 _logger.LogInformation("Updated user {UserId} HasVettingApplication to true", user.Id);
+
+                // Create automatic vetting log note for application submission
+                var submissionNote = new WitchCityRope.Api.Data.Entities.UserNote
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = user.Id,
+                    Content = "Application submitted",
+                    NoteType = "Vetting",
+                    AuthorId = user.Id, // Self-authored system note
+                    CreatedAt = DateTime.UtcNow,
+                    IsArchived = false
+                };
+                _context.UserNotes.Add(submissionNote);
+
+                _logger.LogInformation("Created automatic submission note for user {UserId} application {ApplicationId}", user.Id, application.Id);
             }
 
             await _context.SaveChangesAsync(cancellationToken);
@@ -1128,10 +1143,25 @@ public class VettingService : IVettingService
 
                 user.UpdatedAt = DateTime.UtcNow;
 
+                // Create automatic vetting log note for application submission
+                var submissionNote = new WitchCityRope.Api.Data.Entities.UserNote
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = user.Id,
+                    Content = "Application submitted",
+                    NoteType = "Vetting",
+                    AuthorId = user.Id, // Self-authored system note
+                    CreatedAt = DateTime.UtcNow,
+                    IsArchived = false
+                };
+                _context.UserNotes.Add(submissionNote);
+
                 _logger.LogInformation(
                     "Updated user profile during vetting application submission: UserId={UserId}, Email={Email}, FirstName={FirstName}, LastName={LastName}, Pronouns={Pronouns}, FetLifeHandle={FetLifeHandle}",
                     user.Id, user.Email, request.FirstName, request.LastName,
                     request.Pronouns ?? "(not provided)", request.FetLifeHandle ?? "(not provided)");
+
+                _logger.LogInformation("Created automatic submission note for user {UserId} application {ApplicationId}", user.Id, application.Id);
             }
 
             await _context.SaveChangesAsync(cancellationToken);

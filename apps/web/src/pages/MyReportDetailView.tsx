@@ -198,6 +198,9 @@ export const MyReportDetailView: React.FC = () => {
           <PeopleInvolvedCard
             involvedParties={report.involvedParties}
             witnesses={report.witnesses}
+            onEditCoordinator={() => {}} // Read-only view - no editing
+            onEditInvolvedParties={() => {}} // Read-only view - no editing
+            onEditWitnesses={() => {}} // Read-only view - no editing
           />
         )}
 

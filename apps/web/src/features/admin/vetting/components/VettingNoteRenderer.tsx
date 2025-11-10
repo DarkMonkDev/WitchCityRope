@@ -11,6 +11,7 @@ const isSystemGeneratedNote = (noteText: string): { isSystem: boolean; status?: 
   // Map system-generated note text to corresponding status values
   // These match the simplified descriptions from backend GetSimplifiedActionDescription()
   const systemNotes: Record<string, string> = {
+    'Application submitted': 'UnderReview',
     'Approved for interview': 'InterviewApproved',
     'Interview completed': 'FinalReview',
     'Application approved': 'Approved',

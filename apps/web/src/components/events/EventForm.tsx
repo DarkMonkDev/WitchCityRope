@@ -926,7 +926,7 @@ export const EventForm: React.FC<EventFormProps> = ({
     try {
       const response = await api.delete(`/api/admin/events/${eventId}/participations/${selectedParticipant.userId}`)
 
-      if (!response.ok) {
+      if (response.status !== 200 && response.status !== 204) {
         throw new Error('Failed to remove RSVP')
       }
 
@@ -2254,7 +2254,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                        (participationsData as EventParticipationDto[])?.some(
                          p => p.userId === selectedParticipant.userId && p.participationType === 'Ticket'
                        ),
-            ticketAmount: selectedParticipant.ticketAmount ?? 0,
+            ticketAmount: selectedParticipant.amountPaid ?? 0,
             volunteerShifts: [] // TODO: Add volunteer shift data when available
           }}
           eventName={form.values.title || 'this event'}

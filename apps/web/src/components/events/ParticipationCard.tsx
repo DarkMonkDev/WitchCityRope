@@ -37,7 +37,7 @@ import {
   Paper, Stack, Alert, Group, Text, Box, Badge, Button,
   LoadingOverlay, Progress, Modal, Textarea
 } from '@mantine/core';
-import { IconUsers, IconTicket, IconCalendarCheck, IconAlertCircle, IconCheck } from '@tabler/icons-react';
+import { IconUsers, IconTicket, IconCalendarCheck, IconCheck } from '@tabler/icons-react';
 import { useCurrentUser } from '../../lib/api/hooks/useAuth';
 import {
   ParticipationStatusDto
@@ -49,6 +49,7 @@ import { PaymentSummary } from '../../features/payments/components/PaymentSummar
 import type { components } from '@witchcityrope/shared-types/generated/api-types';
 import { debugLog } from '../../utils/debug';
 import { useEventTimingStatus } from '../../hooks/useEventTimingStatus';
+import { useVettingStatus } from '../../features/vetting/hooks/useVettingStatus';
 
 type TicketTypeDto = components["schemas"]["TicketTypeDto"];
 
@@ -103,6 +104,10 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
 
   // Event timing status for buffer enforcement
   const timingStatus = useEventTimingStatus(eventStartDateTime);
+
+  // Check if user has submitted a vetting application
+  const { data: vettingStatus } = useVettingStatus();
+  const hasVettingApplication = vettingStatus?.hasApplication || false;
 
   // DEBUG: Log all relevant data for RSVP button troubleshooting
   debugLog('🔍 ParticipationCard DEBUG DATA:');
@@ -267,7 +272,6 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
       <ParticipationCardShell>
         <Box style={{ width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
           <Alert
-            icon={<IconAlertCircle size={16} />}
             title="Vetting Required"
             variant="light"
             color="orange"
@@ -282,27 +286,29 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
               }
             }}
           >
-            <Text size="sm" mb="md" style={{ width: '100%', wordWrap: 'break-word' }}>
+            <Text size="sm" mb={hasVettingApplication ? undefined : "md"} style={{ width: '100%', wordWrap: 'break-word' }}>
               This social event is limited to vetted members. Complete the vetting process to attend.
             </Text>
-            <Button
-              component="a"
-              href="/vetting"
-              variant="outline"
-              color="orange"
-              fullWidth
-              styles={{
-                root: {
-                  height: '44px',
-                  paddingTop: '12px',
-                  paddingBottom: '12px',
-                  fontSize: '14px',
-                  lineHeight: '1.2'
-                }
-              }}
-            >
-              Start Vetting Process
-            </Button>
+            {!hasVettingApplication && (
+              <Button
+                component="a"
+                href="/join"
+                variant="outline"
+                color="orange"
+                fullWidth
+                styles={{
+                  root: {
+                    height: '44px',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    fontSize: '14px',
+                    lineHeight: '1.2'
+                  }
+                }}
+              >
+                Start Vetting Process
+              </Button>
+            )}
           </Alert>
         </Box>
       </ParticipationCardShell>
@@ -791,7 +797,7 @@ const ParticipationCardShell: React.FC<{
       boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
       border: '1px solid rgba(183, 109, 117, 0.1)',
       position: 'relative',
-      minHeight: '200px'
+      minHeight: '160px'
     }}
   >
     <LoadingOverlay visible={isLoading} />

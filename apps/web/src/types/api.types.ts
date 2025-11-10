@@ -134,16 +134,16 @@ export type PaginatedIncidentListResponse = components['schemas']['PaginatedInci
 // =============================================================================
 
 /**
- * Participation Status Enum
- * Source: C# ParticipationStatus enum via NSwag generation
+ * Attendance Status Enum
+ * Source: C# AttendanceStatus enum via NSwag generation
  */
-export type ParticipationStatus = components['schemas']['ParticipationStatus'];
+export type AttendanceStatus = components['schemas']['AttendanceStatus'];
 
 /**
- * Payment Status Enum
- * Source: C# PaymentStatus enum via NSwag generation
+ * Attendance Type Enum
+ * Source: C# AttendanceType enum via NSwag generation
  */
-export type PaymentStatus = components['schemas']['PaymentStatus'];
+export type AttendanceType = components['schemas']['AttendanceType'];
 
 /**
  * Incident Status Enum
