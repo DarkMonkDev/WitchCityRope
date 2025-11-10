@@ -1,6 +1,7 @@
 import React from 'react';
-import { Box, Container, Text, Title, Button } from '@mantine/core';
+import { Box, Container, Text, Title, Button, Group } from '@mantine/core';
 import { Link } from 'react-router-dom';
+import { useIsAuthenticated } from '../../stores/authStore';
 
 interface CTASectionProps {
   /** Main heading text */
@@ -22,9 +23,10 @@ export const CTASection: React.FC<CTASectionProps> = ({
   subtitle = "Ready to start?",
   description = "Whether you're curious about rope or ready to deepen your practice, we're here to support you every step of the way.",
   buttonText = "Join Our Community",
-  buttonLink = "#join",
+  buttonLink = "/join",
   customButton
 }) => {
+  const isAuthenticated = useIsAuthenticated();
   return (
     <Box
       component="section"
@@ -107,13 +109,22 @@ export const CTASection: React.FC<CTASectionProps> = ({
           </Text>
 
           {customButton || (
-            <Box
-              component={Link}
-              to={buttonLink}
-              className="btn btn-primary btn-large"
-            >
-              {buttonText}
-            </Box>
+            <Group justify="center" gap="md">
+              <Box
+                component={Link}
+                to={buttonLink}
+                className="btn btn-primary btn-large"
+              >
+                {buttonText}
+              </Box>
+              <Box
+                component={Link}
+                to={isAuthenticated ? "/dashboard" : "/join"}
+                className="btn btn-secondary btn-large"
+              >
+                {isAuthenticated ? 'Go to Dashboard' : 'Getting Started'}
+              </Box>
+            </Group>
           )}
         </Container>
       </Box>
