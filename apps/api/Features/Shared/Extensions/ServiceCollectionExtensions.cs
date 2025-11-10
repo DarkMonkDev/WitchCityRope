@@ -10,6 +10,7 @@ using WitchCityRope.Api.Features.Safety.Validation;
 using WitchCityRope.Api.Features.CheckIn.Extensions;
 using WitchCityRope.Api.Features.Vetting.Services;
 // using WitchCityRope.Api.Features.Vetting.Validators;
+using WitchCityRope.Api.Features.VettingHold.Services;
 using WitchCityRope.Api.Features.Payments.Services;
 using WitchCityRope.Api.Features.Payments.Validators;
 using WitchCityRope.Api.Features.Participation.Services;
@@ -73,7 +74,10 @@ public static class ServiceCollectionExtensions
         // Vetting feature services
         services.AddScoped<IVettingService, VettingService>();
         services.AddScoped<IVettingAccessControlService, VettingAccessControlService>();
-        services.AddScoped<IVettingEmailService, VettingEmailService>(); // SendGrid integration with mock mode support
+        services.AddScoped<IVettingEmailService, VettingEmailService>(); // TEMPORARY STUB - TODO: Migrate to GlobalEmailTemplates
+
+        // VettingHold feature services (membership hold/reinstatement)
+        services.AddScoped<IVettingHoldService, VettingHoldService>();
 
         // FluentValidation for Vetting feature - TEMPORARILY DISABLED FOR MIGRATION
         // services.AddValidatorsFromAssemblyContaining<CreateApplicationValidator>();

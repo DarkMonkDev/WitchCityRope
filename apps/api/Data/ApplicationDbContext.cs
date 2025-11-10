@@ -177,11 +177,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<VettingAuditLog> VettingAuditLogs { get; set; }
 
     /// <summary>
-    /// VettingEmailTemplates table for admin-manageable email templates
-    /// </summary>
-    public DbSet<VettingEmailTemplate> VettingEmailTemplates { get; set; }
-
-    /// <summary>
     /// VettingEmailLogs table for SendGrid email delivery tracking
     /// </summary>
     public DbSet<VettingEmailLog> VettingEmailLogs { get; set; }
@@ -1034,7 +1029,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         // Apply Vetting System configurations
         modelBuilder.ApplyConfiguration(new VettingApplicationConfiguration());
         modelBuilder.ApplyConfiguration(new VettingAuditLogConfiguration());
-        modelBuilder.ApplyConfiguration(new VettingEmailTemplateConfiguration());
         modelBuilder.ApplyConfiguration(new VettingEmailLogConfiguration());
         modelBuilder.ApplyConfiguration(new VettingNotificationConfiguration());
         modelBuilder.ApplyConfiguration(new VettingBulkOperationConfiguration());
@@ -1515,23 +1509,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
                 {
                     entry.Entity.LastRetryAt = DateTime.SpecifyKind(entry.Entity.LastRetryAt.Value, DateTimeKind.Utc);
                 }
-            }
-        }
-
-        // Handle VettingEmailTemplate entities
-        var vettingEmailTemplateEntries = ChangeTracker.Entries<VettingEmailTemplate>();
-        foreach (var entry in vettingEmailTemplateEntries)
-        {
-            if (entry.State == EntityState.Added)
-            {
-                entry.Entity.CreatedAt = DateTime.UtcNow;
-                entry.Entity.UpdatedAt = DateTime.UtcNow;
-                entry.Entity.LastModified = DateTime.UtcNow;
-            }
-            else if (entry.State == EntityState.Modified)
-            {
-                entry.Entity.UpdatedAt = DateTime.UtcNow;
-                entry.Entity.LastModified = DateTime.UtcNow;
             }
         }
 

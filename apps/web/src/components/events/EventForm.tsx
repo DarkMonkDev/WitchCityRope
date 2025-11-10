@@ -89,9 +89,43 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId }) => {
     !!eventId
   ) as { data: EventParticipationDto[]; isLoading: boolean }
 
+  // Group participations by user, combining RSVP + Ticket into single row
+  const groupedParticipations = React.useMemo(() => {
+    const grouped = new Map<string, EventParticipationDto & { ticketAmount?: number }>()
+
+    participations.forEach(p => {
+      const existing = grouped.get(p.userId)
+
+      if (!existing) {
+        // First entry for this user
+        grouped.set(p.userId, {
+          ...p,
+          ticketAmount: p.participationType === 'Ticket' ? (p.amountPaid ?? 0) : undefined
+        })
+      } else {
+        // User already exists - merge ticket amount if this is a ticket purchase
+        if (p.participationType === 'Ticket') {
+          existing.ticketAmount = p.amountPaid ?? 0
+        }
+        // Prefer RSVP for main display, but keep ticket's check-in status if available
+        if (p.participationType === 'RSVP') {
+          existing.participationType = 'RSVP'
+          existing.participationDate = p.participationDate
+          existing.status = p.status
+        }
+        // Keep check-in status if ticket was checked in
+        if (p.hasCheckedIn) {
+          existing.hasCheckedIn = true
+        }
+      }
+    })
+
+    return Array.from(grouped.values())
+  }, [participations])
+
   // Sort participations based on current sort settings
   const sortedParticipations = React.useMemo(() => {
-    const sorted = [...participations]
+    const sorted = [...groupedParticipations]
 
     sorted.sort((a, b) => {
       let compareValue = 0
@@ -99,8 +133,8 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId }) => {
       if (sortColumn === 'name') {
         compareValue = a.userSceneName.localeCompare(b.userSceneName)
       } else if (sortColumn === 'paid') {
-        const amountA = extractAmountFromMetadata(a.metadata)
-        const amountB = extractAmountFromMetadata(b.metadata)
+        const amountA = a.ticketAmount ?? 0
+        const amountB = b.ticketAmount ?? 0
         compareValue = amountA - amountB
       } else if (sortColumn === 'attended') {
         // Sort by check-in status (true/false)
@@ -114,7 +148,7 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId }) => {
     })
 
     return sorted
-  }, [participations, sortColumn, sortDirection])
+  }, [groupedParticipations, sortColumn, sortDirection])
 
   const handleSort = (column: 'name' | 'paid' | 'attended') => {
     if (sortColumn === column) {
@@ -244,7 +278,7 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId }) => {
             </Table.Thead>
             <Table.Tbody>
               {sortedParticipations.map((participation) => {
-                const paidAmount = extractAmountFromMetadata(participation.metadata)
+                const paidAmount = participation.ticketAmount ?? 0
                 // Use check-in status from backend (generated DTO property)
                 const hasCheckedIn = participation.hasCheckedIn ?? false
 
@@ -866,7 +900,18 @@ export const EventForm: React.FC<EventFormProps> = ({
 
   // RSVP/Ticket removal handlers
   const handleRemoveRsvpClick = (participation: EventParticipationDto) => {
-    setSelectedParticipant(participation)
+    // Find ticket purchase amount for this user (if any)
+    const userTicket = (participationsData as EventParticipationDto[])?.find(
+      p => p.userId === participation.userId && p.participationType === 'Ticket'
+    )
+
+    // Add ticketAmount to the participation object
+    const participationWithTicket = {
+      ...participation,
+      ticketAmount: userTicket?.amountPaid ?? 0
+    }
+
+    setSelectedParticipant(participationWithTicket as any)
     setRemoveRsvpModalOpen(true)
   }
 
@@ -878,17 +923,32 @@ export const EventForm: React.FC<EventFormProps> = ({
   const handleRemoveRsvpConfirm = async () => {
     if (!selectedParticipant || !eventId) return
 
-    // TODO: Replace with actual admin API endpoint when backend is ready
-    // await fetch(`/api/admin/events/${eventId}/participations/${selectedParticipant.userId}/remove`, { method: 'DELETE' })
+    try {
+      const response = await api.delete(`/api/admin/events/${eventId}/participations/${selectedParticipant.userId}`)
 
-    notifications.show({
-      message: 'RSVP removed successfully',
-      color: 'green',
-      autoClose: 3000
-    })
+      if (!response.ok) {
+        throw new Error('Failed to remove RSVP')
+      }
 
-    // Refetch participations to update the tables
-    queryClient.invalidateQueries({ queryKey: ['events', eventId, 'participations'] })
+      notifications.show({
+        message: 'RSVP removed successfully',
+        color: 'green',
+        autoClose: 3000
+      })
+
+      // Refetch participations to update the tables
+      queryClient.invalidateQueries({ queryKey: eventKeys.participations(eventId) })
+
+      // Close modal
+      setRemoveRsvpModalOpen(false)
+      setSelectedParticipant(null)
+    } catch (error) {
+      notifications.show({
+        message: 'Failed to remove RSVP',
+        color: 'red',
+        autoClose: 5000
+      })
+    }
   }
 
   const handleRefundTicketConfirm = async (alsoRemoveRsvp: boolean) => {
@@ -2019,8 +2079,8 @@ export const EventForm: React.FC<EventFormProps> = ({
                               bVal = new Date(b.participationDate).getTime()
                               break
                             case 'amount':
-                              aVal = extractAmountFromMetadata(a.metadata)
-                              bVal = extractAmountFromMetadata(b.metadata)
+                              aVal = a.amountPaid ?? 0
+                              bVal = b.amountPaid ?? 0
                               break
                             default:
                               aVal = a.userSceneName
@@ -2055,7 +2115,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                             </Table.Td>
                             <Table.Td>
                               <Text size="sm" fw={500}>
-                                ${extractAmountFromMetadata(participation.metadata).toFixed(2)}
+                                ${(participation.amountPaid ?? 0).toFixed(2)}
                               </Text>
                             </Table.Td>
                             <Table.Td>
@@ -2194,7 +2254,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                        (participationsData as EventParticipationDto[])?.some(
                          p => p.userId === selectedParticipant.userId && p.participationType === 'Ticket'
                        ),
-            ticketAmount: extractAmountFromMetadata(selectedParticipant.metadata),
+            ticketAmount: selectedParticipant.ticketAmount ?? 0,
             volunteerShifts: [] // TODO: Add volunteer shift data when available
           }}
           eventName={form.values.title || 'this event'}
@@ -2213,7 +2273,7 @@ export const EventForm: React.FC<EventFormProps> = ({
           participant={{
             userId: selectedParticipant.userId,
             name: selectedParticipant.userSceneName,
-            ticketAmount: extractAmountFromMetadata(selectedParticipant.metadata),
+            ticketAmount: selectedParticipant.amountPaid ?? 0,
             hasRsvp: (participationsData as EventParticipationDto[])?.some(
               p => p.userId === selectedParticipant.userId && p.participationType === 'RSVP'
             ) || false,

@@ -82,4 +82,11 @@ public class EventParticipationDto
     /// "All Sessions" if no specific sessions or event has no sessions
     /// </summary>
     public string SessionNames { get; set; } = "All Sessions";
+
+    /// <summary>
+    /// Amount paid for this participation (from TicketPurchase.TotalPrice)
+    /// Null for free RSVPs (no associated TicketPurchase)
+    /// Decimal value for tickets (includes donations on social events)
+    /// </summary>
+    public decimal? AmountPaid { get; set; }
 }

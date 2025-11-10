@@ -7,6 +7,7 @@ using WitchCityRope.Api.Features.Safety.Endpoints;
 using WitchCityRope.Api.Features.CheckIn.Endpoints;
 using WitchCityRope.Api.Features.Participation.Endpoints;
 using WitchCityRope.Api.Features.Vetting.Endpoints;
+using WitchCityRope.Api.Features.VettingHold.Endpoints;
 using WitchCityRope.Api.Features.TestHelpers.Endpoints;
 using WitchCityRope.Api.Features.Volunteers.Endpoints;
 using WitchCityRope.Api.Features.Cms;
@@ -66,6 +67,9 @@ public static class WebApplicationExtensions
 
         // Vetting feature endpoints
         app.MapVettingEndpoints();
+
+        // VettingHold feature endpoints (membership hold/reinstatement)
+        app.MapVettingHoldEndpoints();
 
         // Volunteer feature endpoints
         app.MapVolunteerEndpoints();

@@ -517,7 +517,7 @@ public class SessionTicketSeeder
     /// </summary>
     private void CreateSocialEventTicketTypes(Event eventItem, Session session, List<TicketType> ticketTypesToAdd)
     {
-        // Suggested Donation - sliding scale
+        // Suggested Donation - sliding scale with minimum of $5
         var suggestedPrice = eventItem.Title.Contains("Practice Night") ? 10.00m : 5.00m;
 
         ticketTypesToAdd.Add(new TicketType
@@ -529,7 +529,7 @@ public class SessionTicketSeeder
                 ? "Optional donation to support the space"
                 : "Optional donation to support refreshments",
             Price = suggestedPrice,
-            MinPrice = 0m,
+            MinPrice = 5.00m, // FIXED: Minimum $5 donation for all social event tickets
             MaxPrice = suggestedPrice * 4,
             DefaultPrice = suggestedPrice,
             Available = eventItem.Capacity,

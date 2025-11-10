@@ -55,6 +55,7 @@ export const UtilityBar: React.FC = () => {
 
   return (
     <Box
+      className="utility-bar"
       style={{
         background: 'var(--color-midnight)',
         padding: '12px 0',
@@ -129,7 +130,7 @@ export const UtilityBar: React.FC = () => {
             Contact
           </Box>
 
-          {/* Edit Profile link - only for authenticated users */}
+          {/* Edit Profile link - Commented out per user request 2025-11-09 - can be reinstated if needed
           {isAuthenticated && (
             <Box
               component={Link}
@@ -145,6 +146,7 @@ export const UtilityBar: React.FC = () => {
               Edit Profile
             </Box>
           )}
+          */}
 
           {/* Logout link - only for authenticated users */}
           {isAuthenticated && (

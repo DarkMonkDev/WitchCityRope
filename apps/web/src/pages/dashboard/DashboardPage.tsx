@@ -77,7 +77,7 @@ export const DashboardPage: React.FC = () => {
         <Stack gap="xl">
           <Box>
             <Title order={1} size="h2" mb="sm">
-              Dashboard
+              Your Events
             </Title>
             <Text c="dimmed">
               Loading your personal dashboard...
@@ -104,13 +104,13 @@ export const DashboardPage: React.FC = () => {
         <Stack gap="xl">
           <Box>
             <Title order={1} size="h2" mb="sm">
-              Dashboard
+              Your Events
             </Title>
             <Text c="dimmed">
               Your personal WitchCityRope dashboard
             </Text>
           </Box>
-          
+
           <Alert
             icon={<IconAlertCircle />}
             color="red"
@@ -153,7 +153,7 @@ export const DashboardPage: React.FC = () => {
         {/* Page header */}
         <Box>
           <Title order={1} size="h2" mb="sm">
-            Dashboard
+            Your Events
           </Title>
           <Text c="dimmed">
             Your personal WitchCityRope dashboard

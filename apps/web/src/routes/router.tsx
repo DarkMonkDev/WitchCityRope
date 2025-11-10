@@ -43,7 +43,6 @@ import { AdminVettingApplicationDetailPage } from '../pages/admin/AdminVettingAp
 import { AdminMembersPage } from '../pages/admin/AdminMembersPage'
 import { AdminMemberDetailsPage } from '../pages/admin/AdminMemberDetailsPage'
 import { AdminSettingsPage } from '../pages/admin/AdminSettingsPage'
-import { EmailTemplates } from '../features/admin/vetting/pages/EmailTemplates'
 import { EmailTemplatesAdminPage } from '../pages/admin/EmailTemplatesAdminPage'
 import { TestPage } from '../pages/TestPage'
 import { VettingTestPage } from '../pages/VettingTestPage'
@@ -357,11 +356,6 @@ export const router = createBrowserRouter([
       {
         path: 'admin/vetting/applications/:applicationId',
         element: <AdminVettingApplicationDetailPage />,
-        loader: adminLoader,
-      },
-      {
-        path: 'admin/vetting/email-templates',
-        element: <EmailTemplates />,
         loader: adminLoader,
       },
       {

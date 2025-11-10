@@ -139,10 +139,27 @@ export const EventDetailPage: React.FC = () => {
   const hasParticipation = participation?.hasRSVP || participation?.hasTicket;
   const isAuthenticated = !!currentUser;
 
+  // Check if user is vetted (same logic as ParticipationCard)
+  let isVetted = false;
+  if (currentUser && typeof currentUser === 'object') {
+    // New structure: Check isVetted boolean OR admin/teacher role
+    if ('isVetted' in currentUser && currentUser.isVetted === true) {
+      isVetted = true;
+    } else if ('role' in currentUser && typeof currentUser.role === 'string') {
+      const adminTeacherRoles = ['Administrator', 'Teacher'];
+      isVetted = adminTeacherRoles.includes(currentUser.role);
+    }
+    // Legacy structure: Check roles array (fallback)
+    if (!isVetted && 'roles' in currentUser && Array.isArray(currentUser.roles)) {
+      const legacyRoles = ['Vetted', 'Teacher', 'Administrator'];
+      isVetted = currentUser.roles.some(role => legacyRoles.includes(role));
+    }
+  }
+
   // For workshops (class events), user must have an active ticket to volunteer
-  // For social events, anyone can volunteer (no ticket required)
+  // For social events, user must be vetted to volunteer (no ticket required)
   const canVolunteerBasedOnEventType =
-    eventType === 'social' || (eventType === 'class' && participation?.hasTicket === true);
+    (eventType === 'social' && isVetted) || (eventType === 'class' && participation?.hasTicket === true);
 
   // Show volunteer encouragement if:
   // - User is logged in
@@ -150,7 +167,7 @@ export const EventDetailPage: React.FC = () => {
   // - Event has volunteer positions available
   // - NOT (event is full AND user doesn't have RSVP/ticket)
   // - For workshops: User must have an active ticket
-  // - For social events: No ticket required
+  // - For social events: User must be vetted
   const showVolunteerEncouragement =
     isAuthenticated &&
     !hasUserVolunteered &&

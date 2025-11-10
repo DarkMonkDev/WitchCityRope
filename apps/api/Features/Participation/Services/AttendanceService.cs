@@ -899,7 +899,11 @@ public class AttendanceService : IAttendanceService
                     // Session name from TicketType.Session if available, otherwise "All Sessions"
                     SessionNames = x.Attendance.TicketPurchase != null && x.Attendance.TicketPurchase.TicketType.Session != null
                                    ? x.Attendance.TicketPurchase.TicketType.Session.Name
-                                   : "All Sessions"
+                                   : "All Sessions",
+                    // Amount paid from TicketPurchase.TotalPrice (null for free RSVPs without TicketPurchase)
+                    AmountPaid = x.Attendance.TicketPurchase != null
+                                 ? x.Attendance.TicketPurchase.TotalPrice
+                                 : (decimal?)null
                 })
                 .ToListAsync(cancellationToken);
 

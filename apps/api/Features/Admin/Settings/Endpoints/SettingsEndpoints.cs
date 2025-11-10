@@ -12,6 +12,28 @@ public static class SettingsEndpoints
 {
     public static void MapSettingsEndpoints(this IEndpointRouteBuilder app)
     {
+        // Get public settings (no authentication required)
+        app.MapGet("/api/settings/public", async (
+            ISettingsService settingsService,
+            CancellationToken cancellationToken) =>
+        {
+            var eventTimeZone = await settingsService.GetSettingAsync("EventTimeZone", cancellationToken);
+            var preStartBuffer = await settingsService.GetSettingAsync("PreStartBufferMinutes", cancellationToken);
+
+            var settings = new
+            {
+                EventTimeZone = eventTimeZone ?? "America/New_York",
+                PreStartBufferMinutes = preStartBuffer ?? "0"
+            };
+
+            return Results.Ok(settings);
+        })
+        .WithName("GetPublicSettings")
+        .WithSummary("Get public application settings")
+        .WithDescription("Returns non-sensitive settings like timezone and pre-start buffer. No authentication required.")
+        .WithTags("Settings")
+        .Produces<object>(200);
+
         // Get all settings (admin only)
         app.MapGet("/api/admin/settings", async (
             ISettingsService settingsService,

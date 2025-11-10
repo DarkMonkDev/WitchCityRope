@@ -7,8 +7,9 @@ using WitchCityRope.Api.Features.EmailTemplates.Entities;
 namespace WitchCityRope.Api.Services.Seeding;
 
 /// <summary>
-/// Seeds default email templates for Events, Admin, Incident, and Ad Hoc categories.
-/// Vetting templates are migrated automatically from VettingEmailTemplates table.
+/// Seeds default email templates for all 5 categories: Vetting, Events, Admin, Incident, and Ad Hoc.
+/// Total: 22 templates (Vetting: 6, Events: 7, Admin: 4, Incident: 4, Ad Hoc: 1)
+/// Vetting templates are migrated from the legacy VettingEmailTemplates table.
 /// </summary>
 public class EmailTemplateSeeder
 {
@@ -23,8 +24,8 @@ public class EmailTemplateSeeder
 
     /// <summary>
     /// Seeds 22 default email templates across 5 categories.
-    /// Vetting templates (6) are migrated by database migration.
-    /// This method seeds the remaining 16 templates.
+    /// This includes 6 Vetting templates migrated from VettingEmailTemplates table,
+    /// plus 16 templates for Events (7), Admin (4), Incident (4), and Ad Hoc (1).
     /// </summary>
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
@@ -42,19 +43,8 @@ public class EmailTemplateSeeder
 
         var adminUserId = adminUser.Id;
 
-        // Check if Vetting templates were migrated
-        var existingVettingTemplates = await _context.GlobalEmailTemplates
-            .Where(t => t.Category == EmailCategory.Vetting)
-            .CountAsync(cancellationToken);
-
-        if (existingVettingTemplates > 0)
-        {
-            _logger.LogInformation("Vetting templates already migrated ({Count} templates), skipping...", existingVettingTemplates);
-        }
-        else
-        {
-            _logger.LogWarning("No Vetting templates found - migration may not have run");
-        }
+        // Seed Vetting templates (6) - migrated from old VettingEmailTemplates table
+        await SeedVettingTemplatesAsync(adminUserId, cancellationToken);
 
         // Seed Events templates (7)
         await SeedEventsTemplatesAsync(adminUserId, cancellationToken);
@@ -71,6 +61,121 @@ public class EmailTemplateSeeder
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Email template seeding completed");
+    }
+
+    private async Task SeedVettingTemplatesAsync(Guid adminUserId, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Seeding Vetting templates (6)...");
+
+        var templates = new[]
+        {
+            new GlobalEmailTemplate
+            {
+                Id = Guid.Parse("80808080-8080-8080-8080-808080808080"),
+                Category = EmailCategory.Vetting,
+                TemplateType = "ApplicationReceived",
+                Subject = "Application Received - {{scene_name}}",
+                HtmlBody = "<p style=\"margin-bottom: 16px;\">Hi {{scene_name}},</p><p style=\"margin-bottom: 16px;\">Thank you for submitting your vetting application to WitchCityRope. We have received your application and it is now under review.</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Application Details</h2><p style=\"margin-bottom: 16px;\"><strong>Application Number:</strong> {{application_number}}<br><strong>Submission Date:</strong> {{submission_date}}</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Next Steps</h2><p style=\"margin-bottom: 16px;\">Our vetting team will review your application and contact you within the next 7-10 business days with updates on your status.</p><p style=\"margin-bottom: 16px;\">If you have any questions, please don't hesitate to contact us.</p><p style=\"margin-bottom: 16px;\">Best regards,<br>The Witch City Rope Vetting Team</p><p style=\"margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; color: #666; font-size: 12px;\">Questions? Contact us at <a href=\"mailto:{{contact_email}}\" style=\"color: #880124;\">{{contact_email}}</a></p>",
+                PlainTextBody = "Dear {{scene_name}},\n\nThank you for submitting your vetting application to WitchCityRope. We have received your application and it is now under review.\n\nApplication Number: {{application_number}}\nSubmission Date: {{submission_date}}\n\nOur vetting team will review your application and contact you within the next 7-10 business days with updates on your status.\n\nIf you have any questions, please don't hesitate to contact us.\n\nBest regards,\nThe WitchCityRope Vetting Team",
+                Variables = JsonSerializer.Serialize(new[] { "{{scene_name}}", "{{application_number}}", "{{submission_date}}", "{{application_date}}", "{{status_change_date}}", "{{contact_email}}", "{{current_status}}" }),
+                IsActive = true,
+                Version = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                UpdatedBy = adminUserId
+            },
+            new GlobalEmailTemplate
+            {
+                Id = Guid.Parse("80808080-8080-8080-8080-808080808081"),
+                Category = EmailCategory.Vetting,
+                TemplateType = "InterviewApproved",
+                Subject = "Interview Approved - {{scene_name}}",
+                HtmlBody = "<p style=\"margin-bottom: 16px;\">Hi {{scene_name}},</p><p style=\"margin-bottom: 16px;\">Congratulations! Your vetting application has been approved for the interview stage.</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Application Status</h2><p style=\"margin-bottom: 16px;\"><strong>Application Number:</strong> {{application_number}}<br><strong>Status:</strong> Approved for Interview</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Schedule Your Interview</h2><p style=\"margin-bottom: 16px;\">Please schedule your interview using the link below:</p><p style=\"margin-bottom: 16px;\"><a href=\"{{interview_link}}\" style=\"color: #880124; text-decoration: underline;\">Schedule Interview</a></p><p style=\"margin-bottom: 16px;\">During your interview, we will discuss your experience, interests, and answer any questions you may have about our community.</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Important Information</h2><ul style=\"margin-bottom: 16px; padding-left: 20px;\"><li>Please schedule your interview within the next 14 days</li><li>Prepare questions about WitchCityRope and our community</li><li>Be ready to discuss your rope bondage experience</li></ul><p style=\"margin-bottom: 16px;\">Best regards,<br>The Witch City Rope Vetting Team</p><p style=\"margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; color: #666; font-size: 12px;\">Questions? Contact us at <a href=\"mailto:{{contact_email}}\" style=\"color: #880124;\">{{contact_email}}</a></p>",
+                PlainTextBody = "Dear {{scene_name}},\n\nCongratulations! Your vetting application has been approved for the interview stage.\n\nApplication Number: {{application_number}}\nNext Steps: Please schedule your interview using the link below\nInterview Scheduling: {{interview_link}}\n\nDuring your interview, we will discuss your experience, interests, and answer any questions you may have about our community.\n\nPlease schedule your interview within the next 14 days.\n\nBest regards,\nThe WitchCityRope Vetting Team",
+                Variables = JsonSerializer.Serialize(new[] { "{{scene_name}}", "{{application_number}}", "{{interview_link}}", "{{submission_date}}", "{{application_date}}", "{{status_change_date}}", "{{contact_email}}", "{{current_status}}" }),
+                IsActive = true,
+                Version = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                UpdatedBy = adminUserId
+            },
+            new GlobalEmailTemplate
+            {
+                Id = Guid.Parse("80808080-8080-8080-8080-808080808082"),
+                Category = EmailCategory.Vetting,
+                TemplateType = "VettingApproved",
+                Subject = "Welcome to WitchCityRope - {{scene_name}}",
+                HtmlBody = "<p style=\"margin-bottom: 16px;\">Hi {{scene_name}},</p><p style=\"margin-bottom: 16px;\">Congratulations! Your application has been approved and you are now a <strong>vetted member</strong> of WitchCityRope.</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Application Approved</h2><p style=\"margin-bottom: 16px;\"><strong>Application Number:</strong> {{application_number}}<br><strong>Approval Date:</strong> {{approval_date}}</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Welcome to Our Community!</h2><p style=\"margin-bottom: 16px;\">You now have access to:</p><ul style=\"margin-bottom: 16px; padding-left: 20px;\"><li>All member events and workshops</li><li>Our private community forums</li><li>Advanced classes and demonstrations</li><li>Volunteer opportunities</li></ul><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Next Steps</h2><p style=\"margin-bottom: 16px;\">Your member profile has been activated and you can now register for upcoming events. We look forward to seeing you at our next gathering!</p><p style=\"margin-bottom: 16px;\">Welcome aboard!</p><p style=\"margin-bottom: 16px;\">Best regards,<br>The Witch City Rope Team</p><p style=\"margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; color: #666; font-size: 12px;\">Questions? Contact us at <a href=\"mailto:{{contact_email}}\" style=\"color: #880124;\">{{contact_email}}</a></p>",
+                PlainTextBody = "Dear {{scene_name}},\n\nCongratulations! Your application has been approved and you are now a vetted member of WitchCityRope.\n\nApplication Number: {{application_number}}\nApproval Date: {{approval_date}}\n\nWelcome to our community! You now have access to:\n- All member events and workshops\n- Our private community forums\n- Advanced classes and demonstrations\n- Volunteer opportunities\n\nYour member profile has been activated and you can now register for upcoming events.\n\nWelcome aboard!\n\nBest regards,\nThe WitchCityRope Team",
+                Variables = JsonSerializer.Serialize(new[] { "{{scene_name}}", "{{application_number}}", "{{approval_date}}", "{{submission_date}}", "{{application_date}}", "{{status_change_date}}", "{{contact_email}}", "{{current_status}}" }),
+                IsActive = true,
+                Version = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                UpdatedBy = adminUserId
+            },
+            new GlobalEmailTemplate
+            {
+                Id = Guid.Parse("80808080-8080-8080-8080-808080808083"),
+                Category = EmailCategory.Vetting,
+                TemplateType = "ApplicationOnHold",
+                Subject = "Application On Hold - Additional Information Needed - {{scene_name}}",
+                HtmlBody = "<p style=\"margin-bottom: 16px;\">Hi {{scene_name}},</p><p style=\"margin-bottom: 16px;\">Your vetting application is currently on hold as we need some additional information to proceed.</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Application Status</h2><p style=\"margin-bottom: 16px;\"><strong>Application Number:</strong> {{application_number}}<br><strong>Status:</strong> On Hold<br><strong>Reason:</strong> {{hold_reason}}</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Required Actions</h2><p style=\"margin-bottom: 16px;\">{{required_actions}}</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Important Deadline</h2><p style=\"margin-bottom: 16px;\">Please provide the requested information within <strong>30 days</strong> to avoid application expiration.</p><p style=\"margin-bottom: 16px;\">If you have any questions about what's needed, please don't hesitate to contact us.</p><p style=\"margin-bottom: 16px;\">Best regards,<br>The Witch City Rope Vetting Team</p><p style=\"margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; color: #666; font-size: 12px;\">Questions? Contact us at <a href=\"mailto:{{contact_email}}\" style=\"color: #880124;\">{{contact_email}}</a></p>",
+                PlainTextBody = "Dear {{scene_name}},\n\nYour vetting application is currently on hold as we need some additional information to proceed.\n\nApplication Number: {{application_number}}\nReason: {{hold_reason}}\n\nRequired Actions:\n{{required_actions}}\n\nPlease provide the requested information within 30 days to avoid application expiration.\n\nIf you have any questions about what's needed, please contact us.\n\nBest regards,\nThe WitchCityRope Vetting Team",
+                Variables = JsonSerializer.Serialize(new[] { "{{scene_name}}", "{{application_number}}", "{{hold_reason}}", "{{required_actions}}", "{{submission_date}}", "{{application_date}}", "{{status_change_date}}", "{{contact_email}}", "{{current_status}}" }),
+                IsActive = true,
+                Version = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                UpdatedBy = adminUserId
+            },
+            new GlobalEmailTemplate
+            {
+                Id = Guid.Parse("80808080-8080-8080-8080-808080808084"),
+                Category = EmailCategory.Vetting,
+                TemplateType = "ApplicationStatusUpdate",
+                Subject = "Application Status Update - {{scene_name}}",
+                HtmlBody = "<p style=\"margin-bottom: 16px;\">Hi {{scene_name}},</p><p style=\"margin-bottom: 16px;\">Thank you for your interest in WitchCityRope. After careful review, we are unable to approve your application at this time.</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Application Decision</h2><p style=\"margin-bottom: 16px;\"><strong>Application Number:</strong> {{application_number}}<br><strong>Review Date:</strong> {{review_date}}<br><strong>Status:</strong> Not Approved</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Next Steps</h2><p style=\"margin-bottom: 16px;\">This decision is final for this application cycle. You are welcome to reapply in the future if your circumstances change.</p><p style=\"margin-bottom: 16px;\">We appreciate your interest in our community.</p><p style=\"margin-bottom: 16px;\">Best regards,<br>The Witch City Rope Vetting Team</p><p style=\"margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; color: #666; font-size: 12px;\">Questions? Contact us at <a href=\"mailto:{{contact_email}}\" style=\"color: #880124;\">{{contact_email}}</a></p>",
+                PlainTextBody = "Dear {{scene_name}},\n\nThank you for your interest in WitchCityRope. After careful review, we are unable to approve your application at this time.\n\nApplication Number: {{application_number}}\nReview Date: {{review_date}}\n\nThis decision is final for this application cycle. You are welcome to reapply in the future if your circumstances change.\n\nWe appreciate your interest in our community.\n\nBest regards,\nThe WitchCityRope Vetting Team",
+                Variables = JsonSerializer.Serialize(new[] { "{{scene_name}}", "{{application_number}}", "{{review_date}}", "{{submission_date}}", "{{application_date}}", "{{status_change_date}}", "{{contact_email}}", "{{current_status}}" }),
+                IsActive = true,
+                Version = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                UpdatedBy = adminUserId
+            },
+            new GlobalEmailTemplate
+            {
+                Id = Guid.Parse("80808080-8080-8080-8080-808080808085"),
+                Category = EmailCategory.Vetting,
+                TemplateType = "InterviewReminder",
+                Subject = "Interview Reminder - {{scene_name}}",
+                HtmlBody = "<p style=\"margin-bottom: 16px;\">Hi {{scene_name}},</p><p style=\"margin-bottom: 16px;\">This is a friendly reminder about your upcoming vetting interview.</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Interview Information</h2><p style=\"margin-bottom: 16px;\"><strong>Application Number:</strong> {{application_number}}</p><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Preparation Checklist</h2><ul style=\"margin-bottom: 16px; padding-left: 20px;\"><li>Review your application details</li><li>Prepare questions about WitchCityRope</li><li>Be ready to discuss your rope bondage experience</li><li>Ensure you have a quiet, private space for the interview</li></ul><h2 style=\"color: #880124; margin-top: 24px; margin-bottom: 16px;\">Need to Reschedule?</h2><p style=\"margin-bottom: 16px;\">If you need to reschedule, please contact us at least 24 hours in advance.</p><p style=\"margin-bottom: 16px;\">We look forward to meeting with you!</p><p style=\"margin-bottom: 16px;\">Best regards,<br>The Witch City Rope Vetting Team</p><p style=\"margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; color: #666; font-size: 12px;\">Questions? Contact us at <a href=\"mailto:{{contact_email}}\" style=\"color: #880124;\">{{contact_email}}</a></p>",
+                PlainTextBody = "Dear {{scene_name}},\n\nThis is a friendly reminder about your upcoming vetting interview.\n\nApplication Number: {{application_number}}\n\nIf you need to reschedule, please contact us at least 24 hours in advance.\n\nWe look forward to meeting with you!\n\nBest regards,\nThe WitchCityRope Vetting Team",
+                Variables = JsonSerializer.Serialize(new[] { "{{scene_name}}", "{{application_number}}", "{{submission_date}}", "{{application_date}}", "{{status_change_date}}", "{{contact_email}}", "{{current_status}}" }),
+                IsActive = true,
+                Version = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                UpdatedBy = adminUserId
+            }
+        };
+
+        foreach (var template in templates)
+        {
+            var exists = await _context.GlobalEmailTemplates
+                .AnyAsync(t => t.Category == template.Category && t.TemplateType == template.TemplateType, cancellationToken);
+
+            if (!exists)
+            {
+                await _context.GlobalEmailTemplates.AddAsync(template, cancellationToken);
+                _logger.LogInformation("Added Vetting template: {TemplateType}", template.TemplateType);
+            }
+            else
+            {
+                _logger.LogInformation("Vetting template already exists: {TemplateType}", template.TemplateType);
+            }
+        }
     }
 
     private async Task SeedEventsTemplatesAsync(Guid adminUserId, CancellationToken cancellationToken)

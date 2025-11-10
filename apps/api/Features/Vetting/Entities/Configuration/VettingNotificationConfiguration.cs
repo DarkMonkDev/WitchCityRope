@@ -50,11 +50,6 @@ public class VettingNotificationConfiguration : IEntityTypeConfiguration<Vetting
             .HasForeignKey(e => e.ApplicationId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(e => e.Template)
-            .WithMany(t => t.Notifications)
-            .HasForeignKey(e => e.TemplateId)
-            .OnDelete(DeleteBehavior.SetNull);
-
         // Indexes
         builder.HasIndex(e => e.ApplicationId)
             .HasDatabaseName("IX_VettingNotifications_ApplicationId");

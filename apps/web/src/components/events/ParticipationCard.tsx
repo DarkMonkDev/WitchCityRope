@@ -48,6 +48,7 @@ import { useConfirmPayPalPayment } from '../../lib/api/hooks/usePayments';
 import { PaymentSummary } from '../../features/payments/components/PaymentSummary';
 import type { components } from '@witchcityrope/shared-types/generated/api-types';
 import { debugLog } from '../../utils/debug';
+import { useEventTimingStatus } from '../../hooks/useEventTimingStatus';
 
 type TicketTypeDto = components["schemas"]["TicketTypeDto"];
 
@@ -99,6 +100,9 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   const { data: user, isLoading: isLoadingUser } = useCurrentUser();
   const navigate = useNavigate();
   const isAuthenticated = !!user;
+
+  // Event timing status for buffer enforcement
+  const timingStatus = useEventTimingStatus(eventStartDateTime);
 
   // DEBUG: Log all relevant data for RSVP button troubleshooting
   debugLog('🔍 ParticipationCard DEBUG DATA:');
@@ -261,33 +265,46 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   if (eventType === 'social' && !isVetted) {
     return (
       <ParticipationCardShell>
-        <Alert
-          icon={<IconAlertCircle size={16} />}
-          title="Vetting Required"
-          variant="light"
-          color="orange"
-        >
-          <Text size="sm" mb="md">
-            This social event is limited to vetted members. Complete the vetting process to attend.
-          </Text>
-          <Button
-            component="a"
-            href="/vetting"
-            variant="outline"
+        <Box style={{ width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
+          <Alert
+            icon={<IconAlertCircle size={16} />}
+            title="Vetting Required"
+            variant="light"
             color="orange"
             styles={{
               root: {
-                height: '44px',
-                paddingTop: '12px',
-                paddingBottom: '12px',
-                fontSize: '14px',
-                lineHeight: '1.2'
+                width: '100%',
+                maxWidth: '100%'
+              },
+              message: {
+                width: '100%',
+                maxWidth: '100%'
               }
             }}
           >
-            Start Vetting Process
-          </Button>
-        </Alert>
+            <Text size="sm" mb="md" style={{ width: '100%', wordWrap: 'break-word' }}>
+              This social event is limited to vetted members. Complete the vetting process to attend.
+            </Text>
+            <Button
+              component="a"
+              href="/vetting"
+              variant="outline"
+              color="orange"
+              fullWidth
+              styles={{
+                root: {
+                  height: '44px',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                  fontSize: '14px',
+                  lineHeight: '1.2'
+                }
+              }}
+            >
+              Start Vetting Process
+            </Button>
+          </Alert>
+        </Box>
       </ParticipationCardShell>
     );
   }
@@ -439,22 +456,33 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                     day: 'numeric'
                   }) : 'Date unavailable'}
               </Text>
-              <Button
-                variant="light"
-                color="red"
-                onClick={() => handleCancelClick('rsvp')}
-                styles={{
-                  root: {
-                    height: '44px',
-                    paddingTop: '12px',
-                    paddingBottom: '12px',
-                    fontSize: '14px',
-                    lineHeight: '1.2'
-                  }
-                }}
-              >
-                Cancel RSVP
-              </Button>
+
+              {/* Show cancel button only if timing allows */}
+              {timingStatus?.canCancel && (
+                <Button
+                  variant="light"
+                  color="red"
+                  onClick={() => handleCancelClick('rsvp')}
+                  styles={{
+                    root: {
+                      height: '44px',
+                      paddingTop: '12px',
+                      paddingBottom: '12px',
+                      fontSize: '14px',
+                      lineHeight: '1.2'
+                    }
+                  }}
+                >
+                  Cancel RSVP
+                </Button>
+              )}
+
+              {/* Show status message when cancellation not allowed */}
+              {!timingStatus?.canCancel && timingStatus?.statusMessage && (
+                <Alert variant="light" color="gray" icon={<IconAlertCircle size={16} />}>
+                  <Text size="sm">{timingStatus.statusMessage}</Text>
+                </Alert>
+              )}
             </Box>
           )}
 
@@ -494,23 +522,33 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                 title="Your Ticket Purchase"
               />
               <Box mt="md">
-                <Button
-                  variant="light"
-                  color="red"
-                  onClick={() => handleCancelClick('ticket')}
-                  fullWidth
-                  styles={{
-                    root: {
-                      height: '44px',
-                      paddingTop: '12px',
-                      paddingBottom: '12px',
-                      fontSize: '14px',
-                      lineHeight: '1.2'
-                    }
-                  }}
-                >
-                  Cancel Ticket
-                </Button>
+                {/* Show cancel button only if timing allows */}
+                {timingStatus?.canCancel && (
+                  <Button
+                    variant="light"
+                    color="red"
+                    onClick={() => handleCancelClick('ticket')}
+                    fullWidth
+                    styles={{
+                      root: {
+                        height: '44px',
+                        paddingTop: '12px',
+                        paddingBottom: '12px',
+                        fontSize: '14px',
+                        lineHeight: '1.2'
+                      }
+                    }}
+                  >
+                    Cancel Ticket
+                  </Button>
+                )}
+
+                {/* Show status message when cancellation not allowed */}
+                {!timingStatus?.canCancel && timingStatus?.statusMessage && (
+                  <Alert variant="light" color="gray" icon={<IconAlertCircle size={16} />}>
+                    <Text size="sm">{timingStatus.statusMessage}</Text>
+                  </Alert>
+                )}
               </Box>
             </Box>
           )}
@@ -521,8 +559,8 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
               {/* Social Event Pattern: RSVP first, then optional ticket */}
               {eventType === 'social' && (
                 <>
-                  {/* Show RSVP button only if user hasn't RSVP'd yet */}
-                  {!validParticipation?.hasRSVP && (
+                  {/* Show RSVP button only if user hasn't RSVP'd yet AND timing allows */}
+                  {!validParticipation?.hasRSVP && timingStatus?.canRegister && (
                     (() => {
                       const canRSVPCondition = validParticipation?.canRSVP || validParticipation === null || isLoading;
 
@@ -559,8 +597,8 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                     })()
                   )}
 
-                  {/* Show ticket purchase option when user hasn't purchased a ticket yet */}
-                  {!validParticipation?.hasTicket && (
+                  {/* Show ticket purchase option when user hasn't purchased a ticket yet AND timing allows */}
+                  {!validParticipation?.hasTicket && timingStatus?.canRegister && (
                     <Box>
                       <Text size="sm" c="dimmed" ta="center" mb="sm">
                         {validParticipation?.hasRSVP
@@ -589,48 +627,66 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                       </Button>
                     </Box>
                   )}
+
+                  {/* Show status message when registration not allowed */}
+                  {(!validParticipation?.hasRSVP && !validParticipation?.hasTicket) && !timingStatus?.canRegister && timingStatus?.statusMessage && (
+                    <Alert variant="light" color="gray" icon={<IconAlertCircle size={16} />}>
+                      <Text size="sm">{timingStatus.statusMessage}</Text>
+                    </Alert>
+                  )}
                 </>
               )}
 
               {/* Class Pattern: Ticket purchase required */}
               {eventType === 'class' && !validParticipation?.hasTicket && (
                 <Box>
-                  <Box
-                    style={{
-                      background: 'var(--color-cream)',
-                      borderRadius: '12px',
-                      padding: 'var(--space-md)',
-                      textAlign: 'center',
-                      marginBottom: 'var(--space-md)'
-                    }}
-                  >
-                    <Text fw={700} size="lg" c="var(--color-burgundy)" mb="xs">
-                      Class Fee: ${ticketPrice}
-                    </Text>
-                    <Text size="sm" c="dimmed">
-                      Sliding scale pricing available ($50-75 suggested)
-                    </Text>
-                  </Box>
+                  {timingStatus?.canRegister && (
+                    <>
+                      <Box
+                        style={{
+                          background: 'var(--color-cream)',
+                          borderRadius: '12px',
+                          padding: 'var(--space-md)',
+                          textAlign: 'center',
+                          marginBottom: 'var(--space-md)'
+                        }}
+                      >
+                        <Text fw={700} size="lg" c="var(--color-burgundy)" mb="xs">
+                          Class Fee: ${ticketPrice}
+                        </Text>
+                        <Text size="sm" c="dimmed">
+                          Sliding scale pricing available ($50-75 suggested)
+                        </Text>
+                      </Box>
 
-                  <Button
-                    onClick={handleTicketPurchase}
-                    fullWidth
-                    variant="filled"
-                    color="blue"
-                    leftSection={<IconTicket size={18} />}
-                    data-testid="button-purchase-ticket"
-                    styles={{
-                      root: {
-                        height: '44px',
-                        paddingTop: '12px',
-                        paddingBottom: '12px',
-                        fontSize: '14px',
-                        lineHeight: '1.2'
-                      }
-                    }}
-                  >
-                    Purchase Ticket
-                  </Button>
+                      <Button
+                        onClick={handleTicketPurchase}
+                        fullWidth
+                        variant="filled"
+                        color="blue"
+                        leftSection={<IconTicket size={18} />}
+                        data-testid="button-purchase-ticket"
+                        styles={{
+                          root: {
+                            height: '44px',
+                            paddingTop: '12px',
+                            paddingBottom: '12px',
+                            fontSize: '14px',
+                            lineHeight: '1.2'
+                          }
+                        }}
+                      >
+                        Purchase Ticket
+                      </Button>
+                    </>
+                  )}
+
+                  {/* Show status message when registration not allowed */}
+                  {!timingStatus?.canRegister && timingStatus?.statusMessage && (
+                    <Alert variant="light" color="gray" icon={<IconAlertCircle size={16} />}>
+                      <Text size="sm">{timingStatus.statusMessage}</Text>
+                    </Alert>
+                  )}
                 </Box>
               )}
             </Stack>

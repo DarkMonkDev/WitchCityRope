@@ -160,21 +160,11 @@ export const InvestigationNotes: React.FC<InvestigationNotesProps> = ({ incident
 
   return (
     <Card p="xl" radius="md" style={{ border: '1px solid #E0E0E0' }}>
-      <Title order={3} mb="md" style={{ color: '#880124', display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <IconNote size={20} />
-        Investigation Notes
-      </Title>
-
-      {/* Add Note Form */}
-      <Stack gap="md" mb="xl">
-        <Textarea
-          placeholder="Add investigation note..."
-          data-testid="add-note-content"
-          value={noteContent}
-          onChange={(e) => setNoteContent(e.currentTarget.value)}
-          minRows={3}
-        />
-
+      <Group justify="space-between" align="center" mb="md">
+        <Title order={3} style={{ color: '#880124', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <IconNote size={20} />
+          Investigation Notes
+        </Title>
         <Button
           onClick={() => addNoteMutation.mutate()}
           loading={addNoteMutation.isPending}
@@ -193,6 +183,17 @@ export const InvestigationNotes: React.FC<InvestigationNotesProps> = ({ incident
         >
           Add Note
         </Button>
+      </Group>
+
+      {/* Add Note Form */}
+      <Stack gap="md" mb="xl">
+        <Textarea
+          placeholder="Add investigation note..."
+          data-testid="add-note-content"
+          value={noteContent}
+          onChange={(e) => setNoteContent(e.currentTarget.value)}
+          minRows={3}
+        />
       </Stack>
 
       {/* Notes List */}

@@ -27,6 +27,10 @@ import type {
   UserProfileDto,
 } from '../../types/dashboard.types'
 import { debugLog } from '../../utils/debug'
+import { HoldMembershipModal } from '../../components/vetting/HoldMembershipModal'
+import { ReinstateMembershipModal } from '../../components/vetting/ReinstateMembershipModal'
+import { vettingHoldService } from '../../services/vettingHold.api'
+import { useCurrentUser } from '../../features/auth/api/queries'
 
 /**
  * Profile Settings Page with 3 tabs
@@ -549,70 +553,188 @@ const ChangePasswordForm: React.FC = () => {
 
 // Vetting Status Display Component
 const VettingStatusDisplay: React.FC<{ profile: UserProfileDto }> = ({ profile }) => {
+  const [holdModalOpened, setHoldModalOpened] = useState(false)
+  const [reinstateModalOpened, setReinstateModalOpened] = useState(false)
+  const { data: currentUser } = useCurrentUser()
+
+  // Determine which button to show based on vetting status
+  const vettingStatus = profile.vettingStatus
+  const isApproved = vettingStatus === 'Approved'
+  const isOnHold = vettingStatus === 'OnHold'
+  const isFinalReview = vettingStatus === 'FinalReview'
+
+  const handlePlaceOnHold = async (reason: string) => {
+    try {
+      if (!currentUser?.id) {
+        throw new Error('User ID not available')
+      }
+
+      await vettingHoldService.placeMembershipOnHold(currentUser.id, reason)
+
+      notifications.show({
+        title: 'Success',
+        message: 'Your membership has been placed on hold',
+        color: 'green',
+        icon: <IconCheck />,
+      })
+
+      // Refresh profile data would happen via React Query invalidation
+      // For now, user will see updated status on next page load
+      setTimeout(() => window.location.reload(), 1500)
+    } catch (error: any) {
+      notifications.show({
+        title: 'Error',
+        message: error.message || 'Failed to place membership on hold',
+        color: 'red',
+        icon: <IconAlertCircle />,
+      })
+    }
+  }
+
+  const handleRequestReinstatement = async (reason: string) => {
+    try {
+      if (!currentUser?.id) {
+        throw new Error('User ID not available')
+      }
+
+      await vettingHoldService.requestReinstatement(currentUser.id, reason)
+
+      notifications.show({
+        title: 'Success',
+        message: 'Your reinstatement request has been submitted for review',
+        color: 'green',
+        icon: <IconCheck />,
+      })
+
+      // Refresh profile data
+      setTimeout(() => window.location.reload(), 1500)
+    } catch (error: any) {
+      notifications.show({
+        title: 'Error',
+        message: error.message || 'Failed to request reinstatement',
+        color: 'red',
+        icon: <IconAlertCircle />,
+      })
+    }
+  }
+
   return (
-    <Box
-      p="md"
-      style={{
-        background: 'white',
-        borderRadius: '12px',
-        border: '1px solid var(--color-taupe)',
-      }}
-    >
-      <Stack gap="md">
-        <TextInput
-          label="Vetting Status"
-          value={profile.vettingStatus}
-          readOnly
-          styles={{
-            label: {
-              fontFamily: 'var(--font-heading)',
-              fontWeight: 600,
-              color: 'var(--color-burgundy)',
-            },
-            input: {
-              backgroundColor: 'var(--color-cream)',
-              color: 'var(--color-charcoal)',
-            },
-          }}
-        />
-
-        <Text size="sm" c="dimmed">
-          Your vetting status is managed by administrators. If you have questions about your status,
-          please contact us.
-        </Text>
-
-        <Group justify="flex-end">
-          <Button
-            variant="outline"
-            color="burgundy"
+    <>
+      <Box
+        p="md"
+        style={{
+          background: 'white',
+          borderRadius: '12px',
+          border: '1px solid var(--color-taupe)',
+        }}
+      >
+        <Stack gap="md">
+          <TextInput
+            label="Vetting Status"
+            value={profile.vettingStatus}
+            readOnly
             styles={{
-              root: {
-                borderRadius: '12px 6px 12px 6px',
+              label: {
                 fontFamily: 'var(--font-heading)',
                 fontWeight: 600,
-                textTransform: 'uppercase',
-                height: 'auto',
-                paddingTop: '12px',
-                paddingBottom: '12px',
-                paddingLeft: '24px',
-                paddingRight: '24px',
-                lineHeight: '1.2',
-                display: 'flex',
-                alignItems: 'center',
+                color: 'var(--color-burgundy)',
+              },
+              input: {
+                backgroundColor: 'var(--color-cream)',
+                color: 'var(--color-charcoal)',
               },
             }}
-            onClick={() => {
-              notifications.show({
-                title: 'Coming Soon',
-                message: 'Membership hold functionality will be available soon',
-                color: 'blue',
-              })
-            }}
-          >
-            Put Membership On Hold
-          </Button>
-        </Group>
-      </Stack>
-    </Box>
+          />
+
+          <Text size="sm" c="dimmed">
+            Your vetting status is managed by administrators. If you have questions about your
+            status, please contact us.
+          </Text>
+
+          {/* Show appropriate button or alert based on status */}
+          {isApproved && (
+            <Group justify="flex-end">
+              <Button
+                color="burgundy"
+                onClick={() => setHoldModalOpened(true)}
+                styles={{
+                  root: {
+                    borderRadius: '12px 6px 12px 6px',
+                    fontFamily: 'var(--font-heading)',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    height: 'auto',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    paddingLeft: '24px',
+                    paddingRight: '24px',
+                    lineHeight: '1.2',
+                    display: 'flex',
+                    alignItems: 'center',
+                  },
+                }}
+              >
+                Put Membership On Hold
+              </Button>
+            </Group>
+          )}
+
+          {isOnHold && (
+            <Group justify="flex-end">
+              <Button
+                variant="filled"
+                color="blue"
+                onClick={() => setReinstateModalOpened(true)}
+                styles={{
+                  root: {
+                    borderRadius: '12px 6px 12px 6px',
+                    fontFamily: 'var(--font-heading)',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    height: 'auto',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    paddingLeft: '24px',
+                    paddingRight: '24px',
+                    lineHeight: '1.2',
+                    display: 'flex',
+                    alignItems: 'center',
+                  },
+                }}
+              >
+                Reinstate My Membership
+              </Button>
+            </Group>
+          )}
+
+          {isFinalReview && (
+            <Alert
+              color="blue"
+              title="Reinstatement Under Review"
+              icon={<IconAlertCircle />}
+              variant="light"
+            >
+              <Text size="sm">
+                Your reinstatement request is under review by administrators. You will be notified
+                once a decision is made.
+              </Text>
+            </Alert>
+          )}
+        </Stack>
+      </Box>
+
+      {/* Modals */}
+      <HoldMembershipModal
+        opened={holdModalOpened}
+        onClose={() => setHoldModalOpened(false)}
+        onConfirm={handlePlaceOnHold}
+      />
+
+      <ReinstateMembershipModal
+        opened={reinstateModalOpened}
+        onClose={() => setReinstateModalOpened(false)}
+        onConfirm={handleRequestReinstatement}
+      />
+    </>
   )
 }

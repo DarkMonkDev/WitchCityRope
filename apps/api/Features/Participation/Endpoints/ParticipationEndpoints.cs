@@ -444,6 +444,99 @@ public static class ParticipationEndpoints
             .Produces(403)
             .Produces(500);
 
+        // Admin endpoint: Remove user's attendance (RSVP or Ticket) - Simple removal without cascading
+        app.MapDelete("/api/admin/events/{eventId:guid}/participations/{userId:guid}",
+            [Authorize(Roles = "Administrator")] async (
+                Guid eventId,
+                Guid userId,
+                ApplicationDbContext context,
+                ClaimsPrincipal user,
+                ILogger<IAttendanceService> logger,
+                CancellationToken cancellationToken) =>
+            {
+                if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var adminUserId))
+                {
+                    return Results.Problem(
+                        title: "Unauthorized",
+                        detail: "Admin authentication failed - missing or invalid user identifier",
+                        statusCode: 401);
+                }
+
+                logger.LogInformation(
+                    "Admin {AdminUserId} removing attendance for user {UserId} from event {EventId}",
+                    adminUserId, userId, eventId);
+
+                // Find any active attendance for this user and event
+                var attendance = await context.EventAttendances
+                    .FirstOrDefaultAsync(ea =>
+                        ea.EventId == eventId &&
+                        ea.UserId == userId &&
+                        ea.Status == AttendanceStatus.Active,
+                        cancellationToken);
+
+                if (attendance == null)
+                {
+                    return Results.Problem(
+                        title: "Attendance Not Found",
+                        detail: "No active attendance found for this user and event",
+                        statusCode: 404);
+                }
+
+                // Mark attendance as cancelled
+                attendance.Status = AttendanceStatus.Cancelled;
+                attendance.CancelledAt = DateTime.UtcNow;
+                attendance.CancellationReason = $"Removed by admin {adminUserId}";
+                attendance.UpdatedBy = adminUserId;
+                attendance.UpdatedAt = DateTime.UtcNow;
+                context.EventAttendances.Update(attendance);
+
+                // Update EventAttendee status if no OTHER active attendances remain
+                // Use Local to check change tracker since we haven't saved yet
+                var hasOtherActiveAttendance = context.EventAttendances.Local
+                    .Any(ea =>
+                        ea.EventId == eventId &&
+                        ea.UserId == userId &&
+                        ea.Id != attendance.Id &&
+                        ea.Status == AttendanceStatus.Active) ||
+                    await context.EventAttendances
+                        .AnyAsync(ea =>
+                            ea.EventId == eventId &&
+                            ea.UserId == userId &&
+                            ea.Id != attendance.Id &&
+                            ea.Status == AttendanceStatus.Active,
+                            cancellationToken);
+
+                if (!hasOtherActiveAttendance)
+                {
+                    var eventAttendee = await context.EventAttendees
+                        .FirstOrDefaultAsync(ea => ea.EventId == eventId && ea.UserId == userId, cancellationToken);
+
+                    if (eventAttendee != null)
+                    {
+                        eventAttendee.RegistrationStatus = "cancelled";
+                        eventAttendee.UpdatedAt = DateTime.UtcNow;
+                        context.EventAttendees.Update(eventAttendee);
+                    }
+                }
+
+                await context.SaveChangesAsync(cancellationToken);
+
+                logger.LogInformation(
+                    "Admin {AdminUserId} successfully removed {AttendanceType} attendance for user {UserId} from event {EventId}",
+                    adminUserId, attendance.AttendanceType, userId, eventId);
+
+                return Results.NoContent();
+            })
+            .WithName("AdminRemoveParticipation")
+            .WithSummary("Remove user's attendance (admin only)")
+            .WithDescription("Removes user's attendance (RSVP or ticket) from event. Does not process refunds - use refund endpoint separately for paid tickets. Admin role required.")
+            .WithTags("Admin", "Participation")
+            .Produces(204)
+            .Produces(401)
+            .Produces(403)
+            .Produces(404)
+            .Produces(500);
+
         // Admin endpoint: Remove RSVP with cascading effects
         app.MapDelete("/api/admin/events/{eventId:guid}/participations/{userId:guid}/remove",
             [Authorize(Roles = "Administrator")] async (

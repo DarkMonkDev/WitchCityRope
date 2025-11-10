@@ -161,12 +161,12 @@ public class VettingSeeder
             {
                 Id = Guid.NewGuid(),
                 UserId = users[0].Id, // First non-admin user
-                SceneName = "RopeNovice",
-                RealName = "Alexandra Martinez",
-                Email = "alexandra.martinez@email.com",
-                FetLifeHandle = "RopeNovice2024",
-                Pronouns = "she/her",
-                OtherNames = "Alex",
+                SceneName = users[0].SceneName,
+                RealName = $"{users[0].FirstName} {users[0].LastName}",
+                Email = users[0].Email,
+                FetLifeHandle = users[0].FetLifeName,
+                Pronouns = users[0].Pronouns,
+                OtherNames = users[0].FirstName,
                 ExperienceLevel = 1, // Beginner
                 YearsExperience = 0,
                 ExperienceDescription = "I'm completely new to rope bondage but have been researching for several months. I've read safety guides and watched educational videos. Very eager to learn from experienced practitioners in a safe environment.",
@@ -183,12 +183,12 @@ public class VettingSeeder
             {
                 Id = Guid.NewGuid(),
                 UserId = users[1].Id, // Second non-admin user
-                SceneName = "KnotLearner",
-                RealName = "Jordan Kim",
-                Email = "jordan.kim@email.com",
-                FetLifeHandle = "KnotLearner_JK",
-                Pronouns = "they/them",
-                OtherNames = "JK",
+                SceneName = users[1].SceneName,
+                RealName = $"{users[1].FirstName} {users[1].LastName}",
+                Email = users[1].Email,
+                FetLifeHandle = users[1].FetLifeName,
+                Pronouns = users[1].Pronouns,
+                OtherNames = users[1].FirstName,
                 ExperienceLevel = 1, // Beginner
                 YearsExperience = 1,
                 ExperienceDescription = "I've attended a few workshops over the past year and practiced basic ties with a partner. Still learning fundamentals but very enthusiastic about rope and community.",
@@ -206,12 +206,12 @@ public class VettingSeeder
             {
                 Id = Guid.NewGuid(),
                 UserId = users[2].Id, // Third non-admin user
-                SceneName = "TrustBuilder",
-                RealName = "Marcus Johnson",
-                Email = "marcus.johnson@email.com",
-                FetLifeHandle = "TrustBuilder_MJ",
-                Pronouns = "he/him",
-                OtherNames = "Marc, MJ",
+                SceneName = users[2].SceneName,
+                RealName = $"{users[2].FirstName} {users[2].LastName}",
+                Email = users[2].Email,
+                FetLifeHandle = users[2].FetLifeName,
+                Pronouns = users[2].Pronouns,
+                OtherNames = $"{users[2].FirstName}",
                 ExperienceLevel = 2, // Intermediate
                 YearsExperience = 2,
                 ExperienceDescription = "I've been practicing rope bondage for 2 years and know most basic ties. I focus on speed and efficiency in tying and like to push boundaries to help my partners grow.",
@@ -343,16 +343,17 @@ public class VettingSeeder
             // Application 9: Long-term member of another community
             if (users.Count >= 8)
             {
+                var user7 = users[7]; // Use actual user data instead of hardcoded values
                 additionalApplications.Add(new VettingApplication
                 {
                     Id = Guid.NewGuid(),
-                    UserId = users[7].Id,
-                    SceneName = "CommunityBuilder",
-                    RealName = "Morgan Kim",
-                    Email = "morgan.kim@email.com",
-                    FetLifeHandle = "CommunityBuilder_MK",
-                    Pronouns = "she/her",
-                    OtherNames = "Mo",
+                    UserId = user7.Id,
+                    SceneName = user7.SceneName,
+                    RealName = $"{user7.FirstName} {user7.LastName}",
+                    Email = user7.Email,
+                    FetLifeHandle = user7.FetLifeName,
+                    Pronouns = user7.Pronouns,
+                    OtherNames = user7.FirstName,
                     ExperienceLevel = 3, // Advanced
                     YearsExperience = 5,
                     ExperienceDescription = "I've been an active member of the Boston rope community for 5 years, with experience in both performing and teaching. I'm skilled in floor work and partial suspensions, and have helped organize community events and workshops.",
@@ -419,16 +420,17 @@ public class VettingSeeder
             // Application 12: SafetyConscious - Approved Teacher from another city
             if (users.Count >= 11)
             {
+                var user10 = users[10]; // Use actual user data instead of hardcoded values
                 additionalApplications.Add(new VettingApplication
                 {
                     Id = Guid.NewGuid(),
-                    UserId = users[10].Id,
-                    SceneName = "SafetyConscious", // Fixed: was "SafetyFirst", should match user's SceneName
-                    RealName = "Sam Rodriguez",
-                    Email = "safety.conscious@email.com",
-                    FetLifeHandle = "SafetyConscious_SR",
-                    Pronouns = "they/them",
-                    OtherNames = "Sam",
+                    UserId = user10.Id,
+                    SceneName = user10.SceneName,
+                    RealName = $"{user10.FirstName} {user10.LastName}",
+                    Email = user10.Email,
+                    FetLifeHandle = user10.FetLifeName,
+                    Pronouns = user10.Pronouns,
+                    OtherNames = user10.FirstName,
                     ExperienceLevel = 4, // Expert
                     YearsExperience = 9,
                     ExperienceDescription = "Professional rigger with 9 years of experience, specializing in safety education and risk awareness. Have taught workshops at national conferences and served as a safety monitor at major events. Extensive experience with suspensions, complex floor work, and emergency response protocols.",
@@ -581,296 +583,15 @@ public class VettingSeeder
 
     /// <summary>
     /// Seeds default email templates for the vetting system workflow.
-    /// Idempotent operation - skips if templates already exist.
-    ///
-    /// Creates 6 email templates:
-    /// - ApplicationReceived: Confirmation email when application submitted
-    /// - InterviewApproved: Notification that application approved for interview
-    /// - Approved: Welcome email for approved members
-    /// - OnHold: Notification that additional information is needed
-    /// - Denied: Respectful rejection notification
-    /// - InterviewReminder: Reminder email before scheduled interview
-    ///
-    /// Each template includes:
-    /// - Subject line with variable placeholders ({{scene_name}}, etc.)
-    /// - HTML body with formatted content
-    /// - Plain text body for email clients without HTML support
-    /// - Variable list for template rendering
+    /// OBSOLETE: Vetting email templates have been migrated to the GlobalEmailTemplates system.
+    /// This method is kept for backward compatibility but does nothing.
+    /// Templates are now seeded by EmailTemplateSeeder.SeedVettingTemplatesAsync()
     /// </summary>
+    [Obsolete("Vetting templates now use GlobalEmailTemplates system. See EmailTemplateSeeder.SeedVettingTemplatesAsync()")]
     public async Task SeedVettingEmailTemplatesAsync(CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Starting vetting email templates seeding");
-
-        // Check if email templates already exist
-        var existingTemplateCount = await _context.VettingEmailTemplates.CountAsync(cancellationToken);
-        if (existingTemplateCount > 0)
-        {
-            _logger.LogInformation("Email templates already exist, skipping creation. Found: {Count} templates", existingTemplateCount);
-            return;
-        }
-
-        // Get admin user for UpdatedBy field
-        var adminUser = await _userManager.FindByEmailAsync("admin@witchcityrope.com");
-        if (adminUser == null)
-        {
-            _logger.LogWarning("Admin user not found, cannot seed email templates");
-            return;
-        }
-
-        var templates = new List<VettingEmailTemplate>
-        {
-            new VettingEmailTemplate
-            {
-                Id = Guid.NewGuid(),
-                TemplateType = EmailTemplateType.ApplicationReceived,
-                Subject = "Application Received - {{scene_name}}",
-                HtmlBody = @"Dear {{scene_name}},
-
-Thank you for submitting your vetting application to WitchCityRope. We have received your application and it is now under review.
-
-Application Number: {{application_number}}
-Submission Date: {{submission_date}}
-
-Our vetting team will review your application and contact you within the next 7-10 business days with updates on your status.
-
-If you have any questions, please don't hesitate to contact us.
-
-Best regards,
-The WitchCityRope Vetting Team",
-                PlainTextBody = @"Dear {{scene_name}},
-
-Thank you for submitting your vetting application to WitchCityRope. We have received your application and it is now under review.
-
-Application Number: {{application_number}}
-Submission Date: {{submission_date}}
-
-Our vetting team will review your application and contact you within the next 7-10 business days with updates on your status.
-
-If you have any questions, please don't hesitate to contact us.
-
-Best regards,
-The WitchCityRope Vetting Team",
-                Variables = "[\"scene_name\", \"application_number\", \"submission_date\", \"application_date\", \"status_change_date\", \"contact_email\", \"current_status\"]",
-                IsActive = true,
-                UpdatedBy = adminUser.Id,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                LastModified = DateTime.UtcNow
-            },
-            new VettingEmailTemplate
-            {
-                Id = Guid.NewGuid(),
-                TemplateType = EmailTemplateType.InterviewApproved,
-                Subject = "Interview Approved - {{scene_name}}",
-                HtmlBody = @"Dear {{scene_name}},
-
-Congratulations! Your vetting application has been approved for the interview stage.
-
-Application Number: {{application_number}}
-Next Steps: Please schedule your interview using the link below
-Interview Scheduling: {{interview_link}}
-
-During your interview, we will discuss your experience, interests, and answer any questions you may have about our community.
-
-Please schedule your interview within the next 14 days.
-
-Best regards,
-The WitchCityRope Vetting Team",
-                PlainTextBody = @"Dear {{scene_name}},
-
-Congratulations! Your vetting application has been approved for the interview stage.
-
-Application Number: {{application_number}}
-Next Steps: Please schedule your interview using the link below
-Interview Scheduling: {{interview_link}}
-
-During your interview, we will discuss your experience, interests, and answer any questions you may have about our community.
-
-Please schedule your interview within the next 14 days.
-
-Best regards,
-The WitchCityRope Vetting Team",
-                Variables = "[\"scene_name\", \"application_number\", \"interview_link\", \"submission_date\", \"application_date\", \"status_change_date\", \"contact_email\", \"current_status\"]",
-                IsActive = true,
-                UpdatedBy = adminUser.Id,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                LastModified = DateTime.UtcNow
-            },
-            new VettingEmailTemplate
-            {
-                Id = Guid.NewGuid(),
-                TemplateType = EmailTemplateType.Approved,
-                Subject = "Welcome to WitchCityRope - {{scene_name}}",
-                HtmlBody = @"Dear {{scene_name}},
-
-Congratulations! Your application has been approved and you are now a vetted member of WitchCityRope.
-
-Application Number: {{application_number}}
-Approval Date: {{approval_date}}
-
-Welcome to our community! You now have access to:
-- All member events and workshops
-- Our private community forums
-- Advanced classes and demonstrations
-- Volunteer opportunities
-
-Your member profile has been activated and you can now register for upcoming events.
-
-Welcome aboard!
-
-Best regards,
-The WitchCityRope Team",
-                PlainTextBody = @"Dear {{scene_name}},
-
-Congratulations! Your application has been approved and you are now a vetted member of WitchCityRope.
-
-Application Number: {{application_number}}
-Approval Date: {{approval_date}}
-
-Welcome to our community! You now have access to:
-- All member events and workshops
-- Our private community forums
-- Advanced classes and demonstrations
-- Volunteer opportunities
-
-Your member profile has been activated and you can now register for upcoming events.
-
-Welcome aboard!
-
-Best regards,
-The WitchCityRope Team",
-                Variables = "[\"scene_name\", \"application_number\", \"approval_date\", \"submission_date\", \"application_date\", \"status_change_date\", \"contact_email\", \"current_status\"]",
-                IsActive = true,
-                UpdatedBy = adminUser.Id,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                LastModified = DateTime.UtcNow
-            },
-            new VettingEmailTemplate
-            {
-                Id = Guid.NewGuid(),
-                TemplateType = EmailTemplateType.OnHold,
-                Subject = "Application On Hold - Additional Information Needed - {{scene_name}}",
-                HtmlBody = @"Dear {{scene_name}},
-
-Your vetting application is currently on hold as we need some additional information to proceed.
-
-Application Number: {{application_number}}
-Reason: {{hold_reason}}
-
-Required Actions:
-{{required_actions}}
-
-Please provide the requested information within 30 days to avoid application expiration.
-
-If you have any questions about what's needed, please contact us.
-
-Best regards,
-The WitchCityRope Vetting Team",
-                PlainTextBody = @"Dear {{scene_name}},
-
-Your vetting application is currently on hold as we need some additional information to proceed.
-
-Application Number: {{application_number}}
-Reason: {{hold_reason}}
-
-Required Actions:
-{{required_actions}}
-
-Please provide the requested information within 30 days to avoid application expiration.
-
-If you have any questions about what's needed, please contact us.
-
-Best regards,
-The WitchCityRope Vetting Team",
-                Variables = "[\"scene_name\", \"application_number\", \"hold_reason\", \"required_actions\", \"submission_date\", \"application_date\", \"status_change_date\", \"contact_email\", \"current_status\"]",
-                IsActive = true,
-                UpdatedBy = adminUser.Id,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                LastModified = DateTime.UtcNow
-            },
-            new VettingEmailTemplate
-            {
-                Id = Guid.NewGuid(),
-                TemplateType = EmailTemplateType.Denied,
-                Subject = "Application Status Update - {{scene_name}}",
-                HtmlBody = @"Dear {{scene_name}},
-
-Thank you for your interest in WitchCityRope. After careful review, we are unable to approve your application at this time.
-
-Application Number: {{application_number}}
-Review Date: {{review_date}}
-
-This decision is final for this application cycle. You are welcome to reapply in the future if your circumstances change.
-
-We appreciate your interest in our community.
-
-Best regards,
-The WitchCityRope Vetting Team",
-                PlainTextBody = @"Dear {{scene_name}},
-
-Thank you for your interest in WitchCityRope. After careful review, we are unable to approve your application at this time.
-
-Application Number: {{application_number}}
-Review Date: {{review_date}}
-
-This decision is final for this application cycle. You are welcome to reapply in the future if your circumstances change.
-
-We appreciate your interest in our community.
-
-Best regards,
-The WitchCityRope Vetting Team",
-                Variables = "[\"scene_name\", \"application_number\", \"review_date\", \"submission_date\", \"application_date\", \"status_change_date\", \"contact_email\", \"current_status\"]",
-                IsActive = true,
-                UpdatedBy = adminUser.Id,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                LastModified = DateTime.UtcNow
-            },
-            new VettingEmailTemplate
-            {
-                Id = Guid.NewGuid(),
-                TemplateType = EmailTemplateType.InterviewReminder,
-                Subject = "Interview Reminder - {{scene_name}}",
-                HtmlBody = @"Dear {{scene_name}},
-
-This is a friendly reminder about your upcoming vetting interview.
-
-Application Number: {{application_number}}
-
-If you need to reschedule, please contact us at least 24 hours in advance.
-
-We look forward to meeting with you!
-
-Best regards,
-The WitchCityRope Vetting Team",
-                PlainTextBody = @"Dear {{scene_name}},
-
-This is a friendly reminder about your upcoming vetting interview.
-
-Application Number: {{application_number}}
-
-If you need to reschedule, please contact us at least 24 hours in advance.
-
-We look forward to meeting with you!
-
-Best regards,
-The WitchCityRope Vetting Team",
-                Variables = "[\"scene_name\", \"application_number\", \"submission_date\", \"application_date\", \"status_change_date\", \"contact_email\", \"current_status\"]",
-                IsActive = true,
-                UpdatedBy = adminUser.Id,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                LastModified = DateTime.UtcNow
-            }
-        };
-
-        await _context.VettingEmailTemplates.AddRangeAsync(templates, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
-
-        _logger.LogInformation("Created {Count} default email templates for vetting system", templates.Count);
+        _logger.LogInformation("VettingSeeder.SeedVettingEmailTemplatesAsync called - OBSOLETE: Vetting templates now managed by GlobalEmailTemplates system");
+        await Task.CompletedTask;
     }
 
     /// <summary>

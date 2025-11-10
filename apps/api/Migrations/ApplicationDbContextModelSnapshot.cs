@@ -2372,86 +2372,6 @@ namespace WitchCityRope.Api.Migrations
                         });
                 });
 
-            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingEmailTemplate", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamptz");
-
-                    b.Property<string>("HtmlBody")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true);
-
-                    b.Property<DateTime>("LastModified")
-                        .HasColumnType("timestamptz");
-
-                    b.Property<string>("PlainTextBody")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Subject")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<int>("TemplateType")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamptz");
-
-                    b.Property<Guid>("UpdatedBy")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Variables")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("jsonb")
-                        .HasDefaultValue("{}");
-
-                    b.Property<int>("Version")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(1);
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IsActive")
-                        .HasDatabaseName("IX_VettingEmailTemplates_IsActive")
-                        .HasFilter("\"IsActive\" = TRUE");
-
-                    b.HasIndex("TemplateType")
-                        .IsUnique()
-                        .HasDatabaseName("UQ_VettingEmailTemplates_TemplateType");
-
-                    b.HasIndex("UpdatedAt")
-                        .HasDatabaseName("IX_VettingEmailTemplates_UpdatedAt");
-
-                    b.HasIndex("UpdatedBy");
-
-                    b.HasIndex("Variables")
-                        .HasDatabaseName("IX_VettingEmailTemplates_Variables");
-
-                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Variables"), "gin");
-
-                    b.ToTable("VettingEmailTemplates", null, t =>
-                        {
-                            t.HasCheckConstraint("CHK_VettingEmailTemplates_HtmlBody_Length", "LENGTH(\"HtmlBody\") >= 10");
-
-                            t.HasCheckConstraint("CHK_VettingEmailTemplates_PlainTextBody_Length", "LENGTH(\"PlainTextBody\") >= 10");
-
-                            t.HasCheckConstraint("CHK_VettingEmailTemplates_Subject_Length", "LENGTH(\"Subject\") BETWEEN 5 AND 200");
-                        });
-                });
-
             modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingNotification", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2506,8 +2426,6 @@ namespace WitchCityRope.Api.Migrations
 
                     b.HasIndex("Status")
                         .HasDatabaseName("IX_VettingNotifications_Status");
-
-                    b.HasIndex("TemplateId");
 
                     b.HasIndex("Status", "CreatedAt")
                         .HasDatabaseName("IX_VettingNotifications_Status_CreatedAt");
@@ -3646,17 +3564,6 @@ namespace WitchCityRope.Api.Migrations
                     b.Navigation("Application");
                 });
 
-            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingEmailTemplate", b =>
-                {
-                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "UpdatedByUser")
-                        .WithMany()
-                        .HasForeignKey("UpdatedBy")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("UpdatedByUser");
-                });
-
             modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingNotification", b =>
                 {
                     b.HasOne("WitchCityRope.Api.Features.Vetting.Entities.VettingApplication", "Application")
@@ -3665,14 +3572,7 @@ namespace WitchCityRope.Api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("WitchCityRope.Api.Features.Vetting.Entities.VettingEmailTemplate", "Template")
-                        .WithMany("Notifications")
-                        .HasForeignKey("TemplateId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("Application");
-
-                    b.Navigation("Template");
                 });
 
             modelBuilder.Entity("WitchCityRope.Api.Models.Event", b =>
@@ -3822,11 +3722,6 @@ namespace WitchCityRope.Api.Migrations
                     b.Navigation("Items");
 
                     b.Navigation("Logs");
-                });
-
-            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingEmailTemplate", b =>
-                {
-                    b.Navigation("Notifications");
                 });
 
             modelBuilder.Entity("WitchCityRope.Api.Models.Event", b =>

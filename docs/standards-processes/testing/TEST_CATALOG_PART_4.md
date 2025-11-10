@@ -1,8 +1,8 @@
 # WitchCityRope Test Catalog - Part 4: Complete Test File Listings
-<!-- Last Updated: 2025-11-08 -->
-<!-- Version: 1.1 - Vetting Profile Update Tests Added -->
+<!-- Last Updated: 2025-11-09 -->
+<!-- Version: 1.2 - Event Cancellation Buffer Tests Added -->
 <!-- Owner: Testing Team -->
-<!-- Purpose: Comprehensive listing of all 274 test files across all test types -->
+<!-- Purpose: Comprehensive listing of all 276 test files across all test types -->
 
 ## 📋 Navigation
 
@@ -14,30 +14,37 @@
 
 ## 📊 Test Inventory Summary
 
-### Total Test Files: 274
+### Total Test Files: 276
 *(Excludes build artifacts in bin/obj directories)*
 
 | Test Type | Count | Status | Framework |
 |-----------|-------|--------|-----------|
-| **E2E Playwright Tests** | 90 | ✅ Active | Playwright + TypeScript |
-| **React Unit Tests** | 20 | ✅ Active | Vitest + React Testing Library |
+| **E2E Playwright Tests** | 91 | ✅ Active | Playwright + TypeScript |
+| **React Unit Tests** | 21 | ✅ Active | Vitest + React Testing Library |
 | **C# Backend Tests (Active)** | 57 | ✅ Active | xUnit + Moq + FluentAssertions |
 | **C# Integration Tests** | 6 | ✅ Active | xUnit + TestContainers |
 | **C# Performance Tests** | 3 | ✅ Active | xUnit + k6 |
 | **C# System Tests** | 1 | ✅ Active | xUnit |
 | **Legacy/Obsolete Tests** | 29+ | ⚠️ Legacy | xUnit (disabled/obsolete) |
 | **Test Infrastructure** | 71+ | 📚 Support | Helpers, Fixtures, Builders |
-| **TOTAL** | **274** | - | - |
+| **TOTAL** | **276** | - | - |
 
-**Latest Additions** (2025-11-08):
-- ✨ NEW: Vetting Profile Update Tests (3 files)
+**Latest Additions** (2025-11-09):
+- ✨ NEW: Event Cancellation Buffer Tests (2 files)
+  - React Hook Unit: `/apps/web/src/hooks/__tests__/useEventTimingStatus.test.ts` (24 tests)
+  - E2E: `/tests/e2e/event-cancellation-buffer.spec.ts` (7 tests)
+  - Coverage: 90%+ for useEventTimingStatus hook
+  - Business Rules: Past events, buffer window, zero buffer, graceful degradation
+
+**Previous Additions** (2025-11-08):
+- ✨ Vetting Profile Update Tests (3 files)
   - Unit: VettingServiceProfileUpdateTests.cs (10 tests)
   - Integration: VettingProfileUpdateIntegrationTests.cs (5 tests)
   - E2E: e2e/vetting/vetting-profile-update.spec.ts (4 tests)
 
 ---
 
-## 🎭 E2E Playwright Tests (89 files)
+## 🎭 E2E Playwright Tests (91 files)
 
 **Location**: `/apps/web/tests/playwright/`
 **Framework**: Playwright + TypeScript
@@ -237,9 +244,23 @@
     - Purpose: Event loading verification
     - Tests: Event data loading
 
+45. **event-cancellation-buffer.spec.ts** ✨ NEW (2025-11-09)
+    - Purpose: Event cancellation buffer timing enforcement
+    - Status: ✅ Active (7 tests)
+    - Location: `/tests/e2e/event-cancellation-buffer.spec.ts`
+    - Tests:
+      - Cancel buttons visible outside buffer window
+      - Cancel buttons hidden for past events
+      - UI updates when admin changes buffer setting
+      - Status messages show correct timing information
+      - RSVP/purchase buttons respect buffer timing
+      - Graceful handling of missing buffer setting
+    - Business Rules: Past events disabled, buffer window enforced, zero buffer allowed
+    - Coverage: Event detail page participation card timing validation
+
 ### Vetting Tests (10+ files)
 
-45. **vetting-admin-comprehensive.spec.ts**
+46. **vetting-admin-comprehensive.spec.ts**
     - Purpose: Admin vetting comprehensive tests
     - Tests: 6 tests for admin vetting workflow
     - Features: Dashboard, detail view, actions
@@ -451,7 +472,7 @@
 
 ---
 
-## ⚛️ React Unit Tests (20 files)
+## ⚛️ React Unit Tests (21 files)
 
 **Location**: `/apps/web/src/**/*.test.tsx` and `*.test.ts`
 **Framework**: Vitest + React Testing Library + MSW
@@ -570,6 +591,26 @@
     - Purpose: Admin events management API demo testing
     - Tests: Admin event operations
     - Location: `/apps/web/src/pages/admin/`
+
+### Event Timing Hook Tests (1 file) ✨ NEW (2025-11-09)
+
+21. **hooks/__tests__/useEventTimingStatus.test.ts**
+    - Purpose: Event cancellation buffer timing enforcement hook testing
+    - Status: ✅ Active (24 tests)
+    - Location: `/apps/web/src/hooks/__tests__/useEventTimingStatus.test.ts`
+    - Framework: Vitest + React Testing Library + React Query
+    - Coverage: 90%+ code coverage for useEventTimingStatus hook
+    - Tests:
+      - Past event detection (3 tests)
+      - Buffer window calculation (5 tests)
+      - Edge cases - exact boundaries (3 tests)
+      - Zero buffer scenarios (3 tests)
+      - Missing/invalid settings graceful degradation (2 tests)
+      - Status messages (3 tests)
+      - Large buffer values - 24 hours, 7 days (2 tests)
+      - Timezone handling - UTC, ISO 8601 (2 tests)
+    - Business Rules: All timing validation logic for event participation
+    - Integration: Used by ParticipationCard component
 
 ---
 

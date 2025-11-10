@@ -125,7 +125,7 @@ public class AttendanceSeeder
                         };
                         attendancesToAdd.Add(rsvpAttendance);
 
-                        var donationAmount = (decimal)Random.Shared.Next(0, 31); // $0-$30 donation
+                        var donationAmount = (decimal)Random.Shared.Next(5, 31); // FIXED: $5-$30 donation (minimum $5)
 
                         // THEN create donation ticket purchase and attendance (in ADDITION to RSVP)
                         var ticketPurchase = new TicketPurchase
@@ -515,8 +515,8 @@ public class AttendanceSeeder
                 };
                 _context.EventAttendances.Add(rsvpAttendance);
 
-                // Generate random donation amount ($0-$30)
-                var donationAmount = (decimal)Random.Shared.Next(0, 31);
+                // Generate random donation amount ($5-$30 minimum $5)
+                var donationAmount = (decimal)Random.Shared.Next(5, 31);
 
                 // THEN create donation ticket purchase and attendance (in ADDITION to RSVP)
                 var donationPurchase = new TicketPurchase

@@ -38,7 +38,6 @@ public class VettingNotification
 
     // Navigation Properties
     public VettingApplication Application { get; set; } = null!;
-    public VettingEmailTemplate? Template { get; set; }
 }
 
 /// <summary>

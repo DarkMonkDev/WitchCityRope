@@ -71,7 +71,20 @@ public class ApplicationUser : IdentityUser<Guid>
     public string EncryptedLegalName { get; set; } = string.Empty;
     public DateTime DateOfBirth { get; set; } = DateTime.UtcNow;
     public string Role { get; set; } = "Member";
+
+    /// <summary>
+    /// Indicates whether the user account is active.
+    /// </summary>
+    /// <remarks>
+    /// Future Use: This field will be used for soft-delete functionality.
+    /// When false, the user account should be:
+    /// - Prevented from logging in
+    /// - Hidden from most user listings
+    /// - Retained in the database for historical/audit purposes
+    /// Note: Soft-delete functionality is not yet implemented as of 2025-11-09.
+    /// </remarks>
     public bool IsActive { get; set; } = true;
+
     public string PronouncedName { get; set; } = string.Empty;
     public string Pronouns { get; set; } = string.Empty;
     public int FailedLoginAttempts { get; set; } = 0;

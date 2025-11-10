@@ -20,7 +20,7 @@ public class VettingEmailLog
 
     // References
     public Guid ApplicationId { get; set; }
-    public EmailTemplateType TemplateType { get; set; }
+    public string TemplateType { get; set; } = string.Empty;
 
     // Email Information
     public string RecipientEmail { get; set; } = string.Empty;

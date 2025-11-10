@@ -68,10 +68,21 @@ export const GoogleDriveLinksSection: React.FC<GoogleDriveLinksSectionProps> = (
 
   return (
     <Card p="xl" radius="md" style={{ border: '1px solid #E0E0E0' }}>
-      <Title order={3} mb="md" style={{ color: '#880124', display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <IconBrandGoogleDrive size={20} />
-        Google Drive Links
-      </Title>
+      <Group justify="space-between" align="center" mb="md">
+        <Title order={3} style={{ color: '#880124', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <IconBrandGoogleDrive size={20} />
+          Google Drive Links
+        </Title>
+        <Button
+          leftSection={<IconDeviceFloppy size={16} />}
+          onClick={() => updateMutation.mutate()}
+          loading={updateMutation.isPending}
+          disabled={!hasChanges}
+          data-testid="save-links-button"
+        >
+          Save Links
+        </Button>
+      </Group>
 
       <Stack gap="md">
         <Grid gutter="xl">
@@ -137,28 +148,6 @@ export const GoogleDriveLinksSection: React.FC<GoogleDriveLinksSectionProps> = (
             )}
           </Grid.Col>
         </Grid>
-
-        <Group gap="sm">
-          <Button
-            leftSection={<IconDeviceFloppy size={16} />}
-            onClick={() => updateMutation.mutate()}
-            loading={updateMutation.isPending}
-            disabled={!hasChanges}
-            data-testid="save-links-button"
-            styles={{
-              root: {
-                fontWeight: 600,
-                height: '44px',
-                paddingTop: '12px',
-                paddingBottom: '12px',
-                fontSize: '14px',
-                lineHeight: '1.2'
-              }
-            }}
-          >
-            Save Links
-          </Button>
-        </Group>
       </Stack>
     </Card>
   );

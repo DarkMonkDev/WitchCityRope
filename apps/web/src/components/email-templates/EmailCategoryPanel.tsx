@@ -22,6 +22,16 @@ interface EmailCategoryPanelProps {
 }
 
 /**
+ * Helper function to clean variable placeholders from display text
+ * Replaces {{variable_name}} and {variable_name} with empty brackets {}
+ */
+const cleanVariablePlaceholders = (text: string): string => {
+  return text
+    .replace(/\{\{[^}]+\}\}/g, '{}')
+    .replace(/\{[^}]+\}/g, '{}');
+};
+
+/**
  * Reusable panel for displaying and editing email templates for a specific category
  * Based on EventForm Emails Tab pattern (lines 1228-1386)
  */
@@ -179,10 +189,6 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
     <Stack gap="xl">
       {/* Template Cards - Horizontal Scrollable Group */}
       <div>
-        <Text size="sm" c="dimmed" mb="md">
-          Click on a template card to edit it below
-        </Text>
-
         <Group gap="md" style={{ flexWrap: 'wrap' }}>
           {templates.map((template) => (
             <Card
@@ -211,11 +217,14 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
               </Text>
 
               <Text size="sm" c="stone" mb="xs">
-                Subject: {template.subject}
+                {cleanVariablePlaceholders(template.subject)}
               </Text>
 
               <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
-                Version {template.version} • Updated {new Date(template.lastModified).toLocaleDateString()}
+                Version {template.version} • Updated{' '}
+                {template.updatedAt
+                  ? new Date(template.updatedAt).toLocaleDateString()
+                  : 'Never'}
               </Text>
             </Card>
           ))}
@@ -224,7 +233,7 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
 
       {/* Editor Panel - Shown when template selected */}
       {selectedTemplate && (
-        <Paper shadow="sm" radius="md" p="xl" mt="xl" style={{ border: '1px solid rgba(136, 1, 36, 0.1)' }}>
+        <Paper shadow="sm" radius="md" p="xl" mt={0} style={{ border: '1px solid rgba(136, 1, 36, 0.1)' }}>
           <Stack gap="md">
             {/* Header */}
             <Group justify="space-between">

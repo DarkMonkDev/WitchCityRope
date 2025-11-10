@@ -1,0 +1,20 @@
+.tab {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.tab[data-active] {
+  background-color: #880124;
+  color: white;
+  border-color: transparent;
+}
+
+.tab:hover:not([data-active]) {
+  background-color: rgba(136, 1, 36, 0.05);
+  border-color: var(--mantine-color-burgundy-6);
+}

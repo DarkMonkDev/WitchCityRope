@@ -49,7 +49,7 @@ export const AdminVettingPage: React.FC = () => {
   const [sendReminderModalOpen, setSendReminderModalOpen] = useState(false);
 
   const handleEmailTemplatesClick = () => {
-    navigate('/admin/vetting/email-templates');
+    navigate('/admin/email-templates?tab=vetting');
   };
 
   const handlePutOnHoldClick = () => {

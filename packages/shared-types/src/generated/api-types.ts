@@ -584,6 +584,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/settings/public": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get public application settings
+         * @description Returns non-sensitive settings like timezone and pre-start buffer. No authentication required.
+         */
+        get: operations["GetPublicSettings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/settings": {
         parameters: {
             query?: never;
@@ -1884,41 +1904,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/vetting/email-templates": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Retrieve all active email templates (Admin only) */
-        get: operations["GetEmailTemplates"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/vetting/email-templates/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Retrieve a single email template by ID (Admin only) */
-        get: operations["GetEmailTemplate"];
-        /** Update email template content (Admin only) */
-        put: operations["UpdateEmailTemplate"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/vetting/public/applications": {
         parameters: {
             query?: never;
@@ -1945,6 +1930,66 @@ export interface paths {
         };
         /** Check application status using status token */
         get: operations["GetApplicationStatusByToken"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/{userId}/vetting/hold": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Place membership on hold (user action)
+         * @description Allows approved users to voluntarily place their membership on hold. Cancels all future social event RSVPs and changes status to OnHold.
+         */
+        put: operations["PlaceMembershipOnHold"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/{userId}/vetting/reinstate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Request membership reinstatement (user action)
+         * @description Allows users on hold to request reinstatement. Changes status to FinalReview for admin approval.
+         */
+        put: operations["RequestReinstatement"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/{userId}/vetting/hold-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get current hold/reinstatement status
+         * @description Returns current vetting status and available actions (can place on hold, can request reinstatement).
+         */
+        get: operations["GetVettingHoldStatus"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2903,15 +2948,6 @@ export interface components {
             /** Format: date-time */
             timestamp?: string;
         };
-        ApiResponseOfEmailTemplateResponse: {
-            success?: boolean;
-            data?: components["schemas"]["EmailTemplateResponse2"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
         ApiResponseOfEventDto: {
             success?: boolean;
             data?: components["schemas"]["EventDto2"];
@@ -2932,15 +2968,6 @@ export interface components {
             success?: boolean;
             data?: components["schemas"]["GlobalEmailTemplateDto2"];
             error?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfListOfEmailTemplateResponse: {
-            success?: boolean;
-            data?: components["schemas"]["EmailTemplateResponse"][] | null;
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
             /** Format: date-time */
             timestamp?: string;
         };
@@ -3037,6 +3064,15 @@ export interface components {
             /** Format: date-time */
             timestamp?: string;
         };
+        ApiResponseOfMembershipHoldResponse: {
+            success?: boolean;
+            data?: components["schemas"]["MembershipHoldResponse"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
         ApiResponseOfMyApplicationStatusResponse: {
             success?: boolean;
             data?: components["schemas"]["MyApplicationStatusResponse"];
@@ -3110,6 +3146,15 @@ export interface components {
         ApiResponseOfVenueDto: {
             success?: boolean;
             data?: components["schemas"]["VenueDto2"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfVettingHoldStatusResponse: {
+            success?: boolean;
+            data?: components["schemas"]["VettingHoldStatusResponse"];
             error?: string | null;
             details?: string | null;
             message?: string | null;
@@ -3617,52 +3662,6 @@ export interface components {
             userCount?: number;
             version?: string;
         };
-        EmailTemplateResponse: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: int32 */
-            templateType?: number;
-            templateTypeName?: string;
-            subject?: string;
-            htmlBody?: string;
-            plainTextBody?: string;
-            variables?: string;
-            isActive?: boolean;
-            /** Format: int32 */
-            version?: number;
-            /** Format: date-time */
-            createdAt?: string;
-            /** Format: date-time */
-            updatedAt?: string;
-            /** Format: date-time */
-            lastModified?: string;
-            /** Format: uuid */
-            updatedBy?: string;
-            updatedByEmail?: string;
-        };
-        EmailTemplateResponse2: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: int32 */
-            templateType?: number;
-            templateTypeName?: string;
-            subject?: string;
-            htmlBody?: string;
-            plainTextBody?: string;
-            variables?: string;
-            isActive?: boolean;
-            /** Format: int32 */
-            version?: number;
-            /** Format: date-time */
-            createdAt?: string;
-            /** Format: date-time */
-            updatedAt?: string;
-            /** Format: date-time */
-            lastModified?: string;
-            /** Format: uuid */
-            updatedBy?: string;
-            updatedByEmail?: string;
-        } | null;
         EnhancedParticipationStatusDto: {
             hasRSVP?: boolean;
             hasTicket?: boolean;
@@ -3818,6 +3817,8 @@ export interface components {
             checkInTime?: string | null;
             ticketTypeName?: string | null;
             sessionNames?: string;
+            /** Format: double */
+            amountPaid?: number | null;
         };
         GenerateTokenRequest: {
             /** Format: uuid */
@@ -4093,6 +4094,13 @@ export interface components {
             oldValue?: string | null;
             newValue?: string | null;
         };
+        MembershipHoldResponse: {
+            /** Format: int32 */
+            newStatus: number;
+            statusName: string;
+            /** Format: date-time */
+            changedAt: string;
+        } | null;
         MyApplicationStatusResponse: {
             hasApplication?: boolean;
             application?: components["schemas"]["ApplicationStatusInfo"];
@@ -4248,6 +4256,9 @@ export interface components {
             isManualEntry?: boolean;
             manualEntryData?: components["schemas"]["ManualEntryData"];
         };
+        PlaceMembershipOnHoldRequest: {
+            reason: string;
+        };
         /** @enum {unknown} */
         PricingType: "Fixed" | "SlidingScale";
         ProblemDetails: {
@@ -4383,6 +4394,9 @@ export interface components {
         };
         /** @enum {unknown} */
         RegistrationStatus: "Confirmed" | "Waitlist" | "CheckedIn" | "NoShow";
+        RequestReinstatementRequest: {
+            reason: string;
+        };
         ReviewDecisionDto: {
             /** Format: uuid */
             id?: string;
@@ -4655,11 +4669,6 @@ export interface components {
             title: string;
             content: string;
             changeDescription?: string | null;
-        };
-        UpdateEmailTemplateRequest: {
-            subject: string;
-            htmlBody: string;
-            plainTextBody: string;
         };
         UpdateEventRequest: {
             title?: string | null;
@@ -4971,6 +4980,15 @@ export interface components {
             agreesToGuidelines?: boolean | null;
             agreesToTerms?: boolean | null;
         };
+        VettingHoldStatusResponse: {
+            /** Format: int32 */
+            vettingStatus: number;
+            statusName: string;
+            canPlaceOnHold: boolean;
+            canRequestReinstatement: boolean;
+            /** Format: date-time */
+            lastStatusChangeDate: string | null;
+        } | null;
         /** @enum {unknown} */
         VettingStatus: "UnderReview" | "InterviewApproved" | "FinalReview" | "Approved" | "Denied" | "OnHold" | "Withdrawn";
         VettingStatusDto: {
@@ -6417,6 +6435,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiResponseOfboolean"];
+                };
+            };
+        };
+    };
+    GetPublicSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
         };
@@ -10127,182 +10165,6 @@ export interface operations {
             };
         };
     };
-    GetEmailTemplates: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponseOfListOfEmailTemplateResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
-                };
-            };
-        };
-    };
-    GetEmailTemplate: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponseOfEmailTemplateResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
-                };
-            };
-        };
-    };
-    UpdateEmailTemplate: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateEmailTemplateRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponseOfEmailTemplateResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
-                };
-            };
-        };
-    };
     SubmitPublicVettingApplication: {
         parameters: {
             query?: never;
@@ -10372,6 +10234,188 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiResponseOfApplicationStatusResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                };
+            };
+        };
+    };
+    PlaceMembershipOnHold: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlaceMembershipOnHoldRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfMembershipHoldResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                };
+            };
+        };
+    };
+    RequestReinstatement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RequestReinstatementRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfMembershipHoldResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                };
+            };
+        };
+    };
+    GetVettingHoldStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfVettingHoldStatusResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseOfObject"];
                 };
             };
             /** @description Not Found */

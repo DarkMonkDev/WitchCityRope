@@ -1,7 +1,8 @@
 import React from 'react';
-import { Container, Title, Text, Tabs } from '@mantine/core';
+import { Container, Title, Text, Tabs, Divider } from '@mantine/core';
 import { useSearchParams } from 'react-router-dom';
 import { EmailCategoryPanel } from '../../components/email-templates/EmailCategoryPanel';
+import classes from './EmailTemplatesAdminPage.module.css';
 
 /**
  * Email Templates Admin Management Page
@@ -29,7 +30,6 @@ export const EmailTemplatesAdminPage: React.FC = () => {
       {/* Page Title */}
       <Title
         order={1}
-        mb="md"
         style={{
           fontFamily: "'Montserrat', sans-serif",
           fontSize: '32px',
@@ -37,12 +37,13 @@ export const EmailTemplatesAdminPage: React.FC = () => {
           color: '#880124',
           textTransform: 'uppercase',
           letterSpacing: '-0.5px',
+          marginBottom: '4px',
         }}
       >
         Email Templates Management
       </Title>
 
-      <Text size="sm" c="dimmed" mb="xl">
+      <Text size="sm" c="dimmed" mb="lg">
         Manage global email templates used across all events and system notifications. Changes here
         affect all future emails unless overridden at the event level.
       </Text>
@@ -51,27 +52,10 @@ export const EmailTemplatesAdminPage: React.FC = () => {
       <Tabs
         value={activeTab}
         onChange={handleTabChange}
-        styles={{
-          tab: {
-            fontFamily: "'Montserrat', sans-serif",
-            fontSize: '15px',
-            fontWeight: 600,
-            textTransform: 'uppercase',
-            letterSpacing: '1px',
-            color: '#4A4A4A',
-            padding: 'var(--mantine-spacing-md) var(--mantine-spacing-lg)',
-            borderBottom: '3px solid transparent',
-            transition: 'all 0.3s ease',
-            '&[data-active]': {
-              color: '#880124',
-              borderBottomColor: '#880124',
-              fontWeight: 700,
-            },
-            '&:hover': {
-              backgroundColor: 'rgba(136, 1, 36, 0.05)',
-            },
-          },
-        }}
+        variant="pills"
+        radius="md"
+        color="burgundy"
+        classNames={{ tab: classes.tab }}
       >
         <Tabs.List>
           <Tabs.Tab value="vetting">Vetting</Tabs.Tab>
@@ -80,6 +64,7 @@ export const EmailTemplatesAdminPage: React.FC = () => {
           <Tabs.Tab value="incident">Incident</Tabs.Tab>
           <Tabs.Tab value="adhoc">Ad Hoc</Tabs.Tab>
         </Tabs.List>
+        <Divider />
 
         <Tabs.Panel value="vetting" pt="xl">
           <EmailCategoryPanel category="Vetting" />

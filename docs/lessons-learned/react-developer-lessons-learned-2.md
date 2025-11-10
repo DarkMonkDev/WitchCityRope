@@ -1418,3 +1418,260 @@ screen.getByTestId('modal-name')
 
 ---
 
+## ❌ CRITICAL: MANTINE V7 TABS - HOVER STATES DON'T WORK WITH `styles` PROP
+
+**Date**: 2025-11-09
+**Context**: Email Templates Admin Page - Attempting to add hover styles to tabs
+**Impact**: HIGH - Wasted significant time trying to make hover states work incorrectly
+
+### The Problem
+
+**Attempted approach that FAILED:**
+```typescript
+<Tabs
+  variant="pills"
+  styles={{
+    tab: {
+      '&:hover:not([data-active])': {
+        backgroundColor: 'rgba(136, 1, 36, 0.05)',
+        borderColor: 'var(--mantine-color-burgundy-6)',
+      },
+    },
+  }}
+>
+```
+
+**Why it failed:**
+- Mantine v7's `styles` prop uses inline styles (Emotion/CSS-in-JS at runtime)
+- **Pseudo-classes like `:hover`, `:active`, `:focus` CANNOT be used in the `styles` prop**
+- This is a hard limitation documented in Mantine's official docs
+- No amount of tweaking the syntax will make it work
+
+### The Solution
+
+**✅ Use CSS Modules with `classNames` prop:**
+
+**Step 1: Create CSS Module file:**
+```css
+/* ComponentName.module.css */
+.tab {
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.tab[data-active] {
+  background-color: rgba(136, 1, 36, 0.05);
+  border-color: var(--mantine-color-burgundy-6);
+}
+
+.tab:hover:not([data-active]) {
+  background-color: rgba(136, 1, 36, 0.05);
+  border-color: var(--mantine-color-burgundy-6);
+}
+```
+
+**Step 2: Use `classNames` prop in component:**
+```typescript
+import classes from './ComponentName.module.css';
+
+<Tabs
+  variant="pills"
+  classNames={{ tab: classes.tab }}
+>
+```
+
+### Why CSS Modules Work
+
+- CSS Modules generate **real CSS** at build time
+- Browser can properly apply pseudo-selectors (`:hover`, `:focus`, etc.)
+- Vite processes CSS Modules during build, creating actual CSS classes
+- `classNames` prop maps Mantine component parts to CSS Module classes
+
+### Alternative Solutions
+
+**Option 2: Use `sx` prop with `@mantine/emotion` (requires installation):**
+```bash
+npm install @mantine/emotion
+```
+
+```typescript
+<Tabs
+  sx={{
+    '.mantine-Tabs-tab': {
+      '&:hover:not([data-active])': {
+        backgroundColor: 'rgba(136, 1, 36, 0.05)',
+      },
+    },
+  }}
+>
+```
+
+**Option 3: Use `@mixin hover` (if postcss-preset-mantine configured):**
+```css
+.tab {
+  @mixin hover {
+    background-color: rgba(136, 1, 36, 0.05);
+  }
+}
+```
+
+### Best Practice
+
+**✅ ALWAYS use CSS Modules for:**
+- Hover states
+- Focus states
+- Active states
+- Media queries
+- Any CSS pseudo-classes or pseudo-elements
+
+**✅ Use `styles` prop ONLY for:**
+- Simple inline styles without pseudo-classes
+- Dynamic styles that change based on props/state
+- One-off styling that doesn't need pseudo-selectors
+
+### Documentation References
+
+- Official Mantine Styles API: https://mantine.dev/styles/styles-api/
+- How to Add Hover Styles: https://help.mantine.dev/q/how-to-add-hover-styles
+- CSS Modules in Vite: https://vitejs.dev/guide/features.html#css-modules
+
+### Example from WitchCityRope
+
+**File**: `/apps/web/src/pages/admin/EmailTemplatesAdminPage.tsx`
+**CSS Module**: `/apps/web/src/pages/admin/EmailTemplatesAdminPage.module.css`
+
+Successfully implemented tab hover states using CSS Modules after multiple failed attempts with `styles` prop.
+
+### Tags
+#critical #mantine-v7 #tabs #hover-states #css-modules #styles-prop #pseudo-classes #styling
+
+---
+
+## 🚨 CRITICAL: MOBILE MENU STRUCTURE - CLOSE BUTTON INSIDE PANEL, NOT EXCESSIVE PADDING 🚨
+
+**Date**: 2025-11-09
+**Category**: Mobile UX / Navigation / Layout Best Practices
+**Severity**: CRITICAL - BREAKS MOBILE NAVIGATION UX
+
+### What We Learned
+**EXCESSIVE PADDING TO AVOID HAMBURGER BUTTON IS WRONG PATTERN**: Mobile menu panels with `paddingTop: 120px` to push content below a hamburger button create poor UX and fight against proper structure.
+
+**SYMPTOMS**:
+- Login button appears at top of page (outside mobile menu panel)
+- Large gap at top of mobile menu when opened
+- Content feels disconnected from close action
+- Awkward layout that doesn't follow mobile UX best practices
+
+**ROOT CAUSE**: The mobile menu Box has `position: fixed; top: 0; height: 100vh`, and the hamburger/close button is OUTSIDE this panel. Adding excessive padding to push content down fights against this structure.
+
+### ✅ CRITICAL SOLUTION: ADD CLOSE BUTTON INSIDE PANEL HEADER
+
+```typescript
+// ❌ WRONG: Hamburger outside panel, excessive padding inside
+<Box component="button" onClick={toggleMobileMenu}>
+  {/* Hamburger icon - OUTSIDE mobile menu panel */}
+</Box>
+
+<Box id="mobile-menu" style={{ position: 'fixed', top: 0, height: '100vh' }}>
+  <Stack gap="0" p="var(--space-lg)" style={{ paddingTop: '120px' }}>
+    {/* Content starts 120px down - fighting against layout */}
+    <Button>Login</Button>
+  </Stack>
+</Box>
+
+// ✅ CORRECT: Close button INSIDE panel, proper header section
+<Box component="button" onClick={toggleMobileMenu}>
+  {/* Hamburger icon - can still animate to X visually */}
+</Box>
+
+<Box id="mobile-menu" style={{ position: 'fixed', top: 0, height: '100vh' }}>
+  {/* Mobile Menu Header with Close Button */}
+  <Box
+    style={{
+      display: 'flex',
+      justifyContent: 'flex-end',
+      padding: 'var(--space-md)',
+      borderBottom: '1px solid rgba(183, 109, 117, 0.2)',
+    }}
+  >
+    <Box
+      component="button"
+      onClick={closeMobileMenu}
+      aria-label="Close mobile menu"
+      style={{
+        background: 'none',
+        border: 'none',
+        fontSize: '32px',
+        color: 'var(--color-burgundy)',
+        cursor: 'pointer',
+        padding: '8px',
+        lineHeight: 1,
+      }}
+    >
+      ×
+    </Box>
+  </Box>
+
+  <Stack gap="0" p="var(--space-lg)">
+    {/* Content starts immediately after header - natural flow */}
+    <Button>Login</Button>
+  </Stack>
+</Box>
+```
+
+### 🛑 MOBILE MENU BEST PRACTICES
+
+**ALWAYS include these elements in mobile menu panels:**
+1. **Dedicated header section** inside the panel (at top)
+2. **Close button (×)** in top-right of header
+3. **Visual separator** below header (border or shadow)
+4. **Normal padding** for content (no excessive top padding)
+
+**WHY this is better:**
+- Close button is INSIDE the thing you want to close (intuitive UX)
+- Clear visual hierarchy (header → content)
+- No need for excessive padding hacks
+- Follows mobile menu patterns from iOS, Android, and web apps
+- Responsive to different screen sizes naturally
+
+### 📋 STRUCTURAL PATTERN
+
+```typescript
+// Complete mobile menu structure
+<Box className="mobile-menu" style={{ position: 'fixed', top: 0, height: '100vh' }}>
+  {/* 1. HEADER SECTION - Inside panel */}
+  <Box style={{ display: 'flex', justifyContent: 'flex-end', padding: 'md', borderBottom: '1px solid' }}>
+    <button onClick={closeMenu} aria-label="Close mobile menu">×</button>
+  </Box>
+
+  {/* 2. CONTENT SECTION - Normal padding */}
+  <Stack gap="0" p="lg">
+    <Button>Primary CTA (Login/Dashboard)</Button>
+    <Link>Navigation Item 1</Link>
+    <Link>Navigation Item 2</Link>
+  </Stack>
+</Box>
+```
+
+### 💥 CONSEQUENCES OF EXCESSIVE PADDING APPROACH
+
+- ❌ Login button appears disconnected from menu
+- ❌ Wasted vertical space (120px of nothing)
+- ❌ Confusing UX (close button not in panel)
+- ❌ Doesn't scale well across screen sizes
+- ❌ Violates mobile UX conventions
+
+### 🎯 VERIFICATION STEPS
+
+After fix:
+1. **Open mobile menu** on mobile viewport (375px)
+2. **Verify close button (×)** appears at top-right INSIDE panel
+3. **Verify Login button** appears immediately below header
+4. **Verify no excessive gap** at top of menu
+5. **Click close button** - menu closes smoothly
+6. **Compare to iOS/Android patterns** - should feel familiar
+
+### Tags
+#critical #mobile-menu #navigation #mobile-ux #layout #best-practices #close-button #panel-structure
+
+---

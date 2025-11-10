@@ -1393,6 +1393,26 @@
         }
       }
     },
+    "/api/settings/public": {
+      "get": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Get public application settings",
+        "description": "Returns non-sensitive settings like timezone and pre-start buffer. No authentication required.",
+        "operationId": "GetPublicSettings",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/settings": {
       "get": {
         "tags": [
@@ -5216,219 +5236,6 @@
         }
       }
     },
-    "/api/vetting/email-templates": {
-      "get": {
-        "tags": [
-          "Vetting"
-        ],
-        "summary": "Retrieve all active email templates (Admin only)",
-        "operationId": "GetEmailTemplates",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseOfListOfEmailTemplateResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseOfObject"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseOfObject"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseOfObject"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/vetting/email-templates/{id}": {
-      "get": {
-        "tags": [
-          "Vetting"
-        ],
-        "summary": "Retrieve a single email template by ID (Admin only)",
-        "operationId": "GetEmailTemplate",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseOfEmailTemplateResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseOfObject"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseOfObject"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseOfObject"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseOfObject"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "Vetting"
-        ],
-        "summary": "Update email template content (Admin only)",
-        "operationId": "UpdateEmailTemplate",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateEmailTemplateRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseOfEmailTemplateResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseOfObject"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseOfObject"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseOfObject"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseOfObject"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseOfObject"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/vetting/public/applications": {
       "post": {
         "tags": [
@@ -5514,6 +5321,245 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseOfApplicationStatusResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/vetting/hold": {
+      "put": {
+        "tags": [
+          "Vetting - Hold/Reinstatement"
+        ],
+        "summary": "Place membership on hold (user action)",
+        "description": "Allows approved users to voluntarily place their membership on hold. Cancels all future social event RSVPs and changes status to OnHold.",
+        "operationId": "PlaceMembershipOnHold",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaceMembershipOnHoldRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfMembershipHoldResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/vetting/reinstate": {
+      "put": {
+        "tags": [
+          "Vetting - Hold/Reinstatement"
+        ],
+        "summary": "Request membership reinstatement (user action)",
+        "description": "Allows users on hold to request reinstatement. Changes status to FinalReview for admin approval.",
+        "operationId": "RequestReinstatement",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestReinstatementRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfMembershipHoldResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/vetting/hold-status": {
+      "get": {
+        "tags": [
+          "Vetting - Hold/Reinstatement"
+        ],
+        "summary": "Get current hold/reinstatement status",
+        "description": "Returns current vetting status and available actions (can place on hold, can request reinstatement).",
+        "operationId": "GetVettingHoldStatus",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfVettingHoldStatusResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOfObject"
                 }
               }
             }
@@ -7077,33 +7123,6 @@
           }
         }
       },
-      "ApiResponseOfEmailTemplateResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "$ref": "#/components/schemas/EmailTemplateResponse2"
-          },
-          "error": {
-            "type": "string",
-            "nullable": true
-          },
-          "details": {
-            "type": "string",
-            "nullable": true
-          },
-          "message": {
-            "type": "string",
-            "nullable": true
-          },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
       "ApiResponseOfEventDto": {
         "type": "object",
         "properties": {
@@ -7160,37 +7179,6 @@
             "$ref": "#/components/schemas/GlobalEmailTemplateDto2"
           },
           "error": {
-            "type": "string",
-            "nullable": true
-          },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
-      "ApiResponseOfListOfEmailTemplateResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EmailTemplateResponse"
-            },
-            "nullable": true
-          },
-          "error": {
-            "type": "string",
-            "nullable": true
-          },
-          "details": {
-            "type": "string",
-            "nullable": true
-          },
-          "message": {
             "type": "string",
             "nullable": true
           },
@@ -7517,6 +7505,33 @@
           }
         }
       },
+      "ApiResponseOfMembershipHoldResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/MembershipHoldResponse"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ApiResponseOfMyApplicationStatusResponse": {
         "type": "object",
         "properties": {
@@ -7731,6 +7746,33 @@
           },
           "data": {
             "$ref": "#/components/schemas/VenueDto2"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseOfVettingHoldStatusResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/VettingHoldStatusResponse"
           },
           "error": {
             "type": "string",
@@ -9196,115 +9238,6 @@
           }
         }
       },
-      "EmailTemplateResponse": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "templateType": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "templateTypeName": {
-            "type": "string"
-          },
-          "subject": {
-            "type": "string"
-          },
-          "htmlBody": {
-            "type": "string"
-          },
-          "plainTextBody": {
-            "type": "string"
-          },
-          "variables": {
-            "type": "string"
-          },
-          "isActive": {
-            "type": "boolean"
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "lastModified": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedBy": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "updatedByEmail": {
-            "type": "string"
-          }
-        }
-      },
-      "EmailTemplateResponse2": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "templateType": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "templateTypeName": {
-            "type": "string"
-          },
-          "subject": {
-            "type": "string"
-          },
-          "htmlBody": {
-            "type": "string"
-          },
-          "plainTextBody": {
-            "type": "string"
-          },
-          "variables": {
-            "type": "string"
-          },
-          "isActive": {
-            "type": "boolean"
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "lastModified": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedBy": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "updatedByEmail": {
-            "type": "string"
-          }
-        },
-        "nullable": true
-      },
       "EnhancedParticipationStatusDto": {
         "type": "object",
         "properties": {
@@ -10507,6 +10440,28 @@
           }
         }
       },
+      "MembershipHoldResponse": {
+        "required": [
+          "newStatus",
+          "statusName",
+          "changedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "newStatus": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "statusName": {
+            "type": "string"
+          },
+          "changedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "nullable": true
+      },
       "MyApplicationStatusResponse": {
         "type": "object",
         "properties": {
@@ -10918,6 +10873,17 @@
           }
         }
       },
+      "PlaceMembershipOnHoldRequest": {
+        "required": [
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
       "PricingType": {
         "enum": [
           "Fixed",
@@ -11315,6 +11281,17 @@
           "CheckedIn",
           "NoShow"
         ]
+      },
+      "RequestReinstatementRequest": {
+        "required": [
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        }
       },
       "ReviewDecisionDto": {
         "type": "object",
@@ -12112,26 +12089,6 @@
             "minLength": 0,
             "type": "string",
             "nullable": true
-          }
-        }
-      },
-      "UpdateEmailTemplateRequest": {
-        "required": [
-          "subject",
-          "htmlBody",
-          "plainTextBody"
-        ],
-        "type": "object",
-        "properties": {
-          "subject": {
-            "maxLength": 500,
-            "type": "string"
-          },
-          "htmlBody": {
-            "type": "string"
-          },
-          "plainTextBody": {
-            "type": "string"
           }
         }
       },
@@ -13090,6 +13047,37 @@
           }
         }
       },
+      "VettingHoldStatusResponse": {
+        "required": [
+          "vettingStatus",
+          "statusName",
+          "canPlaceOnHold",
+          "canRequestReinstatement",
+          "lastStatusChangeDate"
+        ],
+        "type": "object",
+        "properties": {
+          "vettingStatus": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "statusName": {
+            "type": "string"
+          },
+          "canPlaceOnHold": {
+            "type": "boolean"
+          },
+          "canRequestReinstatement": {
+            "type": "boolean"
+          },
+          "lastStatusChangeDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "nullable": true
+      },
       "VettingStatus": {
         "enum": [
           "UnderReview",
@@ -13471,6 +13459,9 @@
     },
     {
       "name": "Vetting - Public"
+    },
+    {
+      "name": "Vetting - Hold/Reinstatement"
     },
     {
       "name": "Email Templates"
