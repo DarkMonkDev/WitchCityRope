@@ -1,46 +1,15 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelper } from './helpers/auth.helper';
 
 test.describe('Event Update Flow E2E Testing', () => {
   let eventId: string;
 
   test.beforeEach(async ({ page }) => {
     console.log('=== SETTING UP EVENT UPDATE E2E TEST ===');
-    
-    // Login as admin using the working pattern from existing tests
-    await page.goto('http://localhost:5173/login');
-    await page.waitForLoadState('networkidle');
-    
-    // Wait for form elements using correct React selectors
-    const emailInput = page.locator('[data-testid="email-input"]');
-    const passwordInput = page.locator('[data-testid="password-input"]');
-    
-    await expect(emailInput).toBeVisible({ timeout: 10000 });
-    await expect(passwordInput).toBeVisible({ timeout: 10000 });
-    
-    // Fill in admin credentials
-    await emailInput.fill('admin@witchcityrope.com');
-    await passwordInput.fill('Test123!');
-    
-    // Scroll down to ensure button is visible and find login button
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    
-    // Use correct React LoginPage selector
-    const loginButton = page.locator('[data-testid="login-button"]');
-    
-    await expect(loginButton).toBeVisible({ timeout: 10000 });
-    await loginButton.click();
-    
-    // Wait for login to complete
-    try {
-      await page.waitForURL('**/dashboard/**', { timeout: 10000 });
-    } catch {
-      const currentUrl = page.url();
-      console.log(`Login landed on: ${currentUrl}`);
-      if (!currentUrl.includes('dashboard')) {
-        await page.goto('http://localhost:5173/dashboard');
-        await page.waitForLoadState('networkidle');
-      }
-    }
+
+    // Login as admin using AuthHelper
+    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    expect(loginSuccess).toBeTruthy();
     
     // Get the first event ID from API for testing
     const eventsResponse = await page.request.get('http://localhost:5655/api/events');

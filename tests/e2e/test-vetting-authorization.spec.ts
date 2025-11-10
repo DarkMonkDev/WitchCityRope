@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelper } from './helpers/auth.helper';
 
 /**
  * Test: Admin Vetting Management Authorization Verification
@@ -11,38 +12,9 @@ test.describe('Admin Vetting Management Authorization', () => {
     // Environment Pre-Flight Check
     console.log('🔍 Starting admin vetting access verification...');
 
-    // Step 1: Navigate to login page (use direct login page)
-    await page.goto('http://localhost:5173/login');
-    await page.waitForLoadState('networkidle');
-
-    // Verify page loads
-    const title = await page.title();
-    expect(title).toContain('Witch City Rope');
-    console.log('✅ React app loaded successfully');
-
-    // Step 2: Login as admin using working pattern
-    console.log('🔑 Logging in as admin...');
-
-    // Wait for login form
-    await page.waitForSelector('[data-testid="login-form"]', { timeout: 10000 });
-    console.log('📍 Login form detected');
-
-    // Use correct data-testid selectors
-    const emailInput = page.locator('[data-testid="email-input"]');
-    const passwordInput = page.locator('[data-testid="password-input"]');
-    const loginButton = page.locator('[data-testid="login-button"]');
-
-    // Fill credentials
-    await emailInput.fill('admin@witchcityrope.com');
-    await passwordInput.fill('Test123!');
-
-    console.log('📍 Credentials filled');
-
-    // Submit login
-    await loginButton.click();
-
-    // Wait for redirect to dashboard
-    await page.waitForURL(/dashboard|admin/, { timeout: 15000 });
+    // Login as admin using AuthHelper
+    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    expect(loginSuccess).toBeTruthy();
     console.log('✅ Successfully logged in as admin');
 
     // Step 3: Navigate to admin dashboard if not already there
@@ -196,22 +168,9 @@ test.describe('Admin Vetting Management Authorization', () => {
   test('Verify vetting API endpoints respond without 403 errors', async ({ page }) => {
     console.log('🔍 Testing vetting API endpoints directly...');
 
-    // Login first to get authentication cookies
-    await page.goto('http://localhost:5173/login');
-    await page.waitForLoadState('networkidle');
-
-    // Login using working pattern
-    await page.waitForSelector('[data-testid="login-form"]', { timeout: 10000 });
-
-    const emailInput = page.locator('[data-testid="email-input"]');
-    const passwordInput = page.locator('[data-testid="password-input"]');
-    const loginButton = page.locator('[data-testid="login-button"]');
-
-    await emailInput.fill('admin@witchcityrope.com');
-    await passwordInput.fill('Test123!');
-    await loginButton.click();
-
-    await page.waitForURL(/dashboard|admin/, { timeout: 15000 });
+    // Login using AuthHelper
+    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    expect(loginSuccess).toBeTruthy();
     console.log('✅ Logged in for API testing');
 
     // Test vetting API endpoints

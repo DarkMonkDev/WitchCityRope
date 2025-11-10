@@ -1,41 +1,13 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelper } from './helpers/auth.helper';
 
 test.describe('Authentication and RSVP Testing', () => {
   test('should navigate to login page and authenticate admin user', async ({ page }) => {
-    // Navigate to the login page
-    await page.goto('http://localhost:5173/login');
-    await page.waitForLoadState('networkidle');
+    // Login using AuthHelper
+    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    expect(loginSuccess).toBeTruthy();
 
-    // Take screenshot of login page
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/01-login-page.png', fullPage: true });
-
-    // Check if login form is present using correct data-testid selectors
-    const emailField = page.locator('[data-testid="email-input"]');
-    const passwordField = page.locator('[data-testid="password-input"]');
-    const loginButton = page.locator('[data-testid="login-button"]');
-
-    // Verify form elements exist
-    await expect(emailField).toBeVisible();
-    await expect(passwordField).toBeVisible();
-    await expect(loginButton).toBeVisible();
-
-    console.log('✅ Login form elements found and visible');
-
-    // Fill in admin credentials
-    await emailField.fill('admin@witchcityrope.com');
-    await passwordField.fill('Test123!');
-
-    // Take screenshot before submitting
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/02-login-form-filled.png', fullPage: true });
-
-    // Submit login form
-    await loginButton.click();
-
-    // Wait for navigation and check for successful login
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(3000); // Give time for auth state to update
-
-    // Take screenshot after login attempt
+    // Take screenshot after login
     await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/03-after-login.png', fullPage: true });
 
     // Check current URL and page content
@@ -154,21 +126,9 @@ test.describe('Authentication and RSVP Testing', () => {
   });
 
   test('should check RSVP creation functionality', async ({ page }) => {
-    // First login through the UI
-    await page.goto('http://localhost:5173/login');
-    await page.waitForLoadState('networkidle');
-
-    // Login as regular member
-    const emailField = page.locator('[data-testid="email-input"]');
-    const passwordField = page.locator('[data-testid="password-input"]');
-    const loginButton = page.locator('[data-testid="login-button"]');
-
-    await emailField.fill('member@witchcityrope.com');
-    await passwordField.fill('Test123!');
-    await loginButton.click();
-
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(3000);
+    // Login as regular member using AuthHelper
+    const loginSuccess = await AuthHelper.loginAs(page, 'member');
+    expect(loginSuccess).toBeTruthy();
 
     // Take screenshot of member dashboard
     await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/04-member-dashboard.png', fullPage: true });

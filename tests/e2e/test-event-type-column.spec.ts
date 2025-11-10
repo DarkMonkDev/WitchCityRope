@@ -1,16 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelper } from './helpers/auth.helper';
 
 test('Event Type column is displayed in admin events table', async ({ page }) => {
-  // Navigate to admin events page
-  await page.goto('http://localhost:5173/login');
+  // Login as admin using AuthHelper
+  const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+  expect(loginSuccess).toBeTruthy();
 
-  // Login as admin
-  await page.fill('input[type="email"]', 'admin@witchcityrope.com');
-  await page.fill('input[type="password"]', 'Test123!');
-  await page.click('button[type="submit"]');
-
-  // Wait for login and navigate to admin events
-  await page.waitForURL('**/dashboard');
+  // Navigate to admin events
   await page.goto('http://localhost:5173/admin/events');
 
   // Wait for the events table to load
@@ -48,14 +44,10 @@ test('Event Type column is displayed in admin events table', async ({ page }) =>
 });
 
 test('Draft events are visible in admin events table', async ({ page }) => {
-  await page.goto('http://localhost:5173/login');
+  // Login as admin using AuthHelper
+  const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+  expect(loginSuccess).toBeTruthy();
 
-  // Login as admin
-  await page.fill('input[type="email"]', 'admin@witchcityrope.com');
-  await page.fill('input[type="password"]', 'Test123!');
-  await page.click('button[type="submit"]');
-
-  await page.waitForURL('**/dashboard');
   await page.goto('http://localhost:5173/admin/events');
 
   await page.waitForSelector('[data-testid="events-table"]', { timeout: 10000 });

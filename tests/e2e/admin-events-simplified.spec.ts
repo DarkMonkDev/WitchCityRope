@@ -1,24 +1,14 @@
 import { test, expect } from '@playwright/test';
-
-async function loginAsAdmin(page: any) {
-  console.log('🔐 Logging in as admin...');
-  await page.goto('http://localhost:5173/login');
-  await page.waitForLoadState('networkidle');
-  
-  // Use the working selectors from diagnostic test
-  await page.locator('[data-testid="email-input"]').fill('admin@witchcityrope.com');
-  await page.locator('[data-testid="password-input"]').fill('Test123!');
-  await page.locator('[data-testid="login-button"]').click();
-  
-  // Wait for dashboard
-  await page.waitForURL('**/dashboard', { timeout: 15000 });
-  console.log('✅ Admin login successful');
-}
+import { AuthHelper } from './helpers/auth.helper';
 
 test.describe('Admin Events - Simplified Comprehensive Testing', () => {
   test.beforeEach(async ({ page }) => {
-    await loginAsAdmin(page);
-    await page.goto('/admin/events');
+    // Use AuthHelper for consistent login
+    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    expect(loginSuccess).toBeTruthy();
+
+    await page.goto('http://localhost:5173/admin/events');
+    await page.waitForLoadState('networkidle');
   });
 
   test.describe('Environment and Access Validation', () => {

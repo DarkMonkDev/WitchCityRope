@@ -1,13 +1,14 @@
 import { test, expect, Page } from '@playwright/test'
+import { AuthHelper } from './helpers/auth.helper';
 
 /**
- * LOGIN METHODS TESTING - Multiple approaches to solve Mantine UI login issues
- * 
- * Problem: Current E2E tests can't login properly due to Mantine component CSS console errors blocking form interaction.
- * Solution: Test 5 different approaches to find a reliable login method for Mantine UI components.
+ * LOGIN METHODS TESTING - Using AuthHelper
+ *
+ * This test suite demonstrates that the AuthHelper provides a reliable
+ * login method that works with Mantine UI components.
  */
 
-test.describe('Login Methods Testing - Find Reliable Solution', () => {
+test.describe('Login Methods Testing - AuthHelper Solution', () => {
   let consoleErrors: string[] = []
   let jsErrors: string[] = []
   let page: Page
@@ -37,52 +38,14 @@ test.describe('Login Methods Testing - Find Reliable Solution', () => {
     await page?.close()
   })
 
-  test('Method 1: Use page.fill() with data-testid selectors (Recommended)', async () => {
-    console.log('🧪 Testing Method 1: page.fill() with data-testid')
-    
-    await page.goto('http://localhost:5173/login')
-    await page.waitForLoadState('networkidle')
-    
-    // Wait for form to be ready
-    await page.waitForSelector('[data-testid="login-form"]', { timeout: 10000 })
-    
-    // Get input elements by data-testid (most reliable)
-    const emailInput = page.locator('[data-testid="email-input"]')
-    const passwordInput = page.locator('[data-testid="password-input"]')
-    const loginButton = page.locator('[data-testid="login-button"]')
-    
-    // Method 1: Direct fill with page.fill() - bypasses Mantine handlers
-    await emailInput.fill('admin@witchcityrope.com')
-    await passwordInput.fill('Test123!')
-    
-    // Verify values were set
-    const emailValue = await emailInput.inputValue()
-    const passwordValue = await passwordInput.inputValue()
-    
-    expect(emailValue).toBe('admin@witchcityrope.com')
-    expect(passwordValue).toBe('Test123!')
-    
-    // Monitor login request
-    let loginSuccessful = false
-    page.on('response', async (response) => {
-      if (response.url().includes('/api/auth/login') && response.status() === 200) {
-        loginSuccessful = true
-        console.log('✅ Login API call successful')
-      }
-    })
-    
-    // Submit form
-    await loginButton.click()
-    
-    // Wait for navigation or error
-    try {
-      await page.waitForURL('**/dashboard', { timeout: 15000 })
-      console.log('✅ Method 1: Successfully navigated to dashboard')
-      expect(loginSuccessful).toBe(true)
-    } catch (error) {
-      console.log(`❌ Method 1: Navigation failed - ${error}`)
-      throw error
-    }
+  test('AuthHelper: Reliable login method', async () => {
+    console.log('🧪 Testing AuthHelper method')
+
+    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+
+    expect(loginSuccess).toBeTruthy();
+    expect(page.url()).toContain('/dashboard');
+    console.log('✅ AuthHelper: Successfully navigated to dashboard')
   })
 
   test('Method 2: Use force option with direct selectors', async () => {

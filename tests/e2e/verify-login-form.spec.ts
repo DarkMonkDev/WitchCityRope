@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelper } from './helpers/auth.helper';
 
 test('Verify login form has both email and password fields', async ({ page }) => {
   // Navigate to login page
@@ -11,7 +12,7 @@ test('Verify login form has both email and password fields', async ({ page }) =>
   await page.screenshot({ path: 'login-form-inspection.png', fullPage: true });
 
   // Check for email input
-  const emailInput = page.locator('[data-testid="email-input"]');
+  const emailInput = page.locator('[data-testid="email-or-scenename-input"]');
   await expect(emailInput).toBeVisible();
   console.log('✅ Email input found');
 
@@ -38,9 +39,9 @@ test('Verify login form has both email and password fields', async ({ page }) =>
     console.log(`   Input ${i + 1}: type="${type}", placeholder="${placeholder}", testId="${testId}", name="${name}"`);
   }
 
-  // Try to interact with the form
-  await emailInput.fill('test@example.com');
-  await passwordInput.fill('testpassword');
+  // Try to interact with the form - Test login functionality
+  const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+  expect(loginSuccess).toBeTruthy();
 
-  console.log('✅ Successfully filled both email and password fields');
+  console.log('✅ Successfully filled and submitted login form');
 });

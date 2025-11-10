@@ -1,13 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-
-// Authentication helper to login as admin
-async function loginAsAdmin(page: Page) {
-  await page.goto('http://localhost:5173/login');
-  await page.fill('[data-testid="email-input"]', 'admin@witchcityrope.com');
-  await page.fill('[data-testid="password-input"]', 'Test123!');
-  await page.click('[data-testid="login-button"]');
-  await page.waitForURL('**/dashboard');
-}
+import { AuthHelper } from './helpers/auth.helper';
 
 // Helper to navigate to vetting page
 async function navigateToVettingPage(page: Page) {
@@ -60,7 +52,8 @@ test.describe('Vetting System - Complete Workflows', () => {
 
   test('View Applications Flow - Login, Navigate, and View Table', async ({ page }) => {
     // Arrange
-    await loginAsAdmin(page);
+    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    expect(loginSuccess).toBeTruthy();
     
     // Act
     await navigateToVettingPage(page);
@@ -80,7 +73,8 @@ test.describe('Vetting System - Complete Workflows', () => {
 
   test('Filter and Search Functionality', async ({ page }) => {
     // Arrange
-    await loginAsAdmin(page);
+    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    expect(loginSuccess).toBeTruthy();
     await navigateToVettingPage(page);
     
     // Test search functionality
@@ -110,7 +104,8 @@ test.describe('Vetting System - Complete Workflows', () => {
 
   test('Navigation to Application Detail', async ({ page }) => {
     // Arrange
-    await loginAsAdmin(page);
+    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    expect(loginSuccess).toBeTruthy();
     await navigateToVettingPage(page);
     
     // Act - Click on first application row (if exists)
@@ -139,7 +134,8 @@ test.describe('Vetting System - Complete Workflows', () => {
 
   test('Put on Hold Modal Flow', async ({ page }) => {
     // Arrange
-    await loginAsAdmin(page);
+    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    expect(loginSuccess).toBeTruthy();
     await navigateToVettingPage(page);
     
     // Navigate to first application detail if exists
@@ -183,7 +179,8 @@ test.describe('Vetting System - Complete Workflows', () => {
 
   test('Send Reminder Modal Flow', async ({ page }) => {
     // Arrange
-    await loginAsAdmin(page);
+    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    expect(loginSuccess).toBeTruthy();
     await navigateToVettingPage(page);
     
     // Navigate to first application detail if exists
@@ -231,7 +228,8 @@ test.describe('Vetting System - Complete Workflows', () => {
 
   test('Application Status Badge Display', async ({ page }) => {
     // Arrange
-    await loginAsAdmin(page);
+    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    expect(loginSuccess).toBeTruthy();
     await navigateToVettingPage(page);
     
     // Check for status badges in the table
@@ -254,7 +252,8 @@ test.describe('Vetting System - Complete Workflows', () => {
 
   test('Sorting Functionality', async ({ page }) => {
     // Arrange
-    await loginAsAdmin(page);
+    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    expect(loginSuccess).toBeTruthy();
     await navigateToVettingPage(page);
     
     // Test clicking on sortable column headers
@@ -279,7 +278,8 @@ test.describe('Vetting System - Complete Workflows', () => {
 
   test('Pagination Controls', async ({ page }) => {
     // Arrange
-    await loginAsAdmin(page);
+    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    expect(loginSuccess).toBeTruthy();
     await navigateToVettingPage(page);
     
     // Check for pagination controls
@@ -311,7 +311,8 @@ test.describe('Vetting System - Complete Workflows', () => {
 
   test('Bulk Selection Functionality', async ({ page }) => {
     // Arrange
-    await loginAsAdmin(page);
+    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    expect(loginSuccess).toBeTruthy();
     await navigateToVettingPage(page);
     
     // Test "Select All" checkbox
@@ -338,7 +339,8 @@ test.describe('Vetting System - Complete Workflows', () => {
 
   test('Back Navigation from Detail Page', async ({ page }) => {
     // Arrange
-    await loginAsAdmin(page);
+    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    expect(loginSuccess).toBeTruthy();
     await navigateToVettingPage(page);
     
     // Navigate to detail page if applications exist
@@ -365,7 +367,8 @@ test.describe('Vetting System - Complete Workflows', () => {
 
   test('Error Handling and Empty States', async ({ page }) => {
     // Arrange
-    await loginAsAdmin(page);
+    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    expect(loginSuccess).toBeTruthy();
     await navigateToVettingPage(page);
     
     // Test search with no results
@@ -404,7 +407,8 @@ test.describe('Vetting System - Complete Workflows', () => {
 
   test('Accessibility and Keyboard Navigation', async ({ page }) => {
     // Arrange
-    await loginAsAdmin(page);
+    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    expect(loginSuccess).toBeTruthy();
     await navigateToVettingPage(page);
     
     // Test tab navigation

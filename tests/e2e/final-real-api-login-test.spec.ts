@@ -1,9 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelper } from './helpers/auth.helper';
 
 /**
  * Final Real API Login Test - Complete End-to-End Authentication Flow
- * 
- * Uses correct Mantine UI selectors discovered through DOM inspection.
+ *
+ * Uses AuthHelper for reliable authentication.
  * This test verifies:
  * 1. No infinite loop issues (FIXED)
  * 2. Real API communication on port 5655 (MSW disabled)
@@ -64,53 +65,18 @@ test.describe('Final Real API Authentication Test', () => {
   test('should complete full login flow with real API - COMPREHENSIVE TEST', async ({ page }) => {
     console.log('=== COMPREHENSIVE REAL API LOGIN TEST ===');
     console.log('Testing: Real API communication, No infinite loops, Authentication flow');
-    
-    // Step 1: Navigate to login page
-    console.log('Step 1: Navigating to login page...');
-    await page.goto('http://localhost:5173/login');
-    await page.waitForLoadState('networkidle');
-    
-    // Take initial screenshot
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/final-01-login-page.png' });
-    console.log('✅ Login page loaded');
 
-    // Step 2: Wait for form to be fully rendered
-    console.log('Step 2: Waiting for Mantine form elements...');
-    
-    // Use correct React LoginPage selectors (data-testid attributes)
-    const emailInput = page.locator('[data-testid="email-input"]');
-    const passwordInput = page.locator('[data-testid="password-input"]');
-    const loginButton = page.locator('[data-testid="login-button"]');
+    // Clear API requests tracking
+    apiRequests.length = 0;
 
-    await expect(emailInput).toBeVisible({ timeout: 10000 });
-    await expect(passwordInput).toBeVisible({ timeout: 10000 });
-    await expect(loginButton).toBeVisible({ timeout: 10000 });
-    
-    console.log('✅ All Mantine form elements are visible and ready');
-
-    // Step 3: Fill in test credentials
-    console.log('Step 3: Filling credentials - test@witchcityrope.com');
-    await emailInput.fill('test@witchcityrope.com');
-    await passwordInput.fill('Test1234');
-    
-    // Screenshot with filled credentials
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/final-02-credentials-filled.png' });
-
-    // Step 4: Clear API requests and submit
-    console.log('Step 4: Submitting login form and monitoring API calls...');
-    apiRequests.length = 0; // Clear previous requests
-    
-    // Submit form and wait for response
-    await loginButton.click();
-    
-    // Wait for potential navigation or API response
-    await page.waitForTimeout(4000);
-    
-    const urlAfterLogin = page.url();
-    console.log(`URL after login attempt: ${urlAfterLogin}`);
+    // Use AuthHelper for login - this handles all the form interaction
+    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
 
     // Take screenshot of result
     await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/final-03-after-login.png' });
+
+    const urlAfterLogin = page.url();
+    console.log(`URL after login attempt: ${urlAfterLogin}`);
 
     // Step 5: Analyze authentication result
     console.log('Step 5: Analyzing authentication result...');

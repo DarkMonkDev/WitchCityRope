@@ -1,29 +1,13 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelper } from './helpers/auth.helper';
 
 test.describe('Admin Events Dashboard', () => {
   test.beforeEach(async ({ page }) => {
-    // Login as admin using correct selectors
-    await page.goto('http://localhost:5173/login');
-    
-    // Wait for form elements using CORRECT data-testid selectors (proven working)
-    const emailInput = page.locator('[data-testid="email-input"]');
-    const passwordInput = page.locator('[data-testid="password-input"]');
-    const loginButton = page.locator('[data-testid="login-button"]');
-    
-    // Verify form elements exist with correct selectors
-    await expect(emailInput).toBeVisible({ timeout: 10000 });
-    await expect(passwordInput).toBeVisible({ timeout: 10000 });
-    await expect(loginButton).toBeVisible({ timeout: 10000 });
-    
-    // Fill in admin credentials
-    await emailInput.fill('admin@witchcityrope.com');
-    await passwordInput.fill('Test123!');
-    await loginButton.click();
-    
-    // Wait for login to complete (fixed URL pattern)
-    await page.waitForURL('**/dashboard', { timeout: 10000 });
-    
-    // Navigate to admin events page (FIXED: was /admin/events-table)
+    // Login as admin using AuthHelper
+    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    expect(loginSuccess).toBeTruthy();
+
+    // Navigate to admin events page
     await page.goto('http://localhost:5173/admin/events');
     await page.waitForLoadState('networkidle');
   });

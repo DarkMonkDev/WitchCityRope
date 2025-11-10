@@ -1,13 +1,14 @@
 import { test, expect } from '@playwright/test'
+import { AuthHelper } from './helpers/auth.helper';
 
 /**
  * SIMPLE LOGIN SELECTOR FIX TEST
- * 
- * This test demonstrates the exact selector issue and shows the fix.
- * Based on the error analysis, tests are failing because they use wrong selectors.
+ *
+ * This test demonstrates that AuthHelper uses the correct selectors
+ * and provides a reliable login method.
  */
 
-test.describe('Login Selector Fix - Direct Approach', () => {
+test.describe('Login Selector Fix - AuthHelper Approach', () => {
   test('BROKEN vs WORKING selectors comparison', async ({ page }) => {
     console.log('🔍 Testing login selector patterns...')
     
@@ -55,48 +56,17 @@ test.describe('Login Selector Fix - Direct Approach', () => {
     console.log('💡 SOLUTION: Update failing tests to use data-testid selectors')
   })
 
-  test('WORKING: Direct login using correct selectors', async ({ page }) => {
-    console.log('✅ Demonstrating working login with correct selectors...')
-    
-    // Navigate to login page
-    await page.goto('http://localhost:5173/login')
-    await page.waitForLoadState('networkidle')
-    
-    // Wait for form to be ready
-    await page.waitForSelector('[data-testid="login-form"]', { timeout: 10000 })
-    
-    // Use the correct selectors (data-testid)
-    const emailInput = page.locator('[data-testid="email-input"]')
-    const passwordInput = page.locator('[data-testid="password-input"]')
-    const loginButton = page.locator('[data-testid="login-button"]')
-    
-    // Verify elements exist (they should with correct selectors)
-    await expect(emailInput).toBeVisible({ timeout: 5000 })
-    await expect(passwordInput).toBeVisible({ timeout: 5000 })
-    await expect(loginButton).toBeVisible({ timeout: 5000 })
-    
-    // Fill in the form
-    await emailInput.fill('admin@witchcityrope.com')
-    await passwordInput.fill('Test123!')
-    
-    // Verify values were set
-    const emailValue = await emailInput.inputValue()
-    const passwordValue = await passwordInput.inputValue()
-    expect(emailValue).toBe('admin@witchcityrope.com')
-    expect(passwordValue).toBe('Test123!')
-    
-    console.log('✅ Form filled successfully with correct selectors')
-    
-    // Click login button
-    await loginButton.click()
-    
-    // Wait for navigation (this should work)
-    await page.waitForURL('**/dashboard', { timeout: 15000 })
-    
+  test('WORKING: Direct login using AuthHelper', async ({ page }) => {
+    console.log('✅ Demonstrating working login with AuthHelper...')
+
+    // Use AuthHelper for reliable login
+    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+
     // Verify we're on dashboard
+    expect(loginSuccess).toBeTruthy();
     expect(page.url()).toContain('/dashboard')
-    
-    console.log('✅ Login successful using data-testid selectors!')
+
+    console.log('✅ Login successful using AuthHelper!')
   })
 
   test('Show current login page HTML structure for debugging', async ({ page }) => {

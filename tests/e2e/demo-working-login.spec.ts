@@ -1,82 +1,25 @@
 import { test, expect } from '@playwright/test'
+import { AuthHelper } from './helpers/auth.helper';
 
 /**
  * SIMPLE DEMONSTRATION OF WORKING MANTINE UI LOGIN
- * 
+ *
  * This test demonstrates the correct approach for login with Mantine UI components
  * that actually works and can be used as a reference for other tests.
  */
 
 test.describe('Demo: Working Login with Mantine UI', () => {
-  test('Login successfully using correct data-testid selectors', async ({ page }) => {
+  test('Login successfully using AuthHelper', async ({ page }) => {
     console.log('🎯 Demonstrating working login approach for Mantine UI')
-    
-    // Navigate to login page
-    await page.goto('http://localhost:5173/login')
-    await page.waitForLoadState('networkidle')
-    
-    console.log('📍 Step 1: Page loaded')
-    
-    // Wait for the login form to be ready
-    await page.waitForSelector('[data-testid="login-form"]', { timeout: 10000 })
-    
-    console.log('📍 Step 2: Login form detected')
-    
-    // ✅ THE WORKING APPROACH: Use data-testid selectors from LoginPage.tsx
-    const emailInput = page.locator('[data-testid="email-input"]')
-    const passwordInput = page.locator('[data-testid="password-input"]')
-    const loginButton = page.locator('[data-testid="login-button"]')
-    
-    console.log('📍 Step 3: Form elements located with data-testid')
-    
-    // Fill the form using page.fill() - this works reliably with Mantine
-    await emailInput.fill('admin@witchcityrope.com')
-    await passwordInput.fill('Test123!')
-    
-    console.log('📍 Step 4: Form filled with credentials')
-    
-    // Verify the values were set (important for debugging)
-    const emailValue = await emailInput.inputValue()
-    const passwordValue = await passwordInput.inputValue()
-    
-    console.log(`📍 Step 5: Email value set to: ${emailValue}`)
-    console.log(`📍 Step 5: Password value set to: ${passwordValue ? '*'.repeat(passwordValue.length) : 'EMPTY'}`)
-    
-    expect(emailValue).toBe('admin@witchcityrope.com')
-    expect(passwordValue).toBe('Test123!')
-    
-    // Monitor for successful authentication
-    let authApiCalled = false
-    page.on('response', async (response) => {
-      if (response.url().includes('/api/auth/login')) {
-        authApiCalled = true
-        console.log(`📍 Step 6: Auth API called - Status: ${response.status()}`)
-      }
-    })
-    
-    // Submit the form
-    await loginButton.click()
-    
-    console.log('📍 Step 7: Login button clicked')
-    
-    // Wait for navigation to complete
-    try {
-      await page.waitForURL('**/dashboard', { timeout: 15000 })
-      console.log('✅ SUCCESS: Navigated to dashboard')
-    } catch (error) {
-      const currentUrl = page.url()
-      console.log(`❌ Navigation timeout - Current URL: ${currentUrl}`)
-      
-      // Check if we're still on login page (indicates login failure)
-      if (currentUrl.includes('/login')) {
-        throw new Error('Login failed - still on login page')
-      }
-    }
-    
+
+    // Use AuthHelper for clean, centralized login
+    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+
     // Verify we're authenticated and on the correct page
+    expect(loginSuccess).toBeTruthy();
     expect(page.url()).toContain('/dashboard')
-    
-    console.log('🎉 DEMO COMPLETE: Login working successfully with Mantine UI!')
+
+    console.log('🎉 DEMO COMPLETE: Login working successfully with AuthHelper!')
   })
 
   test('Show what happens with WRONG selectors (this should fail)', async ({ page }) => {

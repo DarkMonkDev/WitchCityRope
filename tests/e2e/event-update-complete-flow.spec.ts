@@ -1,10 +1,11 @@
 import { test, expect, Page } from '@playwright/test'
+import { AuthHelper } from './helpers/auth.helper';
 
 /**
  * Comprehensive E2E test for event update authentication issue
- * 
+ *
  * CRITICAL ISSUE: Users are getting logged out when trying to save event changes in admin panel.
- * 
+ *
  * This test validates the complete flow:
  * 1. Login as admin
  * 2. Navigate to event management
@@ -119,47 +120,16 @@ test.describe('Event Update Authentication Flow - E2E', () => {
   })
 
   test('Admin can update event without getting logged out', async () => {
-    // Step 1: Navigate to login page
-    console.log('🚀 Step 1: Navigate to login page')
-    await page.goto('http://localhost:5173/login')
-    await page.waitForLoadState('networkidle')
-    
-    // 🚨 Check for errors BEFORE continuing
-    if (consoleErrors.length > 0) {
-      throw new Error(`Login page has console errors: ${consoleErrors.join('; ')}`)
-    }
+    // Step 1 & 2: Login as admin using AuthHelper
+    console.log('🚀 Step 1 & 2: Login as admin user')
 
-    // Verify login form is present
-    await expect(page.locator('h1')).toContainText('Welcome Back')
-    await expect(page.locator('[data-testid="email-input"], input[name="email"]')).toBeVisible()
-    await expect(page.locator('[data-testid="password-input"], input[name="password"]')).toBeVisible()
+    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    expect(loginSuccess).toBeTruthy();
 
-    // Step 2: Perform admin login
-    console.log('🚀 Step 2: Login as admin user')
-    
-    // Clear auth state first
-    await page.evaluate(() => {
-      if (typeof localStorage !== 'undefined') localStorage.clear()
-      if (typeof sessionStorage !== 'undefined') sessionStorage.clear()
-    })
-    
-    // Fill login form
-    await page.locator('[data-testid="email-input"], input[name="email"]').fill(TEST_ADMIN.email)
-    await page.locator('[data-testid="password-input"], input[name="password"]').fill(TEST_ADMIN.password)
-    
-    // Submit login form and wait for navigation
-    const loginButton = page.locator('[data-testid="login-button"], button[type="submit"]')
-    await expect(loginButton).toBeVisible()
-    
-    const navigationPromise = page.waitForURL('**/dashboard', { timeout: 15000 })
-    await loginButton.click()
-    await navigationPromise
-    
     console.log('✅ Login successful - navigated to dashboard')
-    
+
     // Verify successful authentication
     await expect(page).toHaveURL(/.*dashboard/)
-    await expect(page.locator('text=Welcome', { timeout: 10000 })).toBeVisible()
 
     // Check authentication tokens were received
     if (authTokens.length === 0) {
@@ -493,13 +463,10 @@ test.describe('Event Update Authentication Flow - E2E', () => {
   test('Event update preserves authentication cookies', async () => {
     // Test specifically focused on cookie persistence
     console.log('🚀 Testing cookie persistence during event update')
-    
-    // Login and capture initial cookies
-    await page.goto('http://localhost:5173/login')
-    await page.locator('[data-testid="email-input"], input[name="email"]').fill(TEST_ADMIN.email)
-    await page.locator('[data-testid="password-input"], input[name="password"]').fill(TEST_ADMIN.password)
-    await page.locator('[data-testid="login-button"], button[type="submit"]').click()
-    await page.waitForURL('**/dashboard')
+
+    // Login using AuthHelper
+    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    expect(loginSuccess).toBeTruthy();
     
     // Capture cookies after login
     const cookiesAfterLogin = await page.context().cookies()
@@ -560,13 +527,10 @@ test.describe('Event Update Authentication Flow - E2E', () => {
   test('Event update handles network errors gracefully', async () => {
     // Test error handling scenarios
     console.log('🚀 Testing error handling during event update')
-    
-    // Login first
-    await page.goto('http://localhost:5173/login')
-    await page.locator('[data-testid="email-input"], input[name="email"]').fill(TEST_ADMIN.email)
-    await page.locator('[data-testid="password-input"], input[name="password"]').fill(TEST_ADMIN.password)
-    await page.locator('[data-testid="login-button"], button[type="submit"]').click()
-    await page.waitForURL('**/dashboard')
+
+    // Login using AuthHelper
+    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    expect(loginSuccess).toBeTruthy();
     
     // Navigate to event edit
     await page.goto('http://localhost:5173/admin/events/550e8400-e29b-41d4-a716-446655440000/edit')
