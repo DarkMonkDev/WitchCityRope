@@ -58,16 +58,17 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
       await page.waitForURL('**/admin/events/new');
 
       // Check for key form fields using label-based selectors (Mantine pattern)
+      // Use .first() to handle multiple matches from Mantine's structure
       // Event Title field
-      const titleField = page.getByLabel('Event Title');
+      const titleField = page.getByLabel('Event Title').first();
       await expect(titleField).toBeVisible({ timeout: 5000 });
 
       // Short Description field
-      const shortDescField = page.getByLabel(/Short Description/i);
+      const shortDescField = page.getByLabel(/Short Description/i).first();
       await expect(shortDescField).toBeVisible({ timeout: 5000 });
 
       // Venue dropdown
-      const venueField = page.getByLabel('Venue');
+      const venueField = page.getByLabel('Venue').first();
       await expect(venueField).toBeVisible({ timeout: 5000 });
 
       console.log('✅ Basic event form fields are present');
@@ -76,18 +77,15 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
     test('event form can be filled', async ({ page }) => {
       // Open event creation
       await page.click('[data-testid="button-create-event"]');
-      
-      // Try to fill basic fields
-      const nameField = page.locator('[data-testid="event-name-input"], input[name="name"], input[placeholder*="name" i]').first();
-      
-      if (await nameField.isVisible()) {
-        await nameField.fill('Test Event Name');
-        const value = await nameField.inputValue();
-        expect(value).toBe('Test Event Name');
-        console.log('✅ Event form fields can be filled');
-      } else {
-        console.log('⚠️  Event name field not found with current selectors');
-      }
+      await page.waitForURL('**/admin/events/new');
+
+      // Fill Event Title field using label-based selector
+      const titleField = page.getByLabel('Event Title');
+      await titleField.fill('Test Event Name');
+      const value = await titleField.inputValue();
+      expect(value).toBe('Test Event Name');
+
+      console.log('✅ Event form fields can be filled');
     });
 
     test('events list displays', async ({ page }) => {
@@ -221,74 +219,53 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
   });
 
   test.describe('Critical Event Form Fields', () => {
-    test('event name field exists and works', async ({ page }) => {
-      const createBtn = page.locator('[data-testid="button-create-event"]');
-      if (await createBtn.isVisible()) {
-        await createBtn.click();
-      }
-      
-      const nameField = page.locator('[data-testid="event-name-input"], input[name="name"], input[placeholder*="name" i]').first();
-      
-      if (await nameField.isVisible()) {
-        await nameField.fill('Test Event');
-        const value = await nameField.inputValue();
-        expect(value).toBe('Test Event');
-        console.log('✅ Event name field works correctly');
-      } else {
-        console.log('⚠️  Event name field not found');
-        expect(true).toBeTruthy(); // Don't fail the test
-      }
+    test('event title field exists and works', async ({ page }) => {
+      await page.click('[data-testid="button-create-event"]');
+      await page.waitForURL('**/admin/events/new');
+
+      // Use label-based selector
+      const titleField = page.getByLabel('Event Title');
+      await titleField.fill('Test Event');
+      const value = await titleField.inputValue();
+      expect(value).toBe('Test Event');
+
+      console.log('✅ Event title field works correctly');
     });
 
-    test('event date field exists', async ({ page }) => {
-      const createBtn = page.locator('[data-testid="button-create-event"]');
-      if (await createBtn.isVisible()) {
-        await createBtn.click();
-      }
-      
-      const dateField = page.locator('[data-testid="event-date-input"], input[type="date"], input[name="date"]').first();
-      
-      if (await dateField.isVisible()) {
-        console.log('✅ Event date field is present');
-      } else {
-        console.log('⚠️  Event date field not found');
-      }
-      
-      expect(true).toBeTruthy();
+    test('short description field exists', async ({ page }) => {
+      await page.click('[data-testid="button-create-event"]');
+      await page.waitForURL('**/admin/events/new');
+
+      // Use label-based selector (Mantine pattern)
+      // Use .first() to handle multiple matches
+      const shortDescField = page.getByLabel(/Short Description/i).first();
+      await expect(shortDescField).toBeVisible();
+
+      console.log('✅ Short description field is present');
     });
 
     test('venue selection exists', async ({ page }) => {
-      const createBtn = page.locator('[data-testid="button-create-event"]');
-      if (await createBtn.isVisible()) {
-        await createBtn.click();
-      }
-      
-      const venueField = page.locator('[data-testid="venue-select"], select[name="venue"], select:has(option)');
-      
-      if (await venueField.first().isVisible()) {
-        console.log('✅ Venue selection field found');
-      } else {
-        console.log('⚠️  Venue selection field not found');
-      }
-      
-      expect(true).toBeTruthy();
+      await page.click('[data-testid="button-create-event"]');
+      await page.waitForURL('**/admin/events/new');
+
+      // Use label-based selector for Mantine Select
+      // Use .first() to handle multiple matches
+      const venueField = page.getByLabel('Venue').first();
+      await expect(venueField).toBeVisible();
+
+      console.log('✅ Venue selection field found');
     });
 
     test('teacher selection exists', async ({ page }) => {
-      const createBtn = page.locator('[data-testid="button-create-event"]');
-      if (await createBtn.isVisible()) {
-        await createBtn.click();
-      }
-      
-      const teacherField = page.locator('[data-testid="teacher-select"], select[name="teacher"], select:has(option)');
-      
-      if (await teacherField.first().isVisible()) {
-        console.log('✅ Teacher selection field found');
-      } else {
-        console.log('⚠️  Teacher selection field not found');
-      }
-      
-      expect(true).toBeTruthy();
+      await page.click('[data-testid="button-create-event"]');
+      await page.waitForURL('**/admin/events/new');
+
+      // Use label-based selector for Mantine MultiSelect
+      // Use .first() to handle multiple matches (Mantine creates input + listbox)
+      const teacherField = page.getByLabel('Select Teachers').first();
+      await expect(teacherField).toBeVisible();
+
+      console.log('✅ Teacher selection field found');
     });
   });
 
