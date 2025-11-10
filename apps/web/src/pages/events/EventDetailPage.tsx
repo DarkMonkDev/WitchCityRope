@@ -470,28 +470,13 @@ interface ContentSectionProps {
 
 const ContentSection: React.FC<ContentSectionProps> = ({ title, children }) => (
   <Paper
+    className={styles.contentSection}
     style={{
       background: 'var(--color-ivory)',
       borderRadius: '16px',
       padding: 'var(--space-xl)',
       boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-      border: '1px solid rgba(183, 109, 117, 0.1)',
-      position: 'relative',
-      overflow: 'hidden'
-    }}
-    onMouseEnter={(e) => {
-      const shimmer = document.createElement('div');
-      shimmer.style.position = 'absolute';
-      shimmer.style.top = '-50%';
-      shimmer.style.left = '-50%';
-      shimmer.style.width = '200%';
-      shimmer.style.height = '200%';
-      shimmer.style.background = 'linear-gradient(45deg, transparent 30%, rgba(183, 109, 117, 0.05) 50%, transparent 70%)';
-      shimmer.style.transform = 'rotate(45deg)';
-      shimmer.style.animation = 'shimmer 0.5s ease';
-      shimmer.style.pointerEvents = 'none';
-      e.currentTarget.appendChild(shimmer);
-      setTimeout(() => shimmer.remove(), 500);
+      border: '1px solid rgba(183, 109, 117, 0.1)'
     }}
   >
     {title && (

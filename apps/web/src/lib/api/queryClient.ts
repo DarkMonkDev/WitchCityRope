@@ -24,11 +24,19 @@ export const queryClient = new QueryClient({
 
 // Memory monitoring - helps detect memory leaks early
 // Small webapps should stay well under 100MB
+// Store interval reference for cleanup (prevents monitor itself from leaking)
+let memoryMonitorInterval: NodeJS.Timeout | null = null;
+
 if (typeof window !== 'undefined' && 'performance' in window && 'memory' in (performance as any)) {
   let lastMemoryCheck = Date.now();
   let memoryWarningCount = 0;
 
-  setInterval(() => {
+  // Clear any existing interval (prevents duplication on HMR in dev)
+  if (memoryMonitorInterval) {
+    clearInterval(memoryMonitorInterval);
+  }
+
+  memoryMonitorInterval = setInterval(() => {
     const now = Date.now();
     // Only check every 30 seconds to avoid performance impact
     if (now - lastMemoryCheck < 30000) return;
