@@ -1478,3 +1478,55 @@ dotnet test --filter "FullyQualifiedName~Venue"
 **Benefit**: Low-cost solution (30 min) vs high-cost Respawn config fix (4-8 hours) with medium risk to other tests
 
 **Reference**: `/test-results/venue-integration-tests-skip-decision-2025-11-09.md` - Complete analysis and decision rationale
+
+## Prevention Pattern: Test Selector Mismatch with Actual UI (2025-11-10)
+
+**Problem**: Tests failing en masse because they expected `data-testid="create-event-button"` but actual button had `data-testid="button-create-event"`. This caused 100+ test failures that appeared to be login/AuthHelper issues but were actually selector mismatches.
+
+**Root Cause**:
+1. Tests written before UI implementation or without checking actual UI code
+2. Assumed test ID naming convention without verifying against implementation
+3. Misdiagnosed as "AuthHelper broken" when AuthHelper was working perfectly
+
+**Impact**:
+- admin-events-comprehensive.spec.ts: 8/17 tests passing (47%)
+- After fixing selector: 15/17 tests passing (88%)  
+- Wasted time debugging AuthHelper when it wasn't the problem
+
+**Prevention**:
+1. ❌ **NEVER** write test selectors without checking actual component code first
+2. ✅ **ALWAYS** search for existing `data-testid` attributes in components before writing tests
+3. ✅ **VERIFY** by running test in headed mode and inspecting actual DOM with browser DevTools
+4. ✅ **COORDINATE** with react-developer agent on test ID naming conventions
+5. ✅ **CHECK IMPLEMENTATION** when tests mysteriously fail - don't assume helper functions are broken
+
+**Debugging Pattern When Tests Fail**:
+```bash
+# Step 1: Run failing test in headed mode with screenshot
+# Run failing test in headed mode (use standard Playwright command)
+
+# Step 2: Check screenshot in test-results/ folder to see actual UI
+
+# Step 3: Search for the selector in source code
+grep -r "data-testid=\"suspected-selector\"" apps/web/src/
+
+# Step 4: Compare expected vs actual test IDs
+```
+
+**Example Fix**:
+```typescript
+// ❌ WRONG - Assumed selector without checking
+const button = page.locator('[data-testid="create-event-button"]');
+
+// ✅ CORRECT - Verified against AdminEventsPage.tsx:122
+const button = page.locator('[data-testid="button-create-event"]');
+```
+
+**Key Lesson**: When tests fail, verify the UI implementation exists and matches test expectations BEFORE debugging helper functions or authentication. The problem is usually selector mismatch, not infrastructure.
+
+**Files Fixed**:
+- `/home/chad/repos/witchcityrope/tests/e2e/admin-events-comprehensive.spec.ts`
+- `/home/chad/repos/witchcityrope/tests/e2e/admin-events-simplified.spec.ts`
+
+**Commit**: 83d4e8fe - "fix: correct test IDs for create event button"
+
