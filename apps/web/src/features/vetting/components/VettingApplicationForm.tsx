@@ -25,7 +25,7 @@ import {
 import { useForm } from '@mantine/form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
-import { IconCheck, IconAlertCircle, IconShieldCheck, IconLogin } from '@tabler/icons-react';
+import { IconCheck, IconAlertCircle, IconShieldCheck, IconLogin, IconUserPlus } from '@tabler/icons-react';
 import { useAuthStore, useUserSceneName } from '../../../stores/authStore';
 import { simplifiedVettingApi, getSimplifiedVettingErrorMessage } from '../api/simplifiedVettingApi';
 import { simplifiedApplicationSchema, defaultFormValues, fieldValidationMessages } from '../schemas/simplifiedApplicationSchema';
@@ -268,34 +268,54 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                   This helps us process applications efficiently and securely.
                 </Text>
 
-                <Group gap="md">
-                  <Button
-                    component="a"
-                    href={`/login?returnUrl=${encodeURIComponent(window.location.pathname)}`}
-                    color="wcr"
-                    leftSection={<IconLogin />}
-                    data-testid="login-to-account-button"
-                    style={{
-                      minHeight: TOUCH_TARGETS.BUTTON_HEIGHT,
-                      paddingTop: 12,
-                      paddingBottom: 12,
-                      paddingLeft: 24,
-                      paddingRight: 24,
-                      fontSize: 16,
-                      fontWeight: 600,
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    Login to Your Account
-                  </Button>
+                <Stack gap="md" align="center">
+                  <Group gap="md" align="center">
+                    <Button
+                      component="a"
+                      href={`/login?returnUrl=${encodeURIComponent(window.location.pathname)}`}
+                      color="wcr"
+                      leftSection={<IconLogin />}
+                      data-testid="login-to-account-button"
+                      style={{
+                        minHeight: TOUCH_TARGETS.BUTTON_HEIGHT,
+                        paddingTop: 12,
+                        paddingBottom: 12,
+                        paddingLeft: 24,
+                        paddingRight: 24,
+                        fontSize: 16,
+                        fontWeight: 600,
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      Login to Your Account
+                    </Button>
 
-                  <Text size="sm" c="dimmed">
-                    Don't have an account?{' '}
-                    <Anchor href="/register" fw={600}>
-                      Create one here
-                    </Anchor>
-                  </Text>
-                </Group>
+                    <Title order={1} size="h1" c="wcr.7">
+                      OR
+                    </Title>
+
+                    <Button
+                      component="a"
+                      href="/register"
+                      variant="outline"
+                      color="wcr"
+                      rightSection={<IconUserPlus />}
+                      data-testid="create-account-button"
+                      style={{
+                        minHeight: TOUCH_TARGETS.BUTTON_HEIGHT,
+                        paddingTop: 12,
+                        paddingBottom: 12,
+                        paddingLeft: 24,
+                        paddingRight: 24,
+                        fontSize: 16,
+                        fontWeight: 600,
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      Create an Account
+                    </Button>
+                  </Group>
+                </Stack>
               </Stack>
             </Alert>
 
