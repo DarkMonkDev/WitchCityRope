@@ -99,7 +99,7 @@ export class AuthHelper {
   private static async tryMantineFormFill(page: Page, credentials: LoginCredentials, timeout: number): Promise<boolean> {
     try {
       // Get form elements using data-testid attributes (most stable)
-      const emailInput = page.locator('[data-testid="email-input"]')
+      const emailInput = page.locator('[data-testid="email-or-scenename-input"]')
       const passwordInput = page.locator('[data-testid="password-input"]')
       const loginButton = page.locator('[data-testid="login-button"]')
 
@@ -158,7 +158,7 @@ export class AuthHelper {
 
       // Direct DOM value setting to bypass Mantine event handling
       await page.evaluate((creds) => {
-        const emailInput = document.querySelector('[data-testid="email-input"]') as HTMLInputElement
+        const emailInput = document.querySelector('[data-testid="email-or-scenename-input"]') as HTMLInputElement
         const passwordInput = document.querySelector('[data-testid="password-input"]') as HTMLInputElement
         
         if (emailInput && passwordInput) {
@@ -177,7 +177,7 @@ export class AuthHelper {
       }, credentials)
 
       // Verify values were set
-      const emailValue = await page.locator('[data-testid="email-input"]').inputValue()
+      const emailValue = await page.locator('[data-testid="email-or-scenename-input"]').inputValue()
       const passwordValue = await page.locator('[data-testid="password-input"]').inputValue()
 
       if (emailValue !== credentials.email || passwordValue !== credentials.password) {
