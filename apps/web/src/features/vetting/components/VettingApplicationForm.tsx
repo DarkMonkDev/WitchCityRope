@@ -290,7 +290,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                       Login to Your Account
                     </Button>
 
-                    <Title order={2} size="h2" c="wcr.7">
+                    <Title order={3} size="h3" c="wcr.7">
                       OR
                     </Title>
 
