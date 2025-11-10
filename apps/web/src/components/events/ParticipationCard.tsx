@@ -37,7 +37,7 @@ import {
   Paper, Stack, Alert, Group, Text, Box, Badge, Button,
   LoadingOverlay, Progress, Modal, Textarea
 } from '@mantine/core';
-import { IconUsers, IconTicket, IconCalendarCheck, IconCheck } from '@tabler/icons-react';
+import { IconUsers, IconTicket, IconCalendarCheck, IconCheck, IconAlertCircle } from '@tabler/icons-react';
 import { useCurrentUser } from '../../lib/api/hooks/useAuth';
 import {
   ParticipationStatusDto
@@ -67,6 +67,12 @@ const extractAmountFromMetadata = (metadata?: string): number => {
   }
 };
 
+interface TicketPriceRange {
+  min: number;
+  max: number;
+  isSinglePrice: boolean;
+}
+
 interface ParticipationCardProps {
   eventId: string;
   eventTitle: string;
@@ -77,6 +83,7 @@ interface ParticipationCardProps {
   onPurchaseTicket: (amount: number, slidingScalePercentage?: number) => void;
   onCancel: (type: 'rsvp' | 'ticket', reason?: string) => void;
   ticketPrice?: number;
+  ticketPriceRange?: TicketPriceRange;
   eventStartDateTime?: string;
   eventEndDateTime?: string;
   eventInstructor?: string;
@@ -93,11 +100,18 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   onPurchaseTicket,
   onCancel,
   ticketPrice = 50,
+  ticketPriceRange,
   eventStartDateTime,
   eventEndDateTime,
   eventInstructor,
   eventLocation
 }) => {
+  // Format price display string based on range
+  const formatPriceDisplay = (): string => {
+    if (!ticketPriceRange) return `$${ticketPrice}`;
+    if (ticketPriceRange.isSinglePrice) return `$${ticketPriceRange.min}`;
+    return `$${ticketPriceRange.min} - $${ticketPriceRange.max}`;
+  };
   const { data: user, isLoading: isLoadingUser } = useCurrentUser();
   const navigate = useNavigate();
   const isAuthenticated = !!user;
@@ -287,7 +301,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
             }}
           >
             <Text size="sm" mb={hasVettingApplication ? undefined : "md"} style={{ width: '100%', wordWrap: 'break-word' }}>
-              This social event is limited to vetted members. Complete the vetting process to attend.
+              This social event is limited to vetted members. Once you are vetted you will be allowed to RSVP for our social events.
             </Text>
             {!hasVettingApplication && (
               <Button
@@ -629,7 +643,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                           }
                         }}
                       >
-                        Purchase Ticket (${ticketPrice})
+                        Purchase Ticket ({formatPriceDisplay()})
                       </Button>
                     </Box>
                   )}
@@ -658,11 +672,13 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                         }}
                       >
                         <Text fw={700} size="lg" c="var(--color-burgundy)" mb="xs">
-                          Class Fee: ${ticketPrice}
+                          Class Fee: {formatPriceDisplay()}
                         </Text>
-                        <Text size="sm" c="dimmed">
-                          Sliding scale pricing available ($50-75 suggested)
-                        </Text>
+                        {ticketPriceRange && !ticketPriceRange.isSinglePrice && (
+                          <Text size="sm" c="dimmed">
+                            Multiple ticket options available
+                          </Text>
+                        )}
                       </Box>
 
                       <Button

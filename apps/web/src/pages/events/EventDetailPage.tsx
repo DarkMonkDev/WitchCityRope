@@ -111,22 +111,40 @@ export const EventDetailPage: React.FC = () => {
   // Determine event type based on event data
   const eventType = (event as any)?.eventType?.toLowerCase() === 'social' ? 'social' : 'class';
 
-  // Find the appropriate ticket price - prefer "All Sessions" ticket if available
-  const getTicketPrice = () => {
+  // Calculate ticket price display based on all available ticket types
+  const getTicketPriceDisplay = (): { min: number; max: number; isSinglePrice: boolean } => {
     const ticketTypes = (event as any)?.ticketTypes || [];
-    if (ticketTypes.length === 0) return 50; // Default fallback
+    if (ticketTypes.length === 0) return { min: 50, max: 50, isSinglePrice: true }; // Default fallback
 
-    // Look for "All" sessions ticket (e.g., "All 2 Days", "All Sessions")
-    const allSessionsTicket = ticketTypes.find((tt: any) =>
-      tt.name?.toLowerCase().includes('all')
-    );
+    let minPrice = Infinity;
+    let maxPrice = -Infinity;
 
-    if (allSessionsTicket) {
-      return allSessionsTicket.minPrice || allSessionsTicket.maxPrice || 50;
+    ticketTypes.forEach((tt: any) => {
+      // For sliding scale tickets, use minPrice and maxPrice
+      if (tt.pricingType === 'SlidingScale') {
+        if (tt.minPrice != null) {
+          minPrice = Math.min(minPrice, tt.minPrice);
+        }
+        if (tt.maxPrice != null) {
+          maxPrice = Math.max(maxPrice, tt.maxPrice);
+        }
+      }
+      // For fixed price tickets, use the price for both min and max
+      else if (tt.price != null) {
+        minPrice = Math.min(minPrice, tt.price);
+        maxPrice = Math.max(maxPrice, tt.price);
+      }
+    });
+
+    // If no valid prices found, use default
+    if (minPrice === Infinity || maxPrice === -Infinity) {
+      return { min: 50, max: 50, isSinglePrice: true };
     }
 
-    // Fall back to first ticket type
-    return ticketTypes[0]?.minPrice || ticketTypes[0]?.maxPrice || 50;
+    // Check if all tickets have the same price
+    const isSinglePrice = minPrice === maxPrice;
+
+    return { min: minPrice, max: maxPrice, isSinglePrice };
   };
 
   // Determine volunteer box visibility
@@ -439,7 +457,8 @@ export const EventDetailPage: React.FC = () => {
               onRSVP={handleRSVP}
               onPurchaseTicket={handlePurchaseTicket}
               onCancel={handleCancel}
-              ticketPrice={getTicketPrice()}
+              ticketPrice={getTicketPriceDisplay().min}
+              ticketPriceRange={getTicketPriceDisplay()}
               eventStartDateTime={(event as any)?.startDate}
               eventEndDateTime={(event as any)?.endDate}
               eventInstructor={(event as any)?.instructor}
