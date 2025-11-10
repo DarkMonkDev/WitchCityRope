@@ -268,7 +268,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                   This helps us process applications efficiently and securely.
                 </Text>
 
-                <Stack gap="md" align="center">
+                <Stack gap="md" align="flex-start">
                   <Group gap="md" align="center">
                     <Button
                       component="a"
@@ -290,7 +290,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                       Login to Your Account
                     </Button>
 
-                    <Title order={1} size="h1" c="wcr.7">
+                    <Title order={2} size="h2" c="wcr.7">
                       OR
                     </Title>
 
@@ -299,7 +299,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                       href="/register"
                       variant="outline"
                       color="wcr"
-                      rightSection={<IconUserPlus />}
+                      leftSection={<IconUserPlus />}
                       data-testid="create-account-button"
                       style={{
                         minHeight: TOUCH_TARGETS.BUTTON_HEIGHT,
