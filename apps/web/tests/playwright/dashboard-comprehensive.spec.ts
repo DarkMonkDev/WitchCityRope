@@ -196,7 +196,7 @@ test.describe('Dashboard - Profile Management', () => {
     await WaitHelpers.waitForPageLoad(page);
 
     // Test email validation
-    const emailField = page.locator('[data-testid="email-input"], input[name="email"]');
+    const emailField = page.locator('[data-testid="email-or-scenename-input"], input[name="email"]');
     if (await emailField.count() > 0) {
       await emailField.clear();
       await emailField.fill('invalid-email');

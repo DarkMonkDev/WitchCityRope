@@ -122,7 +122,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
 
     // Should see login form
     await expect(page.locator('[data-testid="login-form"]')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('[data-testid="email-input"]')).toBeVisible();
+    await expect(page.locator('[data-testid="email-or-scenename-input"]')).toBeVisible();
     await expect(page.locator('[data-testid="password-input"]')).toBeVisible();
     await expect(page.locator('[data-testid="login-button"]')).toBeVisible();
 

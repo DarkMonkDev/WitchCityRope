@@ -56,6 +56,7 @@ public class EventService
                         .ThenInclude(p => p.User) // Load user to match with EventParticipation
                 .Include(e => e.VolunteerPositions)
                 .Include(e => e.Organizers)
+                .Include(e => e.Venue) // Load venue for location name
                 .Include(e => e.EventAttendances) // Load all attendances for the event
                     .ThenInclude(ea => ea.TicketPurchase) // CRITICAL: Load TicketPurchase for sold count calculation
                         .ThenInclude(tp => tp.TicketType); // CRITICAL: Load TicketType for session matching
@@ -89,7 +90,6 @@ public class EventService
                 StartDate = e.StartDate,
                 EndDate = e.EndDate,
                 VenueId = e.VenueId,
-                Location = e.Location,
                 EventType = e.EventType.ToString(),
                 Capacity = e.Capacity,
                 IsPublished = e.IsPublished,
@@ -141,6 +141,7 @@ public class EventService
                         .ThenInclude(p => p.User) // Load user to match with EventParticipation
                 .Include(e => e.VolunteerPositions)
                 .Include(e => e.Organizers)
+                .Include(e => e.Venue) // Load venue for location name
                 .Include(e => e.EventAttendances) // Load all attendances for the event
                     .ThenInclude(ea => ea.TicketPurchase) // CRITICAL: Load TicketPurchase for sold count calculation
                         .ThenInclude(tp => tp.TicketType) // CRITICAL: Load TicketType for session matching
@@ -188,7 +189,6 @@ public class EventService
                 StartDate = eventEntity.StartDate,
                 EndDate = eventEntity.EndDate,
                 VenueId = eventEntity.VenueId,
-                Location = eventEntity.Location,
                 EventType = eventEntity.EventType.ToString(),
                 Capacity = eventEntity.Capacity,
                 IsPublished = eventEntity.IsPublished,
@@ -253,6 +253,7 @@ public class EventService
                 .Include(e => e.TicketTypes)
                 .Include(e => e.VolunteerPositions)
                 .Include(e => e.Organizers)
+                .Include(e => e.Venue) // Load venue for location name
                 .Include(e => e.EventAttendances) // Include attendances for capacity validation
                 .FirstOrDefaultAsync(e => e.Id == parsedId, cancellationToken);
 
@@ -342,11 +343,6 @@ public class EventService
                 eventEntity.EndDate = endDate;
             }
 
-            if (!string.IsNullOrWhiteSpace(request.Location))
-            {
-                eventEntity.Location = request.Location.Trim();
-            }
-
             if (request.VenueId.HasValue)
             {
                 eventEntity.VenueId = request.VenueId.Value;
@@ -413,7 +409,6 @@ public class EventService
                 StartDate = eventEntity.StartDate,
                 EndDate = eventEntity.EndDate,
                 VenueId = eventEntity.VenueId,
-                Location = eventEntity.Location,
                 EventType = eventEntity.EventType.ToString(),
                 Capacity = eventEntity.Capacity,
                 IsPublished = eventEntity.IsPublished,

@@ -61,7 +61,7 @@ export async function testEventCreationPersistence(
       await page.goto('http://localhost:5173/login');
       await page.waitForLoadState('networkidle');
 
-      await page.locator('[data-testid="email-input"]').fill(adminEmail);
+      await page.locator('[data-testid="email-or-scenename-input"]').fill(adminEmail);
       await page.locator('[data-testid="password-input"]').fill(adminPassword);
       await page.locator('[data-testid="login-button"]').click();
 
@@ -301,7 +301,7 @@ export async function testEventUpdatePersistence(
       await page.goto('http://localhost:5173/login');
       await page.waitForLoadState('networkidle');
 
-      await page.locator('[data-testid="email-input"]').fill(adminEmail);
+      await page.locator('[data-testid="email-or-scenename-input"]').fill(adminEmail);
       await page.locator('[data-testid="password-input"]').fill(adminPassword);
       await page.locator('[data-testid="login-button"]').click();
 

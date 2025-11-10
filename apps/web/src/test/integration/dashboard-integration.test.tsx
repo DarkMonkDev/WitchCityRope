@@ -173,7 +173,7 @@ describe('Dashboard Integration Tests', () => {
         expect(result.current.isSuccess).toBe(true)
       })
 
-      // Note: useEvents applies autoFixEventFieldNames transformation which adds additional fields
+      // Note: useEvents returns data in auto-generated EventDto format from API
       // We just verify the core fields are present and correct
       expect(result.current.data).toHaveLength(2)
       expect(result.current.data?.[0]?.id).toBe('1')

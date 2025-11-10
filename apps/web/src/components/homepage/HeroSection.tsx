@@ -118,14 +118,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ customActions }) => {
           <Group justify="center" gap="md" className="hero-buttons">
             <Box
               component={Link}
-              to="#events"
+              to="/events"
               className="btn btn-primary btn-large"
             >
               Browse Upcoming Classes
             </Box>
             <Box
               component={Link}
-              to={isAuthenticated ? "/dashboard" : "#join"}
+              to={isAuthenticated ? "/dashboard" : "/cms/getting-started"}
               className="btn btn-secondary btn-large"
             >
               {isAuthenticated ? 'Go to Dashboard' : 'Start Your Journey'}

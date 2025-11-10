@@ -7,7 +7,7 @@ test.describe('Payment Flow - Back Button Visibility', () => {
   test.beforeEach(async ({ page }) => {
     // Login as test user
     await page.goto('http://localhost:5173/login');
-    await page.fill('[data-testid="email-input"]', 'member@witchcityrope.com');
+    await page.fill('[data-testid="email-or-scenename-input"]', 'member@witchcityrope.com');
     await page.fill('[data-testid="password-input"]', 'Test123!');
     await page.click('[data-testid="login-button"]');
     await page.waitForURL('**/dashboard', { timeout: 10000 });

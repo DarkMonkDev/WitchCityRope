@@ -38,7 +38,7 @@ test.describe('Login Page Verification', () => {
     await page.screenshot({ path: '/home/chad/repos/witchcityrope/apps/web/test-results/login-page-loaded.png' });
     
     // Verify login page elements are present
-    const emailInput = page.locator('[data-testid="email-input"]');
+    const emailInput = page.locator('[data-testid="email-or-scenename-input"]');
     const passwordInput = page.locator('[data-testid="password-input"]');
     const loginButton = page.locator('[data-testid="login-button"]');
     

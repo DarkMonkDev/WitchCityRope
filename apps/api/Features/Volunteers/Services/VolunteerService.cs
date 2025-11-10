@@ -272,6 +272,7 @@ public class VolunteerService
                 .AsNoTracking()
                 .Include(vs => vs.VolunteerPosition)
                     .ThenInclude(vp => vp!.Event)
+                        .ThenInclude(e => e!.Venue)
                 .Include(vs => vs.VolunteerPosition)
                     .ThenInclude(vp => vp!.Session)
                 .Where(vs => vs.UserId == userGuid
@@ -291,7 +292,7 @@ public class VolunteerService
                 {
                     SignupId = vs.Id,
                     EventTitle = eventEntity.Title,
-                    EventLocation = eventEntity.Location,
+                    EventLocation = eventEntity.Venue?.Name ?? string.Empty,
                     EventDate = eventEntity.StartDate,
                     PositionTitle = position.Title,
                     SessionName = session?.Name,

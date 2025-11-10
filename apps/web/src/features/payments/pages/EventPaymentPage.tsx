@@ -152,7 +152,7 @@ export const EventPaymentPage: React.FC = () => {
           startDateTime: eventDetails?.startDate || new Date().toISOString(),
           endDateTime: eventDetails?.endDate || new Date().toISOString(),
           instructorName: 'Instructor TBD', // teacherIds is currently empty in API response
-          location: eventDetails?.location || 'TBD',
+          location: eventDetails?.location || '',
           basePrice,
           currency: 'USD',
           registrationId: registrationId

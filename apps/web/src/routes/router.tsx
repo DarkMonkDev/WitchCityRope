@@ -65,6 +65,8 @@ import { CodeOfConductPage } from '../features/cms/pages/CodeOfConductPage'
 import { PrivacyPolicyPage } from '../features/cms/pages/PrivacyPolicyPage'
 import { TermsOfServicePage } from '../features/cms/pages/TermsOfServicePage'
 import { FaqPage } from '../features/cms/pages/FaqPage'
+import { GettingStartedPage } from '../features/cms/pages/GettingStartedPage'
+import { EventWaiverPage } from '../features/cms/pages/EventWaiverPage'
 import { CmsRevisionListPage } from '../features/cms/pages/CmsRevisionListPage'
 import { CmsRevisionDetailPage } from '../features/cms/pages/CmsRevisionDetailPage'
 
@@ -146,6 +148,14 @@ export const router = createBrowserRouter([
       {
         path: 'faq',
         element: <FaqPage />,
+      },
+      {
+        path: 'cms/getting-started',
+        element: <GettingStartedPage />,
+      },
+      {
+        path: 'event-waiver',
+        element: <EventWaiverPage />,
       },
 
       // Events system routes

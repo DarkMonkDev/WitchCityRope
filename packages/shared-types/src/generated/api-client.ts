@@ -2,7 +2,7 @@
 /* tslint:disable */
 /**
  * API Client wrapper for type-safe API calls
- * Generated on: 2025-11-09T22:44:24.454Z
+ * Generated on: 2025-11-10T04:01:19.869Z
  */
 
 import type { 

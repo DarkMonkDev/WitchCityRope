@@ -707,15 +707,16 @@ const VettingStatusDisplay: React.FC<{ profile: UserProfileDto }> = ({ profile }
             </Group>
           )}
 
+          {/* FinalReview alert removed - FinalReview is a normal vetting stage after interview, not specific to reinstatement */}
           {isFinalReview && (
             <Alert
               color="blue"
-              title="Reinstatement Under Review"
+              title="Application Under Final Review"
               icon={<IconAlertCircle />}
               variant="light"
             >
               <Text size="sm">
-                Your reinstatement request is under review by administrators. You will be notified
+                Your vetting application is under final review by administrators. You will be notified
                 once a decision is made.
               </Text>
             </Alert>

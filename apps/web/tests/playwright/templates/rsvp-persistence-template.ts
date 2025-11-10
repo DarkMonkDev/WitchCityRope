@@ -56,7 +56,7 @@ export async function testRsvpPersistence(
       await page.goto('http://localhost:5173/login');
       await page.waitForLoadState('networkidle');
 
-      await page.locator('[data-testid="email-input"]').fill(userEmail);
+      await page.locator('[data-testid="email-or-scenename-input"]').fill(userEmail);
       await page.locator('[data-testid="password-input"]').fill(userPassword);
       await page.locator('[data-testid="login-button"]').click();
 
@@ -183,7 +183,7 @@ export async function testCancelRsvpPersistence(
       await page.goto('http://localhost:5173/login');
       await page.waitForLoadState('networkidle');
 
-      await page.locator('[data-testid="email-input"]').fill(userEmail);
+      await page.locator('[data-testid="email-or-scenename-input"]').fill(userEmail);
       await page.locator('[data-testid="password-input"]').fill(userPassword);
       await page.locator('[data-testid="login-button"]').click();
 

@@ -39,14 +39,8 @@ public class UpdateEventRequest
     public DateTime? EndDate { get; set; }
 
     /// <summary>
-    /// Updated event location (optional)
-    /// DEPRECATED: Use VenueId instead
-    /// </summary>
-    public string? Location { get; set; }
-
-    /// <summary>
     /// Updated venue ID (optional)
-    /// References the Venues table
+    /// References the Venues table for location information
     /// </summary>
     public int? VenueId { get; set; }
 

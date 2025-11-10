@@ -60,7 +60,7 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                     ea.Event.Title,
                     ea.Event.StartDate,
                     ea.Event.EndDate,
-                    ea.Event.Location,
+                    VenueName = ea.Event.Venue != null ? ea.Event.Venue.Name : string.Empty,
                     ea.Event.ShortDescription,
                     ea.Event.EventType
                 })
@@ -71,7 +71,7 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                     Title = g.Key.Title,
                     StartDate = g.Key.StartDate,
                     EndDate = g.Key.EndDate,
-                    Location = g.Key.Location,
+                    Location = g.Key.VenueName,
                     Description = g.Key.ShortDescription,
                     IsSocialEvent = g.Key.EventType == WitchCityRope.Api.Enums.EventType.Social,
                     // HasTicket is true if ANY attendance for this event is a Ticket

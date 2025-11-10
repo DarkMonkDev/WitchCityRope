@@ -1104,7 +1104,7 @@ public class EventSeeder
             EndDate = DateTime.SpecifyKind(endDate, DateTimeKind.Utc),
             Capacity = capacity,
             EventType = eventType,
-            VenueId = venue?.Id,                      // Assign venue if available
+            VenueId = venue?.Id ?? 1,                 // Assign venue if available, default to Main Studio (ID 1)
             IsPublished = true,
             // CreatedAt/UpdatedAt will be set by ApplicationDbContext.UpdateAuditFields()
         };
@@ -1142,7 +1142,7 @@ public class EventSeeder
             EndDate = DateTime.SpecifyKind(endDate, DateTimeKind.Utc),
             Capacity = capacity,
             EventType = eventType,
-            VenueId = venue?.Id,                      // Assign venue if available
+            VenueId = venue?.Id ?? 1,                 // Assign venue if available, default to Main Studio (ID 1)
             IsPublished = true,
             CreatedAt = DateTime.UtcNow.AddDays(daysFromNow - 5),
             UpdatedAt = DateTime.UtcNow.AddDays(daysFromNow)

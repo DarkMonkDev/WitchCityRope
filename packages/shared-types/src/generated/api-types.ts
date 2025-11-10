@@ -848,6 +848,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/events/{eventId}/participations/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove user's attendance (admin only)
+         * @description Removes user's attendance (RSVP or ticket) from event. Does not process refunds - use refund endpoint separately for paid tickets. Admin role required.
+         */
+        delete: operations["AdminRemoveParticipation"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/events/{eventId}/participations/{userId}/remove": {
         parameters: {
             query?: never;
@@ -4583,6 +4603,15 @@ export interface components {
             nextSteps?: string;
             pronouns?: string | null;
             otherNames?: string | null;
+            firstName?: string;
+            lastName?: string;
+            email?: string;
+            preferredSceneName?: string;
+            fetLifeHandle?: string | null;
+            whyJoin?: string;
+            experienceWithRope?: string;
+            agreeToCommunityStandards?: boolean;
+            status?: string;
         } | null;
         StaffMember: {
             userId?: string;
@@ -7253,6 +7282,55 @@ export interface operations {
             };
             /** @description Forbidden */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminRemoveParticipation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

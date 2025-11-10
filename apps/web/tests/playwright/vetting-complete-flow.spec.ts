@@ -17,7 +17,7 @@ test.describe('Vetting Application Complete Flow', () => {
     await page.waitForLoadState('networkidle');
 
     // Fill registration form (only 3 fields: Email, Scene Name, Password)
-    await page.locator('[data-testid="email-input"]').fill(testEmail);
+    await page.locator('[data-testid="email-or-scenename-input"]').fill(testEmail);
     await page.locator('[data-testid="scene-name-input"]').fill(testSceneName);
     await page.locator('[data-testid="password-input"]').fill(testPassword);
 

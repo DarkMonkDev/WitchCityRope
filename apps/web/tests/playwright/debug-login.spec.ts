@@ -71,7 +71,7 @@ test('debug login issue', async ({ page }) => {
     'input[name="email"]',
     'input[placeholder*="email" i]',
     '[data-testid="email"]',
-    '[data-testid="email-input"]',
+    '[data-testid="email-or-scenename-input"]',
     'input:nth-of-type(1)'  // First input field
   ];
   

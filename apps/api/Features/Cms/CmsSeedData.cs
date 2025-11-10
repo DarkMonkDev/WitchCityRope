@@ -8,12 +8,6 @@ namespace WitchCityRope.Api.Features.Cms
     {
         public static async Task SeedInitialPagesAsync(ApplicationDbContext context)
         {
-            // Check if any pages already exist
-            if (await context.ContentPages.AnyAsync())
-            {
-                return; // Already seeded
-            }
-
             // Get admin user for attribution (use first admin, or system user)
             var adminUser = await context.Users
                 .FirstOrDefaultAsync(u => u.Role == "Administrator");
@@ -21,7 +15,12 @@ namespace WitchCityRope.Api.Features.Cms
             if (adminUser == null)
             {
                 // If no admin exists yet, create a system user placeholder
-                adminUser = await context.Users.FirstAsync(); // Use first user as fallback
+                var firstUser = await context.Users.FirstOrDefaultAsync();
+                if (firstUser == null)
+                {
+                    return; // No users yet, can't seed pages
+                }
+                adminUser = firstUser;
             }
 
             var now = DateTime.UtcNow;
@@ -1142,6 +1141,280 @@ namespace WitchCityRope.Api.Features.Cms
                     IsPublished = true
                 },
 
+                // NEW: Getting Started Page
+                new ContentPage
+                {
+                    Slug = "getting-started",
+                    Title = "Getting Started with Shibari",
+                    Content = @"<h1>Getting Started with Shibari</h1>
+<p><strong>Welcome to Your Rope Journey!</strong></p>
+<p>Whether you're curious about rope bondage, interested in exploring a new form of artistic expression, or drawn to the intimacy and connection that shibari offers, you're in the right place. This guide will help you understand what shibari is, why people practice it, and how to begin your journey safely within a supportive community.</p>
+
+<h2>What is Shibari?</h2>
+<p><strong>Shibari</strong> (sometimes called <strong>Kinbaku</strong>) is the Japanese art of rope bondage. More than just tying knots, shibari is:</p>
+<ul>
+<li><strong>An Art Form</strong> - Rope creates beautiful patterns on the body, turning the human form into living sculpture</li>
+<li><strong>A Form of Expression</strong> - Both physical and emotional, allowing for deep creative and personal exploration</li>
+<li><strong>A Connection Tool</strong> - Building trust and communication between rope partners</li>
+<li><strong>A Meditative Practice</strong> - Requiring focus, presence, and mindfulness from both the person tying (top/rigger) and the person being tied (bottom/model)</li>
+<li><strong>A Community</strong> - Bringing together people who share a passion for rope, safety, and connection</li>
+</ul>
+
+<h2>Why Do People Practice Shibari?</h2>
+<p>People are drawn to rope bondage for many different reasons, and there's no single ""right"" reason to explore it:</p>
+
+<h3>Artistic Expression</h3>
+<p>The visual beauty of rope on the body is captivating. Many practitioners are drawn to the aesthetic artistry - the geometric patterns, the interplay of rope and skin, and the sculptural quality of well-executed ties. Shibari can be photographed, performed, or simply enjoyed in the moment as a form of living art.</p>
+
+<h3>Connection and Intimacy</h3>
+<p>Rope bondage requires profound trust and communication. The process of negotiating a scene, tying someone, or being tied creates a unique form of connection. Many describe it as a dance between partners, requiring constant awareness, empathy, and attunement to each other.</p>
+
+<h3>Sensation and Experience</h3>
+<p>Rope provides unique physical sensations - the pressure of rope against skin, the feeling of restraint, the surrender of movement, or the challenge of an intricate tie. Some enjoy the meditative headspace that rope creates, while others appreciate the physical intensity.</p>
+
+<h3>Power Exchange</h3>
+<p>For some, rope is a tool for exploring consensual power dynamics. The act of being tied or tying someone can involve surrender, control, vulnerability, or dominance - always within carefully negotiated boundaries.</p>
+
+<h3>Personal Challenge</h3>
+<p>Learning rope is a skill-building journey. Riggers develop technical knowledge, body awareness, and creativity. Bottoms develop communication skills, body awareness, and understanding of their own limits and desires.</p>
+
+<h3>Community and Belonging</h3>
+<p>The rope community welcomes people exploring alternative expressions of sexuality, intimacy, and art. Many find acceptance, friendship, and authentic connection within rope spaces.</p>
+
+<h2>Safety: The Foundation of All Rope Practice</h2>
+<p><strong>Rope bondage involves inherent physical and emotional risks.</strong> Safety isn't optional - it's the foundation that allows us to explore freely and authentically.</p>
+
+<h3>Physical Safety</h3>
+<ul>
+<li><strong>Nerve Damage</strong>: Improper rope placement can compress nerves, potentially causing temporary or permanent numbness, tingling, or loss of function</li>
+<li><strong>Circulation Issues</strong>: Rope can restrict blood flow if too tight or placed incorrectly</li>
+<li><strong>Falls</strong>: Suspension carries risk of falling if rigging fails or the bottom loses consciousness</li>
+<li><strong>Joint Stress</strong>: Certain positions can stress joints, especially shoulders</li>
+</ul>
+<p><strong>Risk mitigation requires:</strong></p>
+<ul>
+<li>Proper education on anatomy and safe tie placement</li>
+<li>Regular safety checks during rope work (circulation, sensation, comfort)</li>
+<li>Safety shears always within reach to quickly cut someone free</li>
+<li>Never leaving a tied person unattended</li>
+<li>Starting with simple ties and progressing slowly</li>
+<li>Understanding your own and your partner's physical limitations</li>
+</ul>
+
+<h3>Emotional Safety</h3>
+<ul>
+<li><strong>Vulnerability</strong>: Being tied or tying someone creates emotional vulnerability</li>
+<li><strong>Triggers</strong>: Restraint or certain sensations may trigger unexpected emotional responses</li>
+<li><strong>Aftercare</strong>: Both partners may need emotional support after intense scenes</li>
+</ul>
+<p><strong>Emotional safety requires:</strong></p>
+<ul>
+<li>Thorough negotiation before any rope work</li>
+<li>Established safe words and check-ins</li>
+<li>Respect for boundaries and consent</li>
+<li>Aftercare and debriefing</li>
+<li>Self-awareness and honest communication</li>
+</ul>
+
+<h3>The Importance of Consent</h3>
+<p>Consent is <strong>non-negotiable</strong> in all rope practice. Consent must be:</p>
+<ul>
+<li><strong>Informed</strong>: All parties understand what they're consenting to and the risks involved</li>
+<li><strong>Enthusiastic</strong>: A clear ""yes,"" not just the absence of ""no""</li>
+<li><strong>Specific</strong>: Consenting to one activity doesn't mean consenting to everything</li>
+<li><strong>Reversible</strong>: Can be withdrawn at any time, for any reason</li>
+<li><strong>Ongoing</strong>: Requires regular check-ins throughout the scene</li>
+</ul>
+
+<h2>Why Learn in a Community Setting?</h2>
+<p>While it might be tempting to learn rope from online videos alone, <strong>in-person community education is essential for safe practice</strong>. Here's why:</p>
+
+<h3>Hands-On Feedback</h3>
+<p>Experienced instructors can:</p>
+<ul>
+<li>Correct your technique in real-time</li>
+<li>Show you the subtle details videos might miss</li>
+<li>Help you understand the difference between ""looks right"" and ""is safe""</li>
+<li>Identify dangerous habits before they become ingrained</li>
+</ul>
+
+<h3>Safety Culture</h3>
+<p>Learning within a community means:</p>
+<ul>
+<li>Absorbing safety-first mindset from experienced practitioners</li>
+<li>Seeing how others handle negotiations, check-ins, and emergencies</li>
+<li>Understanding that safety is everyone's responsibility</li>
+<li>Learning from others' experiences and near-misses</li>
+</ul>
+
+<h3>Skill Progression</h3>
+<p>Community education provides:</p>
+<li>Structured progression from basics to advanced techniques</li>
+<li>Guidance on when you're ready for more complex ties</li>
+<li>Mentorship from experienced practitioners</li>
+<li>Practice partners at similar skill levels</li>
+</ul>
+
+<h3>Diverse Perspectives</h3>
+<p>In-person community offers:</p>
+<ul>
+<li>Exposure to different rope styles and philosophies</li>
+<li>Learning from multiple instructors with varied approaches</li>
+<li>Seeing rope work on diverse body types</li>
+<li>Understanding that there's no single ""right way""</li>
+</ul>
+
+<h3>Accountability and Support</h3>
+<p>Being part of a community means:</p>
+<ul>
+<li>Standards of conduct that protect everyone</li>
+<li>Support systems for addressing concerns</li>
+<li>People who hold you accountable to safe practices</li>
+<li>Belonging to something larger than yourself</li>
+</ul>
+
+<h2>Why Witch City Rope?</h2>
+<p>WitchCityRope exists to provide exactly the kind of safe, supportive, educational community environment that rope bondage requires. Here's what makes us different:</p>
+
+<h3>Safety-First Education</h3>
+<ul>
+<li>All instructors are experienced, safety-trained rope practitioners</li>
+<li>Comprehensive beginner workshops covering fundamentals and safety</li>
+<li>Small class sizes ensuring personal attention</li>
+<li>Mandatory safety briefings at all events</li>
+<li>Safety monitors present during practice sessions</li>
+</ul>
+
+<h3>Inclusive and Welcoming Community</h3>
+<ul>
+<li>All genders, sexualities, and body types welcome</li>
+<li>Beginner-friendly environment - everyone was new once</li>
+<li>Respect for diverse rope interests and styles</li>
+<li>Zero tolerance for harassment or discrimination</li>
+<li>Confidentiality and discretion for all members</li>
+</ul>
+
+<h3>Progressive Skill Development</h3>
+<ul>
+<li>Clear pathway from beginner to advanced techniques</li>
+<li>Regular workshops at all skill levels</li>
+<li>Rope jams for practice with community support</li>
+<li>Mentorship opportunities</li>
+<li>Private lessons available for personalized instruction</li>
+</ul>
+
+<h3>Community and Connection</h3>
+<ul>
+<li>Meet others who share your interests</li>
+<li>Find practice partners and friends</li>
+<li>Attend social events beyond rope practice</li>
+<li>Be part of Salem's vibrant alternative community</li>
+</ul>
+
+<h3>Commitment to Excellence</h3>
+<ul>
+<li>Continuous instructor training and development</li>
+<li>Regular community feedback and improvement</li>
+<li>Adherence to community standards and best practices</li>
+<li>Transparent communication and organization</li>
+</ul>
+
+<h2>Getting Started: Your Next Steps</h2>
+
+<h3>Step 1: Apply for Vetting</h3>
+<p>To maintain a safe community, we require all participants to complete our vetting process before attending member-only events.</p>
+<p><strong><a href=""/vetting/apply"">→ Start Your Vetting Application</a></strong></p>
+<p>The vetting process typically takes 2-4 weeks and includes:</p>
+<ul>
+<li>Application submission with references</li>
+<li>Attendance at orientation events</li>
+<li>Interview with our vetting committee</li>
+<li>Background check for certain membership levels</li>
+</ul>
+
+<h3>Step 2: Attend Your First Workshop</h3>
+<p>We offer beginner-friendly workshops specifically designed for people new to rope:</p>
+<ul>
+<li><strong>Intro to Shibari</strong> - Learn basic knots, safety principles, and your first simple ties</li>
+<li><strong>Rope Safety Fundamentals</strong> - Deep dive into risk awareness and safe practices</li>
+<li><strong>Communication for Rope</strong> - Negotiation, consent, and check-ins</li>
+</ul>
+<p>Check our <strong><a href=""/events"">Events Calendar</a></strong> for upcoming beginner workshops.</p>
+
+<h3>Step 3: Get Your Rope</h3>
+<p>We recommend starting with:</p>
+<ul>
+<li><strong>Material</strong>: Jute or hemp (natural fibers that grip well)</li>
+<li><strong>Length</strong>: 2-3 pieces of 30-foot (10-meter) rope</li>
+<li><strong>Diameter</strong>: 6mm for most people</li>
+</ul>
+<p>Instructors can provide specific recommendations based on your goals and budget. Many workshops also offer rope for purchase.</p>
+
+<h3>Step 4: Continue Learning</h3>
+<p>Rope is a journey, not a destination:</p>
+<ul>
+<li>Attend regular workshops and rope jams</li>
+<li>Practice between events (with proper safety precautions)</li>
+<li>Ask questions and seek mentorship</li>
+<li>Progress at your own pace - there's no rush</li>
+</ul>
+
+<h2>External Learning Resources</h2>
+<p>While in-person education is essential, these resources can supplement your learning:</p>
+
+<h3>Shibari Study</h3>
+<p><strong><a href=""https://shibaristudy.com"" target=""_blank"" rel=""noopener"">shibaristudy.com</a></strong></p>
+<p>Comprehensive online rope bondage tutorials and courses. Excellent reference material for techniques learned in workshops. Features video tutorials from respected riggers worldwide.</p>
+
+<h3>Rope 365</h3>
+<p><strong><a href=""https://rope365.com"" target=""_blank"" rel=""noopener"">rope365.com</a></strong></p>
+<p>Daily rope inspiration and technique videos. Great for seeing diverse rope styles and staying motivated in your practice.</p>
+
+<p><strong>Remember:</strong> Online resources should <em>supplement</em>, not replace, in-person instruction and community learning.</p>
+
+<h2>Frequently Asked Questions</h2>
+
+<h3>Do I need a partner to get started?</h3>
+<p>Not at all! Many workshops include partner rotation, allowing solo attendees to practice with others. You can also learn rope as a self-tying art (though some ties require a partner).</p>
+
+<h3>Is shibari sexual?</h3>
+<p>It can be, but doesn't have to be. Rope can be purely artistic, meditative, social, or intimate without being sexual. Each person's experience and interest is unique and valid.</p>
+
+<h3>What if I'm not flexible or strong?</h3>
+<p>Rope can be adapted to all body types and abilities. Good rigging works with your body, not against it. Instructors will help you find positions and ties that work for you.</p>
+
+<h3>How long does it take to learn?</h3>
+<p>Rope is a lifelong learning journey. You can learn simple, safe ties in your first class. More complex techniques like suspension take months or years of practice. Go at your own pace and enjoy the process.</p>
+
+<h3>Is it safe?</h3>
+<p>With proper education, safety precautions, and risk awareness, rope can be practiced safely. However, all rope bondage carries some inherent risk. That's why education and community standards are so important.</p>
+
+<h3>What should I wear to my first workshop?</h3>
+<p>Comfortable clothing you can move in. Some people prefer long sleeves/pants to reduce rope burn; others prefer shorts/tank tops. Avoid loose jewelry. Bring water and an open mind!</p>
+
+<h2>Ready to Begin?</h2>
+<p>Your rope journey starts with a single step. Whether you're curious about the art form, seeking connection, or exploring a new skill, WitchCityRope is here to support you.</p>
+
+<div style=""background-color: #f5f5f5; padding: 20px; margin: 30px 0; border-left: 4px solid #8b5cf6;"">
+<h3 style=""margin-top: 0;"">Take Your First Step</h3>
+<p><strong>1. Apply for vetting</strong> → <a href=""/vetting/apply"">Start Application</a></p>
+<p><strong>2. Browse upcoming events</strong> → <a href=""/events"">View Calendar</a></p>
+<p><strong>3. Learn more about our community</strong> → <a href=""/cms/about-us"">About Us</a></p>
+<p><strong>4. Read our safety practices</strong> → <a href=""/cms/safety-practices"">Safety Guide</a></p>
+</div>
+
+<p>Questions? Contact us at <a href=""mailto:info@witchcityrope.com"">info@witchcityrope.com</a> or check our <a href=""/cms/faq"">FAQ page</a>.</p>
+
+<hr>
+<p><strong>Welcome to WitchCityRope.</strong><br>
+<em>We're excited to support you on your rope journey.</em></p>",
+                    CreatedAt = now,
+                    UpdatedAt = now,
+                    CreatedBy = adminUser.Id,
+                    LastModifiedBy = adminUser.Id,
+                    IsPublished = true
+                },
+
                 // NEW: Community Guidelines Page
                 new ContentPage
                 {
@@ -1331,11 +1604,97 @@ namespace WitchCityRope.Api.Features.Cms
                     CreatedBy = adminUser.Id,
                     LastModifiedBy = adminUser.Id,
                     IsPublished = true
+                },
+
+                // Event Waiver Page
+                new ContentPage
+                {
+                    Slug = "event-waiver",
+                    Title = "Event Waiver",
+                    Content = @"<h1>Witch City Rope Event Waiver</h1>
+<p><em>Last Updated July 7, 2022</em></p>
+
+<h2>Event Waiver</h2>
+
+<p>In consideration of the services of Witch City Rope (DBA), their agents, owners, officers, volunteers, participants, employees, and all other persons or entities acting in any capacity on their behalf (hereinafter collectively referred to as ""Witch City Rope""), I hereby agree to release, indemnify, and discharge Witch City Rope, on behalf of myself, my spouse, my children, my parents, my heirs, assigns, personal representative and estate as follows:</p>
+
+<ol>
+<li>
+<p>I acknowledge that my participation in aerial arts, drama skills, suspension, bondage, kink, stagecraft training and instruction activities entails known and unanticipated risks that could result in physical or emotional injury, paralysis, death, or damage to myself, to property, or to third parties. I understand that such risks simply cannot be eliminated without jeopardizing the essential qualities of the activity.</p>
+
+<p>The risks include, among other things: slips and falls; falling from equipment; burns; blisters; rope burns; strap burns; pinches, scrapes, twists and jolts that could result in scratches, bruises, sprains, lacerations, fractures, concussions, or even more severe life threatening hazards; strains, cuts, muscle soreness and fractures; musculoskeletal injuries including head, neck, and back; injuries to internal organs; the negligence of other participants or persons who may be present; my own physical condition; dehydration; nerve damage; wrist drop; failing to act safely or within one's own ability; accidents or illness can occur in remote places without medical facilities and emergency treatment or other services rendered; and the risk of emotional and psychological injuries or physical damage associated with this activity. In any event, if you are injured, any medical assistance will be at your own expense.</p>
+
+<p>Furthermore, Witch City Rope agents have difficult jobs to perform. They seek safety, but they are not infallible. They might be unaware of a participant's fitness or abilities. They might misjudge the weather or other environmental conditions. They may give incomplete warnings or instructions, and the equipment being used might malfunction.</p>
+</li>
+
+<li>I am 21 years of age or older, and I will verify my age by showing proof of my identification to the event organizers upon entry.</li>
+
+<li>I agree to indemnify and defend Witch City Rope, against all claims, causes of action, damages, judgments, costs or expenses, including but not limited to attorney fees, and other litigation costs, which may in any way arise from my participation and attendance at Witch City Rope.</li>
+
+<li>I agree to pay for any and all damages I cause to the facilities during my attendance at an Witch City Rope event.</li>
+
+<li>I have received a copy of the Member and Event Code of Conduct. I have had an opportunity to read and ask questions about these Codes of Conduct. I agree to follow these Code of Conducts, and I understand these Code of Conducts are non-negotiable and subject to change. I understand that violating any of these Code of Conducts or any terms of this waiver could result in my ejection from the event without refund, and ban from future events.</li>
+
+<li>I am also responsible for my own property. I understand and agree that Witch City Rope will not be held responsible for lost, stolen, or damaged items that I bring to the event.</li>
+
+<li>I agree to abide by Local, State, and Federal laws while at this event. I will not participate or condone any illegal activities while at Witch City Rope. I will not engage in illegal drug use before or during the event. I will not participate in any exchange of money for services.</li>
+
+<li>I expressly agree and promise to accept and assume all of the risks existing in this activity. My participation in this activity is purely voluntary, and I elect to participate in spite of the risks.</li>
+
+<li>I hereby voluntarily release, forever discharge, and agree to indemnify and hold harmless Witch City Rope from any and all claims, demands, or causes of action, which are in any way connected with my participation in this activity or my use of Witch City Rope's equipment or facilities, including any such claims which allege negligent acts or omissions of Witch City Rope.</li>
+
+<li>Should Witch City Rope or anyone acting on their behalf, be required to incur attorney's fees and costs to enforce this agreement, I agree to indemnify and hold them harmless for all such fees and costs.</li>
+
+<li>I certify that I have adequate insurance to cover any injury or damage I may cause or suffer while participating, or else I agree to bear the costs of such injury or damage myself. I further certify that I am willing to assume the risk of any medical or physical condition I may have.</li>
+
+<li>I certify that I am here for my own personal enjoyment. If I am here in any official capacity as a city or law enforcement official, I will show the proper identification to the Witch City Rope representatives. I understand that Witch City Rope values and respects its local community, and abiding by the law is important to Witch City Rope and its organizers.</li>
+
+<li>I further certify that I am not a member, or acting under the direction of any media organization, government institution, or personal interest group, nor am I here to research, investigate, report, expose or otherwise collect and use information obtained at this event. I understand that if I am, I will be removed immediately, my presence at the event will be published to the kink community, and Witch City Rope will pursue the maximum extent of relief as allowed by law against me.</li>
+
+<li>I will respect the right to privacy of all Witch City Rope attendees. This includes not divulging legal names, unless previously sanctioned by the individual, not taking any photos, videos, and audio recordings of the event, and not divulging details of scenes. I further certify that I am in no way connected with/representing any form of media and that if I am representing such an entity in any way, I agree to pay $1 million in total to Witch City Rope agents for any breach of this release/statement. If I profit from any said reports, images, or recounts in any way, including normal payroll, I agree to pay $1 million to Witch City Rope agents for each breach.</li>
+
+<li>Regardless of affiliation with a media entity, if I should divulge to any news/media/broadcast organization anything I see, hear, or photograph while attending this event, I acknowledge and agree that it would be impractical and extremely difficult to estimate the damages that Witch City Rope agents might incur for such disclosure. Therefore, I agree that a reasonable estimate of the total detriment that Witch City Rope agents would suffer in the event of such disclosure is and shall be, as the sole and exclusive remedy and not as a penalty, One Million Dollars ($1,000,000) (""Liquidated Damages Amount""). I recognize I shall be held separately liable to Witch City Rope agents for each instance of such broadcast or display over the news/media/broadcast/internet outlet for no less than the specified Liquidated Damages Amount.</li>
+
+<li>I agree that any such recordings/pictures I create or take during an Witch City Rope event become copyright of Witch City Rope agents and their operators and any broadcast, posting, or reproduction of these will violate U.S. Copyright Protection Act unless specifically authorized by the event holders.</li>
+
+<li>I certify that any images I record will not be used in any way for commercial or personal gain nor will they be used for the purpose of entrapment or to gather information and/or testimony that would lead to the harm, persecution or prosecution of the organizers of Witch City Rope, the owner of the event site, or any individual attending or connected with the event. I agree to hold harmless the organizers of Witch City Rope, the owners of the event site, and attendees of the event if my image is captured and distributed inadvertently.</li>
+
+<li>Witch City Rope events are social events for rope bondage enthusiasts to gather to practice, teach, learn, demonstrate, discuss, and perform various styles and expressions of rope bondage with other consenting adults. I understand I am under no obligations to participate in demonstrations or interact with other scenes. I also understand that content shown or discussed at this event may be sensitive or triggering subjects including but not limited to rope bondage, sexuality, domination and submission, consensual power exchange, sadomasochism, and more.</li>
+
+<li>I am responsible for clearly communicating my personal preferences and limits to others with whom I interact. I am responsible to ensure I participate at a level that does not exceed my personal limits and I am responsible for removing myself should any activity exceed my limits. I understand that should I violate any of the above agreements, I may be asked to leave the event.</li>
+
+<li>I understand that I am attending an event that is adult in nature. In doing so, I may be exposed to adult related activities between consenting adults that some people might find offensive or immoral. I do not find these activities offensive or immoral and I consent to being exposed to such activities. With my participation in this event, I willingly and with full consent and knowledge waive and relinquish any type of claim as to the offensive nature of anything I might see or experience while attending a Witch City Rope event. I take personal responsibility that if I do find something offensive, I will leave the area without disruption or comment.</li>
+
+<li>Should any legal issue arise, I agree to pay Witch City Rope's legal fees should I make a legal claim. I also agree to consent to pre-filing mediation and court ordered mediation should any claim arise. If I do not participate in pre-filing mediation, I understand my claim may be dismissed for violating the terms of this waiver.</li>
+
+<li>I agree that if any portion of this agreement is found to be void or unenforceable, the remaining document shall remain in full force and effect.</li>
+</ol>
+
+<p>By signing this document, I acknowledge that if anyone is hurt or property is damaged during my participation in this activity, I may be found by a court of law to have waived my right to maintain a lawsuit against Witch City Rope on the basis of any claim from which I have released them herein.</p>
+
+<p>I have had sufficient opportunity to read this entire document. I have read and understood it, and I agree to be bound by its terms.</p>",
+                    CreatedAt = now,
+                    UpdatedAt = now,
+                    CreatedBy = adminUser.Id,
+                    LastModifiedBy = adminUser.Id,
+                    IsPublished = true
                 }
             };
 
-            await context.ContentPages.AddRangeAsync(initialPages);
-            await context.SaveChangesAsync();
+            // Add only pages that don't already exist (idempotent seeding)
+            var existingSlugs = await context.ContentPages
+                .Select(p => p.Slug)
+                .ToListAsync();
+
+            var pagesToAdd = initialPages
+                .Where(p => !existingSlugs.Contains(p.Slug))
+                .ToList();
+
+            if (pagesToAdd.Any())
+            {
+                await context.ContentPages.AddRangeAsync(pagesToAdd);
+                await context.SaveChangesAsync();
+            }
         }
     }
 }

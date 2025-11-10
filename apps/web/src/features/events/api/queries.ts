@@ -4,16 +4,14 @@ import { api } from '../../../api/client'
 import { queryKeys } from '../../../api/queryKeys'
 import type { EventDto } from '@witchcityrope/shared-types'
 import type { PaginatedResponse, EventFilters } from '../../../types/api.types'
-import { autoFixEventFieldNames, mapApiEventToDto } from '../../../utils/eventFieldMapping'
 
 export function useEvent(eventId: string) {
   return useQuery<EventDto>({
     queryKey: queryKeys.event(eventId),
     queryFn: async (): Promise<EventDto> => {
       const response = await api.get(`/api/events/${eventId}`)
-      // Access event from ApiResponse wrapper and fix field names
-      const rawEvent = response.data?.data
-      return mapApiEventToDto(rawEvent)
+      // API response is already in EventDto format from auto-generated types
+      return response.data?.data
     },
     enabled: !!eventId,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -30,9 +28,8 @@ export function useEvents(options: { includeUnpublished?: boolean } = {}) {
       }
 
       const response = await api.get('/api/events', { params })
-      // Access events from ApiResponse wrapper and fix field names
-      const rawEvents = response.data?.data || []
-      return autoFixEventFieldNames(rawEvents)
+      // API response is already in EventDto[] format from auto-generated types
+      return response.data?.data || []
     },
     staleTime: 5 * 60 * 1000,
   })

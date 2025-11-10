@@ -23,7 +23,7 @@ test.describe('Simple Login Test', () => {
     await page.screenshot({ path: 'test-results/simple-login-page.png' });
     
     // Check for expected elements
-    const emailInput = page.locator('[data-testid="email-input"]');
+    const emailInput = page.locator('[data-testid="email-or-scenename-input"]');
     const passwordInput = page.locator('[data-testid="password-input"]');
     const loginButton = page.locator('[data-testid="login-button"]');
     

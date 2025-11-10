@@ -193,7 +193,7 @@ export async function withAuthentication(
   await page.goto('http://localhost:5173/login');
   await page.waitForLoadState('networkidle');
 
-  await page.locator('[data-testid="email-input"]').fill(userEmail);
+  await page.locator('[data-testid="email-or-scenename-input"]').fill(userEmail);
   await page.locator('[data-testid="password-input"]').fill(password);
   await page.locator('[data-testid="login-button"]').click();
 

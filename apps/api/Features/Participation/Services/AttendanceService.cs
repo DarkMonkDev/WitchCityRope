@@ -814,6 +814,7 @@ public class AttendanceService : IAttendanceService
             var attendances = await _context.EventAttendances
                 .AsNoTracking()
                 .Include(ea => ea.Event)
+                    .ThenInclude(e => e.Venue)
                 .Where(ea => ea.UserId == userId)
                 .OrderByDescending(ea => ea.CreatedAt)
                 .Select(ea => new UserParticipationDto
@@ -823,7 +824,7 @@ public class AttendanceService : IAttendanceService
                     EventTitle = ea.Event.Title,
                     EventStartDate = ea.Event.StartDate,
                     EventEndDate = ea.Event.EndDate,
-                    EventLocation = ea.Event.Location,
+                    EventLocation = ea.Event.Venue != null ? ea.Event.Venue.Name : string.Empty,
                     ParticipationType = ea.AttendanceType,
                     Status = ea.Status,
                     ParticipationDate = ea.CreatedAt,

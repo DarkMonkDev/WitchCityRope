@@ -64,16 +64,11 @@ public class Event
     public EventType EventType { get; set; }
 
     /// <summary>
-    /// Event location
+    /// Foreign key to Venue table
+    /// All events must have an assigned venue for location information
     /// </summary>
     [Required]
-    public string Location { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Foreign key to Venue table (optional)
-    /// Nullable to support gradual migration and events without assigned venue
-    /// </summary>
-    public int? VenueId { get; set; }
+    public int VenueId { get; set; }
 
     /// <summary>
     /// Navigation property to venue

@@ -44,7 +44,7 @@ test.describe('Comprehensive Application State Report', () => {
     try {
       await page.goto('http://localhost:5173/login', { waitUntil: 'domcontentloaded', timeout: 10000 });
       const welcomeText = await page.locator('h1').textContent();
-      const emailInput = page.locator('[data-testid="email-input"]');
+      const emailInput = page.locator('[data-testid="email-or-scenename-input"]');
       const passwordInput = page.locator('[data-testid="password-input"]');
       const loginButton = page.locator('[data-testid="login-button"]');
       

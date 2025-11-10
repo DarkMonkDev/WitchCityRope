@@ -395,9 +395,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
                   .IsRequired()
                   .HasColumnType("text");
 
-            entity.Property(e => e.Location)
-                  .IsRequired();
-
             entity.Property(e => e.IsPublished)
                   .IsRequired();
 

@@ -105,6 +105,7 @@ export const Footer: React.FC = () => {
                 <ul className="footer-links">
                   <li><Link to="/privacy-policy">Privacy Policy</Link></li>
                   <li><Link to="/terms-of-service">Terms of Service</Link></li>
+                  <li><Link to="/event-waiver">Event Waiver</Link></li>
                 </ul>
               </Accordion.Panel>
             </Accordion.Item>
@@ -162,6 +163,7 @@ export const Footer: React.FC = () => {
               <ul className="footer-links">
                 <li><Link to="/privacy-policy">Privacy Policy</Link></li>
                 <li><Link to="/terms-of-service">Terms of Service</Link></li>
+                <li><Link to="/event-waiver">Event Waiver</Link></li>
               </ul>
             </div>
 

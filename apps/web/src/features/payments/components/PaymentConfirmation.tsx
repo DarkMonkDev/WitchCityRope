@@ -118,17 +118,10 @@ export const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
                 </Box>
               </Group>
 
-              {eventInfo.instructorName && (
-                <Group gap="sm">
-                  <IconUser size={18} color="#6B0119" />
-                  <Text>Instructor: {eventInfo.instructorName}</Text>
-                </Group>
-              )}
-
               {eventInfo.location && (
                 <Group gap="sm">
                   <IconMapPin size={18} color="#6B0119" />
-                  <Text>{eventInfo.location}</Text>
+                  <Text>Location: {eventInfo.location}</Text>
                 </Group>
               )}
             </Stack>
@@ -184,18 +177,11 @@ export const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
                   Check your email for detailed event information and location details
                 </Text>
               </Group>
-              
-              <Group gap="sm" align="flex-start">
-                <Text fw={500} size="sm" c="#880124">•</Text>
-                <Text size="sm">
-                  Add this event to your calendar using the link in your confirmation email
-                </Text>
-              </Group>
 
               <Group gap="sm" align="flex-start">
                 <Text fw={500} size="sm" c="#880124">•</Text>
                 <Text size="sm">
-                  Contact us at events@witchcityrope.com if you have any questions
+                  Contact us at info@witchcityrope.com if you have any questions
                 </Text>
               </Group>
             </Stack>
@@ -235,7 +221,7 @@ export const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
               color="wcr"
               onClick={onViewRegistrations}
             >
-              View My Registrations
+              View My Events
             </Button>
           )}
 

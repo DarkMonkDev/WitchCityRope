@@ -53,7 +53,7 @@ async function verifyLoginButtonWithReturnUrl(page: Page, pageUrl: string, expec
  */
 async function completeLogin(page: Page) {
   // Fill login form
-  await page.locator('[data-testid="email-input"]').fill(TEST_ACCOUNT.email);
+  await page.locator('[data-testid="email-or-scenename-input"]').fill(TEST_ACCOUNT.email);
   await page.locator('[data-testid="password-input"]').fill(TEST_ACCOUNT.password);
 
   // Submit login

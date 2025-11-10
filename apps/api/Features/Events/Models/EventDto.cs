@@ -20,16 +20,10 @@ public class EventDto
     public DateTime EndDate { get; set; }
 
     /// <summary>
-    /// Venue ID reference (preferred over deprecated Location string)
-    /// References the Venues table
+    /// Venue ID reference - references the Venues table
+    /// All events must have an assigned venue for location information
     /// </summary>
-    public int? VenueId { get; set; }
-
-    /// <summary>
-    /// DEPRECATED: Use VenueId instead
-    /// Legacy location string field maintained for backward compatibility
-    /// </summary>
-    public string Location { get; set; } = string.Empty;
+    public int VenueId { get; set; }
 
     public string EventType { get; set; } = string.Empty;
     public int Capacity { get; set; }
