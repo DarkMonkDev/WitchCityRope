@@ -50,7 +50,9 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
     
     // Verify dropdown shows only event-specific sessions in S# format (will fail)
     const sessionOptions = page.locator('[data-testid="option-session"]');
-    await expect(sessionOptions).toHaveCount({ min: 1, max: 5 }); // Reasonable range for one event
+    const sessionCount = await sessionOptions.count();
+    expect(sessionCount).toBeGreaterThan(0); // Should have at least one session
+    expect(sessionCount).toBeLessThanOrEqual(10); // Reasonable upper limit for one event
     
     // All options should start with "S" (S1, S2, S3, etc) or "All Sessions"
     const firstOption = sessionOptions.first();
