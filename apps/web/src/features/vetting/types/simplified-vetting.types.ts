@@ -37,12 +37,23 @@ export interface SimplifiedCreateApplicationRequest {
  * Simplified application status for user dashboard
  */
 export interface SimplifiedApplicationStatus {
-  id: string;
-  status: 'submitted' | 'under-review' | 'interview-approved' | 'interview-scheduled' | 'approved' | 'denied' | 'on-hold';
+  applicationId: string;
+  applicationNumber: string;
   submittedAt: string;
-  lastUpdated: string;
-  statusMessage: string;
-  canResubmit: boolean;
+  confirmationMessage: string;
+  emailSent: boolean;
+  nextSteps: string;
+  pronouns?: string;
+  otherNames?: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  preferredSceneName: string;
+  fetLifeHandle?: string;
+  whyJoin: string;
+  experienceWithRope: string;
+  agreeToCommunityStandards: boolean;
+  status: string;
 }
 
 /**

@@ -44,4 +44,49 @@ public class SimplifiedApplicationResponse
     /// Other names that were submitted (if provided)
     /// </summary>
     public string? OtherNames { get; set; }
+
+    /// <summary>
+    /// First name
+    /// </summary>
+    public string FirstName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Last name
+    /// </summary>
+    public string LastName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Email address
+    /// </summary>
+    public string Email { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Preferred scene name
+    /// </summary>
+    public string PreferredSceneName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// FetLife handle (if provided)
+    /// </summary>
+    public string? FetLifeHandle { get; set; }
+
+    /// <summary>
+    /// Why user wants to join
+    /// </summary>
+    public string WhyJoin { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Experience with rope bondage
+    /// </summary>
+    public string ExperienceWithRope { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Whether user agreed to community standards
+    /// </summary>
+    public bool AgreeToCommunityStandards { get; set; }
+
+    /// <summary>
+    /// Application status
+    /// </summary>
+    public string Status { get; set; } = string.Empty;
 }

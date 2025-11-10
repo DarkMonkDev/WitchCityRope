@@ -133,7 +133,7 @@ export const MyEventsPage: React.FC = () => {
               fontSize: '2rem',
             }}
           >
-            {user?.sceneName || 'Your'} Dashboard
+            {user?.sceneName || 'Your'}'s Events
           </Title>
           <Button
             component={Link}

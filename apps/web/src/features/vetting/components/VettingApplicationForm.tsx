@@ -65,9 +65,22 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
     }
   });
 
+  // Check if we have an existing application and pre-populate form
+  const hasExistingApp = !!existingApplication;
+  const appData = existingApplication as SimplifiedApplicationStatus | null;
+
   // Form setup with Mantine form validation
   const form = useForm<SimplifiedApplicationFormData>({
-    initialValues: {
+    initialValues: hasExistingApp && appData ? {
+      firstName: appData.firstName,
+      lastName: appData.lastName,
+      pronouns: appData.pronouns || '',
+      fetLifeHandle: appData.fetLifeHandle || '',
+      otherNames: appData.otherNames || '',
+      whyJoin: appData.whyJoin,
+      experienceWithRope: appData.experienceWithRope,
+      agreeToCommunityStandards: appData.agreeToCommunityStandards,
+    } : {
       ...defaultFormValues,
       // Remove email and sceneName from form - they're shown at top but not editable
     },
@@ -219,44 +232,6 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
     );
   }
 
-  // Show existing application status if user already applied
-  if (existingApplication) {
-    const app = existingApplication as SimplifiedApplicationStatus;
-    return (
-      <Box className={className}>
-        <Paper p="xl" shadow="sm">
-          <Stack gap="md">
-            <Title order={2} size="h3" c="wcr.7">
-              Application Already Submitted
-            </Title>
-
-            <Alert color="blue" icon={<IconCheck />}>
-              You have already submitted a vetting application. Only one application is allowed per person.
-            </Alert>
-
-            <Box>
-              <Text size="sm" c="dimmed" mb="xs">Application Status:</Text>
-              <Text size="lg" fw={600} tt="capitalize">
-                {app.status ? app.status.replace('-', ' ') : 'Pending'}
-              </Text>
-            </Box>
-
-            <Box>
-              <Text size="sm" c="dimmed" mb="xs">Submitted:</Text>
-              <Text>
-                {new Date(app.submittedAt).toLocaleDateString()}
-              </Text>
-            </Box>
-
-            <Text c="dimmed">
-              {app.statusMessage}
-            </Text>
-          </Stack>
-        </Paper>
-      </Box>
-    );
-  }
-
   // Show authentication requirement prominently if user is not logged in
   if (!isAuthenticated || !user) {
     return (
@@ -363,33 +338,51 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
             icon={<IconShieldCheck />}
             color="blue"
             title="Privacy & Data Protection"
+            style={{ marginBottom: '12px' }}
           >
             All personal information is encrypted and only accessible to approved vetting team members.
             Your data will never be shared outside the review process.
           </Alert>
 
-          {/* Display user info at top */}
-          <Paper p="md" bg="gray.0" style={{ borderRadius: 8, border: '1px solid var(--mantine-color-gray-3)' }}>
-            <Stack gap="xs">
-              <Text size="sm" fw={600} c="wcr.7">Your Account Information</Text>
-              <Group>
-                <Box>
-                  <Text size="xs" c="dimmed">Email:</Text>
-                  <Text size="sm" fw={500}>{user?.email}</Text>
-                </Box>
-                <Box>
-                  <Text size="xs" c="dimmed">Scene Name:</Text>
-                  <Text size="sm" fw={500}>{userSceneName || user?.sceneName || 'Not set'}</Text>
-                </Box>
-              </Group>
-              <Text size="xs" c="dimmed">This information will be used for your application. To update it, please edit your profile.</Text>
-            </Stack>
-          </Paper>
-
           <form onSubmit={form.onSubmit(handleFormSubmit)} data-testid="vetting-application-form">
             <Stack gap="lg">
-              {/* First four fields in 2-column grid (responsive: 1 column on mobile/tablet, 2 columns on desktop) */}
+              {/* Scene Name and Email in 2-column grid (read-only) */}
               <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
+                <EnhancedTextInput
+                  label="Scene Name"
+                  value={(hasExistingApp && appData) ? appData.preferredSceneName : (userSceneName || user?.sceneName || 'Not set')}
+                  readOnly
+                  disabled
+                  data-testid="scene-name-input"
+                  styles={{
+                    input: {
+                      height: 56,
+                      fontSize: 16,
+                      backgroundColor: 'var(--mantine-color-gray-0)',
+                      cursor: 'not-allowed',
+                    },
+                  }}
+                />
+
+                <EnhancedTextInput
+                  label="Email"
+                  value={(hasExistingApp && appData) ? appData.email : (user?.email || '')}
+                  readOnly
+                  disabled
+                  data-testid="email-input"
+                  styles={{
+                    input: {
+                      height: 56,
+                      fontSize: 16,
+                      backgroundColor: 'var(--mantine-color-gray-0)',
+                      cursor: 'not-allowed',
+                    },
+                  }}
+                />
+              </SimpleGrid>
+
+              {/* First four fields in 2-column grid (responsive: 1 column on mobile/tablet, 2 columns on desktop) */}
+              <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg" style={{ '--sg-spacing-y': 'var(--mantine-spacing-sm)' } as React.CSSProperties}>
                 {/* First Name */}
                 <EnhancedTextInput
                   label="First Name"
@@ -397,11 +390,15 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                   required
                   description={fieldValidationMessages.firstName.required}
                   data-testid="first-name-input"
+                  readOnly={hasExistingApp}
+                  disabled={hasExistingApp}
                   {...form.getInputProps('firstName')}
                   styles={{
                     input: {
                       height: 56,
                       fontSize: 16,
+                      backgroundColor: hasExistingApp ? 'var(--mantine-color-gray-0)' : undefined,
+                      cursor: hasExistingApp ? 'not-allowed' : undefined,
                     },
                   }}
                 />
@@ -413,11 +410,15 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                   required
                   description={fieldValidationMessages.lastName.required}
                   data-testid="last-name-input"
+                  readOnly={hasExistingApp}
+                  disabled={hasExistingApp}
                   {...form.getInputProps('lastName')}
                   styles={{
                     input: {
                       height: 56,
                       fontSize: 16,
+                      backgroundColor: hasExistingApp ? 'var(--mantine-color-gray-0)' : undefined,
+                      cursor: hasExistingApp ? 'not-allowed' : undefined,
                     },
                   }}
                 />
@@ -428,11 +429,15 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                   placeholder="Enter your pronouns (optional)"
                   description={fieldValidationMessages.pronouns.optional}
                   data-testid="pronouns-input"
+                  readOnly={hasExistingApp}
+                  disabled={hasExistingApp}
                   {...form.getInputProps('pronouns')}
                   styles={{
                     input: {
                       height: 56,
                       fontSize: 16,
+                      backgroundColor: hasExistingApp ? 'var(--mantine-color-gray-0)' : undefined,
+                      cursor: hasExistingApp ? 'not-allowed' : undefined,
                     },
                   }}
                 />
@@ -443,11 +448,15 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                   placeholder="Enter your FetLife handle (optional)"
                   description={fieldValidationMessages.fetLifeHandle.optional}
                   data-testid="fetlife-handle-input"
+                  readOnly={hasExistingApp}
+                  disabled={hasExistingApp}
                   {...form.getInputProps('fetLifeHandle')}
                   styles={{
                     input: {
                       height: 56,
                       fontSize: 16,
+                      backgroundColor: hasExistingApp ? 'var(--mantine-color-gray-0)' : undefined,
+                      cursor: hasExistingApp ? 'not-allowed' : undefined,
                     },
                   }}
                 />
@@ -462,10 +471,14 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                 maxRows={4}
                 autosize
                 data-testid="other-names-textarea"
+                readOnly={hasExistingApp}
+                disabled={hasExistingApp}
                 {...form.getInputProps('otherNames')}
                 styles={{
                   input: {
                     fontSize: 16,
+                    backgroundColor: hasExistingApp ? 'var(--mantine-color-gray-0)' : undefined,
+                    cursor: hasExistingApp ? 'not-allowed' : undefined,
                   },
                 }}
               />
@@ -481,10 +494,14 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                 autosize
                 description="Tell us why you would like to join our community"
                 data-testid="why-join-textarea"
+                readOnly={hasExistingApp}
+                disabled={hasExistingApp}
                 {...form.getInputProps('whyJoin')}
                 styles={{
                   input: {
                     fontSize: 16,
+                    backgroundColor: hasExistingApp ? 'var(--mantine-color-gray-0)' : undefined,
+                    cursor: hasExistingApp ? 'not-allowed' : undefined,
                   },
                 }}
               />
@@ -499,10 +516,14 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                 autosize
                 description="Share your experience in rope bondage, BDSM, or kink communities"
                 data-testid="experience-with-rope-textarea"
+                readOnly={hasExistingApp}
+                disabled={hasExistingApp}
                 {...form.getInputProps('experienceWithRope')}
                 styles={{
                   input: {
                     fontSize: 16,
+                    backgroundColor: hasExistingApp ? 'var(--mantine-color-gray-0)' : undefined,
+                    cursor: hasExistingApp ? 'not-allowed' : undefined,
                   },
                 }}
               />
@@ -516,7 +537,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                   borderRadius: 12,
                 }}
               >
-                <Stack gap="md">
+                <Stack gap="xs" style={{ '--stack-gap': '0px' } as React.CSSProperties}>
                   {/* Title and intro text stacked vertically */}
                   <Title order={4} c="wcr.7">Community Standards Agreement</Title>
                   <Text size="sm" mb="xs">
@@ -541,21 +562,26 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                     </List>
                   </SimpleGrid>
 
-                  <Checkbox
-                    label={<Text fw={600}>I agree to all of the above items</Text>}
-                    required
-                    data-testid="community-standards-checkbox"
-                    {...form.getInputProps('agreeToCommunityStandards', { type: 'checkbox' })}
-                    styles={{
-                      label: {
-                        fontFamily: 'var(--font-heading)',
-                        color: 'var(--color-wcr-7)',
-                      },
-                      input: {
-                        accentColor: 'var(--color-wcr-7)',
-                      },
-                    }}
-                  />
+                  <div style={{ '--sg-spacing-y': 'var(--mantine-spacing-sm)', marginTop: '10px' } as React.CSSProperties}>
+                    <Checkbox
+                      label={<Text fw={600}>I agree to all of the above items</Text>}
+                      required
+                      data-testid="community-standards-checkbox"
+                      disabled={hasExistingApp}
+                      {...form.getInputProps('agreeToCommunityStandards', { type: 'checkbox' })}
+                      styles={{
+                        label: {
+                          fontFamily: 'var(--font-heading)',
+                          color: 'var(--color-wcr-7)',
+                          cursor: hasExistingApp ? 'not-allowed' : undefined,
+                        },
+                        input: {
+                          accentColor: 'var(--color-wcr-7)',
+                          cursor: hasExistingApp ? 'not-allowed' : undefined,
+                        },
+                      }}
+                    />
+                  </div>
                 </Stack>
               </Paper>
 
@@ -566,6 +592,7 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                   size="lg"
                   loading={submitMutation.isPending}
                   disabled={
+                    hasExistingApp ||
                     Object.keys(form.errors).length > 0 ||
                     !isAuthenticated ||
                     !form.values.firstName?.trim() ||

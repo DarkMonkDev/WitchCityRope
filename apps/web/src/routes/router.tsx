@@ -2,11 +2,6 @@ import { createBrowserRouter } from 'react-router-dom'
 import { HomePage } from '../pages/HomePage'
 import { LoginPage } from '../pages/LoginPage'
 import { RegisterPage } from '../pages/RegisterPage'
-import { DashboardPage } from '../pages/dashboard/DashboardPage'
-import { EventsPage } from '../pages/dashboard/EventsPage'
-import { ProfilePage } from '../pages/dashboard/ProfilePage'
-import { SecurityPage } from '../pages/dashboard/SecurityPage'
-import { MembershipPage } from '../pages/dashboard/MembershipPage'
 import { MyEventsPage } from '../pages/dashboard/MyEventsPage'
 import { ProfileSettingsPage } from '../pages/dashboard/ProfileSettingsPage'
 import { FormComponentsTest } from '../pages/FormComponentsTest'
@@ -270,32 +265,6 @@ export const router = createBrowserRouter([
       {
         path: 'dashboard/profile-settings',
         element: <ProfileSettingsPage />,
-        loader: authLoader,
-      },
-      // Legacy dashboard routes (keep for backwards compatibility)
-      {
-        path: 'dashboard/old',
-        element: <DashboardPage />,
-        loader: authLoader,
-      },
-      {
-        path: 'dashboard/events',
-        element: <EventsPage />,
-        loader: authLoader,
-      },
-      {
-        path: 'dashboard/profile',
-        element: <ProfilePage />,
-        loader: authLoader,
-      },
-      {
-        path: 'dashboard/security',
-        element: <SecurityPage />,
-        loader: authLoader,
-      },
-      {
-        path: 'dashboard/membership',
-        element: <MembershipPage />,
         loader: authLoader,
       },
 

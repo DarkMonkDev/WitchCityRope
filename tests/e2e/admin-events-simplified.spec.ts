@@ -23,7 +23,7 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
     test('page has basic admin interface elements', async ({ page }) => {
       // Look for admin interface elements
       const possibleElements = [
-        '[data-testid="create-event-button"]',
+        '[data-testid="button-create-event"]',
         'button:has-text("Create")',
         'button:has-text("New Event")',
         'button:has-text("Add Event")',
@@ -58,7 +58,7 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
     test('can access event creation interface', async ({ page }) => {
       // Look for creation buttons/links
       const createSelectors = [
-        '[data-testid="create-event-button"]',
+        '[data-testid="button-create-event"]',
         'button:has-text("Create")',
         'button:has-text("New")',
         'button:has-text("Add")',
@@ -115,7 +115,7 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
     test('basic form fields exist in event creation', async ({ page }) => {
       // Try to access create interface
       const createSelectors = [
-        '[data-testid="create-event-button"]',
+        '[data-testid="button-create-event"]',
         'button:has-text("Create")',
         'button:has-text("New")',
         'button:has-text("Add")'
@@ -168,7 +168,7 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
   test.describe('Session and Ticket Management', () => {
     test('session management interface exists', async ({ page }) => {
       // Try to access event creation/edit
-      const createSelectors = ['[data-testid="create-event-button"]', 'button:has-text("Create")'];
+      const createSelectors = ['[data-testid="button-create-event"]', 'button:has-text("Create")'];
       
       for (const selector of createSelectors) {
         const element = page.locator(selector).first();
@@ -209,7 +209,7 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
 
     test('ticket management interface exists', async ({ page }) => {
       // Try to access event creation/edit
-      const createSelectors = ['[data-testid="create-event-button"]', 'button:has-text("Create")'];
+      const createSelectors = ['[data-testid="button-create-event"]', 'button:has-text("Create")'];
       
       for (const selector of createSelectors) {
         const element = page.locator(selector).first();
@@ -251,7 +251,7 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
 
     test('tabbed interface for event management', async ({ page }) => {
       // Try to access event creation/edit
-      const createSelectors = ['[data-testid="create-event-button"]', 'button:has-text("Create")'];
+      const createSelectors = ['[data-testid="button-create-event"]', 'button:has-text("Create")'];
       
       let interfaceOpened = false;
       for (const selector of createSelectors) {
@@ -338,7 +338,7 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
 
     test('basic form interaction works', async ({ page }) => {
       // Try to access event creation
-      const createButton = page.locator('[data-testid="create-event-button"]').first();
+      const createButton = page.locator('[data-testid="button-create-event"]').first();
       if (await createButton.count() === 0) {
         // Look for alternative create buttons
         const altButtons = page.locator('button:has-text("Create"), button:has-text("New"), button:has-text("Add")');
@@ -423,7 +423,7 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
       await page.waitForLoadState('networkidle');
       
       // Try basic interactions
-      const createButton = page.locator('[data-testid="create-event-button"], button:has-text("Create")').first();
+      const createButton = page.locator('[data-testid="button-create-event"], button:has-text("Create")').first();
       if (await createButton.count() > 0) {
         await createButton.click();
         await page.waitForTimeout(2000);

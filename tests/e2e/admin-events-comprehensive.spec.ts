@@ -17,7 +17,7 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
       await expect(page).toHaveURL(/.*\/admin\/events/);
       
       // Check for key admin elements
-      const createButton = page.locator('[data-testid="create-event-button"]');
+      const createButton = page.locator('[data-testid="button-create-event"]');
       await expect(createButton).toBeVisible({ timeout: 10000 });
       
       console.log('✅ Admin events page loaded and accessible');
@@ -39,7 +39,7 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
   test.describe('Basic Event Management UI Tests', () => {
     test('create event modal opens', async ({ page }) => {
       // Test basic modal functionality
-      await page.click('[data-testid="create-event-button"]');
+      await page.click('[data-testid="button-create-event"]');
       
       // Look for modal or form elements
       const modal = page.locator('[data-testid="event-modal"], .modal, [role="dialog"]');
@@ -54,7 +54,7 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
 
     test('event form has required fields', async ({ page }) => {
       // Open event creation
-      await page.click('[data-testid="create-event-button"]');
+      await page.click('[data-testid="button-create-event"]');
       
       // Check for key form fields (use flexible selectors)
       const nameField = page.locator('[data-testid="event-name-input"], input[name="name"], input[placeholder*="name" i]');
@@ -69,7 +69,7 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
 
     test('event form can be filled', async ({ page }) => {
       // Open event creation
-      await page.click('[data-testid="create-event-button"]');
+      await page.click('[data-testid="button-create-event"]');
       
       // Try to fill basic fields
       const nameField = page.locator('[data-testid="event-name-input"], input[name="name"], input[placeholder*="name" i]').first();
@@ -106,7 +106,7 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
   test.describe('Tab and Modal Structure Tests', () => {
     test('event management has tabbed interface', async ({ page }) => {
       // Try to create/edit an event to access tabs
-      const createBtn = page.locator('[data-testid="create-event-button"]');
+      const createBtn = page.locator('[data-testid="button-create-event"]');
       const editBtn = page.locator('[data-testid="edit-event-button"]').first();
       
       // Click either create or edit
@@ -132,7 +132,7 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
 
     test('session management section exists', async ({ page }) => {
       // Look for session-related elements
-      const createBtn = page.locator('[data-testid="create-event-button"]');
+      const createBtn = page.locator('[data-testid="button-create-event"]');
       if (await createBtn.isVisible()) {
         await createBtn.click();
       }
@@ -151,7 +151,7 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
 
     test('ticket management section exists', async ({ page }) => {
       // Look for ticket-related elements
-      const createBtn = page.locator('[data-testid="create-event-button"]');
+      const createBtn = page.locator('[data-testid="button-create-event"]');
       if (await createBtn.isVisible()) {
         await createBtn.click();
       }
@@ -216,7 +216,7 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
 
   test.describe('Critical Event Form Fields', () => {
     test('event name field exists and works', async ({ page }) => {
-      const createBtn = page.locator('[data-testid="create-event-button"]');
+      const createBtn = page.locator('[data-testid="button-create-event"]');
       if (await createBtn.isVisible()) {
         await createBtn.click();
       }
@@ -235,7 +235,7 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
     });
 
     test('event date field exists', async ({ page }) => {
-      const createBtn = page.locator('[data-testid="create-event-button"]');
+      const createBtn = page.locator('[data-testid="button-create-event"]');
       if (await createBtn.isVisible()) {
         await createBtn.click();
       }
@@ -252,7 +252,7 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
     });
 
     test('venue selection exists', async ({ page }) => {
-      const createBtn = page.locator('[data-testid="create-event-button"]');
+      const createBtn = page.locator('[data-testid="button-create-event"]');
       if (await createBtn.isVisible()) {
         await createBtn.click();
       }
@@ -269,7 +269,7 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
     });
 
     test('teacher selection exists', async ({ page }) => {
-      const createBtn = page.locator('[data-testid="create-event-button"]');
+      const createBtn = page.locator('[data-testid="button-create-event"]');
       if (await createBtn.isVisible()) {
         await createBtn.click();
       }
@@ -320,7 +320,7 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
       await page.goto('/admin/events');
       await page.waitForLoadState('networkidle');
       
-      const createBtn = page.locator('[data-testid="create-event-button"]');
+      const createBtn = page.locator('[data-testid="button-create-event"]');
       if (await createBtn.isVisible()) {
         await createBtn.click();
         await page.waitForTimeout(2000); // Give time for any errors to surface

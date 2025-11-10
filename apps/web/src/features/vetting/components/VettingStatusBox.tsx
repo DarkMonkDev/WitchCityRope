@@ -106,6 +106,51 @@ export const VettingStatusBox: React.FC<VettingStatusBoxProps> = ({
   const config = statusConfig[status];
   const Icon = config.icon;
 
+  // Format submitted date as "Submitted - Nov 4, 2025"
+  const formattedSubmittedDate = `Submitted - ${submittedAt.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  })}`;
+
+  // For UnderReview status, use simplified layout
+  if (status === 'UnderReview') {
+    return (
+      <Paper
+        p="lg"
+        radius="md"
+        withBorder
+        style={{
+          borderColor: '#880124',
+          borderWidth: '2px'
+        }}
+      >
+        <Stack gap="md">
+          {/* Status Header */}
+          <Group justify="space-between" align="center">
+            <Group gap="sm">
+              <Icon size={24} color="#880124" />
+              <Text size="xl" fw={700} c="#2B2B2B">
+                {config.displayName}
+              </Text>
+            </Group>
+            <Text size="sm" c="#8B8680" fw={500}>
+              {formattedSubmittedDate}
+            </Text>
+          </Group>
+
+          {/* Status Description with Next Steps */}
+          <Box>
+            <Text size="md" c="#4A4A4A">
+              {statusDescription} {nextSteps}
+            </Text>
+          </Box>
+        </Stack>
+      </Paper>
+    );
+  }
+
+  // Default layout for other statuses
   return (
     <Paper
       p="lg"
