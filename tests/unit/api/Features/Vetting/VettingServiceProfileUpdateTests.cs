@@ -4,6 +4,7 @@ using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Features.Vetting.Models;
 using WitchCityRope.Api.Features.Vetting.Services;
+using WitchCityRope.Api.Features.Shared.Models;
 using WitchCityRope.Api.Models;
 using Xunit;
 using FluentAssertions;
@@ -85,7 +86,7 @@ public class VettingServiceProfileUpdateTests : IAsyncLifetime
         );
 
         // Act
-        var result = await _service.SubmitSimplifiedApplicationAsync(request, user.Id);
+        var result = await _service.SubmitSimplifiedApplicationAsync(request, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -115,7 +116,7 @@ public class VettingServiceProfileUpdateTests : IAsyncLifetime
         );
 
         // Act
-        var result = await _service.SubmitSimplifiedApplicationAsync(request, user.Id);
+        var result = await _service.SubmitSimplifiedApplicationAsync(request, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -147,7 +148,7 @@ public class VettingServiceProfileUpdateTests : IAsyncLifetime
         );
 
         // Act
-        var result = await _service.SubmitSimplifiedApplicationAsync(request, user.Id);
+        var result = await _service.SubmitSimplifiedApplicationAsync(request, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -178,7 +179,7 @@ public class VettingServiceProfileUpdateTests : IAsyncLifetime
         );
 
         // Act
-        var result = await _service.SubmitSimplifiedApplicationAsync(request, user.Id);
+        var result = await _service.SubmitSimplifiedApplicationAsync(request, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -210,7 +211,7 @@ public class VettingServiceProfileUpdateTests : IAsyncLifetime
         );
 
         // Act
-        var result = await _service.SubmitSimplifiedApplicationAsync(request, user.Id);
+        var result = await _service.SubmitSimplifiedApplicationAsync(request, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -242,7 +243,7 @@ public class VettingServiceProfileUpdateTests : IAsyncLifetime
         );
 
         // Act
-        var result = await _service.SubmitSimplifiedApplicationAsync(request, user.Id);
+        var result = await _service.SubmitSimplifiedApplicationAsync(request, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -273,7 +274,7 @@ public class VettingServiceProfileUpdateTests : IAsyncLifetime
         );
 
         // Act
-        var result = await _service.SubmitSimplifiedApplicationAsync(request, user.Id);
+        var result = await _service.SubmitSimplifiedApplicationAsync(request, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -300,7 +301,7 @@ public class VettingServiceProfileUpdateTests : IAsyncLifetime
         );
 
         // Act
-        var result = await _service.SubmitSimplifiedApplicationAsync(request, nonExistentUserId);
+        var result = await _service.SubmitSimplifiedApplicationAsync(request, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -322,7 +323,7 @@ public class VettingServiceProfileUpdateTests : IAsyncLifetime
         );
 
         // Act
-        var result = await _service.SubmitSimplifiedApplicationAsync(request, user.Id);
+        var result = await _service.SubmitSimplifiedApplicationAsync(request, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -352,7 +353,7 @@ public class VettingServiceProfileUpdateTests : IAsyncLifetime
         );
 
         // Act
-        var result = await _service.SubmitSimplifiedApplicationAsync(request, user.Id);
+        var result = await _service.SubmitSimplifiedApplicationAsync(request, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();

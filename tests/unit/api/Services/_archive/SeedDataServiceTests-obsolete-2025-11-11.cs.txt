@@ -15,12 +15,15 @@ using Testcontainers.PostgreSql;
 namespace WitchCityRope.Api.Tests.Services;
 
 /// <summary>
-/// Integration tests for SeedDataService using real PostgreSQL database.
+/// Integration tests for SeedCoordinator using real PostgreSQL database.
 /// Tests seed data population, transaction management, idempotent operations,
 /// and error handling scenarios.
 ///
 /// Converted from unit tests with mocks to integration tests with TestContainers
 /// to avoid complex IAsyncQueryProvider mocking issues and test real behavior.
+///
+/// Updated November 2025: SeedDataService replaced with SeedCoordinator pattern
+/// which orchestrates specialized seeders (UserSeeder, EventSeeder, etc.)
 ///
 /// Key testing aspects:
 /// - Idempotent seed data operations (safe to run multiple times)
@@ -32,18 +35,18 @@ namespace WitchCityRope.Api.Tests.Services;
 /// - Real database operations (no ApplicationDbContext mocking)
 /// </summary>
 [Collection("Database")]
-public class SeedDataServiceTests : IAsyncLifetime
+public class SeedCoordinatorTests : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _container;
     private ApplicationDbContext _context = null!;
-    private SeedDataService _service = null!;
+    private SeedCoordinator _service = null!;
     private UserManager<ApplicationUser> _userManager = null!;
     private RoleManager<IdentityRole<Guid>> _roleManager = null!;
-    private ILogger<SeedDataService> _logger = null!;
+    private ILogger<SeedCoordinator> _logger = null!;
     private IEncryptionService _encryptionService = null!;
     private string _connectionString = null!;
 
-    public SeedDataServiceTests()
+    public SeedCoordinatorTests()
     {
         _container = new PostgreSqlBuilder()
             .WithImage("postgres:16-alpine")

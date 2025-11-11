@@ -14,12 +14,13 @@ test.describe('Admin Events Dashboard', () => {
 
   test('should show both filter chips checked by default', async ({ page }) => {
     // Check that both filter chips are selected by default
-    const socialChip = page.getByTestId('filter-social');
-    const classChip = page.getByTestId('filter-class');
-    
-    // Chips should have aria-checked="true" when selected
-    await expect(socialChip).toHaveAttribute('aria-checked', 'true');
-    await expect(classChip).toHaveAttribute('aria-checked', 'true');
+    // Mantine puts data-testid directly on the checkbox input
+    const socialChipInput = page.getByTestId('filter-social');
+    const classChipInput = page.getByTestId('filter-class');
+
+    // Chips should be checked by default (use toBeChecked for checkbox inputs)
+    await expect(socialChipInput).toBeChecked();
+    await expect(classChipInput).toBeChecked();
   });
 
   test('should show events when both filters are checked', async ({ page }) => {
@@ -56,35 +57,46 @@ test.describe('Admin Events Dashboard', () => {
     const tableRows = page.locator('tbody tr');
     const initialCount = await tableRows.count();
     console.log(`Initial event count: ${initialCount}`);
-    
-    // Uncheck Social filter
-    const socialChip = page.getByTestId('filter-social');
-    await socialChip.click();
+
+    // For Mantine Chips, we need to click on the label, not the input
+    // The input has the data-testid, so we find it and then get its associated label
+    const socialChipInput = page.getByTestId('filter-social');
+    const classChipInput = page.getByTestId('filter-class');
+
+    // Get the IDs to find the associated labels
+    const socialId = await socialChipInput.getAttribute('id');
+    const classId = await classChipInput.getAttribute('id');
+
+    // Click on the labels (not the inputs) to toggle the chips
+    const socialLabel = page.locator(`label[for="${socialId}"]`);
+    const classLabel = page.locator(`label[for="${classId}"]`);
+
+    // Uncheck Social filter by clicking its label
+    await socialLabel.click();
     await page.waitForTimeout(500); // Wait for filter to apply
-    
+
     // Check row count after unchecking Social
     const afterSocialUncheck = await tableRows.count();
     console.log(`Events after unchecking Social: ${afterSocialUncheck}`);
-    
+
     // Re-check Social and uncheck Class
-    await socialChip.click();
+    await socialLabel.click();
     await page.waitForTimeout(500);
-    
-    const classChip = page.getByTestId('filter-class');
-    await classChip.click();
+
+    await classLabel.click();
     await page.waitForTimeout(500);
-    
+
     // Check row count after unchecking Class
     const afterClassUncheck = await tableRows.count();
     console.log(`Events after unchecking Class: ${afterClassUncheck}`);
-    
-    // Uncheck both
-    await socialChip.click();
+
+    // Uncheck both - click Social again
+    await socialLabel.click();
     await page.waitForTimeout(500);
-    
+
     const bothUnchecked = await tableRows.count();
     console.log(`Events with both unchecked: ${bothUnchecked}`);
-    
+
     // When both are unchecked, should show no events or "No events found" message
     if (bothUnchecked === 1) {
       const firstRow = tableRows.first();

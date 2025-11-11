@@ -232,12 +232,119 @@ public class SafetyServiceTests : IAsyncLifetime
         incident!.Type.Should().Be(type);
     }
 
+    /// <summary>
+    /// Test 5: Verify reference number generation follows correct format
+    /// </summary>
+    [Fact]
+    public async Task SubmitIncidentAsync_GeneratesValidReferenceNumber()
+    {
+        // Arrange
+        var request = new CreateIncidentRequest
+        {
+            IsAnonymous = true,
+            Title = "Reference Number Test",
+            Type = IncidentType.SafetyConcern,
+            WhereOccurred = WhereOccurred.AtEvent,
+            IncidentDate = DateTime.UtcNow,
+            Location = "Test Location",
+            Description = "Testing reference number generation with sufficient character count for validation"
+        };
+
+        // Act
+        var result = await _sut.SubmitIncidentAsync(request);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+
+        // Verify reference number format: SAF-YYYYMMDD-NNNN
+        result.Value!.ReferenceNumber.Should().MatchRegex(@"^SAF-\d{8}-\d{4}$",
+            "reference number must follow format SAF-YYYYMMDD-NNNN");
+
+        // Verify it contains today's date
+        var todayStr = DateTime.UtcNow.ToString("yyyyMMdd");
+        result.Value.ReferenceNumber.Should().Contain(todayStr,
+            "reference number must contain today's date");
+
+        // Verify it's stored in database
+        var incident = await _context.SafetyIncidents
+            .FirstOrDefaultAsync(i => i.ReferenceNumber == result.Value.ReferenceNumber);
+
+        incident.Should().NotBeNull();
+        incident!.ReferenceNumber.Should().Be(result.Value.ReferenceNumber);
+    }
+
+    /// <summary>
+    /// Test 6: Verify reference numbers are sequential for same day
+    /// </summary>
+    [Fact]
+    public async Task SubmitIncidentAsync_GeneratesSequentialReferenceNumbers()
+    {
+        // Arrange
+        var request1 = new CreateIncidentRequest
+        {
+            IsAnonymous = true,
+            Title = "Sequential Test 1",
+            Type = IncidentType.SafetyConcern,
+            WhereOccurred = WhereOccurred.AtEvent,
+            IncidentDate = DateTime.UtcNow,
+            Location = "Test Location 1",
+            Description = "First incident for sequential reference number testing with sufficient length"
+        };
+
+        var request2 = new CreateIncidentRequest
+        {
+            IsAnonymous = true,
+            Title = "Sequential Test 2",
+            Type = IncidentType.BoundaryViolation,
+            WhereOccurred = WhereOccurred.Online,
+            IncidentDate = DateTime.UtcNow,
+            Location = "Test Location 2",
+            Description = "Second incident for sequential reference number testing with sufficient length"
+        };
+
+        var request3 = new CreateIncidentRequest
+        {
+            IsAnonymous = true,
+            Title = "Sequential Test 3",
+            Type = IncidentType.Harassment,
+            WhereOccurred = WhereOccurred.OtherSpace,
+            IncidentDate = DateTime.UtcNow,
+            Location = "Test Location 3",
+            Description = "Third incident for sequential reference number testing with sufficient length"
+        };
+
+        // Act
+        var result1 = await _sut.SubmitIncidentAsync(request1);
+        var result2 = await _sut.SubmitIncidentAsync(request2);
+        var result3 = await _sut.SubmitIncidentAsync(request3);
+
+        // Assert
+        result1.IsSuccess.Should().BeTrue();
+        result2.IsSuccess.Should().BeTrue();
+        result3.IsSuccess.Should().BeTrue();
+
+        // Extract sequence numbers
+        result1.Value!.ReferenceNumber.Should().EndWith("-0001",
+            "first incident should have sequence 0001");
+        result2.Value!.ReferenceNumber.Should().EndWith("-0002",
+            "second incident should have sequence 0002");
+        result3.Value!.ReferenceNumber.Should().EndWith("-0003",
+            "third incident should have sequence 0003");
+
+        // Verify all have same date prefix
+        var todayPrefix = $"SAF-{DateTime.UtcNow:yyyyMMdd}-";
+        result1.Value.ReferenceNumber.Should().StartWith(todayPrefix);
+        result2.Value.ReferenceNumber.Should().StartWith(todayPrefix);
+        result3.Value.ReferenceNumber.Should().StartWith(todayPrefix);
+    }
+
     #endregion
 
     #region GetIncidentStatusAsync Tests
 
     /// <summary>
-    /// Test 5: Verify public incident status retrieval by reference number
+    /// Test 7: Verify public incident status retrieval by reference number
     /// </summary>
     [Fact]
     public async Task GetIncidentStatusAsync_WithValidReferenceNumber_ReturnsStatus()
@@ -257,7 +364,7 @@ public class SafetyServiceTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Test 6: Verify incident status retrieval fails with invalid reference number
+    /// Test 8: Verify incident status retrieval fails with invalid reference number
     /// </summary>
     [Fact]
     public async Task GetIncidentStatusAsync_WithInvalidReferenceNumber_ReturnsFailure()
@@ -274,7 +381,7 @@ public class SafetyServiceTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Test 7: Verify anonymous incident status shows cannot provide more info
+    /// Test 9: Verify anonymous incident status shows cannot provide more info
     /// </summary>
     [Fact]
     public async Task GetIncidentStatusAsync_ForAnonymousIncident_CannotProvideMoreInfo()
@@ -295,7 +402,7 @@ public class SafetyServiceTests : IAsyncLifetime
     #region GetIncidentDetailAsync Tests
 
     /// <summary>
-    /// Test 8: Verify safety team can access incident details with decrypted data
+    /// Test 10: Verify safety team can access incident details with decrypted data
     /// </summary>
     [Fact]
     public async Task GetIncidentDetailAsync_BySafetyTeamMember_ReturnsDecryptedDetails()
@@ -330,7 +437,7 @@ public class SafetyServiceTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Test 9: Verify admin can access incident details
+    /// Test 11: Verify admin can access incident details
     /// </summary>
     [Fact]
     public async Task GetIncidentDetailAsync_ByAdmin_ReturnsDecryptedDetails()
@@ -348,7 +455,7 @@ public class SafetyServiceTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Test 10: Verify non-safety team member cannot access incident details
+    /// Test 12: Verify non-safety team member cannot access incident details
     /// </summary>
     [Fact]
     public async Task GetIncidentDetailAsync_ByNonSafetyTeamMember_ReturnsFailure()
@@ -371,7 +478,7 @@ public class SafetyServiceTests : IAsyncLifetime
     #region GetDashboardDataAsync Tests
 
     /// <summary>
-    /// Test 11: Verify safety team member can access dashboard data
+    /// Test 13: Verify safety team member can access dashboard data
     /// </summary>
     [Fact]
     public async Task GetDashboardDataAsync_BySafetyTeamMember_ReturnsDashboardData()
@@ -396,7 +503,7 @@ public class SafetyServiceTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Test 12: Verify dashboard statistics are calculated correctly
+    /// Test 14: Verify dashboard statistics are calculated correctly
     /// </summary>
     [Fact]
     public async Task GetDashboardDataAsync_CalculatesStatisticsCorrectly()
@@ -418,7 +525,7 @@ public class SafetyServiceTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Test 13: Verify non-safety team member cannot access dashboard
+    /// Test 15: Verify non-safety team member cannot access dashboard
     /// </summary>
     [Fact]
     public async Task GetDashboardDataAsync_ByNonSafetyTeamMember_ReturnsFailure()
@@ -439,7 +546,7 @@ public class SafetyServiceTests : IAsyncLifetime
     #region GetUserReportsAsync Tests
 
     /// <summary>
-    /// Test 14: Verify user can retrieve their own incident reports
+    /// Test 16: Verify user can retrieve their own incident reports
     /// </summary>
     [Fact]
     public async Task GetUserReportsAsync_ReturnsOnlyUserReports()
@@ -463,7 +570,7 @@ public class SafetyServiceTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Test 15: Verify user reports are ordered by most recent first
+    /// Test 17: Verify user reports are ordered by most recent first
     /// </summary>
     [Fact]
     public async Task GetUserReportsAsync_ReturnsReportsInDescendingOrder()
@@ -519,7 +626,8 @@ public class SafetyServiceTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Helper method to create test safety incident
+    /// Helper method to create test safety incident via production code path
+    /// IMPORTANT: Calls actual SubmitIncidentAsync() to ensure full production code coverage
     /// </summary>
     private async Task<SafetyIncident> CreateTestIncidentAsync(
         bool isAnonymous = false,
@@ -530,27 +638,37 @@ public class SafetyServiceTests : IAsyncLifetime
     {
         var uniqueId = Guid.NewGuid().ToString().Substring(0, 8);
 
-        var incident = new SafetyIncident
+        // Create request and call ACTUAL service method
+        var request = new CreateIncidentRequest
         {
-            Id = Guid.NewGuid(),
-            ReferenceNumber = $"SAF-{DateTime.UtcNow:yyyyMMdd}-{uniqueId}",
-            Title = $"Test Incident {uniqueId}",
             ReporterId = reporterId,
             IsAnonymous = isAnonymous,
+            Title = $"Test Incident {uniqueId}",
             Type = type,
             WhereOccurred = WhereOccurred.AtEvent,
-            Status = status,
             IncidentDate = DateTime.UtcNow.AddDays(-1),
-            ReportedAt = DateTime.UtcNow,
             Location = "Test Location",
-            EncryptedDescription = $"ENCRYPTED_{description ?? "Test incident description"}",
-            RequestFollowUp = false,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            Description = description ?? "Test incident description with sufficient length for validation rules to pass successfully"
         };
 
-        _context.SafetyIncidents.Add(incident);
-        await _context.SaveChangesAsync();
+        // Call production code path - ensures reference number generation logic is executed
+        var result = await _sut.SubmitIncidentAsync(request);
+
+        if (!result.IsSuccess)
+        {
+            throw new InvalidOperationException($"Test setup failed: {result.Error}");
+        }
+
+        // Get incident from database (production code created it)
+        var incident = await _context.SafetyIncidents
+            .FirstAsync(i => i.ReferenceNumber == result.Value!.ReferenceNumber);
+
+        // Update status if needed (for tests requiring specific status)
+        if (status != IncidentStatus.ReportSubmitted)
+        {
+            incident.Status = status;
+            await _context.SaveChangesAsync();
+        }
 
         return incident;
     }

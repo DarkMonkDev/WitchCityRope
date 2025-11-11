@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using FluentAssertions;
 using WitchCityRope.Api.Services;
+using WitchCityRope.Api.Services.Seeding;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Tests.TestBase;
 using WitchCityRope.Api.Tests.Fixtures;

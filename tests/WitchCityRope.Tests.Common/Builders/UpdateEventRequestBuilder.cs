@@ -117,7 +117,7 @@ public class UpdateEventRequestBuilder
         {
             Title = _title,
             Description = _description,
-            Location = _location,
+            // Location removed - use VenueId instead
             StartDate = _startDate,
             EndDate = _endDate,
             Capacity = _capacity

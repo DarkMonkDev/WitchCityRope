@@ -164,7 +164,8 @@ public class VettingPublicServiceTests : IAsyncLifetime
         {
             Email = _testUser.Email,
             PreferredSceneName = "TestSceneName",
-            RealName = "Test Real Name",
+            FirstName = "Test",
+            LastName = "User",
             Pronouns = "they/them",
             FetLifeHandle = "testfetlife",
             WhyJoin = "I want to learn more about rope bondage and join a safe community.",
@@ -218,7 +219,8 @@ public class VettingPublicServiceTests : IAsyncLifetime
         {
             Email = _testUser.Email, // Same email as existing
             PreferredSceneName = "NewSceneName",
-            RealName = "New Real Name",
+            FirstName = "New",
+            LastName = "User",
             WhyJoin = "Want to join community.",
             ExperienceWithRope = "Some experience.",
             AgreeToCommunityStandards = true
@@ -362,7 +364,9 @@ public class VettingPublicServiceTests : IAsyncLifetime
         result.Value.SceneName.Should().Be("DetailedSceneName");
         result.Value.Status.Should().Be(VettingStatus.Approved.ToString());
         result.Value.Pronouns.Should().Be("they/them");
-        result.Value.AdminNotes.Should().BeNull(); // Admin notes should NOT be visible to applicant
+
+        // Note: AdminNotes property removed from VettingApplication entity
+        // Admin notes now stored in UserNote table with proper access control
     }
 
     /// <summary>

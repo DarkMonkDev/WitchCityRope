@@ -96,151 +96,67 @@ When functional areas restructure:
 - Update navigation structure
 - Preserve all links
 
-## Automated Updater Script
+---
+
+## How to Use This Skill
+
+### From Command Line
 
 ```bash
-#!/bin/bash
-# Master Index Updater Script
+# Add new feature to index
+bash .claude/skills/master-index-updater/execute.sh \
+  add \
+  "Streamlined Check-in Workflow" \
+  "Events Domain" \
+  "docs/functional-areas/events/new-work/2025-11-03-streamlined-checkin-workflow"
 
-ACTION="$1"  # add|update|deprecate
-FEATURE_NAME="$2"
-DOMAIN="$3"
-FEATURE_PATH="$4"
+# Update existing feature timestamp
+bash .claude/skills/master-index-updater/execute.sh \
+  update \
+  "Event Management" \
+  "" \
+  ""
 
-MASTER_INDEX="/home/chad/repos/witchcityrope/docs/architecture/functional-area-master-index.md"
+# Mark feature as deprecated
+bash .claude/skills/master-index-updater/execute.sh \
+  deprecate \
+  "Legacy Registration System" \
+  "" \
+  ""
 
-if [ ! -f "$MASTER_INDEX" ]; then
-    echo "❌ Error: Master Index not found at $MASTER_INDEX"
-    exit 1
-fi
-
-echo "Master Index Updater"
-echo "===================="
-echo "Action: $ACTION"
-echo "Feature: $FEATURE_NAME"
-echo "Domain: $DOMAIN"
-echo ""
-
-# Create backup
-cp "$MASTER_INDEX" "${MASTER_INDEX}.backup"
-
-TIMESTAMP=$(date +"%Y-%m-%d")
-
-case "$ACTION" in
-    "add")
-        # Add new feature entry
-        echo "Adding new feature to Master Index..."
-
-        # Find domain section
-        DOMAIN_SECTION=$(grep -n "^## $DOMAIN" "$MASTER_INDEX" | cut -d: -f1)
-
-        if [ -z "$DOMAIN_SECTION" ]; then
-            echo "❌ Error: Domain not found: $DOMAIN"
-            echo "   Valid domains: Core System, Events Domain, Content & Community, Operations"
-            exit 1
-        fi
-
-        # Create feature entry
-        FEATURE_ENTRY="
-### $FEATURE_NAME
-
-**Domain**: $DOMAIN
-**Status**: ✅ Active
-**Owner**: WitchCityRope Team
-**Last Updated**: $TIMESTAMP
-
-#### Documentation
-- [Business Requirements]($FEATURE_PATH/new-work/*/requirements/business-requirements.md)
-- [Functional Spec]($FEATURE_PATH/new-work/*/requirements/functional-spec.md)
-- [Database Design]($FEATURE_PATH/new-work/*/design/database-design.md)
-- [UI/UX Design]($FEATURE_PATH/new-work/*/design/ui-ux-design.md)
-
-#### Key Files
-- Feature Code: \`/apps/web/src/features/$(echo $FEATURE_NAME | tr '[:upper:]' '[:lower:]' | tr ' ' '-')/\`
-- API Endpoints: \`/apps/api/Features/$(echo $FEATURE_NAME | tr ' ' '')/\`
-- Tests: \`/tests/playwright/$(echo $FEATURE_NAME | tr '[:upper:]' '[:lower:]' | tr ' ' '-')*.spec.ts\`
-
-#### Status Notes
-- Recently implemented
-- All tests passing
-- Documentation complete
-
----
-"
-
-        # Insert after domain header
-        LINE_NUM=$((DOMAIN_SECTION + 1))
-        {
-            head -n $LINE_NUM "$MASTER_INDEX"
-            echo "$FEATURE_ENTRY"
-            tail -n +$((LINE_NUM + 1)) "$MASTER_INDEX"
-        } > "${MASTER_INDEX}.tmp"
-
-        mv "${MASTER_INDEX}.tmp" "$MASTER_INDEX"
-
-        echo "✅ Feature added to Master Index"
-        echo "   Domain: $DOMAIN"
-        echo "   Feature: $FEATURE_NAME"
-        ;;
-
-    "update")
-        # Update existing feature
-        echo "Updating feature in Master Index..."
-
-        # Find feature section
-        if ! grep -q "^### $FEATURE_NAME" "$MASTER_INDEX"; then
-            echo "❌ Error: Feature not found: $FEATURE_NAME"
-            exit 1
-        fi
-
-        # Update Last Updated timestamp
-        sed -i '' "s/^\*\*Last Updated\*\*: .*/*\*Last Updated**: $TIMESTAMP/" "$MASTER_INDEX" 2>/dev/null || \
-        sed -i "s/^\*\*Last Updated\*\*: .*/*\*Last Updated**: $TIMESTAMP/" "$MASTER_INDEX"
-
-        echo "✅ Feature updated in Master Index"
-        echo "   Last Updated: $TIMESTAMP"
-        ;;
-
-    "deprecate")
-        # Mark feature as deprecated
-        echo "Deprecating feature in Master Index..."
-
-        # Find feature and update status
-        if ! grep -q "^### $FEATURE_NAME" "$MASTER_INDEX"; then
-            echo "❌ Error: Feature not found: $FEATURE_NAME"
-            exit 1
-        fi
-
-        # Change status to deprecated
-        sed -i '' "/^### $FEATURE_NAME/,/^---/ s/\*\*Status\*\*: .*/\*\*Status**: ⚠️  Deprecated/" "$MASTER_INDEX" 2>/dev/null || \
-        sed -i "/^### $FEATURE_NAME/,/^---/ s/\*\*Status\*\*: .*/\*\*Status**: ⚠️  Deprecated/" "$MASTER_INDEX"
-
-        # Update timestamp
-        sed -i '' "/^### $FEATURE_NAME/,/^---/ s/\*\*Last Updated\*\*: .*/\*\*Last Updated**: $TIMESTAMP/" "$MASTER_INDEX" 2>/dev/null || \
-        sed -i "/^### $FEATURE_NAME/,/^---/ s/\*\*Last Updated\*\*: .*/\*\*Last Updated**: $TIMESTAMP/" "$MASTER_INDEX"
-
-        echo "✅ Feature marked as deprecated"
-        echo "   Add migration notes to Status Notes section"
-        ;;
-
-    *)
-        echo "❌ Error: Unknown action: $ACTION"
-        echo "   Valid actions: add, update, deprecate"
-        exit 1
-        ;;
-esac
-
-# Update index last modified date
-sed -i '' "1,10s/Last Updated: .*/Last Updated: $TIMESTAMP/" "$MASTER_INDEX" 2>/dev/null || \
-sed -i "1,10s/Last Updated: .*/Last Updated: $TIMESTAMP/" "$MASTER_INDEX"
-
-echo ""
-echo "✅ Master Index updated successfully"
-echo "   Location: $MASTER_INDEX"
-echo "   Backup: ${MASTER_INDEX}.backup"
+# Show help and usage information
+bash .claude/skills/master-index-updater/execute.sh --help
 ```
 
-## Usage Examples
+### From Claude Code
+
+```
+Use the master-index-updater skill to add [feature-name] to the index
+```
+
+### Common Usage Patterns
+
+**After organizing feature documentation (librarian):**
+```bash
+bash .claude/skills/master-index-updater/execute.sh \
+  add \
+  "New Feature Name" \
+  "Core System" \
+  "docs/functional-areas/auth/new-feature"
+```
+
+**When deprecating old feature:**
+```bash
+bash .claude/skills/master-index-updater/execute.sh \
+  deprecate \
+  "Old Feature Name" \
+  "" \
+  ""
+```
+
+---
+
+## Usage Examples (Legacy - For Reference)
 
 ### From Librarian Agent (Automated)
 ```

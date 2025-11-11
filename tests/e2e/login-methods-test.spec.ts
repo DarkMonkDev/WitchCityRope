@@ -49,14 +49,14 @@ test.describe('Login Methods Testing - AuthHelper Solution', () => {
   })
 
   test('Method 2: Use force option with direct selectors', async () => {
-    console.log('🧪 Testing Method 2: force option with input selectors')
-    
+    console.log('🧪 Testing Method 2: force option with data-testid selectors')
+
     await page.goto('http://localhost:5173/login')
     await page.waitForLoadState('networkidle')
-    
-    // Use input selectors with force option to bypass any blocking
-    await page.locator('input[name="email"]').fill('admin@witchcityrope.com', { force: true })
-    await page.locator('input[name="password"]').fill('Test123!', { force: true })
+
+    // Use data-testid selectors with force option to bypass any blocking
+    await page.locator('[data-testid="email-or-scenename-input"]').fill('admin@witchcityrope.com', { force: true })
+    await page.locator('[data-testid="password-input"]').fill('Test123!', { force: true })
     
     console.log('✅ Method 2: Filled inputs with force option')
     
@@ -80,7 +80,7 @@ test.describe('Login Methods Testing - AuthHelper Solution', () => {
     
     // Method 3: Direct DOM manipulation to bypass all Mantine handlers
     await page.evaluate(() => {
-      const emailInput = document.querySelector('[data-testid="email-input"]') as HTMLInputElement
+      const emailInput = document.querySelector('[data-testid="email-or-scenename-input"]') as HTMLInputElement
       const passwordInput = document.querySelector('[data-testid="password-input"]') as HTMLInputElement
       
       if (emailInput && passwordInput) {
@@ -98,7 +98,7 @@ test.describe('Login Methods Testing - AuthHelper Solution', () => {
     })
     
     // Verify values were set
-    const emailValue = await page.locator('[data-testid="email-input"]').inputValue()
+    const emailValue = await page.locator('[data-testid="email-or-scenename-input"]').inputValue()
     const passwordValue = await page.locator('[data-testid="password-input"]').inputValue()
     
     expect(emailValue).toBe('admin@witchcityrope.com')
@@ -126,7 +126,7 @@ test.describe('Login Methods Testing - AuthHelper Solution', () => {
     await page.waitForLoadState('networkidle')
     
     // Standard Playwright interaction - ignore any console issues
-    await page.locator('[data-testid="email-input"]').type('admin@witchcityrope.com')
+    await page.locator('[data-testid="email-or-scenename-input"]').type('admin@witchcityrope.com')
     await page.locator('[data-testid="password-input"]').type('Test123!')
     
     console.log('✅ Method 4: Used standard type() method ignoring console errors')
@@ -155,26 +155,26 @@ test.describe('Login Methods Testing - AuthHelper Solution', () => {
       try {
         // Approach 5a: Try data-testid with fill()
         console.log('5a: Trying data-testid with fill()')
-        await page.locator('[data-testid="email-input"]').fill(email)
+        await page.locator('[data-testid="email-or-scenename-input"]').fill(email)
         await page.locator('[data-testid="password-input"]').fill(password)
       } catch (error) {
         console.log('5a failed, trying 5b...')
         
         // Approach 5b: Try with force option
         console.log('5b: Trying with force option')
-        await page.locator('[data-testid="email-input"]').fill(email, { force: true })
+        await page.locator('[data-testid="email-or-scenename-input"]').fill(email, { force: true })
         await page.locator('[data-testid="password-input"]').fill(password, { force: true })
       }
       
       // Verify values
-      const emailValue = await page.locator('[data-testid="email-input"]').inputValue()
+      const emailValue = await page.locator('[data-testid="email-or-scenename-input"]').inputValue()
       const passwordValue = await page.locator('[data-testid="password-input"]').inputValue()
       
       if (emailValue !== email || passwordValue !== password) {
         // Approach 5c: DOM manipulation fallback
         console.log('5c: Values not set correctly, using DOM manipulation')
         await page.evaluate((creds) => {
-          const emailInput = document.querySelector('[data-testid="email-input"]') as HTMLInputElement
+          const emailInput = document.querySelector('[data-testid="email-or-scenename-input"]') as HTMLInputElement
           const passwordInput = document.querySelector('[data-testid="password-input"]') as HTMLInputElement
           
           if (emailInput && passwordInput) {
@@ -190,7 +190,7 @@ test.describe('Login Methods Testing - AuthHelper Solution', () => {
       }
       
       // Final verification
-      const finalEmailValue = await page.locator('[data-testid="email-input"]').inputValue()
+      const finalEmailValue = await page.locator('[data-testid="email-or-scenename-input"]').inputValue()
       const finalPasswordValue = await page.locator('[data-testid="password-input"]').inputValue()
       
       if (finalEmailValue !== email || finalPasswordValue !== password) {
@@ -242,7 +242,7 @@ test.describe('Login Methods Testing - AuthHelper Solution', () => {
     jsErrors = []
     
     // Perform standard login
-    await page.locator('[data-testid="email-input"]').fill('admin@witchcityrope.com')
+    await page.locator('[data-testid="email-or-scenename-input"]').fill('admin@witchcityrope.com')
     await page.locator('[data-testid="password-input"]').fill('Test123!')
     await page.locator('[data-testid="login-button"]').click()
     
@@ -280,7 +280,7 @@ test.describe('Login Methods Testing - AuthHelper Solution', () => {
     const method1Start = Date.now()
     await page.goto('http://localhost:5173/login')
     await page.waitForLoadState('networkidle')
-    await page.locator('[data-testid="email-input"]').fill('admin@witchcityrope.com')
+    await page.locator('[data-testid="email-or-scenename-input"]').fill('admin@witchcityrope.com')
     await page.locator('[data-testid="password-input"]').fill('Test123!')
     await page.locator('[data-testid="login-button"]').click()
     

@@ -57,119 +57,49 @@ When tests are deleted or obsoleted:
 - Document why removed
 - Preserve transformation history
 
-## Automated Updater Script
+## How to Use This Skill
+
+**Executable Script**: `execute.sh`
 
 ```bash
-#!/bin/bash
-# TEST_CATALOG Updater Script
+# Basic usage with required parameters
+bash .claude/skills/test-catalog-updater/execute.sh \
+  <test-type> \
+  <passed> \
+  <failed> \
+  <total> \
+  [execution-time] \
+  [coverage]
 
-TEST_TYPE="$1"  # unit|integration|e2e
-PASSED="$2"
-FAILED="$3"
-TOTAL="$4"
-EXECUTION_TIME="$5"
-COVERAGE="$6"
+# Example: Unit tests with all metrics
+bash .claude/skills/test-catalog-updater/execute.sh unit 45 0 45 12.3 85
 
-CATALOG="/home/chad/repos/witchcityrope/docs/standards-processes/testing/TEST_CATALOG.md"
+# Example: E2E tests (no coverage available)
+bash .claude/skills/test-catalog-updater/execute.sh e2e 42 3 45 125.7 N/A
 
-if [ ! -f "$CATALOG" ]; then
-    echo "❌ Error: TEST_CATALOG not found at $CATALOG"
-    exit 1
-fi
-
-echo "TEST_CATALOG Update"
-echo "==================="
-echo "Test Type: $TEST_TYPE"
-echo "Results: $PASSED passed, $FAILED failed, $TOTAL total"
-echo ""
-
-# Timestamp
-TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-
-# Calculate pass rate
-PASS_RATE=$((PASSED * 100 / TOTAL))
-
-# Determine status
-if [ "$FAILED" -eq 0 ]; then
-    STATUS="PASSING"
-    STATUS_EMOJI="✅"
-elif [ "$FAILED" -gt 0 ] && [ "$FAILED" -lt "$TOTAL" ]; then
-    STATUS="PARTIAL"
-    STATUS_EMOJI="⚠️"
-else
-    STATUS="FAILING"
-    STATUS_EMOJI="❌"
-fi
-
-# Find the section to update
-case "$TEST_TYPE" in
-    "unit")
-        SECTION="### Backend Unit Tests"
-        ;;
-    "integration")
-        SECTION="### Backend Integration Tests"
-        ;;
-    "e2e")
-        SECTION="### End-to-End Tests \\(Playwright\\)"
-        ;;
-    *)
-        echo "❌ Error: Unknown test type: $TEST_TYPE"
-        exit 1
-        ;;
-esac
-
-# Create backup
-cp "$CATALOG" "${CATALOG}.backup"
-
-# Update metrics in catalog
-# Find the metrics table and update it
-awk -v section="$SECTION" \
-    -v status="$STATUS_EMOJI $STATUS" \
-    -v total="$TOTAL" \
-    -v passed="$PASSED" \
-    -v failed="$FAILED" \
-    -v rate="$PASS_RATE%" \
-    -v time="${EXECUTION_TIME}s" \
-    -v coverage="${COVERAGE}%" \
-    -v timestamp="$TIMESTAMP" '
-    /^'"$SECTION"'/ { in_section=1 }
-    in_section && /^\| Status/ {
-        print
-        getline
-        print "| " status " | " total " | " passed " | " failed " | " rate " | " time " | " coverage " | " timestamp " |"
-        in_section=0
-        next
-    }
-    { print }
-' "${CATALOG}.backup" > "$CATALOG"
-
-echo "✅ TEST_CATALOG updated"
-echo "   Section: $SECTION"
-echo "   Status: $STATUS_EMOJI $STATUS"
-echo "   Metrics: $PASSED/$TOTAL passed ($PASS_RATE%)"
-echo ""
-
-# If tests are failing, append failure details
-if [ "$FAILED" -gt 0 ]; then
-    echo "" >> "$CATALOG"
-    echo "#### Recent Failures ($TIMESTAMP)" >> "$CATALOG"
-    echo "" >> "$CATALOG"
-    echo "Test Type: $TEST_TYPE" >> "$CATALOG"
-    echo "Failures: $FAILED/$TOTAL tests" >> "$CATALOG"
-    echo "Pass Rate: $PASS_RATE%" >> "$CATALOG"
-    echo "" >> "$CATALOG"
-    echo "**Action Required**: Investigate and fix failing tests." >> "$CATALOG"
-    echo "" >> "$CATALOG"
-
-    echo "⚠️  Failure details appended to catalog"
-fi
-
-# Update last catalog update timestamp in Part 1 header
-sed -i '' "s/Last Updated: .*/Last Updated: $TIMESTAMP/" "$CATALOG" 2>/dev/null || \
-sed -i "s/Last Updated: .*/Last Updated: $TIMESTAMP/" "$CATALOG"
-
-echo "✅ Update complete"
+# Example: Integration tests passing
+bash .claude/skills/test-catalog-updater/execute.sh integration 44 0 44 45.2 82
 ```
+
+**Parameters**:
+- `test-type`: Type of tests (unit | integration | e2e)
+- `passed`: Number of tests that passed
+- `failed`: Number of tests that failed
+- `total`: Total number of tests
+- `execution-time`: (optional) Total execution time in seconds
+- `coverage`: (optional) Coverage percentage
+
+**What the script does**:
+1. Validates parameters (test type, numeric values)
+2. Verifies TEST_CATALOG exists and is writable
+3. Calculates pass rate and determines status (PASSING/PARTIAL/FAILING)
+4. Creates backup of TEST_CATALOG
+5. Updates metrics table in appropriate section
+6. Updates "Last Updated" timestamp in catalog header
+7. Appends failure details if tests failed
+8. Reports summary with file locations
+
+**Script includes parameter validation** - ensures correct usage and prevents invalid updates.
 
 ## Usage Examples
 

@@ -79,7 +79,7 @@ public class EventServiceTests : IAsyncLifetime
             Title = title,
             ShortDescription = $"Short description for {title}",
             Description = $"Full description for {title}",
-            Location = "Test Location",
+            VenueId = 1, // Test venue ID (Location moved to Venue entity)
             EventType = eventType,
             Capacity = capacity,
             IsPublished = isPublished,
@@ -95,7 +95,7 @@ public class EventServiceTests : IAsyncLifetime
         return eventEntity;
     }
 
-    private async Task<EventParticipation> AddParticipantToEvent(Guid eventId, Guid userId, ParticipationType type = ParticipationType.RSVP)
+    private async Task<EventAttendance> AddParticipantToEvent(Guid eventId, Guid userId, AttendanceType type = AttendanceType.RSVP)
     {
         // Create user if it doesn't exist
         var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
@@ -115,17 +115,17 @@ public class EventServiceTests : IAsyncLifetime
             await _context.SaveChangesAsync();
         }
 
-        var participation = new EventParticipation
+        var participation = new EventAttendance
         {
             Id = Guid.NewGuid(),
             EventId = eventId,
             UserId = userId,
-            ParticipationType = type,
-            Status = ParticipationStatus.Active,
+            AttendanceType = type,
+            Status = AttendanceStatus.Active,
             CreatedAt = DateTime.UtcNow
         };
 
-        _context.EventParticipations.Add(participation);
+        _context.EventAttendances.Add(participation);
         await _context.SaveChangesAsync();
 
         return participation;
@@ -357,7 +357,7 @@ public class EventServiceTests : IAsyncLifetime
             Id = Guid.NewGuid(),
             Title = "Event with Explicit Capacity",
             Description = "Test event",
-            Location = "Test Location",
+            VenueId = 1, // Test venue ID (Location moved to Venue entity)
             EventType = EventType.Class,
             Capacity = 25, // Explicitly set capacity
             StartDate = DateTime.UtcNow.AddDays(7),

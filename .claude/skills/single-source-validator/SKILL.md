@@ -80,366 +80,50 @@ This skill checks for **8 types** of single-source violations:
 
 ---
 
-## Validation Script
+## How to Use This Skill
+
+### From Command Line
 
 ```bash
-#!/bin/bash
-# Single Source of Truth Validator
-# ENFORCEMENT: Detects Skills duplication in other documents
+# Validate specific skill for duplication
+bash .claude/skills/single-source-validator/execute.sh container-restart
 
-set -e  # Exit on error
+# Validate with CRITICAL severity (default - blocks on warnings)
+bash .claude/skills/single-source-validator/execute.sh staging-deploy CRITICAL
 
-SKILL_NAME="${1:-}"
-SEVERITY="${2:-CRITICAL}"  # CRITICAL, WARNING, INFO
+# Validate with WARNING severity (warnings don't block)
+bash .claude/skills/single-source-validator/execute.sh phase-1-validator WARNING
 
-if [ -z "$SKILL_NAME" ]; then
-    echo "Usage: bash single-source-validator.md SKILL_NAME [SEVERITY]"
-    echo "Example: bash single-source-validator.md container-restart"
-    exit 1
-fi
+# Show help and usage information
+bash .claude/skills/single-source-validator/execute.sh --help
+```
 
-echo "🔍 Single Source of Truth Validator"
-echo "===================================="
-echo ""
-echo "Skill: $SKILL_NAME"
-echo "Severity: $SEVERITY"
-echo ""
+### From Claude Code
 
-# Configuration
-SKILL_FILE="/.claude/skills/${SKILL_NAME}.md"
-VIOLATIONS=0
-WARNINGS=0
+```
+Use the single-source-validator skill to check if [skill-name] has any duplication violations
+```
 
-# Check skill exists
-if [ ! -f "$SKILL_FILE" ]; then
-    echo "❌ ERROR: Skill not found: $SKILL_FILE"
-    exit 1
-fi
+### Common Usage Patterns
 
-echo "✅ Skill found: $SKILL_FILE"
-echo ""
+**After creating new skill:**
+```bash
+bash .claude/skills/single-source-validator/execute.sh my-new-skill
+```
 
-# Step 1: Extract key indicators from skill
-echo "1️⃣  Extracting key indicators from skill..."
-echo ""
-
-# Extract bash commands (lines starting with docker, npm, bash, etc.)
-BASH_COMMANDS=$(grep -E "^(docker|npm|bash|./|curl|psql|ssh)" "$SKILL_FILE" | head -20 || true)
-COMMAND_COUNT=$(echo "$BASH_COMMANDS" | wc -l)
-
-echo "   Found $COMMAND_COUNT bash commands in skill"
-echo ""
-
-# Step 2: Search agent definitions
-echo "2️⃣  Checking agent definitions..."
-echo ""
-
-AGENT_DIR="/.claude/agents"
-if [ -d "$AGENT_DIR" ]; then
-    for AGENT_FILE in "$AGENT_DIR"/*.md; do
-        AGENT_NAME=$(basename "$AGENT_FILE" .md)
-
-        # Check for bash command duplication
-        while IFS= read -r COMMAND; do
-            if [ -z "$COMMAND" ]; then continue; fi
-
-            # Ignore comments and empty lines
-            if [[ "$COMMAND" =~ ^# ]] || [[ "$COMMAND" =~ ^$ ]]; then
-                continue
-            fi
-
-            # Search for exact command match
-            if grep -F "$COMMAND" "$AGENT_FILE" > /dev/null 2>&1; then
-                echo "   ❌ VIOLATION: Agent '$AGENT_NAME' duplicates bash command"
-                echo "      File: $AGENT_FILE"
-                echo "      Command: $COMMAND"
-                echo ""
-                ((VIOLATIONS++))
-            fi
-        done <<< "$BASH_COMMANDS"
-
-        # Check for step-by-step instructions
-        if grep -E "^(Step |1\.|2\.|3\.|4\.|5\.)" "$AGENT_FILE" | grep -i "$(echo $SKILL_NAME | tr '-' ' ')" > /dev/null 2>&1; then
-            echo "   ⚠️  WARNING: Agent '$AGENT_NAME' may have step-by-step instructions"
-            echo "      File: $AGENT_FILE"
-            echo "      Review manually for duplication"
-            echo ""
-            ((WARNINGS++))
-        fi
-
-        # Check for proper reference format
-        if grep -F "/.claude/skills/${SKILL_NAME}.md" "$AGENT_FILE" > /dev/null 2>&1; then
-            echo "   ✅ Agent '$AGENT_NAME' properly references skill"
-        fi
-    done
-else
-    echo "   ⚠️  Agent directory not found: $AGENT_DIR"
-fi
-
-echo ""
-
-# Step 3: Search lessons learned
-echo "3️⃣  Checking lessons learned..."
-echo ""
-
-LESSONS_DIR="/docs/lessons-learned"
-if [ -d "$LESSONS_DIR" ]; then
-    LESSONS_FILES=$(find "$LESSONS_DIR" -name "*.md" 2>/dev/null || true)
-
-    for LESSON_FILE in $LESSONS_FILES; do
-        LESSON_NAME=$(basename "$LESSON_FILE" .md)
-
-        # Check for bash command duplication
-        while IFS= read -r COMMAND; do
-            if [ -z "$COMMAND" ]; then continue; fi
-            if [[ "$COMMAND" =~ ^# ]] || [[ "$COMMAND" =~ ^$ ]]; then
-                continue
-            fi
-
-            if grep -F "$COMMAND" "$LESSON_FILE" > /dev/null 2>&1; then
-                echo "   ❌ VIOLATION: Lesson '$LESSON_NAME' duplicates bash command"
-                echo "      File: $LESSON_FILE"
-                echo "      Command: $COMMAND"
-                echo ""
-                ((VIOLATIONS++))
-            fi
-        done <<< "$BASH_COMMANDS"
-
-        # Check for proper reference format
-        if grep -F "/.claude/skills/${SKILL_NAME}.md" "$LESSON_FILE" > /dev/null 2>&1; then
-            echo "   ✅ Lesson '$LESSON_NAME' properly references skill"
-        fi
-    done
-else
-    echo "   ⚠️  Lessons directory not found: $LESSONS_DIR"
-fi
-
-echo ""
-
-# Step 4: Search process docs
-echo "4️⃣  Checking process documentation..."
-echo ""
-
-PROCESS_DIRS=(
-    "/docs/standards-processes"
-    "/docs/functional-areas"
-    "/docs/guides-setup"
-)
-
-for PROCESS_DIR in "${PROCESS_DIRS[@]}"; do
-    if [ ! -d "$PROCESS_DIR" ]; then continue; fi
-
-    PROCESS_FILES=$(find "$PROCESS_DIR" -name "*.md" 2>/dev/null || true)
-
-    for PROCESS_FILE in $PROCESS_FILES; do
-        PROCESS_NAME=$(basename "$PROCESS_FILE" .md)
-
-        # Check for bash command duplication
-        while IFS= read -r COMMAND; do
-            if [ -z "$COMMAND" ]; then continue; fi
-            if [[ "$COMMAND" =~ ^# ]] || [[ "$COMMAND" =~ ^$ ]]; then
-                continue
-            fi
-
-            if grep -F "$COMMAND" "$PROCESS_FILE" > /dev/null 2>&1; then
-                echo "   ❌ VIOLATION: Process doc '$PROCESS_NAME' duplicates bash command"
-                echo "      File: $PROCESS_FILE"
-                echo "      Command: $COMMAND"
-                echo ""
-                ((VIOLATIONS++))
-            fi
-        done <<< "$BASH_COMMANDS"
-
-        # Check for proper reference format
-        if grep -F "/.claude/skills/${SKILL_NAME}.md" "$PROCESS_FILE" > /dev/null 2>&1; then
-            echo "   ✅ Process doc '$PROCESS_NAME' properly references skill"
-        fi
-    done
-done
-
-echo ""
-
-# Step 5: Check for hardcoded skill paths (CRITICAL)
-echo "5️⃣  Checking for hardcoded skill paths..."
-echo ""
-
-# Search for hardcoded references to THIS skill file
-HARDCODED_REFS=$(grep -rn "\.claude/skills/${SKILL_NAME}\.md" docs/lessons-learned/ docs/standards-processes/ docs/functional-areas/ 2>/dev/null || true)
-
-if [ -n "$HARDCODED_REFS" ]; then
-    echo "   ❌ VIOLATION: Hardcoded skill paths found"
-    echo "      Files should reference SKILLS-REGISTRY.md, not individual skill files"
-    echo ""
-    echo "$HARDCODED_REFS" | while IFS= read -r LINE; do
-        FILE=$(echo "$LINE" | cut -d: -f1)
-        LINENUM=$(echo "$LINE" | cut -d: -f2)
-        echo "      File: $FILE (line $LINENUM)"
-    done
-    echo ""
-    echo "   Fix: Replace with 'See SKILLS-REGISTRY.md' or 'Use ${SKILL_NAME} skill'"
-    echo ""
-    ((VIOLATIONS++))
-fi
-
-# Step 6: Check agent definitions for detailed Skills sections
-echo "6️⃣  Checking agent definitions for detailed Skills sections..."
-echo ""
-
-if [ -d ".claude/agents" ]; then
-    DETAILED_SECTIONS=$(find .claude/agents -name "*.md" -type f -exec grep -l "## Available Skills" {} \; 2>/dev/null || true)
-
-    for AGENT_FILE in $DETAILED_SECTIONS; do
-        AGENT_NAME=$(basename "$AGENT_FILE" .md)
-
-        # Check if agent has detailed format (When:/What:/Location: pattern)
-        if grep -A 30 "## Available Skills" "$AGENT_FILE" | grep -qE "(When:|What:|Location:|Critical:)"; then
-            echo "   ❌ VIOLATION: Agent '$AGENT_NAME' has detailed Skills section"
-            echo "      File: $AGENT_FILE"
-            echo "      Should be reference-only format (just skill names + link to registry)"
-            echo ""
-            ((VIOLATIONS++))
-        fi
-    done
-fi
-
-# Step 7: Check for procedural duplication patterns
-echo "7️⃣  Checking for procedural duplication patterns..."
-echo ""
-
-# Extract skill procedure keywords
-SKILL_KEYWORDS=$(grep -E "^(## |### )" "$SKILL_FILE" | sed 's/^#* //' | tr '[:upper:]' '[:lower:]' || true)
-
-# Search for matching procedure sections
-ALL_FILES=$(find .claude/agents docs/lessons-learned docs/standards-processes docs/functional-areas -name "*.md" 2>/dev/null || true)
-
-while IFS= read -r KEYWORD; do
-    if [ -z "$KEYWORD" ]; then continue; fi
-
-    # Only check significant keywords (not common words)
-    if [[ "$KEYWORD" =~ (the|and|for|with|how|what) ]]; then
-        continue
-    fi
-
-    MATCHES=$(grep -il "$KEYWORD" $ALL_FILES 2>/dev/null | grep -v "$SKILL_FILE" || true)
-
-    if [ -n "$MATCHES" ]; then
-        echo "   ⚠️  WARNING: Keyword '$KEYWORD' found in other files"
-        echo "      Files: $(echo $MATCHES | tr '\n' ' ')"
-        echo "      Review manually for procedure duplication"
-        echo ""
-        ((WARNINGS++))
-    fi
-done <<< "$SKILL_KEYWORDS"
-
-echo ""
-
-# Step 7.5: Check for bash scripts in non-skill documentation
-echo "7️⃣.5 Checking for bash scripts in non-skill documentation..."
-echo ""
-
-# Find non-skill markdown files with bash code blocks
-NON_SKILL_DOCS=$(find docs/ -name "*.md" 2>/dev/null || true)
-
-for DOC_FILE in $NON_SKILL_DOCS; do
-    DOC_NAME=$(basename "$DOC_FILE" .md)
-
-    # Check if file contains bash code blocks
-    BASH_BLOCKS=$(grep -c '```bash' "$DOC_FILE" 2>/dev/null || true)
-
-    if [ "$BASH_BLOCKS" -gt 0 ]; then
-        # Check if file references any skills
-        HAS_SKILL_REF=$(grep -E "(Use .* skill|See .* skill|skill automates|SKILLS-REGISTRY)" "$DOC_FILE" 2>/dev/null || true)
-
-        if [ -z "$HAS_SKILL_REF" ]; then
-            echo "   ⚠️  WARNING: Doc '$DOC_NAME' has $BASH_BLOCKS bash blocks but no skill references"
-            echo "      File: $DOC_FILE"
-            echo "      Review: Should bash procedures be in a skill?"
-            echo ""
-            ((WARNINGS++))
-        fi
+**Before Phase 5 finalization (validate all skills):**
+```bash
+for skill_dir in .claude/skills/*/; do
+    skill_name=$(basename "$skill_dir")
+    if [ -f "$skill_dir/SKILL.md" ]; then
+        bash .claude/skills/single-source-validator/execute.sh "$skill_name"
     fi
 done
+```
 
-echo ""
-
-# Step 7.6: Check for procedure sections without skill references
-echo "7️⃣.6 Checking for procedure sections without skill references..."
-echo ""
-
-for DOC_FILE in $NON_SKILL_DOCS; do
-    DOC_NAME=$(basename "$DOC_FILE" .md)
-
-    # Check for procedure section headers
-    PROC_HEADERS=$(grep -E "^## (How to|Steps to|Procedure|Installation|Setup|Configuration)" "$DOC_FILE" 2>/dev/null || true)
-
-    if [ -n "$PROC_HEADERS" ]; then
-        # Check if document references skills in those sections
-        HAS_NEARBY_REF=$(grep -A 10 -E "^## (How to|Steps to|Procedure|Installation|Setup|Configuration)" "$DOC_FILE" | grep -E "(Use .* skill|See SKILLS-REGISTRY)" 2>/dev/null || true)
-
-        if [ -z "$HAS_NEARBY_REF" ]; then
-            echo "   ⚠️  WARNING: Doc '$DOC_NAME' has procedure sections without skill references"
-            echo "      File: $DOC_FILE"
-            echo "      Sections: $PROC_HEADERS"
-            echo "      Review: Should procedures reference existing skills?"
-            echo ""
-            ((WARNINGS++))
-        fi
-    fi
-done
-
-echo ""
-
-# Step 8: Summary
-echo "📊 Validation Summary"
-echo "===================="
-echo ""
-echo "Skill: $SKILL_NAME"
-echo "Violations: $VIOLATIONS"
-echo "Warnings: $WARNINGS"
-echo ""
-
-if [ $VIOLATIONS -gt 0 ]; then
-    echo "❌ VALIDATION FAILED"
-    echo ""
-    echo "🚨 CRITICAL: Single source of truth violations detected!"
-    echo ""
-    echo "Actions required:"
-    echo "1. Review each violation listed above"
-    echo "2. Remove duplicated bash commands from agent definitions/lessons/process docs"
-    echo "3. Replace with reference: See: /.claude/skills/${SKILL_NAME}.md"
-    echo "4. Run validator again to confirm fixes"
-    echo ""
-    echo "Phase 5 validation CANNOT complete until violations resolved."
-    echo ""
-    exit 1
-fi
-
-if [ $WARNINGS -gt 0 ]; then
-    echo "⚠️  VALIDATION PASSED WITH WARNINGS"
-    echo ""
-    echo "Manual review recommended:"
-    echo "1. Check warning items for potential duplication"
-    echo "2. Ensure proper skill references in place"
-    echo "3. Update any outdated documentation"
-    echo ""
-
-    if [ "$SEVERITY" = "CRITICAL" ]; then
-        echo "Severity set to CRITICAL - treating warnings as failures"
-        exit 1
-    fi
-
-    exit 0
-fi
-
-echo "✅ VALIDATION PASSED"
-echo ""
-echo "Single source of truth maintained:"
-echo "• No bash command duplication"
-echo "• No procedural duplication"
-echo "• Proper skill references in place"
-echo ""
-
-exit 0
+**During periodic audit:**
+```bash
+bash .claude/skills/single-source-validator/execute.sh container-restart WARNING
 ```
 
 ---

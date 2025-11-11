@@ -1,10 +1,10 @@
 # Witch City Rope - Development Progress
 
 ## Current Development Status
-**Last Updated**: 2025-11-09
-**Current Focus**: Email Templates Admin Management - ORCHESTRATED (Phase 5 Finalization)
-**Project Status**: Feature implementation complete, finalizing documentation
-**Quality Gates**: R:100% ✅ → D:90% ✅ → I:100% ✅ → T:100% ✅
+**Last Updated**: 2025-11-10
+**Current Focus**: CMS Content Expansion & UX Improvements
+**Project Status**: Production-ready, continuous content enhancement
+**Deployment**: Staging fully updated with latest changes
 
 ### Historical Archive
 For complete development history, see:
@@ -15,6 +15,115 @@ For complete development history, see:
 > **Note**: During 2025-08-22 canonical document location consolidation, extensive historical development details were moved from this file to maintain focused current status while preserving complete project history.
 
 ## Current Development Sessions
+
+### November 10, 2025: CMS Content Expansion & Staging Deployment ✅
+**Type**: Content & Deployment
+**Status**: ✅ **COMPLETE** - New CMS pages deployed to staging
+**Time Invested**: ~2 hours
+**Impact**: **HIGH** - Essential onboarding and legal content for public launch
+
+**🎯 NEW CMS PAGES CREATED:**
+
+**✅ Getting Started with Shibari:**
+- **Purpose**: Comprehensive onboarding guide for newcomers
+- **Content**: 16,000+ word guide covering:
+  - What is shibari and why people practice it
+  - Physical and emotional safety information
+  - Risk mitigation and consent protocols
+  - Why community learning is essential
+  - Why choose Witch City Rope
+  - Step-by-step getting started guide
+  - Links to vetting application, shibaristudy.com, rope365.com
+  - FAQ section for beginners
+- **Routes**: `/cms/getting-started` (frontend), `/api/cms/pages/getting-started` (API)
+- **Integration**: Home page "Start Your Journey" button links to this page
+
+**✅ Event Waiver:**
+- **Purpose**: Legal liability waiver for all event attendees
+- **Content**: Complete legal waiver matching official Google Doc
+  - 22 numbered waiver items
+  - Last updated July 7, 2022
+  - Covers activity risks, age verification, liability release, privacy commitments
+- **Routes**: `/event-waiver` (frontend), `/api/cms/pages/event-waiver` (API)
+- **Integration**: Footer Legal section link added
+
+**🔧 UX IMPROVEMENTS:**
+
+**✅ Payment Confirmation Updates:**
+- Changed "View my registrations" button → "View My Events"
+- Removed "Add this event to your calendar" bullet point
+- Updated contact email: events@witchcityrope.com → info@witchcityrope.com
+
+**✅ Home Page Navigation Fix:**
+- Fixed "Browse Upcoming Classes" button (was broken anchor #events)
+- Now correctly routes to `/events` page
+
+**✅ Footer Updates:**
+- Added "Event Waiver" link under Legal section
+- Link appears in both mobile accordion and desktop grid layouts
+
+**📦 DEPLOYMENT TO STAGING:**
+
+**✅ Full Deployment Process:**
+1. Committed all changes to GitHub (commit 3bffb2cc)
+2. Built production Docker images (API + Web)
+3. Pushed images to DigitalOcean Container Registry
+4. Deployed containers to staging server (104.131.165.14)
+5. Reset staging database (dropped all schemas)
+6. Restarted API to run migrations and seed data
+7. Verified all endpoints and services healthy
+
+**✅ Database Reset Process:**
+- Safely dropped `public` and `cms` schemas
+- Migrations rebuilt 46 tables
+- Seed data populated: 19 users, 12 events, 12 CMS pages
+- Both new CMS pages confirmed in database
+
+**✅ Staging Verification:**
+- All containers: Healthy ✅
+- Web service: Responding ✅
+- API service: Healthy ✅
+- Database: Connected ✅
+- Getting Started page: Working ✅
+- Event Waiver page: Working ✅
+- Events API: Working ✅
+- Payment confirmation UI: Updated ✅
+- Home page buttons: Fixed ✅
+
+**🌐 STAGING ENVIRONMENT:**
+- **URL**: https://staging.notfai.com
+- **Git SHA**: 3bffb2cc
+- **Images**: registry.digitalocean.com/witchcityrope/*:latest
+- **Status**: Fully operational with all changes deployed
+
+**📊 TECHNICAL DETAILS:**
+- **Commits**: 1 feature commit (3bffb2cc)
+- **Files Modified**: 7 files (CmsSeedData.cs, Footer.tsx, HeroSection.tsx, PaymentConfirmation.tsx, router.tsx, +2 new pages)
+- **Seeder Pattern**: Idempotent CMS seeding with individual slug checking
+- **Docker Skills Used**: `staging-deploy`, `database-reset-staging`
+
+**🔧 FILES MODIFIED:**
+1. `apps/api/Features/Cms/CmsSeedData.cs` - Added Getting Started and Event Waiver pages
+2. `apps/web/src/features/cms/pages/GettingStartedPage.tsx` - NEW
+3. `apps/web/src/features/cms/pages/EventWaiverPage.tsx` - NEW
+4. `apps/web/src/routes/router.tsx` - Added routes for new CMS pages
+5. `apps/web/src/components/layout/Footer.tsx` - Added Event Waiver link
+6. `apps/web/src/components/homepage/HeroSection.tsx` - Updated button links
+7. `apps/web/src/features/payments/components/PaymentConfirmation.tsx` - UX updates
+
+**🎓 LESSONS LEARNED:**
+- CMS seeder idempotency allows incremental page additions
+- Manual database insertion needed when seed data already exists in staging
+- `database-reset-staging` skill provides clean slate for schema changes
+- Docker deployment automation via skills significantly reduces deployment time
+- Health checks confirm successful deployments across all services
+
+**✅ READY FOR:**
+- Public beta testing of new onboarding content
+- Legal compliance with documented event waiver
+- Improved user experience across payment and navigation flows
+
+---
 
 ### November 9, 2025: Email Templates Admin Management - ORCHESTRATED
 **Type**: Feature Development

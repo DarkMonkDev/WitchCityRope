@@ -80,7 +80,7 @@ public class CheckInServiceTests : IAsyncLifetime
             Id = Guid.NewGuid(),
             Title = title,
             Description = $"Description for {title}",
-            Location = "Test Location",
+            VenueId = 1, // Test venue ID (Location moved to Venue entity)
             EventType = EventType.Class,
             Capacity = capacity,
             IsPublished = true,
@@ -135,6 +135,26 @@ public class CheckInServiceTests : IAsyncLifetime
         return attendee;
     }
 
+    private async Task<string> CreateSessionToken(Guid eventId, Guid createdByUserId)
+    {
+        var token = $"TEST_TOKEN_{Guid.NewGuid():N}";
+        var sessionToken = new CheckInSessionToken
+        {
+            Id = Guid.NewGuid(),
+            Token = token,
+            EventId = eventId,
+            CreatedByUserId = createdByUserId,
+            CreatedAt = DateTime.UtcNow,
+            ExpiresAt = DateTime.UtcNow.AddHours(12),
+            IsRevoked = false
+        };
+
+        _context.CheckInSessionTokens.Add(sessionToken);
+        await _context.SaveChangesAsync();
+
+        return token;
+    }
+
     #endregion
 
     #region Basic Check-In Tests
@@ -147,6 +167,7 @@ public class CheckInServiceTests : IAsyncLifetime
         var user = await CreateTestUser("test@example.com", "TestUser");
         var staffMember = await CreateTestUser("staff@example.com", "StaffMember");
         var attendee = await CreateEventAttendee(testEvent.Id, user.Id);
+        var sessionToken = await CreateSessionToken(testEvent.Id, staffMember.Id);
 
         var request = new CheckInRequest
         {
@@ -157,7 +178,7 @@ public class CheckInServiceTests : IAsyncLifetime
         };
 
         // Act
-        var result = await _service.CheckInAttendeeAsync(request);
+        var result = await _service.CheckInAttendeeAsync(request, sessionToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -185,6 +206,7 @@ public class CheckInServiceTests : IAsyncLifetime
         var user = await CreateTestUser("test@example.com", "TestUser");
         var staffMember = await CreateTestUser("staff@example.com", "StaffMember");
         var attendee = await CreateEventAttendee(testEvent.Id, user.Id);
+        var sessionToken = await CreateSessionToken(testEvent.Id, staffMember.Id);
 
         // Create first check-in
         var firstCheckIn = new WitchCityRope.Api.Features.CheckIn.Entities.CheckIn(attendee.Id, testEvent.Id, staffMember.Id)
@@ -202,7 +224,7 @@ public class CheckInServiceTests : IAsyncLifetime
         };
 
         // Act
-        var result = await _service.CheckInAttendeeAsync(request);
+        var result = await _service.CheckInAttendeeAsync(request, sessionToken);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -213,8 +235,10 @@ public class CheckInServiceTests : IAsyncLifetime
     public async Task CheckInAttendeeAsync_ForNonExistentAttendee_ReturnsFailure()
     {
         // Arrange
+        var testEvent = await CreateTestEvent("Test Event");
         var nonExistentId = Guid.NewGuid();
         var staffMember = await CreateTestUser("staff@example.com", "StaffMember");
+        var sessionToken = await CreateSessionToken(testEvent.Id, staffMember.Id);
 
         var request = new CheckInRequest
         {
@@ -224,7 +248,7 @@ public class CheckInServiceTests : IAsyncLifetime
         };
 
         // Act
-        var result = await _service.CheckInAttendeeAsync(request);
+        var result = await _service.CheckInAttendeeAsync(request, sessionToken);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -242,7 +266,7 @@ public class CheckInServiceTests : IAsyncLifetime
             Id = Guid.NewGuid(),
             Title = "Future Event",
             Description = "Event not started yet",
-            Location = "Test Location",
+            VenueId = 1, // Test venue ID (Location moved to Venue entity)
             EventType = EventType.Class,
             Capacity = 25,
             IsPublished = true,
@@ -257,6 +281,7 @@ public class CheckInServiceTests : IAsyncLifetime
         var user = await CreateTestUser("test@example.com", "TestUser");
         var staffMember = await CreateTestUser("staff@example.com", "StaffMember");
         var attendee = await CreateEventAttendee(futureEvent.Id, user.Id);
+        var sessionToken = await CreateSessionToken(futureEvent.Id, staffMember.Id);
 
         var request = new CheckInRequest
         {
@@ -266,7 +291,7 @@ public class CheckInServiceTests : IAsyncLifetime
         };
 
         // Act
-        var result = await _service.CheckInAttendeeAsync(request);
+        var result = await _service.CheckInAttendeeAsync(request, sessionToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -285,6 +310,7 @@ public class CheckInServiceTests : IAsyncLifetime
         var user = await CreateTestUser("test@example.com", "TestUser");
         var admin = await CreateTestUser("admin@example.com", "AdminUser");
         var attendee = await CreateEventAttendee(testEvent.Id, user.Id);
+        var sessionToken = await CreateSessionToken(testEvent.Id, admin.Id);
 
         // Verify database state before check-in
         var verifyAttendee = await _context.EventAttendees
@@ -316,7 +342,7 @@ public class CheckInServiceTests : IAsyncLifetime
         };
 
         // Act
-        var result = await _service.CheckInAttendeeAsync(request);
+        var result = await _service.CheckInAttendeeAsync(request, sessionToken);
 
         // Debug output
         if (!result.IsSuccess)
@@ -358,6 +384,7 @@ public class CheckInServiceTests : IAsyncLifetime
         var user2 = await CreateTestUser("user2@example.com", "User2");
         var user3 = await CreateTestUser("user3@example.com", "User3");
         var staffMember = await CreateTestUser("staff@example.com", "StaffMember");
+        var sessionToken = await CreateSessionToken(testEvent.Id, staffMember.Id);
 
         // Create attendees
         var attendee1 = await CreateEventAttendee(testEvent.Id, user1.Id);
@@ -380,7 +407,7 @@ public class CheckInServiceTests : IAsyncLifetime
         };
 
         // Act
-        var result = await _service.CheckInAttendeeAsync(request);
+        var result = await _service.CheckInAttendeeAsync(request, sessionToken);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -396,6 +423,7 @@ public class CheckInServiceTests : IAsyncLifetime
         var user1 = await CreateTestUser("user1@example.com", "User1");
         var user2 = await CreateTestUser("user2@example.com", "User2");
         var staffMember = await CreateTestUser("staff@example.com", "StaffMember");
+        var sessionToken = await CreateSessionToken(testEvent.Id, staffMember.Id);
 
         var attendee1 = await CreateEventAttendee(testEvent.Id, user1.Id);
         var attendee2 = await CreateEventAttendee(testEvent.Id, user2.Id, status: "waitlist");
@@ -415,7 +443,7 @@ public class CheckInServiceTests : IAsyncLifetime
         };
 
         // Act
-        var result = await _service.CheckInAttendeeAsync(request);
+        var result = await _service.CheckInAttendeeAsync(request, sessionToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -433,6 +461,7 @@ public class CheckInServiceTests : IAsyncLifetime
         // Arrange
         var testEvent = await CreateTestEvent("Test Event", capacity: 2);
         var staffMember = await CreateTestUser("staff@example.com", "StaffMember");
+        var sessionToken = await CreateSessionToken(testEvent.Id, staffMember.Id);
 
         // Fill to capacity
         for (int i = 0; i < 2; i++)
@@ -457,7 +486,7 @@ public class CheckInServiceTests : IAsyncLifetime
         };
 
         // Act
-        var result = await _service.CheckInAttendeeAsync(request);
+        var result = await _service.CheckInAttendeeAsync(request, sessionToken);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -492,7 +521,7 @@ public class CheckInServiceTests : IAsyncLifetime
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value!.Attendees.Should().HaveCount(3);
-        result.Value.Attendees.Should().OnlyContain(a => a.RegistrationStatus == "checked-in");
+        result.Value.Attendees.Should().OnlyContain(a => a.RegistrationStatus == RegistrationStatus.CheckedIn);
     }
 
     [Fact]
@@ -568,6 +597,7 @@ public class CheckInServiceTests : IAsyncLifetime
         var user = await CreateTestUser("test@example.com", "TestUser");
         var staffMember = await CreateTestUser("staff@example.com", "StaffMember");
         var attendee = await CreateEventAttendee(testEvent.Id, user.Id, hasWaiver: false);
+        var sessionToken = await CreateSessionToken(testEvent.Id, staffMember.Id);
 
         var request = new CheckInRequest
         {
@@ -577,7 +607,7 @@ public class CheckInServiceTests : IAsyncLifetime
         };
 
         // Act
-        var result = await _service.CheckInAttendeeAsync(request);
+        var result = await _service.CheckInAttendeeAsync(request, sessionToken);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -592,6 +622,7 @@ public class CheckInServiceTests : IAsyncLifetime
         var user = await CreateTestUser("test@example.com", "TestUser");
         var staffMember = await CreateTestUser("staff@example.com", "StaffMember");
         var attendee = await CreateEventAttendee(testEvent.Id, user.Id, hasWaiver: true);
+        var sessionToken = await CreateSessionToken(testEvent.Id, staffMember.Id);
 
         var request = new CheckInRequest
         {
@@ -601,7 +632,7 @@ public class CheckInServiceTests : IAsyncLifetime
         };
 
         // Act
-        var result = await _service.CheckInAttendeeAsync(request);
+        var result = await _service.CheckInAttendeeAsync(request, sessionToken);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -730,6 +761,7 @@ public class CheckInServiceTests : IAsyncLifetime
         var user = await CreateTestUser("test@example.com", "TestUser");
         var staffMember = await CreateTestUser("staff@example.com", "StaffMember");
         var attendee = await CreateEventAttendee(testEvent.Id, user.Id);
+        var sessionToken = await CreateSessionToken(testEvent.Id, staffMember.Id);
 
         var request = new CheckInRequest
         {
@@ -739,7 +771,7 @@ public class CheckInServiceTests : IAsyncLifetime
         };
 
         // Act
-        var result1 = await _service.CheckInAttendeeAsync(request);
+        var result1 = await _service.CheckInAttendeeAsync(request, sessionToken);
 
         // Assert - Cache should be cleared after check-in
         result1.IsSuccess.Should().BeTrue();

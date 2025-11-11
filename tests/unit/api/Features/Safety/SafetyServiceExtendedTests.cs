@@ -1259,7 +1259,8 @@ public class SafetyServiceExtendedTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Helper method to create test safety incident
+    /// Helper method to create test safety incident via production code path
+    /// IMPORTANT: Calls actual SubmitIncidentAsync() to ensure full production code coverage
     /// </summary>
     private async Task<SafetyIncident> CreateTestIncidentAsync(
         bool isAnonymous = false,
@@ -1273,28 +1274,48 @@ public class SafetyServiceExtendedTests : IAsyncLifetime
     {
         var uniqueId = Guid.NewGuid().ToString().Substring(0, 8);
 
-        var incident = new SafetyIncident
+        // Create request and call ACTUAL service method
+        var request = new CreateIncidentRequest
         {
-            Id = Guid.NewGuid(),
-            ReferenceNumber = $"SAF-{DateTime.UtcNow:yyyyMMdd}-{uniqueId}",
-            Title = $"Test Incident {uniqueId}",
             ReporterId = reporterId,
-            CoordinatorId = coordinatorId,
             IsAnonymous = isAnonymous,
+            Title = $"Test Incident {uniqueId}",
             Type = type,
             WhereOccurred = WhereOccurred.AtEvent,
-            Status = status,
             IncidentDate = incidentDate ?? DateTime.UtcNow.AddDays(-1),
-            ReportedAt = DateTime.UtcNow,
             Location = location ?? "Test Location",
-            EncryptedDescription = $"ENCRYPTED_{description ?? "Test incident description"}",
-            RequestFollowUp = false,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            Description = description ?? "Test incident description with sufficient length for validation rules to pass successfully"
         };
 
-        _context.SafetyIncidents.Add(incident);
-        await _context.SaveChangesAsync();
+        // Call production code path - ensures reference number generation logic is executed
+        var result = await _sut.SubmitIncidentAsync(request);
+
+        if (!result.IsSuccess)
+        {
+            throw new InvalidOperationException($"Test setup failed: {result.Error}");
+        }
+
+        // Get incident from database (production code created it)
+        var incident = await _context.SafetyIncidents
+            .FirstAsync(i => i.ReferenceNumber == result.Value!.ReferenceNumber);
+
+        // Update fields that aren't set via SubmitIncidentAsync (test setup needs)
+        if (coordinatorId.HasValue)
+        {
+            incident.CoordinatorId = coordinatorId;
+        }
+
+        // Update status if needed (for tests requiring specific status)
+        if (status != IncidentStatus.ReportSubmitted)
+        {
+            incident.Status = status;
+        }
+
+        // Save any test setup modifications
+        if (coordinatorId.HasValue || status != IncidentStatus.ReportSubmitted)
+        {
+            await _context.SaveChangesAsync();
+        }
 
         return incident;
     }

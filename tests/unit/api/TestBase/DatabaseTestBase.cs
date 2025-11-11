@@ -16,13 +16,25 @@ namespace WitchCityRope.Api.Tests.TestBase;
 /// <summary>
 /// Base class for database-backed unit tests.
 /// Provides real ApplicationDbContext instances and common test setup.
-/// 
+///
 /// Key Features:
 /// - Real PostgreSQL database via TestContainers (no mocking of DbContext)
 /// - Automatic database cleanup between tests
 /// - Mock service setup for non-database dependencies
 /// - UTC DateTime handling for PostgreSQL compatibility
 /// - Service provider hierarchy for dependency injection testing
+///
+/// Test Data Creation Guidelines:
+/// - Use *Directly() helper methods when you need test data but are NOT testing creation logic
+///   Example: Testing event registration logic, need users and events set up first
+///
+/// - Call production services when you ARE testing creation, validation, or business logic
+///   Example: Testing user creation validation rules, call UserService.CreateUserAsync()
+///
+/// Why the distinction matters:
+/// - *Directly() methods bypass validation, business rules, computed values, and events
+/// - This makes tests faster and more isolated for non-creation scenarios
+/// - But this means they cannot validate that creation logic works correctly
 /// </summary>
 [Collection("Database")]
 public abstract class DatabaseTestBase : IAsyncLifetime
@@ -141,9 +153,29 @@ public abstract class DatabaseTestBase : IAsyncLifetime
     }
 
     /// <summary>
-    /// Creates a test user with UTC dates for PostgreSQL compatibility.
+    /// Creates a test user DIRECTLY in database, bypassing all services.
+    ///
+    /// WARNING: This method bypasses:
+    /// - User validation rules (email format, password strength, etc.)
+    /// - Business logic (duplicate email checks, age verification, etc.)
+    /// - Computed values from services (role assignments, initial status, etc.)
+    /// - Event subscriptions/notifications (welcome emails, audit logs, etc.)
+    /// - Password hashing via Identity framework
+    ///
+    /// Use this ONLY when you need test data and are NOT testing user creation logic.
+    ///
+    /// Examples of appropriate use:
+    /// - Testing event registration (need users as test data)
+    /// - Testing check-in logic (need users to check in)
+    /// - Testing volunteer assignments (need users as volunteers)
+    ///
+    /// To test user creation, call the production UserService.CreateUserAsync() or
+    /// UserManager.CreateAsync() instead.
     /// </summary>
-    protected ApplicationUser CreateTestUser(string email = "test@example.com", string sceneName = "TestUser")
+    /// <param name="email">Email address for test user</param>
+    /// <param name="sceneName">Scene name for test user</param>
+    /// <returns>ApplicationUser entity ready to be added to DbContext</returns>
+    protected ApplicationUser CreateTestUserDirectly(string email = "test@example.com", string sceneName = "TestUser")
     {
         return new ApplicationUser
         {
@@ -161,9 +193,29 @@ public abstract class DatabaseTestBase : IAsyncLifetime
     }
 
     /// <summary>
-    /// Creates a test event with UTC dates for PostgreSQL compatibility.
+    /// Creates a test event DIRECTLY in database, bypassing all services.
+    ///
+    /// WARNING: This method bypasses:
+    /// - Event validation rules (title length, date logic, capacity limits, etc.)
+    /// - Business logic (organizer permissions, scheduling conflicts, etc.)
+    /// - Computed values from services (published status transitions, registration stats, etc.)
+    /// - Event subscriptions/notifications (organizer notifications, attendee emails, etc.)
+    /// - Session creation and management
+    ///
+    /// Use this ONLY when you need test data and are NOT testing event creation logic.
+    ///
+    /// Examples of appropriate use:
+    /// - Testing event registration (need events as test data)
+    /// - Testing check-in logic (need events to check in to)
+    /// - Testing volunteer assignments (need events to volunteer for)
+    ///
+    /// To test event creation, call the production EventService.CreateEventAsync() instead.
+    ///
+    /// NOTE: You may need to add venue/location separately if required by your test.
     /// </summary>
-    protected Event CreateTestEvent(string title = "Test Event")
+    /// <param name="title">Title for test event</param>
+    /// <returns>Event entity ready to be added to DbContext</returns>
+    protected Event CreateTestEventDirectly(string title = "Test Event")
     {
         var startDate = DateTime.UtcNow.AddDays(7);
         return new Event
@@ -173,13 +225,122 @@ public abstract class DatabaseTestBase : IAsyncLifetime
             Description = "Test event description",
             StartDate = startDate,
             EndDate = startDate.AddHours(2),
-            Location = "Test Location",
             Capacity = 20,
             EventType = EventType.Class,
             IsPublished = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
+    }
+
+    /// <summary>
+    /// Creates a test user by calling production user creation services.
+    ///
+    /// This ensures:
+    /// - All validation rules are executed (email format, password strength, etc.)
+    /// - Business logic is tested (duplicate email checks, age verification, etc.)
+    /// - Computed values are generated by services (role assignments, initial status, etc.)
+    /// - Event subscriptions/notifications fire (welcome emails, audit logs, etc.)
+    /// - Password hashing via Identity framework
+    ///
+    /// Use this when testing features that depend on user creation logic.
+    /// For simple test data setup, use CreateTestUserDirectly() instead.
+    ///
+    /// Implementation Note:
+    /// This method must be overridden in test classes that need it.
+    /// Test classes should inject UserManager or UserService and call the appropriate
+    /// creation method (e.g., UserManager.CreateAsync()).
+    ///
+    /// Example implementation in your test class:
+    /// <code>
+    /// protected override async Task&lt;ApplicationUser&gt; CreateTestUserViaService(
+    ///     string email = "test@example.com",
+    ///     string sceneName = "TestUser",
+    ///     string password = "Test123!")
+    /// {
+    ///     var user = new ApplicationUser
+    ///     {
+    ///         Email = email,
+    ///         SceneName = sceneName,
+    ///         UserName = email
+    ///     };
+    ///     var result = await UserManager.CreateAsync(user, password);
+    ///     if (!result.Succeeded)
+    ///         throw new InvalidOperationException($"Failed to create user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+    ///     return user;
+    /// }
+    /// </code>
+    /// </summary>
+    /// <param name="email">User email address</param>
+    /// <param name="sceneName">User scene name</param>
+    /// <param name="password">User password</param>
+    /// <returns>Created user entity</returns>
+    /// <exception cref="NotImplementedException">
+    /// Thrown when test class has not overridden this method to provide production service implementation.
+    /// </exception>
+    protected virtual async Task<ApplicationUser> CreateTestUserViaService(
+        string email = "test@example.com",
+        string sceneName = "TestUser",
+        string password = "Test123!")
+    {
+        throw new NotImplementedException(
+            "Test class must implement user creation via production service. " +
+            "Override this method and call UserManager.CreateAsync() or UserService to create users. " +
+            "See XML documentation above for example implementation.");
+    }
+
+    /// <summary>
+    /// Creates a test event by calling production EventService.
+    ///
+    /// This ensures:
+    /// - All validation rules are executed (date validation, capacity checks, etc.)
+    /// - Business logic is tested (organizer verification, scheduling conflicts, etc.)
+    /// - Computed values are generated (derived fields, status calculations, etc.)
+    /// - Related entities created properly (sessions, roles, etc.)
+    /// - Event subscriptions/notifications fire (emails, calendar updates, etc.)
+    ///
+    /// Use this when testing features that depend on event creation logic.
+    /// For simple test data setup, use CreateTestEventDirectly() instead.
+    ///
+    /// Implementation Note:
+    /// This method must be overridden in test classes that need it.
+    /// Test classes should inject EventService and call CreateEventAsync().
+    ///
+    /// Example implementation in your test class:
+    /// <code>
+    /// protected override async Task&lt;Event&gt; CreateTestEventViaService(
+    ///     string title = "Test Event",
+    ///     Guid? organizerId = null)
+    /// {
+    ///     var createDto = new CreateEventDto
+    ///     {
+    ///         Title = title,
+    ///         Description = "Test event description",
+    ///         StartDate = DateTime.UtcNow.AddDays(7),
+    ///         EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),
+    ///         Location = "Test Location",
+    ///         Capacity = 20,
+    ///         EventType = EventType.Class,
+    ///         OrganizerId = organizerId ?? _defaultOrganizerId
+    ///     };
+    ///     return await EventService.CreateEventAsync(createDto);
+    /// }
+    /// </code>
+    /// </summary>
+    /// <param name="title">Event title</param>
+    /// <param name="organizerId">Event organizer ID (optional)</param>
+    /// <returns>Created event entity</returns>
+    /// <exception cref="NotImplementedException">
+    /// Thrown when test class has not overridden this method to provide production service implementation.
+    /// </exception>
+    protected virtual async Task<Event> CreateTestEventViaService(
+        string title = "Test Event",
+        Guid? organizerId = null)
+    {
+        throw new NotImplementedException(
+            "Test class must implement event creation via EventService. " +
+            "Override this method and call EventService.CreateEventAsync() to create events. " +
+            "See XML documentation above for example implementation.");
     }
 
     /// <summary>

@@ -87,27 +87,28 @@ test.describe('Admin Events Dashboard - WORKING VERSION', () => {
 
   test('should show filter chips if they exist (graceful handling)', async ({ page }) => {
     console.log('🔍 Testing filter chips (graceful handling)...')
-    
+
     // Check if filter chips exist (but don't fail if they don't)
-    const socialChip = page.getByTestId('filter-social')
-    const classChip = page.getByTestId('filter-class')
-    
-    const socialExists = await socialChip.count() > 0
-    const classExists = await classChip.count() > 0
-    
+    // Mantine puts data-testid on the checkbox input element
+    const socialChipInput = page.getByTestId('filter-social')
+    const classChipInput = page.getByTestId('filter-class')
+
+    const socialExists = await socialChipInput.count() > 0
+    const classExists = await classChipInput.count() > 0
+
     if (socialExists && classExists) {
       console.log('✅ Found filter chips, testing their state...')
-      
-      // Test chip states if they exist
-      const socialState = await socialChip.getAttribute('aria-checked')
-      const classState = await classChip.getAttribute('aria-checked')
-      
-      console.log(`Social chip: ${socialState}, Class chip: ${classState}`)
-      
+
+      // Test chip states if they exist (use isChecked for checkbox inputs)
+      const socialChecked = await socialChipInput.isChecked()
+      const classChecked = await classChipInput.isChecked()
+
+      console.log(`Social chip checked: ${socialChecked}, Class chip checked: ${classChecked}`)
+
       // Both should be checked by default (if implemented correctly)
-      expect(socialState).toBe('true')
-      expect(classState).toBe('true')
-      
+      expect(socialChecked).toBe(true)
+      expect(classChecked).toBe(true)
+
       console.log('✅ Filter chips work as expected')
     } else {
       console.log('⚠️ Filter chips not found - may not be implemented yet')
@@ -160,29 +161,33 @@ test.describe('Admin Events Dashboard - WORKING VERSION', () => {
 
   test('should handle filter interaction if filters exist', async ({ page }) => {
     console.log('🔍 Testing filter interaction (if available)...')
-    
-    const socialChip = page.getByTestId('filter-social')
-    
-    if (await socialChip.count() > 0) {
+
+    const socialChipInput = page.getByTestId('filter-social')
+
+    if (await socialChipInput.count() > 0) {
       console.log('✅ Found social filter chip, testing interaction...')
-      
-      // Get initial state
-      const initialState = await socialChip.getAttribute('aria-checked')
-      console.log(`Initial social chip state: ${initialState}`)
-      
+
+      // Get initial state (use toBeChecked for checkbox inputs)
+      const initiallyChecked = await socialChipInput.isChecked()
+      console.log(`Initial social chip checked state: ${initiallyChecked}`)
+
+      // For Mantine Chips, click on the label, not the input
+      const socialId = await socialChipInput.getAttribute('id')
+      const socialLabel = page.locator(`label[for="${socialId}"]`)
+
       // Try to toggle it
-      await socialChip.click()
-      
+      await socialLabel.click()
+
       // Wait a moment for any state changes
       await page.waitForTimeout(500)
-      
+
       // Check new state
-      const newState = await socialChip.getAttribute('aria-checked')
-      console.log(`New social chip state: ${newState}`)
-      
+      const nowChecked = await socialChipInput.isChecked()
+      console.log(`New social chip checked state: ${nowChecked}`)
+
       // State should have changed
-      expect(newState).not.toBe(initialState)
-      
+      expect(nowChecked).not.toBe(initiallyChecked)
+
       console.log('✅ Filter interaction works')
     } else {
       console.log('⚠️ Filter chips not found - may not be implemented yet')

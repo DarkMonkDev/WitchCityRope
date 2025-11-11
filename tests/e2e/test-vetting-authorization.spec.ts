@@ -9,6 +9,14 @@ import { AuthHelper } from './helpers/auth.helper';
 test.describe('Admin Vetting Management Authorization', () => {
 
   test('Admin can access vetting applications interface', async ({ page }) => {
+    // Console error monitoring
+    const consoleErrors: string[] = [];
+    page.on('console', msg => {
+      if (msg.type() === 'error') {
+        consoleErrors.push(msg.text());
+      }
+    });
+
     // Environment Pre-Flight Check
     console.log('🔍 Starting admin vetting access verification...');
 
@@ -42,14 +50,14 @@ test.describe('Admin Vetting Management Authorization', () => {
     for (const selector of vettingNavSelectors) {
       try {
         const element = page.locator(selector);
-        if (await element.isVisible({ timeout: 2000 })) {
-          console.log(`✅ Found vetting navigation: ${selector}`);
-          await element.click();
-          await page.waitForTimeout(2000);
-          vettingAccessible = true;
-          vettingResults.push(`Navigation found: ${selector}`);
-          break;
-        }
+        // Hard assertion: Verify element is visible before interaction
+        await expect(element).toBeVisible({ timeout: 2000 });
+        console.log(`✅ Found vetting navigation: ${selector}`);
+        await element.click();
+        await page.waitForLoadState('networkidle');
+        vettingAccessible = true;
+        vettingResults.push(`Navigation found: ${selector}`);
+        break;
       } catch (e) {
         // Continue trying other selectors
       }
@@ -69,15 +77,21 @@ test.describe('Admin Vetting Management Authorization', () => {
 
       for (const url of vettingUrls) {
         try {
-          await page.goto(`http://localhost:5173${url}`);
-          await page.waitForTimeout(3000);
+          const response = await page.goto(`http://localhost:5173${url}`);
+          await page.waitForLoadState('networkidle');
+
+          // Hard assertion: Verify navigation response is OK
+          expect(response).not.toBeNull();
+          expect(response!.status()).toBeLessThan(500);
 
           // Check if we get an authorization error
-          const pageContent = await page.textContent('body');
-          const hasAuthError = pageContent.includes('403') ||
-                              pageContent.includes('Forbidden') ||
-                              pageContent.includes('Unauthorized') ||
-                              pageContent.includes('Access Denied');
+          const bodyLocator = page.locator('body');
+          await expect(bodyLocator).toBeVisible();
+          const pageContent = await bodyLocator.textContent();
+          const hasAuthError = pageContent?.includes('403') ||
+                              pageContent?.includes('Forbidden') ||
+                              pageContent?.includes('Unauthorized') ||
+                              pageContent?.includes('Access Denied');
 
           if (!hasAuthError) {
             console.log(`✅ Successfully accessed vetting page at: ${url}`);
@@ -96,15 +110,19 @@ test.describe('Admin Vetting Management Authorization', () => {
     }
 
     // Step 5: Check final page state
-    await page.waitForTimeout(3000);
+    await page.waitForLoadState('networkidle');
     const finalUrl = page.url();
-    const finalPageContent = await page.textContent('body');
+
+    // Hard assertion: Verify body is visible before reading content
+    const bodyLocator = page.locator('body');
+    await expect(bodyLocator).toBeVisible();
+    const finalPageContent = await bodyLocator.textContent();
 
     // Check for authorization errors on current page
-    const hasAuthError = finalPageContent.includes('403') ||
-                        finalPageContent.includes('Forbidden') ||
-                        finalPageContent.includes('Unauthorized') ||
-                        finalPageContent.includes('Access Denied');
+    const hasAuthError = finalPageContent?.includes('403') ||
+                        finalPageContent?.includes('Forbidden') ||
+                        finalPageContent?.includes('Unauthorized') ||
+                        finalPageContent?.includes('Access Denied');
 
     // Look for vetting interface elements
     const vettingInterfaceElements = [
@@ -121,17 +139,17 @@ test.describe('Admin Vetting Management Authorization', () => {
     for (const selector of vettingInterfaceElements) {
       try {
         const element = page.locator(selector);
-        if (await element.isVisible({ timeout: 2000 })) {
-          foundInterfaceElements.push(selector);
-        }
+        // Hard assertion: Check visibility with expect
+        await expect(element).toBeVisible({ timeout: 2000 });
+        foundInterfaceElements.push(selector);
       } catch (e) {
-        // Element not found
+        // Element not found - continue checking other elements
       }
     }
 
     // Step 6: Take screenshot for evidence
     await page.screenshot({
-      path: `/home/chad/repos/witchcityrope/test-results/vetting-authorization-test-${Date.now()}.png`,
+      path: `./test-results/vetting-authorization-test-${Date.now()}.png`,
       fullPage: true
     });
 
@@ -155,6 +173,9 @@ test.describe('Admin Vetting Management Authorization', () => {
     console.log(`📍 Final URL: ${finalUrl}`);
     console.log(`📄 Page title: ${await page.title()}`);
 
+    // Console error assertion
+    expect(consoleErrors.length).toBe(0);
+
     // Key assertion: No 403/Forbidden errors should be present
     expect(hasAuthError).toBe(false); // This is the main test - no authorization errors
 
@@ -166,6 +187,14 @@ test.describe('Admin Vetting Management Authorization', () => {
   });
 
   test('Verify vetting API endpoints respond without 403 errors', async ({ page }) => {
+    // Console error monitoring
+    const consoleErrors: string[] = [];
+    page.on('console', msg => {
+      if (msg.type() === 'error') {
+        consoleErrors.push(msg.text());
+      }
+    });
+
     console.log('🔍 Testing vetting API endpoints directly...');
 
     // Login using AuthHelper
@@ -230,6 +259,9 @@ test.describe('Admin Vetting Management Authorization', () => {
 
     console.log(`\n📈 Summary: ${accessibleCount}/${results.length} endpoints accessible (non-403)`);
     console.log(`🚨 Authorization failures (403): ${authErrorCount}`);
+
+    // Console error assertion
+    expect(consoleErrors.length).toBe(0);
 
     // Main assertion: No endpoints should return 403 Forbidden
     expect(authErrorCount).toBe(0); // This verifies the authorization fix worked

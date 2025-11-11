@@ -9,24 +9,35 @@ description: Validates Implementation Phase completion before advancing to Testi
 
 **When to Use**: When orchestrator needs to verify implementation is ready for comprehensive testing.
 
-## Quick Validation
+## How to Use This Skill
+
+**Executable Script**: `execute.sh`
 
 ```bash
-# Check compilation
-echo "Checking compilation..."
-dotnet build apps/api/WitchCityRope.Api/WitchCityRope.Api.csproj --no-restore
-API_BUILD=$?
+# Basic usage
+bash .claude/skills/phase-3-validator/execute.sh <feature-name> [work-type] [required-percentage]
 
-cd apps/web && npm run build
-WEB_BUILD=$?
-
-if [ $API_BUILD -eq 0 ] && [ $WEB_BUILD -eq 0 ]; then
-    echo "✅ Compilation successful"
-else
-    echo "❌ Compilation failed"
-    exit 1
-fi
+# Examples:
+bash .claude/skills/phase-3-validator/execute.sh events
+bash .claude/skills/phase-3-validator/execute.sh vetting Bug 75
+bash .claude/skills/phase-3-validator/execute.sh payment-processing Hotfix 70
 ```
+
+**Parameters**:
+- `feature-name`: Name of feature being validated (required)
+- `work-type`: Feature|Bug|Hotfix|Docs|Refactor (optional, default: Feature)
+- `required-percentage`: Override quality gate threshold (optional)
+
+**Script validates**:
+- API and Web build successfully
+- Implementation completeness (endpoints, components, migrations, services)
+- Code quality (TypeScript, C#, ESLint, error handling)
+- Testing infrastructure (unit, integration, E2E tests, fixtures)
+- Documentation (implementation notes, API docs, examples, limitations)
+
+**Exit codes**:
+- 0: Implementation Phase complete, ready for Testing Phase
+- 1: Implementation incomplete or quality gates not met
 
 ## Quality Gate Checklist (85% Required for Features)
 
@@ -59,281 +70,6 @@ fi
 - [ ] API endpoints documented (1 point)
 - [ ] Component usage examples (1 point)
 - [ ] Known limitations noted (1 point)
-
-## Automated Validation Script
-
-```bash
-#!/bin/bash
-# Phase 3 Validation Script
-
-FEATURE_NAME="$1"
-SCORE=0
-MAX_SCORE=50
-REQUIRED_PERCENTAGE=85
-
-echo "Phase 3 Implementation Validation"
-echo "=================================="
-echo ""
-
-# Check compilation
-echo "Build Validation"
-echo "----------------"
-
-echo "Building API..."
-cd /home/chad/repos/witchcityrope/apps/api/WitchCityRope.Api
-dotnet build --no-restore > /tmp/api-build.log 2>&1
-if [ $? -eq 0 ]; then
-    echo "✅ API builds successfully"
-    ((SCORE+=5))
-else
-    echo "❌ API build failed"
-    echo "   See: /tmp/api-build.log"
-fi
-
-echo "Building Web..."
-cd /home/chad/repos/witchcityrope/apps/web
-npm run build > /tmp/web-build.log 2>&1
-if [ $? -eq 0 ]; then
-    echo "✅ Web builds successfully"
-    ((SCORE+=5))
-else
-    echo "❌ Web build failed"
-    echo "   See: /tmp/web-build.log"
-fi
-
-echo ""
-
-# Check implementation files
-echo "Implementation Completeness"
-echo "---------------------------"
-
-# Count API endpoints
-API_ENDPOINT_COUNT=$(grep -r "MapGet\|MapPost\|MapPut\|MapDelete" apps/api/WitchCityRope.Api/Features --include="*.cs" | wc -l)
-if [ "$API_ENDPOINT_COUNT" -ge 3 ]; then
-    echo "✅ API endpoints implemented ($API_ENDPOINT_COUNT found)"
-    ((SCORE+=4))
-elif [ "$API_ENDPOINT_COUNT" -gt 0 ]; then
-    echo "⚠️  Limited API endpoints ($API_ENDPOINT_COUNT found)"
-    ((SCORE+=2))
-else
-    echo "❌ No API endpoints found"
-fi
-
-# Count React components
-COMPONENT_COUNT=$(find apps/web/src/features -name "*.tsx" -type f | wc -l)
-if [ "$COMPONENT_COUNT" -ge 3 ]; then
-    echo "✅ React components created ($COMPONENT_COUNT components)"
-    ((SCORE+=4))
-elif [ "$COMPONENT_COUNT" -gt 0 ]; then
-    echo "⚠️  Limited components ($COMPONENT_COUNT found)"
-    ((SCORE+=2))
-else
-    echo "❌ No React components found"
-fi
-
-# Check migrations
-MIGRATION_COUNT=$(find apps/api/WitchCityRope.Api/Data/Migrations -name "*.cs" -type f 2>/dev/null | wc -l)
-if [ "$MIGRATION_COUNT" -ge 1 ]; then
-    echo "✅ Database migrations created ($MIGRATION_COUNT migrations)"
-    ((SCORE+=3))
-else
-    echo "⚠️  No new migrations found"
-    ((SCORE+=1))
-fi
-
-# Check service layer
-SERVICE_COUNT=$(find apps/api/WitchCityRope.Api/Features -name "*Service.cs" -type f | wc -l)
-if [ "$SERVICE_COUNT" -ge 1 ]; then
-    echo "✅ Service layer implemented ($SERVICE_COUNT services)"
-    ((SCORE+=2))
-else
-    echo "⚠️  No services found"
-fi
-
-# Check type definitions
-if [ -d "packages/shared-types" ]; then
-    TYPE_FILE_COUNT=$(find packages/shared-types -name "*.d.ts" -type f | wc -l)
-    if [ "$TYPE_FILE_COUNT" -gt 0 ]; then
-        echo "✅ Type definitions present"
-        ((SCORE+=2))
-    else
-        echo "⚠️  No type definition files found"
-    fi
-else
-    echo "⚠️  Shared types package not found"
-fi
-
-echo ""
-
-# Code quality checks
-echo "Code Quality Validation"
-echo "-----------------------"
-
-# TypeScript errors
-echo "Checking TypeScript..."
-cd /home/chad/repos/witchcityrope/apps/web
-npx tsc --noEmit > /tmp/tsc-check.log 2>&1
-if [ $? -eq 0 ]; then
-    echo "✅ No TypeScript errors"
-    ((SCORE+=2))
-else
-    TS_ERROR_COUNT=$(grep -c "error TS" /tmp/tsc-check.log)
-    echo "❌ TypeScript errors found: $TS_ERROR_COUNT"
-    echo "   See: /tmp/tsc-check.log"
-fi
-
-# C# warnings
-cd /home/chad/repos/witchcityrope/apps/api/WitchCityRope.Api
-CS_WARNING_COUNT=$(dotnet build --no-restore 2>&1 | grep -c "warning CS")
-if [ "$CS_WARNING_COUNT" -eq 0 ]; then
-    echo "✅ No C# warnings"
-    ((SCORE+=2))
-else
-    echo "⚠️  C# warnings found: $CS_WARNING_COUNT"
-    ((SCORE+=1))
-fi
-
-# ESLint
-echo "Running ESLint..."
-cd /home/chad/repos/witchcityrope/apps/web
-npm run lint > /tmp/eslint.log 2>&1
-if [ $? -eq 0 ]; then
-    echo "✅ ESLint passes"
-    ((SCORE+=2))
-else
-    LINT_ERROR_COUNT=$(grep -c "error" /tmp/eslint.log)
-    echo "⚠️  ESLint errors: $LINT_ERROR_COUNT"
-    ((SCORE+=1))
-    echo "   See: /tmp/eslint.log"
-fi
-
-# Error handling check
-ERROR_HANDLING_COUNT=$(grep -r "try\|catch\|throw" apps/api/WitchCityRope.Api/Features --include="*.cs" | wc -l)
-if [ "$ERROR_HANDLING_COUNT" -ge 5 ]; then
-    echo "✅ Error handling present"
-    ((SCORE+=2))
-else
-    echo "⚠️  Limited error handling"
-    ((SCORE+=1))
-fi
-
-# Pattern compliance (check for architectural violations)
-DIRECT_DB_COUNT=$(grep -r "DbContext" apps/web/src --include="*.tsx" --include="*.ts" | wc -l)
-if [ "$DIRECT_DB_COUNT" -eq 0 ]; then
-    echo "✅ No architectural violations"
-    ((SCORE+=2))
-else
-    echo "❌ CRITICAL: Direct database access in Web service detected"
-    ((SCORE-=5))
-fi
-
-echo ""
-
-# Testing infrastructure
-echo "Testing Infrastructure"
-echo "----------------------"
-
-# Unit tests
-UNIT_TEST_COUNT=$(find tests -name "*.test.ts" -o -name "*.test.tsx" -o -name "*Tests.cs" | wc -l)
-if [ "$UNIT_TEST_COUNT" -ge 3 ]; then
-    echo "✅ Unit tests created ($UNIT_TEST_COUNT tests)"
-    ((SCORE+=3))
-elif [ "$UNIT_TEST_COUNT" -gt 0 ]; then
-    echo "⚠️  Limited unit tests ($UNIT_TEST_COUNT found)"
-    ((SCORE+=1))
-else
-    echo "❌ No unit tests found"
-fi
-
-# Integration tests
-INTEGRATION_TEST_COUNT=$(find tests -path "*/integration/*" -name "*.cs" | wc -l)
-if [ "$INTEGRATION_TEST_COUNT" -ge 1 ]; then
-    echo "✅ Integration tests created ($INTEGRATION_TEST_COUNT tests)"
-    ((SCORE+=3))
-else
-    echo "⚠️  No integration tests found"
-    ((SCORE+=1))
-fi
-
-# E2E tests
-E2E_TEST_COUNT=$(find tests/playwright -name "*.spec.ts" 2>/dev/null | wc -l)
-if [ "$E2E_TEST_COUNT" -ge 1 ]; then
-    echo "✅ E2E tests created ($E2E_TEST_COUNT tests)"
-    ((SCORE+=2))
-else
-    echo "⚠️  No E2E tests found"
-fi
-
-# Test fixtures
-FIXTURE_COUNT=$(find tests -name "*Fixture*.cs" -o -name "*.fixture.ts" 2>/dev/null | wc -l)
-if [ "$FIXTURE_COUNT" -ge 1 ]; then
-    echo "✅ Test fixtures prepared"
-    ((SCORE+=2))
-else
-    echo "⚠️  No test fixtures found"
-    ((SCORE+=1))
-fi
-
-echo ""
-
-# Documentation
-echo "Documentation Validation"
-echo "------------------------"
-
-# Implementation notes
-if [ -f "docs/functional-areas/$FEATURE_NAME/new-work/*/implementation-notes.md" ]; then
-    echo "✅ Implementation notes documented"
-    ((SCORE+=2))
-else
-    echo "⚠️  Implementation notes missing"
-fi
-
-# API documentation
-if grep -q "/// <summary>" apps/api/WitchCityRope.Api/Features --include="*.cs" -r; then
-    echo "✅ API endpoints documented"
-    ((SCORE++))
-else
-    echo "⚠️  API documentation missing"
-fi
-
-# Component usage examples
-if grep -q "// Example:" apps/web/src/features --include="*.tsx" -r; then
-    echo "✅ Component examples present"
-    ((SCORE++))
-else
-    echo "⚠️  Component examples missing"
-fi
-
-# Known limitations
-NEW_WORK_DIR=$(find docs/functional-areas -type d -path "*/new-work/*" | sort | tail -1)
-if [ -f "$NEW_WORK_DIR/implementation-notes.md" ] && grep -q "## Known Limitations" "$NEW_WORK_DIR/implementation-notes.md"; then
-    echo "✅ Known limitations documented"
-    ((SCORE++))
-else
-    echo "⚠️  Known limitations not documented"
-fi
-
-echo ""
-
-# Calculate percentage
-PERCENTAGE=$((SCORE * 100 / MAX_SCORE))
-
-echo "================================"
-echo "Final Score: $SCORE / $MAX_SCORE ($PERCENTAGE%)"
-echo "Required: ${REQUIRED_PERCENTAGE}%"
-echo ""
-
-if [ "$PERCENTAGE" -ge "$REQUIRED_PERCENTAGE" ]; then
-    echo "✅ PASS - Implementation Phase complete"
-    echo "   Ready to advance to Testing Phase"
-    exit 0
-else
-    echo "❌ FAIL - Implementation Phase incomplete"
-    echo "   Score: $PERCENTAGE% (need ${REQUIRED_PERCENTAGE}%)"
-    echo "   Missing: $((MAX_SCORE - SCORE)) points"
-    exit 1
-fi
-```
 
 ## Usage Examples
 

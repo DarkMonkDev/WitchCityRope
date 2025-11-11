@@ -130,7 +130,8 @@ test.describe('Dashboard Navigation - Critical Bug Detection', () => {
     }
 
     // Step 8: Verify dashboard content is actually displayed (not just that page loads)
-    await expect(page.locator('h1')).toContainText(/Welcome|Dashboard/i, { timeout: 5000 });
+    // Dashboard shows "Learning's Events" as the main heading
+    await expect(page.locator('h1')).toContainText(/Welcome|Dashboard|Events/i, { timeout: 5000 });
     console.log('✅ Dashboard header verified');
 
     // Step 9: Check for "Connection Problem" error messages
@@ -177,8 +178,8 @@ test.describe('Dashboard Navigation - Critical Bug Detection', () => {
       throw new Error(`Direct dashboard URL navigation failed with errors: JS(${jsErrors.length}) Console(${unexpectedConsoleErrors.length})`);
     }
 
-    // Verify content loads
-    await expect(page.locator('h1')).toContainText(/Welcome|Dashboard/i);
+    // Verify content loads - Dashboard shows "Learning's Events" or similar
+    await expect(page.locator('h1')).toContainText(/Welcome|Dashboard|Events/i);
 
     console.log('✅ Direct dashboard URL navigation works');
   });
@@ -193,9 +194,9 @@ test.describe('Dashboard Navigation - Critical Bug Detection', () => {
     await page.locator('[data-testid="login-button"]').click();
     await page.waitForURL('**/dashboard', { timeout: 15000 });
 
-    // Verify initial load
+    // Verify initial load - Dashboard shows "Learning's Events" or similar
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('h1')).toContainText(/Welcome|Dashboard/i);
+    await expect(page.locator('h1')).toContainText(/Welcome|Dashboard|Events/i);
 
     // Refresh the page
     await page.reload();
@@ -210,8 +211,8 @@ test.describe('Dashboard Navigation - Critical Bug Detection', () => {
       throw new Error(`Dashboard refresh failed with errors: JS(${jsErrors.length}) Console(${unexpectedConsoleErrors.length})`);
     }
 
-    // Verify content still loads
-    await expect(page.locator('h1')).toContainText(/Welcome|Dashboard/i);
+    // Verify content still loads - Dashboard shows "Learning's Events" or similar
+    await expect(page.locator('h1')).toContainText(/Welcome|Dashboard|Events/i);
 
     console.log('✅ Dashboard persists through page refresh');
   });
@@ -236,8 +237,8 @@ test.describe('Dashboard Navigation - Critical Bug Detection', () => {
       throw new Error(`Dashboard content loading failed with errors`);
     }
 
-    // Verify user-specific dashboard content
-    await expect(page.locator('h1')).toContainText(/Welcome|Dashboard/i);
+    // Verify user-specific dashboard content - Dashboard shows "Learning's Events" or similar
+    await expect(page.locator('h1')).toContainText(/Welcome|Dashboard|Events/i);
 
     // Check for typical dashboard elements (may vary based on implementation)
     const expectedElements = [

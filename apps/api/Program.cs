@@ -167,6 +167,9 @@ builder.Services.AddSingleton<ITokenBlacklistService, TokenBlacklistService>();
 // Add memory cache for CheckIn system performance
 builder.Services.AddMemoryCache();
 
+// Add HttpContextAccessor for dynamic URL discovery
+builder.Services.AddHttpContextAccessor();
+
 // New vertical slice feature services
 builder.Services.AddFeatureServices(builder.Configuration);
 

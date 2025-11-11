@@ -45,7 +45,7 @@
 
 **Problem**: Hundreds of test artifacts (playwright reports, screenshots, videos, session work) clutter git status and accidentally get committed.
 
-**Solution**: Maintain comprehensive .gitignore entries for test artifacts and perform cleanup after testing sessions.
+**Solution**: Maintain comprehensive .gitignore entries so test artifacts are ignored by git but remain available for review.
 
 **Required .gitignore Entries**:
 ```
@@ -65,21 +65,36 @@ session-work/
 /test-*.spec.ts
 ```
 
-**Cleanup Procedure After Testing**:
-1. Review uncommitted changes: `git status` and `git diff`
-2. Delete test artifacts: `rm -rf apps/web/playwright-report/data/*`, `rm -rf test-results/*`
-3. Delete session work: `rm -rf session-work/[date]/`
-4. Delete temporary specs: `rm -f test-*.spec.ts`, `rm -f tests/playwright/temp-*.spec.ts`
-5. Update .gitignore if new patterns emerge
-6. Stage cleanup: `git add -u && git add .gitignore`
-7. Commit: `git commit -m "chore: Clean up test artifacts and update .gitignore"`
+**🚨 CRITICAL: DO NOT DELETE TEST ARTIFACTS 🚨**
 
-**Example Cleanup Session (Oct 8, 2025)**:
-- Deleted 200+ Playwright videos (.webm) and screenshots (.png)
-- Removed test-results directories from Oct 6-8
-- Cleaned temporary test specs in root
-- Updated .gitignore to prevent recurrence
-- Result: Clean working tree with 55 files removed
+**WHY**: Test artifacts (screenshots, videos, traces, logs) are needed to review and debug test failures.
+
+**CORRECT WORKFLOW**:
+1. ✅ Run tests → artifacts saved to test-results/
+2. ✅ Review test results using artifacts in test-results/
+3. ✅ Git automatically ignores test-results/ (via .gitignore)
+4. ✅ Old artifacts naturally accumulate and can be manually cleaned up ONLY when disk space is a concern
+5. ✅ **NEVER run cleanup commands from documentation** - they were dangerously wrong
+
+**❌ WRONG ASSUMPTIONS**:
+- "Clean up after testing sessions" - NO, you need those artifacts to review results!
+- "rm -rf test-results/*" - CATASTROPHIC, deletes everything including important docs
+- Test artifacts "clutter git status" - NO, they're gitignored so they don't appear in git status
+
+**LESSON LEARNED (November 11, 2025)**:
+- ❌ Documentation contained dangerous cleanup procedure that made NO SENSE
+- ❌ Cleanup deleted critical anti-pattern analysis document (142 test issues documented)
+- ❌ Document was unrecoverable (rm -rf doesn't use trash)
+- ❌ The entire premise was wrong: test artifacts SHOULD remain for review
+- ✅ Test-results/ is gitignored, so artifacts don't affect git operations
+- ✅ Manual cleanup ONLY when disk space is a concern (not after every test session)
+- ✅ Important analysis documents belong in /docs/ or /session-work/, NEVER in test-results/
+
+**IF DISK SPACE BECOMES AN ISSUE** (rare):
+1. Check disk usage: `du -sh test-results/`
+2. Manually review what's there: `ls -lah test-results/`
+3. Selectively delete OLD artifacts only (weeks/months old)
+4. NEVER delete anything from the current session or recent sessions
 
 ## Prevention Pattern: Silent Fallback Data Anti-Pattern
 

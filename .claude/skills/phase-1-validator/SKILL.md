@@ -9,22 +9,38 @@ description: Validates Requirements Phase completion before advancing to Design 
 
 **When to Use**: When orchestrator or agents need to verify requirements are ready for design work.
 
-## Quick Validation
+## How to Use This Skill
 
-Run this checklist against the requirements document:
+**Executable Script**: `execute.sh`
 
 ```bash
-# 1. Find the requirements document
-find /home/chad/repos/witchcityrope/docs/functional-areas -name "business-requirements.md" -path "*/new-work/*" -type f | tail -1
+# Basic usage with requirements document path
+bash .claude/skills/phase-1-validator/execute.sh <requirements-document-path>
 
-# 2. Check document exists and is non-empty
-if [ -f "$DOC_PATH" ] && [ -s "$DOC_PATH" ]; then
-    echo "✅ Requirements document exists"
-else
-    echo "❌ Requirements document missing or empty"
-    exit 1
-fi
+# With work type specification
+bash .claude/skills/phase-1-validator/execute.sh <path> <work-type>
+
+# With custom quality gate threshold
+bash .claude/skills/phase-1-validator/execute.sh <path> Feature 95
+
+# Examples:
+bash .claude/skills/phase-1-validator/execute.sh docs/functional-areas/events/new-work/business-requirements.md
+bash .claude/skills/phase-1-validator/execute.sh docs/functional-areas/checkin/new-work/business-requirements.md Bug 80
 ```
+
+**Parameters**:
+- `requirements-document-path`: Path to business-requirements.md file
+- `work-type`: (optional) Feature|Bug|Hotfix|Docs|Refactor (default: Feature)
+- `required-percentage`: (optional) Override quality gate threshold
+
+**Script validates**:
+- Document structure (10 points): Executive Summary, Business Context, Success Metrics, User Stories, Business Rules, Security & Privacy, Quality Gate Checklist
+- Content quality (10 points): User stories count, acceptance criteria, business rules specificity
+- WitchCityRope-specific (5 points): Safety considerations, mobile experience, consent workflows
+
+**Exit codes**:
+- 0: Validation passed - ready for Design Phase
+- 1: Validation failed - requirements incomplete
 
 ## Quality Gate Checklist (95% Required for Features)
 
@@ -52,122 +68,6 @@ fi
 - [ ] Impact on user roles documented (1 point)
 - [ ] Community standards alignment verified (1 point)
 
-## Automated Validation Script
-
-```bash
-#!/bin/bash
-# Phase 1 Validation Script
-
-REQUIREMENTS_DOC="$1"
-SCORE=0
-MAX_SCORE=25
-REQUIRED_PERCENTAGE=95
-
-echo "Phase 1 Requirements Validation"
-echo "================================"
-echo ""
-
-# Check document structure
-if grep -q "## Executive Summary" "$REQUIREMENTS_DOC"; then
-    echo "✅ Executive Summary found"
-    ((SCORE++))
-else
-    echo "❌ Executive Summary missing"
-fi
-
-if grep -q "## Business Context" "$REQUIREMENTS_DOC"; then
-    echo "✅ Business Context found"
-    ((SCORE+=2))
-else
-    echo "❌ Business Context missing"
-fi
-
-if grep -q "## Success Metrics" "$REQUIREMENTS_DOC" || grep -q "### Success Metrics" "$REQUIREMENTS_DOC"; then
-    echo "✅ Success Metrics found"
-    ((SCORE+=2))
-else
-    echo "❌ Success Metrics missing"
-fi
-
-if grep -q "## User Stories" "$REQUIREMENTS_DOC"; then
-    STORY_COUNT=$(grep -c "^### Story [0-9]" "$REQUIREMENTS_DOC")
-    if [ "$STORY_COUNT" -ge 3 ]; then
-        echo "✅ User Stories found ($STORY_COUNT stories)"
-        ((SCORE+=4))
-    else
-        echo "⚠️  Only $STORY_COUNT user stories found (need 3+)"
-        ((SCORE+=2))
-    fi
-else
-    echo "❌ User Stories section missing"
-fi
-
-if grep -q "## Business Rules" "$REQUIREMENTS_DOC"; then
-    echo "✅ Business Rules found"
-    ((SCORE++))
-else
-    echo "❌ Business Rules missing"
-fi
-
-if grep -q "## Security & Privacy Requirements" "$REQUIREMENTS_DOC"; then
-    echo "✅ Security & Privacy section found"
-    ((SCORE+=3))
-else
-    echo "❌ Security & Privacy section missing"
-fi
-
-if grep -q "## Quality Gate Checklist" "$REQUIREMENTS_DOC"; then
-    echo "✅ Quality Gate Checklist found"
-    ((SCORE++))
-else
-    echo "❌ Quality Gate Checklist missing"
-fi
-
-# WitchCityRope-specific checks
-if grep -iq "safety\|safe\|safety first" "$REQUIREMENTS_DOC"; then
-    echo "✅ Safety considerations addressed"
-    ((SCORE++))
-else
-    echo "⚠️  Safety considerations not explicitly mentioned"
-fi
-
-if grep -iq "mobile\|phone\|responsive" "$REQUIREMENTS_DOC"; then
-    echo "✅ Mobile experience considered"
-    ((SCORE++))
-else
-    echo "⚠️  Mobile experience not explicitly mentioned"
-fi
-
-# Check acceptance criteria
-AC_COUNT=$(grep -c "**Acceptance Criteria:**" "$REQUIREMENTS_DOC")
-if [ "$AC_COUNT" -ge 3 ]; then
-    echo "✅ Acceptance criteria provided ($AC_COUNT found)"
-    ((SCORE+=2))
-else
-    echo "⚠️  Limited acceptance criteria ($AC_COUNT found, need 3+)"
-    ((SCORE+=1))
-fi
-
-# Calculate percentage
-PERCENTAGE=$((SCORE * 100 / MAX_SCORE))
-
-echo ""
-echo "================================"
-echo "Final Score: $SCORE / $MAX_SCORE ($PERCENTAGE%)"
-echo "Required: ${REQUIRED_PERCENTAGE}%"
-echo ""
-
-if [ "$PERCENTAGE" -ge "$REQUIRED_PERCENTAGE" ]; then
-    echo "✅ PASS - Requirements Phase complete"
-    echo "   Ready to advance to Design Phase"
-    exit 0
-else
-    echo "❌ FAIL - Requirements Phase incomplete"
-    echo "   Score: $PERCENTAGE% (need ${REQUIRED_PERCENTAGE}%)"
-    echo "   Missing: $((MAX_SCORE - SCORE)) points"
-    exit 1
-fi
-```
 
 ## Usage Examples
 

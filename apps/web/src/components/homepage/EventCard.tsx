@@ -274,6 +274,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         <Group
           justify="space-between"
           align="center"
+          data-testid="event-meta"
           style={{
             paddingTop: 'var(--space-md)',
             borderTop: '1px solid var(--color-taupe)',

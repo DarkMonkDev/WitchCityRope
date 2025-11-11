@@ -3,6 +3,13 @@ import { AuthHelper } from './helpers/auth.helper';
 
 test.describe('Admin Events - Comprehensive Bug Testing', () => {
   test.beforeEach(async ({ page }) => {
+    // Monitor console errors
+    page.on('console', msg => {
+      if (msg.type() === 'error') {
+        console.error(`Console error: ${msg.text()}`);
+      }
+    });
+
     // Login as admin using the proper auth helper
     const success = await AuthHelper.loginAs(page, 'admin');
     if (!success) {
@@ -92,18 +99,13 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
       // Check if events are displayed in some format
       const eventsList = page.locator('[data-testid="events-list"], .events-table, .event-card, table');
       const eventsContainer = page.locator('[data-testid="events-container"], .events-grid');
-      
-      const listVisible = await eventsList.first().isVisible().catch(() => false);
-      const containerVisible = await eventsContainer.first().isVisible().catch(() => false);
-      
-      if (listVisible || containerVisible) {
-        console.log('✅ Events display container found');
-      } else {
-        console.log('⚠️  Events display container not found - may need UI implementation');
-      }
-      
-      // This test will always pass to avoid blocking other tests
-      expect(true).toBeTruthy();
+
+      // Hard assertion - at least one of these containers must be visible
+      const hasEventsList = await eventsList.first().isVisible().catch(() => false);
+      const hasEventsContainer = await eventsContainer.first().isVisible().catch(() => false);
+
+      expect(hasEventsList || hasEventsContainer).toBeTruthy();
+      console.log('✅ Events display container found');
     });
   });
 
@@ -112,64 +114,57 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
       // Try to create/edit an event to access tabs
       const createBtn = page.locator('[data-testid="button-create-event"]');
       const editBtn = page.locator('[data-testid="edit-event-button"]').first();
-      
-      // Click either create or edit
-      if (await createBtn.isVisible()) {
+
+      // Hard assertion - at least one button must be visible
+      const createVisible = await createBtn.isVisible().catch(() => false);
+      const editVisible = await editBtn.isVisible().catch(() => false);
+      expect(createVisible || editVisible).toBeTruthy();
+
+      // Click the visible button
+      if (createVisible) {
         await createBtn.click();
-      } else if (await editBtn.isVisible()) {
+      } else {
         await editBtn.click();
       }
-      
-      // Look for tab structure
+
+      // Look for tab structure - hard assertion that tabs exist
       const tabs = page.locator('[data-testid*="tab"], .tab, [role="tab"]');
       const tabCount = await tabs.count();
-      
-      if (tabCount > 0) {
-        console.log(`✅ Found ${tabCount} tabs in event management interface`);
-      } else {
-        console.log('⚠️  Tab structure not found - may be single-page form');
-      }
-      
-      // Always pass to continue testing
-      expect(true).toBeTruthy();
+
+      expect(tabCount).toBeGreaterThan(0);
+      console.log(`✅ Found ${tabCount} tabs in event management interface`);
     });
 
     test('session management section exists', async ({ page }) => {
       // Look for session-related elements
       const createBtn = page.locator('[data-testid="button-create-event"]');
-      if (await createBtn.isVisible()) {
-        await createBtn.click();
-      }
-      
+
+      // Hard assertion - button must be visible
+      await expect(createBtn).toBeVisible();
+      await createBtn.click();
+
+      // Hard assertion - session elements must exist
       const sessionElements = page.locator('[data-testid*="session"], *:has-text("Session"), *:has-text("Time Slot")');
       const sessionCount = await sessionElements.count();
-      
-      if (sessionCount > 0) {
-        console.log('✅ Session management elements found');
-      } else {
-        console.log('⚠️  Session management elements not visible yet');
-      }
-      
-      expect(true).toBeTruthy();
+
+      expect(sessionCount).toBeGreaterThan(0);
+      console.log('✅ Session management elements found');
     });
 
     test('ticket management section exists', async ({ page }) => {
       // Look for ticket-related elements
       const createBtn = page.locator('[data-testid="button-create-event"]');
-      if (await createBtn.isVisible()) {
-        await createBtn.click();
-      }
-      
+
+      // Hard assertion - button must be visible
+      await expect(createBtn).toBeVisible();
+      await createBtn.click();
+
+      // Hard assertion - ticket elements must exist
       const ticketElements = page.locator('[data-testid*="ticket"], *:has-text("Ticket"), *:has-text("Price")');
       const ticketCount = await ticketElements.count();
-      
-      if (ticketCount > 0) {
-        console.log('✅ Ticket management elements found');
-      } else {
-        console.log('⚠️  Ticket management elements not visible yet');
-      }
-      
-      expect(true).toBeTruthy();
+
+      expect(ticketCount).toBeGreaterThan(0);
+      console.log('✅ Ticket management elements found');
     });
   });
 
@@ -178,43 +173,25 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
       // Verify current auth
       const authBefore = await AuthHelper.isAuthenticated(page);
       expect(authBefore).toBeTruthy();
-      
+
       // Refresh page
       await page.reload();
       await page.waitForLoadState('networkidle');
-      
-      // Verify still authenticated
+
+      // Hard assertion - authentication must persist
       const authAfter = await AuthHelper.isAuthenticated(page);
-      if (authAfter) {
-        console.log('✅ Authentication persists after page refresh');
-      } else {
-        console.log('⚠️  Authentication lost after refresh - may need session handling');
-      }
-      
-      expect(true).toBeTruthy(); // Always pass to continue testing
+      expect(authAfter).toBeTruthy();
+      console.log('✅ Authentication persists after page refresh');
     });
 
     test('admin events page remains accessible after refresh', async ({ page }) => {
       // Refresh and verify access
       await page.reload();
       await page.waitForLoadState('networkidle');
-      
-      // Check if still on admin events page or can navigate back
-      const currentUrl = page.url();
-      if (currentUrl.includes('/admin/events')) {
-        console.log('✅ Admin events page remains accessible');
-      } else {
-        // Try to navigate back
-        await page.goto('/admin/events');
-        const newUrl = page.url();
-        if (newUrl.includes('/admin/events')) {
-          console.log('✅ Admin events page accessible after navigation');
-        } else {
-          console.log('⚠️  Admin events page access may need authentication fix');
-        }
-      }
-      
-      expect(true).toBeTruthy();
+
+      // Hard assertion - must remain on admin events page
+      await expect(page).toHaveURL(/.*\/admin\/events/);
+      console.log('✅ Admin events page remains accessible after refresh');
     });
   });
 
@@ -275,49 +252,51 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
       await page.goto('/admin/events');
       await page.waitForLoadState('networkidle');
       const loadTime = Date.now() - startTime;
-      
+
       console.log(`Page load time: ${loadTime}ms`);
+
+      // Hard assertion - page must load within reasonable time
+      expect(loadTime).toBeLessThan(30000);
+
+      // Additional informational check
       if (loadTime < 5000) {
         console.log('✅ Page loads quickly');
       } else {
-        console.log('⚠️  Page load time is slow');
+        console.log('⚠️  Page load time is slow but within acceptable limits');
       }
-      
-      expect(loadTime).toBeLessThan(30000); // Fail only if extremely slow
     });
 
     test('no JavaScript errors during basic navigation', async ({ page }) => {
       const errors: string[] = [];
-      
+
       page.on('console', msg => {
         if (msg.type() === 'error') {
           errors.push(msg.text());
         }
       });
-      
+
       page.on('pageerror', error => {
         errors.push(error.toString());
       });
-      
+
       // Navigate through basic admin flow
       await page.goto('/admin/events');
       await page.waitForLoadState('networkidle');
-      
+
       const createBtn = page.locator('[data-testid="button-create-event"]');
-      if (await createBtn.isVisible()) {
-        await createBtn.click();
-        await page.waitForTimeout(2000); // Give time for any errors to surface
-      }
-      
-      if (errors.length === 0) {
-        console.log('✅ No JavaScript errors detected');
-      } else {
-        console.log(`⚠️  JavaScript errors detected: ${errors.length}`);
+
+      // Hard assertion - create button must be visible
+      await expect(createBtn).toBeVisible();
+      await createBtn.click();
+      await page.waitForTimeout(2000); // Give time for any errors to surface
+
+      // Hard assertion - no JavaScript errors should occur
+      expect(errors.length).toBe(0);
+      if (errors.length > 0) {
+        console.log(`JavaScript errors detected: ${errors.length}`);
         errors.forEach(error => console.log(`  - ${error}`));
       }
-      
-      // Report but don't fail for JS errors (may be expected during development)
-      expect(true).toBeTruthy();
+      console.log('✅ No JavaScript errors detected during navigation');
     });
   });
 });

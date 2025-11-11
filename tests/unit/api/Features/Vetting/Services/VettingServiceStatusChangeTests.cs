@@ -96,7 +96,6 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
         // Verify database updated
         var updated = await _context.VettingApplications.FindAsync(application.Id);
         updated!.WorkflowStatus.Should().Be(VettingStatus.InterviewApproved);
-        updated.AdminNotes.Should().Contain(notes);
 
         // Verify audit log created
         var auditLog = await _context.VettingAuditLogs
@@ -133,7 +132,6 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
         // Verify database updated
         var updated = await _context.VettingApplications.FindAsync(application.Id);
         updated!.WorkflowStatus.Should().Be(VettingStatus.FinalReview);
-        updated.AdminNotes.Should().Contain(notes);
     }
 
     [Fact]
@@ -163,13 +161,11 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task UpdateApplicationStatusAsync_WithNotes_AddsToAdminNotes()
+    public async Task UpdateApplicationStatusAsync_WithNotes_UpdatesStatus()
     {
         // Arrange
         var admin = await CreateTestAdminUser();
         var application = await CreateTestVettingApplication(VettingStatus.UnderReview);
-        application.AdminNotes = "Previous note from review";
-        await _context.SaveChangesAsync();
 
         var newNotes = "Additional review needed";
 
@@ -184,9 +180,14 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
         result.IsSuccess.Should().BeTrue();
 
         var updated = await _context.VettingApplications.FindAsync(application.Id);
-        updated!.AdminNotes.Should().Contain("Previous note from review");
-        updated.AdminNotes.Should().Contain(newNotes);
-        updated.AdminNotes.Should().Contain("Status change to OnHold");
+        updated!.WorkflowStatus.Should().Be(VettingStatus.OnHold);
+
+        // Note: AdminNotes property removed - notes now stored in UserNote table
+        // Verify audit log contains the notes instead
+        var auditLog = await _context.VettingAuditLogs
+            .FirstOrDefaultAsync(a => a.ApplicationId == application.Id);
+        auditLog.Should().NotBeNull();
+        auditLog!.Notes.Should().Be(newNotes);
     }
 
     [Fact]
@@ -476,8 +477,6 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
 
         var updated = await _context.VettingApplications.FindAsync(application.Id);
         updated!.WorkflowStatus.Should().Be(VettingStatus.OnHold);
-        updated.AdminNotes.Should().Contain(reason);
-        updated.AdminNotes.Should().Contain(requiredActions);
 
         // Verify email sent
         _mockEmailService.Verify(x => x.SendStatusUpdateAsync(
@@ -533,7 +532,6 @@ public class VettingServiceStatusChangeTests : IAsyncLifetime
 
         var updated = await _context.VettingApplications.FindAsync(application.Id);
         updated!.WorkflowStatus.Should().Be(VettingStatus.Denied);
-        updated.AdminNotes.Should().Contain(reason);
         updated.DecisionMadeAt.Should().NotBeNull();
 
         // Verify email sent

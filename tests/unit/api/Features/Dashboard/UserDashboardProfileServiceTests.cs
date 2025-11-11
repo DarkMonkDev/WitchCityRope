@@ -318,7 +318,7 @@ public class UserDashboardProfileServiceTests : IAsyncLifetime
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value!.Status.Should().Be("UnderReview");
+        result.Value!.Status.Should().Be(VettingStatus.UnderReview);
         result.Value.Message.Should().Contain("under review");
     }
 
@@ -340,7 +340,7 @@ public class UserDashboardProfileServiceTests : IAsyncLifetime
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value!.Status.Should().Be("InterviewApproved");
+        result.Value!.Status.Should().Be(VettingStatus.InterviewApproved);
         result.Value.Message.Should().Contain("approved for interview");
         result.Value.InterviewScheduleUrl.Should().NotBeNullOrEmpty();
     }
@@ -363,7 +363,7 @@ public class UserDashboardProfileServiceTests : IAsyncLifetime
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value!.Status.Should().Be("Denied");
+        result.Value!.Status.Should().Be(VettingStatus.Denied);
         result.Value.Message.Should().Contain("not approved");
         result.Value.ReapplyInfoUrl.Should().NotBeNullOrEmpty();
     }
@@ -487,7 +487,7 @@ public class UserDashboardProfileServiceTests : IAsyncLifetime
             ShortDescription = $"Test event {uniqueId}",
             Description = "Test event description",
             EventType = EventType.Class,
-            Location = "Test Location",
+            VenueId = 1, // Test venue ID (Location moved to Venue entity)
             StartDate = start,
             EndDate = start.AddHours(2),
             Capacity = 20,
@@ -515,7 +515,6 @@ public class UserDashboardProfileServiceTests : IAsyncLifetime
             Description = "Test ticket",
             Price = price,
             Available = 10,
-            Sold = 0,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -547,23 +546,23 @@ public class UserDashboardProfileServiceTests : IAsyncLifetime
         _context.TicketPurchases.Add(purchase);
         await _context.SaveChangesAsync();
 
-        // CRITICAL: Create EventParticipation record - UserDashboardProfileService queries EventParticipations, not TicketPurchases
+        // CRITICAL: Create EventAttendance record - UserDashboardProfileService queries EventAttendances, not TicketPurchases
         // Get the event from the ticket type
         var ticketType = await _context.TicketTypes.FindAsync(ticketTypeId);
         if (ticketType != null)
         {
-            var participation = new EventParticipation
+            var participation = new EventAttendance
             {
                 Id = Guid.NewGuid(),
                 UserId = userId,
                 EventId = ticketType.EventId,
-                ParticipationType = ParticipationType.Ticket,
-                Status = ParticipationStatus.Active,
+                AttendanceType = AttendanceType.Ticket,
+                Status = AttendanceStatus.Active,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
 
-            _context.EventParticipations.Add(participation);
+            _context.EventAttendances.Add(participation);
             await _context.SaveChangesAsync();
         }
 

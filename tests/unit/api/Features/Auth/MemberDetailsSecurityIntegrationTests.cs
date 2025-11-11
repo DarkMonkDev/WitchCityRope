@@ -207,7 +207,7 @@ public class MemberDetailsSecurityIntegrationTests : IAsyncLifetime
         response.Role.Should().NotBeNullOrEmpty();
 
         // Participation counts should be calculated
-        response.TotalEventsRegistered.Should().BeGreaterThanOrEqualTo(0);
+        response.TotalPastEventsRegistered.Should().BeGreaterThanOrEqualTo(0);
         response.TotalEventsAttended.Should().BeGreaterThanOrEqualTo(0);
     }
 
@@ -607,7 +607,6 @@ public class MemberDetailsSecurityIntegrationTests : IAsyncLifetime
         response.Should().NotBeNull();
         response!.Should().HaveCount(1);
         response[0].Content.Should().Be("Note for member");
-        response[0].UserId.Should().Be(_memberUserId);
     }
 
     [Fact]

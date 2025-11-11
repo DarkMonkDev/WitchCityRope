@@ -6,6 +6,8 @@ using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Participation.Models;
 using WitchCityRope.Api.Features.Participation.Services;
+using WitchCityRope.Api.Features.Volunteers.Services;
+using WitchCityRope.Api.Features.Events.Interfaces;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Tests.Fixtures;
 using WitchCityRope.Api.Tests.TestBase;
@@ -13,17 +15,23 @@ using WitchCityRope.Api.Tests.TestBase;
 namespace WitchCityRope.Api.Tests.Features.Participation;
 
 /// <summary>
-/// Integration tests for ParticipationService
+/// Integration tests for AttendanceService (formerly ParticipationService)
 /// Tests against real PostgreSQL database via TestContainers
+/// Updated November 2025: ParticipationService → AttendanceService refactoring
 /// </summary>
-public class ParticipationServiceTests : DatabaseTestBase
+public class AttendanceServiceTests : DatabaseTestBase
 {
-    private ParticipationService _participationService = null!;
-    private readonly Mock<ILogger<ParticipationService>> _mockLogger;
+    private AttendanceService _attendanceService = null!;
+    private readonly Mock<ILogger<AttendanceService>> _mockLogger;
+    private readonly Mock<VolunteerAssignmentService> _mockVolunteerService;
+    private readonly Mock<ITimeZoneService> _mockTimeZoneService;
 
-    public ParticipationServiceTests(DatabaseTestFixture databaseFixture) : base(databaseFixture)
+    public AttendanceServiceTests(DatabaseTestFixture databaseFixture) : base(databaseFixture)
     {
-        _mockLogger = new Mock<ILogger<ParticipationService>>();
+        _mockLogger = new Mock<ILogger<AttendanceService>>();
+        // Note: VolunteerAssignmentService is a concrete class, so we mock it directly
+        _mockVolunteerService = new Mock<VolunteerAssignmentService>();
+        _mockTimeZoneService = new Mock<ITimeZoneService>();
     }
 
     public override async Task InitializeAsync()
@@ -32,22 +40,28 @@ public class ParticipationServiceTests : DatabaseTestBase
         await base.InitializeAsync();
 
         // Create service AFTER DbContext is initialized
-        _participationService = new ParticipationService(DbContext, _mockLogger.Object);
+        _attendanceService = new AttendanceService(
+            DbContext,
+            _mockVolunteerService.Object,
+            _mockTimeZoneService.Object,
+            _mockLogger.Object);
     }
 
     [Fact]
-    public async Task GetParticipationStatusAsync_WithNoParticipation_ReturnsNull()
+    public async Task GetParticipationStatusAsync_WithNoParticipation_ReturnsEmptyStatus()
     {
         // Arrange
         var eventId = Guid.NewGuid();
         var userId = Guid.NewGuid();
 
         // Act
-        var result = await _participationService.GetParticipationStatusAsync(eventId, userId);
+        var result = await _attendanceService.GetParticipationStatusAsync(eventId, userId);
 
-        // Assert
+        // Assert - Updated: New service returns DTO with HasRSVP=false/HasTicket=false, not null
         Assert.True(result.IsSuccess);
-        Assert.Null(result.Value);
+        Assert.NotNull(result.Value);
+        Assert.False(result.Value.HasRSVP);
+        Assert.False(result.Value.HasTicket);
     }
 
     [Fact]

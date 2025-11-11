@@ -140,9 +140,9 @@ test.describe('Event Update Authentication Flow - E2E', () => {
 
     // Step 3: Navigate to event management
     console.log('🚀 Step 3: Navigate to event management')
-    
+
     // Look for event management navigation link
-    const eventManagementLink = page.locator('a[href*="events"], a[href*="admin/events"], text=Events').first()
+    const eventManagementLink = page.locator('a[href*="events"]').first()
     
     if (await eventManagementLink.count() > 0) {
       await eventManagementLink.click()

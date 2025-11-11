@@ -335,394 +335,71 @@ fi
 
 ---
 
-## 🤖 Automated Validator Script
+
+---
+
+## How to Use This Skill
+
+### From Command Line
 
 ```bash
-#!/bin/bash
-# Lessons Learned Validator
-# Single source of truth for lessons learned validation
+# Validate specific lessons learned file
+bash .claude/skills/lessons-learned-validator/execute.sh \
+  docs/lessons-learned/react-developer-lessons-learned.md
 
-LESSONS_FILE="$1"
-SCORE=0
-MAX_SCORE=100
+# Validate multi-part file
+bash .claude/skills/lessons-learned-validator/execute.sh \
+  docs/lessons-learned/test-developer-lessons-learned-2.md
 
-if [ -z "$LESSONS_FILE" ]; then
-    echo "Usage: $0 <lessons-learned-file.md>"
-    exit 1
-fi
+# Show help and usage information
+bash .claude/skills/lessons-learned-validator/execute.sh --help
+```
 
-if [ ! -f "$LESSONS_FILE" ]; then
-    echo "❌ Error: File not found: $LESSONS_FILE"
-    exit 1
-fi
+### From Claude Code
 
-echo "Lessons Learned Validation"
-echo "==========================="
-echo "File: $LESSONS_FILE"
-echo ""
+```
+Use the lessons-learned-validator skill to check [role]-lessons-learned.md
+```
 
-# Structure validation
-echo "Structure Validation"
-echo "--------------------"
+### Common Usage Patterns
 
-# File location
-if [[ "$LESSONS_FILE" == *"/docs/lessons-learned/"* ]]; then
-    echo "✅ File in correct location"
-    ((SCORE+=5))
-else
-    echo "❌ File not in /docs/lessons-learned/"
-fi
+**Before committing lessons:**
+```bash
+bash .claude/skills/lessons-learned-validator/execute.sh \
+  docs/lessons-learned/my-role-lessons-learned.md
+```
 
-# Filename pattern
-BASENAME=$(basename "$LESSONS_FILE")
-if [[ "$BASENAME" =~ ^[a-z-]+-lessons-learned\.md$ ]] || [[ "$BASENAME" =~ ^[a-z-]+-lessons-learned-[0-9]+\.md$ ]]; then
-    echo "✅ Filename follows pattern"
-    ((SCORE+=3))
-else
-    echo "❌ Filename doesn't follow pattern: [role]-lessons-learned.md"
-fi
-
-# File size check (LINE COUNT - CRITICAL)
-LINE_COUNT=$(wc -l < "$LESSONS_FILE")
-MAX_LINES=2000
-WARNING_THRESHOLD=1800  # 90% of max
-
-echo "File size: $LINE_COUNT lines (max: $MAX_LINES)"
-
-if [ "$LINE_COUNT" -gt "$MAX_LINES" ]; then
-    echo "❌ CRITICAL: File exceeds maximum line count"
-    echo "   Current: $LINE_COUNT lines"
-    echo "   Maximum: $MAX_LINES lines"
-    echo "   MANDATORY: Split file immediately"
-    echo "   See split procedure in this skill"
-    # No points awarded - this is a blocking violation
-elif [ "$LINE_COUNT" -gt "$WARNING_THRESHOLD" ]; then
-    echo "⚠️  WARNING: Approaching line limit"
-    echo "   Current: $LINE_COUNT lines ($((LINE_COUNT * 100 / MAX_LINES))% of limit)"
-    echo "   Warning threshold: $WARNING_THRESHOLD lines"
-    echo "   Action: Plan file split soon"
-    ((SCORE+=2))
-else
-    echo "✅ Line count within limits ($LINE_COUNT / $MAX_LINES lines)"
-    ((SCORE+=4))
-fi
-
-# Multi-file structure validation
-if [ "$LINE_COUNT" -gt 1000 ] || [[ "$BASENAME" =~ -[0-9]+\.md$ ]]; then
-    if grep -q "## 📚 MULTI-FILE LESSONS LEARNED" "$LESSONS_FILE" || grep -q "Part [0-9]" "$LESSONS_FILE"; then
-        echo "✅ Multi-file structure documented"
-    else
-        echo "⚠️  Large file or multi-part without proper header"
-        echo "   Add multi-file structure header"
-    fi
-fi
-
-# Table of contents
-if grep -q "## Table of Contents" "$LESSONS_FILE" || grep -q "## Contents" "$LESSONS_FILE"; then
-    echo "✅ Table of contents present"
-    ((SCORE+=4))
-else
-    echo "⚠️  No table of contents"
-    ((SCORE+=2))
-fi
-
-# Navigation links (for multi-part files)
-if [[ "$BASENAME" =~ -[0-9]+\.md$ ]]; then
-    if grep -q "← Previous:" "$LESSONS_FILE" && grep -q "→ Next:" "$LESSONS_FILE"; then
-        echo "✅ Navigation links present"
-        ((SCORE+=4))
-    else
-        echo "⚠️  Multi-part file missing navigation links"
-        ((SCORE+=2))
-    fi
-else
-    ((SCORE+=4))  # Not applicable for single files
-fi
-
-echo ""
-
-# Format compliance
-echo "Format Compliance"
-echo "-----------------"
-
-# Count lessons (## headings excluding ToC, Conclusion, etc.)
-LESSON_COUNT=$(grep -c "^## [^#]" "$LESSONS_FILE" | grep -v "Table of Contents\|Conclusion\|Multi-File" || echo 0)
-echo "Found $LESSON_COUNT lessons"
-
-if [ "$LESSON_COUNT" -eq 0 ]; then
-    echo "❌ No lessons found"
-    exit 1
-fi
-
-# Check for Problem/Solution/Example pattern
-PROBLEM_COUNT=$(grep -c "### Problem\|**Problem:**" "$LESSONS_FILE")
-SOLUTION_COUNT=$(grep -c "### Solution\|**Solution:**" "$LESSONS_FILE")
-EXAMPLE_COUNT=$(grep -c "### Example\|**Example:**" "$LESSONS_FILE")
-
-if [ "$PROBLEM_COUNT" -ge 3 ]; then
-    echo "✅ Problem sections present ($PROBLEM_COUNT)"
-    ((SCORE+=7))
-elif [ "$PROBLEM_COUNT" -gt 0 ]; then
-    echo "⚠️  Limited Problem sections ($PROBLEM_COUNT)"
-    ((SCORE+=3))
-else
-    echo "❌ No Problem sections found"
-fi
-
-if [ "$SOLUTION_COUNT" -ge 3 ]; then
-    echo "✅ Solution sections present ($SOLUTION_COUNT)"
-    ((SCORE+=7))
-elif [ "$SOLUTION_COUNT" -gt 0 ]; then
-    echo "⚠️  Limited Solution sections ($SOLUTION_COUNT)"
-    ((SCORE+=3))
-else
-    echo "❌ No Solution sections found"
-fi
-
-if [ "$EXAMPLE_COUNT" -ge 3 ]; then
-    echo "✅ Example sections present ($EXAMPLE_COUNT)"
-    ((SCORE+=7))
-elif [ "$EXAMPLE_COUNT" -gt 0 ]; then
-    echo "⚠️  Limited Example sections ($EXAMPLE_COUNT)"
-    ((SCORE+=3))
-else
-    echo "❌ No Example sections found"
-fi
-
-# Prevention-focused language
-PREVENTION_KEYWORDS=$(grep -ic "prevent\|avoid\|don't\|never\|must not\|instead of" "$LESSONS_FILE")
-if [ "$PREVENTION_KEYWORDS" -ge 5 ]; then
-    echo "✅ Prevention-focused language ($PREVENTION_KEYWORDS keywords)"
-    ((SCORE+=4))
-else
-    echo "⚠️  Limited prevention focus"
-    ((SCORE+=2))
-fi
-
-echo ""
-
-# Content quality
-echo "Content Quality"
-echo "---------------"
-
-# Problem specificity (check for code examples, error messages, file paths)
-SPECIFIC_INDICATORS=$(grep -c "Error:\|file:\|line:\|\`\`\`\|TypeError\|Exception" "$LESSONS_FILE")
-if [ "$SPECIFIC_INDICATORS" -ge 5 ]; then
-    echo "✅ Problems are specific ($SPECIFIC_INDICATORS specific indicators)"
-    ((SCORE+=7))
-else
-    echo "⚠️  Problems could be more specific"
-    ((SCORE+=4))
-fi
-
-# Solution actionability (check for concrete actions)
-ACTION_KEYWORDS=$(grep -ic "run\|execute\|add\|remove\|change\|update\|create\|delete\|fix" "$LESSONS_FILE")
-if [ "$ACTION_KEYWORDS" -ge 10 ]; then
-    echo "✅ Solutions are actionable ($ACTION_KEYWORDS action verbs)"
-    ((SCORE+=8))
-else
-    echo "⚠️  Solutions could be more actionable"
-    ((SCORE+=5))
-fi
-
-# Example concreteness (code blocks, commands, file paths)
-CODE_BLOCKS=$(grep -c "^\`\`\`" "$LESSONS_FILE")
-COMMAND_EXAMPLES=$(grep -c "^\$ \|^# \|bash" "$LESSONS_FILE")
-EXAMPLE_SCORE=$((CODE_BLOCKS + COMMAND_EXAMPLES))
-
-if [ "$EXAMPLE_SCORE" -ge 5 ]; then
-    echo "✅ Examples are concrete ($CODE_BLOCKS code blocks, $COMMAND_EXAMPLES commands)"
-    ((SCORE+=7))
-else
-    echo "⚠️  Examples could be more concrete"
-    ((SCORE+=4))
-fi
-
-# Maintainability (date references, version numbers)
-DATE_REFERENCES=$(grep -c "2025\|2024\|Date:" "$LESSONS_FILE")
-if [ "$DATE_REFERENCES" -gt 0 ]; then
-    echo "✅ Lessons have timestamps"
-    ((SCORE+=4))
-else
-    echo "⚠️  No timestamps found"
-    ((SCORE+=2))
-fi
-
-# Cross-references
-CROSS_REFS=$(grep -c "See:\|Related:\|docs/\|Also:" "$LESSONS_FILE")
-if [ "$CROSS_REFS" -ge 3 ]; then
-    echo "✅ Cross-references present ($CROSS_REFS)"
-    ((SCORE+=4))
-else
-    echo "⚠️  Limited cross-references"
-    ((SCORE+=2))
-fi
-
-echo ""
-
-# Maintenance
-echo "Maintenance Validation"
-echo "----------------------"
-
-# Recent updates
-LAST_MODIFIED=$(find "$LESSONS_FILE" -mtime -30 2>/dev/null)
-if [ -n "$LAST_MODIFIED" ]; then
-    echo "✅ Recently updated (within 30 days)"
-    ((SCORE+=5))
-else
-    echo "⚠️  Not updated recently (>30 days)"
-    ((SCORE+=2))
-fi
-
-# Outdated markers
-OUTDATED_COUNT=$(grep -ic "outdated\|deprecated\|no longer\|obsolete" "$LESSONS_FILE")
-if [ "$OUTDATED_COUNT" -eq 0 ]; then
-    echo "✅ No outdated lessons marked"
-    ((SCORE+=5))
-else
-    echo "⚠️  $OUTDATED_COUNT lessons marked as outdated"
-    echo "   Remove or update these lessons"
-    ((SCORE+=2))
-fi
-
-# Duplicate detection (simple check for repeated ## headings)
-DUPLICATE_HEADINGS=$(grep "^## " "$LESSONS_FILE" | sort | uniq -d | wc -l)
-if [ "$DUPLICATE_HEADINGS" -eq 0 ]; then
-    echo "✅ No duplicate lesson titles"
-    ((SCORE+=5))
-else
-    echo "⚠️  $DUPLICATE_HEADINGS duplicate lesson titles"
-    echo "   Consolidate duplicate lessons"
-    ((SCORE+=2))
-fi
-
-# File size monitoring (LINE COUNT)
-# Already calculated: LINE_COUNT, MAX_LINES=2000, WARNING_THRESHOLD=1800
-PERCENTAGE_USED=$((LINE_COUNT * 100 / MAX_LINES))
-
-if [ "$LINE_COUNT" -gt "$MAX_LINES" ]; then
-    echo "❌ File exceeds maximum ($LINE_COUNT / $MAX_LINES lines - ${PERCENTAGE_USED}%)"
-    echo "   CRITICAL: Must split immediately"
-    # No points - blocking violation
-elif [ "$LINE_COUNT" -gt "$WARNING_THRESHOLD" ]; then
-    echo "⚠️  File approaching limit ($LINE_COUNT / $MAX_LINES lines - ${PERCENTAGE_USED}%)"
-    echo "   Action: Plan split soon (over 90%)"
-    ((SCORE+=3))
-else
-    echo "✅ File size healthy ($LINE_COUNT / $MAX_LINES lines - ${PERCENTAGE_USED}%)"
-    ((SCORE+=5))
-fi
-
-# Multi-file structure compliance check
-if [[ "$BASENAME" =~ -[0-9]+\.md$ ]]; then
+**Validate all lessons learned files:**
+```bash
+for file in docs/lessons-learned/*-lessons-learned*.md; do
+    echo "Validating: $file"
+    bash .claude/skills/lessons-learned-validator/execute.sh "$file"
     echo ""
-    echo "Multi-File Part Validation"
-    echo "---------------------------"
+done
+```
 
-    # Check for MUST READ header
-    if grep -q "MUST ALSO READ\|MUST READ" "$LESSONS_FILE"; then
-        echo "✅ Part has MUST READ header"
-    else
-        echo "⚠️  Part missing MUST READ header"
-    fi
+**Check file size before writing:**
+```bash
+LAST_FILE=$(ls -1 docs/lessons-learned/[role]-lessons-learned*.md | tail -1)
+LINE_COUNT=$(wc -l < "$LAST_FILE")
 
-    # Check for Part references
-    if grep -q "Part 1" "$LESSONS_FILE"; then
-        echo "✅ References other parts"
-    else
-        echo "⚠️  No references to other parts"
-    fi
-
-    # Check header synchronization
-    if grep -q "IF READ FAILS" "$LESSONS_FILE" && grep -q "MANDATORY" "$LESSONS_FILE"; then
-        echo "✅ Critical headers present"
-    else
-        echo "⚠️  Headers may be incomplete"
-    fi
-fi
-
-echo ""
-
-# BLOCKING VALIDATION: Check for critical violations BEFORE scoring
-echo "🚨 Critical Violations Check"
-echo "============================="
-
-BLOCKING_VIOLATIONS=0
-
-# Check if file exceeds maximum line count
-if [ "$LINE_COUNT" -gt "$MAX_LINES" ]; then
-    echo "❌ BLOCKING: File exceeds maximum line count ($LINE_COUNT > $MAX_LINES)"
-    ((BLOCKING_VIOLATIONS++))
-fi
-
-# Check if outdated lessons are present
-if [ "$OUTDATED_COUNT" -gt 5 ]; then
-    echo "❌ BLOCKING: Too many outdated lessons ($OUTDATED_COUNT)"
-    ((BLOCKING_VIOLATIONS++))
-fi
-
-if [ "$BLOCKING_VIOLATIONS" -gt 0 ]; then
-    echo ""
-    echo "❌ ❌ ❌ VALIDATION BLOCKED ❌ ❌ ❌"
-    echo ""
-    echo "Critical violations found: $BLOCKING_VIOLATIONS"
-    echo ""
-    echo "Actions required:"
-    if [ "$LINE_COUNT" -gt "$MAX_LINES" ]; then
-        echo "1. Split file immediately (exceeds $MAX_LINES line limit)"
-        echo "   See 'Split Procedure' section in this skill for instructions"
-        echo ""
-        echo "   Quick steps:"
-        echo "   - Create Part $(($(ls -1 docs/lessons-learned/${BASENAME%-*}-lessons-learned*.md 2>/dev/null | wc -l) + 1)): ${LESSONS_FILE%.md}-$(($(ls -1 docs/lessons-learned/${BASENAME%-*}-lessons-learned*.md 2>/dev/null | wc -l) + 1)).md"
-        echo "   - Add multi-file header to new part"
-        echo "   - Move recent $((LINE_COUNT - 1800)) lines to new part"
-        echo "   - Update Part 1 header with new file count"
-        echo "   - Verify all parts under 2,000 lines"
-    fi
-    if [ "$OUTDATED_COUNT" -gt 5 ]; then
-        echo "2. Remove or update outdated lessons"
-    fi
-    echo ""
-    echo "Cannot proceed with workflow until resolved."
-    exit 1
-fi
-
-echo "✅ No blocking violations"
-echo ""
-
-# Calculate percentage
-PERCENTAGE=$((SCORE * 100 / MAX_SCORE))
-
-echo "================================"
-echo "Final Score: $SCORE / $MAX_SCORE ($PERCENTAGE%)"
-echo ""
-
-if [ "$PERCENTAGE" -ge 80 ]; then
-    echo "✅ PASS - Lessons learned file meets quality standards"
-    echo ""
-    if [ "$LINE_COUNT" -gt "$WARNING_THRESHOLD" ]; then
-        echo "⚠️  Note: File approaching size limit ($LINE_COUNT / $MAX_LINES lines)"
-        echo "   Consider planning file split soon"
-    fi
-    exit 0
-else
-    echo "❌ FAIL - Lessons learned file needs improvement"
-    echo "   Score: $PERCENTAGE% (need 80%+)"
-    echo "   Missing: $((MAX_SCORE - SCORE)) points"
-    exit 1
+if [ "$LINE_COUNT" -gt 1800 ]; then
+    echo "⚠️  File approaching limit - plan split soon"
+elif [ "$LINE_COUNT" -gt 2000 ]; then
+    echo "❌ File exceeds limit - MUST split before writing"
 fi
 ```
 
 ---
 
-## 📖 Usage Examples
+## 📖 Additional Usage Examples (Legacy - For Reference)
 
-### From Agent (Self-Validation)
+### From Agent (Self-Validation - OLD PATTERN)
 
 Before committing lessons, validate format and size:
 
 ```bash
-# Validate your lessons file
+# OLD: Validate your lessons file
 bash .claude/skills/lessons-learned-validator.md \
   docs/lessons-learned/[your-role]-lessons-learned.md
 ```

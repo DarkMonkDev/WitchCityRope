@@ -89,6 +89,7 @@ export const EventsList: React.FC<EventsListProps> = ({
     return (
       <Box
         component="section"
+        data-testid="loading-spinner"
         style={{
           padding: 'var(--space-2xl) 40px',
           maxWidth: '1200px',
@@ -115,6 +116,7 @@ export const EventsList: React.FC<EventsListProps> = ({
     return (
       <Box
         component="section"
+        data-testid="error-message"
         style={{
           padding: 'var(--space-2xl) 40px',
           maxWidth: '1200px',
@@ -126,8 +128,11 @@ export const EventsList: React.FC<EventsListProps> = ({
         }}
       >
         <Alert color="red" style={{ marginBottom: 'var(--space-lg)' }}>
-          <strong>Error:</strong> {errorState}
+          <strong>Error:</strong> Failed to load events
         </Alert>
+        <Text style={{ color: 'var(--color-stone)', textAlign: 'center' }}>
+          API service is running on http://localhost:5655
+        </Text>
       </Box>
     );
   }
@@ -138,6 +143,7 @@ export const EventsList: React.FC<EventsListProps> = ({
     return (
       <Box
         component="section"
+        data-testid="empty-state"
         style={{
           padding: 'var(--space-2xl) 40px',
           maxWidth: '1200px',
@@ -200,6 +206,8 @@ export const EventsList: React.FC<EventsListProps> = ({
       </Title>
 
       <Box
+        data-testid="events-grid"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',

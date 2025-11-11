@@ -9,6 +9,35 @@ description: Calculates context-appropriate quality gate thresholds based on wor
 
 **When to Use**: At workflow start to set expectations, and at phase transitions to validate progress.
 
+## How to Use This Skill
+
+**Executable Script**: `execute.sh`
+
+```bash
+# Basic usage
+bash .claude/skills/quality-gate-calculator/execute.sh <work-type> <phase>
+
+# Examples:
+bash .claude/skills/quality-gate-calculator/execute.sh Feature 3
+bash .claude/skills/quality-gate-calculator/execute.sh Hotfix 1
+bash .claude/skills/quality-gate-calculator/execute.sh Bug 4
+```
+
+**Parameters**:
+- `work-type`: Feature|Bug|Hotfix|Documentation|Refactoring (required)
+- `phase`: 1|2|3|4|5 (required)
+
+**Script outputs**:
+- Required percentage for quality gate
+- Target score (points needed to pass)
+- Rationale for threshold
+- Pass/fail examples
+- Exports quality gate to /tmp/quality-gate.env
+
+**Exit codes**:
+- 0: Quality gate calculated successfully
+- 1: Invalid work type or phase
+
 ## Quality Gate Philosophy
 
 **Not all work is equal:**
@@ -73,173 +102,6 @@ description: Calculates context-appropriate quality gate thresholds based on wor
 | Hotfix | 70% | 70/100 points | Basic documentation, commit, deploy |
 | Documentation | 90% | 90/100 points | Comprehensive docs and cross-references |
 | Refactoring | 85% | 85/100 points | Document changes and performance impact |
-
-## Automated Calculator Script
-
-```bash
-#!/bin/bash
-# Quality Gate Calculator
-
-WORK_TYPE="$1"
-PHASE="$2"
-
-if [ -z "$WORK_TYPE" ] || [ -z "$PHASE" ]; then
-    echo "Usage: $0 <work-type> <phase>"
-    echo ""
-    echo "Work Types: Feature, Bug, Hotfix, Documentation, Refactoring"
-    echo "Phases: 1, 2, 3, 4, 5"
-    exit 1
-fi
-
-# Normalize inputs
-WORK_TYPE=$(echo "$WORK_TYPE" | tr '[:upper:]' '[:lower:]')
-PHASE=$(echo "$PHASE" | tr -d 'Phase ')
-
-echo "Quality Gate Calculator"
-echo "======================="
-echo "Work Type: $WORK_TYPE"
-echo "Phase: $PHASE"
-echo ""
-
-# Define quality gates by phase and work type
-case "$PHASE" in
-    "1")
-        MAX_SCORE=25
-        case "$WORK_TYPE" in
-            "feature") REQUIRED=95; TARGET=24 ;;
-            "bug"|"bugfix") REQUIRED=80; TARGET=20 ;;
-            "hotfix") REQUIRED=70; TARGET=18 ;;
-            "documentation"|"docs") REQUIRED=85; TARGET=21 ;;
-            "refactoring"|"refactor") REQUIRED=90; TARGET=23 ;;
-            *) echo "❌ Unknown work type: $WORK_TYPE"; exit 1 ;;
-        esac
-        PHASE_NAME="Requirements"
-        ;;
-
-    "2")
-        MAX_SCORE=35
-        case "$WORK_TYPE" in
-            "feature") REQUIRED=90; TARGET=32 ;;
-            "bug"|"bugfix") REQUIRED=70; TARGET=25 ;;
-            "hotfix") REQUIRED=60; TARGET=21 ;;
-            "documentation"|"docs") REQUIRED=80; TARGET=28 ;;
-            "refactoring"|"refactor") REQUIRED=85; TARGET=30 ;;
-            *) echo "❌ Unknown work type: $WORK_TYPE"; exit 1 ;;
-        esac
-        PHASE_NAME="Design"
-        ;;
-
-    "3")
-        MAX_SCORE=50
-        case "$WORK_TYPE" in
-            "feature") REQUIRED=85; TARGET=43 ;;
-            "bug"|"bugfix") REQUIRED=75; TARGET=38 ;;
-            "hotfix") REQUIRED=70; TARGET=35 ;;
-            "documentation"|"docs") REQUIRED=80; TARGET=40 ;;
-            "refactoring"|"refactor") REQUIRED=90; TARGET=45 ;;
-            *) echo "❌ Unknown work type: $WORK_TYPE"; exit 1 ;;
-        esac
-        PHASE_NAME="Implementation"
-        ;;
-
-    "4")
-        MAX_SCORE=100
-        # ALL work types require 100%
-        REQUIRED=100
-        TARGET=100
-        PHASE_NAME="Testing"
-        ;;
-
-    "5")
-        MAX_SCORE=100
-        case "$WORK_TYPE" in
-            "feature") REQUIRED=80; TARGET=80 ;;
-            "bug"|"bugfix") REQUIRED=75; TARGET=75 ;;
-            "hotfix") REQUIRED=70; TARGET=70 ;;
-            "documentation"|"docs") REQUIRED=90; TARGET=90 ;;
-            "refactoring"|"refactor") REQUIRED=85; TARGET=85 ;;
-            *) echo "❌ Unknown work type: $WORK_TYPE"; exit 1 ;;
-        esac
-        PHASE_NAME="Finalization"
-        ;;
-
-    *)
-        echo "❌ Unknown phase: $PHASE"
-        echo "Valid phases: 1, 2, 3, 4, 5"
-        exit 1
-        ;;
-esac
-
-# Output quality gate
-echo "Phase: $PHASE ($PHASE_NAME)"
-echo "Work Type: $(echo $WORK_TYPE | sed 's/\b\(.\)/\u\1/g')"
-echo ""
-echo "Quality Gate:"
-echo "  Required: $REQUIRED%"
-echo "  Target Score: $TARGET / $MAX_SCORE"
-echo ""
-
-# Provide context-specific guidance
-if [ "$PHASE" -eq 4 ]; then
-    echo "⚠️  CRITICAL: Phase 4 requires 100% test pass rate"
-    echo "   NO EXCEPTIONS for any work type"
-    echo "   One failing test = Phase 4 fails"
-    echo ""
-fi
-
-# Output rationale
-echo "Rationale:"
-case "$WORK_TYPE" in
-    "feature")
-        echo "  Features require highest rigor due to:"
-        echo "  - New functionality introduction"
-        echo "  - Higher risk of bugs"
-        echo "  - Long-term maintenance impact"
-        ;;
-    "bug"|"bugfix")
-        echo "  Bug fixes have moderate rigor:"
-        echo "  - Focus on problem and solution"
-        echo "  - Less ceremony than features"
-        echo "  - Still requires thorough testing"
-        ;;
-    "hotfix")
-        echo "  Hotfixes have minimal rigor:"
-        echo "  - Production emergency"
-        echo "  - Speed is critical"
-        echo "  - Still requires 100% test pass in Phase 4"
-        ;;
-    "documentation"|"docs")
-        echo "  Documentation requires high completion:"
-        echo "  - Clear structure and organization"
-        echo "  - Complete coverage of topic"
-        echo "  - Examples and cross-references"
-        ;;
-    "refactoring"|"refactor")
-        echo "  Refactoring requires highest quality:"
-        echo "  - No behavior changes allowed"
-        echo "  - Comprehensive test coverage"
-        echo "  - Performance validation"
-        ;;
-esac
-
-echo ""
-echo "Pass/Fail Example:"
-echo "  Score of $TARGET = PASS (exactly $REQUIRED%)"
-echo "  Score of $((TARGET - 1)) = FAIL ($((TARGET - 1)) points = $(((TARGET - 1) * 100 / MAX_SCORE))%)"
-echo ""
-
-# Export variables for use in validation scripts
-cat > /tmp/quality-gate.env <<EOF
-WORK_TYPE=$WORK_TYPE
-PHASE=$PHASE
-REQUIRED_PERCENTAGE=$REQUIRED
-TARGET_SCORE=$TARGET
-MAX_SCORE=$MAX_SCORE
-EOF
-
-echo "✅ Quality gate calculated"
-echo "   Exported to: /tmp/quality-gate.env"
-```
 
 ## Usage Examples
 

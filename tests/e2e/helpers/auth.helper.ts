@@ -65,8 +65,8 @@ export class AuthHelper {
         })
       }
 
-      // Wait for login form to be ready
-      await page.waitForSelector('[data-testid="login-form"]', { timeout })
+      // Wait for login form to be ready and visible
+      await page.waitForSelector('[data-testid="login-form"]', { state: 'visible', timeout })
 
       // Strategy 1: Use data-testid selectors with fill() - Most reliable for Mantine
       const success = await this.tryMantineFormFill(page, credentials, timeout)

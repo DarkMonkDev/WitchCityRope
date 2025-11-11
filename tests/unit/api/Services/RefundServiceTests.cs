@@ -9,6 +9,7 @@ using WitchCityRope.Api.Features.Payments.Models;
 using WitchCityRope.Api.Features.Payments.Models.PayPal;
 using WitchCityRope.Api.Features.Payments.ValueObjects;
 using WitchCityRope.Api.Features.Safety.Services;
+using WitchCityRope.Api.Features.Volunteers.Services;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Tests.Fixtures;
 using Microsoft.EntityFrameworkCore;
@@ -52,6 +53,9 @@ public class RefundServiceTests : IAsyncLifetime
             _context,
             _mockPayPalService.Object,
             _mockEncryptionService.Object,
+            new Mock<VolunteerAssignmentService>(
+                _context,
+                new Mock<ILogger<VolunteerAssignmentService>>().Object).Object,
             _mockLogger.Object);
 
         // Seed test users with new GUIDs for each test

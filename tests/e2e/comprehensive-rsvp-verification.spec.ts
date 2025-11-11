@@ -37,6 +37,12 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
     page.on('console', msg => {
       if (msg.type() === 'error') {
         const errorText = msg.text()
+
+        // Filter out expected 401 errors during auth state loading
+        if (errorText.includes('401') || errorText.includes('Unauthorized')) {
+          return // Expected during initial auth check
+        }
+
         consoleErrors.push(errorText)
 
         // Specifically catch date/time errors that crash components
@@ -226,7 +232,10 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
 
     // First get the event ID for Rope Social by calling the API directly
     const eventsResponse = await page.request.get('http://localhost:5655/api/events')
-    const events = await eventsResponse.json()
+    const eventsData = await eventsResponse.json()
+
+    // Handle wrapped API response structure
+    const events = eventsData.success ? eventsData.data : (Array.isArray(eventsData) ? eventsData : [])
     console.log(`📊 API returned ${events.length} events`)
 
     const ropeSocial = events.find((e: any) => e.title?.includes('Rope Social'))
@@ -286,8 +295,8 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
     const participationData = await participationResponse.json()
     console.log(`📊 API participation data for Rope Social: ${JSON.stringify(participationData, null, 2)}`)
 
-    // Look for RSVP list/table content
-    const rsvpContent = page.locator('[data-testid*="rsvp"], [data-testid*="participation"], .rsvp-list, .participants-list')
+    // Look for RSVP list/table content - use .first() for Playwright strict mode
+    const rsvpContent = page.locator('[data-testid*="rsvp"], [data-testid*="participation"], .rsvp-list, .participants-list').first()
     if (await rsvpContent.count() > 0) {
       await rsvpContent.screenshot({
         path: 'test-results/rsvp-content-detail.png'
@@ -312,7 +321,10 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
 
     // Get Rope Social event ID
     const eventsResponse = await page.request.get('http://localhost:5655/api/events')
-    const events = await eventsResponse.json()
+    const eventsData = await eventsResponse.json()
+
+    // Handle wrapped API response structure
+    const events = eventsData.success ? eventsData.data : (Array.isArray(eventsData) ? eventsData : [])
     const ropeSocial = events.find((e: any) => e.title?.includes('Rope Social'))
 
     if (!ropeSocial) {
@@ -468,7 +480,7 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
     }
 
     // Find Rope Social event and test its participation endpoint
-    const ropeSocial = events.find((e: any) => e.title?.includes('Rope Social'))
+    const ropeSocial = Array.isArray(events) ? events.find((e: any) => e.title?.includes('Rope Social')) : null
     if (ropeSocial) {
       const participationResponse = await page.request.get(`http://localhost:5655/api/admin/events/${ropeSocial.id}/participations`)
 

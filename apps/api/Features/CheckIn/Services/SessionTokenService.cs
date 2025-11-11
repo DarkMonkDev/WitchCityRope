@@ -20,6 +20,7 @@ public class SessionTokenService : ISessionTokenService
     private readonly ApplicationDbContext _context;
     private readonly ILogger<SessionTokenService> _logger;
     private readonly IMemoryCache _cache;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     // Token configuration constants
     private const int TOKEN_LENGTH = 64; // 512 bits for cryptographic strength
@@ -28,11 +29,13 @@ public class SessionTokenService : ISessionTokenService
     public SessionTokenService(
         ApplicationDbContext context,
         ILogger<SessionTokenService> logger,
-        IMemoryCache cache)
+        IMemoryCache cache,
+        IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
         _logger = logger;
         _cache = cache;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     /// <inheritdoc/>
@@ -97,8 +100,9 @@ public class SessionTokenService : ISessionTokenService
                 "Generated check-in session token {TokenId} for event {EventId} by admin {AdminId}, expires {ExpiresAt}",
                 sessionToken.Id, eventId, adminUserId, expiresAt);
 
-            // Generate check-in URL for frontend
-            var checkInUrl = $"http://localhost:5173/events/{eventId}/checkin?token={token}&event={eventId}";
+            // Generate check-in URL for frontend (uses dynamically discovered frontend URL)
+            var frontendUrl = GetFrontendUrl();
+            var checkInUrl = $"{frontendUrl}/events/{eventId}/checkin?token={token}&event={eventId}";
 
             return Result<SessionTokenResponse>.Success(new SessionTokenResponse
             {
@@ -285,12 +289,15 @@ public class SessionTokenService : ISessionTokenService
                 .OrderByDescending(t => t.CreatedAt)
                 .ToListAsync(cancellationToken);
 
+            // Get frontend URL dynamically from request
+            var frontendUrl = GetFrontendUrl();
+
             var responses = tokens.Select(t => new SessionTokenResponse
             {
                 Token = t.Token,
                 EventId = t.EventId,
                 EventTitle = t.Event?.Title ?? "Unknown Event",
-                CheckInUrl = $"http://localhost:5173/events/{t.EventId}/checkin?token={t.Token}&event={t.EventId}",
+                CheckInUrl = $"{frontendUrl}/events/{t.EventId}/checkin?token={t.Token}&event={t.EventId}",
                 CreatedAt = t.CreatedAt,
                 ExpiresAt = t.ExpiresAt
             }).ToList();
@@ -306,6 +313,45 @@ public class SessionTokenService : ISessionTokenService
             _logger.LogError(ex, "Error retrieving active tokens for event {EventId}", eventId);
             return Result<List<SessionTokenResponse>>.Failure("Failed to retrieve active tokens");
         }
+    }
+
+    /// <summary>
+    /// Get frontend URL dynamically from HTTP request context
+    /// Discovers the URL from Origin/Referer headers or request host
+    /// Ensures check-in links work in any environment without hardcoded configuration
+    /// </summary>
+    private string GetFrontendUrl()
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext == null)
+        {
+            _logger.LogWarning("HttpContext is null, falling back to localhost");
+            return "http://localhost:5173"; // Fallback for non-HTTP contexts (e.g., background jobs)
+        }
+
+        // Try Origin header first (most reliable for CORS requests)
+        var origin = httpContext.Request.Headers["Origin"].ToString();
+        if (!string.IsNullOrEmpty(origin))
+        {
+            _logger.LogDebug("Frontend URL discovered from Origin header: {Url}", origin);
+            return origin;
+        }
+
+        // Try Referer header (contains the page that made the request)
+        var referer = httpContext.Request.Headers["Referer"].ToString();
+        if (!string.IsNullOrEmpty(referer))
+        {
+            var uri = new Uri(referer);
+            var url = $"{uri.Scheme}://{uri.Authority}";
+            _logger.LogDebug("Frontend URL discovered from Referer header: {Url}", url);
+            return url;
+        }
+
+        // Fallback to request host (API host, but may not match frontend)
+        var request = httpContext.Request;
+        var fallbackUrl = $"{request.Scheme}://{request.Host}";
+        _logger.LogDebug("Frontend URL fallback to request host: {Url}", fallbackUrl);
+        return fallbackUrl;
     }
 
     /// <summary>

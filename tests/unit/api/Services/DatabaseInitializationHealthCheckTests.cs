@@ -82,10 +82,10 @@ public class DatabaseInitializationHealthCheckTests : DatabaseTestBase
     {
         // Arrange
         SetInitializationCompleted(true);
-        
+
         // Add some real data to the database
-        var testUser = CreateTestUser();
-        var testEvent = CreateTestEvent();
+        var testUser = CreateTestUserDirectly();
+        var testEvent = CreateTestEventDirectly();
         DbContext.Events.Add(testEvent);
         await DbContext.SaveChangesAsync();
 
@@ -226,13 +226,13 @@ public class DatabaseInitializationHealthCheckTests : DatabaseTestBase
         // Add test data to real database
         for (int i = 0; i < 15; i++)
         {
-            var user = CreateTestUser($"user{i}@example.com", $"User{i}");
+            var user = CreateTestUserDirectly($"user{i}@example.com", $"User{i}");
             DbContext.Users.Add(user);
         }
-        
+
         for (int i = 0; i < 8; i++)
         {
-            var evt = CreateTestEvent($"Event {i}");
+            var evt = CreateTestEventDirectly($"Event {i}");
             DbContext.Events.Add(evt);
         }
         await DbContext.SaveChangesAsync();
@@ -333,13 +333,13 @@ public class DatabaseInitializationHealthCheckTests : DatabaseTestBase
         // Add test data
         for (int i = 0; i < 5; i++)
         {
-            var user = CreateTestUser($"concurrent{i}@example.com", $"ConcurrentUser{i}");
+            var user = CreateTestUserDirectly($"concurrent{i}@example.com", $"ConcurrentUser{i}");
             DbContext.Users.Add(user);
         }
 
         for (int i = 0; i < 10; i++)
         {
-            var evt = CreateTestEvent($"Concurrent Event {i}");
+            var evt = CreateTestEventDirectly($"Concurrent Event {i}");
             DbContext.Events.Add(evt);
         }
         await DbContext.SaveChangesAsync();
@@ -385,10 +385,10 @@ public class DatabaseInitializationHealthCheckTests : DatabaseTestBase
     {
         // Arrange
         SetInitializationCompleted(true);
-        
+
         // Add minimal test data
-        var user = CreateTestUser();
-        var evt = CreateTestEvent();
+        var user = CreateTestUserDirectly();
+        var evt = CreateTestEventDirectly();
         DbContext.Users.Add(user);
         DbContext.Events.Add(evt);
         await DbContext.SaveChangesAsync();

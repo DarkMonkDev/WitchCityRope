@@ -51,154 +51,30 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
 ---
 
-## Automated Restart Script
+## How to Use This Skill
+
+**Executable Script**: `execute.sh`
 
 ```bash
-#!/bin/bash
-# WitchCityRope Container Restart - Correct Procedure
-# SINGLE SOURCE OF TRUTH - DO NOT DUPLICATE
+# From project root
+bash .claude/skills/container-restart/execute.sh
 
-set -e  # Exit on error
-
-echo "🔄 WitchCityRope Container Restart"
-echo "=================================="
-echo ""
-
-# Step 1: Stop existing containers
-echo "1️⃣  Stopping containers..."
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
-echo "   ✅ Containers stopped"
-echo ""
-
-# Step 2: Start with development overlay (CRITICAL)
-echo "2️⃣  Starting containers with dev overlay..."
-echo "   Using: docker-compose.yml + docker-compose.dev.yml"
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
-
-echo "   ✅ Containers starting..."
-echo ""
-
-# Alternative: Use helper script (equivalent)
-# ./dev.sh
-
-# Step 3: Wait for containers to initialize
-echo "3️⃣  Waiting for initialization..."
-sleep 15
-echo "   ✅ Initial wait complete"
-echo ""
-
-# Step 4: Check container status
-echo "4️⃣  Checking container status..."
-docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep witchcity
-
-RUNNING_COUNT=$(docker ps --format "{{.Names}}" | grep -c witchcity || true)
-if [ "$RUNNING_COUNT" -ne 3 ]; then
-    echo "   ❌ ERROR: Expected 3 containers, found $RUNNING_COUNT"
-    echo "   Run: docker ps"
-    exit 1
-fi
-echo "   ✅ All 3 containers running"
-echo ""
-
-# Step 5: Check for compilation errors (CRITICAL)
-echo "5️⃣  Checking for compilation errors..."
-echo ""
-
-# Check Web container
-echo "   Web container logs:"
-WEB_ERRORS=$(docker logs witchcity-web --tail 50 2>&1 | grep -i "error" | grep -v "0 error" || true)
-if [ -n "$WEB_ERRORS" ]; then
-    echo "   ❌ COMPILATION ERRORS IN WEB:"
-    echo "$WEB_ERRORS"
-    echo ""
-    echo "   FIX SOURCE CODE AND RESTART"
-    exit 1
-fi
-echo "   ✅ No web compilation errors"
-
-# Check API container
-echo ""
-echo "   API container logs:"
-API_ERRORS=$(docker logs witchcity-api --tail 50 2>&1 | grep -i "error" | grep -v "0 error" || true)
-if [ -n "$API_ERRORS" ]; then
-    echo "   ❌ COMPILATION ERRORS IN API:"
-    echo "$API_ERRORS"
-    echo ""
-    echo "   FIX SOURCE CODE AND RESTART"
-    exit 1
-fi
-echo "   ✅ No API compilation errors"
-echo ""
-
-# Step 6: Wait for services to be ready
-echo "6️⃣  Waiting for services to be ready..."
-sleep 10
-echo "   ✅ Services initializing..."
-echo ""
-
-# Step 7: Verify health endpoints
-echo "7️⃣  Verifying health endpoints..."
-
-# Web service
-if curl -f http://localhost:5173 > /dev/null 2>&1; then
-    echo "   ✅ Web service healthy (http://localhost:5173)"
-else
-    echo "   ❌ Web service unhealthy"
-    echo "   Check logs: docker logs witchcity-web"
-    exit 1
-fi
-
-# API service
-if curl -f http://localhost:5653/health > /dev/null 2>&1; then
-    echo "   ✅ API service healthy (http://localhost:5653)"
-else
-    echo "   ❌ API service unhealthy"
-    echo "   Check logs: docker logs witchcity-api"
-    exit 1
-fi
-
-# Database health
-if curl -f http://localhost:5653/health/database > /dev/null 2>&1; then
-    echo "   ✅ Database healthy"
-else
-    echo "   ❌ Database unhealthy"
-    echo "   Check logs: docker logs witchcity-db"
-    exit 1
-fi
-
-echo ""
-
-# Step 8: Verify seed data
-echo "8️⃣  Checking database seed data..."
-SEED_COUNT=$(PGPASSWORD=WitchCity2024! psql -h localhost -p 5433 -U postgres -d witchcityrope_dev -t -c "SELECT COUNT(*) FROM auth.\"Users\" WHERE \"Email\" LIKE '%@witchcityrope.com';" 2>/dev/null || echo "0")
-
-if [ "$SEED_COUNT" -lt 5 ]; then
-    echo "   ⚠️  WARNING: Low seed data count ($SEED_COUNT test users)"
-    echo "   Expected at least 5 test accounts"
-    echo "   Run: ./scripts/seed-database.sh"
-else
-    echo "   ✅ Database seeded ($SEED_COUNT test users)"
-fi
-
-echo ""
-echo "✅ Container Restart Complete"
-echo "=============================="
-echo ""
-echo "📊 Status Summary:"
-echo "   • Containers: 3/3 running"
-echo "   • Compilation: No errors"
-echo "   • Health checks: All passing"
-echo "   • Database: Seeded"
-echo ""
-echo "🎯 Ready for:"
-echo "   • Development"
-echo "   • Running tests (unit, integration, E2E)"
-echo "   • Making code changes"
-echo ""
-
-# Return success
-exit 0
+# Skip confirmation prompt (for automation)
+SKIP_CONFIRMATION=true bash .claude/skills/container-restart/execute.sh
 ```
+
+**What the script does**:
+1. Shows pre-flight information (purpose, when/when NOT to use)
+2. Requires confirmation before proceeding (skippable with env var)
+3. Validates prerequisites (Docker running, project root, dev overlay exists)
+4. Stops existing containers
+5. Starts containers with dev overlay (`docker-compose.yml + docker-compose.dev.yml`)
+6. Checks for compilation errors in Web and API containers
+7. Verifies health endpoints (Web, API, Database)
+8. Checks database seed data
+9. Reports status summary
+
+**Script includes safety checks** - it will not run blindly without showing you what it's about to do.
 
 ---
 
@@ -206,11 +82,14 @@ exit 0
 
 ### Using the Skill (Recommended)
 ```bash
-# From project root
-bash .claude/skills/container-restart.md
+# From project root - with confirmation prompt
+bash .claude/skills/container-restart/execute.sh
+
+# For automation - skip confirmation
+SKIP_CONFIRMATION=true bash .claude/skills/container-restart/execute.sh
 ```
 
-### Manual Steps (If skill unavailable)
+### Manual Steps (If execute.sh unavailable)
 ```bash
 # Stop containers
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml down

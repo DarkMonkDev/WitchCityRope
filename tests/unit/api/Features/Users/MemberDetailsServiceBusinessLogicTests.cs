@@ -128,7 +128,7 @@ public class MemberDetailsServiceBusinessLogicTests : IAsyncLifetime
             EndDate = endDate ?? DateTime.UtcNow.AddDays(7).AddHours(2),
             Capacity = 20,
             EventType = eventType,
-            Location = "Test Location",
+            VenueId = 1, // Test venue ID (Location moved to Venue entity)
             IsPublished = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -140,31 +140,31 @@ public class MemberDetailsServiceBusinessLogicTests : IAsyncLifetime
         return evt;
     }
 
-    private async Task<EventParticipation> CreateTestParticipation(
+    private async Task<EventAttendance> CreateTestParticipation(
         Guid userId,
         Guid eventId,
-        ParticipationStatus status = ParticipationStatus.Active,
-        ParticipationType type = ParticipationType.RSVP)
+        AttendanceStatus status = AttendanceStatus.Active,
+        AttendanceType type = AttendanceType.RSVP)
     {
-        var participation = new EventParticipation
+        var participation = new EventAttendance
         {
             Id = Guid.NewGuid(),
             UserId = userId,
             EventId = eventId,
-            ParticipationType = type,
+            AttendanceType = type,
             Status = status,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             // Database constraint: CancelledAt must be set for Cancelled/Refunded status
-            CancelledAt = (status == ParticipationStatus.Cancelled || status == ParticipationStatus.Refunded)
+            CancelledAt = (status == AttendanceStatus.Cancelled || status == AttendanceStatus.Refunded)
                 ? DateTime.UtcNow
                 : null,
-            CancellationReason = (status == ParticipationStatus.Cancelled || status == ParticipationStatus.Refunded)
+            CancellationReason = (status == AttendanceStatus.Cancelled || status == AttendanceStatus.Refunded)
                 ? "Test cancellation"
                 : null
         };
 
-        _context.EventParticipations.Add(participation);
+        _context.EventAttendances.Add(participation);
         await _context.SaveChangesAsync();
 
         return participation;
@@ -183,9 +183,9 @@ public class MemberDetailsServiceBusinessLogicTests : IAsyncLifetime
         var activeEvent2 = await CreateTestEvent("Active Event 2");
         var cancelledEvent = await CreateTestEvent("Cancelled Event");
 
-        await CreateTestParticipation(user.Id, activeEvent1.Id, ParticipationStatus.Active);
-        await CreateTestParticipation(user.Id, activeEvent2.Id, ParticipationStatus.Active);
-        await CreateTestParticipation(user.Id, cancelledEvent.Id, ParticipationStatus.Cancelled);
+        await CreateTestParticipation(user.Id, activeEvent1.Id, AttendanceStatus.Active);
+        await CreateTestParticipation(user.Id, activeEvent2.Id, AttendanceStatus.Active);
+        await CreateTestParticipation(user.Id, cancelledEvent.Id, AttendanceStatus.Cancelled);
 
         // Act
         var (success, response, error) = await _service.GetMemberDetailsAsync(user.Id);
@@ -193,8 +193,8 @@ public class MemberDetailsServiceBusinessLogicTests : IAsyncLifetime
         // Assert
         success.Should().BeTrue();
         response.Should().NotBeNull();
-        response!.ActiveRegistrations.Should().Be(2, "user has 2 active participations");
-        response.TotalEventsRegistered.Should().Be(3, "user has 3 total participations");
+        response!.FutureEvents.Should().Be(2, "user has 2 active participations");
+        response.TotalPastEventsRegistered.Should().Be(3, "user has 3 total participations");
     }
 
     [Fact]
@@ -218,9 +218,9 @@ public class MemberDetailsServiceBusinessLogicTests : IAsyncLifetime
             startDate: DateTime.UtcNow.AddDays(-7),
             endDate: DateTime.UtcNow.AddDays(-7).AddHours(2));
 
-        await CreateTestParticipation(user.Id, futureEvent.Id, ParticipationStatus.Active);
-        await CreateTestParticipation(user.Id, pastEvent1.Id, ParticipationStatus.Active);
-        await CreateTestParticipation(user.Id, pastEvent2.Id, ParticipationStatus.Active);
+        await CreateTestParticipation(user.Id, futureEvent.Id, AttendanceStatus.Active);
+        await CreateTestParticipation(user.Id, pastEvent1.Id, AttendanceStatus.Active);
+        await CreateTestParticipation(user.Id, pastEvent2.Id, AttendanceStatus.Active);
 
         // Act
         var (success, response, error) = await _service.GetMemberDetailsAsync(user.Id);
@@ -229,8 +229,8 @@ public class MemberDetailsServiceBusinessLogicTests : IAsyncLifetime
         success.Should().BeTrue();
         response.Should().NotBeNull();
         response!.TotalEventsAttended.Should().Be(2, "only past events with EndDate < UtcNow count as attended");
-        response.TotalEventsRegistered.Should().Be(3, "all participations count as registered");
-        response.ActiveRegistrations.Should().Be(3, "all active participations count");
+        response.TotalPastEventsRegistered.Should().Be(3, "all participations count as registered");
+        response.FutureEvents.Should().Be(3, "all active participations count");
         response.LastEventAttended.Should().BeCloseTo(pastEvent2.EndDate, TimeSpan.FromSeconds(1),
             "most recent past event should be last attended");
     }
@@ -247,8 +247,8 @@ public class MemberDetailsServiceBusinessLogicTests : IAsyncLifetime
         // Assert
         success.Should().BeTrue();
         response.Should().NotBeNull();
-        response!.ActiveRegistrations.Should().Be(0, "new user has no active registrations");
-        response.TotalEventsRegistered.Should().Be(0, "new user has no event registrations");
+        response!.FutureEvents.Should().Be(0, "new user has no active registrations");
+        response.TotalPastEventsRegistered.Should().Be(0, "new user has no event registrations");
         response.TotalEventsAttended.Should().Be(0, "new user has not attended any events");
         // Note: Service returns DateTime? which defaults to null, but FirstOrDefaultAsync on DateTime returns DateTime.MinValue
         // This tests the actual service behavior - may return MinValue or null depending on query implementation
@@ -392,7 +392,7 @@ public class MemberDetailsServiceBusinessLogicTests : IAsyncLifetime
     #region 4. Participation Type Mapping Tests (2 tests)
 
     [Fact]
-    public async Task GetMemberEventHistory_MapsParticipationTypes()
+    public async Task GetMemberEventHistory_MapsAttendanceTypes()
     {
         // Arrange - Create user with RSVP and Ticket participations
         var user = await CreateTestUser();
@@ -400,8 +400,8 @@ public class MemberDetailsServiceBusinessLogicTests : IAsyncLifetime
         var socialEvent = await CreateTestEvent("Social Event", eventType: EventType.Social);
         var classEvent = await CreateTestEvent("Class Event", eventType: EventType.Class);
 
-        await CreateTestParticipation(user.Id, socialEvent.Id, type: ParticipationType.RSVP);
-        await CreateTestParticipation(user.Id, classEvent.Id, type: ParticipationType.Ticket);
+        await CreateTestParticipation(user.Id, socialEvent.Id, type: AttendanceType.RSVP);
+        await CreateTestParticipation(user.Id, classEvent.Id, type: AttendanceType.Ticket);
 
         // Act
         var (success, response, error) = await _service.GetEventHistoryAsync(user.Id);
@@ -419,11 +419,11 @@ public class MemberDetailsServiceBusinessLogicTests : IAsyncLifetime
     }
 
     [Theory]
-    [InlineData(ParticipationStatus.Active, "Active")]
-    [InlineData(ParticipationStatus.Cancelled, "Cancelled")]
-    [InlineData(ParticipationStatus.Refunded, "Refunded")]
-    [InlineData(ParticipationStatus.Waitlisted, "Waitlisted")]
-    public async Task GetMemberEventHistory_MapsParticipationStatuses(ParticipationStatus status, string expectedDisplay)
+    [InlineData(AttendanceStatus.Active, "Active")]
+    [InlineData(AttendanceStatus.Cancelled, "Cancelled")]
+    [InlineData(AttendanceStatus.Refunded, "Refunded")]
+    [InlineData(AttendanceStatus.Waitlisted, "Waitlisted")]
+    public async Task GetMemberEventHistory_MapsAttendanceStatuses(AttendanceStatus status, string expectedDisplay)
     {
         // Arrange - Create user with participation in each status
         var user = await CreateTestUser();
@@ -509,10 +509,10 @@ public class MemberDetailsServiceBusinessLogicTests : IAsyncLifetime
         notesSuccess.Should().BeTrue();
         notes.Should().NotBeNull();
         notes!.Should().HaveCount(1, "status change creates audit note");
-        notes[0].NoteType.Should().Be("StatusChange");
+        notes[0].Type.Should().Be("StatusChange");
         notes[0].Content.Should().Contain("INACTIVE");
         notes[0].Content.Should().Contain("Community guideline violation");
-        notes[0].AuthorId.Should().Be(adminUser.Id);
+        notes[0].AuthorSceneName.Should().NotBeNullOrEmpty();
     }
 
     #endregion
@@ -602,11 +602,11 @@ public class MemberDetailsServiceBusinessLogicTests : IAsyncLifetime
         // Arrange - Create user with ticket purchase including payment amount
         var user = await CreateTestUser();
         var evt = await CreateTestEvent("Paid Class", eventType: EventType.Class);
-        var participation = await CreateTestParticipation(user.Id, evt.Id, type: ParticipationType.Ticket);
+        var participation = await CreateTestParticipation(user.Id, evt.Id, type: AttendanceType.Ticket);
 
         // Update metadata with payment amount
         participation.Metadata = "{\"amount\": 35.00}";
-        _context.EventParticipations.Update(participation);
+        _context.EventAttendances.Update(participation);
         await _context.SaveChangesAsync();
 
         // Act

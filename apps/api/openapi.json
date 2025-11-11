@@ -9342,11 +9342,7 @@
           },
           "venueId": {
             "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "location": {
-            "type": "string"
+            "format": "int32"
           },
           "eventType": {
             "type": "string"
@@ -9426,11 +9422,7 @@
           },
           "venueId": {
             "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "location": {
-            "type": "string"
+            "format": "int32"
           },
           "eventType": {
             "type": "string"
@@ -12200,10 +12192,6 @@
           "endDate": {
             "type": "string",
             "format": "date-time",
-            "nullable": true
-          },
-          "location": {
-            "type": "string",
             "nullable": true
           },
           "venueId": {

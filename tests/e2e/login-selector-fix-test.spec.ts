@@ -34,7 +34,7 @@ test.describe('Login Selector Fix - AuthHelper Approach', () => {
     console.log('✅ TESTING WORKING SELECTORS (data-testid approach):')
     
     // These are the correct selectors from the working solution
-    const workingEmailSelector = '[data-testid="email-input"]'
+    const workingEmailSelector = '[data-testid="email-or-scenename-input"]'
     const workingPasswordSelector = '[data-testid="password-input"]'
     const workingLoginButtonSelector = '[data-testid="login-button"]'
     
@@ -84,13 +84,14 @@ test.describe('Login Selector Fix - AuthHelper Approach', () => {
     const elements = await page.evaluate(() => {
       const form = document.querySelector('[data-testid="login-form"]')
       if (!form) return { error: 'Login form not found' }
-      
+
       return {
-        emailInput: document.querySelector('[data-testid="email-input"]') ? 'EXISTS' : 'NOT FOUND',
+        emailInput: document.querySelector('[data-testid="email-or-scenename-input"]') ? 'EXISTS' : 'NOT FOUND',
         passwordInput: document.querySelector('[data-testid="password-input"]') ? 'EXISTS' : 'NOT FOUND',
         loginButton: document.querySelector('[data-testid="login-button"]') ? 'EXISTS' : 'NOT FOUND',
         brokenEmailSelector: document.querySelector('input[placeholder="your@email.com"]') ? 'EXISTS' : 'NOT FOUND',
-        brokenButtonSelector: document.querySelector('button[type="submit"]:has-text("Login")') ? 'EXISTS' : 'NOT FOUND'
+        // Note: :has-text() is Playwright-specific and doesn't work in native DOM
+        brokenButtonSelector: 'N/A (requires Playwright selector)'
       }
     })
     

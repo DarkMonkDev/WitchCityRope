@@ -81,7 +81,7 @@ test.describe('Demo: Working Login with Mantine UI', () => {
     await page.goto('http://localhost:5173/login')
     await page.waitForLoadState('networkidle')
     
-    await page.locator('[data-testid="email-input"]').fill('admin@witchcityrope.com')
+    await page.locator('[data-testid="email-or-scenename-input"]').fill('admin@witchcityrope.com')
     await page.locator('[data-testid="password-input"]').fill('Test123!')
     await page.locator('[data-testid="login-button"]').click()
     

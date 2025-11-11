@@ -72,7 +72,7 @@ public class VolunteerServiceTests : IAsyncLifetime
             Id = Guid.NewGuid(),
             Title = title,
             Description = $"Description for {title}",
-            Location = "Test Location",
+            VenueId = 1, // Test venue ID (Location moved to Venue entity)
             EventType = EventType.Class,
             Capacity = capacity,
             IsPublished = true,
@@ -254,12 +254,12 @@ public class VolunteerServiceTests : IAsyncLifetime
         signup.Should().NotBeNull();
 
         // Verify auto-RSVP created
-        var participation = await _context.EventParticipations
+        var participation = await _context.EventAttendances
             .FirstOrDefaultAsync(ep => ep.EventId == testEvent.Id && ep.UserId == user.Id);
 
         participation.Should().NotBeNull();
-        participation!.ParticipationType.Should().Be(ParticipationType.RSVP);
-        participation.Status.Should().Be(ParticipationStatus.Active);
+        participation!.AttendanceType.Should().Be(AttendanceType.RSVP);
+        participation.Status.Should().Be(AttendanceStatus.Active);
     }
 
     [Fact]
@@ -271,16 +271,16 @@ public class VolunteerServiceTests : IAsyncLifetime
         var user = await CreateTestUser("volunteer@example.com", "TestVolunteer");
 
         // Create existing participation
-        var existingParticipation = new EventParticipation
+        var existingParticipation = new EventAttendance
         {
             Id = Guid.NewGuid(),
             EventId = testEvent.Id,
             UserId = user.Id,
-            ParticipationType = ParticipationType.RSVP,
-            Status = ParticipationStatus.Active,
+            AttendanceType = AttendanceType.RSVP,
+            Status = AttendanceStatus.Active,
             CreatedAt = DateTime.UtcNow
         };
-        _context.EventParticipations.Add(existingParticipation);
+        _context.EventAttendances.Add(existingParticipation);
         await _context.SaveChangesAsync();
 
         var request = new VolunteerSignupRequest();
@@ -295,7 +295,7 @@ public class VolunteerServiceTests : IAsyncLifetime
         success.Should().BeTrue();
 
         // Verify no duplicate participation created
-        var participationCount = await _context.EventParticipations
+        var participationCount = await _context.EventAttendances
             .CountAsync(ep => ep.EventId == testEvent.Id && ep.UserId == user.Id);
 
         participationCount.Should().Be(1, "Should not create duplicate participation");
@@ -407,16 +407,16 @@ public class VolunteerServiceTests : IAsyncLifetime
 
     private async Task AddParticipantToEvent(Guid eventId, Guid userId)
     {
-        var participation = new EventParticipation
+        var participation = new EventAttendance
         {
             Id = Guid.NewGuid(),
             EventId = eventId,
             UserId = userId,
-            ParticipationType = ParticipationType.RSVP,
-            Status = ParticipationStatus.Active,
+            AttendanceType = AttendanceType.RSVP,
+            Status = AttendanceStatus.Active,
             CreatedAt = DateTime.UtcNow
         };
-        _context.EventParticipations.Add(participation);
+        _context.EventAttendances.Add(participation);
         await _context.SaveChangesAsync();
     }
 
@@ -531,7 +531,7 @@ public class VolunteerServiceTests : IAsyncLifetime
             Id = Guid.NewGuid(),
             Title = "Started Event",
             Description = "Event in progress",
-            Location = "Test Location",
+            VenueId = 1, // Test venue ID (Location moved to Venue entity)
             EventType = EventType.Class,
             Capacity = 25,
             IsPublished = true,
@@ -583,7 +583,7 @@ public class VolunteerServiceTests : IAsyncLifetime
             Id = Guid.NewGuid(),
             Title = "Future Event",
             Description = "Event not started",
-            Location = "Test Location",
+            VenueId = 1, // Test venue ID (Location moved to Venue entity)
             EventType = EventType.Class,
             Capacity = 25,
             IsPublished = true,

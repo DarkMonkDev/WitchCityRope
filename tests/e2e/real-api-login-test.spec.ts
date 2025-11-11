@@ -130,8 +130,14 @@ test.describe('Real API Authentication Flow', () => {
     console.log(`Current URL after login: ${currentUrl}`);
 
     // Check if we were redirected to dashboard or another authenticated page
-    const isAuthenticated = !currentUrl.includes('/login') || 
-      await page.locator('text=Dashboard, text=Welcome, text=Logout, [data-testid="user-menu"]').count() > 0;
+    // Hard assertion: If still on login page, verify auth elements exist
+    let isAuthenticated = !currentUrl.includes('/login');
+    if (currentUrl.includes('/login')) {
+      // Still on login page - check for auth elements with hard assertion
+      const authElements = page.locator('text=Dashboard, text=Welcome, text=Logout, [data-testid="user-menu"]');
+      await expect(authElements).toBeVisible({ timeout: 5000 });
+      isAuthenticated = true;
+    }
     
     // Step 6: Check for infinite loop patterns
     console.log('Step 6: Checking for infinite loop issues...');
@@ -225,14 +231,17 @@ test.describe('Real API Authentication Flow', () => {
     const passwordInput = page.locator('input[type="password"], input[name="password"], [data-testid="password"]').first();
     const loginButton = page.locator('button[type="submit"], button:has-text("Login"), button:has-text("Sign In"), [data-testid="login-button"]').first();
 
-    if (await emailInput.isVisible() && await passwordInput.isVisible()) {
-      await emailInput.fill('test@witchcityrope.com');
-      await passwordInput.fill('Test1234');
-      await loginButton.click();
-      
-      // Wait for potential redirect
-      await page.waitForTimeout(3000);
-    }
+    // Hard assertions: Verify form elements are visible before interacting
+    await expect(emailInput).toBeVisible({ timeout: 5000 });
+    await expect(passwordInput).toBeVisible({ timeout: 5000 });
+    await expect(loginButton).toBeVisible({ timeout: 5000 });
+
+    await emailInput.fill('test@witchcityrope.com');
+    await passwordInput.fill('Test1234');
+    await loginButton.click();
+
+    // Wait for potential redirect
+    await page.waitForTimeout(3000);
 
     const urlAfterLogin = page.url();
     
@@ -247,15 +256,24 @@ test.describe('Real API Authentication Flow', () => {
 
     console.log(`URL after login: ${urlAfterLogin}`);
     console.log(`URL after refresh: ${urlAfterRefresh}`);
-    
-    // Check for authentication state indicators
-    const hasAuthElements = await page.locator('text=Dashboard, text=Welcome, text=Logout, [data-testid="user-menu"]').count() > 0;
-    
+
+    // Check for authentication state indicators with hard assertion
+    let hasAuthElements = false;
+    let authStatePersisted = !urlAfterRefresh.includes('/login');
+
+    if (urlAfterRefresh.includes('/login')) {
+      // If still on login page after refresh, verify auth elements exist
+      const authElements = page.locator('text=Dashboard, text=Welcome, text=Logout, [data-testid="user-menu"]');
+      await expect(authElements).toBeVisible({ timeout: 5000 });
+      hasAuthElements = true;
+      authStatePersisted = true;
+    }
+
     const persistenceReport = {
       urlAfterLogin,
       urlAfterRefresh,
       hasAuthElements,
-      authStatePersisted: !urlAfterRefresh.includes('/login') || hasAuthElements,
+      authStatePersisted,
       consoleErrors: consoleErrors.length,
       timestamp: new Date().toISOString()
     };

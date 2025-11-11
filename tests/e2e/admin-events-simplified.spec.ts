@@ -2,7 +2,26 @@ import { test, expect } from '@playwright/test';
 import { AuthHelper } from './helpers/auth.helper';
 
 test.describe('Admin Events - Simplified Comprehensive Testing', () => {
+  let consoleErrors: string[] = [];
+  let pageErrors: string[] = [];
+
   test.beforeEach(async ({ page }) => {
+    // Reset error tracking
+    consoleErrors = [];
+    pageErrors = [];
+
+    // Monitor console errors
+    page.on('console', msg => {
+      if (msg.type() === 'error') {
+        consoleErrors.push(msg.text());
+      }
+    });
+
+    // Monitor page errors
+    page.on('pageerror', error => {
+      pageErrors.push(error.toString());
+    });
+
     // Use AuthHelper for consistent login
     const loginSuccess = await AuthHelper.loginAs(page, 'admin');
     expect(loginSuccess).toBeTruthy();
@@ -16,7 +35,7 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
       // Verify we're on the admin events page
       const currentUrl = page.url();
       expect(currentUrl).toContain('/admin/events');
-      
+
       console.log('✅ Admin events page accessible');
     });
 
@@ -27,30 +46,29 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
         'button:has-text("Create")',
         'button:has-text("New Event")',
         'button:has-text("Add Event")',
-        '.admin-', 
+        '.admin-',
         '[data-testid*="admin"]',
         '[data-testid*="event"]',
         'table',
         '.event-'
       ];
-      
+
       let foundElements = 0;
       for (const selector of possibleElements) {
-        const count = await page.locator(selector).count();
+        const locator = page.locator(selector);
+        const count = await locator.count();
+
+        // HARD ASSERTION: If we find elements, they should be valid
         if (count > 0) {
+          await expect(locator.first()).toBeAttached();
           foundElements++;
           console.log(`✅ Found ${count} elements matching: ${selector}`);
         }
       }
-      
-      if (foundElements > 0) {
-        console.log(`✅ Found ${foundElements} types of admin interface elements`);
-      } else {
-        console.log('⚠️  No admin interface elements found - may need implementation');
-      }
-      
-      // Always pass to continue testing
-      expect(true).toBeTruthy();
+
+      // HARD ASSERTION: Must find at least some admin interface elements
+      expect(foundElements).toBeGreaterThan(0);
+      console.log(`✅ Found ${foundElements} types of admin interface elements`);
     });
   });
 
@@ -65,51 +83,54 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
         'a:has-text("Create")',
         'a:has-text("New")'
       ];
-      
+
       let createButton = null;
       for (const selector of createSelectors) {
         const element = page.locator(selector).first();
-        if (await element.count() > 0) {
+        const count = await element.count();
+
+        // HARD ASSERTION: Element must exist and be visible before clicking
+        if (count > 0) {
+          await expect(element).toBeVisible();
           createButton = element;
           console.log(`✅ Found create button: ${selector}`);
           break;
         }
       }
-      
-      if (createButton) {
-        await createButton.click();
-        await page.waitForTimeout(2000); // Give time for interface to load
-        
-        // Look for form or modal
-        const formElements = [
-          '[data-testid*="event-form"]',
-          '[data-testid*="modal"]',
-          'form',
-          '[role="dialog"]',
-          '.modal',
-          'input[placeholder*="name" i]',
-          'input[type="date"]'
-        ];
-        
-        let foundForm = false;
-        for (const selector of formElements) {
-          const count = await page.locator(selector).count();
-          if (count > 0) {
-            foundForm = true;
-            console.log(`✅ Event creation interface found: ${selector} (${count})`);
-          }
+
+      // HARD ASSERTION: Must find a create button
+      expect(createButton).not.toBeNull();
+
+      await createButton!.click();
+      await page.waitForTimeout(2000); // Give time for interface to load
+
+      // Look for form or modal
+      const formElements = [
+        '[data-testid*="event-form"]',
+        '[data-testid*="modal"]',
+        'form',
+        '[role="dialog"]',
+        '.modal',
+        'input[placeholder*="name" i]',
+        'input[type="date"]'
+      ];
+
+      let foundForm = false;
+      for (const selector of formElements) {
+        const locator = page.locator(selector);
+        const count = await locator.count();
+
+        // HARD ASSERTION: If form elements exist, they should be attached
+        if (count > 0) {
+          await expect(locator.first()).toBeAttached();
+          foundForm = true;
+          console.log(`✅ Event creation interface found: ${selector} (${count})`);
         }
-        
-        if (foundForm) {
-          console.log('✅ Event creation interface accessible');
-        } else {
-          console.log('⚠️  Event creation interface not found');
-        }
-      } else {
-        console.log('⚠️  No create event button found');
       }
-      
-      expect(true).toBeTruthy();
+
+      // HARD ASSERTION: Must find form interface after clicking create
+      expect(foundForm).toBeTruthy();
+      console.log('✅ Event creation interface accessible');
     });
 
     test('basic form fields exist in event creation', async ({ page }) => {
@@ -120,48 +141,53 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
         'button:has-text("New")',
         'button:has-text("Add")'
       ];
-      
-      let clicked = false;
+
+      let createButton = null;
       for (const selector of createSelectors) {
         const element = page.locator(selector).first();
-        if (await element.count() > 0 && await element.isVisible()) {
-          await element.click();
-          clicked = true;
+        const count = await element.count();
+
+        // HARD ASSERTION: Button must be visible and enabled
+        if (count > 0) {
+          await expect(element).toBeVisible();
+          await expect(element).toBeEnabled();
+          createButton = element;
           break;
         }
       }
-      
-      if (clicked) {
-        await page.waitForTimeout(2000);
-        
-        // Look for basic form fields
-        const fieldTypes = [
-          { type: 'name', selectors: ['[data-testid*="name"]', 'input[placeholder*="name" i]', 'input[name="name"]'] },
-          { type: 'date', selectors: ['[data-testid*="date"]', 'input[type="date"]', 'input[name="date"]'] },
-          { type: 'time', selectors: ['[data-testid*="time"]', 'input[type="time"]', 'input[name*="time"]'] },
-          { type: 'description', selectors: ['[data-testid*="description"]', 'textarea', 'input[name="description"]'] }
-        ];
-        
-        for (const fieldType of fieldTypes) {
-          let found = false;
-          for (const selector of fieldType.selectors) {
-            const count = await page.locator(selector).count();
-            if (count > 0) {
-              console.log(`✅ ${fieldType.type} field found: ${selector}`);
-              found = true;
-              break;
-            }
-          }
-          
-          if (!found) {
-            console.log(`⚠️  ${fieldType.type} field not found`);
+
+      // HARD ASSERTION: Must find create button
+      expect(createButton).not.toBeNull();
+
+      await createButton!.click();
+      await page.waitForTimeout(2000);
+
+      // Look for basic form fields
+      const fieldTypes = [
+        { type: 'name', selectors: ['[data-testid*="name"]', 'input[placeholder*="name" i]', 'input[name="name"]'] },
+        { type: 'date', selectors: ['[data-testid*="date"]', 'input[type="date"]', 'input[name="date"]'] },
+        { type: 'time', selectors: ['[data-testid*="time"]', 'input[type="time"]', 'input[name*="time"]'] },
+        { type: 'description', selectors: ['[data-testid*="description"]', 'textarea', 'input[name="description"]'] }
+      ];
+
+      for (const fieldType of fieldTypes) {
+        let foundField = false;
+        for (const selector of fieldType.selectors) {
+          const locator = page.locator(selector);
+          const count = await locator.count();
+
+          // HARD ASSERTION: Field must be visible
+          if (count > 0) {
+            await expect(locator.first()).toBeVisible();
+            console.log(`✅ ${fieldType.type} field found: ${selector}`);
+            foundField = true;
+            break;
           }
         }
-      } else {
-        console.log('⚠️  Could not access event creation interface');
+
+        // HARD ASSERTION: Each field type must exist
+        expect(foundField).toBeTruthy();
       }
-      
-      expect(true).toBeTruthy();
     });
   });
 
@@ -169,16 +195,27 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
     test('session management interface exists', async ({ page }) => {
       // Try to access event creation/edit
       const createSelectors = ['[data-testid="button-create-event"]', 'button:has-text("Create")'];
-      
+
+      let createButton = null;
       for (const selector of createSelectors) {
         const element = page.locator(selector).first();
-        if (await element.count() > 0 && await element.isVisible()) {
-          await element.click();
-          await page.waitForTimeout(2000);
+        const count = await element.count();
+
+        // HARD ASSERTION: Button must be visible and enabled
+        if (count > 0) {
+          await expect(element).toBeVisible();
+          await expect(element).toBeEnabled();
+          createButton = element;
           break;
         }
       }
-      
+
+      // HARD ASSERTION: Must find create button
+      expect(createButton).not.toBeNull();
+
+      await createButton!.click();
+      await page.waitForTimeout(2000);
+
       // Look for session-related elements
       const sessionElements = [
         '[data-testid*="session"]',
@@ -188,38 +225,49 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
         'button:has-text("Add Session")',
         '[data-testid*="add-session"]'
       ];
-      
+
       let sessionCount = 0;
       for (const selector of sessionElements) {
-        const count = await page.locator(selector).count();
-        sessionCount += count;
+        const locator = page.locator(selector);
+        const count = await locator.count();
+
+        // HARD ASSERTION: If session elements exist, they should be attached
         if (count > 0) {
+          await expect(locator.first()).toBeAttached();
+          sessionCount += count;
           console.log(`✅ Session element found: ${selector} (${count})`);
         }
       }
-      
-      if (sessionCount > 0) {
-        console.log('✅ Session management interface detected');
-      } else {
-        console.log('⚠️  Session management interface not visible');
-      }
-      
-      expect(true).toBeTruthy();
+
+      // HARD ASSERTION: Must find session management interface
+      expect(sessionCount).toBeGreaterThan(0);
+      console.log('✅ Session management interface detected');
     });
 
     test('ticket management interface exists', async ({ page }) => {
       // Try to access event creation/edit
       const createSelectors = ['[data-testid="button-create-event"]', 'button:has-text("Create")'];
-      
+
+      let createButton = null;
       for (const selector of createSelectors) {
         const element = page.locator(selector).first();
-        if (await element.count() > 0 && await element.isVisible()) {
-          await element.click();
-          await page.waitForTimeout(2000);
+        const count = await element.count();
+
+        // HARD ASSERTION: Button must be visible and enabled
+        if (count > 0) {
+          await expect(element).toBeVisible();
+          await expect(element).toBeEnabled();
+          createButton = element;
           break;
         }
       }
-      
+
+      // HARD ASSERTION: Must find create button
+      expect(createButton).not.toBeNull();
+
+      await createButton!.click();
+      await page.waitForTimeout(2000);
+
       // Look for ticket-related elements
       const ticketElements = [
         '[data-testid*="ticket"]',
@@ -230,76 +278,81 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
         '[data-testid*="add-ticket"]',
         'input[placeholder*="price"]'
       ];
-      
+
       let ticketCount = 0;
       for (const selector of ticketElements) {
-        const count = await page.locator(selector).count();
-        ticketCount += count;
+        const locator = page.locator(selector);
+        const count = await locator.count();
+
+        // HARD ASSERTION: If ticket elements exist, they should be attached
         if (count > 0) {
+          await expect(locator.first()).toBeAttached();
+          ticketCount += count;
           console.log(`✅ Ticket element found: ${selector} (${count})`);
         }
       }
-      
-      if (ticketCount > 0) {
-        console.log('✅ Ticket management interface detected');
-      } else {
-        console.log('⚠️  Ticket management interface not visible');
-      }
-      
-      expect(true).toBeTruthy();
+
+      // HARD ASSERTION: Must find ticket management interface
+      expect(ticketCount).toBeGreaterThan(0);
+      console.log('✅ Ticket management interface detected');
     });
 
     test('tabbed interface for event management', async ({ page }) => {
       // Try to access event creation/edit
       const createSelectors = ['[data-testid="button-create-event"]', 'button:has-text("Create")'];
-      
-      let interfaceOpened = false;
+
+      let createButton = null;
       for (const selector of createSelectors) {
         const element = page.locator(selector).first();
-        if (await element.count() > 0 && await element.isVisible()) {
-          await element.click();
-          await page.waitForTimeout(2000);
-          interfaceOpened = true;
+        const count = await element.count();
+
+        // HARD ASSERTION: Button must be visible and enabled
+        if (count > 0) {
+          await expect(element).toBeVisible();
+          await expect(element).toBeEnabled();
+          createButton = element;
           break;
         }
       }
-      
-      if (interfaceOpened) {
-        // Look for tab structure
-        const tabSelectors = [
-          '[data-testid*="tab"]',
-          '[role="tab"]',
-          '.tab',
-          '*:has-text("Setup")',
-          '*:has-text("Details")',
-          '*:has-text("Sessions")',
-          '*:has-text("Tickets")',
-          '*:has-text("RSVP")',
-          '*:has-text("Volunteers")'
-        ];
-        
-        let tabCount = 0;
-        const foundTabs: string[] = [];
-        
-        for (const selector of tabSelectors) {
-          const count = await page.locator(selector).count();
-          if (count > 0) {
-            tabCount += count;
-            foundTabs.push(`${selector} (${count})`);
-          }
+
+      // HARD ASSERTION: Must find create button
+      expect(createButton).not.toBeNull();
+
+      await createButton!.click();
+      await page.waitForTimeout(2000);
+
+      // Look for tab structure
+      const tabSelectors = [
+        '[data-testid*="tab"]',
+        '[role="tab"]',
+        '.tab',
+        '*:has-text("Setup")',
+        '*:has-text("Details")',
+        '*:has-text("Sessions")',
+        '*:has-text("Tickets")',
+        '*:has-text("RSVP")',
+        '*:has-text("Volunteers")'
+      ];
+
+      let tabCount = 0;
+      const foundTabs: string[] = [];
+
+      for (const selector of tabSelectors) {
+        const locator = page.locator(selector);
+        const count = await locator.count();
+
+        // HARD ASSERTION: If tabs exist, they should be attached
+        if (count > 0) {
+          await expect(locator.first()).toBeAttached();
+          tabCount += count;
+          foundTabs.push(`${selector} (${count})`);
         }
-        
-        if (tabCount > 0) {
-          console.log(`✅ Tabbed interface found with ${tabCount} tab elements:`);
-          foundTabs.forEach(tab => console.log(`  - ${tab}`));
-        } else {
-          console.log('⚠️  No tabbed interface detected - may be single-page form');
-        }
-      } else {
-        console.log('⚠️  Could not open event management interface');
       }
-      
-      expect(true).toBeTruthy();
+
+      // HARD ASSERTION: Must find tabbed interface
+      expect(tabCount).toBeGreaterThan(0);
+      console.log(`✅ Tabbed interface found with ${tabCount} tab elements:`);
+      foundTabs.forEach(tab => console.log(`  - ${tab}`));
     });
   });
 
@@ -307,81 +360,85 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
     test('authentication persists after page refresh', async ({ page }) => {
       const urlBefore = page.url();
       console.log(`URL before refresh: ${urlBefore}`);
-      
+
+      // HARD ASSERTION: Must be on admin events page before refresh
+      expect(urlBefore).toContain('/admin/events');
+
       // Refresh page
       await page.reload();
       await page.waitForLoadState('networkidle');
-      
+
       const urlAfter = page.url();
       console.log(`URL after refresh: ${urlAfter}`);
-      
-      // Check if still authenticated (not redirected to login)
-      if (!urlAfter.includes('/login')) {
-        console.log('✅ Authentication persists after refresh');
-      } else {
-        console.log('⚠️  Authentication lost after refresh');
-      }
-      
-      // Try to access admin events again if needed
+
+      // HARD ASSERTION: Should not be redirected to login after refresh
+      expect(urlAfter).not.toContain('/login');
+      console.log('✅ Authentication persists after refresh');
+
+      // HARD ASSERTION: Should remain on admin events page
       if (!urlAfter.includes('/admin/events')) {
         await page.goto('/admin/events');
         const finalUrl = page.url();
-        if (finalUrl.includes('/admin/events')) {
-          console.log('✅ Admin access restored after navigation');
-        } else {
-          console.log('⚠️  Admin access requires re-authentication');
-        }
+        expect(finalUrl).toContain('/admin/events');
+        console.log('✅ Admin access restored after navigation');
       }
-      
-      expect(true).toBeTruthy();
     });
 
     test('basic form interaction works', async ({ page }) => {
       // Try to access event creation
       const createButton = page.locator('[data-testid="button-create-event"]').first();
-      if (await createButton.count() === 0) {
+      const buttonCount = await createButton.count();
+
+      if (buttonCount === 0) {
         // Look for alternative create buttons
         const altButtons = page.locator('button:has-text("Create"), button:has-text("New"), button:has-text("Add")');
-        if (await altButtons.count() > 0) {
-          await altButtons.first().click();
-        } else {
-          console.log('⚠️  No create button found');
-          expect(true).toBeTruthy();
-          return;
-        }
+        const altCount = await altButtons.count();
+
+        // HARD ASSERTION: Must find a create button
+        expect(altCount).toBeGreaterThan(0);
+
+        await expect(altButtons.first()).toBeVisible();
+        await expect(altButtons.first()).toBeEnabled();
+        await altButtons.first().click();
       } else {
+        await expect(createButton).toBeVisible();
+        await expect(createButton).toBeEnabled();
         await createButton.click();
       }
-      
+
       await page.waitForTimeout(2000);
-      
+
       // Try to fill a basic field
       const nameSelectors = [
-        '[data-testid*="name"]', 
+        '[data-testid*="name"]',
         'input[placeholder*="name" i]',
         'input[name="name"]',
         'input[name="title"]'
       ];
-      
+
       let fieldFilled = false;
       for (const selector of nameSelectors) {
         const field = page.locator(selector).first();
-        if (await field.count() > 0 && await field.isVisible()) {
+        const count = await field.count();
+
+        // HARD ASSERTION: Field must be visible and enabled
+        if (count > 0) {
+          await expect(field).toBeVisible();
+          await expect(field).toBeEnabled();
+
           await field.fill('Test Event Name');
           const value = await field.inputValue();
-          if (value === 'Test Event Name') {
-            console.log(`✅ Form field interaction works: ${selector}`);
-            fieldFilled = true;
-            break;
-          }
+
+          // HARD ASSERTION: Field must accept input
+          expect(value).toBe('Test Event Name');
+          console.log(`✅ Form field interaction works: ${selector}`);
+          fieldFilled = true;
+          break;
         }
       }
-      
-      if (!fieldFilled) {
-        console.log('⚠️  No fillable form fields found');
-      }
-      
-      expect(true).toBeTruthy();
+
+      // HARD ASSERTION: Must find and fill at least one field
+      expect(fieldFilled).toBeTruthy();
     });
   });
 
@@ -391,9 +448,13 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
       await page.goto('/admin/events');
       await page.waitForLoadState('networkidle');
       const loadTime = Date.now() - startTime;
-      
+
       console.log(`Admin events page load time: ${loadTime}ms`);
-      
+
+      // HARD ASSERTION: Page must load within reasonable time
+      expect(loadTime).toBeLessThan(30000);
+
+      // Additional performance expectations
       if (loadTime < 3000) {
         console.log('✅ Page loads quickly');
       } else if (loadTime < 10000) {
@@ -401,45 +462,50 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
       } else {
         console.log('❌ Page load is very slow');
       }
-      
-      expect(loadTime).toBeLessThan(30000); // Only fail if extremely slow
     });
 
     test('no critical JavaScript errors', async ({ page }) => {
       const errors: string[] = [];
-      
+
       page.on('console', msg => {
         if (msg.type() === 'error') {
           errors.push(msg.text());
         }
       });
-      
+
       page.on('pageerror', error => {
         errors.push(error.toString());
       });
-      
+
       // Navigate and interact
       await page.goto('/admin/events');
       await page.waitForLoadState('networkidle');
-      
+
       // Try basic interactions
       const createButton = page.locator('[data-testid="button-create-event"], button:has-text("Create")').first();
-      if (await createButton.count() > 0) {
-        await createButton.click();
-        await page.waitForTimeout(2000);
-      }
-      
+      const buttonCount = await createButton.count();
+
+      // HARD ASSERTION: Create button must exist
+      expect(buttonCount).toBeGreaterThan(0);
+
+      await expect(createButton).toBeVisible();
+      await expect(createButton).toBeEnabled();
+      await createButton.click();
+      await page.waitForTimeout(2000);
+
       // Filter out common development warnings
-      const criticalErrors = errors.filter(error => 
-        !error.includes('Warning:') && 
+      const criticalErrors = errors.filter(error =>
+        !error.includes('Warning:') &&
         !error.includes('DevTools') &&
         !error.includes('source maps') &&
         !error.includes('Unsupported style property')
       );
-      
-      if (criticalErrors.length === 0) {
-        console.log('✅ No critical JavaScript errors detected');
-      } else {
+
+      // HARD ASSERTION: No critical JavaScript errors allowed
+      expect(criticalErrors.length).toBe(0);
+      console.log('✅ No critical JavaScript errors detected');
+
+      if (criticalErrors.length > 0) {
         console.log(`⚠️  ${criticalErrors.length} JavaScript errors detected:`);
         criticalErrors.forEach((error, i) => {
           if (i < 5) { // Limit to first 5 errors
@@ -447,9 +513,6 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
           }
         });
       }
-      
-      // Report but don't fail for JS errors (common in development)
-      expect(true).toBeTruthy();
     });
   });
 });

@@ -9,25 +9,39 @@ description: Validates Design Phase completion before advancing to Implementatio
 
 **When to Use**: When orchestrator or agents need to verify design documents are ready for implementation.
 
-## Quick Validation
+## How to Use This Skill
+
+**Executable Script**: `execute.sh`
 
 ```bash
-# Find design documents in the new-work folder
-NEW_WORK_DIR=$(find docs/functional-areas -type d -path "*/new-work/*-*-*" | sort | tail -1)
+# Basic usage with new-work directory path
+bash .claude/skills/phase-2-validator/execute.sh <new-work-directory>
 
-# Check for required design documents
-FUNCTIONAL_SPEC="$NEW_WORK_DIR/requirements/functional-spec.md"
-DATABASE_DESIGN="$NEW_WORK_DIR/design/database-design.md"
-UI_UX_DESIGN="$NEW_WORK_DIR/design/ui-ux-design.md"
+# With work type specification
+bash .claude/skills/phase-2-validator/execute.sh <new-work-dir> <work-type>
 
-echo "Design Phase Validation"
-echo "======================="
-echo ""
-echo "Checking for required documents:"
-[ -f "$FUNCTIONAL_SPEC" ] && echo "✅ Functional Specification" || echo "❌ Functional Specification missing"
-[ -f "$DATABASE_DESIGN" ] && echo "✅ Database Design" || echo "❌ Database Design missing"
-[ -f "$UI_UX_DESIGN" ] && echo "✅ UI/UX Design" || echo "❌ UI/UX Design missing"
+# With custom quality gate threshold
+bash .claude/skills/phase-2-validator/execute.sh <new-work-dir> Feature 90
+
+# Examples:
+bash .claude/skills/phase-2-validator/execute.sh docs/functional-areas/events/new-work/2025-11-03-feature
+bash .claude/skills/phase-2-validator/execute.sh docs/functional-areas/checkin/new-work/2025-11-03-bug Bug 70
 ```
+
+**Parameters**:
+- `new-work-directory`: Path to new-work folder containing design documents
+- `work-type`: (optional) Feature|Bug|Hotfix|Docs|Refactor (default: Feature)
+- `required-percentage`: (optional) Override quality gate threshold
+
+**Script validates**:
+- Functional Specification (12 points): Technical Overview, Architecture, Data Models, API Specs, Components, Security, Testing
+- Database Design (8 points): ER diagram, table schemas, migration plan, indexes, PostgreSQL types, relationships
+- UI/UX Design (8 points): Wireframes, component breakdown, Mantine v7, mobile considerations, accessibility
+- Integration (7 points): API endpoints match needs, database supports API, auth flow, state management, no violations
+
+**Exit codes**:
+- 0: Validation passed - ready for Implementation Phase
+- 1: Validation failed - design incomplete
 
 ## Quality Gate Checklist (90% Required for Features)
 
@@ -62,264 +76,7 @@ echo "Checking for required documents:"
 - [ ] State management approach specified (1 point)
 - [ ] No architectural violations (1 point)
 
-## Automated Validation Script
-
-```bash
-#!/bin/bash
-# Phase 2 Validation Script
-
-NEW_WORK_DIR="$1"
-SCORE=0
-MAX_SCORE=35
-REQUIRED_PERCENTAGE=90
-
-echo "Phase 2 Design Validation"
-echo "========================="
-echo ""
-
-# Check for required documents
-FUNCTIONAL_SPEC="$NEW_WORK_DIR/requirements/functional-spec.md"
-DATABASE_DESIGN="$NEW_WORK_DIR/design/database-design.md"
-UI_UX_DESIGN="$NEW_WORK_DIR/design/ui-ux-design.md"
-
-if [ ! -f "$FUNCTIONAL_SPEC" ]; then
-    echo "❌ CRITICAL: Functional Specification missing"
-    exit 1
-fi
-
-if [ ! -f "$DATABASE_DESIGN" ]; then
-    echo "❌ CRITICAL: Database Design missing"
-    exit 1
-fi
-
-if [ ! -f "$UI_UX_DESIGN" ]; then
-    echo "❌ CRITICAL: UI/UX Design missing"
-    exit 1
-fi
-
-echo "✅ All required design documents present"
-echo ""
-
-# Validate Functional Specification
-echo "Functional Specification Validation"
-echo "------------------------------------"
-
-if grep -q "## Technical Overview" "$FUNCTIONAL_SPEC"; then
-    echo "✅ Technical Overview found"
-    ((SCORE++))
-else
-    echo "❌ Technical Overview missing"
-fi
-
-if grep -q "### Microservices Architecture" "$FUNCTIONAL_SPEC" && \
-   grep -q "Web Service" "$FUNCTIONAL_SPEC" && \
-   grep -q "API Service" "$FUNCTIONAL_SPEC"; then
-    echo "✅ Web+API Architecture documented"
-    ((SCORE+=2))
-else
-    echo "❌ Web+API Architecture not properly documented"
-fi
-
-if grep -q "## Data Models" "$FUNCTIONAL_SPEC" || grep -q "### DTOs" "$FUNCTIONAL_SPEC"; then
-    echo "✅ Data Models section found"
-    ((SCORE+=2))
-else
-    echo "❌ Data Models section missing"
-fi
-
-if grep -q "## API Specifications" "$FUNCTIONAL_SPEC" && \
-   grep -q "| Method | Path" "$FUNCTIONAL_SPEC"; then
-    echo "✅ API Specifications table found"
-    ((SCORE+=2))
-else
-    echo "❌ API Specifications table missing"
-fi
-
-if grep -q "## Component Specifications" "$FUNCTIONAL_SPEC"; then
-    echo "✅ Component Specifications found"
-    ((SCORE+=2))
-else
-    echo "❌ Component Specifications missing"
-fi
-
-if grep -q "## Security Requirements" "$FUNCTIONAL_SPEC"; then
-    echo "✅ Security Requirements found"
-    ((SCORE+=2))
-else
-    echo "❌ Security Requirements missing"
-fi
-
-if grep -q "## Testing Requirements" "$FUNCTIONAL_SPEC"; then
-    echo "✅ Testing Requirements found"
-    ((SCORE++))
-else
-    echo "❌ Testing Requirements missing"
-fi
-
-echo ""
-
-# Validate Database Design
-echo "Database Design Validation"
-echo "--------------------------"
-
-if grep -q "## Entity Relationship Diagram" "$DATABASE_DESIGN" || \
-   grep -q "```mermaid" "$DATABASE_DESIGN"; then
-    echo "✅ ER Diagram found"
-    ((SCORE+=2))
-else
-    echo "❌ ER Diagram missing"
-fi
-
-if grep -q "CREATE TABLE" "$DATABASE_DESIGN"; then
-    TABLE_COUNT=$(grep -c "CREATE TABLE" "$DATABASE_DESIGN")
-    echo "✅ Table schemas found ($TABLE_COUNT tables)"
-    ((SCORE+=2))
-else
-    echo "❌ No table schemas found"
-fi
-
-if grep -q "## Migration Plan" "$DATABASE_DESIGN" || grep -q "### Migration" "$DATABASE_DESIGN"; then
-    echo "✅ Migration plan found"
-    ((SCORE++))
-else
-    echo "❌ Migration plan missing"
-fi
-
-if grep -q "CREATE INDEX" "$DATABASE_DESIGN" || grep -q "FOREIGN KEY" "$DATABASE_DESIGN"; then
-    echo "✅ Indexes/constraints found"
-    ((SCORE++))
-else
-    echo "⚠️  No indexes or constraints defined"
-fi
-
-if grep -q "UUID\|INTEGER\|VARCHAR\|TIMESTAMP" "$DATABASE_DESIGN"; then
-    echo "✅ PostgreSQL data types used"
-    ((SCORE++))
-else
-    echo "❌ PostgreSQL data types not specified"
-fi
-
-if grep -q "REFERENCES\|FOREIGN KEY" "$DATABASE_DESIGN"; then
-    echo "✅ Relationships defined"
-    ((SCORE++))
-else
-    echo "⚠️  Relationships not explicitly defined"
-fi
-
-echo ""
-
-# Validate UI/UX Design
-echo "UI/UX Design Validation"
-echo "-----------------------"
-
-if grep -q "## Wireframes" "$UI_UX_DESIGN" || grep -q "### Wireframe" "$UI_UX_DESIGN"; then
-    echo "✅ Wireframes section found"
-    ((SCORE+=2))
-else
-    echo "❌ Wireframes missing"
-fi
-
-if grep -q "## Component Breakdown" "$UI_UX_DESIGN" || grep -q "### Components" "$UI_UX_DESIGN"; then
-    echo "✅ Component breakdown found"
-    ((SCORE+=2))
-else
-    echo "❌ Component breakdown missing"
-fi
-
-if grep -iq "mantine\|@mantine/core" "$UI_UX_DESIGN"; then
-    echo "✅ Mantine v7 components specified"
-    ((SCORE+=2))
-else
-    echo "❌ Mantine v7 components not specified"
-fi
-
-if grep -iq "mobile\|responsive\|viewport" "$UI_UX_DESIGN"; then
-    echo "✅ Mobile considerations addressed"
-    ((SCORE++))
-else
-    echo "⚠️  Mobile considerations not mentioned"
-fi
-
-if grep -iq "accessibility\|a11y\|aria\|wcag" "$UI_UX_DESIGN"; then
-    echo "✅ Accessibility requirements found"
-    ((SCORE++))
-else
-    echo "⚠️  Accessibility not explicitly addressed"
-fi
-
-echo ""
-
-# Validate Integration
-echo "Integration Validation"
-echo "----------------------"
-
-# Check API endpoints are defined
-API_ENDPOINT_COUNT=$(grep -c "| GET\|| POST\|| PUT\|| DELETE\|| PATCH" "$FUNCTIONAL_SPEC")
-if [ "$API_ENDPOINT_COUNT" -ge 3 ]; then
-    echo "✅ API endpoints defined ($API_ENDPOINT_COUNT endpoints)"
-    ((SCORE+=2))
-else
-    echo "⚠️  Limited API endpoints ($API_ENDPOINT_COUNT found)"
-    ((SCORE+=1))
-fi
-
-# Check database schema supports API
-TABLE_COUNT=$(grep -c "CREATE TABLE" "$DATABASE_DESIGN")
-if [ "$TABLE_COUNT" -ge 1 ]; then
-    echo "✅ Database schema supports API ($TABLE_COUNT tables)"
-    ((SCORE+=2))
-else
-    echo "❌ No database tables defined"
-fi
-
-# Check authentication
-if grep -iq "auth\|authentication\|login\|cookie" "$FUNCTIONAL_SPEC"; then
-    echo "✅ Authentication flow defined"
-    ((SCORE++))
-else
-    echo "⚠️  Authentication flow not explicitly defined"
-fi
-
-# Check state management
-if grep -iq "zustand\|context\|state management" "$FUNCTIONAL_SPEC" || \
-   grep -iq "zustand\|context\|state" "$UI_UX_DESIGN"; then
-    echo "✅ State management approach specified"
-    ((SCORE++))
-else
-    echo "⚠️  State management approach not specified"
-fi
-
-# Check for architectural violations
-if grep -iq "direct database\|web.*database\|razor\|signalr" "$FUNCTIONAL_SPEC"; then
-    echo "❌ CRITICAL: Architectural violation detected"
-    echo "   Found references to direct database access or deprecated patterns"
-    ((SCORE-=5))
-else
-    echo "✅ No architectural violations detected"
-    ((SCORE++))
-fi
-
-echo ""
-
-# Calculate percentage
-PERCENTAGE=$((SCORE * 100 / MAX_SCORE))
-
-echo "================================"
-echo "Final Score: $SCORE / $MAX_SCORE ($PERCENTAGE%)"
-echo "Required: ${REQUIRED_PERCENTAGE}%"
-echo ""
-
-if [ "$PERCENTAGE" -ge "$REQUIRED_PERCENTAGE" ]; then
-    echo "✅ PASS - Design Phase complete"
-    echo "   Ready to advance to Implementation Phase"
-    exit 0
-else
-    echo "❌ FAIL - Design Phase incomplete"
-    echo "   Score: $PERCENTAGE% (need ${REQUIRED_PERCENTAGE}%)"
-    echo "   Missing: $((MAX_SCORE - SCORE)) points"
-    exit 1
-fi
-```
+**See**: The validation logic is now in `execute.sh` - this maintains single source of truth for the automation.
 
 ## Usage Examples
 

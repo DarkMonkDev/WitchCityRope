@@ -220,7 +220,7 @@ public class EventDtoBuilder : TestDataBuilder<EventDto, EventDtoBuilder>
             Description = _description,
             StartDate = _startDate,
             EndDate = _endDate,
-            Location = _location,
+            VenueId = 1, // Default venue ID (Location field removed - now using VenueId)
             EventType = _eventType,
             Capacity = _capacity,
             RegistrationCount = _currentAttendees,

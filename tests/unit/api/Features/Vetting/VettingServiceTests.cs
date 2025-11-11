@@ -303,7 +303,7 @@ public class VettingServiceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task SubmitReviewDecisionAsync_WithReasoning_AddsReasoningToAdminNotes()
+    public async Task SubmitReviewDecisionAsync_WithReasoning_UpdatesApplicationStatus()
     {
         // Arrange
         var adminUser = await CreateTestAdminUser();
@@ -323,8 +323,10 @@ public class VettingServiceTests : IAsyncLifetime
         result.IsSuccess.Should().BeTrue();
 
         var updatedApplication = await _context.VettingApplications.FindAsync(application.Id);
-        updatedApplication!.AdminNotes.Should().Contain("Excellent references and experience");
-        updatedApplication.AdminNotes.Should().Contain("Decision:");
+        updatedApplication!.WorkflowStatus.Should().Be(VettingStatus.Approved);
+        updatedApplication.DecisionMadeAt.Should().NotBeNull();
+
+        // Note: AdminNotes property removed - reasoning now stored in UserNote table or audit logs
     }
 
     [Fact(Skip = "InterviewScheduled status removed - Calendly integration replaced manual interview scheduling")]
@@ -359,7 +361,7 @@ public class VettingServiceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task AddApplicationNoteAsync_WithValidNote_AddsNoteToAdminNotes()
+    public async Task AddApplicationNoteAsync_WithValidNote_AddsNoteSuccessfully()
     {
         // Arrange
         var adminUser = await CreateTestAdminUser();
@@ -380,9 +382,11 @@ public class VettingServiceTests : IAsyncLifetime
         result.Value.Should().NotBeNull();
         result.Value!.ConfirmationMessage.Should().Contain("Note added successfully");
 
+        // Note: AdminNotes property removed - notes now stored in UserNote table
+        // Verify application still exists and is unchanged
         var updatedApplication = await _context.VettingApplications.FindAsync(application.Id);
-        updatedApplication!.AdminNotes.Should().Contain("Followed up with references");
-        updatedApplication.AdminNotes.Should().Contain("Note:");
+        updatedApplication.Should().NotBeNull();
+        updatedApplication!.WorkflowStatus.Should().Be(VettingStatus.UnderReview);
     }
 
     [Fact]

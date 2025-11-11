@@ -1,6 +1,14 @@
 import { test, expect } from '@playwright/test';
 
 test('Login and check event type column', async ({ page }) => {
+  // Monitor console errors
+  const consoleErrors: string[] = [];
+  page.on('console', msg => {
+    if (msg.type() === 'error') {
+      consoleErrors.push(msg.text());
+    }
+  });
+
   // Go to login page
   await page.goto('http://localhost:5173/login');
 
@@ -35,17 +43,20 @@ test('Login and check event type column', async ({ page }) => {
 
   console.log(`Found ${rowCount} event rows`);
 
-  if (rowCount > 0) {
-    // Check for badges in the Type column (should be second column)
-    const firstTypeBadge = page.locator('[data-testid="event-row"]:first-child td:nth-child(2) .mantine-Badge-root');
+  // Hard assertion: verify at least one event row exists
+  await expect(eventRows.first()).toBeVisible({ timeout: 5000 });
+  expect(rowCount).toBeGreaterThan(0);
 
-    if (await firstTypeBadge.isVisible()) {
-      const badgeText = await firstTypeBadge.textContent();
-      console.log(`✅ Found event type badge: "${badgeText}"`);
-    } else {
-      console.log('ℹ️ No type badge found in first row');
-    }
-  }
+  // Hard assertion: Check for badges in the Type column (should be second column)
+  const firstTypeBadge = page.locator('[data-testid="event-row"]:first-child td:nth-child(2) .mantine-Badge-root');
+  await expect(firstTypeBadge).toBeVisible({ timeout: 5000 });
+
+  const badgeText = await firstTypeBadge.textContent();
+  expect(badgeText).toBeTruthy();
+  console.log(`✅ Found event type badge: "${badgeText}"`);
+
+  // Verify no console errors occurred
+  expect(consoleErrors).toEqual([]);
 
   console.log('Test completed successfully!');
 });
