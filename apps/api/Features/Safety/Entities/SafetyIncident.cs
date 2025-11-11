@@ -14,7 +14,6 @@ public class SafetyIncident
         Id = Guid.NewGuid();
         ReferenceNumber = string.Empty;
         Title = string.Empty;
-        Location = string.Empty;
         EncryptedDescription = string.Empty;
         ReportedAt = DateTime.UtcNow;
         CreatedAt = DateTime.UtcNow;
@@ -64,11 +63,10 @@ public class SafetyIncident
     public DateTime ReportedAt { get; set; }
 
     /// <summary>
-    /// Location where incident occurred
+    /// Location where incident occurred (required only when WhereOccurred = OtherSpace)
     /// </summary>
-    [Required]
     [MaxLength(200)]
-    public string Location { get; set; }
+    public string? Location { get; set; }
 
     /// <summary>
     /// Encrypted incident description

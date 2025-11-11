@@ -23,17 +23,18 @@ import { mapIncidentDetailFromBackend } from '../types/safety.types';
 export const safetyApi = {
   /**
    * Submit a new safety incident report (anonymous or authenticated)
+   * Backend returns SubmissionResponse wrapped in ApiResponse
    */
   async submitIncident(request: SubmitIncidentRequest): Promise<SubmissionResponse> {
     const { data } = await apiClient.post<ApiResponse<SubmissionResponse>>(
       '/api/safety/incidents',
       request
     );
-    
+
     if (!data.data) {
       throw new Error(data.error || 'Failed to submit incident');
     }
-    
+
     return data.data;
   },
 
@@ -161,14 +162,18 @@ export const safetyApi = {
 
   /**
    * Get safety dashboard data for admin/safety team
-   * Backend returns AdminDashboardResponse directly (NOT wrapped in ApiResponse)
+   * Backend returns AdminDashboardResponse wrapped in ApiResponse
    */
   async getSafetyDashboard(): Promise<SafetyDashboardResponse> {
-    const { data } = await apiClient.get<SafetyDashboardResponse>(
+    const { data } = await apiClient.get<ApiResponse<SafetyDashboardResponse>>(
       '/api/safety/admin/dashboard'
     );
 
-    return data;
+    if (!data.data) {
+      throw new Error(data.error || 'Failed to load dashboard data');
+    }
+
+    return data.data;
   },
 
   /**

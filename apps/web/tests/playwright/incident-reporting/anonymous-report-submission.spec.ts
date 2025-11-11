@@ -24,6 +24,18 @@ import { test, expect } from '@playwright/test';
 test.describe('Anonymous Incident Report Submission', () => {
   test.setTimeout(90000); // 90 second maximum
 
+  // Capture console errors during tests
+  test.beforeEach(async ({ page }) => {
+    const consoleErrors: string[] = [];
+    page.on('console', msg => {
+      if (msg.type() === 'error') {
+        consoleErrors.push(msg.text());
+      }
+    });
+    // Store for test access
+    (page as any).consoleErrors = consoleErrors;
+  });
+
   test('should submit anonymous incident report and receive reference number', async ({ page }) => {
     // Navigate to incident reporting page (CORRECT URL)
     await page.goto('http://localhost:5173/safety/report');
@@ -32,79 +44,98 @@ test.describe('Anonymous Incident Report Submission', () => {
     // Verify page title
     await expect(page).toHaveTitle(/Witch City Rope/i);
 
-    // Select anonymous report radio button (not checkbox!)
+    // Select anonymous report radio button (not checkbox!) - HARD ASSERTION
     const anonymousRadio = page.locator('input[type="radio"]').filter({ hasText: /Anonymous/i }).first();
     const anonymousLabel = page.locator('text=/Anonymous Report/i').first();
 
-    if (await anonymousRadio.isVisible()) {
+    // Try radio first, then label - at least one MUST exist
+    const radioVisible = await anonymousRadio.isVisible();
+    const labelVisible = await anonymousLabel.isVisible();
+    expect(radioVisible || labelVisible).toBeTruthy(); // HARD ASSERTION - element must exist
+
+    if (radioVisible) {
       await anonymousRadio.check();
-    } else if (await anonymousLabel.isVisible()) {
+    } else {
       await anonymousLabel.click();
     }
 
     await page.waitForTimeout(500);
 
-    // Fill incident type (required field) - use getByLabel for better targeting
+    // Fill incident type (required field) - HARD ASSERTION
     const incidentTypeInput = page.getByLabel(/Type of Incident/i);
-    if (await incidentTypeInput.isVisible()) {
-      await incidentTypeInput.click();
-      await page.waitForTimeout(300);
-      // Select "Safety Concern" or first available option
-      const typeOption = page.locator('text=/Safety Concern|Consent|Harassment/i').first();
-      if (await typeOption.isVisible()) {
-        await typeOption.click();
-      }
-    }
+    await expect(incidentTypeInput).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+    await incidentTypeInput.click();
+    await page.waitForTimeout(300);
 
-    // Fill location type (required field)
+    // Select "Safety Concern" or first available option - HARD ASSERTION
+    const typeOption = page.locator('text=/Safety Concern|Consent|Harassment/i').first();
+    await expect(typeOption).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+    await typeOption.click();
+
+    // Fill location type (required field) - HARD ASSERTION
     const locationTypeInput = page.getByLabel(/Where did this occur/i);
-    if (await locationTypeInput.isVisible()) {
-      await locationTypeInput.click();
-      await page.waitForTimeout(300);
-      // Select first available location
-      const locationOption = page.locator('text=/At a Witch City Rope event|Other location/i').first();
-      if (await locationOption.isVisible()) {
-        await locationOption.click();
-      }
-    }
+    await expect(locationTypeInput).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+    await locationTypeInput.click();
+    await page.waitForTimeout(300);
+
+    // Select first available location - HARD ASSERTION
+    const locationOption = page.locator('text=/At a Witch City Rope event|Other location/i').first();
+    await expect(locationOption).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+    await locationOption.click();
 
     // Date picker should have a default value (today), so skip manual date entry
 
     // Scroll down to ensure the description field is visible
     await page.locator('text=/What happened/i').scrollIntoViewIfNeeded();
 
-    // Fill description (50 char minimum!) - use placeholder text since getByLabel may not work
+    // Fill description (50 char minimum!) - HARD ASSERTION
     const descriptionTextarea = page.locator('textarea[placeholder*="describe the incident" i]').first();
+    await expect(descriptionTextarea).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
     await descriptionTextarea.fill(
       'This is a detailed anonymous safety incident report with sufficient characters to meet the 50 character minimum requirement for form submission validation.'
     );
 
-    // Accept acknowledgment checkbox (required)
+    // Accept acknowledgment checkbox (required) - HARD ASSERTION
     const acknowledgmentCheckbox = page.getByRole('checkbox', { name: /understand this report may trigger/i });
+    await expect(acknowledgmentCheckbox).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
     await acknowledgmentCheckbox.check();
 
-    // Submit report (CORRECT BUTTON TEXT)
+    // Submit report and wait for API response - HARD ASSERTION
     const submitButton = page.locator('button:has-text("SUBMIT SAFETY REPORT"), button[type="submit"]').first();
-    await submitButton.click();
 
-    // Wait for success message (Mantine Notification)
-    await page.waitForTimeout(3000);
-    const successIndicators = page.locator('[role="alert"], div:has-text("success"), div:has-text("submitted")');
-    const successCount = await successIndicators.count();
+    // Wait for API response to validate submission
+    const [response] = await Promise.all([
+      page.waitForResponse(
+        resp => resp.url().includes('/api/safety/incidents') && resp.request().method() === 'POST',
+        { timeout: 10000 }
+      ),
+      submitButton.click()
+    ]);
 
-    if (successCount > 0) {
-      console.log('✅ Form submitted successfully');
-    } else {
-      console.log('⚠️  No success message found - checking for reference number');
-    }
+    // HARD ASSERTION - API must return 200/201
+    expect(response.status()).toBeLessThanOrEqual(201);
+    expect(response.status()).toBeGreaterThanOrEqual(200);
 
-    // Verify reference number displayed (if submission succeeded)
-    const referenceNumberElement = page.locator('text=/SAF-\\d{8}-\\d{4}/i').first();
-    if (await referenceNumberElement.isVisible()) {
-      const referenceNumber = await referenceNumberElement.textContent();
-      console.log(`✅ Reference number received: ${referenceNumber}`);
-      expect(referenceNumber).toMatch(/SAF-\d{8}-\d{4}/);
-    }
+    // Validate API response structure
+    const responseBody = await response.json();
+    expect(responseBody).toHaveProperty('success');
+    expect(responseBody.success).toBe(true);
+    expect(responseBody).toHaveProperty('data');
+    expect(responseBody.data).toHaveProperty('referenceNumber');
+
+    // HARD ASSERTION - Reference number must match format
+    const apiReferenceNumber = responseBody.data.referenceNumber;
+    expect(apiReferenceNumber).toMatch(/^SAF-\d{8}-\d{4}$/);
+    console.log(`✅ API returned reference number: ${apiReferenceNumber}`);
+
+    // HARD ASSERTION - Reference number MUST be visible in UI
+    const referenceNumberElement = page.locator(`text=${apiReferenceNumber}`);
+    await expect(referenceNumberElement).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+    console.log(`✅ Reference number visible in UI: ${apiReferenceNumber}`);
+
+    // HARD ASSERTION - No console errors allowed
+    const consoleErrors = (page as any).consoleErrors || [];
+    expect(consoleErrors).toHaveLength(0); // HARD ASSERTION
   });
 
   test('should validate required fields before submission', async ({ page }) => {
@@ -114,43 +145,45 @@ test.describe('Anonymous Incident Report Submission', () => {
 
     // Try to submit without filling required fields (Mantine form validation)
     const submitButton = page.locator('button:has-text("SUBMIT SAFETY REPORT"), button[type="submit"]').first();
+    await expect(submitButton).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
 
-    // Button should be disabled initially
-    const isDisabled = await submitButton.isDisabled();
-    if (isDisabled) {
-      console.log('✅ Submit button is disabled when form is incomplete');
-    } else {
-      // Try clicking anyway to trigger validation
-      await submitButton.click();
-      await page.waitForTimeout(1000);
+    // Try clicking submit with empty form (should be prevented)
+    await submitButton.click();
+    await page.waitForTimeout(1000);
 
-      // Check if form validation errors appear (Mantine shows inline errors)
-      const errorMessages = page.locator('[class*="error"], [role="alert"]');
-      const errorCount = await errorMessages.count();
+    // HARD ASSERTION - Error summary MUST appear for validation failures
+    const errorSummary = page.locator('[role="alert"]').filter({ hasText: /fix the following errors|error|required/i }).first();
+    await expect(errorSummary).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
 
-      if (errorCount > 0) {
-        console.log(`✅ Form validation working - ${errorCount} errors shown`);
-      }
-    }
+    // HARD ASSERTION - Specific validation errors must be shown
+    const errorList = errorSummary.locator('li');
+    const errorCount = await errorList.count();
+    expect(errorCount).toBeGreaterThan(0); // HARD ASSERTION - at least one error
 
-    // Fill minimum required fields
-    // Description (50 char minimum)
+    console.log(`✅ Form validation working - ${errorCount} errors shown`);
+
+    // Verify description field has error state (50 char minimum not met)
+    const descriptionError = page.locator('text=/description.*required|50 character/i').first();
+    await expect(descriptionError).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+
+    // Fill minimum required fields to clear validation errors
     const descriptionTextarea = page.locator('textarea').first();
     await descriptionTextarea.fill(
       'Minimum viable description for testing validation with at least 50 characters as required by the form validation rules.'
     );
 
-    // Accept acknowledgment checkbox if present
+    // Accept acknowledgment checkbox - HARD ASSERTION it exists
     const acknowledgmentCheckbox = page.locator('input[type="checkbox"]').filter({ hasText: /understand/i }).first();
-    if (await acknowledgmentCheckbox.isVisible()) {
-      await acknowledgmentCheckbox.check();
-      await page.waitForTimeout(500);
-    }
+    await expect(acknowledgmentCheckbox).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+    await acknowledgmentCheckbox.check();
+    await page.waitForTimeout(500);
 
-    // Check if submit button is now enabled
-    const isEnabledNow = await submitButton.isDisabled();
-    if (!isEnabledNow) {
-      console.log('✅ Submit button enabled after filling required fields');
-    }
+    // HARD ASSERTION - Submit button should now be enabled (not disabled)
+    await expect(submitButton).toBeEnabled({ timeout: 5000 }); // HARD ASSERTION
+    console.log('✅ Submit button enabled after filling required fields');
+
+    // HARD ASSERTION - No console errors during validation
+    const consoleErrors = (page as any).consoleErrors || [];
+    expect(consoleErrors).toHaveLength(0); // HARD ASSERTION
   });
 });

@@ -13,7 +13,8 @@ import {
   Button,
   Radio,
   Alert,
-  Checkbox
+  Checkbox,
+  List
 } from '@mantine/core';
 import { DatePickerInput, TimeInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
@@ -85,9 +86,12 @@ export function IncidentReportForm({ onSubmissionComplete }: IncidentReportFormP
         if (!value) return 'Incident date is required';
         return null;
       },
-      location: (value) => {
-        if (!value || value.length < 3) {
-          return 'Location details are required (minimum 3 characters)';
+      location: (value, values) => {
+        // Only validate if "Other community space" is selected (field is visible)
+        if (values.whereOccurred === WhereOccurred.OtherSpace) {
+          if (!value || value.length < 3) {
+            return 'Location details are required (minimum 3 characters)';
+          }
         }
         return null;
       },
@@ -109,19 +113,32 @@ export function IncidentReportForm({ onSubmissionComplete }: IncidentReportFormP
     }
   });
 
+  // Validation for agreement checkbox (separate from form validation)
+  const isAgreementValid = agreementChecked;
+
   // Handle form submission
   const handleSubmit = useCallback(async (values: IncidentFormData) => {
+    console.log('Safety incident form submission started', {
+      values,
+      agreementChecked,
+      validationErrors: form.errors,
+      hasValidationErrors: Object.keys(form.errors).length > 0
+    });
+
     if (!agreementChecked) {
+      console.error('Submission blocked: agreement not checked');
       return;
     }
 
     try {
+      console.log('Calling submitIncident API...');
       const result = await submitIncident(values, user?.id);
+      console.log('Submission successful', { referenceNumber: (result as any).referenceNumber });
       onSubmissionComplete?.((result as any).referenceNumber);
     } catch (error) {
       console.error('Submission failed:', error);
     }
-  }, [submitIncident, user?.id, agreementChecked, onSubmissionComplete]);
+  }, [submitIncident, user?.id, agreementChecked, onSubmissionComplete, form.errors]);
 
   // Handle new report
   const handleNewReport = useCallback(() => {
@@ -423,6 +440,26 @@ export function IncidentReportForm({ onSubmissionComplete }: IncidentReportFormP
 
               {/* Agreement and Submit */}
               <Box>
+                {/* Validation Error Summary */}
+                {Object.keys(form.errors).length > 0 && (
+                  <Alert variant="light" color="red" mb="md" title="Please fix the following errors:">
+                    <List size="sm">
+                      {Object.entries(form.errors).map(([field, error]) => (
+                        <List.Item key={field}>{error}</List.Item>
+                      ))}
+                    </List>
+                  </Alert>
+                )}
+
+                {/* Agreement Error (if not checked when trying to submit) */}
+                {!agreementChecked && Object.keys(form.errors).length === 0 && (
+                  <Alert variant="light" color="orange" mb="md">
+                    <Text size="sm">
+                      You must agree to the privacy statement before submitting
+                    </Text>
+                  </Alert>
+                )}
+
                 <Checkbox
                   checked={agreementChecked}
                   onChange={(event) => setAgreementChecked(event.currentTarget.checked)}
@@ -443,7 +480,14 @@ export function IncidentReportForm({ onSubmissionComplete }: IncidentReportFormP
                     type="submit"
                     size="lg"
                     loading={isSubmitting}
-                    disabled={!agreementChecked}
+                    disabled={!agreementChecked || Object.keys(form.errors).length > 0}
+                    title={
+                      !agreementChecked
+                        ? 'Please check the agreement box to submit'
+                        : Object.keys(form.errors).length > 0
+                        ? 'Please fix validation errors before submitting'
+                        : undefined
+                    }
                     style={{
                       background: 'linear-gradient(135deg, #FFBF00 0%, #DAA520 100%)',
                       border: 'none'

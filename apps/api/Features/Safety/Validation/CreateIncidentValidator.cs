@@ -24,12 +24,15 @@ public class CreateIncidentValidator : AbstractValidator<CreateIncidentRequest>
             .WithMessage("Title cannot exceed 200 characters")
             .When(x => !string.IsNullOrEmpty(x.Title));
 
-        // Location is now free-text field (not enum)
-        RuleFor(x => x.Location)
-            .NotEmpty()
-            .WithMessage("Location is required")
-            .MaximumLength(200)
-            .WithMessage("Location cannot exceed 200 characters");
+        // Location is only required when "Other community space" is selected
+        When(x => x.WhereOccurred == Entities.WhereOccurred.OtherSpace, () =>
+        {
+            RuleFor(x => x.Location)
+                .NotEmpty()
+                .WithMessage("Location is required when 'Other community space' is selected")
+                .MaximumLength(200)
+                .WithMessage("Location cannot exceed 200 characters");
+        });
 
         // Type is required
         RuleFor(x => x.Type)

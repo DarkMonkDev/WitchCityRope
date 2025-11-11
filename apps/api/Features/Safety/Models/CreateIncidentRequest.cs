@@ -23,9 +23,9 @@ public class CreateIncidentRequest
     public DateTime IncidentDate { get; set; }
 
     /// <summary>
-    /// Location where incident occurred
+    /// Location where incident occurred (required only when WhereOccurred = OtherSpace)
     /// </summary>
-    public string Location { get; set; } = string.Empty;
+    public string? Location { get; set; }
 
     /// <summary>
     /// Detailed description of the incident

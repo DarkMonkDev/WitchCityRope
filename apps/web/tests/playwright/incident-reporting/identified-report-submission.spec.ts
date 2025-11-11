@@ -24,6 +24,18 @@ import { AuthHelpers } from '../helpers/auth.helpers';
 test.describe('Identified Incident Report Submission', () => {
   test.setTimeout(90000); // 90 second maximum
 
+  // Capture console errors during tests
+  test.beforeEach(async ({ page }) => {
+    const consoleErrors: string[] = [];
+    page.on('console', msg => {
+      if (msg.type() === 'error') {
+        consoleErrors.push(msg.text());
+      }
+    });
+    // Store for test access
+    (page as any).consoleErrors = consoleErrors;
+  });
+
   test('should toggle between anonymous and identified modes', async ({ page }) => {
     await AuthHelpers.loginAs(page, 'member');
     console.log('✅ Logged in as member successfully');
@@ -31,7 +43,7 @@ test.describe('Identified Incident Report Submission', () => {
     await page.goto('http://localhost:5173/safety/report');
     await page.waitForLoadState('networkidle');
 
-    // Find radio buttons (NOT checkboxes!)
+    // Find radio buttons (NOT checkboxes!) - HARD ASSERTION
     const anonymousRadio = page.locator('input[type="radio"]', { hasText: /Anonymous/i }).first();
     const identifiedRadio = page.locator('input[type="radio"]', { hasText: /Contact|Include/i }).first();
 
@@ -43,44 +55,48 @@ test.describe('Identified Incident Report Submission', () => {
     const nameInput = page.locator('input[placeholder*="name" i]').first();
     const emailInput = page.locator('input[type="email"]').first();
 
-    // Start in identified mode (default for logged-in users)
+    // HARD ASSERTION - Start in identified mode (default for logged-in users)
     // Verify contact fields visible
-    const emailVisibleInitially = await emailInput.isVisible();
-    if (emailVisibleInitially) {
-      console.log('✅ Contact email field visible in identified mode (default)');
-    }
+    await expect(emailInput).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+    console.log('✅ Contact email field visible in identified mode (default)');
 
-    // Switch to anonymous mode by clicking the radio or label
-    if (await anonymousRadio.isVisible()) {
+    // Switch to anonymous mode - HARD ASSERTION that element exists
+    const anonymousRadioVisible = await anonymousRadio.isVisible();
+    const anonymousLabelVisible = await anonymousLabel.isVisible();
+    expect(anonymousRadioVisible || anonymousLabelVisible).toBeTruthy(); // HARD ASSERTION
+
+    if (anonymousRadioVisible) {
       await anonymousRadio.check();
-    } else if (await anonymousLabel.isVisible()) {
+    } else {
       await anonymousLabel.click();
     }
 
     await page.waitForTimeout(500);
 
-    // Verify contact fields hidden in anonymous mode
-    const emailVisibleInAnonymous = await emailInput.isVisible();
-    if (!emailVisibleInAnonymous) {
-      console.log('✅ Contact email field hidden in anonymous mode');
-    } else {
-      console.log('⚠️  Contact email field still visible - checking if it\'s disabled instead');
-    }
+    // HARD ASSERTION - Contact fields MUST be hidden in anonymous mode
+    await expect(emailInput).not.toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+    console.log('✅ Contact email field hidden in anonymous mode');
 
-    // Switch back to identified mode
-    if (await identifiedRadio.isVisible()) {
+    // Switch back to identified mode - HARD ASSERTION that element exists
+    const identifiedRadioVisible = await identifiedRadio.isVisible();
+    const identifiedLabelVisible = await identifiedLabel.isVisible();
+    expect(identifiedRadioVisible || identifiedLabelVisible).toBeTruthy(); // HARD ASSERTION
+
+    if (identifiedRadioVisible) {
       await identifiedRadio.check();
-    } else if (await identifiedLabel.isVisible()) {
+    } else {
       await identifiedLabel.click();
     }
 
     await page.waitForTimeout(500);
 
-    // Verify contact fields visible again
-    const emailVisibleAgain = await emailInput.isVisible();
-    if (emailVisibleAgain) {
-      console.log('✅ Contact email field visible again in identified mode');
-    }
+    // HARD ASSERTION - Contact fields MUST be visible again
+    await expect(emailInput).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+    console.log('✅ Contact email field visible again in identified mode');
+
+    // HARD ASSERTION - No console errors during mode toggling
+    const consoleErrors = (page as any).consoleErrors || [];
+    expect(consoleErrors).toHaveLength(0); // HARD ASSERTION
   });
 
   test('should show empty state when user has no reports', async ({ page }) => {
@@ -89,29 +105,34 @@ test.describe('Identified Incident Report Submission', () => {
     console.log('✅ Logged in as vetted user successfully');
 
     // Navigate to potential My Reports page (may not exist)
-    await page.goto('http://localhost:5173/my-reports');
+    const response = await page.goto('http://localhost:5173/my-reports');
     await page.waitForLoadState('networkidle');
 
     // Check if page exists or redirects
     const currentUrl = page.url();
 
     if (currentUrl.includes('/my-reports')) {
-      // Page exists - verify empty state message
+      // HARD ASSERTION - Page exists, must have content
+      expect(response?.status()).toBeLessThan(400); // HARD ASSERTION - no 404
+
+      // HARD ASSERTION - Empty state message MUST be visible
       const emptyStateMessage = page.locator(
         '[data-testid="no-reports-message"], ' +
         'div:has-text("no incident reports"), ' +
         'p:has-text("no reports")'
       ).first();
 
-      if (await emptyStateMessage.isVisible()) {
-        await expect(emptyStateMessage).toBeVisible();
-        console.log('✅ Empty state shown correctly');
-      } else {
-        console.log('⚠️  No empty state message found');
-      }
+      await expect(emptyStateMessage).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+      console.log('✅ Empty state shown correctly');
+
+      // HARD ASSERTION - No console errors on empty state page
+      const consoleErrors = (page as any).consoleErrors || [];
+      expect(consoleErrors).toHaveLength(0); // HARD ASSERTION
     } else {
+      // Feature not implemented - verify we got a valid redirect (not an error)
+      expect(response?.status()).toBeLessThan(500); // HARD ASSERTION - no server error
       console.log('⚠️  My Reports page redirected to: ' + currentUrl);
-      console.log('This feature may not be implemented yet');
+      console.log('This feature may not be implemented yet - graceful redirect confirmed');
     }
   });
 });

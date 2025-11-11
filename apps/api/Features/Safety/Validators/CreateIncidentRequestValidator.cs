@@ -1,4 +1,5 @@
 using FluentValidation;
+using WitchCityRope.Api.Features.Safety.Entities;
 using WitchCityRope.Api.Features.Safety.Models;
 
 namespace WitchCityRope.Api.Features.Safety.Validators;
@@ -14,11 +15,15 @@ public class CreateIncidentRequestValidator : AbstractValidator<CreateIncidentRe
             .LessThanOrEqualTo(DateTime.UtcNow.AddDays(1))
             .WithMessage("Incident date cannot be in the future");
 
-        RuleFor(x => x.Location)
-            .NotEmpty()
-            .WithMessage("Location is required")
-            .MaximumLength(200)
-            .WithMessage("Location cannot exceed 200 characters");
+        // Location is only required when "Other community space" is selected
+        When(x => x.WhereOccurred == WhereOccurred.OtherSpace, () =>
+        {
+            RuleFor(x => x.Location)
+                .NotEmpty()
+                .WithMessage("Location is required when 'Other community space' is selected")
+                .MaximumLength(200)
+                .WithMessage("Location cannot exceed 200 characters");
+        });
 
         RuleFor(x => x.Description)
             .NotEmpty()

@@ -364,25 +364,33 @@ public class SafetyService : ISafetyService
     }
 
     /// <summary>
-    /// Generate unique reference number using PostgreSQL function
+    /// Generate unique reference number in format SAF-YYYYMMDD-NNNN
+    /// Example: SAF-20251111-0001
     /// </summary>
     private async Task<string> GenerateReferenceNumberAsync(CancellationToken cancellationToken)
     {
-        // Use EF Core 9 compatible syntax for raw SQL
-        var connection = _context.Database.GetDbConnection();
-        await _context.Database.OpenConnectionAsync(cancellationToken);
+        var dateStr = DateTime.UtcNow.ToString("yyyyMMdd");
+        var prefix = $"SAF-{dateStr}-";
 
-        try
+        // Get the highest sequence number for today
+        var lastRefToday = await _context.SafetyIncidents
+            .Where(i => i.ReferenceNumber.StartsWith(prefix))
+            .OrderByDescending(i => i.ReferenceNumber)
+            .Select(i => i.ReferenceNumber)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        int nextSequence = 1;
+        if (lastRefToday != null)
         {
-            using var command = connection.CreateCommand();
-            command.CommandText = "SELECT generate_safety_reference_number()";
-            var result = await command.ExecuteScalarAsync(cancellationToken);
-            return result?.ToString() ?? throw new InvalidOperationException("Failed to generate reference number");
+            // Extract sequence number (last 4 digits)
+            var lastSeqStr = lastRefToday.Substring(lastRefToday.Length - 4);
+            if (int.TryParse(lastSeqStr, out int lastSeq))
+            {
+                nextSequence = lastSeq + 1;
+            }
         }
-        finally
-        {
-            await _context.Database.CloseConnectionAsync();
-        }
+
+        return $"{prefix}{nextSequence:D4}"; // D4 = pad with zeros to 4 digits
     }
 
     /// <summary>

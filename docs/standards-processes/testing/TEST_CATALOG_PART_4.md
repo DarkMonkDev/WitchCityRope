@@ -14,12 +14,12 @@
 
 ## 📊 Test Inventory Summary
 
-### Total Test Files: 276
+### Total Test Files: 279
 *(Excludes build artifacts in bin/obj directories)*
 
 | Test Type | Count | Status | Framework |
 |-----------|-------|--------|-----------|
-| **E2E Playwright Tests** | 91 | ✅ Active | Playwright + TypeScript |
+| **E2E Playwright Tests** | 94 | ✅ Active | Playwright + TypeScript |
 | **React Unit Tests** | 21 | ✅ Active | Vitest + React Testing Library |
 | **C# Backend Tests (Active)** | 57 | ✅ Active | xUnit + Moq + FluentAssertions |
 | **C# Integration Tests** | 6 | ✅ Active | xUnit + TestContainers |
@@ -44,12 +44,12 @@
 
 ---
 
-## 🎭 E2E Playwright Tests (91 files)
+## 🎭 E2E Playwright Tests (94 files)
 
 **Location**: `/apps/web/tests/playwright/`
 **Framework**: Playwright + TypeScript
 **Status**: 68.1% passing (243/357 tests) - October 10, 2025
-**Recent**: AuthHelpers migration 100% complete (2025-10-10)
+**Recent**: Safety Incident Reporting tests added to catalog (2025-11-11)
 
 ### Admin Tests (4 files)
 
@@ -469,6 +469,88 @@
 89. **validation-test.spec.ts**
     - Purpose: Validation testing
     - Tests: Form validation, error messages
+
+### Safety Incident Reporting Tests (3 files)
+
+**Location**: `/apps/web/tests/playwright/incident-reporting/`
+**Status**: ✅ Hard assertions applied (2025-11-11)
+**Total Tests**: 15 tests (2 anonymous, 2 identified, 11 admin dashboard)
+
+90. **incident-reporting/anonymous-report-submission.spec.ts**
+    - Purpose: Anonymous incident report submission
+    - Status: ✅ Hard assertions, API validation, console monitoring
+    - Tests: 2 tests
+      - Submit anonymous report successfully
+      - API response structure validation
+    - Features Tested:
+      - Form submission with all required fields
+      - API response validation (success, data.referenceNumber)
+      - Console error monitoring (JavaScript errors fail test)
+      - Hard assertions for success alerts (MUST appear)
+      - Reference number format validation (SAF-YYYYMMDD-NNNN)
+    - Updated: 2025-11-11 (Replaced soft assertions with hard assertions)
+    - Bug Detection: API errors, missing reference numbers, console errors, silent failures
+
+91. **incident-reporting/identified-report-submission.spec.ts**
+    - Purpose: Identified (non-anonymous) incident reporting
+    - Status: ✅ Hard assertions for mode toggling
+    - Tests: 2 tests
+      - Toggle between anonymous and identified modes
+      - Verify contact fields appear/disappear correctly
+    - Features Tested:
+      - Anonymous/identified mode switching
+      - Conditional field visibility (contact email, contact name)
+      - Hard assertions for element visibility (not optional)
+      - Form state management across mode changes
+    - Updated: 2025-11-11 (Hard assertions applied)
+    - Bug Detection: Mode toggle failures, missing contact fields, UI state bugs
+
+92. **incident-reporting/admin-dashboard-workflow.spec.ts**
+    - Purpose: Admin incident management dashboard workflows
+    - Status: ✅ Console error monitoring, API validation (2 tests)
+    - Tests: 11 tests
+      - View incidents dashboard and table
+      - Filter incidents by status
+      - Search incidents by keyword
+      - View incident details
+      - Update incident status
+      - Assign coordinator
+      - Add internal notes
+      - View audit log
+      - Export incidents data
+      - Handle pagination
+      - API integration verification (2 tests with response validation)
+    - Features Tested:
+      - Console error monitoring on all tests
+      - API response validation (wait for POST/PUT, verify 200 status)
+      - Response structure validation (success, data properties)
+      - Hard assertions for success notifications (MUST appear)
+      - Dashboard navigation and data display
+      - Incident filtering and search
+      - Status updates and coordinator assignment
+    - Updated: 2025-11-11 (Console error monitoring + API validation for 2 tests)
+    - Bug Detection: API errors, console errors, missing success messages, failed status updates
+
+**Test Quality Improvements (2025-11-11)**:
+- ✅ Eliminated soft assertions that allowed tests to pass with broken functionality
+- ✅ Added hard assertions for API responses (200 status, success field, data structure)
+- ✅ Added console error monitoring (JavaScript errors = test failure)
+- ✅ Added hard assertions for user feedback (success alerts MUST appear)
+- ✅ Reference number validation (format and presence)
+- ✅ Validation error verification (error summary MUST be visible when form invalid)
+
+**Before Hard Assertions**: Tests could pass even when:
+- API returned 400 errors
+- Reference numbers were missing
+- Console errors occurred
+- Success messages didn't appear
+- Form submissions failed silently
+
+**After Hard Assertions**: Tests fail immediately when any of the above occur
+
+**Related Backend Tests**:
+- Integration: `/tests/integration/Safety/SafetyWorkflowIntegrationTests.cs` (6 tests, 100% passing)
+- Unit: `/tests/WitchCityRope.Core.Tests/Features/Safety/SafetyServiceTests.cs`
 
 ---
 

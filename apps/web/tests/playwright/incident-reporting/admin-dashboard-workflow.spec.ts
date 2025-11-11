@@ -23,6 +23,18 @@ import { AuthHelpers } from '../helpers/auth.helpers';
 test.describe('Admin Incident Dashboard Workflow', () => {
   test.setTimeout(90000); // 90 second maximum
 
+  // Capture console errors during tests
+  test.beforeEach(async ({ page }) => {
+    const consoleErrors: string[] = [];
+    page.on('console', msg => {
+      if (msg.type() === 'error') {
+        consoleErrors.push(msg.text());
+      }
+    });
+    // Store for test access
+    (page as any).consoleErrors = consoleErrors;
+  });
+
   test('should navigate from admin dashboard to incident reports page', async ({ page }) => {
     // Login as admin
     await AuthHelpers.loginAs(page, 'admin');
@@ -197,35 +209,52 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     await page.goto('http://localhost:5173/admin/safety/incidents');
     await page.waitForLoadState('networkidle');
 
-    // Click on any incident
+    // HARD ASSERTION - Incidents table must be visible
     const firstIncident = page.locator('table tbody tr').first();
-    if (await firstIncident.isVisible()) {
-      await firstIncident.click();
-      await page.waitForLoadState('networkidle');
+    await expect(firstIncident).toBeVisible({ timeout: 10000 }); // HARD ASSERTION
+    await firstIncident.click();
+    await page.waitForLoadState('networkidle');
 
-      // Google Drive section should be visible (no separate button needed)
-      // Find inputs by scrolling to the Google Drive section first
-      await page.locator('text=/Google Drive Links/i').scrollIntoViewIfNeeded();
+    // HARD ASSERTION - Google Drive section must exist
+    const googleDriveSection = page.locator('text=/Google Drive Links/i');
+    await expect(googleDriveSection).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+    await googleDriveSection.scrollIntoViewIfNeeded();
 
-      // Fill Google Drive folder URL (find by label)
-      const folderUrlInput = page.getByLabel(/Investigation Folder URL/i);
-      await folderUrlInput.fill('https://drive.google.com/drive/folders/test-incident-folder');
+    // HARD ASSERTION - Input fields must exist
+    const folderUrlInput = page.getByLabel(/Investigation Folder URL/i);
+    await expect(folderUrlInput).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+    await folderUrlInput.fill('https://drive.google.com/drive/folders/test-incident-folder');
 
-      // Fill final report URL
-      const reportUrlInput = page.getByLabel(/Final Report URL/i);
-      await reportUrlInput.fill('https://drive.google.com/file/d/test-final-report');
+    const reportUrlInput = page.getByLabel(/Final Report URL/i);
+    await expect(reportUrlInput).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+    await reportUrlInput.fill('https://drive.google.com/file/d/test-final-report');
 
-      // Save changes - button text is "SAVE LINKS"
-      const saveLinkButton = page.locator('button:has-text("SAVE LINKS")').first();
-      await saveLinkButton.click();
+    // HARD ASSERTION - Save button must exist
+    const saveLinkButton = page.locator('button:has-text("SAVE LINKS")').first();
+    await expect(saveLinkButton).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
 
-      // Verify success message
-      await page.waitForTimeout(2000);
-      const successAlert = page.locator('[role="alert"]');
-      if (await successAlert.first().isVisible()) {
-        console.log('✅ Google Drive links saved successfully');
-      }
-    }
+    // Wait for API response to validate save operation
+    const [response] = await Promise.all([
+      page.waitForResponse(
+        resp => resp.url().includes('/api/safety/incidents') && resp.request().method() === 'PUT',
+        { timeout: 10000 }
+      ),
+      saveLinkButton.click()
+    ]);
+
+    // HARD ASSERTION - API must return success
+    expect(response.status()).toBeLessThanOrEqual(204);
+    expect(response.status()).toBeGreaterThanOrEqual(200);
+    console.log(`✅ API returned status ${response.status()}`);
+
+    // HARD ASSERTION - Success alert MUST appear
+    const successAlert = page.locator('[role="alert"]').first();
+    await expect(successAlert).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+    console.log('✅ Google Drive links saved successfully');
+
+    // HARD ASSERTION - No console errors
+    const consoleErrors = (page as any).consoleErrors || [];
+    expect(consoleErrors).toHaveLength(0); // HARD ASSERTION
   });
 
   test('should add investigation note to incident', async ({ page }) => {
@@ -235,32 +264,50 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     await page.goto('http://localhost:5173/admin/safety/incidents');
     await page.waitForLoadState('networkidle');
 
-    // Click on any incident
+    // HARD ASSERTION - Incidents table must exist
     const firstIncident = page.locator('table tbody tr').first();
-    if (await firstIncident.isVisible()) {
-      await firstIncident.click();
-      await page.waitForLoadState('networkidle');
+    await expect(firstIncident).toBeVisible({ timeout: 10000 }); // HARD ASSERTION
+    await firstIncident.click();
+    await page.waitForLoadState('networkidle');
 
-      // Scroll to notes section
-      await page.locator('text=/Investigation Notes/i').scrollIntoViewIfNeeded();
+    // HARD ASSERTION - Notes section must exist
+    const notesSection = page.locator('text=/Investigation Notes/i');
+    await expect(notesSection).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+    await notesSection.scrollIntoViewIfNeeded();
 
-      // Fill note content (button text is "ADD NOTE", textarea has placeholder "Add investigation note...")
-      const noteContent = 'Administrative note: Initial review completed. Escalating to safety team coordinator.';
-      const noteTextarea = page.locator('textarea[placeholder*="Add investigation note" i], textarea').first();
-      await noteTextarea.fill(noteContent);
+    // HARD ASSERTION - Textarea must exist
+    const noteContent = 'Administrative note: Initial review completed. Escalating to safety team coordinator.';
+    const noteTextarea = page.locator('textarea[placeholder*="Add investigation note" i], textarea').first();
+    await expect(noteTextarea).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
+    await noteTextarea.fill(noteContent);
 
-      // Submit note (button text is "ADD NOTE" - uppercase)
-      const addNoteButton = page.locator('button:has-text("ADD NOTE")').first();
-      await addNoteButton.click();
+    // HARD ASSERTION - Add note button must exist
+    const addNoteButton = page.locator('button:has-text("ADD NOTE")').first();
+    await expect(addNoteButton).toBeVisible({ timeout: 5000 }); // HARD ASSERTION
 
-      // Verify success message
-      const successAlert = page.locator('[role="alert"]').first();
-      await expect(successAlert).toBeVisible({ timeout: 10000 });
-      console.log('✅ Note added successfully');
+    // Wait for API response to validate note creation
+    const [response] = await Promise.all([
+      page.waitForResponse(
+        resp => resp.url().includes('/api/safety/incidents') &&
+                (resp.request().method() === 'POST' || resp.request().method() === 'PUT'),
+        { timeout: 10000 }
+      ),
+      addNoteButton.click()
+    ]);
 
-      // Note: The note content might be in a collapsed section or require additional UI interaction to view
-      // Success alert is sufficient verification that the note was created
-    }
+    // HARD ASSERTION - API must return success
+    expect(response.status()).toBeLessThanOrEqual(201);
+    expect(response.status()).toBeGreaterThanOrEqual(200);
+    console.log(`✅ API returned status ${response.status()}`);
+
+    // HARD ASSERTION - Success alert MUST appear
+    const successAlert = page.locator('[role="alert"]').first();
+    await expect(successAlert).toBeVisible({ timeout: 10000 }); // HARD ASSERTION
+    console.log('✅ Note added successfully');
+
+    // HARD ASSERTION - No console errors
+    const consoleErrors = (page as any).consoleErrors || [];
+    expect(consoleErrors).toHaveLength(0); // HARD ASSERTION
   });
 
   test('should update incident status through workflow', async ({ page }) => {
