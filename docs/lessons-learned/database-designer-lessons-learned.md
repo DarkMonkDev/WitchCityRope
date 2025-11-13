@@ -51,6 +51,13 @@
 
 ---
 
+## Optional Reading
+
+**When working on CMS features**, consult:
+- `/home/chad/repos/witchcityrope/docs/guides-setup/cms-implementation-guide.md` - Complete CMS architecture, dynamic routing, database schema, migration patterns
+
+---
+
 ## 🚨 CRITICAL: Enum Migration Breaking Changes Pattern (NEW) 🚨
 **Date**: 2025-10-18
 **Category**: Database Migration

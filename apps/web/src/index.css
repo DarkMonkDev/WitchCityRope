@@ -687,3 +687,18 @@ html {
 .hero-buttons .btn-secondary:hover {
   color: var(--color-midnight);
 }
+
+/* CTA section button overrides - match hero styling */
+.cta-section .btn-secondary {
+  background: transparent;
+  color: var(--color-ivory);
+  border-color: var(--color-rose-gold);
+}
+
+.cta-section .btn-secondary::before {
+  background: var(--color-rose-gold);
+}
+
+.cta-section .btn-secondary:hover {
+  color: var(--color-midnight);
+}

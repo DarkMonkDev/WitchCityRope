@@ -32,6 +32,7 @@ export interface ParticipationStatusDto {
 export interface CreateRSVPRequest {
   eventId: string;
   notes?: string;
+  eventWaiverAccepted: boolean;
 }
 
 export interface UserParticipationDto {

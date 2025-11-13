@@ -136,6 +136,12 @@ public class VolunteerService
                 return (false, null, "Invalid user ID format");
             }
 
+            // Validate event waiver acceptance
+            if (!request.EventWaiverAccepted)
+            {
+                return (false, null, "You must accept the Event Waiver to volunteer");
+            }
+
             // Get the volunteer position with event details
             var position = await _context.VolunteerPositions
                 .Include(vp => vp.Event)
@@ -206,11 +212,13 @@ public class VolunteerService
                         UserId = userGuid,
                         AttendanceType = AttendanceType.RSVP,
                         Status = AttendanceStatus.Active,
+                        EventWaiverAccepted = request.EventWaiverAccepted,
+                        EventWaiverAcceptedAt = request.EventWaiverAccepted ? DateTime.UtcNow : null,
                         CreatedAt = DateTime.UtcNow
                     };
 
                     _context.EventAttendances.Add(attendance);
-                    _logger.LogInformation("Auto-RSVPed user {UserId} to social event {EventId} after volunteer signup", userId, eventId);
+                    _logger.LogInformation("Auto-RSVPed user {UserId} to social event {EventId} after volunteer signup with event waiver accepted", userId, eventId);
                 }
                 else
                 {

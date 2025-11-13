@@ -171,6 +171,12 @@ public class AttendanceService : IAttendanceService
         {
             _logger.LogInformation("Creating RSVP for user {UserId} in event {EventId}", userId, request.EventId);
 
+            // CRITICAL: Validate Event Waiver acceptance
+            if (!request.EventWaiverAccepted)
+            {
+                return Result<ParticipationStatusDto>.Failure("You must accept the Event Waiver to RSVP");
+            }
+
             // Check if user exists (authentication verified by endpoint authorization)
             var user = await _context.Users
                 .AsNoTracking()
@@ -227,10 +233,12 @@ public class AttendanceService : IAttendanceService
                 return Result<ParticipationStatusDto>.Failure("Event is at full capacity");
             }
 
-            // Create the RSVP
+            // Create the RSVP with Event Waiver acceptance
             var attendance = new EventAttendance(request.EventId, userId, AttendanceType.RSVP)
             {
                 Notes = request.Notes,
+                EventWaiverAccepted = true,
+                EventWaiverAcceptedAt = DateTime.UtcNow,
                 CreatedBy = userId
             };
 
@@ -337,6 +345,12 @@ public class AttendanceService : IAttendanceService
         {
             _logger.LogInformation("Creating ticket purchase for user {UserId} in event {EventId}", userId, request.EventId);
 
+            // CRITICAL: Validate Event Waiver acceptance
+            if (!request.EventWaiverAccepted)
+            {
+                return Result<ParticipationStatusDto>.Failure("You must accept the Event Waiver to purchase a ticket");
+            }
+
             // Check if user exists
             var user = await _context.Users
                 .AsNoTracking()
@@ -393,10 +407,12 @@ public class AttendanceService : IAttendanceService
                 return Result<ParticipationStatusDto>.Failure("Event is at full capacity");
             }
 
-            // Create the ticket purchase
+            // Create the ticket purchase with Event Waiver acceptance
             var attendance = new EventAttendance(request.EventId, userId, AttendanceType.Ticket)
             {
                 Notes = request.Notes,
+                EventWaiverAccepted = true,
+                EventWaiverAcceptedAt = DateTime.UtcNow,
                 CreatedBy = userId
             };
 

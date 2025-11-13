@@ -57,16 +57,7 @@ import { CheckInDashboardPage } from '../pages/checkin/CheckInDashboardPage';
 import { VettingApplicationPage } from '../features/vetting/pages/VettingApplicationPage'
 
 // CMS system pages
-import { ResourcesPage } from '../features/cms/pages/ResourcesPage'
-import { ContactUsPage } from '../features/cms/pages/ContactUsPage'
-import { PrivateLessonsPage } from '../features/cms/pages/PrivateLessonsPage'
-import { AboutUsPage } from '../features/cms/pages/AboutUsPage'
-import { CodeOfConductPage } from '../features/cms/pages/CodeOfConductPage'
-import { PrivacyPolicyPage } from '../features/cms/pages/PrivacyPolicyPage'
-import { TermsOfServicePage } from '../features/cms/pages/TermsOfServicePage'
-import { FaqPage } from '../features/cms/pages/FaqPage'
-import { GettingStartedPage } from '../features/cms/pages/GettingStartedPage'
-import { EventWaiverPage } from '../features/cms/pages/EventWaiverPage'
+import { CmsDynamicPage } from '../features/cms/pages/CmsDynamicPage'
 import { CmsRevisionListPage } from '../features/cms/pages/CmsRevisionListPage'
 import { CmsRevisionDetailPage } from '../features/cms/pages/CmsRevisionDetailPage'
 
@@ -114,48 +105,6 @@ export const router = createBrowserRouter([
       {
         path: 'unauthorized',
         element: <UnauthorizedPage />,
-      },
-
-      // CMS pages - public access (admins can edit)
-      {
-        path: 'resources',
-        element: <ResourcesPage />,
-      },
-      {
-        path: 'contact-us',
-        element: <ContactUsPage />,
-      },
-      {
-        path: 'private-lessons',
-        element: <PrivateLessonsPage />,
-      },
-      {
-        path: 'about-us',
-        element: <AboutUsPage />,
-      },
-      {
-        path: 'code-of-conduct',
-        element: <CodeOfConductPage />,
-      },
-      {
-        path: 'privacy-policy',
-        element: <PrivacyPolicyPage />,
-      },
-      {
-        path: 'terms-of-service',
-        element: <TermsOfServicePage />,
-      },
-      {
-        path: 'faq',
-        element: <FaqPage />,
-      },
-      {
-        path: 'cms/getting-started',
-        element: <GettingStartedPage />,
-      },
-      {
-        path: 'event-waiver',
-        element: <EventWaiverPage />,
       },
 
       // Events system routes
@@ -367,6 +316,14 @@ export const router = createBrowserRouter([
         path: 'admin/cms/revisions/:pageId',
         element: <CmsRevisionDetailPage />,
         loader: adminLoader,
+      },
+
+      // Dynamic CMS route - MUST BE LAST to avoid matching static routes
+      // Matches any single-level path that doesn't match routes above
+      // Examples: /resources, /about-us, /terms-of-service, /faq, etc.
+      {
+        path: ':slug',
+        element: <CmsDynamicPage />,
       },
     ],
   },

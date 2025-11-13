@@ -150,6 +150,12 @@ The orchestrator MUST focus on keeping its context clean and ALWAYS delegate wor
 
 **NO EXCEPTIONS**: These verification patterns are MANDATORY to prevent major orchestration failures.
 
+
+## Optional Reading
+
+**When coordinating CMS feature work**, consult:
+- `/home/chad/repos/witchcityrope/docs/guides-setup/cms-implementation-guide.md` - Complete CMS architecture, dynamic routing, testing patterns, agent coordination guidance
+
 ---
 
 ## 🚨 IMPORTANT: Main Agent IS the Orchestrator 🚨

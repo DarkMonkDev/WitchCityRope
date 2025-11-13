@@ -1606,6 +1606,271 @@ namespace WitchCityRope.Api.Features.Cms
                     IsPublished = true
                 },
 
+                // NEW: Refund Policy Page
+                new ContentPage
+                {
+                    Slug = "refund-policy",
+                    Title = "Refund Policy",
+                    Content = @"<h1>Refund Policy</h1>
+<p><strong>Effective Date:</strong> October 23, 2025<br>
+<strong>Last Updated:</strong> October 23, 2025</p>
+
+<h2>Our Commitment to Accessibility</h2>
+<p>WitchCityRope is committed to making our events and educational offerings accessible to all community members. Our refund policy balances this commitment with the practical realities of event planning and venue costs.</p>
+
+<h2>Event Registration Refund Policy</h2>
+
+<h3>Standard Refund Timeline</h3>
+<p>Refunds for event registrations (workshops, classes, social events, and ticketed events) follow this schedule:</p>
+
+<h4>7+ Days Before Event</h4>
+<ul>
+<li><strong>Refund Amount:</strong> Full refund minus payment processing fee</li>
+<li><strong>Processing Fee:</strong> Typically 2.9% + $0.30 for credit card transactions</li>
+<li><strong>Processing Time:</strong> 5-7 business days</li>
+<li><strong>How to Request:</strong> Cancel through your account dashboard or email <a href=""mailto:refunds@witchcityrope.com"">refunds@witchcityrope.com</a></li>
+</ul>
+
+<h4>3-6 Days Before Event</h4>
+<ul>
+<li><strong>Refund Amount:</strong> 50% of registration price</li>
+<li><strong>Reason:</strong> At this point, we have already committed to venue costs and instructor fees based on registration numbers</li>
+<li><strong>Processing Time:</strong> 5-7 business days</li>
+<li><strong>How to Request:</strong> Email <a href=""mailto:refunds@witchcityrope.com"">refunds@witchcityrope.com</a> with your registration details</li>
+</ul>
+
+<h4>Less Than 3 Days Before Event</h4>
+<ul>
+<li><strong>Refund Amount:</strong> No refund</li>
+<li><strong>Reason:</strong> Venue and instructor commitments are finalized; late cancellations prevent us from filling the spot</li>
+<li><strong>Alternative:</strong> You may transfer your registration to another person (see Transfer Policy below)</li>
+</ul>
+
+<h4>No-Shows</h4>
+<ul>
+<li><strong>Refund Amount:</strong> No refund</li>
+<li><strong>Note:</strong> If you cannot attend, please cancel in advance so we can offer your spot to someone on the waitlist</li>
+</ul>
+
+<h2>Emergency and Hardship Exceptions</h2>
+
+<h3>Medical Emergencies</h3>
+<p>We understand that unexpected medical situations arise. Refund requests due to medical emergencies will be considered on a case-by-case basis, even within the ""no refund"" window.</p>
+<p><strong>Required Documentation:</strong></p>
+<ul>
+<li>Doctor's note or medical documentation</li>
+<li>Explanation of why attendance is not possible</li>
+<li>Request submitted within 7 days of the event</li>
+</ul>
+<p><strong>Contact:</strong> <a href=""mailto:refunds@witchcityrope.com"">refunds@witchcityrope.com</a> with subject line ""Medical Emergency Refund Request""</p>
+
+<h3>Financial Hardship</h3>
+<p>If you are experiencing financial hardship and need to cancel, please reach out to us. We may be able to offer:</p>
+<ul>
+<li>Credit toward a future event</li>
+<li>Partial refund beyond our standard policy</li>
+<li>Payment plan for future events</li>
+</ul>
+<p><strong>Contact:</strong> <a href=""mailto:support@witchcityrope.com"">support@witchcityrope.com</a> - All hardship requests are handled confidentially</p>
+
+<h3>Event Cancellation by WitchCityRope</h3>
+<p>If WitchCityRope cancels an event for any reason:</p>
+<ul>
+<li><strong>Full refund</strong> including all processing fees</li>
+<li><strong>OR</strong> credit toward any future event of equal or greater value</li>
+<li>Notification sent within 24 hours of cancellation decision</li>
+<li>Refunds processed within 5-7 business days</li>
+</ul>
+
+<h3>Event Rescheduling by WitchCityRope</h3>
+<p>If WitchCityRope reschedules an event:</p>
+<ul>
+<li>Your registration automatically transfers to the new date</li>
+<li>If you cannot attend the new date, <strong>full refund</strong> available (no processing fee deducted)</li>
+<li>Request refund within 14 days of rescheduling notification</li>
+</ul>
+
+<h2>Registration Transfer Policy</h2>
+
+<h3>Transferring to Another Person</h3>
+<p>If you cannot attend, you may transfer your registration to another person:</p>
+<ul>
+<li><strong>Deadline:</strong> Up to 24 hours before the event</li>
+<li><strong>Requirements:</strong>
+  <ul>
+    <li>Transferee must meet all event requirements (age, vetting status, prerequisites)</li>
+    <li>Both parties must complete transfer form</li>
+    <li>Transferee must agree to all event terms and waivers</li>
+  </ul>
+</li>
+<li><strong>Fee:</strong> No transfer fee</li>
+<li><strong>How to Transfer:</strong> Email <a href=""mailto:registrations@witchcityrope.com"">registrations@witchcityrope.com</a> with both parties' information</li>
+</ul>
+
+<h3>Transferring to a Different Event</h3>
+<p>You may request to transfer your registration to a different event:</p>
+<ul>
+<li><strong>Deadline:</strong> At least 7 days before the original event</li>
+<li><strong>Conditions:</strong>
+  <ul>
+    <li>New event must be within 90 days of original event</li>
+    <li>New event must be of equal or lesser value (price difference not refunded)</li>
+    <li>If new event costs more, pay difference before transfer</li>
+    <li>Subject to availability in new event</li>
+  </ul>
+</li>
+<li><strong>Fee:</strong> $5 administrative fee</li>
+<li><strong>How to Transfer:</strong> Email <a href=""mailto:registrations@witchcityrope.com"">registrations@witchcityrope.com</a></li>
+</ul>
+
+<h2>Private Lessons Cancellation Policy</h2>
+
+<p>Private lessons have a different cancellation policy due to instructors' time commitments:</p>
+
+<h3>Cancellation Timeline</h3>
+<ul>
+<li><strong>48+ hours before lesson:</strong> Full refund minus processing fee</li>
+<li><strong>24-48 hours before lesson:</strong> 50% refund</li>
+<li><strong>Less than 24 hours:</strong> No refund</li>
+<li><strong>No-shows:</strong> No refund</li>
+</ul>
+
+<h3>Rescheduling Private Lessons</h3>
+<ul>
+<li>Free rescheduling available up to 48 hours before lesson</li>
+<li>Contact your instructor directly or email <a href=""mailto:lessons@witchcityrope.com"">lessons@witchcityrope.com</a></li>
+<li>Lesson must be rescheduled within 90 days</li>
+</ul>
+
+<h2>Membership and Annual Support</h2>
+
+<h3>Sliding Scale Donations</h3>
+<p>Annual community support donations are non-refundable as they directly support our operational costs and community initiatives. However:</p>
+<ul>
+<li>You may adjust your support level at any time for future years</li>
+<li>Hardship support is available - contact <a href=""mailto:support@witchcityrope.com"">support@witchcityrope.com</a></li>
+<li>We never turn anyone away for inability to pay</li>
+</ul>
+
+<h2>Multi-Event Packages and Passes</h2>
+
+<h3>Workshop Series Packages</h3>
+<p>If you purchase a multi-workshop package:</p>
+<ul>
+<li><strong>Unused workshops:</strong> Refundable at pro-rated amount (per-workshop price) if cancelled 7+ days before each workshop</li>
+<li><strong>Completed workshops:</strong> Non-refundable</li>
+<li><strong>Package discounts:</strong> If you partially use a package and request refund, the discount may be recalculated</li>
+</ul>
+
+<p><strong>Example:</strong> You purchase a 4-workshop package at $120 ($30/workshop, normally $40 each). You attend 2 workshops and cancel before the remaining 2 (with proper notice). Refund: $60 for the 2 unused workshops.</p>
+
+<h2>Processing Information</h2>
+
+<h3>Refund Processing Time</h3>
+<ul>
+<li><strong>Approval:</strong> Most refund requests processed within 2 business days</li>
+<li><strong>Refund to Original Payment Method:</strong> 5-7 business days after approval</li>
+<li><strong>Credit Card Refunds:</strong> May take 1-2 billing cycles to appear on statement</li>
+<li><strong>PayPal Refunds:</strong> Typically within 24-48 hours of approval</li>
+</ul>
+
+<h3>Payment Processing Fees</h3>
+<p>Payment processing fees are deducted from refunds (except in cases of event cancellation by WitchCityRope):</p>
+<ul>
+<li>Credit/Debit Card: Approximately 2.9% + $0.30</li>
+<li>PayPal: Approximately 2.9% + $0.30</li>
+<li>The exact fee depends on your payment method and is charged by the payment processor, not by WitchCityRope</li>
+</ul>
+
+<h3>Refund Method</h3>
+<ul>
+<li>Refunds are issued to the original payment method used for registration</li>
+<li>If original payment method is no longer valid, contact <a href=""mailto:refunds@witchcityrope.com"">refunds@witchcityrope.com</a> to arrange alternative refund method</li>
+</ul>
+
+<h2>Special Circumstances</h2>
+
+<h3>Weather-Related Cancellations</h3>
+<p>For outdoor events or events affected by severe weather:</p>
+<ul>
+<li>If WitchCityRope cancels due to weather: Full refund or transfer to rescheduled date</li>
+<li>If you choose not to attend due to weather but event proceeds: Standard refund policy applies</li>
+</ul>
+
+<h3>Venue Issues</h3>
+<p>If venue becomes unavailable and we cannot find suitable alternative:</p>
+<ul>
+<li>Full refund including processing fees</li>
+<li>OR credit toward future event of your choice</li>
+</ul>
+
+<h3>Instructor Cancellation</h3>
+<p>If the scheduled instructor cannot teach and we cannot find a suitable replacement:</p>
+<ul>
+<li>Full refund including processing fees</li>
+<li>OR transfer to future date when instructor is available</li>
+<li>Decision to proceed with replacement instructor or cancel event will be communicated clearly</li>
+</ul>
+
+<h2>Disputes and Appeals</h2>
+
+<h3>If You Disagree with a Refund Decision</h3>
+<ol>
+<li><strong>Contact Us:</strong> Email <a href=""mailto:refunds@witchcityrope.com"">refunds@witchcityrope.com</a> explaining your situation</li>
+<li><strong>Appeal:</strong> If not resolved, submit written appeal to <a href=""mailto:appeals@witchcityrope.com"">appeals@witchcityrope.com</a></li>
+<li><strong>Review:</strong> Appeals reviewed by leadership team member not involved in original decision</li>
+<li><strong>Response:</strong> Decision provided within 7 business days</li>
+</ol>
+
+<h3>Payment Disputes and Chargebacks</h3>
+<p>If you initiate a chargeback or payment dispute with your bank/credit card company:</p>
+<ul>
+<li>We will respond with our cancellation policy and records of your agreement to terms</li>
+<li>Please contact us directly before initiating a chargeback - we're happy to work with you</li>
+<li>Chargebacks may result in suspension of account pending resolution</li>
+</ul>
+
+<h2>Contact Information</h2>
+
+<h3>For Refund Requests</h3>
+<p><strong>Email:</strong> <a href=""mailto:refunds@witchcityrope.com"">refunds@witchcityrope.com</a></p>
+<p><strong>Include:</strong></p>
+<ul>
+<li>Your name and email used for registration</li>
+<li>Event name and date</li>
+<li>Registration/Order number (if available)</li>
+<li>Reason for cancellation (optional but helpful)</li>
+</ul>
+
+<h3>For Registration Transfers</h3>
+<p><strong>Email:</strong> <a href=""mailto:registrations@witchcityrope.com"">registrations@witchcityrope.com</a></p>
+
+<h3>For General Questions</h3>
+<p><strong>Email:</strong> <a href=""mailto:info@witchcityrope.com"">info@witchcityrope.com</a></p>
+
+<h3>For Hardship Assistance</h3>
+<p><strong>Email:</strong> <a href=""mailto:support@witchcityrope.com"">support@witchcityrope.com</a></p>
+
+<hr>
+
+<h2>Policy Updates</h2>
+<p>This refund policy may be updated periodically. Changes will be posted on this page with the ""Last Updated"" date. Significant changes will be communicated via email to registered members.</p>
+
+<h2>Acknowledgment</h2>
+<p>By registering for WitchCityRope events, you acknowledge that you have read, understood, and agree to this refund policy.</p>
+
+<hr>
+
+<p><strong>Our Philosophy:</strong> We understand that life happens. While we must maintain a clear refund policy to sustain our operations, we also believe in supporting our community members during difficult times. If you're facing exceptional circumstances not covered by this policy, please reach out - we'll do our best to find a solution that works for everyone.</p>
+
+<p><strong>Thank you for supporting WitchCityRope and our community.</strong></p>",
+                    CreatedAt = now,
+                    UpdatedAt = now,
+                    CreatedBy = adminUser.Id,
+                    LastModifiedBy = adminUser.Id,
+                    IsPublished = true
+                },
+
                 // Event Waiver Page
                 new ContentPage
                 {

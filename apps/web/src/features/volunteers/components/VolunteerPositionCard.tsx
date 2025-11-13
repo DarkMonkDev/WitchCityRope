@@ -37,7 +37,9 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
 
   const signupMutation = useMutation<any, any, void>({
     mutationFn: async () => {
-      return await signupForVolunteerPosition(position.id, {});
+      return await signupForVolunteerPosition(position.id, {
+        eventWaiverAccepted: volunteerTermsAccepted
+      });
     },
     onSuccess: (response) => {
       notifications.show({
@@ -255,7 +257,7 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
                     >
                       I agree to the{' '}
                       <a
-                        href="/terms-of-service"
+                        href="/event-waiver"
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{
@@ -265,7 +267,7 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
                         }}
                         onClick={(e) => e.stopPropagation()}
                       >
-                        Terms of Service
+                        Event Waiver
                       </a>
                     </Text>
                   </Group>

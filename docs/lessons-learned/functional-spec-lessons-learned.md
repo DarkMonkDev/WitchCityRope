@@ -84,6 +84,12 @@
 
 **NO EXCEPTIONS**: Create handoff documents or workflow WILL fail.
 
+
+## Optional Reading
+
+**When working on CMS features**, consult:
+- `/home/chad/repos/witchcityrope/docs/guides-setup/cms-implementation-guide.md` - Complete CMS architecture, dynamic routing, how to add pages, testing guidance
+
 ---
 
 ## CRITICAL: Architecture Discovery Phase is Phase 0

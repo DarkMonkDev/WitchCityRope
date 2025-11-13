@@ -79,7 +79,7 @@ interface ParticipationCardProps {
   eventType: 'social' | 'class';
   participation: ParticipationStatusDto | null;
   isLoading?: boolean;
-  onRSVP: (notes?: string) => void;
+  onRSVP: (notes?: string, eventWaiverAccepted?: boolean) => void;
   onPurchaseTicket: (amount: number, slidingScalePercentage?: number) => void;
   onCancel: (type: 'rsvp' | 'ticket', reason?: string) => void;
   ticketPrice?: number;
@@ -334,8 +334,8 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   const isAtCapacity = validParticipation?.capacity && validParticipation.capacity.available <= 0;
 
   const handleRSVPClick = () => {
-    // Direct RSVP without modal confirmation
-    onRSVP();
+    // Direct RSVP without modal confirmation, passing event waiver acceptance
+    onRSVP(undefined, rsvpTermsAccepted);
   };
 
   const handleCancelClick = (type: 'rsvp' | 'ticket') => {
@@ -619,7 +619,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                             >
                               I agree to the{' '}
                               <a
-                                href="/terms-of-service"
+                                href="/event-waiver"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 style={{
@@ -629,7 +629,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                                 }}
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                Terms of Service
+                                Event Waiver
                               </a>
                             </Text>
                           </Group>
@@ -707,12 +707,12 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                   {timingStatus?.canRegister && (
                     <>
                       <Box
+                        p={{ base: 'xs', md: 'md' }}
+                        mb={{ base: 'xs', md: 'md' }}
                         style={{
                           background: 'var(--color-cream)',
                           borderRadius: '12px',
-                          padding: 'var(--space-md)',
-                          textAlign: 'center',
-                          marginBottom: 'var(--space-md)'
+                          textAlign: 'center'
                         }}
                       >
                         <Text fw={700} size="lg" c="var(--color-burgundy)" mb="xs">

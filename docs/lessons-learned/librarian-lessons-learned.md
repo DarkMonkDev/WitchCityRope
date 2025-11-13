@@ -43,6 +43,25 @@
 
 **Skills Usage**: See `/.claude/skills/HOW-TO-USE-SKILLS.md` for complete guide on when/how to use skills
 
+## 🚨 CMS Content Management Reference 🚨
+
+**Architecture Reference**: All CMS documentation structure, content organization, and page management details are documented in `/home/chad/repos/witchcityrope/docs/guides-setup/cms-implementation-guide.md`. Consult this guide when:
+- Managing CMS content documentation
+- Understanding CMS page structure and metadata
+- Organizing CMS-related documentation
+- Tracking CMS page additions and changes
+- Understanding CMS vs static documentation differences
+
+**Key Points**:
+- CMS pages stored in database (dynamic content)
+- Static pages stored in `/docs/` (version-controlled documentation)
+- New CMS pages added via `CmsSeedData.cs` only
+- CMS content changes NOT tracked in file registry (database-driven)
+- Revision history managed by CMS system automatically
+
+---
+
+
 ---
 
 ## Prevention Pattern: Standards Adherence Enforcement

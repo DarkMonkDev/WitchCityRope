@@ -30,4 +30,10 @@ public class RegisterRequest
     [StringLength(50, MinimumLength = 2, ErrorMessage = "Scene name must be between 2 and 50 characters")]
     [RegularExpression(@"^[a-zA-Z0-9_-]+$", ErrorMessage = "Scene name can only contain letters, numbers, underscores, and hyphens")]
     public string SceneName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Terms of Service acceptance - REQUIRED for registration
+    /// </summary>
+    [Required(ErrorMessage = "You must accept the Terms of Service to register")]
+    public bool TermsOfServiceAccepted { get; set; }
 }

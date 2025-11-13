@@ -174,6 +174,12 @@ public class AuthenticationService
     {
         try
         {
+            // CRITICAL: Validate Terms of Service acceptance
+            if (!request.TermsOfServiceAccepted)
+            {
+                return (false, null, "You must accept the Terms of Service to register");
+            }
+
             // Check if email already exists using direct Entity Framework
             var existingUser = await _context.Users
                 .AsNoTracking()
@@ -194,13 +200,15 @@ public class AuthenticationService
                 return (false, null, "Scene name is already taken");
             }
 
-            // Create new user
+            // Create new user with Terms of Service acceptance
             var user = new ApplicationUser
             {
                 UserName = request.Email,
                 Email = request.Email,
                 SceneName = request.SceneName,
                 EmailConfirmed = true, // Auto-confirm for testing
+                TermsOfServiceAccepted = true,
+                TermsOfServiceAcceptedAt = DateTime.UtcNow,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -218,7 +226,8 @@ public class AuthenticationService
 
             var response = new AuthUserResponse(user);
 
-            _logger.LogInformation("User registered successfully: {Email} ({SceneName})", user.Email, user.SceneName);
+            _logger.LogInformation("User registered successfully: {Email} ({SceneName}) with ToS acceptance at {ToSTime}",
+                user.Email, user.SceneName, user.TermsOfServiceAcceptedAt);
             return (true, response, string.Empty);
         }
         catch (Exception ex)

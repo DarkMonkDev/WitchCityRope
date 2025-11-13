@@ -18,4 +18,10 @@ public class CreateRSVPRequest
     /// </summary>
     [MaxLength(2000)]
     public string? Notes { get; set; }
+
+    /// <summary>
+    /// Event Waiver acceptance - REQUIRED for RSVP
+    /// </summary>
+    [Required]
+    public bool EventWaiverAccepted { get; set; }
 }

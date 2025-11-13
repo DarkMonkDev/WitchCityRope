@@ -8,9 +8,7 @@ export { CmsCancelModal } from './components/CmsCancelModal'
 export { CmsRevisionCard } from './components/CmsRevisionCard'
 
 // Pages
-export { ResourcesPage } from './pages/ResourcesPage'
-export { ContactUsPage } from './pages/ContactUsPage'
-export { PrivateLessonsPage } from './pages/PrivateLessonsPage'
+export { CmsDynamicPage } from './pages/CmsDynamicPage'
 export { CmsRevisionListPage } from './pages/CmsRevisionListPage'
 export { CmsRevisionDetailPage } from './pages/CmsRevisionDetailPage'
 

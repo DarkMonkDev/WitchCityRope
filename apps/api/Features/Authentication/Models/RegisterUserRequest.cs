@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace WitchCityRope.Api.Features.Authentication.Models;
 
 /// <summary>
@@ -12,4 +14,10 @@ public class RegisterUserRequest
     public string SceneName { get; set; } = string.Empty;
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
+
+    /// <summary>
+    /// Terms of Service acceptance - REQUIRED for registration
+    /// </summary>
+    [Required]
+    public bool TermsOfServiceAccepted { get; set; }
 }

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useForm } from '@mantine/form'
 import {
@@ -10,6 +10,8 @@ import {
   Stack,
   Box,
   Flex,
+  Checkbox,
+  Group,
 } from '@mantine/core'
 import { IconAlertCircle } from '@tabler/icons-react'
 import { useRegister } from '../features/auth/api/mutations'
@@ -25,6 +27,7 @@ export const RegisterPage: React.FC = () => {
   const location = useLocation()
   const isAuthenticated = useIsAuthenticated();
   const registerMutation = useRegister()
+  const [termsAccepted, setTermsAccepted] = useState(false)
 
   // Mantine form with manual validation
   const form = useForm<RegisterFormData>({
@@ -69,7 +72,10 @@ export const RegisterPage: React.FC = () => {
   }, [isAuthenticated, location.search])
 
   const handleSubmit = (values: RegisterFormData) => {
-    registerMutation.mutate(values)
+    registerMutation.mutate({
+      ...values,
+      termsOfServiceAccepted: termsAccepted,
+    })
   }
 
   return (
@@ -293,16 +299,58 @@ export const RegisterPage: React.FC = () => {
                 </Text>
               </Box>
 
+              {/* Terms of Service Acceptance */}
+              <Box mt="md">
+                <Group gap="sm" align="flex-start">
+                  <Checkbox
+                    id="terms-checkbox"
+                    checked={termsAccepted}
+                    onChange={(event) => setTermsAccepted(event.currentTarget.checked)}
+                    size="md"
+                    color="var(--color-burgundy)"
+                    data-testid="terms-checkbox"
+                    mt={4}
+                  />
+                  <Text
+                    component="label"
+                    htmlFor="terms-checkbox"
+                    size="sm"
+                    style={{
+                      cursor: 'pointer',
+                      color: 'var(--color-charcoal)',
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    I agree to the{' '}
+                    <a
+                      href="/terms-of-service"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        color: 'var(--color-burgundy)',
+                        textDecoration: 'underline',
+                        fontWeight: 600,
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Terms of Service
+                    </a>
+                  </Text>
+                </Group>
+              </Box>
+
               {/* Create Account button using Box to match login page styling */}
               <Box
                 component="button"
                 type="submit"
-                disabled={registerMutation.isPending}
+                disabled={registerMutation.isPending || !termsAccepted}
                 data-testid="register-button"
                 className="btn btn-primary"
                 style={{
                   marginTop: 'var(--space-sm)',
                   width: '100%',
+                  opacity: termsAccepted ? 1 : 0.5,
+                  cursor: termsAccepted ? 'pointer' : 'not-allowed',
                 }}
               >
                 {registerMutation.isPending ? 'Creating Account...' : 'Create Account'}

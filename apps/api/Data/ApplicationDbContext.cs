@@ -353,6 +353,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             entity.Property(e => e.LastPasswordChangeAt)
                 .HasColumnType("timestamptz");
 
+            // Terms of Service fields for legal compliance
+            entity.Property(e => e.TermsOfServiceAccepted)
+                .IsRequired()
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.TermsOfServiceAcceptedAt)
+                .HasColumnType("timestamptz");
+
             // Indexes to match existing schema
             entity.HasIndex(e => e.SceneName)
                 .IsUnique()
@@ -622,6 +630,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             // RecordedByStaffId configuration
             entity.Property(p => p.RecordedByStaffId)
                   .IsRequired(false);  // Nullable
+
+            // Event Waiver fields for legal compliance
+            entity.Property(p => p.EventWaiverAccepted)
+                  .IsRequired()
+                  .HasDefaultValue(false);
+
+            entity.Property(p => p.EventWaiverAcceptedAt)
+                  .HasColumnType("timestamptz");
 
             entity.Property(p => p.CreatedAt)
                   .IsRequired()

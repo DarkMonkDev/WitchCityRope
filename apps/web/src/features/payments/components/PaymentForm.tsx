@@ -179,7 +179,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
               >
                 I agree to the{' '}
                 <a
-                  href="/terms-of-service"
+                  href="/event-waiver"
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
@@ -188,7 +188,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  Terms of Service
+                  Liability Waiver
                 </a>
                 {' '}and{' '}
                 <a

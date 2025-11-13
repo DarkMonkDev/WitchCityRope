@@ -61,6 +61,14 @@ public class EventAttendanceConfiguration : IEntityTypeConfiguration<EventAttend
                .HasColumnType("jsonb")
                .HasDefaultValue("{}");
 
+        // Event Waiver fields for legal compliance
+        builder.Property(e => e.EventWaiverAccepted)
+               .IsRequired()
+               .HasDefaultValue(false);
+
+        builder.Property(e => e.EventWaiverAcceptedAt)
+               .HasColumnType("timestamptz");
+
         // Foreign key relationships
         builder.HasOne(e => e.Event)
                .WithMany(e => e.EventAttendances)

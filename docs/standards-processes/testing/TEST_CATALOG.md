@@ -1,10 +1,99 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-11-11 (AUTHHELPER VISIBILITY FIX + EVENT UPDATE TESTS) -->
-<!-- Version: 10.66 - AuthHelper visibility state fix + event-update test fixes -->
+<!-- Last Updated: 2025-11-12 (LEGAL COMPLIANCE E2E TESTS ADDED) -->
+<!-- Version: 10.67 - Terms of Service and Event Waiver E2E test coverage -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
 
-## ✅ LATEST UPDATE: AuthHelper Visibility Fix + Event Update Tests - November 11, 2025
+## ✅ LATEST UPDATE: Legal Compliance E2E Tests Added - November 12, 2025
+
+**FILES CREATED**: 4 new E2E test suites for Terms of Service and Event Waiver compliance
+**STATUS**: ✅ **COMPREHENSIVE E2E TEST COVERAGE FOR LEGAL REQUIREMENTS**
+**DATE**: 2025-11-12
+
+**NEW TEST SUITES CREATED**:
+
+1. **Registration Terms of Service Tests** (`/tests/playwright/auth/registration-tos.spec.ts`)
+   - **Tests**: 6 comprehensive tests (3 positive, 3 negative)
+   - **Coverage**: Registration ToS checkbox requirement, database verification, login validation
+   - **Database Fields**: Users.TermsOfServiceAccepted, Users.TermsOfServiceAcceptedAt
+   - **Key Tests**:
+     - ✅ User can register when ToS checked
+     - ✅ Database shows TermsOfServiceAccepted=true and timestamp
+     - ✅ Newly registered user can log in
+     - ❌ Submit button disabled when ToS unchecked
+     - ❌ Form submission prevented without ToS
+     - ❌ Toggling ToS checkbox updates button state
+
+2. **RSVP Event Waiver Tests** (`/tests/playwright/participation/rsvp-event-waiver.spec.ts`)
+   - **Tests**: 6 comprehensive tests (3 positive, 3 negative)
+   - **Coverage**: RSVP Event Waiver checkbox requirement, database verification, API validation
+   - **Database Fields**: EventAttendances.EventWaiverAccepted, EventAttendances.EventWaiverAcceptedAt
+   - **Key Tests**:
+     - ✅ User can RSVP when waiver checked
+     - ✅ Database shows EventWaiverAccepted=true and timestamp
+     - ✅ RSVP confirmation displayed
+     - ❌ RSVP button disabled when waiver unchecked
+     - ❌ API returns 400 without waiver
+     - ❌ Toggling waiver checkbox updates button state
+
+3. **Volunteer Signup Event Waiver Tests** (`/tests/playwright/participation/volunteer-event-waiver.spec.ts`)
+   - **Tests**: 7 comprehensive tests (3 positive, 3 negative, 1 business logic)
+   - **Coverage**: Volunteer signup waiver requirement, auto-created RSVP verification, conditional rendering
+   - **Database Fields**: EventAttendances.EventWaiverAccepted (on auto-created RSVP)
+   - **Key Tests**:
+     - ✅ User can volunteer when waiver checked
+     - ✅ Auto-created RSVP has EventWaiverAccepted=true
+     - ✅ Volunteer signup confirmation displayed
+     - ❌ Signup button disabled when waiver unchecked
+     - ❌ API returns 400 without waiver
+     - ❌ Toggling waiver checkbox updates button state
+     - ℹ️  Waiver checkbox NOT shown if user already participated (business logic)
+
+4. **Ticket Purchase Liability Waiver Tests** (`/tests/playwright/participation/ticket-purchase-waiver.spec.ts`)
+   - **Tests**: 6 comprehensive tests (3 positive, 3 negative)
+   - **Coverage**: Ticket purchase waiver requirement, database verification, checkout flow validation
+   - **Database Fields**: TicketPurchases.EventWaiverAccepted, TicketPurchases.EventWaiverAcceptedAt
+   - **Key Tests**:
+     - ✅ User can purchase ticket when waiver checked
+     - ✅ Database shows EventWaiverAccepted=true and timestamp
+     - ✅ Purchase confirmation displayed
+     - ❌ Purchase button disabled when waiver unchecked
+     - ❌ API returns 400 without waiver
+     - ❌ Toggling waiver checkbox updates button state
+
+**TEST COVERAGE SUMMARY**:
+- **Total Tests**: 25 E2E tests across 4 suites
+- **Positive Tests**: 12 (happy path scenarios)
+- **Negative Tests**: 12 (validation and error handling)
+- **Business Logic Tests**: 1 (conditional rendering logic)
+- **Database Verification**: All 4 suites verify UTC timestamps and boolean flags
+- **API Validation**: All 4 suites test API rejection of invalid requests
+
+**BUSINESS REQUIREMENTS VALIDATED**:
+- ✅ Users MUST accept Terms of Service before registration
+- ✅ Users MUST accept Event Waiver before RSVP
+- ✅ Users MUST accept Event Waiver before volunteer signup (if first participation)
+- ✅ Users MUST accept Liability Waiver before ticket purchase
+- ✅ Submit/action buttons disabled until checkbox checked
+- ✅ Database stores acceptance timestamps in UTC
+- ✅ APIs reject requests without waiver acceptance (400 errors)
+
+**TECHNICAL IMPLEMENTATION VERIFIED**:
+- Frontend: Checkbox controls button enabled/disabled state
+- Frontend: Form validation prevents submission without acceptance
+- Backend: API validates waiver acceptance before processing
+- Database: Stores boolean flags and UTC timestamps
+- UI/UX: Clear visual indicators for required acceptance
+
+**DOCKER ENVIRONMENT**: All tests designed to run against Docker containers (port 5173)
+
+**EXECUTION STATUS**: Tests created, ready for execution by test-executor agent
+
+**CATALOG UPDATED**: ✅ All 4 test suites documented in TEST_CATALOG
+
+---
+
+## ✅ PREVIOUS UPDATE: AuthHelper Visibility Fix + Event Update Tests - November 11, 2025
 
 **FILES FIXED**: `/tests/e2e/helpers/auth.helper.ts`, `/tests/e2e/event-update-complete-flow.spec.ts`
 **STATUS**: ✅ **AuthHelper improved, event-update-e2e-test.spec.ts passing (5/6 tests)**

@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace WitchCityRope.Api.Features.Volunteers.Models;
 
 /// <summary>
@@ -31,7 +33,12 @@ public class VolunteerPositionDto
 /// </summary>
 public class VolunteerSignupRequest
 {
-    // Empty request body - signup requires no additional fields
+    /// <summary>
+    /// Indicates whether the user has accepted the Event Waiver
+    /// Required for legal compliance when volunteering at events
+    /// </summary>
+    [Required]
+    public bool EventWaiverAccepted { get; set; }
 }
 
 /// <summary>

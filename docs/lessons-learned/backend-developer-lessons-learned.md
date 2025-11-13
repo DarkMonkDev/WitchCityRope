@@ -256,3 +256,20 @@ lsof -i :5655 | grep -v docker || echo "No conflicts"
 - Check for bidirectional relationships before troubleshooting infrastructure
 
 ---
+## 🚨 CMS Backend Implementation Reference 🚨
+
+**Architecture Reference**: All CMS API endpoints, database schema, and seeding procedures are documented in `/home/chad/repos/witchcityrope/docs/guides-setup/cms-implementation-guide.md`. Consult this guide when:
+- Implementing CMS API endpoints
+- Modifying CMS database schema
+- Adding new CMS pages via seed data
+- Understanding CMS entity relationships
+- Debugging CMS content retrieval issues
+
+**Key Points**:
+- CMS content stored in `CmsPage` and `CmsPageRevision` tables
+- New pages added ONLY through `CmsSeedData.cs` (no admin UI for page creation)
+- Revision history tracked automatically for all content changes
+- API endpoints follow standard `ApiResponse<T>` wrapper pattern
+- Content validation handled server-side before persistence
+
+---

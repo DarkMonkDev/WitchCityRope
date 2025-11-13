@@ -24,4 +24,10 @@ public class CreateTicketPurchaseRequest
     /// Currently stubbed for basic ticket tracking
     /// </summary>
     public string? PaymentMethodId { get; set; }
+
+    /// <summary>
+    /// Event Waiver acceptance - REQUIRED for ticket purchase
+    /// </summary>
+    [Required]
+    public bool EventWaiverAccepted { get; set; }
 }

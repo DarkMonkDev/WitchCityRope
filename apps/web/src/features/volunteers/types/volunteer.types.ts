@@ -44,8 +44,8 @@ export type VolunteerAssignmentDto = components['schemas']['VolunteerAssignmentD
  * Frontend form data structure
  */
 export interface VolunteerSignupRequest {
-  // Empty - no additional data required for signup
   // User ID is inferred from authentication context
+  eventWaiverAccepted: boolean;
 }
 
 /**

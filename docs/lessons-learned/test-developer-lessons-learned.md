@@ -102,6 +102,12 @@ If you cannot read ANY part of these lessons learned:
 3. DO NOT proceed until all files are readable
 4. This is NON-NEGOTIABLE - these files contain critical knowledge
 
+
+## Optional Reading
+
+**When writing tests for CMS features**, consult:
+- `/home/chad/repos/witchcityrope/docs/guides-setup/cms-implementation-guide.md` - CMS architecture, testing patterns, dynamic routing behavior
+
 ## 🚨 ULTRA CRITICAL: Password Escaping in JSON - NO ESCAPING REQUIRED (2025-09-22) 🚨
 
 **Problem**: Test creation frequently introduces password escaping that breaks authentication, causing hours of debugging "Invalid credentials" errors.
@@ -135,21 +141,24 @@ const loginData = {
 **Solution**: ALWAYS verify Docker containers are running on port 5173 before creating any tests.
 
 ### 🛑 CRITICAL RULES FOR TEST DEVELOPERS:
-1. **NEVER start local dev servers** - Use Docker only (container-restart skill available)
-2. **ALWAYS verify Docker is running** before creating ANY tests
+1. **NEVER start local dev servers** - Use Docker only
+2. **ALWAYS verify Docker is running** before creating ANY tests - Use **container-restart skill** to verify and start containers
 3. **ONLY use port 5173** (Docker) - NEVER 5174, 5175, or any other port
 4. **KILL rogue processes**: `./scripts/kill-local-dev-servers.sh` if needed
 
 ### ✅ MANDATORY PRE-TEST VERIFICATION:
-```bash
-# 1. Verify Docker is running (REQUIRED)
-docker ps | grep witchcity-web
-# Should show: witchcity-web on port 5173
+Use **container-restart skill** to verify Docker containers are running properly and on correct ports. The skill handles:
+- Checking if Docker daemon is running
+- Verifying containers are up and healthy
+- Displaying container status with ports
+- Starting containers if needed
 
-# 2. Kill any rogue local dev servers
+Alternative manual checks (if skill unavailable):
+```bash
+# Kill any rogue local dev servers
 ./scripts/kill-local-dev-servers.sh
 
-# 3. Verify correct port
+# Verify correct port (after using container-restart skill)
 curl -f http://localhost:5173/ || echo "ERROR: Docker not on port 5173"
 ```
 

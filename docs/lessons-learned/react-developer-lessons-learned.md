@@ -98,6 +98,24 @@
 **ALL NEW LESSONS**: Must go to Part 2 - `/home/chad/repos/witchcityrope/docs/lessons-learned/react-developer-lessons-learned-2.md`
 **IF YOU ADD LESSONS HERE**: You are violating the split pattern!
 
+## 🚨 CMS Implementation Reference 🚨
+
+**Architecture Reference**: All CMS routing, components, and implementation details are documented in `/home/chad/repos/witchcityrope/docs/guides-setup/cms-implementation-guide.md`. Consult this guide when:
+- Adding new CMS pages
+- Modifying CMS routing structure
+- Understanding dynamic `:slug` routing pattern
+- Implementing CMS-related features
+- Debugging CMS page loading issues
+
+**Key Points**:
+- CMS uses dynamic `:slug` routing (no code deployment for new pages)
+- CMS route MUST be last in router configuration (catch-all pattern)
+- New pages added via `CmsSeedData.cs` only (backend seeding)
+- Single `CmsDynamicPage` component serves all CMS pages
+- TipTap editor integration for rich text editing
+
+---
+
 ## 🚨 LATEST CRITICAL LESSON: REACT ROUTER NAVIGATION TIMING FIX 🚨
 
 ### ⚠️ PROBLEM: navigate() changes URL but component doesn't re-render

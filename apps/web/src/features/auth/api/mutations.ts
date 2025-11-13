@@ -21,6 +21,7 @@ export interface RegisterCredentials {
   email: string
   password: string
   sceneName: string
+  termsOfServiceAccepted: boolean
 }
 
 /**

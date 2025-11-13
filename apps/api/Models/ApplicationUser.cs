@@ -118,4 +118,17 @@ public class ApplicationUser : IdentityUser<Guid>
         get => VettingStatus == 3;
         set { /* Ignore setter - kept for backward compatibility during migration */ }
     }
+
+    /// <summary>
+    /// Indicates whether the user has accepted the Terms of Service
+    /// Required for legal compliance
+    /// </summary>
+    public bool TermsOfServiceAccepted { get; set; } = false;
+
+    /// <summary>
+    /// When the user accepted the Terms of Service (UTC)
+    /// NULL if not yet accepted
+    /// CRITICAL: UTC for PostgreSQL timestamptz compatibility
+    /// </summary>
+    public DateTime? TermsOfServiceAcceptedAt { get; set; }
 }

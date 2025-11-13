@@ -95,6 +95,24 @@
 
 **Skills Usage**: See `/.claude/skills/HOW-TO-USE-SKILLS.md` for complete guide on when/how to use skills
 
+## 🚨 CMS Design Implementation Reference 🚨
+
+**Architecture Reference**: All CMS design patterns, editing UI, and in-place editing patterns are documented in `/home/chad/repos/witchcityrope/docs/guides-setup/cms-implementation-guide.md`. Consult this guide when:
+- Designing CMS edit controls and interfaces
+- Implementing in-place editing UI patterns
+- Creating admin-only edit buttons (always-visible pattern)
+- Understanding CMS page layout and rendering
+- Debugging CMS editing UX issues
+
+**Key Points**:
+- Admin edit button MUST be always visible (not hover-only)
+- CMS uses Mantine TipTap rich text editor
+- Optimistic UI updates for content saving (instant feedback)
+- Unsaved changes protection (browser warning)
+- Mobile-first touch targets (44×44px minimum)
+
+---
+
 ---
 
 ## Admin Settings Card Pattern - November 2025

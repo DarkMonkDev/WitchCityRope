@@ -114,6 +114,7 @@ public static class VolunteerEndpoints
                 "You have already signed up for this volunteer position" => 409,
                 "This volunteer position is already fully staffed" => 409,
                 "This volunteer position is not open for public signups" => 403,
+                "You must accept the Event Waiver to volunteer" => 400,
                 _ => 500
             };
 
@@ -127,9 +128,10 @@ public static class VolunteerEndpoints
         })
         .WithName("SignupForVolunteerPosition")
         .WithSummary("Sign up for a volunteer position")
-        .WithDescription("Sign up for a volunteer position. Requires authentication. Automatically RSVPs user to social events if not already registered.")
+        .WithDescription("Sign up for a volunteer position. Requires authentication. Event Waiver acceptance is required. Automatically RSVPs user to social events if not already registered.")
         .WithTags("Volunteers")
         .Produces<ApiResponse<VolunteerSignupDto>>(200)
+        .Produces(400)
         .Produces(401)
         .Produces(403)
         .Produces(404)

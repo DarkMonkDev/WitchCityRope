@@ -59,7 +59,7 @@ export const Navigation: React.FC = () => {
         background: 'rgba(255, 248, 240, 0.95)',
         backdropFilter: 'blur(10px)',
         boxShadow: '0 2px 20px rgba(0,0,0,0.08)',
-        padding: `${isScrolled ? '8px' : '18px'} 40px`,
+        padding: `${isScrolled ? '8px' : '18px'} clamp(1.25rem, 2vw + 0.75rem, 2.5rem)`, // 20px mobile → 40px desktop
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -77,7 +77,7 @@ export const Navigation: React.FC = () => {
         className="logo logo-underline-animation"
         style={{
           fontFamily: 'var(--font-heading)',
-          fontSize: '30px',
+          fontSize: 'clamp(1.5rem, 1.5vw + 1rem, 1.875rem)', // 24px mobile → 30px desktop
           fontWeight: 800,
           color: 'var(--color-burgundy)',
           textDecoration: 'none',
@@ -85,7 +85,7 @@ export const Navigation: React.FC = () => {
           transition: 'all 0.3s ease',
           position: 'relative',
           height: 'inherit',
-          padding: '0 24px',
+          padding: '0 clamp(0.75rem, 1.5vw + 0.25rem, 1.5rem)', // 12px mobile → 24px desktop
         }}
       >
         WITCH CITY ROPE
@@ -105,18 +105,7 @@ export const Navigation: React.FC = () => {
             component={Link}
             to="/admin"
             data-testid="link-admin"
-            style={{
-              color: 'var(--color-charcoal)',
-              textDecoration: 'none',
-              fontFamily: 'var(--font-heading)',
-              fontWeight: 500,
-              fontSize: '15px',
-              textTransform: 'uppercase',
-              letterSpacing: '1px',
-              transition: 'all 0.3s ease',
-              position: 'relative',
-            }}
-            className="nav-underline-animation"
+            className="btn btn-primary"
           >
             Admin
           </Box>

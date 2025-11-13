@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import {
   Container, Stack, Title, Text, Breadcrumbs,
   Anchor, Alert, Button, Box, Group, Paper,
-  ActionIcon, List, Avatar, Skeleton, Center
+  ActionIcon, List, Avatar, Skeleton, Center, Grid
 } from '@mantine/core';
 import {
   IconCalendar, IconClock, IconMapPin, IconUsers,
@@ -86,11 +86,12 @@ export const EventDetailPage: React.FC = () => {
   
   const availability = getAvailabilityStatus();
 
-  const handleRSVP = (notes?: string) => {
+  const handleRSVP = (notes?: string, eventWaiverAccepted?: boolean) => {
     if (!id) return;
     createRSVPMutation.mutate({
       eventId: id,
-      notes
+      notes,
+      eventWaiverAccepted: eventWaiverAccepted || false
     });
   };
 
@@ -201,6 +202,24 @@ export const EventDetailPage: React.FC = () => {
     }
   };
 
+  // Extract ParticipationCard props for reuse (DRY pattern)
+  const participationCardProps = {
+    eventId: id!,
+    eventTitle: (event as any)?.title || 'Event',
+    eventType: eventType as 'social' | 'class',
+    participation,
+    isLoading: participationLoading || createRSVPMutation.isPending || cancelRSVPMutation.isPending || cancelTicketMutation.isPending,
+    onRSVP: handleRSVP,
+    onPurchaseTicket: handlePurchaseTicket,
+    onCancel: handleCancel,
+    ticketPrice: getTicketPriceDisplay().min,
+    ticketPriceRange: getTicketPriceDisplay(),
+    eventStartDateTime: (event as any)?.startDate,
+    eventEndDateTime: (event as any)?.endDate,
+    eventInstructor: (event as any)?.instructor,
+    eventLocation: (event as any)?.location,
+  };
+
   return (
     <Box data-testid="event-details" style={{ background: 'var(--color-cream)', minHeight: '100vh' }}>
       {/* Breadcrumb */}
@@ -277,79 +296,88 @@ export const EventDetailPage: React.FC = () => {
         </Group>
       </Container>
 
-      <Container size="xl" style={{ 
-        display: 'grid', 
-        gridTemplateColumns: '1fr 380px', 
-        gap: 'var(--space-xl)',
-        paddingBottom: 'var(--space-xl)'
-      }}>
-        {/* Left Column - Event Details */}
-        <Stack gap="lg">
-          {/* Event Hero Section */}
-          <Paper
-            data-testid="section-hero"
+      <Container
+        size="xl"
+        px={{ base: 'sm', md: 'xl' }}
+        py={{ base: 'sm', md: 'xl' }}
+      >
+        {/* Event Hero Section - FULL WIDTH */}
+        <Paper
+          data-testid="section-hero"
+          px={{ base: 28, md: 48 }}
+          py={{ base: 28, md: 48 }}
+          style={{
+            background: 'linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%)',
+            borderRadius: '24px',
+            position: 'relative',
+            overflow: 'hidden'
+          }}
+        >
+          {/* Subtle overlay */}
+          <Box
             style={{
-              background: 'linear-gradient(135deg, var(--color-burgundy) 0%, var(--color-plum) 100%)',
-              borderRadius: '24px',
-              padding: 'var(--space-2xl)',
-              position: 'relative',
-              overflow: 'hidden'
+              position: 'absolute',
+              top: '-50%',
+              left: '-50%',
+              width: '200%',
+              height: '200%',
+              background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
+              transform: 'rotate(45deg)'
             }}
-          >
-            {/* Subtle overlay */}
-            <Box
-              style={{
-                position: 'absolute',
-                top: '-50%',
-                left: '-50%',
-                width: '200%',
-                height: '200%',
-                background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
-                transform: 'rotate(45deg)'
-              }}
-            />
-            
-            <Box style={{ position: 'relative', zIndex: 1 }}>
-              <Title
-                order={1}
-                style={{
-                  fontFamily: 'var(--font-heading)',
-                  fontSize: '48px',
-                  fontWeight: 800,
-                  color: 'var(--color-ivory)',
-                  marginBottom: 'var(--space-md)',
-                  lineHeight: 1.2
-                }}
-              >
-                {(event as any)?.title}
-              </Title>
+          />
 
-              <Group gap="lg" style={{ flexWrap: 'wrap' }}>
-                <Group gap="xs" style={{ color: 'var(--color-dusty-rose)', fontSize: '20px' }}>
-                  <IconCalendar size={20} />
-                  <Text size="lg">{formatEventDate((event as any)?.startDate)}</Text>
-                </Group>
-                <Group gap="xs" style={{ color: 'var(--color-dusty-rose)', fontSize: '20px' }}>
-                  <IconClock size={20} />
-                  <Text size="lg">
-                    {formatEventTime((event as any)?.startDate)}
-                    {(event as any)?.endDate && ` - ${formatEventTime((event as any)?.endDate)}`}
-                  </Text>
-                </Group>
-                <Group gap="xs" style={{ color: 'var(--color-dusty-rose)', fontSize: '20px' }}>
-                  <IconMapPin size={20} />
-                  <Text size="lg">{venue?.name || (event as any)?.location || 'TBD'}</Text>
-                </Group>
+          <Box style={{ position: 'relative', zIndex: 1 }}>
+            <Title
+              order={1}
+              style={{
+                fontFamily: 'var(--font-heading)',
+                fontSize: 'clamp(1.75rem, 1.11vw + 1.39rem, 3rem)', // 28px mobile → 48px desktop
+                fontWeight: 800,
+                color: 'var(--color-ivory)',
+                marginBottom: 'var(--space-md)',
+                lineHeight: 1.2
+              }}
+            >
+              {(event as any)?.title}
+            </Title>
+
+            <Group gap="lg" style={{ flexWrap: 'wrap' }}>
+              <Group gap="xs" style={{ color: 'var(--color-dusty-rose)', fontSize: '20px' }}>
+                <IconCalendar size={20} />
+                <Text size="lg">{formatEventDate((event as any)?.startDate)}</Text>
               </Group>
-            </Box>
-          </Paper>
+              <Group gap="xs" style={{ color: 'var(--color-dusty-rose)', fontSize: '20px' }}>
+                <IconClock size={20} />
+                <Text size="lg">
+                  {formatEventTime((event as any)?.startDate)}
+                  {(event as any)?.endDate && ` - ${formatEventTime((event as any)?.endDate)}`}
+                </Text>
+              </Group>
+              <Group gap="xs" style={{ color: 'var(--color-dusty-rose)', fontSize: '20px' }}>
+                <IconMapPin size={20} />
+                <Text size="lg">{venue?.name || (event as any)?.location || 'TBD'}</Text>
+              </Group>
+            </Group>
+          </Box>
+        </Paper>
+
+        {/* Mobile Participation Card - FULL WIDTH, mobile only */}
+        <Box hiddenFrom="md" mt={{ base: 'sm', md: 'lg' }}>
+          <ParticipationCard {...participationCardProps} />
+        </Box>
+
+        {/* Main Content Grid - TWO COLUMNS on desktop */}
+        <Grid gutter={{ base: 'xs', md: 'xl' }} mt={{ base: 'sm', md: 'lg' }}>
+          {/* Left Column - Event Details */}
+          <Grid.Col span={{ base: 12, md: 8 }}>
+            <Stack gap="md">
 
           {/* About This Event */}
           <ContentSection>
             <div
               className={styles.eventContent}
               style={{
-                fontSize: '17px',
+                fontSize: 'clamp(1rem, 0.19vw + 0.94rem, 1.06rem)', // 16px mobile → 17px desktop
                 lineHeight: 1.8,
                 color: 'var(--color-charcoal)',
                 marginBottom: 'var(--space-md)'
@@ -363,7 +391,7 @@ export const EventDetailPage: React.FC = () => {
             <ContentSection title={`Directions To ${venue.name}`}>
               <Text
                 style={{
-                  fontSize: '17px',
+                  fontSize: 'clamp(1rem, 0.19vw + 0.94rem, 1.06rem)', // 16px mobile → 17px desktop
                   lineHeight: 1.8,
                   color: 'var(--color-charcoal)',
                   whiteSpace: 'pre-line',
@@ -403,7 +431,7 @@ export const EventDetailPage: React.FC = () => {
                     <Text
                       style={{
                         fontFamily: 'var(--font-heading)',
-                        fontSize: '20px',
+                        fontSize: 'clamp(1.125rem, 0.56vw + 0.95rem, 1.25rem)', // 18px mobile → 20px desktop
                         fontWeight: 700,
                         color: 'var(--color-burgundy)',
                         marginBottom: 'var(--space-xs)',
@@ -414,7 +442,7 @@ export const EventDetailPage: React.FC = () => {
                     {teacher.bio && (
                       <Text
                         style={{
-                          fontSize: '17px',
+                          fontSize: 'clamp(1rem, 0.19vw + 0.94rem, 1.06rem)', // 16px mobile → 17px desktop
                           lineHeight: 1.8,
                           color: 'var(--color-charcoal)',
                           whiteSpace: 'pre-line',
@@ -435,7 +463,7 @@ export const EventDetailPage: React.FC = () => {
               <div
                 className={styles.eventContent}
                 style={{
-                  fontSize: '17px',
+                  fontSize: 'clamp(1rem, 0.19vw + 0.94rem, 1.06rem)', // 16px mobile → 17px desktop
                   lineHeight: 1.8,
                   color: 'var(--color-charcoal)'
                 }}
@@ -443,40 +471,37 @@ export const EventDetailPage: React.FC = () => {
               />
             </ContentSection>
           )}
-        </Stack>
+            </Stack>
+          </Grid.Col>
 
-        {/* Right Column - Participation Card and Volunteer Boxes */}
-        <Box style={{ position: 'sticky', top: '100px', height: 'fit-content' }}>
-          <Stack gap="lg">
-            {/* Participation Card */}
-            <ParticipationCard
-              eventId={id!}
-              eventTitle={(event as any)?.title || 'Event'}
-              eventType={eventType}
-              participation={participation}
-              isLoading={participationLoading || createRSVPMutation.isPending || cancelRSVPMutation.isPending || cancelTicketMutation.isPending}
-              onRSVP={handleRSVP}
-              onPurchaseTicket={handlePurchaseTicket}
-              onCancel={handleCancel}
-              ticketPrice={getTicketPriceDisplay().min}
-              ticketPriceRange={getTicketPriceDisplay()}
-              eventStartDateTime={(event as any)?.startDate}
-              eventEndDateTime={(event as any)?.endDate}
-              eventInstructor={(event as any)?.instructor}
-              eventLocation={(event as any)?.location}
-            />
+          {/* Right Column - Participation Card and Volunteer Boxes */}
+          <Grid.Col span={{ base: 12, md: 4 }}>
+            <Box
+              pos={{ md: 'sticky' }}
+              top={{ md: 20 }}
+              style={{ height: 'fit-content' }}
+            >
+          <Stack gap="md">
+            {/* Desktop Participation Card - Shown only on desktop */}
+            <Box visibleFrom="md">
+              <ParticipationCard {...participationCardProps} />
+            </Box>
 
-            {/* Volunteer Encouragement Box (if user hasn't volunteered) */}
+            {/* Volunteer Encouragement Box (if user hasn't volunteered) - Desktop only */}
             {showVolunteerEncouragement && (
-              <VolunteerEncouragementBox onScrollToVolunteers={handleScrollToVolunteers} />
+              <Box visibleFrom="md">
+                <VolunteerEncouragementBox onScrollToVolunteers={handleScrollToVolunteers} />
+              </Box>
             )}
 
             {/* User's Volunteer Shifts (if user has volunteered) */}
             {hasUserVolunteered && userVolunteerPositions.length > 0 && (
               <UserVolunteerShifts positions={userVolunteerPositions} />
             )}
-          </Stack>
-        </Box>
+              </Stack>
+            </Box>
+          </Grid.Col>
+        </Grid>
       </Container>
     </Box>
   );
@@ -491,10 +516,11 @@ interface ContentSectionProps {
 const ContentSection: React.FC<ContentSectionProps> = ({ title, children }) => (
   <Paper
     className={styles.contentSection}
+    px={{ base: 24, md: 40 }}
+    py={{ base: 18, md: 40 }}
     style={{
       background: 'var(--color-ivory)',
       borderRadius: '16px',
-      padding: 'var(--space-xl)',
       boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
       border: '1px solid rgba(183, 109, 117, 0.1)'
     }}
@@ -502,12 +528,12 @@ const ContentSection: React.FC<ContentSectionProps> = ({ title, children }) => (
     {title && (
       <Title
         order={2}
+        mb={{ base: 'xs', md: 'md' }}
         style={{
           fontFamily: 'var(--font-heading)',
-          fontSize: '28px',
+          fontSize: 'clamp(1.375rem, 0.93vw + 1.12rem, 1.75rem)', // 22px mobile → 28px desktop
           fontWeight: 700,
-          color: 'var(--color-burgundy)',
-          marginBottom: 'var(--space-md)'
+          color: 'var(--color-burgundy)'
         }}
       >
         {title}

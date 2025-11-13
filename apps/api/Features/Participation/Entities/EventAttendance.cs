@@ -118,6 +118,19 @@ public class EventAttendance
     [Required]
     public DateTime UpdatedAt { get; set; }
 
+    /// <summary>
+    /// Indicates whether the user has accepted the Event Waiver
+    /// Required for legal compliance when attending events
+    /// </summary>
+    public bool EventWaiverAccepted { get; set; } = false;
+
+    /// <summary>
+    /// When the user accepted the Event Waiver (UTC)
+    /// NULL if not yet accepted
+    /// CRITICAL: UTC for PostgreSQL timestamptz compatibility
+    /// </summary>
+    public DateTime? EventWaiverAcceptedAt { get; set; }
+
     // Navigation Properties
 
     /// <summary>

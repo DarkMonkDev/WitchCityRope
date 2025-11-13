@@ -3141,7 +3141,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SubmissionResponse"
+                  "$ref": "#/components/schemas/ApiResponseOfSubmissionResponse"
                 }
               }
             }
@@ -3179,7 +3179,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/IncidentStatusResponse"
+                  "$ref": "#/components/schemas/ApiResponseOfIncidentStatusResponse"
                 }
               }
             }
@@ -3292,7 +3292,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PaginatedIncidentListResponse"
+                  "$ref": "#/components/schemas/ApiResponseOfPaginatedIncidentListResponse"
                 }
               }
             }
@@ -3323,7 +3323,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DashboardStatisticsResponse"
+                  "$ref": "#/components/schemas/ApiResponseOfDashboardStatisticsResponse"
                 }
               }
             }
@@ -3354,10 +3354,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/UserCoordinatorDto"
-                  }
+                  "$ref": "#/components/schemas/ApiResponseOfIEnumerableOfUserCoordinatorDto"
                 }
               }
             }
@@ -3388,7 +3385,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AdminDashboardResponse"
+                  "$ref": "#/components/schemas/ApiResponseOfAdminDashboardResponse"
                 }
               }
             }
@@ -3430,7 +3427,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/IncidentResponse"
+                  "$ref": "#/components/schemas/ApiResponseOfIncidentResponse"
                 }
               }
             }
@@ -3482,7 +3479,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/IncidentSummaryDto"
+                  "$ref": "#/components/schemas/ApiResponseOfIncidentSummaryDto"
                 }
               }
             }
@@ -3540,7 +3537,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StatusUpdateResponse"
+                  "$ref": "#/components/schemas/ApiResponseOfStatusUpdateResponse"
                 }
               }
             }
@@ -3598,7 +3595,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GoogleDriveUpdateResponse"
+                  "$ref": "#/components/schemas/ApiResponseOfGoogleDriveUpdateResponse"
                 }
               }
             }
@@ -3656,7 +3653,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UpdatePeopleResponse"
+                  "$ref": "#/components/schemas/ApiResponseOfUpdatePeopleResponse"
                 }
               }
             }
@@ -3704,7 +3701,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/NotesListResponse"
+                  "$ref": "#/components/schemas/ApiResponseOfNotesListResponse"
                 }
               }
             }
@@ -3757,7 +3754,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/IncidentNoteDto"
+                  "$ref": "#/components/schemas/ApiResponseOfIncidentNoteDto"
                 }
               }
             }
@@ -3815,7 +3812,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/IncidentNoteDto"
+                  "$ref": "#/components/schemas/ApiResponseOfIncidentNoteDto"
                 }
               }
             }
@@ -3908,7 +3905,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MyReportsPaginatedResponse"
+                  "$ref": "#/components/schemas/ApiResponseOfMyReportsPaginatedResponse"
                 }
               }
             }
@@ -3947,7 +3944,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MyReportDetailDto"
+                  "$ref": "#/components/schemas/ApiResponseOfMyReportDetailDto"
                 }
               }
             }
@@ -6977,7 +6974,8 @@
               "$ref": "#/components/schemas/ActionItem"
             }
           }
-        }
+        },
+        "nullable": true
       },
       "AdminRefundTicketRequest": {
         "type": "object",
@@ -7033,6 +7031,33 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "ApiResponseOfAdminDashboardResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/AdminDashboardResponse"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -7171,6 +7196,33 @@
           }
         }
       },
+      "ApiResponseOfDashboardStatisticsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DashboardStatisticsResponse"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ApiResponseOfEventDto": {
         "type": "object",
         "properties": {
@@ -7227,6 +7279,172 @@
             "$ref": "#/components/schemas/GlobalEmailTemplateDto2"
           },
           "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseOfGoogleDriveUpdateResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/GoogleDriveUpdateResponse"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseOfIEnumerableOfUserCoordinatorDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserCoordinatorDto"
+            },
+            "nullable": true
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseOfIncidentNoteDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/IncidentNoteDto2"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseOfIncidentResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/IncidentResponse"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseOfIncidentStatusResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/IncidentStatusResponse"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseOfIncidentSummaryDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/IncidentSummaryDto2"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
             "type": "string",
             "nullable": true
           },
@@ -7607,6 +7825,60 @@
           }
         }
       },
+      "ApiResponseOfMyReportDetailDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/MyReportDetailDto"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseOfMyReportsPaginatedResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/MyReportsPaginatedResponse"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ApiResponseOfNoteResponse": {
         "type": "object",
         "properties": {
@@ -7615,6 +7887,33 @@
           },
           "data": {
             "$ref": "#/components/schemas/NoteResponse"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseOfNotesListResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/NotesListResponse"
           },
           "error": {
             "type": "string",
@@ -7667,6 +7966,33 @@
           },
           "data": {
             "$ref": "#/components/schemas/PagedResultOfApplicationSummaryDto"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseOfPaginatedIncidentListResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PaginatedIncidentListResponse"
           },
           "error": {
             "type": "string",
@@ -7740,6 +8066,87 @@
           },
           "data": {
             "$ref": "#/components/schemas/SimplifiedApplicationResponse"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseOfStatusUpdateResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/StatusUpdateResponse"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseOfSubmissionResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/SubmissionResponse"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseOfUpdatePeopleResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/UpdatePeopleResponse"
           },
           "error": {
             "type": "string",
@@ -9003,7 +9410,8 @@
             "format": "date-time"
           },
           "location": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "description": {
             "type": "string"
@@ -9252,7 +9660,8 @@
               "$ref": "#/components/schemas/IncidentSummaryDto"
             }
           }
-        }
+        },
+        "nullable": true
       },
       "DetailedHealthResponse": {
         "type": "object",
@@ -9861,7 +10270,8 @@
           "systemNoteCreated": {
             "type": "boolean"
           }
-        }
+        },
+        "nullable": true
       },
       "HealthResponse": {
         "type": "object",
@@ -9925,6 +10335,48 @@
             "nullable": true
           }
         }
+      },
+      "IncidentNoteDto2": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "incidentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "content": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/IncidentNoteType"
+          },
+          "authorId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "authorName": {
+            "type": "string",
+            "nullable": true
+          },
+          "tags": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "nullable": true
       },
       "IncidentNoteType": {
         "enum": [
@@ -10062,7 +10514,8 @@
             "type": "string",
             "format": "date-time"
           }
-        }
+        },
+        "nullable": true
       },
       "IncidentStatus": {
         "enum": [
@@ -10089,7 +10542,8 @@
           "canProvideMoreInfo": {
             "type": "boolean"
           }
-        }
+        },
+        "nullable": true
       },
       "IncidentSummaryDto": {
         "type": "object",
@@ -10170,6 +10624,87 @@
             "format": "int32"
           }
         }
+      },
+      "IncidentSummaryDto2": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "referenceNumber": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/IncidentStatus"
+          },
+          "type": {
+            "$ref": "#/components/schemas/IncidentType"
+          },
+          "incidentDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reportedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastUpdatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "location": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "isAnonymous": {
+            "type": "boolean"
+          },
+          "reporterId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "reporterName": {
+            "type": "string",
+            "nullable": true
+          },
+          "coordinatorId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "coordinatorName": {
+            "type": "string",
+            "nullable": true
+          },
+          "involvedParties": {
+            "type": "string",
+            "nullable": true
+          },
+          "witnesses": {
+            "type": "string",
+            "nullable": true
+          },
+          "googleDriveFolderUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "googleDriveFinalReportUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "noteCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "nullable": true
       },
       "IncidentSummaryResponse": {
         "type": "object",
@@ -10558,7 +11093,8 @@
           "isAnonymous": {
             "type": "boolean"
           }
-        }
+        },
+        "nullable": true
       },
       "MyReportsPaginatedResponse": {
         "type": "object",
@@ -10581,7 +11117,8 @@
             "type": "integer",
             "format": "int32"
           }
-        }
+        },
+        "nullable": true
       },
       "MyReportSummaryDto": {
         "type": "object",
@@ -10636,7 +11173,8 @@
               "$ref": "#/components/schemas/IncidentNoteDto"
             }
           }
-        }
+        },
+        "nullable": true
       },
       "NullableOfSpokenToPersonStatus": {
         "enum": [
@@ -10706,7 +11244,8 @@
             "type": "integer",
             "format": "int32"
           }
-        }
+        },
+        "nullable": true
       },
       "PaginationInfo": {
         "type": "object",
@@ -11966,7 +12505,8 @@
           "systemNoteCreated": {
             "type": "boolean"
           }
-        }
+        },
+        "nullable": true
       },
       "StatusUpdateSummary": {
         "type": "object",
@@ -11996,7 +12536,8 @@
             "type": "string",
             "format": "date-time"
           }
-        }
+        },
+        "nullable": true
       },
       "SyncRequest": {
         "required": [
@@ -12364,7 +12905,8 @@
           "systemNoteCreated": {
             "type": "boolean"
           }
-        }
+        },
+        "nullable": true
       },
       "UpdateProfileDto": {
         "required": [

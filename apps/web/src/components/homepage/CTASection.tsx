@@ -30,6 +30,7 @@ export const CTASection: React.FC<CTASectionProps> = ({
   return (
     <Box
       component="section"
+      className="cta-section"
       style={{
         padding: 'var(--space-2xl) 40px',
         maxWidth: '1200px',
