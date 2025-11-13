@@ -1,4 +1,4 @@
-import { Paper, Group, Text, Badge, Button, Stack, Collapse, Alert } from '@mantine/core';
+import { Paper, Group, Text, Badge, Button, Stack, Collapse, Alert, Checkbox } from '@mantine/core';
 import { IconClock, IconCheck, IconAlertCircle } from '@tabler/icons-react';
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -9,14 +9,21 @@ import { useCurrentUser } from '@/lib/api/hooks/useAuth';
 
 interface VolunteerPositionCardProps {
   position: VolunteerPosition;
+  hasExistingParticipation?: boolean; // true if user has RSVP or ticket
 }
 
 export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
-  position
+  position,
+  hasExistingParticipation = false
 }) => {
   const [showSignupConfirm, setShowSignupConfirm] = useState(false);
+  const [volunteerTermsAccepted, setVolunteerTermsAccepted] = useState(false);
   const { data: currentUser } = useCurrentUser();
   const queryClient = useQueryClient();
+
+  // Determine if we need to show ToS checkbox
+  // Only show if user hasn't already RSVPed or purchased a ticket
+  const needsTermsAcceptance = !hasExistingParticipation;
 
   // Debug: Log position data to verify time fields
   console.log('VolunteerPositionCard - position data:', {
@@ -53,6 +60,7 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
       queryClient.invalidateQueries({ queryKey: ['participation', 'event', position.eventId] });
 
       setShowSignupConfirm(false);
+      setVolunteerTermsAccepted(false); // Reset ToS checkbox
     },
     onError: (error: any) => {
       notifications.show({
@@ -221,42 +229,91 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
               <Text size="sm">
                 Signing up for this volunteer position will automatically RSVP you to the event if you haven't already.
               </Text>
-              <Group gap="sm" justify="flex-end">
-                <Button
-                  size="sm"
-                  variant="subtle"
-                  onClick={() => setShowSignupConfirm(false)}
-                  styles={{
-                    root: {
-                      fontWeight: 600,
-                      height: '36px',
-                      paddingTop: '8px',
-                      paddingBottom: '8px',
-                      fontSize: '14px',
-                      lineHeight: '1.2'
-                    }
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  size="sm"
-                  color="blue"
-                  onClick={() => signupMutation.mutate()}
-                  loading={signupMutation.isPending}
-                  styles={{
-                    root: {
-                      fontWeight: 600,
-                      height: '36px',
-                      paddingTop: '8px',
-                      paddingBottom: '8px',
-                      fontSize: '14px',
-                      lineHeight: '1.2'
-                    }
-                  }}
-                >
-                  Confirm
-                </Button>
+
+              <Group gap="md" justify="space-between" align="center" wrap="nowrap">
+                {/* Terms of Service Acceptance - only show if user doesn't have existing RSVP/ticket */}
+                {needsTermsAcceptance ? (
+                  <Group gap="sm" align="center" style={{ flex: 1 }}>
+                    <Checkbox
+                      id="volunteer-terms-checkbox"
+                      checked={volunteerTermsAccepted}
+                      onChange={(event) => setVolunteerTermsAccepted(event.currentTarget.checked)}
+                      size="md"
+                      color="var(--color-burgundy)"
+                      data-testid="volunteer-terms-checkbox"
+                    />
+                    <Text
+                      component="label"
+                      htmlFor="volunteer-terms-checkbox"
+                      size="md"
+                      style={{
+                        cursor: 'pointer',
+                        color: '#000000',
+                        fontWeight: 700,
+                        lineHeight: 1.5
+                      }}
+                    >
+                      I agree to the{' '}
+                      <a
+                        href="/terms-of-service"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          color: 'var(--color-burgundy)',
+                          textDecoration: 'underline',
+                          fontWeight: 700
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Terms of Service
+                      </a>
+                    </Text>
+                  </Group>
+                ) : (
+                  <div style={{ flex: 1 }} />
+                )}
+
+                <Group gap="sm">
+                  <Button
+                    size="sm"
+                    variant="subtle"
+                    onClick={() => {
+                      setShowSignupConfirm(false);
+                      setVolunteerTermsAccepted(false);
+                    }}
+                    styles={{
+                      root: {
+                        fontWeight: 600,
+                        height: '36px',
+                        paddingTop: '8px',
+                        paddingBottom: '8px',
+                        fontSize: '14px',
+                        lineHeight: '1.2'
+                      }
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    color="blue"
+                    onClick={() => signupMutation.mutate()}
+                    loading={signupMutation.isPending}
+                    disabled={needsTermsAcceptance && !volunteerTermsAccepted}
+                    styles={{
+                      root: {
+                        fontWeight: 600,
+                        height: '36px',
+                        paddingTop: '8px',
+                        paddingBottom: '8px',
+                        fontSize: '14px',
+                        lineHeight: '1.2'
+                      }
+                    }}
+                  >
+                    Confirm
+                  </Button>
+                </Group>
               </Group>
             </Stack>
           </Alert>

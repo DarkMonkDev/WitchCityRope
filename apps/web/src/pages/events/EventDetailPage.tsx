@@ -386,6 +386,7 @@ export const EventDetailPage: React.FC = () => {
                     <VolunteerPositionCard
                       key={position.id}
                       position={position}
+                      hasExistingParticipation={participation?.hasRSVP || participation?.hasTicket || false}
                     />
                   ))}
                 </Stack>

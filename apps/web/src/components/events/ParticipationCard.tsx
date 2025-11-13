@@ -35,7 +35,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Paper, Stack, Alert, Group, Text, Box, Badge, Button,
-  LoadingOverlay, Progress, Modal, Textarea
+  LoadingOverlay, Progress, Modal, Textarea, Checkbox
 } from '@mantine/core';
 import { IconUsers, IconTicket, IconCalendarCheck, IconCheck, IconAlertCircle } from '@tabler/icons-react';
 import { useCurrentUser } from '../../lib/api/hooks/useAuth';
@@ -139,6 +139,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   const [showPayPal, setShowPayPal] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState(ticketPrice);
   const [slidingScalePercentage, setSlidingScalePercentage] = useState(0);
+  const [rsvpTermsAccepted, setRsvpTermsAccepted] = useState(false);
 
   // PayPal payment confirmation hook
   const confirmPayPalPayment = useConfirmPayPalPayment();
@@ -460,10 +461,11 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                 borderRadius: '16px',
                 padding: 'var(--space-lg)',
                 border: '2px solid var(--color-success)',
-                boxShadow: '0 4px 12px rgba(76, 175, 80, 0.15)'
+                boxShadow: '0 4px 12px rgba(76, 175, 80, 0.15)',
+                textAlign: 'center'
               }}
             >
-              <Group gap="sm" mb="md">
+              <Group gap="sm" mb="md" justify="center">
                 <IconCalendarCheck size={24} color="var(--color-success)" />
                 <Text fw={700} size="lg" c="var(--color-success)">RSVP Confirmed</Text>
               </Group>
@@ -483,6 +485,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                   variant="light"
                   color="red"
                   onClick={() => handleCancelClick('rsvp')}
+                  fullWidth
                   styles={{
                     root: {
                       height: '44px',
@@ -592,27 +595,68 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                       debugLog('  - canRSVPCondition:', canRSVPCondition);
 
                       return canRSVPCondition ? (
-                        <Button
-                          onClick={handleRSVPClick}
-                          fullWidth
-                          variant="filled"
-                          color="green"
-                          disabled={isLoading || isLoadingUser}
-                          loading={isLoading || isLoadingUser}
-                          mb="md"
-                          data-testid="button-rsvp"
-                          styles={{
-                            root: {
-                              height: '44px',
-                              paddingTop: '12px',
-                              paddingBottom: '12px',
-                              fontSize: '14px',
-                              lineHeight: '1.2'
-                            }
-                          }}
-                        >
-                          RSVP Now (Free)
-                        </Button>
+                        <Box>
+                          {/* Terms of Service Acceptance */}
+                          <Group gap="sm" align="center" justify="center" mb="md">
+                            <Checkbox
+                              id="rsvp-terms-checkbox"
+                              checked={rsvpTermsAccepted}
+                              onChange={(event) => setRsvpTermsAccepted(event.currentTarget.checked)}
+                              size="md"
+                              color="var(--color-burgundy)"
+                              data-testid="rsvp-terms-checkbox"
+                            />
+                            <Text
+                              component="label"
+                              htmlFor="rsvp-terms-checkbox"
+                              size="md"
+                              style={{
+                                cursor: 'pointer',
+                                color: '#000000',
+                                fontWeight: 700,
+                                lineHeight: 1.5
+                              }}
+                            >
+                              I agree to the{' '}
+                              <a
+                                href="/terms-of-service"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  color: 'var(--color-burgundy)',
+                                  textDecoration: 'underline',
+                                  fontWeight: 700
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                Terms of Service
+                              </a>
+                            </Text>
+                          </Group>
+
+                          {/* RSVP Button */}
+                          <Button
+                            onClick={handleRSVPClick}
+                            fullWidth
+                            variant="filled"
+                            color="green"
+                            disabled={!rsvpTermsAccepted || isLoading || isLoadingUser}
+                            loading={isLoading || isLoadingUser}
+                            mb="md"
+                            data-testid="button-rsvp"
+                            styles={{
+                              root: {
+                                height: '44px',
+                                paddingTop: '12px',
+                                paddingBottom: '12px',
+                                fontSize: '14px',
+                                lineHeight: '1.2'
+                              }
+                            }}
+                          >
+                            RSVP Now (Free)
+                          </Button>
+                        </Box>
                       ) : null;
                     })()
                   )}

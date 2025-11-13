@@ -127,6 +127,16 @@ export function useCancelRSVP() {
       queryClient.invalidateQueries({
         queryKey: ['userVolunteerShifts']
       });
+
+      // Invalidate event details to refresh registration count and capacity
+      queryClient.invalidateQueries({
+        queryKey: ['events', 'detail', variables.eventId]
+      });
+
+      // Invalidate the participation status itself to trigger refetch
+      queryClient.invalidateQueries({
+        queryKey: participationKeys.eventStatus(variables.eventId)
+      });
     },
     onError: (error: any) => {
       debugError('Failed to cancel RSVP:', error);
@@ -191,6 +201,16 @@ export function useCancelTicket() {
       // Invalidate user volunteer shifts to update "You're Volunteering" section
       queryClient.invalidateQueries({
         queryKey: ['userVolunteerShifts']
+      });
+
+      // Invalidate event details to refresh registration count and capacity
+      queryClient.invalidateQueries({
+        queryKey: ['events', 'detail', variables.eventId]
+      });
+
+      // Invalidate the participation status itself to trigger refetch
+      queryClient.invalidateQueries({
+        queryKey: participationKeys.eventStatus(variables.eventId)
       });
     },
     onError: (error: any) => {
