@@ -287,25 +287,16 @@ public static class ParticipationEndpoints
 
                 if (!result.IsSuccess)
                 {
-                    if (result.Error.Contains("not found"))
+                    if (result.Error.Contains("not found") || result.Error.Contains("No active attendance"))
                     {
-                            return Results.Problem(
-                            title: "Resource Not Found",
-                            detail: result.Error,
-                            statusCode: 404);
+                        return Results.NotFound();
                     }
                     if (result.Error.Contains("cannot be cancelled"))
                     {
-                        return Results.Problem(
-                            title: "Bad Request",
-                            detail: result.Error,
-                            statusCode: 400);
+                        return Results.BadRequest(result.Error);
                     }
 
-                    return Results.Problem(
-                        title: "Failed to cancel participation",
-                        detail: result.Error,
-                        statusCode: 500);
+                    return Results.Problem(result.Error);
                 }
 
                 return Results.NoContent();
@@ -374,25 +365,16 @@ public static class ParticipationEndpoints
 
                 if (!result.IsSuccess)
                 {
-                    if (result.Error.Contains("not found"))
+                    if (result.Error.Contains("not found") || result.Error.Contains("No active attendance"))
                     {
-                            return Results.Problem(
-                            title: "Resource Not Found",
-                            detail: result.Error,
-                            statusCode: 404);
+                        return Results.NotFound();
                     }
                     if (result.Error.Contains("cannot be cancelled"))
                     {
-                        return Results.Problem(
-                            title: "Bad Request",
-                            detail: result.Error,
-                            statusCode: 400);
+                        return Results.BadRequest(result.Error);
                     }
 
-                    return Results.Problem(
-                        title: "Failed to cancel RSVP",
-                        detail: result.Error,
-                        statusCode: 500);
+                    return Results.Problem(result.Error);
                 }
 
                 return Results.NoContent();
