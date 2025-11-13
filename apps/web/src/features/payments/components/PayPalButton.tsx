@@ -178,22 +178,43 @@ export const PayPalButton: React.FC<PayPalButtonProps> = ({
           </Box>
         )}
 
-        {/* Branded PayPal Buttons */}
-        <PayPalButtons
-          style={{
-            layout: 'vertical',
-            color: 'gold',
-            shape: 'rect',
-            label: 'paypal',
-            height: 55,
-            tagline: false
-          }}
-          disabled={disabled || isProcessing}
-          createOrder={createOrder}
-          onApprove={onApprove}
-          onError={onError}
-          onCancel={onCancel}
-        />
+        {/* Mobile Layout - Vertical Buttons */}
+        <Box hiddenFrom="md">
+          <PayPalButtons
+            style={{
+              layout: 'vertical',
+              color: 'gold',
+              shape: 'rect',
+              label: 'paypal',
+              height: 55,
+              tagline: false
+            }}
+            disabled={disabled || isProcessing}
+            createOrder={createOrder}
+            onApprove={onApprove}
+            onError={onError}
+            onCancel={onCancel}
+          />
+        </Box>
+
+        {/* Desktop/Tablet Layout - Horizontal Buttons */}
+        <Box visibleFrom="md">
+          <PayPalButtons
+            style={{
+              layout: 'horizontal',
+              color: 'gold',
+              shape: 'rect',
+              label: 'paypal',
+              height: 55,
+              tagline: false
+            }}
+            disabled={disabled || isProcessing}
+            createOrder={createOrder}
+            onApprove={onApprove}
+            onError={onError}
+            onCancel={onCancel}
+          />
+        </Box>
 
         {/* Helper Text */}
         <Text size="xs" c="dimmed" ta="center" mt="sm">

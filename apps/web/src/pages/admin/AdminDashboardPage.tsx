@@ -152,7 +152,6 @@ export const AdminDashboardPage: React.FC = () => {
           <Grid.Col key={index} span={{ base: 12, sm: 6, lg: 3 }}>
             <Paper
               shadow="sm"
-              p="xl"
               radius="md"
               component={Link}
               to={card.link}
@@ -168,6 +167,7 @@ export const AdminDashboardPage: React.FC = () => {
                 position: 'relative',
                 cursor: 'pointer',
               }}
+              p={{ base: 'lg', md: 'xl' }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-4px)';
                 e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
@@ -195,18 +195,68 @@ export const AdminDashboardPage: React.FC = () => {
                 </Badge>
               )}
 
-              <Box style={{ color: card.color }} mb="md">
-                {card.icon}
+              {/* Mobile: Icon inline with title, Desktop: Icon above title */}
+              <Box
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  marginBottom: '12px',
+                }}
+              >
+                <Box style={{ color: card.color, flexShrink: 0 }}>
+                  {card.icon}
+                </Box>
+                <Title
+                  order={3}
+                  size="h4"
+                  style={{ color: '#2B2B2B', marginBottom: 0 }}
+                  hiddenFrom="md"
+                >
+                  {card.title}
+                </Title>
               </Box>
 
-              <Title order={3} size="h4" mb="xs" style={{ color: '#2B2B2B' }}>
+              {/* Desktop-only title (below icon) */}
+              <Title
+                order={3}
+                size="h4"
+                mb="xs"
+                style={{ color: '#2B2B2B' }}
+                visibleFrom="md"
+              >
                 {card.title}
               </Title>
 
-              <Text size="sm" c="dimmed" mb="md" style={{ flex: 1 }}>
+              {/* Desktop-only description */}
+              <Text
+                size="sm"
+                c="dimmed"
+                mb="md"
+                style={{ flex: 1 }}
+                visibleFrom="md"
+              >
                 {card.description}
               </Text>
 
+              {/* Mobile: Consolidated count "6 - Upcoming Events" */}
+              {card.count !== undefined && (
+                <Text
+                  size="h4"
+                  c="dimmed"
+                  hiddenFrom="md"
+                  style={{
+                    marginLeft: '44px', // Icon width (32px) + gap (12px) = 44px
+                    padding: 0,
+                    margin: 0,
+                    marginLeft: '44px',
+                  }}
+                >
+                  {card.count} - {card.countLabel}
+                </Text>
+              )}
+
+              {/* Desktop: Count box with number + label */}
               {card.count !== undefined && (
                 <Box
                   p="sm"
@@ -215,6 +265,7 @@ export const AdminDashboardPage: React.FC = () => {
                     borderRadius: '6px',
                     marginTop: 'auto',
                   }}
+                  visibleFrom="md"
                 >
                   <Text size="xl" fw={700} style={{ color: card.color }}>
                     {card.count}

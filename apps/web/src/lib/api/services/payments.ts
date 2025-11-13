@@ -9,6 +9,7 @@ export interface CreateTicketPurchaseRequest {
   eventId: string;
   notes?: string;
   paymentMethodId?: string;
+  eventWaiverAccepted: boolean;
 }
 
 export interface TicketPurchaseResponse {
@@ -55,7 +56,8 @@ export const paymentsService = {
       {
         eventId: request.eventId,
         notes: request.notes,
-        paymentMethodId: request.paymentMethodId
+        paymentMethodId: request.paymentMethodId,
+        eventWaiverAccepted: request.eventWaiverAccepted
       }
     );
 
@@ -99,7 +101,8 @@ export const paymentsService = {
     const ticketResponse = await this.purchaseTicket({
       eventId,
       notes: `PayPal payment confirmed - Order ID: ${orderId}`,
-      paymentMethodId: orderId
+      paymentMethodId: orderId,
+      eventWaiverAccepted: true // PayPal flow requires waiver acceptance before payment
     });
 
     debugLog('✅ PayPal payment confirmed and ticket created:', ticketResponse);

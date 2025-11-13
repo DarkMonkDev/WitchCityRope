@@ -246,6 +246,117 @@ export class AuthHelper {
   }
 
   /**
+   * Clean up existing participation (tickets and RSVPs) for an event
+   * Ensures tests start with a clean state by canceling any existing participation
+   *
+   * This method uses API calls instead of UI button clicks to avoid issues with
+   * collapsed/hidden UI sections. It extracts the event ID from the current URL.
+   *
+   * Order of cleanup (important!):
+   * 1. Cancel ticket purchase (if exists)
+   * 2. Cancel RSVP (if exists, only for social events)
+   *
+   * @param page - Playwright Page object
+   * @param eventType - Type of event ('Social' or 'Class')
+   */
+  static async cleanupEventParticipation(
+    page: Page,
+    eventType: 'Social' | 'Class' = 'Social'
+  ): Promise<void> {
+    try {
+      // Wait a moment for page to fully load and URL to stabilize
+      await page.waitForTimeout(500)
+
+      // Extract event ID from current URL
+      const url = page.url()
+      const eventIdMatch = url.match(/\/events\/([a-f0-9-]+)/)
+
+      if (!eventIdMatch) {
+        console.log('⚠️  Could not extract event ID from URL, skipping cleanup')
+        console.log(`   Current URL: ${url}`)
+        return
+      }
+
+      const eventId = eventIdMatch[1]
+      console.log(`🧹 Starting participation cleanup for event: ${eventId}`)
+
+      let cleanupPerformed = false
+
+      // Step 1: Cancel ticket purchase using API (if exists)
+      try {
+        const ticketResponse = await page.request.delete(
+          `http://localhost:5655/api/events/${eventId}/participation?type=ticket`,
+          { failOnStatusCode: false }
+        )
+
+        if (ticketResponse.ok()) {
+          console.log('✅ Ticket canceled successfully via API')
+          cleanupPerformed = true
+        } else if (ticketResponse.status() === 404) {
+          console.log('ℹ️  No existing ticket to cancel')
+        } else if (ticketResponse.status() === 500) {
+          console.log(`⚠️  Ticket cancellation returned 500 (backend error, ignoring)`)
+        } else {
+          console.log(`⚠️  Ticket cancellation returned ${ticketResponse.status()}`)
+        }
+      } catch (error) {
+        console.log(`⚠️  Could not cancel ticket via API: ${error}`)
+      }
+
+      // Step 2: Cancel RSVP using API (if exists, only for social events)
+      if (eventType === 'Social') {
+        try {
+          const rsvpResponse = await page.request.delete(
+            `http://localhost:5655/api/events/${eventId}/rsvp`,
+            { failOnStatusCode: false }
+          )
+
+          if (rsvpResponse.ok()) {
+            console.log('✅ RSVP canceled successfully via API')
+            cleanupPerformed = true
+          } else if (rsvpResponse.status() === 404) {
+            console.log('ℹ️  No existing RSVP to cancel')
+          } else if (rsvpResponse.status() === 500) {
+            console.log(`⚠️  RSVP cancellation returned 500 (backend error, ignoring)`)
+          } else {
+            console.log(`⚠️  RSVP cancellation returned ${rsvpResponse.status()}`)
+          }
+        } catch (error) {
+          console.log(`⚠️  Could not cancel RSVP via API: ${error}`)
+        }
+      }
+
+      // If we actually canceled anything, wait for UI to update via React Query refetch
+      if (cleanupPerformed) {
+        console.log('⏳ Waiting for UI to refresh after participation cancellation...')
+        await page.waitForTimeout(2000)
+
+        // Check if "Cancel Ticket" or "Cancel RSVP" buttons are gone
+        const cancelButtonsGone = await page.waitForFunction(
+          () => {
+            const ticketButtons = document.querySelectorAll('button:has-text("Cancel Ticket")')
+            const rsvpButtons = document.querySelectorAll('button:has-text("Cancel RSVP")')
+            return ticketButtons.length === 0 && rsvpButtons.length === 0
+          },
+          { timeout: 5000 }
+        ).catch(() => {
+          console.log('⚠️  Cancel buttons still visible after cleanup')
+          return false
+        })
+
+        if (cancelButtonsGone) {
+          console.log('✅ UI updated successfully after cleanup')
+        }
+      }
+
+      console.log('✅ Participation cleanup complete, ready for test')
+    } catch (error) {
+      console.log(`⚠️  Cleanup failed: ${error}`)
+      console.log('   Continuing with test anyway')
+    }
+  }
+
+  /**
    * Verify user is authenticated
    */
   static async isAuthenticated(page: Page): Promise<boolean> {

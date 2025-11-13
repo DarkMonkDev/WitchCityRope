@@ -198,6 +198,9 @@ namespace WitchCityRope.Api.Features.Cms
                     ContentPageId = r.ContentPageId,
                     CreatedAt = r.CreatedAt,
                     CreatedBy = r.CreatedByUser != null ? r.CreatedByUser.Email : "Unknown",
+                    CreatedBySceneName = r.CreatedByUser != null && !string.IsNullOrWhiteSpace(r.CreatedByUser.SceneName)
+                        ? r.CreatedByUser.SceneName
+                        : r.CreatedByUser != null ? r.CreatedByUser.Email : "Unknown",
                     ChangeDescription = r.ChangeDescription,
                     ContentPreview = r.Content.Length > 200
                         ? r.Content.Substring(0, 200) + "..."

@@ -106,7 +106,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
    */
   const handleCreditCardSubmit = async (data: typeof cardData) => {
     if (!termsAccepted) {
-      setPaymentError('Please accept the terms and conditions to continue.');
+      setPaymentError('Please accept the Event Waiver and Refund Policy to continue.');
       return;
     }
 
@@ -144,8 +144,8 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
           onSubmit={handleCreditCardSubmit}
         />
 
-        {/* Terms and Button Row */}
-        <Box mt="lg" mb="sm">
+        {/* Terms and Button Row - Desktop Layout */}
+        <Box mt="lg" mb="sm" visibleFrom="md">
           <Group justify="space-between" align="center" wrap="nowrap" gap="md">
             <Group gap="sm" align="center" style={{ flex: 1 }}>
               <Checkbox
@@ -170,6 +170,12 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
                 component="label"
                 htmlFor="terms-checkbox"
                 size="sm"
+                onClick={(e) => {
+                  // Allow label click to toggle checkbox, unless clicking a link
+                  if ((e.target as HTMLElement).tagName !== 'A') {
+                    setTermsAccepted(!termsAccepted);
+                  }
+                }}
                 style={{
                   color: 'var(--color-stone)',
                   lineHeight: 1.4,
@@ -188,7 +194,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  Liability Waiver
+                  Event Waiver
                 </a>
                 {' '}and{' '}
                 <a
@@ -237,96 +243,122 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
             </Box>
           </Group>
         </Box>
-      </Box>
 
-      {/* Divider with "OR" text */}
-      <Box style={{ position: 'relative', textAlign: 'center', margin: '20px 0' }}>
-        <Box style={{
-          position: 'absolute',
-          top: '50%',
-          left: 0,
-          right: 0,
-          height: '1px',
-          background: 'var(--color-taupe)',
-          zIndex: 0
-        }} />
-        <Text
-          size="sm"
-          fw={600}
-          style={{
-            display: 'inline-block',
-            background: 'white',
-            padding: '0 16px',
-            position: 'relative',
-            zIndex: 1,
-            color: 'var(--color-stone)'
-          }}
-        >
-          OR PAY WITH
-        </Text>
-      </Box>
+        {/* Terms and Button Stack - Mobile Layout */}
+        <Box mt="lg" mb="sm" hiddenFrom="md">
+          <Stack gap="md">
+            <Group gap="sm" align="center">
+              <Checkbox
+                id="terms-checkbox-mobile"
+                checked={termsAccepted}
+                onChange={(event) => setTermsAccepted(event.currentTarget.checked)}
+                disabled={isProcessing}
+                size="md"
+                color="#880124"
+                styles={{
+                  input: {
+                    cursor: isProcessing ? 'not-allowed' : 'pointer',
+                    border: '2px solid #880124',
+                    '&:checked': {
+                      backgroundColor: '#880124',
+                      borderColor: '#880124'
+                    }
+                  }
+                }}
+              />
+              <Text
+                component="label"
+                htmlFor="terms-checkbox-mobile"
+                size="sm"
+                onClick={(e) => {
+                  // Allow label click to toggle checkbox, unless clicking a link
+                  if ((e.target as HTMLElement).tagName !== 'A') {
+                    setTermsAccepted(!termsAccepted);
+                  }
+                }}
+                style={{
+                  color: 'var(--color-stone)',
+                  lineHeight: 1.4,
+                  cursor: isProcessing ? 'not-allowed' : 'pointer',
+                  userSelect: 'none'
+                }}
+              >
+                I agree to the{' '}
+                <a
+                  href="/event-waiver"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    color: 'var(--color-burgundy)',
+                    textDecoration: 'underline'
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Event Waiver
+                </a>
+                {' '}and{' '}
+                <a
+                  href="/refund-policy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    color: 'var(--color-burgundy)',
+                    textDecoration: 'underline'
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Refund Policy
+                </a>
+              </Text>
+            </Group>
 
-      {/* Second Terms Checkbox for PayPal/Venmo */}
-      <Box mb="md">
-        <Group gap="sm" align="center">
-          <Checkbox
-            id="terms-checkbox-paypal"
-            checked={termsAccepted}
-            onChange={(event) => setTermsAccepted(event.currentTarget.checked)}
-            disabled={isProcessing}
-            size="md"
-            color="#880124"
-            styles={{
-              input: {
-                cursor: isProcessing ? 'not-allowed' : 'pointer',
-                border: '2px solid #880124',
-                '&:checked': {
-                  backgroundColor: '#880124',
-                  borderColor: '#880124'
+            <Button
+              onClick={() => handleCreditCardSubmit(cardData)}
+              loading={isProcessing}
+              disabled={!termsAccepted}
+              size="lg"
+              fullWidth
+              styles={{
+                root: {
+                  background: termsAccepted
+                    ? 'linear-gradient(135deg, #FFB800, #DAA520)'
+                    : 'linear-gradient(135deg, #CCC, #AAA)',
+                  color: termsAccepted ? '#2C2C2C' : '#666',
+                  fontWeight: 600,
+                  height: '44px',
+                  fontSize: '14px',
+                  lineHeight: '1.2',
+                  opacity: termsAccepted ? 1 : 0.4,
+                  transition: 'all 0.3s ease',
+                  cursor: termsAccepted ? 'pointer' : 'not-allowed',
+                  '&:hover': {
+                    boxShadow: termsAccepted ? '0 4px 12px rgba(255, 191, 0, 0.3)' : 'none'
+                  }
                 }
-              }
-            }}
-          />
-          <Text
-            component="label"
-            htmlFor="terms-checkbox-paypal"
-            size="sm"
-            style={{
-              color: 'var(--color-stone)',
-              lineHeight: 1.4,
-              cursor: isProcessing ? 'not-allowed' : 'pointer',
-              userSelect: 'none'
-            }}
-          >
-            I agree to the{' '}
-            <a
-              href="/terms-of-service"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                color: 'var(--color-burgundy)',
-                textDecoration: 'underline'
               }}
-              onClick={(e) => e.stopPropagation()}
             >
-              Terms of Service
-            </a>
-            {' '}and{' '}
-            <a
-              href="/refund-policy"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                color: 'var(--color-burgundy)',
-                textDecoration: 'underline'
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              Refund Policy
-            </a>
-          </Text>
-        </Group>
+              {isProcessing ? 'Processing...' : 'Pay with Credit Card'}
+            </Button>
+          </Stack>
+        </Box>
       </Box>
+
+      {/* Simple "Or" divider - Visible on all screen sizes */}
+      <Text
+        ta="center"
+        mt={0}
+        mb={0}
+        style={{
+          fontFamily: 'var(--font-heading)',
+          fontSize: '14px',
+          fontWeight: 600,
+          color: 'var(--color-smoke)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px'
+        }}
+      >
+        Or
+      </Text>
 
       {/* PayPal Payment Buttons - Always Visible */}
       <Box

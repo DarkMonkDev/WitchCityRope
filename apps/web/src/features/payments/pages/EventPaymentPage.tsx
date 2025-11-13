@@ -230,7 +230,8 @@ export const EventPaymentPage: React.FC = () => {
       await purchaseTicket.mutateAsync({
         eventId: eventId,
         notes: metadata,
-        paymentMethodId: paymentData.transactionId
+        paymentMethodId: paymentData.transactionId,
+        eventWaiverAccepted: true // UI enforces checkbox must be checked before payment
       });
 
       debugLog('✅ Ticket purchase created successfully in database');
@@ -409,11 +410,11 @@ export const EventPaymentPage: React.FC = () => {
 
   return (
     <Container size="lg" py="xl">
-      <Stack gap="xl">
-        {/* Header */}
-        <Group justify="space-between" align="center">
+      <Stack gap={{ base: 0, md: 'md' }}>
+        {/* Header - Back button and secure payment notice */}
+        <Group justify="space-between" align="center" mt={0} mb={{ base: 0, md: 'xs' }}>
           {/* Hide Back button on confirmation screen (Step 3) */}
-          {currentStep < 2 && (
+          {currentStep < 2 ? (
             <Button
               variant="subtle"
               leftSection={<IconArrowLeft size={16} />}
@@ -422,47 +423,70 @@ export const EventPaymentPage: React.FC = () => {
             >
               Back
             </Button>
+          ) : (
+            <Box />
           )}
           <Text c="dimmed" size="sm">
             Secure Payment • SSL Encrypted
           </Text>
         </Group>
 
-        {/* Progress Stepper */}
-        <Stepper
-          active={currentStep}
-          color="#880124"
-          iconSize={32}
-          styles={{
-            stepIcon: {
-              borderWidth: 2
+        {/* Mobile Step Indicator - Simple Text */}
+        <Box hiddenFrom="md" mb={0}>
+          <Text
+            size="lg"
+            fw={500}
+            c="wcr.7"
+            ta="center"
+            className="checkout-step-indicator"
+          >
+            Step {currentStep + 1} of 3: {
+              currentStep === 0
+                ? (!hasAnySlidingScaleTicket ? "Ticket Selection" : "Pricing")
+                : currentStep === 1
+                  ? "Payment"
+                  : "Confirmation"
             }
-          }}
-        >
-          <Stepper.Step
-            label={!hasAnySlidingScaleTicket ? "Ticket Selection" : "Pricing"}
-            description={!hasAnySlidingScaleTicket ? "Review ticket details" : "Choose your amount"}
-          />
-          <Stepper.Step
-            label="Payment"
-            description="Enter payment details"
-          />
-          <Stepper.Step
-            label="Confirmation"
-            description="Registration complete"
-          />
-        </Stepper>
+          </Text>
+        </Box>
+
+        {/* Desktop/Tablet Progress Stepper - Full Version */}
+        <Box visibleFrom="md" mb="1rem">
+          <Stepper
+            active={currentStep}
+            color="#880124"
+            iconSize={32}
+            styles={{
+              stepIcon: {
+                borderWidth: 2
+              }
+            }}
+          >
+            <Stepper.Step
+              label={!hasAnySlidingScaleTicket ? "Ticket Selection" : "Pricing"}
+              description={!hasAnySlidingScaleTicket ? "Review ticket details" : "Choose your amount"}
+            />
+            <Stepper.Step
+              label="Payment"
+              description="Enter payment details"
+            />
+            <Stepper.Step
+              label="Confirmation"
+              description="Registration complete"
+            />
+          </Stepper>
+        </Box>
 
         {/* Step Content */}
         <Group align="flex-start" gap="xl">
           {/* Main Content */}
-          <Stack gap="lg" style={{ flex: 2 }}>
+          <Stack gap={{ base: 0, md: 'md' }} style={{ flex: 2 }}>
             {/* Step 1: Ticket Type and Pricing Selection */}
             {currentStep === 0 && (
               <>
                 {/* Ticket Type Selection */}
                 {ticketTypes.length > 0 && (
-                  <Paper p="lg" radius="md" mb="lg" style={{ background: 'var(--mantine-color-gray-0)' }}>
+                  <Paper p="lg" pt={{ base: 14, md: 'lg' }} radius="md" mb={{ base: 0, md: 'xs' }} style={{ background: 'var(--mantine-color-gray-0)' }}>
                     <Stack gap="sm">
                       <Text fw={600} size="lg">
                         {ticketTypes.length === 1 ? 'Ticket' : 'Select Tickets'}
@@ -569,7 +593,7 @@ export const EventPaymentPage: React.FC = () => {
                   </Alert>
                 )}
 
-                <Group justify="flex-end">
+                <Group justify="flex-end" mt={0}>
                   <Button
                     onClick={handleContinue}
                     size="lg"
@@ -624,7 +648,7 @@ export const EventPaymentPage: React.FC = () => {
 
           {/* Sidebar - Payment Summary */}
           {currentStep < 2 && (
-            <Box style={{ flex: 1, minWidth: 300 }}>
+            <Box style={{ flex: 1, minWidth: 300 }} visibleFrom="md">
               <Box style={{ position: 'sticky', top: 20 }}>
                 <PaymentSummary
                   eventInfo={eventInfo}

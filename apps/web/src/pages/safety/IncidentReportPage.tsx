@@ -138,7 +138,9 @@ export const IncidentReportPage: React.FC = () => {
               ✓
             </Box>
 
-            <Title order={2} ta="center" style={{ color: '#880124' }}>
+            <Title order={2} ta="center" style={{
+          fontSize: 'var(--font-size-h2)',
+          lineHeight: 'var(--line-height-h2)', color: '#880124' }}>
               Report Submitted
             </Title>
 
@@ -182,7 +184,9 @@ export const IncidentReportPage: React.FC = () => {
               </Button>
             )}
 
-            <Box mt="lg" p="md" style={{ backgroundColor: '#F5F5F5', borderRadius: 8, width: '100%' }}>
+            <Box mt="lg" p="md" style={{
+          fontSize: 'var(--font-size-h2)',
+          lineHeight: 'var(--line-height-h2)', backgroundColor: '#F5F5F5', borderRadius: 8, width: '100%' }}>
               <Title order={4} mb="sm" style={{ color: '#880124' }}>
                 Support Resources
               </Title>

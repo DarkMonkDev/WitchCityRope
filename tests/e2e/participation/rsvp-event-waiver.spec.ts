@@ -19,10 +19,11 @@ import { AuthHelper } from '../../e2e/helpers/auth.helper';
 
 test.describe('RSVP Event Waiver Compliance', () => {
   test.beforeEach(async ({ page }) => {
-    // Login as member (has ToS already accepted)
-    const success = await AuthHelper.loginAs(page, 'member');
+    // Login as vetted member (has ToS already accepted)
+    // Using 'vetted' account to ensure full access to RSVP functionality
+    const success = await AuthHelper.loginAs(page, 'vetted');
     if (!success) {
-      throw new Error('Failed to login as member');
+      throw new Error('Failed to login as vetted member');
     }
 
     // Verify we're on dashboard
@@ -46,14 +47,15 @@ test.describe('RSVP Event Waiver Compliance', () => {
     // Wait for event details to load
     await page.waitForSelector('h1', { timeout: 10000 });
 
+    // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
+    await AuthHelper.cleanupEventParticipation(page, 'Social');
+
     // Look for RSVP button (ParticipationCard)
     const rsvpButton = page.locator('[data-testid="button-rsvp"]');
-
-    // Check if RSVP button exists (might already be RSVP'd)
     const rsvpButtonExists = await rsvpButton.count() > 0;
 
     if (!rsvpButtonExists) {
-      console.log('⚠️  User already RSVP\'d or no RSVP available for this event');
+      console.log('⚠️  No RSVP available for this event');
       test.skip();
       return;
     }
@@ -95,23 +97,32 @@ test.describe('RSVP Event Waiver Compliance', () => {
   });
 
   test('Positive: Database shows EventWaiverAccepted=true and timestamp after RSVP', async ({ page, request }) => {
-    // Navigate to events
-    await page.goto('http://localhost:5173/events');
-    await page.waitForLoadState('networkidle');
+    // Get event ID from API (same pattern as working tests)
+    const eventsResponse = await request.get('http://localhost:5655/api/events');
+    const eventsData = await eventsResponse.json();
 
-    // Click first event
-    const eventCard = page.locator('[data-testid="event-card"]').first();
-    await eventCard.click();
-    await page.waitForLoadState('networkidle');
+    // Handle wrapped API response structure
+    const events = eventsData.success ? eventsData.data : (Array.isArray(eventsData) ? eventsData : []);
+    console.log(`📊 API returned ${events.length} events`);
 
-    // Get event ID from URL
-    const url = page.url();
-    const eventIdMatch = url.match(/\/events\/([^/]+)/);
-    const eventSlug = eventIdMatch ? eventIdMatch[1] : null;
-
-    if (!eventSlug) {
-      throw new Error('Could not extract event ID from URL');
+    // Find a social event
+    const socialEvent = events.find((e: any) => e.eventType === 'Social');
+    if (!socialEvent) {
+      console.log('⚠️  No social events available for testing');
+      test.skip();
+      return;
     }
+
+    console.log(`🎯 Found social event: ${socialEvent.id} - ${socialEvent.title}`);
+    const eventSlug = socialEvent.id;
+
+    // Navigate directly to event details page
+    await page.goto(`http://localhost:5173/events/${eventSlug}`);
+    await page.waitForLoadState('networkidle');
+    console.log('✅ Navigated to event details page');
+
+    // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
+    await AuthHelper.cleanupEventParticipation(page, 'Social');
 
     // Check for RSVP button
     const rsvpButton = page.locator('[data-testid="button-rsvp"]');
@@ -124,7 +135,8 @@ test.describe('RSVP Event Waiver Compliance', () => {
     }
 
     // Check waiver and submit RSVP
-    await page.locator('[data-testid="rsvp-terms-checkbox"]').check();
+    // Use .first() to handle events with multiple sessions/checkboxes
+    await page.locator('[data-testid="rsvp-terms-checkbox"]').first().check();
     await rsvpButton.click();
 
     // Wait for RSVP confirmation
@@ -164,12 +176,15 @@ test.describe('RSVP Event Waiver Compliance', () => {
     await eventCard.click();
     await page.waitForLoadState('networkidle');
 
+    // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
+    await AuthHelper.cleanupEventParticipation(page, 'Social');
+
     // Check for RSVP button
     const rsvpButton = page.locator('[data-testid="button-rsvp"]');
     const rsvpButtonExists = await rsvpButton.count() > 0;
 
     if (!rsvpButtonExists) {
-      console.log('⚠️  User already RSVP\'d, checking confirmation display');
+      console.log('⚠️  No RSVP available for this event');
 
       // Verify RSVP confirmation is already visible
       const rsvpConfirmed = await page.locator('text=RSVP Confirmed').count() > 0;
@@ -220,6 +235,9 @@ test.describe('RSVP Event Waiver Compliance', () => {
     const eventCard = page.locator('[data-testid="event-card"]').first();
     await eventCard.click();
     await page.waitForLoadState('networkidle');
+
+    // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
+    await AuthHelper.cleanupEventParticipation(page, 'Social');
 
     // Check for RSVP button
     const rsvpButton = page.locator('[data-testid="button-rsvp"]');
@@ -310,6 +328,9 @@ test.describe('RSVP Event Waiver Compliance', () => {
     const eventCard = page.locator('[data-testid="event-card"]').first();
     await eventCard.click();
     await page.waitForLoadState('networkidle');
+
+    // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
+    await AuthHelper.cleanupEventParticipation(page, 'Social');
 
     // Check for RSVP button
     const rsvpButton = page.locator('[data-testid="button-rsvp"]');

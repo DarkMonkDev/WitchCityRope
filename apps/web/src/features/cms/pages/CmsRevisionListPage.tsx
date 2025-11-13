@@ -1,7 +1,7 @@
 // CmsRevisionListPage component
 // Admin dashboard listing all CMS pages with revision counts
 
-import React from 'react'
+import React, { useState, useMemo } from 'react'
 import {
   Container,
   Title,
@@ -14,13 +14,68 @@ import {
   Group,
   Anchor,
 } from '@mantine/core'
-import { IconAlertCircle, IconExternalLink } from '@tabler/icons-react'
+import {
+  IconAlertCircle,
+  IconExternalLink,
+  IconSortAscending,
+  IconSortDescending,
+} from '@tabler/icons-react'
 import { useNavigate } from 'react-router-dom'
 import { useCmsPageList } from '../hooks/useCmsPageList'
+
+type SortField = 'title' | 'slug' | 'revisionCount' | 'updatedAt' | 'lastModifiedBy'
+type SortDirection = 'asc' | 'desc'
 
 export const CmsRevisionListPage: React.FC = () => {
   const navigate = useNavigate()
   const { data: pages, isLoading, error } = useCmsPageList()
+  const [sortField, setSortField] = useState<SortField>('title')
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortDirection('asc')
+    }
+  }
+
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) return null
+    return sortDirection === 'asc' ? (
+      <IconSortAscending size={16} style={{ color: 'white' }} />
+    ) : (
+      <IconSortDescending size={16} style={{ color: 'white' }} />
+    )
+  }
+
+  const sortedPages = useMemo(() => {
+    if (!pages) return []
+
+    const sorted = [...pages].sort((a, b) => {
+      let aVal: any = a[sortField]
+      let bVal: any = b[sortField]
+
+      // Handle date sorting
+      if (sortField === 'updatedAt') {
+        aVal = new Date(aVal).getTime()
+        bVal = new Date(bVal).getTime()
+      }
+
+      // Handle string sorting (case-insensitive)
+      if (typeof aVal === 'string' && typeof bVal === 'string') {
+        aVal = aVal.toLowerCase()
+        bVal = bVal.toLowerCase()
+      }
+
+      if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
+      if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
+      return 0
+    })
+
+    return sorted
+  }, [pages, sortField, sortDirection])
 
   if (error) {
     return (
@@ -76,73 +131,117 @@ export const CmsRevisionListPage: React.FC = () => {
                   style={{
                     backgroundColor: '#880124',
                     borderBottom: 'none',
+                    cursor: 'pointer',
                   }}
+                  onClick={() => handleSort('title')}
                 >
-                  <Text
-                    fw={600}
-                    size="sm"
-                    style={{
-                      color: 'white',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                    }}
-                  >
-                    PAGE NAME
-                  </Text>
+                  <Group gap={4} justify="flex-start">
+                    <Text
+                      fw={600}
+                      size="sm"
+                      style={{
+                        color: 'white',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}
+                    >
+                      PAGE NAME
+                    </Text>
+                    {getSortIcon('title')}
+                  </Group>
                 </Table.Th>
                 <Table.Th
                   style={{
                     backgroundColor: '#880124',
                     borderBottom: 'none',
+                    cursor: 'pointer',
                   }}
+                  onClick={() => handleSort('slug')}
                 >
-                  <Text
-                    fw={600}
-                    size="sm"
-                    style={{
-                      color: 'white',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                    }}
-                  >
-                    TOTAL REVISIONS
-                  </Text>
+                  <Group gap={4} justify="flex-start">
+                    <Text
+                      fw={600}
+                      size="sm"
+                      style={{
+                        color: 'white',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}
+                    >
+                      URL
+                    </Text>
+                    {getSortIcon('slug')}
+                  </Group>
                 </Table.Th>
                 <Table.Th
                   style={{
                     backgroundColor: '#880124',
                     borderBottom: 'none',
+                    textAlign: 'center',
+                    cursor: 'pointer',
                   }}
+                  onClick={() => handleSort('revisionCount')}
                 >
-                  <Text
-                    fw={600}
-                    size="sm"
-                    style={{
-                      color: 'white',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                    }}
-                  >
-                    LAST EDITED
-                  </Text>
+                  <Group gap={4} justify="center">
+                    <Text
+                      fw={600}
+                      size="sm"
+                      style={{
+                        color: 'white',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}
+                    >
+                      TOTAL REVISIONS
+                    </Text>
+                    {getSortIcon('revisionCount')}
+                  </Group>
                 </Table.Th>
                 <Table.Th
                   style={{
                     backgroundColor: '#880124',
                     borderBottom: 'none',
+                    cursor: 'pointer',
                   }}
+                  onClick={() => handleSort('updatedAt')}
                 >
-                  <Text
-                    fw={600}
-                    size="sm"
-                    style={{
-                      color: 'white',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                    }}
-                  >
-                    LAST EDITED BY
-                  </Text>
+                  <Group gap={4} justify="flex-start">
+                    <Text
+                      fw={600}
+                      size="sm"
+                      style={{
+                        color: 'white',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}
+                    >
+                      LAST EDITED
+                    </Text>
+                    {getSortIcon('updatedAt')}
+                  </Group>
+                </Table.Th>
+                <Table.Th
+                  style={{
+                    backgroundColor: '#880124',
+                    borderBottom: 'none',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => handleSort('lastModifiedBy')}
+                >
+                  <Group gap={4} justify="flex-start">
+                    <Text
+                      fw={600}
+                      size="sm"
+                      style={{
+                        color: 'white',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}
+                    >
+                      LAST EDITED BY
+                    </Text>
+                    {getSortIcon('lastModifiedBy')}
+                  </Group>
                 </Table.Th>
                 <Table.Th
                   style={{
@@ -166,7 +265,7 @@ export const CmsRevisionListPage: React.FC = () => {
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {pages?.map((page) => (
+              {sortedPages.map((page) => (
                 <Table.Tr
                   key={page.id}
                   style={{ cursor: 'pointer' }}
@@ -182,11 +281,13 @@ export const CmsRevisionListPage: React.FC = () => {
                     <Text size="sm" fw={600} style={{ color: '#2B2B2B' }}>
                       {page.title}
                     </Text>
+                  </Table.Td>
+                  <Table.Td>
                     <Text size="sm" c="dimmed">
                       /{page.slug}
                     </Text>
                   </Table.Td>
-                  <Table.Td>
+                  <Table.Td style={{ textAlign: 'center' }}>
                     <Text size="sm" style={{ color: '#2B2B2B' }}>
                       {page.revisionCount}
                     </Text>
@@ -225,7 +326,7 @@ export const CmsRevisionListPage: React.FC = () => {
           </Table>
 
           {/* Empty State */}
-          {(!pages || pages.length === 0) && !isLoading && (
+          {sortedPages.length === 0 && !isLoading && (
             <Box p="xl" ta="center">
               <Text c="dimmed" size="lg">
                 No CMS pages found.

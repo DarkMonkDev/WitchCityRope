@@ -1,15 +1,15 @@
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, ScrollRestoration } from 'react-router-dom';
 import { Box } from '@mantine/core';
 import { Navigation } from './Navigation';
 import { UtilityBar } from './UtilityBar';
 import { Footer } from './Footer';
-import { ScrollToTop } from '../ScrollToTop';
 
 /**
  * Root Layout Component for React Router v7
  *
  * Provides the main application shell with:
- * - ScrollToTop component for automatic scroll restoration on navigation
+ * - ScrollRestoration component for automatic scroll management on navigation
+ *   (scrolls to top on new navigation, restores scroll position on back/forward)
  * - UtilityBar at the top
  * - Navigation header
  * - Main content area with Outlet for route rendering
@@ -24,8 +24,9 @@ export const RootLayout: React.FC = () => {
 
   return (
     <Box style={{ minHeight: '100vh', background: 'var(--color-cream)', display: 'flex', flexDirection: 'column' }}>
-      {/* Scroll to top on route changes */}
-      <ScrollToTop />
+      {/* React Router v7 scroll restoration - handles scroll to top on navigation
+          and restores scroll position on browser back/forward */}
+      <ScrollRestoration />
 
       {/* Utility Bar */}
       <UtilityBar />

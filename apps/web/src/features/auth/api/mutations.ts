@@ -2,10 +2,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../../../api/client'
 import { useAuthActions } from '../../../stores/authStore'
-import type { 
-  UserDto, 
-  LoginRequest, 
-  LoginResponse
+import type {
+  UserDto,
+  LoginRequest,
+  LoginResponse,
+  RegisterRequest
 } from '@witchcityrope/shared-types'
 
 // API Response for httpOnly cookie authentication (no tokens)
@@ -16,13 +17,8 @@ interface LoginResponseData {
   returnUrl?: string | null; // Backend-validated return URL (OWASP compliant)
 }
 
-// Registration credentials interface - not generated yet, create locally
-export interface RegisterCredentials {
-  email: string
-  password: string
-  sceneName: string
-  termsOfServiceAccepted: boolean
-}
+// Type alias for backwards compatibility
+export type RegisterCredentials = RegisterRequest
 
 /**
  * Helper function to extract user-friendly error messages from API errors

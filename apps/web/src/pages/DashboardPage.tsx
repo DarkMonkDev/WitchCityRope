@@ -31,7 +31,14 @@ export const DashboardPage: React.FC = () => {
       </Title>
 
       <Paper shadow="sm" p="xl" mb="lg">
-        <Title order={2} mb="md">
+        <Title
+          order={2}
+          mb="md"
+          style={{
+            fontSize: 'var(--font-size-h2)',
+            lineHeight: 'var(--line-height-h2)',
+          }}
+        >
           Welcome back!
         </Title>
         

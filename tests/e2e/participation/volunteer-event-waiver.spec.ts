@@ -24,10 +24,10 @@ import { AuthHelper } from '../../e2e/helpers/auth.helper';
 
 test.describe('Volunteer Signup Event Waiver Compliance', () => {
   test.beforeEach(async ({ page }) => {
-    // Login as member
-    const success = await AuthHelper.loginAs(page, 'member');
+    // Login as vetted member to ensure full access
+    const success = await AuthHelper.loginAs(page, 'vetted');
     if (!success) {
-      throw new Error('Failed to login as member');
+      throw new Error('Failed to login as vetted member');
     }
 
     await page.waitForURL('**/dashboard', { timeout: 10000 });
@@ -43,6 +43,9 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
     const eventCard = page.locator('[data-testid="event-card"]').first();
     await eventCard.click();
     await page.waitForLoadState('networkidle');
+
+    // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
+    await AuthHelper.cleanupEventParticipation(page, 'Social');
 
     // Look for volunteer section
     const volunteerSection = page.locator('text=Volunteer Opportunities').or(page.locator('text=Help Out'));
@@ -114,23 +117,32 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
   });
 
   test('Positive: Database shows auto-created RSVP has EventWaiverAccepted=true after volunteer signup', async ({ page, request }) => {
-    // Navigate to events
-    await page.goto('http://localhost:5173/events');
-    await page.waitForLoadState('networkidle');
+    // Get event ID from API (same pattern as working tests)
+    const eventsResponse = await request.get('http://localhost:5655/api/events');
+    const eventsData = await eventsResponse.json();
 
-    // Click first event
-    const eventCard = page.locator('[data-testid="event-card"]').first();
-    await eventCard.click();
-    await page.waitForLoadState('networkidle');
+    // Handle wrapped API response structure
+    const events = eventsData.success ? eventsData.data : (Array.isArray(eventsData) ? eventsData : []);
+    console.log(`📊 API returned ${events.length} events`);
 
-    // Get event ID from URL
-    const url = page.url();
-    const eventIdMatch = url.match(/\/events\/([^/]+)/);
-    const eventSlug = eventIdMatch ? eventIdMatch[1] : null;
-
-    if (!eventSlug) {
-      throw new Error('Could not extract event ID from URL');
+    // Find any event
+    const event = events[0];
+    if (!event) {
+      console.log('⚠️  No events available for testing');
+      test.skip();
+      return;
     }
+
+    console.log(`🎯 Found event: ${event.id} - ${event.title}`);
+    const eventSlug = event.id;
+
+    // Navigate directly to event details page
+    await page.goto(`http://localhost:5173/events/${eventSlug}`);
+    await page.waitForLoadState('networkidle');
+    console.log('✅ Navigated to event details page');
+
+    // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
+    await AuthHelper.cleanupEventParticipation(page, 'Social');
 
     // Look for volunteer section
     const volunteerButton = page.locator('button:has-text("Sign Up")').first();
@@ -191,6 +203,9 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
     await eventCard.click();
     await page.waitForLoadState('networkidle');
 
+    // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
+    await AuthHelper.cleanupEventParticipation(page, 'Social');
+
     // Look for volunteer section
     const volunteerButton = page.locator('button:has-text("Sign Up")').first();
     const volunteerButtonExists = await volunteerButton.count() > 0;
@@ -247,6 +262,9 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
     const eventCard = page.locator('[data-testid="event-card"]').first();
     await eventCard.click();
     await page.waitForLoadState('networkidle');
+
+    // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
+    await AuthHelper.cleanupEventParticipation(page, 'Social');
 
     // Look for volunteer section
     const volunteerButton = page.locator('button:has-text("Sign Up")').first();
@@ -367,6 +385,9 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
     const eventCard = page.locator('[data-testid="event-card"]').first();
     await eventCard.click();
     await page.waitForLoadState('networkidle');
+
+    // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
+    await AuthHelper.cleanupEventParticipation(page, 'Social');
 
     // Look for volunteer section
     const volunteerButton = page.locator('button:has-text("Sign Up")').first();

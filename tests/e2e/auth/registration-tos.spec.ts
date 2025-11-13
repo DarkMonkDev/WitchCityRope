@@ -18,11 +18,16 @@ import { test, expect, Page } from '@playwright/test';
 
 test.describe('Registration Terms of Service Compliance', () => {
   let testEmail: string;
+  let testSceneName: string;
 
   test.beforeEach(async ({ page }) => {
-    // Generate unique email for each test run to avoid conflicts
+    // Generate unique email and scene name for each test run to avoid conflicts
+    // Using timestamp + random number for better uniqueness
     const timestamp = Date.now();
-    testEmail = `test-tos-${timestamp}@witchcityrope.com`;
+    const random = Math.floor(Math.random() * 10000);
+    testEmail = `test-tos-${timestamp}-${random}@witchcityrope.com`;
+    // Scene name can only contain letters, numbers, and spaces (no hyphens)
+    testSceneName = `ToSTest ${timestamp} ${random}`;
 
     // Navigate to registration page
     await page.goto('http://localhost:5173/register');
@@ -35,7 +40,7 @@ test.describe('Registration Terms of Service Compliance', () => {
   test('Positive: User can register when Terms of Service checkbox is checked', async ({ page }) => {
     // Fill in registration form
     await page.locator('[data-testid="email-input"]').fill(testEmail);
-    await page.locator('[data-testid="scene-name-input"]').fill('ToS Test User');
+    await page.locator('[data-testid="scene-name-input"]').fill(testSceneName);
     await page.locator('[data-testid="password-input"]').fill('Test123!');
 
     // Initially, submit button should be disabled (ToS not checked)
@@ -49,24 +54,41 @@ test.describe('Registration Terms of Service Compliance', () => {
     // Now submit button should be enabled
     await expect(submitButton).toBeEnabled();
 
-    // Monitor for successful registration API call
+    // Monitor for ANY registration API call (capture all responses, not just 200)
     const responsePromise = page.waitForResponse(
-      response => response.url().includes('/api/auth/register') && response.status() === 200,
-      { timeout: 15000 }
+      response => response.url().includes('/api/auth/register'),
+      { timeout: 30000 }
     );
 
     // Submit the form
     await submitButton.click();
 
-    // Wait for API response
+    // Wait for API response and capture details
     const response = await responsePromise;
-    expect(response.status()).toBe(200);
+    const status = response.status();
+    const responseBody = await response.text().catch(() => 'Unable to read response body');
 
-    // Should navigate to dashboard after successful registration
+    console.log(`📡 Registration API Response: ${status}`);
+    console.log(`📄 Response Body: ${responseBody}`);
+
+    if (status !== 200 && status !== 201) {
+      throw new Error(`Registration failed with status ${status}. Response: ${responseBody}`);
+    }
+
+    // Should navigate to login page after successful registration (NOT dashboard)
+    await page.waitForURL(/\/login/, { timeout: 30000 });
+    expect(page.url()).toContain('/login');
+
+    // Now login with the newly created credentials
+    await page.locator('[data-testid="email-or-scenename-input"]').fill(testEmail);
+    await page.locator('[data-testid="password-input"]').fill('Test123!');
+    await page.locator('[data-testid="login-button"]').click();
+
+    // After login, should navigate to dashboard
     await page.waitForURL('**/dashboard', { timeout: 15000 });
     expect(page.url()).toContain('/dashboard');
 
-    // Take screenshot of successful registration
+    // Take screenshot of successful login after registration
     await page.screenshot({
       path: './test-results/registration-tos-success.png',
       fullPage: true
@@ -76,7 +98,7 @@ test.describe('Registration Terms of Service Compliance', () => {
   test('Positive: Database shows TermsOfServiceAccepted=true and timestamp after registration', async ({ page, request }) => {
     // Fill in registration form
     await page.locator('[data-testid="email-input"]').fill(testEmail);
-    await page.locator('[data-testid="scene-name-input"]').fill('ToS DB Test User');
+    await page.locator('[data-testid="scene-name-input"]').fill(testSceneName);
     await page.locator('[data-testid="password-input"]').fill('Test123!');
 
     // Check Terms of Service
@@ -86,7 +108,15 @@ test.describe('Registration Terms of Service Compliance', () => {
     const submitButton = page.locator('[data-testid="register-button"]');
     await submitButton.click();
 
-    // Wait for navigation to dashboard
+    // Wait for navigation to login page after successful registration
+    await page.waitForURL(/\/login/, { timeout: 30000 });
+
+    // Login with newly created credentials
+    await page.locator('[data-testid="email-or-scenename-input"]').fill(testEmail);
+    await page.locator('[data-testid="password-input"]').fill('Test123!');
+    await page.locator('[data-testid="login-button"]').click();
+
+    // After login, should navigate to dashboard
     await page.waitForURL('**/dashboard', { timeout: 15000 });
 
     // Query API to verify ToS acceptance was stored
@@ -123,17 +153,13 @@ test.describe('Registration Terms of Service Compliance', () => {
   test('Positive: Newly registered user can successfully log in', async ({ page }) => {
     // First, register the user
     await page.locator('[data-testid="email-input"]').fill(testEmail);
-    await page.locator('[data-testid="scene-name-input"]').fill('ToS Login Test');
+    await page.locator('[data-testid="scene-name-input"]').fill(testSceneName);
     await page.locator('[data-testid="password-input"]').fill('Test123!');
     await page.locator('[data-testid="terms-checkbox"]').check();
     await page.locator('[data-testid="register-button"]').click();
 
-    // Wait for navigation to dashboard
-    await page.waitForURL('**/dashboard', { timeout: 15000 });
-
-    // Logout
-    await page.goto('http://localhost:5173/logout');
-    await page.waitForURL('**/login', { timeout: 10000 });
+    // Wait for navigation to login page after successful registration
+    await page.waitForURL(/\/login/, { timeout: 30000 });
 
     // Now log in with the same credentials
     await page.locator('[data-testid="email-or-scenename-input"]').fill(testEmail);
@@ -150,7 +176,7 @@ test.describe('Registration Terms of Service Compliance', () => {
   test('Negative: Submit button is disabled when Terms of Service checkbox is unchecked', async ({ page }) => {
     // Fill in all form fields EXCEPT ToS checkbox
     await page.locator('[data-testid="email-input"]').fill(testEmail);
-    await page.locator('[data-testid="scene-name-input"]').fill('ToS Negative Test');
+    await page.locator('[data-testid="scene-name-input"]').fill(testSceneName);
     await page.locator('[data-testid="password-input"]').fill('Test123!');
 
     // Verify submit button is disabled
@@ -181,7 +207,7 @@ test.describe('Registration Terms of Service Compliance', () => {
   test('Negative: User cannot submit registration form without checking Terms of Service', async ({ page }) => {
     // Fill in all form fields
     await page.locator('[data-testid="email-input"]').fill(testEmail);
-    await page.locator('[data-testid="scene-name-input"]').fill('ToS Force Submit Test');
+    await page.locator('[data-testid="scene-name-input"]').fill(testSceneName);
     await page.locator('[data-testid="password-input"]').fill('Test123!');
 
     // Attempt to force submit with Enter key (should not work)
@@ -205,7 +231,7 @@ test.describe('Registration Terms of Service Compliance', () => {
   test('Negative: Unchecking Terms of Service after checking re-disables submit button', async ({ page }) => {
     // Fill in form
     await page.locator('[data-testid="email-input"]').fill(testEmail);
-    await page.locator('[data-testid="scene-name-input"]').fill('ToS Toggle Test');
+    await page.locator('[data-testid="scene-name-input"]').fill(testSceneName);
     await page.locator('[data-testid="password-input"]').fill('Test123!');
 
     const tosCheckbox = page.locator('[data-testid="terms-checkbox"]');

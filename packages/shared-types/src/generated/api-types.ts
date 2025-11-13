@@ -939,7 +939,7 @@ export interface paths {
         put?: never;
         /**
          * Sign up for a volunteer position
-         * @description Sign up for a volunteer position. Requires authentication. Automatically RSVPs user to social events if not already registered.
+         * @description Sign up for a volunteer position. Requires authentication. Event Waiver acceptance is required. Automatically RSVPs user to social events if not already registered.
          */
         post: operations["SignupForVolunteerPosition"];
         delete?: never;
@@ -2903,7 +2903,7 @@ export interface components {
             statistics?: components["schemas"]["SafetyStatistics"];
             recentIncidents?: components["schemas"]["IncidentSummaryResponse"][];
             pendingActions?: components["schemas"]["ActionItem"][];
-        };
+        } | null;
         AdminRefundTicketRequest: {
             alsoRemoveRsvp?: boolean;
         };
@@ -2922,6 +2922,15 @@ export interface components {
             refundAmount?: number | null;
             volunteerShiftsRemoved?: boolean;
             volunteerShiftNames?: string[];
+        };
+        ApiResponseOfAdminDashboardResponse: {
+            success?: boolean;
+            data?: components["schemas"]["AdminDashboardResponse"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
         };
         ApiResponseOfApplicationDetailResponse: {
             success?: boolean;
@@ -2968,6 +2977,15 @@ export interface components {
             /** Format: date-time */
             timestamp?: string;
         };
+        ApiResponseOfDashboardStatisticsResponse: {
+            success?: boolean;
+            data?: components["schemas"]["DashboardStatisticsResponse"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
         ApiResponseOfEventDto: {
             success?: boolean;
             data?: components["schemas"]["EventDto2"];
@@ -2988,6 +3006,60 @@ export interface components {
             success?: boolean;
             data?: components["schemas"]["GlobalEmailTemplateDto2"];
             error?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfGoogleDriveUpdateResponse: {
+            success?: boolean;
+            data?: components["schemas"]["GoogleDriveUpdateResponse"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfIEnumerableOfUserCoordinatorDto: {
+            success?: boolean;
+            data?: components["schemas"]["UserCoordinatorDto"][] | null;
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfIncidentNoteDto: {
+            success?: boolean;
+            data?: components["schemas"]["IncidentNoteDto2"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfIncidentResponse: {
+            success?: boolean;
+            data?: components["schemas"]["IncidentResponse"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfIncidentStatusResponse: {
+            success?: boolean;
+            data?: components["schemas"]["IncidentStatusResponse"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfIncidentSummaryDto: {
+            success?: boolean;
+            data?: components["schemas"]["IncidentSummaryDto2"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
             /** Format: date-time */
             timestamp?: string;
         };
@@ -3102,9 +3174,36 @@ export interface components {
             /** Format: date-time */
             timestamp?: string;
         };
+        ApiResponseOfMyReportDetailDto: {
+            success?: boolean;
+            data?: components["schemas"]["MyReportDetailDto"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfMyReportsPaginatedResponse: {
+            success?: boolean;
+            data?: components["schemas"]["MyReportsPaginatedResponse"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
         ApiResponseOfNoteResponse: {
             success?: boolean;
             data?: components["schemas"]["NoteResponse"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfNotesListResponse: {
+            success?: boolean;
+            data?: components["schemas"]["NotesListResponse"];
             error?: string | null;
             details?: string | null;
             message?: string | null;
@@ -3123,6 +3222,15 @@ export interface components {
         ApiResponseOfPagedResultOfApplicationSummaryDto: {
             success?: boolean;
             data?: components["schemas"]["PagedResultOfApplicationSummaryDto"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfPaginatedIncidentListResponse: {
+            success?: boolean;
+            data?: components["schemas"]["PaginatedIncidentListResponse"];
             error?: string | null;
             details?: string | null;
             message?: string | null;
@@ -3148,6 +3256,33 @@ export interface components {
         ApiResponseOfSimplifiedApplicationResponse: {
             success?: boolean;
             data?: components["schemas"]["SimplifiedApplicationResponse"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfStatusUpdateResponse: {
+            success?: boolean;
+            data?: components["schemas"]["StatusUpdateResponse"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfSubmissionResponse: {
+            success?: boolean;
+            data?: components["schemas"]["SubmissionResponse"];
+            error?: string | null;
+            details?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        ApiResponseOfUpdatePeopleResponse: {
+            success?: boolean;
+            data?: components["schemas"]["UpdatePeopleResponse"];
             error?: string | null;
             details?: string | null;
             message?: string | null;
@@ -3584,6 +3719,7 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
             createdBy?: string;
+            createdBySceneName?: string;
             changeDescription?: string | null;
             contentPreview?: string;
             title?: string;
@@ -3595,7 +3731,7 @@ export interface components {
             title?: string;
             /** Format: date-time */
             incidentDate?: string;
-            location?: string;
+            location?: string | null;
             description?: string;
             involvedParties?: string | null;
             witnesses?: string | null;
@@ -3623,6 +3759,7 @@ export interface components {
             /** Format: uuid */
             eventId: string;
             notes?: string | null;
+            eventWaiverAccepted: boolean;
         };
         CreateTestUserRequest: {
             email: string;
@@ -3643,6 +3780,7 @@ export interface components {
             eventId: string;
             notes?: string | null;
             paymentMethodId?: string | null;
+            eventWaiverAccepted: boolean;
         };
         CreateUserNoteRequest: {
             content?: string;
@@ -3668,7 +3806,7 @@ export interface components {
             unassignedCount?: number;
             hasOldUnassigned?: boolean;
             recentIncidents?: components["schemas"]["IncidentSummaryDto"][];
-        };
+        } | null;
         DetailedHealthResponse: {
             databaseVersion?: string;
             /** Format: int32 */
@@ -3702,8 +3840,7 @@ export interface components {
             /** Format: date-time */
             endDate?: string;
             /** Format: int32 */
-            venueId?: number | null;
-            location?: string;
+            venueId?: number;
             eventType?: string;
             /** Format: int32 */
             capacity?: number;
@@ -3730,8 +3867,7 @@ export interface components {
             /** Format: date-time */
             endDate?: string;
             /** Format: int32 */
-            venueId?: number | null;
-            location?: string;
+            venueId?: number;
             eventType?: string;
             /** Format: int32 */
             capacity?: number;
@@ -3896,7 +4032,7 @@ export interface components {
             /** Format: date-time */
             lastUpdatedAt?: string;
             systemNoteCreated?: boolean;
-        };
+        } | null;
         HealthResponse: {
             status?: string;
             /** Format: date-time */
@@ -3922,6 +4058,22 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string | null;
         };
+        IncidentNoteDto2: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            incidentId?: string;
+            content?: string;
+            type?: components["schemas"]["IncidentNoteType"];
+            /** Format: uuid */
+            authorId?: string | null;
+            authorName?: string | null;
+            tags?: string | null;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string | null;
+        } | null;
         /** @enum {unknown} */
         IncidentNoteType: "Manual" | "System";
         IncidentResponse: {
@@ -3966,7 +4118,7 @@ export interface components {
             createdAt?: string;
             /** Format: date-time */
             updatedAt?: string;
-        };
+        } | null;
         /** @enum {unknown} */
         IncidentStatus: "ReportSubmitted" | "InformationGathering" | "ReviewingFinalReport" | "OnHold" | "Closed";
         IncidentStatusResponse: {
@@ -3975,7 +4127,7 @@ export interface components {
             /** Format: date-time */
             lastUpdated?: string;
             canProvideMoreInfo?: boolean;
-        };
+        } | null;
         IncidentSummaryDto: {
             /** Format: uuid */
             id?: string;
@@ -4005,6 +4157,35 @@ export interface components {
             /** Format: int32 */
             noteCount?: number;
         };
+        IncidentSummaryDto2: {
+            /** Format: uuid */
+            id?: string;
+            referenceNumber?: string;
+            title?: string;
+            status?: components["schemas"]["IncidentStatus"];
+            type?: components["schemas"]["IncidentType"];
+            /** Format: date-time */
+            incidentDate?: string;
+            /** Format: date-time */
+            reportedAt?: string;
+            /** Format: date-time */
+            lastUpdatedAt?: string;
+            location?: string;
+            description?: string;
+            isAnonymous?: boolean;
+            /** Format: uuid */
+            reporterId?: string | null;
+            reporterName?: string | null;
+            /** Format: uuid */
+            coordinatorId?: string | null;
+            coordinatorName?: string | null;
+            involvedParties?: string | null;
+            witnesses?: string | null;
+            googleDriveFolderUrl?: string | null;
+            googleDriveFinalReportUrl?: string | null;
+            /** Format: int32 */
+            noteCount?: number;
+        } | null;
         IncidentSummaryResponse: {
             /** Format: uuid */
             id?: string;
@@ -4140,7 +4321,7 @@ export interface components {
             involvedParties?: string | null;
             witnesses?: string | null;
             isAnonymous?: boolean;
-        };
+        } | null;
         MyReportsPaginatedResponse: {
             reports?: components["schemas"]["MyReportSummaryDto"][];
             /** Format: int32 */
@@ -4149,7 +4330,7 @@ export interface components {
             currentPage?: number;
             /** Format: int32 */
             pageSize?: number;
-        };
+        } | null;
         MyReportSummaryDto: {
             /** Format: uuid */
             id?: string;
@@ -4171,7 +4352,7 @@ export interface components {
         } | null;
         NotesListResponse: {
             notes?: components["schemas"]["IncidentNoteDto"][];
-        };
+        } | null;
         /** @enum {unknown|null} */
         NullableOfSpokenToPersonStatus: "Yes" | "No" | "NotApplicable" | null;
         PagedResultOfApplicationSummaryDto: {
@@ -4197,7 +4378,7 @@ export interface components {
             pageSize?: number;
             /** Format: int32 */
             totalPages?: number;
-        };
+        } | null;
         PaginationInfo: {
             /** Format: int32 */
             page?: number;
@@ -4411,6 +4592,7 @@ export interface components {
             email: string;
             password: string;
             sceneName: string;
+            termsOfServiceAccepted: boolean;
         };
         /** @enum {unknown} */
         RegistrationStatus: "Confirmed" | "Waitlist" | "CheckedIn" | "NoShow";
@@ -4630,7 +4812,7 @@ export interface components {
             /** Format: date-time */
             lastUpdatedAt?: string;
             systemNoteCreated?: boolean;
-        };
+        } | null;
         StatusUpdateSummary: {
             /** Format: date-time */
             updatedAt?: string;
@@ -4642,7 +4824,7 @@ export interface components {
             trackingUrl?: string;
             /** Format: date-time */
             submittedAt?: string;
-        };
+        } | null;
         SyncRequest: {
             deviceId: string;
             pendingCheckIns: components["schemas"]["PendingCheckIn"][];
@@ -4708,7 +4890,6 @@ export interface components {
             startDate?: string | null;
             /** Format: date-time */
             endDate?: string | null;
-            location?: string | null;
             /** Format: int32 */
             venueId?: number | null;
             /** Format: int32 */
@@ -4757,7 +4938,7 @@ export interface components {
             /** Format: date-time */
             lastUpdatedAt?: string;
             systemNoteCreated?: boolean;
-        };
+        } | null;
         UpdateProfileDto: {
             sceneName: string;
             firstName?: string | null;
@@ -5124,7 +5305,9 @@ export interface components {
             /** Format: date-time */
             eventStartDate?: string;
         } | null;
-        VolunteerSignupRequest: Record<string, never>;
+        VolunteerSignupRequest: {
+            eventWaiverAccepted: boolean;
+        };
         /** @enum {unknown} */
         WhereOccurred: "AtEvent" | "Online" | "PrivatePlay" | "OtherSpace";
         WorkflowHistoryDto: {
@@ -7511,6 +7694,13 @@ export interface operations {
                     "application/json": components["schemas"]["ApiResponseOfVolunteerSignupDto"];
                 };
             };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Unauthorized */
             401: {
                 headers: {
@@ -8356,7 +8546,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SubmissionResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfSubmissionResponse"];
                 };
             };
             /** @description Bad Request */
@@ -8392,7 +8582,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IncidentStatusResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfIncidentStatusResponse"];
                 };
             };
             /** @description Not Found */
@@ -8431,7 +8621,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedIncidentListResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfPaginatedIncidentListResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -8472,7 +8662,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DashboardStatisticsResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfDashboardStatisticsResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -8513,7 +8703,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserCoordinatorDto"][];
+                    "application/json": components["schemas"]["ApiResponseOfIEnumerableOfUserCoordinatorDto"];
                 };
             };
             /** @description Unauthorized */
@@ -8554,7 +8744,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AdminDashboardResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfAdminDashboardResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -8597,7 +8787,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IncidentResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfIncidentResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -8644,7 +8834,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IncidentSummaryDto"];
+                    "application/json": components["schemas"]["ApiResponseOfIncidentSummaryDto"];
                 };
             };
             /** @description Unauthorized */
@@ -8705,7 +8895,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["StatusUpdateResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfStatusUpdateResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -8766,7 +8956,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["GoogleDriveUpdateResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfGoogleDriveUpdateResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -8827,7 +9017,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UpdatePeopleResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfUpdatePeopleResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -8884,7 +9074,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["NotesListResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfNotesListResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -8938,7 +9128,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IncidentNoteDto"];
+                    "application/json": components["schemas"]["ApiResponseOfIncidentNoteDto"];
                 };
             };
             /** @description Unauthorized */
@@ -8999,7 +9189,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IncidentNoteDto"];
+                    "application/json": components["schemas"]["ApiResponseOfIncidentNoteDto"];
                 };
             };
             /** @description Unauthorized */
@@ -9105,7 +9295,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MyReportsPaginatedResponse"];
+                    "application/json": components["schemas"]["ApiResponseOfMyReportsPaginatedResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -9141,7 +9331,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MyReportDetailDto"];
+                    "application/json": components["schemas"]["ApiResponseOfMyReportDetailDto"];
                 };
             };
             /** @description Unauthorized */

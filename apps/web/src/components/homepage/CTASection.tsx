@@ -88,7 +88,8 @@ export const CTASection: React.FC<CTASectionProps> = ({
             order={2}
             style={{
               fontFamily: 'var(--font-heading)',
-              fontSize: '42px',
+              fontSize: 'var(--font-size-h2)',
+              lineHeight: 'var(--line-height-h2)',
               fontWeight: 800,
               marginBottom: 'var(--space-md)',
               textTransform: 'uppercase',

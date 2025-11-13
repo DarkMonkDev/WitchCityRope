@@ -123,10 +123,10 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
 
   return (
     <Stack gap="md">
-      {/* Row 1: Card Number and Cardholder Name */}
-      <Group grow align="flex-start">
-        {/* Card Number */}
-        <Box style={{ position: 'relative' }}>
+      {/* MOBILE LAYOUT - Stacked Vertically */}
+      <Box hiddenFrom="md">
+        {/* Card Number - Full Width */}
+        <Box style={{ position: 'relative' }} mb="md">
           <Text component="label" style={labelStyles}>
             Card Number
           </Text>
@@ -138,21 +138,22 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
             styles={{
               input: {
                 ...inputStyles,
-                paddingRight: '80px' // Space for card icons
+                paddingRight: '44px' // Space for single card icon
               }
             }}
           />
 
           {/* Card Type Icons */}
           <Box
+            className="card-type-icons"
             style={{
               position: 'absolute',
               right: '12px',
-              top: '50%',
+              top: '55%',
               transform: 'translateY(-50%)',
+              marginTop: '10px', // Offset for label height
               display: 'flex',
-              gap: '4px',
-              marginTop: '12px' // Adjust for label
+              gap: '4px'
             }}
           >
             <Box
@@ -161,7 +162,7 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
                 height: '20px',
                 backgroundColor: cardType === 'visa' ? '#1A1F71' : 'var(--color-gray-light)',
                 borderRadius: '4px',
-                display: 'flex',
+                display: cardType === 'visa' ? 'flex' : 'none',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '10px',
@@ -177,7 +178,7 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
                 height: '20px',
                 backgroundColor: cardType === 'mastercard' ? '#EB001B' : 'var(--color-gray-light)',
                 borderRadius: '4px',
-                display: 'flex',
+                display: cardType === 'mastercard' ? 'flex' : 'none',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '8px',
@@ -193,7 +194,111 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({
                 height: '20px',
                 backgroundColor: cardType === 'amex' ? '#006FCF' : 'var(--color-gray-light)',
                 borderRadius: '4px',
-                display: 'flex',
+                display: cardType === 'amex' ? 'flex' : 'none',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '8px',
+                color: 'white',
+                fontWeight: 'bold'
+              }}
+            >
+              AMEX
+            </Box>
+          </Box>
+        </Box>
+
+        {/* Cardholder Name - Full Width */}
+        <Box>
+          <Text component="label" style={labelStyles}>
+            Cardholder Name
+          </Text>
+          <TextInput
+            value={cardData.cardholderName}
+            onChange={(event) =>
+              onCardDataChange({
+                ...cardData,
+                cardholderName: event.target.value
+              })
+            }
+            placeholder="Name on card"
+            disabled={isProcessing}
+            styles={{ input: inputStyles }}
+          />
+        </Box>
+      </Box>
+
+      {/* DESKTOP/TABLET LAYOUT - Side by Side */}
+      <Group grow align="flex-start" visibleFrom="md">
+        {/* Card Number */}
+        <Box style={{ position: 'relative' }}>
+          <Text component="label" style={labelStyles}>
+            Card Number
+          </Text>
+          <TextInput
+            value={cardData.cardNumber}
+            onChange={handleCardNumberChange}
+            placeholder="1234 5678 9012 3456"
+            disabled={isProcessing}
+            styles={{
+              input: {
+                ...inputStyles,
+                paddingRight: '44px' // Space for single card icon
+              }
+            }}
+          />
+
+          {/* Card Type Icons */}
+          <Box
+            className="card-type-icons"
+            style={{
+              position: 'absolute',
+              right: '12px',
+              top: '55%',
+              transform: 'translateY(-50%)',
+              marginTop: '10px', // Offset for label height
+              display: 'flex',
+              gap: '4px'
+            }}
+          >
+            <Box
+              style={{
+                width: '32px',
+                height: '20px',
+                backgroundColor: cardType === 'visa' ? '#1A1F71' : 'var(--color-gray-light)',
+                borderRadius: '4px',
+                display: cardType === 'visa' ? 'flex' : 'none',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '10px',
+                color: 'white',
+                fontWeight: 'bold'
+              }}
+            >
+              VISA
+            </Box>
+            <Box
+              style={{
+                width: '32px',
+                height: '20px',
+                backgroundColor: cardType === 'mastercard' ? '#EB001B' : 'var(--color-gray-light)',
+                borderRadius: '4px',
+                display: cardType === 'mastercard' ? 'flex' : 'none',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '8px',
+                color: 'white',
+                fontWeight: 'bold'
+              }}
+            >
+              MC
+            </Box>
+            <Box
+              style={{
+                width: '32px',
+                height: '20px',
+                backgroundColor: cardType === 'amex' ? '#006FCF' : 'var(--color-gray-light)',
+                borderRadius: '4px',
+                display: cardType === 'amex' ? 'flex' : 'none',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '8px',

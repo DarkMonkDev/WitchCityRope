@@ -531,7 +531,8 @@ const ContentSection: React.FC<ContentSectionProps> = ({ title, children }) => (
         mb={{ base: 'xs', md: 'md' }}
         style={{
           fontFamily: 'var(--font-heading)',
-          fontSize: 'clamp(1.375rem, 0.93vw + 1.12rem, 1.75rem)', // 22px mobile → 28px desktop
+          fontSize: 'var(--font-size-h2)', // 24px mobile → 36px desktop
+          lineHeight: 'var(--line-height-h2)',
           fontWeight: 700,
           color: 'var(--color-burgundy)'
         }}

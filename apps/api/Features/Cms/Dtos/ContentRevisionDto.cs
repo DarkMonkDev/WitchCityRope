@@ -27,6 +27,11 @@ namespace WitchCityRope.Api.Features.Cms.Dtos
         public string CreatedBy { get; init; } = string.Empty;
 
         /// <summary>
+        /// Scene name of user who created this revision
+        /// </summary>
+        public string CreatedBySceneName { get; init; } = string.Empty;
+
+        /// <summary>
         /// Optional description of what changed
         /// </summary>
         public string? ChangeDescription { get; init; }

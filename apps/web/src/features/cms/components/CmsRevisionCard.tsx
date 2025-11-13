@@ -2,8 +2,7 @@
 // Display single revision with metadata and expandable content
 
 import React, { useState } from 'react'
-import { Paper, Text, Group, Button, Box, Badge } from '@mantine/core'
-import { IconClock, IconUser } from '@tabler/icons-react'
+import { Paper, Text, Group, Button, Box } from '@mantine/core'
 import type { ContentRevisionDto } from '../types'
 
 interface CmsRevisionCardProps {
@@ -23,53 +22,43 @@ export const CmsRevisionCard: React.FC<CmsRevisionCardProps> = ({ revision }) =>
   })
 
   return (
-    <Paper shadow="sm" p="md" radius="md" withBorder>
-      <Group justify="space-between" mb="xs">
-        <Group>
-          <IconClock size={16} />
-          <Text size="sm" c="dimmed">
-            {formattedDate}
-          </Text>
-        </Group>
-        <Group>
-          <IconUser size={16} />
-          <Text size="sm" fw={500}>
-            {revision.createdBy}
-          </Text>
-        </Group>
+    <Paper shadow="sm" px="xl" py="md" radius="md" withBorder>
+      <Group justify="space-between" align="center" mb={8}>
+        <Text size="sm" c="dimmed">
+          {formattedDate} - {revision.createdBySceneName}
+        </Text>
+        <Button
+          variant="subtle"
+          size="xs"
+          onClick={() => setShowFullContent(!showFullContent)}
+          style={{
+            minHeight: 'auto',
+            height: 'auto',
+            padding: '4px 8px'
+          }}
+        >
+          {showFullContent ? 'Show Less' : 'View Full Content'}
+        </Button>
       </Group>
 
-      {revision.changeDescription && (
-        <Badge color="blue" variant="light" mb="sm">
-          {revision.changeDescription}
-        </Badge>
-      )}
-
-      <Box mb="sm">
-        <Text size="sm" c="dimmed" mb="xs">
-          Preview:
-        </Text>
-        <div
-          style={{
-            fontSize: '14px',
-            lineHeight: 1.6,
-            maxHeight: showFullContent ? 'none' : '4.8em',
-            overflow: 'hidden',
-            display: '-webkit-box',
-            WebkitLineClamp: showFullContent ? 'unset' : 3,
-            WebkitBoxOrient: 'vertical',
-          }}
-          dangerouslySetInnerHTML={{ __html: revision.contentPreview || '' }}
-        />
-      </Box>
-
-      <Button
-        variant="subtle"
-        size="xs"
-        onClick={() => setShowFullContent(!showFullContent)}
-      >
-        {showFullContent ? 'Show Less' : 'View Full Content'}
-      </Button>
+      <Box
+        style={{
+          fontSize: '14px',
+          lineHeight: 1.6,
+          maxHeight: showFullContent ? 'none' : '4.8em',
+          overflow: 'hidden',
+          display: '-webkit-box',
+          WebkitLineClamp: showFullContent ? 'unset' : 3,
+          WebkitBoxOrient: 'vertical',
+        }}
+        dangerouslySetInnerHTML={{ __html: revision.contentPreview || '' }}
+        sx={{
+          '& p': {
+            margin: 0,
+            padding: 0,
+          }
+        }}
+      />
     </Paper>
   )
 }

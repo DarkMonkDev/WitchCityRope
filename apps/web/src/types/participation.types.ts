@@ -1,5 +1,26 @@
-// Participation types based on backend DTOs
-// This file provides TypeScript types for RSVP functionality
+/**
+ * Participation Types - Using Auto-Generated Types
+ *
+ * DTO ALIGNMENT STRATEGY - CRITICAL RULES:
+ * ════════════════════════════════════════
+ * 1. API DTOs (C#) are the SOURCE OF TRUTH
+ * 2. TypeScript types are AUTO-GENERATED from OpenAPI spec via @witchcityrope/shared-types
+ * 3. NEVER manually create TypeScript interfaces for API request/response data
+ * 4. If a type is missing, expose it in the backend API (add .Produces<> to endpoint)
+ * 5. Regenerate types: cd packages/shared-types && npm run generate
+ *
+ * WHY: Prevents type mismatches, ensures type safety, eliminates manual sync work
+ * SEE: /docs/architecture/react-migration/DTO-ALIGNMENT-STRATEGY.md
+ * ════════════════════════════════════════
+ */
+
+import type { components } from '@witchcityrope/shared-types'
+
+/**
+ * Create RSVP Request DTO
+ * @generated from C# CreateRSVPRequest via OpenAPI
+ */
+export type CreateRSVPRequest = components['schemas']['CreateRSVPRequest']
 
 export interface ParticipationStatusDto {
   hasRSVP: boolean;
@@ -27,12 +48,6 @@ export interface ParticipationStatusDto {
     current: number;
     available: number;
   };
-}
-
-export interface CreateRSVPRequest {
-  eventId: string;
-  notes?: string;
-  eventWaiverAccepted: boolean;
 }
 
 export interface UserParticipationDto {

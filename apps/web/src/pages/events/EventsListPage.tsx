@@ -177,97 +177,227 @@ export const EventsListPage: React.FC = () => {
         }}
       >
         <Container size="xl" py="md">
-          <Group justify="space-between" align="center" wrap="wrap" gap="md">
-            <Group gap="sm">
-              <Switch
-                label="Show Past Classes"
-                checked={showPastClasses}
-                onChange={(event) => setShowPastClasses(event.currentTarget.checked)}
-                color="burgundy"
-                size="sm"
-                styles={{
-                  label: {
-                    fontFamily: 'var(--font-heading)',
-                    fontWeight: 600,
-                    fontSize: '14px',
-                  },
-                }}
-              />
-            </Group>
-
-            <Group gap="md" align="center">
-              <SegmentedControl
-                data-testid="button-view-toggle"
-                value={viewMode}
-                onChange={(value) => setViewMode(value as 'cards' | 'list')}
-                data={[
-                  { label: 'Card View', value: 'cards' },
-                  { label: 'List View', value: 'list' },
-                ]}
-                size="sm"
-                color="burgundy"
-                styles={{
-                  root: {
-                    background: 'var(--color-cream)',
-                    borderRadius: '25px',
-                    padding: '4px',
-                  },
-                  control: {
-                    fontFamily: 'var(--font-heading)',
-                    fontWeight: 600,
-                  },
-                }}
-              />
-
-              <TextInput
-                data-testid="input-search"
-                placeholder="Search events..."
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.currentTarget.value)}
-                leftSection={<IconSearch size={16} color="var(--color-stone)" />}
-                w={250}
-                styles={{
-                  input: {
-                    border: '2px solid var(--color-taupe)',
-                    borderRadius: '25px',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '14px',
-                    '&:focus': {
-                      borderColor: 'var(--color-burgundy)',
-                      width: '300px',
-                      transition: 'all 0.3s ease',
+          {/* Desktop Layout - Preserved as-is */}
+          <Box
+            style={{
+              display: 'none',
+            }}
+            className="filter-bar-desktop"
+          >
+            <Group justify="space-between" align="center" wrap="wrap" gap="md">
+              <Group gap="sm">
+                <Switch
+                  label="Show Past Classes"
+                  checked={showPastClasses}
+                  onChange={(event) => setShowPastClasses(event.currentTarget.checked)}
+                  color="burgundy"
+                  size="sm"
+                  styles={{
+                    label: {
+                      fontFamily: 'var(--font-heading)',
+                      fontWeight: 600,
+                      fontSize: '14px',
                     },
-                  },
-                }}
-              />
+                  }}
+                />
+              </Group>
 
-              <Select
-                data-testid="select-category"
-                value={sortBy}
-                onChange={(value) => setSortBy(value || 'date')}
-                data={[
-                  { value: 'date', label: 'Sort by Date' },
-                  { value: 'price', label: 'Sort by Price' },
-                  { value: 'availability', label: 'Sort by Availability' },
-                ]}
-                w={150}
-                styles={{
-                  input: {
-                    border: '2px solid var(--color-taupe)',
-                    borderRadius: '25px',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '14px',
-                    background: 'var(--color-ivory)',
-                    color: 'var(--color-charcoal)',
-                    '&:hover': {
-                      borderColor: 'var(--color-burgundy)',
+              <Group gap="md" align="center">
+                <SegmentedControl
+                  data-testid="button-view-toggle"
+                  value={viewMode}
+                  onChange={(value) => setViewMode(value as 'cards' | 'list')}
+                  data={[
+                    { label: 'Card View', value: 'cards' },
+                    { label: 'List View', value: 'list' },
+                  ]}
+                  size="sm"
+                  color="burgundy"
+                  styles={{
+                    root: {
+                      background: 'var(--color-cream)',
+                      borderRadius: '25px',
+                      padding: '4px',
                     },
-                  },
-                }}
-              />
+                    control: {
+                      fontFamily: 'var(--font-heading)',
+                      fontWeight: 600,
+                    },
+                  }}
+                />
+
+                <TextInput
+                  data-testid="input-search"
+                  placeholder="Search events..."
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.currentTarget.value)}
+                  leftSection={<IconSearch size={16} color="var(--color-stone)" />}
+                  w={250}
+                  styles={{
+                    input: {
+                      border: '2px solid var(--color-taupe)',
+                      borderRadius: '25px',
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '14px',
+                      '&:focus': {
+                        borderColor: 'var(--color-burgundy)',
+                        width: '300px',
+                        transition: 'all 0.3s ease',
+                      },
+                    },
+                  }}
+                />
+
+                <Select
+                  data-testid="select-category"
+                  value={sortBy}
+                  onChange={(value) => setSortBy(value || 'date')}
+                  data={[
+                    { value: 'date', label: 'Sort by Date' },
+                    { value: 'price', label: 'Sort by Price' },
+                    { value: 'availability', label: 'Sort by Availability' },
+                  ]}
+                  w={150}
+                  styles={{
+                    input: {
+                      border: '2px solid var(--color-taupe)',
+                      borderRadius: '25px',
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '14px',
+                      background: 'var(--color-ivory)',
+                      color: 'var(--color-charcoal)',
+                      '&:hover': {
+                        borderColor: 'var(--color-burgundy)',
+                      },
+                    },
+                  }}
+                />
+              </Group>
             </Group>
-          </Group>
+          </Box>
+
+          {/* Mobile Layout - Reorganized into 2 rows */}
+          <Box
+            style={{
+              display: 'block',
+            }}
+            className="filter-bar-mobile"
+          >
+            <Stack gap="md">
+              {/* Row 1: Show Past Classes Switch + View Toggle */}
+              <Group justify="space-between" align="center" wrap="nowrap" gap="sm">
+                <Switch
+                  label="Show Past Classes"
+                  checked={showPastClasses}
+                  onChange={(event) => setShowPastClasses(event.currentTarget.checked)}
+                  color="burgundy"
+                  size="sm"
+                  styles={{
+                    label: {
+                      fontFamily: 'var(--font-heading)',
+                      fontWeight: 600,
+                      fontSize: '14px',
+                    },
+                  }}
+                />
+
+                <SegmentedControl
+                  data-testid="button-view-toggle"
+                  value={viewMode}
+                  onChange={(value) => setViewMode(value as 'cards' | 'list')}
+                  data={[
+                    { label: 'Card View', value: 'cards' },
+                    { label: 'List View', value: 'list' },
+                  ]}
+                  size="sm"
+                  color="burgundy"
+                  styles={{
+                    root: {
+                      background: 'var(--color-cream)',
+                      borderRadius: '25px',
+                      padding: '4px',
+                      flexShrink: 0,
+                    },
+                    control: {
+                      fontFamily: 'var(--font-heading)',
+                      fontWeight: 600,
+                    },
+                  }}
+                />
+              </Group>
+
+              {/* Row 2: Search Input + Sort Select */}
+              <Group justify="space-between" align="center" wrap="nowrap" gap="sm">
+                <TextInput
+                  data-testid="input-search"
+                  placeholder="Search events..."
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.currentTarget.value)}
+                  leftSection={<IconSearch size={16} color="var(--color-stone)" />}
+                  style={{ flex: 1 }}
+                  styles={{
+                    input: {
+                      border: '2px solid var(--color-taupe)',
+                      borderRadius: '25px',
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '14px',
+                      '&:focus': {
+                        borderColor: 'var(--color-burgundy)',
+                      },
+                    },
+                  }}
+                />
+
+                <Select
+                  data-testid="select-category"
+                  value={sortBy}
+                  onChange={(value) => setSortBy(value || 'date')}
+                  data={[
+                    { value: 'date', label: 'Sort by Date' },
+                    { value: 'price', label: 'Sort by Price' },
+                    { value: 'availability', label: 'Sort by Availability' },
+                  ]}
+                  style={{ width: '150px', flexShrink: 0 }}
+                  styles={{
+                    input: {
+                      border: '2px solid var(--color-taupe)',
+                      borderRadius: '25px',
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '14px',
+                      background: 'var(--color-ivory)',
+                      color: 'var(--color-charcoal)',
+                      '&:hover': {
+                        borderColor: 'var(--color-burgundy)',
+                      },
+                    },
+                  }}
+                />
+              </Group>
+            </Stack>
+          </Box>
         </Container>
+
+        <style>{`
+          /* Desktop: Show desktop layout, hide mobile layout */
+          @media (min-width: 992px) {
+            .filter-bar-desktop {
+              display: block !important;
+            }
+            .filter-bar-mobile {
+              display: none !important;
+            }
+          }
+
+          /* Mobile: Show mobile layout, hide desktop layout */
+          @media (max-width: 991px) {
+            .filter-bar-desktop {
+              display: none !important;
+            }
+            .filter-bar-mobile {
+              display: block !important;
+            }
+          }
+        `}</style>
       </Box>
 
       {/* Main Content */}
@@ -280,7 +410,8 @@ export const EventsListPage: React.FC = () => {
             style={{
               fontFamily: 'var(--font-heading)',
               color: 'var(--color-charcoal)',
-              fontSize: '2rem',
+              fontSize: 'var(--font-size-h2)',
+              lineHeight: 'var(--line-height-h2)',
               fontWeight: 700,
             }}
           >

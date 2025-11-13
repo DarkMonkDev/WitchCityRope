@@ -41,12 +41,9 @@ export type VolunteerAssignmentDto = components['schemas']['VolunteerAssignmentD
 
 /**
  * Request to sign up for a volunteer position
- * Frontend form data structure
+ * @generated from C# VolunteerSignupRequest via OpenAPI
  */
-export interface VolunteerSignupRequest {
-  // User ID is inferred from authentication context
-  eventWaiverAccepted: boolean;
-}
+export type VolunteerSignupRequest = components['schemas']['VolunteerSignupRequest']
 
 /**
  * Volunteer Position Filters (Frontend state - NOT sent to API)

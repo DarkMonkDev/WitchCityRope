@@ -182,7 +182,8 @@ export const EventsList: React.FC<EventsListProps> = ({
         order={2}
         style={{
           fontFamily: 'var(--font-heading)',
-          fontSize: '48px',
+          fontSize: 'var(--font-size-h2)',
+          lineHeight: 'var(--line-height-h2)',
           fontWeight: 800,
           marginBottom: 'var(--space-xl)',
           textAlign: 'center',

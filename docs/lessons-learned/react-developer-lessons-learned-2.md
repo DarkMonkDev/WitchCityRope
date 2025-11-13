@@ -1675,3 +1675,122 @@ After fix:
 #critical #mobile-menu #navigation #mobile-ux #layout #best-practices #close-button #panel-structure
 
 ---
+
+## ✅ REACT ROUTER V7 SCROLLRESTORATION - REPLACE CUSTOM SCROLLTOTOP COMPONENT
+
+**Date**: 2025-11-13
+**Category**: React Router v7 / Navigation / Scroll Behavior
+**Severity**: IMPROVEMENT - BETTER UX WITH BUILT-IN FEATURE
+
+### What We Learned
+**REACT ROUTER V7 HAS BUILT-IN SCROLLRESTORATION**: The custom `ScrollToTop` component that always scrolls to top on navigation should be replaced with React Router v7's `ScrollRestoration` component for better browser-native behavior.
+
+**CUSTOM SCROLLTOTOP LIMITATIONS**:
+- Always scrolls to top on navigation (no distinction between new page vs back button)
+- Breaks browser back/forward scroll position restoration
+- Doesn't handle anchor links properly (`#section` URLs)
+- Not standards-compliant with History API
+
+**REACT ROUTER V7 SCROLLRESTORATION BENEFITS**:
+- Scrolls to top on NEW navigation (clicking links, form submissions)
+- Restores scroll position on browser back/forward buttons
+- Handles anchor links (`#section`) automatically
+- Uses browser History API properly (standards-compliant)
+- Zero configuration needed - just drop it in
+
+### ✅ MIGRATION PATTERN
+
+**Step 1: Update RootLayout component**
+```typescript
+// ❌ BEFORE: Custom ScrollToTop component
+import { Outlet, useLocation } from 'react-router-dom';
+import { ScrollToTop } from '../ScrollToTop';
+
+export const RootLayout: React.FC = () => {
+  return (
+    <Box>
+      <ScrollToTop />
+      <Outlet />
+    </Box>
+  );
+};
+
+// ✅ AFTER: React Router v7 ScrollRestoration
+import { Outlet, useLocation, ScrollRestoration } from 'react-router-dom';
+
+export const RootLayout: React.FC = () => {
+  return (
+    <Box>
+      {/* React Router v7 scroll restoration - handles scroll to top on navigation
+          and restores scroll position on browser back/forward */}
+      <ScrollRestoration />
+      <Outlet />
+    </Box>
+  );
+};
+```
+
+**Step 2: Delete custom ScrollToTop component**
+```bash
+rm /home/chad/repos/witchcityrope/apps/web/src/components/ScrollToTop.tsx
+```
+
+**Step 3: Verify no other imports**
+```bash
+# Should return nothing
+grep -r "ScrollToTop" apps/web/src/
+```
+
+### 🛑 BEHAVIOR COMPARISON
+
+| Scenario | Custom ScrollToTop | ScrollRestoration |
+|----------|-------------------|------------------|
+| Click link to new page | Scrolls to top ✅ | Scrolls to top ✅ |
+| Browser back button | Scrolls to top ❌ | Restores position ✅ |
+| Browser forward button | Scrolls to top ❌ | Restores position ✅ |
+| Anchor link (`#section`) | Scrolls to top ❌ | Scrolls to anchor ✅ |
+| Hash change on same page | Scrolls to top ❌ | Scrolls to anchor ✅ |
+| Standards compliant | Partial ⚠️ | Full ✅ |
+
+### 📋 TESTING CHECKLIST
+
+After migration, verify:
+- [ ] Click "View Full Catalog" on homepage → Should scroll to top of events page
+- [ ] Scroll down events page, click an event → Should scroll to top of event detail
+- [ ] Click browser back button → Should restore scroll position on events page
+- [ ] Navigate: Home → Events → Event Detail → Back → Back → Should restore positions
+- [ ] Test with any anchor links (if they exist) → Should scroll to anchors
+
+### 🎯 WHEN TO USE EACH PATTERN
+
+**Use ScrollRestoration (RECOMMENDED)**:
+- ✅ All new React Router v7 applications
+- ✅ When migrating from older routing solutions
+- ✅ When you want browser-native scroll behavior
+- ✅ When you have anchor links in your application
+
+**Use custom ScrollToTop (ONLY IF)**:
+- ⚠️ You're on older React Router (< v6.4)
+- ⚠️ You explicitly want to NEVER restore scroll position
+- ⚠️ You have custom scroll behavior requirements
+
+### 💥 CONSEQUENCES OF NOT MIGRATING
+
+- ❌ Poor UX - back button doesn't restore scroll position
+- ❌ Users have to scroll to find where they were
+- ❌ Anchor links don't work properly
+- ❌ Not using built-in framework features
+- ❌ More custom code to maintain
+
+### 🚨 FILES AFFECTED
+
+**MODIFIED**:
+- `/apps/web/src/components/layout/RootLayout.tsx` - Replaced ScrollToTop with ScrollRestoration
+
+**DELETED**:
+- `/apps/web/src/components/ScrollToTop.tsx` - No longer needed
+
+### Tags
+#react-router-v7 #scroll-restoration #navigation #browser-history #ux-improvement #migration #built-in-features
+
+---

@@ -252,7 +252,16 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
       <Box className={className}>
         <Paper p="xl" shadow="sm">
           <Stack gap="lg">
-            <Title order={2} size="h2" mb="sm" c="wcr.7">
+            <Title
+              order={2}
+              size="h2"
+              mb="sm"
+              c="wcr.7"
+              style={{
+                fontSize: 'var(--font-size-h2)',
+                lineHeight: 'var(--line-height-h2)',
+              }}
+            >
               Apply to Join Witch City Rope
             </Title>
 
@@ -359,7 +368,16 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
         <Stack gap="lg">
           {/* Header */}
           <div>
-            <Title order={2} size="h2" mb="sm" c="wcr.7">
+            <Title
+              order={2}
+              size="h2"
+              mb="sm"
+              c="wcr.7"
+              style={{
+                fontSize: 'var(--font-size-h2)',
+                lineHeight: 'var(--line-height-h2)',
+              }}
+            >
               Apply to Join Witch City Rope
             </Title>
             <Text c="dimmed" size="lg">
@@ -372,7 +390,9 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
             icon={<IconShieldCheck />}
             color="blue"
             title="Privacy & Data Protection"
-            style={{ marginBottom: '12px' }}
+            style={{
+          fontSize: 'var(--font-size-h2)',
+          lineHeight: 'var(--line-height-h2)', marginBottom: '12px' }}
           >
             All personal information is encrypted and only accessible to approved vetting team members.
             Your data will never be shared outside the review process.

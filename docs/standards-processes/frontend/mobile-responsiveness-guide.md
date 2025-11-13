@@ -1,6 +1,6 @@
 # Mobile Responsiveness Guide for WitchCityRope Frontend Developers
 <!-- Last Updated: 2025-11-12 -->
-<!-- Version: 1.0 -->
+<!-- Version: 1.1 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -20,6 +20,7 @@ Before committing any component:
 - [ ] Tested on mobile viewports (320px, 375px, 768px minimum)
 - [ ] No horizontal scrolling on mobile devices
 - [ ] Fixed-width elements (380px) become fluid on mobile
+- [ ] Global mobile CSS patterns applied (list styling, line-height optimization)
 
 ### Common Mobile Issues to Avoid
 
@@ -1652,6 +1653,156 @@ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))'
 
 ---
 
+## Part 9: Global Mobile CSS Patterns
+
+These patterns have been tested and implemented globally to ensure consistent mobile UX across all pages. They are automatically applied through `index.css` and require no per-page configuration.
+
+### 9.1 List Styling (UL Elements)
+
+**Purpose**: Maximize horizontal space on mobile while maintaining text alignment.
+
+**Implementation** (in `index.css`):
+```css
+@media (max-width: 768px) {
+  ul {
+    padding-left: 1.2em !important;
+    margin-left: 0 !important;
+    list-style-position: outside;
+  }
+}
+```
+
+**Effect**:
+- Bullets align to left edge (no left margin)
+- Wrapped text aligns with first line of text, not bullet
+- 1.2em padding provides space for bullet + visual alignment
+
+**Before vs After**:
+```
+❌ Before (inside bullets):
+• This is a long line that wraps
+back to the left edge
+
+✅ After (outside bullets):
+• This is a long line that wraps
+  aligned with first line
+```
+
+**Why This Matters**:
+- On mobile screens, every pixel counts
+- Text wrapping aligned with first line (not bullet) creates cleaner visual hierarchy
+- Reduces "jagged" appearance of wrapped list items
+- Improves readability by maintaining consistent text alignment
+
+### 9.2 Line-Height Optimization
+
+**Purpose**: Show more content per screen on mobile without sacrificing readability.
+
+**Implementation** (in `index.css`):
+```css
+@media (max-width: 768px) {
+  body,
+  p,
+  li,
+  .mantine-Text-root {
+    line-height: 1.5 !important;
+  }
+
+  p {
+    margin-bottom: 1rem !important;
+  }
+}
+```
+
+**Effect**:
+- **Within paragraphs**: Tighter line spacing (1.5 vs desktop 1.8)
+- **Between paragraphs**: Same spacing maintained (1rem margin-bottom)
+- **Result**: More content visible per screen, visual hierarchy preserved
+
+**Comparison**:
+
+| Element | Desktop | Mobile | Savings |
+|---------|---------|--------|---------|
+| Line-height | 1.8 | 1.5 | ~16% more content per screen |
+| Paragraph margin | 1rem | 1rem | No change (maintains hierarchy) |
+
+**Why This Matters**:
+- Mobile screens have limited vertical space
+- Users shouldn't have to scroll excessively for the same content
+- 1.5 line-height is still comfortable to read (WCAG compliant)
+- Maintaining paragraph spacing preserves visual breaks between content blocks
+
+### 9.3 Where These Rules Live
+
+**Current Location**: `/home/chad/repos/witchcityrope/apps/web/src/index.css` (lines ~543-561)
+
+**Status**: Implemented globally via CSS media query
+
+**Future Work**: These patterns are already global (apply to all pages). No additional action needed unless we want to refine breakpoints or adjust values.
+
+### 9.4 Applying to New Pages
+
+✅ **Automatic**: These CSS rules automatically apply to all pages since they're in the global `index.css`.
+
+✅ **No action needed**: Developers don't need to do anything special - lists and line-height are handled globally.
+
+⚠️ **Override if needed**: If a specific component needs different behavior, use inline styles or component-specific CSS with higher specificity.
+
+**Example Override** (if needed):
+```tsx
+// Component that needs desktop line-height on mobile
+<Box
+  sx={{
+    '& p': {
+      lineHeight: '1.8 !important', // Override mobile 1.5
+    }
+  }}
+>
+  <Text>Content that needs more breathing room</Text>
+</Box>
+```
+
+### 9.5 Testing Checklist
+
+When testing mobile layouts, verify:
+- [ ] UL bullets align to left edge
+- [ ] Wrapped list text aligns with first line
+- [ ] Line spacing within paragraphs is tighter (1.5)
+- [ ] Space between paragraphs is preserved
+- [ ] Content doesn't feel cramped
+- [ ] More content visible per screen than before
+- [ ] No horizontal scrolling on lists
+- [ ] Text remains readable at 1.5 line-height
+
+### 9.6 Pattern Discovery Process
+
+These patterns were discovered through iterative testing on the EventDetailPage:
+
+1. **Problem Identified**: Lists were pushing bullets into text on mobile (poor horizontal space usage)
+2. **Solution Tested**: `list-style-position: outside` with `padding-left: 1.2em`
+3. **Problem Identified**: Too much vertical scrolling required on mobile
+4. **Solution Tested**: Reduced line-height to 1.5 on mobile only
+5. **Validation**: Both patterns improved UX without sacrificing readability
+6. **Globalization**: Moved patterns to `index.css` for consistent application
+
+**Key Insight**: Mobile typography should prioritize content density while maintaining readability. These patterns achieve both goals.
+
+### 9.7 Future Enhancements
+
+**Potential Refinements**:
+- Test different padding-left values for lists (1.2em vs 1.5em)
+- Consider breakpoint adjustments (768px vs 640px cutoff)
+- Test line-height variations by content type (documentation vs marketing)
+- Evaluate OL (ordered list) behavior with these patterns
+
+**When to Update These Patterns**:
+- User feedback indicates readability issues on mobile
+- Analytics show high bounce rates on mobile content pages
+- A/B testing shows different values perform better
+- Accessibility audits recommend changes
+
+---
+
 ## Conclusion
 
 This guide consolidates best practices from 50,000+ lines of research into actionable patterns for WitchCityRope frontend development.
@@ -1663,6 +1814,7 @@ This guide consolidates best practices from 50,000+ lines of research into actio
 4. **Navigation**: Use Mantine AppShell for mobile menu
 5. **Testing**: Test on real devices at 320px, 375px, 768px, 1200px
 6. **Mobile-First**: Always start with mobile, enhance for desktop
+7. **Global Patterns**: List styling and line-height optimization apply automatically
 
 **Remember**: Mobile responsiveness is NOT optional. This guide is mandatory reading before implementing ANY React component.
 
@@ -1678,7 +1830,7 @@ This guide consolidates best practices from 50,000+ lines of research into actio
 
 ---
 
-**Document Version**: 1.0
+**Document Version**: 1.1
 **Last Updated**: 2025-11-12
 **Owner**: Librarian Agent
 **Review Cycle**: Quarterly
