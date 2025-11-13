@@ -53,6 +53,11 @@ export function useCreateRSVP() {
         data
       );
 
+      // Invalidate participation status to trigger re-render in all consuming components
+      queryClient.invalidateQueries({
+        queryKey: participationKeys.eventStatus(variables.eventId)
+      });
+
       // Invalidate user participations to refresh the list
       queryClient.invalidateQueries({
         queryKey: participationKeys.userParticipations()
@@ -61,6 +66,11 @@ export function useCreateRSVP() {
       // Invalidate user events for dashboard
       queryClient.invalidateQueries({
         queryKey: ['user-events']
+      });
+
+      // Invalidate volunteer positions to update ToS checkbox visibility
+      queryClient.invalidateQueries({
+        queryKey: ['volunteerPositions', variables.eventId]
       });
     },
     onError: (error: any) => {
