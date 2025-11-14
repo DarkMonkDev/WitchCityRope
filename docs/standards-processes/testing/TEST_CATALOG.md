@@ -1,8 +1,61 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-11-14 (INTEGRATION TEST FIXES) -->
-<!-- Version: 10.15 - Integration test infrastructure fixes for VenueId and JSON deserialization -->
+<!-- Last Updated: 2025-11-14 (INTEGRATION TEST FIX VERIFICATION) -->
+<!-- Version: 10.16 - Verification of integration test fixes: PARTIAL SUCCESS -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
+
+## 🔄 Integration Test Fix Verification - November 14, 2025
+
+**TEST SCOPE**: Verification of test-developer fixes for 34 failing tests
+**EXECUTION DATE**: 2025-11-14
+**STATUS**: ⚠️ **PARTIAL SUCCESS - 18 tests fixed, 16 new failures introduced**
+
+### Executive Summary
+
+The test-developer agent successfully fixed VenueId foreign key violations and VettingStatus deserialization issues, but the fixes appear to have exposed or introduced 16 NEW test failures in different areas.
+
+**Results**:
+- Total: 109 tests
+- Passing: 85 (78%) - UP from 67 (61%)
+- Failing: 20 (18%) - DOWN from 38 (35%)
+- Skipped: 4 (4%)
+- **Net improvement**: +18 passing tests
+
+**Expected vs Actual**:
+- Expected: +34 passing tests (from fixing 34 specific failures)
+- Actual: +18 passing tests
+- Discrepancy: 16 tests (new failures introduced or exposed)
+
+### New Issues Discovered
+
+**Issue 1: EventAttendees RegistrationStatus Constraint Violation (1 test)**
+- Error: `23514: new row for relation "EventAttendees" violates check constraint "CHK_EventAttendees_RegistrationStatus"`
+- Test trying to set RegistrationStatus to 'active' which is not a valid enum value
+- Affected: `AdminRemoveRsvp_UpdatesEventAttendeeStatus`
+
+**Issue 2: Payment Refund Eligibility Errors (5 tests)**
+- Error: "Payment is not eligible for refund. Only completed payments can be refunded."
+- Tests creating TicketPurchases without setting PaymentStatus to 'completed'
+- Affected: `AdminParticipationRemovalIntegrationTests` (5 tests)
+
+**Issue 3: Participation Endpoint HTTP 500 Errors (4 tests)**
+- Error: Expected 201 Created, got 500 Internal Server Error
+- VenueId issues fixed, but hitting new errors in ticket/RSVP creation
+- Affected: `ParticipationEndpointsAccessControlTests` (4 tests)
+
+**Issue 4: Vetting Hold Endpoint Failures (6 tests)**
+- Various errors after venue setup is corrected
+- Suggests cascade of issues once baseline data setup works
+- Affected: `VettingHoldIntegrationTests` (6 tests)
+
+**Issue 5: Other Failures (4 tests)**
+- Safety workflow tests (2)
+- DTO mapping test (1)
+- Venue duplicate name test (1)
+
+**Full Report**: `/test-results/integration-test-fix-verification-2025-11-14.md`
+
+---
 
 ## 🔧 Integration Test Infrastructure Fixes - November 14, 2025
 
@@ -400,12 +453,25 @@ export default function RootLayout() {
 **Location**: `/tests/`
 **Total Tests**: 109 integration tests + unit tests
 
-#### Integration Tests
+#### Integration Tests - AFTER FIX VERIFICATION
 - **Total**: 109 tests
-- **Passing**: 62 (57%)
-- **Failing**: 43 (39%) - All due to inotify limit
+- **Passing**: 85 (78%) - UP from 67 (61%)
+- **Failing**: 20 (18%) - DOWN from 38 (35%)
 - **Skipped**: 4 (4%)
-- **Execution Time**: 1.49 minutes
+- **Execution Time**: 1.74 minutes
+
+#### Test Health Status
+**Fixed (18 tests)**:
+- VenueId foreign key violations resolved
+- VettingStatus deserialization fixed
+- Baseline test data setup now works
+
+**New Failures Discovered (20 tests)**:
+- RegistrationStatus constraint violations (1)
+- Payment refund eligibility issues (5)
+- Participation endpoint 500 errors (4)
+- Vetting hold endpoint failures (6)
+- Other failures (4)
 
 #### API Endpoints
 - `EventEndpointsTests.cs` - Event CRUD operations
@@ -418,27 +484,22 @@ export default function RootLayout() {
 - `VettingServiceTests.cs` - Vetting workflow logic
 
 **Total API Tests**: 109 integration tests + unit tests (in progress)
-**Pass Rate**: 57% (infrastructure limited - expected 100% after inotify fix)
-**Average Execution Time**: 1.49 minutes (integration tests)
+**Pass Rate**: 78% (improved from 61%)
+**Average Execution Time**: 1.74 minutes (integration tests)
 
 ---
 
-## Test Execution Commands
+## Test Execution
 
 ### E2E Tests (Playwright)
-```bash
-# All E2E tests
-npx playwright test
 
-# Specific test file
-npx playwright test tests/playwright/scroll-restoration.spec.ts
+**Use the `test-executor` skill** for running all tests including E2E tests.
 
-# With UI
-npx playwright test --ui
-
-# Debug mode
-npx playwright test --debug
-```
+The test-executor skill handles:
+- Running complete test suites
+- Managing test environment (Docker, database, services)
+- Test result reporting and analysis
+- All test execution scenarios (full suite, specific files, debug mode, UI mode)
 
 ### React Component Tests
 ```bash
@@ -473,30 +534,37 @@ dotnet test --logger "console;verbosity=detailed"
 
 ### Overall Status
 - **Total Tests**: ~230 tests executed (E2E + Integration)
-- **Passing**: ~74 tests (E2E: 12, Integration: 62)
-- **Failing**: 47 tests (E2E: 4, Integration: 43)
-- **Infrastructure Issues**: 43 tests (inotify limit)
-- **Environment Issues**: 4 tests (network, pre-existing bugs)
+- **Passing**: ~97 tests (E2E: 12, Integration: 85)
+- **Failing**: 24 tests (E2E: 4, Integration: 20)
 - **Pattern B Migration Issues**: **0 tests** ✅
+- **Integration Test Fix Status**: ⚠️ Partial (18 fixed, 16 new failures)
 - **Last Full Run**: 2025-11-14
 
 ### By Category
 | Category | Total | Passing | Failing | Pass Rate | Notes |
 |----------|-------|---------|---------|-----------|-------|
 | E2E (Playwright) | 16 | 12 | 4 | 75% | All failures unrelated to migration |
-| Backend Integration | 109 | 62 | 43 | 57% | 43 failures due to inotify limit |
+| Backend Integration | 109 | 85 | 20 | 78% | Improved from 61%, new failures discovered |
 | Backend Unit | TBD | TBD | TBD | TBD | In progress |
 
 ### Critical Failures
 **NONE related to Pattern B migration** ✅
 
+**Integration Test Failures (20 tests)**:
+- RegistrationStatus constraint (1) - Test data issue
+- Payment refund logic (5) - Test data issue
+- Participation endpoints (4) - Server errors (500)
+- Vetting hold endpoints (6) - Various errors
+- Other tests (4) - Needs investigation
+
 **Environment/Infrastructure Failures**:
-- inotify limit (43 tests) - Fix: `sudo sysctl fs.inotify.max_user_instances=256`
 - Network errors (3 E2E tests) - ERR_NETWORK_CHANGED
 - Pre-existing bugs (1 E2E test) - Safety dashboard 500 error
 - Performance timeout (1 E2E test) - Login page timeout
 
 ### Recent Changes
+- 2025-11-14: **Integration Test Fix Verification** - ⚠️ Partial success, +18 passing, 16 new failures
+- 2025-11-14: **Integration Test Fixes** - ✅ 34 tests fixed (VenueId + VettingStatus)
 - 2025-11-14: **Pattern B Migration Verification** - ✅ Zero migration-related failures
 - 2025-11-14: Implemented ScrollToTop component - 6/6 tests passing (100% success)
 - 2025-11-14: Implemented `preventScrollReset={false}` - 5/6 tests passing
@@ -528,15 +596,20 @@ dotnet test --logger "console;verbosity=detailed"
 ## Test Maintenance
 
 ### Last Updated
-- **Catalog**: 2025-11-14 (Pattern B migration verification)
+- **Catalog**: 2025-11-14 (Integration test fix verification)
 - **E2E Tests**: 2025-11-14 (scroll restoration COMPLETE + migration verified)
-- **Integration Tests**: 2025-11-14 (Pattern B migration verified)
+- **Integration Tests**: 2025-11-14 (Fix verification: PARTIAL SUCCESS)
 - **Unit Tests**: 2025-11-14 (in progress)
 
 ### Upcoming Test Work
 1. ~~**IMMEDIATE**: Complete scroll restoration fix~~ ✅ **COMPLETE**
 2. ~~**IMMEDIATE**: Verify Pattern B migration~~ ✅ **COMPLETE - Zero issues**
-3. **HIGH**: Fix inotify limits and complete integration test verification
+3. **URGENT**: Fix 20 remaining integration test failures
+   - Priority 1: RegistrationStatus constraint (1 test)
+   - Priority 2: Payment refund setup (5 tests)
+   - Priority 3: Participation 500 errors (4 tests)
+   - Priority 4: Vetting hold failures (6 tests)
+   - Priority 5: Other failures (4 tests)
 4. **HIGH**: Investigate pre-existing bugs (safety dashboard, login timeout)
 5. **MEDIUM**: Add E2E tests for new event waiver features
 6. **MEDIUM**: Increase component test coverage to 85%

@@ -24,6 +24,386 @@ If you cannot read ANY file:
 
 ---
 
+## 🚨 CRITICAL: Pattern B Uses ProblemHttpResult, NOT JsonHttpResult<ProblemDetails> (2025-11-13)
+
+**Problem**: Pattern B endpoint tests used wrong result type assertions, causing 80 of 90 tests to fail despite endpoints working correctly.
+
+**Date Discovered**: November 13, 2025 during Pattern B endpoint unit test creation
+**Context**: Created 90 unit tests for 6 Pattern B endpoints (CheckIn, Volunteer, Venue, RSVP, Session, Attendance)
+
+**Root Cause**:
+- Pattern B endpoints correctly return `ProblemHttpResult` for errors (RFC 9457 compliance)
+- Tests were written expecting `JsonHttpResult<ProblemDetails>` (old pattern)
+- Type mismatch caused 80 of 90 assertions to fail on first test run
+
+**Error Examples**:
+```
+Expected result to be of type JsonHttpResult<ProblemDetails>, but found ProblemHttpResult.
+Expected result to be of type Microsoft.AspNetCore.Http.HttpResults.JsonHttpResult`1[[Microsoft.AspNetCore.Mvc.ProblemDetails, ...]], but found Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult.
+```
+
+**Impact**:
+- 90/117 tests (77%) failed on first run
+- Required systematic refactoring of all error result assertions
+- Pattern mismatch indicated misunderstanding of Pattern B standard
+
+**Wrong Test Pattern** (Old Pattern Expectation):
+```csharp
+// ❌ WRONG - Old pattern expectation
+[Fact]
+public async Task GetVolunteerPositions_WithInvalidEvent_Returns404()
+{
+    // Arrange
+    _volunteerService.GetEventVolunteerPositionsAsync("invalid-id", null, Arg.Any<CancellationToken>())
+        .Returns((false, null, "Event not found"));
+
+    // Act
+    var result = await VolunteerEndpoints.GetEventVolunteerPositions(_volunteerService, "invalid-id");
+
+    // Assert - WRONG TYPE!
+    result.Should().BeOfType<JsonHttpResult<Microsoft.AspNetCore.Mvc.ProblemDetails>>();
+    var jsonResult = (JsonHttpResult<ProblemDetails>)result;
+    jsonResult.StatusCode.Should().Be(404);
+    jsonResult.Value!.Title.Should().Be("Not Found");
+    jsonResult.Value!.Detail.Should().Be("Event not found");
+}
+```
+
+**Correct Test Pattern** (Pattern B):
+```csharp
+// ✅ CORRECT - Pattern B
+[Fact]
+public async Task GetVolunteerPositions_WithInvalidEvent_Returns404()
+{
+    // Arrange
+    _volunteerService.GetEventVolunteerPositionsAsync("invalid-id", null, Arg.Any<CancellationToken>())
+        .Returns((false, null, "Event not found"));
+
+    // Act
+    var result = await VolunteerEndpoints.GetEventVolunteerPositions(_volunteerService, "invalid-id");
+
+    // Assert - CORRECT TYPE!
+    result.Should().BeOfType<ProblemHttpResult>();
+    var problemResult = (ProblemHttpResult)result;
+    problemResult.StatusCode.Should().Be(404);
+    problemResult.ProblemDetails.Title.Should().Be("Not Found");
+    problemResult.ProblemDetails.Detail.Should().Be("Event not found");
+}
+```
+
+**Pattern B Error Response Structure**:
+```csharp
+// Endpoint returns ProblemHttpResult
+app.MapGet("/api/volunteer-positions", async (IVolunteerService service, string eventId) =>
+{
+    var (success, positions, error) = await service.GetEventVolunteerPositionsAsync(eventId);
+
+    // ✅ Returns ProblemHttpResult (RFC 9457)
+    return success
+        ? Results.Ok(positions)
+        : Results.Problem(
+            title: "Not Found",
+            detail: error,
+            statusCode: 404);
+});
+```
+
+**Result Type Reference**:
+| Pattern | Success Type | Error Type | Test Assertion |
+|---------|-------------|------------|----------------|
+| Pattern B | `Ok<T>` | `ProblemHttpResult` | `BeOfType<ProblemHttpResult>()` |
+| Old Pattern | `JsonHttpResult<ApiResponse<T>>` | `JsonHttpResult<ProblemDetails>` | `BeOfType<JsonHttpResult<ProblemDetails>>()` |
+
+**Complete Test Examples**:
+
+**Success Response**:
+```csharp
+[Fact]
+public async Task GetVolunteerPositions_WithValidEvent_ReturnsPositions()
+{
+    // Arrange
+    var eventId = "test-event-id";
+    var positions = new List<VolunteerPositionDto>
+    {
+        new VolunteerPositionDto { Id = "pos-1", Title = "Test Position" }
+    };
+
+    _volunteerService.GetEventVolunteerPositionsAsync(eventId, null, Arg.Any<CancellationToken>())
+        .Returns((true, positions, null));
+
+    // Act
+    var result = await VolunteerEndpoints.GetEventVolunteerPositions(_volunteerService, eventId);
+
+    // Assert - Direct DTO in Ok<T>
+    result.Should().BeOfType<Ok<List<VolunteerPositionDto>>>();
+    var okResult = (Ok<List<VolunteerPositionDto>>)result;
+    okResult.Value.Should().HaveCount(1);
+    okResult.Value![0].Id.Should().Be("pos-1");
+}
+```
+
+**Error Response (Not Found)**:
+```csharp
+[Fact]
+public async Task GetVolunteerPositions_WithInvalidEvent_Returns404()
+{
+    // Arrange
+    _volunteerService.GetEventVolunteerPositionsAsync("invalid-id", null, Arg.Any<CancellationToken>())
+        .Returns((false, null, "Event not found"));
+
+    // Act
+    var result = await VolunteerEndpoints.GetEventVolunteerPositions(_volunteerService, "invalid-id");
+
+    // Assert - ProblemHttpResult (RFC 9457)
+    result.Should().BeOfType<ProblemHttpResult>();
+    var problemResult = (ProblemHttpResult)result;
+    problemResult.StatusCode.Should().Be(404);
+    problemResult.ProblemDetails.Title.Should().Be("Not Found");
+    problemResult.ProblemDetails.Detail.Should().Be("Event not found");
+}
+```
+
+**Error Response (Forbidden)**:
+```csharp
+[Fact]
+public async Task SignUpForPosition_WhenNotAuthenticated_Returns403()
+{
+    // Arrange
+    _volunteerService.SignUpForPositionAsync("pos-1", null!, Arg.Any<CancellationToken>())
+        .Returns((false, "Authentication required"));
+
+    // Act
+    var result = await VolunteerEndpoints.SignUpForPosition(_volunteerService, "pos-1", null);
+
+    // Assert - ProblemHttpResult with 403 status
+    result.Should().BeOfType<ProblemHttpResult>();
+    var problemResult = (ProblemHttpResult)result;
+    problemResult.StatusCode.Should().Be(403);
+    problemResult.ProblemDetails.Title.Should().Be("Forbidden");
+    problemResult.ProblemDetails.Detail.Should().Be("Authentication required");
+}
+```
+
+**Prevention Rules**:
+1. ✅ **Pattern B success**: Assert `BeOfType<Ok<DtoType>>()`
+2. ✅ **Pattern B error**: Assert `BeOfType<ProblemHttpResult>()`
+3. ✅ **Access error details**: `problemResult.ProblemDetails.Title`, `problemResult.ProblemDetails.Detail`
+4. ❌ **NEVER use**: `JsonHttpResult<ProblemDetails>` (old pattern)
+5. ❌ **NEVER use**: `JsonHttpResult<ApiResponse<T>>` (old pattern)
+
+**Why This Matters**:
+- Pattern B is the official WitchCityRope standard (as of 2025-11-13)
+- RFC 9457 compliance for error responses
+- Direct DTOs without wrapper objects
+- Cleaner, more standard HTTP semantics
+- All new endpoint tests must follow Pattern B
+
+**Test Statistics**:
+- Total tests created: 90
+- Failed on first run: 80 (89%)
+- Root cause: Wrong result type assertions
+- Fixed systematically: All 90 tests refactored
+- Final pass rate: 86/90 (96%) after refactoring
+
+**Related Documentation**: See backend-developer-lessons-learned-4.md "API Response Pattern B - THE OFFICIAL STANDARD"
+
+---
+
+## 🚨 CRITICAL: Never Mock ApplicationDbContext Directly in Endpoint Tests (2025-11-13)
+
+**Problem**: VenueEndpointsTests attempted to mock `ApplicationDbContext` directly, causing all 9 tests to fail with constructor errors.
+
+**Date Discovered**: November 13, 2025 during Pattern B endpoint unit test creation
+**Context**: VenueEndpoints.cs injects DbContext directly instead of using service layer
+
+**Root Cause**:
+- VenueEndpoints.cs injects `ApplicationDbContext` directly: `async (ApplicationDbContext context) => { }`
+- `ApplicationDbContext` has no parameterless constructor
+- NSubstitute cannot mock classes without parameterless constructors
+- Reveals architectural problem: endpoints should NEVER access DbContext directly
+
+**Error Message**:
+```
+Can not instantiate proxy of class: ApplicationDbContext.
+Could not find a parameterless constructor.
+```
+
+**Impact**:
+- VenueEndpointsTests completely non-functional (0/9 passing)
+- Cannot test endpoint until service layer refactoring is complete
+- Architectural violation: endpoints accessing database directly
+
+**Wrong Implementation** (Endpoint accessing DbContext directly):
+```csharp
+// ❌ WRONG - Endpoint injects DbContext directly
+public static class VenueEndpoints
+{
+    public static void MapVenueEndpoints(this IEndpointRouteBuilder app)
+    {
+        app.MapGet("/api/venues", async (ApplicationDbContext context) =>
+        {
+            // Direct database access - CANNOT MOCK IN TESTS!
+            var venues = await context.Venues
+                .Where(v => v.IsActive)
+                .ToListAsync();
+
+            return Results.Ok(venues);
+        });
+
+        app.MapPost("/api/venues", async (ApplicationDbContext context, CreateVenueRequest request) =>
+        {
+            // Direct database access - CANNOT MOCK IN TESTS!
+            var venue = new Venue
+            {
+                Name = request.Name,
+                Directions = request.Directions
+            };
+
+            context.Venues.Add(venue);
+            await context.SaveChangesAsync();
+
+            return Results.Ok(venue);
+        });
+    }
+}
+```
+
+**Correct Implementation** (Service layer pattern):
+```csharp
+// ✅ CORRECT - Service interface
+public interface IVenueService
+{
+    Task<(bool success, List<VenueDto>? venues, string? error)> GetVenuesAsync(CancellationToken cancellationToken = default);
+    Task<(bool success, VenueDto? venue, string? error)> GetVenueAsync(string venueId, CancellationToken cancellationToken = default);
+    Task<(bool success, VenueDto? venue, string? error)> CreateVenueAsync(CreateVenueRequest request, CancellationToken cancellationToken = default);
+    Task<(bool success, string? error)> UpdateVenueAsync(string venueId, UpdateVenueRequest request, CancellationToken cancellationToken = default);
+}
+
+// ✅ CORRECT - Service implementation
+public class VenueService : IVenueService
+{
+    private readonly ApplicationDbContext _context;
+
+    public VenueService(ApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<(bool success, List<VenueDto>? venues, string? error)> GetVenuesAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var venues = await _context.Venues
+                .Where(v => v.IsActive)
+                .Select(v => new VenueDto(v))
+                .ToListAsync(cancellationToken);
+
+            return (true, venues, null);
+        }
+        catch (Exception ex)
+        {
+            return (false, null, $"Failed to retrieve venues: {ex.Message}");
+        }
+    }
+
+    // ... other methods
+}
+
+// ✅ CORRECT - Endpoint uses service
+public static class VenueEndpoints
+{
+    public static void MapVenueEndpoints(this IEndpointRouteBuilder app)
+    {
+        app.MapGet("/api/venues", async (IVenueService service) =>
+        {
+            var (success, venues, error) = await service.GetVenuesAsync();
+            return success ? Results.Ok(venues) : Results.Problem(error);
+        });
+
+        app.MapPost("/api/venues", async (IVenueService service, CreateVenueRequest request) =>
+        {
+            var (success, venue, error) = await service.CreateVenueAsync(request);
+            return success ? Results.Ok(venue) : Results.Problem(error);
+        });
+    }
+}
+
+// DI Registration
+services.AddScoped<IVenueService, VenueService>();
+```
+
+**Unit Test Example** (After Service Layer):
+```csharp
+// ✅ CORRECT - Can mock service interface
+public class VenueEndpointsTests
+{
+    private readonly IVenueService _venueService;
+
+    public VenueEndpointsTests()
+    {
+        _venueService = Substitute.For<IVenueService>();
+    }
+
+    [Fact]
+    public async Task GetVenues_ReturnsActiveVenues()
+    {
+        // Arrange
+        var venues = new List<VenueDto>
+        {
+            new VenueDto { Id = "venue-1", Name = "Test Venue", IsActive = true }
+        };
+
+        _venueService.GetVenuesAsync(Arg.Any<CancellationToken>())
+            .Returns((true, venues, null));
+
+        // Act
+        var result = await VenueEndpoints.GetVenues(_venueService);
+
+        // Assert
+        result.Should().BeOfType<Ok<List<VenueDto>>>();
+        var okResult = (Ok<List<VenueDto>>)result;
+        okResult.Value.Should().HaveCount(1);
+    }
+}
+```
+
+**Prevention Rules**:
+1. ❌ **NEVER inject ApplicationDbContext directly into endpoints**
+2. ✅ **ALWAYS use service layer** with interface for database access
+3. ✅ **Services encapsulate database logic** and business rules
+4. ✅ **Endpoints orchestrate services** - no direct DB access
+5. ✅ **Services return tuples or Result<T>** for consistent error handling
+6. ✅ **Register service interface in DI**: `services.AddScoped<IServiceName, ServiceName>()`
+
+**Why This Matters**:
+- Unit testability: Can mock service interfaces, cannot mock DbContext
+- Separation of concerns: Database logic in services, orchestration in endpoints
+- Consistent error handling: Services return error tuples
+- Business logic encapsulation: Services contain domain logic
+- Architectural consistency: All endpoints follow same pattern
+
+**Architectural Violation Indicators**:
+- Endpoint injects `ApplicationDbContext`
+- Endpoint contains LINQ queries
+- Endpoint calls `context.SaveChangesAsync()`
+- Tests fail with "Can not instantiate proxy" errors
+
+**Action Required for VenueEndpoints.cs**:
+1. Create `IVenueService` interface
+2. Create `VenueService` implementation
+3. Refactor endpoints to inject `IVenueService`
+4. Update DI registration
+5. Update tests to mock `IVenueService`
+
+**Test Status**:
+- VenueEndpointsTests: 0/9 passing (blocked by architecture)
+- Other Pattern B tests: 86/90 passing (96%)
+- Total: Cannot complete until VenueEndpoints refactored
+
+**Related Lesson**: See backend-developer-lessons-learned-4.md "Services MUST Have Interfaces for Unit Testing"
+
+---
+
 ## 🚨 CRITICAL ANTI-PATTERN: Test Helpers Bypassing Production Code (2025-11-11)
 
 **Problem**: Test helper method in SafetyServiceTests created incidents directly in database, bypassing production code path for reference number generation. This resulted in ZERO coverage of critical business logic.
@@ -443,3 +823,5 @@ When finding existing bypass helpers without "Directly" suffix:
 **Tests Affected**: 50+ tests across 16 files
 **Pattern Source**: Anti-pattern analysis document, lines 107-112
 **Related Lesson**: See "Test Helpers Bypassing Production Code" (lines 1665-1843)
+
+---

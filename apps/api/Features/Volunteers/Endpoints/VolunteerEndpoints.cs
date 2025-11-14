@@ -18,7 +18,7 @@ public static class VolunteerEndpoints
         // Get volunteer positions for an event
         app.MapGet("/api/events/{id}/volunteer-positions", async (
             string id,
-            VolunteerService volunteerService,
+            IVolunteerService volunteerService,
             HttpContext context,
             CancellationToken cancellationToken) =>
         {
@@ -54,7 +54,7 @@ public static class VolunteerEndpoints
         app.MapPost("/api/volunteer-positions/{id}/signup", async (
             string id,
             VolunteerSignupRequest request,
-            VolunteerService volunteerService,
+            IVolunteerService volunteerService,
             HttpContext context,
             CancellationToken cancellationToken) =>
         {
@@ -116,7 +116,7 @@ public static class VolunteerEndpoints
 
         // Get user's volunteer shifts
         app.MapGet("/api/user/volunteer-shifts", async (
-            VolunteerService volunteerService,
+            IVolunteerService volunteerService,
             HttpContext context,
             CancellationToken cancellationToken) =>
         {

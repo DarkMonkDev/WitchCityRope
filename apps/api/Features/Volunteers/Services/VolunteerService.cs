@@ -9,7 +9,7 @@ namespace WitchCityRope.Api.Features.Volunteers.Services;
 /// <summary>
 /// Service for managing volunteer positions and signups
 /// </summary>
-public class VolunteerService
+public class VolunteerService : IVolunteerService
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<VolunteerService> _logger;

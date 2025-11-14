@@ -18,6 +18,158 @@
 
 ---
 
+## 🚨 CRITICAL: Services MUST Have Interfaces for Unit Testing (2025-11-13)
+
+**Problem**: Service classes without interfaces cannot be mocked by NSubstitute, blocking unit test creation entirely.
+
+**Date Discovered**: November 13, 2025 during Pattern B endpoint unit test creation
+**Context**: Created 90 unit tests for 6 Pattern B endpoints, 14 VolunteerEndpointsTests failed
+
+**Root Cause**:
+- `VolunteerService` class had no `IVolunteerService` interface
+- NSubstitute cannot mock concrete classes without parameterless constructors
+- Test creation was blocked until interface was created and DI updated
+
+**Error Message**:
+```
+Can not instantiate proxy of class: VolunteerService.
+Could not find a parameterless constructor.
+```
+
+**Impact**:
+- 14 VolunteerEndpointsTests failed with constructor error
+- Delayed test development by several hours
+- Required creating interface, updating DI, updating endpoint code
+
+**Wrong Implementation** (No Interface):
+```csharp
+// ❌ WRONG - No interface exists
+public class VolunteerService
+{
+    private readonly ApplicationDbContext _context;
+
+    public VolunteerService(ApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<(bool success, List<VolunteerPositionDto>? positions, string? error)>
+        GetEventVolunteerPositionsAsync(string eventId, string? userId, CancellationToken cancellationToken = default)
+    {
+        // ... implementation
+    }
+}
+
+// Service registration
+services.AddScoped<VolunteerService>();
+
+// Endpoint usage
+app.MapGet("/api/volunteer-positions", async (VolunteerService service) =>
+{
+    // Cannot mock VolunteerService in tests!
+});
+```
+
+**Correct Implementation** (With Interface):
+```csharp
+// ✅ CORRECT - Interface exists
+public interface IVolunteerService
+{
+    Task<(bool success, List<VolunteerPositionDto>? positions, string? error)>
+        GetEventVolunteerPositionsAsync(string eventId, string? userId, CancellationToken cancellationToken = default);
+
+    Task<(bool success, VolunteerPositionDto? position, string? error)>
+        GetVolunteerPositionAsync(string positionId, CancellationToken cancellationToken = default);
+
+    Task<(bool success, string? error)>
+        SignUpForPositionAsync(string positionId, string userId, CancellationToken cancellationToken = default);
+
+    Task<(bool success, string? error)>
+        RemoveVolunteerAsync(string positionId, string userId, CancellationToken cancellationToken = default);
+}
+
+public class VolunteerService : IVolunteerService
+{
+    private readonly ApplicationDbContext _context;
+
+    public VolunteerService(ApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    // ... implementation
+}
+
+// DI Registration
+services.AddScoped<IVolunteerService, VolunteerService>();
+
+// Endpoint usage
+app.MapGet("/api/volunteer-positions", async (IVolunteerService service) =>
+{
+    // Can now mock IVolunteerService in tests!
+});
+```
+
+**Unit Test Example**:
+```csharp
+// ✅ CORRECT - Can mock interface
+public class VolunteerEndpointsTests
+{
+    private readonly IVolunteerService _volunteerService;
+
+    public VolunteerEndpointsTests()
+    {
+        _volunteerService = Substitute.For<IVolunteerService>();
+    }
+
+    [Fact]
+    public async Task GetEventVolunteerPositions_WithValidEvent_ReturnsPositions()
+    {
+        // Arrange
+        var eventId = "test-event-id";
+        var positions = new List<VolunteerPositionDto>
+        {
+            new VolunteerPositionDto { Id = "pos-1", Title = "Test Position" }
+        };
+
+        _volunteerService.GetEventVolunteerPositionsAsync(eventId, null, Arg.Any<CancellationToken>())
+            .Returns((true, positions, null));
+
+        // Act
+        var result = await VolunteerEndpoints.GetEventVolunteerPositions(_volunteerService, eventId);
+
+        // Assert
+        result.Should().BeOfType<Ok<List<VolunteerPositionDto>>>();
+        var okResult = (Ok<List<VolunteerPositionDto>>)result;
+        okResult.Value.Should().HaveCount(1);
+    }
+}
+```
+
+**Prevention Rules**:
+1. ✅ **EVERY service class MUST have a corresponding interface**
+2. ✅ **Interface defines ALL public methods** used by endpoints
+3. ✅ **DI registration uses interface**: `services.AddScoped<IServiceName, ServiceName>()`
+4. ✅ **Endpoints inject interface**: `async (IServiceName service) => { }`
+5. ✅ **Test mocking uses interface**: `Substitute.For<IServiceName>()`
+
+**Why This Matters**:
+- Unit testing with mocking frameworks requires interfaces
+- NSubstitute cannot mock concrete classes with constructor dependencies
+- Without interface, tests cannot isolate endpoint logic
+- Future flexibility for multiple implementations
+- Dependency injection best practices
+
+**Files Modified** (Example from VolunteerService fix):
+- `/apps/api/Features/Volunteers/Services/IVolunteerService.cs` (NEW)
+- `/apps/api/Features/Volunteers/Services/VolunteerService.cs` (Updated to implement interface)
+- `/apps/api/Features/Volunteers/VolunteerEndpoints.cs` (Updated to inject interface)
+- `/apps/api/ServiceCollectionExtensions.cs` (Updated DI registration)
+
+**Related Pattern**: See "Pattern B Endpoint Testing" lesson for complete unit testing approach
+
+---
+
 ## 🚨 CRITICAL: Missing ThenInclude for Navigation Properties Causes Null Values 🚨
 
 **Problem**: Calculated properties returning null even though navigation properties are included

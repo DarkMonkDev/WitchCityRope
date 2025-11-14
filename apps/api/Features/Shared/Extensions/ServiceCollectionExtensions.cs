@@ -114,7 +114,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAttendanceService, AttendanceService>();
 
         // Volunteer feature services
-        services.AddScoped<VolunteerService>();
+        services.AddScoped<IVolunteerService, VolunteerService>();
         services.AddScoped<VolunteerAssignmentService>();
 
         // Email Templates feature services
