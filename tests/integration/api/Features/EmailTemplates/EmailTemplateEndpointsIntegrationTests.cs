@@ -471,6 +471,10 @@ public class EmailTemplateEndpointsIntegrationTests : IntegrationTestBase, IDisp
     private async Task<Guid> SeedEventAsync(Guid userId)
     {
         await using var context = CreateDbContext();
+
+        // Create venue first (required for foreign key constraint)
+        var venueId = await CreateTestVenueAsync();
+
         var eventEntity = new Event
         {
             Id = Guid.NewGuid(),
@@ -478,7 +482,7 @@ public class EmailTemplateEndpointsIntegrationTests : IntegrationTestBase, IDisp
             Description = "Test event for email templates",
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(3),
-            VenueId = 1, // Default test venue
+            VenueId = venueId,
             EventType = WitchCityRope.Api.Enums.EventType.Class,
             Capacity = 20,
             IsPublished = true,

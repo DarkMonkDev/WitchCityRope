@@ -465,13 +465,16 @@ public class AdminParticipationRemovalIntegrationTests : IntegrationTestBase
         var eventId = Guid.NewGuid();
         await using var context = CreateDbContext();
 
+        // Create venue first (required for foreign key constraint)
+        var venueId = await CreateTestVenueAsync();
+
         var evt = new Event
         {
             Id = eventId,
             Title = $"Test Event {Guid.NewGuid():N}"[..30],
             Description = "Test event for admin participation removal tests",
             EventType = EventType.Social,
-            VenueId = 1, // Default test venue
+            VenueId = venueId,
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(3),
             Capacity = 50,

@@ -244,5 +244,31 @@ namespace WitchCityRope.IntegrationTests
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
+
+        /// <summary>
+        /// Creates a test venue in the database.
+        /// All Events must have a valid VenueId to satisfy foreign key constraints.
+        /// </summary>
+        /// <param name="name">Venue name (optional, defaults to unique test name)</param>
+        /// <returns>The ID of the created venue</returns>
+        protected async Task<int> CreateTestVenueAsync(string? name = null)
+        {
+            await using var context = CreateDbContext();
+
+            var venue = new WitchCityRope.Api.Models.Venue
+            {
+                Name = name ?? $"Test Venue {Guid.NewGuid():N}"[..30],
+                Directions = "Test directions",
+                Notes = "Test venue for integration testing",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            context.Venues.Add(venue);
+            await context.SaveChangesAsync();
+
+            return venue.Id;
+        }
     }
 }

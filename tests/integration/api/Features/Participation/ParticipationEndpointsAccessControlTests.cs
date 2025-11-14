@@ -307,6 +307,9 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
             context.VettingApplications.Add(application);
         }
 
+        // Create venue first (required for foreign key constraint)
+        var venueId = await CreateTestVenueAsync();
+
         // Create event
         var eventId = Guid.NewGuid();
         var evt = new Event
@@ -315,6 +318,7 @@ public class ParticipationEndpointsAccessControlTests : IntegrationTestBase
             Title = isClassEvent ? "Test Class Event" : "Test Social Event",
             Description = "Test event for integration testing",
             EventType = isClassEvent ? EventType.Class : EventType.Social,
+            VenueId = venueId,
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),
             Capacity = 50,

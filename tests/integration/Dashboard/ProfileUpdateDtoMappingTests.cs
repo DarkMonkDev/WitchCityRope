@@ -172,9 +172,11 @@ public class ProfileUpdateDtoMappingTests : DtoMappingTestBase
         getResponse.IsSuccessStatusCode.Should().BeTrue("Profile retrieval should succeed");
 
         // Use case-insensitive JSON deserialization to handle camelCase API responses
+        // Also configure enum handling to accept both string and numeric values
         var jsonOptions = new JsonSerializerOptions
         {
-            PropertyNameCaseInsensitive = true
+            PropertyNameCaseInsensitive = true,
+            Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
         };
         var returnedProfile = await getResponse.Content.ReadFromJsonAsync<UserProfileDto>(jsonOptions);
         returnedProfile.Should().NotBeNull("API should return profile");

@@ -1075,11 +1075,8 @@ for (int attempt = 0; attempt < maxRetries; attempt++)
 - **Detailed diagnostics** - Structured logging shows contention patterns
 - **Exponential backoff** - Reduces retry contention (50ms, 100ms, 150ms)
 
-**Testing**:
-```bash
-cd /home/chad/repos/witchcityrope/apps/web
-npm run test:e2e:playwright -- profile-update-full-persistence.spec.ts --grep "rapid successive"
-```
+
+**Testing**: Use test-catalog-updater skill to execute and track profile update concurrency tests
 
 **Prevention**:
 1. **Always use retry loops** for operations with optimistic concurrency

@@ -155,15 +155,18 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
         // Create future social event with RSVP
         await using (var context = CreateDbContext())
         {
+            // Create venue first (required for foreign key constraint)
+            var venueId = await CreateTestVenueAsync();
+
             var futureEvent = new Event
             {
                 Id = Guid.NewGuid(),
                 Title = "Future Social Event",
                 Description = "Test event",
                 EventType = EventType.Social,
+                VenueId = venueId,
                 StartDate = DateTime.UtcNow.AddDays(7),
                 EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),
-                VenueId = 1, // Default test venue
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };

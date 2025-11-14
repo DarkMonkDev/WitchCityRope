@@ -1,8 +1,53 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-11-14 (PATTERN B MIGRATION VERIFICATION) -->
-<!-- Version: 10.14 - Pattern B migration and DTO alignment verification complete -->
+<!-- Last Updated: 2025-11-14 (INTEGRATION TEST FIXES) -->
+<!-- Version: 10.15 - Integration test infrastructure fixes for VenueId and JSON deserialization -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
+
+## 🔧 Integration Test Infrastructure Fixes - November 14, 2025
+
+**TEST SCOPE**: Integration test infrastructure improvements
+**EXECUTION DATE**: 2025-11-14
+**STATUS**: ✅ **34 TESTS FIXED - VenueId foreign key violations and JSON deserialization**
+
+### Issues Fixed
+
+**Issue 1: VenueId Foreign Key Violations (~33 tests)**
+- **Root Cause**: Tests created Events with `VenueId = 0` or `VenueId = 1` without creating corresponding Venue records
+- **Error**: `FK_Events_Venues_VenueId` constraint violation
+- **Solution**: Added `CreateTestVenueAsync()` helper method to IntegrationTestBase
+- **Files Updated**: 4 test files now create venues before events
+
+**Issue 2: VettingStatus JSON Deserialization (1 test)**
+- **Root Cause**: JSON deserializer couldn't convert VettingStatus enum from API response
+- **Error**: `JsonException - could not convert to VettingStatus`
+- **Solution**: Added `JsonStringEnumConverter` to deserialization options
+- **File Updated**: ProfileUpdateDtoMappingTests.cs
+
+### Files Modified
+
+1. `/tests/integration/IntegrationTestBase.cs` - Added CreateTestVenueAsync() helper
+2. `/tests/integration/api/Features/Participation/ParticipationEndpointsAccessControlTests.cs`
+3. `/tests/integration/api/Features/VettingHold/VettingHoldIntegrationTests.cs`
+4. `/tests/integration/api/Features/Participation/AdminParticipationRemovalIntegrationTests.cs`
+5. `/tests/integration/api/Features/EmailTemplates/EmailTemplateEndpointsIntegrationTests.cs`
+6. `/tests/integration/Dashboard/ProfileUpdateDtoMappingTests.cs`
+
+### Testing Pattern Established
+
+**ALWAYS create a Venue before creating an Event in tests**:
+```csharp
+// CORRECT
+var venueId = await CreateTestVenueAsync();
+var evt = new Event { VenueId = venueId, /* ... */ };
+
+// WRONG - will fail
+var evt = new Event { VenueId = 1, /* ... */ }; // NO!
+```
+
+**Full Report**: `/test-results/integration-test-fixes-2025-11-14.md`
+
+---
 
 ## 🎉 Pattern B Migration Verification - November 14, 2025
 
