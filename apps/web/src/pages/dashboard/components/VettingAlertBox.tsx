@@ -9,11 +9,11 @@ interface VettingAlertBoxProps {
 /**
  * Conditional vetting status alert box for user dashboard
  * Shows different alerts based on vetting status
- * Only displays for non-Vetted users (Pending, ApprovedForInterview, OnHold, Denied)
+ * Only displays for non-Approved users (UnderReview, InterviewApproved, FinalReview, OnHold, Denied, Withdrawn)
  */
 export const VettingAlertBox: React.FC<VettingAlertBoxProps> = ({ status }) => {
-  // Don't render for Vetted users
-  if (status.status === 'Vetted') {
+  // Don't render for Approved users
+  if (status.status === 'Approved') {
     return null;
   }
 

@@ -400,31 +400,22 @@ public static class ParticipationEndpoints
 
                 if (result.IsSuccess)
                 {
-                    return Results.Ok(new ApiResponse<List<EventParticipationDto>>
-                    {
-                        Success = true,
-                        Data = result.Value,
-                        Timestamp = DateTime.UtcNow
-                    });
+                    return Results.Ok(result.Value); // Direct DTO list
                 }
 
-                return Results.Json(new ApiResponse<List<EventParticipationDto>>
-                {
-                    Success = false,
-                    Data = null,
-                    Error = "Failed to get event participations",
-                    Details = result.Error,
-                    Timestamp = DateTime.UtcNow
-                }, statusCode: 500);
+                return Results.Problem(
+                    title: "Failed to get event participations",
+                    detail: result.Error ?? "Failed to get event participations",
+                    statusCode: 500);
             })
             .WithName("GetEventParticipations")
             .WithSummary("Get all participations for an event (admin only)")
             .WithDescription("Returns all RSVPs and ticket purchases for the specified event. Admin role required.")
             .WithTags("Admin", "Participation")
-            .Produces<ApiResponse<List<EventParticipationDto>>>(200)
-            .Produces(401)
-            .Produces(403)
-            .Produces(500);
+            .Produces<List<EventParticipationDto>>(200)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .ProducesProblem(500);
 
         // Admin endpoint: Remove user's attendance (RSVP or Ticket) - Simple removal without cascading
         app.MapDelete("/api/admin/events/{eventId:guid}/participations/{userId:guid}",

@@ -6,8 +6,7 @@ export type PlaceMembershipOnHoldRequest = components['schemas']['PlaceMembershi
 export type RequestReinstatementRequest = components['schemas']['RequestReinstatementRequest'];
 export type VettingHoldStatusResponse = components['schemas']['VettingHoldStatusResponse'];
 export type MembershipHoldResponse = components['schemas']['MembershipHoldResponse'];
-export type ApiResponseOfMembershipHoldResponse = components['schemas']['ApiResponseOfMembershipHoldResponse'];
-export type ApiResponseOfVettingHoldStatusResponse = components['schemas']['ApiResponseOfVettingHoldStatusResponse'];
+// API Response wrappers removed - API returns DTOs directly (Pattern B)
 
 /**
  * Vetting Hold API Service
@@ -23,16 +22,13 @@ export const vettingHoldService = {
     userId: string,
     reason: string
   ): Promise<MembershipHoldResponse> => {
-    const response = await apiClient.put<ApiResponseOfMembershipHoldResponse>(
+    // Pattern B: Direct DTO response (no ApiResponse wrapper)
+    const response = await apiClient.put<MembershipHoldResponse>(
       `/api/users/${userId}/vetting/hold`,
       { reason }
     );
 
-    if (!response.data.success || !response.data.data) {
-      throw new Error(response.data.message || 'Failed to place membership on hold');
-    }
-
-    return response.data.data;
+    return response.data;
   },
 
   /**
@@ -43,16 +39,13 @@ export const vettingHoldService = {
     userId: string,
     reason: string
   ): Promise<MembershipHoldResponse> => {
-    const response = await apiClient.put<ApiResponseOfMembershipHoldResponse>(
+    // Pattern B: Direct DTO response (no ApiResponse wrapper)
+    const response = await apiClient.put<MembershipHoldResponse>(
       `/api/users/${userId}/vetting/reinstate`,
       { reason }
     );
 
-    if (!response.data.success || !response.data.data) {
-      throw new Error(response.data.message || 'Failed to request reinstatement');
-    }
-
-    return response.data.data;
+    return response.data;
   },
 
   /**
@@ -60,14 +53,11 @@ export const vettingHoldService = {
    * Returns available actions and current status
    */
   getHoldStatus: async (userId: string): Promise<VettingHoldStatusResponse> => {
-    const response = await apiClient.get<ApiResponseOfVettingHoldStatusResponse>(
+    // Pattern B: Direct DTO response (no ApiResponse wrapper)
+    const response = await apiClient.get<VettingHoldStatusResponse>(
       `/api/users/${userId}/vetting/hold-status`
     );
 
-    if (!response.data.success || !response.data.data) {
-      throw new Error(response.data.message || 'Failed to get hold status');
-    }
-
-    return response.data.data;
+    return response.data;
   },
 };

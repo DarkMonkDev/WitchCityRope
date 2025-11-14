@@ -2820,9 +2820,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ApiResponseOfObject"];
-                        "application/json": components["schemas"]["ApiResponseOfObject"];
-                        "text/json": components["schemas"]["ApiResponseOfObject"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
                     };
                 };
             };
@@ -2857,9 +2857,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ApiResponseOfAuthUserResponse"];
-                        "application/json": components["schemas"]["ApiResponseOfAuthUserResponse"];
-                        "text/json": components["schemas"]["ApiResponseOfAuthUserResponse"];
+                        "text/plain": components["schemas"]["AuthUserResponse"];
+                        "application/json": components["schemas"]["AuthUserResponse"];
+                        "text/json": components["schemas"]["AuthUserResponse"];
                     };
                 };
                 /** @description Unauthorized */
@@ -2868,9 +2868,20 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ApiResponseOfObject"];
-                        "application/json": components["schemas"]["ApiResponseOfObject"];
-                        "text/json": components["schemas"]["ApiResponseOfObject"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
                     };
                 };
             };
@@ -2903,7 +2914,7 @@ export interface components {
             statistics?: components["schemas"]["SafetyStatistics"];
             recentIncidents?: components["schemas"]["IncidentSummaryResponse"][];
             pendingActions?: components["schemas"]["ActionItem"][];
-        } | null;
+        };
         AdminRefundTicketRequest: {
             alsoRemoveRsvp?: boolean;
         };
@@ -2922,426 +2933,6 @@ export interface components {
             refundAmount?: number | null;
             volunteerShiftsRemoved?: boolean;
             volunteerShiftNames?: string[];
-        };
-        ApiResponseOfAdminDashboardResponse: {
-            success?: boolean;
-            data?: components["schemas"]["AdminDashboardResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfApplicationDetailResponse: {
-            success?: boolean;
-            data?: components["schemas"]["ApplicationDetailResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfApplicationStatusResponse: {
-            success?: boolean;
-            data?: components["schemas"]["ApplicationStatusResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfApplicationSubmissionResponse: {
-            success?: boolean;
-            data?: components["schemas"]["ApplicationSubmissionResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfAuthUserResponse: {
-            success?: boolean;
-            data?: components["schemas"]["AuthUserResponse2"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfboolean: {
-            success?: boolean;
-            data?: boolean;
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfDashboardStatisticsResponse: {
-            success?: boolean;
-            data?: components["schemas"]["DashboardStatisticsResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfEventDto: {
-            success?: boolean;
-            data?: components["schemas"]["EventDto2"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfEventEmailTemplateDto: {
-            success?: boolean;
-            data?: components["schemas"]["EventEmailTemplateDto2"];
-            error?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfGlobalEmailTemplateDto: {
-            success?: boolean;
-            data?: components["schemas"]["GlobalEmailTemplateDto2"];
-            error?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfGoogleDriveUpdateResponse: {
-            success?: boolean;
-            data?: components["schemas"]["GoogleDriveUpdateResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfIEnumerableOfUserCoordinatorDto: {
-            success?: boolean;
-            data?: components["schemas"]["UserCoordinatorDto"][] | null;
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfIncidentNoteDto: {
-            success?: boolean;
-            data?: components["schemas"]["IncidentNoteDto2"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfIncidentResponse: {
-            success?: boolean;
-            data?: components["schemas"]["IncidentResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfIncidentStatusResponse: {
-            success?: boolean;
-            data?: components["schemas"]["IncidentStatusResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfIncidentSummaryDto: {
-            success?: boolean;
-            data?: components["schemas"]["IncidentSummaryDto2"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfListOfEventDto: {
-            success?: boolean;
-            data?: components["schemas"]["EventDto"][] | null;
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfListOfEventEmailTemplateDto: {
-            success?: boolean;
-            data?: components["schemas"]["EventEmailTemplateDto"][] | null;
-            error?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfListOfEventParticipationDto: {
-            success?: boolean;
-            data?: components["schemas"]["EventParticipationDto"][] | null;
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfListOfGlobalEmailTemplateDto: {
-            success?: boolean;
-            data?: components["schemas"]["GlobalEmailTemplateDto"][] | null;
-            error?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfListOfSentAdHocEmailDto: {
-            success?: boolean;
-            data?: components["schemas"]["SentAdHocEmailDto2"][] | null;
-            error?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfListOfUserEventDto: {
-            success?: boolean;
-            data?: components["schemas"]["UserEventDto"][] | null;
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfListOfUserSearchResultDto: {
-            success?: boolean;
-            data?: components["schemas"]["UserSearchResultDto"][] | null;
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfListOfUserVolunteerShiftDto: {
-            success?: boolean;
-            data?: components["schemas"]["UserVolunteerShiftDto"][] | null;
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfListOfVenueDto: {
-            success?: boolean;
-            data?: components["schemas"]["VenueDto"][] | null;
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfListOfVolunteerAssignmentDto: {
-            success?: boolean;
-            data?: components["schemas"]["VolunteerAssignmentDto"][] | null;
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfListOfVolunteerPositionDto: {
-            success?: boolean;
-            data?: components["schemas"]["VolunteerPositionDto2"][] | null;
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfMembershipHoldResponse: {
-            success?: boolean;
-            data?: components["schemas"]["MembershipHoldResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfMyApplicationStatusResponse: {
-            success?: boolean;
-            data?: components["schemas"]["MyApplicationStatusResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfMyReportDetailDto: {
-            success?: boolean;
-            data?: components["schemas"]["MyReportDetailDto"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfMyReportsPaginatedResponse: {
-            success?: boolean;
-            data?: components["schemas"]["MyReportsPaginatedResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfNoteResponse: {
-            success?: boolean;
-            data?: components["schemas"]["NoteResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfNotesListResponse: {
-            success?: boolean;
-            data?: components["schemas"]["NotesListResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfObject: {
-            success?: boolean;
-            data?: unknown;
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfPagedResultOfApplicationSummaryDto: {
-            success?: boolean;
-            data?: components["schemas"]["PagedResultOfApplicationSummaryDto"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfPaginatedIncidentListResponse: {
-            success?: boolean;
-            data?: components["schemas"]["PaginatedIncidentListResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfReviewDecisionResponse: {
-            success?: boolean;
-            data?: components["schemas"]["ReviewDecisionResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfSentAdHocEmailDto: {
-            success?: boolean;
-            data?: components["schemas"]["SentAdHocEmailDto"];
-            error?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfSimplifiedApplicationResponse: {
-            success?: boolean;
-            data?: components["schemas"]["SimplifiedApplicationResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfStatusUpdateResponse: {
-            success?: boolean;
-            data?: components["schemas"]["StatusUpdateResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfSubmissionResponse: {
-            success?: boolean;
-            data?: components["schemas"]["SubmissionResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfUpdatePeopleResponse: {
-            success?: boolean;
-            data?: components["schemas"]["UpdatePeopleResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfUserProfileDto: {
-            success?: boolean;
-            data?: components["schemas"]["UserProfileDto"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfVenueDto: {
-            success?: boolean;
-            data?: components["schemas"]["VenueDto2"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfVettingHoldStatusResponse: {
-            success?: boolean;
-            data?: components["schemas"]["VettingHoldStatusResponse"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfVettingStatusDto: {
-            success?: boolean;
-            data?: components["schemas"]["VettingStatusDto"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfVolunteerAssignmentDto: {
-            success?: boolean;
-            data?: components["schemas"]["VolunteerAssignmentDto2"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
-        };
-        ApiResponseOfVolunteerSignupDto: {
-            success?: boolean;
-            data?: components["schemas"]["VolunteerSignupDto"];
-            error?: string | null;
-            details?: string | null;
-            message?: string | null;
-            /** Format: date-time */
-            timestamp?: string;
         };
         ApplicationDetailResponse: {
             /** Format: uuid */
@@ -3381,7 +2972,7 @@ export interface components {
             updatedAt?: string;
             /** Format: uuid */
             applicationId?: string;
-        } | null;
+        };
         ApplicationFilterRequest: {
             /** Format: int32 */
             page?: number;
@@ -3474,7 +3065,7 @@ export interface components {
             estimatedDaysRemaining?: number | null;
             progress?: components["schemas"]["ApplicationProgressSummary"];
             recentUpdates?: components["schemas"]["StatusUpdateSummary"][];
-        } | null;
+        };
         ApplicationSubmissionResponse: {
             /** Format: uuid */
             id?: string;
@@ -3489,7 +3080,7 @@ export interface components {
             estimatedReviewDays?: number;
             nextSteps?: string;
             referenceStatuses?: components["schemas"]["ReferenceStatusSummary"][];
-        } | null;
+        };
         ApplicationSummaryDto: {
             /** Format: uuid */
             id?: string;
@@ -3572,20 +3163,6 @@ export interface components {
             isActive?: boolean;
             isVetted?: boolean;
         };
-        AuthUserResponse2: {
-            /** Format: uuid */
-            id?: string;
-            email?: string;
-            sceneName?: string;
-            /** Format: date-time */
-            createdAt?: string;
-            /** Format: date-time */
-            lastLoginAt?: string | null;
-            role?: string;
-            roles?: string[];
-            isActive?: boolean;
-            isVetted?: boolean;
-        } | null;
         AvailableRolesResponse: {
             roles?: components["schemas"]["UserRoleDto"][];
         };
@@ -3806,7 +3383,7 @@ export interface components {
             unassignedCount?: number;
             hasOldUnassigned?: boolean;
             recentIncidents?: components["schemas"]["IncidentSummaryDto"][];
-        } | null;
+        };
         DetailedHealthResponse: {
             databaseVersion?: string;
             /** Format: int32 */
@@ -3856,33 +3433,6 @@ export interface components {
             volunteerPositions?: components["schemas"]["VolunteerPositionDto"][];
             teacherIds?: string[];
         };
-        EventDto2: {
-            id?: string;
-            title?: string;
-            shortDescription?: string | null;
-            description?: string;
-            policies?: string | null;
-            /** Format: date-time */
-            startDate?: string;
-            /** Format: date-time */
-            endDate?: string;
-            /** Format: int32 */
-            venueId?: number;
-            eventType?: string;
-            /** Format: int32 */
-            capacity?: number;
-            isPublished?: boolean;
-            /** Format: int32 */
-            registrationCount?: number;
-            /** Format: int32 */
-            currentRSVPs?: number;
-            /** Format: int32 */
-            currentTickets?: number;
-            sessions?: components["schemas"]["SessionDto"][];
-            ticketTypes?: components["schemas"]["TicketTypeDto"][];
-            volunteerPositions?: components["schemas"]["VolunteerPositionDto"][];
-            teacherIds?: string[];
-        } | null;
         EventEmailTemplateDto: {
             /** Format: uuid */
             id?: string;
@@ -3905,28 +3455,6 @@ export interface components {
             updatedBy?: string;
             updatedByEmail?: string;
         };
-        EventEmailTemplateDto2: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            eventId?: string;
-            /** Format: uuid */
-            globalTemplateId?: string;
-            templateType?: string;
-            templateTypeName?: string;
-            subject?: string;
-            htmlBody?: string;
-            plainTextBody?: string;
-            targetSessions?: string[];
-            isCustomized?: boolean;
-            /** Format: date-time */
-            createdAt?: string;
-            /** Format: date-time */
-            updatedAt?: string;
-            /** Format: uuid */
-            updatedBy?: string;
-            updatedByEmail?: string;
-        } | null;
         EventHistoryRecord: {
             /** Format: uuid */
             eventId?: string;
@@ -4003,27 +3531,6 @@ export interface components {
             updatedBy?: string;
             updatedByEmail?: string;
         };
-        GlobalEmailTemplateDto2: {
-            /** Format: uuid */
-            id?: string;
-            category?: string;
-            templateType?: string;
-            templateTypeName?: string;
-            subject?: string;
-            htmlBody?: string;
-            plainTextBody?: string;
-            variables?: string[];
-            isActive?: boolean;
-            /** Format: int32 */
-            version?: number;
-            /** Format: date-time */
-            createdAt?: string;
-            /** Format: date-time */
-            updatedAt?: string;
-            /** Format: uuid */
-            updatedBy?: string;
-            updatedByEmail?: string;
-        } | null;
         GoogleDriveUpdateResponse: {
             /** Format: uuid */
             id?: string;
@@ -4032,7 +3539,7 @@ export interface components {
             /** Format: date-time */
             lastUpdatedAt?: string;
             systemNoteCreated?: boolean;
-        } | null;
+        };
         HealthResponse: {
             status?: string;
             /** Format: date-time */
@@ -4058,22 +3565,6 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string | null;
         };
-        IncidentNoteDto2: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            incidentId?: string;
-            content?: string;
-            type?: components["schemas"]["IncidentNoteType"];
-            /** Format: uuid */
-            authorId?: string | null;
-            authorName?: string | null;
-            tags?: string | null;
-            /** Format: date-time */
-            createdAt?: string;
-            /** Format: date-time */
-            updatedAt?: string | null;
-        } | null;
         /** @enum {unknown} */
         IncidentNoteType: "Manual" | "System";
         IncidentResponse: {
@@ -4118,7 +3609,7 @@ export interface components {
             createdAt?: string;
             /** Format: date-time */
             updatedAt?: string;
-        } | null;
+        };
         /** @enum {unknown} */
         IncidentStatus: "ReportSubmitted" | "InformationGathering" | "ReviewingFinalReport" | "OnHold" | "Closed";
         IncidentStatusResponse: {
@@ -4127,7 +3618,7 @@ export interface components {
             /** Format: date-time */
             lastUpdated?: string;
             canProvideMoreInfo?: boolean;
-        } | null;
+        };
         IncidentSummaryDto: {
             /** Format: uuid */
             id?: string;
@@ -4157,35 +3648,6 @@ export interface components {
             /** Format: int32 */
             noteCount?: number;
         };
-        IncidentSummaryDto2: {
-            /** Format: uuid */
-            id?: string;
-            referenceNumber?: string;
-            title?: string;
-            status?: components["schemas"]["IncidentStatus"];
-            type?: components["schemas"]["IncidentType"];
-            /** Format: date-time */
-            incidentDate?: string;
-            /** Format: date-time */
-            reportedAt?: string;
-            /** Format: date-time */
-            lastUpdatedAt?: string;
-            location?: string;
-            description?: string;
-            isAnonymous?: boolean;
-            /** Format: uuid */
-            reporterId?: string | null;
-            reporterName?: string | null;
-            /** Format: uuid */
-            coordinatorId?: string | null;
-            coordinatorName?: string | null;
-            involvedParties?: string | null;
-            witnesses?: string | null;
-            googleDriveFolderUrl?: string | null;
-            googleDriveFinalReportUrl?: string | null;
-            /** Format: int32 */
-            noteCount?: number;
-        } | null;
         IncidentSummaryResponse: {
             /** Format: uuid */
             id?: string;
@@ -4301,11 +3763,11 @@ export interface components {
             statusName: string;
             /** Format: date-time */
             changedAt: string;
-        } | null;
+        };
         MyApplicationStatusResponse: {
             hasApplication?: boolean;
             application?: components["schemas"]["ApplicationStatusInfo"];
-        } | null;
+        };
         MyReportDetailDto: {
             /** Format: uuid */
             id?: string;
@@ -4321,7 +3783,7 @@ export interface components {
             involvedParties?: string | null;
             witnesses?: string | null;
             isAnonymous?: boolean;
-        } | null;
+        };
         MyReportsPaginatedResponse: {
             reports?: components["schemas"]["MyReportSummaryDto"][];
             /** Format: int32 */
@@ -4330,7 +3792,7 @@ export interface components {
             currentPage?: number;
             /** Format: int32 */
             pageSize?: number;
-        } | null;
+        };
         MyReportSummaryDto: {
             /** Format: uuid */
             id?: string;
@@ -4349,10 +3811,10 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
             confirmationMessage?: string;
-        } | null;
+        };
         NotesListResponse: {
             notes?: components["schemas"]["IncidentNoteDto"][];
-        } | null;
+        };
         /** @enum {unknown|null} */
         NullableOfSpokenToPersonStatus: "Yes" | "No" | "NotApplicable" | null;
         PagedResultOfApplicationSummaryDto: {
@@ -4367,7 +3829,7 @@ export interface components {
             totalPages?: number;
             hasPreviousPage?: boolean;
             hasNextPage?: boolean;
-        } | null;
+        };
         PaginatedIncidentListResponse: {
             items?: components["schemas"]["IncidentSummaryDto"][];
             /** Format: int32 */
@@ -4378,7 +3840,7 @@ export interface components {
             pageSize?: number;
             /** Format: int32 */
             totalPages?: number;
-        } | null;
+        };
         PaginationInfo: {
             /** Format: int32 */
             page?: number;
@@ -4639,7 +4101,7 @@ export interface components {
             newApplicationStatus?: string;
             confirmationMessage?: string;
             actionsTriggered?: string[];
-        } | null;
+        };
         RevokeTokenRequest: {
             token?: string;
         };
@@ -4685,26 +4147,6 @@ export interface components {
             eventId?: string | null;
         };
         SentAdHocEmailDto: {
-            /** Format: uuid */
-            id?: string;
-            subject?: string;
-            htmlBody?: string;
-            plainTextBody?: string;
-            recipientGroup?: string;
-            /** Format: int32 */
-            recipientCount?: number;
-            /** Format: uuid */
-            eventId?: string | null;
-            eventTitle?: string | null;
-            sendGridMessageId?: string | null;
-            deliveryStatus?: string;
-            /** Format: date-time */
-            sentAt?: string;
-            /** Format: uuid */
-            sentBy?: string;
-            sentByEmail?: string;
-        } | null;
-        SentAdHocEmailDto2: {
             /** Format: uuid */
             id?: string;
             subject?: string;
@@ -4794,7 +4236,7 @@ export interface components {
             experienceWithRope?: string;
             agreeToCommunityStandards?: boolean;
             status?: string;
-        } | null;
+        };
         StaffMember: {
             userId?: string;
             sceneName?: string;
@@ -4812,7 +4254,7 @@ export interface components {
             /** Format: date-time */
             lastUpdatedAt?: string;
             systemNoteCreated?: boolean;
-        } | null;
+        };
         StatusUpdateSummary: {
             /** Format: date-time */
             updatedAt?: string;
@@ -4824,7 +4266,7 @@ export interface components {
             trackingUrl?: string;
             /** Format: date-time */
             submittedAt?: string;
-        } | null;
+        };
         SyncRequest: {
             deviceId: string;
             pendingCheckIns: components["schemas"]["PendingCheckIn"][];
@@ -4938,7 +4380,7 @@ export interface components {
             /** Format: date-time */
             lastUpdatedAt?: string;
             systemNoteCreated?: boolean;
-        } | null;
+        };
         UpdateProfileDto: {
             sceneName: string;
             firstName?: string | null;
@@ -5088,7 +4530,7 @@ export interface components {
             fetLifeName?: string | null;
             phoneNumber?: string | null;
             vettingStatus?: components["schemas"]["VettingStatus"];
-        } | null;
+        };
         /** @enum {unknown} */
         UserRole: "Member" | "Teacher" | "SafetyTeam" | "Administrator" | "EventOrganizer";
         UserRoleDto: {
@@ -5144,18 +4586,6 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string;
         };
-        VenueDto2: {
-            /** Format: int32 */
-            id?: number;
-            name?: string;
-            directions?: string | null;
-            notes?: string | null;
-            isActive?: boolean;
-            /** Format: date-time */
-            createdAt?: string;
-            /** Format: date-time */
-            updatedAt?: string;
-        } | null;
         VettingDetailsResponse: {
             hasApplication?: boolean;
             /** Format: uuid */
@@ -5198,7 +4628,7 @@ export interface components {
             canRequestReinstatement: boolean;
             /** Format: date-time */
             lastStatusChangeDate: string | null;
-        } | null;
+        };
         /** @enum {unknown} */
         VettingStatus: "UnderReview" | "InterviewApproved" | "FinalReview" | "Approved" | "Denied" | "OnHold" | "Withdrawn";
         VettingStatusDto: {
@@ -5208,7 +4638,7 @@ export interface components {
             message?: string;
             interviewScheduleUrl?: string | null;
             reapplyInfoUrl?: string | null;
-        } | null;
+        };
         VolunteerAssignmentDto: {
             /** Format: uuid */
             signupId?: string;
@@ -5227,24 +4657,6 @@ export interface components {
             /** Format: date-time */
             checkedInAt?: string | null;
         };
-        VolunteerAssignmentDto2: {
-            /** Format: uuid */
-            signupId?: string;
-            /** Format: uuid */
-            userId?: string;
-            /** Format: uuid */
-            volunteerPositionId?: string;
-            sceneName?: string;
-            email?: string;
-            fetLifeName?: string | null;
-            discordName?: string | null;
-            status?: string;
-            /** Format: date-time */
-            signedUpAt?: string;
-            hasCheckedIn?: boolean;
-            /** Format: date-time */
-            checkedInAt?: string | null;
-        } | null;
         VolunteerPositionDto: {
             id?: string;
             title?: string;
@@ -5304,7 +4716,7 @@ export interface components {
             eventTitle?: string;
             /** Format: date-time */
             eventStartDate?: string;
-        } | null;
+        };
         VolunteerSignupRequest: {
             eventWaiverAccepted: boolean;
         };
@@ -5726,7 +5138,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfListOfEventDto"];
+                    "application/json": components["schemas"]["EventDto"][];
                 };
             };
             /** @description Unauthorized */
@@ -5734,21 +5146,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -5769,7 +5187,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfEventDto"];
+                    "application/json": components["schemas"]["EventDto"];
                 };
             };
             /** @description Not Found */
@@ -5777,14 +5195,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -5809,7 +5231,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfEventDto"];
+                    "application/json": components["schemas"]["EventDto"];
                 };
             };
             /** @description Bad Request */
@@ -5817,28 +5239,36 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Unauthorized */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -5867,21 +5297,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -6415,7 +5851,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfListOfUserEventDto"];
+                    "application/json": components["schemas"]["UserEventDto"][];
                 };
             };
             /** @description Forbidden */
@@ -6424,7 +5860,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfListOfUserEventDto"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -6433,7 +5869,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfListOfUserEventDto"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -6455,7 +5891,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfVettingStatusDto"];
+                    "application/json": components["schemas"]["VettingStatusDto"];
                 };
             };
             /** @description Forbidden */
@@ -6464,7 +5900,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfVettingStatusDto"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Not Found */
@@ -6473,7 +5909,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfVettingStatusDto"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -6482,7 +5918,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfVettingStatusDto"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -6504,7 +5940,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfUserProfileDto"];
+                    "application/json": components["schemas"]["UserProfileDto"];
                 };
             };
             /** @description Forbidden */
@@ -6513,7 +5949,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfUserProfileDto"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Not Found */
@@ -6522,7 +5958,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfUserProfileDto"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -6531,7 +5967,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfUserProfileDto"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -6557,7 +5993,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfUserProfileDto"];
+                    "application/json": components["schemas"]["UserProfileDto"];
                 };
             };
             /** @description Bad Request */
@@ -6566,7 +6002,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfUserProfileDto"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Forbidden */
@@ -6575,7 +6011,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfUserProfileDto"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Not Found */
@@ -6584,7 +6020,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfUserProfileDto"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -6593,7 +6029,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfUserProfileDto"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -6619,7 +6055,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfboolean"];
+                    "application/json": boolean;
                 };
             };
             /** @description Bad Request */
@@ -6628,7 +6064,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfboolean"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Forbidden */
@@ -6637,7 +6073,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfboolean"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -6646,7 +6082,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfboolean"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -6774,7 +6210,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfListOfVenueDto"];
+                    "application/json": components["schemas"]["VenueDto"][];
                 };
             };
             /** @description Unauthorized */
@@ -6782,21 +6218,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -6819,7 +6261,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfVenueDto"];
+                    "application/json": components["schemas"]["VenueDto"];
                 };
             };
             /** @description Bad Request */
@@ -6827,28 +6269,36 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Unauthorized */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -6867,7 +6317,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfListOfVenueDto"];
+                    "application/json": components["schemas"]["VenueDto"][];
                 };
             };
             /** @description Unauthorized */
@@ -6875,21 +6325,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -6910,7 +6366,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfVenueDto"];
+                    "application/json": components["schemas"]["VenueDto"];
                 };
             };
             /** @description Unauthorized */
@@ -6918,28 +6374,36 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -6964,7 +6428,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfVenueDto"];
+                    "application/json": components["schemas"]["VenueDto"];
                 };
             };
             /** @description Bad Request */
@@ -6972,35 +6436,45 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Unauthorized */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -7027,28 +6501,36 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -7069,7 +6551,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfVenueDto"];
+                    "application/json": components["schemas"]["VenueDto"];
                 };
             };
             /** @description Unauthorized */
@@ -7077,21 +6559,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -7110,7 +6598,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfListOfVenueDto"];
+                    "application/json": components["schemas"]["VenueDto"][];
                 };
             };
             /** @description Unauthorized */
@@ -7118,14 +6606,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -7453,7 +6945,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfListOfEventParticipationDto"];
+                    "application/json": components["schemas"]["EventParticipationDto"][];
                 };
             };
             /** @description Unauthorized */
@@ -7461,21 +6953,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -7651,7 +7149,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfListOfVolunteerPositionDto"];
+                    "application/json": components["schemas"]["VolunteerPositionDto2"][];
                 };
             };
             /** @description Not Found */
@@ -7659,14 +7157,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -7691,7 +7193,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfVolunteerSignupDto"];
+                    "application/json": components["schemas"]["VolunteerSignupDto"];
                 };
             };
             /** @description Bad Request */
@@ -7699,42 +7201,54 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Unauthorized */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Conflict */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -7753,7 +7267,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfListOfUserVolunteerShiftDto"];
+                    "application/json": components["schemas"]["UserVolunteerShiftDto"][];
                 };
             };
             /** @description Unauthorized */
@@ -7761,14 +7275,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -7789,7 +7307,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfListOfVolunteerAssignmentDto"];
+                    "application/json": components["schemas"]["VolunteerAssignmentDto"][];
                 };
             };
             /** @description Bad Request */
@@ -7797,35 +7315,45 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Unauthorized */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -7850,7 +7378,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfVolunteerAssignmentDto"];
+                    "application/json": components["schemas"]["VolunteerAssignmentDto"];
                 };
             };
             /** @description Bad Request */
@@ -7858,42 +7386,54 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Unauthorized */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Conflict */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -7908,56 +7448,66 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
-            200: {
+            /** @description No Content */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
-                };
+                content?: never;
             };
             /** @description Bad Request */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Unauthorized */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Conflict */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -7978,7 +7528,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfListOfUserSearchResultDto"];
+                    "application/json": components["schemas"]["UserSearchResultDto"][];
                 };
             };
             /** @description Bad Request */
@@ -7986,28 +7536,36 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Unauthorized */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -8546,7 +8104,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfSubmissionResponse"];
+                    "application/json": components["schemas"]["SubmissionResponse"];
                 };
             };
             /** @description Bad Request */
@@ -8554,14 +8112,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Unprocessable Entity */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -8582,7 +8144,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfIncidentStatusResponse"];
+                    "application/json": components["schemas"]["IncidentStatusResponse"];
                 };
             };
             /** @description Not Found */
@@ -8590,7 +8152,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -8621,7 +8185,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfPaginatedIncidentListResponse"];
+                    "application/json": components["schemas"]["PaginatedIncidentListResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -8629,21 +8193,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -8662,7 +8232,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfDashboardStatisticsResponse"];
+                    "application/json": components["schemas"]["DashboardStatisticsResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -8670,21 +8240,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -8703,7 +8279,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfIEnumerableOfUserCoordinatorDto"];
+                    "application/json": components["schemas"]["UserCoordinatorDto"][];
                 };
             };
             /** @description Unauthorized */
@@ -8711,21 +8287,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -8744,7 +8326,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfAdminDashboardResponse"];
+                    "application/json": components["schemas"]["AdminDashboardResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -8752,21 +8334,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -8787,7 +8375,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfIncidentResponse"];
+                    "application/json": components["schemas"]["IncidentResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -8795,21 +8383,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -8834,7 +8428,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfIncidentSummaryDto"];
+                    "application/json": components["schemas"]["IncidentSummaryDto"];
                 };
             };
             /** @description Unauthorized */
@@ -8842,35 +8436,45 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Unprocessable Entity */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -8895,7 +8499,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfStatusUpdateResponse"];
+                    "application/json": components["schemas"]["StatusUpdateResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -8903,35 +8507,45 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Unprocessable Entity */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -8956,7 +8570,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfGoogleDriveUpdateResponse"];
+                    "application/json": components["schemas"]["GoogleDriveUpdateResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -8964,35 +8578,45 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Unprocessable Entity */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -9017,7 +8641,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfUpdatePeopleResponse"];
+                    "application/json": components["schemas"]["UpdatePeopleResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -9025,35 +8649,45 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Unprocessable Entity */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -9074,7 +8708,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfNotesListResponse"];
+                    "application/json": components["schemas"]["NotesListResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -9082,28 +8716,36 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -9128,7 +8770,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfIncidentNoteDto"];
+                    "application/json": components["schemas"]["IncidentNoteDto"];
                 };
             };
             /** @description Unauthorized */
@@ -9136,35 +8778,45 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Unprocessable Entity */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -9189,7 +8841,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfIncidentNoteDto"];
+                    "application/json": components["schemas"]["IncidentNoteDto"];
                 };
             };
             /** @description Unauthorized */
@@ -9197,35 +8849,45 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Unprocessable Entity */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -9252,28 +8914,36 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -9295,7 +8965,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfMyReportsPaginatedResponse"];
+                    "application/json": components["schemas"]["MyReportsPaginatedResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -9303,14 +8973,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -9331,7 +9005,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfMyReportDetailDto"];
+                    "application/json": components["schemas"]["MyReportDetailDto"];
                 };
             };
             /** @description Unauthorized */
@@ -9339,28 +9013,36 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Internal Server Error */
             500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -9779,7 +9461,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfPagedResultOfApplicationSummaryDto"];
+                    "application/json": components["schemas"]["PagedResultOfApplicationSummaryDto"];
                 };
             };
             /** @description Bad Request */
@@ -9788,7 +9470,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Forbidden */
@@ -9797,7 +9479,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -9806,7 +9488,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -9828,7 +9510,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfApplicationDetailResponse"];
+                    "application/json": components["schemas"]["ApplicationDetailResponse"];
                 };
             };
             /** @description Bad Request */
@@ -9837,7 +9519,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Forbidden */
@@ -9846,7 +9528,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Not Found */
@@ -9855,7 +9537,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -9864,7 +9546,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -9890,7 +9572,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfReviewDecisionResponse"];
+                    "application/json": components["schemas"]["ReviewDecisionResponse"];
                 };
             };
             /** @description Bad Request */
@@ -9899,7 +9581,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Forbidden */
@@ -9908,7 +9590,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Not Found */
@@ -9917,7 +9599,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -9926,7 +9608,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -9952,7 +9634,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfNoteResponse"];
+                    "application/json": components["schemas"]["NoteResponse"];
                 };
             };
             /** @description Bad Request */
@@ -9961,7 +9643,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Forbidden */
@@ -9970,7 +9652,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Not Found */
@@ -9979,7 +9661,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -9988,7 +9670,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -10014,7 +9696,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfReviewDecisionResponse"];
+                    "application/json": components["schemas"]["ReviewDecisionResponse"];
                 };
             };
             /** @description Bad Request */
@@ -10023,7 +9705,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Forbidden */
@@ -10032,7 +9714,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Not Found */
@@ -10041,7 +9723,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -10050,7 +9732,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -10076,7 +9758,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfReviewDecisionResponse"];
+                    "application/json": components["schemas"]["ReviewDecisionResponse"];
                 };
             };
             /** @description Bad Request */
@@ -10085,7 +9767,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Forbidden */
@@ -10094,7 +9776,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Not Found */
@@ -10103,7 +9785,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -10112,7 +9794,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -10138,7 +9820,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfNoteResponse"];
+                    "application/json": components["schemas"]["NoteResponse"];
                 };
             };
             /** @description Bad Request */
@@ -10147,7 +9829,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Forbidden */
@@ -10156,7 +9838,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Not Found */
@@ -10165,7 +9847,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -10174,7 +9856,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -10200,7 +9882,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfReviewDecisionResponse"];
+                    "application/json": components["schemas"]["ReviewDecisionResponse"];
                 };
             };
             /** @description Bad Request */
@@ -10209,7 +9891,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Forbidden */
@@ -10218,7 +9900,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Not Found */
@@ -10227,7 +9909,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -10236,7 +9918,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -10256,7 +9938,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfMyApplicationStatusResponse"];
+                    "application/json": components["schemas"]["MyApplicationStatusResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -10265,7 +9947,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -10274,7 +9956,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -10294,7 +9976,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfApplicationDetailResponse"];
+                    "application/json": components["schemas"]["ApplicationDetailResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -10303,7 +9985,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Not Found */
@@ -10312,7 +9994,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -10321,7 +10003,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -10345,7 +10027,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfApplicationSubmissionResponse"];
+                    "application/json": components["schemas"]["ApplicationSubmissionResponse"];
                 };
             };
             /** @description Bad Request */
@@ -10354,7 +10036,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Unauthorized */
@@ -10363,7 +10045,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Conflict */
@@ -10372,7 +10054,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -10381,7 +10063,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -10401,7 +10083,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfSimplifiedApplicationResponse"];
+                    "application/json": components["schemas"]["SimplifiedApplicationResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -10410,7 +10092,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Not Found */
@@ -10419,7 +10101,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -10428,7 +10110,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -10452,7 +10134,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfApplicationSubmissionResponse"];
+                    "application/json": components["schemas"]["ApplicationSubmissionResponse"];
                 };
             };
             /** @description Bad Request */
@@ -10461,7 +10143,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Conflict */
@@ -10470,7 +10152,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -10479,7 +10161,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -10501,7 +10183,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfApplicationStatusResponse"];
+                    "application/json": components["schemas"]["ApplicationStatusResponse"];
                 };
             };
             /** @description Not Found */
@@ -10510,7 +10192,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -10519,7 +10201,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -10545,7 +10227,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfMembershipHoldResponse"];
+                    "application/json": components["schemas"]["MembershipHoldResponse"];
                 };
             };
             /** @description Bad Request */
@@ -10554,7 +10236,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Unauthorized */
@@ -10563,7 +10245,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Forbidden */
@@ -10572,7 +10254,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -10581,7 +10263,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -10607,7 +10289,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfMembershipHoldResponse"];
+                    "application/json": components["schemas"]["MembershipHoldResponse"];
                 };
             };
             /** @description Bad Request */
@@ -10616,7 +10298,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Unauthorized */
@@ -10625,7 +10307,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Forbidden */
@@ -10634,7 +10316,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -10643,7 +10325,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -10665,7 +10347,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfVettingHoldStatusResponse"];
+                    "application/json": components["schemas"]["VettingHoldStatusResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -10674,7 +10356,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Forbidden */
@@ -10683,7 +10365,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Not Found */
@@ -10692,7 +10374,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Internal Server Error */
@@ -10701,7 +10383,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfObject"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };
@@ -10723,7 +10405,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfListOfGlobalEmailTemplateDto"];
+                    "application/json": components["schemas"]["GlobalEmailTemplateDto"][];
                 };
             };
             /** @description Bad Request */
@@ -10731,21 +10413,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Unauthorized */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -10766,7 +10454,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfGlobalEmailTemplateDto"];
+                    "application/json": components["schemas"]["GlobalEmailTemplateDto"];
                 };
             };
             /** @description Unauthorized */
@@ -10774,21 +10462,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -10813,7 +10507,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfGlobalEmailTemplateDto"];
+                    "application/json": components["schemas"]["GlobalEmailTemplateDto"];
                 };
             };
             /** @description Bad Request */
@@ -10821,28 +10515,36 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Unauthorized */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -10863,7 +10565,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfListOfEventEmailTemplateDto"];
+                    "application/json": components["schemas"]["EventEmailTemplateDto"][];
                 };
             };
             /** @description Unauthorized */
@@ -10871,14 +10573,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -10900,7 +10606,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfEventEmailTemplateDto"];
+                    "application/json": components["schemas"]["EventEmailTemplateDto"];
                 };
             };
             /** @description Unauthorized */
@@ -10908,21 +10614,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -10948,7 +10660,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfEventEmailTemplateDto"];
+                    "application/json": components["schemas"]["EventEmailTemplateDto"];
                 };
             };
             /** @description Bad Request */
@@ -10956,28 +10668,36 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Unauthorized */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -11005,21 +10725,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -11042,7 +10768,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfSentAdHocEmailDto"];
+                    "application/json": components["schemas"]["SentAdHocEmailDto"];
                 };
             };
             /** @description Bad Request */
@@ -11050,21 +10776,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Unauthorized */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -11085,7 +10817,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfListOfSentAdHocEmailDto"];
+                    "application/json": components["schemas"]["SentAdHocEmailDto"][];
                 };
             };
             /** @description Unauthorized */
@@ -11093,14 +10825,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -11121,7 +10857,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponseOfSentAdHocEmailDto"];
+                    "application/json": components["schemas"]["SentAdHocEmailDto"];
                 };
             };
             /** @description Unauthorized */
@@ -11129,21 +10865,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Forbidden */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };

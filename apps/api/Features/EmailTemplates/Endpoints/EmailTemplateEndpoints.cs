@@ -29,10 +29,10 @@ public static class EmailTemplateEndpoints
             .WithName("GetGlobalTemplatesByCategory")
             .WithSummary("Get all global email templates for a category")
             .WithDescription("Returns all active global email templates for the specified category. Admin access required.")
-            .Produces<ApiResponse<List<GlobalEmailTemplateDto>>>(200)
-            .Produces(400)
-            .Produces(401)
-            .Produces(403)
+            .Produces<List<GlobalEmailTemplateDto>>(200)
+            .ProducesProblem(400)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
 
         /// <summary>
@@ -42,10 +42,10 @@ public static class EmailTemplateEndpoints
             .WithName("GetGlobalTemplateById")
             .WithSummary("Get a global email template by ID")
             .WithDescription("Returns a single global email template. Admin access required.")
-            .Produces<ApiResponse<GlobalEmailTemplateDto>>(200)
-            .Produces(404)
-            .Produces(401)
-            .Produces(403)
+            .Produces<GlobalEmailTemplateDto>(200)
+            .ProducesProblem(404)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
 
         /// <summary>
@@ -55,11 +55,11 @@ public static class EmailTemplateEndpoints
             .WithName("UpdateGlobalTemplate")
             .WithSummary("Update a global email template")
             .WithDescription("Updates a global email template and increments version. Admin access required.")
-            .Produces<ApiResponse<GlobalEmailTemplateDto>>(200)
-            .Produces(400)
-            .Produces(404)
-            .Produces(401)
-            .Produces(403)
+            .Produces<GlobalEmailTemplateDto>(200)
+            .ProducesProblem(400)
+            .ProducesProblem(404)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
 
         // ========================================
@@ -73,9 +73,9 @@ public static class EmailTemplateEndpoints
             .WithName("GetEventTemplates")
             .WithSummary("Get all email templates for an event")
             .WithDescription("Returns merged list of global templates and event-specific overrides. Admin or event organizer access required.")
-            .Produces<ApiResponse<List<EventEmailTemplateDto>>>(200)
-            .Produces(401)
-            .Produces(403)
+            .Produces<List<EventEmailTemplateDto>>(200)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
             .RequireAuthorization();
 
         /// <summary>
@@ -85,10 +85,10 @@ public static class EmailTemplateEndpoints
             .WithName("GetEventTemplateByType")
             .WithSummary("Get a specific email template for an event")
             .WithDescription("Returns global template if no override exists, or event-specific template if customized. Admin or event organizer access required.")
-            .Produces<ApiResponse<EventEmailTemplateDto>>(200)
-            .Produces(404)
-            .Produces(401)
-            .Produces(403)
+            .Produces<EventEmailTemplateDto>(200)
+            .ProducesProblem(404)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
             .RequireAuthorization();
 
         /// <summary>
@@ -98,11 +98,11 @@ public static class EmailTemplateEndpoints
             .WithName("UpdateEventTemplate")
             .WithSummary("Create or update event email template override")
             .WithDescription("Creates new override on first save (copy-on-edit), updates existing on subsequent saves. Admin or event organizer access required.")
-            .Produces<ApiResponse<EventEmailTemplateDto>>(200)
-            .Produces(400)
-            .Produces(404)
-            .Produces(401)
-            .Produces(403)
+            .Produces<EventEmailTemplateDto>(200)
+            .ProducesProblem(400)
+            .ProducesProblem(404)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
             .RequireAuthorization();
 
         /// <summary>
@@ -113,9 +113,9 @@ public static class EmailTemplateEndpoints
             .WithSummary("Delete event email template override")
             .WithDescription("Removes event-specific override, future requests will return global template. Admin or event organizer access required.")
             .Produces(204)
-            .Produces(404)
-            .Produces(401)
-            .Produces(403)
+            .ProducesProblem(404)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
             .RequireAuthorization();
 
         // ========================================
@@ -129,10 +129,10 @@ public static class EmailTemplateEndpoints
             .WithName("SendAdHocEmail")
             .WithSummary("Send an ad-hoc bulk email")
             .WithDescription("Sends bulk email via SendGrid and creates audit trail. Admin access required.")
-            .Produces<ApiResponse<SentAdHocEmailDto>>(200)
-            .Produces(400)
-            .Produces(401)
-            .Produces(403)
+            .Produces<SentAdHocEmailDto>(200)
+            .ProducesProblem(400)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
 
         /// <summary>
@@ -142,9 +142,9 @@ public static class EmailTemplateEndpoints
             .WithName("GetAdHocEmailHistory")
             .WithSummary("Get ad-hoc email send history")
             .WithDescription("Returns sent ad-hoc email history, optionally filtered by event. Admin access required.")
-            .Produces<ApiResponse<List<SentAdHocEmailDto>>>(200)
-            .Produces(401)
-            .Produces(403)
+            .Produces<List<SentAdHocEmailDto>>(200)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
 
         /// <summary>
@@ -154,10 +154,10 @@ public static class EmailTemplateEndpoints
             .WithName("GetAdHocEmailById")
             .WithSummary("Get a specific sent ad-hoc email")
             .WithDescription("Returns details of a specific sent ad-hoc email. Admin access required.")
-            .Produces<ApiResponse<SentAdHocEmailDto>>(200)
-            .Produces(404)
-            .Produces(401)
-            .Produces(403)
+            .Produces<SentAdHocEmailDto>(200)
+            .ProducesProblem(404)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
     }
 
@@ -172,30 +172,23 @@ public static class EmailTemplateEndpoints
     {
         if (!Enum.TryParse<EmailCategory>(category, ignoreCase: true, out var emailCategory))
         {
-            return Results.BadRequest(new ApiResponse<List<GlobalEmailTemplateDto>>
-            {
-                Success = false,
-                Error = $"Invalid category. Valid values: {string.Join(", ", Enum.GetNames<EmailCategory>())}"
-            });
+            return Results.Problem(
+                title: "Invalid Category",
+                detail: $"Invalid category. Valid values: {string.Join(", ", Enum.GetNames<EmailCategory>())}",
+                statusCode: 400);
         }
 
         var result = await service.GetGlobalTemplatesByCategoryAsync(emailCategory, cancellationToken);
 
         if (!result.IsSuccess)
         {
-            return Results.BadRequest(new ApiResponse<List<GlobalEmailTemplateDto>>
-            {
-                Success = false,
-                Error = result.Error
-            });
+            return Results.Problem(
+                title: "Failed to Retrieve Templates",
+                detail: result.Error,
+                statusCode: 400);
         }
 
-        return Results.Ok(new ApiResponse<List<GlobalEmailTemplateDto>>
-        {
-            Success = true,
-            Data = result.Value,
-            Timestamp = DateTime.UtcNow
-        });
+        return Results.Ok(result.Value);
     }
 
     private static async Task<IResult> GetGlobalTemplateById(
@@ -207,19 +200,13 @@ public static class EmailTemplateEndpoints
 
         if (!result.IsSuccess)
         {
-            return Results.NotFound(new ApiResponse<GlobalEmailTemplateDto>
-            {
-                Success = false,
-                Error = result.Error
-            });
+            return Results.Problem(
+                title: "Template Not Found",
+                detail: result.Error,
+                statusCode: 404);
         }
 
-        return Results.Ok(new ApiResponse<GlobalEmailTemplateDto>
-        {
-            Success = true,
-            Data = result.Value,
-            Timestamp = DateTime.UtcNow
-        });
+        return Results.Ok(result.Value);
     }
 
     private static async Task<IResult> UpdateGlobalTemplate(
@@ -240,19 +227,13 @@ public static class EmailTemplateEndpoints
 
         if (!result.IsSuccess)
         {
-            return Results.BadRequest(new ApiResponse<GlobalEmailTemplateDto>
-            {
-                Success = false,
-                Error = result.Error
-            });
+            return Results.Problem(
+                title: "Failed to Update Template",
+                detail: result.Error,
+                statusCode: 400);
         }
 
-        return Results.Ok(new ApiResponse<GlobalEmailTemplateDto>
-        {
-            Success = true,
-            Data = result.Value,
-            Timestamp = DateTime.UtcNow
-        });
+        return Results.Ok(result.Value);
     }
 
     private static async Task<IResult> GetEventTemplates(
@@ -264,19 +245,13 @@ public static class EmailTemplateEndpoints
 
         if (!result.IsSuccess)
         {
-            return Results.BadRequest(new ApiResponse<List<EventEmailTemplateDto>>
-            {
-                Success = false,
-                Error = result.Error
-            });
+            return Results.Problem(
+                title: "Failed to Retrieve Event Templates",
+                detail: result.Error,
+                statusCode: 400);
         }
 
-        return Results.Ok(new ApiResponse<List<EventEmailTemplateDto>>
-        {
-            Success = true,
-            Data = result.Value,
-            Timestamp = DateTime.UtcNow
-        });
+        return Results.Ok(result.Value);
     }
 
     private static async Task<IResult> GetEventTemplateByType(
@@ -289,19 +264,13 @@ public static class EmailTemplateEndpoints
 
         if (!result.IsSuccess)
         {
-            return Results.NotFound(new ApiResponse<EventEmailTemplateDto>
-            {
-                Success = false,
-                Error = result.Error
-            });
+            return Results.Problem(
+                title: "Template Not Found",
+                detail: result.Error,
+                statusCode: 404);
         }
 
-        return Results.Ok(new ApiResponse<EventEmailTemplateDto>
-        {
-            Success = true,
-            Data = result.Value,
-            Timestamp = DateTime.UtcNow
-        });
+        return Results.Ok(result.Value);
     }
 
     private static async Task<IResult> UpdateEventTemplate(
@@ -326,19 +295,13 @@ public static class EmailTemplateEndpoints
 
         if (!result.IsSuccess)
         {
-            return Results.BadRequest(new ApiResponse<EventEmailTemplateDto>
-            {
-                Success = false,
-                Error = result.Error
-            });
+            return Results.Problem(
+                title: "Failed to Update Event Template",
+                detail: result.Error,
+                statusCode: 400);
         }
 
-        return Results.Ok(new ApiResponse<EventEmailTemplateDto>
-        {
-            Success = true,
-            Data = result.Value,
-            Timestamp = DateTime.UtcNow
-        });
+        return Results.Ok(result.Value);
     }
 
     private static async Task<IResult> DeleteEventTemplate(
@@ -354,11 +317,10 @@ public static class EmailTemplateEndpoints
 
         if (!result.IsSuccess)
         {
-            return Results.BadRequest(new ApiResponse<object>
-            {
-                Success = false,
-                Error = result.Error
-            });
+            return Results.Problem(
+                title: "Failed to Delete Event Template",
+                detail: result.Error,
+                statusCode: 400);
         }
 
         return Results.NoContent();
@@ -381,19 +343,13 @@ public static class EmailTemplateEndpoints
 
         if (!result.IsSuccess)
         {
-            return Results.BadRequest(new ApiResponse<SentAdHocEmailDto>
-            {
-                Success = false,
-                Error = result.Error
-            });
+            return Results.Problem(
+                title: "Failed to Send Ad-Hoc Email",
+                detail: result.Error,
+                statusCode: 400);
         }
 
-        return Results.Ok(new ApiResponse<SentAdHocEmailDto>
-        {
-            Success = true,
-            Data = result.Value,
-            Timestamp = DateTime.UtcNow
-        });
+        return Results.Ok(result.Value);
     }
 
     private static async Task<IResult> GetAdHocEmailHistory(
@@ -405,19 +361,13 @@ public static class EmailTemplateEndpoints
 
         if (!result.IsSuccess)
         {
-            return Results.BadRequest(new ApiResponse<List<SentAdHocEmailDto>>
-            {
-                Success = false,
-                Error = result.Error
-            });
+            return Results.Problem(
+                title: "Failed to Retrieve Ad-Hoc Email History",
+                detail: result.Error,
+                statusCode: 400);
         }
 
-        return Results.Ok(new ApiResponse<List<SentAdHocEmailDto>>
-        {
-            Success = true,
-            Data = result.Value,
-            Timestamp = DateTime.UtcNow
-        });
+        return Results.Ok(result.Value);
     }
 
     private static async Task<IResult> GetAdHocEmailById(
@@ -429,29 +379,12 @@ public static class EmailTemplateEndpoints
 
         if (!result.IsSuccess)
         {
-            return Results.NotFound(new ApiResponse<SentAdHocEmailDto>
-            {
-                Success = false,
-                Error = result.Error
-            });
+            return Results.Problem(
+                title: "Ad-Hoc Email Not Found",
+                detail: result.Error,
+                statusCode: 404);
         }
 
-        return Results.Ok(new ApiResponse<SentAdHocEmailDto>
-        {
-            Success = true,
-            Data = result.Value,
-            Timestamp = DateTime.UtcNow
-        });
+        return Results.Ok(result.Value);
     }
-}
-
-/// <summary>
-/// Standard API response wrapper
-/// </summary>
-public class ApiResponse<T>
-{
-    public bool Success { get; set; }
-    public T? Data { get; set; }
-    public string? Error { get; set; }
-    public DateTime Timestamp { get; set; }
 }

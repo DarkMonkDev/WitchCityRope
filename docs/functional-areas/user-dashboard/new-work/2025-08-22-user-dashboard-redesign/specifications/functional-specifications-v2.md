@@ -29,6 +29,19 @@ The User Dashboard is a **React-based, user-focused dashboard** that displays re
 
 ---
 
+## 🚨 API RESPONSE PATTERN UPDATE (2025-11-13) 🚨
+
+**IMPORTANT**: All API response specifications in this document reference `ApiResponse<T>` wrapper format. This pattern has been **DEPRECATED** as of November 13, 2025.
+
+**Current Standard (Pattern B)**:
+- **Success responses**: Direct DTO (e.g., `List<UserEventDto>`, `UserProfileDto`)
+- **Error responses**: RFC 9457 Problem Details
+
+**Action for Implementation**: Replace `ApiResponse<T>` references with direct DTO types when implementing endpoints.
+**Reference**: Backend Developer Lessons Learned Part 1 (lines 172-231) for Pattern B details.
+
+---
+
 ## 🏗️ Architecture
 
 ### Microservices Architecture

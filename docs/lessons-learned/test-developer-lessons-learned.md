@@ -77,15 +77,14 @@
 - Inspect API responses to validate data flow in integration tests
 
 ## 📚 MULTI-FILE LESSONS LEARNED
-**Files**: 2 total
-**Part 1**: `/home/chad/repos/witchcityrope/docs/lessons-learned/test-developer-lessons-learned.md` (THIS FILE)
-**Part 2**: `/home/chad/repos/witchcityrope/docs/lessons-learned/test-developer-lessons-learned-2.md` (MUST ALSO READ)
-**Read ALL**: Both Part 1 AND Part 2 are MANDATORY
-**Write to**: Part 2 ONLY
-**Maximum file size**: 2,000 lines (to stay under token limits). Both Part 1 and Part 2 files can be up to 2,000 lines each
+**Files**: 3 total
+**Part 1**: test-developer-lessons-learned.md (THIS FILE)
+**Part 2**: test-developer-lessons-learned-2.md (MUST READ)
+**Part 3**: test-developer-lessons-learned-3.md (MUST READ)
+**Read ALL**: Parts 1, 2, AND 3 are MANDATORY
+**Write to**: Part 3 ONLY
+**Maximum file size**: 2,000 lines per file
 **IF READ FAILS**: STOP and use lessons-learned-validator skill to fix immediately
-
-## 🚨 IF THIS FILE EXCEEDS 1700 LINES, CREATE PART 2! BOTH FILES CAN BE UP TO 1700 LINES EACH 🚨
 
 ## 🚨 HARD BLOCK ENFORCEMENT (CRITICAL)
 If you cannot read ANY part of these lessons learned:
@@ -182,10 +181,10 @@ curl -f http://localhost:5173/ || echo "ERROR: Docker not on port 5173"
 **Problem**: Tests failing because MSW handlers didn't match actual API endpoints.
 **Solution**: Always check actual hook/API client code when creating MSW handlers.
 
-## 🚨 ULTRA CRITICAL: NEW LESSONS GO TO PART 2, NOT HERE! 🚨
+## 🚨 ULTRA CRITICAL: NEW LESSONS GO TO PART 3, NOT HERE! 🚨
 
 **PART 1 PURPOSE**: Startup procedures and critical navigation ONLY
-**ADD ALL NEW LESSONS TO PART 2**: `/home/chad/repos/witchcityrope/docs/lessons-learned/test-developer-lessons-learned-2.md`
+**ADD ALL NEW LESSONS TO PART 3**: `/home/chad/repos/witchcityrope/docs/lessons-learned/test-developer-lessons-learned-3.md`
 
 ## NEVER ADD NEW LESSONS TO THIS FILE (PART 1)
 
@@ -195,6 +194,4 @@ curl -f http://localhost:5173/ || echo "ERROR: Docker not on port 5173"
 - Essential prevention patterns for immediate safety
 - File structure and reading instructions
 
-**All other lessons go to Part 2** - DO NOT add them here!
-
-## 🚨 IF THIS FILE EXCEEDS 1700 LINES, CREATE PART 2! BOTH FILES CAN BE UP TO 1700 LINES EACH 🚨
+**All other lessons go to Part 3** - DO NOT add them here!

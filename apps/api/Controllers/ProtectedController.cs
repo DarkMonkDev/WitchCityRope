@@ -33,7 +33,7 @@ public class ProtectedController : ControllerBase
     /// <returns>Welcome message with user information</returns>
     [HttpGet("welcome")]
     [ProducesResponseType(typeof(ProtectedWelcomeResponse), 200)]
-    [ProducesResponseType(typeof(ApiResponse<object>), 401)]
+    [ProducesResponseType(401)]
     public async Task<IActionResult> GetWelcome()
     {
         try
@@ -47,12 +47,10 @@ public class ProtectedController : ControllerBase
             if (string.IsNullOrEmpty(userId))
             {
                 _logger.LogWarning("Protected endpoint accessed without valid user ID claim");
-                return Unauthorized(new ApiResponse<object>
-                {
-                    Success = false,
-                    Error = "Invalid token",
-                    Details = "User ID not found in token claims"
-                });
+                return Problem(
+                    title: "Invalid Token",
+                    detail: "User ID not found in token claims",
+                    statusCode: 401);
             }
 
             // Get fresh user data from database
@@ -60,12 +58,10 @@ public class ProtectedController : ControllerBase
             if (user == null)
             {
                 _logger.LogWarning("Protected endpoint accessed with token for non-existent user: {UserId}", userId);
-                return Unauthorized(new ApiResponse<object>
-                {
-                    Success = false,
-                    Error = "User not found",
-                    Details = "Token is valid but user no longer exists"
-                });
+                return Problem(
+                    title: "User Not Found",
+                    detail: "Token is valid but user no longer exists",
+                    statusCode: 401);
             }
 
             var response = new ProtectedWelcomeResponse
@@ -88,12 +84,10 @@ public class ProtectedController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing protected welcome request");
-            return StatusCode(500, new ApiResponse<object>
-            {
-                Success = false,
-                Error = "Internal server error",
-                Details = "An error occurred processing your request"
-            });
+            return Problem(
+                title: "Internal Server Error",
+                detail: "An error occurred processing your request",
+                statusCode: 500);
         }
     }
 
@@ -102,8 +96,9 @@ public class ProtectedController : ControllerBase
     /// </summary>
     /// <returns>Current user profile</returns>
     [HttpGet("profile")]
-    [ProducesResponseType(typeof(ApiResponse<AuthUserResponse>), 200)]
-    [ProducesResponseType(typeof(ApiResponse<object>), 401)]
+    [ProducesResponseType(typeof(AuthUserResponse), 200)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(404)]
     public async Task<IActionResult> GetProfile()
     {
         try
@@ -112,41 +107,30 @@ public class ProtectedController : ControllerBase
 
             if (string.IsNullOrEmpty(userId))
             {
-                return Unauthorized(new ApiResponse<object>
-                {
-                    Success = false,
-                    Error = "Invalid token",
-                    Details = "User ID not found in token claims"
-                });
+                return Problem(
+                    title: "Invalid Token",
+                    detail: "User ID not found in token claims",
+                    statusCode: 401);
             }
 
             var user = await _authService.GetUserByIdAsync(userId);
             if (user == null)
             {
-                return NotFound(new ApiResponse<object>
-                {
-                    Success = false,
-                    Error = "User not found",
-                    Details = "Token is valid but user no longer exists"
-                });
+                return Problem(
+                    title: "User Not Found",
+                    detail: "Token is valid but user no longer exists",
+                    statusCode: 404);
             }
 
-            return Ok(new ApiResponse<AuthUserResponse>
-            {
-                Success = true,
-                Data = user,
-                Message = "Profile retrieved successfully"
-            });
+            return Ok(user);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving user profile");
-            return StatusCode(500, new ApiResponse<object>
-            {
-                Success = false,
-                Error = "Internal server error",
-                Details = "An error occurred retrieving your profile"
-            });
+            return Problem(
+                title: "Internal Server Error",
+                detail: "An error occurred retrieving your profile",
+                statusCode: 500);
         }
     }
 }

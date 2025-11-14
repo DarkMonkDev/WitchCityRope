@@ -87,15 +87,13 @@ public class VenueEndpointsIntegrationTests : IntegrationTestBase
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var result = await response.Content.ReadFromJsonAsync<ApiResponse<VenueDto>>();
+        var result = await response.Content.ReadFromJsonAsync<VenueDto>();
         result.Should().NotBeNull();
-        result!.Success.Should().BeTrue();
-        result.Data.Should().NotBeNull();
-        result.Data!.Id.Should().Be(venueId);
-        result.Data.Name.Should().Be("Test Venue");
-        result.Data.Directions.Should().Be("Turn left at Main St");
-        result.Data.Notes.Should().BeNull(); // Notes should not be exposed to public
-        result.Data.IsActive.Should().BeTrue();
+        result!.Id.Should().Be(venueId);
+        result.Name.Should().Be("Test Venue");
+        result.Directions.Should().Be("Turn left at Main St");
+        result.Notes.Should().BeNull(); // Notes should not be exposed to public
+        result.IsActive.Should().BeTrue();
     }
 
     [Fact(Skip = "Respawn FK constraint issue (Events->Venues). Passes individually. Endpoints work correctly.")]
@@ -110,11 +108,6 @@ public class VenueEndpointsIntegrationTests : IntegrationTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-
-        var result = await response.Content.ReadFromJsonAsync<ApiResponse<VenueDto>>();
-        result.Should().NotBeNull();
-        result!.Success.Should().BeFalse();
-        result.Error.Should().Be("Authentication required");
     }
 
     [Fact(Skip = "Respawn FK constraint issue (Events->Venues). Passes individually. Endpoints work correctly.")]
@@ -131,11 +124,6 @@ public class VenueEndpointsIntegrationTests : IntegrationTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
-
-        var result = await response.Content.ReadFromJsonAsync<ApiResponse<VenueDto>>();
-        result.Should().NotBeNull();
-        result!.Success.Should().BeFalse();
-        result.Error.Should().Be("Venue not found");
     }
 
     [Fact(Skip = "Respawn FK constraint issue (Events->Venues). Passes individually. Endpoints work correctly.")]
@@ -171,13 +159,11 @@ public class VenueEndpointsIntegrationTests : IntegrationTestBase
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<VenueDto>>>();
+        var result = await response.Content.ReadFromJsonAsync<List<VenueDto>>();
         result.Should().NotBeNull();
-        result!.Success.Should().BeTrue();
-        result.Data.Should().NotBeNull();
-        result.Data!.Count.Should().BeGreaterThanOrEqualTo(2);
-        result.Data.Should().OnlyContain(v => v.IsActive == true);
-        result.Data.Should().OnlyContain(v => v.Notes == null); // Notes should not be exposed
+        result!.Count.Should().BeGreaterThanOrEqualTo(2);
+        result.Should().OnlyContain(v => v.IsActive == true);
+        result.Should().OnlyContain(v => v.Notes == null); // Notes should not be exposed
     }
 
     [Fact]
@@ -218,16 +204,14 @@ public class VenueEndpointsIntegrationTests : IntegrationTestBase
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
-        var result = await response.Content.ReadFromJsonAsync<ApiResponse<VenueDto>>();
+        var result = await response.Content.ReadFromJsonAsync<VenueDto>();
         result.Should().NotBeNull();
-        result!.Success.Should().BeTrue();
-        result.Data.Should().NotBeNull();
-        result.Data!.Name.Should().Be("New Admin Venue");
-        result.Data.Notes.Should().Be("Internal admin notes");
+        result!.Name.Should().Be("New Admin Venue");
+        result.Notes.Should().Be("Internal admin notes");
 
         // Verify in database
         await using var context = CreateDbContext();
-        var venue = await context.Venues.FindAsync(result.Data.Id);
+        var venue = await context.Venues.FindAsync(result.Id);
         venue.Should().NotBeNull();
         venue!.Notes.Should().Be("Internal admin notes");
     }
@@ -273,10 +257,9 @@ public class VenueEndpointsIntegrationTests : IntegrationTestBase
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
-        var result = await response.Content.ReadFromJsonAsync<ApiResponse<VenueDto>>();
-        result.Should().NotBeNull();
-        result!.Error.Should().Be("Validation failed");
-        result.Message.Should().Contain("name is required");
+        var problemDetails = await response.Content.ReadFromJsonAsync<Microsoft.AspNetCore.Mvc.ProblemDetails>();
+        problemDetails.Should().NotBeNull();
+        problemDetails!.Detail.Should().Contain("name is required");
     }
 
     [Fact]
@@ -301,9 +284,9 @@ public class VenueEndpointsIntegrationTests : IntegrationTestBase
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
-        var result = await response.Content.ReadFromJsonAsync<ApiResponse<VenueDto>>();
-        result.Should().NotBeNull();
-        result!.Error.Should().Be("Duplicate venue name");
+        var problemDetails = await response.Content.ReadFromJsonAsync<Microsoft.AspNetCore.Mvc.ProblemDetails>();
+        problemDetails.Should().NotBeNull();
+        problemDetails!.Detail.Should().Contain("Duplicate venue name");
     }
 
     [Fact]
@@ -330,11 +313,10 @@ public class VenueEndpointsIntegrationTests : IntegrationTestBase
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var result = await response.Content.ReadFromJsonAsync<ApiResponse<VenueDto>>();
+        var result = await response.Content.ReadFromJsonAsync<VenueDto>();
         result.Should().NotBeNull();
-        result!.Success.Should().BeTrue();
-        result.Data!.Name.Should().Be("Updated Venue Name");
-        result.Data.IsActive.Should().BeFalse();
+        result!.Name.Should().Be("Updated Venue Name");
+        result.IsActive.Should().BeFalse();
 
         // Verify in database
         await using var context = CreateDbContext();
@@ -424,10 +406,9 @@ public class VenueEndpointsIntegrationTests : IntegrationTestBase
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var result = await response.Content.ReadFromJsonAsync<ApiResponse<VenueDto>>();
+        var result = await response.Content.ReadFromJsonAsync<VenueDto>();
         result.Should().NotBeNull();
-        result!.Success.Should().BeTrue();
-        result.Data!.Notes.Should().Be("Admin-only notes");
+        result!.Notes.Should().Be("Admin-only notes");
     }
 
     [Fact]
@@ -447,11 +428,10 @@ public class VenueEndpointsIntegrationTests : IntegrationTestBase
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<VenueDto>>>();
+        var result = await response.Content.ReadFromJsonAsync<List<VenueDto>>();
         result.Should().NotBeNull();
-        result!.Success.Should().BeTrue();
-        result.Data.Should().Contain(v => v.IsActive == false);
-        result.Data.Should().Contain(v => v.IsActive == true);
+        result!.Should().Contain(v => v.IsActive == false);
+        result.Should().Contain(v => v.IsActive == true);
     }
 
     #endregion

@@ -57,17 +57,8 @@ export type DashboardStatisticsResponse = components['schemas']['DashboardStatis
  */
 export type UserParticipationDto = components['schemas']['UserParticipationDto']
 
-/**
- * API response wrapper for user events list
- * @generated from ApiResponseOfListOfUserEventDto
- */
-export type ApiResponseOfListOfUserEventDto = components['schemas']['ApiResponseOfListOfUserEventDto']
-
-/**
- * API response wrapper for user profile
- * @generated from ApiResponseOfUserProfileDto
- */
-export type ApiResponseOfUserProfileDto = components['schemas']['ApiResponseOfUserProfileDto']
+// API Response wrappers removed - API returns DTOs directly (Pattern B)
+// Use UserEventDto[] and UserProfileDto directly
 
 // ============================================================================
 // PLACEHOLDER TYPES - Backend Endpoints Not Yet Implemented

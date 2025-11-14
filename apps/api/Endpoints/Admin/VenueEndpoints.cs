@@ -28,26 +28,20 @@ public static class VenueEndpoints
                 // Verify authentication
                 if (!context.User.Identity?.IsAuthenticated ?? true)
                 {
-                    return Results.Json(new ApiResponse<List<VenueDto>>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Authentication required",
-                        Message = "You must be logged in to access venues"
-                    }, statusCode: 401);
+                    return Results.Problem(
+                        title: "Authentication Required",
+                        detail: "You must be logged in to access venues",
+                        statusCode: 401);
                 }
 
                 // Verify admin role
                 var userRole = context.User.FindFirst(ClaimTypes.Role)?.Value;
                 if (userRole != "Administrator")
                 {
-                    return Results.Json(new ApiResponse<List<VenueDto>>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Insufficient permissions",
-                        Message = "Administrator role required to manage venues"
-                    }, statusCode: 403);
+                    return Results.Problem(
+                        title: "Insufficient Permissions",
+                        detail: "Administrator role required to manage venues",
+                        statusCode: 403);
                 }
 
                 try
@@ -66,32 +60,24 @@ public static class VenueEndpoints
                         })
                         .ToListAsync(cancellationToken);
 
-                    return Results.Ok(new ApiResponse<List<VenueDto>>
-                    {
-                        Success = true,
-                        Data = venues,
-                        Message = $"Retrieved {venues.Count} venues"
-                    });
+                    return Results.Ok(venues);
                 }
                 catch (Exception ex)
                 {
-                    return Results.Json(new ApiResponse<List<VenueDto>>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Database error",
-                        Message = $"Failed to retrieve venues: {ex.Message}"
-                    }, statusCode: 500);
+                    return Results.Problem(
+                        title: "Database Error",
+                        detail: $"Failed to retrieve venues: {ex.Message}",
+                        statusCode: 500);
                 }
             })
             .WithName("GetAllVenues")
             .WithSummary("Get all venues (admin only)")
             .WithDescription("Returns all venues including inactive ones. Requires Administrator role.")
             .WithTags("Admin", "Venues")
-            .Produces<ApiResponse<List<VenueDto>>>(200)
-            .Produces(401)
-            .Produces(403)
-            .Produces(500);
+            .Produces<List<VenueDto>>(200)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .ProducesProblem(500);
 
         // GET /api/admin/venues/active - List active venues only
         app.MapGet("/api/admin/venues/active", async (
@@ -102,26 +88,20 @@ public static class VenueEndpoints
                 // Verify authentication
                 if (!context.User.Identity?.IsAuthenticated ?? true)
                 {
-                    return Results.Json(new ApiResponse<List<VenueDto>>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Authentication required",
-                        Message = "You must be logged in to access venues"
-                    }, statusCode: 401);
+                    return Results.Problem(
+                        title: "Authentication Required",
+                        detail: "You must be logged in to access venues",
+                        statusCode: 401);
                 }
 
                 // Verify admin role
                 var userRole = context.User.FindFirst(ClaimTypes.Role)?.Value;
                 if (userRole != "Administrator")
                 {
-                    return Results.Json(new ApiResponse<List<VenueDto>>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Insufficient permissions",
-                        Message = "Administrator role required to manage venues"
-                    }, statusCode: 403);
+                    return Results.Problem(
+                        title: "Insufficient Permissions",
+                        detail: "Administrator role required to manage venues",
+                        statusCode: 403);
                 }
 
                 try
@@ -141,32 +121,24 @@ public static class VenueEndpoints
                         })
                         .ToListAsync(cancellationToken);
 
-                    return Results.Ok(new ApiResponse<List<VenueDto>>
-                    {
-                        Success = true,
-                        Data = venues,
-                        Message = $"Retrieved {venues.Count} active venues"
-                    });
+                    return Results.Ok(venues);
                 }
                 catch (Exception ex)
                 {
-                    return Results.Json(new ApiResponse<List<VenueDto>>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Database error",
-                        Message = $"Failed to retrieve venues: {ex.Message}"
-                    }, statusCode: 500);
+                    return Results.Problem(
+                        title: "Database Error",
+                        detail: $"Failed to retrieve venues: {ex.Message}",
+                        statusCode: 500);
                 }
             })
             .WithName("GetActiveVenues")
             .WithSummary("Get active venues only (admin only)")
             .WithDescription("Returns only active venues. Requires Administrator role.")
             .WithTags("Admin", "Venues")
-            .Produces<ApiResponse<List<VenueDto>>>(200)
-            .Produces(401)
-            .Produces(403)
-            .Produces(500);
+            .Produces<List<VenueDto>>(200)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .ProducesProblem(500);
 
         // GET /api/admin/venues/{id} - Get single venue
         app.MapGet("/api/admin/venues/{id:int}", async (
@@ -178,26 +150,20 @@ public static class VenueEndpoints
                 // Verify authentication
                 if (!context.User.Identity?.IsAuthenticated ?? true)
                 {
-                    return Results.Json(new ApiResponse<VenueDto>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Authentication required",
-                        Message = "You must be logged in to access venues"
-                    }, statusCode: 401);
+                    return Results.Problem(
+                        title: "Authentication Required",
+                        detail: "You must be logged in to access venues",
+                        statusCode: 401);
                 }
 
                 // Verify admin role
                 var userRole = context.User.FindFirst(ClaimTypes.Role)?.Value;
                 if (userRole != "Administrator")
                 {
-                    return Results.Json(new ApiResponse<VenueDto>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Insufficient permissions",
-                        Message = "Administrator role required to manage venues"
-                    }, statusCode: 403);
+                    return Results.Problem(
+                        title: "Insufficient Permissions",
+                        detail: "Administrator role required to manage venues",
+                        statusCode: 403);
                 }
 
                 try
@@ -218,42 +184,31 @@ public static class VenueEndpoints
 
                     if (venue == null)
                     {
-                        return Results.Json(new ApiResponse<VenueDto>
-                        {
-                            Success = false,
-                            Data = null,
-                            Error = "Venue not found",
-                            Message = $"Venue with ID {id} does not exist"
-                        }, statusCode: 404);
+                        return Results.Problem(
+                            title: "Venue Not Found",
+                            detail: $"Venue with ID {id} does not exist",
+                            statusCode: 404);
                     }
 
-                    return Results.Ok(new ApiResponse<VenueDto>
-                    {
-                        Success = true,
-                        Data = venue,
-                        Message = "Venue retrieved successfully"
-                    });
+                    return Results.Ok(venue);
                 }
                 catch (Exception ex)
                 {
-                    return Results.Json(new ApiResponse<VenueDto>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Database error",
-                        Message = $"Failed to retrieve venue: {ex.Message}"
-                    }, statusCode: 500);
+                    return Results.Problem(
+                        title: "Database Error",
+                        detail: $"Failed to retrieve venue: {ex.Message}",
+                        statusCode: 500);
                 }
             })
             .WithName("GetVenue")
             .WithSummary("Get single venue (admin only)")
             .WithDescription("Returns a single venue by ID. Requires Administrator role.")
             .WithTags("Admin", "Venues")
-            .Produces<ApiResponse<VenueDto>>(200)
-            .Produces(401)
-            .Produces(403)
-            .Produces(404)
-            .Produces(500);
+            .Produces<VenueDto>(200)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .ProducesProblem(404)
+            .ProducesProblem(500);
 
         // POST /api/admin/venues - Create new venue
         app.MapPost("/api/admin/venues", async (
@@ -265,71 +220,53 @@ public static class VenueEndpoints
                 // Verify authentication
                 if (!context.User.Identity?.IsAuthenticated ?? true)
                 {
-                    return Results.Json(new ApiResponse<VenueDto>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Authentication required",
-                        Message = "You must be logged in to create venues"
-                    }, statusCode: 401);
+                    return Results.Problem(
+                        title: "Authentication Required",
+                        detail: "You must be logged in to create venues",
+                        statusCode: 401);
                 }
 
                 // Verify admin role
                 var userRole = context.User.FindFirst(ClaimTypes.Role)?.Value;
                 if (userRole != "Administrator")
                 {
-                    return Results.Json(new ApiResponse<VenueDto>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Insufficient permissions",
-                        Message = "Administrator role required to create venues"
-                    }, statusCode: 403);
+                    return Results.Problem(
+                        title: "Insufficient Permissions",
+                        detail: "Administrator role required to create venues",
+                        statusCode: 403);
                 }
 
                 // Validate input
                 if (string.IsNullOrWhiteSpace(request.Name))
                 {
-                    return Results.Json(new ApiResponse<VenueDto>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Validation failed",
-                        Message = "Venue name is required"
-                    }, statusCode: 400);
+                    return Results.Problem(
+                        title: "Validation Failed",
+                        detail: "Venue name is required",
+                        statusCode: 400);
                 }
 
                 if (request.Name.Length > 100)
                 {
-                    return Results.Json(new ApiResponse<VenueDto>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Validation failed",
-                        Message = "Venue name must not exceed 100 characters"
-                    }, statusCode: 400);
+                    return Results.Problem(
+                        title: "Validation Failed",
+                        detail: "Venue name must not exceed 100 characters",
+                        statusCode: 400);
                 }
 
                 if (request.Directions?.Length > 500)
                 {
-                    return Results.Json(new ApiResponse<VenueDto>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Validation failed",
-                        Message = "Directions must not exceed 500 characters"
-                    }, statusCode: 400);
+                    return Results.Problem(
+                        title: "Validation Failed",
+                        detail: "Directions must not exceed 500 characters",
+                        statusCode: 400);
                 }
 
                 if (request.Notes?.Length > 1000)
                 {
-                    return Results.Json(new ApiResponse<VenueDto>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Validation failed",
-                        Message = "Notes must not exceed 1000 characters"
-                    }, statusCode: 400);
+                    return Results.Problem(
+                        title: "Validation Failed",
+                        detail: "Notes must not exceed 1000 characters",
+                        statusCode: 400);
                 }
 
                 try
@@ -340,13 +277,10 @@ public static class VenueEndpoints
 
                     if (existingVenue)
                     {
-                        return Results.Json(new ApiResponse<VenueDto>
-                        {
-                            Success = false,
-                            Data = null,
-                            Error = "Duplicate venue name",
-                            Message = $"A venue with the name '{request.Name}' already exists"
-                        }, statusCode: 400);
+                        return Results.Problem(
+                            title: "Duplicate Venue Name",
+                            detail: $"A venue with the name '{request.Name}' already exists",
+                            statusCode: 400);
                     }
 
                     // Create new venue
@@ -374,33 +308,25 @@ public static class VenueEndpoints
                         UpdatedAt = venue.UpdatedAt
                     };
 
-                    return Results.Json(new ApiResponse<VenueDto>
-                    {
-                        Success = true,
-                        Data = venueDto,
-                        Message = "Venue created successfully"
-                    }, statusCode: 201);
+                    return Results.Created($"/api/admin/venues/{venue.Id}", venueDto);
                 }
                 catch (Exception ex)
                 {
-                    return Results.Json(new ApiResponse<VenueDto>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Database error",
-                        Message = $"Failed to create venue: {ex.Message}"
-                    }, statusCode: 500);
+                    return Results.Problem(
+                        title: "Database Error",
+                        detail: $"Failed to create venue: {ex.Message}",
+                        statusCode: 500);
                 }
             })
             .WithName("CreateVenue")
             .WithSummary("Create new venue (admin only)")
             .WithDescription("Creates a new venue. Requires Administrator role.")
             .WithTags("Admin", "Venues")
-            .Produces<ApiResponse<VenueDto>>(201)
-            .Produces(400)
-            .Produces(401)
-            .Produces(403)
-            .Produces(500);
+            .Produces<VenueDto>(201)
+            .ProducesProblem(400)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .ProducesProblem(500);
 
         // PUT /api/admin/venues/{id} - Update venue
         app.MapPut("/api/admin/venues/{id:int}", async (
@@ -413,71 +339,53 @@ public static class VenueEndpoints
                 // Verify authentication
                 if (!context.User.Identity?.IsAuthenticated ?? true)
                 {
-                    return Results.Json(new ApiResponse<VenueDto>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Authentication required",
-                        Message = "You must be logged in to update venues"
-                    }, statusCode: 401);
+                    return Results.Problem(
+                        title: "Authentication Required",
+                        detail: "You must be logged in to update venues",
+                        statusCode: 401);
                 }
 
                 // Verify admin role
                 var userRole = context.User.FindFirst(ClaimTypes.Role)?.Value;
                 if (userRole != "Administrator")
                 {
-                    return Results.Json(new ApiResponse<VenueDto>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Insufficient permissions",
-                        Message = "Administrator role required to update venues"
-                    }, statusCode: 403);
+                    return Results.Problem(
+                        title: "Insufficient Permissions",
+                        detail: "Administrator role required to update venues",
+                        statusCode: 403);
                 }
 
                 // Validate input
                 if (string.IsNullOrWhiteSpace(request.Name))
                 {
-                    return Results.Json(new ApiResponse<VenueDto>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Validation failed",
-                        Message = "Venue name is required"
-                    }, statusCode: 400);
+                    return Results.Problem(
+                        title: "Validation Failed",
+                        detail: "Venue name is required",
+                        statusCode: 400);
                 }
 
                 if (request.Name.Length > 100)
                 {
-                    return Results.Json(new ApiResponse<VenueDto>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Validation failed",
-                        Message = "Venue name must not exceed 100 characters"
-                    }, statusCode: 400);
+                    return Results.Problem(
+                        title: "Validation Failed",
+                        detail: "Venue name must not exceed 100 characters",
+                        statusCode: 400);
                 }
 
                 if (request.Directions?.Length > 500)
                 {
-                    return Results.Json(new ApiResponse<VenueDto>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Validation failed",
-                        Message = "Directions must not exceed 500 characters"
-                    }, statusCode: 400);
+                    return Results.Problem(
+                        title: "Validation Failed",
+                        detail: "Directions must not exceed 500 characters",
+                        statusCode: 400);
                 }
 
                 if (request.Notes?.Length > 1000)
                 {
-                    return Results.Json(new ApiResponse<VenueDto>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Validation failed",
-                        Message = "Notes must not exceed 1000 characters"
-                    }, statusCode: 400);
+                    return Results.Problem(
+                        title: "Validation Failed",
+                        detail: "Notes must not exceed 1000 characters",
+                        statusCode: 400);
                 }
 
                 try
@@ -486,13 +394,10 @@ public static class VenueEndpoints
 
                     if (venue == null)
                     {
-                        return Results.Json(new ApiResponse<VenueDto>
-                        {
-                            Success = false,
-                            Data = null,
-                            Error = "Venue not found",
-                            Message = $"Venue with ID {id} does not exist"
-                        }, statusCode: 404);
+                        return Results.Problem(
+                            title: "Venue Not Found",
+                            detail: $"Venue with ID {id} does not exist",
+                            statusCode: 404);
                     }
 
                     // Check for duplicate name (case-insensitive, excluding current venue)
@@ -501,13 +406,10 @@ public static class VenueEndpoints
 
                     if (duplicateName)
                     {
-                        return Results.Json(new ApiResponse<VenueDto>
-                        {
-                            Success = false,
-                            Data = null,
-                            Error = "Duplicate venue name",
-                            Message = $"Another venue with the name '{request.Name}' already exists"
-                        }, statusCode: 400);
+                        return Results.Problem(
+                            title: "Duplicate Venue Name",
+                            detail: $"Another venue with the name '{request.Name}' already exists",
+                            statusCode: 400);
                     }
 
                     // Update venue properties
@@ -530,34 +432,26 @@ public static class VenueEndpoints
                         UpdatedAt = venue.UpdatedAt
                     };
 
-                    return Results.Ok(new ApiResponse<VenueDto>
-                    {
-                        Success = true,
-                        Data = venueDto,
-                        Message = "Venue updated successfully"
-                    });
+                    return Results.Ok(venueDto);
                 }
                 catch (Exception ex)
                 {
-                    return Results.Json(new ApiResponse<VenueDto>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Database error",
-                        Message = $"Failed to update venue: {ex.Message}"
-                    }, statusCode: 500);
+                    return Results.Problem(
+                        title: "Database Error",
+                        detail: $"Failed to update venue: {ex.Message}",
+                        statusCode: 500);
                 }
             })
             .WithName("UpdateVenue")
             .WithSummary("Update venue (admin only)")
             .WithDescription("Updates an existing venue. Requires Administrator role.")
             .WithTags("Admin", "Venues")
-            .Produces<ApiResponse<VenueDto>>(200)
-            .Produces(400)
-            .Produces(401)
-            .Produces(403)
-            .Produces(404)
-            .Produces(500);
+            .Produces<VenueDto>(200)
+            .ProducesProblem(400)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .ProducesProblem(404)
+            .ProducesProblem(500);
 
         // DELETE /api/admin/venues/{id} - Soft delete venue
         app.MapDelete("/api/admin/venues/{id:int}", async (
@@ -569,26 +463,20 @@ public static class VenueEndpoints
                 // Verify authentication
                 if (!context.User.Identity?.IsAuthenticated ?? true)
                 {
-                    return Results.Json(new ApiResponse<object>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Authentication required",
-                        Message = "You must be logged in to delete venues"
-                    }, statusCode: 401);
+                    return Results.Problem(
+                        title: "Authentication Required",
+                        detail: "You must be logged in to delete venues",
+                        statusCode: 401);
                 }
 
                 // Verify admin role
                 var userRole = context.User.FindFirst(ClaimTypes.Role)?.Value;
                 if (userRole != "Administrator")
                 {
-                    return Results.Json(new ApiResponse<object>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Insufficient permissions",
-                        Message = "Administrator role required to delete venues"
-                    }, statusCode: 403);
+                    return Results.Problem(
+                        title: "Insufficient Permissions",
+                        detail: "Administrator role required to delete venues",
+                        statusCode: 403);
                 }
 
                 try
@@ -597,13 +485,10 @@ public static class VenueEndpoints
 
                     if (venue == null)
                     {
-                        return Results.Json(new ApiResponse<object>
-                        {
-                            Success = false,
-                            Data = null,
-                            Error = "Venue not found",
-                            Message = $"Venue with ID {id} does not exist"
-                        }, statusCode: 404);
+                        return Results.Problem(
+                            title: "Venue Not Found",
+                            detail: $"Venue with ID {id} does not exist",
+                            statusCode: 404);
                     }
 
                     // Soft delete (set IsActive = false)
@@ -616,13 +501,10 @@ public static class VenueEndpoints
                 }
                 catch (Exception ex)
                 {
-                    return Results.Json(new ApiResponse<object>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Database error",
-                        Message = $"Failed to delete venue: {ex.Message}"
-                    }, statusCode: 500);
+                    return Results.Problem(
+                        title: "Database Error",
+                        detail: $"Failed to delete venue: {ex.Message}",
+                        statusCode: 500);
                 }
             })
             .WithName("DeleteVenue")
@@ -630,9 +512,9 @@ public static class VenueEndpoints
             .WithDescription("Soft deletes a venue by setting IsActive to false. Preserves venue data for historical events. Requires Administrator role.")
             .WithTags("Admin", "Venues")
             .Produces(204)
-            .Produces(401)
-            .Produces(403)
-            .Produces(404)
-            .Produces(500);
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .ProducesProblem(404)
+            .ProducesProblem(500);
     }
 }

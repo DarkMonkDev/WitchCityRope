@@ -60,7 +60,8 @@
 - **Modern API is ONLY development target** - `/apps/api/` not archived `/src/` projects
 - **Docker-only testing environment** - NO local dev servers allowed
 - **Entity Framework ID generation** - NEVER initialize IDs in model properties
-- **API Response wrappers** - ALL endpoints must return `ApiResponse<T>` format
+- **API Response pattern (Pattern B - OFFICIAL STANDARD)** - Direct `Results.Ok(dto)` or `Results.Problem()` (RFC 9457 Problem Details) - **ApiResponse<T> wrapper is DEPRECATED**
+- **Service Layer pattern** - Use `Result<T>` or tuple pattern `(bool Success, T? Data, string Error)`
 - **Path format** - ALWAYS use repo-relative paths like `/home/chad/repos/witchcityrope/docs/...` NOT full system paths
 
 ## 🛠️ AVAILABLE DEVELOPMENT TOOLS
@@ -168,29 +169,66 @@ var claims = new[]
 
 **CRITICAL**: Role names in `[Authorize(Roles = "")]` MUST match database role values exactly
 
-## 🚨 CRITICAL: API Response Format Mismatch - Frontend Shows "No Data" 🚨
+## 🚨 CRITICAL: API Response Pattern B - THE OFFICIAL STANDARD 🚨
 
-**Problem**: Frontend shows "No data" despite API returning valid data
-**Root Cause**: API returns `List<T>` directly, but frontend expects `ApiResponse<List<T>>` wrapper
+**DECISION MADE (2025-11-13)**: Pattern B is now the **OFFICIAL STANDARD** for WitchCityRope API responses.
 
-**BEFORE (BROKEN)**:
+**Pattern B Definition (THE STANDARD)**:
+- **Success responses**: Direct `Results.Ok(dto)` - NO wrapper
+- **Error responses**: `Results.Problem()` with RFC 9457 Problem Details
+- **Service layer**: Tuple pattern `(bool Success, T? Data, string Error)` OR Result<T> pattern
+- **ApiResponse<T> wrapper**: **DEPRECATED - DO NOT USE**
+
+**ENDPOINT LAYER** (Minimal API - Pattern B):
 ```csharp
-// ❌ RETURNS RAW ARRAY - Frontend gets undefined data
-return Results.Ok(result.Value);  // Direct array
+// ✅ CORRECT - Direct Results pattern (Pattern B - OFFICIAL STANDARD)
+app.MapGet("/api/events/{id}", async (int id, EventService service) =>
+{
+    var result = await service.GetEventAsync(id);
+    return result.IsSuccess
+        ? Results.Ok(result.Value)      // Direct DTO - NO wrapper
+        : Results.Problem(result.Error); // RFC 9457 Problem Details
+});
 ```
 
-**AFTER (FIXED)**:
+**SERVICE LAYER** (Business Logic):
 ```csharp
-// ✅ RETURNS WRAPPED FORMAT - Frontend gets data properly
-return Results.Ok(new ApiResponse<List<EventParticipationDto>>
+// ✅ CORRECT - Result<T> pattern OR tuple pattern
+public async Task<Result<EventDto>> GetEventAsync(int id)
+{
+    // Internal tuple: (bool Success, EventDto? Data, string Error)
+    var eventEntity = await _db.Events.FindAsync(id);
+    if (eventEntity == null)
+        return Result<EventDto>.Failure("Event not found");
+
+    return Result<EventDto>.Success(new EventDto(eventEntity));
+}
+```
+
+**DEPRECATED PATTERN** (ApiResponse<T> wrapper - NO LONGER USED):
+```csharp
+// ❌ DEPRECATED - ApiResponse<T> wrapper is NO LONGER THE STANDARD
+return Results.Ok(new ApiResponse<EventDto>
 {
     Success = true,
-    Data = result.Value,  // Array in 'data' property
+    Data = dto,
     Timestamp = DateTime.UtcNow
 });
 ```
 
-**MANDATORY**: ALL API endpoints must return consistent `ApiResponse<T>` wrapper format
+**WHY PATTERN B IS THE STANDARD**:
+1. **Industry Best Practice**: Milan Jovanović (2025), Microsoft .NET 9 guidance, RFC 9457 compliance
+2. **Direct Results**: Cleaner, simpler, less ceremony
+3. **RFC 9457 Compliance**: Standardized error format (Problem Details)
+4. **No Double Wrapping**: Frontend doesn't need to unwrap twice
+5. **Better HTTP Semantics**: Status codes match actual success/failure
+
+**MIGRATION NOTE**:
+- Legacy `ApiResponse<T>` references in OLD documentation are **historical only**
+- Current standard is **Pattern B - Direct Results + RFC 9457 Problem Details**
+- **ALL NEW CODE** must use Pattern B
+- **DO NOT** add ApiResponse<T> wrappers to new endpoints
+- See `/home/chad/repos/witchcityrope/docs/standards-processes/backend/api-design-patterns.md` for full details
 
 ## 🚨 CRITICAL: Path Format Standard - NO Full System Paths 🚨
 
@@ -269,7 +307,7 @@ lsof -i :5655 | grep -v docker || echo "No conflicts"
 - CMS content stored in `CmsPage` and `CmsPageRevision` tables
 - New pages added ONLY through `CmsSeedData.cs` (no admin UI for page creation)
 - Revision history tracked automatically for all content changes
-- API endpoints follow standard `ApiResponse<T>` wrapper pattern
+- API endpoints follow Pattern B standard (Direct Results + RFC 9457 Problem Details)
 - Content validation handled server-side before persistence
 
 ---

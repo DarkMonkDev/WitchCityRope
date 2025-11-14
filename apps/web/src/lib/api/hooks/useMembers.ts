@@ -1,23 +1,23 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import { apiClient } from '../client'
 import { memberKeys, cacheUtils } from '../utils/cache'
-import type { 
-  UserDto, 
-  UpdateMemberDto, 
+import type {
+  UserDto,
+  UpdateMemberDto,
   StatusUpdateDto,
-  MemberFilters 
+  MemberFilters
 } from '../types/members.types'
-import type { ApiResponse, PaginatedResponse } from '../types/api.types'
+import type { PaginatedResponse } from '../types/api.types'
 
 // Fetch members list with filters
 export function useMembers(filters: MemberFilters = {}) {
   return useQuery({
     queryKey: memberKeys.list(filters),
     queryFn: async (): Promise<UserDto[]> => {
-      const { data } = await apiClient.get<ApiResponse<UserDto[]>>('/api/members', {
+      const { data } = await apiClient.get<UserDto[]>('/api/members', {
         params: filters,
       })
-      return data.data || []
+      return data || []
     },
     staleTime: 10 * 60 * 1000, // 10 minutes for member data
   })
@@ -28,12 +28,12 @@ export function useInfiniteMembers(filters: Omit<MemberFilters, 'page'> = {}) {
   return useInfiniteQuery({
     queryKey: memberKeys.infiniteList(filters),
     queryFn: async ({ pageParam = 1 }): Promise<PaginatedResponse<UserDto>> => {
-      const { data } = await apiClient.get<ApiResponse<PaginatedResponse<UserDto>>>('/api/members', {
+      const { data } = await apiClient.get<PaginatedResponse<UserDto>>('/api/members', {
         params: { ...filters, page: pageParam, limit: 20 },
       })
-      return data.data || { items: [], page: 1, limit: 20, total: 0, totalPages: 0, hasNext: false, hasPrev: false }
+      return data || { items: [], page: 1, limit: 20, total: 0, totalPages: 0, hasNext: false, hasPrev: false }
     },
-    getNextPageParam: (lastPage) => 
+    getNextPageParam: (lastPage) =>
       lastPage.hasNext ? lastPage.page + 1 : undefined,
     initialPageParam: 1,
     staleTime: 10 * 60 * 1000,
@@ -45,9 +45,9 @@ export function useMember(id: string, enabled: boolean = true) {
   return useQuery({
     queryKey: memberKeys.detail(id),
     queryFn: async (): Promise<UserDto> => {
-      const { data } = await apiClient.get<ApiResponse<UserDto>>(`/api/members/${id}`)
-      if (!data.data) throw new Error('Member not found')
-      return data.data
+      const { data } = await apiClient.get<UserDto>(`/api/members/${id}`)
+      if (!data) throw new Error('Member not found')
+      return data
     },
     enabled: !!id && enabled,
     staleTime: 10 * 60 * 1000,
@@ -57,12 +57,12 @@ export function useMember(id: string, enabled: boolean = true) {
 // Update member mutation
 export function useUpdateMember() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async (memberData: UpdateMemberDto): Promise<UserDto> => {
-      const { data } = await apiClient.put<ApiResponse<UserDto>>(`/api/members/${memberData.id}`, memberData)
-      if (!data.data) throw new Error('Failed to update member')
-      return data.data
+      const { data } = await apiClient.put<UserDto>(`/api/members/${memberData.id}`, memberData)
+      if (!data) throw new Error('Failed to update member')
+      return data
     },
     onMutate: async (updatedMember) => {
       // Cancel outgoing refetches
@@ -97,13 +97,13 @@ export function useUpdateMember() {
 // Update member status with optimistic updates
 export function useUpdateMemberStatus() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async ({ id, status, reason }: { id: string; status: string; reason?: string }): Promise<UserDto> => {
       const payload: StatusUpdateDto = { status, reason }
-      const { data } = await apiClient.put<ApiResponse<UserDto>>(`/api/members/${id}/status`, payload)
-      if (!data.data) throw new Error('Failed to update member status')
-      return data.data
+      const { data } = await apiClient.put<UserDto>(`/api/members/${id}/status`, payload)
+      if (!data) throw new Error('Failed to update member status')
+      return data
     },
     onMutate: async ({ id, status }) => {
       await queryClient.cancelQueries({ queryKey: memberKeys.detail(id) })
@@ -134,11 +134,11 @@ export function useUpdateMemberStatus() {
 // Bulk operations for admin use
 export function useBulkUpdateMembers() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async (updates: { memberIds: string[]; updates: Partial<UserDto> }): Promise<UserDto[]> => {
-      const { data } = await apiClient.put<ApiResponse<UserDto[]>>('/api/members/bulk', updates)
-      return data.data || []
+      const { data } = await apiClient.put<UserDto[]>('/api/members/bulk', updates)
+      return data || []
     },
     onSuccess: (updatedMembers) => {
       // Update individual member caches
@@ -162,11 +162,11 @@ export function useMemberSearch(searchTerm: string, enabled: boolean = true) {
     queryKey: [...memberKeys.lists(), 'search', searchTerm],
     queryFn: async (): Promise<UserDto[]> => {
       if (!searchTerm.trim()) return []
-      
-      const { data } = await apiClient.get<ApiResponse<UserDto[]>>('/api/members/search', {
+
+      const { data } = await apiClient.get<UserDto[]>('/api/members/search', {
         params: { q: searchTerm, limit: 10 },
       })
-      return data.data || []
+      return data || []
     },
     enabled: enabled && searchTerm.length >= 2,
     staleTime: 30 * 1000, // 30 seconds for search results

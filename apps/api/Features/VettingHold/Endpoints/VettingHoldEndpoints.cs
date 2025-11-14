@@ -23,11 +23,11 @@ public static class VettingHoldEndpoints
             .WithSummary("Place membership on hold (user action)")
             .WithDescription("Allows approved users to voluntarily place their membership on hold. " +
                            "Cancels all future social event RSVPs and changes status to OnHold.")
-            .Produces<ApiResponse<MembershipHoldResponse>>(200)
-            .Produces<ApiResponse<object>>(400)
-            .Produces<ApiResponse<object>>(401)
-            .Produces<ApiResponse<object>>(403)
-            .Produces<ApiResponse<object>>(500);
+            .Produces<MembershipHoldResponse>(200)
+            .ProducesProblem(400)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .ProducesProblem(500);
 
         // PUT: Request reinstatement
         group.MapPut("/reinstate", RequestReinstatement)
@@ -35,22 +35,22 @@ public static class VettingHoldEndpoints
             .WithSummary("Request membership reinstatement (user action)")
             .WithDescription("Allows users on hold to request reinstatement. " +
                            "Changes status to FinalReview for admin approval.")
-            .Produces<ApiResponse<MembershipHoldResponse>>(200)
-            .Produces<ApiResponse<object>>(400)
-            .Produces<ApiResponse<object>>(401)
-            .Produces<ApiResponse<object>>(403)
-            .Produces<ApiResponse<object>>(500);
+            .Produces<MembershipHoldResponse>(200)
+            .ProducesProblem(400)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .ProducesProblem(500);
 
         // GET: Get hold status
         group.MapGet("/hold-status", GetHoldStatus)
             .WithName("GetVettingHoldStatus")
             .WithSummary("Get current hold/reinstatement status")
             .WithDescription("Returns current vetting status and available actions (can place on hold, can request reinstatement).")
-            .Produces<ApiResponse<VettingHoldStatusResponse>>(200)
-            .Produces<ApiResponse<object>>(401)
-            .Produces<ApiResponse<object>>(403)
-            .Produces<ApiResponse<object>>(404)
-            .Produces<ApiResponse<object>>(500);
+            .Produces<VettingHoldStatusResponse>(200)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .ProducesProblem(404)
+            .ProducesProblem(500);
     }
 
     /// <summary>
@@ -71,28 +71,18 @@ public static class VettingHoldEndpoints
             var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var authenticatedUserId))
             {
-                return Results.Json(
-                    new ApiResponse<object>
-                    {
-                        Success = false,
-                        Error = "Unauthorized",
-                        Message = "User not authenticated",
-                        Timestamp = DateTime.UtcNow
-                    },
+                return Results.Problem(
+                    title: "Unauthorized",
+                    detail: "User not authenticated",
                     statusCode: 401);
             }
 
             // Verify user is operating on their own profile
             if (authenticatedUserId != userId)
             {
-                return Results.Json(
-                    new ApiResponse<object>
-                    {
-                        Success = false,
-                        Error = "Forbidden",
-                        Message = "You can only place your own membership on hold",
-                        Timestamp = DateTime.UtcNow
-                    },
+                return Results.Problem(
+                    title: "Forbidden",
+                    detail: "You can only place your own membership on hold",
                     statusCode: 403);
             }
 
@@ -104,34 +94,19 @@ public static class VettingHoldEndpoints
 
             if (!result.IsSuccess)
             {
-                return Results.Json(
-                    new ApiResponse<object>
-                    {
-                        Success = false,
-                        Error = result.Error,
-                        Message = result.Details,
-                        Timestamp = DateTime.UtcNow
-                    },
+                return Results.Problem(
+                    title: "Failed to place membership on hold",
+                    detail: result.Error ?? result.Details ?? "Failed to place membership on hold",
                     statusCode: 400);
             }
 
-            return Results.Ok(new ApiResponse<MembershipHoldResponse>
-            {
-                Success = true,
-                Data = result.Value,
-                Timestamp = DateTime.UtcNow
-            });
+            return Results.Ok(result.Value); // Direct DTO
         }
         catch (Exception ex)
         {
-            return Results.Json(
-                new ApiResponse<object>
-                {
-                    Success = false,
-                    Error = "Internal server error",
-                    Message = ex.Message,
-                    Timestamp = DateTime.UtcNow
-                },
+            return Results.Problem(
+                title: "Internal server error",
+                detail: ex.Message,
                 statusCode: 500);
         }
     }
@@ -154,28 +129,18 @@ public static class VettingHoldEndpoints
             var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var authenticatedUserId))
             {
-                return Results.Json(
-                    new ApiResponse<object>
-                    {
-                        Success = false,
-                        Error = "Unauthorized",
-                        Message = "User not authenticated",
-                        Timestamp = DateTime.UtcNow
-                    },
+                return Results.Problem(
+                    title: "Unauthorized",
+                    detail: "User not authenticated",
                     statusCode: 401);
             }
 
             // Verify user is operating on their own profile
             if (authenticatedUserId != userId)
             {
-                return Results.Json(
-                    new ApiResponse<object>
-                    {
-                        Success = false,
-                        Error = "Forbidden",
-                        Message = "You can only request reinstatement for your own membership",
-                        Timestamp = DateTime.UtcNow
-                    },
+                return Results.Problem(
+                    title: "Forbidden",
+                    detail: "You can only request reinstatement for your own membership",
                     statusCode: 403);
             }
 
@@ -187,34 +152,19 @@ public static class VettingHoldEndpoints
 
             if (!result.IsSuccess)
             {
-                return Results.Json(
-                    new ApiResponse<object>
-                    {
-                        Success = false,
-                        Error = result.Error,
-                        Message = result.Details,
-                        Timestamp = DateTime.UtcNow
-                    },
+                return Results.Problem(
+                    title: "Failed to request reinstatement",
+                    detail: result.Error ?? result.Details ?? "Failed to request reinstatement",
                     statusCode: 400);
             }
 
-            return Results.Ok(new ApiResponse<MembershipHoldResponse>
-            {
-                Success = true,
-                Data = result.Value,
-                Timestamp = DateTime.UtcNow
-            });
+            return Results.Ok(result.Value); // Direct DTO
         }
         catch (Exception ex)
         {
-            return Results.Json(
-                new ApiResponse<object>
-                {
-                    Success = false,
-                    Error = "Internal server error",
-                    Message = ex.Message,
-                    Timestamp = DateTime.UtcNow
-                },
+            return Results.Problem(
+                title: "Internal server error",
+                detail: ex.Message,
                 statusCode: 500);
         }
     }
@@ -235,28 +185,18 @@ public static class VettingHoldEndpoints
             var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var authenticatedUserId))
             {
-                return Results.Json(
-                    new ApiResponse<object>
-                    {
-                        Success = false,
-                        Error = "Unauthorized",
-                        Message = "User not authenticated",
-                        Timestamp = DateTime.UtcNow
-                    },
+                return Results.Problem(
+                    title: "Unauthorized",
+                    detail: "User not authenticated",
                     statusCode: 401);
             }
 
             // Verify user is operating on their own profile
             if (authenticatedUserId != userId)
             {
-                return Results.Json(
-                    new ApiResponse<object>
-                    {
-                        Success = false,
-                        Error = "Forbidden",
-                        Message = "You can only view your own hold status",
-                        Timestamp = DateTime.UtcNow
-                    },
+                return Results.Problem(
+                    title: "Forbidden",
+                    detail: "You can only view your own hold status",
                     statusCode: 403);
             }
 
@@ -265,34 +205,19 @@ public static class VettingHoldEndpoints
 
             if (!result.IsSuccess)
             {
-                return Results.Json(
-                    new ApiResponse<object>
-                    {
-                        Success = false,
-                        Error = result.Error,
-                        Message = result.Details,
-                        Timestamp = DateTime.UtcNow
-                    },
+                return Results.Problem(
+                    title: "Hold status not found",
+                    detail: result.Error ?? result.Details ?? "Hold status not found",
                     statusCode: 404);
             }
 
-            return Results.Ok(new ApiResponse<VettingHoldStatusResponse>
-            {
-                Success = true,
-                Data = result.Value,
-                Timestamp = DateTime.UtcNow
-            });
+            return Results.Ok(result.Value); // Direct DTO
         }
         catch (Exception ex)
         {
-            return Results.Json(
-                new ApiResponse<object>
-                {
-                    Success = false,
-                    Error = "Internal server error",
-                    Message = ex.Message,
-                    Timestamp = DateTime.UtcNow
-                },
+            return Results.Problem(
+                title: "Internal server error",
+                detail: ex.Message,
                 statusCode: 500);
         }
     }

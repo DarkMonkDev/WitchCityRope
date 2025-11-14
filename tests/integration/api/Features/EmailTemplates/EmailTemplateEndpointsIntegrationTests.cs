@@ -75,11 +75,10 @@ public class EmailTemplateEndpointsIntegrationTests : IntegrationTestBase, IDisp
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<GlobalEmailTemplateDto>>>();
+        var result = await response.Content.ReadFromJsonAsync<List<GlobalEmailTemplateDto>>();
         result.Should().NotBeNull();
-        result!.Success.Should().BeTrue();
-        result.Data.Should().NotBeNullOrEmpty();
-        result.Data!.Count.Should().BeGreaterThanOrEqualTo(2);
+        result.Should().NotBeNullOrEmpty();
+        result!.Count.Should().BeGreaterThanOrEqualTo(2);
     }
 
     [Fact]
@@ -131,12 +130,10 @@ public class EmailTemplateEndpointsIntegrationTests : IntegrationTestBase, IDisp
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.Content.ReadFromJsonAsync<ApiResponse<GlobalEmailTemplateDto>>();
+        var result = await response.Content.ReadFromJsonAsync<GlobalEmailTemplateDto>();
         result.Should().NotBeNull();
-        result!.Success.Should().BeTrue();
-        result.Data.Should().NotBeNull();
-        result.Data!.Subject.Should().Be("Updated Subject Line");
-        result.Data.Version.Should().BeGreaterThan(1);
+        result!.Subject.Should().Be("Updated Subject Line");
+        result.Version.Should().BeGreaterThan(1);
     }
 
     [Fact]
@@ -179,11 +176,10 @@ public class EmailTemplateEndpointsIntegrationTests : IntegrationTestBase, IDisp
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<EventEmailTemplateDto>>>();
+        var result = await response.Content.ReadFromJsonAsync<List<EventEmailTemplateDto>>();
         result.Should().NotBeNull();
-        result!.Success.Should().BeTrue();
-        result.Data.Should().NotBeNullOrEmpty();
-        result.Data.Should().OnlyContain(t => t.IsCustomized == false);
+        result.Should().NotBeNullOrEmpty();
+        result!.Should().OnlyContain(t => t.IsCustomized == false);
     }
 
     [Fact]
@@ -201,12 +197,11 @@ public class EmailTemplateEndpointsIntegrationTests : IntegrationTestBase, IDisp
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<EventEmailTemplateDto>>>();
+        var result = await response.Content.ReadFromJsonAsync<List<EventEmailTemplateDto>>();
         result.Should().NotBeNull();
-        result!.Success.Should().BeTrue();
-        result.Data.Should().HaveCount(2);
-        result.Data.Should().ContainSingle(t => t.IsCustomized == true && t.TemplateType == "Confirmation");
-        result.Data.Should().ContainSingle(t => t.IsCustomized == false && t.TemplateType == "Reminder1Day");
+        result!.Should().HaveCount(2);
+        result.Should().ContainSingle(t => t.IsCustomized == true && t.TemplateType == "Confirmation");
+        result.Should().ContainSingle(t => t.IsCustomized == false && t.TemplateType == "Reminder1Day");
     }
 
     #endregion
@@ -234,12 +229,10 @@ public class EmailTemplateEndpointsIntegrationTests : IntegrationTestBase, IDisp
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.Content.ReadFromJsonAsync<ApiResponse<EventEmailTemplateDto>>();
+        var result = await response.Content.ReadFromJsonAsync<EventEmailTemplateDto>();
         result.Should().NotBeNull();
-        result!.Success.Should().BeTrue();
-        result.Data.Should().NotBeNull();
-        result.Data!.IsCustomized.Should().BeTrue();
-        result.Data.Subject.Should().Be("Custom Event Confirmation");
+        result!.IsCustomized.Should().BeTrue();
+        result.Subject.Should().Be("Custom Event Confirmation");
 
         // Verify database persistence
         await using var context = CreateDbContext();
@@ -271,11 +264,9 @@ public class EmailTemplateEndpointsIntegrationTests : IntegrationTestBase, IDisp
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.Content.ReadFromJsonAsync<ApiResponse<EventEmailTemplateDto>>();
+        var result = await response.Content.ReadFromJsonAsync<EventEmailTemplateDto>();
         result.Should().NotBeNull();
-        result!.Success.Should().BeTrue();
-        result.Data.Should().NotBeNull();
-        result.Data!.Subject.Should().Be("Second Update");
+        result!.Subject.Should().Be("Second Update");
 
         // Verify same template was updated (not new one created)
         await using var context = CreateDbContext();
@@ -329,9 +320,9 @@ public class EmailTemplateEndpointsIntegrationTests : IntegrationTestBase, IDisp
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<EventEmailTemplateDto>>>();
+        var result = await response.Content.ReadFromJsonAsync<List<EventEmailTemplateDto>>();
         result.Should().NotBeNull();
-        var confirmation = result!.Data!.FirstOrDefault(t => t.TemplateType == "Confirmation");
+        var confirmation = result!.FirstOrDefault(t => t.TemplateType == "Confirmation");
         confirmation.Should().NotBeNull();
         confirmation!.IsCustomized.Should().BeFalse(); // Back to global default
         confirmation.Subject.Should().Be("Global Confirmation Subject");
@@ -487,7 +478,7 @@ public class EmailTemplateEndpointsIntegrationTests : IntegrationTestBase, IDisp
             Description = "Test event for email templates",
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(3),
-            Location = "Test Location",
+            VenueId = 1, // Default test venue
             EventType = WitchCityRope.Api.Enums.EventType.Class,
             Capacity = 20,
             IsPublished = true,

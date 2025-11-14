@@ -44,5 +44,8 @@
       "bash -c 'cd apps/web && eslint --fix --max-warnings 0 \"$@\"' _",
       "prettier --write"
     ]
+  },
+  "dependencies": {
+    "chrome-remote-interface": "^0.33.3"
   }
 }

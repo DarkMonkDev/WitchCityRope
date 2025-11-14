@@ -22,11 +22,8 @@ import type { PaginationParams } from './api.types'
  */
 export type EventDto = components['schemas']['EventDto']
 
-/**
- * Event DTO with full details (extended version)
- * @generated from EventDto2 DTO
- */
-export type EventDto2 = components['schemas']['EventDto2']
+// EventDto2 removed - does not exist in current generated schema
+// Use EventDto instead
 
 /**
  * Event session DTO

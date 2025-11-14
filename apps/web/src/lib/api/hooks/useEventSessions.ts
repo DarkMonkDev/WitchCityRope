@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { eventSessionsApi } from '../services/eventSessions'
-import type { 
-  EventSessionDto, 
-  CreateEventSessionDto, 
+import type {
+  SessionDto,
+  CreateEventSessionDto,
   UpdateEventSessionDto,
-  EventTicketTypeDto,
+  TicketTypeDto,
   CreateEventTicketTypeDto,
   UpdateEventTicketTypeDto
 } from '../services/eventSessions'
@@ -175,12 +175,12 @@ export function useEventSessionMatrix(eventId: string, enabled: boolean = true) 
   
   return {
     // Sessions data and state
-    sessions: (sessionsQuery.data as EventSessionDto[]) || [],
+    sessions: (sessionsQuery.data as SessionDto[]) || [],
     sessionsLoading: sessionsQuery.isLoading,
     sessionsError: sessionsQuery.error,
-    
+
     // Ticket types data and state
-    ticketTypes: (ticketTypesQuery.data as EventTicketTypeDto[]) || [],
+    ticketTypes: (ticketTypesQuery.data as TicketTypeDto[]) || [],
     ticketTypesLoading: ticketTypesQuery.isLoading,
     ticketTypesError: ticketTypesQuery.error,
     

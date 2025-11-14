@@ -23,34 +23,26 @@ import { mapIncidentDetailFromBackend } from '../types/safety.types';
 export const safetyApi = {
   /**
    * Submit a new safety incident report (anonymous or authenticated)
-   * Backend returns SubmissionResponse wrapped in ApiResponse
+   * Backend returns SubmissionResponse directly (Pattern B)
    */
   async submitIncident(request: SubmitIncidentRequest): Promise<SubmissionResponse> {
-    const { data } = await apiClient.post<ApiResponse<SubmissionResponse>>(
+    const { data } = await apiClient.post<SubmissionResponse>(
       '/api/safety/incidents',
       request
     );
 
-    if (!data.data) {
-      throw new Error(data.error || 'Failed to submit incident');
-    }
-
-    return data.data;
+    return data;
   },
 
   /**
    * Get incident status by reference number (public endpoint)
    */
   async getIncidentStatus(referenceNumber: string): Promise<IncidentStatusResponse> {
-    const { data } = await apiClient.get<ApiResponse<IncidentStatusResponse>>(
+    const { data } = await apiClient.get<IncidentStatusResponse>(
       `/api/safety/incidents/${referenceNumber}/status`
     );
-    
-    if (!data.data) {
-      throw new Error(data.error || 'Incident not found');
-    }
-    
-    return data.data;
+
+    return data;
   },
 
   /**
@@ -59,31 +51,23 @@ export const safetyApi = {
    * frontend-friendly format (coordinatorId/coordinatorName)
    */
   async getIncidentDetail(incidentId: string): Promise<FrontendIncidentDetails> {
-    const { data } = await apiClient.get<ApiResponse<SafetyIncidentDto>>(
+    const { data } = await apiClient.get<SafetyIncidentDto>(
       `/api/safety/admin/incidents/${incidentId}`
     );
 
-    if (!data.data) {
-      throw new Error(data.error || 'Failed to get incident details');
-    }
-
     // Transform backend field names to frontend expectations
-    return mapIncidentDetailFromBackend(data.data);
+    return mapIncidentDetailFromBackend(data);
   },
 
   /**
    * Get safety dashboard data (safety team only)
    */
   async getDashboardData(): Promise<SafetyDashboardResponse> {
-    const { data } = await apiClient.get<ApiResponse<SafetyDashboardResponse>>(
+    const { data } = await apiClient.get<SafetyDashboardResponse>(
       '/api/safety/admin/dashboard'
     );
-    
-    if (!data.data) {
-      throw new Error(data.error || 'Failed to load dashboard data');
-    }
-    
-    return data.data;
+
+    return data;
   },
 
   /**
@@ -132,48 +116,36 @@ export const safetyApi = {
    * Transforms backend IncidentResponse to frontend-friendly format
    */
   async updateIncident(incidentId: string, request: UpdateIncidentRequest): Promise<FrontendIncidentDetails> {
-    const { data } = await apiClient.patch<ApiResponse<SafetyIncidentDto>>(
+    const { data } = await apiClient.patch<SafetyIncidentDto>(
       `/api/safety/admin/incidents/${incidentId}`,
       request
     );
 
-    if (!data.data) {
-      throw new Error(data.error || 'Failed to update incident');
-    }
-
     // Transform backend field names to frontend expectations
-    return mapIncidentDetailFromBackend(data.data);
+    return mapIncidentDetailFromBackend(data);
   },
 
   /**
    * Get user's own incident reports (authenticated users)
    */
   async getUserReports(): Promise<IncidentSummaryDto[]> {
-    const { data } = await apiClient.get<ApiResponse<IncidentSummaryDto[]>>(
+    const { data } = await apiClient.get<IncidentSummaryDto[]>(
       '/api/safety/my-reports'
     );
-    
-    if (!data.data) {
-      throw new Error(data.error || 'Failed to get user reports');
-    }
-    
-    return data.data;
+
+    return data;
   },
 
   /**
    * Get safety dashboard data for admin/safety team
-   * Backend returns AdminDashboardResponse wrapped in ApiResponse
+   * Backend returns AdminDashboardResponse directly (Pattern B)
    */
   async getSafetyDashboard(): Promise<SafetyDashboardResponse> {
-    const { data } = await apiClient.get<ApiResponse<SafetyDashboardResponse>>(
+    const { data } = await apiClient.get<SafetyDashboardResponse>(
       '/api/safety/admin/dashboard'
     );
 
-    if (!data.data) {
-      throw new Error(data.error || 'Failed to load dashboard data');
-    }
-
-    return data.data;
+    return data;
   },
 
   /**

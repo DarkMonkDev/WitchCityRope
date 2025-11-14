@@ -12,9 +12,9 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using WitchCityRope.Api.Data;
-using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Features.Vetting.Entities;
 using WitchCityRope.Api.Features.Vetting.Models;
+using WitchCityRope.Api.Models;
 using WitchCityRope.Tests.Common.Fixtures;
 using Xunit;
 
@@ -174,9 +174,8 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
 
         // NOTE: In a real test, you would verify email was sent using a mock email service
         // For now, we verify the endpoint succeeded, which should trigger email sending
-        var responseData = await response.Content.ReadFromJsonAsync<ApiResponse<ReviewDecisionResponse>>();
+        var responseData = await response.Content.ReadFromJsonAsync<ReviewDecisionResponse>();
         responseData.Should().NotBeNull();
-        responseData!.Success.Should().BeTrue();
     }
 
     #endregion
@@ -274,10 +273,8 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Verify response indicates success
-        var responseData = await response.Content.ReadFromJsonAsync<ApiResponse<ReviewDecisionResponse>>();
+        var responseData = await response.Content.ReadFromJsonAsync<ReviewDecisionResponse>();
         responseData.Should().NotBeNull();
-        responseData!.Success.Should().BeTrue();
-        responseData.Message.Should().ContainEquivalentOf("approved");
     }
 
     #endregion
@@ -328,9 +325,8 @@ public class VettingEndpointsIntegrationTests : IntegrationTestBase
         application!.WorkflowStatus.Should().Be(VettingStatus.Denied);
 
         // Verify response
-        var responseData = await response.Content.ReadFromJsonAsync<ApiResponse<ReviewDecisionResponse>>();
+        var responseData = await response.Content.ReadFromJsonAsync<ReviewDecisionResponse>();
         responseData.Should().NotBeNull();
-        responseData!.Success.Should().BeTrue();
     }
 
     #endregion

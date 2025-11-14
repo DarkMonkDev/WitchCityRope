@@ -366,7 +366,7 @@ export const AdminEventDetailsPage: React.FC = () => {
           style={{
             color: 'var(--mantine-color-wcr-7)',
             cursor: 'pointer',
-            textDecoration: 'none',
+            textDecoration: 'none'
           }}
         >
           Admin Events

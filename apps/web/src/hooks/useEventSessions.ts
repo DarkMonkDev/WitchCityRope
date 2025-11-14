@@ -1,44 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../lib/api/client';
-import type { ApiResponse } from '../lib/api/types/api.types';
 import type { EventSession } from '../components/events/EventSessionsGrid';
+import type { SessionDto, CreateEventSessionDto, UpdateEventSessionDto } from '../lib/api/types/event-session-matrix.types';
 
-// Extended types for the Event Session Matrix
-export interface EventSessionDto {
-  id: string;
-  eventId: string;
-  sessionIdentifier: string; // S1, S2, S3, etc.
-  name: string;
-  date: string; // ISO date string
-  startTime: string; // HH:MM format
-  endTime: string; // HH:MM format
-  capacity: number;
-  registrationCount: number;
-  isRequired: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+/**
+ * ✅ DTO ALIGNMENT STRATEGY COMPLIANT
+ * Types imported from event-session-matrix.types.ts which uses auto-generated SessionDto
+ */
 
-export interface CreateEventSessionDto {
-  eventId: string;
-  sessionIdentifier: string;
-  name: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  capacity: number;
-  isRequired?: boolean;
-}
-
-export interface UpdateEventSessionDto {
-  id: string;
-  name?: string;
-  date?: string;
-  startTime?: string;
-  endTime?: string;
-  capacity?: number;
-  isRequired?: boolean;
-}
+// Type alias for backward compatibility (used throughout this file as EventSessionDto)
+type EventSessionDto = SessionDto;
 
 // Query keys
 export const eventSessionKeys = {
@@ -66,9 +37,9 @@ export function useEventSessions(eventId: string, enabled: boolean = true) {
   return useQuery({
     queryKey: eventSessionKeys.list(eventId),
     queryFn: async (): Promise<EventSession[]> => {
-      const { data } = await apiClient.get<ApiResponse<EventSessionDto[]>>(`/api/events/${eventId}/sessions`);
-      if (!data.data) return [];
-      return data.data.map(transformEventSession);
+      const { data } = await apiClient.get<EventSessionDto[]>(`/api/events/${eventId}/sessions`);
+      if (!data) return [];
+      return data.map(transformEventSession);
     },
     enabled: !!eventId && enabled,
     staleTime: 2 * 60 * 1000, // 2 minutes
@@ -80,9 +51,9 @@ export function useEventSession(sessionId: string, enabled: boolean = true) {
   return useQuery({
     queryKey: eventSessionKeys.detail(sessionId),
     queryFn: async (): Promise<EventSession> => {
-      const { data } = await apiClient.get<ApiResponse<EventSessionDto>>(`/api/events/sessions/${sessionId}`);
-      if (!data.data) throw new Error('Event session not found');
-      return transformEventSession(data.data);
+      const { data } = await apiClient.get<EventSessionDto>(`/api/events/sessions/${sessionId}`);
+      if (!data) throw new Error('Event session not found');
+      return transformEventSession(data);
     },
     enabled: !!sessionId && enabled,
     staleTime: 2 * 60 * 1000,
@@ -95,9 +66,9 @@ export function useCreateEventSession() {
 
   return useMutation({
     mutationFn: async (sessionData: CreateEventSessionDto): Promise<EventSession> => {
-      const { data } = await apiClient.post<ApiResponse<EventSessionDto>>('/api/events/sessions', sessionData);
-      if (!data.data) throw new Error('Failed to create event session');
-      return transformEventSession(data.data);
+      const { data } = await apiClient.post<EventSessionDto>('/api/events/sessions', sessionData);
+      if (!data) throw new Error('Failed to create event session');
+      return transformEventSession(data);
     },
     onSuccess: (newSession, variables) => {
       // Invalidate the event sessions list
@@ -123,9 +94,9 @@ export function useUpdateEventSession() {
 
   return useMutation({
     mutationFn: async (sessionData: UpdateEventSessionDto): Promise<EventSession> => {
-      const { data } = await apiClient.put<ApiResponse<EventSessionDto>>(`/api/events/sessions/${sessionData.id}`, sessionData);
-      if (!data.data) throw new Error('Failed to update event session');
-      return transformEventSession(data.data);
+      const { data } = await apiClient.put<EventSessionDto>(`/api/events/sessions/${sessionData.id}`, sessionData);
+      if (!data) throw new Error('Failed to update event session');
+      return transformEventSession(data);
     },
     onMutate: async (updatedSession) => {
       // Cancel outgoing queries
@@ -201,9 +172,9 @@ export function useBulkCreateEventSessions() {
 
   return useMutation({
     mutationFn: async (sessionsData: CreateEventSessionDto[]): Promise<EventSession[]> => {
-      const { data } = await apiClient.post<ApiResponse<EventSessionDto[]>>('/api/events/sessions/bulk', sessionsData);
-      if (!data.data) throw new Error('Failed to create event sessions');
-      return data.data.map(transformEventSession);
+      const { data } = await apiClient.post<EventSessionDto[]>('/api/events/sessions/bulk', sessionsData);
+      if (!data) throw new Error('Failed to create event sessions');
+      return data.map(transformEventSession);
     },
     onSuccess: (newSessions, variables) => {
       if (newSessions.length > 0) {
@@ -236,11 +207,11 @@ export function useReorderEventSessions() {
 
   return useMutation({
     mutationFn: async (payload: { eventId: string; sessionIds: string[] }): Promise<EventSession[]> => {
-      const { data } = await apiClient.put<ApiResponse<EventSessionDto[]>>(`/api/events/${payload.eventId}/sessions/reorder`, {
+      const { data } = await apiClient.put<EventSessionDto[]>(`/api/events/${payload.eventId}/sessions/reorder`, {
         sessionIds: payload.sessionIds,
       });
-      if (!data.data) throw new Error('Failed to reorder event sessions');
-      return data.data.map(transformEventSession);
+      if (!data) throw new Error('Failed to reorder event sessions');
+      return data.map(transformEventSession);
     },
     onSuccess: (reorderedSessions, variables) => {
       // Invalidate the event sessions list

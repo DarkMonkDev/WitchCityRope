@@ -11,7 +11,7 @@ import { defineConfig, devices } from '@playwright/test';
  * Start services first with: ./dev.sh
  */
 export default defineConfig({
-  testDir: './tests/e2e',
+  testDir: './tests/playwright',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

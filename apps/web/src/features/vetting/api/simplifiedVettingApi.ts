@@ -2,7 +2,6 @@
 // Handles API calls for the simplified vetting application form
 
 import { apiClient } from '../../../lib/api/client';
-import type { ApiResponse } from '../../../lib/api/types/api.types';
 import type {
   SimplifiedCreateApplicationRequest,
   SimplifiedApplicationSubmissionResponse,
@@ -20,11 +19,11 @@ export const simplifiedVettingApi = {
    */
   async checkExistingApplication(): Promise<SimplifiedApplicationStatus | null> {
     try {
-      const { data } = await apiClient.get<ApiResponse<SimplifiedApplicationStatus>>(
+      const { data } = await apiClient.get<SimplifiedApplicationStatus>(
         '/api/vetting/my-application'
       );
 
-      return data.data || null;
+      return data || null;
     } catch (error: any) {
       // 404 means no application exists, which is expected
       if (error.response?.status === 404) {
@@ -50,21 +49,21 @@ export const simplifiedVettingApi = {
         url: '/api/vetting/applications/simplified'
       });
 
-      const { data} = await apiClient.post<ApiResponse<SimplifiedApplicationSubmissionResponse>>(
+      const { data } = await apiClient.post<SimplifiedApplicationSubmissionResponse>(
         '/api/vetting/applications/simplified',
         request
       );
 
       console.log('simplifiedVettingApi.submitApplication: API response:', {
-        hasData: !!data.data,
-        data: data.data
+        hasData: !!data,
+        data: data
       });
 
-      if (!data.data) {
-        throw new Error(data.error || 'Failed to submit application');
+      if (!data) {
+        throw new Error('Failed to submit application');
       }
 
-      return data.data;
+      return data;
     } catch (error: any) {
       console.error('simplifiedVettingApi.submitApplication: FULL ERROR DETAILS:', {
         status: error.response?.status,
@@ -91,15 +90,15 @@ export const simplifiedVettingApi = {
    * Get application status for the current user
    */
   async getMyApplicationStatus(): Promise<SimplifiedApplicationStatus> {
-    const { data } = await apiClient.get<ApiResponse<SimplifiedApplicationStatus>>(
+    const { data } = await apiClient.get<SimplifiedApplicationStatus>(
       '/api/vetting/my-application'
     );
 
-    if (!data.data) {
-      throw new Error(data.error || 'Application not found');
+    if (!data) {
+      throw new Error('Application not found');
     }
 
-    return data.data;
+    return data;
   },
 };
 

@@ -215,9 +215,47 @@ function UserDisplay({ user }: { user: User | null }) {
 
 ## API Response Typing
 
-### Pattern
+### 🚨 PATTERN B UPDATE (2025-11-13) 🚨
+**Current Standard**: Backend returns direct DTOs (Pattern B) - NO wrapper
+**This section shows DEPRECATED pattern**: ApiResponse<T> wrapper is no longer used
+**Updated guidance below**: Use direct DTO types with proper error handling
+
+### Pattern B (CURRENT STANDARD)
 ```typescript
-// ✅ CORRECT: Strongly typed API responses
+// ✅ CORRECT: Direct DTO typing (Pattern B)
+async function fetchEvent(id: number): Promise<EventDto | null> {
+  try {
+    const response = await fetch(`/api/events/${id}`);
+
+    if (!response.ok) {
+      // Error responses use RFC 9457 Problem Details
+      const problemDetails = await response.json();
+      console.error('API Error:', problemDetails.title, problemDetails.detail);
+      return null;
+    }
+
+    // Success: Direct DTO, no wrapper
+    const eventDto: EventDto = await response.json();
+    return eventDto;
+  } catch (error) {
+    console.error('Network error:', error);
+    return null;
+  }
+}
+
+// Usage with type safety
+const event = await fetchEvent(123);
+if (event) {
+  console.log(event.name);  // TypeScript knows event is EventDto
+} else {
+  console.error('Failed to load event');
+}
+```
+
+### DEPRECATED: ApiResponse Wrapper Pattern (Historical Reference Only)
+**WARNING**: This pattern is DEPRECATED. Do NOT use in new code.
+```typescript
+// ❌ DEPRECATED: ApiResponse<T> wrapper (no longer used)
 interface ApiResponse<T> {
   data: T;
   success: boolean;
@@ -249,12 +287,6 @@ if (result.success) {
 } else {
   console.error(result.errors);
 }
-```
-
-## Enum Usage
-
-### Pattern
-```typescript
 // ✅ CORRECT: Use const enums for compile-time constants
 export const enum EventType {
   Class = 'Class',

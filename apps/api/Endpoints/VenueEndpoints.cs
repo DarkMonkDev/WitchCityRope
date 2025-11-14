@@ -27,13 +27,10 @@ public static class VenueEndpoints
                 // Verify authentication
                 if (!context.User.Identity?.IsAuthenticated ?? true)
                 {
-                    return Results.Json(new ApiResponse<VenueDto>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Authentication required",
-                        Message = "You must be logged in to access venue details"
-                    }, statusCode: 401);
+                    return Results.Problem(
+                        title: "Authentication Required",
+                        detail: "You must be logged in to access venue details",
+                        statusCode: 401);
                 }
 
                 try
@@ -55,41 +52,30 @@ public static class VenueEndpoints
 
                     if (venue == null)
                     {
-                        return Results.Json(new ApiResponse<VenueDto>
-                        {
-                            Success = false,
-                            Data = null,
-                            Error = "Venue not found",
-                            Message = $"Venue with ID {id} does not exist or is not available"
-                        }, statusCode: 404);
+                        return Results.Problem(
+                            title: "Venue Not Found",
+                            detail: $"Venue with ID {id} does not exist or is not available",
+                            statusCode: 404);
                     }
 
-                    return Results.Ok(new ApiResponse<VenueDto>
-                    {
-                        Success = true,
-                        Data = venue,
-                        Message = "Venue retrieved successfully"
-                    });
+                    return Results.Ok(venue);
                 }
                 catch (Exception ex)
                 {
-                    return Results.Json(new ApiResponse<VenueDto>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Database error",
-                        Message = $"Failed to retrieve venue: {ex.Message}"
-                    }, statusCode: 500);
+                    return Results.Problem(
+                        title: "Database Error",
+                        detail: $"Failed to retrieve venue: {ex.Message}",
+                        statusCode: 500);
                 }
             })
             .WithName("GetPublicVenue")
             .WithSummary("Get single venue (authenticated users)")
             .WithDescription("Returns a single active venue by ID. Requires authentication. Notes field is not exposed to public.")
             .WithTags("Venues")
-            .Produces<ApiResponse<VenueDto>>(200)
-            .Produces(401)
-            .Produces(404)
-            .Produces(500);
+            .Produces<VenueDto>(200)
+            .ProducesProblem(401)
+            .ProducesProblem(404)
+            .ProducesProblem(500);
 
         // GET /api/venues - List all active venues (authenticated users only)
         app.MapGet("/api/venues", async (
@@ -100,13 +86,10 @@ public static class VenueEndpoints
                 // Verify authentication
                 if (!context.User.Identity?.IsAuthenticated ?? true)
                 {
-                    return Results.Json(new ApiResponse<List<VenueDto>>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Authentication required",
-                        Message = "You must be logged in to access venues"
-                    }, statusCode: 401);
+                    return Results.Problem(
+                        title: "Authentication Required",
+                        detail: "You must be logged in to access venues",
+                        statusCode: 401);
                 }
 
                 try
@@ -127,30 +110,22 @@ public static class VenueEndpoints
                         })
                         .ToListAsync(cancellationToken);
 
-                    return Results.Ok(new ApiResponse<List<VenueDto>>
-                    {
-                        Success = true,
-                        Data = venues,
-                        Message = $"Retrieved {venues.Count} active venues"
-                    });
+                    return Results.Ok(venues);
                 }
                 catch (Exception ex)
                 {
-                    return Results.Json(new ApiResponse<List<VenueDto>>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Database error",
-                        Message = $"Failed to retrieve venues: {ex.Message}"
-                    }, statusCode: 500);
+                    return Results.Problem(
+                        title: "Database Error",
+                        detail: $"Failed to retrieve venues: {ex.Message}",
+                        statusCode: 500);
                 }
             })
             .WithName("GetPublicVenues")
             .WithSummary("Get all active venues (authenticated users)")
             .WithDescription("Returns all active venues. Requires authentication. Notes field is not exposed to public.")
             .WithTags("Venues")
-            .Produces<ApiResponse<List<VenueDto>>>(200)
-            .Produces(401)
-            .Produces(500);
+            .Produces<List<VenueDto>>(200)
+            .ProducesProblem(401)
+            .ProducesProblem(500);
     }
 }

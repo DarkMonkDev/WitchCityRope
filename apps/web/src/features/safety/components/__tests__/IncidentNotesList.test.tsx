@@ -10,8 +10,7 @@ describe('IncidentNotesList', () => {
     authorId: 'system',
     authorName: 'System',
     content: 'Status changed from Report Submitted to Information Gathering',
-    noteType: IncidentNoteType.System,
-    isPrivate: true,
+    type: 'System',
     createdAt: '2025-10-16T09:00:00Z'
   };
 
@@ -21,9 +20,8 @@ describe('IncidentNotesList', () => {
     authorId: 'user1',
     authorName: 'Safety Coordinator',
     content: 'Initial contact made with reporter.',
-    noteType: IncidentNoteType.Manual,
-    isPrivate: false,
-    tags: ['initial-contact'],
+    type: 'Manual',
+    tags: 'initial-contact',
     createdAt: '2025-10-17T10:00:00Z'
   };
 
@@ -72,25 +70,14 @@ describe('IncidentNotesList', () => {
     expect(systemNoteElement).toBeInTheDocument();
   });
 
-  it('renders manual notes with privacy indicator', () => {
+  it('renders manual notes', () => {
     renderWithProvider(<IncidentNotesList notes={[mockManualNote]} onAddNote={mockOnAddNote} />);
 
     expect(screen.getByText('Safety Coordinator')).toBeInTheDocument();
     expect(screen.getByText('Initial contact made with reporter.')).toBeInTheDocument();
-    expect(screen.getByText('Shared')).toBeInTheDocument(); // Because isPrivate = false
 
     const manualNoteElement = screen.getByTestId('manual-note');
     expect(manualNoteElement).toBeInTheDocument();
-  });
-
-  it('displays "Private" badge for private manual notes', () => {
-    const privateNote: IncidentNoteDto = {
-      ...mockManualNote,
-      isPrivate: true
-    };
-
-    renderWithProvider(<IncidentNotesList notes={[privateNote]} onAddNote={mockOnAddNote} />);
-    expect(screen.getByText('Private')).toBeInTheDocument();
   });
 
   it('displays tags when present', () => {

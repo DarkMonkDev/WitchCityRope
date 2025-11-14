@@ -41,16 +41,6 @@ export type UpdateEventTemplateRequest = components['schemas']['UpdateEventTempl
  */
 export type SendAdHocEmailRequest = components['schemas']['SendAdHocEmailRequest'];
 
-/**
- * API Response Wrapper
- */
-interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  timestamp?: string;
-}
-
 // =================================================================
 // EMAIL TEMPLATES API SERVICE
 // =================================================================
@@ -70,21 +60,16 @@ class EmailTemplatesApiService {
     console.log('EmailTemplatesAPI: Fetching global templates for category:', category);
 
     try {
-      const response = await apiClient.get<ApiResponse<GlobalEmailTemplateDto[]>>(
+      const response = await apiClient.get<GlobalEmailTemplateDto[]>(
         `/api/email-templates?category=${category}`
       );
 
       console.log('EmailTemplatesAPI: Global templates response:', {
         hasData: !!response.data,
-        success: response.data.success,
-        count: response.data.data?.length || 0,
+        count: response.data?.length || 0,
       });
 
-      if (!response.data.success || !response.data.data) {
-        throw new Error(response.data.error || 'Failed to fetch global templates');
-      }
-
-      return response.data.data;
+      return response.data;
     } catch (error: any) {
       console.error('EmailTemplatesAPI: Error fetching global templates:', {
         category,
@@ -102,15 +87,11 @@ class EmailTemplatesApiService {
     console.log('EmailTemplatesAPI: Fetching global template:', id);
 
     try {
-      const response = await apiClient.get<ApiResponse<GlobalEmailTemplateDto>>(
+      const response = await apiClient.get<GlobalEmailTemplateDto>(
         `/api/email-templates/${id}`
       );
 
-      if (!response.data.success || !response.data.data) {
-        throw new Error(response.data.error || 'Failed to fetch global template');
-      }
-
-      return response.data.data;
+      return response.data;
     } catch (error: any) {
       console.error('EmailTemplatesAPI: Error fetching global template:', {
         id,
@@ -131,16 +112,12 @@ class EmailTemplatesApiService {
     console.log('EmailTemplatesAPI: Updating global template:', { id, request });
 
     try {
-      const response = await apiClient.put<ApiResponse<GlobalEmailTemplateDto>>(
+      const response = await apiClient.put<GlobalEmailTemplateDto>(
         `/api/email-templates/${id}`,
         request
       );
 
-      if (!response.data.success || !response.data.data) {
-        throw new Error(response.data.error || 'Failed to update global template');
-      }
-
-      return response.data.data;
+      return response.data;
     } catch (error: any) {
       console.error('EmailTemplatesAPI: Error updating global template:', {
         id,
@@ -162,21 +139,16 @@ class EmailTemplatesApiService {
     console.log('EmailTemplatesAPI: Fetching event templates:', eventId);
 
     try {
-      const response = await apiClient.get<ApiResponse<EventEmailTemplateDto[]>>(
+      const response = await apiClient.get<EventEmailTemplateDto[]>(
         `/api/email-templates/events/${eventId}`
       );
 
       console.log('EmailTemplatesAPI: Event templates response:', {
         hasData: !!response.data,
-        success: response.data.success,
-        count: response.data.data?.length || 0,
+        count: response.data?.length || 0,
       });
 
-      if (!response.data.success || !response.data.data) {
-        throw new Error(response.data.error || 'Failed to fetch event templates');
-      }
-
-      return response.data.data;
+      return response.data;
     } catch (error: any) {
       console.error('EmailTemplatesAPI: Error fetching event templates:', {
         eventId,
@@ -197,15 +169,11 @@ class EmailTemplatesApiService {
     console.log('EmailTemplatesAPI: Fetching event template:', { eventId, templateType });
 
     try {
-      const response = await apiClient.get<ApiResponse<EventEmailTemplateDto>>(
+      const response = await apiClient.get<EventEmailTemplateDto>(
         `/api/email-templates/events/${eventId}/${templateType}`
       );
 
-      if (!response.data.success || !response.data.data) {
-        throw new Error(response.data.error || 'Failed to fetch event template');
-      }
-
-      return response.data.data;
+      return response.data;
     } catch (error: any) {
       console.error('EmailTemplatesAPI: Error fetching event template:', {
         eventId,
@@ -233,16 +201,12 @@ class EmailTemplatesApiService {
     });
 
     try {
-      const response = await apiClient.put<ApiResponse<EventEmailTemplateDto>>(
+      const response = await apiClient.put<EventEmailTemplateDto>(
         `/api/email-templates/events/${eventId}/${templateType}`,
         request
       );
 
-      if (!response.data.success || !response.data.data) {
-        throw new Error(response.data.error || 'Failed to update event template');
-      }
-
-      return response.data.data;
+      return response.data;
     } catch (error: any) {
       console.error('EmailTemplatesAPI: Error updating event template:', {
         eventId,
@@ -311,13 +275,9 @@ class EmailTemplatesApiService {
         ? `/api/email-templates/ad-hoc/history?eventId=${eventId}`
         : `/api/email-templates/ad-hoc/history`;
 
-      const response = await apiClient.get<ApiResponse<SentAdHocEmailDto[]>>(url);
+      const response = await apiClient.get<SentAdHocEmailDto[]>(url);
 
-      if (!response.data.success || !response.data.data) {
-        throw new Error(response.data.error || 'Failed to fetch ad-hoc email history');
-      }
-
-      return response.data.data;
+      return response.data;
     } catch (error: any) {
       console.error('EmailTemplatesAPI: Error fetching ad-hoc email history:', {
         eventId,
@@ -335,15 +295,11 @@ class EmailTemplatesApiService {
     console.log('EmailTemplatesAPI: Fetching ad-hoc email:', id);
 
     try {
-      const response = await apiClient.get<ApiResponse<SentAdHocEmailDto>>(
+      const response = await apiClient.get<SentAdHocEmailDto>(
         `/api/email-templates/ad-hoc/history/${id}`
       );
 
-      if (!response.data.success || !response.data.data) {
-        throw new Error(response.data.error || 'Failed to fetch ad-hoc email');
-      }
-
-      return response.data.data;
+      return response.data;
     } catch (error: any) {
       console.error('EmailTemplatesAPI: Error fetching ad-hoc email:', {
         id,

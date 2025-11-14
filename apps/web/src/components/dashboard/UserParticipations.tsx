@@ -10,7 +10,7 @@ import {
 } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 import { useUserParticipations } from '../../hooks/useParticipation';
-import { UserParticipationDto, ParticipationType, ParticipationStatus } from '../../types/participation.types';
+import { UserParticipationDto, AttendanceType, AttendanceStatus } from '../../types/participation.types';
 
 interface UserParticipationsProps {
   limit?: number;
@@ -24,23 +24,23 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
   const { data: participations, isLoading, error } = useUserParticipations();
 
 
-  const getStatusColor = (status: ParticipationStatus) => {
+  const getStatusColor = (status: AttendanceStatus) => {
     switch (status) {
-      case ParticipationStatus.Active:
+      case 'Active':
         return 'green';
-      case ParticipationStatus.Cancelled:
+      case 'Cancelled':
         return 'gray';
-      case ParticipationStatus.Refunded:
+      case 'Refunded':
         return 'orange';
-      case ParticipationStatus.Waitlisted:
+      case 'Waitlisted':
         return 'yellow';
       default:
         return 'blue';
     }
   };
 
-  const getTypeIcon = (type: ParticipationType) => {
-    return type === ParticipationType.Ticket ? <IconTicket size={16} /> : <IconCalendarCheck size={16} />;
+  const getTypeIcon = (type: AttendanceType) => {
+    return type === 'Ticket' ? <IconTicket size={16} /> : <IconCalendarCheck size={16} />;
   };
 
   const formatEventDate = (dateString: string) => {

@@ -21,11 +21,7 @@ export type UserDto = components['schemas']['UserDto'];
  */
 export type EventDto = components['schemas']['EventDto'];
 
-/**
- * Event Data Transfer Object (Alternative version)
- * Source: C# EventDto2 via NSwag generation
- */
-export type EventDto2 = components['schemas']['EventDto2'];
+// EventDto2 removed - does not exist in generated schema
 
 /**
  * User Event Data Transfer Object
@@ -68,44 +64,11 @@ export type UpdateProfileRequest = components['schemas']['UpdateProfileRequest']
 export type UpdateUserRolesRequest = components['schemas']['UpdateUserRolesRequest'];
 
 // =============================================================================
-// API Response Wrappers - Re-exported from Generated Types
+// API Response Wrappers - REMOVED (Pattern B: Direct DTOs)
 // =============================================================================
-
-/**
- * API Response wrapper for list of EventDto
- * Source: C# ApiResponse<List<EventDto>> via NSwag generation
- */
-export type ApiResponseOfListOfEventDto = components['schemas']['ApiResponseOfListOfEventDto'];
-
-/**
- * API Response wrapper for EventDto
- * Source: C# ApiResponse<EventDto> via NSwag generation
- */
-export type ApiResponseOfEventDto = components['schemas']['ApiResponseOfEventDto'];
-
-/**
- * API Response wrapper for list of UserEventDto
- * Source: C# ApiResponse<List<UserEventDto>> via NSwag generation
- */
-export type ApiResponseOfListOfUserEventDto = components['schemas']['ApiResponseOfListOfUserEventDto'];
-
-/**
- * API Response wrapper for list of EventParticipationDto
- * Source: C# ApiResponse<List<EventParticipationDto>> via NSwag generation
- */
-export type ApiResponseOfListOfEventParticipationDto = components['schemas']['ApiResponseOfListOfEventParticipationDto'];
-
-/**
- * API Response wrapper for UserProfileDto
- * Source: C# ApiResponse<UserProfileDto> via NSwag generation
- */
-export type ApiResponseOfUserProfileDto = components['schemas']['ApiResponseOfUserProfileDto'];
-
-/**
- * API Response wrapper for generic object
- * Source: C# ApiResponse<object> via NSwag generation
- */
-export type ApiResponseOfObject = components['schemas']['ApiResponseOfObject'];
+// These wrapper types do not exist in the generated schema.
+// The API returns DTOs directly, not wrapped in ApiResponse<T> objects.
+// Frontend should consume DTOs directly from endpoints.
 
 // =============================================================================
 // Pagination - Re-exported from Generated Types

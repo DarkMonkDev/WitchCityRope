@@ -1,34 +1,60 @@
 import type { AxiosError } from 'axios'
-import type { ApiError } from '../types/api.types'
+import type { ApiError, ProblemDetails } from '../../../types/api.types'
 
 // Error handling utilities
 export class ApiErrorHandler {
+  /**
+   * Checks if error response is RFC 9457 Problem Details
+   */
+  static isProblemDetails(data: any): data is ProblemDetails {
+    return (
+      data &&
+      typeof data === 'object' &&
+      ('title' in data || 'detail' in data || 'status' in data)
+    )
+  }
+
   static formatError(error: unknown): ApiError {
     if (error instanceof Error) {
       // Axios error with response
       if ('response' in error && error.response) {
         const axiosError = error as AxiosError<any>
+        const responseData = axiosError.response?.data
+        const status = axiosError.response?.status || 0
+
+        // Handle RFC 9457 Problem Details format (Pattern B)
+        if (this.isProblemDetails(responseData)) {
+          const problem = responseData as ProblemDetails
+          return {
+            message: problem.title || problem.detail || 'An error occurred',
+            status: problem.status || status,
+            code: problem.status?.toString() || status?.toString()
+          }
+        }
+
+        // Legacy format support
         return {
-          message: axiosError.response?.data?.message || 
-                  axiosError.response?.data?.error || 
-                  axiosError.message || 
+          message: responseData?.message ||
+                  responseData?.error ||
+                  axiosError.message ||
                   'An error occurred',
-          code: axiosError.response?.status?.toString(),
-          details: axiosError.response?.data
+          status,
+          code: status?.toString()
         }
       }
-      
+
       // Network or other errors
       return {
         message: error.message || 'Network error occurred',
+        status: 0,
         code: 'NETWORK_ERROR'
       }
     }
-    
+
     return {
       message: 'An unexpected error occurred',
-      code: 'UNKNOWN_ERROR',
-      details: error
+      status: 0,
+      code: 'UNKNOWN_ERROR'
     }
   }
   
@@ -66,9 +92,64 @@ export const handleApiError = (error: unknown, showToast: (message: string) => v
   const apiError = ApiErrorHandler.formatError(error)
   const userMessage = ApiErrorHandler.getUserFriendlyMessage(apiError)
   showToast(userMessage)
-  
+
   // Log detailed error for debugging
   console.error('API Error:', apiError)
-  
+
   return apiError
+}
+
+// =============================================================================
+// Pattern B Helper Functions (Direct DTO + RFC 9457 Problem Details)
+// =============================================================================
+
+/**
+ * Extracts user-friendly error message from Pattern B error response
+ * Handles RFC 9457 Problem Details format
+ *
+ * @param error - Axios error object or any error
+ * @returns Human-readable error message
+ */
+export function extractErrorMessage(error: any): string {
+  // Check for RFC 9457 Problem Details in response
+  if (error.response?.data) {
+    const data = error.response.data
+
+    if (ApiErrorHandler.isProblemDetails(data)) {
+      const problem = data as ProblemDetails
+      // Priority: title > detail > generic message
+      return problem.title || problem.detail || 'An error occurred'
+    }
+
+    // Fallback for non-ProblemDetails error responses
+    if (typeof data === 'string') {
+      return data
+    }
+  }
+
+  // Check for axios error message
+  if (error.message) {
+    return error.message
+  }
+
+  // Last resort fallback
+  return 'An unexpected error occurred'
+}
+
+/**
+ * Gets the HTTP status code from error
+ * @param error - Error object
+ * @returns HTTP status code or undefined
+ */
+export function getErrorStatus(error: any): number | undefined {
+  return error.response?.status
+}
+
+/**
+ * Checks if error is a specific HTTP status
+ * @param error - Error object
+ * @param status - HTTP status code to check
+ */
+export function isErrorStatus(error: any, status: number): boolean {
+  return getErrorStatus(error) === status
 }

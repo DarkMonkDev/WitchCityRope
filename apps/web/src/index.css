@@ -200,6 +200,28 @@ body {
   overflow-x: hidden;
 }
 
+/* Fix Mantine Text component default p tag margins in inline contexts */
+/* Breadcrumbs, Group, Stack, and inline containers should not have p tag margins */
+/* Using !important to override Mantine's class-based specificity */
+.mantine-Breadcrumbs-root .mantine-Breadcrumbs-breadcrumb,
+.mantine-Breadcrumbs-root p.mantine-Text-root,
+.mantine-Breadcrumbs-root a.mantine-Text-root,
+.mantine-Group-root p.mantine-Text-root,
+.mantine-Group-root .mantine-Text-root,
+.mantine-Stack-root > p.mantine-Text-root,
+.mantine-Stack-root > .mantine-Text-root {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Preserve paragraph spacing in content areas where it's needed */
+.mantine-Paper-root > p,
+.mantine-Card-root > p,
+article p,
+.content p {
+  margin-bottom: 1rem;
+}
+
 /* Subtle rope pattern background */
 body::before {
   content: '';

@@ -43,6 +43,24 @@ If you cannot read ANY file:
 
 ## Service Initialization Order
 
+
+## 🚨 CRITICAL: API Response Pattern B is NOW THE OFFICIAL STANDARD (2025-11-13) 🚨
+
+**DECISION MADE**: Pattern B is the **OFFICIAL STANDARD** for all API responses in WitchCityRope.
+
+**Pattern B (THE STANDARD)**:
+- Success: Direct `Results.Ok(dto)` - NO wrapper
+- Error: `Results.Problem()` - RFC 9457 Problem Details
+- Service: `Result<T>` or `(bool Success, T? Data, string Error)` tuple
+
+**DEPRECATED**: ApiResponse<T> wrapper pattern is NO LONGER USED
+- All references to ApiResponse<T> in this file are **historical only**
+- **DO NOT use ApiResponse<T>** in new code
+- See Part 1 (lines 172-231) for complete Pattern B documentation
+
+**Action Required**: When you see ApiResponse<T> mentioned in lessons below, understand it as DEPRECATED pattern.
+
+---
 **Problem**: Services using DbContext fail with NullReferenceException when created in base class constructor before DbContext initialized.
 **Solution**: Defer service creation to InitializeAsync after base.InitializeAsync completes. Create services AFTER dependencies initialized, not in constructors.
 
@@ -221,10 +239,11 @@ If you cannot read ANY file:
 **Problem**: Event details missing sessions and ticket types despite database having data.
 **Solution**: Use `.Include()` for navigation properties in EF Core queries. Load ALL related data needed by frontend. Test with populated database not just empty/fallback.
 
-## API Response Structure Consistency
+## API Response Structure Consistency (DEPRECATED - See Pattern B Above)
 
-**Problem**: Some endpoints return raw data, others use ApiResponse wrapper causing frontend confusion.
-**Solution**: Use consistent ApiResponse<T> wrapper for ALL endpoints. Include Success, Data, Error, Message, Timestamp fields. Document response structure in API docs.
+**Problem**: Some endpoints return raw data, others use ApiResponse wrapper causing frontend confusion (HISTORICAL - ApiResponse<T> is now DEPRECATED).
+**Historical Solution**: Use consistent ApiResponse<T> wrapper for ALL endpoints. Include Success, Data, Error, Message, Timestamp fields. Document response structure in API docs.
+**CURRENT STANDARD (2025-11-13)**: Pattern B - Direct Results.Ok(dto) + RFC 9457 Problem Details. ApiResponse<T> wrapper is DEPRECATED. See Part 1 lines 172-231 for details.
 
 ## Business Logic in Controllers vs Services
 

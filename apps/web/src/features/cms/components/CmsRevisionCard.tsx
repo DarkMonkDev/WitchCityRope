@@ -52,12 +52,6 @@ export const CmsRevisionCard: React.FC<CmsRevisionCardProps> = ({ revision }) =>
           WebkitBoxOrient: 'vertical',
         }}
         dangerouslySetInnerHTML={{ __html: revision.contentPreview || '' }}
-        sx={{
-          '& p': {
-            margin: 0,
-            padding: 0,
-          }
-        }}
       />
     </Paper>
   )

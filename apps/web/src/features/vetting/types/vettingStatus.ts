@@ -38,27 +38,8 @@ export type ApplicationStatusInfo = components['schemas']['ApplicationStatusInfo
  */
 export type MyApplicationStatusResponse = components['schemas']['MyApplicationStatusResponse'];
 
-/**
- * API Response wrapper for Vetting Status
- * @generated from C# ApiResponseOfVettingStatusDto via NSwag
- */
-export type ApiResponseOfVettingStatusDto = components['schemas']['ApiResponseOfVettingStatusDto'];
-
-/**
- * API Response wrapper for My Application Status Response
- * @generated from C# ApiResponseOfMyApplicationStatusResponse via NSwag
- */
-export type ApiResponseOfMyApplicationStatusResponse = components['schemas']['ApiResponseOfMyApplicationStatusResponse'];
-
-// ============================================================================
-// Type Aliases for Convenience
-// ============================================================================
-
-/**
- * Alias for ApiResponseOfMyApplicationStatusResponse
- * Used by useVettingStatus hook
- */
-export type VettingStatusApiResponse = ApiResponseOfMyApplicationStatusResponse;
+// API Response wrappers removed - API returns DTOs directly (Pattern B)
+// Use VettingStatusDto and MyApplicationStatusResponse directly
 
 // ============================================================================
 // Frontend-Only Types (NOT sent to API)

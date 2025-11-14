@@ -12,7 +12,7 @@ import type {
   EventTicketTypeDto,
   VolunteerPositionDto
 } from '../types/events.types'
-import type { ApiResponse, PaginatedResponse } from '../types/api.types'
+import type { PaginatedResponse } from '../types/api.types'
 
 // Pagination response structure (for future paginated endpoints)
 interface ApiEventResponse {
@@ -133,7 +133,6 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
     startDate: apiEvent.startDate,
     endDate: apiEvent.endDate || null,
     venueId: apiEvent.venueId || null,
-    location: apiEvent.location,
     eventType: apiEvent.eventType,
     capacity: apiEvent.capacity || apiEvent.maxAttendees || 20, // Use capacity first, then maxAttendees
     registrationCount: apiEvent.registrationCount || apiEvent.currentAttendees || apiEvent.currentRSVPs || apiEvent.currentTickets || 0,
@@ -151,18 +150,18 @@ export function useEvents(filters: EventFilters = {}) {
   return useQuery({
     queryKey: eventKeys.list(filters),
     queryFn: async (): Promise<EventDto[]> => {
-      const { data } = await apiClient.get<ApiResponse<ApiEvent[]>>('/api/events', {
+      const { data } = await apiClient.get<ApiEvent[]>('/api/events', {
         params: filters,
       })
 
       // CRITICAL: Throw error if API didn't return data
       // This ensures proper error handling in the UI instead of showing empty state
-      if (!data?.data) {
+      if (!data) {
         throw new Error('API returned no data - possible server connection issue')
       }
 
       // Return transformed events array
-      return data.data.map(transformApiEvent)
+      return data.map(transformApiEvent)
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     enabled: true,
@@ -174,12 +173,12 @@ export function useInfiniteEvents(filters: Omit<EventFilters, 'page'> = {}) {
   return useInfiniteQuery({
     queryKey: eventKeys.infiniteList(filters),
     queryFn: async ({ pageParam = 1 }): Promise<PaginatedResponse<EventDto>> => {
-      const { data } = await apiClient.get<ApiResponse<PaginatedResponse<EventDto>>>('/api/events', {
+      const { data } = await apiClient.get<PaginatedResponse<EventDto>>('/api/events', {
         params: { ...filters, page: pageParam, limit: 10 },
       })
-      return data.data || { items: [], page: 1, limit: 10, total: 0, totalPages: 0, hasNext: false, hasPrev: false }
+      return data || { items: [], page: 1, limit: 10, total: 0, totalPages: 0, hasNext: false, hasPrev: false }
     },
-    getNextPageParam: (lastPage) => 
+    getNextPageParam: (lastPage) =>
       lastPage.hasNext ? lastPage.page + 1 : undefined,
     initialPageParam: 1,
     staleTime: 5 * 60 * 1000,
@@ -191,9 +190,9 @@ export function useEvent(id: string, enabled: boolean = true) {
   return useQuery({
     queryKey: eventKeys.detail(id),
     queryFn: async (): Promise<EventDto> => {
-      const { data } = await apiClient.get<ApiResponse<ApiEvent>>(`/api/events/${id}`)
-      if (!data?.data) throw new Error('Event not found')
-      return transformApiEvent(data.data)
+      const { data } = await apiClient.get<ApiEvent>(`/api/events/${id}`)
+      if (!data) throw new Error('Event not found')
+      return transformApiEvent(data)
     },
     enabled: !!id && enabled,
     staleTime: 5 * 60 * 1000,
@@ -203,12 +202,12 @@ export function useEvent(id: string, enabled: boolean = true) {
 // Create event mutation
 export function useCreateEvent() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async (eventData: CreateEventDto): Promise<EventDto> => {
-      const { data } = await apiClient.post<ApiResponse<EventDto>>('/api/events', eventData)
-      if (!data.data) throw new Error('Failed to create event')
-      return data.data
+      const { data } = await apiClient.post<EventDto>('/api/events', eventData)
+      if (!data) throw new Error('Failed to create event')
+      return data
     },
     onSuccess: (newEvent) => {
       // Invalidate events list to refetch
@@ -229,10 +228,10 @@ export function useUpdateEvent() {
 
   return useMutation({
     mutationFn: async (eventData: UpdateEventDto): Promise<EventDto> => {
-      const { data } = await apiClient.put<ApiResponse<ApiEvent>>(`/api/events/${eventData.id}`, eventData)
-      if (!data.data) throw new Error('Failed to update event')
+      const { data } = await apiClient.put<ApiEvent>(`/api/events/${eventData.id}`, eventData)
+      if (!data) throw new Error('Failed to update event')
       // Transform the API response to match our EventDto structure
-      return transformApiEvent(data.data)
+      return transformApiEvent(data)
     },
     onMutate: async (updatedEvent) => {
       // Cancel outgoing refetches
@@ -286,8 +285,8 @@ export function useEventRegistrations(eventId: string) {
   return useQuery({
     queryKey: eventKeys.registrations(eventId),
     queryFn: async (): Promise<RegistrationDto[]> => {
-      const { data } = await apiClient.get<ApiResponse<RegistrationDto[]>>(`/api/events/${eventId}/registrations`)
-      return data.data || []
+      const { data } = await apiClient.get<RegistrationDto[]>(`/api/events/${eventId}/registrations`)
+      return data || []
     },
     enabled: !!eventId,
     staleTime: 2 * 60 * 1000, // 2 minutes - more frequent updates for registrations
@@ -296,12 +295,12 @@ export function useEventRegistrations(eventId: string) {
 
 export function useRegisterForEvent() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async (eventId: string): Promise<RegistrationDto> => {
-      const { data } = await apiClient.post<ApiResponse<RegistrationDto>>(`/api/events/${eventId}/register`)
-      if (!data.data) throw new Error('Registration failed')
-      return data.data
+      const { data } = await apiClient.post<RegistrationDto>(`/api/events/${eventId}/register`)
+      if (!data) throw new Error('Registration failed')
+      return data
     },
     onMutate: async (eventId) => {
       // Optimistically update event registration count

@@ -11,37 +11,31 @@ import type {
 export class VettingAdminApiService {
   /**
    * Get paginated list of vetting applications for admin review
+   * Pattern B: Direct DTO response
    */
   async getApplicationsForReview(
     filters: ApplicationFilterRequest
   ): Promise<PagedResult<ApplicationSummaryDto>> {
-    const response = await apiClient.post<{ success: boolean; data: PagedResult<ApplicationSummaryDto> }>(
+    const response = await apiClient.post<PagedResult<ApplicationSummaryDto>>(
       '/api/vetting/reviewer/applications',
       filters
     );
-    return response.data.data; // Unwrap ApiResponse wrapper
+    return response.data;
   }
 
   /**
    * Get detailed information for a specific application
+   * Pattern B: Direct DTO response
    */
   async getApplicationDetail(
     applicationId: string
   ): Promise<ApplicationDetailResponse> {
     try {
-      const response = await apiClient.get<{ success: boolean; data: ApplicationDetailResponse }>(
+      const response = await apiClient.get<ApplicationDetailResponse>(
         `/api/vetting/reviewer/applications/${applicationId}`
       );
 
-      if (!response.data.success) {
-        throw new Error(`API returned success: false for application ${applicationId}`);
-      }
-
-      if (!response.data.data) {
-        throw new Error(`No application data received for ID ${applicationId}`);
-      }
-
-      return response.data.data; // Unwrap ApiResponse wrapper
+      return response.data;
     } catch (error: any) {
       console.error('VettingAdminApi.getApplicationDetail error:', {
         applicationId,
@@ -70,16 +64,17 @@ export class VettingAdminApiService {
 
   /**
    * Submit a review decision for an application
+   * Pattern B: Direct DTO response
    */
   async submitReviewDecision(
     applicationId: string,
     decision: ReviewDecisionRequest
   ): Promise<ReviewDecisionResponse> {
-    const response = await apiClient.post<{ success: boolean; data: ReviewDecisionResponse }>(
+    const response = await apiClient.post<ReviewDecisionResponse>(
       `/api/vetting/reviewer/applications/${applicationId}/decisions`,
       decision
     );
-    return response.data.data; // Unwrap ApiResponse wrapper
+    return response.data;
   }
 
   /**

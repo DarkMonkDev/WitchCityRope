@@ -34,31 +34,21 @@ public static class VolunteerEndpoints
 
             if (success && positions != null)
             {
-                return Results.Ok(new ApiResponse<List<VolunteerPositionDto>>
-                {
-                    Success = true,
-                    Data = positions,
-                    Message = positions.Count == 0
-                        ? "No volunteer positions available for this event"
-                        : "Volunteer positions retrieved successfully"
-                });
+                return Results.Ok(positions);
             }
 
-            return Results.Json(new ApiResponse<List<VolunteerPositionDto>>
-            {
-                Success = false,
-                Data = null,
-                Error = error ?? "Failed to retrieve volunteer positions",
-                Message = "Unable to retrieve volunteer positions"
-            }, statusCode: error == "Event not found" ? 404 : 500);
+            return Results.Problem(
+                title: "Failed to Retrieve Volunteer Positions",
+                detail: error ?? "Failed to retrieve volunteer positions",
+                statusCode: error == "Event not found" ? 404 : 500);
         })
         .WithName("GetEventVolunteerPositions")
         .WithSummary("Get volunteer positions for an event")
         .WithDescription("Returns volunteer positions for a specific event. Shows public-facing positions only for non-authenticated users. Authenticated users see their signup status.")
         .WithTags("Volunteers")
-        .Produces<ApiResponse<List<VolunteerPositionDto>>>(200)
-        .Produces(404)
-        .Produces(500);
+        .Produces<List<VolunteerPositionDto>>(200)
+        .ProducesProblem(404)
+        .ProducesProblem(500);
 
         // Sign up for a volunteer position
         app.MapPost("/api/volunteer-positions/{id}/signup", async (
@@ -71,25 +61,19 @@ public static class VolunteerEndpoints
             // Require authentication
             if (context.User.Identity?.IsAuthenticated != true)
             {
-                return Results.Json(new ApiResponse<VolunteerSignupDto>
-                {
-                    Success = false,
-                    Data = null,
-                    Error = "Authentication required",
-                    Message = "You must be logged in to sign up for volunteer positions"
-                }, statusCode: 401);
+                return Results.Problem(
+                    title: "Authentication Required",
+                    detail: "You must be logged in to sign up for volunteer positions",
+                    statusCode: 401);
             }
 
             var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
-                return Results.Json(new ApiResponse<VolunteerSignupDto>
-                {
-                    Success = false,
-                    Data = null,
-                    Error = "Invalid user",
-                    Message = "User ID not found in authentication token"
-                }, statusCode: 401);
+                return Results.Problem(
+                    title: "Invalid User",
+                    detail: "User ID not found in authentication token",
+                    statusCode: 401);
             }
 
             var (success, signup, error) = await volunteerService.SignupForPositionAsync(
@@ -100,12 +84,7 @@ public static class VolunteerEndpoints
 
             if (success && signup != null)
             {
-                return Results.Ok(new ApiResponse<VolunteerSignupDto>
-                {
-                    Success = true,
-                    Data = signup,
-                    Message = "Successfully signed up for volunteer position. You have been automatically RSVPed to the event."
-                });
+                return Results.Ok(signup);
             }
 
             var statusCode = error switch
@@ -118,25 +97,22 @@ public static class VolunteerEndpoints
                 _ => 500
             };
 
-            return Results.Json(new ApiResponse<VolunteerSignupDto>
-            {
-                Success = false,
-                Data = null,
-                Error = error ?? "Failed to sign up for volunteer position",
-                Message = "Unable to complete volunteer signup"
-            }, statusCode: statusCode);
+            return Results.Problem(
+                title: "Failed to Sign Up",
+                detail: error ?? "Failed to sign up for volunteer position",
+                statusCode: statusCode);
         })
         .WithName("SignupForVolunteerPosition")
         .WithSummary("Sign up for a volunteer position")
         .WithDescription("Sign up for a volunteer position. Requires authentication. Event Waiver acceptance is required. Automatically RSVPs user to social events if not already registered.")
         .WithTags("Volunteers")
-        .Produces<ApiResponse<VolunteerSignupDto>>(200)
-        .Produces(400)
-        .Produces(401)
-        .Produces(403)
-        .Produces(404)
-        .Produces(409)
-        .Produces(500);
+        .Produces<VolunteerSignupDto>(200)
+        .ProducesProblem(400)
+        .ProducesProblem(401)
+        .ProducesProblem(403)
+        .ProducesProblem(404)
+        .ProducesProblem(409)
+        .ProducesProblem(500);
 
         // Get user's volunteer shifts
         app.MapGet("/api/user/volunteer-shifts", async (
@@ -147,25 +123,19 @@ public static class VolunteerEndpoints
             // Require authentication
             if (context.User.Identity?.IsAuthenticated != true)
             {
-                return Results.Json(new ApiResponse<List<UserVolunteerShiftDto>>
-                {
-                    Success = false,
-                    Data = null,
-                    Error = "Authentication required",
-                    Message = "You must be logged in to view your volunteer shifts"
-                }, statusCode: 401);
+                return Results.Problem(
+                    title: "Authentication Required",
+                    detail: "You must be logged in to view your volunteer shifts",
+                    statusCode: 401);
             }
 
             var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
-                return Results.Json(new ApiResponse<List<UserVolunteerShiftDto>>
-                {
-                    Success = false,
-                    Data = null,
-                    Error = "Invalid user",
-                    Message = "User ID not found in authentication token"
-                }, statusCode: 401);
+                return Results.Problem(
+                    title: "Invalid User",
+                    detail: "User ID not found in authentication token",
+                    statusCode: 401);
             }
 
             var (success, shifts, error) = await volunteerService.GetUserVolunteerShiftsAsync(
@@ -174,30 +144,20 @@ public static class VolunteerEndpoints
 
             if (success && shifts != null)
             {
-                return Results.Ok(new ApiResponse<List<UserVolunteerShiftDto>>
-                {
-                    Success = true,
-                    Data = shifts,
-                    Message = shifts.Count == 0
-                        ? "No upcoming volunteer shifts found"
-                        : $"Found {shifts.Count} upcoming volunteer shift(s)"
-                });
+                return Results.Ok(shifts);
             }
 
-            return Results.Json(new ApiResponse<List<UserVolunteerShiftDto>>
-            {
-                Success = false,
-                Data = null,
-                Error = error ?? "Failed to retrieve volunteer shifts",
-                Message = "Unable to retrieve volunteer shifts"
-            }, statusCode: 500);
+            return Results.Problem(
+                title: "Failed to Retrieve Volunteer Shifts",
+                detail: error ?? "Failed to retrieve volunteer shifts",
+                statusCode: 500);
         })
         .WithName("GetUserVolunteerShifts")
         .WithSummary("Get user's upcoming volunteer shifts")
         .WithDescription("Returns list of upcoming events where the user has signed up to volunteer. Includes event details, position title, and shift times.")
         .WithTags("Volunteers")
-        .Produces<ApiResponse<List<UserVolunteerShiftDto>>>(200)
-        .Produces(401)
-        .Produces(500);
+        .Produces<List<UserVolunteerShiftDto>>(200)
+        .ProducesProblem(401)
+        .ProducesProblem(500);
     }
 }

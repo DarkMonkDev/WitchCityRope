@@ -1,20 +1,18 @@
 import { apiClient } from '../client'
-import type { ApiResponse } from '../types/api.types'
+import type { components } from '@witchcityrope/shared-types'
 
-// TypeScript types for Event Session Matrix - matching backend DTOs
-export interface EventSessionDto {
-  id: string
-  eventId: string
-  sessionIdentifier: string // S1, S2, S3, etc.
-  name: string
-  startDateTime: string // ISO date string
-  endDateTime: string // ISO date string
-  capacity: number
-  registrationCount: number
-  createdAt: string
-  updatedAt: string
-}
+/**
+ * ✅ DTO ALIGNMENT STRATEGY COMPLIANT
+ * All types imported from @witchcityrope/shared-types (auto-generated from backend DTOs)
+ * Source: C# SessionDto and TicketTypeDto via NSwag generation
+ */
 
+// Re-export auto-generated types for convenience
+export type SessionDto = components['schemas']['SessionDto']
+export type TicketTypeDto = components['schemas']['TicketTypeDto']
+
+// Frontend-only types for API requests (not in backend DTOs yet)
+// TODO: These should be added to backend and auto-generated
 export interface CreateEventSessionDto {
   sessionIdentifier: string
   name: string
@@ -30,24 +28,6 @@ export interface UpdateEventSessionDto {
   startDateTime?: string
   endDateTime?: string
   capacity?: number
-}
-
-import type { components } from '@witchcityrope/shared-types'
-
-export interface EventTicketTypeDto {
-  id: string
-  eventId: string
-  name: string
-  pricingType: components["schemas"]["PricingType"] // Use generated type from backend
-  price?: number // For fixed pricing
-  minPrice?: number // For sliding scale
-  maxPrice?: number // For sliding scale
-  defaultPrice?: number // Default/suggested price for sliding scale
-  quantityAvailable?: number
-  salesEndDate?: string
-  sessionIds: string[] // Array of session IDs this ticket type includes
-  createdAt: string
-  updatedAt: string
 }
 
 export interface CreateEventTicketTypeDto {
@@ -74,21 +54,21 @@ export interface UpdateEventTicketTypeDto {
 // API Client Functions for Event Session Management
 export const eventSessionsApi = {
   // Session Management Endpoints
-  async getSessions(eventId: string): Promise<EventSessionDto[]> {
-    const { data } = await apiClient.get<ApiResponse<EventSessionDto[]>>(`/api/events/${eventId}/sessions`)
-    return data.data || []
+  async getSessions(eventId: string): Promise<SessionDto[]> {
+    const { data } = await apiClient.get<SessionDto[]>(`/api/events/${eventId}/sessions`)
+    return data || []
   },
 
-  async createSession(eventId: string, sessionData: CreateEventSessionDto): Promise<EventSessionDto> {
-    const { data } = await apiClient.post<ApiResponse<EventSessionDto>>(`/api/events/${eventId}/sessions`, sessionData)
-    if (!data.data) throw new Error('Failed to create session')
-    return data.data
+  async createSession(eventId: string, sessionData: CreateEventSessionDto): Promise<SessionDto> {
+    const { data } = await apiClient.post<SessionDto>(`/api/events/${eventId}/sessions`, sessionData)
+    if (!data) throw new Error('Failed to create session')
+    return data
   },
 
-  async updateSession(sessionId: string, sessionData: Partial<UpdateEventSessionDto>): Promise<EventSessionDto> {
-    const { data } = await apiClient.put<ApiResponse<EventSessionDto>>(`/api/sessions/${sessionId}`, sessionData)
-    if (!data.data) throw new Error('Failed to update session')
-    return data.data
+  async updateSession(sessionId: string, sessionData: Partial<UpdateEventSessionDto>): Promise<SessionDto> {
+    const { data } = await apiClient.put<SessionDto>(`/api/sessions/${sessionId}`, sessionData)
+    if (!data) throw new Error('Failed to update session')
+    return data
   },
 
   async deleteSession(sessionId: string): Promise<void> {
@@ -96,21 +76,21 @@ export const eventSessionsApi = {
   },
 
   // Ticket Type Management Endpoints
-  async getTicketTypes(eventId: string): Promise<EventTicketTypeDto[]> {
-    const { data } = await apiClient.get<ApiResponse<EventTicketTypeDto[]>>(`/api/events/${eventId}/ticket-types`)
-    return data.data || []
+  async getTicketTypes(eventId: string): Promise<TicketTypeDto[]> {
+    const { data } = await apiClient.get<TicketTypeDto[]>(`/api/events/${eventId}/ticket-types`)
+    return data || []
   },
 
-  async createTicketType(eventId: string, ticketTypeData: CreateEventTicketTypeDto): Promise<EventTicketTypeDto> {
-    const { data } = await apiClient.post<ApiResponse<EventTicketTypeDto>>(`/api/events/${eventId}/ticket-types`, ticketTypeData)
-    if (!data.data) throw new Error('Failed to create ticket type')
-    return data.data
+  async createTicketType(eventId: string, ticketTypeData: CreateEventTicketTypeDto): Promise<TicketTypeDto> {
+    const { data } = await apiClient.post<TicketTypeDto>(`/api/events/${eventId}/ticket-types`, ticketTypeData)
+    if (!data) throw new Error('Failed to create ticket type')
+    return data
   },
 
-  async updateTicketType(ticketTypeId: string, ticketTypeData: Partial<UpdateEventTicketTypeDto>): Promise<EventTicketTypeDto> {
-    const { data } = await apiClient.put<ApiResponse<EventTicketTypeDto>>(`/api/ticket-types/${ticketTypeId}`, ticketTypeData)
-    if (!data.data) throw new Error('Failed to update ticket type')
-    return data.data
+  async updateTicketType(ticketTypeId: string, ticketTypeData: Partial<UpdateEventTicketTypeDto>): Promise<TicketTypeDto> {
+    const { data } = await apiClient.put<TicketTypeDto>(`/api/ticket-types/${ticketTypeId}`, ticketTypeData)
+    if (!data) throw new Error('Failed to update ticket type')
+    return data
   },
 
   async deleteTicketType(ticketTypeId: string): Promise<void> {

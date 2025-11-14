@@ -342,18 +342,27 @@ export const EventDetailPage: React.FC = () => {
             </Title>
 
             <Group gap="lg" style={{ flexWrap: 'wrap' }}>
-              <Group gap="xs" style={{ color: 'var(--color-dusty-rose)', fontSize: '20px' }}>
+              <Group gap="xs" style={{
+                color: 'var(--color-dusty-rose)',
+                fontSize: '20px'
+              }}>
                 <IconCalendar size={20} />
                 <Text size="lg">{formatEventDate((event as any)?.startDate)}</Text>
               </Group>
-              <Group gap="xs" style={{ color: 'var(--color-dusty-rose)', fontSize: '20px' }}>
+              <Group gap="xs" style={{
+                color: 'var(--color-dusty-rose)',
+                fontSize: '20px'
+              }}>
                 <IconClock size={20} />
                 <Text size="lg">
                   {formatEventTime((event as any)?.startDate)}
                   {(event as any)?.endDate && ` - ${formatEventTime((event as any)?.endDate)}`}
                 </Text>
               </Group>
-              <Group gap="xs" style={{ color: 'var(--color-dusty-rose)', fontSize: '20px' }}>
+              <Group gap="xs" style={{
+                color: 'var(--color-dusty-rose)',
+                fontSize: '20px'
+              }}>
                 <IconMapPin size={20} />
                 <Text size="lg">{venue?.name || (event as any)?.location || 'TBD'}</Text>
               </Group>

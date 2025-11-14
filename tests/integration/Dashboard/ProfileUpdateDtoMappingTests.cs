@@ -176,11 +176,7 @@ public class ProfileUpdateDtoMappingTests : DtoMappingTestBase
         {
             PropertyNameCaseInsensitive = true
         };
-        var apiResponse = await getResponse.Content.ReadFromJsonAsync<ApiResponse<UserProfileDto>>(jsonOptions);
-        apiResponse.Should().NotBeNull("API should return response");
-        apiResponse!.Success.Should().BeTrue("API response should indicate success");
-
-        var returnedProfile = apiResponse.Data;
+        var returnedProfile = await getResponse.Content.ReadFromJsonAsync<UserProfileDto>(jsonOptions);
         returnedProfile.Should().NotBeNull("API should return profile");
 
         // CRITICAL: Verify all DTO fields are in the response

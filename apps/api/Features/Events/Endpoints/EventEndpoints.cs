@@ -36,25 +36,19 @@ public static class EventEndpoints
                     var user = context.User;
                     if (user.Identity?.IsAuthenticated != true)
                     {
-                        return Results.Json(new ApiResponse<List<EventDto>>
-                        {
-                            Success = false,
-                            Data = null,
-                            Error = "Authentication required",
-                            Message = "Authentication required to access unpublished events"
-                        }, statusCode: 401);
+                        return Results.Problem(
+                            title: "Authentication Required",
+                            detail: "Authentication required to access unpublished events",
+                            statusCode: 401);
                     }
 
                     var userRole = user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
                     if (userRole != "Administrator")
                     {
-                        return Results.Json(new ApiResponse<List<EventDto>>
-                        {
-                            Success = false,
-                            Data = null,
-                            Error = "Insufficient permissions",
-                            Message = "Administrator role required to access unpublished events"
-                        }, statusCode: 403);
+                        return Results.Problem(
+                            title: "Insufficient Permissions",
+                            detail: "Administrator role required to access unpublished events",
+                            statusCode: 403);
                     }
                 }
 
@@ -62,31 +56,23 @@ public static class EventEndpoints
 
                 if (success)
                 {
-                    return Results.Ok(new ApiResponse<List<EventDto>>
-                    {
-                        Success = true,
-                        Data = response,
-                        Message = response.Count == 0 ? "No events found" : "Events retrieved successfully"
-                    });
+                    return Results.Ok(response); // Direct DTO list
                 }
 
                 // Return proper error - NO FALLBACK DATA
-                return Results.Json(new ApiResponse<List<EventDto>>
-                {
-                    Success = false,
-                    Data = null,
-                    Error = error ?? "Failed to retrieve events from database",
-                    Message = "Unable to retrieve events. Please check if the API database connection is working."
-                }, statusCode: 500);
+                return Results.Problem(
+                    title: "Failed to retrieve events",
+                    detail: error ?? "Unable to retrieve events. Please check if the API database connection is working.",
+                    statusCode: 500);
             })
             .WithName("GetEvents")
             .WithSummary("Get all events")
             .WithDescription("Returns events from the database. Use ?includeUnpublished=true for admin access to draft events. Requires Administrator role for unpublished events.")
             .WithTags("Events")
-            .Produces<ApiResponse<List<EventDto>>>(200)
-            .Produces(401)
-            .Produces(403)
-            .Produces(500);
+            .Produces<List<EventDto>>(200)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .ProducesProblem(500);
 
         // Get single event by ID
         app.MapGet("/api/events/{id}", async (
@@ -98,30 +84,22 @@ public static class EventEndpoints
 
                 if (success && response != null)
                 {
-                    return Results.Ok(new ApiResponse<EventDto>
-                    {
-                        Success = true,
-                        Data = response,
-                        Message = "Event retrieved successfully"
-                    });
+                    return Results.Ok(response); // Direct DTO
                 }
 
                 // Return proper error - NO FALLBACK DATA
-                return Results.Json(new ApiResponse<EventDto>
-                {
-                    Success = false,
-                    Data = null,
-                    Error = error ?? "Event not found or database error",
-                    Message = response == null ? "Event not found" : "Failed to retrieve event from database"
-                }, statusCode: response == null ? 404 : 500);
+                return Results.Problem(
+                    title: response == null ? "Event Not Found" : "Failed to retrieve event",
+                    detail: error ?? (response == null ? "Event not found" : "Failed to retrieve event from database"),
+                    statusCode: response == null ? 404 : 500);
             })
             .WithName("GetEvent")
             .WithSummary("Get single event by ID")
             .WithDescription("Returns a specific event by its unique identifier")
             .WithTags("Events")
-            .Produces<ApiResponse<EventDto>>(200)
-            .Produces(404)
-            .Produces(500);
+            .Produces<EventDto>(200)
+            .ProducesProblem(404)
+            .ProducesProblem(500);
 
         // Update existing event by ID
         app.MapPut("/api/events/{id}", async (
@@ -134,12 +112,7 @@ public static class EventEndpoints
 
                 if (success && response != null)
                 {
-                    return Results.Ok(new ApiResponse<EventDto>
-                    {
-                        Success = true,
-                        Data = response,
-                        Message = "Event updated successfully"
-                    });
+                    return Results.Ok(response); // Direct DTO
                 }
 
                 // Determine appropriate HTTP status code based on error message
@@ -154,13 +127,10 @@ public static class EventEndpoints
                     _ => 500
                 };
 
-                return Results.Json(new ApiResponse<EventDto>
-                {
-                    Success = false,
-                    Data = null,
-                    Error = error,
-                    Message = "Failed to update event"
-                }, statusCode: statusCode);
+                return Results.Problem(
+                    title: "Failed to update event",
+                    detail: error ?? "Failed to update event",
+                    statusCode: statusCode);
             })
             .RequireAuthorization() // Requires JWT authentication
             .WithName("UpdateEvent")
@@ -168,11 +138,11 @@ public static class EventEndpoints
             .WithDescription("Updates an event with the provided data. Supports partial updates (only non-null fields will be updated). " +
                 "Business rules: Cannot update past events, cannot reduce capacity below current attendance.")
             .WithTags("Events")
-            .Produces<ApiResponse<EventDto>>(200)
-            .Produces(400)
-            .Produces(401)
-            .Produces(404)
-            .Produces(500);
+            .Produces<EventDto>(200)
+            .ProducesProblem(400)
+            .ProducesProblem(401)
+            .ProducesProblem(404)
+            .ProducesProblem(500);
 
         // Get ticket types for an event (used by check-in kiosk for door payments)
         app.MapGet("/api/events/{id}/ticket-types", async (
@@ -185,13 +155,10 @@ public static class EventEndpoints
                 var sessionToken = context.Request.Headers["X-CheckIn-Token"].FirstOrDefault();
                 if (string.IsNullOrEmpty(sessionToken))
                 {
-                    return Results.Json(new ApiResponse<List<TicketTypeDto>>
-                    {
-                        Success = false,
-                        Data = null,
-                        Error = "Missing check-in session token",
-                        Message = "X-CheckIn-Token header required for kiosk access"
-                    }, statusCode: 401);
+                    return Results.Problem(
+                        title: "Missing check-in session token",
+                        detail: "X-CheckIn-Token header required for kiosk access",
+                        statusCode: 401);
                 }
 
                 // Get event with ticket types
@@ -199,26 +166,23 @@ public static class EventEndpoints
 
                 if (success && response != null)
                 {
-                    return Results.Ok(response.TicketTypes);
+                    return Results.Ok(response.TicketTypes); // Direct DTO list
                 }
 
                 // Return proper error
-                return Results.Json(new ApiResponse<List<TicketTypeDto>>
-                {
-                    Success = false,
-                    Data = null,
-                    Error = error ?? "Event not found or database error",
-                    Message = response == null ? "Event not found" : "Failed to retrieve ticket types"
-                }, statusCode: response == null ? 404 : 500);
+                return Results.Problem(
+                    title: response == null ? "Event not found" : "Failed to retrieve ticket types",
+                    detail: error ?? (response == null ? "Event not found" : "Failed to retrieve ticket types from database"),
+                    statusCode: response == null ? 404 : 500);
             })
             .WithName("GetEventTicketTypes")
             .WithSummary("Get ticket types for an event")
             .WithDescription("Returns all ticket types for a specific event. Used by check-in kiosk for door payment processing. Requires X-CheckIn-Token header.")
             .WithTags("Events")
             .Produces<List<TicketTypeDto>>(200)
-            .Produces(401)
-            .Produces(404)
-            .Produces(500);
+            .ProducesProblem(401)
+            .ProducesProblem(404)
+            .ProducesProblem(500);
 
         // Record cash payment for event attendee (kiosk mode door payment)
         app.MapPost("/api/events/{eventId}/checkin/cash-payment", async (

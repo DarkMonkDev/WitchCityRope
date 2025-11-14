@@ -40,7 +40,7 @@ import {
 import { IconUsers, IconTicket, IconCalendarCheck, IconCheck, IconAlertCircle } from '@tabler/icons-react';
 import { useCurrentUser } from '../../lib/api/hooks/useAuth';
 import {
-  ParticipationStatusDto
+  EnhancedParticipationStatusDto
 } from '../../types/participation.types';
 import { PayPalButton } from '../../features/payments/components/PayPalButton';
 import type { PaymentEventInfo } from '../../features/payments/types/payment.types';
@@ -77,7 +77,7 @@ interface ParticipationCardProps {
   eventId: string;
   eventTitle: string;
   eventType: 'social' | 'class';
-  participation: ParticipationStatusDto | null;
+  participation: EnhancedParticipationStatusDto | null;
   isLoading?: boolean;
   onRSVP: (notes?: string, eventWaiverAccepted?: boolean) => void;
   onPurchaseTicket: (amount: number, slidingScalePercentage?: number) => void;
@@ -277,7 +277,7 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
         canceledAt: undefined,
         cancelReason: undefined
       } : null
-    } as ParticipationStatusDto;
+    } as EnhancedParticipationStatusDto;
 
     debugLog('🔍 Converted participation:', validParticipation);
   }

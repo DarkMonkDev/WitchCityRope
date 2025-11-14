@@ -1,88 +1,42 @@
 /**
  * Dashboard-specific TypeScript types
- * These correspond to C# DTOs in /apps/api/Features/Dashboard/Models/
  *
- * CRITICAL: These types match backend DTOs - do not modify without backend changes
+ * ✅ DTO ALIGNMENT STRATEGY COMPLIANT
+ * All types imported from @witchcityrope/shared-types (auto-generated from backend DTOs)
+ * Source: C# Dashboard DTOs via NSwag generation
  */
+
+import type { components } from '@witchcityrope/shared-types';
 
 /**
  * User's registered event information for dashboard display
+ * Source: C# UserEventDto via NSwag generation
+ *
  * CRITICAL: This is NOT PublicEventDto - different fields for dashboard context
  * This is for the user's own events dashboard, NOT public sales page
  */
-export interface UserEventDto {
-  id: string
-  title: string
-  startDate: string // ISO 8601 date string
-  endDate: string // ISO 8601 date string
-  location: string
-  /**
-   * Event description (corresponds to C# Description property)
-   * MAPS FROM: Event.ShortDescription in database via backend UserEventDto.Description
-   */
-  description?: string | null
-  /**
-   * Registration status: "RSVP Confirmed", "Ticket Purchased", "Attended"
-   */
-  registrationStatus: 'RSVP Confirmed' | 'Ticket Purchased' | 'Attended'
-  isSocialEvent: boolean
-  hasTicket: boolean
-  isPastEvent: boolean
-  // NO pricing fields - this is user dashboard, not sales page
-  // NO capacity fields - user doesn't need to see event capacity
-}
+export type UserEventDto = components['schemas']['UserEventDto'];
 
 /**
  * User's vetting status for alert box display on dashboard
+ * Source: C# VettingStatusDto via NSwag generation
  */
-export interface VettingStatusDto {
-  /**
-   * Vetting status: "Pending", "ApprovedForInterview", "OnHold", "Denied", "Vetted"
-   */
-  status: 'Pending' | 'ApprovedForInterview' | 'OnHold' | 'Denied' | 'Vetted'
-  lastUpdatedAt: string // ISO 8601 date string
-  message: string
-  interviewScheduleUrl?: string | null
-  reapplyInfoUrl?: string | null
-}
+export type VettingStatusDto = components['schemas']['VettingStatusDto'];
 
 /**
  * User profile information for settings page
+ * Source: C# UserProfileDto via NSwag generation
  */
-export interface UserProfileDto {
-  userId: string
-  sceneName: string
-  firstName?: string | null
-  lastName?: string | null
-  email: string
-  pronouns?: string | null
-  bio?: string | null
-  discordName?: string | null
-  fetLifeName?: string | null
-  phoneNumber?: string | null
-  vettingStatus: string
-}
+export type UserProfileDto = components['schemas']['UserProfileDto'];
 
 /**
  * Update profile request DTO
+ * Source: C# UpdateProfileDto via NSwag generation
  */
-export interface UpdateProfileDto {
-  sceneName: string
-  firstName?: string | null
-  lastName?: string | null
-  email: string
-  pronouns?: string | null
-  bio?: string | null
-  discordName?: string | null
-  fetLifeName?: string | null
-  phoneNumber?: string | null
-}
+export type UpdateProfileDto = components['schemas']['UpdateProfileDto'];
 
 /**
  * Change password request DTO
+ * Source: C# ChangePasswordDto via NSwag generation
  */
-export interface ChangePasswordDto {
-  currentPassword: string
-  newPassword: string
-  confirmPassword: string
-}
+export type ChangePasswordDto = components['schemas']['ChangePasswordDto'];

@@ -42,13 +42,7 @@ public static class SafetyEndpoints
             var result = await safetyService.SubmitIncidentAsync(request, cancellationToken);
 
             return result.IsSuccess
-                ? Results.Ok(new ApiResponse<SubmissionResponse>
-                {
-                    Success = true,
-                    Data = result.Value,
-                    Message = "Incident submitted successfully",
-                    Timestamp = DateTime.UtcNow
-                })
+                ? Results.Ok(result.Value)
                 : Results.Problem(
                     title: "Incident Submission Failed",
                     detail: result.Error,
@@ -57,9 +51,9 @@ public static class SafetyEndpoints
         .WithName("SubmitIncident")
         .WithSummary("Submit safety incident report")
         .WithDescription("Submit a new safety incident report (anonymous or identified)")
-        .Produces<ApiResponse<SubmissionResponse>>(200)
-        .Produces(400)
-        .Produces(422);
+        .Produces<SubmissionResponse>(200)
+        .ProducesProblem(400)
+        .ProducesProblem(422);
 
         // Public endpoint for anonymous incident tracking
         group.MapGet("/incidents/{referenceNumber}/status", async (
@@ -70,13 +64,7 @@ public static class SafetyEndpoints
             var result = await safetyService.GetIncidentStatusAsync(referenceNumber, cancellationToken);
 
             return result.IsSuccess
-                ? Results.Ok(new ApiResponse<IncidentStatusResponse>
-                {
-                    Success = true,
-                    Data = result.Value,
-                    Message = "Incident status retrieved successfully",
-                    Timestamp = DateTime.UtcNow
-                })
+                ? Results.Ok(result.Value)
                 : Results.Problem(
                     title: "Resource Not Found",
                     detail: result.Error,
@@ -85,8 +73,8 @@ public static class SafetyEndpoints
         .WithName("GetIncidentStatus")
         .WithSummary("Get incident status for tracking")
         .WithDescription("Get current status of incident by reference number (public access)")
-        .Produces<ApiResponse<IncidentStatusResponse>>(200)
-        .Produces(404);
+        .Produces<IncidentStatusResponse>(200)
+        .ProducesProblem(404);
 
         #endregion
 
@@ -105,13 +93,7 @@ public static class SafetyEndpoints
             var result = await safetyService.GetIncidentsAsync(request, userId, isAdmin, cancellationToken);
 
             return result.IsSuccess
-                ? Results.Ok(new ApiResponse<PaginatedIncidentListResponse>
-                {
-                    Success = true,
-                    Data = result.Value,
-                    Message = "Incident list retrieved successfully",
-                    Timestamp = DateTime.UtcNow
-                })
+                ? Results.Ok(result.Value)
                 : Results.Problem(
                     title: "Incident List Retrieval Failed",
                     detail: result.Error,
@@ -123,10 +105,10 @@ public static class SafetyEndpoints
         .RequireAuthorization(policy => policy.RequireRole(
             UserRole.Administrator.ToRoleString(),
             UserRole.SafetyTeam.ToRoleString())) // SafetyTeam members are coordinators
-        .Produces<ApiResponse<PaginatedIncidentListResponse>>(200)
-        .Produces(401)
-        .Produces(403)
-        .Produces(500);
+        .Produces<PaginatedIncidentListResponse>(200)
+        .ProducesProblem(401)
+        .ProducesProblem(403)
+        .ProducesProblem(500);
 
         // Dashboard statistics
         group.MapGet("/admin/dashboard/statistics", async (
@@ -140,13 +122,7 @@ public static class SafetyEndpoints
             var result = await safetyService.GetDashboardStatisticsAsync(userId, isAdmin, cancellationToken);
 
             return result.IsSuccess
-                ? Results.Ok(new ApiResponse<DashboardStatisticsResponse>
-                {
-                    Success = true,
-                    Data = result.Value,
-                    Message = "Dashboard statistics retrieved successfully",
-                    Timestamp = DateTime.UtcNow
-                })
+                ? Results.Ok(result.Value)
                 : Results.Problem(
                     title: "Dashboard Statistics Failed",
                     detail: result.Error,
@@ -158,10 +134,10 @@ public static class SafetyEndpoints
         .RequireAuthorization(policy => policy.RequireRole(
             UserRole.Administrator.ToRoleString(),
             UserRole.SafetyTeam.ToRoleString())) // SafetyTeam members are coordinators
-        .Produces<ApiResponse<DashboardStatisticsResponse>>(200)
-        .Produces(401)
-        .Produces(403)
-        .Produces(500);
+        .Produces<DashboardStatisticsResponse>(200)
+        .ProducesProblem(401)
+        .ProducesProblem(403)
+        .ProducesProblem(500);
 
         // Get all users for coordinator assignment dropdown
         group.MapGet("/admin/users/coordinators", async (
@@ -171,13 +147,7 @@ public static class SafetyEndpoints
             var result = await safetyService.GetAllUsersForAssignmentAsync(cancellationToken);
 
             return result.IsSuccess
-                ? Results.Ok(new ApiResponse<IEnumerable<UserCoordinatorDto>>
-                {
-                    Success = true,
-                    Data = result.Value,
-                    Message = "Coordinators list retrieved successfully",
-                    Timestamp = DateTime.UtcNow
-                })
+                ? Results.Ok(result.Value)
                 : Results.Problem(
                     title: "User List Retrieval Failed",
                     detail: result.Error,
@@ -189,10 +159,10 @@ public static class SafetyEndpoints
         .RequireAuthorization(policy => policy.RequireRole(
             UserRole.Administrator.ToRoleString(),
             UserRole.SafetyTeam.ToRoleString())) // SafetyTeam members are coordinators
-        .Produces<ApiResponse<IEnumerable<UserCoordinatorDto>>>(200)
-        .Produces(401)
-        .Produces(403)
-        .Produces(500);
+        .Produces<IEnumerable<UserCoordinatorDto>>(200)
+        .ProducesProblem(401)
+        .ProducesProblem(403)
+        .ProducesProblem(500);
 
         // OLD Dashboard endpoint (kept for compatibility)
         group.MapGet("/admin/dashboard", async (
@@ -204,13 +174,7 @@ public static class SafetyEndpoints
             var result = await safetyService.GetDashboardDataAsync(userId, cancellationToken);
 
             return result.IsSuccess
-                ? Results.Ok(new ApiResponse<AdminDashboardResponse>
-                {
-                    Success = true,
-                    Data = result.Value,
-                    Message = "Dashboard data retrieved successfully",
-                    Timestamp = DateTime.UtcNow
-                })
+                ? Results.Ok(result.Value)
                 : Results.Problem(
                     title: "Dashboard Load Failed",
                     detail: result.Error,
@@ -220,10 +184,10 @@ public static class SafetyEndpoints
         .WithSummary("Get safety team dashboard data (legacy)")
         .WithDescription("Get dashboard statistics and recent incidents for safety team")
         .RequireAuthorization()
-        .Produces<ApiResponse<AdminDashboardResponse>>(200)
-        .Produces(401)
-        .Produces(403)
-        .Produces(500);
+        .Produces<AdminDashboardResponse>(200)
+        .ProducesProblem(401)
+        .ProducesProblem(403)
+        .ProducesProblem(500);
 
         #endregion
 
@@ -240,13 +204,7 @@ public static class SafetyEndpoints
             var result = await safetyService.GetIncidentDetailAsync(incidentId, userId, cancellationToken);
 
             return result.IsSuccess
-                ? Results.Ok(new ApiResponse<IncidentResponse>
-                {
-                    Success = true,
-                    Data = result.Value,
-                    Message = "Incident details retrieved successfully",
-                    Timestamp = DateTime.UtcNow
-                })
+                ? Results.Ok(result.Value)
                 : Results.Problem(
                     title: "Incident Retrieval Failed",
                     detail: result.Error,
@@ -256,10 +214,10 @@ public static class SafetyEndpoints
         .WithSummary("Get detailed incident information")
         .WithDescription("Get full incident details with decrypted data for safety team")
         .RequireAuthorization()
-        .Produces<ApiResponse<IncidentResponse>>(200)
-        .Produces(401)
-        .Produces(403)
-        .Produces(404);
+        .Produces<IncidentResponse>(200)
+        .ProducesProblem(401)
+        .ProducesProblem(403)
+        .ProducesProblem(404);
 
         // Assign coordinator to incident
         group.MapPost("/admin/incidents/{incidentId:guid}/assign", async (
@@ -280,13 +238,7 @@ public static class SafetyEndpoints
             var result = await safetyService.AssignCoordinatorAsync(incidentId, request, userId, cancellationToken);
 
             return result.IsSuccess
-                ? Results.Ok(new ApiResponse<IncidentSummaryDto>
-                {
-                    Success = true,
-                    Data = result.Value,
-                    Message = "Coordinator assigned successfully",
-                    Timestamp = DateTime.UtcNow
-                })
+                ? Results.Ok(result.Value)
                 : Results.Problem(
                     title: "Assignment Failed",
                     detail: result.Error,
@@ -296,12 +248,12 @@ public static class SafetyEndpoints
         .WithSummary("Assign coordinator to incident")
         .WithDescription("Assign or unassign coordinator (Admin only)")
         .RequireAuthorization(policy => policy.RequireRole(UserRole.Administrator.ToRoleString()))
-        .Produces<ApiResponse<IncidentSummaryDto>>(200)
-        .Produces(401)
-        .Produces(403)
-        .Produces(404)
-        .Produces(422)
-        .Produces(500);
+        .Produces<IncidentSummaryDto>(200)
+        .ProducesProblem(401)
+        .ProducesProblem(403)
+        .ProducesProblem(404)
+        .ProducesProblem(422)
+        .ProducesProblem(500);
 
         // Update incident status
         group.MapPut("/admin/incidents/{incidentId:guid}/status", async (
@@ -322,13 +274,7 @@ public static class SafetyEndpoints
             var result = await safetyService.UpdateStatusAsync(incidentId, request, userId, cancellationToken);
 
             return result.IsSuccess
-                ? Results.Ok(new ApiResponse<StatusUpdateResponse>
-                {
-                    Success = true,
-                    Data = result.Value,
-                    Message = "Status updated successfully",
-                    Timestamp = DateTime.UtcNow
-                })
+                ? Results.Ok(result.Value)
                 : Results.Problem(
                     title: "Status Update Failed",
                     detail: result.Error,
@@ -340,12 +286,12 @@ public static class SafetyEndpoints
         .RequireAuthorization(policy => policy.RequireRole(
             UserRole.Administrator.ToRoleString(),
             UserRole.SafetyTeam.ToRoleString())) // SafetyTeam members are coordinators
-        .Produces<ApiResponse<StatusUpdateResponse>>(200)
-        .Produces(401)
-        .Produces(403)
-        .Produces(404)
-        .Produces(422)
-        .Produces(500);
+        .Produces<StatusUpdateResponse>(200)
+        .ProducesProblem(401)
+        .ProducesProblem(403)
+        .ProducesProblem(404)
+        .ProducesProblem(422)
+        .ProducesProblem(500);
 
         // Update Google Drive links
         group.MapPut("/admin/incidents/{incidentId:guid}/google-drive", async (
@@ -368,13 +314,7 @@ public static class SafetyEndpoints
             var result = await safetyService.UpdateGoogleDriveLinksAsync(incidentId, request, userId, isAdmin, cancellationToken);
 
             return result.IsSuccess
-                ? Results.Ok(new ApiResponse<GoogleDriveUpdateResponse>
-                {
-                    Success = true,
-                    Data = result.Value,
-                    Message = "Google Drive links updated successfully",
-                    Timestamp = DateTime.UtcNow
-                })
+                ? Results.Ok(result.Value)
                 : Results.Problem(
                     title: "Google Drive Update Failed",
                     detail: result.Error,
@@ -386,12 +326,12 @@ public static class SafetyEndpoints
         .RequireAuthorization(policy => policy.RequireRole(
             UserRole.Administrator.ToRoleString(),
             UserRole.SafetyTeam.ToRoleString())) // SafetyTeam members are coordinators
-        .Produces<ApiResponse<GoogleDriveUpdateResponse>>(200)
-        .Produces(401)
-        .Produces(403)
-        .Produces(404)
-        .Produces(422)
-        .Produces(500);
+        .Produces<GoogleDriveUpdateResponse>(200)
+        .ProducesProblem(401)
+        .ProducesProblem(403)
+        .ProducesProblem(404)
+        .ProducesProblem(422)
+        .ProducesProblem(500);
 
         // Update involved parties and witnesses
         group.MapPut("/admin/incidents/{incidentId:guid}/people", async (
@@ -414,13 +354,7 @@ public static class SafetyEndpoints
             var result = await safetyService.UpdatePeopleAsync(incidentId, request, userId, isAdmin, cancellationToken);
 
             return result.IsSuccess
-                ? Results.Ok(new ApiResponse<UpdatePeopleResponse>
-                {
-                    Success = true,
-                    Data = result.Value,
-                    Message = "Involved parties and witnesses updated successfully",
-                    Timestamp = DateTime.UtcNow
-                })
+                ? Results.Ok(result.Value)
                 : Results.Problem(
                     title: "People Update Failed",
                     detail: result.Error,
@@ -432,12 +366,12 @@ public static class SafetyEndpoints
         .RequireAuthorization(policy => policy.RequireRole(
             UserRole.Administrator.ToRoleString(),
             UserRole.SafetyTeam.ToRoleString())) // SafetyTeam members are coordinators
-        .Produces<ApiResponse<UpdatePeopleResponse>>(200)
-        .Produces(401)
-        .Produces(403)
-        .Produces(404)
-        .Produces(422)
-        .Produces(500);
+        .Produces<UpdatePeopleResponse>(200)
+        .ProducesProblem(401)
+        .ProducesProblem(403)
+        .ProducesProblem(404)
+        .ProducesProblem(422)
+        .ProducesProblem(500);
 
         #endregion
 
@@ -456,13 +390,7 @@ public static class SafetyEndpoints
             var result = await safetyService.GetNotesAsync(incidentId, userId, isAdmin, cancellationToken);
 
             return result.IsSuccess
-                ? Results.Ok(new ApiResponse<NotesListResponse>
-                {
-                    Success = true,
-                    Data = result.Value,
-                    Message = "Notes retrieved successfully",
-                    Timestamp = DateTime.UtcNow
-                })
+                ? Results.Ok(result.Value)
                 : Results.Problem(
                     title: "Notes Retrieval Failed",
                     detail: result.Error,
@@ -474,11 +402,11 @@ public static class SafetyEndpoints
         .RequireAuthorization(policy => policy.RequireRole(
             UserRole.Administrator.ToRoleString(),
             UserRole.SafetyTeam.ToRoleString())) // SafetyTeam members are coordinators
-        .Produces<ApiResponse<NotesListResponse>>(200)
-        .Produces(401)
-        .Produces(403)
-        .Produces(404)
-        .Produces(500);
+        .Produces<NotesListResponse>(200)
+        .ProducesProblem(401)
+        .ProducesProblem(403)
+        .ProducesProblem(404)
+        .ProducesProblem(500);
 
         // Add manual note to incident
         group.MapPost("/admin/incidents/{incidentId:guid}/notes", async (
@@ -501,13 +429,7 @@ public static class SafetyEndpoints
             var result = await safetyService.AddNoteAsync(incidentId, request, userId, isAdmin, cancellationToken);
 
             return result.IsSuccess
-                ? Results.Ok(new ApiResponse<IncidentNoteDto>
-                {
-                    Success = true,
-                    Data = result.Value,
-                    Message = "Note added successfully",
-                    Timestamp = DateTime.UtcNow
-                })
+                ? Results.Ok(result.Value)
                 : Results.Problem(
                     title: "Note Addition Failed",
                     detail: result.Error,
@@ -519,12 +441,12 @@ public static class SafetyEndpoints
         .RequireAuthorization(policy => policy.RequireRole(
             UserRole.Administrator.ToRoleString(),
             UserRole.SafetyTeam.ToRoleString())) // SafetyTeam members are coordinators
-        .Produces<ApiResponse<IncidentNoteDto>>(200)
-        .Produces(401)
-        .Produces(403)
-        .Produces(404)
-        .Produces(422)
-        .Produces(500);
+        .Produces<IncidentNoteDto>(200)
+        .ProducesProblem(401)
+        .ProducesProblem(403)
+        .ProducesProblem(404)
+        .ProducesProblem(422)
+        .ProducesProblem(500);
 
         // Update manual note
         group.MapPut("/admin/notes/{noteId:guid}", async (
@@ -547,13 +469,7 @@ public static class SafetyEndpoints
             var result = await safetyService.UpdateNoteAsync(noteId, request, userId, isAdmin, cancellationToken);
 
             return result.IsSuccess
-                ? Results.Ok(new ApiResponse<IncidentNoteDto>
-                {
-                    Success = true,
-                    Data = result.Value,
-                    Message = "Note updated successfully",
-                    Timestamp = DateTime.UtcNow
-                })
+                ? Results.Ok(result.Value)
                 : Results.Problem(
                     title: "Note Update Failed",
                     detail: result.Error,
@@ -565,12 +481,12 @@ public static class SafetyEndpoints
         .RequireAuthorization(policy => policy.RequireRole(
             UserRole.Administrator.ToRoleString(),
             UserRole.SafetyTeam.ToRoleString())) // SafetyTeam members are coordinators
-        .Produces<ApiResponse<IncidentNoteDto>>(200)
-        .Produces(401)
-        .Produces(403)
-        .Produces(404)
-        .Produces(422)
-        .Produces(500);
+        .Produces<IncidentNoteDto>(200)
+        .ProducesProblem(401)
+        .ProducesProblem(403)
+        .ProducesProblem(404)
+        .ProducesProblem(422)
+        .ProducesProblem(500);
 
         // Delete manual note
         group.MapDelete("/admin/notes/{noteId:guid}", async (
@@ -598,10 +514,10 @@ public static class SafetyEndpoints
             UserRole.Administrator.ToRoleString(),
             UserRole.SafetyTeam.ToRoleString())) // SafetyTeam members are coordinators
         .Produces(204)
-        .Produces(401)
-        .Produces(403)
-        .Produces(404)
-        .Produces(500);
+        .ProducesProblem(401)
+        .ProducesProblem(403)
+        .ProducesProblem(404)
+        .ProducesProblem(500);
 
         #endregion
 
@@ -620,13 +536,7 @@ public static class SafetyEndpoints
             var result = await safetyService.GetMyReportsAsync(userId, page, pageSize, cancellationToken);
 
             return result.IsSuccess
-                ? Results.Ok(new ApiResponse<MyReportsPaginatedResponse>
-                {
-                    Success = true,
-                    Data = result.Value,
-                    Message = "My reports retrieved successfully",
-                    Timestamp = DateTime.UtcNow
-                })
+                ? Results.Ok(result.Value)
                 : Results.Problem(
                     title: "My Reports Retrieval Failed",
                     detail: result.Error,
@@ -636,9 +546,9 @@ public static class SafetyEndpoints
         .WithSummary("Get user's own reports (paginated)")
         .WithDescription("Get list of current user's incident reports with limited view")
         .RequireAuthorization()
-        .Produces<ApiResponse<MyReportsPaginatedResponse>>(200)
-        .Produces(401)
-        .Produces(500);
+        .Produces<MyReportsPaginatedResponse>(200)
+        .ProducesProblem(401)
+        .ProducesProblem(500);
 
         // Get user's own report detail
         group.MapGet("/my-reports/{incidentId:guid}", async (
@@ -652,13 +562,7 @@ public static class SafetyEndpoints
             var result = await safetyService.GetMyReportDetailAsync(incidentId, userId, cancellationToken);
 
             return result.IsSuccess
-                ? Results.Ok(new ApiResponse<MyReportDetailDto>
-                {
-                    Success = true,
-                    Data = result.Value,
-                    Message = "Report detail retrieved successfully",
-                    Timestamp = DateTime.UtcNow
-                })
+                ? Results.Ok(result.Value)
                 : Results.Problem(
                     title: "Report Detail Retrieval Failed",
                     detail: result.Error,
@@ -668,11 +572,11 @@ public static class SafetyEndpoints
         .WithSummary("Get user's own report detail")
         .WithDescription("Get detailed view of user's own incident report (limited fields)")
         .RequireAuthorization()
-        .Produces<ApiResponse<MyReportDetailDto>>(200)
-        .Produces(401)
-        .Produces(403)
-        .Produces(404)
-        .Produces(500);
+        .Produces<MyReportDetailDto>(200)
+        .ProducesProblem(401)
+        .ProducesProblem(403)
+        .ProducesProblem(404)
+        .ProducesProblem(500);
 
         #endregion
     }

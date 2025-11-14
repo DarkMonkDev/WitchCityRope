@@ -377,8 +377,8 @@ export const EventForm: React.FC<EventFormProps> = ({
   const { data: venuesData } = useQuery<VenueDto[]>({
     queryKey: ['admin', 'venues', 'active'],
     queryFn: async () => {
-      const response = await api.get<{ data: VenueDto[] }>('/api/admin/venues/active')
-      return response.data.data || []
+      const response = await api.get<VenueDto[]>('/api/admin/venues/active')
+      return response.data || []
     },
   })
 
@@ -598,8 +598,8 @@ export const EventForm: React.FC<EventFormProps> = ({
   type CreateVenueRequest = components['schemas']['CreateVenueRequest']
   const createVenueMutation = useMutation({
     mutationFn: async (data: CreateVenueRequest) => {
-      const response = await api.post<{ data: VenueDto }>('/api/admin/venues', data)
-      return response.data.data
+      const response = await api.post<VenueDto>('/api/admin/venues', data)
+      return response.data
     },
     onSuccess: (newVenue) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'venues', 'active'] })

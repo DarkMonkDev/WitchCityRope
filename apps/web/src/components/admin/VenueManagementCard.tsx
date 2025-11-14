@@ -59,16 +59,16 @@ export const VenueManagementCard: React.FC = () => {
   const { data: venues, isLoading } = useQuery<VenueDto[]>({
     queryKey: ['admin', 'venues'],
     queryFn: async () => {
-      const response = await api.get<{ data: VenueDto[] }>('/api/admin/venues');
-      return response.data.data || [];
+      const response = await api.get<VenueDto[]>('/api/admin/venues');
+      return response.data || [];
     },
   });
 
   // Create venue mutation
   const createMutation = useMutation({
     mutationFn: async (data: CreateVenueRequest) => {
-      const response = await api.post<{ data: VenueDto }>('/api/admin/venues', data);
-      return response.data.data;
+      const response = await api.post<VenueDto>('/api/admin/venues', data);
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'venues'] });
@@ -94,8 +94,8 @@ export const VenueManagementCard: React.FC = () => {
   // Update venue mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: UpdateVenueRequest }) => {
-      const response = await api.put<{ data: VenueDto }>(`/api/admin/venues/${id}`, data);
-      return response.data.data;
+      const response = await api.put<VenueDto>(`/api/admin/venues/${id}`, data);
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'venues'] });

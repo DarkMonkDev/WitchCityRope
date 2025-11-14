@@ -13,7 +13,6 @@ import type {
   UpdateMemberStatusRequest,
   UpdateMemberRoleRequest,
 } from '../types/member-details.types'
-import type { ApiResponse } from '../types/api.types'
 
 // Query keys for caching
 export const memberDetailsKeys = {
@@ -35,15 +34,14 @@ export function useMemberDetails(userId: string, enabled: boolean = true) {
     queryFn: async (): Promise<MemberDetailsResponse> => {
       console.log('[useMemberDetails] Fetching details for user:', userId)
       try {
-        const { data } = await apiClient.get<ApiResponse<MemberDetailsResponse>>(
+        const { data } = await apiClient.get<MemberDetailsResponse>(
           `/api/users/${userId}/details`
         )
         console.log('[useMemberDetails] Response received:', {
-          hasData: !!data.data,
-          status: data.success,
+          hasData: !!data,
         })
-        if (!data.data) throw new Error('Member details not found')
-        return data.data
+        if (!data) throw new Error('Member details not found')
+        return data
       } catch (error: any) {
         console.error('[useMemberDetails] Error fetching details:', {
           status: error.response?.status,
@@ -62,11 +60,11 @@ export function useMemberVetting(userId: string, enabled: boolean = true) {
   return useQuery<VettingDetailsResponseExtended>({
     queryKey: memberDetailsKeys.vetting(userId),
     queryFn: async (): Promise<VettingDetailsResponseExtended> => {
-      const { data } = await apiClient.get<ApiResponse<VettingDetailsResponse>>(
+      const { data } = await apiClient.get<VettingDetailsResponse>(
         `/api/users/${userId}/vetting-details`
       )
-      if (!data.data) throw new Error('Vetting details not found')
-      return data.data as VettingDetailsResponseExtended
+      if (!data) throw new Error('Vetting details not found')
+      return data as VettingDetailsResponseExtended
     },
     enabled: !!userId && enabled,
     staleTime: 10 * 60 * 1000, // 10 minutes (vetting data changes less frequently)
@@ -83,14 +81,14 @@ export function useMemberEventHistory(
   return useQuery<EventHistoryResponse>({
     queryKey: memberDetailsKeys.eventHistory(userId, page, pageSize),
     queryFn: async (): Promise<EventHistoryResponse> => {
-      const { data } = await apiClient.get<ApiResponse<EventHistoryResponse>>(
+      const { data } = await apiClient.get<EventHistoryResponse>(
         `/api/users/${userId}/event-history`,
         {
           params: { page, pageSize },
         }
       )
-      if (!data.data) throw new Error('Event history not found')
-      return data.data
+      if (!data) throw new Error('Event history not found')
+      return data
     },
     enabled: !!userId && enabled,
     staleTime: 2 * 60 * 1000, // 2 minutes
@@ -130,11 +128,11 @@ export function useMemberIncidents(userId: string, enabled: boolean = true) {
   return useQuery<MemberIncidentsResponse>({
     queryKey: memberDetailsKeys.incidents(userId),
     queryFn: async (): Promise<MemberIncidentsResponse> => {
-      const { data } = await apiClient.get<ApiResponse<MemberIncidentsResponse>>(
+      const { data } = await apiClient.get<MemberIncidentsResponse>(
         `/api/users/${userId}/incidents`
       )
-      if (!data.data) throw new Error('Incidents not found')
-      return data.data
+      if (!data) throw new Error('Incidents not found')
+      return data
     },
     enabled: !!userId && enabled,
     staleTime: 10 * 60 * 1000, // 10 minutes
@@ -146,10 +144,10 @@ export function useMemberNotes(userId: string, enabled: boolean = true) {
   return useQuery<MemberNoteHistoryResponse[]>({
     queryKey: memberDetailsKeys.notes(userId),
     queryFn: async (): Promise<MemberNoteHistoryResponse[]> => {
-      const { data } = await apiClient.get<ApiResponse<MemberNoteHistoryResponse[]>>(
+      const { data } = await apiClient.get<MemberNoteHistoryResponse[]>(
         `/api/users/${userId}/notes`
       )
-      return data.data || []
+      return data || []
     },
     enabled: !!userId && enabled,
     staleTime: 1 * 60 * 1000, // 1 minute (notes updated frequently)
@@ -168,12 +166,12 @@ export function useCreateMemberNote() {
       userId: string
       request: CreateUserNoteRequest
     }): Promise<UserNoteResponse> => {
-      const { data } = await apiClient.post<ApiResponse<UserNoteResponse>>(
+      const { data } = await apiClient.post<UserNoteResponse>(
         `/api/users/${userId}/notes`,
         request
       )
-      if (!data.data) throw new Error('Failed to create note')
-      return data.data
+      if (!data) throw new Error('Failed to create note')
+      return data
     },
     onSuccess: (_, variables) => {
       // Invalidate notes query to refetch

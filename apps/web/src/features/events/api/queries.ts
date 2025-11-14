@@ -10,8 +10,8 @@ export function useEvent(eventId: string) {
     queryKey: queryKeys.event(eventId),
     queryFn: async (): Promise<EventDto> => {
       const response = await api.get(`/api/events/${eventId}`)
-      // API response is already in EventDto format from auto-generated types
-      return response.data?.data
+      // Pattern B: Direct DTO response
+      return response.data
     },
     enabled: !!eventId,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -28,8 +28,8 @@ export function useEvents(options: { includeUnpublished?: boolean } = {}) {
       }
 
       const response = await api.get('/api/events', { params })
-      // API response is already in EventDto[] format from auto-generated types
-      return response.data?.data || []
+      // Pattern B: Direct DTO response
+      return response.data || []
     },
     staleTime: 5 * 60 * 1000,
   })
@@ -42,8 +42,8 @@ export function useInfiniteEvents(filters: EventFilters = {}) {
       const response = await api.get('/api/events', {
         params: { page: pageParam, pageSize: 20, ...filters }
       })
-      // Access data from ApiResponse wrapper
-      return response.data?.data || { events: [], page: 1, totalPages: 1 }
+      // Pattern B: Direct DTO response
+      return response.data || { events: [], page: 1, totalPages: 1 }
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {

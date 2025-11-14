@@ -4,11 +4,12 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { useIsAuthenticated } from '../../../stores/authStore';
-import type { MyApplicationStatusResponse, VettingStatusApiResponse } from '../types/vettingStatus';
+import type { MyApplicationStatusResponse } from '../types/vettingStatus';
 
 /**
  * Fetch vetting status from API
  * Uses fetch directly with credentials for httpOnly cookie authentication
+ * API returns DTO directly (Pattern B - no wrapper)
  */
 const fetchVettingStatus = async (): Promise<MyApplicationStatusResponse> => {
   const response = await fetch('/api/vetting/status', {
@@ -19,13 +20,8 @@ const fetchVettingStatus = async (): Promise<MyApplicationStatusResponse> => {
     throw new Error(`Failed to fetch vetting status: ${response.status}`);
   }
 
-  const data: VettingStatusApiResponse = await response.json();
-
-  if (!data.success || !data.data) {
-    throw new Error(data.error || 'Failed to retrieve vetting status');
-  }
-
-  return data.data;
+  const data: MyApplicationStatusResponse = await response.json();
+  return data;
 };
 
 /**

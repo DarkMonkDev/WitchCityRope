@@ -11,24 +11,16 @@ import {
   TextInput
 } from '@mantine/core';
 import { IconNotes, IconLock, IconWorld } from '@tabler/icons-react';
+import type { components } from '@witchcityrope/shared-types';
 
-export enum IncidentNoteType {
-  Manual = 1,
-  System = 2
-}
+/**
+ * ✅ DTO ALIGNMENT STRATEGY COMPLIANT
+ * Types imported from @witchcityrope/shared-types (auto-generated from backend DTOs)
+ */
 
-export interface IncidentNoteDto {
-  id: string;
-  incidentId: string;
-  authorId: string;
-  authorName: string;
-  content: string;
-  noteType: IncidentNoteType;
-  isPrivate: boolean;
-  tags?: string[];
-  createdAt: string;
-  updatedAt?: string;
-}
+// Re-export auto-generated types
+export type IncidentNoteDto = components['schemas']['IncidentNoteDto'];
+export type IncidentNoteType = components['schemas']['IncidentNoteType'];
 
 interface IncidentNotesListProps {
   notes: IncidentNoteDto[];
@@ -155,7 +147,7 @@ export const IncidentNotesList: React.FC<IncidentNotesListProps> = ({
         {sortedNotes.length > 0 ? (
           <Stack gap="sm">
             {sortedNotes.map((note) => {
-              const isSystem = note.noteType === IncidentNoteType.System;
+              const isSystem = note.type === 'System';
 
               return (
                 <Paper
@@ -174,18 +166,7 @@ export const IncidentNotesList: React.FC<IncidentNotesListProps> = ({
                       {isSystem ? (
                         <Badge color="purple" size="sm">SYSTEM</Badge>
                       ) : (
-                        <>
-                          <IconNotes size={16} style={{ color: '#880124' }} />
-                          {note.isPrivate ? (
-                            <Badge color="gray" size="xs" leftSection={<IconLock size={10} />}>
-                              Private
-                            </Badge>
-                          ) : (
-                            <Badge color="blue" size="xs" leftSection={<IconWorld size={10} />}>
-                              Shared
-                            </Badge>
-                          )}
-                        </>
+                        <IconNotes size={16} style={{ color: '#880124' }} />
                       )}
                       <Text fw={600} size="sm">{note.authorName}</Text>
                     </Group>
@@ -200,11 +181,11 @@ export const IncidentNotesList: React.FC<IncidentNotesListProps> = ({
                   </Text>
 
                   {/* Tags */}
-                  {note.tags && note.tags.length > 0 && (
+                  {note.tags && note.tags.trim().length > 0 && (
                     <Group gap="xs" mt="xs">
-                      {note.tags.map((tag, idx) => (
+                      {note.tags.split(',').map((tag, idx) => (
                         <Badge key={idx} size="sm" variant="light" color="gray">
-                          {tag}
+                          {tag.trim()}
                         </Badge>
                       ))}
                     </Group>

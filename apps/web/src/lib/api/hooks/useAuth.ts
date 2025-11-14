@@ -1,28 +1,27 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../client'
 import { authKeys, cacheUtils } from '../utils/cache'
-import type { 
-  LoginRequest, 
-  RegisterCredentials, 
-  LoginResponse, 
-  UserDto 
+import type {
+  LoginRequest,
+  RegisterCredentials,
+  LoginResponse,
+  UserDto
 } from '../types/auth.types'
-import type { ApiResponse } from '../types/api.types'
 
 // Current user query - integrates with existing auth context
+// Pattern B: Direct DTO response
 export function useCurrentUser(enabled: boolean = true) {
   return useQuery({
     queryKey: authKeys.me(),
     queryFn: async (): Promise<UserDto> => {
       // Try the protected welcome endpoint first (existing pattern)
       try {
-        const { data } = await apiClient.get<ApiResponse<UserDto>>('/api/protected/welcome')
-        return data.data || (data as any).user // Handle both response formats
+        const { data } = await apiClient.get<UserDto>('/api/protected/welcome')
+        return data
       } catch (error) {
         // Fallback to dedicated user endpoint
-        const { data } = await apiClient.get<ApiResponse<UserDto>>('/api/auth/user')
-        if (!data.data) throw new Error('User not found')
-        return data.data
+        const { data } = await apiClient.get<UserDto>('/api/auth/user')
+        return data
       }
     },
     staleTime: 30 * 60 * 1000, // 30 minutes
@@ -32,14 +31,14 @@ export function useCurrentUser(enabled: boolean = true) {
 }
 
 // Login mutation - integrates with existing auth service
+// Pattern B: Direct DTO response
 export function useLogin() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async (credentials: LoginRequest): Promise<LoginResponse> => {
-      const { data } = await apiClient.post<ApiResponse<LoginResponse>>('/api/auth/login', credentials)
-      if (!data.data) throw new Error('Login failed')
-      return data.data
+      const { data } = await apiClient.post<LoginResponse>('/api/auth/login', credentials)
+      return data
     },
     onSuccess: (loginResponse) => {
       // BFF Pattern: No token returned - authentication via httpOnly cookies only
@@ -56,14 +55,14 @@ export function useLogin() {
 }
 
 // Register mutation
+// Pattern B: Direct DTO response
 export function useRegister() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async (credentials: RegisterCredentials): Promise<LoginResponse> => {
-      const { data } = await apiClient.post<ApiResponse<LoginResponse>>('/api/auth/register', credentials)
-      if (!data.data) throw new Error('Registration failed')
-      return data.data
+      const { data } = await apiClient.post<LoginResponse>('/api/auth/register', credentials)
+      return data
     },
     onSuccess: (registerResponse) => {
       // BFF Pattern: No token returned - authentication via httpOnly cookies only
@@ -105,14 +104,14 @@ export function useLogout() {
 }
 
 // Refresh token mutation (for future use)
+// Pattern B: Direct DTO response
 export function useRefreshToken() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async (): Promise<LoginResponse> => {
-      const { data } = await apiClient.post<ApiResponse<LoginResponse>>('/api/auth/refresh')
-      if (!data.data) throw new Error('Token refresh failed')
-      return data.data
+      const { data } = await apiClient.post<LoginResponse>('/api/auth/refresh')
+      return data
     },
     onSuccess: (refreshResponse) => {
       // BFF Pattern: No token to store - refresh via httpOnly cookies
@@ -129,14 +128,14 @@ export function useRefreshToken() {
 }
 
 // Update profile mutation
+// Pattern B: Direct DTO response
 export function useUpdateProfile() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async (profileData: Partial<UserDto>): Promise<UserDto> => {
-      const { data } = await apiClient.put<ApiResponse<UserDto>>('/api/auth/profile', profileData)
-      if (!data.data) throw new Error('Profile update failed')
-      return data.data
+      const { data } = await apiClient.put<UserDto>('/api/auth/profile', profileData)
+      return data
     },
     onMutate: async (updatedProfile) => {
       // Cancel outgoing refetches

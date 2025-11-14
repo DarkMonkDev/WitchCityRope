@@ -16,8 +16,7 @@ import type {
 } from '@witchcityrope/shared-types';
 
 // Use generated types from OpenAPI spec
-type EventDto = components["schemas"]["EventDto2"];
-type ApiResponseOfEventDto = components["schemas"]["ApiResponseOfEventDto"];
+type EventDto = components["schemas"]["EventDto"];
 
 /**
  * Events Management API Service
@@ -62,16 +61,13 @@ export class EventsManagementService {
    * Get complete event details including sessions and ticket types
    * Calls: GET /api/events/{eventId}
    * Returns generated EventDto type from OpenAPI spec
+   * Pattern B: Direct DTO response
    */
   async getEventDetails(eventId: string): Promise<EventDto> {
     try {
-      const response = await apiClient.get<ApiResponseOfEventDto>(`${this.baseUrl}/${eventId}`);
+      const response = await apiClient.get<EventDto>(`${this.baseUrl}/${eventId}`);
 
-      if (!response.data?.data) {
-        throw new Error('Event not found');
-      }
-
-      return response.data.data;
+      return response.data;
     } catch (error: any) {
       if (error.response?.status === 404) {
         throw new Error('Event not found');
@@ -84,16 +80,13 @@ export class EventsManagementService {
   /**
    * Get real-time availability for an event
    * Calls: GET /api/events/{eventId}/availability
+   * Pattern B: Direct DTO response
    */
   async getEventAvailability(eventId: string): Promise<EventAvailabilityDto> {
     try {
-      const response = await apiClient.get(`${this.baseUrl}/${eventId}/availability`);
+      const response = await apiClient.get<EventAvailabilityDto>(`${this.baseUrl}/${eventId}/availability`);
 
-      if (!response.data?.data) {
-        throw new Error('Availability not found');
-      }
-
-      return response.data.data;
+      return response.data;
     } catch (error: any) {
       if (error.response?.status === 404) {
         throw new Error('Event not found');

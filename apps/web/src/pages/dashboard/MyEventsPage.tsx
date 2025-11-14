@@ -172,7 +172,7 @@ export const MyEventsPage: React.FC = () => {
         </Group>
 
         {/* Conditional Vetting Alert */}
-        {vettingStatus && vettingStatus.status !== 'Vetted' && (
+        {vettingStatus && vettingStatus.status !== 'Approved' && (
           <VettingAlertBox status={vettingStatus} />
         )}
 

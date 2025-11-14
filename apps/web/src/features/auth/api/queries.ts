@@ -44,8 +44,8 @@ export function useProtectedWelcome() {
   return useQuery<ProtectedWelcomeData>({
     queryKey: ['protected', 'welcome'],
     queryFn: async (): Promise<ProtectedWelcomeData> => {
-      const response = await api.get<ApiResponse<ProtectedWelcomeData>>('/api/protected/welcome')
-      return response.data.data
+      const response = await api.get<ProtectedWelcomeData>('/api/protected/welcome')
+      return response.data
     },
     staleTime: 30 * 1000, // Consider data stale after 30 seconds
     gcTime: 60 * 1000, // Keep in cache for 1 minute

@@ -23,7 +23,380 @@
 
 ---
 
-## 🚨🚨🚨 ULTRA CRITICAL: NEVER MANUALLY DEFINE API TYPES - USE GENERATED TYPES FROM @witchcityrope/shared-types 🚨🚨🚨
+## 🚨🚨🚨 STOP! READ THIS FIRST - MOST COMMON VIOLATION 🚨🚨🚨
+
+### ⛔ NEVER CREATE MANUAL TypeScript INTERFACES FOR API DATA ⛔
+
+**This is THE most frequently violated rule. If you do NOTHING else, do NOT violate this!**
+
+**WRONG** (causes hours of debugging):
+```typescript
+// ❌ CREATING INTERFACES FOR API DATA
+interface UserDto { ... }
+interface EventDto { ... }
+interface SessionDto { ... }
+```
+
+**CORRECT** (always works):
+```typescript
+// ✅ IMPORT FROM AUTO-GENERATED TYPES
+import type { components } from '@witchcityrope/shared-types';
+export type UserDto = components['schemas']['UserDto'];
+```
+
+**Why this matters**:
+- Manual interfaces cause 393+ TypeScript errors
+- Backend changes break frontend silently
+- You waste hours fixing type mismatches
+- Violates core architecture (DTO Alignment Strategy)
+
+**Full details**: See lesson "ULTRA CRITICAL: NEVER MANUALLY DEFINE API TYPES" below (line 408+)
+
+**IF YOU SEE THIS PATTERN IN CODE**: Fix it immediately before doing ANY other work!
+
+---
+
+## 🚨 CRITICAL: REACT ROUTER SCROLLRESTORATION REVERSE NAVIGATION BUG 🚨
+**Date**: 2025-11-13
+**Category**: React Router v7 / ScrollRestoration / Navigation
+**Severity**: CRITICAL - REVERSE NAVIGATION SCROLLS TO WRONG POSITION
+
+### What We Learned
+**SCROLLRESTORATION WITHOUT getKey BREAKS REVERSE NAVIGATION**: React Router's `<ScrollRestoration />` component without a `getKey` function fails to scroll to top on reverse navigation (Events → Homepage), landing at 614px instead of 0px.
+
+**ROOT CAUSE**: React Router's ScrollRestoration component uses an internal algorithm to decide when to:
+1. Scroll to top (new navigation)
+2. Restore previous scroll position (browser back/forward)
+
+Without a `getKey` function, the component can't reliably detect route changes during reverse navigation, causing it to:
+- Incorrectly restore a scroll position that doesn't exist
+- Skip the scroll-to-top behavior
+- Land at a seemingly random offset (614px in this case)
+
+**TEST EVIDENCE**:
+```
+Test: "scrolls to top when navigating from events to homepage - DESKTOP"
+Expected: scrollY <= 10px
+Actual: scrollY = 614px ❌
+
+Forward navigation (Homepage → Events): 0px ✅ WORKS
+Reverse navigation (Events → Homepage): 614px ❌ BROKEN
+```
+
+Adding waits made it WORSE (93px → 614px), confirming this is NOT a timing issue.
+
+### 🛑 BROKEN PATTERN:
+
+```typescript
+// ❌ WRONG: ScrollRestoration without getKey
+import { ScrollRestoration } from 'react-router-dom';
+
+export const RootLayout: React.FC = () => {
+  return (
+    <Box>
+      <ScrollRestoration />  {/* No getKey - reverse navigation broken! */}
+      <Navigation />
+      <Outlet />
+      <Footer />
+    </Box>
+  );
+};
+```
+
+**Why This Breaks**:
+1. Forward navigation (Homepage → Events) works by chance
+2. Reverse navigation (Events → Homepage) fails - scrolls to 614px
+3. React Router can't reliably detect route changes
+4. Scroll restoration behavior becomes unpredictable
+5. Different routes may have different bugs
+
+### ✅ CRITICAL SOLUTION: Add getKey Function
+
+```typescript
+// ✅ CORRECT: ScrollRestoration with getKey based on pathname
+import { ScrollRestoration, useLocation } from 'react-router-dom';
+
+export const RootLayout: React.FC = () => {
+  const location = useLocation();
+
+  return (
+    <Box>
+      {/* CRITICAL FIX: getKey function ensures scroll-to-top on ALL navigation
+          Without this, reverse navigation (Events → Homepage) scrolls to 614px instead of 0px
+          The key based on pathname forces React Router to recognize route change
+          and scroll to top instead of trying to restore previous scroll position
+
+          Bug fixed: Desktop reverse navigation now scrolls to 0px correctly
+          See: /tests/playwright/scroll-restoration.spec.ts (line 225-275)
+      */}
+      <ScrollRestoration
+        getKey={(location) => {
+          // Use pathname as key to force scroll-to-top on route changes
+          // This ensures both forward (Homepage → Events) and reverse (Events → Homepage)
+          // navigation always scroll to top of page (Y = 0)
+          return location.pathname;
+        }}
+      />
+      <Navigation />
+      <Outlet />
+      <Footer />
+    </Box>
+  );
+};
+```
+
+### 📋 MANDATORY PATTERN FOR SCROLLRESTORATION:
+
+**Step 1: Always include getKey function**
+```typescript
+<ScrollRestoration
+  getKey={(location) => location.pathname}
+/>
+```
+
+**Step 2: Use pathname for standard scroll-to-top behavior**
+```typescript
+// For most apps: pathname is sufficient
+getKey={(location) => location.pathname}
+```
+
+**Step 3: Add location key for query param changes**
+```typescript
+// If query params should trigger scroll-to-top:
+getKey={(location) => location.pathname + location.search}
+```
+
+**Step 4: Custom keys for special cases**
+```typescript
+// For apps with complex scroll restoration needs:
+getKey={(location, matches) => {
+  // Use pathname for most routes
+  const paths = ["/", "/events", "/about"];
+  if (paths.includes(location.pathname)) {
+    return location.pathname;
+  }
+  // Use full location key for dynamic routes
+  return location.pathname + location.search + location.hash;
+}}
+```
+
+### 🔧 WHEN THIS PATTERN APPLIES:
+
+**ALWAYS use getKey with ScrollRestoration**:
+- Every React Router v7 application
+- Any app using ScrollRestoration component
+- Both forward and reverse navigation scenarios
+- Desktop and mobile viewports
+
+**SYMPTOMS of missing getKey:**
+- Forward navigation works, reverse navigation broken
+- Scroll position lands at seemingly random offset
+- Different scroll behavior for different routes
+- Adding waits doesn't fix the issue (not timing-related)
+- Playwright tests show exact scroll offset (614px, 93px, etc.)
+
+### 💥 CONSEQUENCES OF IGNORING:
+
+- Reverse navigation scrolls to wrong position (614px instead of 0px)
+- Poor user experience - page doesn't start at top
+- Inconsistent scroll behavior across different routes
+- Users must manually scroll to top after navigation
+- E2E tests fail with scroll position assertions
+
+### 🎯 PREVENTION RULES:
+
+1. NEVER use `<ScrollRestoration />` without `getKey` function
+2. ALWAYS add `getKey={(location) => location.pathname}` as minimum
+3. TEST both forward and reverse navigation routes
+4. VERIFY scroll position is at top (Y = 0) after navigation
+5. CHECK Playwright tests for scroll-related failures
+
+### 📚 FILES AFFECTED:
+
+- `/apps/web/src/components/layout/RootLayout.tsx` - Lines 38-45 (ScrollRestoration with getKey)
+- `/tests/playwright/scroll-restoration.spec.ts` - Lines 225-275 (Desktop reverse navigation test)
+
+### 📖 REACT ROUTER DOCUMENTATION REFERENCE:
+
+**ScrollRestoration API**:
+- `getKey`: Function that returns a key for scroll position storage
+- Without `getKey`: Uses default algorithm (unreliable for some routes)
+- With `getKey`: Forces explicit scroll behavior based on key
+
+**Common getKey patterns**:
+```typescript
+// Scroll to top on any route change
+getKey={(location) => location.pathname}
+
+// Scroll to top on pathname or query param change
+getKey={(location) => location.pathname + location.search}
+
+// Never restore scroll (always top)
+getKey={() => "top"}
+
+// Restore scroll on back/forward, top on new navigation
+getKey={(location, matches) => {
+  // React Router default behavior - but explicit
+  return matches.map(m => m.pathname).join("-");
+}}
+```
+
+### Tags
+#critical #react-router-v7 #scroll-restoration #navigation #reverse-navigation #getkey #scroll-to-top #e2e-testing
+
+---
+
+## 🚨 CRITICAL: MANTINE STACK INTERCEPTS POINTER EVENTS IN MOBILE MENU 🚨
+**Date**: 2025-11-13
+**Category**: Mobile Navigation / Mantine Components / Pointer Events
+**Severity**: CRITICAL - BLOCKS ALL MOBILE MENU INTERACTIONS
+
+### What We Learned
+**MANTINE STACK BLOCKS MOBILE MENU CLICKS**: The Mantine Stack component in the mobile navigation menu was intercepting pointer events, preventing ALL links from being clickable on mobile devices.
+
+**ROOT CAUSE**: Mantine's Stack component creates a layout container that can intercept pointer events. When Stack has padding/styling, it creates an event-capturing layer that blocks child elements from receiving clicks.
+
+**PLAYWRIGHT TEST EVIDENCE**:
+```
+Error: <div class="m_6d731127 mantine-Stack-root">…</div> from
+<div id="mobile-menu" role="navigation" class="mobile-menu open">…</div>
+subtree intercepts pointer events
+
+Attempted to click 53+ times - all failed
+```
+
+### 🛑 BROKEN PATTERN:
+
+```typescript
+// ❌ WRONG: Stack without pointer events configuration blocks clicks
+<Stack gap="0" p="var(--space-lg)" pt="80px">
+  <Box component={Link} to="/events" onClick={closeMobileMenu}>
+    Events & Classes
+  </Box>
+  {/* Links are NOT clickable - Stack intercepts events */}
+</Stack>
+```
+
+**Why This Breaks**:
+1. Stack component creates event-capturing layer
+2. Padding/styling on Stack strengthens the capture
+3. Child links never receive click events
+4. Playwright test shows "subtree intercepts pointer events"
+5. Mobile users cannot navigate anywhere from menu
+
+### ✅ CRITICAL SOLUTION: Disable Pointer Events on Stack, Re-enable on Children
+
+```typescript
+// ✅ CORRECT: Block events on Stack, allow on children
+<Stack
+  gap="0"
+  p="var(--space-lg)"
+  pt="80px"
+  style={{
+    /* CRITICAL FIX: Ensure pointer events pass through to child links
+     * Without this, Mantine Stack intercepts pointer events and prevents
+     * links from being clickable on mobile menu (Playwright test failure)
+     */
+    pointerEvents: 'none',
+  }}
+>
+  {/* Button with explicit pointer events */}
+  <Button
+    component={Link}
+    to="/dashboard"
+    onClick={closeMobileMenu}
+    styles={{
+      root: {
+        // ... other styles
+        pointerEvents: 'auto', // Re-enable pointer events for clickability
+      },
+    }}
+  >
+    Dashboard
+  </Button>
+
+  {/* Box link with explicit pointer events */}
+  <Box
+    component={Link}
+    to="/events"
+    onClick={closeMobileMenu}
+    style={{
+      // ... other styles
+      pointerEvents: 'auto', // Re-enable pointer events for clickability
+    }}
+  >
+    Events & Classes
+  </Box>
+</Stack>
+```
+
+### 📋 MANDATORY PATTERN FOR MANTINE STACK WITH CLICKABLE CHILDREN:
+
+**Step 1: Disable pointer events on Stack**
+```typescript
+<Stack style={{ pointerEvents: 'none' }}>
+```
+
+**Step 2: Re-enable on ALL clickable children**
+```typescript
+// For Mantine Buttons
+<Button
+  styles={{
+    root: {
+      pointerEvents: 'auto',
+    }
+  }}
+/>
+
+// For Box links
+<Box
+  component={Link}
+  style={{
+    pointerEvents: 'auto',
+  }}
+/>
+```
+
+### 🔧 WHEN THIS PATTERN APPLIES:
+
+**USE this pattern when:**
+- Stack contains clickable links or buttons
+- Stack has padding, margins, or styling
+- Mobile menu or navigation component
+- ANY layout where Stack wraps interactive elements
+
+**SYMPTOMS of this issue:**
+- Playwright error: "subtree intercepts pointer events"
+- Links visible but not clickable on mobile
+- Clicks appear to work on desktop but fail on mobile viewport
+- Test tries 50+ times to click but never succeeds
+
+### 💥 CONSEQUENCES OF IGNORING:
+
+- Mobile menu completely unusable
+- Users cannot navigate on mobile devices
+- Appears as catastrophic UX failure
+- Support tickets about "broken mobile site"
+- Lost mobile traffic
+
+### 🎯 PREVENTION RULES:
+
+1. ALWAYS add `pointerEvents: 'none'` to Stack components with clickable children
+2. ALWAYS add `pointerEvents: 'auto'` to EVERY clickable child
+3. TEST mobile menu clicks with Playwright after any Stack changes
+4. CHECK for "subtree intercepts pointer events" error in test failures
+
+### 📚 FILES AFFECTED:
+
+- `/apps/web/src/components/layout/Navigation.tsx` - Lines 251-454 (Mobile menu Stack and all links)
+
+### Tags
+#critical #mobile-menu #mantine-stack #pointer-events #navigation #mobile-ux #playwright-testing
+
+---
+
+## 🛑🛑🛑 ULTRA CRITICAL - MOST VIOLATED RULE: NEVER MANUALLY DEFINE API TYPES - ALWAYS USE @witchcityrope/shared-types 🛑🛑🛑
+### ⚠️ THIS VIOLATION HAPPENS CONSTANTLY - STOP DOING IT! ⚠️
 **Date**: 2025-10-23
 **Category**: TypeScript / DTO Alignment Strategy
 **Severity**: ULTRA CRITICAL - PREVENTS 393+ TYPE ERRORS
@@ -223,6 +596,25 @@ export interface EventFilters {
   startDate?: string;
 }
 ```
+
+### 🚨 ENFORCEMENT - MANDATORY PRE-WORK CHECK:
+
+**BEFORE writing ANY React code that uses API data:**
+
+1. **ASK**: "Does this data come from the backend API?"
+2. **IF YES**: Check `packages/shared-types/src/generated/api-types.ts`
+3. **IF TYPE EXISTS**: Re-export it using `components['schemas'][...]`
+4. **IF TYPE MISSING**: Backend needs to add it first (with OpenAPI annotations)
+5. **NEVER PROCEED** with manual interface creation
+
+**Hard stop rule**: If you catch yourself typing `interface [Name]Dto {`, STOP IMMEDIATELY. You are about to violate this rule.
+
+**Detection pattern**:
+- Any file with `interface` + `Dto`/`Response`/`Request` in same definition = RED FLAG
+- Any file importing from backend that doesn't import from `@witchcityrope/shared-types` = RED FLAG
+- Any manual definition of backend enum values = RED FLAG
+
+**When in doubt**: ASK the user "Should I use generated types from @witchcityrope/shared-types for [TypeName]?"
 
 ### 📚 RELATED DOCUMENTATION:
 
@@ -1673,6 +2065,318 @@ After fix:
 
 ### Tags
 #critical #mobile-menu #navigation #mobile-ux #layout #best-practices #close-button #panel-structure
+
+---
+
+## 🚨 CRITICAL: MOBILE MENU OVERFLOW BREAKS SCROLL RESTORATION 🚨
+
+**Date**: 2025-11-13
+**Category**: React Router / Scroll Restoration / Mobile Navigation
+**Severity**: CRITICAL - BREAKS MOBILE NAVIGATION UX
+
+### What We Learned
+**SCROLL-TO-TOP NOT WORKING ON MOBILE**: When users navigate using mobile menu links, React Router's `ScrollRestoration` component fails to scroll to top because `document.body.style.overflow = 'hidden'` is still applied.
+
+**ROOT CAUSE**: The Navigation component sets `document.body.style.overflow = 'hidden'` when mobile menu opens to prevent background scrolling. When a navigation link is clicked:
+1. `closeMobileMenu()` is called → sets `isMobileMenuOpen = false`
+2. React Router navigation begins → `ScrollRestoration` tries to scroll to top
+3. **useEffect cleanup runs AFTER navigation** → body overflow is still 'hidden'
+4. Scroll-to-top fails silently because body cannot scroll
+
+### 🛑 BROKEN PATTERN:
+
+```typescript
+// ❌ WRONG: Body overflow reset happens too late (in useEffect)
+const closeMobileMenu = useCallback(() => {
+  setIsMobileMenuOpen(false)
+  // Body overflow is NOT reset here!
+}, [])
+
+useEffect(() => {
+  if (isMobileMenuOpen) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''  // This runs AFTER navigation!
+  }
+
+  return () => {
+    document.body.style.overflow = ''  // Cleanup runs AFTER navigation!
+  }
+}, [isMobileMenuOpen])
+```
+
+**Why This Breaks**:
+1. User clicks mobile menu link
+2. `closeMobileMenu()` called → `isMobileMenuOpen = false`
+3. React Router navigation triggered immediately
+4. `ScrollRestoration` tries to scroll to top → **FAILS** (body overflow still 'hidden')
+5. `useEffect` cleanup runs after navigation → resets overflow (too late!)
+6. User lands on new page without scrolling to top
+
+### ✅ CRITICAL SOLUTION: Synchronous Overflow Reset
+
+```typescript
+// ✅ CORRECT: Reset body overflow IMMEDIATELY in closeMobileMenu
+const closeMobileMenu = useCallback(() => {
+  setIsMobileMenuOpen(false)
+  // CRITICAL: Immediately reset body overflow to allow scroll restoration
+  // This must happen synchronously, not in useEffect cleanup, to ensure
+  // React Router's ScrollRestoration can scroll to top on navigation
+  document.body.style.overflow = ''
+}, [])
+
+useEffect(() => {
+  if (isMobileMenuOpen) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
+
+  // Cleanup: Reset body overflow when component unmounts or menu state changes
+  // Note: closeMobileMenu() also resets overflow synchronously for navigation
+  return () => {
+    document.body.style.overflow = ''
+  }
+}, [isMobileMenuOpen])
+```
+
+### 📋 WHY SYNCHRONOUS RESET IS CRITICAL:
+
+**Synchronous** (happens immediately in same call stack):
+- ✅ Body overflow reset BEFORE React Router navigation
+- ✅ `ScrollRestoration` can scroll when it runs
+- ✅ User scrolls to top on new page
+
+**Asynchronous** (happens in useEffect after state change):
+- ❌ Navigation happens first
+- ❌ `ScrollRestoration` runs while body overflow still 'hidden'
+- ❌ Scroll-to-top fails silently
+- ❌ User lands on new page at wrong scroll position
+
+### 🎯 PATTERN FOR MOBILE MENUS WITH BODY SCROLL LOCK:
+
+Whenever you prevent body scrolling with mobile menus:
+
+1. **Set overflow in useEffect** when menu opens/closes
+2. **Reset overflow SYNCHRONOUSLY** in close handler before navigation
+3. **Keep useEffect cleanup** for unmount edge cases
+4. **Test navigation** on mobile viewports to verify scroll restoration
+
+```typescript
+// Complete pattern
+const closeMobileMenu = useCallback(() => {
+  setIsMobileMenuOpen(false)
+  document.body.style.overflow = ''  // SYNC reset for navigation
+}, [])
+
+useEffect(() => {
+  if (isMobileMenuOpen) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
+
+  return () => {
+    document.body.style.overflow = ''  // Cleanup for unmount
+  }
+}, [isMobileMenuOpen])
+
+// In JSX:
+<Link to="/events" onClick={closeMobileMenu}>Events</Link>
+```
+
+### 🚨 RELATED ISSUES TO CHECK:
+
+If scroll restoration is broken, check for:
+- ✅ Body overflow management in mobile menus
+- ✅ Modal/drawer components that lock body scroll
+- ✅ Fullscreen overlays that disable scrolling
+- ✅ Any code that modifies `document.body.style.overflow`
+
+All these cases need **synchronous cleanup** before navigation.
+
+### 💥 CONSEQUENCES OF IGNORING:
+
+- ❌ Mobile users never scroll to top on navigation
+- ❌ Confusing UX (new page appears mid-scroll)
+- ❌ Users must manually scroll to top
+- ❌ Poor perceived performance
+- ❌ Accessibility issues (users may not see page title/header)
+
+### 🔧 DEBUGGING CHECKLIST:
+
+If scroll restoration fails on mobile:
+1. **Check browser DevTools** → Inspect `document.body` style attribute
+2. **Add console.log** in `closeMobileMenu` to verify overflow reset
+3. **Test navigation timing** → Does overflow reset before or after navigation?
+4. **Verify ScrollRestoration** is present in RootLayout
+5. **Check for other overflow modifiers** in codebase
+
+### Tags
+#critical #scroll-restoration #mobile-navigation #react-router #body-overflow #synchronous-cleanup #mobile-ux
+
+---
+
+## 🚨 CRITICAL: GLOBAL CSS SOLUTION FOR MANTINE TEXT COMPONENT MARGIN ISSUES
+
+**Date**: 2025-11-13
+**Category**: CSS / Mantine Components / Layout
+**Severity**: CRITICAL - PREVENTS INLINE STYLE PROLIFERATION
+
+### What We Learned
+**INLINE m={0} PROPS ARE NOT SCALABLE**: Adding `m={0}` (or even `m={0} !important`) to individual `<Text>` components throughout the app to fix alignment issues is a maintenance nightmare. The global CSS solution fixes the issue application-wide without touching individual components.
+
+**ROOT CAUSE**: Mantine's `<Text>` component renders as a `<p>` tag by default, which has browser default margins (typically 1em top and bottom) that cause alignment issues in:
+- Breadcrumbs (text doesn't align with links)
+- Group components with icons (icon and text misalign vertically)
+- Inline contexts (text has unwanted vertical spacing)
+
+### 🛑 VIOLATION PATTERN - DO NOT DO THIS:
+
+```typescript
+// ❌ WRONG: Inline margin fixes on every Text component
+<Breadcrumbs>
+  <Anchor href="/events">Events</Anchor>
+  <Text m={0} c="dimmed">Event Details</Text>  {/* Inline fix */}
+</Breadcrumbs>
+
+<Group gap="xs">
+  <IconCalendar size={20} />
+  <Text m={0} size="lg">{formatDate(date)}</Text>  {/* Inline fix */}
+</Group>
+
+<Stack>
+  <Text m={0}>Some text</Text>  {/* Inline fix */}
+</Stack>
+```
+
+**Why This Is Wrong**:
+- Requires adding `m={0}` to EVERY Text component on EVERY page
+- Not scalable (hundreds of components to update)
+- Maintenance burden (easy to forget on new components)
+- Inconsistent (some developers will forget, some won't)
+- Forces developers to add `!important` when default styles are strongly applied
+
+### ✅ CRITICAL SOLUTION: GLOBAL CSS IN index.css
+
+**File**: `/home/chad/repos/witchcityrope/apps/web/src/index.css`
+
+```css
+/* Fix Mantine Text component default p tag margins in inline contexts */
+/* Breadcrumbs, Group, Stack, and inline containers should not have p tag margins */
+.mantine-Breadcrumbs-root p,
+.mantine-Group-root p,
+.mantine-Stack-root > p,
+.mantine-Text-root {
+  margin: 0;
+  padding: 0;
+}
+
+/* Preserve paragraph spacing in content areas where it's needed */
+.mantine-Paper-root > p,
+.mantine-Card-root > p,
+article p,
+.content p {
+  margin-bottom: 1rem;
+}
+```
+
+**Why This Works**:
+1. **Targets Mantine components globally** - No need to touch individual components
+2. **Scoped to inline contexts** - Only removes margins in breadcrumbs, groups, stacks
+3. **Preserves content spacing** - Keeps paragraph spacing in Paper, Card, and article contexts
+4. **Zero maintenance** - One fix applies everywhere automatically
+5. **Future-proof** - New Text components automatically work correctly
+
+### 📋 IMPLEMENTATION PATTERN:
+
+**Step 1: Add global CSS rules to index.css**
+```css
+/* Add to /apps/web/src/index.css */
+.mantine-Breadcrumbs-root p,
+.mantine-Group-root p,
+.mantine-Stack-root > p,
+.mantine-Text-root {
+  margin: 0;
+  padding: 0;
+}
+```
+
+**Step 2: Remove ALL inline m={0} props**
+```bash
+# Search for inline margin fixes
+grep -r "m={0}" apps/web/src/ --include="*.tsx"
+
+# Remove them from components
+# Before: <Text m={0} c="dimmed">...</Text>
+# After:  <Text c="dimmed">...</Text>
+```
+
+**Step 3: Test alignment in all contexts**
+- Breadcrumbs at mobile width (375px)
+- Event header icon-text alignment
+- Admin page breadcrumbs
+- Any Group components with icons + text
+
+### 🎯 SCOPING STRATEGY:
+
+**Remove margins in inline contexts:**
+- `.mantine-Breadcrumbs-root p` - Breadcrumb text items
+- `.mantine-Group-root p` - Icon + text groups
+- `.mantine-Stack-root > p` - Stack direct children
+- `.mantine-Text-root` - All Text components globally
+
+**Preserve margins in content contexts:**
+- `.mantine-Paper-root > p` - Content within Paper components
+- `.mantine-Card-root > p` - Content within Card components
+- `article p` - Article content (semantic HTML)
+- `.content p` - Custom content class (if used)
+
+### 🚨 WHEN TO USE THIS APPROACH:
+
+**Use global CSS when:**
+- ✅ Issue affects multiple components across the app
+- ✅ Same fix needed in many places (breadcrumbs, groups, etc.)
+- ✅ Default styling causes systemic alignment issues
+- ✅ Inline fixes would require hundreds of changes
+
+**Use inline styles when:**
+- ❌ Issue is specific to ONE component
+- ❌ Different spacing needed in different contexts
+- ❌ Override is truly exceptional, not the norm
+
+### 💥 CONSEQUENCES OF NOT USING GLOBAL SOLUTION:
+
+- ❌ Adding `m={0}` to hundreds of components manually
+- ❌ Forgetting `m={0}` on new components (inconsistent UX)
+- ❌ Maintenance burden (every new Text component needs it)
+- ❌ Developer frustration (why do I need this everywhere?)
+- ❌ Code bloat (inline props repeated everywhere)
+- ❌ Need for `!important` hacks when defaults are strongly applied
+
+### 🔧 VERIFICATION CHECKLIST:
+
+After implementing global CSS fix:
+1. **Check breadcrumbs** - Text aligns with links at all breakpoints
+2. **Check icon groups** - Icons and text align vertically
+3. **Check event headers** - Calendar/clock/location icons align with text
+4. **Check content areas** - Paragraph spacing preserved in descriptions
+5. **Search codebase** - Zero `m={0}` props remain in any component
+6. **Test mobile** - Alignment works at 375px width
+7. **Test desktop** - Alignment works at 1440px width
+
+### 📁 FILES AFFECTED IN THIS FIX:
+
+**Global CSS added:**
+- `/home/chad/repos/witchcityrope/apps/web/src/index.css` (lines 203-219)
+
+**Inline m={0} props removed from:**
+- `/home/chad/repos/witchcityrope/apps/web/src/pages/events/EventDetailPage.tsx` (4 instances)
+- `/home/chad/repos/witchcityrope/apps/web/src/pages/admin/AdminEventDetailsPage.tsx` (1 instance)
+- `/home/chad/repos/witchcityrope/apps/web/src/pages/admin/AdminMemberDetailsPage.tsx` (1 instance)
+
+### Tags
+#critical #css #mantine #global-styles #text-component #margin-reset #scalability #maintenance
 
 ---
 

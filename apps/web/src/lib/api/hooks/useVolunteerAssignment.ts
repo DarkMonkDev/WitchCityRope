@@ -78,15 +78,11 @@ export function usePositionSignups(positionId: string | undefined) {
         throw new Error('Position ID is required');
       }
 
-      const response = await apiClient.get<ApiResponse<VolunteerAssignmentDto[]>>(
+      const response = await apiClient.get<VolunteerAssignmentDto[]>(
         `/api/volunteer-positions/${positionId}/signups`
       );
 
-      if (!response.data.success || !response.data.data) {
-        throw new Error(response.data.error || 'Failed to load volunteer assignments');
-      }
-
-      return response.data.data;
+      return response.data;
     },
     enabled: !!positionId,
     staleTime: 30 * 1000, // 30 seconds
@@ -107,16 +103,12 @@ export function useAssignMember() {
     { positionId: string; userId: string }
   >({
     mutationFn: async ({ positionId, userId }) => {
-      const response = await apiClient.post<ApiResponse<VolunteerAssignmentDto>>(
+      const response = await apiClient.post<VolunteerAssignmentDto>(
         `/api/volunteer-positions/${positionId}/signups`,
         { userId }
       );
 
-      if (!response.data.success || !response.data.data) {
-        throw new Error(response.data.error || 'Failed to assign member to position');
-      }
-
-      return response.data.data;
+      return response.data;
     },
     onSuccess: (data, variables) => {
       // Invalidate the signups list for this position
@@ -153,13 +145,7 @@ export function useRemoveAssignment() {
     { signupId: string; positionId: string }
   >({
     mutationFn: async ({ signupId }) => {
-      const response = await apiClient.delete<ApiResponse<null>>(
-        `/api/volunteer-signups/${signupId}`
-      );
-
-      if (!response.data.success) {
-        throw new Error(response.data.error || 'Failed to remove volunteer assignment');
-      }
+      await apiClient.delete(`/api/volunteer-signups/${signupId}`);
     },
     onSuccess: (_, variables) => {
       // Invalidate the signups list for this position
@@ -203,18 +189,14 @@ export function useSearchMembers(searchQuery: string, debounceMs: number = 300) 
         return [];
       }
 
-      const response = await apiClient.get<ApiResponse<UserSearchResultDto[]>>(
+      const response = await apiClient.get<UserSearchResultDto[]>(
         `/api/users/search`,
         {
           params: { q: debouncedQuery },
         }
       );
 
-      if (!response.data.success || !response.data.data) {
-        throw new Error(response.data.error || 'Failed to search members');
-      }
-
-      return response.data.data;
+      return response.data;
     },
     enabled: debouncedQuery.length >= 3,
     staleTime: 60 * 1000, // 1 minute

@@ -471,7 +471,7 @@ public class AdminParticipationRemovalIntegrationTests : IntegrationTestBase
             Title = $"Test Event {Guid.NewGuid():N}"[..30],
             Description = "Test event for admin participation removal tests",
             EventType = EventType.Social,
-            Location = "Test Location",
+            VenueId = 1, // Default test venue
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(3),
             Capacity = 50,

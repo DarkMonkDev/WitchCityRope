@@ -79,11 +79,9 @@ describe('VettingAdminApiService', () => {
     };
 
     it('successfully fetches applications with filters', async () => {
+      // Pattern B: API returns direct DTO (no ApiResponse wrapper)
       mockApiClient.post.mockResolvedValue({
-        data: {
-          success: true,
-          data: mockPagedResult
-        }
+        data: mockPagedResult
       });
 
       const result = await vettingAdminApi.getApplicationsForReview(mockFilters);
@@ -104,11 +102,9 @@ describe('VettingAdminApiService', () => {
     });
 
     it('sends correct request structure', async () => {
+      // Pattern B: API returns direct DTO (no ApiResponse wrapper)
       mockApiClient.post.mockResolvedValue({
-        data: {
-          success: true,
-          data: mockPagedResult
-        }
+        data: mockPagedResult
       });
 
       const filters: ApplicationFilterRequest = {
@@ -165,11 +161,9 @@ describe('VettingAdminApiService', () => {
     };
 
     it('successfully fetches application detail', async () => {
+      // Pattern B: API returns direct DTO (no ApiResponse wrapper)
       mockApiClient.get.mockResolvedValue({
-        data: {
-          success: true,
-          data: mockApplicationDetail
-        }
+        data: mockApplicationDetail
       });
 
       const result = await vettingAdminApi.getApplicationDetail('app-1');
@@ -207,11 +201,9 @@ describe('VettingAdminApiService', () => {
     };
 
     it('successfully submits review decision', async () => {
+      // Pattern B: API returns direct DTO (no ApiResponse wrapper)
       mockApiClient.post.mockResolvedValue({
-        data: {
-          success: true,
-          data: mockDecisionResponse
-        }
+        data: mockDecisionResponse
       });
 
       const result = await vettingAdminApi.submitReviewDecision('app-1', mockDecision);
@@ -251,11 +243,9 @@ describe('VettingAdminApiService', () => {
         actionsTriggered: []
       };
 
+      // Pattern B: API returns direct DTO (no ApiResponse wrapper)
       mockApiClient.post.mockResolvedValue({
-        data: {
-          success: true,
-          data: mockDecisionResponse
-        }
+        data: mockDecisionResponse
       });
 
       const result = await vettingAdminApi.approveApplication('app-1', 'Application meets all criteria');
@@ -283,11 +273,9 @@ describe('VettingAdminApiService', () => {
         actionsTriggered: []
       };
 
+      // Pattern B: API returns direct DTO (no ApiResponse wrapper)
       mockApiClient.post.mockResolvedValue({
-        data: {
-          success: true,
-          data: mockDecisionResponse
-        }
+        data: mockDecisionResponse
       });
 
       const result = await vettingAdminApi.putApplicationOnHold('app-1', 'Need additional references');
@@ -416,8 +404,8 @@ describe('VettingAdminApiService', () => {
     });
   });
 
-  describe('response data unwrapping', () => {
-    it('correctly unwraps ApiResponse wrapper for applications list', async () => {
+  describe('response data handling', () => {
+    it('correctly handles direct DTO response for applications list', async () => {
       const mockData = {
         items: [],
         totalCount: 0,
@@ -426,12 +414,9 @@ describe('VettingAdminApiService', () => {
         totalPages: 0
       };
 
+      // Pattern B: API returns direct DTO (no ApiResponse wrapper)
       mockApiClient.post.mockResolvedValue({
-        data: {
-          success: true,
-          data: mockData,
-          message: 'Success'
-        }
+        data: mockData
       });
 
       const result = await vettingAdminApi.getApplicationsForReview({
@@ -449,7 +434,7 @@ describe('VettingAdminApiService', () => {
       expect(result).toEqual(mockData);
     });
 
-    it('correctly unwraps ApiResponse wrapper for application detail', async () => {
+    it('correctly handles direct DTO response for application detail', async () => {
       const mockDetail = {
         id: 'app-1',
         applicationNumber: 'APP001',
@@ -457,12 +442,9 @@ describe('VettingAdminApiService', () => {
         // ... other properties would be here
       };
 
+      // Pattern B: API returns direct DTO (no ApiResponse wrapper)
       mockApiClient.get.mockResolvedValue({
-        data: {
-          success: true,
-          data: mockDetail,
-          message: 'Success'
-        }
+        data: mockDetail
       });
 
       const result = await vettingAdminApi.getApplicationDetail('app-1');

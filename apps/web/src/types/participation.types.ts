@@ -17,70 +17,53 @@
 import type { components } from '@witchcityrope/shared-types'
 
 /**
+ * ✅ DTO ALIGNMENT STRATEGY COMPLIANT
+ * All backend DTOs imported from @witchcityrope/shared-types (auto-generated)
+ */
+
+/**
  * Create RSVP Request DTO
- * @generated from C# CreateRSVPRequest via OpenAPI
+ * Source: C# CreateRSVPRequest via NSwag generation
  */
 export type CreateRSVPRequest = components['schemas']['CreateRSVPRequest']
 
-export interface ParticipationStatusDto {
-  hasRSVP: boolean;
-  hasTicket: boolean;
-  rsvp?: {
-    id: string;
-    status: ParticipationStatus;
-    createdAt: string;
-    canceledAt?: string;
-    cancelReason?: string;
-  } | null;
-  ticket?: {
-    id: string;
-    status: ParticipationStatus;
-    amount: number;
-    paymentStatus: string;
-    createdAt: string;
-    canceledAt?: string;
-    cancelReason?: string;
-  } | null;
-  canRSVP: boolean;
-  canPurchaseTicket: boolean;
-  capacity?: {
-    total: number;
-    current: number;
-    available: number;
-  };
-}
+/**
+ * Participation Status DTO
+ * Source: C# ParticipationStatusDto via NSwag generation
+ */
+export type ParticipationStatusDto = components['schemas']['ParticipationStatusDto']
 
-export interface UserParticipationDto {
-  id: string;
-  eventId: string;
-  eventTitle: string;
-  eventStartDate: string;
-  eventEndDate: string;
-  eventLocation: string;
-  participationType: ParticipationType;
-  status: ParticipationStatus;
-  participationDate: string;
-  notes?: string;
-  canCancel: boolean;
-}
+/**
+ * Enhanced Participation Status DTO (includes capacity and availability info)
+ * Source: C# EnhancedParticipationStatusDto via NSwag generation
+ */
+export type EnhancedParticipationStatusDto = components['schemas']['EnhancedParticipationStatusDto']
 
-export enum ParticipationType {
-  RSVP = 'RSVP',
-  Ticket = 'Ticket'
-}
+/**
+ * User Participation DTO
+ * Source: C# UserParticipationDto via NSwag generation
+ */
+export type UserParticipationDto = components['schemas']['UserParticipationDto']
 
-export enum ParticipationStatus {
-  Active = 'Active',
-  Cancelled = 'Cancelled',
-  Refunded = 'Refunded',
-  Waitlisted = 'Waitlisted'
-}
+/**
+ * Attendance Type Enum (was ParticipationType)
+ * Source: C# AttendanceType via NSwag generation
+ * Values: "RSVP" | "Ticket"
+ */
+export type AttendanceType = components['schemas']['AttendanceType']
+
+/**
+ * Attendance Status Enum (was ParticipationStatus)
+ * Source: C# AttendanceStatus via NSwag generation
+ * Values: "Active" | "Cancelled" | "Refunded" | "Waitlisted"
+ */
+export type AttendanceStatus = components['schemas']['AttendanceStatus']
 
 // Frontend-specific types for UI components
 export interface ParticipationCardProps {
   eventId: string;
   eventType: 'social' | 'class';
-  participation: ParticipationStatusDto | null;
+  participation: EnhancedParticipationStatusDto | null;
   isLoading?: boolean;
   onRSVP: () => void;
   onPurchaseTicket: (amount: number) => void;

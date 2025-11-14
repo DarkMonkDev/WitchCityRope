@@ -81,13 +81,11 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<MembershipHoldResponse>>();
-        apiResponse.Should().NotBeNull();
-        apiResponse!.Success.Should().BeTrue();
-        apiResponse.Data.Should().NotBeNull();
-        apiResponse.Data!.NewStatus.Should().Be(5); // OnHold
-        apiResponse.Data.StatusName.Should().Be("OnHold");
-        apiResponse.Data.ChangedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        var holdResponse = await response.Content.ReadFromJsonAsync<MembershipHoldResponse>();
+        holdResponse.Should().NotBeNull();
+        holdResponse!.NewStatus.Should().Be(5); // OnHold
+        holdResponse.StatusName.Should().Be("OnHold");
+        holdResponse.ChangedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
 
         // Verify database state
         await using var context = CreateDbContext();
@@ -165,7 +163,7 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
                 EventType = EventType.Social,
                 StartDate = DateTime.UtcNow.AddDays(7),
                 EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),
-                Location = "Test Location",
+                VenueId = 1, // Default test venue
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -247,9 +245,9 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
-        var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<object>>();
-        apiResponse!.Success.Should().BeFalse();
-        apiResponse.Error.Should().Contain("Only approved members");
+        var problemDetails = await response.Content.ReadFromJsonAsync<Microsoft.AspNetCore.Mvc.ProblemDetails>();
+        problemDetails.Should().NotBeNull();
+        problemDetails!.Detail.Should().Contain("Only approved members");
     }
 
     [Fact]
@@ -305,12 +303,10 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<MembershipHoldResponse>>();
-        apiResponse.Should().NotBeNull();
-        apiResponse!.Success.Should().BeTrue();
-        apiResponse.Data.Should().NotBeNull();
-        apiResponse.Data!.NewStatus.Should().Be(2); // FinalReview
-        apiResponse.Data.StatusName.Should().Be("FinalReview");
+        var holdResponse = await response.Content.ReadFromJsonAsync<MembershipHoldResponse>();
+        holdResponse.Should().NotBeNull();
+        holdResponse!.NewStatus.Should().Be(2); // FinalReview
+        holdResponse.StatusName.Should().Be("FinalReview");
 
         // Verify database state
         await using var context = CreateDbContext();
@@ -409,9 +405,9 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
-        var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<object>>();
-        apiResponse!.Success.Should().BeFalse();
-        apiResponse.Error.Should().Contain("Only members on hold");
+        var problemDetails = await response.Content.ReadFromJsonAsync<Microsoft.AspNetCore.Mvc.ProblemDetails>();
+        problemDetails.Should().NotBeNull();
+        problemDetails!.Detail.Should().Contain("Only members on hold");
     }
 
     [Fact]
@@ -444,13 +440,12 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<VettingHoldStatusResponse>>();
-        apiResponse!.Success.Should().BeTrue();
-        apiResponse.Data.Should().NotBeNull();
-        apiResponse.Data!.VettingStatus.Should().Be(3); // Approved
-        apiResponse.Data.StatusName.Should().Be("Approved");
-        apiResponse.Data.CanPlaceOnHold.Should().BeTrue();
-        apiResponse.Data.CanRequestReinstatement.Should().BeFalse();
+        var statusResponse = await response.Content.ReadFromJsonAsync<VettingHoldStatusResponse>();
+        statusResponse.Should().NotBeNull();
+        statusResponse!.VettingStatus.Should().Be(3); // Approved
+        statusResponse.StatusName.Should().Be("Approved");
+        statusResponse.CanPlaceOnHold.Should().BeTrue();
+        statusResponse.CanRequestReinstatement.Should().BeFalse();
     }
 
     [Fact]
@@ -465,10 +460,11 @@ public class VettingHoldIntegrationTests : IntegrationTestBase, IDisposable
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<VettingHoldStatusResponse>>();
-        apiResponse!.Data!.VettingStatus.Should().Be(5); // OnHold
-        apiResponse.Data.CanPlaceOnHold.Should().BeFalse();
-        apiResponse.Data.CanRequestReinstatement.Should().BeTrue();
+        var statusResponse = await response.Content.ReadFromJsonAsync<VettingHoldStatusResponse>();
+        statusResponse.Should().NotBeNull();
+        statusResponse!.VettingStatus.Should().Be(5); // OnHold
+        statusResponse.CanPlaceOnHold.Should().BeFalse();
+        statusResponse.CanRequestReinstatement.Should().BeTrue();
     }
 
     [Fact]

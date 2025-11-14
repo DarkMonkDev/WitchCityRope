@@ -35,6 +35,10 @@ export const Navigation: React.FC = () => {
   // Close mobile menu when link is clicked
   const closeMobileMenu = useCallback(() => {
     setIsMobileMenuOpen(false)
+    // CRITICAL: Immediately reset body overflow to allow scroll restoration
+    // This must happen synchronously, not in useEffect cleanup, to ensure
+    // React Router's ScrollRestoration can scroll to top on navigation
+    document.body.style.overflow = ''
   }, [])
 
   // Prevent body scroll when mobile menu is open
@@ -45,6 +49,8 @@ export const Navigation: React.FC = () => {
       document.body.style.overflow = ''
     }
 
+    // Cleanup: Reset body overflow when component unmounts or menu state changes
+    // Note: closeMobileMenu() also resets overflow synchronously for navigation
     return () => {
       document.body.style.overflow = ''
     }
@@ -74,6 +80,7 @@ export const Navigation: React.FC = () => {
       <Box
         component={Link}
         to="/"
+        preventScrollReset={false}
         className="logo logo-underline-animation"
         style={{
           fontFamily: 'var(--font-heading)',
@@ -104,6 +111,7 @@ export const Navigation: React.FC = () => {
           <Box
             component={Link}
             to="/admin"
+            preventScrollReset={false}
             data-testid="link-admin"
             className="btn btn-primary"
           >
@@ -114,6 +122,7 @@ export const Navigation: React.FC = () => {
         <Box
           component={Link}
           to="/events"
+          preventScrollReset={false}
           data-testid="link-events"
           style={{
             color: 'var(--color-charcoal)',
@@ -136,6 +145,7 @@ export const Navigation: React.FC = () => {
           <Box
             component={Link}
             to="/join"
+            preventScrollReset={false}
             style={{
               color: 'var(--color-charcoal)',
               textDecoration: 'none',
@@ -156,6 +166,7 @@ export const Navigation: React.FC = () => {
         <Box
           component={Link}
           to="/resources"
+          preventScrollReset={false}
           style={{
             color: 'var(--color-charcoal)',
             textDecoration: 'none',
@@ -177,13 +188,14 @@ export const Navigation: React.FC = () => {
           <Box
             component={Link}
             to="/dashboard"
+            preventScrollReset={false}
             data-testid="link-dashboard"
             className="btn btn-primary"
           >
             Dashboard
           </Box>
         ) : (
-          <Box component={Link} to="/login" className="btn btn-primary">
+          <Box component={Link} to="/login" preventScrollReset={false} className="btn btn-primary">
             Login
           </Box>
         )}
@@ -242,12 +254,25 @@ export const Navigation: React.FC = () => {
           boxShadow: isMobileMenuOpen ? '-4px 0 20px rgba(0, 0, 0, 0.15)' : 'none',
         }}
       >
-        <Stack gap="0" p="var(--space-lg)" pt="80px">
+        <Stack
+          gap="0"
+          p="var(--space-lg)"
+          pt="80px"
+          style={{
+            /* CRITICAL FIX: Ensure pointer events pass through to child links
+             * Without this, Mantine Stack intercepts pointer events and prevents
+             * links from being clickable on mobile menu (Playwright test failure)
+             * See: react-developer-lessons-learned-2.md - Mobile Menu Pointer Events
+             */
+            pointerEvents: 'none',
+          }}
+        >
           {/* Dashboard CTA / Login Button - TOP OF MENU */}
           {isAuthenticated && user ? (
             <Button
               component={Link}
               to="/dashboard"
+              preventScrollReset={false}
               onClick={closeMobileMenu}
               data-testid="mobile-link-dashboard"
               color="blue"
@@ -264,6 +289,7 @@ export const Navigation: React.FC = () => {
                   borderRadius: '12px 6px 12px 6px',
                   background: 'var(--color-burgundy)',
                   color: 'var(--color-ivory)',
+                  pointerEvents: 'auto', // Re-enable pointer events for clickability
                 },
               }}
             >
@@ -273,6 +299,7 @@ export const Navigation: React.FC = () => {
             <Button
               component={Link}
               to="/login"
+              preventScrollReset={false}
               onClick={closeMobileMenu}
               data-testid="mobile-link-login"
               color="blue"
@@ -289,6 +316,7 @@ export const Navigation: React.FC = () => {
                   borderRadius: '12px 6px 12px 6px',
                   background: 'var(--color-burgundy)',
                   color: 'var(--color-ivory)',
+                  pointerEvents: 'auto', // Re-enable pointer events for clickability
                 },
               }}
             >
@@ -301,6 +329,7 @@ export const Navigation: React.FC = () => {
             <Box
               component={Link}
               to="/admin"
+              preventScrollReset={false}
               onClick={closeMobileMenu}
               data-testid="mobile-link-admin"
               style={{
@@ -313,6 +342,7 @@ export const Navigation: React.FC = () => {
                 letterSpacing: '1px',
                 padding: 'var(--space-md) 0',
                 borderBottom: '1px solid rgba(183, 109, 117, 0.2)',
+                pointerEvents: 'auto', // Re-enable pointer events for clickability
               }}
             >
               Admin
@@ -323,6 +353,7 @@ export const Navigation: React.FC = () => {
           <Box
             component={Link}
             to="/events"
+            preventScrollReset={false}
             onClick={closeMobileMenu}
             data-testid="mobile-link-events"
             style={{
@@ -335,6 +366,7 @@ export const Navigation: React.FC = () => {
               letterSpacing: '1px',
               padding: 'var(--space-md) 0',
               borderBottom: '1px solid rgba(183, 109, 117, 0.2)',
+              pointerEvents: 'auto', // Re-enable pointer events for clickability
             }}
           >
             Events & Classes
@@ -345,6 +377,7 @@ export const Navigation: React.FC = () => {
             <Box
               component={Link}
               to="/join"
+              preventScrollReset={false}
               onClick={closeMobileMenu}
               data-testid="mobile-link-join"
               style={{
@@ -357,6 +390,7 @@ export const Navigation: React.FC = () => {
                 letterSpacing: '1px',
                 padding: 'var(--space-md) 0',
                 borderBottom: '1px solid rgba(183, 109, 117, 0.2)',
+                pointerEvents: 'auto', // Re-enable pointer events for clickability
               }}
             >
               How to Join
@@ -367,6 +401,7 @@ export const Navigation: React.FC = () => {
           <Box
             component={Link}
             to="/private-lessons"
+            preventScrollReset={false}
             onClick={closeMobileMenu}
             data-testid="mobile-link-private-lessons"
             style={{
@@ -379,6 +414,7 @@ export const Navigation: React.FC = () => {
               letterSpacing: '1px',
               padding: 'var(--space-md) 0',
               borderBottom: '1px solid rgba(183, 109, 117, 0.2)',
+              pointerEvents: 'auto', // Re-enable pointer events for clickability
             }}
           >
             Private Lessons
@@ -388,6 +424,7 @@ export const Navigation: React.FC = () => {
           <Box
             component={Link}
             to="/resources"
+            preventScrollReset={false}
             onClick={closeMobileMenu}
             data-testid="mobile-link-resources"
             style={{
@@ -400,6 +437,7 @@ export const Navigation: React.FC = () => {
               letterSpacing: '1px',
               padding: 'var(--space-md) 0',
               borderBottom: '1px solid rgba(183, 109, 117, 0.2)',
+              pointerEvents: 'auto', // Re-enable pointer events for clickability
             }}
           >
             Resources
@@ -409,6 +447,7 @@ export const Navigation: React.FC = () => {
           <Box
             component={Link}
             to="/safety/report"
+            preventScrollReset={false}
             onClick={closeMobileMenu}
             data-testid="mobile-link-report-incident"
             style={{
@@ -421,6 +460,7 @@ export const Navigation: React.FC = () => {
               letterSpacing: '1px',
               padding: 'var(--space-md) 0',
               borderBottom: '1px solid rgba(183, 109, 117, 0.2)',
+              pointerEvents: 'auto', // Re-enable pointer events for clickability
             }}
           >
             Report an Incident

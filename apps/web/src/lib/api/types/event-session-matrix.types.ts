@@ -1,52 +1,42 @@
-// Event Session Matrix Types - extends base event types with session functionality
-import type { EventDto } from './events.types';
+/**
+ * Event Session Matrix Types
+ *
+ * ✅ DTO ALIGNMENT STRATEGY COMPLIANT
+ * - Core DTOs imported from @witchcityrope/shared-types (auto-generated)
+ * - Frontend-only types (filters, analytics, query keys) defined here
+ * - Clear separation between backend DTOs and frontend logic types
+ */
+
 import type { components } from '@witchcityrope/shared-types';
+
+// ========================================
+// AUTO-GENERATED TYPES (From Backend DTOs)
+// ========================================
+
+/**
+ * Session Data Transfer Object
+ * Source: C# SessionDto via NSwag generation
+ */
+export type SessionDto = components['schemas']['SessionDto'];
+
+/**
+ * Ticket Type Data Transfer Object
+ * Source: C# TicketTypeDto via NSwag generation
+ */
+export type TicketTypeDto = components['schemas']['TicketTypeDto'];
+
+// ========================================
+// FRONTEND-ONLY TYPES (Not in Backend)
+// ========================================
+// These types are used for frontend logic only and are not auto-generated
 
 // Extended Event DTO with sessions and ticket types
 export interface EventWithSessionsDto {
-  sessions: EventSessionDto[];
-  ticketTypes: EventTicketTypeDto[];
+  sessions: SessionDto[];
+  ticketTypes: TicketTypeDto[];
 }
 
-// Event Session Domain Model
-export interface EventSessionDto {
-  id: string;
-  eventId: string;
-  sessionIdentifier: string; // S1, S2, S3, etc.
-  name: string;
-  date: string; // ISO date string
-  startTime: string; // HH:MM format
-  endTime: string; // HH:MM format
-  capacity: number;
-  registrationCount: number;
-  isRequired: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Event Ticket Type Domain Model
-export interface EventTicketTypeDto {
-  id: string;
-  eventId: string;
-  name: string;
-  description?: string;
-  pricingType: components["schemas"]["PricingType"]; // Use generated type from backend
-  price?: number; // For fixed pricing
-  minPrice?: number; // For sliding scale
-  maxPrice?: number; // For sliding scale
-  defaultPrice?: number; // Default/suggested price for sliding scale
-  quantityAvailable?: number; // null = unlimited
-  quantitySold: number;
-  salesStartDate?: string; // ISO date string
-  salesEndDate?: string; // ISO date string
-  isRsvpMode: boolean; // true = no payment required
-  isActive: boolean;
-  sessionIdentifiers: string[]; // Sessions included in this ticket type
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Create/Update DTOs
+// Create/Update DTOs (TODO: Add to backend and auto-generate)
 export interface CreateEventSessionDto {
   eventId: string;
   sessionIdentifier: string;
@@ -97,13 +87,13 @@ export interface UpdateEventTicketTypeDto {
   isActive?: boolean;
 }
 
-// Registration with sessions
+// Registration with sessions (TODO: Check if this exists in backend)
 export interface EventRegistrationDto {
   id: string;
   eventId: string;
   userId: string;
   ticketTypeId: string;
-  sessionIdentifiers: string[]; // Which sessions the user is registered for
+  sessionIdentifiers: string[];
   amountPaid: number;
   registrationDate: string;
   status: 'confirmed' | 'waitlist' | 'cancelled' | 'pending_payment';
@@ -157,7 +147,7 @@ export interface EventTicketTypeFilters {
 }
 
 // Query keys for React Query
-export type EventSessionQueryKey = 
+export type EventSessionQueryKey =
   | ['event-sessions']
   | ['event-sessions', 'list']
   | ['event-sessions', 'list', string] // eventId
@@ -165,7 +155,7 @@ export type EventSessionQueryKey =
   | ['event-sessions', 'detail', string] // sessionId
   | ['event-sessions', 'capacity', string]; // eventId
 
-export type EventTicketTypeQueryKey = 
+export type EventTicketTypeQueryKey =
   | ['event-ticket-types']
   | ['event-ticket-types', 'list']
   | ['event-ticket-types', 'list', string] // eventId

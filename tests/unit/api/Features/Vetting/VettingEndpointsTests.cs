@@ -6,7 +6,6 @@ using WitchCityRope.Api.Features.Vetting.Endpoints;
 using WitchCityRope.Api.Features.Vetting.Models;
 using WitchCityRope.Api.Features.Vetting.Services;
 using WitchCityRope.Api.Features.Shared.Models;
-using WitchCityRope.Api.Models;
 using Xunit;
 using FluentAssertions;
 using NSubstitute;
@@ -102,12 +101,10 @@ public class VettingEndpointsTests
         var result = await CallGetApplicationsForReview(request, httpContext);
 
         // Assert
-        result.Should().BeOfType<Ok<ApiResponse<PagedResult<ApplicationSummaryDto>>>>();
-        var okResult = (Ok<ApiResponse<PagedResult<ApplicationSummaryDto>>>)result;
-        okResult.Value.Success.Should().BeTrue();
-        okResult.Value.Data.Should().NotBeNull();
-        okResult.Value.Data.TotalCount.Should().Be(1);
-        okResult.Value.Message.Should().Be("Applications retrieved successfully");
+        result.Should().BeOfType<Ok<PagedResult<ApplicationSummaryDto>>>();
+        var okResult = (Ok<PagedResult<ApplicationSummaryDto>>)result;
+        okResult.Value.Should().NotBeNull();
+        okResult.Value!.TotalCount.Should().Be(1);
     }
 
     [Fact]
@@ -132,11 +129,11 @@ public class VettingEndpointsTests
         var result = await CallGetApplicationsForReview(request, httpContext);
 
         // Assert
-        result.Should().BeOfType<JsonHttpResult<ApiResponse<object>>>();
-        var jsonResult = (JsonHttpResult<ApiResponse<object>>)result;
+        result.Should().BeOfType<JsonHttpResult<Microsoft.AspNetCore.Mvc.ProblemDetails>>();
+        var jsonResult = (JsonHttpResult<Microsoft.AspNetCore.Mvc.ProblemDetails>)result;
         jsonResult.StatusCode.Should().Be(400);
-        jsonResult.Value.Success.Should().BeFalse();
-        jsonResult.Value.Error.Should().Be("User information not found");
+        jsonResult.Value.Should().NotBeNull();
+        jsonResult.Value!.Detail.Should().Contain("User information not found");
     }
 
     [Fact]
@@ -163,12 +160,12 @@ public class VettingEndpointsTests
         var result = await CallGetApplicationsForReview(request, httpContext);
 
         // Assert
-        result.Should().BeOfType<JsonHttpResult<ApiResponse<object>>>();
-        var jsonResult = (JsonHttpResult<ApiResponse<object>>)result;
+        result.Should().BeOfType<JsonHttpResult<Microsoft.AspNetCore.Mvc.ProblemDetails>>();
+        var jsonResult = (JsonHttpResult<Microsoft.AspNetCore.Mvc.ProblemDetails>)result;
         jsonResult.StatusCode.Should().Be(500);
-        jsonResult.Value.Success.Should().BeFalse();
-        jsonResult.Value.Error.Should().Be("Database error");
-        jsonResult.Value.Details.Should().Be("Connection failed");
+        jsonResult.Value.Should().NotBeNull();
+        jsonResult.Value!.Title.Should().Be("Database error");
+        jsonResult.Value.Detail.Should().Contain("Connection failed");
     }
 
     [Fact]
@@ -207,12 +204,10 @@ public class VettingEndpointsTests
         var result = await CallGetApplicationDetail(applicationId, httpContext);
 
         // Assert
-        result.Should().BeOfType<Ok<ApiResponse<ApplicationDetailResponse>>>();
-        var okResult = (Ok<ApiResponse<ApplicationDetailResponse>>)result;
-        okResult.Value.Success.Should().BeTrue();
-        okResult.Value.Data.Should().NotBeNull();
-        okResult.Value.Data.Id.Should().Be(applicationId.ToString());
-        okResult.Value.Message.Should().Be("Application detail retrieved successfully");
+        result.Should().BeOfType<Ok<ApplicationDetailResponse>>();
+        var okResult = (Ok<ApplicationDetailResponse>)result;
+        okResult.Value.Should().NotBeNull();
+        okResult.Value!.Id.Should().Be(applicationId);
     }
 
     [Fact]
@@ -232,11 +227,11 @@ public class VettingEndpointsTests
         var result = await CallGetApplicationDetail(applicationId, httpContext);
 
         // Assert
-        result.Should().BeOfType<JsonHttpResult<ApiResponse<object>>>();
-        var jsonResult = (JsonHttpResult<ApiResponse<object>>)result;
+        result.Should().BeOfType<JsonHttpResult<Microsoft.AspNetCore.Mvc.ProblemDetails>>();
+        var jsonResult = (JsonHttpResult<Microsoft.AspNetCore.Mvc.ProblemDetails>)result;
         jsonResult.StatusCode.Should().Be(404);
-        jsonResult.Value.Success.Should().BeFalse();
-        jsonResult.Value.Error.Should().Contain("not found");
+        jsonResult.Value.Should().NotBeNull();
+        jsonResult.Value!.Title.Should().Contain("not found");
     }
 
     [Fact]
@@ -272,12 +267,10 @@ public class VettingEndpointsTests
         var result = await CallSubmitReviewDecision(applicationId, decision, httpContext);
 
         // Assert
-        result.Should().BeOfType<Ok<ApiResponse<ReviewDecisionResponse>>>();
-        var okResult = (Ok<ApiResponse<ReviewDecisionResponse>>)result;
-        okResult.Value.Success.Should().BeTrue();
-        okResult.Value.Data.Should().NotBeNull();
-        okResult.Value.Data.DecisionType.Should().Be("Approved");
-        okResult.Value.Message.Should().Be("Review decision submitted successfully");
+        result.Should().BeOfType<Ok<ReviewDecisionResponse>>();
+        var okResult = (Ok<ReviewDecisionResponse>)result;
+        okResult.Value.Should().NotBeNull();
+        okResult.Value!.DecisionType.Should().Be("Approved");
     }
 
     [Fact]
@@ -303,11 +296,11 @@ public class VettingEndpointsTests
         var result = await CallSubmitReviewDecision(applicationId, decision, httpContext);
 
         // Assert
-        result.Should().BeOfType<JsonHttpResult<ApiResponse<object>>>();
-        var jsonResult = (JsonHttpResult<ApiResponse<object>>)result;
+        result.Should().BeOfType<JsonHttpResult<Microsoft.AspNetCore.Mvc.ProblemDetails>>();
+        var jsonResult = (JsonHttpResult<Microsoft.AspNetCore.Mvc.ProblemDetails>)result;
         jsonResult.StatusCode.Should().Be(400);
-        jsonResult.Value.Success.Should().BeFalse();
-        jsonResult.Value.Error.Should().Be("Invalid decision type");
+        jsonResult.Value.Should().NotBeNull();
+        jsonResult.Value!.Title.Should().Be("Invalid decision type");
     }
 
     [Fact]
@@ -340,12 +333,10 @@ public class VettingEndpointsTests
         var result = await CallAddApplicationNote(applicationId, noteRequest, httpContext);
 
         // Assert
-        result.Should().BeOfType<Ok<ApiResponse<NoteResponse>>>();
-        var okResult = (Ok<ApiResponse<NoteResponse>>)result;
-        okResult.Value.Success.Should().BeTrue();
-        okResult.Value.Data.Should().NotBeNull();
-        okResult.Value.Data.ConfirmationMessage.Should().Contain("successfully");
-        okResult.Value.Message.Should().Be("Note added successfully");
+        result.Should().BeOfType<Ok<NoteResponse>>();
+        var okResult = (Ok<NoteResponse>)result;
+        okResult.Value.Should().NotBeNull();
+        okResult.Value!.ConfirmationMessage.Should().Contain("successfully");
     }
 
     [Fact]
@@ -372,12 +363,12 @@ public class VettingEndpointsTests
         var result = await CallGetApplicationsForReview(request, httpContext);
 
         // Assert
-        result.Should().BeOfType<JsonHttpResult<ApiResponse<object>>>();
-        var jsonResult = (JsonHttpResult<ApiResponse<object>>)result;
+        result.Should().BeOfType<JsonHttpResult<Microsoft.AspNetCore.Mvc.ProblemDetails>>();
+        var jsonResult = (JsonHttpResult<Microsoft.AspNetCore.Mvc.ProblemDetails>)result;
         jsonResult.StatusCode.Should().Be(500);
-        jsonResult.Value.Success.Should().BeFalse();
-        jsonResult.Value.Error.Should().Be("Failed to retrieve applications");
-        jsonResult.Value.Details.Should().Contain("Database connection failed");
+        jsonResult.Value.Should().NotBeNull();
+        jsonResult.Value!.Title.Should().Be("Failed to retrieve applications");
+        jsonResult.Value.Detail.Should().Contain("Database connection failed");
     }
 
     [Theory]
@@ -400,11 +391,11 @@ public class VettingEndpointsTests
         var result = await CallGetApplicationDetail(applicationId, httpContext);
 
         // Assert
-        result.Should().BeOfType<JsonHttpResult<ApiResponse<object>>>();
-        var jsonResult = (JsonHttpResult<ApiResponse<object>>)result;
+        result.Should().BeOfType<JsonHttpResult<Microsoft.AspNetCore.Mvc.ProblemDetails>>();
+        var jsonResult = (JsonHttpResult<Microsoft.AspNetCore.Mvc.ProblemDetails>)result;
         jsonResult.StatusCode.Should().Be(expectedStatusCode);
-        jsonResult.Value.Success.Should().BeFalse();
-        jsonResult.Value.Error.Should().Be(errorMessage);
+        jsonResult.Value.Should().NotBeNull();
+        jsonResult.Value!.Title.Should().Be(errorMessage);
     }
 
     // Helper methods to simulate endpoint calls
@@ -451,12 +442,11 @@ public class VettingEndpointsTests
             }
             catch (Exception ex)
             {
-                return Results.Json(new ApiResponse<object>
+                return Results.Json(new Microsoft.AspNetCore.Mvc.ProblemDetails
                 {
-                    Success = false,
-                    Error = "Failed to retrieve applications",
-                    Details = ex.Message,
-                    Timestamp = DateTime.UtcNow
+                    Title = "Failed to retrieve applications",
+                    Detail = ex.Message,
+                    Status = 500
                 }, statusCode: 500);
             }
         };
@@ -472,11 +462,11 @@ public class VettingEndpointsTests
         var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (!Guid.TryParse(userIdClaim, out var reviewerId))
         {
-            return Results.Json(new ApiResponse<object>
+            return Results.Json(new Microsoft.AspNetCore.Mvc.ProblemDetails
             {
-                Success = false,
-                Error = "User information not found",
-                Timestamp = DateTime.UtcNow
+                Title = "Bad Request",
+                Detail = "User information not found",
+                Status = 400
             }, statusCode: 400);
         }
 
@@ -484,22 +474,15 @@ public class VettingEndpointsTests
 
         if (result.IsSuccess && result.Value != null)
         {
-            return Results.Ok(new ApiResponse<PagedResult<ApplicationSummaryDto>>
-            {
-                Success = true,
-                Data = result.Value,
-                Message = "Applications retrieved successfully",
-                Timestamp = DateTime.UtcNow
-            });
+            return Results.Ok(result.Value); // Pattern B: Direct DTO response
         }
 
         var statusCode = result.Error.Contains("Access denied") ? 403 : 500;
-        return Results.Json(new ApiResponse<object>
+        return Results.Json(new Microsoft.AspNetCore.Mvc.ProblemDetails
         {
-            Success = false,
-            Error = result.Error,
-            Details = result.Details,
-            Timestamp = DateTime.UtcNow
+            Title = result.Error,
+            Detail = result.Details,
+            Status = statusCode
         }, statusCode: statusCode);
     }
 
@@ -512,11 +495,11 @@ public class VettingEndpointsTests
         var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (!Guid.TryParse(userIdClaim, out var reviewerId))
         {
-            return Results.Json(new ApiResponse<object>
+            return Results.Json(new Microsoft.AspNetCore.Mvc.ProblemDetails
             {
-                Success = false,
-                Error = "User information not found",
-                Timestamp = DateTime.UtcNow
+                Title = "Bad Request",
+                Detail = "User information not found",
+                Status = 400
             }, statusCode: 400);
         }
 
@@ -524,24 +507,17 @@ public class VettingEndpointsTests
 
         if (result.IsSuccess && result.Value != null)
         {
-            return Results.Ok(new ApiResponse<ApplicationDetailResponse>
-            {
-                Success = true,
-                Data = result.Value,
-                Message = "Application detail retrieved successfully",
-                Timestamp = DateTime.UtcNow
-            });
+            return Results.Ok(result.Value); // Pattern B: Direct DTO response
         }
 
         var statusCode = result.Error.Contains("Access denied") ? 403 :
                        result.Error.Contains("not found") ? 404 : 500;
 
-        return Results.Json(new ApiResponse<object>
+        return Results.Json(new Microsoft.AspNetCore.Mvc.ProblemDetails
         {
-            Success = false,
-            Error = result.Error,
-            Details = result.Details,
-            Timestamp = DateTime.UtcNow
+            Title = result.Error,
+            Detail = result.Details,
+            Status = statusCode
         }, statusCode: statusCode);
     }
 
@@ -554,11 +530,11 @@ public class VettingEndpointsTests
         var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (!Guid.TryParse(userIdClaim, out var reviewerId))
         {
-            return Results.Json(new ApiResponse<object>
+            return Results.Json(new Microsoft.AspNetCore.Mvc.ProblemDetails
             {
-                Success = false,
-                Error = "User information not found",
-                Timestamp = DateTime.UtcNow
+                Title = "Bad Request",
+                Detail = "User information not found",
+                Status = 400
             }, statusCode: 400);
         }
 
@@ -566,24 +542,17 @@ public class VettingEndpointsTests
 
         if (result.IsSuccess && result.Value != null)
         {
-            return Results.Ok(new ApiResponse<ReviewDecisionResponse>
-            {
-                Success = true,
-                Data = result.Value,
-                Message = "Review decision submitted successfully",
-                Timestamp = DateTime.UtcNow
-            });
+            return Results.Ok(result.Value); // Pattern B: Direct DTO response
         }
 
         var statusCode = result.Error.Contains("Access denied") ? 403 :
                        result.Error.Contains("not found") ? 404 : 400;
 
-        return Results.Json(new ApiResponse<object>
+        return Results.Json(new Microsoft.AspNetCore.Mvc.ProblemDetails
         {
-            Success = false,
-            Error = result.Error,
-            Details = result.Details,
-            Timestamp = DateTime.UtcNow
+            Title = result.Error,
+            Detail = result.Details,
+            Status = statusCode
         }, statusCode: statusCode);
     }
 
@@ -596,11 +565,11 @@ public class VettingEndpointsTests
         var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (!Guid.TryParse(userIdClaim, out var reviewerId))
         {
-            return Results.Json(new ApiResponse<object>
+            return Results.Json(new Microsoft.AspNetCore.Mvc.ProblemDetails
             {
-                Success = false,
-                Error = "User information not found",
-                Timestamp = DateTime.UtcNow
+                Title = "Bad Request",
+                Detail = "User information not found",
+                Status = 400
             }, statusCode: 400);
         }
 
@@ -608,24 +577,17 @@ public class VettingEndpointsTests
 
         if (result.IsSuccess && result.Value != null)
         {
-            return Results.Ok(new ApiResponse<NoteResponse>
-            {
-                Success = true,
-                Data = result.Value,
-                Message = "Note added successfully",
-                Timestamp = DateTime.UtcNow
-            });
+            return Results.Ok(result.Value); // Pattern B: Direct DTO response
         }
 
         var statusCode = result.Error.Contains("Access denied") ? 403 :
                        result.Error.Contains("not found") ? 404 : 400;
 
-        return Results.Json(new ApiResponse<object>
+        return Results.Json(new Microsoft.AspNetCore.Mvc.ProblemDetails
         {
-            Success = false,
-            Error = result.Error,
-            Details = result.Details,
-            Timestamp = DateTime.UtcNow
+            Title = result.Error,
+            Detail = result.Details,
+            Status = statusCode
         }, statusCode: statusCode);
     }
 }

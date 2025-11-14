@@ -29,8 +29,9 @@ export const dashboardService = {
     const queryString = params.toString();
     const url = `/api/users/${userId}/events${queryString ? `?${queryString}` : ''}`;
 
-    const response = await apiClient.get<{ success: boolean; data: UserEventDto[] }>(url);
-    return response.data.data || [];
+    // Pattern B: Direct DTO response (no ApiResponse wrapper)
+    const response = await apiClient.get<UserEventDto[]>(url);
+    return response.data || [];
   },
 
   /**
@@ -41,8 +42,9 @@ export const dashboardService = {
     const url = `/api/users/${userId}/vetting-status`;
 
     try {
-      const response = await apiClient.get<{ success: boolean; data: VettingStatusDto }>(url);
-      return response.data.data || null;
+      // Pattern B: Direct DTO response (no ApiResponse wrapper)
+      const response = await apiClient.get<VettingStatusDto>(url);
+      return response.data || null;
     } catch (error: any) {
       // If user is already vetted, API may return 404 or null
       if (error.response?.status === 404) {
@@ -59,8 +61,9 @@ export const dashboardService = {
   getProfile: async (userId: string): Promise<UserProfileDto> => {
     const url = `/api/users/${userId}/profile`;
 
-    const response = await apiClient.get<{ success: boolean; data: UserProfileDto }>(url);
-    return response.data.data;
+    // Pattern B: Direct DTO response (no ApiResponse wrapper)
+    const response = await apiClient.get<UserProfileDto>(url);
+    return response.data;
   },
 
   /**
@@ -80,14 +83,15 @@ export const dashboardService = {
       payloadValues: JSON.stringify(data, null, 2)
     });
 
-    const response = await apiClient.put<{ success: boolean; data: UserProfileDto }>(url, data);
+    // Pattern B: Direct DTO response (no ApiResponse wrapper)
+    const response = await apiClient.put<UserProfileDto>(url, data);
 
     debugLog('✅ UPDATE PROFILE RESPONSE:', {
       status: response.status,
       data: response.data
     });
 
-    return response.data.data;
+    return response.data;
   },
 
   /**
@@ -98,7 +102,9 @@ export const dashboardService = {
   changePassword: async (userId: string, data: ChangePasswordDto): Promise<boolean> => {
     const url = `/api/users/${userId}/change-password`;
 
-    const response = await apiClient.post<{ success: boolean; data: boolean }>(url, data);
-    return response.data.data || response.data.success;
+    // Pattern B: Direct DTO response (no ApiResponse wrapper)
+    // For boolean responses, API returns true/false directly
+    const response = await apiClient.post<boolean>(url, data);
+    return response.data;
   },
 };

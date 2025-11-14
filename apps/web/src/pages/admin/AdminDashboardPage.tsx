@@ -249,7 +249,6 @@ export const AdminDashboardPage: React.FC = () => {
                     marginLeft: '44px', // Icon width (32px) + gap (12px) = 44px
                     padding: 0,
                     margin: 0,
-                    marginLeft: '44px',
                   }}
                 >
                   {card.count} - {card.countLabel}

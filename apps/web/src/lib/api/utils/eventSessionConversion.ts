@@ -1,19 +1,20 @@
-import type { EventSessionDto, EventTicketTypeDto } from '../services/eventSessions'
+import type { SessionDto, TicketTypeDto } from '../services/eventSessions'
 import type { EventSession } from '../../../components/events/EventSessionsGrid'
 import type { EventTicketType } from '../../../components/events/EventTicketTypesGrid'
 
 /**
- * Converts backend EventSessionDto to frontend EventSession interface
+ * Converts backend SessionDto to frontend EventSession interface
  */
-export function convertEventSessionFromDto(dto: EventSessionDto): EventSession {
-  const startDateTime = new Date(dto.startDateTime)
-  const endDateTime = new Date(dto.endDateTime)
-  
+export function convertEventSessionFromDto(dto: SessionDto): EventSession {
+  // SessionDto already has date, startTime, and endTime as separate fields
+  const startDateTime = new Date(dto.startTime || '')
+  const endDateTime = new Date(dto.endTime || '')
+
   return {
     id: dto.id,
     sessionIdentifier: dto.sessionIdentifier,
     name: dto.name,
-    date: startDateTime.toISOString().split('T')[0], // YYYY-MM-DD format
+    date: dto.date?.split('T')[0] || '', // Extract date part if datetime format
     startTime: startDateTime.toTimeString().slice(0, 5), // HH:MM format
     endTime: endDateTime.toTimeString().slice(0, 5), // HH:MM format
     capacity: dto.capacity,
@@ -45,20 +46,15 @@ export function convertEventSessionToCreateDto(session: EventSession): {
 }
 
 /**
- * Converts backend EventTicketTypeDto to frontend EventTicketType interface
+ * Converts backend TicketTypeDto to frontend EventTicketType interface
  */
-export function convertEventTicketTypeFromDto(dto: EventTicketTypeDto, sessions: EventSession[] = []): EventTicketType {
-  // Convert session IDs to session identifiers
-  const sessionIdentifiers = dto.sessionIds.map(sessionId => {
-    const session = sessions.find(s => s.id === sessionId)
-    return session?.sessionIdentifier || sessionId
-  })
-  
+export function convertEventTicketTypeFromDto(dto: TicketTypeDto, sessions: EventSession[] = []): EventTicketType {
+  // TicketTypeDto already has sessionIdentifiers
   return {
     id: dto.id,
     name: dto.name,
     pricingType: dto.pricingType, // Direct mapping as enum values match
-    sessionIdentifiers,
+    sessionIdentifiers: dto.sessionIdentifiers || [],
     minPrice: dto.minPrice,
     maxPrice: dto.maxPrice,
     quantityAvailable: dto.quantityAvailable,

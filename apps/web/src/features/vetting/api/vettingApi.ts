@@ -2,7 +2,6 @@
 // Handles all HTTP requests to Vetting System backend
 
 import { apiClient } from '../../../lib/api/client';
-import type { ApiResponse, PaginatedResponse } from '../../../lib/api/types/api.types';
 import type {
   CreateApplicationRequest,
   ApplicationSubmissionResponse,
@@ -26,31 +25,31 @@ export const vettingApi = {
    * Submit a new vetting application (anonymous or authenticated)
    */
   async submitApplication(request: CreateApplicationRequest): Promise<ApplicationSubmissionResponse> {
-    const { data } = await apiClient.post<ApiResponse<ApplicationSubmissionResponse>>(
+    const { data } = await apiClient.post<ApplicationSubmissionResponse>(
       '/api/vetting/applications',
       request
     );
-    
-    if (!data.data) {
-      throw new Error(data.error || 'Failed to submit application');
+
+    if (!data) {
+      throw new Error('Failed to submit application');
     }
-    
-    return data.data;
+
+    return data;
   },
 
   /**
    * Get application status by tracking token (public endpoint)
    */
   async getApplicationStatus(trackingToken: string): Promise<ApplicationStatusResponse> {
-    const { data } = await apiClient.get<ApiResponse<ApplicationStatusResponse>>(
+    const { data } = await apiClient.get<ApplicationStatusResponse>(
       `/api/vetting/applications/status/${trackingToken}`
     );
-    
-    if (!data.data) {
-      throw new Error(data.error || 'Application not found');
+
+    if (!data) {
+      throw new Error('Application not found');
     }
-    
-    return data.data;
+
+    return data;
   },
 
   // ===== REVIEWER ENDPOINTS (VettingReviewer Role Required) =====
@@ -62,79 +61,79 @@ export const vettingApi = {
     applications: ApplicationSummaryDto[];
     stats: DashboardStats;
   }> {
-    const { data } = await apiClient.get<ApiResponse<{
+    const { data } = await apiClient.get<{
       applications: ApplicationSummaryDto[];
       stats: DashboardStats;
-    }>>('/api/vetting/reviewer/dashboard');
-    
-    if (!data.data) {
-      throw new Error(data.error || 'Failed to load reviewer dashboard');
+    }>('/api/vetting/reviewer/dashboard');
+
+    if (!data) {
+      throw new Error('Failed to load reviewer dashboard');
     }
-    
-    return data.data;
+
+    return data;
   },
 
   /**
    * Get filtered list of applications for reviewers
    */
   async getApplications(filters: ApplicationFilterRequest): Promise<PagedResult<ApplicationSummaryDto>> {
-    const { data } = await apiClient.get<ApiResponse<PagedResult<ApplicationSummaryDto>>>(
+    const { data } = await apiClient.get<PagedResult<ApplicationSummaryDto>>(
       '/api/vetting/reviewer/applications',
       { params: filters }
     );
-    
-    if (!data.data) {
-      throw new Error(data.error || 'Failed to load applications');
+
+    if (!data) {
+      throw new Error('Failed to load applications');
     }
-    
-    return data.data;
+
+    return data;
   },
 
   /**
    * Get detailed application information for review
    */
   async getApplicationDetail(applicationId: string): Promise<ApplicationDetailResponse> {
-    const { data } = await apiClient.get<ApiResponse<ApplicationDetailResponse>>(
+    const { data } = await apiClient.get<ApplicationDetailResponse>(
       `/api/vetting/reviewer/applications/${applicationId}`
     );
-    
-    if (!data.data) {
-      throw new Error(data.error || 'Failed to get application details');
+
+    if (!data) {
+      throw new Error('Failed to get application details');
     }
-    
-    return data.data;
+
+    return data;
   },
 
   /**
    * Submit review decision for application
    */
   async submitReview(applicationId: string, decision: ReviewDecisionRequest): Promise<ApplicationDetailResponse> {
-    const { data } = await apiClient.post<ApiResponse<ApplicationDetailResponse>>(
+    const { data } = await apiClient.post<ApplicationDetailResponse>(
       `/api/vetting/reviewer/applications/${applicationId}/review`,
       decision
     );
-    
-    if (!data.data) {
-      throw new Error(data.error || 'Failed to submit review');
+
+    if (!data) {
+      throw new Error('Failed to submit review');
     }
-    
-    return data.data;
+
+    return data;
   },
 
   /**
    * Assign application to reviewer
    */
   async assignApplication(applicationId: string, reviewerId: string): Promise<ApplicationDetailResponse> {
-    const { data } = await apiClient.patch<ApiResponse<ApplicationDetailResponse>>(
+    const { data } = await apiClient.patch<ApplicationDetailResponse>(
       `/api/vetting/reviewer/applications/${applicationId}/assign`,
       { reviewerId }
     );
-    
-    if (!data.data) {
-      throw new Error(data.error || 'Failed to assign application');
+
+    if (!data) {
+      throw new Error('Failed to assign application');
     }
-    
-    return data.data;
+
+    return data;
   },
 
   /**
@@ -145,16 +144,16 @@ export const vettingApi = {
     isPrivate: boolean;
     tags?: string[];
   }): Promise<ApplicationDetailResponse> {
-    const { data } = await apiClient.post<ApiResponse<ApplicationDetailResponse>>(
+    const { data } = await apiClient.post<ApplicationDetailResponse>(
       `/api/vetting/reviewer/applications/${applicationId}/notes`,
       note
     );
-    
-    if (!data.data) {
-      throw new Error(data.error || 'Failed to add review note');
+
+    if (!data) {
+      throw new Error('Failed to add review note');
     }
-    
-    return data.data;
+
+    return data;
   },
 
   // ===== ADMIN ENDPOINTS (VettingAdmin Role Required) =====
@@ -171,17 +170,17 @@ export const vettingApi = {
     trends: any[];
     reviewerPerformance: any[];
   }> {
-    const { data } = await apiClient.get<ApiResponse<{
+    const { data } = await apiClient.get<{
       stats: DashboardStats;
       trends: any[];
       reviewerPerformance: any[];
-    }>>('/api/vetting/admin/analytics', { params });
-    
-    if (!data.data) {
-      throw new Error(data.error || 'Failed to load analytics');
+    }>('/api/vetting/admin/analytics', { params });
+
+    if (!data) {
+      throw new Error('Failed to load analytics');
     }
-    
-    return data.data;
+
+    return data;
   },
 
   /**
@@ -197,7 +196,7 @@ export const vettingApi = {
     totalReviews: number;
     isActive: boolean;
   }[]> {
-    const { data } = await apiClient.get<ApiResponse<{
+    const { data } = await apiClient.get<{
       id: string;
       name: string;
       email: string;
@@ -206,13 +205,13 @@ export const vettingApi = {
       averageReviewTime: number;
       totalReviews: number;
       isActive: boolean;
-    }[]>>('/api/vetting/admin/reviewers');
-    
-    if (!data.data) {
-      throw new Error(data.error || 'Failed to load reviewers');
+    }[]>('/api/vetting/admin/reviewers');
+
+    if (!data) {
+      throw new Error('Failed to load reviewers');
     }
-    
-    return data.data;
+
+    return data;
   },
 
   /**
@@ -222,16 +221,16 @@ export const vettingApi = {
     applicationId: string;
     reviewerId: string;
   }[]): Promise<{ successCount: number; errors: string[] }> {
-    const { data } = await apiClient.post<ApiResponse<{
+    const { data } = await apiClient.post<{
       successCount: number;
       errors: string[];
-    }>>('/api/vetting/admin/bulk-assign', { assignments });
-    
-    if (!data.data) {
-      throw new Error(data.error || 'Failed to bulk assign applications');
+    }>('/api/vetting/admin/bulk-assign', { assignments });
+
+    if (!data) {
+      throw new Error('Failed to bulk assign applications');
     }
-    
-    return data.data;
+
+    return data;
   },
 
   /**
@@ -241,16 +240,16 @@ export const vettingApi = {
     remindersSent: number;
     errors: string[];
   }> {
-    const { data } = await apiClient.post<ApiResponse<{
+    const { data } = await apiClient.post<{
       remindersSent: number;
       errors: string[];
-    }>>(`/api/vetting/admin/applications/${applicationId}/remind-references`);
-    
-    if (!data.data) {
-      throw new Error(data.error || 'Failed to send reference reminders');
+    }>(`/api/vetting/admin/applications/${applicationId}/remind-references`);
+
+    if (!data) {
+      throw new Error('Failed to send reference reminders');
     }
-    
-    return data.data;
+
+    return data;
   },
 
   /**
@@ -281,33 +280,33 @@ export const vettingApi = {
     lastSaved: string;
     expiresAt: string;
   }> {
-    const { data } = await apiClient.post<ApiResponse<{
+    const { data } = await apiClient.post<{
       draftId: string;
       lastSaved: string;
       expiresAt: string;
-    }>>('/api/vetting/drafts', draftData);
-    
-    if (!data.data) {
-      throw new Error(data.error || 'Failed to save draft');
+    }>('/api/vetting/drafts', draftData);
+
+    if (!data) {
+      throw new Error('Failed to save draft');
     }
-    
-    return data.data;
+
+    return data;
   },
 
   /**
    * Load application draft by email and draft token
    */
   async loadDraft(email: string, draftToken: string): Promise<Partial<CreateApplicationRequest>> {
-    const { data } = await apiClient.get<ApiResponse<Partial<CreateApplicationRequest>>>(
+    const { data } = await apiClient.get<Partial<CreateApplicationRequest>>(
       `/api/vetting/drafts/${draftToken}`,
       { params: { email } }
     );
-    
-    if (!data.data) {
-      throw new Error(data.error || 'Draft not found or expired');
+
+    if (!data) {
+      throw new Error('Draft not found or expired');
     }
-    
-    return data.data;
+
+    return data;
   },
 
   /**
@@ -334,7 +333,7 @@ export const vettingApi = {
     isExpired: boolean;
     hasResponded: boolean;
   }> {
-    const { data } = await apiClient.get<ApiResponse<{
+    const { data } = await apiClient.get<{
       applicantName: string;
       referenceRequest: {
         name: string;
@@ -343,13 +342,13 @@ export const vettingApi = {
       };
       isExpired: boolean;
       hasResponded: boolean;
-    }>>(`/api/vetting/references/${referenceToken}/form`);
-    
-    if (!data.data) {
-      throw new Error(data.error || 'Reference form not found or expired');
+    }>(`/api/vetting/references/${referenceToken}/form`);
+
+    if (!data) {
+      throw new Error('Reference form not found or expired');
     }
-    
-    return data.data;
+
+    return data;
   },
 
   /**
@@ -363,16 +362,16 @@ export const vettingApi = {
     recommendation: string;
     additionalComments?: string;
   }): Promise<{ success: boolean; message: string }> {
-    const { data } = await apiClient.post<ApiResponse<{
+    const { data } = await apiClient.post<{
       success: boolean;
       message: string;
-    }>>(`/api/vetting/references/${referenceToken}/response`, response);
-    
-    if (!data.data) {
-      throw new Error(data.error || 'Failed to submit reference response');
+    }>(`/api/vetting/references/${referenceToken}/response`, response);
+
+    if (!data) {
+      throw new Error('Failed to submit reference response');
     }
-    
-    return data.data;
+
+    return data;
   }
 };
 

@@ -33,7 +33,7 @@ import { eventsManagementService } from '../../../api/services/eventsManagement.
 import type { PaymentEventInfo } from '../types/payment.types';
 
 // Use generated types from OpenAPI spec
-type EventDto = components["schemas"]["EventDto2"];
+type EventDto = components["schemas"]["EventDto"];
 type TicketTypeDto = components["schemas"]["TicketTypeDto"];
 
 /**
@@ -152,7 +152,7 @@ export const EventPaymentPage: React.FC = () => {
           startDateTime: eventDetails?.startDate || new Date().toISOString(),
           endDateTime: eventDetails?.endDate || new Date().toISOString(),
           instructorName: 'Instructor TBD', // teacherIds is currently empty in API response
-          location: eventDetails?.location || '',
+          location: '', // TODO: Fetch venue name using venueId once venue API is available
           basePrice,
           currency: 'USD',
           registrationId: registrationId
@@ -410,7 +410,7 @@ export const EventPaymentPage: React.FC = () => {
 
   return (
     <Container size="lg" py="xl">
-      <Stack gap={{ base: 0, md: 'md' }}>
+      <Stack gap="md">
         {/* Header - Back button and secure payment notice */}
         <Group justify="space-between" align="center" mt={0} mb={{ base: 0, md: 'xs' }}>
           {/* Hide Back button on confirmation screen (Step 3) */}
@@ -480,7 +480,7 @@ export const EventPaymentPage: React.FC = () => {
         {/* Step Content */}
         <Group align="flex-start" gap="xl">
           {/* Main Content */}
-          <Stack gap={{ base: 0, md: 'md' }} style={{ flex: 2 }}>
+          <Stack gap="md" style={{ flex: 2 }}>
             {/* Step 1: Ticket Type and Pricing Selection */}
             {currentStep === 0 && (
               <>

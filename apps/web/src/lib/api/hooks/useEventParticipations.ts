@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '../client'
 import { eventKeys } from '../utils/cache'
-import type { ApiResponse } from '../types/api.types'
 import type { components } from '@witchcityrope/shared-types'
 
 // Use generated type from OpenAPI spec - NEVER manually define this
@@ -15,10 +14,10 @@ export function useEventParticipations(eventId: string, enabled: boolean = true)
   return useQuery({
     queryKey: eventKeys.participations(eventId),
     queryFn: async (): Promise<EventParticipationDto[]> => {
-      const { data } = await apiClient.get<ApiResponse<EventParticipationDto[]>>(
+      const { data } = await apiClient.get<EventParticipationDto[]>(
         `/api/admin/events/${eventId}/participations`
       )
-      return data?.data || []
+      return data || []
     },
     enabled: !!eventId && enabled,
     staleTime: 2 * 60 * 1000, // 2 minutes - fairly fresh for admin data
