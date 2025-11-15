@@ -109,7 +109,7 @@ export async function testTicketCancellationPersistence(
       // Verify Cancel Ticket button is visible
       const cancelButton = page.locator(
         '[data-testid="cancel-ticket-button"], button:has-text("Cancel Ticket"), button:has-text("Cancel Registration")'
-      );
+      ).first();
 
       await expect(cancelButton).toBeVisible({ timeout: 5000 });
       console.log('✅ Cancel Ticket button is visible');

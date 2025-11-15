@@ -152,8 +152,9 @@ export interface EventParticipationRecord {
   id: string;
   userId: string;
   eventId: string;
-  participationType: 'Ticket' | 'RSVP' | number; // Can be string OR number from database
-  status: 1 | 2 | 3 | 4; // ParticipationStatus enum: 1=Active, 2=Cancelled, 3=Refunded, 4=Waitlisted
+  attendanceType: 1 | 2; // 1=Ticket, 2=RSVP
+  participationType: string; // 'Ticket' or 'RSVP' (converted from attendanceType)
+  status: 1 | 2 | 3 | 4; // Status enum: 1=Active, 2=Cancelled, 3=Refunded, 4=Waitlisted
   createdAt: Date;
   updatedAt: Date;
 }
@@ -169,16 +170,16 @@ export function getParticipationStatusName(status: number): string {
   return statusMap[status] || `Unknown(${status})`;
 }
 
-// Helper to convert numeric participation type to readable name
+// Helper to convert numeric attendance type to readable name
 export function getParticipationTypeName(type: number | string): string {
   if (typeof type === 'string') {
     return type; // Already a string like 'RSVP' or 'Ticket'
   }
 
-  // PostgreSQL stores ParticipationType enum as integers
+  // PostgreSQL stores AttendanceType enum as integers
   const typeMap: Record<number, string> = {
-    0: 'Ticket',
-    1: 'RSVP'
+    1: 'Ticket',
+    2: 'RSVP'
   };
   return typeMap[type] || `Unknown(${type})`;
 }
@@ -204,11 +205,11 @@ export async function verifyEventParticipation(
       "Id" as "id",
       "UserId" as "userId",
       "EventId" as "eventId",
-      "ParticipationType" as "participationType",
+      "AttendanceType" as "attendanceType",
       "Status" as "status",
       "CreatedAt" as "createdAt",
       "UpdatedAt" as "updatedAt"
-    FROM "EventParticipations"
+    FROM "EventAttendances"
     WHERE "UserId" = $1 AND "EventId" = $2
     ORDER BY "UpdatedAt" DESC
     LIMIT 1
@@ -229,6 +230,9 @@ export async function verifyEventParticipation(
 
   const actual = rows[0];
 
+  // Add participationType string conversion from numeric attendanceType
+  actual.participationType = getParticipationTypeName(actual.attendanceType);
+
   if (actual.status !== expectedStatus) {
     const expectedName = getParticipationStatusName(expectedStatus);
     const actualName = getParticipationStatusName(actual.status);
@@ -238,7 +242,7 @@ export async function verifyEventParticipation(
   }
 
   console.log(`✅ Database verification: Status is ${actual.status} (${getParticipationStatusName(actual.status)})`);
-  console.log(`   Participation Type: ${getParticipationTypeName(actual.participationType)}`);
+  console.log(`   Attendance Type: ${getParticipationTypeName(actual.attendanceType)}`);
 
   return actual;
 }
@@ -253,8 +257,8 @@ export async function verifyNoEventParticipation(
 ): Promise<void> {
   const sql = `
     SELECT COUNT(*) as count
-    FROM "EventParticipations"
-    WHERE "UserId" = $1 AND "EventId" = $2 AND "Status" != 'Cancelled'
+    FROM "EventAttendances"
+    WHERE "UserId" = $1 AND "EventId" = $2 AND "Status" != 2
   `;
 
   const rows = await query<{ count: string }>(sql, [userId, eventId]);
@@ -380,10 +384,10 @@ export async function getFirstRsvpEvent(): Promise<EventRecord | null> {
       e."IsPublished" as "isPublished",
       e."Capacity" as "capacity"
     FROM "Events" e
-    INNER JOIN "EventTicketTypes" ett ON e."Id" = ett."EventId"
+    INNER JOIN "TicketTypes" tt ON e."Id" = tt."EventId"
     WHERE e."IsPublished" = true
       AND e."StartDate" > NOW()
-      AND ett."Type" = 'rsvp'
+      AND tt."Price" = 0
     ORDER BY e."StartDate" ASC
     LIMIT 1
   `;
@@ -409,10 +413,10 @@ export async function getFirstTicketEvent(): Promise<EventRecord | null> {
       e."IsPublished" as "isPublished",
       e."Capacity" as "capacity"
     FROM "Events" e
-    INNER JOIN "EventTicketTypes" ett ON e."Id" = ett."EventId"
+    INNER JOIN "TicketTypes" tt ON e."Id" = tt."EventId"
     WHERE e."IsPublished" = true
       AND e."StartDate" > NOW()
-      AND ett."Type" = 'paid'
+      AND tt."Price" > 0
     ORDER BY e."StartDate" ASC
     LIMIT 1
   `;
@@ -487,13 +491,13 @@ export async function verifyVettingApplicationStatus(
  * Useful for ensuring critical actions are logged
  */
 export async function verifyAuditLogExists(
-  tableName: 'ParticipationHistory' | 'VettingAuditLog' | 'PaymentAuditLog',
+  tableName: 'AttendanceHistory' | 'VettingAuditLogs' | 'PaymentAuditLog',
   entityId: string,
   action: string
 ): Promise<boolean> {
   const columnMap = {
-    ParticipationHistory: 'ParticipationId',
-    VettingAuditLog: 'ApplicationId',
+    AttendanceHistory: 'AttendanceId',
+    VettingAuditLogs: 'ApplicationId',
     PaymentAuditLog: 'PaymentId'
   };
 

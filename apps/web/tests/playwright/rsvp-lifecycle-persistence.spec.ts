@@ -25,86 +25,43 @@ let RSVP_EVENT_ID: string;
 
 test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
   test.beforeAll(async ({ browser }) => {
-    console.log('⚠️  Note: These tests require Social/Free events in the database');
-    console.log('   If tests fail, ensure Social events exist via database seeding');
+    // Find a test event to use
+    console.log('🔍 Looking for test event with free/RSVP tickets...');
+
+    try {
+      const rsvpEvent = await DatabaseHelpers.getFirstRsvpEvent();
+
+      if (!rsvpEvent) {
+        throw new Error(
+          'No RSVP events found in database.\n' +
+          '\n' +
+          'These tests require at least one published event with free tickets (Price = 0).\n' +
+          '\n' +
+          'To fix this:\n' +
+          '1. Ensure Docker containers are running: ./dev.sh\n' +
+          '2. Check if database has events: curl http://localhost:5655/api/events\n' +
+          '3. If no events exist, seed the database with test data\n' +
+          '4. Verify event has "free" ticket type (Price = 0) in TicketTypes table\n'
+        );
+      }
+
+      RSVP_EVENT_ID = rsvpEvent.id;
+      console.log(`✅ Found RSVP event: "${rsvpEvent.title}" (ID: ${RSVP_EVENT_ID})`);
+      console.log(`   Event Type: ${rsvpEvent.eventType}`);
+      console.log(`   Start Date: ${rsvpEvent.startDate}`);
+      console.log(`   Capacity: ${rsvpEvent.capacity}`);
+    } catch (error) {
+      console.error('❌ Failed to find RSVP event for testing:', error);
+      throw error;
+    }
   });
 
   test.afterAll(async () => {
     await globalCleanup();
   });
 
-  test('should find a Social event for RSVP tests', async ({ page }) => {
-    console.log('🔍 Finding suitable RSVP event...');
-
-    // STRATEGY 1: Try to get RSVP event directly from database (faster, more reliable)
-    try {
-      const rsvpEvent = await DatabaseHelpers.getFirstRsvpEvent();
-
-      if (rsvpEvent) {
-        RSVP_EVENT_ID = rsvpEvent.id;
-        console.log(`✅ Found RSVP event via database: ${RSVP_EVENT_ID}`);
-        console.log(`   Event: "${rsvpEvent.title}" (${rsvpEvent.eventType})`);
-        expect(RSVP_EVENT_ID).toBeTruthy();
-        return;
-      }
-    } catch (error) {
-      console.log('⚠️  Could not query database directly, falling back to UI discovery');
-    }
-
-    // STRATEGY 2: Fallback to UI-based discovery with improved waiting
-    console.log('📍 Using UI-based event discovery...');
-
-    // Login and navigate to events page
-    await AuthHelpers.loginAs(page, 'guest');
-
-    // Navigate to events page
-    await page.goto('http://localhost:5173/events');
-    await page.waitForLoadState('networkidle');
-
-    // Wait for event cards to render
-    console.log('⏳ Waiting for event cards to render...');
-    const eventCards = page.locator('[data-testid="event-card"]');
-
-    try {
-      await eventCards.first().waitFor({
-        state: 'visible',
-        timeout: 10000
-      });
-
-      const cardCount = await eventCards.count();
-      console.log(`✅ Found ${cardCount} event cards`);
-
-      // Find a Social event (free RSVP events)
-      // Look for event with RSVP button or Social event type
-      const socialEventCard = eventCards.filter({ hasText: 'Social' }).first();
-
-      if (await socialEventCard.count() > 0) {
-        const socialLink = socialEventCard.locator('a[href*="/events/"]');
-        const href = await socialLink.getAttribute('href');
-        RSVP_EVENT_ID = href?.split('/events/')[1] || '';
-        console.log(`✅ Found Social event ID: ${RSVP_EVENT_ID}`);
-      } else {
-        // Fallback: Use first event (may not be Social)
-        const firstEventCard = eventCards.first();
-        const firstLink = firstEventCard.locator('a[href*="/events/"]');
-        const href = await firstLink.getAttribute('href');
-        RSVP_EVENT_ID = href?.split('/events/')[1] || '';
-        console.log(`✅ Found event ID: ${RSVP_EVENT_ID} (may not be Social)`);
-      }
-
-      expect(RSVP_EVENT_ID).toBeTruthy();
-
-    } catch (error) {
-      throw new Error(
-        'No events found on events page.\n' +
-        'Check database has events: curl http://localhost:5655/api/events\n' +
-        'To seed events: npm run db:seed'
-      );
-    }
-  });
-
   test('should persist RSVP to database', async ({ page }) => {
-    test.skip(!RSVP_EVENT_ID, 'No test event available');
+    // RSVP_EVENT_ID is guaranteed to exist from beforeAll hook
 
     const userId = await DatabaseHelpers.getUserIdFromEmail(AuthHelpers.accounts.vetted.email);
 
@@ -140,7 +97,7 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
   });
 
   test('should persist RSVP cancellation to database', async ({ page }) => {
-    test.skip(!RSVP_EVENT_ID, 'No test event available');
+    // RSVP_EVENT_ID is guaranteed to exist from beforeAll hook
 
     const userId = await DatabaseHelpers.getUserIdFromEmail(AuthHelpers.accounts.member.email);
 
@@ -171,7 +128,7 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
   });
 
   test('should handle complete RSVP lifecycle', async ({ page }) => {
-    test.skip(!RSVP_EVENT_ID, 'No test event available');
+    // RSVP_EVENT_ID is guaranteed to exist from beforeAll hook
 
     // Test: RSVP → Cancel → Re-RSVP
     // Each step verifies database persistence
@@ -186,7 +143,7 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
   });
 
   test('should verify RSVP type in database is correct', async ({ page }) => {
-    test.skip(!RSVP_EVENT_ID, 'No test event available');
+    // RSVP_EVENT_ID is guaranteed to exist from beforeAll hook
 
     const userId = await DatabaseHelpers.getUserIdFromEmail(AuthHelpers.accounts.vetted.email);
 
@@ -215,7 +172,7 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
   });
 
   test('should create audit log entry for RSVP', async ({ page }) => {
-    test.skip(!RSVP_EVENT_ID, 'No test event available');
+    // RSVP_EVENT_ID is guaranteed to exist from beforeAll hook
 
     const userId = await DatabaseHelpers.getUserIdFromEmail(AuthHelpers.accounts.member.email);
 
@@ -245,7 +202,7 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
     );
 
     const auditLogExists = await DatabaseHelpers.verifyAuditLogExists(
-      'ParticipationHistory',
+      'AttendanceHistory',
       participation.id,
       'Registered'
     );
@@ -255,7 +212,7 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
   });
 
   test('should create audit log entry for RSVP cancellation', async ({ page }) => {
-    test.skip(!RSVP_EVENT_ID, 'No test event available');
+    // RSVP_EVENT_ID is guaranteed to exist from beforeAll hook
 
     const userId = await DatabaseHelpers.getUserIdFromEmail(AuthHelpers.accounts.guest.email);
 
@@ -285,7 +242,7 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
     );
 
     const auditLogExists = await DatabaseHelpers.verifyAuditLogExists(
-      'ParticipationHistory',
+      'AttendanceHistory',
       participation.id,
       'Cancelled'
     );
@@ -295,7 +252,7 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
   });
 
   test('should prevent duplicate RSVPs', async ({ page }) => {
-    test.skip(!RSVP_EVENT_ID, 'No test event available');
+    // RSVP_EVENT_ID is guaranteed to exist from beforeAll hook
 
     const userId = await DatabaseHelpers.getUserIdFromEmail(AuthHelpers.accounts.member.email);
 
@@ -342,7 +299,7 @@ test.describe('RSVP Persistence Edge Cases', () => {
   });
 
   test('should handle rapid RSVP/cancel cycles', async ({ page }) => {
-    test.skip(!RSVP_EVENT_ID, 'No test event available');
+    // RSVP_EVENT_ID is guaranteed to exist from beforeAll hook
 
     // Test multiple rapid RSVP/cancel cycles
     for (let i = 0; i < 3; i++) {
@@ -365,7 +322,7 @@ test.describe('RSVP Persistence Edge Cases', () => {
   });
 
   test('should maintain separate RSVP state per user', async ({ page }) => {
-    test.skip(!RSVP_EVENT_ID, 'No test event available');
+    // RSVP_EVENT_ID is guaranteed to exist from beforeAll hook
 
     // User 1: RSVP
     await testRsvpPersistence(page, {

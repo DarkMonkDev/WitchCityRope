@@ -29,114 +29,42 @@ let TEST_EVENT_ID: string;
 test.describe.serial('Ticket Lifecycle Persistence Tests', () => {
   test.beforeAll(async ({ browser }) => {
     // Find a test event to use
-    // In production, we'd create a test event via API
-    // For now, we'll use a seeded event
-    console.log('⚠️  Note: These tests require an active event in the database');
-    console.log('   If tests fail, ensure test events exist via database seeding');
+    console.log('🔍 Looking for test event with paid tickets...');
+
+    try {
+      const ticketEvent = await DatabaseHelpers.getFirstTicketEvent();
+
+      if (!ticketEvent) {
+        throw new Error(
+          'No ticket events found in database.\n' +
+          '\n' +
+          'These tests require at least one published event with paid tickets.\n' +
+          '\n' +
+          'To fix this:\n' +
+          '1. Ensure Docker containers are running: ./dev.sh\n' +
+          '2. Check if database has events: curl http://localhost:5655/api/events\n' +
+          '3. If no events exist, seed the database with test data\n' +
+          '4. Verify event has "paid" ticket type in EventTicketTypes table\n'
+        );
+      }
+
+      TEST_EVENT_ID = ticketEvent.id;
+      console.log(`✅ Found ticket event: "${ticketEvent.title}" (ID: ${TEST_EVENT_ID})`);
+      console.log(`   Event Type: ${ticketEvent.eventType}`);
+      console.log(`   Start Date: ${ticketEvent.startDate}`);
+      console.log(`   Capacity: ${ticketEvent.capacity}`);
+    } catch (error) {
+      console.error('❌ Failed to find ticket event for testing:', error);
+      throw error;
+    }
   });
 
   test.afterAll(async () => {
     await globalCleanup();
   });
 
-  test('should find a test event for ticket lifecycle tests', async ({ page }) => {
-    console.log('🔍 Finding suitable test event...');
-
-    // STRATEGY 1: Try to get event directly from database (faster, more reliable)
-    try {
-      const ticketEvent = await DatabaseHelpers.getFirstTicketEvent();
-
-      if (ticketEvent) {
-        TEST_EVENT_ID = ticketEvent.id;
-        console.log(`✅ Found ticket event via database: ${TEST_EVENT_ID}`);
-        console.log(`   Event: "${ticketEvent.title}" (${ticketEvent.eventType})`);
-        expect(TEST_EVENT_ID).toBeTruthy();
-        return;
-      }
-    } catch (error) {
-      console.log('⚠️  Could not query database directly, falling back to UI discovery');
-    }
-
-    // STRATEGY 2: Fallback to UI-based discovery with improved waiting
-    console.log('📍 Using UI-based event discovery...');
-
-    await AuthHelpers.loginAs(page, 'vetted');
-
-    // Navigate to events page
-    await page.goto('http://localhost:5173/events');
-    await page.waitForLoadState('networkidle');
-
-    // ✅ NEW: Wait for event cards to render with explicit timeout
-    console.log('⏳ Waiting for event cards to render...');
-
-    const eventCards = page.locator('[data-testid="event-card"]');
-
-    try {
-      // Wait up to 10 seconds for at least one event card
-      await eventCards.first().waitFor({
-        state: 'visible',
-        timeout: 10000
-      });
-
-      const cardCount = await eventCards.count();
-      console.log(`✅ Found ${cardCount} event cards`);
-
-      // Find first event link within event cards
-      const firstEventCard = eventCards.first();
-      const eventLink = firstEventCard.locator('a[href*="/events/"]');
-
-      const href = await eventLink.getAttribute('href');
-
-      if (!href) {
-        throw new Error('Event card found but has no link');
-      }
-
-      TEST_EVENT_ID = href.split('/events/')[1];
-
-      console.log(`✅ Found test event ID via UI: ${TEST_EVENT_ID}`);
-      expect(TEST_EVENT_ID).toBeTruthy();
-
-    } catch (error) {
-      // Provide detailed diagnostic information
-      const currentUrl = page.url();
-      const pageTitle = await page.title();
-
-      console.error('❌ Failed to find events on page');
-      console.error(`   Current URL: ${currentUrl}`);
-      console.error(`   Page title: ${pageTitle}`);
-
-      // Check if page shows error or empty state
-      const errorAlert = page.locator('[role="alert"]');
-      const hasError = await errorAlert.count() > 0;
-
-      if (hasError) {
-        const errorText = await errorAlert.textContent();
-        console.error(`   Error on page: ${errorText}`);
-      }
-
-      const emptyState = page.locator('[data-testid="events-empty-state"]');
-      const hasEmptyState = await emptyState.count() > 0;
-
-      if (hasEmptyState) {
-        console.error('   Page shows empty state (no events available)');
-      }
-
-      throw new Error(
-        'No events found on events page.\n' +
-        '\n' +
-        'Troubleshooting steps:\n' +
-        '1. Check if database has events: curl http://localhost:5655/api/events\n' +
-        '2. Verify user is authenticated and can view events\n' +
-        '3. Check browser console for JavaScript errors\n' +
-        '4. Ensure events page component is rendering correctly\n' +
-        '\n' +
-        'To seed events: npm run db:seed'
-      );
-    }
-  });
-
   test('CRITICAL: should persist ticket cancellation to database', async ({ page }) => {
-    test.skip(!TEST_EVENT_ID, 'No test event available');
+    // TEST_EVENT_ID is guaranteed to exist from beforeAll hook
 
     // This tests the exact bug that was found:
     // - User cancels ticket
@@ -149,58 +77,32 @@ test.describe.serial('Ticket Lifecycle Persistence Tests', () => {
 
     const userId = await DatabaseHelpers.getUserIdFromEmail(AuthHelpers.accounts.vetted.email);
 
-    // First, ensure user has a ticket to cancel
-    console.log('Setting up: Ensuring user has active ticket...');
+    // First, login and navigate to event page
+    await AuthHelpers.loginAs(page, 'vetted');
+    await page.goto(`http://localhost:5173/events/${TEST_EVENT_ID}`);
+    await page.waitForLoadState('networkidle');
 
-    // Check if user already has active ticket
-    let hasActiveTicket = false;
-    try {
-      await DatabaseHelpers.verifyEventParticipation(userId, TEST_EVENT_ID, 1); // 1 = Active
-      console.log('✅ User already has active ticket');
-      hasActiveTicket = true;
-    } catch (error) {
-      // User might have cancelled ticket - check if cancelled
-      try {
-        await DatabaseHelpers.verifyEventParticipation(userId, TEST_EVENT_ID, 2); // 2 = Cancelled
-        console.log('⚠️  User has cancelled ticket from previous test, need to purchase new ticket');
-      } catch {
-        console.log('User has no ticket, need to purchase one');
-      }
+    // Wait for loading overlay to disappear
+    const loadingOverlay = page.locator('.mantine-LoadingOverlay-overlay');
+    if (await loadingOverlay.count() > 0) {
+      await loadingOverlay.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {
+        console.log('⚠️  Loading overlay did not disappear, continuing anyway');
+      });
     }
 
-    // If no active ticket, purchase one
-    if (!hasActiveTicket) {
-      console.log('Purchasing ticket for test...');
+    console.log('Verifying user has active ticket for cancellation test...');
 
-      // Login using AuthHelpers
-      await AuthHelpers.loginAs(page, 'vetted');
-
-      await page.goto(`http://localhost:5173/events/${TEST_EVENT_ID}`);
-      await page.waitForLoadState('networkidle');
-
-      // Wait for loading overlay to disappear
-      const loadingOverlay = page.locator('.mantine-LoadingOverlay-overlay');
-      if (await loadingOverlay.count() > 0) {
-        await loadingOverlay.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {
-          console.log('⚠️  Loading overlay did not disappear, continuing anyway');
-        });
-      }
-
-      const purchaseButton = page.locator(
-        'button:has-text("Purchase Ticket"), button:has-text("Register")'
-      ).first();
-
-      if (await purchaseButton.count() > 0) {
-        // Use force click to bypass any overlay issues
-        await purchaseButton.click({ timeout: 10000, force: true });
-        await page.waitForLoadState('networkidle');
-        console.log('✅ Purchased ticket for test');
-
-        // Verify purchase succeeded
-        await DatabaseHelpers.verifyEventParticipation(userId, TEST_EVENT_ID, 1); // 1 = Active
-      } else {
-        throw new Error('Could not find purchase button - unable to set up test');
-      }
+    // Verify user has active ticket in database
+    // If not, test setup is incomplete (ticket should be created beforehand)
+    try {
+      await DatabaseHelpers.verifyEventParticipation(userId, TEST_EVENT_ID, 1); // 1 = Active
+      console.log('✅ User has active ticket - ready for cancellation test');
+    } catch (error) {
+      throw new Error(
+        `Test setup incomplete: User does not have active ticket for event ${TEST_EVENT_ID}.\n` +
+        'To fix: Ensure test event has tickets created beforehand via database seeding or manual setup.\n' +
+        `Error: ${error}`
+      );
     }
 
     // Now test cancellation persistence
@@ -228,7 +130,7 @@ test.describe.serial('Ticket Lifecycle Persistence Tests', () => {
   });
 
   test('should handle complete ticket lifecycle', async ({ page }) => {
-    test.skip(!TEST_EVENT_ID, 'No test event available');
+    // TEST_EVENT_ID is guaranteed to exist from beforeAll hook
 
     // Test: Purchase → Cancel → Re-purchase
     // Each step verifies database persistence
@@ -241,7 +143,7 @@ test.describe.serial('Ticket Lifecycle Persistence Tests', () => {
   });
 
   test('should persist cancellation reason to database', async ({ page }) => {
-    test.skip(!TEST_EVENT_ID, 'No test event available');
+    // TEST_EVENT_ID is guaranteed to exist from beforeAll hook
 
     const userId = await DatabaseHelpers.getUserIdFromEmail(AuthHelpers.accounts.member.email);
 
@@ -277,7 +179,7 @@ test.describe.serial('Ticket Lifecycle Persistence Tests', () => {
     );
 
     const historyExists = await DatabaseHelpers.verifyAuditLogExists(
-      'ParticipationHistory',
+      'AttendanceHistory',
       participation.id,
       'Cancelled'
     );
@@ -287,7 +189,7 @@ test.describe.serial('Ticket Lifecycle Persistence Tests', () => {
   });
 
   test('should prevent duplicate cancellations', async ({ page }) => {
-    test.skip(!TEST_EVENT_ID, 'No test event available');
+    // TEST_EVENT_ID is guaranteed to exist from beforeAll hook
 
     const userId = await DatabaseHelpers.getUserIdFromEmail(AuthHelpers.accounts.vetted.email);
 
@@ -335,7 +237,7 @@ test.describe('Ticket Persistence Edge Cases', () => {
   });
 
   test('should verify endpoint called is correct', async ({ page }) => {
-    test.skip(!TEST_EVENT_ID, 'No test event available');
+    // TEST_EVENT_ID is guaranteed to exist from beforeAll hook
 
     const userId = await DatabaseHelpers.getUserIdFromEmail(AuthHelpers.accounts.member.email);
 
