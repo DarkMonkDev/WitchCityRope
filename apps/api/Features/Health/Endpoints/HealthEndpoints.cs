@@ -17,7 +17,7 @@ public static class HealthEndpoints
     {
         // Basic health check endpoint
         app.MapGet("/api/health", async (
-            HealthService healthService,
+            IHealthService healthService,
             CancellationToken cancellationToken) =>
             {
                 var (success, response, error) = await healthService.GetHealthAsync(cancellationToken);
@@ -36,9 +36,9 @@ public static class HealthEndpoints
             .Produces<HealthResponse>(200)
             .Produces(503);
 
-        // Detailed health check endpoint  
+        // Detailed health check endpoint
         app.MapGet("/api/health/detailed", async (
-            HealthService healthService,
+            IHealthService healthService,
             CancellationToken cancellationToken) =>
             {
                 var (success, response, error) = await healthService.GetDetailedHealthAsync(cancellationToken);
@@ -59,7 +59,7 @@ public static class HealthEndpoints
 
         // Legacy health endpoint compatibility (existing /health endpoint)
         app.MapGet("/health", async (
-            HealthService healthService,
+            IHealthService healthService,
             CancellationToken cancellationToken) =>
             {
                 var (success, response, error) = await healthService.GetHealthAsync(cancellationToken);

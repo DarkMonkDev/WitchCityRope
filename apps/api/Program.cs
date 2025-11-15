@@ -9,6 +9,7 @@ using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Services;
 using WitchCityRope.Api.Features.Shared.Extensions;
 using WitchCityRope.Api.Infrastructure.OpenAPI;
+using WitchCityRope.Api.Features.Health.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -163,6 +164,9 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 
 // Token blacklist service for logout functionality (singleton for shared state)
 builder.Services.AddSingleton<ITokenBlacklistService, TokenBlacklistService>();
+
+// Health service for health check endpoints
+builder.Services.AddScoped<IHealthService, HealthService>();
 
 // Add memory cache for CheckIn system performance
 builder.Services.AddMemoryCache();

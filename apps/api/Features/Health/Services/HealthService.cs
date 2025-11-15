@@ -16,7 +16,7 @@ public class VersionResult
 /// Simple health check service using direct Entity Framework access
 /// Example of the simplified vertical slice architecture pattern
 /// </summary>
-public class HealthService
+public class HealthService : IHealthService
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<HealthService> _logger;
