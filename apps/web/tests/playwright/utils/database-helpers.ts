@@ -570,8 +570,8 @@ export async function createTestUser(options: TestUserOptions): Promise<TestUser
     }
 
     const result = await response.json();
-    // FIX: API returns user ID in result.data.id, not result.userId
-    const userId = result.data?.id;
+    // API returns user ID at top level, not in a data wrapper
+    const userId = result.id;
 
     if (!userId) {
       throw new Error(`No user ID returned from TestHelpers API: ${JSON.stringify(result)}`);
