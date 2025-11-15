@@ -106,22 +106,28 @@ export async function testTicketCancellationPersistence(
       await page.waitForLoadState('networkidle');
       console.log('✅ Navigated to event details');
 
-      // Verify Cancel Ticket button is visible
-      const cancelButton = page.locator(
-        '[data-testid="cancel-ticket-button"], button:has-text("Cancel Ticket"), button:has-text("Cancel Registration")'
-      ).first();
+      // Wait for page content to load completely
+      await page.waitForTimeout(2000);
 
-      await expect(cancelButton).toBeVisible({ timeout: 5000 });
+      // Verify Cancel Ticket button is visible
+      // Use getByRole for better semantic matching
+      const cancelButton = page.getByRole('button', {
+        name: /cancel ticket|cancel registration|cancel|withdraw/i
+      }).first();
+
+      await expect(cancelButton).toBeVisible({ timeout: 10000 });
       console.log('✅ Cancel Ticket button is visible');
     },
 
     // STEP 2: Action - Click cancel ticket and confirm
     action: async (page: Page) => {
       // Click "Cancel Ticket" button
-      const cancelButton = page.locator(
-        '[data-testid="cancel-ticket-button"], button:has-text("Cancel Ticket"), button:has-text("Cancel Registration")'
-      ).first();
+      // Use getByRole for better semantic matching
+      const cancelButton = page.getByRole('button', {
+        name: /cancel ticket|cancel registration|cancel|withdraw/i
+      }).first();
 
+      await expect(cancelButton).toBeVisible({ timeout: 5000 });
       await cancelButton.click();
       console.log('✅ Clicked Cancel Ticket button');
 

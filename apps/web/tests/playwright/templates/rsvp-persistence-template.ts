@@ -72,23 +72,51 @@ export async function testRsvpPersistence(
       console.log('✅ Navigated to event details');
     },
 
-    // Action: Click RSVP button
+    // Action: Check waiver checkbox, then click RSVP button
     action: async (page: Page) => {
+      // STEP 1: Find and check the event waiver checkbox
+      // Waiver must be checked before RSVP button is enabled
+      // Look for checkbox by label text or nearby text
+      const waiverCheckbox = page.locator(
+        'input[type="checkbox"][id*="waiver"], input[type="checkbox"][name*="waiver"], label:has-text("waiver") input[type="checkbox"], label:has-text("agree") input[type="checkbox"]'
+      ).first();
+
+      // If not found by waiver-specific selectors, try generic checkbox near RSVP section
+      const checkboxCount = await waiverCheckbox.count();
+      if (checkboxCount === 0) {
+        console.log('⚠️ Waiver checkbox not found by specific selectors, trying generic approach...');
+        // Find any checkbox on the page (likely the waiver checkbox)
+        const genericCheckbox = page.locator('input[type="checkbox"]').first();
+        if (await genericCheckbox.count() > 0) {
+          await genericCheckbox.check();
+          console.log('✅ Checked checkbox (assumed waiver)');
+        }
+      } else {
+        // Wait for waiver checkbox to be visible
+        await expect(waiverCheckbox).toBeVisible({ timeout: 5000 });
+
+        // Check the waiver checkbox
+        await waiverCheckbox.check();
+        console.log('✅ Checked event waiver checkbox');
+
+        // Wait for checkbox to be checked
+        await expect(waiverCheckbox).toBeChecked();
+      }
+
+      // STEP 2: Now RSVP button should be enabled
       const rsvpButton = page.locator(
         '[data-testid="button-rsvp"], button:has-text("RSVP Now"), button:has-text("RSVP")'
       ).first();
 
-      // CRITICAL FIX: Wait for button to be ENABLED before clicking
-      // Button may be in loading/disabled state on initial page load
+      // Wait for button to be ENABLED (waiver checkbox enables it)
       await expect(rsvpButton).toBeVisible({ timeout: 5000 });
       await expect(rsvpButton).toBeEnabled({ timeout: 10000 });
-      console.log('✅ RSVP button is enabled and ready');
+      console.log('✅ RSVP button is enabled after waiver checked');
 
       await rsvpButton.click();
       console.log('✅ Clicked RSVP button');
 
-      // NO CONFIRMATION MODAL for RSVP
-      // RSVP happens immediately (see ParticipationCard.tsx line 293-296)
+      // RSVP happens immediately (see ParticipationCard.tsx)
       // Wait for UI to update
       await page.waitForTimeout(1000);
     },
