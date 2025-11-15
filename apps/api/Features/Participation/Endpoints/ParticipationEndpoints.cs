@@ -517,7 +517,7 @@ public static class ParticipationEndpoints
                 Guid userId,
                 ApplicationDbContext context,
                 IRefundService refundService,
-                VolunteerAssignmentService volunteerAssignmentService,
+                IVolunteerAssignmentService volunteerAssignmentService,
                 ClaimsPrincipal user,
                 ILogger<IAttendanceService> logger,
                 CancellationToken cancellationToken) =>
@@ -699,7 +699,7 @@ public static class ParticipationEndpoints
                 AdminRefundTicketRequest request,
                 ApplicationDbContext context,
                 IRefundService refundService,
-                VolunteerAssignmentService volunteerAssignmentService,
+                IVolunteerAssignmentService volunteerAssignmentService,
                 ClaimsPrincipal user,
                 ILogger<IAttendanceService> logger,
                 CancellationToken cancellationToken) =>

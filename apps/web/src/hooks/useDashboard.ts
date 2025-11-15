@@ -41,6 +41,7 @@ export const useUserEvents = (includePast = false) => {
 /**
  * Hook to fetch user's vetting status
  * Returns null if user is fully vetted (no alert needed)
+ * CRITICAL: Refetches on window focus to show updated vetting status from admin actions
  */
 export const useVettingStatus = () => {
   const user = useUser();
@@ -49,12 +50,14 @@ export const useVettingStatus = () => {
     queryKey: ['vetting-status', user?.id],
     queryFn: () => dashboardService.getVettingStatus(user!.id),
     enabled: !!user?.id,
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 1 * 60 * 1000, // 1 minute (reduced from 10 minutes)
+    refetchOnWindowFocus: true, // Refetch when user returns to tab (CRITICAL for admin updates)
   });
 };
 
 /**
  * Hook to fetch user profile data
+ * CRITICAL: Refetches on window focus and mount to ensure fresh vetting status
  */
 export const useProfile = () => {
   const user = useUser();
@@ -63,6 +66,9 @@ export const useProfile = () => {
     queryKey: ['user-profile', user?.id],
     queryFn: () => dashboardService.getProfile(user!.id),
     enabled: !!user?.id,
+    staleTime: 0, // Always consider stale - ensures fresh data on refetch
+    refetchOnWindowFocus: true, // Refetch when user returns to tab (CRITICAL for admin updates)
+    refetchOnMount: true, // Refetch when component mounts (CRITICAL after logout/login)
   });
 };
 

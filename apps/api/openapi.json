@@ -12627,6 +12627,12 @@
           "role": {
             "type": "string"
           },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "pronouns": {
             "type": "string"
           },
@@ -12650,6 +12656,9 @@
             "format": "int32"
           },
           "hasVettingApplication": {
+            "type": "boolean"
+          },
+          "isVetted": {
             "type": "boolean"
           }
         }
@@ -12862,6 +12871,9 @@
           },
           "vettingStatus": {
             "$ref": "#/components/schemas/VettingStatus"
+          },
+          "hasVettingApplication": {
+            "type": "boolean"
           }
         }
       },

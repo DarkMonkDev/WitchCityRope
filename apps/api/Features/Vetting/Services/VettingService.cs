@@ -1380,8 +1380,9 @@ public class VettingService : IVettingService
             };
             _context.VettingAuditLogs.Add(auditLog);
 
-            // Sync User.VettingStatus for terminal states (source of truth for permissions)
-            if (newStatus is VettingStatus.Approved or VettingStatus.Denied && application.UserId.HasValue)
+            // Sync User.VettingStatus for ALL status changes (source of truth for permissions)
+            // This ensures the user's vetting status is always in sync with their application status
+            if (application.UserId.HasValue)
             {
                 var applicantUser = await _context.Users
                     .FirstOrDefaultAsync(u => u.Id == application.UserId.Value, cancellationToken);
@@ -1389,6 +1390,7 @@ public class VettingService : IVettingService
                 if (applicantUser != null)
                 {
                     applicantUser.VettingStatus = (int)newStatus;
+                    applicantUser.UpdatedAt = DateTime.UtcNow;
                     _context.Users.Update(applicantUser);
 
                     _logger.LogInformation(

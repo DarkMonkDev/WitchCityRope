@@ -23,7 +23,7 @@ public static class VolunteerAssignmentEndpoints
         app.MapGet("/api/volunteer-positions/{positionId}/signups",
             [Authorize(Roles = "Administrator,SafetyTeam")] async (
                 string positionId,
-                VolunteerAssignmentService assignmentService,
+                IVolunteerAssignmentService assignmentService,
                 CancellationToken cancellationToken) =>
         {
             if (!Guid.TryParse(positionId, out var positionGuid))
@@ -69,7 +69,7 @@ public static class VolunteerAssignmentEndpoints
             [Authorize(Roles = "Administrator,SafetyTeam")] async (
                 string positionId,
                 AssignVolunteerRequest request,
-                VolunteerAssignmentService assignmentService,
+                IVolunteerAssignmentService assignmentService,
                 CancellationToken cancellationToken) =>
         {
             if (!Guid.TryParse(positionId, out var positionGuid))
@@ -135,7 +135,7 @@ public static class VolunteerAssignmentEndpoints
         app.MapDelete("/api/volunteer-signups/{signupId}",
             [Authorize(Roles = "Administrator,SafetyTeam")] async (
                 string signupId,
-                VolunteerAssignmentService assignmentService,
+                IVolunteerAssignmentService assignmentService,
                 CancellationToken cancellationToken) =>
         {
             if (!Guid.TryParse(signupId, out var signupGuid))
@@ -188,7 +188,7 @@ public static class VolunteerAssignmentEndpoints
         app.MapGet("/api/users/search",
             [Authorize(Roles = "Administrator,SafetyTeam")] async (
                 string? q,
-                VolunteerAssignmentService assignmentService,
+                IVolunteerAssignmentService assignmentService,
                 CancellationToken cancellationToken) =>
         {
             if (string.IsNullOrWhiteSpace(q))

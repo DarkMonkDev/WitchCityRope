@@ -16,14 +16,14 @@ public class RefundService : IRefundService
     private readonly ApplicationDbContext _context;
     private readonly IPayPalService _payPalService;
     private readonly IEncryptionService _encryptionService;
-    private readonly VolunteerAssignmentService _volunteerAssignmentService;
+    private readonly IVolunteerAssignmentService _volunteerAssignmentService;
     private readonly ILogger<RefundService> _logger;
 
     public RefundService(
         ApplicationDbContext context,
         IPayPalService payPalService,
         IEncryptionService encryptionService,
-        VolunteerAssignmentService volunteerAssignmentService,
+        IVolunteerAssignmentService volunteerAssignmentService,
         ILogger<RefundService> logger)
     {
         _context = context;

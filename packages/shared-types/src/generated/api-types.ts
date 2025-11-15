@@ -4441,6 +4441,7 @@ export interface components {
             discordName?: string | null;
             bio?: string | null;
             role?: string;
+            roles?: string[];
             pronouns?: string;
             isActive?: boolean;
             emailConfirmed?: boolean;
@@ -4451,6 +4452,7 @@ export interface components {
             /** Format: int32 */
             vettingStatus?: number;
             hasVettingApplication?: boolean;
+            isVetted?: boolean;
         };
         UserEventDto: {
             /** Format: uuid */

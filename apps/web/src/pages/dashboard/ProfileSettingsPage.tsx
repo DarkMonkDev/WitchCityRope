@@ -631,7 +631,7 @@ const VettingStatusDisplay: React.FC<{ profile: UserProfileDto }> = ({ profile }
         <Stack gap="md">
           <TextInput
             label="Vetting Status"
-            value={profile.vettingStatus}
+            value={profile.hasVettingApplication ? profile.vettingStatus : 'No Application Submitted'}
             readOnly
             styles={{
               label: {
@@ -647,8 +647,9 @@ const VettingStatusDisplay: React.FC<{ profile: UserProfileDto }> = ({ profile }
           />
 
           <Text size="sm" c="dimmed">
-            Your vetting status is managed by administrators. If you have questions about your
-            status, please contact us.
+            {profile.hasVettingApplication
+              ? 'Your vetting status is managed by administrators. If you have questions about your status, please contact us.'
+              : 'You have not submitted a vetting application yet. Apply for vetting to become a vetted member.'}
           </Text>
 
           {/* Show appropriate button or alert based on status */}

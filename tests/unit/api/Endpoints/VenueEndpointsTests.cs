@@ -3,23 +3,22 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using System.Security.Claims;
 using WitchCityRope.Api.Endpoints;
 using WitchCityRope.Api.DTOs;
-using WitchCityRope.Api.Data;
+using WitchCityRope.Api.Features.Venues.Services;
 using Xunit;
 using FluentAssertions;
 using NSubstitute;
-using Microsoft.EntityFrameworkCore;
 
 namespace WitchCityRope.UnitTests.Api.Endpoints;
 
 public class VenueEndpointsTests
 {
-    private readonly ApplicationDbContext _mockDbContext;
+    private readonly IVenueService _mockVenueService;
     private readonly ClaimsPrincipal _authenticatedUser;
     private readonly ClaimsPrincipal _unauthenticatedUser;
 
     public VenueEndpointsTests()
     {
-        _mockDbContext = Substitute.For<ApplicationDbContext>();
+        _mockVenueService = Substitute.For<IVenueService>();
 
         // Create authenticated user claims
         _authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(new[]
@@ -51,11 +50,14 @@ public class VenueEndpointsTests
             UpdatedAt = DateTime.Parse("2025-11-14T10:00:00Z")
         };
 
+        _mockVenueService.GetPublicVenueAsync(venueId, Arg.Any<CancellationToken>())
+            .Returns(mockVenue);
+
         var httpContext = new DefaultHttpContext();
         httpContext.User = _authenticatedUser;
 
         // Act
-        var result = await SimulateGetPublicVenue(venueId, httpContext, mockVenue);
+        var result = await SimulateGetPublicVenue(venueId, httpContext);
 
         // Assert
         result.Should().BeOfType<Ok<VenueDto>>();
@@ -75,7 +77,7 @@ public class VenueEndpointsTests
         httpContext.User = _unauthenticatedUser;
 
         // Act
-        var result = await SimulateGetPublicVenue(venueId, httpContext, null);
+        var result = await SimulateGetPublicVenue(venueId, httpContext);
 
         // Assert
         result.Should().BeOfType<ProblemHttpResult>();
@@ -91,11 +93,15 @@ public class VenueEndpointsTests
     {
         // Arrange
         var venueId = 999;
+
+        _mockVenueService.GetPublicVenueAsync(venueId, Arg.Any<CancellationToken>())
+            .Returns((VenueDto?)null);
+
         var httpContext = new DefaultHttpContext();
         httpContext.User = _authenticatedUser;
 
         // Act
-        var result = await SimulateGetPublicVenue(venueId, httpContext, null);
+        var result = await SimulateGetPublicVenue(venueId, httpContext);
 
         // Assert
         result.Should().BeOfType<ProblemHttpResult>();
@@ -111,11 +117,15 @@ public class VenueEndpointsTests
     {
         // Arrange
         var venueId = 1;
+
+        _mockVenueService.GetPublicVenueAsync(venueId, Arg.Any<CancellationToken>())
+            .Returns<VenueDto?>(_ => throw new Exception("Connection failed"));
+
         var httpContext = new DefaultHttpContext();
         httpContext.User = _authenticatedUser;
 
         // Act
-        var result = await SimulateGetPublicVenueWithError(venueId, httpContext);
+        var result = await SimulateGetPublicVenue(venueId, httpContext);
 
         // Assert
         result.Should().BeOfType<ProblemHttpResult>();
@@ -158,11 +168,14 @@ public class VenueEndpointsTests
             }
         };
 
+        _mockVenueService.GetPublicVenuesAsync(Arg.Any<CancellationToken>())
+            .Returns(mockVenues);
+
         var httpContext = new DefaultHttpContext();
         httpContext.User = _authenticatedUser;
 
         // Act
-        var result = await SimulateGetPublicVenues(httpContext, mockVenues);
+        var result = await SimulateGetPublicVenues(httpContext);
 
         // Assert
         result.Should().BeOfType<Ok<List<VenueDto>>>();
@@ -182,7 +195,7 @@ public class VenueEndpointsTests
         httpContext.User = _unauthenticatedUser;
 
         // Act
-        var result = await SimulateGetPublicVenues(httpContext, null);
+        var result = await SimulateGetPublicVenues(httpContext);
 
         // Assert
         result.Should().BeOfType<ProblemHttpResult>();
@@ -197,11 +210,14 @@ public class VenueEndpointsTests
     public async Task GetPublicVenues_WithEmptyDatabase_ReturnsEmptyList()
     {
         // Arrange
+        _mockVenueService.GetPublicVenuesAsync(Arg.Any<CancellationToken>())
+            .Returns(new List<VenueDto>());
+
         var httpContext = new DefaultHttpContext();
         httpContext.User = _authenticatedUser;
 
         // Act
-        var result = await SimulateGetPublicVenues(httpContext, new List<VenueDto>());
+        var result = await SimulateGetPublicVenues(httpContext);
 
         // Assert
         result.Should().BeOfType<Ok<List<VenueDto>>>();
@@ -214,11 +230,14 @@ public class VenueEndpointsTests
     public async Task GetPublicVenues_WithDatabaseError_ReturnsInternalServerError()
     {
         // Arrange
+        _mockVenueService.GetPublicVenuesAsync(Arg.Any<CancellationToken>())
+            .Returns<List<VenueDto>>(_ => throw new Exception("Connection failed"));
+
         var httpContext = new DefaultHttpContext();
         httpContext.User = _authenticatedUser;
 
         // Act
-        var result = await SimulateGetPublicVenuesWithError(httpContext);
+        var result = await SimulateGetPublicVenues(httpContext);
 
         // Assert
         result.Should().BeOfType<ProblemHttpResult>();
@@ -231,36 +250,15 @@ public class VenueEndpointsTests
 
     #endregion
 
-    #region Status Code Mapping Tests
+    #region Helper Methods - Endpoint Logic Simulation
 
-    [Theory]
-    [InlineData(true, 401)]  // Unauthenticated user
-    [InlineData(false, 404)] // Non-existent venue
-    public async Task GetPublicVenue_ReturnsCorrectStatusCodes_BasedOnErrorType(bool isUnauthenticated, int expectedStatusCode)
+    /// <summary>
+    /// Simulates the GetPublicVenue endpoint logic
+    /// Matches the actual endpoint handler in VenueEndpoints.cs
+    /// </summary>
+    private async Task<IResult> SimulateGetPublicVenue(int id, HttpContext context)
     {
-        // Arrange
-        var venueId = 1;
-        var httpContext = new DefaultHttpContext();
-        httpContext.User = isUnauthenticated ? _unauthenticatedUser : _authenticatedUser;
-
-        // Act
-        var result = isUnauthenticated
-            ? await SimulateGetPublicVenue(venueId, httpContext, null)
-            : await SimulateGetPublicVenue(venueId, httpContext, null); // null venue for 404
-
-        // Assert
-        result.Should().BeOfType<ProblemHttpResult>();
-        var problemResult = (ProblemHttpResult)result;
-        problemResult.StatusCode.Should().Be(expectedStatusCode);
-    }
-
-    #endregion
-
-    #region Helper Methods - Simulation
-
-    private async Task<IResult> SimulateGetPublicVenue(int id, HttpContext context, VenueDto? venue)
-    {
-        // Verify authentication
+        // Verify authentication (matches endpoint logic)
         if (!context.User.Identity?.IsAuthenticated ?? true)
         {
             return Results.Problem(
@@ -269,42 +267,36 @@ public class VenueEndpointsTests
                 statusCode: 401);
         }
 
-        await Task.CompletedTask; // Simulate async database call
+        try
+        {
+            var venue = await _mockVenueService.GetPublicVenueAsync(id, CancellationToken.None);
 
-        if (venue == null)
+            if (venue == null)
+            {
+                return Results.Problem(
+                    title: "Venue Not Found",
+                    detail: $"Venue with ID {id} does not exist or is not available",
+                    statusCode: 404);
+            }
+
+            return Results.Ok(venue);
+        }
+        catch (Exception ex)
         {
             return Results.Problem(
-                title: "Venue Not Found",
-                detail: $"Venue with ID {id} does not exist or is not available",
-                statusCode: 404);
+                title: "Database Error",
+                detail: $"Failed to retrieve venue: {ex.Message}",
+                statusCode: 500);
         }
-
-        return Results.Ok(venue);
     }
 
-    private async Task<IResult> SimulateGetPublicVenueWithError(int id, HttpContext context)
+    /// <summary>
+    /// Simulates the GetPublicVenues endpoint logic
+    /// Matches the actual endpoint handler in VenueEndpoints.cs
+    /// </summary>
+    private async Task<IResult> SimulateGetPublicVenues(HttpContext context)
     {
-        // Verify authentication
-        if (!context.User.Identity?.IsAuthenticated ?? true)
-        {
-            return Results.Problem(
-                title: "Authentication Required",
-                detail: "You must be logged in to access venue details",
-                statusCode: 401);
-        }
-
-        await Task.CompletedTask; // Simulate async database call
-
-        // Simulate database error
-        return Results.Problem(
-            title: "Database Error",
-            detail: "Failed to retrieve venue: Connection failed",
-            statusCode: 500);
-    }
-
-    private async Task<IResult> SimulateGetPublicVenues(HttpContext context, List<VenueDto>? venues)
-    {
-        // Verify authentication
+        // Verify authentication (matches endpoint logic)
         if (!context.User.Identity?.IsAuthenticated ?? true)
         {
             return Results.Problem(
@@ -313,29 +305,19 @@ public class VenueEndpointsTests
                 statusCode: 401);
         }
 
-        await Task.CompletedTask; // Simulate async database call
+        try
+        {
+            var venues = await _mockVenueService.GetPublicVenuesAsync(CancellationToken.None);
 
-        return Results.Ok(venues ?? new List<VenueDto>());
-    }
-
-    private async Task<IResult> SimulateGetPublicVenuesWithError(HttpContext context)
-    {
-        // Verify authentication
-        if (!context.User.Identity?.IsAuthenticated ?? true)
+            return Results.Ok(venues);
+        }
+        catch (Exception ex)
         {
             return Results.Problem(
-                title: "Authentication Required",
-                detail: "You must be logged in to access venues",
-                statusCode: 401);
+                title: "Database Error",
+                detail: $"Failed to retrieve venues: {ex.Message}",
+                statusCode: 500);
         }
-
-        await Task.CompletedTask; // Simulate async database call
-
-        // Simulate database error
-        return Results.Problem(
-            title: "Database Error",
-            detail: "Failed to retrieve venues: Connection failed",
-            statusCode: 500);
     }
 
     #endregion

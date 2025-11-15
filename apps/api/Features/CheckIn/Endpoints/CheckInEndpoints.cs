@@ -372,7 +372,10 @@ public static class CheckInEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.BadRequest(new { success = false, error = result.Error });
+                : Results.Problem(
+                    title: "Bad Request",
+                    detail: result.Error,
+                    statusCode: 400);
         })
         .RequireAuthorization(policy => policy.RequireRole(
             UserRole.Administrator.ToRoleString(),
@@ -404,8 +407,11 @@ public static class CheckInEndpoints
             var result = await tokenService.RevokeTokenAsync(request.Token, adminUserId, cancellationToken);
 
             return result.IsSuccess
-                ? Results.Ok(new { success = true })
-                : Results.BadRequest(new { success = false, error = result.Error });
+                ? Results.NoContent()
+                : Results.Problem(
+                    title: "Bad Request",
+                    detail: result.Error,
+                    statusCode: 400);
         })
         .RequireAuthorization(policy => policy.RequireRole(
             UserRole.Administrator.ToRoleString(),
@@ -425,7 +431,10 @@ public static class CheckInEndpoints
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
-                : Results.BadRequest(new { success = false, error = result.Error });
+                : Results.Problem(
+                    title: "Bad Request",
+                    detail: result.Error,
+                    statusCode: 400);
         })
         .RequireAuthorization(policy => policy.RequireRole(
             UserRole.Administrator.ToRoleString(),

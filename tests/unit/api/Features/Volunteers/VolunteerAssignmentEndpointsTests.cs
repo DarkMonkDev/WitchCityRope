@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 using WitchCityRope.Api.Features.Volunteers.Endpoints;
 using WitchCityRope.Api.Features.Volunteers.Models;
@@ -13,14 +12,13 @@ namespace WitchCityRope.UnitTests.Api.Features.Volunteers;
 
 public class VolunteerAssignmentEndpointsTests
 {
-    private readonly VolunteerAssignmentService _mockAssignmentService;
+    private readonly IVolunteerAssignmentService _mockAssignmentService;
     private readonly ClaimsPrincipal _adminUser;
     private readonly ClaimsPrincipal _regularUser;
 
     public VolunteerAssignmentEndpointsTests()
     {
-        _mockAssignmentService = Substitute.For<VolunteerAssignmentService>(
-            Substitute.For<ILogger<VolunteerAssignmentService>>());
+        _mockAssignmentService = Substitute.For<IVolunteerAssignmentService>();
 
         // Create admin user claims
         _adminUser = new ClaimsPrincipal(new ClaimsIdentity(new[]

@@ -2,7 +2,7 @@
 /* tslint:disable */
 /**
  * Helper functions for working with the generated API types
- * Generated on: 2025-11-14T05:40:46.412Z
+ * Generated on: 2025-11-15T03:40:24.031Z
  */
 
 import type { paths, components } from './api-types';
@@ -30,10 +30,8 @@ export type LoginResponse = schemas['LoginResponse'];
 export type RegisterRequest = schemas['RegisterRequest'];
 export type AuthUserResponse = schemas['AuthUserResponse'];
 export type UpdateEventRequest = schemas['UpdateEventRequest'];
-// NOTE: After Pattern B migration, these wrapper types no longer exist in backend
-// Events endpoints now return direct EventDto or EventDto[] (no ApiResponse wrapper)
-// export type ApiResponseOfListOfEventDto = schemas['ApiResponseOfListOfEventDto'];
-// export type ApiResponseOfEventDto = schemas['ApiResponseOfEventDto'];
+export type ApiResponseOfListOfEventDto = schemas['ApiResponseOfListOfEventDto'];
+export type ApiResponseOfEventDto = schemas['ApiResponseOfEventDto'];
 
 // Dashboard types
 export type AdminDashboardResponse = schemas['AdminDashboardResponse'];

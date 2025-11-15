@@ -127,12 +127,7 @@ public static class MemberDetailsEndpoints
                     statusCode: 500);
         }
 
-        return Results.Ok(new
-        {
-            success = true,
-            data = response,
-            timestamp = DateTime.UtcNow
-        });
+        return Results.Ok(response);
     }
 
     /// <summary>
@@ -159,12 +154,7 @@ public static class MemberDetailsEndpoints
                     statusCode: 500);
         }
 
-        return Results.Ok(new
-        {
-            success = true,
-            data = response,
-            timestamp = DateTime.UtcNow
-        });
+        return Results.Ok(response);
     }
 
     /// <summary>
@@ -210,12 +200,7 @@ public static class MemberDetailsEndpoints
                     statusCode: 500);
         }
 
-        return Results.Ok(new
-        {
-            success = true,
-            data = response,
-            timestamp = DateTime.UtcNow
-        });
+        return Results.Ok(response);
     }
 
     /// <summary>
@@ -242,12 +227,7 @@ public static class MemberDetailsEndpoints
                     statusCode: 500);
         }
 
-        return Results.Ok(new
-        {
-            success = true,
-            data = response,
-            timestamp = DateTime.UtcNow
-        });
+        return Results.Ok(response);
     }
 
     /// <summary>
@@ -274,12 +254,7 @@ public static class MemberDetailsEndpoints
                     statusCode: 500);
         }
 
-        return Results.Ok(new
-        {
-            success = true,
-            data = response,
-            timestamp = DateTime.UtcNow
-        });
+        return Results.Ok(response);
     }
 
     /// <summary>
@@ -330,12 +305,7 @@ public static class MemberDetailsEndpoints
                 statusCode: 500);
         }
 
-        return Results.Created($"/api/users/{userId}/notes/{response!.Id}", new
-        {
-            success = true,
-            data = response,
-            timestamp = DateTime.UtcNow
-        });
+        return Results.Created($"/api/users/{userId}/notes/{response!.Id}", response);
     }
 
     /// <summary>

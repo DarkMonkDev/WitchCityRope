@@ -175,24 +175,25 @@ export const EventDetailPage: React.FC = () => {
     }
   }
 
-  // For workshops (class events), user must have an active ticket to volunteer
-  // For social events, user must be vetted to volunteer (no ticket required)
-  const canVolunteerBasedOnEventType =
-    (eventType === 'social' && isVetted) || (eventType === 'class' && participation?.hasTicket === true);
+  // Allow volunteering if:
+  // - For social events: User is vetted (no ticket required)
+  // - For class events: User must have a ticket purchased
+  const canVolunteerBasedOnEventType = eventType === 'social'
+    ? isVetted
+    : (isVetted && participation?.hasTicket);
 
   // Show volunteer encouragement if:
   // - User is logged in
+  // - User can volunteer based on event type (social: vetted, class: has ticket)
   // - User has NOT already volunteered
   // - Event has volunteer positions available
   // - NOT (event is full AND user doesn't have RSVP/ticket)
-  // - For workshops: User must have an active ticket
-  // - For social events: User must be vetted
   const showVolunteerEncouragement =
     isAuthenticated &&
+    canVolunteerBasedOnEventType &&
     !hasUserVolunteered &&
     hasVolunteerPositions &&
-    !(isEventFull && !hasParticipation) &&
-    canVolunteerBasedOnEventType;
+    !(isEventFull && !hasParticipation);
 
   // Scroll to volunteer section
   const handleScrollToVolunteers = () => {
@@ -412,7 +413,7 @@ export const EventDetailPage: React.FC = () => {
           )}
 
           {/* Volunteer Positions */}
-          {volunteerPositions && Array.isArray(volunteerPositions) && volunteerPositions.length > 0 && canVolunteerBasedOnEventType && (
+          {volunteerPositions && Array.isArray(volunteerPositions) && volunteerPositions.length > 0 && isAuthenticated && canVolunteerBasedOnEventType && (
             <div id="volunteer-opportunities-section">
               <ContentSection title="Volunteer Opportunities">
                 <Stack gap="md">

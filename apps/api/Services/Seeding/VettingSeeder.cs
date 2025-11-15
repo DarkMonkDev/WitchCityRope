@@ -232,12 +232,12 @@ public class VettingSeeder
             {
                 Id = Guid.NewGuid(),
                 UserId = users[3].Id, // Fourth non-admin user
-                SceneName = "SilkAndSteel",
-                RealName = "Sarah Chen",
-                Email = "sarah.chen@email.com",
-                FetLifeHandle = "SilkAndSteel_SC",
-                Pronouns = "she/her",
-                OtherNames = "Sarah C.",
+                SceneName = users[3].SceneName,
+                RealName = $"{users[3].FirstName} {users[3].LastName}",
+                Email = users[3].Email,
+                FetLifeHandle = users[3].FetLifeName,
+                Pronouns = users[3].Pronouns,
+                OtherNames = users[3].FirstName,
                 ExperienceLevel = 3, // Advanced
                 YearsExperience = 6,
                 ExperienceDescription = "I've been practicing rope bondage for 6 years with strong foundation in both technical skills and safety. Experience includes floor work, partial suspension, and have assisted teaching beginner workshops. I prioritize clear communication and safety protocols in all my rope work.",
@@ -262,16 +262,17 @@ public class VettingSeeder
             var additionalApplications = new List<VettingApplication>();
 
             // Application 6: Interview Approved - ready for interview (CORRECTED STATUS)
+            var user4 = users[4]; // Use actual user data (EagerLearner / Sam Rodriguez)
             additionalApplications.Add(new VettingApplication
             {
                 Id = Guid.NewGuid(),
-                UserId = users[4].Id, // Fifth non-admin user
-                SceneName = "EagerLearner",
-                RealName = "Taylor Rodriguez",
-                Email = "taylor.rodriguez@email.com",
-                FetLifeHandle = "EagerLearner99",
-                Pronouns = "she/they",
-                OtherNames = "Tay",
+                UserId = user4.Id, // Fifth non-admin user
+                SceneName = user4.SceneName,
+                RealName = $"{user4.FirstName} {user4.LastName}",
+                Email = user4.Email,
+                FetLifeHandle = user4.FetLifeName,
+                Pronouns = user4.Pronouns,
+                OtherNames = user4.FirstName,
                 ExperienceLevel = 2, // Intermediate
                 YearsExperience = 2,
                 ExperienceDescription = "I've been practicing rope bondage for about 2 years, comfortable with single-column ties and basic suspension prep. I've taken several workshops and practice regularly with a trusted partner, always prioritizing safety and consent.",
@@ -287,16 +288,17 @@ public class VettingSeeder
             // Application 7: Under Review - recent submission (CORRECTED STATUS)
             if (users.Count >= 6)
             {
+                var user5 = users[5]; // Use actual user data (QuickLearner / David Kim)
                 additionalApplications.Add(new VettingApplication
                 {
                     Id = Guid.NewGuid(),
-                    UserId = users[5].Id,
-                    SceneName = "QuickLearner",
-                    RealName = "Jamie Taylor",
-                    Email = "jamie.taylor@email.com",
-                    FetLifeHandle = "QuickLearner_JT",
-                    Pronouns = "he/him",
-                    OtherNames = "Jamie T",
+                    UserId = user5.Id,
+                    SceneName = user5.SceneName,
+                    RealName = $"{user5.FirstName} {user5.LastName}",
+                    Email = user5.Email,
+                    FetLifeHandle = user5.FetLifeName,
+                    Pronouns = user5.Pronouns,
+                    OtherNames = user5.FirstName,
                     ExperienceLevel = 1, // Beginner
                     YearsExperience = 1,
                     ExperienceDescription = "I've attended a couple of beginner workshops and have been practicing basic ties for about a year. Still learning the fundamentals but dedicated to improving my skills and understanding of safety.",
@@ -314,16 +316,17 @@ public class VettingSeeder
             // Application 8: Approved - experienced Teacher
             if (users.Count >= 7)
             {
+                var user6 = users[6]; // Use actual user data (ThoughtfulRigger / Morgan Foster)
                 additionalApplications.Add(new VettingApplication
                 {
                     Id = Guid.NewGuid(),
-                    UserId = users[6].Id,
-                    SceneName = "ThoughtfulRigger",
-                    RealName = "Alex Rivera",
-                    Email = "alex.rivera@email.com",
-                    FetLifeHandle = "ThoughtfulRigger_AR",
-                    Pronouns = "they/them",
-                    OtherNames = "Riv, AR",
+                    UserId = user6.Id,
+                    SceneName = user6.SceneName,
+                    RealName = $"{user6.FirstName} {user6.LastName}",
+                    Email = user6.Email,
+                    FetLifeHandle = user6.FetLifeName,
+                    Pronouns = user6.Pronouns,
+                    OtherNames = user6.FirstName,
                     ExperienceLevel = 4, // Expert
                     YearsExperience = 8,
                     ExperienceDescription = "Professional rigger with 8 years of experience specializing in both performance and educational rope work. Have taught workshops at regional events and maintain a strong focus on safety, communication, and consent. Experienced with suspensions and complex floor work.",
@@ -370,16 +373,17 @@ public class VettingSeeder
             // Application 10: Nervous but genuine applicant
             if (users.Count >= 9)
             {
+                var user8 = users[8]; // Use actual user data (NervousNewbie / Chris Bennett)
                 additionalApplications.Add(new VettingApplication
                 {
                     Id = Guid.NewGuid(),
-                    UserId = users[8].Id,
-                    SceneName = "NervousNewbie",
-                    RealName = "Jordan Martinez",
-                    Email = "jordan.martinez@email.com",
-                    FetLifeHandle = "NervousNewbie_JM",
-                    Pronouns = "he/him",
-                    OtherNames = "Jordy",
+                    UserId = user8.Id,
+                    SceneName = user8.SceneName,
+                    RealName = $"{user8.FirstName} {user8.LastName}",
+                    Email = user8.Email,
+                    FetLifeHandle = user8.FetLifeName,
+                    Pronouns = user8.Pronouns,
+                    OtherNames = user8.FirstName,
                     ExperienceLevel = 1, // Beginner
                     YearsExperience = 0,
                     ExperienceDescription = "I'm very new to rope bondage and honestly quite nervous but also excited to learn. I've been reading about safety and consent extensively and attended one beginner workshop. I want to make sure I learn the right way from the start.",
@@ -392,35 +396,10 @@ public class VettingSeeder
                 });
             }
 
-            // Application 11: RopeBunny - Someone new to rope looking to learn
-            if (users.Count >= 10)
-            {
-                additionalApplications.Add(new VettingApplication
-                {
-                    Id = Guid.NewGuid(),
-                    UserId = users[9].Id,
-                    SceneName = "RopeBunny",
-                    RealName = "Riley Chen",
-                    Email = "ropebunny@example.com",
-                    FetLifeHandle = "RopeBunny_RC",
-                    Pronouns = "she/her",
-                    OtherNames = "Riley C",
-                    ExperienceLevel = 2, // Intermediate
-                    YearsExperience = 3,
-                    ExperienceDescription = "I've been exploring rope bondage as a bottom for about 3 years. I've worked with several experienced riggers and have a solid understanding of my body, my limits, and clear communication. I'm interested in deepening my practice and understanding the technical aspects better.",
-                    WhyJoinCommunity = "I want to connect with the local rope community and continue learning about rope from the bottom's perspective. I'm also interested in understanding more about the technical side and potentially learning to tie as well.",
-                    AgreesToGuidelines = true,
-                    AgreesToTerms = true,
-                    ConsentToContact = true,
-                    WorkflowStatus = VettingStatus.UnderReview,
-                    SubmittedAt = DateTime.UtcNow.AddDays(-2)
-                });
-            }
-
-            // Application 12: SafetyConscious - Approved Teacher from another city
+            // Application 11: PatientPractitioner - Approved Teacher from another city
             if (users.Count >= 11)
             {
-                var user10 = users[10]; // Use actual user data instead of hardcoded values
+                var user10 = users[10]; // Use actual user data (PatientPractitioner / Daniel Wright)
                 additionalApplications.Add(new VettingApplication
                 {
                     Id = Guid.NewGuid(),
@@ -447,7 +426,7 @@ public class VettingSeeder
                 });
             }
 
-            // Application 13: PatientPractitioner - Approved Teacher with teaching experience
+            // Application 12: PatientPractitioner - Approved Teacher with teaching experience
             if (users.Count >= 12)
             {
                 additionalApplications.Add(new VettingApplication
@@ -517,7 +496,7 @@ public class VettingSeeder
             }
         }
 
-        // Add notes for additional applications (indices 6-12 in full list)
+        // Add notes for additional applications (indices 6-11 in full list)
         if (sampleApplications.Count > 6)
         {
             var additionalNotesMap = new Dictionary<int, string>
@@ -525,8 +504,8 @@ public class VettingSeeder
                 { 6, "Good references and thoughtful application. Ready for interview to assess practical knowledge and community fit." },
                 { 8, "Experienced practitioner with strong safety focus. Approved for Teacher role." },
                 { 9, "Strong references from previous community leaders. Ready for interview to discuss integration into local group." },
-                { 12, "Highly experienced with excellent references from Portland community. Strong safety background. Approved for Teacher role." },
-                { 13, "Excellent teaching credentials with strong references from previous community. Patient and methodical approach to instruction. Approved for Teacher role." }
+                { 10, "Highly experienced with excellent references from Portland community. Strong safety background. Approved for Teacher role." },
+                { 11, "Excellent teaching credentials with strong references from previous community. Patient and methodical approach to instruction. Approved for Teacher role." }
             };
 
             for (int i = 6; i < sampleApplications.Count; i++)

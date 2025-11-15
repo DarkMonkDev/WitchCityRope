@@ -304,12 +304,7 @@ Role changes are logged for audit purposes.")
                         statusCode: 404);
                 }
 
-                return Results.Ok(new
-                {
-                    success = true,
-                    data = response,
-                    message = "Profile retrieved successfully"
-                });
+                return Results.Ok(response);
             })
             .AllowAnonymous() // Public endpoint - no authentication required
             .WithName("GetUserProfileById")

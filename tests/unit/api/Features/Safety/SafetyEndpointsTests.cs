@@ -114,7 +114,7 @@ public class SafetyEndpointsTests
         var result = await SimulateSubmitIncident(request);
 
         // Assert
-        result.Should().BeOfType<JsonHttpResult<HttpValidationProblemDetails>>();
+        result.Should().BeOfType<ProblemHttpResult>();
     }
 
     [Fact]

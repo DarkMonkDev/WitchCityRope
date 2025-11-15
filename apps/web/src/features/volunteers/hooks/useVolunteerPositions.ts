@@ -6,7 +6,7 @@ export const useVolunteerPositions = (eventId: string, enabled: boolean = true) 
     queryKey: ['volunteerPositions', eventId],
     queryFn: () => getEventVolunteerPositions(eventId),
     enabled: enabled && !!eventId,
-    select: (data) => data.data || []
+    select: (data) => data || []
   });
 };
 
@@ -15,7 +15,7 @@ export const useUserVolunteerShifts = (enabled: boolean = true) => {
     queryKey: ['userVolunteerShifts'],
     queryFn: getUserVolunteerShifts,
     enabled,
-    select: (data) => data.data || [],
+    select: (data) => data || [],
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: true
   });

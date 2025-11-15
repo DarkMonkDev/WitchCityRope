@@ -36,12 +36,7 @@ public static class TestHelperEndpoints
 
                 if (success && data != null)
                 {
-                    return Results.Created($"/api/test-helpers/users/{data.Id}", new
-                    {
-                        Success = true,
-                        Data = data,
-                        Message = "Test user created successfully"
-                    });
+                    return Results.Created($"/api/test-helpers/users/{data.Id}", data);
                 }
 
                 return Results.Problem(
@@ -67,11 +62,7 @@ public static class TestHelperEndpoints
 
                 if (success)
                 {
-                    return Results.Ok(new
-                    {
-                        Success = true,
-                        Message = "Test user deleted successfully"
-                    });
+                    return Results.NoContent();
                 }
 
                 return Results.Problem(
@@ -92,10 +83,8 @@ public static class TestHelperEndpoints
             {
                 return Results.Ok(new
                 {
-                    Success = true,
                     Message = "Test helpers are available",
-                    Environment = environment.EnvironmentName,
-                    Timestamp = DateTime.UtcNow
+                    Environment = environment.EnvironmentName
                 });
             })
             .AllowAnonymous()

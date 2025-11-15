@@ -1,7 +1,5 @@
-using Microsoft.EntityFrameworkCore;
-using WitchCityRope.Api.Data;
 using WitchCityRope.Api.DTOs;
-using WitchCityRope.Api.Models;
+using WitchCityRope.Api.Features.Venues.Services;
 
 namespace WitchCityRope.Api.Endpoints;
 
@@ -20,7 +18,7 @@ public static class VenueEndpoints
         // GET /api/venues/{id} - Get single venue (authenticated users only)
         app.MapGet("/api/venues/{id:int}", async (
             int id,
-            ApplicationDbContext dbContext,
+            IVenueService venueService,
             HttpContext context,
             CancellationToken cancellationToken) =>
             {
@@ -35,20 +33,7 @@ public static class VenueEndpoints
 
                 try
                 {
-                    // Only return active venues to public
-                    var venue = await dbContext.Venues
-                        .Where(v => v.Id == id && v.IsActive)
-                        .Select(v => new VenueDto
-                        {
-                            Id = v.Id,
-                            Name = v.Name,
-                            Directions = v.Directions,
-                            Notes = null, // Don't expose internal notes to public
-                            IsActive = v.IsActive,
-                            CreatedAt = v.CreatedAt,
-                            UpdatedAt = v.UpdatedAt
-                        })
-                        .FirstOrDefaultAsync(cancellationToken);
+                    var venue = await venueService.GetPublicVenueAsync(id, cancellationToken);
 
                     if (venue == null)
                     {
@@ -79,7 +64,7 @@ public static class VenueEndpoints
 
         // GET /api/venues - List all active venues (authenticated users only)
         app.MapGet("/api/venues", async (
-            ApplicationDbContext dbContext,
+            IVenueService venueService,
             HttpContext context,
             CancellationToken cancellationToken) =>
             {
@@ -94,21 +79,7 @@ public static class VenueEndpoints
 
                 try
                 {
-                    // Only return active venues to public
-                    var venues = await dbContext.Venues
-                        .Where(v => v.IsActive)
-                        .OrderBy(v => v.Name)
-                        .Select(v => new VenueDto
-                        {
-                            Id = v.Id,
-                            Name = v.Name,
-                            Directions = v.Directions,
-                            Notes = null, // Don't expose internal notes to public
-                            IsActive = v.IsActive,
-                            CreatedAt = v.CreatedAt,
-                            UpdatedAt = v.UpdatedAt
-                        })
-                        .ToListAsync(cancellationToken);
+                    var venues = await venueService.GetPublicVenuesAsync(cancellationToken);
 
                     return Results.Ok(venues);
                 }

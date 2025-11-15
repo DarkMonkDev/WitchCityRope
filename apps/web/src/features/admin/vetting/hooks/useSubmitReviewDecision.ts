@@ -24,6 +24,16 @@ export function useSubmitReviewDecision(onSuccess?: () => void) {
         queryKey: vettingKeys.applicationDetail(variables.applicationId),
       });
 
+      // CRITICAL: Invalidate user's profile and vetting status cache
+      // When vetting status changes, the user's profile needs to refetch to show updated status
+      // We invalidate ALL user-profile and vetting-status queries since we don't have userId in this context
+      queryClient.invalidateQueries({
+        queryKey: ['user-profile'],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['vetting-status'],
+      });
+
       // Show success notification
       notifications.show({
         title: 'Decision Submitted',

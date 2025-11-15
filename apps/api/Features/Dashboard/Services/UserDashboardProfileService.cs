@@ -180,6 +180,17 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                 return Result<UserProfileDto>.Failure("User not found");
             }
 
+            // Check if user has a vetting application by querying the database
+            // This is the source of truth - more reliable than user.HasVettingApplication flag
+            var application = await _context.VettingApplications
+                .AsNoTracking()
+                .FirstOrDefaultAsync(v => v.UserId == userId, cancellationToken);
+
+            var hasApplication = application != null;
+            var vettingStatus = hasApplication
+                ? application!.WorkflowStatus
+                : VettingStatus.UnderReview; // Default for users without application
+
             var profile = new UserProfileDto
             {
                 UserId = user.Id,
@@ -192,7 +203,8 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                 DiscordName = user.DiscordName,
                 FetLifeName = user.FetLifeName,
                 PhoneNumber = user.PhoneNumber,
-                VettingStatus = (VettingStatus)user.VettingStatus
+                VettingStatus = vettingStatus,
+                HasVettingApplication = hasApplication
             };
 
             return Result<UserProfileDto>.Success(profile);
@@ -245,7 +257,16 @@ public class UserDashboardProfileService : IUserDashboardProfileService
 
                 if (updateResult.Succeeded)
                 {
-                    // Success - return updated profile
+                    // Success - check for vetting application and return updated profile
+                    var application = await _context.VettingApplications
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(v => v.UserId == userId, cancellationToken);
+
+                    var hasApplication = application != null;
+                    var vettingStatus = hasApplication
+                        ? application!.WorkflowStatus
+                        : VettingStatus.UnderReview;
+
                     var profile = new UserProfileDto
                     {
                         UserId = user.Id,
@@ -258,7 +279,8 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                         DiscordName = user.DiscordName,
                         FetLifeName = user.FetLifeName,
                         PhoneNumber = user.PhoneNumber,
-                        VettingStatus = (VettingStatus)user.VettingStatus
+                        VettingStatus = vettingStatus,
+                        HasVettingApplication = hasApplication
                     };
 
                     _logger.LogInformation("Successfully updated profile for user {UserId} on attempt {Attempt}", userId, attempt + 1);

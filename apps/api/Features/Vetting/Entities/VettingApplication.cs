@@ -68,8 +68,8 @@ public class VettingApplication
     // Application Status and Management
     /// <summary>
     /// Workflow status tracking the application review process.
-    /// When this reaches a terminal state (Approved/Denied), it syncs to User.VettingStatus.
-    /// User.VettingStatus is the source of truth for permissions.
+    /// This is automatically synced to User.VettingStatus on ALL status changes.
+    /// User.VettingStatus is the source of truth for permissions and UI display.
     /// </summary>
     public VettingStatus WorkflowStatus { get; set; }
     public DateTime SubmittedAt { get; set; }

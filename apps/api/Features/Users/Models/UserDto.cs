@@ -14,6 +14,7 @@ public class UserDto
     public string? DiscordName { get; set; }
     public string? Bio { get; set; }
     public string Role { get; set; } = string.Empty;
+    public string[] Roles { get; set; } = Array.Empty<string>(); // Frontend expects roles array
     public string Pronouns { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     public bool EmailConfirmed { get; set; }
@@ -21,6 +22,7 @@ public class UserDto
     public DateTime? LastLoginAt { get; set; }
     public int VettingStatus { get; set; }
     public bool HasVettingApplication { get; set; } // True if user has submitted a vetting application
+    public bool IsVetted { get; set; } // Computed from VettingStatus == 3 (Approved)
 
     /// <summary>
     /// Default constructor
@@ -38,6 +40,7 @@ public class UserDto
         DiscordName = user.DiscordName;
         Bio = user.Bio;
         Role = user.Role;
+        Roles = new[] { user.Role }; // Frontend expects roles array, provide single role as array
         Pronouns = user.Pronouns;
         IsActive = user.IsActive;
         EmailConfirmed = user.EmailConfirmed;
@@ -45,5 +48,6 @@ public class UserDto
         LastLoginAt = user.LastLoginAt;
         VettingStatus = user.VettingStatus;
         HasVettingApplication = user.HasVettingApplication;
+        IsVetted = user.IsVetted; // Computed property from ApplicationUser (VettingStatus == 3)
     }
 }

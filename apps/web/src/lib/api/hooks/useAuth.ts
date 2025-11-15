@@ -16,8 +16,8 @@ export function useCurrentUser(enabled: boolean = true) {
     queryFn: async (): Promise<UserDto> => {
       // Try the protected welcome endpoint first (existing pattern)
       try {
-        const { data } = await apiClient.get<UserDto>('/api/protected/welcome')
-        return data
+        const { data } = await apiClient.get<{ user: UserDto }>('/api/protected/welcome')
+        return data.user
       } catch (error) {
         // Fallback to dedicated user endpoint
         const { data } = await apiClient.get<UserDto>('/api/auth/user')

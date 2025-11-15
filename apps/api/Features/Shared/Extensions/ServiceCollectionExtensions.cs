@@ -17,6 +17,7 @@ using WitchCityRope.Api.Features.Participation.Services;
 using WitchCityRope.Api.Features.TestHelpers.Services;
 using WitchCityRope.Api.Features.Cms;
 using WitchCityRope.Api.Features.Volunteers.Services;
+using WitchCityRope.Api.Features.Venues.Services;
 using WitchCityRope.Api.Features.Admin.Settings.Interfaces;
 using WitchCityRope.Api.Features.Admin.Settings.Services;
 using WitchCityRope.Api.Features.EmailTemplates.Services;
@@ -115,7 +116,10 @@ public static class ServiceCollectionExtensions
 
         // Volunteer feature services
         services.AddScoped<IVolunteerService, VolunteerService>();
-        services.AddScoped<VolunteerAssignmentService>();
+        services.AddScoped<IVolunteerAssignmentService, VolunteerAssignmentService>();
+
+        // Venue feature services
+        services.AddScoped<IVenueService, VenueService>();
 
         // Email Templates feature services
         services.AddScoped<IEmailTemplateService, EmailTemplateService>();

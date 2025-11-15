@@ -9,7 +9,7 @@ namespace WitchCityRope.Api.Features.Volunteers.Services;
 /// Service for admin/safety team volunteer position assignment management
 /// Handles assigning members to positions, viewing assignments, and removing assignments
 /// </summary>
-public class VolunteerAssignmentService
+public class VolunteerAssignmentService : IVolunteerAssignmentService
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<VolunteerAssignmentService> _logger;

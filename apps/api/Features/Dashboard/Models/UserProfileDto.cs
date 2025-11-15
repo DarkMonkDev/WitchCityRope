@@ -59,6 +59,13 @@ public class UserProfileDto
 
     /// <summary>
     /// Current vetting status enum value
+    /// Only meaningful if HasVettingApplication is true
     /// </summary>
     public VettingStatus VettingStatus { get; set; } = VettingStatus.UnderReview;
+
+    /// <summary>
+    /// Indicates whether the user has submitted a vetting application
+    /// If false, VettingStatus should not be displayed
+    /// </summary>
+    public bool HasVettingApplication { get; set; } = false;
 }

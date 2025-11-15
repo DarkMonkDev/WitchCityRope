@@ -17,13 +17,13 @@ namespace WitchCityRope.Api.Features.Participation.Services;
 public class AttendanceService : IAttendanceService
 {
     private readonly ApplicationDbContext _context;
-    private readonly VolunteerAssignmentService _volunteerAssignmentService;
+    private readonly IVolunteerAssignmentService _volunteerAssignmentService;
     private readonly ITimeZoneService _timeZoneService;
     private readonly ILogger<AttendanceService> _logger;
 
     public AttendanceService(
         ApplicationDbContext context,
-        VolunteerAssignmentService volunteerAssignmentService,
+        IVolunteerAssignmentService volunteerAssignmentService,
         ITimeZoneService timeZoneService,
         ILogger<AttendanceService> logger)
     {

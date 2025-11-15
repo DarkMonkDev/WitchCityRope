@@ -38,7 +38,9 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
   const signupMutation = useMutation<any, any, void>({
     mutationFn: async () => {
       return await signupForVolunteerPosition(position.id, {
-        eventWaiverAccepted: volunteerTermsAccepted
+        // If user has existing participation, they've already accepted the waiver
+        // Otherwise, use the checkbox state
+        eventWaiverAccepted: !needsTermsAcceptance || volunteerTermsAccepted
       });
     },
     onSuccess: (response) => {
