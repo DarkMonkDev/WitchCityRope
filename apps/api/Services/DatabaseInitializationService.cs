@@ -46,14 +46,15 @@ public class DatabaseInitializationService : BackgroundService
     }
 
     /// <summary>
-    /// BackgroundService entry point that executes during application startup.
-    /// Implements Milan Jovanovic's fail-fast pattern with comprehensive error handling
-    /// and prevents concurrent initialization attempts across multiple instances.
+    /// Overrides StartAsync to implement fail-fast initialization.
+    /// Waits for initialization to complete and propagates exceptions to application startup,
+    /// ensuring the application fails to start if database initialization fails.
+    /// This implements Milan Jovanovic's fail-fast pattern.
     /// </summary>
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    public override async Task StartAsync(CancellationToken cancellationToken)
     {
         // Prevent concurrent initialization across multiple instances
-        await _initializationSemaphore.WaitAsync(stoppingToken);
+        await _initializationSemaphore.WaitAsync(cancellationToken);
         try
         {
             if (_initializationCompleted)
@@ -62,13 +63,26 @@ public class DatabaseInitializationService : BackgroundService
                 return;
             }
 
-            await InitializeAsync(stoppingToken);
+            await InitializeAsync(cancellationToken);
             _initializationCompleted = true;
         }
         finally
         {
             _initializationSemaphore.Release();
         }
+
+        // Call base to start the background service (even though we already completed initialization)
+        await base.StartAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// BackgroundService entry point - initialization already completed in StartAsync,
+    /// so this just returns immediately.
+    /// </summary>
+    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        // Initialization is synchronous in StartAsync for fail-fast behavior
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -124,7 +138,11 @@ public class DatabaseInitializationService : BackgroundService
                     {
                         throw new InvalidOperationException(errorMessage);
                     }
+
+                    // When configured to ignore seed data failures, mark initialization as completed
+                    // since migrations were successful and seed data is optional
                     _logger.LogWarning("Continuing despite seed data errors due to configuration [{CorrelationId}]", correlationId);
+                    _initializationCompleted = true;
                 }
                 else
                 {

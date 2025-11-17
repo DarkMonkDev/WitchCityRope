@@ -10,6 +10,8 @@ using WitchCityRope.Api.Services.Seeding;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Tests.TestBase;
 using WitchCityRope.Api.Tests.Fixtures;
+using System.Net.Sockets;
+using System.Net.NetworkInformation;
 
 namespace WitchCityRope.Api.Tests.Services;
 
@@ -132,9 +134,22 @@ public class DatabaseInitializationServiceTests : DatabaseTestBase
             .Build();
 
         SetupDevelopmentEnvironment();
-        
-        // Note: With real database, timeout testing needs different approach
-        // We simulate timeout by using a very short timeout configuration
+
+        // Setup seed service to delay longer than timeout to force timeout
+        MockSeedService.Setup(x => x.SeedAllDataAsync(It.IsAny<CancellationToken>()))
+            .Returns(async (CancellationToken ct) =>
+            {
+                // Delay 3 seconds to ensure timeout occurs (timeout is 1 second)
+                await Task.Delay(3000, ct);
+                return new InitializationResult
+                {
+                    Success = true,
+                    SeedRecordsCreated = 0,
+                    Duration = TimeSpan.FromSeconds(3),
+                    CompletedAt = DateTime.UtcNow
+                };
+            });
+
         var service = new DatabaseInitializationService(
             MockServiceProvider.Object,
             MockLogger.Object,
@@ -147,7 +162,7 @@ public class DatabaseInitializationServiceTests : DatabaseTestBase
         exception.Message.Should().Contain("Database initialization failed");
         exception.InnerException.Should().BeOfType<TimeoutException>();
 
-        VerifyLogContains(LogLevel.Critical, 
+        VerifyLogContains(LogLevel.Critical,
             "Database initialization exceeded 1-second timeout");
     }
 
@@ -329,14 +344,20 @@ public class DatabaseInitializationServiceTests : DatabaseTestBase
     [InlineData(typeof(System.Net.NetworkInformation.NetworkInformationException), InitializationErrorType.DatabaseConnectionFailure)]
     public void ClassifyError_WithSpecificExceptionTypes_ReturnsCorrectErrorType(Type exceptionType, InitializationErrorType expectedType)
     {
-        // Arrange
-        var exception = (Exception)Activator.CreateInstance(exceptionType, "Test error")!;
+        // Arrange - Create exceptions with proper constructors
+        Exception exception = exceptionType.Name switch
+        {
+            nameof(System.Net.Sockets.SocketException) => new System.Net.Sockets.SocketException((int)System.Net.Sockets.SocketError.ConnectionRefused),
+            nameof(System.Net.NetworkInformation.NetworkInformationException) => new System.Net.NetworkInformation.NetworkInformationException((int)System.Net.Sockets.SocketError.NetworkDown),
+            nameof(TimeoutException) => new TimeoutException("Test timeout"),
+            _ => throw new ArgumentException($"Unsupported exception type: {exceptionType.Name}")
+        };
 
         // Act - Use reflection to test private static method
         var method = typeof(DatabaseInitializationService)
             .GetMethod("ClassifyError",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-        
+
         var result = method!.Invoke(null, new object[] { exception });
 
         // Assert

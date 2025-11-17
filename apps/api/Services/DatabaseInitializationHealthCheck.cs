@@ -27,6 +27,7 @@ public class DatabaseInitializationHealthCheck : IHealthCheck
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<DatabaseInitializationHealthCheck> _logger;
+    private readonly SemaphoreSlim _healthCheckLock = new(1, 1);
 
     public DatabaseInitializationHealthCheck(
         IServiceProvider serviceProvider,
@@ -63,47 +64,66 @@ public class DatabaseInitializationHealthCheck : IHealthCheck
 
         try
         {
-            // Check initialization completion status
-            if (!DatabaseInitializationService.IsInitializationCompleted)
+            // Ensure only one health check runs at a time to prevent concurrency issues
+            await _healthCheckLock.WaitAsync(cancellationToken);
+            try
             {
-                _logger.LogDebug("Health check: Database initialization in progress");
-                data["status"] = "Initializing";
+                // Check initialization completion status
+                if (!DatabaseInitializationService.IsInitializationCompleted)
+                {
+                    _logger.LogDebug("Health check: Database initialization in progress");
+                    data["status"] = "Initializing";
 
-                return HealthCheckResult.Unhealthy(
-                    "Database initialization in progress",
+                    return HealthCheckResult.Unhealthy(
+                        "Database initialization in progress",
+                        data: data);
+                }
+
+                // Verify database connectivity
+                using var scope = _serviceProvider.CreateScope();
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+                // Perform simple connectivity check
+                var canConnect = await dbContext.Database.CanConnectAsync(cancellationToken);
+                if (!canConnect)
+                {
+                    _logger.LogWarning("Health check: Database connection failed despite initialization completion");
+                    data["status"] = "ConnectionFailed";
+                    data["error"] = "Database connection unavailable";
+
+                    return HealthCheckResult.Unhealthy(
+                        "Database connection failed",
+                        data: data);
+                }
+
+                // Optional: Verify sample data exists (basic smoke test)
+                var userCount = await dbContext.Users.CountAsync(cancellationToken);
+                var eventCount = await dbContext.Events.CountAsync(cancellationToken);
+
+                data["status"] = "Ready";
+                data["userCount"] = userCount;
+                data["eventCount"] = eventCount;
+
+                _logger.LogDebug("Health check: Database initialization healthy (Users: {UserCount}, Events: {EventCount})",
+                    userCount, eventCount);
+
+                return HealthCheckResult.Healthy(
+                    "Database initialization completed successfully",
                     data: data);
             }
-
-            // Verify database connectivity
-            using var scope = _serviceProvider.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-            // Perform simple connectivity check
-            var canConnect = await dbContext.Database.CanConnectAsync(cancellationToken);
-            if (!canConnect)
+            finally
             {
-                _logger.LogWarning("Health check: Database connection failed despite initialization completion");
-                data["status"] = "ConnectionFailed";
-                data["error"] = "Database connection unavailable";
-
-                return HealthCheckResult.Unhealthy(
-                    "Database connection failed",
-                    data: data);
+                _healthCheckLock.Release();
             }
+        }
+        catch (TaskCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning("Health check cancelled due to timeout or shutdown");
+            data["status"] = "Cancelled";
+            data["error"] = "Health check cancelled";
 
-            // Optional: Verify sample data exists (basic smoke test)
-            var userCount = await dbContext.Users.CountAsync(cancellationToken);
-            var eventCount = await dbContext.Events.CountAsync(cancellationToken);
-
-            data["status"] = "Ready";
-            data["userCount"] = userCount;
-            data["eventCount"] = eventCount;
-
-            _logger.LogDebug("Health check: Database initialization healthy (Users: {UserCount}, Events: {EventCount})",
-                userCount, eventCount);
-
-            return HealthCheckResult.Healthy(
-                "Database initialization completed successfully",
+            return HealthCheckResult.Unhealthy(
+                "Database health check cancelled",
                 data: data);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)

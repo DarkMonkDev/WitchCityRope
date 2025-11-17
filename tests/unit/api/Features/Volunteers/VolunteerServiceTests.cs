@@ -65,14 +65,47 @@ public class VolunteerServiceTests : IAsyncLifetime
 
     #region Helper Methods
 
+    /// <summary>
+    /// Creates a test venue in the database for FK constraint satisfaction.
+    /// Reuses venue ID if already created in this test context.
+    /// </summary>
+    private async Task<Venue> CreateTestVenueAsync()
+    {
+        // Check if default test venue already exists
+        var existingVenue = await _context.Venues.FirstOrDefaultAsync(v => v.Id == 1);
+        if (existingVenue != null)
+        {
+            return existingVenue;
+        }
+
+        var venue = new Venue
+        {
+            Id = 1, // Explicitly set ID for test consistency
+            Name = "Test Venue",
+            Directions = "123 Test Street, Salem, MA",
+            Notes = "Standard test venue for unit tests",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _context.Venues.Add(venue);
+        await _context.SaveChangesAsync();
+
+        return venue;
+    }
+
     private async Task<Event> CreateTestEvent(string title, int capacity = 25)
     {
+        // Ensure venue exists first to satisfy FK constraint
+        await CreateTestVenueAsync();
+
         var eventEntity = new Event
         {
             Id = Guid.NewGuid(),
             Title = title,
             Description = $"Description for {title}",
-            VenueId = 1, // Test venue ID (Location moved to Venue entity)
+            VenueId = 1, // References venue created above
             EventType = EventType.Class,
             Capacity = capacity,
             IsPublished = true,
@@ -148,7 +181,7 @@ public class VolunteerServiceTests : IAsyncLifetime
         var position = await CreateVolunteerPosition(testEvent.Id, "Setup Crew");
         var user = await CreateTestUser("volunteer@example.com", "TestVolunteer");
 
-        var request = new VolunteerSignupRequest();
+        var request = new VolunteerSignupRequest { EventWaiverAccepted = true };
 
         // Act
         var (success, signup, error) = await _service.SignupForPositionAsync(
@@ -193,7 +226,7 @@ public class VolunteerServiceTests : IAsyncLifetime
         _context.VolunteerSignups.Add(firstSignup);
         await _context.SaveChangesAsync();
 
-        var request = new VolunteerSignupRequest();
+        var request = new VolunteerSignupRequest { EventWaiverAccepted = true };
 
         // Act - Try to signup again
         var (success, signup, error) = await _service.SignupForPositionAsync(
@@ -219,7 +252,7 @@ public class VolunteerServiceTests : IAsyncLifetime
         await _context.SaveChangesAsync();
 
         var user = await CreateTestUser("volunteer@example.com", "TestVolunteer");
-        var request = new VolunteerSignupRequest();
+        var request = new VolunteerSignupRequest { EventWaiverAccepted = true };
 
         // Act
         var (success, signup, error) = await _service.SignupForPositionAsync(
@@ -237,11 +270,15 @@ public class VolunteerServiceTests : IAsyncLifetime
     public async Task SignupVolunteerAsync_WithAutoRSVP_CreatesParticipation()
     {
         // Arrange
+        // Create a Social event (auto-RSVP only works for social events)
         var testEvent = await CreateTestEvent("Test Event");
+        testEvent.EventType = EventType.Social;
+        await _context.SaveChangesAsync();
+
         var position = await CreateVolunteerPosition(testEvent.Id, "Setup Crew");
         var user = await CreateTestUser("volunteer@example.com", "TestVolunteer");
 
-        var request = new VolunteerSignupRequest();
+        var request = new VolunteerSignupRequest { EventWaiverAccepted = true };
 
         // Act
         var (success, signup, error) = await _service.SignupForPositionAsync(
@@ -283,7 +320,7 @@ public class VolunteerServiceTests : IAsyncLifetime
         _context.EventAttendances.Add(existingParticipation);
         await _context.SaveChangesAsync();
 
-        var request = new VolunteerSignupRequest();
+        var request = new VolunteerSignupRequest { EventWaiverAccepted = true };
 
         // Act
         var (success, signup, error) = await _service.SignupForPositionAsync(
@@ -330,7 +367,7 @@ public class VolunteerServiceTests : IAsyncLifetime
 
         // Try to add second volunteer
         var user2 = await CreateTestUser("volunteer2@example.com", "Volunteer2");
-        var request = new VolunteerSignupRequest();
+        var request = new VolunteerSignupRequest { EventWaiverAccepted = true };
 
         // Act
         var (success, signup, error) = await _service.SignupForPositionAsync(
@@ -360,7 +397,7 @@ public class VolunteerServiceTests : IAsyncLifetime
         await AddParticipantToEvent(testEvent.Id, participant2.Id);
 
         var volunteer = await CreateTestUser("volunteer@example.com", "Volunteer");
-        var request = new VolunteerSignupRequest();
+        var request = new VolunteerSignupRequest { EventWaiverAccepted = true };
 
         // Act
         var (success, signup, error) = await _service.SignupForPositionAsync(
@@ -435,7 +472,7 @@ public class VolunteerServiceTests : IAsyncLifetime
         var position = await CreateVolunteerPosition(testEvent.Id, "Setup Crew");
         var volunteer = await CreateTestUser("volunteer@example.com", "Volunteer");
 
-        var request = new VolunteerSignupRequest();
+        var request = new VolunteerSignupRequest { EventWaiverAccepted = true };
 
         // Act
         var (success, signup, error) = await _service.SignupForPositionAsync(
@@ -525,13 +562,16 @@ public class VolunteerServiceTests : IAsyncLifetime
     public async Task CheckInVolunteer_AfterEventStart_AllowsCheckIn()
     {
         // Arrange
+        // Ensure venue exists first to satisfy FK constraint
+        await CreateTestVenueAsync();
+
         var eventStartTime = DateTime.UtcNow.AddHours(-1); // Event started 1 hour ago
         var testEvent = new Event
         {
             Id = Guid.NewGuid(),
             Title = "Started Event",
             Description = "Event in progress",
-            VenueId = 1, // Test venue ID (Location moved to Venue entity)
+            VenueId = 1, // References venue created above
             EventType = EventType.Class,
             Capacity = 25,
             IsPublished = true,
@@ -577,13 +617,16 @@ public class VolunteerServiceTests : IAsyncLifetime
         // (they often arrive early to setup)
 
         // Arrange
+        // Ensure venue exists first to satisfy FK constraint
+        await CreateTestVenueAsync();
+
         var futureEventStart = DateTime.UtcNow.AddHours(2);
         var testEvent = new Event
         {
             Id = Guid.NewGuid(),
             Title = "Future Event",
             Description = "Event not started",
-            VenueId = 1, // Test venue ID (Location moved to Venue entity)
+            VenueId = 1, // References venue created above
             EventType = EventType.Class,
             Capacity = 25,
             IsPublished = true,
@@ -675,7 +718,7 @@ public class VolunteerServiceTests : IAsyncLifetime
         var testEvent = await CreateTestEvent("Test Event");
         var privatePosition = await CreateVolunteerPosition(testEvent.Id, "Private Position", isPublicFacing: false);
         var user = await CreateTestUser("volunteer@example.com", "Volunteer");
-        var request = new VolunteerSignupRequest();
+        var request = new VolunteerSignupRequest { EventWaiverAccepted = true };
 
         // Act
         var (success, signup, error) = await _service.SignupForPositionAsync(
@@ -698,7 +741,7 @@ public class VolunteerServiceTests : IAsyncLifetime
         position.SlotsFilled.Should().Be(0);
 
         var user = await CreateTestUser("volunteer@example.com", "Volunteer");
-        var request = new VolunteerSignupRequest();
+        var request = new VolunteerSignupRequest { EventWaiverAccepted = true };
 
         // Act
         var (success, signup, error) = await _service.SignupForPositionAsync(

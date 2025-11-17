@@ -477,6 +477,9 @@ public class UserDashboardProfileServiceTests : IAsyncLifetime
     /// </summary>
     private async Task<Event> CreateTestEventAsync(string title, DateTime? startDate = null)
     {
+        // Ensure test venue exists for FK constraint satisfaction
+        await EnsureTestVenueExistsAsync();
+
         var uniqueId = Guid.NewGuid().ToString().Substring(0, 8);
         var start = startDate ?? DateTime.UtcNow.AddDays(7);
 
@@ -500,6 +503,26 @@ public class UserDashboardProfileServiceTests : IAsyncLifetime
         await _context.SaveChangesAsync();
 
         return evt;
+    }
+
+    private async Task EnsureTestVenueExistsAsync()
+    {
+        var existingVenue = await _context.Venues.FindAsync(1);
+        if (existingVenue == null)
+        {
+            var venue = new Venue
+            {
+                Id = 1,
+                Name = "Test Venue",
+                Directions = "123 Test Street, Salem, MA",
+                Notes = "Standard test venue",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            _context.Venues.Add(venue);
+            await _context.SaveChangesAsync();
+        }
     }
 
     /// <summary>
