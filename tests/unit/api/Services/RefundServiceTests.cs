@@ -363,6 +363,7 @@ public class RefundServiceTests : IAsyncLifetime
                 It.IsAny<Money>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
+                It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<PayPalRefundResponse>.Failure("PayPal API Error: Capture already fully refunded"));
 
@@ -421,6 +422,7 @@ public class RefundServiceTests : IAsyncLifetime
             .Setup(x => x.RefundCaptureAsync(
                 It.IsAny<string>(),
                 It.IsAny<Money>(),
+                It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
@@ -631,6 +633,7 @@ public class RefundServiceTests : IAsyncLifetime
             .Setup(x => x.RefundCaptureAsync(
                 It.IsAny<string>(),
                 It.IsAny<Money>(),
+                It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))

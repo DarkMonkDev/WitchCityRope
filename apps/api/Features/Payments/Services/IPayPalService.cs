@@ -36,10 +36,17 @@ public interface IPayPalService
     /// <summary>
     /// Create refund for a captured payment
     /// </summary>
+    /// <param name="captureId">PayPal Capture ID (not Order ID)</param>
+    /// <param name="refundAmount">Amount to refund</param>
+    /// <param name="reason">Reason for refund</param>
+    /// <param name="idempotencyKey">Idempotency key (WCR-{guid}) for preventing duplicate refunds</param>
+    /// <param name="noteToPayer">Optional note to include in refund notification</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     Task<Result<PayPalRefundResponse>> RefundCaptureAsync(
         string captureId,
         ValueObjects.Money refundAmount,
         string reason,
+        string? idempotencyKey = null,
         string? noteToPayer = null,
         CancellationToken cancellationToken = default);
 

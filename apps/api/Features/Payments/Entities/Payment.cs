@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using WitchCityRope.Api.Features.Payments.Models;
 using WitchCityRope.Api.Models;
 
@@ -67,6 +68,20 @@ public class Payment
     /// Encrypted PayPal Payer ID (for PCI compliance)
     /// </summary>
     public string? EncryptedPayPalPayerId { get; set; }
+
+    /// <summary>
+    /// Encrypted PayPal Capture ID from the payment capture response.
+    /// This is distinct from Order ID and is required for refund operations.
+    /// Maps to purchase_units[0].payments.captures[0].id in PayPal API response.
+    /// </summary>
+    public string? EncryptedPayPalCaptureId { get; set; }
+
+    /// <summary>
+    /// Idempotency key used for this payment transaction.
+    /// Helps prevent duplicate payments and enables safe retry logic.
+    /// </summary>
+    [MaxLength(50)]
+    public string? IdempotencyKey { get; set; }
 
     /// <summary>
     /// Venmo username if payment was made via Venmo (nullable)

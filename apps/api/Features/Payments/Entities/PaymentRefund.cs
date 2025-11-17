@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using WitchCityRope.Api.Features.Payments.Models;
 using WitchCityRope.Api.Models;
 
@@ -48,6 +49,14 @@ public class PaymentRefund
     /// Encrypted PayPal Refund ID (for PCI compliance)
     /// </summary>
     public string? EncryptedPayPalRefundId { get; set; }
+
+    /// <summary>
+    /// Idempotency key for the refund request (maps to PayPal-Request-Id header).
+    /// Prevents duplicate refunds if the same request is retried.
+    /// Should be unique per refund attempt.
+    /// </summary>
+    [MaxLength(50)]
+    public string? IdempotencyKey { get; set; }
 
     #endregion
 

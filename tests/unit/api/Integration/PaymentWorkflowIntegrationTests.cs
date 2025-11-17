@@ -495,6 +495,7 @@ public class PaymentWorkflowIntegrationTests : IAsyncLifetime
                 It.IsAny<Money>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
+                It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<PayPalRefundResponse>.Success(paypalRefundResponse));
     }

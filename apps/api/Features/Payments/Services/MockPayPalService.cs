@@ -103,6 +103,7 @@ public class MockPayPalService : IPayPalService
         string captureId,
         Money refundAmount,
         string reason,
+        string? idempotencyKey = null,
         string? noteToPayer = null,
         CancellationToken cancellationToken = default)
     {
@@ -131,8 +132,8 @@ public class MockPayPalService : IPayPalService
 
         _refunds[refundId] = refund;
 
-        _logger.LogInformation("Mock PayPal refund created: {RefundId} for capture {CaptureId}",
-            refundId, captureId);
+        _logger.LogInformation("Mock PayPal refund created: {RefundId} for capture {CaptureId}, idempotency key {IdempotencyKey}",
+            refundId, captureId, idempotencyKey ?? "none");
 
         return Task.FromResult(Result<PayPalRefundResponse>.Success(refund));
     }

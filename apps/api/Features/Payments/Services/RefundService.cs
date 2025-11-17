@@ -79,6 +79,9 @@ public class RefundService : IRefundService
                 return Result<PaymentRefund>.Failure("Refund reason is required and must be at least 10 characters long.");
             }
 
+            // Generate idempotency key for this refund
+            var idempotencyKey = $"WCR-{Guid.NewGuid():N}";
+
             // Create refund record
             var refund = new PaymentRefund
             {
@@ -86,6 +89,7 @@ public class RefundService : IRefundService
                 ProcessedByUserId = request.ProcessedByUserId,
                 RefundReason = request.RefundReason.Trim(),
                 RefundStatus = RefundStatus.Processing,
+                IdempotencyKey = idempotencyKey,
                 Metadata = request.Metadata
             };
 
@@ -105,24 +109,24 @@ public class RefundService : IRefundService
 
             await _context.SaveChangesAsync(cancellationToken);
 
-            // Process refund with PayPal if payment has a PayPal Order
-            if (!string.IsNullOrEmpty(payment.EncryptedPayPalOrderId))
+            // Process refund with PayPal if payment has a PayPal Capture ID
+            if (!string.IsNullOrEmpty(payment.EncryptedPayPalCaptureId))
             {
                 try
                 {
-                    // Decrypt PayPal Order ID
-                    var paypalOrderId = await _encryptionService.DecryptAsync(payment.EncryptedPayPalOrderId);
+                    // Decrypt PayPal Capture ID (required for refunds)
+                    var captureId = await _encryptionService.DecryptAsync(payment.EncryptedPayPalCaptureId);
 
-                    // For PayPal refunds, we need the capture ID, not the order ID
-                    // In a real implementation, we would need to get the capture from the order
-                    // For now, we'll assume the order ID is the capture ID for simplicity
-                    var captureId = paypalOrderId; // TODO: Get actual capture ID from PayPal order
+                    _logger.LogInformation(
+                        "Processing PayPal refund for payment {PaymentId} with capture ID (encrypted), idempotency key {IdempotencyKey}",
+                        request.PaymentId, idempotencyKey);
 
-                    // Process refund with PayPal
+                    // Process refund with PayPal using Capture ID and idempotency key
                     var paypalRefundResult = await _payPalService.RefundCaptureAsync(
                         captureId,
                         request.RefundAmount,
                         request.RefundReason,
+                        idempotencyKey,
                         $"Refund processed by user {request.ProcessedByUserId}",
                         cancellationToken);
 
@@ -166,12 +170,29 @@ public class RefundService : IRefundService
                 catch (Exception ex)
                 {
                     refund.MarkFailed($"Stripe processing error: {ex.Message}");
-                    _logger.LogError(ex, "Error processing Stripe refund for payment {PaymentId}", request.PaymentId);
+                    _logger.LogError(ex, "Error processing PayPal refund for payment {PaymentId}", request.PaymentId);
                 }
+            }
+            else if (!string.IsNullOrEmpty(payment.EncryptedPayPalOrderId))
+            {
+                // Legacy payment without Capture ID - log warning and fail gracefully
+                _logger.LogWarning(
+                    "Payment {PaymentId} has PayPal Order ID but no Capture ID. " +
+                    "Cannot process automatic refund. Manual refund required.",
+                    request.PaymentId);
+
+                refund.MarkFailed(
+                    "Legacy payment without Capture ID. Manual refund required through PayPal dashboard.");
+
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return Result<PaymentRefund>.Failure(
+                    "This payment was created before Capture ID tracking was implemented. " +
+                    "Please process the refund manually through the PayPal dashboard using Order ID.");
             }
             else
             {
-                // Manual refund (no Stripe processing needed)
+                // Manual refund (no PayPal processing needed - e.g., cash payment)
                 refund.MarkCompleted();
 
                 // Update payment status

@@ -232,17 +232,24 @@ public class PayPalService : IPayPalService
         string captureId,
         ValueObjects.Money refundAmount,
         string reason,
+        string? idempotencyKey = null,
         string? noteToPayer = null,
         CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation(
-                "Creating refund for PayPal capture {CaptureId}, amount {RefundAmount}",
-                captureId, refundAmount.ToDisplayString());
+                "Creating refund for PayPal capture {CaptureId}, amount {RefundAmount}, idempotency key {IdempotencyKey}",
+                captureId, refundAmount.ToDisplayString(), idempotencyKey ?? "none");
 
             var request = new CapturesRefundRequest(captureId);
             request.Prefer("return=representation");
+
+            // Add idempotency key header if provided
+            if (!string.IsNullOrEmpty(idempotencyKey))
+            {
+                request.Headers.Add("PayPal-Request-Id", idempotencyKey);
+            }
 
             var refundRequest = new RefundRequest()
             {
