@@ -21,6 +21,9 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.10" />
     <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
 
+    <!-- CRC32 for PayPal webhook signature verification -->
+    <PackageReference Include="Crc32.NET" Version="1.2.0" />
+
     <!-- Authentication packages -->
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.10" />

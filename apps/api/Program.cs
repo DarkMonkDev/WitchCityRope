@@ -10,6 +10,9 @@ using WitchCityRope.Api.Services;
 using WitchCityRope.Api.Features.Shared.Extensions;
 using WitchCityRope.Api.Infrastructure.OpenAPI;
 using WitchCityRope.Api.Features.Health.Services;
+using WitchCityRope.Api.Features.Shared.Services;
+using WitchCityRope.Api.Features.EmailTemplates.Entities;
+using SendGrid;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,6 +55,26 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         ?? "Host=postgres;Port=5432;Database=witchcityrope_dev;Username=postgres;Password=WitchCity2024!";
     options.UseNpgsql(connectionString);
 });
+
+// SendGrid Email Service (null-safe for development)
+builder.Services.AddSingleton<ISendGridClient>(sp =>
+{
+    var emailEnabled = builder.Configuration.GetValue<bool>("Vetting:EmailEnabled", true);
+    var apiKey = builder.Configuration["Vetting:SendGridApiKey"];
+
+    if (!emailEnabled || string.IsNullOrEmpty(apiKey))
+    {
+        var logger = sp.GetRequiredService<ILogger<Program>>();
+        var reason = !emailEnabled
+            ? "EmailEnabled is false"
+            : "SendGrid API Key not configured";
+        logger.LogWarning("SendGrid disabled - EmailService will run in development mode (console logging only). Reason: {Reason}", reason);
+        return null!; // EmailService handles null client gracefully
+    }
+
+    return new SendGridClient(apiKey);
+});
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Configure ASP.NET Core Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
@@ -281,6 +304,28 @@ app.MapHealthChecks("/health-check");
 
 // New vertical slice feature endpoints
 app.MapFeatureEndpoints();
+
+// TODO: REMOVE AFTER TESTING - Test endpoint for email service verification
+app.MapGet("/test-email", async (IEmailService emailService) =>
+{
+    var variables = new Dictionary<string, string>
+    {
+        { "user_name", "TestUser" },
+        { "system_url", "https://staging.witchcityrope.com" },
+        { "support_email", "support@witchcityrope.com" }
+    };
+
+    var result = await emailService.SendTemplatedEmailAsync(
+        "test@example.com",
+        "Test User",
+        EmailCategory.Admin,
+        "PasswordReset",
+        variables);
+
+    return result.IsSuccess
+        ? Results.Ok(new { message = "Email sent successfully!", details = "Check logs for development mode output or SendGrid dashboard for production sends" })
+        : Results.BadRequest(new { error = result.Error });
+}).WithTags("Testing");
 
 app.Run();
 

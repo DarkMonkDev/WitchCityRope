@@ -58,6 +58,20 @@ public class PaymentRefund
     [MaxLength(50)]
     public string? IdempotencyKey { get; set; }
 
+    /// <summary>
+    /// Number of retry attempts for this refund request.
+    /// Incremented each time the refund API call is retried due to transient errors.
+    /// Used for exponential backoff calculation and max retry enforcement.
+    /// </summary>
+    public int RetryCount { get; set; } = 0;
+
+    /// <summary>
+    /// Error message if the refund failed.
+    /// Captures the last error encountered during refund processing for troubleshooting.
+    /// Includes both PayPal API errors and internal processing errors.
+    /// </summary>
+    public string? ErrorMessage { get; set; }
+
     #endregion
 
     #region Administrative Tracking

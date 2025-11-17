@@ -1245,6 +1245,9 @@ namespace WitchCityRope.Api.Migrations
                         .HasDefaultValue("USD")
                         .HasColumnName("Currency");
 
+                    b.Property<string>("EncryptedPayPalCaptureId")
+                        .HasColumnType("text");
+
                     b.Property<string>("EncryptedPayPalOrderId")
                         .HasColumnType("text");
 
@@ -1256,6 +1259,10 @@ namespace WitchCityRope.Api.Migrations
 
                     b.Property<Guid>("EventRegistrationId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("IdempotencyKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("Metadata")
                         .IsRequired()
@@ -1575,6 +1582,13 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<string>("EncryptedPayPalRefundId")
                         .HasColumnType("text");
 
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("text");
+
+                    b.Property<string>("IdempotencyKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<string>("Metadata")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -1607,6 +1621,9 @@ namespace WitchCityRope.Api.Migrations
                         .HasColumnType("text");
 
                     b.Property<int>("RefundStatus")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RetryCount")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
