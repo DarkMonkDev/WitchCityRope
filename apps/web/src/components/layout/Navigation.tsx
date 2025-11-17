@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Group, Button, Box, Stack } from '@mantine/core'
 import { useUser, useIsAuthenticated } from '../../stores/authStore'
+import { useAuth } from '../../contexts/AuthContext'
 import { useMenuVisibility } from '../../features/vetting/hooks/useMenuVisibility'
 import { useEffect, useState, useCallback } from 'react'
 import type { components } from '@witchcityrope/shared-types'
@@ -14,6 +15,7 @@ import type { components } from '@witchcityrope/shared-types'
 export const Navigation: React.FC = () => {
   const user = useUser()
   const isAuthenticated = useIsAuthenticated()
+  const { logout } = useAuth()
   const { shouldShow: showHowToJoin } = useMenuVisibility()
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -40,6 +42,18 @@ export const Navigation: React.FC = () => {
     // React Router's ScrollRestoration can scroll to top on navigation
     document.body.style.overflow = ''
   }, [])
+
+  // Handle logout button click
+  const handleLogout = useCallback(async () => {
+    try {
+      closeMobileMenu() // Close mobile menu first
+      await logout()
+      // No need for manual redirect - AuthContext logout handles it
+    } catch (error) {
+      console.error('Logout failed:', error)
+      // AuthContext logout already handles error cases
+    }
+  }, [logout, closeMobileMenu])
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
@@ -465,6 +479,34 @@ export const Navigation: React.FC = () => {
           >
             Report an Incident
           </Box>
+
+          {/* Logout button - only for authenticated users */}
+          {isAuthenticated && (
+            <Box
+              component="button"
+              onClick={handleLogout}
+              data-testid="mobile-button-logout"
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--color-charcoal)',
+                textDecoration: 'none',
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 600,
+                fontSize: '18px',
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                padding: 'var(--space-md) 0',
+                borderBottom: '1px solid rgba(183, 109, 117, 0.2)',
+                pointerEvents: 'auto', // Re-enable pointer events for clickability
+                cursor: 'pointer',
+                textAlign: 'left',
+                width: '100%',
+              }}
+            >
+              Logout
+            </Box>
+          )}
         </Stack>
       </Box>
     </Box>

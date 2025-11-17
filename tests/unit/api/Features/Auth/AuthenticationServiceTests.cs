@@ -27,11 +27,11 @@ public class AuthenticationServiceTests : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _container;
     private ApplicationDbContext _context = null!;
-    private AuthenticationService _service = null!;
+    private IAuthenticationService _service = null!;
     private UserManager<ApplicationUser> _userManager = null!;
     private SignInManager<ApplicationUser> _signInManager = null!;
     private IJwtService _jwtService = null!;
-    private ReturnUrlValidator _returnUrlValidator = null!;
+    private IReturnUrlValidator _returnUrlValidator = null!;
     private ILogger<AuthenticationService> _logger = null!;
     private string _connectionString = null!;
 
@@ -244,7 +244,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
         // Assert
         success.Should().BeFalse();
         response.Should().BeNull();
-        error.Should().Contain("Invalid email or password");
+        error.Should().Contain("Invalid email/scene name or password");
 
         // Verify JWT was NOT generated
         _jwtService.DidNotReceive().GenerateToken(Arg.Any<ApplicationUser>());
@@ -270,7 +270,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
         // Assert
         success.Should().BeFalse();
         response.Should().BeNull();
-        error.Should().Contain("Invalid email or password");
+        error.Should().Contain("Invalid email/scene name or password");
 
         // Verify JWT was NOT generated
         _jwtService.DidNotReceive().GenerateToken(Arg.Any<ApplicationUser>());
@@ -405,7 +405,8 @@ public class AuthenticationServiceTests : IAsyncLifetime
         {
             Email = email,
             SceneName = sceneName,
-            Password = password
+            Password = password,
+            TermsOfServiceAccepted = true
         };
 
         // UserManager.CreateAsync is already configured in InitializeAsync to save to database
@@ -443,7 +444,8 @@ public class AuthenticationServiceTests : IAsyncLifetime
         {
             Email = email,
             SceneName = "NewSceneName",
-            Password = "Test123!"
+            Password = "Test123!",
+            TermsOfServiceAccepted = true
         };
 
         // Act
@@ -469,7 +471,8 @@ public class AuthenticationServiceTests : IAsyncLifetime
         {
             Email = $"new-{Guid.NewGuid()}@example.com",
             SceneName = existingSceneName,
-            Password = "Test123!"
+            Password = "Test123!",
+            TermsOfServiceAccepted = true
         };
 
         // Act
@@ -495,7 +498,8 @@ public class AuthenticationServiceTests : IAsyncLifetime
         {
             Email = email,
             SceneName = "TestUser",
-            Password = weakPassword
+            Password = weakPassword,
+            TermsOfServiceAccepted = true
         };
 
         _userManager.CreateAsync(Arg.Any<ApplicationUser>(), weakPassword)
@@ -528,7 +532,8 @@ public class AuthenticationServiceTests : IAsyncLifetime
         {
             Email = invalidEmail,
             SceneName = "TestUser",
-            Password = "Test123!"
+            Password = "Test123!",
+            TermsOfServiceAccepted = true
         };
 
         _userManager.CreateAsync(Arg.Any<ApplicationUser>(), Arg.Any<string>())
@@ -556,7 +561,8 @@ public class AuthenticationServiceTests : IAsyncLifetime
         {
             Email = email,
             SceneName = "TestUser",
-            Password = "Test123!"
+            Password = "Test123!",
+            TermsOfServiceAccepted = true
         };
 
         // UserManager.CreateAsync is already configured to save to database
@@ -710,7 +716,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
         // Assert
         success.Should().BeFalse(); // Malicious input should not succeed
         response.Should().BeNull();
-        error.Should().Contain("Invalid email or password"); // Generic error, no information leakage
+        error.Should().Contain("Invalid email/scene name or password"); // Generic error, no information leakage
 
         // Verify no JWT was generated
         _jwtService.DidNotReceive().GenerateToken(Arg.Any<ApplicationUser>());
@@ -725,7 +731,8 @@ public class AuthenticationServiceTests : IAsyncLifetime
         {
             Email = maliciousEmail,
             SceneName = "Hacker",
-            Password = "Test123!"
+            Password = "Test123!",
+            TermsOfServiceAccepted = true
         };
 
         // Act & Assert - Should fail validation, not execute SQL
@@ -747,7 +754,8 @@ public class AuthenticationServiceTests : IAsyncLifetime
         {
             Email = email,
             SceneName = xssSceneName,
-            Password = "Test123!"
+            Password = "Test123!",
+            TermsOfServiceAccepted = true
         };
 
         // UserManager.CreateAsync is already configured to save to database
@@ -810,7 +818,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
         // Assert
         success.Should().BeFalse();
         response.Should().BeNull();
-        error.Should().Contain("Invalid email or password"); // Don't reveal user existence
+        error.Should().Contain("Invalid email/scene name or password"); // Don't reveal user existence
 
         // Verify JWT was NOT generated
         _jwtService.DidNotReceive().GenerateToken(Arg.Any<ApplicationUser>());
@@ -841,7 +849,8 @@ public class AuthenticationServiceTests : IAsyncLifetime
         {
             Email = email,
             SceneName = "TestUser",
-            Password = plainTextPassword
+            Password = plainTextPassword,
+            TermsOfServiceAccepted = true
         };
 
         // Act
@@ -872,7 +881,8 @@ public class AuthenticationServiceTests : IAsyncLifetime
         {
             Email = email,
             SceneName = "NewMember",
-            Password = "Test123!"
+            Password = "Test123!",
+            TermsOfServiceAccepted = true
         };
 
         // Act

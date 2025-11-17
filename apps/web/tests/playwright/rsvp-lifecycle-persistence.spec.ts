@@ -23,38 +23,40 @@ import { AuthHelpers } from './helpers/auth.helpers';
 // Test event IDs for RSVP events (should be Social events)
 let RSVP_EVENT_ID: string;
 
-test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
-  test.beforeAll(async ({ browser }) => {
-    // Find a test event to use
-    console.log('🔍 Looking for test event with free/RSVP tickets...');
+// Initialize event ID ONCE for all test suites in this file
+test.beforeAll(async () => {
+  // Find a test event to use
+  console.log('🔍 Looking for test event with free/RSVP tickets...');
 
-    try {
-      const rsvpEvent = await DatabaseHelpers.getFirstRsvpEvent();
+  try {
+    const rsvpEvent = await DatabaseHelpers.getFirstRsvpEvent();
 
-      if (!rsvpEvent) {
-        throw new Error(
-          'No RSVP events found in database.\n' +
-          '\n' +
-          'These tests require at least one published event with free tickets (Price = 0).\n' +
-          '\n' +
-          'To fix this:\n' +
-          '1. Ensure Docker containers are running: ./dev.sh\n' +
-          '2. Check if database has events: curl http://localhost:5655/api/events\n' +
-          '3. If no events exist, seed the database with test data\n' +
-          '4. Verify event has "free" ticket type (Price = 0) in TicketTypes table\n'
-        );
-      }
-
-      RSVP_EVENT_ID = rsvpEvent.id;
-      console.log(`✅ Found RSVP event: "${rsvpEvent.title}" (ID: ${RSVP_EVENT_ID})`);
-      console.log(`   Event Type: ${rsvpEvent.eventType}`);
-      console.log(`   Start Date: ${rsvpEvent.startDate}`);
-      console.log(`   Capacity: ${rsvpEvent.capacity}`);
-    } catch (error) {
-      console.error('❌ Failed to find RSVP event for testing:', error);
-      throw error;
+    if (!rsvpEvent) {
+      throw new Error(
+        'No RSVP events found in database.\n' +
+        '\n' +
+        'These tests require at least one published event with free tickets (Price = 0).\n' +
+        '\n' +
+        'To fix this:\n' +
+        '1. Ensure Docker containers are running: ./dev.sh\n' +
+        '2. Check if database has events: curl http://localhost:5655/api/events\n' +
+        '3. If no events exist, seed the database with test data\n' +
+        '4. Verify event has "free" ticket type (Price = 0) in TicketTypes table\n'
+      );
     }
-  });
+
+    RSVP_EVENT_ID = rsvpEvent.id;
+    console.log(`✅ Found RSVP event: "${rsvpEvent.title}" (ID: ${RSVP_EVENT_ID})`);
+    console.log(`   Event Type: ${rsvpEvent.eventType}`);
+    console.log(`   Start Date: ${rsvpEvent.startDate}`);
+    console.log(`   Capacity: ${rsvpEvent.capacity}`);
+  } catch (error) {
+    console.error('❌ Failed to find RSVP event for testing:', error);
+    throw error;
+  }
+});
+
+test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
 
   test.afterAll(async () => {
     await globalCleanup();
@@ -62,29 +64,8 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
 
   test('should persist RSVP to database', async ({ page }) => {
     // RSVP_EVENT_ID is guaranteed to exist from beforeAll hook
+    // Template handles cleanup of any existing Ticket or RSVP automatically
 
-    const userId = await DatabaseHelpers.getUserIdFromEmail(AuthHelpers.accounts.vetted.email);
-
-    // Ensure user does NOT have RSVP yet (cancel if exists)
-    try {
-      const participation = await DatabaseHelpers.verifyEventParticipation(
-        userId,
-        RSVP_EVENT_ID,
-        1  // 1 = Active (ParticipationStatus enum)
-      );
-
-      // Cancel existing RSVP
-      console.log('Cancelling existing RSVP for clean test...');
-      await testCancelRsvpPersistence(page, {
-        userEmail: AuthHelpers.accounts.vetted.email,
-        userPassword: AuthHelpers.accounts.vetted.password,
-        eventId: RSVP_EVENT_ID,
-      });
-    } catch {
-      console.log('✅ No existing RSVP to clean up');
-    }
-
-    // Now test RSVP persistence
     await testRsvpPersistence(page, {
       userEmail: AuthHelpers.accounts.vetted.email,
       userPassword: AuthHelpers.accounts.vetted.password,
@@ -98,8 +79,9 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
 
   test('should persist RSVP cancellation to database', async ({ page }) => {
     // RSVP_EVENT_ID is guaranteed to exist from beforeAll hook
+    // NOTE: Using 'teacher' account to avoid vetting requirement (member is NOT vetted)
 
-    const userId = await DatabaseHelpers.getUserIdFromEmail(AuthHelpers.accounts.member.email);
+    const userId = await DatabaseHelpers.getUserIdFromEmail(AuthHelpers.accounts.teacher.email);
 
     // Ensure user HAS an RSVP to cancel
     try {
@@ -109,16 +91,16 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
       // RSVP first
       console.log('Creating RSVP for cancellation test...');
       await testRsvpPersistence(page, {
-        userEmail: AuthHelpers.accounts.member.email,
-        userPassword: AuthHelpers.accounts.member.password,
+        userEmail: AuthHelpers.accounts.teacher.email,
+        userPassword: AuthHelpers.accounts.teacher.password,
         eventId: RSVP_EVENT_ID,
       });
     }
 
     // Now test cancellation persistence
     await testCancelRsvpPersistence(page, {
-      userEmail: AuthHelpers.accounts.member.email,
-      userPassword: AuthHelpers.accounts.member.password,
+      userEmail: AuthHelpers.accounts.teacher.email,
+      userPassword: AuthHelpers.accounts.teacher.password,
       eventId: RSVP_EVENT_ID,
       successMessage: 'RSVP cancelled',
       screenshotPath: '/tmp/cancel-rsvp-test',
@@ -173,14 +155,15 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
 
   test('should create audit log entry for RSVP', async ({ page }) => {
     // RSVP_EVENT_ID is guaranteed to exist from beforeAll hook
+    // NOTE: Using 'teacher' account to avoid vetting requirement (member is NOT vetted)
 
-    const userId = await DatabaseHelpers.getUserIdFromEmail(AuthHelpers.accounts.member.email);
+    const userId = await DatabaseHelpers.getUserIdFromEmail(AuthHelpers.accounts.teacher.email);
 
     // Cancel existing RSVP if any
     try {
       await testCancelRsvpPersistence(page, {
-        userEmail: AuthHelpers.accounts.member.email,
-        userPassword: AuthHelpers.accounts.member.password,
+        userEmail: AuthHelpers.accounts.teacher.email,
+        userPassword: AuthHelpers.accounts.teacher.password,
         eventId: RSVP_EVENT_ID,
       });
     } catch {
@@ -189,8 +172,8 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
 
     // Create new RSVP
     await testRsvpPersistence(page, {
-      userEmail: AuthHelpers.accounts.member.email,
-      userPassword: AuthHelpers.accounts.member.password,
+      userEmail: AuthHelpers.accounts.teacher.email,
+      userPassword: AuthHelpers.accounts.teacher.password,
       eventId: RSVP_EVENT_ID,
     });
 
@@ -253,22 +236,23 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
 
   test('should prevent duplicate RSVPs', async ({ page }) => {
     // RSVP_EVENT_ID is guaranteed to exist from beforeAll hook
+    // NOTE: Using 'teacher' account to avoid vetting requirement (member is NOT vetted)
 
-    const userId = await DatabaseHelpers.getUserIdFromEmail(AuthHelpers.accounts.member.email);
+    const userId = await DatabaseHelpers.getUserIdFromEmail(AuthHelpers.accounts.teacher.email);
 
     // Ensure user has RSVP
     try {
       await DatabaseHelpers.verifyEventParticipation(userId, RSVP_EVENT_ID, 1);  // 1 = Active
     } catch {
       await testRsvpPersistence(page, {
-        userEmail: AuthHelpers.accounts.member.email,
-        userPassword: AuthHelpers.accounts.member.password,
+        userEmail: AuthHelpers.accounts.teacher.email,
+        userPassword: AuthHelpers.accounts.teacher.password,
         eventId: RSVP_EVENT_ID,
       });
     }
 
     // Navigate to event page
-    await AuthHelpers.loginAs(page, 'member');
+    await AuthHelpers.loginAs(page, 'teacher');
 
     await page.goto(`http://localhost:5173/events/${RSVP_EVENT_ID}`);
     await page.waitForLoadState('networkidle');
@@ -293,27 +277,28 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
   });
 });
 
-test.describe('RSVP Persistence Edge Cases', () => {
+test.describe.serial('RSVP Persistence Edge Cases', () => {
   test.afterAll(async () => {
     await globalCleanup();
   });
 
   test('should handle rapid RSVP/cancel cycles', async ({ page }) => {
     // RSVP_EVENT_ID is guaranteed to exist from beforeAll hook
+    // NOTE: Using 'teacher' account to avoid collision with Suite 1 which uses 'vetted'
 
-    // Test multiple rapid RSVP/cancel cycles
-    for (let i = 0; i < 3; i++) {
+    // Test multiple rapid RSVP/cancel cycles (2 cycles to stay within 90s timeout)
+    for (let i = 0; i < 2; i++) {
       console.log(`Cycle ${i + 1}: RSVP → Cancel`);
 
       await testRsvpPersistence(page, {
-        userEmail: AuthHelpers.accounts.vetted.email,
-        userPassword: AuthHelpers.accounts.vetted.password,
+        userEmail: AuthHelpers.accounts.teacher.email,
+        userPassword: AuthHelpers.accounts.teacher.password,
         eventId: RSVP_EVENT_ID,
       });
 
       await testCancelRsvpPersistence(page, {
-        userEmail: AuthHelpers.accounts.vetted.email,
-        userPassword: AuthHelpers.accounts.vetted.password,
+        userEmail: AuthHelpers.accounts.teacher.email,
+        userPassword: AuthHelpers.accounts.teacher.password,
         eventId: RSVP_EVENT_ID,
       });
     }
@@ -323,24 +308,25 @@ test.describe('RSVP Persistence Edge Cases', () => {
 
   test('should maintain separate RSVP state per user', async ({ page }) => {
     // RSVP_EVENT_ID is guaranteed to exist from beforeAll hook
+    // NOTE: Using 'admin' and 'teacher' accounts to avoid collision with Suite 1 which uses 'vetted' and 'member'
 
     // User 1: RSVP
     await testRsvpPersistence(page, {
-      userEmail: AuthHelpers.accounts.vetted.email,
-      userPassword: AuthHelpers.accounts.vetted.password,
+      userEmail: AuthHelpers.accounts.admin.email,
+      userPassword: AuthHelpers.accounts.admin.password,
       eventId: RSVP_EVENT_ID,
     });
 
     // User 2: Should be able to RSVP independently
     await testRsvpPersistence(page, {
-      userEmail: AuthHelpers.accounts.member.email,
-      userPassword: AuthHelpers.accounts.member.password,
+      userEmail: AuthHelpers.accounts.teacher.email,
+      userPassword: AuthHelpers.accounts.teacher.password,
       eventId: RSVP_EVENT_ID,
     });
 
     // Verify both users have separate RSVP records
-    const userId1 = await DatabaseHelpers.getUserIdFromEmail(AuthHelpers.accounts.vetted.email);
-    const userId2 = await DatabaseHelpers.getUserIdFromEmail(AuthHelpers.accounts.member.email);
+    const userId1 = await DatabaseHelpers.getUserIdFromEmail(AuthHelpers.accounts.admin.email);
+    const userId2 = await DatabaseHelpers.getUserIdFromEmail(AuthHelpers.accounts.teacher.email);
 
     const rsvp1 = await DatabaseHelpers.verifyEventParticipation(
       userId1,

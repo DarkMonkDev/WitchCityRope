@@ -152,7 +152,7 @@ export interface EventParticipationRecord {
   id: string;
   userId: string;
   eventId: string;
-  attendanceType: 1 | 2; // 1=Ticket, 2=RSVP
+  attendanceType: 1 | 2; // CORRECT: 1=RSVP, 2=Ticket (matches C# AttendanceType enum)
   participationType: string; // 'Ticket' or 'RSVP' (converted from attendanceType)
   status: 1 | 2 | 3 | 4; // Status enum: 1=Active, 2=Cancelled, 3=Refunded, 4=Waitlisted
   createdAt: Date;
@@ -177,9 +177,10 @@ export function getParticipationTypeName(type: number | string): string {
   }
 
   // PostgreSQL stores AttendanceType enum as integers
+  // CORRECT mapping from C# AttendanceType enum: RSVP=1, Ticket=2
   const typeMap: Record<number, string> = {
-    1: 'Ticket',
-    2: 'RSVP'
+    1: 'RSVP',
+    2: 'Ticket'
   };
   return typeMap[type] || `Unknown(${type})`;
 }
@@ -193,13 +194,25 @@ export function getParticipationTypeName(type: number | string): string {
  * @param userId User ID
  * @param eventId Event ID
  * @param expectedStatus Expected participation status (1=Active, 2=Cancelled, 3=Refunded, 4=Waitlisted)
+ * @param expectedType Optional: Expected attendance type (1=RSVP, 2=Ticket). If provided, filters by type.
  * @returns Participation record from database
  */
 export async function verifyEventParticipation(
   userId: string,
   eventId: string,
-  expectedStatus: 1 | 2 | 3 | 4
+  expectedStatus: 1 | 2 | 3 | 4,
+  expectedType?: 1 | 2
 ): Promise<EventParticipationRecord | null> {
+  // Build SQL with optional AttendanceType filter AND Status filter
+  // CRITICAL: Filter by expectedStatus to avoid getting old cancelled records!
+  const params: any[] = [userId, eventId, expectedStatus];
+  let whereClause = 'WHERE "UserId" = $1 AND "EventId" = $2 AND "Status" = $3';
+
+  if (expectedType !== undefined) {
+    params.push(expectedType);
+    whereClause += ` AND "AttendanceType" = $4`;
+  }
+
   const sql = `
     SELECT
       "Id" as "id",
@@ -210,21 +223,40 @@ export async function verifyEventParticipation(
       "CreatedAt" as "createdAt",
       "UpdatedAt" as "updatedAt"
     FROM "EventAttendances"
-    WHERE "UserId" = $1 AND "EventId" = $2
+    ${whereClause}
     ORDER BY "UpdatedAt" DESC
     LIMIT 1
   `;
 
-  const rows = await query<EventParticipationRecord>(sql, [userId, eventId]);
+  const rows = await query<EventParticipationRecord>(sql, params);
 
   if (rows.length === 0) {
+    // DEBUG: Query without Status filter to see what records exist
+    const debugParams: any[] = [userId, eventId];
+    let debugWhere = 'WHERE "UserId" = $1 AND "EventId" = $2';
+    if (expectedType !== undefined) {
+      debugParams.push(expectedType);
+      debugWhere += ` AND "AttendanceType" = $3`;
+    }
+    const debugSql = `
+      SELECT "Status" as "status", "AttendanceType" as "attendanceType", "CreatedAt" as "createdAt", "UpdatedAt" as "updatedAt"
+      FROM "EventAttendances"
+      ${debugWhere}
+      ORDER BY "UpdatedAt" DESC
+    `;
+    const debugRows = await query(debugSql, debugParams);
+    console.log(`🔍 DEBUG: Found ${debugRows.length} records WITHOUT status filter:`);
+    debugRows.forEach((row: any, idx: number) => {
+      console.log(`   [${idx}] Status: ${row.status}, Type: ${row.attendanceType}, Updated: ${row.updatedAt}`);
+    });
+
     if (expectedStatus === 2) { // Cancelled
       // If we expect cancelled, check if record was deleted
       // (some systems delete instead of soft-delete)
       return null;
     }
     throw new Error(
-      `No participation record found for user ${userId} and event ${eventId}`
+      `No participation record found for user ${userId} and event ${eventId} with status ${expectedStatus} (${getParticipationStatusName(expectedStatus)}) and type ${expectedType ? `${expectedType} (${getParticipationTypeName(expectedType)})` : 'any'}`
     );
   }
 
@@ -233,11 +265,19 @@ export async function verifyEventParticipation(
   // Add participationType string conversion from numeric attendanceType
   actual.participationType = getParticipationTypeName(actual.attendanceType);
 
+  // DEBUG: Log what we found BEFORE checking status
+  console.log(`🔍 Database query found record:`);
+  console.log(`   Status: ${actual.status} (${getParticipationStatusName(actual.status)})`);
+  console.log(`   Attendance Type: ${actual.attendanceType} (${getParticipationTypeName(actual.attendanceType)})`);
+  console.log(`   CreatedAt: ${actual.createdAt}`);
+  console.log(`   UpdatedAt: ${actual.updatedAt}`);
+  console.log(`   ID: ${actual.id}`);
+
   if (actual.status !== expectedStatus) {
     const expectedName = getParticipationStatusName(expectedStatus);
     const actualName = getParticipationStatusName(actual.status);
     throw new Error(
-      `Participation status mismatch: expected ${expectedStatus} (${expectedName}) but got ${actual.status} (${actualName})`
+      `Participation status mismatch: expected ${expectedStatus} (${expectedName}) but got ${actual.status} (${actualName}). Attendance Type was ${actual.attendanceType} (${getParticipationTypeName(actual.attendanceType)})`
     );
   }
 
@@ -371,6 +411,9 @@ export async function getTestableEvents(): Promise<EventRecord[]> {
  * Get first RSVP-type event for testing
  *
  * Use for RSVP lifecycle tests that need a free event.
+ *
+ * IMPORTANT: Adds 2-hour buffer to ensure event is far enough in future
+ * for UI cancel buttons to be visible (accounts for preStartBufferMinutes setting).
  */
 export async function getFirstRsvpEvent(): Promise<EventRecord | null> {
   const sql = `
@@ -386,8 +429,9 @@ export async function getFirstRsvpEvent(): Promise<EventRecord | null> {
     FROM "Events" e
     INNER JOIN "TicketTypes" tt ON e."Id" = tt."EventId"
     WHERE e."IsPublished" = true
-      AND e."StartDate" > NOW()
+      AND e."StartDate" > NOW() + INTERVAL '2 hours'
       AND tt."Price" = 0
+      AND e."EventType" = 'Social'
     ORDER BY e."StartDate" ASC
     LIMIT 1
   `;
@@ -400,6 +444,9 @@ export async function getFirstRsvpEvent(): Promise<EventRecord | null> {
  * Get first paid ticket event for testing
  *
  * Use for ticket purchase/cancellation tests that need a paid event.
+ *
+ * IMPORTANT: Adds 2-hour buffer to ensure event is far enough in future
+ * for UI cancel buttons to be visible (accounts for preStartBufferMinutes setting).
  */
 export async function getFirstTicketEvent(): Promise<EventRecord | null> {
   const sql = `
@@ -415,7 +462,7 @@ export async function getFirstTicketEvent(): Promise<EventRecord | null> {
     FROM "Events" e
     INNER JOIN "TicketTypes" tt ON e."Id" = tt."EventId"
     WHERE e."IsPublished" = true
-      AND e."StartDate" > NOW()
+      AND e."StartDate" > NOW() + INTERVAL '2 hours'
       AND tt."Price" > 0
     ORDER BY e."StartDate" ASC
     LIMIT 1

@@ -96,20 +96,6 @@ export const Footer: React.FC = () => {
               </Accordion.Panel>
             </Accordion.Item>
 
-            {/* Legal Section */}
-            <Accordion.Item value="legal" className="footer-section">
-              <Accordion.Control>
-                <h3 className="footer-section-title">Legal</h3>
-              </Accordion.Control>
-              <Accordion.Panel>
-                <ul className="footer-links">
-                  <li><Link to="/privacy-policy">Privacy Policy</Link></li>
-                  <li><Link to="/terms-of-service">Terms of Service</Link></li>
-                  <li><Link to="/event-waiver">Event Waiver</Link></li>
-                </ul>
-              </Accordion.Panel>
-            </Accordion.Item>
-
             {/* Connect Section */}
             <Accordion.Item value="connect" className="footer-section">
               <Accordion.Control>
@@ -131,7 +117,7 @@ export const Footer: React.FC = () => {
                     <span>FetLife</span>
                   </Anchor>
                   <Anchor
-                    href="https://instagram.com/witchcityrope"
+                    href="https://www.instagram.com/witch_city_rope/"
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Follow us on Instagram"
@@ -141,6 +127,21 @@ export const Footer: React.FC = () => {
                     <span>Instagram</span>
                   </Anchor>
                 </Group>
+              </Accordion.Panel>
+            </Accordion.Item>
+
+            {/* Legal Section */}
+            <Accordion.Item value="legal" className="footer-section">
+              <Accordion.Control>
+                <h3 className="footer-section-title">Legal</h3>
+              </Accordion.Control>
+              <Accordion.Panel>
+                <ul className="footer-links">
+                  <li><Link to="/privacy-policy">Privacy Policy</Link></li>
+                  <li><Link to="/terms-of-service">Terms of Service</Link></li>
+                  <li><Link to="/event-waiver">Event Waiver</Link></li>
+                  <li><Link to="/refund-policy">Refund Policy</Link></li>
+                </ul>
               </Accordion.Panel>
             </Accordion.Item>
           </Accordion>
@@ -154,16 +155,6 @@ export const Footer: React.FC = () => {
                 <li><Link to="/about-us">About Us</Link></li>
                 <li><Link to="/code-of-conduct">Code of Conduct</Link></li>
                 <li><Link to="/faq">FAQ</Link></li>
-              </ul>
-            </div>
-
-            {/* Legal Section */}
-            <div className="footer-section">
-              <h3 className="footer-section-title">Legal</h3>
-              <ul className="footer-links">
-                <li><Link to="/privacy-policy">Privacy Policy</Link></li>
-                <li><Link to="/terms-of-service">Terms of Service</Link></li>
-                <li><Link to="/event-waiver">Event Waiver</Link></li>
               </ul>
             </div>
 
@@ -185,7 +176,7 @@ export const Footer: React.FC = () => {
                   <span>FetLife</span>
                 </Anchor>
                 <Anchor
-                  href="https://instagram.com/witchcityrope"
+                  href="https://www.instagram.com/witch_city_rope/"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Follow us on Instagram"
@@ -195,6 +186,17 @@ export const Footer: React.FC = () => {
                   <span>Instagram</span>
                 </Anchor>
               </Group>
+            </div>
+
+            {/* Legal Section */}
+            <div className="footer-section">
+              <h3 className="footer-section-title">Legal</h3>
+              <ul className="footer-links">
+                <li><Link to="/privacy-policy">Privacy Policy</Link></li>
+                <li><Link to="/terms-of-service">Terms of Service</Link></li>
+                <li><Link to="/event-waiver">Event Waiver</Link></li>
+                <li><Link to="/refund-policy">Refund Policy</Link></li>
+              </ul>
             </div>
           </Box>
         )}

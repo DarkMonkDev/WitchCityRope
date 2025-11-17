@@ -1,4 +1,5 @@
 import { Paper, Group, Text, Badge, Button, Stack, Collapse, Alert, Checkbox } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { IconClock, IconCheck, IconAlertCircle } from '@tabler/icons-react';
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -20,6 +21,7 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
   const [volunteerTermsAccepted, setVolunteerTermsAccepted] = useState(false);
   const { data: currentUser } = useCurrentUser();
   const queryClient = useQueryClient();
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   // Determine if we need to show ToS checkbox
   // Only show if user hasn't already RSVPed or purchased a ticket
@@ -225,19 +227,22 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
             <Alert
               color="blue"
               variant="light"
-              icon={<IconAlertCircle size={16} />}
+              icon={!isMobile ? <IconAlertCircle size={16} /> : undefined}
               title="Confirm Volunteer Signup"
               style={{ marginTop: 'var(--space-md)' }}
+              styles={{
+                body: { paddingLeft: '6px', paddingRight: '6px' }
+              }}
             >
             <Stack gap="sm">
               <Text size="sm">
                 Signing up for this volunteer position will automatically RSVP you to the event if you haven't already.
               </Text>
 
-              <Group gap="md" justify="space-between" align="center" wrap="nowrap">
+              <Group gap="md" justify="space-between" align="center">
                 {/* Terms of Service Acceptance - only show if user doesn't have existing RSVP/ticket */}
                 {needsTermsAcceptance ? (
-                  <Group gap="sm" align="center" style={{ flex: 1 }}>
+                  <Group gap="sm" align="center" style={{ flex: '1 1 auto', minWidth: 0 }}>
                     <Checkbox
                       id="volunteer-terms-checkbox"
                       checked={volunteerTermsAccepted}
@@ -277,7 +282,7 @@ export const VolunteerPositionCard: React.FC<VolunteerPositionCardProps> = ({
                   <div style={{ flex: 1 }} />
                 )}
 
-                <Group gap="sm">
+                <Group gap="sm" wrap="nowrap" style={{ flexShrink: 0 }}>
                   <Button
                     size="sm"
                     variant="subtle"

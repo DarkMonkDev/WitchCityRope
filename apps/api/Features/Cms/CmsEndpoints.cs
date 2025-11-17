@@ -60,7 +60,7 @@ namespace WitchCityRope.Api.Features.Cms
         /// </summary>
         private static async Task<IResult> GetPageBySlug(
             string slug,
-            ApplicationDbContext db,
+            [FromServices] ApplicationDbContext db,
             CancellationToken ct)
         {
             var page = await db.ContentPages
@@ -94,9 +94,9 @@ namespace WitchCityRope.Api.Features.Cms
             int id,
             [FromBody] UpdateContentPageRequest request,
             ClaimsPrincipal user,
-            ApplicationDbContext db,
-            ContentSanitizer sanitizer,
-            ILogger<Program> logger,
+            [FromServices] ApplicationDbContext db,
+            [FromServices] IContentSanitizer sanitizer,
+            [FromServices] ILogger<Program> logger,
             CancellationToken ct)
         {
             // Extract user ID from claims
@@ -176,7 +176,7 @@ namespace WitchCityRope.Api.Features.Cms
         /// </summary>
         private static async Task<IResult> GetPageRevisions(
             int id,
-            ApplicationDbContext db,
+            [FromServices] ApplicationDbContext db,
             CancellationToken ct)
         {
             // Check if page exists
@@ -217,7 +217,7 @@ namespace WitchCityRope.Api.Features.Cms
         /// GET /api/cms/pages - List all pages with revision counts
         /// </summary>
         private static async Task<IResult> GetAllPages(
-            ApplicationDbContext db,
+            [FromServices] ApplicationDbContext db,
             CancellationToken ct)
         {
             var pages = await db.ContentPages

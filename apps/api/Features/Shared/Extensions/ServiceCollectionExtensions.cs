@@ -39,21 +39,21 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddFeatureServices(this IServiceCollection services, IConfiguration configuration)
     {
         // Health feature services
-        services.AddScoped<HealthService>();
+        services.AddScoped<IHealthService, HealthService>();
 
         // Authentication feature services
-        services.AddScoped<AuthenticationService>();
-        services.AddScoped<ReturnUrlValidator>();
+        services.AddScoped<IAuthenticationService, AuthenticationService>();
+        services.AddScoped<IReturnUrlValidator, ReturnUrlValidator>();
 
         // Events feature services
-        services.AddScoped<Events.Services.EventService>();
+        services.AddScoped<IEventService, Events.Services.EventService>();
         services.AddScoped<ITimeZoneService, TimeZoneService>();
 
         // Admin feature services
         services.AddScoped<ISettingsService, SettingsService>();
 
         // Users feature services
-        services.AddScoped<UserManagementService>();
+        services.AddScoped<IUserManagementService, UserManagementService>();
         services.AddScoped<IMemberDetailsService, MemberDetailsService>();
 
         // Dashboard feature services (wireframe v4)

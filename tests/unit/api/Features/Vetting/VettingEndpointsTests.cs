@@ -129,11 +129,11 @@ public class VettingEndpointsTests
         var result = await CallGetApplicationsForReview(request, httpContext);
 
         // Assert
-        result.Should().BeOfType<JsonHttpResult<Microsoft.AspNetCore.Mvc.ProblemDetails>>();
-        var jsonResult = (JsonHttpResult<Microsoft.AspNetCore.Mvc.ProblemDetails>)result;
-        jsonResult.StatusCode.Should().Be(400);
-        jsonResult.Value.Should().NotBeNull();
-        jsonResult.Value!.Detail.Should().Contain("User information not found");
+        result.Should().BeOfType<ProblemHttpResult>();
+        var problemResult = (ProblemHttpResult)result;
+        problemResult.StatusCode.Should().Be(400);
+        problemResult.ProblemDetails.Should().NotBeNull();
+        problemResult.ProblemDetails!.Detail.Should().Contain("User information not found");
     }
 
     [Fact]
@@ -160,12 +160,12 @@ public class VettingEndpointsTests
         var result = await CallGetApplicationsForReview(request, httpContext);
 
         // Assert
-        result.Should().BeOfType<JsonHttpResult<Microsoft.AspNetCore.Mvc.ProblemDetails>>();
-        var jsonResult = (JsonHttpResult<Microsoft.AspNetCore.Mvc.ProblemDetails>)result;
-        jsonResult.StatusCode.Should().Be(500);
-        jsonResult.Value.Should().NotBeNull();
-        jsonResult.Value!.Title.Should().Be("Database error");
-        jsonResult.Value.Detail.Should().Contain("Connection failed");
+        result.Should().BeOfType<ProblemHttpResult>();
+        var problemResult = (ProblemHttpResult)result;
+        problemResult.StatusCode.Should().Be(500);
+        problemResult.ProblemDetails.Should().NotBeNull();
+        problemResult.ProblemDetails!.Title.Should().Be("Database error");
+        problemResult.ProblemDetails.Detail.Should().Contain("Connection failed");
     }
 
     [Fact]
@@ -227,11 +227,11 @@ public class VettingEndpointsTests
         var result = await CallGetApplicationDetail(applicationId, httpContext);
 
         // Assert
-        result.Should().BeOfType<JsonHttpResult<Microsoft.AspNetCore.Mvc.ProblemDetails>>();
-        var jsonResult = (JsonHttpResult<Microsoft.AspNetCore.Mvc.ProblemDetails>)result;
-        jsonResult.StatusCode.Should().Be(404);
-        jsonResult.Value.Should().NotBeNull();
-        jsonResult.Value!.Title.Should().Contain("not found");
+        result.Should().BeOfType<ProblemHttpResult>();
+        var problemResult = (ProblemHttpResult)result;
+        problemResult.StatusCode.Should().Be(404);
+        problemResult.ProblemDetails.Should().NotBeNull();
+        problemResult.ProblemDetails!.Title.Should().Contain("not found");
     }
 
     [Fact]
@@ -296,11 +296,11 @@ public class VettingEndpointsTests
         var result = await CallSubmitReviewDecision(applicationId, decision, httpContext);
 
         // Assert
-        result.Should().BeOfType<JsonHttpResult<Microsoft.AspNetCore.Mvc.ProblemDetails>>();
-        var jsonResult = (JsonHttpResult<Microsoft.AspNetCore.Mvc.ProblemDetails>)result;
-        jsonResult.StatusCode.Should().Be(400);
-        jsonResult.Value.Should().NotBeNull();
-        jsonResult.Value!.Title.Should().Be("Invalid decision type");
+        result.Should().BeOfType<ProblemHttpResult>();
+        var problemResult = (ProblemHttpResult)result;
+        problemResult.StatusCode.Should().Be(400);
+        problemResult.ProblemDetails.Should().NotBeNull();
+        problemResult.ProblemDetails!.Title.Should().Be("Invalid decision type");
     }
 
     [Fact]
@@ -363,12 +363,12 @@ public class VettingEndpointsTests
         var result = await CallGetApplicationsForReview(request, httpContext);
 
         // Assert
-        result.Should().BeOfType<JsonHttpResult<Microsoft.AspNetCore.Mvc.ProblemDetails>>();
-        var jsonResult = (JsonHttpResult<Microsoft.AspNetCore.Mvc.ProblemDetails>)result;
-        jsonResult.StatusCode.Should().Be(500);
-        jsonResult.Value.Should().NotBeNull();
-        jsonResult.Value!.Title.Should().Be("Failed to retrieve applications");
-        jsonResult.Value.Detail.Should().Contain("Database connection failed");
+        result.Should().BeOfType<ProblemHttpResult>();
+        var problemResult = (ProblemHttpResult)result;
+        problemResult.StatusCode.Should().Be(500);
+        problemResult.ProblemDetails.Should().NotBeNull();
+        problemResult.ProblemDetails!.Title.Should().Be("Failed to retrieve applications");
+        problemResult.ProblemDetails.Detail.Should().Contain("Database connection failed");
     }
 
     [Theory]
@@ -391,11 +391,11 @@ public class VettingEndpointsTests
         var result = await CallGetApplicationDetail(applicationId, httpContext);
 
         // Assert
-        result.Should().BeOfType<JsonHttpResult<Microsoft.AspNetCore.Mvc.ProblemDetails>>();
-        var jsonResult = (JsonHttpResult<Microsoft.AspNetCore.Mvc.ProblemDetails>)result;
-        jsonResult.StatusCode.Should().Be(expectedStatusCode);
-        jsonResult.Value.Should().NotBeNull();
-        jsonResult.Value!.Title.Should().Be(errorMessage);
+        result.Should().BeOfType<ProblemHttpResult>();
+        var problemResult = (ProblemHttpResult)result;
+        problemResult.StatusCode.Should().Be(expectedStatusCode);
+        problemResult.ProblemDetails.Should().NotBeNull();
+        problemResult.ProblemDetails!.Title.Should().Be(errorMessage);
     }
 
     // Helper methods to simulate endpoint calls
@@ -442,12 +442,10 @@ public class VettingEndpointsTests
             }
             catch (Exception ex)
             {
-                return Results.Json(new Microsoft.AspNetCore.Mvc.ProblemDetails
-                {
-                    Title = "Failed to retrieve applications",
-                    Detail = ex.Message,
-                    Status = 500
-                }, statusCode: 500);
+                return Results.Problem(
+                    title: "Failed to retrieve applications",
+                    detail: ex.Message,
+                    statusCode: 500);
             }
         };
     }
@@ -462,12 +460,10 @@ public class VettingEndpointsTests
         var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (!Guid.TryParse(userIdClaim, out var reviewerId))
         {
-            return Results.Json(new Microsoft.AspNetCore.Mvc.ProblemDetails
-            {
-                Title = "Bad Request",
-                Detail = "User information not found",
-                Status = 400
-            }, statusCode: 400);
+            return Results.Problem(
+                title: "Bad Request",
+                detail: "User information not found",
+                statusCode: 400);
         }
 
         var result = await vettingService.GetApplicationsForReviewAsync(request, reviewerId, cancellationToken);
@@ -478,12 +474,10 @@ public class VettingEndpointsTests
         }
 
         var statusCode = result.Error.Contains("Access denied") ? 403 : 500;
-        return Results.Json(new Microsoft.AspNetCore.Mvc.ProblemDetails
-        {
-            Title = result.Error,
-            Detail = result.Details,
-            Status = statusCode
-        }, statusCode: statusCode);
+        return Results.Problem(
+            title: result.Error,
+            detail: result.Details,
+            statusCode: statusCode);
     }
 
     private static async Task<IResult> SimulateGetApplicationDetail(
@@ -495,12 +489,10 @@ public class VettingEndpointsTests
         var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (!Guid.TryParse(userIdClaim, out var reviewerId))
         {
-            return Results.Json(new Microsoft.AspNetCore.Mvc.ProblemDetails
-            {
-                Title = "Bad Request",
-                Detail = "User information not found",
-                Status = 400
-            }, statusCode: 400);
+            return Results.Problem(
+                title: "Bad Request",
+                detail: "User information not found",
+                statusCode: 400);
         }
 
         var result = await vettingService.GetApplicationDetailAsync(id, reviewerId, cancellationToken);
@@ -513,12 +505,10 @@ public class VettingEndpointsTests
         var statusCode = result.Error.Contains("Access denied") ? 403 :
                        result.Error.Contains("not found") ? 404 : 500;
 
-        return Results.Json(new Microsoft.AspNetCore.Mvc.ProblemDetails
-        {
-            Title = result.Error,
-            Detail = result.Details,
-            Status = statusCode
-        }, statusCode: statusCode);
+        return Results.Problem(
+            title: result.Error,
+            detail: result.Details,
+            statusCode: statusCode);
     }
 
     private static async Task<IResult> SimulateSubmitReviewDecision(
@@ -530,12 +520,10 @@ public class VettingEndpointsTests
         var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (!Guid.TryParse(userIdClaim, out var reviewerId))
         {
-            return Results.Json(new Microsoft.AspNetCore.Mvc.ProblemDetails
-            {
-                Title = "Bad Request",
-                Detail = "User information not found",
-                Status = 400
-            }, statusCode: 400);
+            return Results.Problem(
+                title: "Bad Request",
+                detail: "User information not found",
+                statusCode: 400);
         }
 
         var result = await vettingService.SubmitReviewDecisionAsync(parameters.id, parameters.request, reviewerId, cancellationToken);
@@ -548,12 +536,10 @@ public class VettingEndpointsTests
         var statusCode = result.Error.Contains("Access denied") ? 403 :
                        result.Error.Contains("not found") ? 404 : 400;
 
-        return Results.Json(new Microsoft.AspNetCore.Mvc.ProblemDetails
-        {
-            Title = result.Error,
-            Detail = result.Details,
-            Status = statusCode
-        }, statusCode: statusCode);
+        return Results.Problem(
+            title: result.Error,
+            detail: result.Details,
+            statusCode: statusCode);
     }
 
     private static async Task<IResult> SimulateAddApplicationNote(
@@ -565,12 +551,10 @@ public class VettingEndpointsTests
         var userIdClaim = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (!Guid.TryParse(userIdClaim, out var reviewerId))
         {
-            return Results.Json(new Microsoft.AspNetCore.Mvc.ProblemDetails
-            {
-                Title = "Bad Request",
-                Detail = "User information not found",
-                Status = 400
-            }, statusCode: 400);
+            return Results.Problem(
+                title: "Bad Request",
+                detail: "User information not found",
+                statusCode: 400);
         }
 
         var result = await vettingService.AddApplicationNoteAsync(parameters.id, parameters.request, reviewerId, cancellationToken);
@@ -583,11 +567,9 @@ public class VettingEndpointsTests
         var statusCode = result.Error.Contains("Access denied") ? 403 :
                        result.Error.Contains("not found") ? 404 : 400;
 
-        return Results.Json(new Microsoft.AspNetCore.Mvc.ProblemDetails
-        {
-            Title = result.Error,
-            Detail = result.Details,
-            Status = statusCode
-        }, statusCode: statusCode);
+        return Results.Problem(
+            title: result.Error,
+            detail: result.Details,
+            statusCode: statusCode);
     }
 }

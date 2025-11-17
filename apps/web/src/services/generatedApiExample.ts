@@ -13,6 +13,7 @@ import {
 } from '@witchcityrope/shared-types';
 
 // Example 1: Type-safe login using generated types
+// Pattern B: API returns LoginResponse DTO directly, no ApiResponse<T> wrapper
 export async function loginExample(email: string, password: string): Promise<UserDto | null> {
   try {
     const loginRequest: LoginRequest = {
@@ -21,12 +22,14 @@ export async function loginExample(email: string, password: string): Promise<Use
       // rememberMe: false // Not available in LoginRequest
     };
 
+    // Pattern B: API returns LoginResponse DTO directly
     const response: LoginResponse = await apiClient.login(loginRequest);
-    
-    if ((response as any).success && (response as any).user) {
-      return (response as any).user; // Fully typed as UserDto
+
+    // Extract user from response DTO (no .success wrapper)
+    if (response.user) {
+      return response.user; // Fully typed as UserDto
     }
-    
+
     return null;
   } catch (error) {
     const apiError = error as ApiError;

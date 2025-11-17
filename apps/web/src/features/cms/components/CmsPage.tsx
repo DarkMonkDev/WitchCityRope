@@ -121,21 +121,83 @@ export const CmsPage: React.FC<CmsPageProps> = ({ slug, defaultTitle, defaultCon
       {/* Edit mode */}
       {isEditing && (
         <Box>
-          <TextInput
-            label="Page Title"
-            placeholder="Enter page title"
-            value={editableTitle}
-            onChange={handleTitleChange}
-            required
-            mb="md"
-            styles={{
-              input: {
-                fontFamily: 'Montserrat, sans-serif',
-                fontSize: '24px',
-                fontWeight: 600,
-              },
-            }}
-          />
+          {/* Title row with inline label, input, last modified, and buttons */}
+          <Group justify="space-between" align="flex-end" mb="md" wrap="nowrap">
+            {/* Title input section - takes majority of space */}
+            <Box style={{ flex: '1 1 auto', minWidth: 0 }}>
+              <TextInput
+                label="Page Title"
+                placeholder="Enter page title"
+                value={editableTitle}
+                onChange={handleTitleChange}
+                required
+                styles={{
+                  input: {
+                    fontFamily: 'Montserrat, sans-serif',
+                    fontSize: '24px',
+                    fontWeight: 600,
+                  },
+                }}
+              />
+            </Box>
+
+            {/* Last Modified Date - only show if available */}
+            {content?.updatedAt && (
+              <Box
+                style={{
+                  fontSize: '14px',
+                  color: '#868e96',
+                  whiteSpace: 'nowrap',
+                  paddingBottom: '8px',
+                  marginLeft: '16px',
+                  marginRight: '16px',
+                }}
+              >
+                Last Modified: {new Date(content.updatedAt).toLocaleString()}
+              </Box>
+            )}
+
+            {/* Save and Cancel buttons */}
+            <Group gap="sm" wrap="nowrap" style={{ flexShrink: 0 }}>
+              <Button
+                variant="outline"
+                onClick={handleCancel}
+                disabled={isSaving}
+                size="md"
+                styles={{
+                  root: {
+                    fontWeight: 600,
+                    height: '44px',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    fontSize: '14px',
+                    lineHeight: '1.2',
+                  },
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSave}
+                loading={isSaving}
+                disabled={!isDirty}
+                size="md"
+                color="blue"
+                styles={{
+                  root: {
+                    fontWeight: 600,
+                    height: '44px',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    fontSize: '14px',
+                    lineHeight: '1.2',
+                  },
+                }}
+              >
+                Save
+              </Button>
+            </Group>
+          </Group>
 
           <MantineTiptapEditor
             value={editableContent}
@@ -144,12 +206,23 @@ export const CmsPage: React.FC<CmsPageProps> = ({ slug, defaultTitle, defaultCon
             minRows={15}
           />
 
-          <Group justify="flex-end" mt="lg">
+          {/* Bottom Save and Cancel buttons */}
+          <Group justify="flex-end" gap="sm" mt="md">
             <Button
               variant="outline"
               onClick={handleCancel}
               disabled={isSaving}
               size="md"
+              styles={{
+                root: {
+                  fontWeight: 600,
+                  height: '44px',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                  fontSize: '14px',
+                  lineHeight: '1.2',
+                },
+              }}
             >
               Cancel
             </Button>
@@ -158,6 +231,17 @@ export const CmsPage: React.FC<CmsPageProps> = ({ slug, defaultTitle, defaultCon
               loading={isSaving}
               disabled={!isDirty}
               size="md"
+              color="blue"
+              styles={{
+                root: {
+                  fontWeight: 600,
+                  height: '44px',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                  fontSize: '14px',
+                  lineHeight: '1.2',
+                },
+              }}
             >
               Save
             </Button>
@@ -181,8 +265,8 @@ export const CmsPage: React.FC<CmsPageProps> = ({ slug, defaultTitle, defaultCon
             {pageContent.title}
           </h1>
 
-          {/* Display page content */}
-          <div dangerouslySetInnerHTML={{ __html: pageContent.content }} />
+          {/* Display page content with global HTML content styling */}
+          <div className="html-content" dangerouslySetInnerHTML={{ __html: pageContent.content }} />
         </Box>
       )}
 

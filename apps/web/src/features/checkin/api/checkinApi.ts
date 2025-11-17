@@ -3,7 +3,6 @@
 // Mobile-first design with offline capability support
 
 import { apiClient } from '../../../lib/api/client';
-import type { ApiResponse, PaginatedResponse } from '../../../lib/api/types/api.types';
 import type {
   CheckInAttendeesResponse,
   CheckInRequest,
@@ -54,23 +53,36 @@ export const checkinApi = {
    * Process attendee check-in
    * Handles capacity validation and audit logging
    * Sends X-CheckIn-Token header for authentication
+   * Pattern B: API returns CheckInResponse DTO directly, no wrapper
    */
   async checkInAttendee(eventId: string, request: CheckInRequest, sessionToken: string): Promise<CheckInResponse> {
-    const { data } = await apiClient.post<CheckInResponse>(
-      `/api/checkin/events/${eventId}/checkin`,
-      request,
-      {
-        headers: {
-          'X-CheckIn-Token': sessionToken
+    try {
+      const { data } = await apiClient.post<CheckInResponse>(
+        `/api/checkin/events/${eventId}/checkin`,
+        request,
+        {
+          headers: {
+            'X-CheckIn-Token': sessionToken
+          }
         }
+      );
+
+      // Pattern B: Data is the DTO directly, no wrapper
+      if (!data) {
+        throw new Error('No data returned from check-in');
       }
-    );
 
-    if (!data || !data.success) {
-      throw new Error('Failed to process check-in');
+      return data;
+    } catch (error: any) {
+      // Handle RFC 9457 Problem Details
+      if (error.response?.status === 400) {
+        throw new Error(error.response.data.detail || 'Check-in validation failed');
+      }
+      if (error.response?.status === 409) {
+        throw new Error('Already checked in');
+      }
+      throw error;
     }
-
-    return data;
   },
 
   /**
@@ -99,23 +111,36 @@ export const checkinApi = {
    * Synchronize offline check-in data
    * Handles conflict resolution and data integrity
    * Sends X-CheckIn-Token header for authentication
+   * Pattern B: API returns SyncResponse DTO directly, no wrapper
    */
   async syncOfflineData(eventId: string, request: SyncRequest, sessionToken: string): Promise<SyncResponse> {
-    const { data } = await apiClient.post<SyncResponse>(
-      `/api/checkin/events/${eventId}/sync`,
-      request,
-      {
-        headers: {
-          'X-CheckIn-Token': sessionToken
+    try {
+      const { data } = await apiClient.post<SyncResponse>(
+        `/api/checkin/events/${eventId}/sync`,
+        request,
+        {
+          headers: {
+            'X-CheckIn-Token': sessionToken
+          }
         }
+      );
+
+      // Pattern B: Data is the DTO directly, no wrapper
+      if (!data) {
+        throw new Error('No data returned from sync');
       }
-    );
 
-    if (!data || !data.success) {
-      throw new Error('Failed to sync offline data');
+      return data;
+    } catch (error: any) {
+      // Handle RFC 9457 Problem Details
+      if (error.response?.status === 400) {
+        throw new Error(error.response.data.detail || 'Sync validation failed');
+      }
+      if (error.response?.status === 409) {
+        throw new Error('Sync conflict - data already exists');
+      }
+      throw error;
     }
-
-    return data;
   },
 
   /**
@@ -245,28 +270,43 @@ export const checkinApi = {
    * Creates TicketPurchase record (NOT standalone payment)
    * Part of streamlined check-in workflow for social events
    * Sends X-CheckIn-Token header for authentication
+   * Pattern B: API returns CashPaymentResponse DTO directly, no wrapper
    */
   async createCashTicketPurchase(
     eventId: string,
     request: CreateCashTicketPurchaseRequest,
     sessionToken: string
   ): Promise<CashPaymentResponse> {
-    const { data } = await apiClient.post<CashPaymentResponse>(
-      `/api/events/${eventId}/checkin/cash-payment`,
-      request,
-      {
-        headers: {
-          'X-CheckIn-Token': sessionToken
+    try {
+      const { data } = await apiClient.post<CashPaymentResponse>(
+        `/api/events/${eventId}/checkin/cash-payment`,
+        request,
+        {
+          headers: {
+            'X-CheckIn-Token': sessionToken
+          }
         }
+      );
+
+      // Pattern B: Data is the DTO directly, validate required fields
+      if (!data || !data.ticketPurchaseId) {
+        throw new Error('Invalid response: missing ticket purchase ID');
       }
-    );
 
-    // Validate response has required fields (auto-generated types have optional fields)
-    if (!data || !data.success || !data.ticketPurchaseId) {
-      throw new Error('Failed to create ticket purchase');
+      return data;
+    } catch (error: any) {
+      // Handle RFC 9457 Problem Details
+      if (error.response?.status === 400) {
+        throw new Error(error.response.data.detail || 'Invalid ticket purchase request');
+      }
+      if (error.response?.status === 409) {
+        throw new Error('Ticket purchase already exists');
+      }
+      if (error.response?.status === 422) {
+        throw new Error(error.response.data.detail || 'Payment validation failed');
+      }
+      throw error;
     }
-
-    return data;
   },
 
   /**

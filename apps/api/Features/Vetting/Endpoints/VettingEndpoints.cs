@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using WitchCityRope.Api.Data;
@@ -167,7 +168,7 @@ public static class VettingEndpoints
     /// </summary>
     private static async Task<IResult> GetApplicationsForReview(
         ApplicationFilterRequest request,
-        IVettingService vettingService,
+        [FromServices] IVettingService vettingService,
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
@@ -222,7 +223,7 @@ public static class VettingEndpoints
     /// </summary>
     private static async Task<IResult> GetApplicationDetail(
         Guid id,
-        IVettingService vettingService,
+        [FromServices] IVettingService vettingService,
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
@@ -280,7 +281,7 @@ public static class VettingEndpoints
     private static async Task<IResult> SubmitReviewDecision(
         Guid id,
         ReviewDecisionRequest request,
-        IVettingService vettingService,
+        [FromServices] IVettingService vettingService,
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
@@ -338,7 +339,7 @@ public static class VettingEndpoints
     private static async Task<IResult> AddApplicationNote(
         Guid id,
         CreateNoteRequest request,
-        IVettingService vettingService,
+        [FromServices] IVettingService vettingService,
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
@@ -396,7 +397,7 @@ public static class VettingEndpoints
     private static async Task<IResult> ApproveApplication(
         Guid id,
         SimpleReasoningRequest request,
-        IVettingService vettingService,
+        [FromServices] IVettingService vettingService,
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
@@ -455,7 +456,7 @@ public static class VettingEndpoints
     private static async Task<IResult> ChangeApplicationStatus(
         Guid id,
         StatusChangeRequest request,
-        IVettingService vettingService,
+        [FromServices] IVettingService vettingService,
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
@@ -538,7 +539,7 @@ public static class VettingEndpoints
     private static async Task<IResult> AddSimpleApplicationNote(
         Guid id,
         SimpleNoteRequest request,
-        IVettingService vettingService,
+        [FromServices] IVettingService vettingService,
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
@@ -604,7 +605,7 @@ public static class VettingEndpoints
     private static async Task<IResult> DenyApplication(
         Guid id,
         SimpleReasoningRequest request,
-        IVettingService vettingService,
+        [FromServices] IVettingService vettingService,
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
@@ -670,7 +671,7 @@ public static class VettingEndpoints
     /// GET /api/vetting/status
     /// </summary>
     private static async Task<IResult> GetVettingStatus(
-        IVettingService vettingService,
+        [FromServices] IVettingService vettingService,
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
@@ -712,7 +713,7 @@ public static class VettingEndpoints
     /// GET /api/vetting/application
     /// </summary>
     private static async Task<IResult> GetMyVettingApplication(
-        IVettingService vettingService,
+        [FromServices] IVettingService vettingService,
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
@@ -756,7 +757,7 @@ public static class VettingEndpoints
     /// </summary>
     private static async Task<IResult> GetApplicationStatusByToken(
         string token,
-        IVettingService vettingService,
+        [FromServices] IVettingService vettingService,
         CancellationToken cancellationToken)
     {
         try
@@ -789,7 +790,7 @@ public static class VettingEndpoints
     /// </summary>
     private static async Task<IResult> SubmitPublicApplication(
         PublicApplicationSubmissionRequest request,
-        IVettingService vettingService,
+        [FromServices] IVettingService vettingService,
         CancellationToken cancellationToken)
     {
         try
@@ -834,7 +835,7 @@ public static class VettingEndpoints
     private static async Task<IResult> SubmitSimplifiedApplication(
         SimplifiedApplicationRequest request,
         ClaimsPrincipal user,
-        IVettingService vettingService,
+        [FromServices] IVettingService vettingService,
         CancellationToken cancellationToken)
     {
         try
@@ -890,7 +891,7 @@ public static class VettingEndpoints
     /// </summary>
     private static async Task<IResult> GetMyApplication(
         ClaimsPrincipal user,
-        IVettingService vettingService,
+        [FromServices] IVettingService vettingService,
         CancellationToken cancellationToken)
     {
         try

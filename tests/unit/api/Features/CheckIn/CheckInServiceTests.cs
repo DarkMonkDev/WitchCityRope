@@ -12,6 +12,7 @@ using Xunit;
 using FluentAssertions;
 using Testcontainers.PostgreSql;
 using Xunit.Abstractions;
+using WitchCityRope.Api.Features.Participation.Entities;
 
 namespace WitchCityRope.UnitTests.Api.Features.CheckIn;
 
@@ -56,12 +57,36 @@ public class CheckInServiceTests : IAsyncLifetime
         _context = new ApplicationDbContext(options);
         await _context.Database.EnsureCreatedAsync();
 
+        // Seed test venue (required for Events foreign key)
+        await SeedTestVenue();
+
         // Setup logger and cache
         _logger = Substitute.For<ILogger<CheckInService>>();
         _cache = new MemoryCache(new MemoryCacheOptions());
 
         // Create service instance
         _service = new CheckInService(_context, _logger, _cache);
+    }
+
+    /// <summary>
+    /// Seeds a test venue with ID = 1 for all Events to reference
+    /// All Events in tests use VenueId = 1
+    /// </summary>
+    private async Task SeedTestVenue()
+    {
+        var venue = new Venue
+        {
+            Id = 1,
+            Name = "Test Venue",
+            Directions = "Test location for integration tests",
+            Notes = "Default test venue",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _context.Venues.Add(venue);
+        await _context.SaveChangesAsync();
     }
 
     public async Task DisposeAsync()
@@ -799,7 +824,7 @@ public class CheckInServiceTests : IAsyncLifetime
             Id = Guid.NewGuid(),
             EventId = testEvent.Id,
             UserId = testUser.Id,
-            RegistrationStatus = "rsvp",
+            RegistrationStatus = "confirmed",
             IsFirstTime = false,
             HasCompletedWaiver = true,
             CreatedAt = DateTime.UtcNow,
@@ -901,7 +926,7 @@ public class CheckInServiceTests : IAsyncLifetime
             Id = Guid.NewGuid(),
             EventId = testEvent.Id,
             UserId = testUser.Id,
-            RegistrationStatus = "rsvp",
+            RegistrationStatus = "confirmed",
             IsFirstTime = false,
             HasCompletedWaiver = true,
             CreatedAt = DateTime.UtcNow,
@@ -967,7 +992,7 @@ public class CheckInServiceTests : IAsyncLifetime
             Id = Guid.NewGuid(),
             EventId = testEvent.Id,
             UserId = testUser.Id,
-            RegistrationStatus = "rsvp",
+            RegistrationStatus = "confirmed",
             IsFirstTime = false,
             HasCompletedWaiver = true,
             CreatedAt = DateTime.UtcNow,
@@ -1004,7 +1029,7 @@ public class CheckInServiceTests : IAsyncLifetime
             Id = Guid.NewGuid(),
             EventId = testEvent.Id,
             UserId = testUser.Id,
-            RegistrationStatus = "rsvp",
+            RegistrationStatus = "confirmed",
             IsFirstTime = false,
             HasCompletedWaiver = true,
             CreatedAt = DateTime.UtcNow,
@@ -1054,7 +1079,7 @@ public class CheckInServiceTests : IAsyncLifetime
             Id = Guid.NewGuid(),
             EventId = testEvent.Id,
             UserId = testUser.Id,
-            RegistrationStatus = "rsvp",
+            RegistrationStatus = "confirmed",
             IsFirstTime = false,
             HasCompletedWaiver = true,
             CreatedAt = DateTime.UtcNow,
@@ -1113,7 +1138,7 @@ public class CheckInServiceTests : IAsyncLifetime
             Id = Guid.NewGuid(),
             EventId = testEvent.Id,
             UserId = testUser.Id,
-            RegistrationStatus = "rsvp",
+            RegistrationStatus = "confirmed",
             IsFirstTime = false,
             HasCompletedWaiver = true,
             CreatedAt = DateTime.UtcNow,
@@ -1170,7 +1195,7 @@ public class CheckInServiceTests : IAsyncLifetime
             Id = Guid.NewGuid(),
             EventId = testEvent.Id,
             UserId = testUser.Id,
-            RegistrationStatus = "rsvp",
+            RegistrationStatus = "confirmed",
             IsFirstTime = false,
             HasCompletedWaiver = true,
             CreatedAt = DateTime.UtcNow,

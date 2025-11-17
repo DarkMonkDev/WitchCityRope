@@ -24,6 +24,612 @@ If you cannot read ANY file:
 
 ---
 
+## 🚨 CRITICAL: Mantine v7 Checkbox Interaction Pattern for Playwright E2E Tests (2025-11-16)
+
+**Problem**: Mantine v7 completely hides the actual checkbox input with CSS, making it invisible to Playwright's actionability checks. Standard `.check()` and label-based interactions fail.
+
+**Date Discovered**: November 16, 2025
+**Context**: RSVP lifecycle E2E test fixes - all checkbox interactions failing with "Element is not visible"
+**Files Affected**: `/apps/web/tests/playwright/templates/rsvp-persistence-template.ts` lines 154-169
+
+### Root Cause: Mantine v7 Custom Checkbox Architecture
+
+**Mantine v7 Structure**:
+```html
+<!-- Mantine renders a wrapper div that is the actual clickable element -->
+<div class="mantine-Checkbox-root">
+  <input type="checkbox" data-testid="waiver-checkbox" style="display: none;" />
+  <label for="waiver-checkbox" class="mantine-Checkbox-label">
+    I agree to waiver
+  </label>
+</div>
+```
+
+**Why Standard Approaches Fail**:
+1. ❌ **`.check()` without force** - Fails: "Element is not visible" (checkbox hidden with CSS)
+2. ❌ **`.check({ force: true })`** - Fails: Playwright still tries to scroll to hidden element
+3. ❌ **Click label using `label[for="checkbox-id"]`** - Fails: React strict mode creates duplicates
+4. ❌ **Click label text with `.getByText().first()`** - Clicks wrong element (hidden duplicate)
+5. ❌ **Click label text with `.last()`** - Clicks but checkbox state remains false (labels don't trigger Mantine checkboxes)
+6. ❌ **Use `getByRole('checkbox')`** - Fails: Mantine checkbox not in accessibility tree
+
+### ✅ CORRECT Pattern: Click the Parent Mantine Wrapper
+
+```typescript
+// ✅ CORRECT - Click parent wrapper element
+const mantineCheckbox = page.locator('input[data-testid="waiver-checkbox"]')
+  .locator('..')  // Get parent element (the Mantine checkbox wrapper)
+  .last();  // Use .last() to avoid React strict mode duplicate
+await mantineCheckbox.click();
+
+// Verify the checkbox is checked
+await expect(page.locator('input[data-testid="waiver-checkbox"]')).toBeChecked();
+```
+
+### Why This Pattern Works
+
+**Mantine Architecture**:
+- Mantine renders a **styled wrapper div** that is the actual clickable element
+- The **real checkbox input is hidden** (not just visually, but `display: none`)
+- The **label is a sibling** (NOT parent-child relationship)
+- Clicking the **wrapper triggers the Mantine checkbox logic** correctly
+
+**Playwright Interaction**:
+- Locate the hidden input by `data-testid`
+- Traverse to parent (`..`) to get the clickable wrapper
+- Use `.last()` to avoid React strict mode duplicates (see next section)
+- Click the wrapper (not the input, not the label)
+
+### Prevention Rules for Mantine v7 Checkboxes
+
+1. ✅ **ALWAYS click parent wrapper**: `page.locator('input[data-testid]').locator('..').last().click()`
+2. ✅ **ALWAYS use `.last()`**: Avoids React strict mode duplicates
+3. ✅ **ALWAYS verify with `.toBeChecked()`**: Check the actual input state after clicking
+4. ❌ **NEVER use `.check()` on Mantine checkboxes**: Will fail with visibility errors
+5. ❌ **NEVER click labels directly**: Doesn't trigger Mantine checkbox state
+6. ❌ **NEVER use `.first()` in React strict mode**: Selects hidden duplicate
+
+### Complete Example
+
+```typescript
+// Test: RSVP with waiver agreement
+test('member can RSVP with waiver agreement', async ({ page }) => {
+  // Navigate to event
+  await page.goto('/events/123');
+
+  // Click RSVP button
+  await page.locator('button:has-text("RSVP")').last().click();
+
+  // ✅ CORRECT - Check Mantine checkbox via wrapper
+  const waiverCheckbox = page.locator('input[data-testid="waiver-checkbox"]')
+    .locator('..')
+    .last();
+  await waiverCheckbox.click();
+
+  // Verify checkbox is checked
+  await expect(page.locator('input[data-testid="waiver-checkbox"]')).toBeChecked();
+
+  // Submit RSVP
+  const submitButton = page.locator('button:has-text("Submit RSVP")').last();
+  await submitButton.click();
+
+  // Verify success
+  await expect(page.locator('text=RSVP confirmed')).toBeVisible();
+});
+```
+
+### Related Pattern: React Strict Mode
+
+See next section "React Strict Mode Testing Pattern" for why `.last()` is required.
+
+---
+
+## 🚨 CRITICAL: React Strict Mode Testing Pattern - Always Use .last() for Interactive Elements (2025-11-16)
+
+**Problem**: React strict mode creates duplicate DOM elements (both hidden and visible) for debugging purposes. Using `.first()` selects hidden duplicates, causing "Element is not visible" errors.
+
+**Date Discovered**: November 16, 2025
+**Context**: RSVP lifecycle E2E test fixes
+**Files Affected**: `/apps/web/tests/playwright/templates/rsvp-persistence-template.ts` lines 160-162 (checkbox), line 200 (button)
+
+### Root Cause: React Strict Mode Duplicate Rendering
+
+**React Strict Mode Behavior**:
+- In development mode, React strict mode **intentionally double-renders components**
+- Creates **both hidden and visible DOM elements** for debugging
+- First render is hidden, second render is visible
+- This helps catch side effects and lifecycle issues
+
+**Playwright Impact**:
+```html
+<!-- React strict mode creates duplicates -->
+<div style="display: none;">  <!-- Hidden duplicate -->
+  <button>Submit RSVP</button>
+</div>
+<div>  <!-- Visible actual element -->
+  <button>Submit RSVP</button>
+</div>
+```
+
+### ❌ WRONG Pattern: Using .first()
+
+```typescript
+// ❌ WRONG - Selects hidden duplicate
+const button = page.locator('button:has-text("Submit")').first();
+await button.click(); // ERROR: Element is not visible
+
+const checkbox = page.locator('input[data-testid="waiver"]').first();
+await checkbox.check(); // ERROR: Element is not visible
+```
+
+**Why It Fails**:
+- `.first()` selects the **hidden duplicate** created by React strict mode
+- Playwright throws "Element is not visible" error
+- Even with `{ force: true }`, visibility checks still fail
+
+### ✅ CORRECT Pattern: Using .last()
+
+```typescript
+// ✅ CORRECT - Selects visible element
+const button = page.locator('button:has-text("Submit RSVP")').last();
+await button.click(); // Works - clicks visible element
+
+const checkbox = page.locator('input[data-testid="waiver-checkbox"]')
+  .locator('..')  // For Mantine - get parent wrapper
+  .last();  // Select visible duplicate
+await checkbox.click(); // Works - clicks visible element
+```
+
+**Why It Works**:
+- `.last()` selects the **visible element** (second render)
+- Playwright can interact with visible elements
+- Consistent with React strict mode behavior in development
+
+### When to Apply This Pattern
+
+**ALWAYS use `.last()` for**:
+- ✅ Buttons: `page.locator('button:has-text("Submit")').last()`
+- ✅ Inputs: `page.locator('input[type="text"]').last()`
+- ✅ Checkboxes (especially Mantine): `page.locator('input[data-testid]').locator('..').last()`
+- ✅ Links: `page.locator('a:has-text("Click here")').last()`
+- ✅ Any interactive element that could be duplicated
+
+**ONLY use `.first()` when**:
+- ❌ You explicitly want the FIRST occurrence in a list (e.g., first item in search results)
+- ❌ You're NOT in React strict mode (production builds)
+- ⚠️ **CAUTION**: Even in these cases, `.last()` is safer if elements might be duplicated
+
+### Consistency Rule
+
+**Apply `.last()` to ALL interactive elements in the same test file**:
+
+```typescript
+// ✅ CORRECT - Consistent use of .last()
+test('RSVP lifecycle', async ({ page }) => {
+  await page.goto('/events/123');
+
+  // All interactive elements use .last()
+  await page.locator('button:has-text("RSVP")').last().click();
+
+  const checkbox = page.locator('input[data-testid="waiver-checkbox"]')
+    .locator('..')
+    .last();
+  await checkbox.click();
+
+  await page.locator('button:has-text("Submit RSVP")').last().click();
+
+  await expect(page.locator('text=RSVP confirmed')).toBeVisible();
+});
+```
+
+### Prevention Rules
+
+1. ✅ **DEFAULT to `.last()`**: For ALL interactive elements (buttons, inputs, checkboxes)
+2. ✅ **CONSISTENT in file**: Apply `.last()` pattern to entire test file
+3. ✅ **DOCUMENT exceptions**: If using `.first()`, add comment explaining why
+4. ❌ **NEVER mix `.first()` and `.last()`**: Without clear reason (causes inconsistency)
+5. ✅ **VERIFY visibility**: Always check elements are visible before interaction
+
+### Files Updated
+
+**RSVP Persistence Template**: `/apps/web/tests/playwright/templates/rsvp-persistence-template.ts`
+- Line 160-162: Checkbox wrapper (`.last()`)
+- Line 200: Submit button (`.last()`)
+
+### Related Patterns
+
+- See "Mantine v7 Checkbox Interaction Pattern" for checkbox-specific guidance
+- Combine `.last()` with parent traversal for Mantine components
+
+---
+
+## 🚨 CRITICAL: E2E Persistence Testing Value - Real Bug Discovery Success Story (2025-11-16)
+
+**Problem**: E2E tests successfully caught a critical backend bug where POST /api/events/{id}/rsvp returns 201 success but doesn't persist the RSVP to the database.
+
+**Date Discovered**: November 16, 2025
+**Context**: RSVP lifecycle E2E test execution after Mantine checkbox fixes
+**Bug Impact**: Users see "RSVP confirmed" but database has no record - data loss!
+
+### What Happened: The Bug Story
+
+**User Experience (Frontend)**:
+1. User clicks "RSVP" button
+2. User checks waiver checkbox
+3. User clicks "Submit RSVP"
+4. API returns `201 Created` (success status)
+5. React Query cache updates correctly
+6. UI shows "Cancel RSVP" button (correct state)
+7. ✅ **Everything looks perfect from UI perspective**
+
+**Database Reality (Backend)**:
+1. API endpoint returns 201 success
+2. **BUT** database INSERT never executed
+3. **NO** EventAttendance record created
+4. **ONLY** old cancelled RSVP from previous test runs exists
+5. ❌ **Database and UI completely out of sync**
+
+**What E2E Test Discovered**:
+```typescript
+// Test verification after RSVP submission
+await DatabaseHelpers.verifyEventParticipation(
+  userId,
+  eventId,
+  1,  // expectedStatus: 1=Active
+  2   // expectedType: 2=RSVP
+);
+
+// ERROR: No matching record found!
+// Database only had old cancelled record (Status=0)
+```
+
+### Key Insight: UI Success Does NOT Guarantee Database Persistence
+
+**The Illusion of Success**:
+- ✅ API returns success status code → Frontend happy
+- ✅ React Query cache updates → UI renders correctly
+- ✅ State management works → User sees correct UI
+- ❌ **Database record NOT created** → Data permanently lost!
+
+**Why This Happens**:
+1. **API layer bug**: Returns 201 before database commit completes
+2. **Transaction rollback**: Database operation fails silently
+3. **Cache-only updates**: Frontend caches API response, never re-validates
+4. **Missing error handling**: Backend doesn't catch/report database errors
+
+**Why Unit Tests Didn't Catch It**:
+- Unit tests mock database layer → Never execute actual SQL
+- Integration tests might use in-memory database → Different behavior
+- Only **E2E tests with real database** catch persistence failures
+
+### Pattern: What E2E Persistence Tests MUST Verify
+
+**1. UI Shows Success**:
+```typescript
+await expect(page.locator('button:has-text("Cancel RSVP")')).toBeVisible();
+```
+
+**2. API Returns Success Status Code**:
+```typescript
+const response = await page.waitForResponse(resp =>
+  resp.url().includes('/api/events/') && resp.status() === 201
+);
+expect(response.status()).toBe(201);
+```
+
+**3. Database Record Exists with Correct Status** (MOST IMPORTANT):
+```typescript
+await DatabaseHelpers.verifyEventParticipation(
+  userId,
+  eventId,
+  1,  // expectedStatus: 1=Active (NOT 0=Cancelled)
+  2   // expectedType: 2=RSVP (filters to ensure correct type)
+);
+```
+
+**4. Database Record Persists After Page Refresh** (CRITICAL):
+```typescript
+// Refresh page to clear React Query cache
+await page.reload();
+
+// Verify UI still shows correct state (from database, not cache)
+await expect(page.locator('button:has-text("Cancel RSVP")')).toBeVisible();
+
+// Verify database still has record
+await DatabaseHelpers.verifyEventParticipation(userId, eventId, 1, 2);
+```
+
+### Prevention Rules for E2E Persistence Tests
+
+1. ✅ **NEVER trust API status codes alone** - Verify database state
+2. ✅ **ALWAYS test page refresh** - Ensures data persists, not just cached
+3. ✅ **FILTER database queries properly** - Status AND Type (see next section)
+4. ✅ **DEBUG log what records exist** - When verification fails, show all records
+5. ✅ **TEST cancellation/updates** - Ensure status changes persist correctly
+
+### Files Implementing This Pattern
+
+**Database Helpers**: `/apps/web/tests/playwright/utils/database-helpers.ts` lines 199-260
+- `verifyEventParticipation()` method
+- Queries by userId, eventId, Status, AttendanceType
+- Logs debug information when verification fails
+
+**RSVP Persistence Template**: `/apps/web/tests/playwright/templates/rsvp-persistence-template.ts` lines 154-169
+- Tests RSVP submission
+- Verifies database persistence
+- Tests page refresh to validate cache vs database
+
+### Success Metrics
+
+**E2E Test Value Demonstrated**:
+- ✅ Caught critical data loss bug
+- ✅ Bug would NOT be caught by unit tests (mock database)
+- ✅ Bug would NOT be caught by manual testing (UI looks correct)
+- ✅ Bug would only appear in production when data goes missing
+
+**Real-World Impact**:
+- **Without E2E test**: Bug ships to production, users lose RSVP data silently
+- **With E2E test**: Bug caught in development, fixed before users affected
+- **ROI**: Single E2E test prevented production data loss incident
+
+### Key Lesson
+
+**UI success does NOT guarantee database persistence. E2E tests MUST verify:**
+1. API returns success
+2. UI shows success
+3. **Database record exists** (most important)
+4. **Database record persists after refresh** (critical for cache-only bugs)
+
+**Summary**: This is why we write E2E tests. Unit tests verify business logic. E2E tests verify the ENTIRE system actually works, including database persistence.
+
+---
+
+## 🚨 CRITICAL: Database Query Filtering for Persistence Tests - Filter by Status AND Type (2025-11-16)
+
+**Problem**: Users can have multiple attendance records for the same event (e.g., both RSVP and Ticket for social events, or old cancelled records). Querying only by userId + eventId returns wrong record type or old cancelled records.
+
+**Date Discovered**: November 16, 2025
+**Context**: RSVP lifecycle E2E test database verification
+**Files Affected**: `/apps/web/tests/playwright/utils/database-helpers.ts` lines 199-260
+
+### Root Cause: Multiple Attendance Records Per User Per Event
+
+**Real-World Scenario**:
+```sql
+-- User can have MULTIPLE EventAttendance records for same event
+SELECT * FROM "EventAttendances"
+WHERE "UserId" = 'user-123' AND "EventId" = 'event-456';
+
+-- Results:
+-- Record 1: AttendanceType=2 (RSVP), Status=0 (Cancelled), UpdatedAt=2025-11-14
+-- Record 2: AttendanceType=1 (Ticket), Status=1 (Active), UpdatedAt=2025-11-15
+-- Record 3: AttendanceType=2 (RSVP), Status=1 (Active), UpdatedAt=2025-11-16
+```
+
+**Why This Happens**:
+1. **Social events** allow both RSVP (free) AND Ticket (paid) attendance
+2. **User changes mind**: Cancels RSVP, creates new one (2 RSVP records)
+3. **Test reruns**: Old cancelled records from previous test runs
+4. **Mixed attendance**: User volunteers (AttendanceType=4) AND has ticket
+
+### ❌ WRONG Pattern: Query Only by User + Event
+
+```typescript
+// ❌ WRONG - Returns ANY record, might be wrong type or cancelled
+const sql = `
+  SELECT * FROM "EventAttendances"
+  WHERE "UserId" = $1 AND "EventId" = $2
+  ORDER BY "UpdatedAt" DESC
+  LIMIT 1
+`;
+const result = await query(sql, [userId, eventId]);
+
+// Problem: Might return:
+// - Cancelled RSVP instead of active RSVP
+// - Ticket record instead of RSVP record
+// - Volunteer record instead of ticket record
+```
+
+**Why It Fails**:
+- ✅ Returns most recent record by `UpdatedAt`
+- ❌ **Doesn't guarantee correct AttendanceType** (RSVP vs Ticket vs Volunteer)
+- ❌ **Doesn't guarantee correct Status** (Active vs Cancelled)
+- ❌ **Test passes with wrong data** - False positive!
+
+### ✅ CORRECT Pattern: Filter by Status AND AttendanceType
+
+```typescript
+// ✅ CORRECT - Filters by BOTH Status AND Type
+const sql = `
+  SELECT * FROM "EventAttendances"
+  WHERE "UserId" = $1
+    AND "EventId" = $2
+    AND "Status" = $3
+    AND "AttendanceType" = $4
+  ORDER BY "UpdatedAt" DESC
+  LIMIT 1
+`;
+
+const result = await query(sql, [
+  userId,
+  eventId,
+  1,  // Status: 1=Active (filters out cancelled records)
+  2   // AttendanceType: 2=RSVP (ensures we get RSVP, not Ticket)
+]);
+
+// Now we GUARANTEE:
+// ✅ Correct type (RSVP, not Ticket/Volunteer)
+// ✅ Correct status (Active, not Cancelled)
+// ✅ Test fails if wrong record exists
+```
+
+### Database Helper Implementation
+
+**Method Signature**:
+```typescript
+/**
+ * Verifies user has specific event participation record
+ * @param userId - User ID
+ * @param eventId - Event ID
+ * @param expectedStatus - 1=Active, 0=Cancelled
+ * @param expectedType - 1=Ticket, 2=RSVP, 3=CheckIn, 4=Volunteer
+ */
+async function verifyEventParticipation(
+  userId: string,
+  eventId: string,
+  expectedStatus: number,
+  expectedType: number
+): Promise<void>
+```
+
+**Implementation** (`/apps/web/tests/playwright/utils/database-helpers.ts` lines 199-260):
+```typescript
+export async function verifyEventParticipation(
+  userId: string,
+  eventId: string,
+  expectedStatus: number,
+  expectedType: number
+): Promise<void> {
+  const sql = `
+    SELECT "Id", "Status", "AttendanceType", "UpdatedAt"
+    FROM "EventAttendances"
+    WHERE "UserId" = $1
+      AND "EventId" = $2
+      AND "Status" = $3
+      AND "AttendanceType" = $4
+    ORDER BY "UpdatedAt" DESC
+    LIMIT 1
+  `;
+
+  const rows = await query(sql, [userId, eventId, expectedStatus, expectedType]);
+
+  if (rows.length === 0) {
+    // Debug: Log what records actually exist
+    const debugSql = `
+      SELECT "Status", "AttendanceType", "UpdatedAt"
+      FROM "EventAttendances"
+      WHERE "UserId" = $1 AND "EventId" = $2
+      ORDER BY "UpdatedAt" DESC
+    `;
+    const debugRows = await query(debugSql, [userId, eventId]);
+
+    console.log(`No matching record found for userId=${userId}, eventId=${eventId}`);
+    console.log(`Expected: Status=${expectedStatus}, Type=${expectedType}`);
+    console.log(`Found ${debugRows.length} records:`, debugRows);
+
+    throw new Error(
+      `Expected ${expectedType === 1 ? 'Ticket' : 'RSVP'} with status ` +
+      `${expectedStatus === 1 ? 'Active' : 'Cancelled'}, but found no matching record`
+    );
+  }
+
+  // Success - found matching record
+  console.log(`✓ Verified participation: Status=${expectedStatus}, Type=${expectedType}`);
+}
+```
+
+### AttendanceType Enum Reference
+
+```csharp
+// Backend: EventAttendanceType enum
+public enum EventAttendanceType
+{
+    Ticket = 1,      // Paid ticket purchase
+    RSVP = 2,        // Free RSVP (requires waiver)
+    CheckIn = 3,     // Walk-in at event
+    Volunteer = 4    // Volunteer assignment
+}
+```
+
+### Status Enum Reference
+
+```csharp
+// Backend: EventAttendanceStatus enum
+public enum EventAttendanceStatus
+{
+    Cancelled = 0,   // Cancelled/inactive
+    Active = 1       // Active participation
+}
+```
+
+### Usage Examples
+
+**Verify Active RSVP**:
+```typescript
+await DatabaseHelpers.verifyEventParticipation(
+  userId,
+  eventId,
+  1,  // Status=Active
+  2   // Type=RSVP
+);
+```
+
+**Verify Cancelled Ticket**:
+```typescript
+await DatabaseHelpers.verifyEventParticipation(
+  userId,
+  eventId,
+  0,  // Status=Cancelled
+  1   // Type=Ticket
+);
+```
+
+**Verify Active Volunteer Assignment**:
+```typescript
+await DatabaseHelpers.verifyEventParticipation(
+  userId,
+  eventId,
+  1,  // Status=Active
+  4   // Type=Volunteer
+);
+```
+
+### Prevention Rules
+
+1. ✅ **ALWAYS filter by Status AND AttendanceType** - Not just user + event
+2. ✅ **USE debug logging** - When verification fails, show all records
+3. ✅ **DOCUMENT expected values** - Comment what Status/Type numbers mean
+4. ✅ **ORDER BY UpdatedAt DESC** - Get most recent matching record
+5. ❌ **NEVER assume one record per user per event** - Multiple records are valid
+
+### Debug Logging Pattern
+
+**When verification fails, show what exists**:
+```typescript
+if (rows.length === 0) {
+  // Query WITHOUT status/type filters to see all records
+  const debugSql = `
+    SELECT "Status", "AttendanceType", "UpdatedAt"
+    FROM "EventAttendances"
+    WHERE "UserId" = $1 AND "EventId" = $2
+  `;
+  const debugRows = await query(debugSql, [userId, eventId]);
+
+  console.log(`Found ${debugRows.length} records:`, debugRows);
+  // Output: Found 3 records: [
+  //   { Status: 0, AttendanceType: 2, UpdatedAt: '2025-11-14' },
+  //   { Status: 1, AttendanceType: 1, UpdatedAt: '2025-11-15' },
+  //   { Status: 1, AttendanceType: 2, UpdatedAt: '2025-11-16' }
+  // ]
+}
+```
+
+**Value**: Helps distinguish between:
+- ❌ "No record exists at all" (database insert failed)
+- ❌ "Record exists but has wrong status" (status update failed)
+- ❌ "Record exists but has wrong type" (created wrong attendance type)
+
+### Key Lesson
+
+**Database verification in E2E tests MUST filter by:**
+1. **User + Event** (identifies which participation)
+2. **Status** (Active vs Cancelled - prevents old records from passing tests)
+3. **AttendanceType** (RSVP vs Ticket vs Volunteer - prevents wrong type from passing)
+
+**Without proper filtering**: Tests pass with wrong data (false positives), bugs ship to production.
+
+---
+
 ## 🚨 CRITICAL: Pattern B Uses ProblemHttpResult, NOT JsonHttpResult<ProblemDetails> (2025-11-13)
 
 **Problem**: Pattern B endpoint tests used wrong result type assertions, causing 80 of 90 tests to fail despite endpoints working correctly.

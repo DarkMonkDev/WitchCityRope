@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
 using WitchCityRope.Api.Features.Volunteers.Models;
 using WitchCityRope.Api.Features.Volunteers.Services;
 using WitchCityRope.Api.Models;
@@ -18,7 +19,7 @@ public static class VolunteerEndpoints
         // Get volunteer positions for an event
         app.MapGet("/api/events/{id}/volunteer-positions", async (
             string id,
-            IVolunteerService volunteerService,
+            [FromServices] IVolunteerService volunteerService,
             HttpContext context,
             CancellationToken cancellationToken) =>
         {
@@ -54,7 +55,7 @@ public static class VolunteerEndpoints
         app.MapPost("/api/volunteer-positions/{id}/signup", async (
             string id,
             VolunteerSignupRequest request,
-            IVolunteerService volunteerService,
+            [FromServices] IVolunteerService volunteerService,
             HttpContext context,
             CancellationToken cancellationToken) =>
         {
@@ -116,7 +117,7 @@ public static class VolunteerEndpoints
 
         // Get user's volunteer shifts
         app.MapGet("/api/user/volunteer-shifts", async (
-            IVolunteerService volunteerService,
+            [FromServices] IVolunteerService volunteerService,
             HttpContext context,
             CancellationToken cancellationToken) =>
         {

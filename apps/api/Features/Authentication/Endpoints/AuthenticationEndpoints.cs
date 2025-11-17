@@ -20,7 +20,7 @@ public static class AuthenticationEndpoints
     {
         // Get current authenticated user information
         app.MapGet("/api/auth/current-user", async (
-            AuthenticationService authService,
+            IAuthenticationService authService,
             ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
             {
@@ -57,7 +57,7 @@ public static class AuthenticationEndpoints
         // User login endpoint with httpOnly cookie support and return URL validation
         app.MapPost("/api/auth/login", async (
             LoginRequest request,
-            AuthenticationService authService,
+            IAuthenticationService authService,
             HttpContext context,
             IConfiguration configuration,
             CancellationToken cancellationToken) =>
@@ -90,10 +90,23 @@ public static class AuthenticationEndpoints
                     });
                 }
 
+                // Determine appropriate HTTP status code based on error type
+                // 401 Unauthorized: Authentication failures (wrong credentials, locked account)
+                // 400 Bad Request: Validation failures (missing required fields)
+                // 500 Internal Server Error: System failures
+                var statusCode = error switch
+                {
+                    var e when e.Contains("Invalid email/scene name or password") => 401,
+                    var e when e.Contains("locked") => 401,
+                    var e when e.Contains("is required") => 400,
+                    var e when e.Contains("could not be completed") => 500,
+                    _ => 400
+                };
+
                 return Results.Problem(
                     title: "Login Failed",
                     detail: error,
-                    statusCode: error.Contains("Invalid email") && error.Contains("password") ? 401 : 400);
+                    statusCode: statusCode);
             })
             .WithName("Login")
             .WithSummary("Authenticate user with email and password (with optional return URL)")
@@ -106,7 +119,7 @@ public static class AuthenticationEndpoints
         // User registration endpoint
         app.MapPost("/api/auth/register", async (
             RegisterRequest request,
-            AuthenticationService authService,
+            IAuthenticationService authService,
             CancellationToken cancellationToken) =>
             {
                 var (success, response, error) = await authService.RegisterAsync(request, cancellationToken);
@@ -128,7 +141,7 @@ public static class AuthenticationEndpoints
         // Service token generation for service-to-service authentication
         app.MapPost("/api/auth/service-token", async (
             ServiceTokenRequest request,
-            AuthenticationService authService,
+            IAuthenticationService authService,
             IConfiguration configuration,
             HttpContext context,
             CancellationToken cancellationToken) =>
@@ -179,7 +192,7 @@ public static class AuthenticationEndpoints
         // Logout endpoint with cookie clearing and token blacklisting
         app.MapPost("/api/auth/logout", (
             HttpContext context,
-            ILogger<AuthenticationService> logger,
+            ILogger<IAuthenticationService> logger,
             IJwtService jwtService,
             ITokenBlacklistService tokenBlacklistService,
             CancellationToken cancellationToken) =>
@@ -296,9 +309,9 @@ public static class AuthenticationEndpoints
         // Get user information from httpOnly cookie
         app.MapGet("/api/auth/user", async (
             HttpContext context,
-            AuthenticationService authService,
+            IAuthenticationService authService,
             IJwtService jwtService,
-            ILogger<AuthenticationService> logger,
+            ILogger<IAuthenticationService> logger,
             CancellationToken cancellationToken) =>
             {
                 try
@@ -388,9 +401,9 @@ public static class AuthenticationEndpoints
         // Refresh token endpoint for silent token refresh
         app.MapPost("/api/auth/refresh", async (
             HttpContext context,
-            AuthenticationService authService,
+            IAuthenticationService authService,
             IJwtService jwtService,
-            ILogger<AuthenticationService> logger,
+            ILogger<IAuthenticationService> logger,
             CancellationToken cancellationToken) =>
             {
                 try
@@ -489,7 +502,7 @@ public static class AuthenticationEndpoints
             HttpContext context,
             IJwtService jwtService,
             ITokenBlacklistService tokenBlacklistService,
-            ILogger<AuthenticationService> logger,
+            ILogger<IAuthenticationService> logger,
             CancellationToken cancellationToken) =>
             {
                 try

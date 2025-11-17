@@ -55,6 +55,20 @@ public class MemberDetailsServiceBusinessLogicTests : IAsyncLifetime
         _context = new ApplicationDbContext(options);
         await _context.Database.EnsureCreatedAsync();
 
+        // Seed test Venue to satisfy FK constraint on Events.VenueId
+        var testVenue = new WitchCityRope.Api.Models.Venue
+        {
+            Id = 1,
+            Name = "Test Venue",
+            Directions = "123 Test St, Salem, MA 01970",
+            Notes = "Test venue for business logic tests",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.Venues.Add(testVenue);
+        await _context.SaveChangesAsync();
+
         // Setup service dependencies
         var userStore = Substitute.For<IUserStore<ApplicationUser>>();
         _userManager = Substitute.ForPartsOf<UserManager<ApplicationUser>>(
@@ -177,11 +191,20 @@ public class MemberDetailsServiceBusinessLogicTests : IAsyncLifetime
     [Fact]
     public async Task GetMemberDetails_CalculatesActiveParticipationCount()
     {
-        // Arrange - Create user with 2 active, 1 cancelled participation
+        // Arrange - Create user with 2 active, 1 cancelled participation for PAST events
         var user = await CreateTestUser();
-        var activeEvent1 = await CreateTestEvent("Active Event 1");
-        var activeEvent2 = await CreateTestEvent("Active Event 2");
-        var cancelledEvent = await CreateTestEvent("Cancelled Event");
+        var activeEvent1 = await CreateTestEvent(
+            "Active Event 1",
+            startDate: DateTime.UtcNow.AddDays(-14),
+            endDate: DateTime.UtcNow.AddDays(-14).AddHours(2));
+        var activeEvent2 = await CreateTestEvent(
+            "Active Event 2",
+            startDate: DateTime.UtcNow.AddDays(-7),
+            endDate: DateTime.UtcNow.AddDays(-7).AddHours(2));
+        var cancelledEvent = await CreateTestEvent(
+            "Cancelled Event",
+            startDate: DateTime.UtcNow.AddDays(-21),
+            endDate: DateTime.UtcNow.AddDays(-21).AddHours(2));
 
         await CreateTestParticipation(user.Id, activeEvent1.Id, AttendanceStatus.Active);
         await CreateTestParticipation(user.Id, activeEvent2.Id, AttendanceStatus.Active);
@@ -193,8 +216,10 @@ public class MemberDetailsServiceBusinessLogicTests : IAsyncLifetime
         // Assert
         success.Should().BeTrue();
         response.Should().NotBeNull();
-        response!.FutureEvents.Should().Be(2, "user has 2 active participations");
-        response.TotalPastEventsRegistered.Should().Be(3, "user has 3 total participations");
+        response!.FutureEvents.Should().Be(0, "all events are in the past");
+        response.TotalPastEventsRegistered.Should().Be(3, "user has 3 total participations in past events");
+        response.TotalEventsAttended.Should().Be(2, "user has 2 active participations (1 cancelled doesn't count)");
+        response.CancelledRegistrations.Should().Be(1, "user has 1 cancelled participation");
     }
 
     [Fact]
@@ -229,8 +254,8 @@ public class MemberDetailsServiceBusinessLogicTests : IAsyncLifetime
         success.Should().BeTrue();
         response.Should().NotBeNull();
         response!.TotalEventsAttended.Should().Be(2, "only past events with EndDate < UtcNow count as attended");
-        response.TotalPastEventsRegistered.Should().Be(3, "all participations count as registered");
-        response.FutureEvents.Should().Be(3, "all active participations count");
+        response.TotalPastEventsRegistered.Should().Be(2, "only past events count as registered (future event excluded)");
+        response.FutureEvents.Should().Be(1, "only 1 future event (future event with Active status)");
         response.LastEventAttended.Should().BeCloseTo(pastEvent2.EndDate, TimeSpan.FromSeconds(1),
             "most recent past event should be last attended");
     }

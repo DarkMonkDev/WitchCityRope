@@ -376,6 +376,13 @@ export const EventDetailPage: React.FC = () => {
           <ParticipationCard {...participationCardProps} />
         </Box>
 
+        {/* Mobile Volunteer Shifts - FULL WIDTH, mobile only */}
+        {hasUserVolunteered && userVolunteerPositions.length > 0 && (
+          <Box hiddenFrom="md" mt="sm">
+            <UserVolunteerShifts positions={userVolunteerPositions} />
+          </Box>
+        )}
+
         {/* Main Content Grid - TWO COLUMNS on desktop */}
         <Grid gutter={{ base: 'xs', md: 'xl' }} mt={{ base: 'sm', md: 'lg' }}>
           {/* Left Column - Event Details */}
@@ -385,13 +392,7 @@ export const EventDetailPage: React.FC = () => {
           {/* About This Event */}
           <ContentSection>
             <div
-              className={styles.eventContent}
-              style={{
-                fontSize: 'clamp(1rem, 0.19vw + 0.94rem, 1.06rem)', // 16px mobile → 17px desktop
-                lineHeight: 1.8,
-                color: 'var(--color-charcoal)',
-                marginBottom: 'var(--space-md)'
-              }}
+              className="html-content"
               dangerouslySetInnerHTML={{ __html: (event as any)?.description || '' }}
             />
           </ContentSection>
@@ -471,12 +472,7 @@ export const EventDetailPage: React.FC = () => {
           {(event as any)?.policies && (
             <ContentSection>
               <div
-                className={styles.eventContent}
-                style={{
-                  fontSize: 'clamp(1rem, 0.19vw + 0.94rem, 1.06rem)', // 16px mobile → 17px desktop
-                  lineHeight: 1.8,
-                  color: 'var(--color-charcoal)'
-                }}
+                className="html-content"
                 dangerouslySetInnerHTML={{ __html: (event as any)?.policies }}
               />
             </ContentSection>
@@ -504,9 +500,11 @@ export const EventDetailPage: React.FC = () => {
               </Box>
             )}
 
-            {/* User's Volunteer Shifts (if user has volunteered) */}
+            {/* User's Volunteer Shifts (if user has volunteered) - Desktop only */}
             {hasUserVolunteered && userVolunteerPositions.length > 0 && (
-              <UserVolunteerShifts positions={userVolunteerPositions} />
+              <Box visibleFrom="md">
+                <UserVolunteerShifts positions={userVolunteerPositions} />
+              </Box>
             )}
               </Stack>
             </Box>

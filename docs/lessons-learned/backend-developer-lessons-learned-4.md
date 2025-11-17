@@ -267,3 +267,88 @@ curl http://localhost:5655/api/events | jq '.data[0].ticketTypes[0].quantitySold
 **Related Issue**: Seed data was also missing initially (separate fix)
 
 ---
+
+## 🚨 CRITICAL: Dependency Injection - Inject Interfaces, Not Concrete Classes (2025-11-16)
+
+**Problem**: CMS page update endpoint returning 500 Internal Server Error for ALL save attempts
+**Date**: November 16, 2025
+**Impact**: CMS functionality completely broken - users cannot save any content changes
+
+**Root Cause**:
+- Endpoint injected **concrete class** `ContentSanitizer` instead of **interface** `IContentSanitizer`
+- DI container registered **interface only**: `services.AddSingleton<IContentSanitizer, ContentSanitizer>()`
+- ASP.NET Core cannot resolve concrete type when only interface is registered
+- Results in 500 error during request processing
+
+**Error Manifestation**:
+- Frontend: "Failed to update page: Internal Server Error"
+- HTTP Status: 500 Internal Server Error
+- Location: `PUT /api/cms/pages/{id}` endpoint
+- No specific error message visible to frontend (DI resolution fails before endpoint executes)
+
+**Wrong Implementation** (Concrete Class Injection):
+```csharp
+// ❌ WRONG - Endpoint injects concrete class
+private static async Task<IResult> UpdatePage(
+    int id,
+    [FromBody] UpdateContentPageRequest request,
+    ClaimsPrincipal user,
+    [FromServices] ApplicationDbContext db,
+    [FromServices] ContentSanitizer sanitizer,  // ← CONCRETE CLASS
+    [FromServices] ILogger<Program> logger,
+    CancellationToken ct)
+{
+    var cleanContent = sanitizer.Sanitize(request.Content);
+    // ...
+}
+
+// DI registration (only interface registered)
+services.AddSingleton<IContentSanitizer, ContentSanitizer>();
+```
+
+**Correct Implementation** (Interface Injection):
+```csharp
+// ✅ CORRECT - Endpoint injects interface
+private static async Task<IResult> UpdatePage(
+    int id,
+    [FromBody] UpdateContentPageRequest request,
+    ClaimsPrincipal user,
+    [FromServices] ApplicationDbContext db,
+    [FromServices] IContentSanitizer sanitizer,  // ← INTERFACE
+    [FromServices] ILogger<Program> logger,
+    CancellationToken ct)
+{
+    var cleanContent = sanitizer.Sanitize(request.Content);
+    // ...
+}
+
+// DI registration (interface registered)
+services.AddSingleton<IContentSanitizer, ContentSanitizer>();
+```
+
+**Prevention Rules**:
+1. ✅ **ALWAYS inject interfaces** in endpoint parameters: `[FromServices] IServiceName service`
+2. ✅ **NEVER inject concrete classes** unless explicitly registered as concrete type
+3. ✅ **Match DI registration** - if registered as interface, inject interface
+4. ✅ **Check both sides** - ensure endpoint injection matches DI registration type
+5. ✅ **Follow SOLID principles** - Dependency Inversion Principle (depend on abstractions)
+
+**Why This Matters**:
+- DI container resolves dependencies based on registered types
+- Interface registration does NOT automatically resolve concrete class requests
+- 500 errors are cryptic - doesn't tell you it's a DI resolution problem
+- Affects ALL endpoints using the incorrectly injected dependency
+- Silent failure - no compilation error, only runtime failure
+
+**Detection**:
+- 500 errors on endpoints that should work
+- Check endpoint parameter types against DI registrations
+- Verify `[FromServices]` parameters use interfaces, not concrete classes
+- Look for mismatches between registration and injection
+
+**Files Modified**:
+- `/home/chad/repos/witchcityrope/apps/api/Features/Cms/CmsEndpoints.cs` (line 98)
+
+**Related Pattern**: See "Services MUST Have Interfaces for Unit Testing" lesson for interface creation guidance
+
+---

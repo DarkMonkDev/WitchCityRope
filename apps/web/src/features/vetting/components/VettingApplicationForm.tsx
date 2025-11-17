@@ -277,8 +277,8 @@ export const VettingApplicationForm: React.FC<VettingApplicationFormProps> = ({
                   This helps us process applications efficiently and securely.
                 </Text>
 
-                <Stack gap="md" align="flex-start">
-                  <Group gap="md" align="center">
+                <Stack gap="md" align="center">
+                  <Group gap="md" align="center" justify="center">
                     <Button
                       component="a"
                       href={`/login?returnUrl=${encodeURIComponent(window.location.pathname)}`}

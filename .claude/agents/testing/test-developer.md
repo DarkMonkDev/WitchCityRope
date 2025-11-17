@@ -230,6 +230,66 @@ You MUST maintain your lessons learned file:
 - Fast, isolated, repeatable tests
 - Test pyramid: Many unit, some integration, few E2E
 
+## 🚨 CRITICAL ANTI-PATTERN: NEVER Use Serial Testing
+
+**MANDATORY**: Tests MUST be idempotent and database-aware. NEVER use serial testing configurations.
+
+### BANNED PATTERNS:
+```typescript
+// ❌ WRONG - NEVER use these:
+test.describe.serial('My Tests', () => {})
+test.describe.configure({ mode: 'serial' })
+```
+
+### WHY THIS IS TERRIBLE:
+- **Hides real bugs**: Tests pass in serial mode but fail in parallel (production-like conditions)
+- **Slows down CI/CD**: Serial execution is significantly slower
+- **Creates false dependencies**: Tests become coupled to execution order
+- **Masks race conditions**: Real-world race conditions remain undiscovered
+- **Violates test isolation**: Tests should be independent and repeatable in any order
+
+### CORRECT APPROACH: Database-First Defensive Programming
+
+Tests MUST check database state BEFORE UI actions and adapt accordingly:
+
+```typescript
+// ✅ CORRECT - Database-first defensive pattern
+const userId = await DatabaseHelpers.getUserIdFromEmail(userEmail);
+
+// 1. CHECK DATABASE STATE FIRST
+try {
+  const existingActive = await DatabaseHelpers.verifyEventParticipation(
+    userId, eventId, 1 // 1 = Active
+  ).catch(() => null);
+
+  if (existingActive) {
+    // Database shows active RSVP - cancel it first via UI
+    console.log('⚠️ Found existing RSVP, cancelling first');
+    await navigateToCancelRSVP();
+  }
+} catch {
+  console.log('✅ No existing RSVP - clean slate');
+}
+
+// 2. PROCEED WITH TEST - now database is in known state
+await testRSVPCreation();
+```
+
+### KEY PRINCIPLES:
+1. **Check database FIRST**: Query actual database state before UI actions
+2. **Adapt to state**: If data exists, clean it up or skip the test step
+3. **Make tests idempotent**: Tests run successfully regardless of starting state
+4. **Allow parallel execution**: Tests never interfere with each other
+5. **Use defensive programming**: Verify assumptions, handle any state gracefully
+
+### WHEN YOU ENCOUNTER SERIAL TESTS:
+1. **Remove serial configuration immediately**
+2. **Add database-first checks** to test setup
+3. **Make tests adapt** to any database state they find
+4. **Verify tests pass** in parallel execution
+
+**Reference**: See `/tests/playwright/templates/rsvp-persistence-template.ts` for complete example of database-first defensive programming pattern.
+
 ## Test Categories
 
 ### 1. Unit Tests

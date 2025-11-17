@@ -940,6 +940,9 @@ public class VettingService : IVettingService
                 _ => 1 // Default to Beginner
             };
 
+            // Find user first (before creating application) to link the UserId
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
+
             // Create vetting application entity
             var application = new VettingApplication
             {
@@ -951,6 +954,7 @@ public class VettingService : IVettingService
                 StatusToken = statusToken,
                 WorkflowStatus = VettingStatus.UnderReview, // Applications start in UnderReview status
                 SubmittedAt = DateTime.UtcNow,
+                UserId = user?.Id, // Link to user if exists
 
                 // Experience & knowledge (minimal for public submission)
                 ExperienceLevel = experienceLevel,
@@ -969,7 +973,6 @@ public class VettingService : IVettingService
             _context.VettingApplications.Add(application);
 
             // If a user exists with this email, update their HasVettingApplication field
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
             if (user != null)
             {
                 user.HasVettingApplication = true;
@@ -1084,6 +1087,9 @@ public class VettingService : IVettingService
             var applicationNumber = $"VET-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..8].ToUpper()}";
             var statusToken = Guid.NewGuid().ToString("N"); // No hyphens for cleaner URLs
 
+            // Find user first (before creating application) to link the UserId
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
+
             // Create vetting application entity
             var application = new VettingApplication
             {
@@ -1098,6 +1104,7 @@ public class VettingService : IVettingService
                 StatusToken = statusToken,
                 WorkflowStatus = VettingStatus.UnderReview,
                 SubmittedAt = DateTime.UtcNow,
+                UserId = user?.Id, // Link to user if exists
 
                 // Experience & knowledge
                 ExperienceLevel = 1, // Default to beginner for simplified form
@@ -1119,7 +1126,6 @@ public class VettingService : IVettingService
             _context.VettingApplications.Add(application);
 
             // Update user's VettingStatus, HasVettingApplication, and profile fields
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
             if (user != null)
             {
                 // Update vetting status

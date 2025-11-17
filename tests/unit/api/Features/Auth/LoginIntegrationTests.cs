@@ -1,9 +1,11 @@
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Testcontainers.PostgreSql;
 using WitchCityRope.Api;
 using WitchCityRope.Api.Data;
@@ -70,6 +72,24 @@ public class LoginIntegrationTests : IAsyncLifetime
                     // Add TestContainers PostgreSQL
                     services.AddDbContext<ApplicationDbContext>(options =>
                         options.UseNpgsql(_connectionString));
+
+                    // Remove DatabaseInitializationService to prevent automatic seeding in tests
+                    var initServiceDescriptor = services.FirstOrDefault(
+                        d => d.ServiceType.Name == "DatabaseInitializationService");
+                    if (initServiceDescriptor != null)
+                    {
+                        services.Remove(initServiceDescriptor);
+                    }
+
+                    // Remove hosted service that triggers database initialization
+                    var hostedServices = services.Where(d => d.ServiceType == typeof(IHostedService)).ToList();
+                    foreach (var service in hostedServices)
+                    {
+                        if (service.ImplementationType?.Name.Contains("DatabaseInitialization") == true)
+                        {
+                            services.Remove(service);
+                        }
+                    }
                 });
             });
 
@@ -90,10 +110,21 @@ public class LoginIntegrationTests : IAsyncLifetime
     {
         using var scope = _factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
         await context.Database.EnsureCreatedAsync();
 
-        // Create test user with known email and scene name
+        // Clean up any existing test users to ensure fresh state
+        var existingUser = await context.Users
+            .FirstOrDefaultAsync(u => u.Email == TestUserEmail || u.SceneName == TestUserSceneName);
+
+        if (existingUser != null)
+        {
+            context.Users.Remove(existingUser);
+            await context.SaveChangesAsync();
+        }
+
+        // Create test user with known email and scene name using UserManager for proper password hashing
         var testUser = new ApplicationUser
         {
             Id = Guid.NewGuid(),
@@ -104,12 +135,15 @@ public class LoginIntegrationTests : IAsyncLifetime
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
-            DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-            PasswordHash = "AQAAAAIAAYagAAAAEJ7F3z+9c3l6z8Wz+5J7b4Q==" // Placeholder - will be set by Identity
+            DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc)
         };
 
-        context.Users.Add(testUser);
-        await context.SaveChangesAsync();
+        // Use UserManager to create user with properly hashed password
+        var result = await userManager.CreateAsync(testUser, TestUserPassword);
+        if (!result.Succeeded)
+        {
+            throw new Exception($"Failed to create test user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+        }
 
         _testUserWithEmailId = testUser.Id;
     }
@@ -137,20 +171,19 @@ public class LoginIntegrationTests : IAsyncLifetime
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        // Verify response contains user data
-        var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
-        loginResponse.Should().NotBeNull();
-        loginResponse!.User.Should().NotBeNull();
-        loginResponse.User.Email.Should().Be(TestUserEmail);
-        loginResponse.User.SceneName.Should().Be(TestUserSceneName);
+        // Verify response contains user data (BFF pattern - no token in response body)
+        var responseContent = await response.Content.ReadAsStringAsync();
+        responseContent.Should().Contain(TestUserEmail);
+        responseContent.Should().Contain(TestUserSceneName);
+        responseContent.Should().Contain("\"success\":true", "BFF pattern returns success flag");
 
-        // Verify JWT token is present
-        loginResponse.Token.Should().NotBeNullOrEmpty();
-        loginResponse.ExpiresAt.Should().BeAfter(DateTime.UtcNow);
+        // BFF Pattern: Token should NOT be in response body (security)
+        responseContent.Should().NotContain("\"token\":", "BFF pattern does not expose tokens in response");
 
-        // Verify auth-token cookie is set
-        var cookies = response.Headers.GetValues("Set-Cookie");
-        cookies.Should().Contain(c => c.Contains("auth-token"));
+        // Verify auth-token cookie is set (BFF pattern - token only in httpOnly cookie)
+        response.Headers.TryGetValues("Set-Cookie", out var cookieHeaders).Should().BeTrue();
+        cookieHeaders.Should().Contain(c => c.Contains("auth-token") && c.Contains("httponly"),
+            "BFF pattern uses httpOnly cookies for tokens");
     }
 
     #endregion
@@ -178,19 +211,19 @@ public class LoginIntegrationTests : IAsyncLifetime
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        // Verify response contains user data (same user, different login method)
-        var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
-        loginResponse.Should().NotBeNull();
-        loginResponse!.User.Should().NotBeNull();
-        loginResponse.User.Email.Should().Be(TestUserEmail);
-        loginResponse.User.SceneName.Should().Be(TestUserSceneName);
+        // Verify response contains user data (BFF pattern - no token in response body)
+        var responseContent = await response.Content.ReadAsStringAsync();
+        responseContent.Should().Contain(TestUserEmail);
+        responseContent.Should().Contain(TestUserSceneName);
+        responseContent.Should().Contain("\"success\":true", "BFF pattern returns success flag");
 
-        // Verify JWT token is present
-        loginResponse.Token.Should().NotBeNullOrEmpty();
+        // BFF Pattern: Token should NOT be in response body (security)
+        responseContent.Should().NotContain("\"token\":", "BFF pattern does not expose tokens in response");
 
-        // Verify auth-token cookie is set
-        var cookies = response.Headers.GetValues("Set-Cookie");
-        cookies.Should().Contain(c => c.Contains("auth-token"));
+        // Verify auth-token cookie is set (BFF pattern - token only in httpOnly cookie)
+        response.Headers.TryGetValues("Set-Cookie", out var cookieHeaders).Should().BeTrue();
+        cookieHeaders.Should().Contain(c => c.Contains("auth-token") && c.Contains("httponly"),
+            "BFF pattern uses httpOnly cookies for tokens");
     }
 
     #endregion
@@ -218,9 +251,12 @@ public class LoginIntegrationTests : IAsyncLifetime
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
 
-        // Verify no auth-token cookie is set
-        var setCookieHeaders = response.Headers.GetValues("Set-Cookie").ToList();
-        setCookieHeaders.Should().NotContain(c => c.Contains("auth-token") && !c.Contains("expires="));
+        // Verify no auth-token cookie is set (or if set, it's an expiration/delete cookie)
+        if (response.Headers.TryGetValues("Set-Cookie", out var setCookieHeaders))
+        {
+            setCookieHeaders.Should().NotContain(c => c.Contains("auth-token") && !c.Contains("expires=Thu, 01 Jan 1970"),
+                "Failed login should not set valid auth cookie");
+        }
 
         // Verify error response contains generic message
         var errorResponse = await response.Content.ReadAsStringAsync();
@@ -248,9 +284,12 @@ public class LoginIntegrationTests : IAsyncLifetime
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
 
-        // Verify no auth-token cookie is set
-        var setCookieHeaders = response.Headers.GetValues("Set-Cookie").ToList();
-        setCookieHeaders.Should().NotContain(c => c.Contains("auth-token") && !c.Contains("expires="));
+        // Verify no auth-token cookie is set (or if set, it's an expiration/delete cookie)
+        if (response.Headers.TryGetValues("Set-Cookie", out var setCookieHeaders))
+        {
+            setCookieHeaders.Should().NotContain(c => c.Contains("auth-token") && !c.Contains("expires=Thu, 01 Jan 1970"),
+                "Failed login should not set valid auth cookie");
+        }
     }
 
     /// <summary>
@@ -274,9 +313,12 @@ public class LoginIntegrationTests : IAsyncLifetime
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
 
-        // Verify no auth-token cookie is set
-        var setCookieHeaders = response.Headers.GetValues("Set-Cookie").ToList();
-        setCookieHeaders.Should().NotContain(c => c.Contains("auth-token") && !c.Contains("expires="));
+        // Verify no auth-token cookie is set (or if set, it's an expiration/delete cookie)
+        if (response.Headers.TryGetValues("Set-Cookie", out var setCookieHeaders))
+        {
+            setCookieHeaders.Should().NotContain(c => c.Contains("auth-token") && !c.Contains("expires=Thu, 01 Jan 1970"),
+                "Failed login should not set valid auth cookie");
+        }
     }
 
     #endregion

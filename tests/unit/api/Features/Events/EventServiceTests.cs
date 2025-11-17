@@ -23,7 +23,7 @@ public class EventServiceTests : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _container;
     private ApplicationDbContext _context = null!;
-    private EventService _service = null!;
+    private IEventService _service = null!;
     private ILogger<EventService> _logger = null!;
     private string _connectionString = null!;
 
@@ -65,6 +65,36 @@ public class EventServiceTests : IAsyncLifetime
 
     #region Helper Methods
 
+    /// <summary>
+    /// Creates a test venue in the database for FK constraint satisfaction.
+    /// Reuses venue ID if already created in this test context.
+    /// </summary>
+    private async Task<Venue> CreateTestVenueAsync()
+    {
+        // Check if default test venue already exists
+        var existingVenue = await _context.Venues.FirstOrDefaultAsync(v => v.Id == 1);
+        if (existingVenue != null)
+        {
+            return existingVenue;
+        }
+
+        var venue = new Venue
+        {
+            Id = 1, // Explicitly set ID for test consistency
+            Name = "Test Venue",
+            Directions = "123 Test Street, Salem, MA",
+            Notes = "Standard test venue for unit tests",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _context.Venues.Add(venue);
+        await _context.SaveChangesAsync();
+
+        return venue;
+    }
+
     private async Task<Event> CreateTestEvent(
         string title,
         bool isPublished = true,
@@ -73,13 +103,16 @@ public class EventServiceTests : IAsyncLifetime
         DateTime? endDate = null,
         EventType eventType = EventType.Social) // Use Social by default for easier RSVP counting
     {
+        // Ensure venue exists first to satisfy FK constraint
+        await CreateTestVenueAsync();
+
         var eventEntity = new Event
         {
             Id = Guid.NewGuid(),
             Title = title,
             ShortDescription = $"Short description for {title}",
             Description = $"Full description for {title}",
-            VenueId = 1, // Test venue ID (Location moved to Venue entity)
+            VenueId = 1, // References venue created above
             EventType = eventType,
             Capacity = capacity,
             IsPublished = isPublished,
@@ -352,12 +385,15 @@ public class EventServiceTests : IAsyncLifetime
     {
         // NOTE: Event entity requires explicit capacity setting (no default in constructor)
         // Arrange & Act
+        // Ensure venue exists first to satisfy FK constraint
+        await CreateTestVenueAsync();
+
         var eventEntity = new Event
         {
             Id = Guid.NewGuid(),
             Title = "Event with Explicit Capacity",
             Description = "Test event",
-            VenueId = 1, // Test venue ID (Location moved to Venue entity)
+            VenueId = 1, // References venue created above
             EventType = EventType.Class,
             Capacity = 25, // Explicitly set capacity
             StartDate = DateTime.UtcNow.AddDays(7),

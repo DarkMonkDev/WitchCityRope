@@ -53,60 +53,124 @@ export async function testRsvpPersistence(
 
     // Setup: Login and navigate to event
     setup: async (page: Page) => {
-      await page.goto('http://localhost:5173/login');
-      await page.waitForLoadState('networkidle');
+      // Map email to role for AuthHelpers.loginAs()
+      const roleMap: Record<string, keyof typeof import('../helpers/auth.helpers').AuthHelpers.accounts> = {
+        'admin@witchcityrope.com': 'admin',
+        'teacher@witchcityrope.com': 'teacher',
+        'vetted@witchcityrope.com': 'vetted',
+        'member@witchcityrope.com': 'member',
+        'guest@witchcityrope.com': 'guest'
+      };
 
-      await page.locator('[data-testid="email-or-scenename-input"]').fill(userEmail);
-      await page.locator('[data-testid="password-input"]').fill(userPassword);
-      await page.locator('[data-testid="login-button"]').click();
+      const role = roleMap[userEmail];
+      if (!role) {
+        throw new Error(`Unknown user email: ${userEmail}. Expected one of: ${Object.keys(roleMap).join(', ')}`);
+      }
 
-      await page.waitForURL('**/dashboard', { timeout: 10000 });
-      await page.waitForLoadState('networkidle');
+      // Use AuthHelpers for robust login (clears auth state, handles waits properly)
+      const { AuthHelpers } = await import('../helpers/auth.helpers');
+      await AuthHelpers.loginAs(page, role);
 
       userId = await DatabaseHelpers.getUserIdFromEmail(userEmail);
       console.log(`✅ Logged in as ${userEmail} (ID: ${userId})`);
 
-      // Navigate to event
+      // DEFENSIVE DATABASE-FIRST CLEANUP: Check database state FIRST, then fix UI
+      // This makes tests idempotent and race-condition resistant
+      console.log('🔍 Checking database for existing participation...');
+
+      try {
+        // Check if user has ANY participation (active or cancelled) in database
+        const existingActive = await DatabaseHelpers.verifyEventParticipation(userId, eventId, 1).catch(() => null);
+        const existingCancelled = await DatabaseHelpers.verifyEventParticipation(userId, eventId, 2).catch(() => null);
+
+        if (existingActive) {
+          console.log(`⚠️  Database shows ACTIVE ${getParticipationTypeName(existingActive.participationType)} - cancelling via UI`);
+
+          // Navigate and cancel through UI
+          await page.goto(`http://localhost:5173/events/${eventId}`);
+          await page.waitForLoadState('networkidle');
+          await page.waitForTimeout(2000);
+
+          const cancelButton = page.locator(
+            'button:has-text("Cancel Ticket"), button:has-text("Cancel RSVP"), button:has-text("Withdraw")'
+          ).last();
+
+          if (await cancelButton.isVisible({ timeout: 5000 }).catch(() => false)) {
+            await cancelButton.click();
+            await page.waitForTimeout(500);
+
+            const confirmModal = page.locator('[role="dialog"]');
+            await confirmModal.waitFor({ state: 'visible', timeout: 5000 });
+
+            const confirmButton = confirmModal.locator('button').filter({
+              hasText: /cancel ticket|cancel rsvp|confirm|yes/i
+            }).last();
+
+            await confirmButton.click();
+            await page.waitForTimeout(2000);
+
+            // Verify cancellation in database
+            await DatabaseHelpers.verifyEventParticipation(userId, eventId, 2); // 2 = Cancelled
+            console.log('✅ Cancelled existing active participation');
+
+            // CRITICAL: After cancellation, wait extra time for UI to fully reset
+            console.log('⏳ Waiting for UI to reset after cancellation...');
+            await page.waitForTimeout(3000);
+          }
+        } else if (existingCancelled) {
+          console.log(`⚠️  Database shows CANCELLED ${getParticipationTypeName(existingCancelled.participationType)} - already clean`);
+        } else {
+          console.log('✅ No existing participation in database - clean slate');
+        }
+      } catch (error) {
+        console.log('⚠️  Database check failed, will verify UI state:', error);
+      }
+
+      // ALWAYS navigate to ensure fresh page state
       await page.goto(`http://localhost:5173/events/${eventId}`);
       await page.waitForLoadState('networkidle');
-      console.log('✅ Navigated to event details');
+      await page.waitForTimeout(3000); // Increased from 2000ms to allow UI to fully settle
+      console.log('✅ Navigated to event details page');
     },
 
     // Action: Check waiver checkbox, then click RSVP button
     action: async (page: Page) => {
-      // STEP 1: Find and check the event waiver checkbox
-      // Waiver must be checked before RSVP button is enabled
-      // Look for checkbox by label text or nearby text
-      const waiverCheckbox = page.locator(
-        'input[type="checkbox"][id*="waiver"], input[type="checkbox"][name*="waiver"], label:has-text("waiver") input[type="checkbox"], label:has-text("agree") input[type="checkbox"]'
-      ).first();
+      // STEP 1: Wait for ALL loading states to complete
+      console.log('Waiting for page to fully load (no loading states)...');
 
-      // If not found by waiver-specific selectors, try generic checkbox near RSVP section
-      const checkboxCount = await waiverCheckbox.count();
-      if (checkboxCount === 0) {
-        console.log('⚠️ Waiver checkbox not found by specific selectors, trying generic approach...');
-        // Find any checkbox on the page (likely the waiver checkbox)
-        const genericCheckbox = page.locator('input[type="checkbox"]').first();
-        if (await genericCheckbox.count() > 0) {
-          await genericCheckbox.check();
-          console.log('✅ Checked checkbox (assumed waiver)');
-        }
-      } else {
-        // Wait for waiver checkbox to be visible
-        await expect(waiverCheckbox).toBeVisible({ timeout: 5000 });
-
-        // Check the waiver checkbox
-        await waiverCheckbox.check();
-        console.log('✅ Checked event waiver checkbox');
-
-        // Wait for checkbox to be checked
-        await expect(waiverCheckbox).toBeChecked();
+      // Wait for any loading overlays to disappear
+      const loadingOverlay = page.locator('.mantine-LoadingOverlay-overlay');
+      if (await loadingOverlay.count() > 0) {
+        await loadingOverlay.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {
+          console.log('⚠️  Loading overlay did not disappear, continuing anyway');
+        });
       }
 
-      // STEP 2: Now RSVP button should be enabled
-      const rsvpButton = page.locator(
-        '[data-testid="button-rsvp"], button:has-text("RSVP Now"), button:has-text("RSVP")'
-      ).first();
+      // Wait for page to stabilize (increased to allow UI to fully settle after navigation)
+      await page.waitForTimeout(3000);
+      console.log('✅ Page fully loaded');
+
+      // STEP 2: Check the event waiver checkbox
+      console.log('Attempting to check waiver checkbox...');
+
+      // Mantine hides the checkbox so completely that clicking the label doesn't work
+      // Find the visible Mantine checkbox wrapper (the styled div with the checkmark icon)
+      // This is what a real user would click
+      const mantineCheckbox = page.locator('input[data-testid="rsvp-terms-checkbox"]')
+        .locator('..')  // Get parent element (the Mantine checkbox wrapper)
+        .last();  // Use .last() to avoid React strict mode duplicate
+
+      await expect(mantineCheckbox).toBeVisible({ timeout: 5000 });
+      await mantineCheckbox.click();
+      console.log('✅ Clicked Mantine checkbox wrapper');
+
+      // Wait for React to process the change
+      await page.waitForTimeout(2000);
+
+      // STEP 3: Now RSVP button should be enabled
+      const rsvpButton = page.getByRole('button', {
+        name: /rsvp now|rsvp/i
+      }).first();
 
       // Wait for button to be ENABLED (waiver checkbox enables it)
       await expect(rsvpButton).toBeVisible({ timeout: 5000 });
@@ -131,8 +195,8 @@ export async function testRsvpPersistence(
 
       // RSVP button should change to "Cancel RSVP"
       // Wait for UI to update via React Query cache
-      // Use .first() to handle multiple "Cancel RSVP" buttons (status box + potential modal)
-      const cancelRsvpButton = page.locator('button:has-text("Cancel RSVP"), button:has-text("Withdraw")').first();
+      // Use .last() to avoid hidden React strict mode duplicates (same as checkbox fix)
+      const cancelRsvpButton = page.locator('button:has-text("Cancel RSVP"), button:has-text("Withdraw")').last();
       await expect(cancelRsvpButton).toBeVisible({ timeout: 5000 });
       console.log('✅ RSVP button changed to Cancel RSVP');
     },
@@ -147,11 +211,12 @@ export async function testRsvpPersistence(
       const participation = await DatabaseHelpers.verifyEventParticipation(
         userId,
         eventId,
-        1  // 1 = Active (ParticipationStatus enum)
+        1,  // 1 = Active (ParticipationStatus enum)
+        1   // 1 = RSVP (AttendanceType enum) - filters to ensure we get the RSVP record, not a Ticket
       );
 
       // Verify participation type is RSVP
-      // Database stores ParticipationType as integer: 0=Ticket, 1=RSVP
+      // Database stores AttendanceType as integer: 1=RSVP, 2=Ticket
       const typeName = getParticipationTypeName(participation.participationType);
       if (typeName !== 'RSVP') {
         throw new Error(
@@ -165,9 +230,10 @@ export async function testRsvpPersistence(
     // Verify persistence after refresh (CRITICAL)
     verifyPersistence: async (page: Page) => {
       // After refresh, Cancel RSVP button should be visible
+      // Use .last() to avoid React strict mode duplicates (same as line 210)
       const cancelRsvpButton = page.locator(
         'button:has-text("Cancel RSVP"), button:has-text("Withdraw")'
-      );
+      ).last();
 
       await expect(cancelRsvpButton).toBeVisible({ timeout: 5000 });
       console.log('✅ Cancel RSVP button still visible after refresh');
@@ -208,26 +274,68 @@ export async function testCancelRsvpPersistence(
 
     // Setup: Login, verify RSVP exists, navigate to event
     setup: async (page: Page) => {
-      await page.goto('http://localhost:5173/login');
-      await page.waitForLoadState('networkidle');
+      // Map email to role for AuthHelpers.loginAs()
+      const roleMap: Record<string, keyof typeof import('../helpers/auth.helpers').AuthHelpers.accounts> = {
+        'admin@witchcityrope.com': 'admin',
+        'teacher@witchcityrope.com': 'teacher',
+        'vetted@witchcityrope.com': 'vetted',
+        'member@witchcityrope.com': 'member',
+        'guest@witchcityrope.com': 'guest'
+      };
 
-      await page.locator('[data-testid="email-or-scenename-input"]').fill(userEmail);
-      await page.locator('[data-testid="password-input"]').fill(userPassword);
-      await page.locator('[data-testid="login-button"]').click();
+      const role = roleMap[userEmail];
+      if (!role) {
+        throw new Error(`Unknown user email: ${userEmail}. Expected one of: ${Object.keys(roleMap).join(', ')}`);
+      }
 
-      await page.waitForURL('**/dashboard', { timeout: 10000 });
-      await page.waitForLoadState('networkidle');
+      // Use AuthHelpers for robust login (clears auth state, handles waits properly)
+      const { AuthHelpers } = await import('../helpers/auth.helpers');
+      await AuthHelpers.loginAs(page, role);
 
       userId = await DatabaseHelpers.getUserIdFromEmail(userEmail);
 
-      // Verify user has active RSVP
-      const participation = await DatabaseHelpers.verifyEventParticipation(
-        userId,
-        eventId,
-        1  // 1 = Active (ParticipationStatus enum)
-      );
-      const typeName = getParticipationTypeName(participation.participationType);
-      console.log(`✅ User has active ${typeName}`);
+      // DEFENSIVE: Ensure user HAS an active RSVP (another test might have cancelled it)
+      console.log('🔍 Checking for active RSVP in database...');
+
+      try {
+        const participation = await DatabaseHelpers.verifyEventParticipation(
+          userId,
+          eventId,
+          1  // 1 = Active (ParticipationStatus enum)
+        );
+        const typeName = getParticipationTypeName(participation.participationType);
+        console.log(`✅ User has active ${typeName} - ready to cancel`);
+      } catch (error) {
+        console.log('⚠️  No active RSVP found - creating one first');
+
+        // Navigate and create RSVP via UI
+        await page.goto(`http://localhost:5173/events/${eventId}`);
+        await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(2000);
+
+        // Check and click waiver checkbox
+        const mantineCheckbox = page.locator('input[data-testid="rsvp-terms-checkbox"]')
+          .locator('..')
+          .last();
+
+        if (await mantineCheckbox.isVisible({ timeout: 5000 }).catch(() => false)) {
+          await mantineCheckbox.click();
+          await page.waitForTimeout(1000);
+        }
+
+        // Click RSVP button
+        const rsvpButton = page.getByRole('button', {
+          name: /rsvp now|rsvp/i
+        }).first();
+
+        await rsvpButton.waitFor({ state: 'visible', timeout: 5000 });
+        await rsvpButton.click();
+        await page.waitForTimeout(2000);
+
+        // Verify RSVP was created
+        await DatabaseHelpers.verifyEventParticipation(userId, eventId, 1); // 1 = Active
+        console.log('✅ Created RSVP for cancellation test');
+      }
 
       // Navigate to event
       await page.goto(`http://localhost:5173/events/${eventId}`);
@@ -236,12 +344,37 @@ export async function testCancelRsvpPersistence(
 
     // Action: Click Cancel RSVP button
     action: async (page: Page) => {
+      // STEP 1: Wait for ALL loading states to complete (same as RSVP create)
+      console.log('Waiting for page to fully load (no loading states)...');
+
+      // Wait for any loading overlays to disappear
+      const loadingOverlay = page.locator('.mantine-LoadingOverlay-overlay');
+      if (await loadingOverlay.count() > 0) {
+        await loadingOverlay.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {
+          console.log('⚠️  Loading overlay did not disappear, continuing anyway');
+        });
+      }
+
+      // Wait for page to stabilize
+      await page.waitForTimeout(3000);
+
+      // CRITICAL: Wait for actual page content to render before looking for buttons
+      // The blank white page screenshot showed React hadn't rendered yet
+      // Wait for event details or participant card (something that WILL exist regardless of button state)
+      const pageContent = page.locator('h1, [class*="ParticipationCard"], [class*="EventDetails"]').first();
+      await expect(pageContent).toBeVisible({ timeout: 10000 }).catch(() => {
+        console.log('⚠️  Page content not visible, continuing anyway');
+      });
+      console.log('✅ Page fully loaded and content rendered');
+
+      // STEP 2: Find and click Cancel RSVP button
+      // Use .last() for React Strict Mode - duplicates exist, visible one is last
       const cancelButton = page.locator(
         'button:has-text("Cancel RSVP"), button:has-text("Withdraw")'
-      ).first();
+      ).last();
 
-      // Wait for button to be enabled before clicking
-      await expect(cancelButton).toBeVisible({ timeout: 5000 });
+      // Wait for button to be visible and enabled before clicking
+      await expect(cancelButton).toBeVisible({ timeout: 10000 });
       await expect(cancelButton).toBeEnabled({ timeout: 10000 });
       console.log('✅ Cancel RSVP button is enabled');
 
@@ -271,7 +404,7 @@ export async function testCancelRsvpPersistence(
       await verifyNoErrorMessage(page);
 
       // RSVP button should reappear after cancellation
-      const rsvpButton = page.locator('[data-testid="button-rsvp"], button:has-text("RSVP Now"), button:has-text("RSVP")');
+      const rsvpButton = page.locator('[data-testid="button-rsvp"], button:has-text("RSVP Now"), button:has-text("RSVP")').last();
       await expect(rsvpButton).toBeVisible({ timeout: 5000 });
       console.log('✅ RSVP button reappeared');
     },
@@ -294,7 +427,8 @@ export async function testCancelRsvpPersistence(
     // Verify persistence after refresh (CRITICAL)
     verifyPersistence: async (page: Page) => {
       // After refresh, RSVP button should be visible again
-      const rsvpButton = page.locator('button:has-text("RSVP"), button:has-text("Register")');
+      // Use .last() to handle React Strict Mode duplicates
+      const rsvpButton = page.locator('button:has-text("RSVP"), button:has-text("Register")').last();
       await expect(rsvpButton).toBeVisible({ timeout: 5000 });
       console.log('✅ RSVP button still visible after refresh');
 

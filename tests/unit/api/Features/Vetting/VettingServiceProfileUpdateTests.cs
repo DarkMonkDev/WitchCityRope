@@ -290,7 +290,7 @@ public class VettingServiceProfileUpdateTests : IAsyncLifetime
     #region Transaction Atomicity
 
     [Fact]
-    public async Task SubmitSimplifiedApplication_WhenUserNotFound_ReturnsFailure()
+    public async Task SubmitSimplifiedApplication_WhenUserNotFound_StillCreatesApplication()
     {
         // Arrange
         var nonExistentUserId = Guid.NewGuid();
@@ -304,8 +304,17 @@ public class VettingServiceProfileUpdateTests : IAsyncLifetime
         var result = await _service.SubmitSimplifiedApplicationAsync(request, CancellationToken.None);
 
         // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().Contain("User not found");
+        // Service should succeed even if user doesn't exist (public application flow)
+        result.IsSuccess.Should().BeTrue("application can be submitted without existing user account");
+
+        // Verify application was created
+        var application = await _context.VettingApplications
+            .FirstOrDefaultAsync(a => a.Email == "nonexistent@example.com");
+
+        application.Should().NotBeNull("application should be created even without existing user");
+        application!.FirstName.Should().Be("Test");
+        application.LastName.Should().Be("User");
+        application.WorkflowStatus.Should().Be(VettingStatus.UnderReview);
     }
 
     #endregion

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using WitchCityRope.Api.Data;
@@ -28,7 +29,7 @@ public static class ParticipationEndpoints
         app.MapGet("/api/events/{eventId:guid}/participation",
             [Authorize] async (
                 Guid eventId,
-                IAttendanceService attendanceService,
+                [FromServices] IAttendanceService attendanceService,
                 ClaimsPrincipal user,
                 CancellationToken cancellationToken) =>
             {
@@ -57,15 +58,29 @@ public static class ParticipationEndpoints
             .Produces(401)
             .Produces(500);
 
-        // Create RSVP for social event
+        // ============================================================================
+        // CREATE RSVP ENDPOINT
+        // ============================================================================
+        //
+        // BUSINESS RULE: Creates standalone RSVP record (AttendanceType=RSVP)
+        //
+        // IMPORTANT: This creates ONLY an RSVP, NOT a ticket
+        // - User can have BOTH active Ticket AND active RSVP
+        // - Cancelled RSVPs do NOT block new RSVPs (allows re-registration)
+        // - Query checks for ACTIVE RSVPs only (AttendanceType=RSVP + Status=Active)
+        //
+        // RELATIONSHIP TO TICKETS:
+        // - If user already has a ticket, they can still RSVP separately
+        // - If user later cancels ticket, the RSVP is also cancelled
+        // - User can then manually RSVP again (creates NEW record)
         app.MapPost("/api/events/{eventId:guid}/rsvp",
             [Authorize] async (
                 Guid eventId,
                 CreateRSVPRequest request,
-                IAttendanceService attendanceService,
-                IVettingAccessControlService vettingAccessControlService,
+                [FromServices] IAttendanceService attendanceService,
+                [FromServices] IVettingAccessControlService vettingAccessControlService,
                 ClaimsPrincipal user,
-                ILogger<IAttendanceService> logger,
+                [FromServices] ILogger<IAttendanceService> logger,
                 CancellationToken cancellationToken) =>
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
@@ -110,7 +125,15 @@ public static class ParticipationEndpoints
                 // Ensure the eventId in URL matches the request
                 request.EventId = eventId;
 
+                logger.LogInformation(
+                    "ENDPOINT DIAGNOSTIC: About to call CreateRSVPAsync for user {UserId} on event {EventId}",
+                    userId, eventId);
+
                 var result = await attendanceService.CreateRSVPAsync(request, userId, cancellationToken);
+
+                logger.LogInformation(
+                    "ENDPOINT DIAGNOSTIC: CreateRSVPAsync returned - IsSuccess: {IsSuccess}, Error: {Error}",
+                    result.IsSuccess, result.Error ?? "none");
 
                 if (!result.IsSuccess)
                 {
@@ -143,6 +166,10 @@ public static class ParticipationEndpoints
                         statusCode: 500);
                 }
 
+                logger.LogInformation(
+                    "ENDPOINT DIAGNOSTIC: Returning 201 Created for RSVP {AttendanceId} for user {UserId} on event {EventId}",
+                    result.Value?.EventId, userId, eventId);
+
                 return Results.Created($"/api/events/{eventId}/participation", result.Value);
             })
             .WithName("CreateRSVP")
@@ -157,15 +184,34 @@ public static class ParticipationEndpoints
             .Produces(409)
             .Produces(500);
 
-        // Purchase ticket for class event
+        // ============================================================================
+        // PURCHASE TICKET ENDPOINT
+        // ============================================================================
+        //
+        // BUSINESS RULE: Creates ticket record (AttendanceType=Ticket)
+        //
+        // CRITICAL: For social events, also auto-creates RSVP record
+        // - Creates TWO EventAttendances records:
+        //   1. Ticket record (AttendanceType=Ticket, Status=Active)
+        //   2. RSVP record (AttendanceType=RSVP, Status=Active) - for social events only
+        //
+        // WHY AUTO-RSVP:
+        // - Users need to be on attendance roster for check-in
+        // - Capacity tracking includes all attendees
+        //
+        // RESULT: User has BOTH active Ticket AND active RSVP simultaneously
+        //
+        // CANCELLATION:
+        // - Cancelling ticket also cancels the associated RSVP
+        // - User can manually RSVP again after cancelling (creates NEW record)
         app.MapPost("/api/events/{eventId:guid}/tickets",
             [Authorize] async (
                 Guid eventId,
                 CreateTicketPurchaseRequest request,
-                IAttendanceService attendanceService,
-                IVettingAccessControlService vettingAccessControlService,
+                [FromServices] IAttendanceService attendanceService,
+                [FromServices] IVettingAccessControlService vettingAccessControlService,
                 ClaimsPrincipal user,
-                ILogger<IAttendanceService> logger,
+                [FromServices] ILogger<IAttendanceService> logger,
                 CancellationToken cancellationToken) =>
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
@@ -257,11 +303,26 @@ public static class ParticipationEndpoints
             .Produces(409)
             .Produces(500);
 
-        // Cancel participation (both RSVPs and tickets)
+        // ============================================================================
+        // CANCEL PARTICIPATION ENDPOINT
+        // ============================================================================
+        //
+        // BUSINESS RULE: Cancels attendance record(s)
+        //
+        // CRITICAL: Cancelling a TICKET also cancels associated RSVP
+        // - If type=ticket: Cancels ticket AND any associated RSVP
+        // - If type=rsvp: Cancels RSVP only (does NOT affect ticket)
+        //
+        // WHY: Ticket purchases auto-create RSVP for social events.
+        //      Cancelling ticket removes RSVP to prevent orphaned RSVPs.
+        //
+        // AFTER CANCELLATION:
+        // - User can manually RSVP again (creates NEW record)
+        // - Cancelled records remain in database for audit history
         app.MapDelete("/api/events/{eventId:guid}/participation",
             [Authorize] async (
                 Guid eventId,
-                IAttendanceService attendanceService,
+                [FromServices] IAttendanceService attendanceService,
                 ClaimsPrincipal user,
                 string? type = null,
                 string? reason = null,
@@ -314,7 +375,7 @@ public static class ParticipationEndpoints
         // Get user's participations
         app.MapGet("/api/user/participations",
             [Authorize] async (
-                IAttendanceService attendanceService,
+                [FromServices] IAttendanceService attendanceService,
                 ClaimsPrincipal user,
                 CancellationToken cancellationToken) =>
             {
@@ -347,7 +408,7 @@ public static class ParticipationEndpoints
         app.MapDelete("/api/events/{eventId:guid}/rsvp",
             [Authorize] async (
                 Guid eventId,
-                IAttendanceService attendanceService,
+                [FromServices] IAttendanceService attendanceService,
                 ClaimsPrincipal user,
                 string? reason = null,
                 CancellationToken cancellationToken = default) =>
@@ -393,7 +454,7 @@ public static class ParticipationEndpoints
         app.MapGet("/api/admin/events/{eventId:guid}/participations",
             [Authorize(Roles = "Administrator")] async (
                 Guid eventId,
-                IAttendanceService attendanceService,
+                [FromServices] IAttendanceService attendanceService,
                 CancellationToken cancellationToken) =>
             {
                 var result = await attendanceService.GetEventParticipationsAsync(eventId, cancellationToken);
@@ -422,9 +483,9 @@ public static class ParticipationEndpoints
             [Authorize(Roles = "Administrator")] async (
                 Guid eventId,
                 Guid userId,
-                ApplicationDbContext context,
+                [FromServices] ApplicationDbContext context,
                 ClaimsPrincipal user,
-                ILogger<IAttendanceService> logger,
+                [FromServices] ILogger<IAttendanceService> logger,
                 CancellationToken cancellationToken) =>
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var adminUserId))
@@ -515,11 +576,11 @@ public static class ParticipationEndpoints
             [Authorize(Roles = "Administrator")] async (
                 Guid eventId,
                 Guid userId,
-                ApplicationDbContext context,
-                IRefundService refundService,
-                IVolunteerAssignmentService volunteerAssignmentService,
+                [FromServices] ApplicationDbContext context,
+                [FromServices] IRefundService refundService,
+                [FromServices] IVolunteerAssignmentService volunteerAssignmentService,
                 ClaimsPrincipal user,
-                ILogger<IAttendanceService> logger,
+                [FromServices] ILogger<IAttendanceService> logger,
                 CancellationToken cancellationToken) =>
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var adminUserId))
@@ -697,11 +758,11 @@ public static class ParticipationEndpoints
                 Guid eventId,
                 Guid userId,
                 AdminRefundTicketRequest request,
-                ApplicationDbContext context,
-                IRefundService refundService,
-                IVolunteerAssignmentService volunteerAssignmentService,
+                [FromServices] ApplicationDbContext context,
+                [FromServices] IRefundService refundService,
+                [FromServices] IVolunteerAssignmentService volunteerAssignmentService,
                 ClaimsPrincipal user,
-                ILogger<IAttendanceService> logger,
+                [FromServices] ILogger<IAttendanceService> logger,
                 CancellationToken cancellationToken) =>
             {
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var adminUserId))

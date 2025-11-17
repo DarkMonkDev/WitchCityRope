@@ -535,6 +535,156 @@ dotnet test --filter "FullyQualifiedName~CheckInEndpointsTests"
 
 ---
 
+## ✅ CHECKIN SERVICE INTEGRATION TESTS - ALL PASSING - November 16, 2025
+
+**TEST SCOPE**: Comprehensive integration tests for CheckInService with real PostgreSQL database
+**CREATION DATE**: Pre-existing file (fixed 2025-11-16)
+**STATUS**: ✅ **ALL TESTS PASSING - 27/27 (100%)**
+
+### Executive Summary
+
+Fixed all 14 failing CheckInServiceTests by resolving two critical database setup issues: missing Venue entities (foreign key constraint violation) and invalid EventAttendee RegistrationStatus values (check constraint violation). All 27 integration tests now passing successfully using TestContainers with real PostgreSQL database.
+
+**Test File**: `/home/chad/repos/witchcityrope/tests/unit/api/Features/CheckIn/CheckInServiceTests.cs`
+**Lines**: 1,270 lines
+**Tests**: 27 comprehensive integration tests
+**Pass Rate**: 100% (27/27) ✅
+**Execution Time**: ~1.2 minutes (includes Docker container startup)
+**Test Database**: PostgreSQL via TestContainers
+
+### Issues Fixed (November 16, 2025)
+
+1. **Missing Venue Entity** - Foreign key constraint violation
+   - **Problem**: Tests created Events with `VenueId = 1` but no Venue entity existed
+   - **Error**: `23503: insert or update on table "Events" violates foreign key constraint "FK_Events_Venues_VenueId"`
+   - **Solution**: Added `SeedTestVenue()` helper method to create test Venue with ID = 1 in `InitializeAsync()`
+   - **Impact**: Fixed all 14 failing tests
+
+2. **Invalid RegistrationStatus Values** - Check constraint violation
+   - **Problem**: Tests used `RegistrationStatus = "rsvp"` which is not a valid database value
+   - **Error**: `23514: new row for relation "EventAttendees" violates check constraint "CHK_EventAttendees_RegistrationStatus"`
+   - **Valid Values**: 'confirmed', 'waitlist', 'checked-in', 'no-show', 'cancelled'
+   - **Solution**: Replaced all 7 instances of `"rsvp"` with `"confirmed"`
+   - **Impact**: Fixed remaining constraint violations
+
+### Test Categories (27 tests total)
+
+**Basic Check-In Tests** (4 tests) ✅
+- ✅ `CheckInAttendeeAsync_WithValidUser_CreatesCheckIn`
+- ✅ `CheckInAttendeeAsync_WithDuplicateCheckIn_ReturnsFailure`
+- ✅ `CheckInAttendeeAsync_ForNonExistentAttendee_ReturnsFailure`
+- ✅ `CheckInAttendeeAsync_BeforeEventStart_AllowsEarlyCheckIn`
+
+**Manual Check-In (Admin) Tests** (1 test) ✅
+- ✅ `ManualCheckInAsync_ByAdmin_CreatesAuditLog`
+
+**Capacity Enforcement Tests** (3 tests) ✅
+- ✅ `CheckIn_EnforcesEventCapacity`
+- ✅ `CheckIn_AllowsOverrideCapacity`
+- ✅ `CheckIn_PreventsOvercrowding_WithoutOverride`
+
+**Status Management Tests** (3 tests) ✅
+- ✅ `GetCheckInStatusAsync_ReturnsCheckedInUsers`
+- ✅ `GetCheckInCountAsync_ReturnsAccurateCount`
+- ✅ `UndoCheckInAsync_RemovesCheckIn`
+
+**Waiver Validation Tests** (2 tests) ✅
+- ✅ `CheckIn_RequiresCompletedWaiver`
+- ✅ `CheckIn_AllowsCheckInWithCompletedWaiver`
+
+**Dashboard and Reporting Tests** (3 tests) ✅
+- ✅ `GetEventDashboardAsync_ReturnsComprehensiveData`
+- ✅ `GetEventAttendeesAsync_SupportsSearch`
+- ✅ `GetEventAttendeesAsync_SupportsPagination`
+
+**Edge Cases and Error Handling** (3 tests) ✅
+- ✅ `GetEventAttendeesAsync_WithNonExistentEvent_ReturnsFailure`
+- ✅ `GetEventDashboardAsync_WithNonExistentEvent_ReturnsFailure`
+- ✅ `CheckIn_CachesCapacityInformation`
+
+**Cash Payment Tests (RecordCashPaymentAsync)** (8 tests) ✅
+- ✅ `ProcessCashPayment_ValidRequest_CreatesTicketPurchase`
+- ✅ `ProcessCashPayment_AttendeeNotRegistered_ReturnsError`
+- ✅ `ProcessCashPayment_AttendeeAlreadyHasTicket_ReturnsError`
+- ✅ `ProcessCashPayment_InvalidTicketType_ReturnsError`
+- ✅ `ProcessCashPayment_InvalidStaffId_ReturnsError`
+- ✅ `ProcessCashPayment_ZeroDollarAmount_CreatesTicketPurchase`
+- ✅ `ProcessCashPayment_WithNotes_SavesNotes`
+- ✅ `ProcessCashPayment_WithoutNotes_SavesEmptyString`
+
+### Integration Test Standards Compliance
+
+✅ **Real PostgreSQL Database** - Uses TestContainers, NO in-memory database
+✅ **Isolated Test Database** - Each test run gets fresh container
+✅ **Database Migrations Applied** - Full schema created via `EnsureCreatedAsync()`
+✅ **UTC DateTime Values** - All timestamps are UTC for PostgreSQL compatibility
+✅ **Foreign Key Constraints** - Tests respect all database relationships
+✅ **Check Constraints** - Tests use valid enum values enforced by database
+✅ **Proper Test Data Setup** - Venue seeding, user creation, event setup
+✅ **Comprehensive Test Helpers** - `CreateTestEvent()`, `CreateTestUser()`, `CreateEventAttendee()`, `CreateSessionToken()`
+✅ **Real Service Testing** - Tests actual `CheckInService` implementation, not mocks
+✅ **Transaction Testing** - Tests database transactions and rollback behavior
+✅ **Cache Testing** - Tests `IMemoryCache` integration for capacity caching
+
+### Service Methods Tested
+
+**CheckInService Core Methods**:
+- ✅ `CheckInAttendeeAsync()` - Attendee check-in with capacity validation
+- ✅ `GetEventAttendeesAsync()` - Retrieve attendees with search/pagination
+- ✅ `GetEventDashboardAsync()` - Real-time dashboard data
+- ✅ `CreateManualEntryAsync()` - Walk-in attendee manual entry
+- ✅ `RecordCashPaymentAsync()` - Door cash payment processing
+- ✅ `GetEventCapacityAsync()` - Capacity calculation with caching (private method)
+
+**Features Tested**:
+- Session token validation and audit logging
+- Duplicate check-in prevention
+- Early check-in allowance (before event start)
+- Capacity enforcement with override capability
+- Waiver requirement validation
+- Search functionality (by scene name, email, ticket number)
+- Pagination support
+- Manual entry for walk-ins
+- Cash payment recording with staff attribution
+- Zero-dollar tickets (free events)
+
+### Test Execution
+
+**To run tests**:
+```bash
+# Run all CheckInServiceTests
+dotnet test tests/unit/api/WitchCityRope.Api.Tests.csproj --filter "FullyQualifiedName~CheckInServiceTests"
+
+# Run specific test category
+dotnet test --filter "FullyQualifiedName~CheckInServiceTests.CheckIn"
+dotnet test --filter "FullyQualifiedName~CheckInServiceTests.ProcessCashPayment"
+```
+
+**Prerequisites**:
+- Docker must be running (for TestContainers)
+- No manual database setup required (automated via TestContainers)
+
+### Key Learnings
+
+**Database Constraint Validation**:
+- Integration tests MUST use valid database enum values
+- Foreign key relationships MUST be satisfied (create Venue before Event)
+- Check constraints enforce data integrity at database level
+
+**TestContainers Best Practices**:
+- Seed required reference data in `InitializeAsync()`
+- Use helper methods for consistent test data creation
+- Each test gets isolated database container
+- Automatic cleanup via `WithCleanUp(true)`
+
+**PostgreSQL Specifics**:
+- All DateTime values must be UTC
+- Check constraints are case-sensitive for string enums
+- Foreign key constraints prevent orphaned records
+- Migration history table created on first `EnsureCreatedAsync()`
+
+---
+
 ## ⛔ USER ENDPOINTS UNIT TESTS - BLOCKED BY ARCHITECTURAL ISSUE - November 15, 2025
 
 **TEST SCOPE**: Comprehensive unit test coverage for UserEndpoints.cs (Pattern B - Phase 4)

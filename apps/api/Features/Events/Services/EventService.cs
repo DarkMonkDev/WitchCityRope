@@ -8,7 +8,7 @@ namespace WitchCityRope.Api.Features.Events.Services;
 /// Events service using direct Entity Framework access
 /// Example of the simplified vertical slice architecture pattern - NO MediatR complexity
 /// </summary>
-public class EventService
+public class EventService : IEventService
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<EventService> _logger;

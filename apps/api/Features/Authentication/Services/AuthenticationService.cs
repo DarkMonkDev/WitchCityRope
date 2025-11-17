@@ -11,13 +11,13 @@ namespace WitchCityRope.Api.Features.Authentication.Services;
 /// Authentication service using direct Entity Framework access
 /// Example of the simplified vertical slice architecture pattern
 /// </summary>
-public class AuthenticationService
+public class AuthenticationService : IAuthenticationService
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IJwtService _jwtService;
-    private readonly ReturnUrlValidator _returnUrlValidator;
+    private readonly IReturnUrlValidator _returnUrlValidator;
     private readonly ILogger<AuthenticationService> _logger;
 
     public AuthenticationService(
@@ -25,7 +25,7 @@ public class AuthenticationService
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         IJwtService jwtService,
-        ReturnUrlValidator returnUrlValidator,
+        IReturnUrlValidator returnUrlValidator,
         ILogger<AuthenticationService> logger)
     {
         _context = context;
@@ -84,6 +84,17 @@ public class AuthenticationService
     {
         try
         {
+            // Validate required fields (belt-and-suspenders with DataAnnotations)
+            if (string.IsNullOrWhiteSpace(request.EmailOrSceneName))
+            {
+                return (false, null, "Email or Scene Name is required");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Password))
+            {
+                return (false, null, "Password is required");
+            }
+
             // Try to find user by email first (most common case, indexed)
             var user = await _userManager.FindByEmailAsync(request.EmailOrSceneName);
 

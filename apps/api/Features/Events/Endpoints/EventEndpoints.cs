@@ -22,7 +22,7 @@ public static class EventEndpoints
     {
         // Get all events with optional admin access
         app.MapGet("/api/events", async (
-            EventService eventService,
+            [FromServices] IEventService eventService,
             HttpContext context,
             bool? includeUnpublished,
             CancellationToken cancellationToken) =>
@@ -77,7 +77,7 @@ public static class EventEndpoints
         // Get single event by ID
         app.MapGet("/api/events/{id}", async (
             string id,
-            EventService eventService,
+            [FromServices] IEventService eventService,
             CancellationToken cancellationToken) =>
             {
                 var (success, response, error) = await eventService.GetEventAsync(id, cancellationToken);
@@ -105,7 +105,7 @@ public static class EventEndpoints
         app.MapPut("/api/events/{id}", async (
             string id,
             UpdateEventRequest request,
-            EventService eventService,
+            [FromServices] IEventService eventService,
             CancellationToken cancellationToken) =>
             {
                 var (success, response, error) = await eventService.UpdateEventAsync(id, request, cancellationToken);
@@ -148,7 +148,7 @@ public static class EventEndpoints
         app.MapGet("/api/events/{id}/ticket-types", async (
             string id,
             HttpContext context,
-            EventService eventService,
+            [FromServices] IEventService eventService,
             CancellationToken cancellationToken) =>
             {
                 // Kiosk mode: Check for X-CheckIn-Token header
@@ -190,8 +190,8 @@ public static class EventEndpoints
             [FromHeader(Name = "X-CheckIn-Token")] string? token,
             [FromServices] ISessionTokenService tokenService,
             CashPaymentRequest request,
-            ICheckInService checkInService,
-            IValidator<CashPaymentRequest> validator,
+            [FromServices] ICheckInService checkInService,
+            [FromServices] IValidator<CashPaymentRequest> validator,
             CancellationToken cancellationToken = default) =>
         {
             // VALIDATE TOKEN FIRST

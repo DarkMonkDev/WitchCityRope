@@ -15,14 +15,40 @@ namespace WitchCityRope.Api.Features.Participation.Entities;
 /// 1. RSVP (AttendanceType.RSVP): Free attendance for social events
 /// 2. Ticket (AttendanceType.Ticket): Paid attendance for class events or donation tickets
 ///
+/// ============================================================================
+/// CRITICAL: Tickets and RSVPs are SEPARATE records
+/// ============================================================================
+///
+/// 1. TICKET PURCHASE creates TWO records (for social events):
+///    - EventAttendances (AttendanceType=Ticket, Status=Active)
+///    - EventAttendances (AttendanceType=RSVP, Status=Active)
+///    WHY: Users need to be on attendance roster for check-in
+///
+/// 2. TICKET CANCELLATION cancels BOTH records:
+///    - Ticket record → Status=Cancelled
+///    - Associated RSVP → Status=Cancelled
+///    WHY: Prevents orphaned RSVPs after ticket cancellation
+///
+/// 3. MANUAL RSVP creates standalone record:
+///    - User CAN RSVP after cancelling ticket
+///    - Creates NEW EventAttendances (AttendanceType=RSVP, Status=Active)
+///    - Cancelled RSVPs do NOT prevent new RSVPs
+///
+/// 4. QUERIES must filter by AttendanceType:
+///    - Check for existing RSVP: Filter by AttendanceType=RSVP AND Status=Active
+///    - Check for existing Ticket: Filter by AttendanceType=Ticket AND Status=Active
+///    - User can have BOTH active Ticket and active RSVP simultaneously
+///
+/// ============================================================================
+///
 /// CAPACITY RULES:
 /// - Social events: Capacity based on RSVP count (free attendees)
 /// - Class events: Capacity based on Ticket count (paid attendees)
 /// - Auto-RSVP: When user buys ticket for social event, RSVP is created automatically
 ///
-/// BUSINESS RULE: One Active attendance per user per event
+/// BUSINESS RULE: One Active attendance per AttendanceType per user per event
 /// - Users can have multiple Cancelled/Refunded for history
-/// - Database constraint enforces this rule
+/// - User can have BOTH active Ticket AND active RSVP
 ///
 /// RELATIONSHIP TO PAYMENT:
 /// - TicketPurchase = Financial transaction record (for refunds)

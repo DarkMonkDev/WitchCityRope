@@ -194,7 +194,7 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
                 Payment Notes:
               </Text>
               <Text size="xs" c="dimmed">
-                • Payment will be processed securely through Stripe
+                • Payment will be processed securely through PayPal
               </Text>
               <Text size="xs" c="dimmed">
                 • You will receive an email receipt upon successful payment

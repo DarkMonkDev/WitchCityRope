@@ -258,6 +258,7 @@ public class MemberDetailsService : IMemberDetailsService
                     WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Active => "Active",
                     WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Cancelled => "Cancelled",
                     WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Refunded => "Refunded",
+                    WitchCityRope.Api.Features.Participation.Entities.AttendanceStatus.Waitlisted => "Waitlisted",
                     _ => "Unknown"
                 };
 

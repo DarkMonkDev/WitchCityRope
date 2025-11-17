@@ -10,7 +10,7 @@ namespace WitchCityRope.Api.Features.Users.Services;
 /// User management service using direct Entity Framework access
 /// Example of the simplified vertical slice architecture pattern - NO MediatR complexity
 /// </summary>
-public class UserManagementService
+public class UserManagementService : IUserManagementService
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;

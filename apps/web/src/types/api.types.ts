@@ -249,17 +249,31 @@ export interface UpdateEventData {
 }
 
 /**
- * Generic API Response wrapper (Frontend convenience)
- * Note: Prefer using specific ApiResponseOf* types from generated types when available
+ * @deprecated DO NOT USE - ApiResponse<T> wrapper pattern has been removed
+ * Pattern B: API returns DTOs directly, not wrapped in ApiResponse<T>
+ *
+ * OLD (WRONG):
+ * const response: ApiResponse<UserDto> = await api.get('/users/1');
+ * const user = response.data;
+ *
+ * NEW (CORRECT):
+ * const user: UserDto = await api.get('/users/1');
+ *
+ * For error handling, use try/catch with RFC 9457 Problem Details
  *
  * ESLint Exception: This is a generic frontend wrapper, not a backend DTO
  */
 // eslint-disable-next-line no-restricted-syntax
 export interface ApiResponse<T = unknown> {
+  /** @deprecated */
   success: boolean;
+  /** @deprecated */
   data?: T;
+  /** @deprecated */
   error?: string | null;
+  /** @deprecated */
   message?: string | null;
+  /** @deprecated */
   timestamp?: string;
 }
 

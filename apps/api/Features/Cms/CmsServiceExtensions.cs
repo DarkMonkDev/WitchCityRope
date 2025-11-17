@@ -13,7 +13,7 @@ namespace WitchCityRope.Api.Features.Cms
         public static IServiceCollection AddCmsServices(this IServiceCollection services)
         {
             // Register ContentSanitizer as singleton (stateless, thread-safe)
-            services.AddSingleton<ContentSanitizer>();
+            services.AddSingleton<IContentSanitizer, ContentSanitizer>();
 
             return services;
         }

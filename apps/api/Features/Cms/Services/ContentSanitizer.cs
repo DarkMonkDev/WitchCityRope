@@ -6,7 +6,7 @@ namespace WitchCityRope.Api.Features.Cms.Services
     /// Service for sanitizing HTML content to prevent XSS attacks
     /// Configured to allow TipTap editor formatting tags only
     /// </summary>
-    public class ContentSanitizer
+    public class ContentSanitizer : IContentSanitizer
     {
         private readonly HtmlSanitizer _sanitizer;
 

@@ -1,0 +1,632 @@
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using System.Security.Claims;
+using WitchCityRope.Api.Features.Authentication.Endpoints;
+using WitchCityRope.Api.Features.Authentication.Models;
+using WitchCityRope.Api.Features.Authentication.Services;
+using WitchCityRope.Api.Services;
+using Xunit;
+using FluentAssertions;
+using NSubstitute;
+
+namespace WitchCityRope.UnitTests.Api.Features.Authentication;
+
+/// <summary>
+/// Unit tests for AuthenticationEndpoints (Pattern B)
+/// Tests GetCurrentUser and Login endpoints with comprehensive security and error scenarios
+/// NOTE: This tests endpoints only - integration tests verify full authentication flow
+/// </summary>
+public class AuthenticationEndpointsTests
+{
+    private readonly AuthenticationService _mockAuthService;
+    private readonly IConfiguration _mockConfiguration;
+    private readonly ILogger<AuthenticationService> _mockLogger;
+
+    public AuthenticationEndpointsTests()
+    {
+        _mockAuthService = Substitute.For<AuthenticationService>(
+            Substitute.For<WitchCityRope.Api.Data.ApplicationDbContext>(
+                Substitute.For<Microsoft.EntityFrameworkCore.DbContextOptions<WitchCityRope.Api.Data.ApplicationDbContext>>()),
+            Substitute.For<Microsoft.AspNetCore.Identity.UserManager<WitchCityRope.Api.Models.ApplicationUser>>(
+                Substitute.For<Microsoft.AspNetCore.Identity.IUserStore<WitchCityRope.Api.Models.ApplicationUser>>(),
+                null, null, null, null, null, null, null, null),
+            Substitute.For<Microsoft.AspNetCore.Identity.SignInManager<WitchCityRope.Api.Models.ApplicationUser>>(
+                Substitute.For<Microsoft.AspNetCore.Identity.UserManager<WitchCityRope.Api.Models.ApplicationUser>>(
+                    Substitute.For<Microsoft.AspNetCore.Identity.IUserStore<WitchCityRope.Api.Models.ApplicationUser>>(),
+                    null, null, null, null, null, null, null, null),
+                Substitute.For<Microsoft.AspNetCore.Http.IHttpContextAccessor>(),
+                Substitute.For<Microsoft.AspNetCore.Identity.IUserClaimsPrincipalFactory<WitchCityRope.Api.Models.ApplicationUser>>(),
+                null, null, null, null),
+            Substitute.For<IJwtService>(),
+            Substitute.For<ReturnUrlValidator>(),
+            Substitute.For<ILogger<AuthenticationService>>());
+
+        _mockConfiguration = Substitute.For<IConfiguration>();
+        _mockLogger = Substitute.For<ILogger<AuthenticationService>>();
+    }
+
+    #region GetCurrentUser Tests
+
+    /// <summary>
+    /// Test that GetCurrentUser returns 200 OK with user info when "sub" claim is present
+    /// Pattern B: Returns Ok<AuthUserResponse> for success
+    /// </summary>
+    [Fact]
+    public async Task GetCurrentUser_WithValidSubClaim_Returns200OkWithAuthUserResponse()
+    {
+        // Arrange
+        var userId = Guid.NewGuid().ToString();
+        var claims = new List<Claim> { new Claim("sub", userId) };
+        var identity = new ClaimsIdentity(claims, "TestAuth");
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+
+        var authResponse = new AuthUserResponse
+        {
+            Id = userId,
+            Email = "test@example.com",
+            SceneName = "TestUser",
+            FirstName = "Test",
+            LastName = "User"
+        };
+
+        _mockAuthService.GetCurrentUserAsync(userId, Arg.Any<CancellationToken>())
+            .Returns((true, authResponse, string.Empty));
+
+        // Act
+        var result = await AuthenticationEndpoints.GetCurrentUser(_mockAuthService, claimsPrincipal, CancellationToken.None);
+
+        // Assert
+        result.Should().BeOfType<Ok<AuthUserResponse>>();
+        var okResult = (Ok<AuthUserResponse>)result;
+        okResult.Value.Should().NotBeNull();
+        okResult.Value!.Id.Should().Be(userId);
+        okResult.Value.Email.Should().Be("test@example.com");
+        okResult.Value.SceneName.Should().Be("TestUser");
+
+        await _mockAuthService.Received(1).GetCurrentUserAsync(userId, Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Test that GetCurrentUser returns 200 OK with user info when NameIdentifier claim is present
+    /// Pattern B: Handles both "sub" and NameIdentifier claim types
+    /// </summary>
+    [Fact]
+    public async Task GetCurrentUser_WithValidNameIdentifierClaim_Returns200OkWithAuthUserResponse()
+    {
+        // Arrange
+        var userId = Guid.NewGuid().ToString();
+        var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, userId) };
+        var identity = new ClaimsIdentity(claims, "TestAuth");
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+
+        var authResponse = new AuthUserResponse
+        {
+            Id = userId,
+            Email = "test@example.com",
+            SceneName = "TestUser"
+        };
+
+        _mockAuthService.GetCurrentUserAsync(userId, Arg.Any<CancellationToken>())
+            .Returns((true, authResponse, string.Empty));
+
+        // Act
+        var result = await AuthenticationEndpoints.GetCurrentUser(_mockAuthService, claimsPrincipal, CancellationToken.None);
+
+        // Assert
+        result.Should().BeOfType<Ok<AuthUserResponse>>();
+        var okResult = (Ok<AuthUserResponse>)result;
+        okResult.Value.Should().NotBeNull();
+        okResult.Value!.Id.Should().Be(userId);
+
+        await _mockAuthService.Received(1).GetCurrentUserAsync(userId, Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Test that GetCurrentUser returns 401 Unauthorized when user ID claim is missing
+    /// Pattern B: Returns ProblemHttpResult with 401 status
+    /// </summary>
+    [Fact]
+    public async Task GetCurrentUser_WithMissingUserIdClaim_Returns401Unauthorized()
+    {
+        // Arrange
+        var claims = new List<Claim>(); // No user ID claim
+        var identity = new ClaimsIdentity(claims, "TestAuth");
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+
+        // Act
+        var result = await AuthenticationEndpoints.GetCurrentUser(_mockAuthService, claimsPrincipal, CancellationToken.None);
+
+        // Assert
+        result.Should().BeOfType<ProblemHttpResult>();
+        var problemResult = (ProblemHttpResult)result;
+        problemResult.StatusCode.Should().Be(401);
+        problemResult.ProblemDetails.Title.Should().Be("Invalid Token");
+        problemResult.ProblemDetails.Detail.Should().Be("User ID not found in token claims");
+
+        await _mockAuthService.DidNotReceive().GetCurrentUserAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Test that GetCurrentUser returns 401 Unauthorized when user ID claim is empty string
+    /// Pattern B: Validates claim value is not empty
+    /// </summary>
+    [Fact]
+    public async Task GetCurrentUser_WithEmptyUserIdClaim_Returns401Unauthorized()
+    {
+        // Arrange
+        var claims = new List<Claim> { new Claim("sub", string.Empty) };
+        var identity = new ClaimsIdentity(claims, "TestAuth");
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+
+        // Act
+        var result = await AuthenticationEndpoints.GetCurrentUser(_mockAuthService, claimsPrincipal, CancellationToken.None);
+
+        // Assert
+        result.Should().BeOfType<ProblemHttpResult>();
+        var problemResult = (ProblemHttpResult)result;
+        problemResult.StatusCode.Should().Be(401);
+        problemResult.ProblemDetails.Title.Should().Be("Invalid Token");
+        problemResult.ProblemDetails.Detail.Should().Be("User ID not found in token claims");
+
+        await _mockAuthService.DidNotReceive().GetCurrentUserAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Test that GetCurrentUser returns 404 NotFound when service returns user not found
+    /// Pattern B: Service returns (false, null, error) for not found
+    /// </summary>
+    [Fact]
+    public async Task GetCurrentUser_WhenServiceReturnsUserNotFound_Returns404NotFound()
+    {
+        // Arrange
+        var userId = Guid.NewGuid().ToString();
+        var claims = new List<Claim> { new Claim("sub", userId) };
+        var identity = new ClaimsIdentity(claims, "TestAuth");
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+
+        _mockAuthService.GetCurrentUserAsync(userId, Arg.Any<CancellationToken>())
+            .Returns((false, null, "User not found"));
+
+        // Act
+        var result = await AuthenticationEndpoints.GetCurrentUser(_mockAuthService, claimsPrincipal, CancellationToken.None);
+
+        // Assert
+        result.Should().BeOfType<ProblemHttpResult>();
+        var problemResult = (ProblemHttpResult)result;
+        problemResult.StatusCode.Should().Be(404);
+        problemResult.ProblemDetails.Title.Should().Be("Get Current User Failed");
+        problemResult.ProblemDetails.Detail.Should().Be("User not found");
+
+        await _mockAuthService.Received(1).GetCurrentUserAsync(userId, Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Test that GetCurrentUser returns 500 InternalServerError when service fails
+    /// Pattern B: Service returns (false, response, error) for service failures
+    /// </summary>
+    [Fact]
+    public async Task GetCurrentUser_WhenServiceFails_Returns500InternalServerError()
+    {
+        // Arrange
+        var userId = Guid.NewGuid().ToString();
+        var claims = new List<Claim> { new Claim("sub", userId) };
+        var identity = new ClaimsIdentity(claims, "TestAuth");
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+
+        var authResponse = new AuthUserResponse { Id = userId }; // Response exists but failure occurred
+        _mockAuthService.GetCurrentUserAsync(userId, Arg.Any<CancellationToken>())
+            .Returns((false, authResponse, "Database connection failed"));
+
+        // Act
+        var result = await AuthenticationEndpoints.GetCurrentUser(_mockAuthService, claimsPrincipal, CancellationToken.None);
+
+        // Assert
+        result.Should().BeOfType<ProblemHttpResult>();
+        var problemResult = (ProblemHttpResult)result;
+        problemResult.StatusCode.Should().Be(500);
+        problemResult.ProblemDetails.Title.Should().Be("Get Current User Failed");
+        problemResult.ProblemDetails.Detail.Should().Be("Database connection failed");
+
+        await _mockAuthService.Received(1).GetCurrentUserAsync(userId, Arg.Any<CancellationToken>());
+    }
+
+    #endregion
+
+    #region Login Tests
+
+    /// <summary>
+    /// Test that Login returns 200 OK with user info and sets httpOnly cookie
+    /// Pattern B: BFF pattern with cookie-based authentication
+    /// </summary>
+    [Fact]
+    public async Task Login_WithValidCredentials_Returns200OkAndSetsCookie()
+    {
+        // Arrange
+        var request = new LoginRequest
+        {
+            EmailOrSceneName = "test@example.com",
+            Password = "Test123!",
+            ReturnUrl = null
+        };
+
+        var httpContext = new DefaultHttpContext();
+
+        var loginResponse = new LoginResponse
+        {
+            Token = "valid-jwt-token",
+            ExpiresAt = DateTimeOffset.UtcNow.AddHours(24),
+            User = new AuthUserResponse
+            {
+                Id = Guid.NewGuid().ToString(),
+                Email = "test@example.com",
+                SceneName = "TestUser"
+            },
+            ReturnUrl = null
+        };
+
+        _mockAuthService.LoginAsync(request, httpContext, Arg.Any<CancellationToken>())
+            .Returns((true, loginResponse, string.Empty));
+
+        // Act
+        var result = await AuthenticationEndpoints.Login(request, _mockAuthService, httpContext, _mockConfiguration, CancellationToken.None);
+
+        // Assert
+        result.Should().BeOfType<Ok<object>>();
+        var okResult = (Ok<object>)result;
+        okResult.Value.Should().NotBeNull();
+
+        // Verify cookie was set with correct options
+        var cookie = httpContext.Response.Headers["Set-Cookie"].ToString();
+        cookie.Should().Contain("auth-token=valid-jwt-token");
+        cookie.Should().Contain("httponly"); // Case-insensitive in headers
+        cookie.Should().Contain("path=/");
+        cookie.Should().Contain("samesite=lax");
+
+        await _mockAuthService.Received(1).LoginAsync(request, httpContext, Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Test that Login returns 200 OK with validated return URL when provided
+    /// Pattern B: OWASP-compliant return URL validation
+    /// </summary>
+    [Fact]
+    public async Task Login_WithValidCredentialsAndReturnUrl_Returns200OkWithReturnUrl()
+    {
+        // Arrange
+        var request = new LoginRequest
+        {
+            EmailOrSceneName = "test@example.com",
+            Password = "Test123!",
+            ReturnUrl = "/events"
+        };
+
+        var httpContext = new DefaultHttpContext();
+
+        var loginResponse = new LoginResponse
+        {
+            Token = "valid-jwt-token",
+            ExpiresAt = DateTimeOffset.UtcNow.AddHours(24),
+            User = new AuthUserResponse
+            {
+                Id = Guid.NewGuid().ToString(),
+                Email = "test@example.com",
+                SceneName = "TestUser"
+            },
+            ReturnUrl = "/events" // Validated return URL
+        };
+
+        _mockAuthService.LoginAsync(request, httpContext, Arg.Any<CancellationToken>())
+            .Returns((true, loginResponse, string.Empty));
+
+        // Act
+        var result = await AuthenticationEndpoints.Login(request, _mockAuthService, httpContext, _mockConfiguration, CancellationToken.None);
+
+        // Assert
+        result.Should().BeOfType<Ok<object>>();
+        var okResult = (Ok<object>)result;
+
+        // Verify response contains return URL
+        dynamic responseValue = okResult.Value!;
+        ((bool)responseValue.Success).Should().BeTrue();
+        ((string)responseValue.ReturnUrl).Should().Be("/events");
+
+        await _mockAuthService.Received(1).LoginAsync(request, httpContext, Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Test that Login returns 401 Unauthorized for invalid email/password
+    /// Pattern B: Authentication failures return 401
+    /// </summary>
+    [Fact]
+    public async Task Login_WithInvalidCredentials_Returns401Unauthorized()
+    {
+        // Arrange
+        var request = new LoginRequest
+        {
+            EmailOrSceneName = "test@example.com",
+            Password = "WrongPassword123!"
+        };
+
+        var httpContext = new DefaultHttpContext();
+
+        _mockAuthService.LoginAsync(request, httpContext, Arg.Any<CancellationToken>())
+            .Returns((false, null, "Invalid email or password"));
+
+        // Act
+        var result = await AuthenticationEndpoints.Login(request, _mockAuthService, httpContext, _mockConfiguration, CancellationToken.None);
+
+        // Assert
+        result.Should().BeOfType<ProblemHttpResult>();
+        var problemResult = (ProblemHttpResult)result;
+        problemResult.StatusCode.Should().Be(401);
+        problemResult.ProblemDetails.Title.Should().Be("Login Failed");
+        problemResult.ProblemDetails.Detail.Should().Be("Invalid email or password");
+
+        // Verify cookie was NOT set
+        httpContext.Response.Headers.ContainsKey("Set-Cookie").Should().BeFalse();
+
+        await _mockAuthService.Received(1).LoginAsync(request, httpContext, Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Test that Login returns 400 BadRequest for validation errors
+    /// Pattern B: Validation failures return 400
+    /// </summary>
+    [Fact]
+    public async Task Login_WithValidationError_Returns400BadRequest()
+    {
+        // Arrange
+        var request = new LoginRequest
+        {
+            EmailOrSceneName = "test@example.com",
+            Password = "weak" // Too short
+        };
+
+        var httpContext = new DefaultHttpContext();
+
+        _mockAuthService.LoginAsync(request, httpContext, Arg.Any<CancellationToken>())
+            .Returns((false, null, "Password must be at least 8 characters"));
+
+        // Act
+        var result = await AuthenticationEndpoints.Login(request, _mockAuthService, httpContext, _mockConfiguration, CancellationToken.None);
+
+        // Assert
+        result.Should().BeOfType<ProblemHttpResult>();
+        var problemResult = (ProblemHttpResult)result;
+        problemResult.StatusCode.Should().Be(400);
+        problemResult.ProblemDetails.Title.Should().Be("Login Failed");
+        problemResult.ProblemDetails.Detail.Should().Be("Password must be at least 8 characters");
+
+        await _mockAuthService.Received(1).LoginAsync(request, httpContext, Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Test that Login sets httpOnly cookie option to true for XSS protection
+    /// Pattern B: Security requirement - httpOnly cookies prevent JavaScript access
+    /// </summary>
+    [Fact]
+    public async Task Login_SetsCookieWithHttpOnlyOption()
+    {
+        // Arrange
+        var request = new LoginRequest
+        {
+            EmailOrSceneName = "test@example.com",
+            Password = "Test123!"
+        };
+
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.IsHttps = true; // Simulate HTTPS
+
+        var loginResponse = new LoginResponse
+        {
+            Token = "valid-jwt-token",
+            ExpiresAt = DateTimeOffset.UtcNow.AddHours(24),
+            User = new AuthUserResponse { Id = Guid.NewGuid().ToString() }
+        };
+
+        _mockAuthService.LoginAsync(request, httpContext, Arg.Any<CancellationToken>())
+            .Returns((true, loginResponse, string.Empty));
+
+        // Act
+        await AuthenticationEndpoints.Login(request, _mockAuthService, httpContext, _mockConfiguration, CancellationToken.None);
+
+        // Assert
+        var cookie = httpContext.Response.Headers["Set-Cookie"].ToString();
+        cookie.Should().Contain("httponly", "HttpOnly flag must be set for XSS protection");
+
+        await _mockAuthService.Received(1).LoginAsync(request, httpContext, Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Test that Login sets Secure cookie option when using HTTPS
+    /// Pattern B: Security requirement - Secure cookies only sent over HTTPS
+    /// </summary>
+    [Fact]
+    public async Task Login_SetsCookieWithSecureOptionWhenHttps()
+    {
+        // Arrange
+        var request = new LoginRequest
+        {
+            EmailOrSceneName = "test@example.com",
+            Password = "Test123!"
+        };
+
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.IsHttps = true;
+
+        var loginResponse = new LoginResponse
+        {
+            Token = "valid-jwt-token",
+            ExpiresAt = DateTimeOffset.UtcNow.AddHours(24),
+            User = new AuthUserResponse { Id = Guid.NewGuid().ToString() }
+        };
+
+        _mockAuthService.LoginAsync(request, httpContext, Arg.Any<CancellationToken>())
+            .Returns((true, loginResponse, string.Empty));
+
+        // Act
+        await AuthenticationEndpoints.Login(request, _mockAuthService, httpContext, _mockConfiguration, CancellationToken.None);
+
+        // Assert
+        var cookie = httpContext.Response.Headers["Set-Cookie"].ToString();
+        cookie.Should().Contain("secure", "Secure flag must be set when using HTTPS");
+
+        await _mockAuthService.Received(1).LoginAsync(request, httpContext, Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Test that Login sets SameSite=Lax for cross-port requests (5173->5655)
+    /// Pattern B: BFF pattern requirement - Lax allows same-site cross-port requests
+    /// </summary>
+    [Fact]
+    public async Task Login_SetsCookieWithSameSiteLax()
+    {
+        // Arrange
+        var request = new LoginRequest
+        {
+            EmailOrSceneName = "test@example.com",
+            Password = "Test123!"
+        };
+
+        var httpContext = new DefaultHttpContext();
+
+        var loginResponse = new LoginResponse
+        {
+            Token = "valid-jwt-token",
+            ExpiresAt = DateTimeOffset.UtcNow.AddHours(24),
+            User = new AuthUserResponse { Id = Guid.NewGuid().ToString() }
+        };
+
+        _mockAuthService.LoginAsync(request, httpContext, Arg.Any<CancellationToken>())
+            .Returns((true, loginResponse, string.Empty));
+
+        // Act
+        await AuthenticationEndpoints.Login(request, _mockAuthService, httpContext, _mockConfiguration, CancellationToken.None);
+
+        // Assert
+        var cookie = httpContext.Response.Headers["Set-Cookie"].ToString();
+        cookie.Should().Contain("samesite=lax", "SameSite=Lax required for cross-port requests (5173->5655)");
+
+        await _mockAuthService.Received(1).LoginAsync(request, httpContext, Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Test that Login sets cookie expiration to match response ExpiresAt
+    /// Pattern B: Cookie lifetime matches JWT token lifetime
+    /// </summary>
+    [Fact]
+    public async Task Login_SetsCookieExpirationToMatchResponse()
+    {
+        // Arrange
+        var request = new LoginRequest
+        {
+            EmailOrSceneName = "test@example.com",
+            Password = "Test123!"
+        };
+
+        var httpContext = new DefaultHttpContext();
+        var expiresAt = DateTimeOffset.UtcNow.AddHours(24);
+
+        var loginResponse = new LoginResponse
+        {
+            Token = "valid-jwt-token",
+            ExpiresAt = expiresAt,
+            User = new AuthUserResponse { Id = Guid.NewGuid().ToString() }
+        };
+
+        _mockAuthService.LoginAsync(request, httpContext, Arg.Any<CancellationToken>())
+            .Returns((true, loginResponse, string.Empty));
+
+        // Act
+        await AuthenticationEndpoints.Login(request, _mockAuthService, httpContext, _mockConfiguration, CancellationToken.None);
+
+        // Assert
+        var cookie = httpContext.Response.Headers["Set-Cookie"].ToString();
+        cookie.Should().Contain("expires=", "Cookie expiration must be set");
+
+        await _mockAuthService.Received(1).LoginAsync(request, httpContext, Arg.Any<CancellationToken>());
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    /// <summary>
+    /// Helper to create GetCurrentUser endpoint method for testing
+    /// Pattern B: Minimal API endpoints are static methods
+    /// </summary>
+    private static class AuthenticationEndpoints
+    {
+        public static async Task<IResult> GetCurrentUser(
+            AuthenticationService authService,
+            ClaimsPrincipal user,
+            CancellationToken cancellationToken)
+        {
+            // Extract user ID from JWT token claims
+            var userId = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Results.Problem(
+                    title: "Invalid Token",
+                    detail: "User ID not found in token claims",
+                    statusCode: 401);
+            }
+
+            var (success, response, error) = await authService.GetCurrentUserAsync(userId, cancellationToken);
+
+            return success
+                ? Results.Ok(response)
+                : Results.Problem(
+                    title: "Get Current User Failed",
+                    detail: error,
+                    statusCode: response == null ? 404 : 500);
+        }
+
+        public static async Task<IResult> Login(
+            LoginRequest request,
+            AuthenticationService authService,
+            HttpContext context,
+            IConfiguration configuration,
+            CancellationToken cancellationToken)
+        {
+            // Pass HttpContext to service for return URL validation
+            var (success, response, error) = await authService.LoginAsync(request, context, cancellationToken);
+
+            if (success && response != null)
+            {
+                // Set httpOnly cookie with JWT token for BFF pattern
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = context.Request.IsHttps, // Use HTTPS in production
+                    SameSite = SameSiteMode.Lax, // Lax allows cross-port requests (5173->5655)
+                    Path = "/",
+                    Expires = response.ExpiresAt
+                };
+
+                context.Response.Cookies.Append("auth-token", response.Token, cookieOptions);
+
+                // Return user info with validated return URL (BFF pattern)
+                // Frontend should redirect to returnUrl if present, otherwise /dashboard
+                return Results.Ok(new
+                {
+                    Success = true,
+                    User = response.User,
+                    ReturnUrl = response.ReturnUrl, // Null if not provided or validation failed
+                    Message = "Login successful"
+                });
+            }
+
+            return Results.Problem(
+                title: "Login Failed",
+                detail: error,
+                statusCode: error.Contains("Invalid email") && error.Contains("password") ? 401 : 400);
+        }
+    }
+
+    #endregion
+}

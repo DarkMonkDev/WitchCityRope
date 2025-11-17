@@ -8,25 +8,61 @@ export interface ValidationError {
 
 export interface FormError {
   message: string;
-  validationErrors?: ValidationError[];
+  validationErrors?: Record<string, string[]>; // Changed to match RFC 9457
   code?: string;
 }
 
+/**
+ * RFC 9457 Problem Details for HTTP APIs
+ * Standard error format returned by backend
+ */
+export interface ProblemDetails {
+  type?: string;
+  title: string;
+  status: number;
+  detail?: string;
+  instance?: string;
+  errors?: Record<string, string[]>; // Validation errors
+}
+
+/**
+ * @deprecated DO NOT USE - ApiResponse wrapper pattern removed
+ * Pattern B: API returns DTOs directly, not wrapped
+ * Use ProblemDetails for error handling instead
+ */
 export interface ApiErrorResponse {
+  /** @deprecated */
   success: false;
+  /** @deprecated */
   message: string;
+  /** @deprecated */
   errors?: Record<string, string[]>;
+  /** @deprecated */
   code?: string;
+  /** @deprecated */
   timestamp: string;
 }
 
+/**
+ * @deprecated DO NOT USE - ApiResponse wrapper pattern removed
+ * Pattern B: API returns DTOs directly, not wrapped
+ */
 export interface ApiSuccessResponse<T = any> {
+  /** @deprecated */
   success: true;
+  /** @deprecated */
   data: T;
+  /** @deprecated */
   message?: string;
+  /** @deprecated */
   timestamp: string;
 }
 
+/**
+ * @deprecated DO NOT USE - ApiResponse wrapper pattern removed
+ * Pattern B: API returns DTOs directly, not wrapped
+ * Use try/catch with ProblemDetails for errors
+ */
 export type ApiResponse<T = any> = ApiSuccessResponse<T> | ApiErrorResponse;
 
 // Form submission states

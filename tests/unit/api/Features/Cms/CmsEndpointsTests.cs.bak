@@ -1,0 +1,851 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System.Security.Claims;
+using WitchCityRope.Api.Data;
+using WitchCityRope.Api.Features.Cms.Dtos;
+using WitchCityRope.Api.Features.Cms.Entities;
+using WitchCityRope.Api.Features.Cms.Services;
+using WitchCityRope.Api.Models;
+using Xunit;
+using FluentAssertions;
+using NSubstitute;
+using Microsoft.AspNetCore.Http;
+
+namespace WitchCityRope.UnitTests.Api.Features.Cms;
+
+/// <summary>
+/// Unit tests for CmsEndpoints following Pattern B standards.
+/// Tests all CMS endpoints using in-memory database and mocked ContentSanitizer.
+/// </summary>
+public class CmsEndpointsTests : IDisposable
+{
+    private readonly ApplicationDbContext _dbContext;
+    private readonly ContentSanitizer _mockSanitizer;
+    private readonly ILogger<Program> _mockLogger;
+    private readonly ApplicationUser _testAdmin;
+    private readonly ApplicationUser _testMember;
+
+    public CmsEndpointsTests()
+    {
+        // Setup in-memory database
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase(databaseName: $"CmsTests_{Guid.NewGuid()}")
+            .Options;
+        _dbContext = new ApplicationDbContext(options);
+
+        // Setup mocks
+        _mockSanitizer = Substitute.For<ContentSanitizer>();
+        _mockLogger = Substitute.For<ILogger<Program>>();
+
+        // Create test users
+        _testAdmin = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            Email = "admin@test.com",
+            SceneName = "TestAdmin",
+            UserName = "admin@test.com"
+        };
+
+        _testMember = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            Email = "member@test.com",
+            SceneName = "TestMember",
+            UserName = "member@test.com"
+        };
+
+        _dbContext.Users.AddRange(_testAdmin, _testMember);
+        _dbContext.SaveChanges();
+    }
+
+    public void Dispose()
+    {
+        _dbContext.Database.EnsureDeleted();
+        _dbContext.Dispose();
+    }
+
+    #region GetPageBySlug Tests
+
+    /// <summary>
+    /// Test: GetPageBySlug with valid published page slug returns 200 OK with ContentPageDto
+    /// </summary>
+    [Fact]
+    public async Task GetPageBySlug_WithValidPublishedPage_Returns200OkWithContentPageDto()
+    {
+        // Arrange
+        var page = new ContentPage
+        {
+            Slug = "test-page",
+            Title = "Test Page",
+            Content = "<p>Test content</p>",
+            IsPublished = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            CreatedBy = _testAdmin.Id,
+            LastModifiedBy = _testAdmin.Id,
+            LastModifiedByUser = _testAdmin
+        };
+        _dbContext.ContentPages.Add(page);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await WitchCityRope.Api.Features.Cms.CmsEndpoints.GetPageBySlug(
+            "test-page",
+            _dbContext,
+            CancellationToken.None
+        );
+
+        // Assert
+        result.Should().BeOfType<Microsoft.AspNetCore.Http.HttpResults.Ok<ContentPageDto>>();
+        var okResult = result as Microsoft.AspNetCore.Http.HttpResults.Ok<ContentPageDto>;
+        okResult!.Value.Should().NotBeNull();
+        okResult.Value!.Slug.Should().Be("test-page");
+        okResult.Value.Title.Should().Be("Test Page");
+        okResult.Value.Content.Should().Be("<p>Test content</p>");
+        okResult.Value.IsPublished.Should().BeTrue();
+        okResult.Value.LastModifiedBy.Should().Be(_testAdmin.Email);
+    }
+
+    /// <summary>
+    /// Test: GetPageBySlug with non-existent slug returns 404 NotFound
+    /// </summary>
+    [Fact]
+    public async Task GetPageBySlug_WithNonExistentSlug_Returns404NotFound()
+    {
+        // Act
+        var result = await WitchCityRope.Api.Features.Cms.CmsEndpoints.GetPageBySlug(
+            "non-existent-slug",
+            _dbContext,
+            CancellationToken.None
+        );
+
+        // Assert
+        result.Should().BeOfType<Microsoft.AspNetCore.Http.HttpResults.NotFound<object>>();
+    }
+
+    /// <summary>
+    /// Test: GetPageBySlug with unpublished page returns 404 NotFound
+    /// </summary>
+    [Fact]
+    public async Task GetPageBySlug_WithUnpublishedPage_Returns404NotFound()
+    {
+        // Arrange
+        var page = new ContentPage
+        {
+            Slug = "unpublished-page",
+            Title = "Unpublished Page",
+            Content = "<p>Unpublished content</p>",
+            IsPublished = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            CreatedBy = _testAdmin.Id,
+            LastModifiedBy = _testAdmin.Id
+        };
+        _dbContext.ContentPages.Add(page);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await WitchCityRope.Api.Features.Cms.CmsEndpoints.GetPageBySlug(
+            "unpublished-page",
+            _dbContext,
+            CancellationToken.None
+        );
+
+        // Assert
+        result.Should().BeOfType<Microsoft.AspNetCore.Http.HttpResults.NotFound<object>>();
+    }
+
+    /// <summary>
+    /// Test: GetPageBySlug handles database errors gracefully
+    /// </summary>
+    [Fact]
+    public async Task GetPageBySlug_WithDatabaseError_ThrowsException()
+    {
+        // Arrange - dispose context to simulate database error
+        await _dbContext.DisposeAsync();
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ObjectDisposedException>(async () =>
+            await WitchCityRope.Api.Features.Cms.CmsEndpoints.GetPageBySlug(
+                "any-slug",
+                _dbContext,
+                CancellationToken.None
+            )
+        );
+    }
+
+    #endregion
+
+    #region UpdatePage Tests
+
+    /// <summary>
+    /// Test: UpdatePage with valid request returns 200 OK with updated page
+    /// </summary>
+    [Fact]
+    public async Task UpdatePage_WithValidRequest_Returns200OkWithUpdatedPage()
+    {
+        // Arrange
+        var page = new ContentPage
+        {
+            Slug = "test-page",
+            Title = "Original Title",
+            Content = "<p>Original content</p>",
+            IsPublished = true,
+            CreatedAt = DateTime.UtcNow.AddDays(-1),
+            UpdatedAt = DateTime.UtcNow.AddDays(-1),
+            CreatedBy = _testAdmin.Id,
+            LastModifiedBy = _testAdmin.Id,
+            LastModifiedByUser = _testAdmin
+        };
+        _dbContext.ContentPages.Add(page);
+        await _dbContext.SaveChangesAsync();
+
+        var request = new UpdateContentPageRequest
+        {
+            Title = "Updated Title",
+            Content = "<p>Updated content with <script>alert('xss')</script></p>",
+            ChangeDescription = "Updated via unit test"
+        };
+
+        var cleanContent = "<p>Updated content with </p>";
+        _mockSanitizer.Sanitize(Arg.Any<string>()).Returns(cleanContent);
+
+        var user = CreateClaimsPrincipal(_testAdmin.Id);
+
+        // Act
+        var result = await WitchCityRope.Api.Features.Cms.CmsEndpoints.UpdatePage(
+            page.Id,
+            request,
+            user,
+            _dbContext,
+            _mockSanitizer,
+            _mockLogger,
+            CancellationToken.None
+        );
+
+        // Assert
+        result.Should().BeOfType<Microsoft.AspNetCore.Http.HttpResults.Ok<ContentPageDto>>();
+        var okResult = result as Microsoft.AspNetCore.Http.HttpResults.Ok<ContentPageDto>;
+        okResult!.Value.Should().NotBeNull();
+        okResult.Value!.Title.Should().Be("Updated Title");
+        okResult.Value.Content.Should().Be(cleanContent);
+
+        // Verify sanitizer was called
+        _mockSanitizer.Received(1).Sanitize(Arg.Any<string>());
+
+        // Verify revision was created
+        var revisions = await _dbContext.ContentRevisions
+            .Where(r => r.ContentPageId == page.Id)
+            .ToListAsync();
+        revisions.Should().HaveCount(1);
+        revisions[0].Title.Should().Be("Original Title");
+        revisions[0].Content.Should().Be("<p>Original content</p>");
+    }
+
+    /// <summary>
+    /// Test: UpdatePage with missing user ID claim returns 401 Unauthorized
+    /// </summary>
+    [Fact]
+    public async Task UpdatePage_WithMissingUserIdClaim_Returns401Unauthorized()
+    {
+        // Arrange
+        var page = new ContentPage
+        {
+            Slug = "test-page",
+            Title = "Test",
+            Content = "<p>Test</p>",
+            IsPublished = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            CreatedBy = _testAdmin.Id,
+            LastModifiedBy = _testAdmin.Id
+        };
+        _dbContext.ContentPages.Add(page);
+        await _dbContext.SaveChangesAsync();
+
+        var request = new UpdateContentPageRequest
+        {
+            Title = "Updated",
+            Content = "<p>Updated</p>"
+        };
+
+        var user = new ClaimsPrincipal(new ClaimsIdentity());
+
+        // Act
+        var result = await WitchCityRope.Api.Features.Cms.CmsEndpoints.UpdatePage(
+            page.Id,
+            request,
+            user,
+            _dbContext,
+            _mockSanitizer,
+            _mockLogger,
+            CancellationToken.None
+        );
+
+        // Assert
+        result.Should().BeOfType<Microsoft.AspNetCore.Http.HttpResults.UnauthorizedHttpResult>();
+    }
+
+    /// <summary>
+    /// Test: UpdatePage with invalid user ID format returns 401 Unauthorized
+    /// </summary>
+    [Fact]
+    public async Task UpdatePage_WithInvalidUserIdFormat_Returns401Unauthorized()
+    {
+        // Arrange
+        var page = new ContentPage
+        {
+            Slug = "test-page",
+            Title = "Test",
+            Content = "<p>Test</p>",
+            IsPublished = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            CreatedBy = _testAdmin.Id,
+            LastModifiedBy = _testAdmin.Id
+        };
+        _dbContext.ContentPages.Add(page);
+        await _dbContext.SaveChangesAsync();
+
+        var request = new UpdateContentPageRequest
+        {
+            Title = "Updated",
+            Content = "<p>Updated</p>"
+        };
+
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, "not-a-guid")
+        };
+        var user = new ClaimsPrincipal(new ClaimsIdentity(claims));
+
+        // Act
+        var result = await WitchCityRope.Api.Features.Cms.CmsEndpoints.UpdatePage(
+            page.Id,
+            request,
+            user,
+            _dbContext,
+            _mockSanitizer,
+            _mockLogger,
+            CancellationToken.None
+        );
+
+        // Assert
+        result.Should().BeOfType<Microsoft.AspNetCore.Http.HttpResults.UnauthorizedHttpResult>();
+    }
+
+    /// <summary>
+    /// Test: UpdatePage with page not found returns 404 NotFound
+    /// </summary>
+    [Fact]
+    public async Task UpdatePage_WithPageNotFound_Returns404NotFound()
+    {
+        // Arrange
+        var request = new UpdateContentPageRequest
+        {
+            Title = "Updated",
+            Content = "<p>Updated</p>"
+        };
+
+        var user = CreateClaimsPrincipal(_testAdmin.Id);
+
+        // Act
+        var result = await WitchCityRope.Api.Features.Cms.CmsEndpoints.UpdatePage(
+            999,
+            request,
+            user,
+            _dbContext,
+            _mockSanitizer,
+            _mockLogger,
+            CancellationToken.None
+        );
+
+        // Assert
+        result.Should().BeOfType<Microsoft.AspNetCore.Http.HttpResults.NotFound<object>>();
+    }
+
+    /// <summary>
+    /// Test: UpdatePage with empty content after sanitization returns 400 BadRequest
+    /// </summary>
+    [Fact]
+    public async Task UpdatePage_WithEmptyContentAfterSanitization_Returns400BadRequest()
+    {
+        // Arrange
+        var page = new ContentPage
+        {
+            Slug = "test-page",
+            Title = "Test",
+            Content = "<p>Test</p>",
+            IsPublished = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            CreatedBy = _testAdmin.Id,
+            LastModifiedBy = _testAdmin.Id
+        };
+        _dbContext.ContentPages.Add(page);
+        await _dbContext.SaveChangesAsync();
+
+        var request = new UpdateContentPageRequest
+        {
+            Title = "Updated",
+            Content = "<script>alert('xss')</script>"
+        };
+
+        _mockSanitizer.Sanitize(Arg.Any<string>()).Returns("");
+
+        var user = CreateClaimsPrincipal(_testAdmin.Id);
+
+        // Act
+        var result = await WitchCityRope.Api.Features.Cms.CmsEndpoints.UpdatePage(
+            page.Id,
+            request,
+            user,
+            _dbContext,
+            _mockSanitizer,
+            _mockLogger,
+            CancellationToken.None
+        );
+
+        // Assert
+        result.Should().BeOfType<Microsoft.AspNetCore.Http.HttpResults.BadRequest<object>>();
+    }
+
+    /// <summary>
+    /// Test: UpdatePage sanitizes content and removes XSS
+    /// </summary>
+    [Fact]
+    public async Task UpdatePage_SanitizesContentAndRemovesXss()
+    {
+        // Arrange
+        var page = new ContentPage
+        {
+            Slug = "test-page",
+            Title = "Test",
+            Content = "<p>Original</p>",
+            IsPublished = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            CreatedBy = _testAdmin.Id,
+            LastModifiedBy = _testAdmin.Id,
+            LastModifiedByUser = _testAdmin
+        };
+        _dbContext.ContentPages.Add(page);
+        await _dbContext.SaveChangesAsync();
+
+        var maliciousContent = "<p>Safe content</p><script>alert('xss')</script>";
+        var request = new UpdateContentPageRequest
+        {
+            Title = "Updated",
+            Content = maliciousContent
+        };
+
+        var cleanContent = "<p>Safe content</p>";
+        _mockSanitizer.Sanitize(maliciousContent).Returns(cleanContent);
+
+        var user = CreateClaimsPrincipal(_testAdmin.Id);
+
+        // Act
+        var result = await WitchCityRope.Api.Features.Cms.CmsEndpoints.UpdatePage(
+            page.Id,
+            request,
+            user,
+            _dbContext,
+            _mockSanitizer,
+            _mockLogger,
+            CancellationToken.None
+        );
+
+        // Assert
+        _mockSanitizer.Received(1).Sanitize(maliciousContent);
+
+        var okResult = result as Microsoft.AspNetCore.Http.HttpResults.Ok<ContentPageDto>;
+        okResult!.Value!.Content.Should().Be(cleanContent);
+        okResult.Value.Content.Should().NotContain("<script>");
+    }
+
+    /// <summary>
+    /// Test: UpdatePage with exception during update returns 500 with Problem response
+    /// </summary>
+    [Fact]
+    public async Task UpdatePage_WithExceptionDuringUpdate_Returns500WithProblemResponse()
+    {
+        // Arrange
+        var page = new ContentPage
+        {
+            Slug = "test-page",
+            Title = "Test",
+            Content = "<p>Test</p>",
+            IsPublished = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            CreatedBy = _testAdmin.Id,
+            LastModifiedBy = _testAdmin.Id
+        };
+        _dbContext.ContentPages.Add(page);
+        await _dbContext.SaveChangesAsync();
+
+        var request = new UpdateContentPageRequest
+        {
+            Title = "Updated",
+            Content = "<p>Updated</p>"
+        };
+
+        _mockSanitizer.Sanitize(Arg.Any<string>()).Returns(x => throw new Exception("Sanitizer error"));
+
+        var user = CreateClaimsPrincipal(_testAdmin.Id);
+
+        // Act
+        var result = await WitchCityRope.Api.Features.Cms.CmsEndpoints.UpdatePage(
+            page.Id,
+            request,
+            user,
+            _dbContext,
+            _mockSanitizer,
+            _mockLogger,
+            CancellationToken.None
+        );
+
+        // Assert
+        result.Should().BeOfType<Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult>();
+    }
+
+    /// <summary>
+    /// Test: UpdatePage with ArgumentException from domain method returns 400 BadRequest
+    /// </summary>
+    [Fact]
+    public async Task UpdatePage_WithArgumentExceptionFromDomain_Returns400BadRequest()
+    {
+        // Arrange
+        var page = new ContentPage
+        {
+            Slug = "test-page",
+            Title = "Test",
+            Content = "<p>Test</p>",
+            IsPublished = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            CreatedBy = _testAdmin.Id,
+            LastModifiedBy = _testAdmin.Id
+        };
+        _dbContext.ContentPages.Add(page);
+        await _dbContext.SaveChangesAsync();
+
+        var request = new UpdateContentPageRequest
+        {
+            Title = "",  // Empty title will trigger ArgumentException in domain method
+            Content = "<p>Valid content</p>"
+        };
+
+        _mockSanitizer.Sanitize(Arg.Any<string>()).Returns("<p>Valid content</p>");
+
+        var user = CreateClaimsPrincipal(_testAdmin.Id);
+
+        // Act
+        var result = await WitchCityRope.Api.Features.Cms.CmsEndpoints.UpdatePage(
+            page.Id,
+            request,
+            user,
+            _dbContext,
+            _mockSanitizer,
+            _mockLogger,
+            CancellationToken.None
+        );
+
+        // Assert
+        result.Should().BeOfType<Microsoft.AspNetCore.Http.HttpResults.BadRequest<object>>();
+    }
+
+    #endregion
+
+    #region GetPageRevisions Tests
+
+    /// <summary>
+    /// Test: GetPageRevisions with valid page ID returns 200 OK with revisions list
+    /// </summary>
+    [Fact]
+    public async Task GetPageRevisions_WithValidPageId_Returns200OkWithRevisionsList()
+    {
+        // Arrange
+        var page = new ContentPage
+        {
+            Slug = "test-page",
+            Title = "Current Title",
+            Content = "<p>Current content</p>",
+            IsPublished = true,
+            CreatedAt = DateTime.UtcNow.AddDays(-10),
+            UpdatedAt = DateTime.UtcNow,
+            CreatedBy = _testAdmin.Id,
+            LastModifiedBy = _testAdmin.Id
+        };
+        _dbContext.ContentPages.Add(page);
+        await _dbContext.SaveChangesAsync();
+
+        // Create multiple revisions
+        var revision1 = new ContentRevision
+        {
+            ContentPageId = page.Id,
+            Title = "Old Title 1",
+            Content = "<p>Old content 1</p>",
+            CreatedAt = DateTime.UtcNow.AddDays(-5),
+            CreatedBy = _testAdmin.Id,
+            CreatedByUser = _testAdmin,
+            ChangeDescription = "First update"
+        };
+        var revision2 = new ContentRevision
+        {
+            ContentPageId = page.Id,
+            Title = "Old Title 2",
+            Content = "<p>Old content 2</p>",
+            CreatedAt = DateTime.UtcNow.AddDays(-2),
+            CreatedBy = _testAdmin.Id,
+            CreatedByUser = _testAdmin,
+            ChangeDescription = "Second update"
+        };
+        _dbContext.ContentRevisions.AddRange(revision1, revision2);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await WitchCityRope.Api.Features.Cms.CmsEndpoints.GetPageRevisions(
+            page.Id,
+            _dbContext,
+            CancellationToken.None
+        );
+
+        // Assert
+        result.Should().BeOfType<Microsoft.AspNetCore.Http.HttpResults.Ok<List<ContentRevisionDto>>>();
+        var okResult = result as Microsoft.AspNetCore.Http.HttpResults.Ok<List<ContentRevisionDto>>;
+        okResult!.Value.Should().NotBeNull();
+        okResult.Value!.Should().HaveCount(2);
+
+        // Verify most recent first
+        okResult.Value[0].ChangeDescription.Should().Be("Second update");
+        okResult.Value[1].ChangeDescription.Should().Be("First update");
+
+        // Verify content preview (not full content)
+        okResult.Value[0].FullContent.Should().BeNull();
+    }
+
+    /// <summary>
+    /// Test: GetPageRevisions with page not found returns 404 NotFound
+    /// </summary>
+    [Fact]
+    public async Task GetPageRevisions_WithPageNotFound_Returns404NotFound()
+    {
+        // Act
+        var result = await WitchCityRope.Api.Features.Cms.CmsEndpoints.GetPageRevisions(
+            999,
+            _dbContext,
+            CancellationToken.None
+        );
+
+        // Assert
+        result.Should().BeOfType<Microsoft.AspNetCore.Http.HttpResults.NotFound<object>>();
+    }
+
+    /// <summary>
+    /// Test: GetPageRevisions with page exists but no revisions returns 200 OK with empty list
+    /// </summary>
+    [Fact]
+    public async Task GetPageRevisions_WithNoRevisions_Returns200OkWithEmptyList()
+    {
+        // Arrange
+        var page = new ContentPage
+        {
+            Slug = "test-page",
+            Title = "Test",
+            Content = "<p>Test</p>",
+            IsPublished = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            CreatedBy = _testAdmin.Id,
+            LastModifiedBy = _testAdmin.Id
+        };
+        _dbContext.ContentPages.Add(page);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await WitchCityRope.Api.Features.Cms.CmsEndpoints.GetPageRevisions(
+            page.Id,
+            _dbContext,
+            CancellationToken.None
+        );
+
+        // Assert
+        result.Should().BeOfType<Microsoft.AspNetCore.Http.HttpResults.Ok<List<ContentRevisionDto>>>();
+        var okResult = result as Microsoft.AspNetCore.Http.HttpResults.Ok<List<ContentRevisionDto>>;
+        okResult!.Value.Should().NotBeNull();
+        okResult.Value!.Should().BeEmpty();
+    }
+
+    #endregion
+
+    #region GetAllPages Tests
+
+    /// <summary>
+    /// Test: GetAllPages returns all pages with summaries in 200 OK response
+    /// </summary>
+    [Fact]
+    public async Task GetAllPages_ReturnsAllPagesWithSummaries()
+    {
+        // Arrange
+        var page1 = new ContentPage
+        {
+            Slug = "about",
+            Title = "About Us",
+            Content = "<p>About content</p>",
+            IsPublished = true,
+            CreatedAt = DateTime.UtcNow.AddDays(-10),
+            UpdatedAt = DateTime.UtcNow.AddDays(-5),
+            CreatedBy = _testAdmin.Id,
+            LastModifiedBy = _testAdmin.Id,
+            LastModifiedByUser = _testAdmin
+        };
+
+        var page2 = new ContentPage
+        {
+            Slug = "contact",
+            Title = "Contact Us",
+            Content = "<p>Contact content</p>",
+            IsPublished = true,
+            CreatedAt = DateTime.UtcNow.AddDays(-8),
+            UpdatedAt = DateTime.UtcNow.AddDays(-2),
+            CreatedBy = _testAdmin.Id,
+            LastModifiedBy = _testAdmin.Id,
+            LastModifiedByUser = _testAdmin
+        };
+
+        _dbContext.ContentPages.AddRange(page1, page2);
+        await _dbContext.SaveChangesAsync();
+
+        // Add some revisions
+        var revision1 = new ContentRevision
+        {
+            ContentPageId = page1.Id,
+            Title = "Old About",
+            Content = "<p>Old</p>",
+            CreatedAt = DateTime.UtcNow.AddDays(-5),
+            CreatedBy = _testAdmin.Id
+        };
+        _dbContext.ContentRevisions.Add(revision1);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await WitchCityRope.Api.Features.Cms.CmsEndpoints.GetAllPages(
+            _dbContext,
+            CancellationToken.None
+        );
+
+        // Assert
+        result.Should().BeOfType<Microsoft.AspNetCore.Http.HttpResults.Ok<List<CmsPageSummaryDto>>>();
+        var okResult = result as Microsoft.AspNetCore.Http.HttpResults.Ok<List<CmsPageSummaryDto>>;
+        okResult!.Value.Should().NotBeNull();
+        okResult.Value!.Should().HaveCount(2);
+
+        // Verify page1 has 1 revision
+        var page1Summary = okResult.Value.First(p => p.Slug == "about");
+        page1Summary.RevisionCount.Should().Be(1);
+        page1Summary.Title.Should().Be("About Us");
+        page1Summary.LastModifiedBy.Should().Be(_testAdmin.Email);
+
+        // Verify page2 has 0 revisions
+        var page2Summary = okResult.Value.First(p => p.Slug == "contact");
+        page2Summary.RevisionCount.Should().Be(0);
+    }
+
+    /// <summary>
+    /// Test: GetAllPages with empty database returns 200 OK with empty list
+    /// </summary>
+    [Fact]
+    public async Task GetAllPages_WithEmptyDatabase_Returns200OkWithEmptyList()
+    {
+        // Act
+        var result = await WitchCityRope.Api.Features.Cms.CmsEndpoints.GetAllPages(
+            _dbContext,
+            CancellationToken.None
+        );
+
+        // Assert
+        result.Should().BeOfType<Microsoft.AspNetCore.Http.HttpResults.Ok<List<CmsPageSummaryDto>>>();
+        var okResult = result as Microsoft.AspNetCore.Http.HttpResults.Ok<List<CmsPageSummaryDto>>;
+        okResult!.Value.Should().NotBeNull();
+        okResult.Value!.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// Test: GetAllPages returns pages ordered by slug
+    /// </summary>
+    [Fact]
+    public async Task GetAllPages_ReturnsPagesOrderedBySlug()
+    {
+        // Arrange - create pages in non-alphabetical order
+        var page1 = new ContentPage
+        {
+            Slug = "zebra",
+            Title = "Zebra Page",
+            Content = "<p>Z</p>",
+            IsPublished = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            CreatedBy = _testAdmin.Id,
+            LastModifiedBy = _testAdmin.Id,
+            LastModifiedByUser = _testAdmin
+        };
+
+        var page2 = new ContentPage
+        {
+            Slug = "alpha",
+            Title = "Alpha Page",
+            Content = "<p>A</p>",
+            IsPublished = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            CreatedBy = _testAdmin.Id,
+            LastModifiedBy = _testAdmin.Id,
+            LastModifiedByUser = _testAdmin
+        };
+
+        var page3 = new ContentPage
+        {
+            Slug = "middle",
+            Title = "Middle Page",
+            Content = "<p>M</p>",
+            IsPublished = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            CreatedBy = _testAdmin.Id,
+            LastModifiedBy = _testAdmin.Id,
+            LastModifiedByUser = _testAdmin
+        };
+
+        _dbContext.ContentPages.AddRange(page1, page2, page3);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await WitchCityRope.Api.Features.Cms.CmsEndpoints.GetAllPages(
+            _dbContext,
+            CancellationToken.None
+        );
+
+        // Assert
+        var okResult = result as Microsoft.AspNetCore.Http.HttpResults.Ok<List<CmsPageSummaryDto>>;
+        okResult!.Value.Should().HaveCount(3);
+        okResult.Value![0].Slug.Should().Be("alpha");
+        okResult.Value[1].Slug.Should().Be("middle");
+        okResult.Value[2].Slug.Should().Be("zebra");
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    private ClaimsPrincipal CreateClaimsPrincipal(Guid userId)
+    {
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId.ToString())
+        };
+        return new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
+    }
+
+    #endregion
+}

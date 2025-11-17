@@ -20,7 +20,7 @@ public static class UserEndpoints
     {
         // Get current user profile (authenticated users) - plural endpoint
         app.MapGet("/api/users/profile", async (
-            UserManagementService userService,
+            IUserManagementService userService,
             ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
             {
@@ -56,7 +56,7 @@ public static class UserEndpoints
 
         // Get current user profile (authenticated users) - singular endpoint for E2E tests
         app.MapGet("/api/user/profile", async (
-            UserManagementService userService,
+            IUserManagementService userService,
             ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
             {
@@ -93,7 +93,7 @@ public static class UserEndpoints
         // Update current user profile (authenticated users)
         app.MapPut("/api/users/profile", async (
             UpdateProfileRequest request,
-            UserManagementService userService,
+            IUserManagementService userService,
             ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
             {
@@ -130,7 +130,7 @@ public static class UserEndpoints
         // Get all users (admin only)
         app.MapGet("/api/admin/users", async (
             [AsParameters] UserSearchRequest request,
-            UserManagementService userService,
+            IUserManagementService userService,
             CancellationToken cancellationToken) =>
             {
                 var (success, response, error) = await userService.GetUsersAsync(request, cancellationToken);
@@ -155,7 +155,7 @@ public static class UserEndpoints
         // Get single user by ID (admin only)
         app.MapGet("/api/admin/users/{id}", async (
             string id,
-            UserManagementService userService,
+            IUserManagementService userService,
             CancellationToken cancellationToken) =>
             {
                 var (success, response, error) = await userService.GetUserAsync(id, cancellationToken);
@@ -182,7 +182,7 @@ public static class UserEndpoints
         app.MapPut("/api/admin/users/{id}", async (
             string id,
             UpdateUserRequest request,
-            UserManagementService userService,
+            IUserManagementService userService,
             CancellationToken cancellationToken) =>
             {
                 var (success, response, error) = await userService.UpdateUserAsync(id, request, cancellationToken);
@@ -211,7 +211,7 @@ public static class UserEndpoints
         app.MapPut("/api/admin/users/{userId}/roles", async (
             string userId,
             UpdateUserRolesRequest request,
-            UserManagementService userService,
+            IUserManagementService userService,
             CancellationToken cancellationToken) =>
             {
                 var (success, response, error) = await userService.UpdateUserRolesAsync(userId, request, cancellationToken);
@@ -243,7 +243,7 @@ Role changes are logged for audit purposes.")
         // Get users by role (for dropdowns)
         app.MapGet("/api/users/by-role/{role}", async (
             string role,
-            UserManagementService userService,
+            IUserManagementService userService,
             CancellationToken cancellationToken) =>
             {
                 var (success, response, error) = await userService.GetUsersByRoleAsync(role, cancellationToken);
@@ -291,7 +291,7 @@ Role changes are logged for audit purposes.")
         // NOTE: Uses /api/public/ prefix to avoid route collision with dashboard endpoints
         app.MapGet("/api/public/users/{userId}/profile", async (
             string userId,
-            UserManagementService userService,
+            IUserManagementService userService,
             CancellationToken cancellationToken) =>
             {
                 var (success, response, error) = await userService.GetProfileAsync(userId, cancellationToken);

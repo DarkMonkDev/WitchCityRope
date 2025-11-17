@@ -1,5 +1,6 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using WitchCityRope.Api.Features.Safety.Models;
 using WitchCityRope.Api.Features.Safety.Services;
@@ -28,8 +29,8 @@ public static class SafetyEndpoints
         // Public endpoint for incident submission (anonymous or authenticated)
         group.MapPost("/incidents", async (
             CreateIncidentRequest request,
-            ISafetyService safetyService,
-            IValidator<CreateIncidentRequest> validator,
+            [FromServices] ISafetyService safetyService,
+            [FromServices] IValidator<CreateIncidentRequest> validator,
             CancellationToken cancellationToken) =>
         {
             // Validate request
@@ -58,7 +59,7 @@ public static class SafetyEndpoints
         // Public endpoint for anonymous incident tracking
         group.MapGet("/incidents/{referenceNumber}/status", async (
             string referenceNumber,
-            ISafetyService safetyService,
+            [FromServices] ISafetyService safetyService,
             CancellationToken cancellationToken) =>
         {
             var result = await safetyService.GetIncidentStatusAsync(referenceNumber, cancellationToken);
@@ -82,7 +83,7 @@ public static class SafetyEndpoints
 
         // Admin/Coordinator paginated incident list with filters
         group.MapGet("/admin/incidents", async (
-            ISafetyServiceExtended safetyService,
+            [FromServices] ISafetyServiceExtended safetyService,
             ClaimsPrincipal user,
             [AsParameters] AdminIncidentListRequest request,
             CancellationToken cancellationToken) =>
@@ -112,7 +113,7 @@ public static class SafetyEndpoints
 
         // Dashboard statistics
         group.MapGet("/admin/dashboard/statistics", async (
-            ISafetyServiceExtended safetyService,
+            [FromServices] ISafetyServiceExtended safetyService,
             ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
@@ -141,7 +142,7 @@ public static class SafetyEndpoints
 
         // Get all users for coordinator assignment dropdown
         group.MapGet("/admin/users/coordinators", async (
-            ISafetyServiceExtended safetyService,
+            [FromServices] ISafetyServiceExtended safetyService,
             CancellationToken cancellationToken) =>
         {
             var result = await safetyService.GetAllUsersForAssignmentAsync(cancellationToken);
@@ -166,7 +167,7 @@ public static class SafetyEndpoints
 
         // OLD Dashboard endpoint (kept for compatibility)
         group.MapGet("/admin/dashboard", async (
-            ISafetyService safetyService,
+            [FromServices] ISafetyService safetyService,
             ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
@@ -196,7 +197,7 @@ public static class SafetyEndpoints
         // Safety team incident detail endpoint
         group.MapGet("/admin/incidents/{incidentId:guid}", async (
             Guid incidentId,
-            ISafetyService safetyService,
+            [FromServices] ISafetyService safetyService,
             ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
@@ -223,8 +224,8 @@ public static class SafetyEndpoints
         group.MapPost("/admin/incidents/{incidentId:guid}/assign", async (
             Guid incidentId,
             AssignCoordinatorRequest request,
-            ISafetyServiceExtended safetyService,
-            IValidator<AssignCoordinatorRequest> validator,
+            [FromServices] ISafetyServiceExtended safetyService,
+            [FromServices] IValidator<AssignCoordinatorRequest> validator,
             ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
@@ -259,8 +260,8 @@ public static class SafetyEndpoints
         group.MapPut("/admin/incidents/{incidentId:guid}/status", async (
             Guid incidentId,
             UpdateStatusRequest request,
-            ISafetyServiceExtended safetyService,
-            IValidator<UpdateStatusRequest> validator,
+            [FromServices] ISafetyServiceExtended safetyService,
+            [FromServices] IValidator<UpdateStatusRequest> validator,
             ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
@@ -297,8 +298,8 @@ public static class SafetyEndpoints
         group.MapPut("/admin/incidents/{incidentId:guid}/google-drive", async (
             Guid incidentId,
             UpdateGoogleDriveRequest request,
-            ISafetyServiceExtended safetyService,
-            IValidator<UpdateGoogleDriveRequest> validator,
+            [FromServices] ISafetyServiceExtended safetyService,
+            [FromServices] IValidator<UpdateGoogleDriveRequest> validator,
             ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
@@ -337,8 +338,8 @@ public static class SafetyEndpoints
         group.MapPut("/admin/incidents/{incidentId:guid}/people", async (
             Guid incidentId,
             UpdatePeopleRequest request,
-            ISafetyServiceExtended safetyService,
-            IValidator<UpdatePeopleRequest> validator,
+            [FromServices] ISafetyServiceExtended safetyService,
+            [FromServices] IValidator<UpdatePeopleRequest> validator,
             ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
@@ -380,7 +381,7 @@ public static class SafetyEndpoints
         // Get all notes for incident
         group.MapGet("/admin/incidents/{incidentId:guid}/notes", async (
             Guid incidentId,
-            ISafetyServiceExtended safetyService,
+            [FromServices] ISafetyServiceExtended safetyService,
             ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
@@ -412,8 +413,8 @@ public static class SafetyEndpoints
         group.MapPost("/admin/incidents/{incidentId:guid}/notes", async (
             Guid incidentId,
             AddNoteRequest request,
-            ISafetyServiceExtended safetyService,
-            IValidator<AddNoteRequest> validator,
+            [FromServices] ISafetyServiceExtended safetyService,
+            [FromServices] IValidator<AddNoteRequest> validator,
             ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
@@ -452,8 +453,8 @@ public static class SafetyEndpoints
         group.MapPut("/admin/notes/{noteId:guid}", async (
             Guid noteId,
             UpdateNoteRequest request,
-            ISafetyServiceExtended safetyService,
-            IValidator<UpdateNoteRequest> validator,
+            [FromServices] ISafetyServiceExtended safetyService,
+            [FromServices] IValidator<UpdateNoteRequest> validator,
             ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
@@ -491,7 +492,7 @@ public static class SafetyEndpoints
         // Delete manual note
         group.MapDelete("/admin/notes/{noteId:guid}", async (
             Guid noteId,
-            ISafetyServiceExtended safetyService,
+            [FromServices] ISafetyServiceExtended safetyService,
             ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
@@ -525,7 +526,7 @@ public static class SafetyEndpoints
 
         // Get user's own reports with pagination
         group.MapGet("/my-reports", async (
-            ISafetyServiceExtended safetyService,
+            [FromServices] ISafetyServiceExtended safetyService,
             ClaimsPrincipal user,
             int page = 1,
             int pageSize = 10,
@@ -553,7 +554,7 @@ public static class SafetyEndpoints
         // Get user's own report detail
         group.MapGet("/my-reports/{incidentId:guid}", async (
             Guid incidentId,
-            ISafetyServiceExtended safetyService,
+            [FromServices] ISafetyServiceExtended safetyService,
             ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {

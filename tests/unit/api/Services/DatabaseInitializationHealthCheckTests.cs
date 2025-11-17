@@ -84,6 +84,8 @@ public class DatabaseInitializationHealthCheckTests : DatabaseTestBase
         SetInitializationCompleted(true);
 
         // Add some real data to the database
+        // Ensure venue exists first to satisfy FK constraint
+        await CreateTestVenueAsync();
         var testUser = CreateTestUserDirectly();
         var testEvent = CreateTestEventDirectly();
         DbContext.Events.Add(testEvent);
@@ -222,8 +224,11 @@ public class DatabaseInitializationHealthCheckTests : DatabaseTestBase
     {
         // Arrange
         SetInitializationCompleted(true);
-        
+
         // Add test data to real database
+        // Ensure venue exists first to satisfy FK constraint
+        await CreateTestVenueAsync();
+
         for (int i = 0; i < 15; i++)
         {
             var user = CreateTestUserDirectly($"user{i}@example.com", $"User{i}");
@@ -331,6 +336,9 @@ public class DatabaseInitializationHealthCheckTests : DatabaseTestBase
         SetInitializationCompleted(true);
 
         // Add test data
+        // Ensure venue exists first to satisfy FK constraint
+        await CreateTestVenueAsync();
+
         for (int i = 0; i < 5; i++)
         {
             var user = CreateTestUserDirectly($"concurrent{i}@example.com", $"ConcurrentUser{i}");
@@ -387,6 +395,8 @@ public class DatabaseInitializationHealthCheckTests : DatabaseTestBase
         SetInitializationCompleted(true);
 
         // Add minimal test data
+        // Ensure venue exists first to satisfy FK constraint
+        await CreateTestVenueAsync();
         var user = CreateTestUserDirectly();
         var evt = CreateTestEventDirectly();
         DbContext.Users.Add(user);
@@ -451,6 +461,36 @@ public class DatabaseInitializationHealthCheckTests : DatabaseTestBase
         // Update service provider to throw specific exception
         MockScopeServiceProvider.Setup(x => x.GetService(typeof(ApplicationDbContext)))
             .Throws(new InvalidOperationException("Database connection error"));
+    }
+
+    /// <summary>
+    /// Creates a test venue in the database for FK constraint satisfaction.
+    /// Reuses venue ID if already created in this test context.
+    /// </summary>
+    private async Task<Venue> CreateTestVenueAsync()
+    {
+        // Check if default test venue already exists
+        var existingVenue = await DbContext.Venues.FirstOrDefaultAsync(v => v.Id == 1);
+        if (existingVenue != null)
+        {
+            return existingVenue;
+        }
+
+        var venue = new Venue
+        {
+            Id = 1, // Explicitly set ID for test consistency
+            Name = "Test Venue",
+            Directions = "123 Test Street, Salem, MA",
+            Notes = "Standard test venue for unit tests",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        DbContext.Venues.Add(venue);
+        await DbContext.SaveChangesAsync();
+
+        return venue;
     }
 
     private new void VerifyLogContains(LogLevel level, string message)

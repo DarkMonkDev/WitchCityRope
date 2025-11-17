@@ -9,6 +9,41 @@ using WitchCityRope.Api.Features.Events.Interfaces;
 
 namespace WitchCityRope.Api.Features.Participation.Services;
 
+// ============================================================================
+// BUSINESS LOGIC: Tickets and RSVPs - CRITICAL UNDERSTANDING
+// ============================================================================
+//
+// IMPORTANT: Tickets and RSVPs are SEPARATE EventAttendances records
+//
+// 1. TICKET PURCHASE creates TWO records (for social events):
+//    - EventAttendances (AttendanceType=Ticket, Status=Active)
+//    - EventAttendances (AttendanceType=RSVP, Status=Active)
+//    See: CreateTicketPurchaseAsync lines 515-556 (auto-RSVP creation)
+//
+// 2. TICKET CANCELLATION cancels BOTH records:
+//    - Ticket record → Status=Cancelled
+//    - Associated RSVP → Status=Cancelled
+//    See: CancelParticipationAsync lines 653-730 (associated RSVP cancellation)
+//
+// 3. MANUAL RSVP creates standalone record:
+//    - User CAN RSVP after cancelling ticket
+//    - Creates NEW EventAttendances (AttendanceType=RSVP, Status=Active)
+//    - Cancelled RSVPs do NOT prevent new RSVPs
+//    See: CreateRSVPAsync lines 217-229 (only checks ACTIVE RSVPs)
+//
+// 4. QUERIES must filter by AttendanceType:
+//    - Check for existing RSVP: Filter by AttendanceType=RSVP AND Status=Active
+//    - Check for existing Ticket: Filter by AttendanceType=Ticket AND Status=Active
+//    - User can have BOTH active Ticket and active RSVP simultaneously
+//    See: GetParticipationStatusAsync lines 66-82 (separate queries for each type)
+//
+// WHY THIS MATTERS:
+// - Users can hold both a ticket AND an RSVP for the same event
+// - Cancelling a ticket removes the RSVP to prevent orphaned RSVPs
+// - Users can re-RSVP after cancelling (new record, not reactivation)
+// - Always filter by AttendanceType when checking for existing attendance
+// ============================================================================
+
 /// <summary>
 /// Service for managing event attendance (RSVPs and tickets)
 /// Follows vertical slice architecture with direct EF access
@@ -214,14 +249,25 @@ public class AttendanceService : IAttendanceService
                 return Result<ParticipationStatusDto>.Failure("RSVP period has closed for this event");
             }
 
-            // Check if user already has an ACTIVE attendance for this event
-            // Cancelled RSVPs should not prevent new RSVPs - this allows re-RSVPing
-            var existingAttendance = await _context.EventAttendances
-                .FirstOrDefaultAsync(ea => ea.EventId == request.EventId && ea.UserId == userId && ea.Status == AttendanceStatus.Active, cancellationToken);
+            // Check if user already has an ACTIVE RSVP for this event
+            //
+            // BUSINESS RULE: We ONLY check for ACTIVE RSVPs, not Cancelled/Refunded
+            // WHY: Users can re-RSVP after cancelling (creates NEW record)
+            //
+            // BUSINESS RULE: We filter by AttendanceType.RSVP specifically
+            // WHY: Users can have BOTH an active Ticket AND active RSVP simultaneously
+            //      (ticket purchases auto-create RSVP for social events)
+            //
+            // Note: Cancelled RSVPs do NOT block new RSVPs - this allows re-registration
+            var existingRsvp = await _context.EventAttendances
+                .FirstOrDefaultAsync(ea => ea.EventId == request.EventId
+                    && ea.UserId == userId
+                    && ea.Status == AttendanceStatus.Active
+                    && ea.AttendanceType == AttendanceType.RSVP, cancellationToken);
 
-            if (existingAttendance != null)
+            if (existingRsvp != null)
             {
-                return Result<ParticipationStatusDto>.Failure("User already has an active attendance for this event");
+                return Result<ParticipationStatusDto>.Failure("User already has an active RSVP for this event");
             }
 
             // Check event capacity
@@ -242,7 +288,15 @@ public class AttendanceService : IAttendanceService
                 CreatedBy = userId
             };
 
+            _logger.LogInformation(
+                "DIAGNOSTIC: Created EventAttendance object in memory - Id: {AttendanceId}, EventId: {EventId}, UserId: {UserId}, Type: {Type}, Status: {Status}",
+                attendance.Id, attendance.EventId, attendance.UserId, attendance.AttendanceType, attendance.Status);
+
             _context.EventAttendances.Add(attendance);
+
+            _logger.LogInformation(
+                "DIAGNOSTIC: Added EventAttendance to DbContext - EntityState: {EntityState}, Id: {AttendanceId}",
+                _context.Entry(attendance).State, attendance.Id);
 
             // Create or update EventAttendee record so user appears in check-in system
             var existingAttendee = await _context.EventAttendees
@@ -294,23 +348,46 @@ public class AttendanceService : IAttendanceService
 
             _context.AttendanceHistory.Add(history);
 
+            _logger.LogInformation(
+                "DIAGNOSTIC: About to call SaveChangesAsync - Entities tracked: {TrackedCount}, Id before save: {AttendanceId}",
+                _context.ChangeTracker.Entries().Count(), attendance.Id);
+
             // CRITICAL: Save changes to persist RSVP to database
-            await _context.SaveChangesAsync(cancellationToken);
+            var savedCount = await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "DIAGNOSTIC: SaveChangesAsync completed - Rows affected: {SavedCount}, Id after save: {AttendanceId}, EntityState: {EntityState}",
+                savedCount, attendance.Id, _context.Entry(attendance).State);
 
             // Verify persistence (defensive check)
+            _logger.LogInformation(
+                "DIAGNOSTIC: Querying database for verification with Id: {AttendanceId}",
+                attendance.Id);
+
             var savedAttendance = await _context.EventAttendances
                 .AsNoTracking()
                 .FirstOrDefaultAsync(ea => ea.Id == attendance.Id, cancellationToken);
 
             if (savedAttendance == null)
             {
-                _logger.LogError("CRITICAL: RSVP {AttendanceId} for user {UserId} in event {EventId} failed to persist to database",
-                    attendance.Id, userId, request.EventId);
+                // DIAGNOSTIC: Query all records for this user/event to see what actually exists
+                var allRecords = await _context.EventAttendances
+                    .AsNoTracking()
+                    .Where(ea => ea.UserId == userId && ea.EventId == request.EventId)
+                    .Select(ea => new { ea.Id, ea.Status, ea.AttendanceType, ea.CreatedAt })
+                    .ToListAsync(cancellationToken);
+
+                _logger.LogError(
+                    "CRITICAL: RSVP {AttendanceId} for user {UserId} in event {EventId} failed to persist to database. " +
+                    "Total records for this user/event: {RecordCount}. Records: {@Records}",
+                    attendance.Id, userId, request.EventId, allRecords.Count, allRecords);
+
                 return Result<ParticipationStatusDto>.Failure("Failed to save RSVP to database");
             }
 
-            _logger.LogInformation("Successfully created and verified RSVP {AttendanceId} for user {UserId} in event {EventId} (Status: {Status})",
-                savedAttendance.Id, userId, request.EventId, savedAttendance.Status);
+            _logger.LogInformation(
+                "DIAGNOSTIC: Verification successful - Found RSVP {AttendanceId} for user {UserId} in event {EventId} (Status: {Status}, Type: {Type}, CreatedAt: {CreatedAt})",
+                savedAttendance.Id, userId, request.EventId, savedAttendance.Status, savedAttendance.AttendanceType, savedAttendance.CreatedAt);
 
             var dto = new ParticipationStatusDto
             {
@@ -477,8 +554,18 @@ public class AttendanceService : IAttendanceService
 
             _context.AttendanceHistory.Add(history);
 
+            // ============================================================================
             // BUSINESS RULE: Auto-RSVP for social events when purchasing a ticket
-            // If this is a social event and user doesn't already have an RSVP, create one automatically
+            // ============================================================================
+            //
+            // CRITICAL: Ticket purchase creates TWO EventAttendances records:
+            // 1. Ticket record (already created above)
+            // 2. RSVP record (created here for social events)
+            //
+            // WHY: Users need to be on the attendance roster for check-in, capacity tracking
+            // RESULT: User has BOTH active Ticket AND active RSVP simultaneously
+            //
+            // NOTE: If user already has an RSVP, we don't create another one (no duplicates)
             if (eventEntity.EventType == EventType.Social)
             {
                 var existingRsvp = await _context.EventAttendances
@@ -615,7 +702,19 @@ public class AttendanceService : IAttendanceService
                 return Result.Failure("Cancellation period has ended for this event");
             }
 
+            // ============================================================================
             // BUSINESS RULE: If cancelling a ticket, also cancel any associated RSVP
+            // ============================================================================
+            //
+            // CRITICAL: Ticket cancellation cancels BOTH records:
+            // 1. Ticket record (the one we're cancelling)
+            // 2. Associated RSVP record (if exists)
+            //
+            // WHY: When user purchases ticket for social event, we auto-create RSVP.
+            //      If they cancel ticket, we must also cancel the RSVP to prevent orphaned RSVPs.
+            //
+            // RESULT: User loses BOTH ticket AND RSVP
+            // MANUAL RE-RSVP: User CAN manually RSVP again after cancelling (creates NEW record)
             EventAttendance? associatedRsvp = null;
             if (attendance.AttendanceType == AttendanceType.Ticket)
             {

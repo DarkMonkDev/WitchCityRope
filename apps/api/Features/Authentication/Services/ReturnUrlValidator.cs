@@ -23,7 +23,7 @@ namespace WitchCityRope.Api.Features.Authentication.Services;
 /// - BR-1: Return URL Validation (CRITICAL SECURITY)
 /// - SEC-1: Open Redirect Prevention
 /// </summary>
-public class ReturnUrlValidator
+public class ReturnUrlValidator : IReturnUrlValidator
 {
     private readonly ILogger<ReturnUrlValidator> _logger;
     private readonly IConfiguration _configuration;

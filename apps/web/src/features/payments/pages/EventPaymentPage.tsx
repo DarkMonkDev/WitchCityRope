@@ -16,7 +16,7 @@ import {
   Box,
   Checkbox
 } from '@mantine/core';
-import { IconArrowLeft, IconAlertCircle } from '@tabler/icons-react';
+import { IconArrowLeft, IconAlertCircle, IconCheck } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import type { components } from '@witchcityrope/shared-types/generated/api-types';
 import { debugLog } from '../../../utils/debug';
@@ -454,7 +454,7 @@ export const EventPaymentPage: React.FC = () => {
         <Box visibleFrom="md" mb="1rem">
           <Stepper
             active={currentStep}
-            color="#880124"
+            color={currentStep === 2 ? 'green' : '#880124'}
             iconSize={32}
             styles={{
               stepIcon: {
@@ -473,6 +473,7 @@ export const EventPaymentPage: React.FC = () => {
             <Stepper.Step
               label="Confirmation"
               description="Registration complete"
+              icon={currentStep === 2 ? <IconCheck size={18} /> : undefined}
             />
           </Stepper>
         </Box>

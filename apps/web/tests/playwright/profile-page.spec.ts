@@ -10,10 +10,8 @@ import { AuthHelpers } from './helpers/auth.helpers';
  *
  * Original unit tests: /apps/web/src/pages/dashboard/__tests__/ProfilePage.test.tsx
  * Converted: 2025-10-24
- *
- * NOTE: Tests run serially to avoid route mocking interference
  */
-test.describe.serial('ProfilePage - E2E Tests', () => {
+test.describe('ProfilePage - E2E Tests', () => {
 
   test('should handle user loading error', async ({ page }) => {
     // Set up route mock BEFORE login to intercept all user requests

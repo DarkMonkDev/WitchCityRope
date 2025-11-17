@@ -26,38 +26,40 @@ import { AuthHelpers } from './helpers/auth.helpers';
 // In production, we'd create test events via API
 let TEST_EVENT_ID: string;
 
-test.describe.serial('Ticket Lifecycle Persistence Tests', () => {
-  test.beforeAll(async ({ browser }) => {
-    // Find a test event to use
-    console.log('🔍 Looking for test event with paid tickets...');
+// Initialize event ID ONCE for all test suites in this file
+test.beforeAll(async () => {
+  // Find a test event to use
+  console.log('🔍 Looking for test event with paid tickets...');
 
-    try {
-      const ticketEvent = await DatabaseHelpers.getFirstTicketEvent();
+  try {
+    const ticketEvent = await DatabaseHelpers.getFirstTicketEvent();
 
-      if (!ticketEvent) {
-        throw new Error(
-          'No ticket events found in database.\n' +
-          '\n' +
-          'These tests require at least one published event with paid tickets.\n' +
-          '\n' +
-          'To fix this:\n' +
-          '1. Ensure Docker containers are running: ./dev.sh\n' +
-          '2. Check if database has events: curl http://localhost:5655/api/events\n' +
-          '3. If no events exist, seed the database with test data\n' +
-          '4. Verify event has "paid" ticket type in EventTicketTypes table\n'
-        );
-      }
-
-      TEST_EVENT_ID = ticketEvent.id;
-      console.log(`✅ Found ticket event: "${ticketEvent.title}" (ID: ${TEST_EVENT_ID})`);
-      console.log(`   Event Type: ${ticketEvent.eventType}`);
-      console.log(`   Start Date: ${ticketEvent.startDate}`);
-      console.log(`   Capacity: ${ticketEvent.capacity}`);
-    } catch (error) {
-      console.error('❌ Failed to find ticket event for testing:', error);
-      throw error;
+    if (!ticketEvent) {
+      throw new Error(
+        'No ticket events found in database.\n' +
+        '\n' +
+        'These tests require at least one published event with paid tickets.\n' +
+        '\n' +
+        'To fix this:\n' +
+        '1. Ensure Docker containers are running: ./dev.sh\n' +
+        '2. Check if database has events: curl http://localhost:5655/api/events\n' +
+        '3. If no events exist, seed the database with test data\n' +
+        '4. Verify event has "paid" ticket type in EventTicketTypes table\n'
+      );
     }
-  });
+
+    TEST_EVENT_ID = ticketEvent.id;
+    console.log(`✅ Found ticket event: "${ticketEvent.title}" (ID: ${TEST_EVENT_ID})`);
+    console.log(`   Event Type: ${ticketEvent.eventType}`);
+    console.log(`   Start Date: ${ticketEvent.startDate}`);
+    console.log(`   Capacity: ${ticketEvent.capacity}`);
+  } catch (error) {
+    console.error('❌ Failed to find ticket event for testing:', error);
+    throw error;
+  }
+});
+
+test.describe('Ticket Lifecycle Persistence Tests', () => {
 
   test.afterAll(async () => {
     await globalCleanup();

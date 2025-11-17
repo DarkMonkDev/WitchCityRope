@@ -18,13 +18,13 @@ export const EventsList: React.FC = () => {
           throw new Error(`HTTP error! status: ${response.status}`)
         }
         const data = await response.json()
-        
-        // Handle API response structure: { success: true, data: [events] }
-        if (data.success && Array.isArray(data.data)) {
-          setEvents(data.data)
+
+        // Pattern B: API returns EventDto[] directly, not wrapped in ApiResponse<T>
+        if (Array.isArray(data)) {
+          setEvents(data)
         } else {
-          // Fallback for direct array response
-          setEvents(Array.isArray(data) ? data : [])
+          console.error('Expected array of events, got:', data)
+          setEvents([])
         }
       } catch (err) {
         console.error('Error fetching events:', err)
