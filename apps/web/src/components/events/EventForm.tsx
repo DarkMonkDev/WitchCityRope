@@ -33,7 +33,7 @@ import { TicketTypeFormModal, EventTicketType as ModalTicketType } from './Ticke
 import { VolunteerPositionsGrid } from './VolunteerPositionsGrid'
 import { VolunteerPosition } from './VolunteerPositionFormModal'
 import { RemoveRsvpModal } from './RemoveRsvpModal'
-import { RefundTicketModal } from './RefundTicketModal'
+import { RefundConfirmationModal } from '../payments/RefundConfirmationModal'
 import { WCRButton } from '../ui'
 import { useTeachers, formatTeachersForMultiSelect } from '../../lib/api/hooks/useTeachers'
 import {
@@ -951,23 +951,33 @@ export const EventForm: React.FC<EventFormProps> = ({
     }
   }
 
-  const handleRefundTicketConfirm = async (alsoRemoveRsvp: boolean) => {
+  const handleRefundTicketConfirm = async (refundReason: string) => {
     if (!selectedParticipant || !eventId) return
 
-    // TODO: Replace with actual admin API endpoint when backend is ready
-    // await fetch(`/api/admin/events/${eventId}/tickets/${selectedParticipant.userId}/refund`, {
-    //   method: 'POST',
-    //   body: JSON.stringify({ alsoRemoveRsvp })
-    // })
+    try {
+      const response = await api.post(
+        `/api/admin/events/${eventId}/tickets/${selectedParticipant.userId}/refund`,
+        {
+          refundReason,
+          alsoRemoveRsvp: true // Default to true for now - can be made configurable later
+        }
+      )
 
-    notifications.show({
-      message: 'Ticket refunded successfully',
-      color: 'green',
-      autoClose: 3000
-    })
+      if (response.status !== 200) {
+        throw new Error('Failed to refund ticket')
+      }
 
-    // Refetch participations to update the tables
-    queryClient.invalidateQueries({ queryKey: ['events', eventId, 'participations'] })
+      // Success notification is handled by RefundConfirmationModal
+      // Refetch participations to update the tables
+      queryClient.invalidateQueries({ queryKey: eventKeys.participations(eventId) })
+
+      // Close modal and clear selection
+      setRefundTicketModalOpen(false)
+      setSelectedParticipant(null)
+    } catch (error: any) {
+      // Error notification is handled by RefundConfirmationModal
+      throw error // Re-throw to let modal handle the error display
+    }
   }
 
   // Email template state for editing
@@ -1479,24 +1489,6 @@ export const EventForm: React.FC<EventFormProps> = ({
                   ))}
                 </Group>
               )}
-
-              {/* Add Template Controls */}
-              <Group align="end" gap="sm">
-                <Select
-                  label=""
-                  placeholder="Select template to add..."
-                  data={[
-                    { value: 'reminder-1week', label: 'Reminder - 1 Week Before' },
-                    { value: 'waitlist', label: 'Waitlist Notification' },
-                    { value: 'survey', label: 'Post-Event Survey' },
-                    { value: 'schedule-change', label: 'Schedule Change Alert' },
-                  ]}
-                  style={{ flex: 1 }}
-                />
-                <WCRButton variant="primary" size="lg" disabled>
-                  Add Email Template
-                </WCRButton>
-              </Group>
 
               {/* Unified Editor Section */}
               <div style={{ marginTop: 'var(--mantine-spacing-xl)' }}>
@@ -2264,22 +2256,23 @@ export const EventForm: React.FC<EventFormProps> = ({
 
       {/* Ticket Refund Modal */}
       {selectedParticipant && (
-        <RefundTicketModal
+        <RefundConfirmationModal
           opened={refundTicketModalOpen}
           onClose={() => {
             setRefundTicketModalOpen(false)
             setSelectedParticipant(null)
           }}
-          participant={{
-            userId: selectedParticipant.userId,
-            name: selectedParticipant.userSceneName,
-            ticketAmount: selectedParticipant.amountPaid ?? 0,
-            hasRsvp: (participationsData as EventParticipationDto[])?.some(
-              p => p.userId === selectedParticipant.userId && p.participationType === 'RSVP'
-            ) || false,
-            volunteerShifts: [] // TODO: Add volunteer shift data when available
+          payment={{
+            id: selectedParticipant.id,
+            userName: selectedParticipant.userSceneName,
+            userEmail: selectedParticipant.userEmail,
+            amount: Number(selectedParticipant.amountPaid ?? 0),
+            paymentMethod: selectedParticipant.ticketTypeName || 'Ticket Purchase',
+            paymentDate: selectedParticipant.participationDate,
+            description: selectedParticipant.sessionNames !== 'All Sessions'
+              ? `Sessions: ${selectedParticipant.sessionNames}`
+              : undefined
           }}
-          eventName={form.values.title || 'this event'}
           onConfirm={handleRefundTicketConfirm}
         />
       )}

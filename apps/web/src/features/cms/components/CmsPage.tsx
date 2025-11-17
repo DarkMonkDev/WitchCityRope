@@ -46,6 +46,24 @@ export const CmsPage: React.FC<CmsPageProps> = ({ slug, defaultTitle, defaultCon
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [isDirty, isEditing])
 
+  // Keyboard event handler for Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isEditing) {
+        e.preventDefault()
+        // Handle cancel logic inline to avoid dependency issues
+        if (isDirty) {
+          setShowCancelModal(true)
+        } else {
+          setIsEditing(false)
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isEditing, isDirty])
+
   const handleEdit = () => {
     if (content) {
       setEditableTitle(content.title)
@@ -146,7 +164,7 @@ export const CmsPage: React.FC<CmsPageProps> = ({ slug, defaultTitle, defaultCon
               <Box
                 style={{
                   fontSize: '14px',
-                  color: '#868e96',
+                  color: '#5c5f66', // Darker gray for WCAG AA compliance (4.5:1 contrast ratio)
                   whiteSpace: 'nowrap',
                   paddingBottom: '8px',
                   marginLeft: '16px',
@@ -164,6 +182,7 @@ export const CmsPage: React.FC<CmsPageProps> = ({ slug, defaultTitle, defaultCon
                 onClick={handleCancel}
                 disabled={isSaving}
                 size="md"
+                color="gray"
                 styles={{
                   root: {
                     fontWeight: 600,
@@ -172,6 +191,9 @@ export const CmsPage: React.FC<CmsPageProps> = ({ slug, defaultTitle, defaultCon
                     paddingBottom: '12px',
                     fontSize: '14px',
                     lineHeight: '1.2',
+                    // WCAG AA compliance: Ensure sufficient color contrast (4.5:1 ratio)
+                    borderColor: 'var(--mantine-color-gray-7)',
+                    color: 'var(--mantine-color-gray-9)',
                   },
                 }}
               >
@@ -213,6 +235,7 @@ export const CmsPage: React.FC<CmsPageProps> = ({ slug, defaultTitle, defaultCon
               onClick={handleCancel}
               disabled={isSaving}
               size="md"
+              color="gray"
               styles={{
                 root: {
                   fontWeight: 600,
@@ -221,6 +244,9 @@ export const CmsPage: React.FC<CmsPageProps> = ({ slug, defaultTitle, defaultCon
                   paddingBottom: '12px',
                   fontSize: '14px',
                   lineHeight: '1.2',
+                  // WCAG AA compliance: Ensure sufficient color contrast (4.5:1 ratio)
+                  borderColor: 'var(--mantine-color-gray-7)',
+                  color: 'var(--mantine-color-gray-9)',
                 },
               }}
             >

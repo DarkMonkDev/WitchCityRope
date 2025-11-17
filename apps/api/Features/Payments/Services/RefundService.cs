@@ -1,9 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
+using WitchCityRope.Api.Features.EmailTemplates.Entities;
 using WitchCityRope.Api.Features.Payments.Entities;
 using WitchCityRope.Api.Features.Payments.Models;
 using WitchCityRope.Api.Features.Payments.ValueObjects;
 using WitchCityRope.Api.Features.Safety.Services;
+using WitchCityRope.Api.Features.Shared.Services;
 using WitchCityRope.Api.Features.Volunteers.Services;
 
 namespace WitchCityRope.Api.Features.Payments.Services;
@@ -17,6 +19,7 @@ public class RefundService : IRefundService
     private readonly IPayPalService _payPalService;
     private readonly IEncryptionService _encryptionService;
     private readonly IVolunteerAssignmentService _volunteerAssignmentService;
+    private readonly IEmailService _emailService;
     private readonly ILogger<RefundService> _logger;
 
     public RefundService(
@@ -24,12 +27,14 @@ public class RefundService : IRefundService
         IPayPalService payPalService,
         IEncryptionService encryptionService,
         IVolunteerAssignmentService volunteerAssignmentService,
+        IEmailService emailService,
         ILogger<RefundService> logger)
     {
         _context = context;
         _payPalService = payPalService;
         _encryptionService = encryptionService;
         _volunteerAssignmentService = volunteerAssignmentService;
+        _emailService = emailService;
         _logger = logger;
     }
 
@@ -43,9 +48,10 @@ public class RefundService : IRefundService
                 "Processing refund for payment {PaymentId}, amount {RefundAmount}, processed by {UserId}",
                 request.PaymentId, request.RefundAmount.ToDisplayString(), request.ProcessedByUserId);
 
-            // Get the original payment
+            // Get the original payment with User for email notification
             var payment = await _context.Payments
                 .Include(p => p.Refunds)
+                .Include(p => p.User)
                 .FirstOrDefaultAsync(p => p.Id == request.PaymentId, cancellationToken);
 
             if (payment == null)
@@ -254,6 +260,53 @@ public class RefundService : IRefundService
                 }
             }
 
+            // Send refund confirmation email if refund was completed
+            if (refund.RefundStatus == RefundStatus.Completed && payment.User != null)
+            {
+                try
+                {
+                    var timingMessage = GetRefundTimingMessage(payment.PaymentMethodType);
+                    var variables = new Dictionary<string, string>
+                    {
+                        { "user_name", payment.User.UserName ?? payment.User.Email ?? "Valued Member" },
+                        { "refund_amount", refund.GetRefundAmount().ToDisplayString() },
+                        { "original_amount", payment.GetAmount().ToDisplayString() },
+                        { "payment_method", FormatPaymentMethodType(payment.PaymentMethodType) },
+                        { "timing_message", timingMessage },
+                        { "refund_reason", refund.RefundReason },
+                        { "refund_id", refund.Id.ToString() },
+                        { "support_email", "support@witchcityrope.com" }
+                    };
+
+                    var emailResult = await _emailService.SendTemplatedEmailAsync(
+                        payment.User.Email!,
+                        payment.User.UserName ?? payment.User.Email ?? "Valued Member",
+                        EmailCategory.Admin,
+                        "RefundConfirmation",
+                        variables,
+                        cancellationToken);
+
+                    if (emailResult.IsSuccess)
+                    {
+                        _logger.LogInformation(
+                            "Refund confirmation email sent successfully for refund {RefundId} to {Email}",
+                            refund.Id, payment.User.Email);
+                    }
+                    else
+                    {
+                        _logger.LogWarning(
+                            "Failed to send refund confirmation email for refund {RefundId}: {Error}",
+                            refund.Id, emailResult.Error);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log but don't fail the refund if email sending fails
+                    _logger.LogError(ex,
+                        "Error sending refund confirmation email for refund {RefundId}", refund.Id);
+                }
+            }
+
             return Result<PaymentRefund>.Success(refund);
         }
         catch (Exception ex)
@@ -427,5 +480,39 @@ public class RefundService : IRefundService
             _logger.LogError(ex, "Error updating refund {RefundId} status", refundId);
             return Result<PaymentRefund>.Failure($"Error updating refund status: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Gets the refund timing message based on payment method type
+    /// </summary>
+    private static string GetRefundTimingMessage(PaymentMethodType paymentMethodType)
+    {
+        return paymentMethodType switch
+        {
+            PaymentMethodType.SavedCard => "Please allow 1-2 billing cycles (up to 30 days) for the refund to appear on your credit/debit card statement.",
+            PaymentMethodType.NewCard => "Please allow 1-2 billing cycles (up to 30 days) for the refund to appear on your credit/debit card statement.",
+            PaymentMethodType.PayPal => "Your refund will be available immediately in your PayPal account.",
+            PaymentMethodType.Venmo => "Your refund should appear in your Venmo account within a few hours.",
+            PaymentMethodType.BankTransfer => "Please allow 3-5 business days for the refund to appear in your bank account.",
+            PaymentMethodType.Cash => "Please contact us at support@witchcityrope.com to arrange your cash refund.",
+            _ => "Please contact us at support@witchcityrope.com for refund timing information."
+        };
+    }
+
+    /// <summary>
+    /// Formats payment method type for display in emails
+    /// </summary>
+    private static string FormatPaymentMethodType(PaymentMethodType paymentMethodType)
+    {
+        return paymentMethodType switch
+        {
+            PaymentMethodType.SavedCard => "Credit/Debit Card",
+            PaymentMethodType.NewCard => "Credit/Debit Card",
+            PaymentMethodType.PayPal => "PayPal",
+            PaymentMethodType.Venmo => "Venmo",
+            PaymentMethodType.BankTransfer => "Bank Transfer",
+            PaymentMethodType.Cash => "Cash",
+            _ => paymentMethodType.ToString()
+        };
     }
 }

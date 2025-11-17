@@ -8,7 +8,7 @@ namespace WitchCityRope.Api.Services.Seeding;
 
 /// <summary>
 /// Seeds default email templates for all 5 categories: Vetting, Events, Admin, Incident, and Ad Hoc.
-/// Total: 22 templates (Vetting: 6, Events: 7, Admin: 4, Incident: 4, Ad Hoc: 1)
+/// Total: 23 templates (Vetting: 6, Events: 7, Admin: 5, Incident: 4, Ad Hoc: 1)
 /// Vetting templates are migrated from the legacy VettingEmailTemplates table.
 /// </summary>
 public class EmailTemplateSeeder
@@ -23,9 +23,9 @@ public class EmailTemplateSeeder
     }
 
     /// <summary>
-    /// Seeds 22 default email templates across 5 categories.
+    /// Seeds 23 default email templates across 5 categories.
     /// This includes 6 Vetting templates migrated from VettingEmailTemplates table,
-    /// plus 16 templates for Events (7), Admin (4), Incident (4), and Ad Hoc (1).
+    /// plus 17 templates for Events (7), Admin (5), Incident (4), and Ad Hoc (1).
     /// </summary>
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
@@ -303,7 +303,7 @@ public class EmailTemplateSeeder
 
     private async Task SeedAdminTemplatesAsync(Guid adminUserId, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Seeding Admin templates (4)...");
+        _logger.LogInformation("Seeding Admin templates (5)..."); // Updated count
 
         var templates = new[]
         {
@@ -326,9 +326,9 @@ public class EmailTemplateSeeder
                 Category = EmailCategory.Admin,
                 TemplateType = "PasswordReset",
                 Subject = "Password Reset Request - WitchCityRope",
-                HtmlBody = "<p>Hi {{user_name}},</p><p>A password reset has been requested for your account.</p><p>If you made this request, please reset your password at {{system_url}}</p><p>If you did not request this, please ignore this email and contact {{support_email}}</p>",
-                PlainTextBody = "Hi {{user_name}},\n\nA password reset has been requested for your account.\n\nIf you made this request, please reset your password at {{system_url}}\n\nIf you did not request this, please ignore this email and contact {{support_email}}",
-                Variables = JsonSerializer.Serialize(new[] { "{{user_name}}", "{{system_url}}", "{{support_email}}" }),
+                HtmlBody = "<p>Hi {{user_name}},</p><p>A password reset has been requested for your account.</p><p>If you made this request, please click the link below to reset your password:</p><p><a href=\"{{reset_url}}\">Reset My Password</a></p><p>This link will expire in 24 hours.</p><p>If you did not request this, please ignore this email and contact {{support_email}}</p>",
+                PlainTextBody = "Hi {{user_name}},\n\nA password reset has been requested for your account.\n\nIf you made this request, please use the link below to reset your password:\n\n{{reset_url}}\n\nThis link will expire in 24 hours.\n\nIf you did not request this, please ignore this email and contact {{support_email}}",
+                Variables = JsonSerializer.Serialize(new[] { "{{user_name}}", "{{reset_url}}", "{{support_email}}" }),
                 IsActive = true,
                 Version = 1,
                 CreatedAt = DateTime.UtcNow,
@@ -357,6 +357,102 @@ public class EmailTemplateSeeder
                 HtmlBody = "<p>Hi {{user_name}},</p><p>{{action_required}}</p><p><strong>Deadline:</strong> {{deadline_date}}</p><p>For assistance, contact {{support_email}}</p>",
                 PlainTextBody = "Hi {{user_name}},\n\n{{action_required}}\n\nDeadline: {{deadline_date}}\n\nFor assistance, contact {{support_email}}",
                 Variables = JsonSerializer.Serialize(new[] { "{{user_name}}", "{{action_required}}", "{{deadline_date}}", "{{support_email}}" }),
+                IsActive = true,
+                Version = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                UpdatedBy = adminUserId
+            },
+            new GlobalEmailTemplate
+            {
+                Category = EmailCategory.Admin,
+                TemplateType = "EmailVerification",
+                Subject = "Verify Your WitchCityRope Email Address",
+                HtmlBody = "<p style=\"margin-bottom: 16px;\">Hi {{user_name}},</p><p style=\"margin-bottom: 16px;\">Welcome to WitchCityRope! Please verify your email address by clicking the button below:</p><p style=\"margin-bottom: 24px; text-align: center;\"><a href=\"{{verification_url}}\" style=\"display: inline-block; padding: 12px 24px; background: #614B79; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;\">Verify Email Address</a></p><p style=\"margin-bottom: 16px;\">This link will expire in 3 days. You must verify your email before you can log in.</p><p style=\"margin-bottom: 16px;\">If you did not create this account, please ignore this email.</p><p style=\"margin-bottom: 16px;\">Need help? Contact us at <a href=\"mailto:{{support_email}}\" style=\"color: #880124;\">{{support_email}}</a></p><p style=\"margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; color: #666; font-size: 12px;\">This is an automated message from WitchCityRope. Please do not reply to this email.<br>WitchCityRope • Salem, MA • witchcityrope.com</p>",
+                PlainTextBody = "Hi {{user_name}},\n\nWelcome to WitchCityRope! Please verify your email address by clicking the link below:\n\n{{verification_url}}\n\nThis link will expire in 3 days. You must verify your email before you can log in.\n\nIf you did not create this account, please ignore this email.\n\nNeed help? Contact us at {{support_email}}\n\n---\nThis is an automated message from WitchCityRope. Please do not reply to this email.\nWitchCityRope • Salem, MA • witchcityrope.com",
+                Variables = JsonSerializer.Serialize(new[] { "{{user_name}}", "{{verification_url}}", "{{support_email}}" }),
+                IsActive = true,
+                Version = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                UpdatedBy = adminUserId
+            },
+            new GlobalEmailTemplate
+            {
+                Category = EmailCategory.Admin,
+                TemplateType = "RefundConfirmation",
+                Subject = "Refund Confirmation - WitchCityRope",
+                HtmlBody = @"<div style=""font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;"">
+    <h1 style=""color: #2c3e50; margin-top: 0;"">Refund Confirmation</h1>
+    <p>Hi {{user_name}},</p>
+    <p>Your refund has been processed successfully.</p>
+    <div style=""background-color: #ffffff; border-left: 4px solid #4CAF50; padding: 15px; margin: 20px 0;"">
+        <h2 style=""margin-top: 0; color: #4CAF50; font-size: 18px;"">Refund Details</h2>
+        <table style=""width: 100%; border-collapse: collapse;"">
+            <tr>
+                <td style=""padding: 8px 0; font-weight: bold;"">Refund Amount:</td>
+                <td style=""padding: 8px 0; text-align: right;"">{{refund_amount}}</td>
+            </tr>
+            <tr>
+                <td style=""padding: 8px 0; font-weight: bold;"">Original Payment:</td>
+                <td style=""padding: 8px 0; text-align: right;"">{{original_amount}}</td>
+            </tr>
+            <tr>
+                <td style=""padding: 8px 0; font-weight: bold;"">Payment Method:</td>
+                <td style=""padding: 8px 0; text-align: right;"">{{payment_method}}</td>
+            </tr>
+            <tr>
+                <td style=""padding: 8px 0; font-weight: bold;"">Refund ID:</td>
+                <td style=""padding: 8px 0; text-align: right; font-family: monospace; font-size: 12px;"">{{refund_id}}</td>
+            </tr>
+        </table>
+    </div>
+    <div style=""background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;"">
+        <h3 style=""margin-top: 0; color: #856404; font-size: 16px;"">When will I receive my refund?</h3>
+        <p style=""margin: 0; color: #856404;"">{{timing_message}}</p>
+    </div>
+    <div style=""margin: 20px 0;"">
+        <h3 style=""font-size: 16px; color: #2c3e50;"">Refund Reason</h3>
+        <p style=""background-color: #ffffff; padding: 15px; border-radius: 4px; margin: 10px 0;"">{{refund_reason}}</p>
+    </div>
+    <hr style=""border: none; border-top: 1px solid #dee2e6; margin: 30px 0;"">
+    <p style=""font-size: 14px; color: #6c757d;"">
+        If you have any questions about this refund, please contact us at
+        <a href=""mailto:{{support_email}}"" style=""color: #007bff; text-decoration: none;"">{{support_email}}</a>.
+    </p>
+    <p style=""font-size: 14px; color: #6c757d; margin-top: 20px;"">
+        Thank you,<br>
+        <strong>WitchCityRope Team</strong>
+    </p>
+    <div style=""text-align: center; font-size: 12px; color: #adb5bd; margin-top: 20px;"">
+        <p>This is an automated email. Please do not reply to this message.</p>
+    </div>
+</div>",
+                PlainTextBody = @"Hi {{user_name}},
+
+Your refund has been processed successfully.
+
+REFUND DETAILS
+================
+Refund Amount: {{refund_amount}}
+Original Payment: {{original_amount}}
+Payment Method: {{payment_method}}
+Refund ID: {{refund_id}}
+
+WHEN WILL I RECEIVE MY REFUND?
+{{timing_message}}
+
+REFUND REASON
+{{refund_reason}}
+
+If you have any questions about this refund, please contact us at {{support_email}}.
+
+Thank you,
+WitchCityRope Team
+
+---
+This is an automated email. Please do not reply to this message.",
+                Variables = JsonSerializer.Serialize(new[] { "{{user_name}}", "{{refund_amount}}", "{{original_amount}}", "{{payment_method}}", "{{timing_message}}", "{{refund_reason}}", "{{refund_id}}", "{{support_email}}" }),
                 IsActive = true,
                 Version = 1,
                 CreatedAt = DateTime.UtcNow,

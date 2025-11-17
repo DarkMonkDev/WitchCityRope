@@ -274,7 +274,7 @@ test.describe('CMS Feature - Critical Workflows', () => {
    * 5. Verify NOT sticky header button
    * 6. Click FAB to open editor
    */
-  test.skip('Mobile Responsive: FAB button visible on mobile viewport', async ({ page }) => {
+  test('Mobile Responsive: FAB button visible on mobile viewport', async ({ page }) => {
     // 1. Set viewport to mobile (iPhone 12 size)
     await page.setViewportSize({ width: 375, height: 667 });
     console.log('✅ Viewport set to mobile (375×667)');

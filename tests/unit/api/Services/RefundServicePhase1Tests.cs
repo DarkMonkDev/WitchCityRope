@@ -10,6 +10,7 @@ using WitchCityRope.Api.Features.Payments.Models;
 using WitchCityRope.Api.Features.Payments.Models.PayPal;
 using WitchCityRope.Api.Features.Payments.ValueObjects;
 using WitchCityRope.Api.Features.Safety.Services;
+using WitchCityRope.Api.Features.Shared.Services;
 using WitchCityRope.Api.Features.Volunteers.Services;
 using WitchCityRope.Api.Models;
 
@@ -25,6 +26,7 @@ public class RefundServicePhase1Tests : IDisposable
     private readonly Mock<IPayPalService> _mockPayPalService;
     private readonly Mock<IEncryptionService> _mockEncryptionService;
     private readonly Mock<IVolunteerAssignmentService> _mockVolunteerService;
+    private readonly Mock<IEmailService> _mockEmailService;
     private readonly Mock<ILogger<RefundService>> _mockLogger;
     private readonly ApplicationDbContext _context;
     private readonly RefundService _sut; // System Under Test
@@ -42,6 +44,7 @@ public class RefundServicePhase1Tests : IDisposable
         _mockPayPalService = new Mock<IPayPalService>();
         _mockEncryptionService = new Mock<IEncryptionService>();
         _mockVolunteerService = new Mock<IVolunteerAssignmentService>();
+        _mockEmailService = new Mock<IEmailService>();
         _mockLogger = new Mock<ILogger<RefundService>>();
 
         _sut = new RefundService(
@@ -49,6 +52,7 @@ public class RefundServicePhase1Tests : IDisposable
             _mockPayPalService.Object,
             _mockEncryptionService.Object,
             _mockVolunteerService.Object,
+            _mockEmailService.Object,
             _mockLogger.Object);
 
         // Seed test users

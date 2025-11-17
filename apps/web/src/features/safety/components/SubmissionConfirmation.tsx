@@ -1,5 +1,6 @@
-// Submission Confirmation Component
-// Shows confirmation screen after successful incident submission
+// Incident Report Submission Success Component
+// Shows confirmation after successful incident submission
+// REDESIGNED: 2025-11-16 - Simplified, brand-aligned success experience
 
 import React from 'react';
 import {
@@ -15,21 +16,19 @@ import {
   ActionIcon,
   Tooltip
 } from '@mantine/core';
-import { IconCheck, IconCopy, IconCalendar, IconExternalLink } from '@tabler/icons-react';
+import { IconCopy } from '@tabler/icons-react';
 import { useClipboard } from '@mantine/hooks';
 
 interface SubmissionConfirmationProps {
   submissionResult: {
     referenceNumber: string;
-    trackingUrl: string;
     submittedAt: string;
   };
-  onNewReport: () => void;
 }
 
-export function SubmissionConfirmation({ submissionResult, onNewReport }: SubmissionConfirmationProps) {
+export function SubmissionConfirmation({ submissionResult }: SubmissionConfirmationProps) {
   const clipboard = useClipboard({ timeout: 2000 });
-  
+
   const formatSubmissionTime = (isoString: string) => {
     const date = new Date(isoString);
     return date.toLocaleString('en-US', {
@@ -41,136 +40,153 @@ export function SubmissionConfirmation({ submissionResult, onNewReport }: Submis
       hour12: true
     });
   };
-  
+
   return (
-    <Box maw={600} mx="auto" p="md">
-      <Paper shadow="sm" p="xl" radius="md">
+    <Box maw={800} mx="auto" p="md">
+      {/* Page Title Section */}
+      <Box ta="center" mb="xl">
+        <Title
+          order={1}
+          style={{
+            fontFamily: 'var(--font-heading)',
+            fontSize: 'clamp(36px, 5vw, 48px)',
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            letterSpacing: '3px',
+            color: 'var(--color-burgundy)',
+            marginBottom: 'var(--space-sm)'
+          }}
+        >
+          Incident Report Submitted
+        </Title>
+
+        <Text
+          size="lg"
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: '18px',
+            color: 'var(--color-charcoal)',
+            fontWeight: 400
+          }}
+        >
+          Submitted on {formatSubmissionTime(submissionResult.submittedAt)}
+        </Text>
+      </Box>
+
+      {/* Main Confirmation Card */}
+      <Paper
+        shadow="sm"
+        p="xl"
+        radius="md"
+        style={{
+          borderTop: '4px solid var(--color-burgundy)',
+          backgroundColor: '#FFFFFF'
+        }}
+      >
         <Stack gap="lg" align="center">
-          {/* Success Icon */}
-          <Box
+          {/* Thank You Message */}
+          <div className="html-content" style={{ textAlign: 'center', maxWidth: '500px' }}>
+            <h3>Thank you for helping keep our community safe</h3>
+          </div>
+
+          {/* Confirmation Message */}
+          <Text
+            size="lg"
+            ta="center"
             style={{
-              width: 80,
-              height: 80,
-              borderRadius: '50%',
-              backgroundColor: '#E7F5E7',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
+              fontFamily: 'var(--font-body)',
+              fontSize: '18px',
+              fontWeight: 400,
+              color: 'var(--color-charcoal)',
+              lineHeight: 1.7,
+              maxWidth: '500px'
             }}
           >
-            <IconCheck size={40} color="#22C55E" />
-          </Box>
-          
-          {/* Header */}
-          <Box ta="center">
-            <Title order={1} size="h2" mb="xs" c="green.7">
-              Report Submitted Successfully
-            </Title>
-            <Text c="dimmed">
-              Your safety incident report has been received and is being processed by our safety team.
-            </Text>
-          </Box>
-          
-          {/* Reference Number */}
-          <Alert 
-            variant="light" 
-            color="blue" 
-            style={{ width: '100%' }}
-            icon={<IconCalendar />}
+            Your safety incident report has been received. The safety team has been
+            notified and will review your report promptly.
+          </Text>
+
+          {/* Reference Number Display */}
+          <Alert
+            variant="light"
+            color="grape"
+            style={{
+              width: 'fit-content',
+              border: '1px solid var(--color-plum)',
+              backgroundColor: 'rgba(97, 75, 121, 0.05)'
+            }}
           >
-            <Stack gap="xs">
-              <Group justify="space-between" align="center">
-                <Box>
-                  <Text size="sm" fw={500} mb={2}>Reference Number</Text>
-                  <Code style={{ fontSize: '14px', fontWeight: 700 }}>{submissionResult.referenceNumber}</Code>
-                </Box>
-                <Tooltip label={clipboard.copied ? 'Copied!' : 'Copy reference number'}>
-                  <ActionIcon
-                    variant="light"
-                    onClick={() => clipboard.copy(submissionResult.referenceNumber)}
-                    color={clipboard.copied ? 'green' : 'blue'}
-                  >
-                    <IconCopy size={16} />
-                  </ActionIcon>
-                </Tooltip>
+            <Group justify="space-between" align="center" wrap="nowrap">
+              <Group gap="sm" align="center" style={{ flex: 1 }}>
+                <Text
+                  size="sm"
+                  fw={600}
+                  style={{
+                    fontFamily: 'var(--font-heading)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    color: 'var(--color-smoke)'
+                  }}
+                >
+                  Reference Number:
+                </Text>
+                <Code
+                  style={{
+                    fontSize: '16px',
+                    fontWeight: 700,
+                    color: 'var(--color-burgundy)',
+                    backgroundColor: 'transparent',
+                    border: '1px solid var(--color-taupe)',
+                    padding: '4px 8px'
+                  }}
+                >
+                  {submissionResult.referenceNumber}
+                </Code>
               </Group>
-              
-              <Text size="xs" c="dimmed">
-                Submitted on {formatSubmissionTime(submissionResult.submittedAt)}
-              </Text>
-            </Stack>
-          </Alert>
-          
-          {/* Important Information */}
-          <Stack gap="sm" style={{ width: '100%' }}>
-            <Title order={3} size="h4" ta="center">Important Information</Title>
-            
-            <Alert variant="light" color="yellow">
-              <Stack gap="xs">
-                <Text size="sm" fw={500}>📧 Safety Team Notification</Text>
-                <Text size="sm">
-                  The safety team has been automatically notified of your report and will review it promptly.
-                </Text>
-              </Stack>
-            </Alert>
-            
-            <Alert variant="light" color="blue">
-              <Stack gap="xs">
-                <Text size="sm" fw={500}>🔍 Track Your Report</Text>
-                <Text size="sm">
-                  Use your reference number to check the status of your report at any time. 
-                  Bookmark this page or save your reference number.
-                </Text>
-              </Stack>
-            </Alert>
-            
-            <Alert variant="light" color="green">
-              <Stack gap="xs">
-                <Text size="sm" fw={500}>🔒 Privacy Protected</Text>
-                <Text size="sm">
-                  Your report has been encrypted and stored securely. Only authorized safety team members can access the details.
-                </Text>
-              </Stack>
-            </Alert>
-          </Stack>
-          
-          {/* Action Buttons */}
-          <Group justify="center" gap="md" mt="lg">
-            <Button
-              variant="outline"
-              leftSection={<IconExternalLink size={16} />}
-              onClick={() => window.open(submissionResult.trackingUrl, '_blank')}
-            >
-              Track Report Status
-            </Button>
-            
-            <Button
-              onClick={onNewReport}
-              style={{
-                background: 'linear-gradient(135deg, #FFBF00 0%, #DAA520 100%)',
-                border: 'none'
-              }}
-            >
-              Submit Another Report
-            </Button>
-          </Group>
-          
-          {/* Additional Resources */}
-          <Box ta="center" mt="xl">
-            <Text size="sm" c="dimmed" mb="xs">
-              Need immediate assistance?
-            </Text>
-            <Group justify="center" gap="xl">
-              <Box ta="center">
-                <Text size="sm" fw={500}>Safety Team</Text>
-                <Text size="sm" c="blue">safety@witchcityrope.com</Text>
-              </Box>
-              <Box ta="center">
-                <Text size="sm" fw={500}>Crisis Support</Text>
-                <Text size="sm" c="blue">Available 24/7</Text>
-              </Box>
+
+              <Tooltip
+                label={clipboard.copied ? 'Copied!' : 'Copy reference number'}
+                position="left"
+              >
+                <ActionIcon
+                  variant="light"
+                  color="grape"
+                  size="lg"
+                  onClick={() => clipboard.copy(submissionResult.referenceNumber)}
+                  aria-label="Copy reference number to clipboard"
+                  style={{
+                    backgroundColor: clipboard.copied
+                      ? 'var(--color-plum)'
+                      : 'rgba(97, 75, 121, 0.1)',
+                    minWidth: '44px',
+                    minHeight: '44px'
+                  }}
+                >
+                  <IconCopy
+                    size={18}
+                    color={clipboard.copied ? '#FFF' : 'var(--color-plum)'}
+                  />
+                </ActionIcon>
+              </Tooltip>
             </Group>
-          </Box>
+          </Alert>
+
+          {/* What Happens Next */}
+          <Text
+            size="lg"
+            ta="center"
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: '18px',
+              color: 'var(--color-charcoal)',
+              fontWeight: 400,
+              lineHeight: 1.7,
+              maxWidth: '500px'
+            }}
+          >
+            The safety team will review your report and may contact you for additional
+            information if needed.
+          </Text>
         </Stack>
       </Paper>
     </Box>

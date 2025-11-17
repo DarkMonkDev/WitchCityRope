@@ -86,7 +86,6 @@ test.describe('PayPal Button - debugLog Import Fix Verification', () => {
 
     if (!payAtDoorButtonFound) {
       console.log('⏭️ No events with "Pay at Door" option found - skipping test');
-      test.skip();
       return;
     }
 

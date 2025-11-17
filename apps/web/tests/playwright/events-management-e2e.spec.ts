@@ -243,12 +243,10 @@ test.describe('Events Management System E2E Tests', () => {
       await AuthHelpers.loginAs(page, 'admin')
     })
 
-    test.skip('should load Event Session Matrix demo page', async ({ page }) => {
-      // SKIP: Requires post-login return-to-page feature (P1 CRITICAL on launch checklist)
-      // See: /docs/standards-processes/PRE_LAUNCH_PUNCH_LIST.md lines 58-64
-      // Current behavior: Login from demo page redirects to dashboard (not back to demo)
-      // Expected (future): After login, return to /admin/event-session-matrix-demo
-      // Status: Feature not yet implemented - test will be enabled when feature is complete
+    test('should load Event Session Matrix demo page', async ({ page }) => {
+      // UNSKIPPED: Page exists and beforeEach already logs in as admin
+      // Post-login return feature exists (see auth/post-login-return.spec.ts)
+      // No login redirect issue since user is already authenticated before navigation
 
       // Navigate to the demo page
       await page.goto('/admin/event-session-matrix-demo')

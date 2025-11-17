@@ -12,9 +12,10 @@ import {
   Flex,
   Checkbox,
   Group,
+  Button,
 } from '@mantine/core'
-import { IconAlertCircle } from '@tabler/icons-react'
-import { useRegister } from '../features/auth/api/mutations'
+import { IconAlertCircle, IconMail, IconCircleCheck } from '@tabler/icons-react'
+import { useRegister, useResendVerification } from '../features/auth/api/mutations'
 import { useIsAuthenticated } from '../stores/authStore'
 
 type RegisterFormData = {
@@ -27,7 +28,9 @@ export const RegisterPage: React.FC = () => {
   const location = useLocation()
   const isAuthenticated = useIsAuthenticated();
   const registerMutation = useRegister()
+  const resendMutation = useResendVerification()
   const [termsAccepted, setTermsAccepted] = useState(false)
+  const [registeredEmail, setRegisteredEmail] = useState('')
 
   // Mantine form with manual validation
   const form = useForm<RegisterFormData>({
@@ -72,10 +75,148 @@ export const RegisterPage: React.FC = () => {
   }, [isAuthenticated, location.search])
 
   const handleSubmit = (values: RegisterFormData) => {
+    setRegisteredEmail(values.email)
     registerMutation.mutate({
       ...values,
       termsOfServiceAccepted: termsAccepted,
     })
+  }
+
+  const handleResendVerification = () => {
+    if (registeredEmail) {
+      resendMutation.mutate({ email: registeredEmail })
+    }
+  }
+
+  // Show success message after registration
+  if (registerMutation.isSuccess && registeredEmail) {
+    return (
+      <Flex
+        align="center"
+        justify="center"
+        data-testid="page-register-success"
+        style={{
+          minHeight: 'calc(100vh - 120px)',
+          padding: 'var(--space-xl) var(--space-md)',
+        }}
+      >
+        <Box
+          style={{
+            background: 'var(--color-ivory)',
+            borderRadius: '24px',
+            boxShadow: '0 20px 25px rgba(0,0,0,0.1)',
+            width: '100%',
+            maxWidth: '600px',
+          }}
+        >
+          {/* Success header with plum gradient */}
+          <Box
+            style={{
+              background: 'linear-gradient(135deg, #9b4a75 0%, #614B79 100%)',
+              padding: 'var(--space-2xl) var(--space-xl) var(--space-xl)',
+              textAlign: 'center',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            <Box
+              style={{
+                position: 'absolute',
+                top: '-50%',
+                left: '-50%',
+                width: '200%',
+                height: '200%',
+                background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
+                transform: 'rotate(45deg)',
+                pointerEvents: 'none',
+              }}
+            />
+            <IconMail size={64} color="var(--color-ivory)" style={{ position: 'relative' }} />
+            <Title
+              style={{
+                fontFamily: 'var(--font-heading)',
+                fontSize: '32px',
+                fontWeight: 800,
+                color: 'var(--color-ivory)',
+                marginTop: 'var(--space-md)',
+                position: 'relative',
+              }}
+            >
+              Registration Successful!
+            </Title>
+          </Box>
+
+          {/* Content */}
+          <Box style={{ padding: 'var(--space-xl)' }}>
+            <Stack gap="lg">
+              <Alert icon={<IconMail />} color="blue">
+                <Text fw={600} mb="xs">
+                  Verify Your Email
+                </Text>
+                <Text size="sm">
+                  We've sent a verification email to <strong>{registeredEmail}</strong>.
+                  Please check your inbox and click the verification link to activate your account.
+                </Text>
+              </Alert>
+
+              {!resendMutation.isSuccess ? (
+                <Box>
+                  <Text size="sm" mb="xs" c="dimmed" ta="center">
+                    Didn't receive the email?
+                  </Text>
+                  <Button
+                    variant="outline"
+                    color="blue"
+                    size="md"
+                    fullWidth
+                    onClick={handleResendVerification}
+                    loading={resendMutation.isPending}
+                    leftSection={<IconMail size={16} />}
+                    styles={{
+                      root: {
+                        fontWeight: 600,
+                        height: '44px',
+                        paddingTop: '12px',
+                        paddingBottom: '12px',
+                        fontSize: '14px',
+                        lineHeight: '1.2',
+                      },
+                    }}
+                  >
+                    Resend Verification Email
+                  </Button>
+                </Box>
+              ) : (
+                <Alert icon={<IconCircleCheck />} color="green">
+                  Verification email resent! Please check your inbox.
+                </Alert>
+              )}
+
+              <Button
+                component={Link}
+                to="/login"
+                variant="filled"
+                color="blue"
+                size="lg"
+                fullWidth
+                styles={{
+                  root: {
+                    fontWeight: 600,
+                    height: '44px',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    fontSize: '14px',
+                    lineHeight: '1.2',
+                  },
+                }}
+              >
+                Go to Login
+              </Button>
+            </Stack>
+          </Box>
+        </Box>
+      </Flex>
+    )
   }
 
   return (

@@ -58,6 +58,13 @@ export const CmsEditButton: React.FC<CmsEditButtonProps> = ({
         marginLeft: 16,
         zIndex: 10,
       }}
+      styles={{
+        root: {
+          // WCAG AA compliance: Ensure sufficient color contrast (4.5:1 ratio)
+          borderColor: 'var(--mantine-color-red-7)',
+          color: 'var(--mantine-color-red-9)',
+        },
+      }}
       data-testid="cms-edit-button"
     >
       Edit

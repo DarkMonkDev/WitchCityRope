@@ -92,10 +92,16 @@ export async function revokeSessionToken(page: Page, token: string): Promise<voi
  */
 export async function getTestEventId(page: Page): Promise<string> {
   const response = await page.request.get('http://localhost:5655/api/events');
+
+  if (!response.ok()) {
+    throw new Error(`Failed to fetch events: ${response.status()} ${await response.text()}`);
+  }
+
   const data = await response.json();
 
-  if (data.success && data.data && data.data.length > 0) {
-    return data.data[0].id;
+  // API returns raw array, not wrapped in { success, data }
+  if (Array.isArray(data) && data.length > 0) {
+    return data[0].id;
   }
 
   throw new Error('No test events found. Please seed test data.');

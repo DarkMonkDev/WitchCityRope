@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useForm } from '@mantine/form'
 import {
@@ -12,9 +12,10 @@ import {
   Checkbox,
   Box,
   Flex,
+  Button,
 } from '@mantine/core'
-import { IconAlertCircle } from '@tabler/icons-react'
-import { useLogin } from '../features/auth/api/mutations'
+import { IconAlertCircle, IconMail, IconCircleCheck } from '@tabler/icons-react'
+import { useLogin, useResendVerification } from '../features/auth/api/mutations'
 
 type LoginFormData = {
   emailOrSceneName: string // Changed from 'email' - accepts either email or scene name
@@ -25,7 +26,10 @@ type LoginFormData = {
 
 export const LoginPage: React.FC = () => {
   const loginMutation = useLogin()
+  const resendMutation = useResendVerification()
   const [searchParams] = useSearchParams()
+  const [showResendForm, setShowResendForm] = useState(false)
+  const [resendEmail, setResendEmail] = useState('')
 
   // Extract returnUrl from query parameters
   const returnUrl = useMemo(() => {
@@ -36,6 +40,9 @@ export const LoginPage: React.FC = () => {
     }
     return undefined
   }, [searchParams])
+
+  // Check if login error is email verification error
+  const isEmailVerificationError = loginMutation.error?.message?.toLowerCase().includes('verify your email')
 
   // Mantine form with manual validation
   const form = useForm<LoginFormData>({
@@ -60,6 +67,12 @@ export const LoginPage: React.FC = () => {
   const handleSubmit = (values: LoginFormData) => {
     // Pass returnUrl to API for backend validation
     loginMutation.mutate(values)
+  }
+
+  const handleResendVerification = () => {
+    if (resendEmail) {
+      resendMutation.mutate({ email: resendEmail })
+    }
   }
 
   return (
@@ -127,8 +140,89 @@ export const LoginPage: React.FC = () => {
           <form onSubmit={form.onSubmit(handleSubmit)} data-testid="login-form">
             <Stack gap="md">
               {loginMutation.error && (
-                <Alert icon={<IconAlertCircle />} color="red" data-testid="login-error">
+                <Alert icon={<IconAlertCircle />} color={isEmailVerificationError ? 'orange' : 'red'} data-testid="login-error">
                   {loginMutation.error.message || 'Login failed. Please try again.'}
+                </Alert>
+              )}
+
+              {isEmailVerificationError && !resendMutation.isSuccess && (
+                <Box>
+                  <Text size="sm" mb="xs" fw={600}>
+                    Didn't receive the verification email?
+                  </Text>
+                  {!showResendForm ? (
+                    <Button
+                      variant="light"
+                      color="orange"
+                      size="sm"
+                      leftSection={<IconMail size={16} />}
+                      onClick={() => setShowResendForm(true)}
+                      fullWidth
+                      styles={{
+                        root: {
+                          fontWeight: 600,
+                          height: '40px',
+                          fontSize: '14px',
+                        },
+                      }}
+                    >
+                      Resend Verification Email
+                    </Button>
+                  ) : (
+                    <Stack gap="xs">
+                      <TextInput
+                        placeholder="Enter your email"
+                        value={resendEmail}
+                        onChange={(e) => setResendEmail(e.currentTarget.value)}
+                        size="sm"
+                      />
+                      <Group gap="xs">
+                        <Button
+                          variant="filled"
+                          color="orange"
+                          size="sm"
+                          onClick={handleResendVerification}
+                          loading={resendMutation.isPending}
+                          disabled={!resendEmail}
+                          fullWidth
+                          styles={{
+                            root: {
+                              fontWeight: 600,
+                              height: '40px',
+                              fontSize: '14px',
+                            },
+                          }}
+                        >
+                          Send
+                        </Button>
+                        <Button
+                          variant="outline"
+                          color="gray"
+                          size="sm"
+                          onClick={() => {
+                            setShowResendForm(false)
+                            setResendEmail('')
+                          }}
+                          fullWidth
+                          styles={{
+                            root: {
+                              fontWeight: 600,
+                              height: '40px',
+                              fontSize: '14px',
+                            },
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </Group>
+                    </Stack>
+                  )}
+                </Box>
+              )}
+
+              {resendMutation.isSuccess && (
+                <Alert icon={<IconCircleCheck />} color="green">
+                  Verification email sent! Please check your inbox and click the verification link.
                 </Alert>
               )}
 

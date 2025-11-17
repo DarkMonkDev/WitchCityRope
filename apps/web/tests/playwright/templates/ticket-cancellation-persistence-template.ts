@@ -17,7 +17,6 @@ import {
   PersistenceTestTemplate,
   TestConfig,
   PersistenceTestOptions,
-  verifySuccessMessage,
   verifyNoErrorMessage,
   verifyApiSuccess,
 } from './persistence-test-template';
@@ -135,9 +134,7 @@ export async function testTicketCancellationPersistence(
       await page.waitForTimeout(500);
 
       // Check for confirmation modal
-      const confirmModal = page.locator(
-        '[role="dialog"], .modal, [data-testid*="confirm"]'
-      );
+      const confirmModal = page.locator('[role="dialog"]');
 
       if (await confirmModal.count() > 0 && await confirmModal.isVisible()) {
         console.log('✅ Confirmation modal appeared');
@@ -155,47 +152,38 @@ export async function testTicketCancellationPersistence(
         }
 
         // Click confirm button in modal
-        const confirmButton = page.locator(
-          'button:has-text("Confirm"), button:has-text("Yes"), button:has-text("Cancel Ticket")'
-        ).last(); // Use last() in case there are multiple
+        // Use filter() pattern from RSVP template for better selector matching
+        const confirmButton = confirmModal.locator('button').filter({
+          hasText: /cancel ticket|cancel rsvp|confirm|yes/i
+        }).last();
 
         await confirmButton.click();
         console.log('✅ Clicked confirmation button');
+
+        // CRITICAL: Wait for API call to complete and modal to close
+        await page.waitForTimeout(1500);
+        console.log('✅ Waited for cancellation API to complete');
       }
     },
 
     // STEP 3: Verify UI shows success
     verifyUiSuccess: async (page: Page) => {
-      // Verify success message
-      await verifySuccessMessage(page, successMessage);
+      // NO SUCCESS NOTIFICATION SHOWN
+      // Cancellation mutation runs silently (same as RSVP)
+      // Success is indicated by UI state change only
       await verifyNoErrorMessage(page);
 
-      // Verify Cancel Ticket button is gone or disabled
-      const cancelButton = page.locator(
-        '[data-testid="cancel-ticket-button"], button:has-text("Cancel Ticket")'
-      );
+      // Wait for UI to update via React Query cache
+      await page.waitForTimeout(1000);
 
-      const buttonCount = await cancelButton.count();
-
-      if (buttonCount > 0) {
-        // Button might still exist but be disabled
-        const isDisabled = await cancelButton.getAttribute('disabled');
-        if (isDisabled === null) {
-          console.warn('⚠️  Cancel Ticket button still visible and enabled');
-        }
-      } else {
-        console.log('✅ Cancel Ticket button removed from UI');
-      }
-
-      // Optional: Verify "Purchase Ticket" or "Register" button appears
-      // (indicates user can re-register)
+      // Verify "Purchase Ticket" or "RSVP" button appears (user can re-register)
+      // Use .last() to avoid React strict mode duplicates
       const purchaseButton = page.locator(
         'button:has-text("Purchase Ticket"), button:has-text("Register"), button:has-text("RSVP")'
-      );
+      ).last();
 
-      if (await purchaseButton.count() > 0) {
-        console.log('✅ Purchase/Register button now visible');
-      }
+      await expect(purchaseButton).toBeVisible({ timeout: 5000 });
+      console.log('✅ Purchase/Register button now visible (UI state changed)');
     },
 
     // STEP 4: Verify API response
@@ -213,12 +201,24 @@ export async function testTicketCancellationPersistence(
 
     // STEP 5: Verify database shows cancellation (CRITICAL)
     verifyDatabaseState: async (page: Page) => {
+      // CRITICAL: Wait for database transaction to commit
+      // Race condition: API might return 200 before DB commit completes
+      await page.waitForTimeout(500);
+      console.log('✅ Waited for database transaction to commit');
+
       // Verify participation status is 'Cancelled'
       const participation = await DatabaseHelpers.verifyEventParticipation(
         userId,
         eventId,
         2 // 2 = Cancelled
       );
+
+      if (!participation) {
+        throw new Error(
+          'CRITICAL BUG: Cancellation API returned success but database was NOT updated. ' +
+          'This is the exact bug this test is designed to catch!'
+        );
+      }
 
       console.log('✅ Database shows participation status: Cancelled');
       console.log(`   Participation ID: ${participation.id}`);

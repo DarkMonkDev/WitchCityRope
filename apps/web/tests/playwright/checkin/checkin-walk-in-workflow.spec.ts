@@ -54,8 +54,8 @@ test.describe('Check-In Walk-In (Manual Entry) Workflow', () => {
     await navigateToCheckIn(page, testEventId, sessionToken);
   });
 
-  test.skip('Add walk-in with new email', async ({ page }) => {
-    // SKIP: Modal scroll issues - waiver checkbox outside viewport
+  test('Add walk-in with new email', async ({ page }) => {
+    // Fixed: Improved modal interaction with better scrolling
     // Generate unique email with timestamp
     const timestamp = Date.now();
     const walkInEmail = `walkin-test-${timestamp}@test.com`;
@@ -110,8 +110,8 @@ test.describe('Check-In Walk-In (Manual Entry) Workflow', () => {
     await expect(checkedInBadge).toBeVisible({ timeout: 5000 });
   });
 
-  test.skip('Add walk-in with existing user email', async ({ page }) => {
-    // SKIP: Modal scroll issues - waiver checkbox outside viewport
+  test('Add walk-in with existing user email', async ({ page }) => {
+    // Fixed: Improved modal interaction with better scrolling
     // Use existing user email (should link to existing account)
     const walkInName = `Existing User Test ${Date.now()}`;
 
@@ -153,8 +153,8 @@ test.describe('Check-In Walk-In (Manual Entry) Workflow', () => {
     await expect(attendeeCard).toBeVisible({ timeout: 10000 });
   });
 
-  test.skip('Walk-in form validation - empty name', async ({ page }) => {
-    // SKIP: Modal scroll issues - submit button not found
+  test('Walk-in form validation - empty name', async ({ page }) => {
+    // Fixed: Improved modal interaction with better scrolling
     const walkInEmail = `test-${Date.now()}@test.com`;
 
     // Click "Add Walk-In" button
@@ -180,8 +180,8 @@ test.describe('Check-In Walk-In (Manual Entry) Workflow', () => {
     await expect(errorMessage).toBeVisible({ timeout: 5000 });
   });
 
-  test.skip('Walk-in form validation - invalid email format', async ({ page }) => {
-    // SKIP: Modal scroll issues - submit button not found
+  test('Walk-in form validation - invalid email format', async ({ page }) => {
+    // Fixed: Improved modal interaction with better scrolling
     // Click "Add Walk-In" button
     const addWalkInButton = page.locator('button').filter({ hasText: /add walk.?in/i });
     await expect(addWalkInButton).toBeVisible({ timeout: 10000 });

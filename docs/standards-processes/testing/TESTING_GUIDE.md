@@ -1,6 +1,6 @@
 # WitchCityRope Testing Guide
-<!-- Last Updated: 2025-08-04 -->
-<!-- Version: 2.0 -->
+<!-- Last Updated: 2025-11-17 -->
+<!-- Version: 2.1 -->
 <!-- Owner: Testing Team -->
 <!-- Status: Active -->
 
@@ -396,6 +396,122 @@ var emailService = new Mock<IEmailService>();
 emailService.Setup(x => x.SendAsync(It.IsAny<Email>()))
     .ReturnsAsync(true);
 ```
+
+## Advanced Mocking Patterns
+
+### Testing Minimal API Endpoints with Anonymous Types
+
+**Problem**: `Results.Ok(new { ... })` creates anonymous types that cannot be cast using `as Ok<object>`.
+
+**Solution**: Use reflection to access properties:
+
+```csharp
+[Fact]
+public async Task Endpoint_WithSuccess_Returns200OkWithAnonymousType()
+{
+    // Arrange
+    var mockService = Substitute.For<IMyService>();
+    mockService.ProcessAsync(Arg.Any<string>()).Returns((true, string.Empty));
+
+    // Act
+    var result = await EndpointHelper(mockService);
+
+    // Assert
+    result.Should().BeAssignableTo<IResult>();
+
+    // Use reflection to access StatusCode property
+    var statusCodeProperty = result.GetType().GetProperty("StatusCode");
+    statusCodeProperty.Should().NotBeNull();
+    var statusCode = (int?)statusCodeProperty!.GetValue(result);
+    statusCode.Should().Be(200);
+
+    // Use reflection to access Value property
+    var valueProperty = result.GetType().GetProperty("Value");
+    valueProperty.Should().NotBeNull();
+    dynamic responseValue = valueProperty!.GetValue(result)!;
+
+    // Access anonymous type properties
+    bool success = responseValue.Success;
+    string message = responseValue.Message;
+
+    success.Should().BeTrue();
+    message.Should().Be("Expected message");
+}
+
+// Helper that simulates the actual endpoint
+private async Task<IResult> EndpointHelper(IMyService service)
+{
+    var (success, error) = await service.ProcessAsync("input");
+
+    return success
+        ? Results.Ok(new { Success = true, Message = "Expected message" })
+        : Results.Problem(detail: error, statusCode: 400);
+}
+```
+
+**When to Use**:
+- Testing Minimal API endpoints that return anonymous objects
+- Any scenario where `Results.Ok(new { ... })` is used
+- Pattern already used in Login/Logout endpoint tests
+
+### Mocking UserManager with Token Providers
+
+**Problem**: `Substitute.ForPartsOf<UserManager>` creates partial mocks that call base implementation for unmocked methods. Methods like `GeneratePasswordResetTokenAsync` require configured token providers.
+
+**Error**: `System.NotSupportedException: No IUserTwoFactorTokenProvider<TUser> named 'Default' is registered`
+
+**Solution**: Use `When().DoNotCallBase()` to prevent calling real UserManager methods:
+
+```csharp
+public class MyServiceTests : IAsyncLifetime
+{
+    private UserManager<ApplicationUser> _userManager = null!;
+
+    public async Task InitializeAsync()
+    {
+        // ... setup other dependencies ...
+
+        _userManager = Substitute.ForPartsOf<UserManager<ApplicationUser>>(
+            userStore, null, passwordHasher, userValidators, passwordValidators,
+            keyNormalizer, errors, services, userLogger);
+
+        // Configure UserManager to NOT call base methods for token operations
+        _userManager.When(x => x.GeneratePasswordResetTokenAsync(Arg.Any<ApplicationUser>()))
+            .DoNotCallBase();
+
+        _userManager.When(x => x.ResetPasswordAsync(Arg.Any<ApplicationUser>(), Arg.Any<string>(), Arg.Any<string>()))
+            .DoNotCallBase();
+    }
+
+    [Fact]
+    public async Task PasswordReset_WithValidUser_GeneratesToken()
+    {
+        // Arrange
+        var user = new ApplicationUser { Id = "user-id", Email = "test@example.com" };
+
+        // Configure mock return values in individual tests
+        _userManager.FindByEmailAsync(user.Email).Returns(Task.FromResult(user));
+        _userManager.GeneratePasswordResetTokenAsync(user)
+            .Returns(Task.FromResult("reset-token-123"));
+
+        // Act & Assert
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        token.Should().Be("reset-token-123");
+    }
+}
+```
+
+**When to Use**:
+- Mocking UserManager methods that require external dependencies
+- Token generation methods (password reset, email confirmation)
+- Any UserManager method that fails with "not registered" errors
+- Methods that internally call other virtual methods requiring special setup
+
+**Key Concepts**:
+1. `ForPartsOf` creates a partial mock (calls base by default)
+2. `When().DoNotCallBase()` prevents calling real implementation
+3. `Returns()` configures the mock behavior for specific calls
+4. This pattern is necessary for methods requiring infrastructure (like token providers)
 
 ## Performance Guidelines
 

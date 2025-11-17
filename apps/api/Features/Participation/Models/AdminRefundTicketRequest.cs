@@ -11,4 +11,9 @@ public class AdminRefundTicketRequest
     /// Default: true
     /// </summary>
     public bool AlsoRemoveRsvp { get; set; } = true;
+
+    /// <summary>
+    /// Reason for the refund (required for audit trail)
+    /// </summary>
+    public string RefundReason { get; set; } = string.Empty;
 }

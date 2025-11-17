@@ -834,7 +834,7 @@ public static class ParticipationEndpoints
                 {
                     PaymentId = payment.Id,
                     RefundAmount = Money.Create(payment.AmountValue, payment.Currency),
-                    RefundReason = $"Admin refunded ticket for user {userId}",
+                    RefundReason = request.RefundReason,
                     ProcessedByUserId = adminUserId,
                     IpAddress = "admin-action"
                 };

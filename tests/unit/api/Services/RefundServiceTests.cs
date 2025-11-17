@@ -9,6 +9,7 @@ using WitchCityRope.Api.Features.Payments.Models;
 using WitchCityRope.Api.Features.Payments.Models.PayPal;
 using WitchCityRope.Api.Features.Payments.ValueObjects;
 using WitchCityRope.Api.Features.Safety.Services;
+using WitchCityRope.Api.Features.Shared.Services;
 using WitchCityRope.Api.Features.Volunteers.Services;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Tests.Fixtures;
@@ -28,6 +29,8 @@ public class RefundServiceTests : IAsyncLifetime
     private readonly DatabaseTestFixture _fixture;
     private readonly Mock<IPayPalService> _mockPayPalService;
     private readonly Mock<IEncryptionService> _mockEncryptionService;
+    private readonly Mock<IVolunteerAssignmentService> _mockVolunteerService;
+    private readonly Mock<IEmailService> _mockEmailService;
     private readonly Mock<ILogger<RefundService>> _mockLogger;
     private RefundService _sut; // System Under Test
     private ApplicationDbContext _context;
@@ -39,6 +42,8 @@ public class RefundServiceTests : IAsyncLifetime
         _fixture = fixture;
         _mockPayPalService = new Mock<IPayPalService>();
         _mockEncryptionService = new Mock<IEncryptionService>();
+        _mockVolunteerService = new Mock<IVolunteerAssignmentService>();
+        _mockEmailService = new Mock<IEmailService>();
         _mockLogger = new Mock<ILogger<RefundService>>();
     }
 
@@ -53,9 +58,8 @@ public class RefundServiceTests : IAsyncLifetime
             _context,
             _mockPayPalService.Object,
             _mockEncryptionService.Object,
-            new Mock<VolunteerAssignmentService>(
-                _context,
-                new Mock<ILogger<VolunteerAssignmentService>>().Object).Object,
+            _mockVolunteerService.Object,
+            _mockEmailService.Object,
             _mockLogger.Object);
 
         // Seed test users with new GUIDs for each test

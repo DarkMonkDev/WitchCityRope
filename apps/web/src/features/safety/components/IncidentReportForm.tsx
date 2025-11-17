@@ -134,25 +134,18 @@ export function IncidentReportForm({ onSubmissionComplete }: IncidentReportFormP
       console.log('Calling submitIncident API...');
       const result = await submitIncident(values, user?.id);
       console.log('Submission successful', { referenceNumber: (result as any).referenceNumber });
-      onSubmissionComplete?.((result as any).referenceNumber);
+      // Form now handles success display internally via SubmissionConfirmation component
+      // No need to call onSubmissionComplete callback
     } catch (error) {
       console.error('Submission failed:', error);
     }
-  }, [submitIncident, user?.id, agreementChecked, onSubmissionComplete, form.errors]);
-
-  // Handle new report
-  const handleNewReport = useCallback(() => {
-    resetSubmission();
-    form.reset();
-    setAgreementChecked(false);
-  }, [resetSubmission, form]);
+  }, [submitIncident, user?.id, agreementChecked, form.errors]);
 
   // Show confirmation screen if successfully submitted
   if (isSuccess && submissionResult) {
     return (
       <SubmissionConfirmation
         submissionResult={submissionResult as any}
-        onNewReport={handleNewReport}
       />
     );
   }

@@ -190,6 +190,7 @@ export const VenueManagementCard: React.FC = () => {
   return (
     <>
       <Box
+        data-testid="venue-management-card"
         style={{
           background: 'var(--color-ivory)',
           borderRadius: '16px',
@@ -243,6 +244,7 @@ export const VenueManagementCard: React.FC = () => {
                 Venue
               </Text>
               <Select
+                data-testid="venue-select"
                 data={dropdownOptions}
                 value={selectedVenueId}
                 onChange={handleVenueChange}
@@ -296,6 +298,7 @@ export const VenueManagementCard: React.FC = () => {
                       Venue Name *
                     </Text>
                     <TextInput
+                      data-testid="venue-name-input"
                       {...form.getInputProps('name')}
                       placeholder="Enter venue name"
                       maxLength={100}
@@ -335,6 +338,7 @@ export const VenueManagementCard: React.FC = () => {
                       Directions
                     </Text>
                     <Textarea
+                      data-testid="venue-directions-input"
                       {...form.getInputProps('directions')}
                       placeholder="Enter directions to venue"
                       rows={4}
@@ -376,6 +380,7 @@ export const VenueManagementCard: React.FC = () => {
                       Notes
                     </Text>
                     <Textarea
+                      data-testid="venue-notes-input"
                       {...form.getInputProps('notes')}
                       placeholder="Enter additional notes"
                       rows={4}
@@ -402,6 +407,7 @@ export const VenueManagementCard: React.FC = () => {
                   {/* Active Checkbox - Only shown when editing. Unchecking deactivates the venue (soft delete). */}
                   {isEditMode && (
                     <Checkbox
+                      data-testid="venue-active-checkbox"
                       {...form.getInputProps('isActive', { type: 'checkbox' })}
                       label="Active Venue"
                     />
@@ -410,6 +416,7 @@ export const VenueManagementCard: React.FC = () => {
                   {/* Action Buttons */}
                   <Group justify="flex-end" mt="md" gap="sm">
                     <Button
+                      data-testid="venue-submit-button"
                       variant="filled"
                       color="#880124"
                       onClick={handleSubmit}

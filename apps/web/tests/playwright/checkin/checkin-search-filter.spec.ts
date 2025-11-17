@@ -71,8 +71,8 @@ async function createTestAttendees(page: Page, eventId: string) {
   return attendees;
 }
 
-test.describe.skip('Check-In Search and Filter', () => {
-  // SKIP: Tests depend on walk-in creation which has modal scroll issues
+test.describe('Check-In Search and Filter', () => {
+  // UNSKIPPED: Modal scroll issues fixed with scrollIntoViewIfNeeded() pattern
   let testEventId: string;
   let sessionToken: string;
 

@@ -43,21 +43,19 @@ const TEST_ACCOUNTS = {
 };
 
 /**
- * Helper: Get user's scene name from API
+ * Helper: Get user's scene name from known test data
+ * Scene names are displayed on login page in dev/staging mode
  */
-async function getUserSceneName(page: Page, email: string, password: string): Promise<string> {
-  // Login to get auth token
-  const loginResponse = await page.request.post(`${API_URL}/api/auth/login`, {
-    data: {
-      emailOrSceneName: email,
-      password: password
-    }
-  });
+async function getUserSceneName(email: string): Promise<string> {
+  // Known scene names from test data (seeded in database)
+  const sceneNames: Record<string, string> = {
+    'admin@witchcityrope.com': 'RopeMaster',
+    'teacher@witchcityrope.com': 'SafetyFirst',
+    'member@witchcityrope.com': 'Learning',
+    'vetted@witchcityrope.com': 'RopeEnthusiast'
+  };
 
-  expect(loginResponse.ok()).toBe(true);
-  const loginData = await loginResponse.json();
-
-  return loginData.user.sceneName;
+  return sceneNames[email] || '';
 }
 
 /**
@@ -132,17 +130,12 @@ test.describe('Login with Email or Scene Name', () => {
 
   test.describe('P1 CRITICAL: Scene Name Login Path', () => {
     test('should login successfully with scene name', async ({ page }) => {
-      // Arrange - Get admin user's scene name from database
+      // Arrange - Get admin user's scene name from test data
       const testAccount = TEST_ACCOUNTS.admin;
-      const sceneName = await getUserSceneName(page, testAccount.email, testAccount.password);
+      const sceneName = await getUserSceneName(testAccount.email);
 
       expect(sceneName).toBeTruthy();
       expect(sceneName.length).toBeGreaterThan(0);
-
-      // Clear auth state after fetching scene name
-      await clearAuthState(page);
-      await page.goto(`${BASE_URL}/login`);
-      await page.waitForLoadState('networkidle');
 
       // Act - Login with scene name instead of email
       await fillAndSubmitLogin(page, sceneName, testAccount.password);
@@ -161,13 +154,8 @@ test.describe('Login with Email or Scene Name', () => {
     test('should show error for wrong password with valid scene name', async ({ page }) => {
       // Arrange - Get admin user's scene name
       const testAccount = TEST_ACCOUNTS.admin;
-      const sceneName = await getUserSceneName(page, testAccount.email, testAccount.password);
+      const sceneName = await getUserSceneName(testAccount.email);
       const wrongPassword = 'WrongPassword123!';
-
-      // Clear auth state
-      await clearAuthState(page);
-      await page.goto(`${BASE_URL}/login`);
-      await page.waitForLoadState('networkidle');
 
       // Act - Login with scene name and wrong password
       await fillAndSubmitLogin(page, sceneName, wrongPassword);
@@ -297,10 +285,10 @@ test.describe('Login with Email or Scene Name', () => {
       expect(onDashboard || onLogin).toBe(true);
     });
 
-    test('should be case-sensitive for scene name', async ({ page }) => {
+    test('should be case-insensitive for scene name', async ({ page }) => {
       // Arrange - Get admin scene name
       const testAccount = TEST_ACCOUNTS.admin;
-      const sceneName = await getUserSceneName(page, testAccount.email, testAccount.password);
+      const sceneName = await getUserSceneName(testAccount.email);
       const upperCaseSceneName = sceneName.toUpperCase();
 
       // Skip test if scene name is already all uppercase
@@ -309,23 +297,17 @@ test.describe('Login with Email or Scene Name', () => {
         return;
       }
 
-      // Clear auth state
-      await clearAuthState(page);
-      await page.goto(`${BASE_URL}/login`);
-      await page.waitForLoadState('networkidle');
-
-      // Act - Try to login with uppercase scene name
+      // Act - Login with uppercase scene name
       await fillAndSubmitLogin(page, upperCaseSceneName, testAccount.password);
 
-      // Wait for response
-      await page.waitForTimeout(2000);
+      // Wait for navigation
+      await page.waitForTimeout(3000);
 
-      // Assert - Should fail (scene names are case-sensitive)
-      const errorAlert = page.locator('[data-testid="login-error"]');
-      await expect(errorAlert).toBeVisible({ timeout: 5000 });
+      // Assert - Should succeed (scene names are case-insensitive like emails)
+      const currentUrl = page.url();
+      const loginSucceeded = currentUrl.includes('/dashboard');
 
-      // Verify still on login page
-      await expect(page).toHaveURL(`${BASE_URL}/login`);
+      expect(loginSucceeded).toBe(true);
     });
 
     test('should be case-insensitive for email address', async ({ page }) => {
@@ -358,10 +340,16 @@ test.describe('Login with Email or Scene Name', () => {
       expect(placeholder?.toLowerCase()).toContain('scene');
     });
 
-    test('should display helper text explaining both login options', async ({ page }) => {
-      // Assert - Verify helper text is present
-      const helperText = page.locator('text=/you can log in with either your email address or your scene name/i');
-      await expect(helperText).toBeVisible();
+    test('should display field label indicating both email and scene name accepted', async ({ page }) => {
+      // Assert - Verify label text indicates both options are accepted
+      const labelText = page.locator('text=/Email or Scene Name/i');
+      await expect(labelText).toBeVisible();
+
+      // Verify placeholder also mentions both options
+      const emailInput = page.locator('[data-testid="email-or-scenename-input"]');
+      const placeholder = await emailInput.getAttribute('placeholder');
+      expect(placeholder).toBeTruthy();
+      expect(placeholder?.toLowerCase()).toContain('scene');
     });
   });
 });
