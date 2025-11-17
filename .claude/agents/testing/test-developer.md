@@ -90,11 +90,7 @@ This exclusive ownership ensures:
 **NEVER run `npm run dev` (disabled, will error) - ONLY use Docker: `./dev.sh`**
 
 ### BEFORE ANY WORK:
-```bash
-# Verify Docker environment (CRITICAL)
-docker ps | grep witchcity-web | grep "5173" || echo "❌ Docker not ready"
-./scripts/kill-local-dev-servers.sh
-```
+**Use `container-restart` skill to verify Docker environment and restart containers if needed.**
 
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
