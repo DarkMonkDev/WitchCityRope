@@ -1270,6 +1270,315 @@ public class AuthenticationEndpointsTests
 
     #endregion
 
+    #region ForgotPassword Endpoint Tests (Phase 3: Password Reset)
+
+    /// <summary>
+    /// Test: ForgotPassword with valid email returns 200 OK with generic success message
+    /// </summary>
+    [Fact]
+    public async Task ForgotPassword_WithValidEmail_Returns200OkWithGenericMessage()
+    {
+        // Arrange
+        var request = new ForgotPasswordRequest
+        {
+            Email = "test@example.com"
+        };
+
+        _mockAuthService.ForgotPasswordAsync(request.Email, Arg.Any<CancellationToken>())
+            .Returns((true, string.Empty));
+
+        // Act
+        var result = await ForgotPassword(request);
+
+        // Assert
+        result.Should().BeAssignableTo<IResult>();
+
+        // For Results.Ok(anonymous type), we need to use reflection
+        var statusCodeProperty = result.GetType().GetProperty("StatusCode");
+        statusCodeProperty.Should().NotBeNull();
+        var statusCode = (int?)statusCodeProperty!.GetValue(result);
+        statusCode.Should().Be(200);
+
+        // Verify response structure using reflection for Value property
+        var valueProperty = result.GetType().GetProperty("Value");
+        valueProperty.Should().NotBeNull();
+        dynamic responseValue = valueProperty!.GetValue(result)!;
+        bool success = responseValue.Success;
+        string message = responseValue.Message;
+
+        success.Should().BeTrue();
+        message.Should().Be("If an account exists with this email, a password reset link has been sent.");
+
+        // Verify service was called
+        await _mockAuthService.Received(1).ForgotPasswordAsync(request.Email, Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Test: ForgotPassword with non-existent email returns 200 OK (security - no enumeration)
+    /// </summary>
+    [Fact]
+    public async Task ForgotPassword_WithNonExistentEmail_Returns200OkForSecurity()
+    {
+        // Arrange
+        var request = new ForgotPasswordRequest
+        {
+            Email = "nonexistent@example.com"
+        };
+
+        // Service returns success even for non-existent email (security)
+        _mockAuthService.ForgotPasswordAsync(request.Email, Arg.Any<CancellationToken>())
+            .Returns((true, string.Empty));
+
+        // Act
+        var result = await ForgotPassword(request);
+
+        // Assert
+        result.Should().BeAssignableTo<IResult>();
+
+        // For Results.Ok(anonymous type), we need to use reflection
+        var statusCodeProperty = result.GetType().GetProperty("StatusCode");
+        statusCodeProperty.Should().NotBeNull();
+        var statusCode = (int?)statusCodeProperty!.GetValue(result);
+        statusCode.Should().Be(200);
+
+        // Verify generic message (no indication of whether email exists)
+        var valueProperty = result.GetType().GetProperty("Value");
+        valueProperty.Should().NotBeNull();
+        dynamic responseValue = valueProperty!.GetValue(result)!;
+        string message = responseValue.Message;
+        message.Should().Be("If an account exists with this email, a password reset link has been sent.");
+    }
+
+    /// <summary>
+    /// Test: ForgotPassword always returns 200 OK even when service fails (security)
+    /// </summary>
+    [Fact]
+    public async Task ForgotPassword_WhenServiceFails_StillReturns200OkForSecurity()
+    {
+        // Arrange
+        var request = new ForgotPasswordRequest
+        {
+            Email = "test@example.com"
+        };
+
+        // Even with service failure, endpoint should return success for security
+        _mockAuthService.ForgotPasswordAsync(request.Email, Arg.Any<CancellationToken>())
+            .Returns((false, "Some internal error"));
+
+        // Act
+        var result = await ForgotPassword(request);
+
+        // Assert
+        result.Should().BeAssignableTo<IResult>();
+
+        // For Results.Ok(anonymous type), we need to use reflection
+        var statusCodeProperty = result.GetType().GetProperty("StatusCode");
+        statusCodeProperty.Should().NotBeNull();
+        var statusCode = (int?)statusCodeProperty!.GetValue(result);
+        statusCode.Should().Be(200);
+
+        // Verify same generic message (prevent information leakage)
+        var valueProperty = result.GetType().GetProperty("Value");
+        valueProperty.Should().NotBeNull();
+        dynamic responseValue = valueProperty!.GetValue(result)!;
+        string message = responseValue.Message;
+        message.Should().Be("If an account exists with this email, a password reset link has been sent.");
+    }
+
+    #endregion
+
+    #region ResetPassword Endpoint Tests (Phase 3: Password Reset)
+
+    /// <summary>
+    /// Test: ResetPassword with valid token returns 200 OK with success message
+    /// </summary>
+    [Fact]
+    public async Task ResetPassword_WithValidToken_Returns200OkWithSuccessMessage()
+    {
+        // Arrange
+        var request = new ResetPasswordRequest
+        {
+            UserId = Guid.NewGuid().ToString(),
+            Token = "valid-reset-token",
+            NewPassword = "NewSecurePassword123!"
+        };
+
+        _mockAuthService.ResetPasswordAsync(request.UserId, request.Token, request.NewPassword, Arg.Any<CancellationToken>())
+            .Returns((true, string.Empty));
+
+        // Act
+        var result = await ResetPassword(request);
+
+        // Assert
+        result.Should().BeAssignableTo<IResult>();
+
+        // For Results.Ok(anonymous type), we need to use reflection
+        var statusCodeProperty = result.GetType().GetProperty("StatusCode");
+        statusCodeProperty.Should().NotBeNull();
+        var statusCode = (int?)statusCodeProperty!.GetValue(result);
+        statusCode.Should().Be(200);
+
+        // Verify response structure
+        var valueProperty = result.GetType().GetProperty("Value");
+        valueProperty.Should().NotBeNull();
+        dynamic responseValue = valueProperty!.GetValue(result)!;
+        bool success = responseValue.Success;
+        string message = responseValue.Message;
+
+        success.Should().BeTrue();
+        message.Should().Be("Your password has been reset successfully. You can now log in with your new password.");
+
+        // Verify service was called with correct parameters
+        await _mockAuthService.Received(1).ResetPasswordAsync(
+            request.UserId,
+            request.Token,
+            request.NewPassword,
+            Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Test: ResetPassword with invalid token returns 400 Problem
+    /// </summary>
+    [Fact]
+    public async Task ResetPassword_WithInvalidToken_Returns400Problem()
+    {
+        // Arrange
+        var request = new ResetPasswordRequest
+        {
+            UserId = Guid.NewGuid().ToString(),
+            Token = "invalid-token",
+            NewPassword = "NewPassword123!"
+        };
+
+        _mockAuthService.ResetPasswordAsync(request.UserId, request.Token, request.NewPassword, Arg.Any<CancellationToken>())
+            .Returns((false, "This password reset link is invalid or has expired. Please request a new password reset."));
+
+        // Act
+        var result = await ResetPassword(request);
+
+        // Assert
+        result.Should().BeAssignableTo<IResult>();
+        var problemResult = result as ProblemHttpResult;
+        problemResult.Should().NotBeNull();
+        problemResult!.StatusCode.Should().Be(400);
+        problemResult.ProblemDetails.Title.Should().Be("Password Reset Failed");
+        problemResult.ProblemDetails.Detail.Should().Contain("invalid or has expired");
+    }
+
+    /// <summary>
+    /// Test: ResetPassword with invalid user ID format returns 400 Problem
+    /// </summary>
+    [Fact]
+    public async Task ResetPassword_WithInvalidUserIdFormat_Returns400Problem()
+    {
+        // Arrange
+        var request = new ResetPasswordRequest
+        {
+            UserId = "not-a-guid",
+            Token = "token",
+            NewPassword = "NewPassword123!"
+        };
+
+        _mockAuthService.ResetPasswordAsync(request.UserId, request.Token, request.NewPassword, Arg.Any<CancellationToken>())
+            .Returns((false, "Invalid password reset link"));
+
+        // Act
+        var result = await ResetPassword(request);
+
+        // Assert
+        result.Should().BeAssignableTo<IResult>();
+        var problemResult = result as ProblemHttpResult;
+        problemResult.Should().NotBeNull();
+        problemResult!.StatusCode.Should().Be(400);
+        problemResult.ProblemDetails.Detail.Should().Contain("Invalid password reset link");
+    }
+
+    /// <summary>
+    /// Test: ResetPassword with non-existent user returns 400 Problem
+    /// </summary>
+    [Fact]
+    public async Task ResetPassword_WithNonExistentUser_Returns400Problem()
+    {
+        // Arrange
+        var request = new ResetPasswordRequest
+        {
+            UserId = Guid.NewGuid().ToString(),
+            Token = "token",
+            NewPassword = "NewPassword123!"
+        };
+
+        _mockAuthService.ResetPasswordAsync(request.UserId, request.Token, request.NewPassword, Arg.Any<CancellationToken>())
+            .Returns((false, "Invalid password reset link"));
+
+        // Act
+        var result = await ResetPassword(request);
+
+        // Assert
+        result.Should().BeAssignableTo<IResult>();
+        var problemResult = result as ProblemHttpResult;
+        problemResult.Should().NotBeNull();
+        problemResult!.StatusCode.Should().Be(400);
+        problemResult.ProblemDetails.Detail.Should().Be("Invalid password reset link");
+    }
+
+    /// <summary>
+    /// Test: ResetPassword with weak password returns 400 Problem with validation error
+    /// </summary>
+    [Fact]
+    public async Task ResetPassword_WithWeakPassword_Returns400ProblemWithValidationError()
+    {
+        // Arrange
+        var request = new ResetPasswordRequest
+        {
+            UserId = Guid.NewGuid().ToString(),
+            Token = "valid-token",
+            NewPassword = "12345" // Too short
+        };
+
+        _mockAuthService.ResetPasswordAsync(request.UserId, request.Token, request.NewPassword, Arg.Any<CancellationToken>())
+            .Returns((false, "Passwords must be at least 8 characters."));
+
+        // Act
+        var result = await ResetPassword(request);
+
+        // Assert
+        result.Should().BeAssignableTo<IResult>();
+        var problemResult = result as ProblemHttpResult;
+        problemResult.Should().NotBeNull();
+        problemResult!.StatusCode.Should().Be(400);
+        problemResult.ProblemDetails.Detail.Should().Contain("8 characters");
+    }
+
+    /// <summary>
+    /// Test: ResetPassword with missing required fields returns validation error
+    /// </summary>
+    [Fact]
+    public async Task ResetPassword_WithMissingFields_Returns400Problem()
+    {
+        // Arrange
+        var request = new ResetPasswordRequest
+        {
+            UserId = "",
+            Token = "token",
+            NewPassword = "Password123!"
+        };
+
+        _mockAuthService.ResetPasswordAsync(request.UserId, request.Token, request.NewPassword, Arg.Any<CancellationToken>())
+            .Returns((false, "User ID, token, and new password are required"));
+
+        // Act
+        var result = await ResetPassword(request);
+
+        // Assert
+        result.Should().BeAssignableTo<IResult>();
+        var problemResult = result as ProblemHttpResult;
+        problemResult.Should().NotBeNull();
+        problemResult!.StatusCode.Should().Be(400);
+        problemResult.ProblemDetails.Detail.Should().Contain("required");
+    }
+
+    #endregion
+
     #region Helper Methods - Endpoint Simulations
 
     /// <summary>
@@ -1638,6 +1947,44 @@ public class AuthenticationEndpointsTests
                 detail: ex.Message,
                 statusCode: 500);
         }
+    }
+
+    /// <summary>
+    /// Helper: Simulates ForgotPassword endpoint call
+    /// </summary>
+    private async Task<IResult> ForgotPassword(ForgotPasswordRequest request)
+    {
+        var (success, error) = await _mockAuthService.ForgotPasswordAsync(request.Email, CancellationToken.None);
+
+        // Always return success for security (prevent email enumeration)
+        return Results.Ok(new
+        {
+            Success = true,
+            Message = "If an account exists with this email, a password reset link has been sent."
+        });
+    }
+
+    /// <summary>
+    /// Helper: Simulates ResetPassword endpoint call
+    /// </summary>
+    private async Task<IResult> ResetPassword(ResetPasswordRequest request)
+    {
+        var (success, error) = await _mockAuthService.ResetPasswordAsync(
+            request.UserId,
+            request.Token,
+            request.NewPassword,
+            CancellationToken.None);
+
+        return success
+            ? Results.Ok(new
+            {
+                Success = true,
+                Message = "Your password has been reset successfully. You can now log in with your new password."
+            })
+            : Results.Problem(
+                title: "Password Reset Failed",
+                detail: error,
+                statusCode: 400);
     }
 
     #endregion

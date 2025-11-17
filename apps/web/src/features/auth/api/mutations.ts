@@ -192,7 +192,7 @@ export function useLogout() {
   const queryClient = useQueryClient()
   const { logout } = useAuthActions()
   const navigate = useNavigate()
-  
+
   return useMutation({
     mutationFn: async (_?: void): Promise<void> => {
       await api.post('/api/auth/logout')
@@ -200,10 +200,10 @@ export function useLogout() {
     onSuccess: () => {
       // Update Zustand store (clear auth state)
       logout()
-      
+
       // Clear all cached queries on logout
       queryClient.clear()
-      
+
       // Navigate to login page
       navigate('/login', { replace: true })
     },
@@ -215,6 +215,91 @@ export function useLogout() {
       navigate('/login', { replace: true })
     },
     // Don't retry logout attempts
+    retry: false,
+  })
+}
+
+/**
+ * Email verification mutation
+ * Verifies user's email address with userId and token from verification link
+ */
+export function useVerifyEmail() {
+  return useMutation({
+    mutationFn: async ({ email, token }: { email: string; token: string }): Promise<void> => {
+      try {
+        const response = await api.post('/api/auth/verify-email', { email, token })
+        return response.data
+      } catch (error: any) {
+        const userFriendlyMessage = getErrorMessage(error)
+        const enhancedError = new Error(userFriendlyMessage)
+        console.error('Email verification error:', error)
+        throw enhancedError
+      }
+    },
+    retry: false,
+  })
+}
+
+/**
+ * Resend verification email mutation
+ * Sends a new verification email to the user
+ */
+export function useResendVerification() {
+  return useMutation({
+    mutationFn: async ({ email }: { email: string }): Promise<void> => {
+      try {
+        const response = await api.post('/api/auth/resend-verification', { email })
+        return response.data
+      } catch (error: any) {
+        const userFriendlyMessage = getErrorMessage(error)
+        const enhancedError = new Error(userFriendlyMessage)
+        console.error('Resend verification error:', error)
+        throw enhancedError
+      }
+    },
+    retry: false,
+  })
+}
+
+/**
+ * Forgot password mutation - Phase 3: Password Reset
+ * Sends password reset email to the user
+ * Always returns success to prevent email enumeration
+ */
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: async ({ email }: { email: string }): Promise<void> => {
+      try {
+        const response = await api.post('/api/auth/forgot-password', { email })
+        return response.data
+      } catch (error: any) {
+        const userFriendlyMessage = getErrorMessage(error)
+        const enhancedError = new Error(userFriendlyMessage)
+        console.error('Forgot password error:', error)
+        throw enhancedError
+      }
+    },
+    retry: false,
+  })
+}
+
+/**
+ * Reset password mutation - Phase 3: Password Reset
+ * Resets user password using token from email link
+ */
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: async ({ userId, token, newPassword }: { userId: string; token: string; newPassword: string }): Promise<void> => {
+      try {
+        const response = await api.post('/api/auth/reset-password', { userId, token, newPassword })
+        return response.data
+      } catch (error: any) {
+        const userFriendlyMessage = getErrorMessage(error)
+        const enhancedError = new Error(userFriendlyMessage)
+        console.error('Reset password error:', error)
+        throw enhancedError
+      }
+    },
     retry: false,
   })
 }

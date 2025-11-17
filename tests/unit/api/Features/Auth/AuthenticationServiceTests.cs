@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Http.Features;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Authentication.Models;
 using WitchCityRope.Api.Features.Authentication.Services;
+using WitchCityRope.Api.Features.Shared.Services;
+using WitchCityRope.Api.Features.Shared.Models;
+using WitchCityRope.Api.Features.EmailTemplates.Entities;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Models.Auth;
 using WitchCityRope.Api.Services;
@@ -32,6 +35,8 @@ public class AuthenticationServiceTests : IAsyncLifetime
     private SignInManager<ApplicationUser> _signInManager = null!;
     private IJwtService _jwtService = null!;
     private IReturnUrlValidator _returnUrlValidator = null!;
+    private IEmailService _emailService = null!;
+    private IConfiguration _configuration = null!;
     private ILogger<AuthenticationService> _logger = null!;
     private string _connectionString = null!;
 
@@ -82,6 +87,15 @@ public class AuthenticationServiceTests : IAsyncLifetime
                 return Task.FromResult(IdentityResult.Success);
             });
 
+        // FIX 4: Configure UserManager token provider methods (password reset)
+        // These are virtual methods that can be overridden in the partial mock
+        // Using When().DoNotCallBase() prevents calling real UserManager methods that need token providers
+        _userManager.When(x => x.GeneratePasswordResetTokenAsync(Arg.Any<ApplicationUser>()))
+            .DoNotCallBase();
+
+        _userManager.When(x => x.ResetPasswordAsync(Arg.Any<ApplicationUser>(), Arg.Any<string>(), Arg.Any<string>()))
+            .DoNotCallBase();
+
         // Setup SignInManager dependencies
         var contextAccessor = Substitute.For<IHttpContextAccessor>();
         var claimsFactory = Substitute.For<IUserClaimsPrincipalFactory<ApplicationUser>>();
@@ -111,11 +125,20 @@ public class AuthenticationServiceTests : IAsyncLifetime
                 ["Authentication:AllowedDomains:1"] = "witchcityrope.com"
             }!)
             .Build();
-        
+
         // Use REAL validator - it's a pure function with no side effects, perfect for testing
         _returnUrlValidator = new ReturnUrlValidator(returnUrlLogger, returnUrlConfig);
 
+        // Setup email service mock
+        _emailService = Substitute.For<IEmailService>();
 
+        // Setup configuration
+        _configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string>
+            {
+                ["Authentication:AllowedDomains:0"] = "localhost"
+            }!)
+            .Build();
 
         // Setup logger
         _logger = Substitute.For<ILogger<AuthenticationService>>();
@@ -127,6 +150,8 @@ public class AuthenticationServiceTests : IAsyncLifetime
             _signInManager,
             _jwtService,
             _returnUrlValidator,
+            _emailService,
+            _configuration,
             _logger);
     }
     public async Task DisposeAsync()
@@ -900,6 +925,464 @@ public class AuthenticationServiceTests : IAsyncLifetime
         {
             savedUser.Role.Should().Be("Member"); // Default role should be Member
         }
+    }
+
+    #endregion
+
+    #region ForgotPasswordAsync Tests (Phase 3: Password Reset)
+
+    [Fact]
+    public async Task ForgotPasswordAsync_WithValidEmail_GeneratesTokenAndSendsEmail()
+    {
+        // Arrange
+        var email = $"reset-{Guid.NewGuid()}@example.com";
+        var user = await CreateTestUser(email);
+
+        _userManager.FindByEmailAsync(email).Returns(Task.FromResult(user));
+        _userManager.GeneratePasswordResetTokenAsync(user)
+            .Returns(Task.FromResult("reset-token-123"));
+
+        _emailService.SendTemplatedEmailAsync(
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<EmailCategory>(),
+            Arg.Any<string>(),
+            Arg.Any<Dictionary<string, string>>(),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Success()));
+
+        // Act
+        var (success, error) = await _service.ForgotPasswordAsync(email);
+
+        // Assert
+        success.Should().BeTrue();
+        error.Should().BeEmpty();
+
+        // Verify token generation
+        await _userManager.Received(1).GeneratePasswordResetTokenAsync(user);
+
+        // Verify email was sent with correct template and variables
+        await _emailService.Received(1).SendTemplatedEmailAsync(
+            email,
+            user.SceneName ?? email,
+            EmailCategory.Admin,
+            "PasswordReset",
+            Arg.Is<Dictionary<string, string>>(vars =>
+                vars.ContainsKey("user_name") &&
+                vars.ContainsKey("reset_url") &&
+                vars.ContainsKey("support_email") &&
+                vars["reset_url"].Contains($"userId={user.Id}") &&
+                vars["reset_url"].Contains("token=")),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ForgotPasswordAsync_WithNonExistentEmail_ReturnsSuccessForSecurity()
+    {
+        // Arrange
+        var email = "nonexistent@example.com";
+
+        _userManager.FindByEmailAsync(email).Returns(Task.FromResult<ApplicationUser>(null!));
+
+        // Act
+        var (success, error) = await _service.ForgotPasswordAsync(email);
+
+        // Assert
+        success.Should().BeTrue(); // SECURITY: Always return success to prevent email enumeration
+        error.Should().BeEmpty();
+
+        // Verify token generation was NOT attempted
+        await _userManager.DidNotReceive().GeneratePasswordResetTokenAsync(Arg.Any<ApplicationUser>());
+
+        // Verify email was NOT sent
+        await _emailService.DidNotReceive().SendTemplatedEmailAsync(
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<EmailCategory>(),
+            Arg.Any<string>(),
+            Arg.Any<Dictionary<string, string>>(),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ForgotPasswordAsync_WithEmptyEmail_ReturnsFailure()
+    {
+        // Arrange
+        var email = "";
+
+        // Act
+        var (success, error) = await _service.ForgotPasswordAsync(email);
+
+        // Assert
+        success.Should().BeFalse();
+        error.Should().Be("Email is required");
+
+        // Verify no user lookup attempted
+        await _userManager.DidNotReceive().FindByEmailAsync(Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task ForgotPasswordAsync_WithNullEmail_ReturnsFailure()
+    {
+        // Arrange
+        string email = null!;
+
+        // Act
+        var (success, error) = await _service.ForgotPasswordAsync(email);
+
+        // Assert
+        success.Should().BeFalse();
+        error.Should().Be("Email is required");
+    }
+
+    [Fact]
+    public async Task ForgotPasswordAsync_WhenEmailServiceFails_StillReturnsSuccessForSecurity()
+    {
+        // Arrange
+        var email = $"emailfail-{Guid.NewGuid()}@example.com";
+        var user = await CreateTestUser(email);
+
+        _userManager.FindByEmailAsync(email).Returns(Task.FromResult(user));
+        _userManager.GeneratePasswordResetTokenAsync(user)
+            .Returns(Task.FromResult("reset-token-123"));
+
+        _emailService.SendTemplatedEmailAsync(
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<EmailCategory>(),
+            Arg.Any<string>(),
+            Arg.Any<Dictionary<string, string>>(),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Failure("SMTP failure")));
+
+        // Act
+        var (success, error) = await _service.ForgotPasswordAsync(email);
+
+        // Assert
+        success.Should().BeTrue(); // SECURITY: Still return success
+        error.Should().BeEmpty();
+
+        // Verify email was attempted
+        await _emailService.Received(1).SendTemplatedEmailAsync(
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<EmailCategory>(),
+            Arg.Any<string>(),
+            Arg.Any<Dictionary<string, string>>(),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ForgotPasswordAsync_WhenExceptionThrown_ReturnsSuccessForSecurity()
+    {
+        // Arrange
+        var email = $"exception-{Guid.NewGuid()}@example.com";
+
+        _userManager.FindByEmailAsync(email)
+            .Returns(Task.FromException<ApplicationUser>(new Exception("Database error")));
+
+        // Act
+        var (success, error) = await _service.ForgotPasswordAsync(email);
+
+        // Assert
+        success.Should().BeTrue(); // SECURITY: Return success even on exception
+        error.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ForgotPasswordAsync_ConstructsCorrectResetUrl()
+    {
+        // Arrange
+        var email = $"urltest-{Guid.NewGuid()}@example.com";
+        var user = await CreateTestUser(email);
+        var token = "test-token-with-special-chars+/=";
+
+        _userManager.FindByEmailAsync(email).Returns(Task.FromResult(user));
+        _userManager.GeneratePasswordResetTokenAsync(user).Returns(Task.FromResult(token));
+
+        _emailService.SendTemplatedEmailAsync(
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<EmailCategory>(),
+            Arg.Any<string>(),
+            Arg.Any<Dictionary<string, string>>(),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Success()));
+
+        // Act
+        await _service.ForgotPasswordAsync(email);
+
+        // Assert
+        await _emailService.Received(1).SendTemplatedEmailAsync(
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<EmailCategory>(),
+            Arg.Any<string>(),
+            Arg.Is<Dictionary<string, string>>(vars =>
+                vars["reset_url"].StartsWith("https://staging.witchcityrope.com/reset-password?") &&
+                vars["reset_url"].Contains($"userId={user.Id}") &&
+                vars["reset_url"].Contains("token=") &&
+                !vars["reset_url"].Contains(token)), // Token should be URL encoded, not raw
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ForgotPasswordAsync_IncludesCorrectEmailVariables()
+    {
+        // Arrange
+        var email = $"vars-{Guid.NewGuid()}@example.com";
+        var sceneName = "TestSceneName";
+        var user = await CreateTestUser(email, sceneName: sceneName);
+
+        _userManager.FindByEmailAsync(email).Returns(Task.FromResult(user));
+        _userManager.GeneratePasswordResetTokenAsync(user).Returns(Task.FromResult("token"));
+
+        _emailService.SendTemplatedEmailAsync(
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<EmailCategory>(),
+            Arg.Any<string>(),
+            Arg.Any<Dictionary<string, string>>(),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Success()));
+
+        // Act
+        await _service.ForgotPasswordAsync(email);
+
+        // Assert
+        await _emailService.Received(1).SendTemplatedEmailAsync(
+            email,
+            sceneName,
+            EmailCategory.Admin,
+            "PasswordReset",
+            Arg.Is<Dictionary<string, string>>(vars =>
+                vars["user_name"] == sceneName &&
+                vars["support_email"] == "support@witchcityrope.com" &&
+                vars.ContainsKey("reset_url")),
+            Arg.Any<CancellationToken>());
+    }
+
+    #endregion
+
+    #region ResetPasswordAsync Tests (Phase 3: Password Reset)
+
+    [Fact]
+    public async Task ResetPasswordAsync_WithValidToken_ResetsPassword()
+    {
+        // Arrange
+        var email = $"resetvalid-{Guid.NewGuid()}@example.com";
+        var user = await CreateTestUser(email);
+        var userId = user.Id.ToString();
+        var token = "valid-reset-token";
+        var newPassword = "NewSecurePassword123!";
+
+        _userManager.FindByIdAsync(userId).Returns(Task.FromResult(user));
+        _userManager.ResetPasswordAsync(user, token, newPassword)
+            .Returns(Task.FromResult(IdentityResult.Success));
+
+        // Act
+        var (success, error) = await _service.ResetPasswordAsync(userId, token, newPassword);
+
+        // Assert
+        success.Should().BeTrue();
+        error.Should().BeEmpty();
+
+        // Verify password reset was attempted
+        await _userManager.Received(1).ResetPasswordAsync(user, token, newPassword);
+    }
+
+    [Fact]
+    public async Task ResetPasswordAsync_WithInvalidUserId_ReturnsFailure()
+    {
+        // Arrange
+        var invalidUserId = "not-a-guid";
+        var token = "token";
+        var newPassword = "Password123!";
+
+        // Act
+        var (success, error) = await _service.ResetPasswordAsync(invalidUserId, token, newPassword);
+
+        // Assert
+        success.Should().BeFalse();
+        error.Should().Be("Invalid password reset link");
+
+        // Verify no user lookup attempted
+        await _userManager.DidNotReceive().FindByIdAsync(Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task ResetPasswordAsync_WithNonExistentUser_ReturnsFailure()
+    {
+        // Arrange
+        var userId = Guid.NewGuid().ToString();
+        var token = "token";
+        var newPassword = "Password123!";
+
+        _userManager.FindByIdAsync(userId).Returns(Task.FromResult<ApplicationUser>(null!));
+
+        // Act
+        var (success, error) = await _service.ResetPasswordAsync(userId, token, newPassword);
+
+        // Assert
+        success.Should().BeFalse();
+        error.Should().Be("Invalid password reset link");
+
+        // Verify no password reset attempted
+        await _userManager.DidNotReceive().ResetPasswordAsync(
+            Arg.Any<ApplicationUser>(),
+            Arg.Any<string>(),
+            Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task ResetPasswordAsync_WithInvalidToken_ReturnsUserFriendlyError()
+    {
+        // Arrange
+        var email = $"invalidtoken-{Guid.NewGuid()}@example.com";
+        var user = await CreateTestUser(email);
+        var userId = user.Id.ToString();
+        var token = "invalid-or-expired-token";
+        var newPassword = "Password123!";
+
+        _userManager.FindByIdAsync(userId).Returns(Task.FromResult(user));
+        _userManager.ResetPasswordAsync(user, token, newPassword)
+            .Returns(Task.FromResult(IdentityResult.Failed(new IdentityError
+            {
+                Code = "InvalidToken",
+                Description = "Invalid token."
+            })));
+
+        // Act
+        var (success, error) = await _service.ResetPasswordAsync(userId, token, newPassword);
+
+        // Assert
+        success.Should().BeFalse();
+        error.Should().Be("This password reset link is invalid or has expired. Please request a new password reset.");
+    }
+
+    [Fact]
+    public async Task ResetPasswordAsync_WithExpiredToken_ReturnsUserFriendlyError()
+    {
+        // Arrange
+        var email = $"expiredtoken-{Guid.NewGuid()}@example.com";
+        var user = await CreateTestUser(email);
+        var userId = user.Id.ToString();
+        var token = "expired-token";
+        var newPassword = "Password123!";
+
+        _userManager.FindByIdAsync(userId).Returns(Task.FromResult(user));
+        _userManager.ResetPasswordAsync(user, token, newPassword)
+            .Returns(Task.FromResult(IdentityResult.Failed(new IdentityError
+            {
+                Code = "InvalidToken",
+                Description = "The password reset token is invalid or expired."
+            })));
+
+        // Act
+        var (success, error) = await _service.ResetPasswordAsync(userId, token, newPassword);
+
+        // Assert
+        success.Should().BeFalse();
+        error.Should().Contain("invalid or has expired");
+    }
+
+    [Fact]
+    public async Task ResetPasswordAsync_WithWeakPassword_ReturnsValidationError()
+    {
+        // Arrange
+        var email = $"weakpw-{Guid.NewGuid()}@example.com";
+        var user = await CreateTestUser(email);
+        var userId = user.Id.ToString();
+        var token = "valid-token";
+        var weakPassword = "12345"; // Too short
+
+        _userManager.FindByIdAsync(userId).Returns(Task.FromResult(user));
+        _userManager.ResetPasswordAsync(user, token, weakPassword)
+            .Returns(Task.FromResult(IdentityResult.Failed(new IdentityError
+            {
+                Code = "PasswordTooShort",
+                Description = "Passwords must be at least 8 characters."
+            })));
+
+        // Act
+        var (success, error) = await _service.ResetPasswordAsync(userId, token, weakPassword);
+
+        // Assert
+        success.Should().BeFalse();
+        error.Should().Contain("8 characters");
+    }
+
+    [Fact]
+    public async Task ResetPasswordAsync_WithEmptyUserId_ReturnsFailure()
+    {
+        // Arrange
+        var userId = "";
+        var token = "token";
+        var newPassword = "Password123!";
+
+        // Act
+        var (success, error) = await _service.ResetPasswordAsync(userId, token, newPassword);
+
+        // Assert
+        success.Should().BeFalse();
+        error.Should().Be("User ID, token, and new password are required");
+
+        // Verify no operations attempted
+        await _userManager.DidNotReceive().FindByIdAsync(Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task ResetPasswordAsync_WithEmptyToken_ReturnsFailure()
+    {
+        // Arrange
+        var userId = Guid.NewGuid().ToString();
+        var token = "";
+        var newPassword = "Password123!";
+
+        // Act
+        var (success, error) = await _service.ResetPasswordAsync(userId, token, newPassword);
+
+        // Assert
+        success.Should().BeFalse();
+        error.Should().Be("User ID, token, and new password are required");
+    }
+
+    [Fact]
+    public async Task ResetPasswordAsync_WithEmptyPassword_ReturnsFailure()
+    {
+        // Arrange
+        var userId = Guid.NewGuid().ToString();
+        var token = "token";
+        var newPassword = "";
+
+        // Act
+        var (success, error) = await _service.ResetPasswordAsync(userId, token, newPassword);
+
+        // Assert
+        success.Should().BeFalse();
+        error.Should().Be("User ID, token, and new password are required");
+    }
+
+    [Fact]
+    public async Task ResetPasswordAsync_WhenExceptionThrown_ReturnsGenericError()
+    {
+        // Arrange
+        var email = $"exception-{Guid.NewGuid()}@example.com";
+        var user = await CreateTestUser(email);
+        var userId = user.Id.ToString();
+        var token = "token";
+        var newPassword = "Password123!";
+
+        _userManager.FindByIdAsync(userId).Returns(Task.FromResult(user));
+        _userManager.ResetPasswordAsync(user, token, newPassword)
+            .Returns(Task.FromException<IdentityResult>(new Exception("Database error")));
+
+        // Act
+        var (success, error) = await _service.ResetPasswordAsync(userId, token, newPassword);
+
+        // Assert
+        success.Should().BeFalse();
+        error.Should().Be("Password reset could not be completed at this time");
     }
 
     #endregion

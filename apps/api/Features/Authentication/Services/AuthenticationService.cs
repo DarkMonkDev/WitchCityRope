@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Authentication.Models;
+using WitchCityRope.Api.Features.EmailTemplates.Entities;
+using WitchCityRope.Api.Features.Shared.Services;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Services;
 
@@ -18,6 +20,8 @@ public class AuthenticationService : IAuthenticationService
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IJwtService _jwtService;
     private readonly IReturnUrlValidator _returnUrlValidator;
+    private readonly IEmailService _emailService;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<AuthenticationService> _logger;
 
     public AuthenticationService(
@@ -26,6 +30,8 @@ public class AuthenticationService : IAuthenticationService
         SignInManager<ApplicationUser> signInManager,
         IJwtService jwtService,
         IReturnUrlValidator returnUrlValidator,
+        IEmailService emailService,
+        IConfiguration configuration,
         ILogger<AuthenticationService> logger)
     {
         _context = context;
@@ -33,6 +39,8 @@ public class AuthenticationService : IAuthenticationService
         _signInManager = signInManager;
         _jwtService = jwtService;
         _returnUrlValidator = returnUrlValidator;
+        _emailService = emailService;
+        _configuration = configuration;
         _logger = logger;
     }
 
@@ -113,6 +121,13 @@ public class AuthenticationService : IAuthenticationService
             }
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
+
+            // Phase 2: Check email confirmation after password validation
+            if (result.Succeeded && !user.EmailConfirmed)
+            {
+                _logger.LogWarning("Login blocked for unverified email: {Email}", user.Email);
+                return (false, null, "Please verify your email address before logging in. Check your inbox for the verification link.");
+            }
 
             if (result.Succeeded)
             {
@@ -217,7 +232,7 @@ public class AuthenticationService : IAuthenticationService
                 UserName = request.Email,
                 Email = request.Email,
                 SceneName = request.SceneName,
-                EmailConfirmed = true, // Auto-confirm for testing
+                EmailConfirmed = false, // Phase 2: Email verification required
                 TermsOfServiceAccepted = true,
                 TermsOfServiceAcceptedAt = DateTime.UtcNow,
                 CreatedAt = DateTime.UtcNow
@@ -231,13 +246,41 @@ public class AuthenticationService : IAuthenticationService
                 return (false, null, errors);
             }
 
-            // Update last login time
-            user.LastLoginAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync(cancellationToken);
+            // Phase 2: Generate and send email verification
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var frontendUrl = _configuration["Frontend:Url"] ?? "https://staging.witchcityrope.com";
+            var verificationUrl = $"{frontendUrl}/verify-email?userId={user.Id}&token={System.Web.HttpUtility.UrlEncode(token)}";
+
+            // Send verification email using EmailService with Admin/EmailVerification template
+            var emailVariables = new Dictionary<string, string>
+            {
+                { "user_name", user.SceneName ?? user.Email },
+                { "verification_url", verificationUrl },
+                { "support_email", "support@witchcityrope.com" }
+            };
+
+            var emailResult = await _emailService.SendTemplatedEmailAsync(
+                toEmail: user.Email!,
+                toName: user.SceneName ?? user.Email,
+                category: EmailCategory.Admin,
+                templateType: "EmailVerification",
+                variables: emailVariables,
+                cancellationToken: cancellationToken);
+
+            if (!emailResult.IsSuccess)
+            {
+                _logger.LogWarning("Failed to send verification email for {Email}: {Error}",
+                    user.Email, emailResult.Error);
+                // Don't fail registration if email fails - user can resend
+            }
+            else
+            {
+                _logger.LogInformation("Verification email sent successfully to {Email}", user.Email);
+            }
 
             var response = new AuthUserResponse(user);
 
-            _logger.LogInformation("User registered successfully: {Email} ({SceneName}) with ToS acceptance at {ToSTime}",
+            _logger.LogInformation("User registered successfully: {Email} ({SceneName}) with ToS acceptance at {ToSTime} - Email verification required",
                 user.Email, user.SceneName, user.TermsOfServiceAcceptedAt);
             return (true, response, string.Empty);
         }
@@ -293,6 +336,299 @@ public class AuthenticationService : IAuthenticationService
         {
             _logger.LogError(ex, "Service token generation failed for {UserId}", userId);
             return (false, null, "Service token could not be generated at this time");
+        }
+    }
+
+    /// <summary>
+    /// Generate email verification token for user - Phase 2: Email Verification
+    /// </summary>
+    public async Task<(bool Success, string Token, string Error)> GenerateEmailVerificationTokenAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var user = await _context.Users.FindAsync(new object[] { userId }, cancellationToken);
+            if (user == null)
+            {
+                _logger.LogWarning("Email verification token generation failed - user not found: {UserId}", userId);
+                return (false, string.Empty, "User not found");
+            }
+
+            if (user.EmailConfirmed)
+            {
+                _logger.LogInformation("Email verification token requested for already verified user: {UserId}", userId);
+                return (false, string.Empty, "Email already verified");
+            }
+
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            _logger.LogInformation("Email verification token generated for user: {UserId}", userId);
+
+            return (true, token, string.Empty);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Email verification token generation failed for {UserId}", userId);
+            return (false, string.Empty, "Failed to generate verification token");
+        }
+    }
+
+    /// <summary>
+    /// Verify user email with token - Phase 2: Email Verification
+    /// Uses userId for security and stability (email can change)
+    /// </summary>
+    public async Task<(bool Success, string Error)> VerifyEmailAsync(
+        string userId,
+        string token,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(token))
+            {
+                return (false, "User ID and token are required");
+            }
+
+            // Parse userId to Guid
+            if (!Guid.TryParse(userId, out var userGuid))
+            {
+                _logger.LogWarning("Email verification failed - invalid user ID format: {UserId}", userId);
+                return (false, "Invalid verification link");
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                _logger.LogWarning("Email verification failed - user not found: {UserId}", userId);
+                return (false, "Invalid verification link");
+            }
+
+            if (user.EmailConfirmed)
+            {
+                _logger.LogInformation("Email verification attempted for already verified user: {Email}", user.Email);
+                return (true, string.Empty); // Return success, email already verified
+            }
+
+            var result = await _userManager.ConfirmEmailAsync(user, token);
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("Email verified successfully for user: {UserId}, Email: {Email}", userId, user.Email);
+                return (true, string.Empty);
+            }
+
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            _logger.LogWarning("Email verification failed for user {UserId}: {Errors}", userId, errors);
+
+            // Check if token is expired/invalid
+            if (errors.Contains("Invalid token") || errors.Contains("invalid"))
+            {
+                return (false, "This verification link is invalid or has expired. Please request a new verification email.");
+            }
+
+            return (false, errors);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Email verification failed for user {UserId}", userId);
+            return (false, "Email verification could not be completed at this time");
+        }
+    }
+
+    /// <summary>
+    /// Resend email verification email - Phase 2: Email Verification
+    /// Rate limited to 3 requests per 15 minutes per email
+    /// </summary>
+    public async Task<(bool Success, string Error)> ResendVerificationEmailAsync(
+        string email,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return (false, "Email is required");
+            }
+
+            // Find user by email
+            var user = await _userManager.FindByEmailAsync(email);
+
+            // SECURITY: Always return success to prevent email enumeration
+            // Only send email if user exists and email not verified
+            if (user == null)
+            {
+                _logger.LogInformation("Verification resend requested for non-existent email (security: returning success): {Email}", email);
+                return (true, string.Empty);
+            }
+
+            if (user.EmailConfirmed)
+            {
+                _logger.LogInformation("Verification resend requested for already verified email: {Email}", email);
+                return (true, string.Empty); // Return success, no action needed
+            }
+
+            // Generate new verification token
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var frontendUrl = _configuration["Frontend:Url"] ?? "https://staging.witchcityrope.com";
+            var verificationUrl = $"{frontendUrl}/verify-email?userId={user.Id}&token={System.Web.HttpUtility.UrlEncode(token)}";
+
+            // Send verification email using EmailService
+            var emailVariables = new Dictionary<string, string>
+            {
+                { "user_name", user.SceneName ?? user.Email },
+                { "verification_url", verificationUrl },
+                { "support_email", "support@witchcityrope.com" }
+            };
+
+            var emailResult = await _emailService.SendTemplatedEmailAsync(
+                toEmail: user.Email!,
+                toName: user.SceneName ?? user.Email,
+                category: EmailCategory.Admin,
+                templateType: "EmailVerification",
+                variables: emailVariables,
+                cancellationToken: cancellationToken);
+
+            if (!emailResult.IsSuccess)
+            {
+                _logger.LogWarning("Failed to resend verification email for {Email}: {Error}",
+                    user.Email, emailResult.Error);
+                // SECURITY: Still return success to prevent enumeration
+            }
+            else
+            {
+                _logger.LogInformation("Verification email resent successfully to {Email}", user.Email);
+            }
+
+            return (true, string.Empty); // Always return success for security
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Resend verification email failed for {Email}", email);
+            return (true, string.Empty); // SECURITY: Return success even on error
+        }
+    }
+
+    /// <summary>
+    /// Initiate password reset process - Phase 3: Password Reset
+    /// Generates reset token and sends email with reset link
+    /// Always returns success to prevent email enumeration
+    /// </summary>
+    public async Task<(bool Success, string Error)> ForgotPasswordAsync(
+        string email,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return (false, "Email is required");
+            }
+
+            // Find user by email
+            var user = await _userManager.FindByEmailAsync(email);
+
+            // SECURITY: Always return success to prevent email enumeration
+            // Only send email if user exists
+            if (user == null)
+            {
+                _logger.LogInformation("Password reset requested for non-existent email (security: returning success): {Email}", email);
+                return (true, string.Empty);
+            }
+
+            // Generate password reset token
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var frontendUrl = _configuration["Frontend:Url"] ?? "https://staging.witchcityrope.com";
+            var resetUrl = $"{frontendUrl}/reset-password?userId={user.Id}&token={System.Web.HttpUtility.UrlEncode(token)}";
+
+            // Send password reset email using EmailService with Admin/PasswordReset template
+            var emailVariables = new Dictionary<string, string>
+            {
+                { "user_name", user.SceneName ?? user.Email },
+                { "reset_url", resetUrl },
+                { "support_email", "support@witchcityrope.com" }
+            };
+
+            var emailResult = await _emailService.SendTemplatedEmailAsync(
+                toEmail: user.Email!,
+                toName: user.SceneName ?? user.Email,
+                category: EmailCategory.Admin,
+                templateType: "PasswordReset",
+                variables: emailVariables,
+                cancellationToken: cancellationToken);
+
+            if (!emailResult.IsSuccess)
+            {
+                _logger.LogWarning("Failed to send password reset email for {Email}: {Error}",
+                    user.Email, emailResult.Error);
+                // SECURITY: Still return success to prevent enumeration
+            }
+            else
+            {
+                _logger.LogInformation("Password reset email sent successfully to {Email}", user.Email);
+            }
+
+            return (true, string.Empty); // Always return success for security
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Password reset failed for {Email}", email);
+            return (true, string.Empty); // SECURITY: Return success even on error
+        }
+    }
+
+    /// <summary>
+    /// Reset password with token - Phase 3: Password Reset
+    /// Uses userId for security and stability (email can change)
+    /// </summary>
+    public async Task<(bool Success, string Error)> ResetPasswordAsync(
+        string userId,
+        string token,
+        string newPassword,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(newPassword))
+            {
+                return (false, "User ID, token, and new password are required");
+            }
+
+            // Parse userId to Guid
+            if (!Guid.TryParse(userId, out var userGuid))
+            {
+                _logger.LogWarning("Password reset failed - invalid user ID format: {UserId}", userId);
+                return (false, "Invalid password reset link");
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                _logger.LogWarning("Password reset failed - user not found: {UserId}", userId);
+                return (false, "Invalid password reset link");
+            }
+
+            // Reset the password using ASP.NET Identity
+            var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("Password reset successfully for user: {UserId}, Email: {Email}", userId, user.Email);
+                return (true, string.Empty);
+            }
+
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            _logger.LogWarning("Password reset failed for user {UserId}: {Errors}", userId, errors);
+
+            // Check if token is expired/invalid
+            if (errors.Contains("Invalid token") || errors.Contains("invalid"))
+            {
+                return (false, "This password reset link is invalid or has expired. Please request a new password reset.");
+            }
+
+            return (false, errors);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Password reset failed for user {UserId}", userId);
+            return (false, "Password reset could not be completed at this time");
         }
     }
 }

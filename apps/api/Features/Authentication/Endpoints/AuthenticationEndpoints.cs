@@ -497,6 +497,108 @@ public static class AuthenticationEndpoints
             .Produces(401)
             .Produces(500);
 
+        // Phase 2: Verify email endpoint
+        app.MapPost("/api/auth/verify-email", async (
+            VerifyEmailRequest request,
+            IAuthenticationService authService,
+            CancellationToken cancellationToken) =>
+            {
+                var (success, error) = await authService.VerifyEmailAsync(request.UserId, request.Token, cancellationToken);
+
+                return success
+                    ? Results.Ok(new
+                    {
+                        Success = true,
+                        Message = "Your email has been verified successfully. You can now log in."
+                    })
+                    : Results.Problem(
+                        title: "Email Verification Failed",
+                        detail: error,
+                        statusCode: 400);
+            })
+            .AllowAnonymous()
+            .WithName("VerifyEmail")
+            .WithSummary("Verify user email with token")
+            .WithDescription("Confirms user email address using verification token sent during registration")
+            .WithTags("Authentication")
+            .Produces<object>(200)
+            .Produces(400);
+
+        // Phase 2: Resend verification email endpoint
+        app.MapPost("/api/auth/resend-verification", async (
+            ResendVerificationRequest request,
+            IAuthenticationService authService,
+            CancellationToken cancellationToken) =>
+            {
+                var (success, error) = await authService.ResendVerificationEmailAsync(request.Email, cancellationToken);
+
+                // Always return success for security (prevent email enumeration)
+                return Results.Ok(new
+                {
+                    Success = true,
+                    Message = "If an account exists with this email and is not yet verified, a verification email has been sent."
+                });
+            })
+            .AllowAnonymous()
+            .WithName("ResendVerification")
+            .WithSummary("Resend email verification email")
+            .WithDescription("Sends a new verification email to the user. Returns generic success message to prevent email enumeration.")
+            .WithTags("Authentication")
+            .Produces<object>(200);
+
+        // Phase 3: Forgot password endpoint
+        app.MapPost("/api/auth/forgot-password", async (
+            ForgotPasswordRequest request,
+            IAuthenticationService authService,
+            CancellationToken cancellationToken) =>
+            {
+                var (success, error) = await authService.ForgotPasswordAsync(request.Email, cancellationToken);
+
+                // Always return success for security (prevent email enumeration)
+                return Results.Ok(new
+                {
+                    Success = true,
+                    Message = "If an account exists with this email, a password reset link has been sent."
+                });
+            })
+            .AllowAnonymous()
+            .WithName("ForgotPassword")
+            .WithSummary("Initiate password reset process")
+            .WithDescription("Sends a password reset email to the user. Returns generic success message to prevent email enumeration.")
+            .WithTags("Authentication")
+            .Produces<object>(200);
+
+        // Phase 3: Reset password endpoint
+        app.MapPost("/api/auth/reset-password", async (
+            ResetPasswordRequest request,
+            IAuthenticationService authService,
+            CancellationToken cancellationToken) =>
+            {
+                var (success, error) = await authService.ResetPasswordAsync(
+                    request.UserId,
+                    request.Token,
+                    request.NewPassword,
+                    cancellationToken);
+
+                return success
+                    ? Results.Ok(new
+                    {
+                        Success = true,
+                        Message = "Your password has been reset successfully. You can now log in with your new password."
+                    })
+                    : Results.Problem(
+                        title: "Password Reset Failed",
+                        detail: error,
+                        statusCode: 400);
+            })
+            .AllowAnonymous()
+            .WithName("ResetPassword")
+            .WithSummary("Reset password with token")
+            .WithDescription("Resets user password using the token from the password reset email")
+            .WithTags("Authentication")
+            .Produces<object>(200)
+            .Produces(400);
+
         // DEBUG: Authentication status endpoint for debugging logout issues
         app.MapGet("/api/auth/debug-status", (
             HttpContext context,

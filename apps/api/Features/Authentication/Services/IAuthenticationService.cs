@@ -45,4 +45,45 @@ public interface IAuthenticationService
         string userId,
         string email,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Generate email verification token for user - Phase 2: Email Verification
+    /// </summary>
+    Task<(bool Success, string Token, string Error)> GenerateEmailVerificationTokenAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Verify user email with token - Phase 2: Email Verification
+    /// Uses userId for security and stability (email can change)
+    /// </summary>
+    Task<(bool Success, string Error)> VerifyEmailAsync(
+        string userId,
+        string token,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Resend email verification email - Phase 2: Email Verification
+    /// </summary>
+    Task<(bool Success, string Error)> ResendVerificationEmailAsync(
+        string email,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Initiate password reset process - Phase 3: Password Reset
+    /// Generates reset token and sends email with reset link
+    /// </summary>
+    Task<(bool Success, string Error)> ForgotPasswordAsync(
+        string email,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Reset password with token - Phase 3: Password Reset
+    /// Uses userId for security and stability (email can change)
+    /// </summary>
+    Task<(bool Success, string Error)> ResetPasswordAsync(
+        string userId,
+        string token,
+        string newPassword,
+        CancellationToken cancellationToken = default);
 }

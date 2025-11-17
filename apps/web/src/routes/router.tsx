@@ -2,6 +2,9 @@ import { createBrowserRouter } from 'react-router-dom'
 import { HomePage } from '../pages/HomePage'
 import { LoginPage } from '../pages/LoginPage'
 import { RegisterPage } from '../pages/RegisterPage'
+import { VerifyEmailPage } from '../pages/VerifyEmailPage'
+import { ForgotPasswordPage } from '../pages/ForgotPasswordPage'
+import { ResetPasswordPage } from '../pages/ResetPasswordPage'
 import { MyEventsPage } from '../pages/dashboard/MyEventsPage'
 import { ProfileSettingsPage } from '../pages/dashboard/ProfileSettingsPage'
 import { FormComponentsTest } from '../pages/FormComponentsTest'
@@ -101,6 +104,18 @@ export const router = createBrowserRouter([
       {
         path: 'register',
         element: <RegisterPage />,
+      },
+      {
+        path: 'verify-email',
+        element: <VerifyEmailPage />,
+      },
+      {
+        path: 'forgot-password',
+        element: <ForgotPasswordPage />,
+      },
+      {
+        path: 'reset-password',
+        element: <ResetPasswordPage />,
       },
       {
         path: 'unauthorized',
