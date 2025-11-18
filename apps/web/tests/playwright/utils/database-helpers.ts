@@ -687,6 +687,7 @@ export async function cleanupTestUser(emailOrId: string): Promise<void> {
 
 // Export all helper functions
 export const DatabaseHelpers = {
+  query, // Export query function for custom queries
   verifyProfileFields,
   getUserIdFromEmail,
   verifyEventParticipation,

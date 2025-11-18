@@ -111,6 +111,9 @@ public class TicketPurchaseSeeder
         // Create specific ticket purchases for vetted test user for E2E dashboard testing
         await CreateVettedUserTicketPurchasesAsync(purchasesToAdd, cancellationToken);
 
+        // Create historical test data for refund eligibility testing (transactions >90 days old)
+        await CreateHistoricalTestDataForRefundTestingAsync(purchasesToAdd, cancellationToken);
+
         await _context.TicketPurchases.AddRangeAsync(purchasesToAdd, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -342,6 +345,81 @@ public class TicketPurchaseSeeder
 
         var createdCount = purchasesToAdd.Count(p => p.UserId == vettedUser.Id);
         _logger.LogInformation("Created {Count} ticket purchases for vetted test user", createdCount);
+    }
+
+    /// <summary>
+    /// Creates historical test data for E2E testing of refund eligibility (90-day rule).
+    ///
+    /// Creates 2-3 ticket purchases older than 90 days to validate:
+    /// - Backend correctly sets isRefundable=false for old transactions
+    /// - Frontend correctly hides refund button for old transactions
+    /// - Actions column shows "—" placeholder for non-refundable items
+    /// </summary>
+    private async Task CreateHistoricalTestDataForRefundTestingAsync(
+        List<TicketPurchase> purchasesToAdd,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Creating historical test data (>90 days old) for refund eligibility E2E testing");
+
+        // Get admin user for historical purchases
+        var adminUser = await _userManager.FindByEmailAsync("admin@witchcityrope.com");
+        if (adminUser == null)
+        {
+            _logger.LogWarning("Admin user not found, skipping historical test data creation");
+            return;
+        }
+
+        // Find any past event with paid tickets
+        var pastEvent = await _context.Events
+            .Include(e => e.TicketTypes)
+            .Where(e => e.EndDate < DateTime.UtcNow &&
+                       e.TicketTypes.Any(tt => tt.Price > 0))
+            .OrderByDescending(e => e.EndDate)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (pastEvent == null)
+        {
+            _logger.LogWarning("No past events found for historical test data");
+            return;
+        }
+
+        var paidTicket = pastEvent.TicketTypes.FirstOrDefault(tt => tt.Price > 0);
+        if (paidTicket == null)
+        {
+            _logger.LogWarning("No paid tickets found for past event");
+            return;
+        }
+
+        // Create 3 historical purchases at different ages (95, 120, 150 days ago)
+        var historicalAges = new[] { 95, 120, 150 };
+
+        foreach (var daysAgo in historicalAges)
+        {
+            var purchaseDate = DateTime.UtcNow.AddDays(-daysAgo);
+
+            purchasesToAdd.Add(new TicketPurchase
+            {
+                Id = Guid.NewGuid(),
+                UserId = adminUser.Id,
+                TicketTypeId = paidTicket.Id,
+                PurchaseDate = purchaseDate,
+                Quantity = 1,
+                TotalPrice = paidTicket.Price ?? 25m,
+                PaymentStatus = "Completed",
+                PaymentMethod = "PayPal",
+                PaymentReference = $"HIST_{Guid.NewGuid().ToString()[..8]}",
+                Notes = $"Historical test data - {daysAgo} days old",
+                CreatedAt = purchaseDate,
+                UpdatedAt = purchaseDate
+            });
+
+            _logger.LogInformation(
+                "Created historical test purchase: {DaysAgo} days old for event {EventTitle}",
+                daysAgo,
+                pastEvent.Title);
+        }
+
+        _logger.LogInformation("Created {Count} historical test purchases for refund eligibility testing", historicalAges.Length);
     }
 
     /// <summary>
