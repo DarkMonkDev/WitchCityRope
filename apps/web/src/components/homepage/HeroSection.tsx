@@ -125,7 +125,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ customActions }) => {
             </Box>
             <Box
               component={Link}
-              to={isAuthenticated ? "/dashboard" : "/cms/getting-started"}
+              to={isAuthenticated ? "/dashboard" : "/getting-started"}
               className="btn btn-secondary btn-large"
             >
               {isAuthenticated ? 'Go to Dashboard' : 'Start Your Journey'}

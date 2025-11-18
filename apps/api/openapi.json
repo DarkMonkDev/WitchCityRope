@@ -7756,6 +7756,426 @@
         }
       }
     },
+    "/api/admin/backup": {
+      "post": {
+        "tags": [
+          "Admin",
+          "Backup"
+        ],
+        "summary": "Trigger a manual database backup (admin only)",
+        "description": "Enqueues a Hangfire job to create a PostgreSQL backup via pg_dump and upload to DigitalOcean Spaces",
+        "operationId": "TriggerBackup",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupJobResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/backup/list": {
+      "get": {
+        "tags": [
+          "Admin",
+          "Backup"
+        ],
+        "summary": "List all available backups (admin only)",
+        "description": "Retrieves a list of all database backups from DigitalOcean Spaces with metadata",
+        "operationId": "ListBackups",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/backup/restore": {
+      "post": {
+        "tags": [
+          "Admin",
+          "Backup"
+        ],
+        "summary": "Restore database from a backup (admin only)",
+        "description": "Downloads backup from DigitalOcean Spaces and restores database. Optionally creates pre-restore backup. Requires confirmation 'RESTORE'",
+        "operationId": "RestoreBackup",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestoreRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupJobResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/backup/{fileName}": {
+      "delete": {
+        "tags": [
+          "Admin",
+          "Backup"
+        ],
+        "summary": "Delete a backup file (admin only)",
+        "description": "Permanently deletes a backup file from DigitalOcean Spaces",
+        "operationId": "DeleteBackup",
+        "parameters": [
+          {
+            "name": "fileName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/backup/download/{fileName}": {
+      "get": {
+        "tags": [
+          "Admin",
+          "Backup"
+        ],
+        "summary": "Download a backup file (admin only)",
+        "description": "Downloads a backup file from DigitalOcean Spaces as a binary stream",
+        "operationId": "DownloadBackup",
+        "parameters": [
+          {
+            "name": "fileName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stream"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/backup/job/{jobId}": {
+      "get": {
+        "tags": [
+          "Admin",
+          "Backup"
+        ],
+        "summary": "Get the status of a backup or restore job (admin only)",
+        "description": "Retrieves Hangfire job status including progress, state, and timestamps",
+        "operationId": "GetJobStatus",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupJobStatusResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/backup/storage": {
+      "get": {
+        "tags": [
+          "Admin",
+          "Backup"
+        ],
+        "summary": "Get storage usage summary (admin only)",
+        "description": "Retrieves DigitalOcean Spaces storage usage including total backups, size, and oldest/newest backup info",
+        "operationId": "GetStorageSummary",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StorageSummaryResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/backup/upload-and-restore": {
+      "post": {
+        "tags": [
+          "Admin",
+          "Backup"
+        ],
+        "summary": "Upload a local backup file and restore it (admin only)",
+        "description": "Accepts .dump or .sql file upload, saves to temp directory, and enqueues restore job. Optionally creates pre-restore backup",
+        "operationId": "UploadAndRestoreBackup",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupJobResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/kiosk/payment-stream/{sessionToken}": {
       "get": {
         "tags": [
@@ -9237,6 +9657,98 @@
           }
         }
       },
+      "BackupJobResponse": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "estimatedSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "preBackupFileName": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "BackupJobStatusResponse": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "progress": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "BackupListItem": {
+        "type": "object",
+        "properties": {
+          "fileName": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sizeFormatted": {
+            "type": "string"
+          }
+        }
+      },
+      "BackupListResponse": {
+        "type": "object",
+        "properties": {
+          "backups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BackupListItem"
+            }
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalSizeBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalSizeFormatted": {
+            "type": "string"
+          }
+        }
+      },
       "CapacityInfo": {
         "type": "object",
         "properties": {
@@ -9932,6 +10444,14 @@
           },
           "capacity": {
             "$ref": "#/components/schemas/CapacityInfoDto"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
           }
         }
       },
@@ -11920,6 +12440,20 @@
           }
         }
       },
+      "RestoreRequest": {
+        "type": "object",
+        "properties": {
+          "fileName": {
+            "type": "string"
+          },
+          "confirmation": {
+            "type": "string"
+          },
+          "createPreBackup": {
+            "type": "boolean"
+          }
+        }
+      },
       "ReviewDecisionDto": {
         "type": "object",
         "properties": {
@@ -12509,6 +13043,37 @@
             "type": "string"
           }
         }
+      },
+      "StorageSummaryResponse": {
+        "type": "object",
+        "properties": {
+          "totalBackups": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalSizeBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalSizeFormatted": {
+            "type": "string"
+          },
+          "limitBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "limitFormatted": {
+            "type": "string"
+          },
+          "percentUsed": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "Stream": {
+        "type": "string",
+        "format": "binary"
       },
       "SubmissionResponse": {
         "type": "object",
@@ -14022,6 +14587,9 @@
     },
     {
       "name": "CMS"
+    },
+    {
+      "name": "Backup"
     },
     {
       "name": "KioskPaymentEndpoints"

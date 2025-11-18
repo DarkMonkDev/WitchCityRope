@@ -9,11 +9,11 @@ using WitchCityRope.Api.Data;
 
 #nullable disable
 
-namespace WitchCityRope.Api.Data.Migrations
+namespace WitchCityRope.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251110040028_RemoveEventLocationField")]
-    partial class RemoveEventLocationField
+    [Migration("20251118054614_ConsolidatePaymentTrackingToTicketPurchases")]
+    partial class ConsolidatePaymentTrackingToTicketPurchases
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1154,6 +1154,14 @@ namespace WitchCityRope.Api.Data.Migrations
                     b.Property<Guid>("EventId")
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("EventWaiverAccepted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTime?>("EventWaiverAcceptedAt")
+                        .HasColumnType("timestamptz");
+
                     b.Property<string>("Metadata")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -1240,6 +1248,9 @@ namespace WitchCityRope.Api.Data.Migrations
                         .HasDefaultValue("USD")
                         .HasColumnName("Currency");
 
+                    b.Property<string>("EncryptedPayPalCaptureId")
+                        .HasColumnType("text");
+
                     b.Property<string>("EncryptedPayPalOrderId")
                         .HasColumnType("text");
 
@@ -1251,6 +1262,10 @@ namespace WitchCityRope.Api.Data.Migrations
 
                     b.Property<Guid>("EventRegistrationId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("IdempotencyKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("Metadata")
                         .IsRequired()
@@ -1570,13 +1585,20 @@ namespace WitchCityRope.Api.Data.Migrations
                     b.Property<string>("EncryptedPayPalRefundId")
                         .HasColumnType("text");
 
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("text");
+
+                    b.Property<string>("IdempotencyKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<string>("Metadata")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("jsonb")
                         .HasDefaultValueSql("'{}'");
 
-                    b.Property<Guid>("OriginalPaymentId")
+                    b.Property<Guid?>("PaymentId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("ProcessedAt")
@@ -1604,6 +1626,12 @@ namespace WitchCityRope.Api.Data.Migrations
                     b.Property<int>("RefundStatus")
                         .HasColumnType("integer");
 
+                    b.Property<int>("RetryCount")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TicketPurchaseId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Metadata")
@@ -1611,8 +1639,7 @@ namespace WitchCityRope.Api.Data.Migrations
 
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Metadata"), "gin");
 
-                    b.HasIndex("OriginalPaymentId")
-                        .HasDatabaseName("IX_PaymentRefunds_OriginalPaymentId");
+                    b.HasIndex("PaymentId");
 
                     b.HasIndex("ProcessedAt")
                         .HasDatabaseName("IX_PaymentRefunds_ProcessedAt");
@@ -1622,6 +1649,9 @@ namespace WitchCityRope.Api.Data.Migrations
 
                     b.HasIndex("RefundStatus")
                         .HasDatabaseName("IX_PaymentRefunds_RefundStatus");
+
+                    b.HasIndex("TicketPurchaseId")
+                        .HasDatabaseName("IX_PaymentRefunds_TicketPurchaseId");
 
                     b.ToTable("PaymentRefunds", "public", t =>
                         {
@@ -2556,6 +2586,14 @@ namespace WitchCityRope.Api.Data.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
+                    b.Property<bool>("TermsOfServiceAccepted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTime?>("TermsOfServiceAcceptedAt")
+                        .HasColumnType("timestamptz");
+
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean");
 
@@ -2698,6 +2736,27 @@ namespace WitchCityRope.Api.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamptz");
 
+                    b.Property<string>("EncryptedPayPalCaptureId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("EncryptedPayPalOrderId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("EncryptedPayPalPayerId")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("EventWaiverAccepted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTime?>("EventWaiverAcceptedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("IdempotencyKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<string>("Notes")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -2718,6 +2777,9 @@ namespace WitchCityRope.Api.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<DateTime?>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("PurchaseDate")
                         .HasColumnType("timestamptz");
 
@@ -2726,6 +2788,9 @@ namespace WitchCityRope.Api.Data.Migrations
 
                     b.Property<Guid?>("RecordedByStaffId")
                         .HasColumnType("uuid");
+
+                    b.Property<decimal>("SlidingScalePercentage")
+                        .HasColumnType("numeric");
 
                     b.Property<Guid>("TicketTypeId")
                         .HasColumnType("uuid");
@@ -3371,11 +3436,9 @@ namespace WitchCityRope.Api.Data.Migrations
 
             modelBuilder.Entity("WitchCityRope.Api.Features.Payments.Entities.PaymentRefund", b =>
                 {
-                    b.HasOne("WitchCityRope.Api.Features.Payments.Entities.Payment", "OriginalPayment")
+                    b.HasOne("WitchCityRope.Api.Features.Payments.Entities.Payment", null)
                         .WithMany("Refunds")
-                        .HasForeignKey("OriginalPaymentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("PaymentId");
 
                     b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "ProcessedByUser")
                         .WithMany()
@@ -3383,9 +3446,15 @@ namespace WitchCityRope.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("OriginalPayment");
+                    b.HasOne("WitchCityRope.Api.Models.TicketPurchase", "TicketPurchase")
+                        .WithMany()
+                        .HasForeignKey("TicketPurchaseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("ProcessedByUser");
+
+                    b.Navigation("TicketPurchase");
                 });
 
             modelBuilder.Entity("WitchCityRope.Api.Features.Safety.Entities.IncidentAuditLog", b =>

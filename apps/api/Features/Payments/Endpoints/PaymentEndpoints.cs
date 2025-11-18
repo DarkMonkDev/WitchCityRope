@@ -404,7 +404,7 @@ public class PaymentEndpoints : ControllerBase
         return new RefundResponse
         {
             Id = refund.Id,
-            OriginalPaymentId = refund.OriginalPaymentId,
+            OriginalPaymentId = refund.TicketPurchaseId,
             RefundAmount = amount.Amount,
             Currency = amount.Currency,
             DisplayAmount = amount.ToDisplayString(),

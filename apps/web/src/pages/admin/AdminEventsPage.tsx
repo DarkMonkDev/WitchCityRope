@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Title, Button, Group, Loader, Alert } from '@mantine/core';
+import { Box, Container, Title, Button, Group, Loader, Alert } from '@mantine/core';
 import { IconPlus } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
@@ -87,7 +87,7 @@ export const AdminEventsPage: React.FC = () => {
 
   if (error) {
     return (
-      <Box p="xl">
+      <Container size="xl" py="xl">
         <Title
           order={1}
           mb="xl"
@@ -97,16 +97,16 @@ export const AdminEventsPage: React.FC = () => {
         >
           Events Dashboard
         </Title>
-        
+
         <Alert color="red" title="Error Loading Events">
           Failed to load events. Please try refreshing the page or contact support if the problem persists.
         </Alert>
-      </Box>
+      </Container>
     );
   }
 
   return (
-    <Box p="xl">
+    <Container size="xl" py="xl">
       {/* Page Header with Title and Create Button */}
       <Group justify="space-between" align="center" mb="xl">
         <Title order={1} c="burgundy">
@@ -179,6 +179,6 @@ export const AdminEventsPage: React.FC = () => {
           </Group>
         </Box>
       )}
-    </Box>
+    </Container>
   );
 };

@@ -36,7 +36,7 @@ public class PaymentRefundConfiguration : IEntityTypeConfiguration<PaymentRefund
                .ValueGeneratedOnAdd();
 
         // Required fields
-        builder.Property(r => r.OriginalPaymentId)
+        builder.Property(r => r.TicketPurchaseId)
                .IsRequired();
 
         builder.Property(r => r.ProcessedByUserId)
@@ -110,9 +110,9 @@ public class PaymentRefundConfiguration : IEntityTypeConfiguration<PaymentRefund
 
         #region Foreign Key Relationships
 
-        builder.HasOne(r => r.OriginalPayment)
-               .WithMany(p => p.Refunds)
-               .HasForeignKey(r => r.OriginalPaymentId)
+        builder.HasOne(r => r.TicketPurchase)
+               .WithMany()
+               .HasForeignKey(r => r.TicketPurchaseId)
                .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(r => r.ProcessedByUser)
@@ -124,8 +124,8 @@ public class PaymentRefundConfiguration : IEntityTypeConfiguration<PaymentRefund
 
         #region Performance Indexes
 
-        builder.HasIndex(r => r.OriginalPaymentId)
-               .HasDatabaseName("IX_PaymentRefunds_OriginalPaymentId");
+        builder.HasIndex(r => r.TicketPurchaseId)
+               .HasDatabaseName("IX_PaymentRefunds_TicketPurchaseId");
 
         builder.HasIndex(r => r.ProcessedByUserId)
                .HasDatabaseName("IX_PaymentRefunds_ProcessedByUserId");

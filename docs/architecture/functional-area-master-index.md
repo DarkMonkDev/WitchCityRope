@@ -1,6 +1,6 @@
 # Functional Area Master Index
-<!-- Last Updated: 2025-11-09 - Test Suite Updates Work Complete -->
-<!-- Version: 2.9 -->
+<!-- Last Updated: 2025-11-17 - Database Backup/Restore Added -->
+<!-- Version: 3.0 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -17,6 +17,7 @@ This master index is maintained by the librarian agent to provide quick lookups 
 | **Authentication** | `/docs/functional-areas/authentication/` | **BFF PATTERN COMPLETE** ✅ | **Secure BFF authentication with httpOnly cookies** - Production-ready implementation with silent token refresh, XSS protection, zero authentication timeouts. Migration from localStorage JWT complete. | **COMPLETE** | 2025-09-12 |
 | **Browser Testing** | `/docs/functional-areas/browser-testing/` | N/A | Browser automation and testing tools configuration | Active | 2025-08-22 |
 | **Content Management System** | `/docs/functional-areas/content-management-system/` | `/docs/functional-areas/content-management-system/new-work/2025-10-17-cms-implementation/` | React-based CMS for in-place editing of text pages with TipTap editor - **Phase 1 COMPLETE (100%)** - Revision history admin UI, admin-only, always-visible edit button, text-only MVP | **Phase 2 - Design & Architecture (UI Design First)** | 2025-10-17 |
+| **Database Backup & Restore** | `/docs/functional-areas/database-backup-restore/` | `/docs/functional-areas/database-backup-restore/new-work/2025-11-17-migration-from-account-automation/` | **NEW FEATURE** - Database backup and restore functionality for WitchCityRope PostgreSQL database, migrated from account-automation repository with DigitalOcean Spaces storage integration. Features: Manual/automated backups, point-in-time restore, backup verification, admin UI integration. Production-ready disaster recovery capability. | **Phase 1 - Analysis & Planning (Just Initialized)** | 2025-11-17 |
 | **Database Initialization** | `/docs/functional-areas/database-initialization/` | **IMPLEMENTATION COMPLETE** ✅ | **Complete database auto-initialization system** - Reduces setup time from 2-4 hours to under 5 minutes with automated migrations, comprehensive seed data, and real PostgreSQL testing via TestContainers | **COMPLETE** | 2025-08-22 |
 | **Dependencies Management** | `/docs/functional-areas/dependencies-management/` | N/A | Package dependency updates, security vulnerability management, NuGet and npm package compatibility | Planning | 2025-09-11 |
 | **Deployment** | `/docs/functional-areas/deployment/` | `/docs/functional-areas/deployment/2025-01-13-digitalocean-deployment/` | **NEW WORK** - DigitalOcean production deployment setup with comprehensive research from DarkMonk repository, existing docs audit, and deployment strategy planning | **Planning Phase** | 2025-01-13 |
@@ -222,6 +223,26 @@ This master index is maintained by the librarian agent to provide quick lookups 
 - **Performance**: Modern API maintains 49ms response times with enhanced feature set
 - **Documentation**: Complete migration documentation created with archive warnings
 - **Completion Date**: 2025-09-13 (1 day - faster than estimated)
+
+### 🆕 ACTIVE: Database Backup & Restore Migration (November 2025)
+- **Current Work**: `/docs/functional-areas/database-backup-restore/new-work/2025-11-17-migration-from-account-automation/`
+- **Status**: Phase 1 - Analysis & Planning (Just Initialized)
+- **Objective**: Migrate comprehensive database backup/restore feature from account-automation repository to WitchCityRope with DigitalOcean Spaces integration
+- **Scope**: PostgreSQL backup automation, DigitalOcean Spaces storage, admin UI integration, point-in-time restore capability
+- **Approach**: Leverage existing account-automation implementation, adapt for WitchCityRope architecture patterns
+- **Work Type**: Feature Migration
+- **Timeline**: 2025-11-17 to TBD (estimated 1-2 weeks)
+- **Session**: 2025-11-17 (Initialized)
+- **Progress Tracking**: `/docs/functional-areas/database-backup-restore/new-work/2025-11-17-migration-from-account-automation/progress.md` (TBD)
+- **Quality Gates**: Analysis:100% → Design:90% → Implementation:85% → Testing:100%
+- **Key Deliverables**:
+  - Account-automation feature analysis
+  - Migration plan and architecture adaptation
+  - Backend backup/restore services
+  - DigitalOcean Spaces integration
+  - Admin Settings UI integration
+  - Comprehensive test suite
+  - Deployment documentation
 
 ### 🆕 ACTIVE: Email Templates Admin Management (November 2025)
 - **Current Work**: `/docs/functional-areas/email-templates/new-work/2025-11-09-admin-management/`

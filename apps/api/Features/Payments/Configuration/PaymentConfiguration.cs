@@ -186,10 +186,12 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
                .HasForeignKey(a => a.PaymentId)
                .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasMany(p => p.Refunds)
-               .WithOne(r => r.OriginalPayment)
-               .HasForeignKey(r => r.OriginalPaymentId)
-               .OnDelete(DeleteBehavior.Cascade);
+        // REMOVED: Refunds now reference TicketPurchase directly (see PaymentRefundConfiguration.cs)
+        // Migration: ConsolidatePaymentTrackingToTicketPurchases
+        // builder.HasMany(p => p.Refunds)
+        //        .WithOne(r => r.TicketPurchase)
+        //        .HasForeignKey(r => r.TicketPurchaseId)
+        //        .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasMany(p => p.Failures)
                .WithOne(f => f.Payment)

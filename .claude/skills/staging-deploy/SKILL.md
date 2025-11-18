@@ -46,7 +46,7 @@ SKIP_CONFIRMATION=true bash .claude/skills/staging-deploy/execute.sh
 1. Shows pre-flight information (purpose, when/when NOT to use, shared server warning)
 2. Requires confirmation before proceeding (skippable with env var)
 3. Validates prerequisites:
-   - Tests passing (requires 100% pass rate)
+   - Tests passing (requires 90%+ pass rate - standardized format)
    - Git clean (no uncommitted changes)
    - Branch verification (main or staging recommended)
    - SSH key accessible
@@ -107,17 +107,11 @@ docker-compose -f docker-compose.staging.yml up -d
 
 ### 🚨 Image Tagging Convention
 
-**ALWAYS USE** `:latest` tag for staging:
-
-```bash
-# ✅ CORRECT
-docker build ... -t registry.digitalocean.com/witchcityrope/witchcityrope-api:latest
-
-# ❌ WRONG - Compose file expects :latest
-docker build ... -t registry.digitalocean.com/witchcityrope/witchcityrope-api:staging
-```
+**Image Tagging**: The skill automatically tags images as `:latest` for staging deployment.
 
 **Why**: `docker-compose.staging.yml` uses `image: ${REGISTRY}/witchcityrope-api:${IMAGE_TAG:-latest}` which defaults to `latest`.
+
+**Note**: Use the `staging-deploy` skill for all builds - it handles correct tagging automatically.
 
 ---
 

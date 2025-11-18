@@ -127,6 +127,10 @@ public class AttendanceSeeder
 
                         var donationAmount = (decimal)Random.Shared.Next(5, 31); // FIXED: $5-$30 donation (minimum $5)
 
+                        // Randomly assign payment method for social event donations (33% Cash, 67% PayPal)
+                        // Cash payments can only happen at the door for social events
+                        var paymentMethod = Random.Shared.Next(0, 3) == 0 ? "Cash" : "PayPal";
+
                         // THEN create donation ticket purchase and attendance (in ADDITION to RSVP)
                         var ticketPurchase = new TicketPurchase
                         {
@@ -136,7 +140,7 @@ public class AttendanceSeeder
                             Quantity = 1,
                             TotalPrice = donationAmount,
                             PaymentStatus = "Completed",
-                            PaymentMethod = "PayPal",
+                            PaymentMethod = paymentMethod,
                             PaymentReference = $"DN-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
                             PurchaseDate = createdAt,
                             CreatedAt = createdAt,
@@ -149,7 +153,7 @@ public class AttendanceSeeder
                             Id = Guid.NewGuid(),
                             Status = AttendanceStatus.Active,
                             TicketPurchaseId = ticketPurchase.Id,
-                            Metadata = $"{{\"ticketType\":\"Suggested Donation\",\"price\":{donationAmount},\"paymentMethod\":\"PayPal\"}}",
+                            Metadata = $"{{\"ticketType\":\"Suggested Donation\",\"price\":{donationAmount},\"paymentMethod\":\"{paymentMethod}\"}}",
                             CreatedAt = createdAt,
                             UpdatedAt = createdAt
                         };
@@ -518,6 +522,10 @@ public class AttendanceSeeder
                 // Generate random donation amount ($5-$30 minimum $5)
                 var donationAmount = (decimal)Random.Shared.Next(5, 31);
 
+                // Randomly assign payment method for social event donations (33% Cash, 67% PayPal)
+                // Cash payments can only happen at the door for social events
+                var paymentMethod = Random.Shared.Next(0, 3) == 0 ? "Cash" : "PayPal";
+
                 // THEN create donation ticket purchase and attendance (in ADDITION to RSVP)
                 var donationPurchase = new TicketPurchase
                 {
@@ -527,7 +535,7 @@ public class AttendanceSeeder
                     Quantity = 1,
                     TotalPrice = donationAmount,
                     PaymentStatus = "Completed",
-                    PaymentMethod = "Stripe",
+                    PaymentMethod = paymentMethod,
                     PaymentReference = $"DN-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
                     PurchaseDate = rsvpCreatedAt,
                     CreatedAt = rsvpCreatedAt,
@@ -543,7 +551,7 @@ public class AttendanceSeeder
                     AttendanceType = AttendanceType.Ticket,
                     Status = AttendanceStatus.Active,
                     TicketPurchaseId = donationPurchase.Id,
-                    Metadata = $"{{\"ticketType\":\"{donationTicketType.Name}\",\"price\":{donationAmount},\"paymentMethod\":\"Stripe\"}}",
+                    Metadata = $"{{\"ticketType\":\"{donationTicketType.Name}\",\"price\":{donationAmount},\"paymentMethod\":\"{paymentMethod}\"}}",
                     CreatedAt = rsvpCreatedAt,
                     UpdatedAt = rsvpCreatedAt
                 };

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace WitchCityRope.Api.Data.Migrations
+namespace WitchCityRope.Api.Migrations
 {
     /// <inheritdoc />
     public partial class AddTermsOfServiceAndEventWaiverTracking : Migration

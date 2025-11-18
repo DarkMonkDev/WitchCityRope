@@ -99,7 +99,7 @@ public class TicketPurchaseSeeder
                     Quantity = 1,
                     TotalPrice = totalPrice,
                     PaymentStatus = isRSVP ? "Completed" : GetRandomPaymentStatus(),
-                    PaymentMethod = isRSVP ? "RSVP" : GetRandomPaymentMethod(),
+                    PaymentMethod = isRSVP ? "Free" : GetRandomPaymentMethod(),
                     PaymentReference = Guid.NewGuid().ToString("N")[..8],
                     Notes = GetRandomPurchaseNotes()
                 };
@@ -245,8 +245,8 @@ public class TicketPurchaseSeeder
                     Quantity = 1,
                     TotalPrice = 0,
                     PaymentStatus = "Completed",
-                    PaymentMethod = "RSVP",
-                    PaymentReference = $"RSVP_{Guid.NewGuid().ToString()[..8]}",
+                    PaymentMethod = "Free",
+                    PaymentReference = $"FREE_{Guid.NewGuid().ToString()[..8]}",
                     Notes = "Free RSVP - looking forward to this!"
                 });
 
@@ -287,8 +287,8 @@ public class TicketPurchaseSeeder
                     Quantity = 1,
                     TotalPrice = totalPrice,
                     PaymentStatus = "Completed",
-                    PaymentMethod = isPaid ? "Stripe" : "RSVP",
-                    PaymentReference = isPaid ? $"SEED_ORDER_{Guid.NewGuid().ToString()[..8]}" : $"RSVP_{Guid.NewGuid().ToString()[..8]}",
+                    PaymentMethod = isPaid ? "PayPal" : "Free",
+                    PaymentReference = isPaid ? $"SEED_ORDER_{Guid.NewGuid().ToString()[..8]}" : $"FREE_{Guid.NewGuid().ToString()[..8]}",
                     Notes = "Attended - great event!"
                 });
 
@@ -331,8 +331,8 @@ public class TicketPurchaseSeeder
                     Quantity = 1,
                     TotalPrice = price,
                     PaymentStatus = "Completed",
-                    PaymentMethod = isSocialEvent ? "RSVP" : "Venmo",
-                    PaymentReference = isSocialEvent ? $"RSVP_{Guid.NewGuid().ToString()[..8]}" : $"SEED_ORDER_{Guid.NewGuid().ToString()[..8]}",
+                    PaymentMethod = isSocialEvent ? "Free" : "Venmo",
+                    PaymentReference = isSocialEvent ? $"FREE_{Guid.NewGuid().ToString()[..8]}" : $"SEED_ORDER_{Guid.NewGuid().ToString()[..8]}",
                     Notes = isSocialEvent ? null! : "Can't wait for this class!"
                 });
 
@@ -360,7 +360,7 @@ public class TicketPurchaseSeeder
     /// </summary>
     private string GetRandomPaymentMethod()
     {
-        var methods = new[] { "PayPal", "Stripe", "Venmo", "Cash", "Zelle" };
+        var methods = new[] { "PayPal", "Venmo", "Cash" };
         return methods[Random.Shared.Next(methods.Length)];
     }
 
@@ -480,7 +480,7 @@ public class TicketPurchaseSeeder
                     Quantity = 1,
                     TotalPrice = ticketType.Price ?? 0m,
                     PaymentStatus = "Completed",
-                    PaymentMethod = "Stripe",
+                    PaymentMethod = "PayPal",
                     PaymentReference = $"HIST-{Guid.NewGuid().ToString()[..8].ToUpper()}",
                     PurchaseDate = purchaseDate,
                     CreatedAt = purchaseDate,
@@ -573,7 +573,7 @@ public class TicketPurchaseSeeder
                         Quantity = 1,
                         TotalPrice = canceledType.Price ?? 0m,
                         PaymentStatus = "Refunded",
-                        PaymentMethod = "Stripe",
+                        PaymentMethod = "PayPal",
                         PaymentReference = $"REFUND-{Guid.NewGuid().ToString()[..8].ToUpper()}",
                         PurchaseDate = canceledPurchaseDate,
                         CreatedAt = canceledPurchaseDate,

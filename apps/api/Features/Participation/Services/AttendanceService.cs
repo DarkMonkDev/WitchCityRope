@@ -1083,28 +1083,38 @@ public class AttendanceService : IAttendanceService
     {
         try
         {
-            // Find associated payment for this ticket
-            var payment = await _context.Payments
-                .FirstOrDefaultAsync(p =>
-                    p.EventRegistrationId == attendanceId &&
-                    p.Status == PaymentModels.PaymentStatus.Completed,
-                    cancellationToken);
+            // ARCHITECTURE FIX: Find associated TicketPurchase (single source of truth)
+            // Get the event attendance to find the TicketPurchaseId
+            var attendance = await _context.EventAttendances
+                .FirstOrDefaultAsync(ea => ea.Id == attendanceId, cancellationToken);
 
-            // No payment found or payment not completed - skip refund
-            if (payment == null)
+            if (attendance == null || !attendance.TicketPurchaseId.HasValue)
             {
                 _logger.LogInformation(
-                    "No completed payment found for attendance {AttendanceId} - skipping automatic refund",
+                    "No ticket purchase found for attendance {AttendanceId} - skipping automatic refund",
+                    attendanceId);
+                return;
+            }
+
+            // Get the ticket purchase
+            var ticketPurchase = await _context.TicketPurchases
+                .FirstOrDefaultAsync(tp => tp.Id == attendance.TicketPurchaseId.Value, cancellationToken);
+
+            // No ticket purchase found or not completed - skip refund
+            if (ticketPurchase == null || !ticketPurchase.IsPaymentCompleted)
+            {
+                _logger.LogInformation(
+                    "No completed ticket purchase found for attendance {AttendanceId} - skipping automatic refund",
                     attendanceId);
                 return;
             }
 
             // Only process refunds for PayPal payments
-            if (payment.PaymentMethodType != PaymentModels.PaymentMethodType.PayPal)
+            if (!ticketPurchase.PaymentMethod.Equals("PayPal", StringComparison.OrdinalIgnoreCase))
             {
                 _logger.LogInformation(
-                    "Payment {PaymentId} is not PayPal (type: {PaymentMethodType}) - skipping automatic refund",
-                    payment.Id, payment.PaymentMethodType);
+                    "Ticket purchase {TicketId} is not PayPal (method: {PaymentMethod}) - skipping automatic refund",
+                    ticketPurchase.Id, ticketPurchase.PaymentMethod);
                 return;
             }
 
@@ -1114,14 +1124,14 @@ public class AttendanceService : IAttendanceService
                 : $"User-initiated ticket cancellation: {userCancellationReason}";
 
             _logger.LogInformation(
-                "Processing automatic refund for payment {PaymentId} (user {UserId} cancelling ticket). Amount: {Amount} {Currency}",
-                payment.Id, userId, payment.AmountValue, payment.Currency);
+                "Processing automatic refund for ticket {TicketId} (user {UserId} cancelling ticket). Amount: {Amount}",
+                ticketPurchase.Id, userId, ticketPurchase.TotalPrice);
 
             // Create refund request
             var refundRequest = new ProcessRefundRequest
             {
-                PaymentId = payment.Id,
-                RefundAmount = Money.Create(payment.AmountValue, payment.Currency),
+                PaymentId = ticketPurchase.Id, // Now references TicketPurchase
+                RefundAmount = Money.Create(ticketPurchase.TotalPrice, "USD"),
                 RefundReason = refundReason,
                 ProcessedByUserId = userId, // User cancelling their own ticket
                 IpAddress = "user-initiated-cancellation", // Placeholder - no IP available in service layer
@@ -1140,16 +1150,16 @@ public class AttendanceService : IAttendanceService
             if (refundResult.IsSuccess)
             {
                 _logger.LogInformation(
-                    "Automatic refund processed successfully for payment {PaymentId}. Refund ID: {RefundId}",
-                    payment.Id, refundResult.Value?.Id);
+                    "Automatic refund processed successfully for ticket {TicketId}. Refund ID: {RefundId}",
+                    ticketPurchase.Id, refundResult.Value?.Id);
             }
             else
             {
                 // Log warning but DON'T fail the cancellation
                 _logger.LogWarning(
-                    "Automatic refund failed for payment {PaymentId} during user ticket cancellation. Error: {Error}. " +
+                    "Automatic refund failed for ticket {TicketId} during user ticket cancellation. Error: {Error}. " +
                     "User's ticket will still be cancelled. Admin should manually process refund.",
-                    payment.Id, refundResult.ErrorMessage);
+                    ticketPurchase.Id, refundResult.ErrorMessage);
 
                 // TODO: Send notification to admins about failed automatic refund
                 // This would require email service integration - out of scope for this task

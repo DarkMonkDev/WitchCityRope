@@ -9,11 +9,11 @@ using WitchCityRope.Api.Data;
 
 #nullable disable
 
-namespace WitchCityRope.Api.Data.Migrations
+namespace WitchCityRope.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251117072510_AddEmailVerificationFieldsToUsers")]
-    partial class AddEmailVerificationFieldsToUsers
+    [Migration("20251111071532_MakeLocationNullableActual")]
+    partial class MakeLocationNullableActual
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1154,14 +1154,6 @@ namespace WitchCityRope.Api.Data.Migrations
                     b.Property<Guid>("EventId")
                         .HasColumnType("uuid");
 
-                    b.Property<bool>("EventWaiverAccepted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<DateTime?>("EventWaiverAcceptedAt")
-                        .HasColumnType("timestamptz");
-
                     b.Property<string>("Metadata")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -1248,9 +1240,6 @@ namespace WitchCityRope.Api.Data.Migrations
                         .HasDefaultValue("USD")
                         .HasColumnName("Currency");
 
-                    b.Property<string>("EncryptedPayPalCaptureId")
-                        .HasColumnType("text");
-
                     b.Property<string>("EncryptedPayPalOrderId")
                         .HasColumnType("text");
 
@@ -1262,10 +1251,6 @@ namespace WitchCityRope.Api.Data.Migrations
 
                     b.Property<Guid>("EventRegistrationId")
                         .HasColumnType("uuid");
-
-                    b.Property<string>("IdempotencyKey")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("Metadata")
                         .IsRequired()
@@ -1585,13 +1570,6 @@ namespace WitchCityRope.Api.Data.Migrations
                     b.Property<string>("EncryptedPayPalRefundId")
                         .HasColumnType("text");
 
-                    b.Property<string>("ErrorMessage")
-                        .HasColumnType("text");
-
-                    b.Property<string>("IdempotencyKey")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
                     b.Property<string>("Metadata")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -1624,9 +1602,6 @@ namespace WitchCityRope.Api.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<int>("RefundStatus")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("RetryCount")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -2581,14 +2556,6 @@ namespace WitchCityRope.Api.Data.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
-                    b.Property<bool>("TermsOfServiceAccepted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<DateTime?>("TermsOfServiceAcceptedAt")
-                        .HasColumnType("timestamptz");
-
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean");
 
@@ -2729,14 +2696,6 @@ namespace WitchCityRope.Api.Data.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamptz");
-
-                    b.Property<bool>("EventWaiverAccepted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<DateTime?>("EventWaiverAcceptedAt")
                         .HasColumnType("timestamptz");
 
                     b.Property<string>("Notes")

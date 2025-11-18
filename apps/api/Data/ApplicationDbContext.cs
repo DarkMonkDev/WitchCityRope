@@ -35,6 +35,13 @@ namespace WitchCityRope.Api.Data;
 /// The correct migration directory is determined by the .csproj file location.
 /// </para>
 ///
+/// <para><strong>IMPORTANT:</strong></para>
+/// <para>
+/// ALWAYS create migrations in /apps/api/Migrations/ directory.
+/// DO NOT create migrations in /apps/api/Data/Migrations/ directory.
+/// Use: dotnet ef migrations add MigrationName (from /apps/api directory)
+/// </para>
+///
 /// <para><strong>Creating New Migrations:</strong></para>
 /// <code>
 /// # From /apps/api directory (where .csproj is located):

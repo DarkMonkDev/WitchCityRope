@@ -9,7 +9,7 @@ using WitchCityRope.Api.Data;
 
 #nullable disable
 
-namespace WitchCityRope.Api.Data.Migrations
+namespace WitchCityRope.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20251113023902_AddTermsOfServiceAndEventWaiverTracking")]

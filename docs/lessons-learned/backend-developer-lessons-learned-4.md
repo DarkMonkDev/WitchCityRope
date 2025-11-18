@@ -352,3 +352,136 @@ services.AddSingleton<IContentSanitizer, ContentSanitizer>();
 **Related Pattern**: See "Services MUST Have Interfaces for Unit Testing" lesson for interface creation guidance
 
 ---
+
+## 🚨 CRITICAL: ASP.NET Core Minimal API Cannot Bind List<string> from Query Parameters (2025-11-17)
+
+**Problem**: API startup fails with `InvalidOperationException: PaymentMethods must have a valid TryParse method` when endpoint parameter uses `List<string>` for query parameters.
+
+**Date Discovered**: November 17, 2025 during homepage features testing
+**Context**: `/api/admin/payments` endpoint had `PaymentMethods` and `Statuses` parameters defined as `List<string>?`
+
+**Root Cause**:
+- ASP.NET Core minimal APIs cannot automatically bind `List<string>` from query parameters
+- Framework requires either a custom type with `TryParse` method, OR use of `[FromQuery]` with proper binding, OR accept string and split manually
+- Query parameters with complex collection types crash API startup
+
+**Error Message**:
+```
+System.InvalidOperationException: PaymentMethods must have a valid TryParse method to support converting from a string.
+No public static bool List<string>.TryParse(string, out List<string>) method found for PaymentMethods.
+```
+
+**Impact**:
+- API fails to start completely - blocks ALL development and testing
+- Error is NOT a compilation error - only appears at runtime startup
+- Affects any endpoint using `List<string>` or complex collection types as query parameters
+
+**Wrong Implementation** (List<string> for Query Parameters):
+```csharp
+// ❌ WRONG - API will fail to start
+public class PaymentListQueryParameters
+{
+    [FromQuery(Name = "paymentMethods")]
+    public List<string>? PaymentMethods { get; set; }  // CRASHES API STARTUP!
+
+    [FromQuery(Name = "statuses")]
+    public List<string>? Statuses { get; set; }  // CRASHES API STARTUP!
+}
+```
+
+**Correct Implementation** (Comma-Separated String):
+```csharp
+// ✅ CORRECT - Use string and split in service layer
+public class PaymentListQueryParameters
+{
+    /// <summary>
+    /// Filter by payment methods (PayPal, Free, Venmo) - comma-separated
+    /// </summary>
+    [FromQuery(Name = "paymentMethods")]
+    public string? PaymentMethods { get; set; }  // API starts successfully
+
+    /// <summary>
+    /// Filter by payment statuses (Paid, Refunded, Pending, Failed) - comma-separated
+    /// </summary>
+    [FromQuery(Name = "statuses")]
+    public string? Statuses { get; set; }  // API starts successfully
+}
+
+// Service layer - split comma-separated values
+public async Task<PaymentListResponse> GetPaymentListAsync(
+    PaymentListQueryParameters parameters,
+    CancellationToken cancellationToken)
+{
+    // Split comma-separated string into list
+    if (!string.IsNullOrWhiteSpace(parameters.PaymentMethods))
+    {
+        var methods = parameters.PaymentMethods
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(m => m.ToUpper())
+            .ToList();
+        query = query.Where(x => methods.Contains(x.Payment.PaymentMethodType.ToString().ToUpper()));
+    }
+
+    if (!string.IsNullOrWhiteSpace(parameters.Statuses))
+    {
+        var statuses = parameters.Statuses
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(s => s.ToUpper())
+            .ToList();
+        query = query.Where(x => statuses.Contains(x.Payment.Status.ToString().ToUpper()));
+    }
+}
+```
+
+**Why This Pattern Works**:
+- String binding is natively supported by ASP.NET Core
+- Query parameters are naturally strings in URLs: `?paymentMethods=PayPal,Venmo,Free`
+- Splitting in service layer provides full control over parsing logic
+- `StringSplitOptions.RemoveEmptyEntries | TrimEntries` handles edge cases
+
+**Alternative Solutions** (More Complex):
+1. **Custom Type with TryParse**:
+```csharp
+public class PaymentMethodList
+{
+    public List<string> Methods { get; set; } = new();
+
+    public static bool TryParse(string? value, out PaymentMethodList result)
+    {
+        result = new PaymentMethodList();
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            result.Methods = value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+        }
+        return true;
+    }
+}
+```
+
+2. **Model Binding with IModelBinder** (overkill for simple cases)
+
+**RECOMMENDED**: Use comma-separated string pattern - simplest and most straightforward.
+
+**Prevention Checklist**:
+- [ ] Use `string` for query parameters that represent collections
+- [ ] Split comma-separated values in service layer
+- [ ] Document parameter format in XML comments: "comma-separated"
+- [ ] Test API startup after adding query parameters with complex types
+- [ ] Use OpenAPI/Swagger to verify parameter types are correct
+
+**Detection**:
+- API fails to start with `InvalidOperationException` about `TryParse`
+- Error mentions query parameter property name
+- Appears immediately on startup, not during requests
+- Check all `[FromQuery]` parameters for complex collection types
+
+**Files Modified**:
+- `/home/chad/repos/witchcityrope/apps/api/Features/Payments/Models/Requests/PaymentListQueryParameters.cs` (lines 32, 38)
+- `/home/chad/repos/witchcityrope/apps/api/Features/Payments/Services/PaymentListService.cs` (lines 103-120)
+
+**OpenAPI Impact**:
+- Correctly generates `type: string` in OpenAPI spec
+- Frontend can pass comma-separated values: `paymentMethods=PayPal,Venmo`
+- NSwag type generation produces correct TypeScript types
+
+---

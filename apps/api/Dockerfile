@@ -8,10 +8,17 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS development
 WORKDIR /app
 
 # Install additional tools for debugging and database connectivity
+# Install PostgreSQL 16 client to match server version
 RUN apt-get update && apt-get install -y \
     curl \
-    postgresql-client \
     vim \
+    wget \
+    gnupg \
+    lsb-release \
+    && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql-keyring.gpg \
+    && echo "deb [signed-by=/usr/share/keyrings/postgresql-keyring.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update \
+    && apt-get install -y postgresql-client-16 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy API project files
@@ -59,9 +66,11 @@ RUN adduser -D -u 1001 -g 1001 -s /bin/sh appuser
 WORKDIR /app
 
 # Install runtime dependencies
+# Install PostgreSQL 16 client to match server version
 RUN apk add --no-cache \
     curl \
-    postgresql-client \
+    postgresql16-client \
+    --repository=https://dl-cdn.alpinelinux.org/alpine/edge/main \
     && rm -rf /var/cache/apk/*
 
 # Copy published application

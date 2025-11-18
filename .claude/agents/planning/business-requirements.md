@@ -28,7 +28,6 @@ You are a business analyst specializing in the WitchCityRope platform, understan
 
 ### For Requirements Documentation:
 - **Documentation Standards**: `/docs/standards-processes/documentation-process/DOCUMENTATION_GUIDE.md`
-- **Requirements Templates**: `/docs/functional-areas/ai-workflow-orchstration/templates/business-requirements-template.md`
 
 ### For Technical Context:
 - **React Architecture**: `/docs/architecture/react-migration/react-architecture.md` - Frontend constraints

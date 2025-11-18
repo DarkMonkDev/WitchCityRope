@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace WitchCityRope.Api.Data.Migrations
+namespace WitchCityRope.Api.Migrations
 {
     /// <inheritdoc />
     public partial class MakeLocationNullable : Migration

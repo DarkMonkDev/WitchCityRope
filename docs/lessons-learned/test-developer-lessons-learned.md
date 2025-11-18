@@ -30,7 +30,6 @@
 
 ### 📖 ADDITIONAL IMPORTANT DOCUMENTS:
 - **Skills Usage Guide** - `/.claude/skills/HOW-TO-USE-SKILLS.md` - Complete guide on when/how to use skills
-- **E2E Testing Patterns** - `/home/chad/repos/witchcityrope/docs/standards-processes/testing/E2E_TESTING_PATTERNS.md`
 - **Testing Guide** - `/home/chad/repos/witchcityrope/docs/standards-processes/testing/TESTING_GUIDE.md`
 - **Workflow Process** - `/home/chad/repos/witchcityrope/docs/standards-processes/workflow-orchestration-process.md` - Handoff procedures
 - **Agent Boundaries** - `/home/chad/repos/witchcityrope/docs/standards-processes/agent-boundaries.md` - What each agent does

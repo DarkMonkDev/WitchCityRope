@@ -12,7 +12,7 @@ import {
   Loader,
   Alert
 } from '@mantine/core';
-import { IconReceiptOff, IconAlertCircle } from '@tabler/icons-react';
+import { IconReceiptOff, IconAlertCircle, IconChevronUp, IconChevronDown, IconSelector } from '@tabler/icons-react';
 import { useMediaQuery } from '@mantine/hooks';
 import { RefundConfirmationModal } from '../../../../components/payments/RefundConfirmationModal';
 import { useRefundTicket } from '../hooks/useRefundTicket';
@@ -22,7 +22,9 @@ interface PaymentTableViewProps {
   payments: PaymentTransactionDto[];
   isLoading: boolean;
   error: Error | null;
-  onClearFilters: () => void;
+  sortBy?: string;
+  sortDirection?: 'Asc' | 'Desc';
+  onSort?: (column: string) => void;
 }
 
 const getPaymentMethodColor = (method: string): string => {
@@ -33,6 +35,8 @@ const getPaymentMethodColor = (method: string): string => {
       return 'gray';
     case 'Venmo':
       return 'teal';
+    case 'Cash':
+      return 'green';
     default:
       return 'gray';
   }
@@ -64,11 +68,53 @@ const formatDate = (dateString: string): string => {
   });
 };
 
+interface SortableHeaderProps {
+  column: string;
+  label: string;
+  currentSortBy?: string;
+  currentSortDirection?: 'Asc' | 'Desc';
+  onSort?: (column: string) => void;
+  style?: React.CSSProperties;
+}
+
+const SortableHeader: React.FC<SortableHeaderProps> = ({
+  column,
+  label,
+  currentSortBy,
+  currentSortDirection,
+  onSort,
+  style
+}) => {
+  const isActive = currentSortBy === column;
+  const icon = !isActive ? (
+    <IconSelector size={14} />
+  ) : currentSortDirection === 'Asc' ? (
+    <IconChevronUp size={14} />
+  ) : (
+    <IconChevronDown size={14} />
+  );
+
+  return (
+    <Table.Th
+      c="white"
+      style={{ ...style, cursor: onSort ? 'pointer' : 'default', userSelect: 'none' }}
+      onClick={() => onSort?.(column)}
+    >
+      <Group gap={4} wrap="nowrap">
+        <Text size="sm" fw={600}>{label}</Text>
+        {onSort && icon}
+      </Group>
+    </Table.Th>
+  );
+};
+
 export const PaymentTableView: React.FC<PaymentTableViewProps> = ({
   payments,
   isLoading,
   error,
-  onClearFilters
+  sortBy,
+  sortDirection,
+  onSort
 }) => {
   const isMobile = useMediaQuery('(max-width: 767px)');
   const [refundModalOpened, setRefundModalOpened] = useState(false);
@@ -137,24 +183,6 @@ export const PaymentTableView: React.FC<PaymentTableViewProps> = ({
           <Text c="dimmed" size="sm">
             Try adjusting your filters or search term
           </Text>
-          <Button
-            variant="light"
-            color="wcr.7"
-            onClick={onClearFilters}
-            data-testid="clear-filters-button"
-            styles={{
-              root: {
-                fontWeight: 600,
-                height: '44px',
-                paddingTop: '12px',
-                paddingBottom: '12px',
-                fontSize: '14px',
-                lineHeight: '1.2'
-              }
-            }}
-          >
-            Clear Filters
-          </Button>
         </Stack>
       </Box>
     );
@@ -283,26 +311,56 @@ export const PaymentTableView: React.FC<PaymentTableViewProps> = ({
       <Table striped highlightOnHover data-testid="payment-table">
         <Table.Thead style={{ backgroundColor: 'var(--mantine-color-wcr-7)' }}>
           <Table.Tr>
-            <Table.Th c="white" style={{ width: '140px' }}>
-              Date
-            </Table.Th>
-            <Table.Th c="white" style={{ width: '200px' }}>
-              User/Member
-            </Table.Th>
-            <Table.Th c="white" style={{ minWidth: '180px' }}>
-              Event/Session
-            </Table.Th>
+            <SortableHeader
+              column="paymentDate"
+              label="Date"
+              currentSortBy={sortBy}
+              currentSortDirection={sortDirection}
+              onSort={onSort}
+              style={{ width: '180px' }}
+            />
+            <SortableHeader
+              column="userName"
+              label="User"
+              currentSortBy={sortBy}
+              currentSortDirection={sortDirection}
+              onSort={onSort}
+              style={{ width: '180px' }}
+            />
+            <SortableHeader
+              column="eventName"
+              label="Event"
+              currentSortBy={sortBy}
+              currentSortDirection={sortDirection}
+              onSort={onSort}
+              style={{ width: '160px' }}
+            />
+            <SortableHeader
+              column="paymentMethod"
+              label="Payment Method"
+              currentSortBy={sortBy}
+              currentSortDirection={sortDirection}
+              onSort={onSort}
+              style={{ width: '120px', textAlign: 'center' }}
+            />
+            <SortableHeader
+              column="amount"
+              label="Amount"
+              currentSortBy={sortBy}
+              currentSortDirection={sortDirection}
+              onSort={onSort}
+              style={{ width: '80px', textAlign: 'right' }}
+            />
+            <SortableHeader
+              column="status"
+              label="Status"
+              currentSortBy={sortBy}
+              currentSortDirection={sortDirection}
+              onSort={onSort}
+              style={{ width: '120px', textAlign: 'center' }}
+            />
             <Table.Th c="white" style={{ width: '120px', textAlign: 'center' }}>
-              Payment Method
-            </Table.Th>
-            <Table.Th c="white" style={{ width: '100px', textAlign: 'right' }}>
-              Amount
-            </Table.Th>
-            <Table.Th c="white" style={{ width: '120px', textAlign: 'center' }}>
-              Status
-            </Table.Th>
-            <Table.Th c="white" style={{ width: '120px', textAlign: 'center' }}>
-              Actions
+              <Text size="sm" fw={600}>Actions</Text>
             </Table.Th>
           </Table.Tr>
         </Table.Thead>
@@ -314,14 +372,9 @@ export const PaymentTableView: React.FC<PaymentTableViewProps> = ({
                 <Text size="sm">{formatDate(payment.paymentDate || '')}</Text>
               </Table.Td>
               <Table.Td>
-                <Stack gap={0}>
-                  <Text fw={500} size="sm">
-                    {payment.userName}
-                  </Text>
-                  <Text size="xs" c="dimmed">
-                    {payment.userEmail}
-                  </Text>
-                </Stack>
+                <Text fw={500} size="sm">
+                  {payment.userName}
+                </Text>
               </Table.Td>
               <Table.Td>
                 <Text size="sm" lineClamp={2}>

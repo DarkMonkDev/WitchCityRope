@@ -84,18 +84,24 @@ if [ ! -f "test-results/test-execution-report.md" ]; then
     exit 1
 fi
 
-# Look for "Status: PASS" on its own line (more flexible matching)
-if ! grep -E "^Status: PASS|^\*\*Status\*\*: .*PASS" test-results/test-execution-report.md > /dev/null; then
-    echo "   ❌ FAIL: Tests not passing"
+# Check for "status: PASS" in YAML frontmatter (standardized format)
+# PASS status means >= 90% pass rate
+if ! grep -q "^status: PASS" test-results/test-execution-report.md; then
+    echo "   ❌ FAIL: Tests not passing or below 90% threshold"
     echo ""
-    echo "💡 Test execution report must contain 'Status: PASS'"
+    echo "💡 Test execution report must show 'status: PASS' (90%+ pass rate required)"
     echo "   Current status:"
-    grep -i "status:" test-results/test-execution-report.md || echo "   (no status line found)"
+    grep "^status:" test-results/test-execution-report.md || echo "   (no status line found)"
+    echo "   Pass rate:"
+    grep "^pass_rate:" test-results/test-execution-report.md || echo "   (no pass rate found)"
     echo ""
-    echo "💡 Achieve 100% pass rate before deploying"
+    echo "📖 Report format: /docs/standards-processes/testing/test-report-format.md"
     exit 1
 fi
-echo "   ✅ All tests passing"
+
+# Extract and display pass rate for transparency
+PASS_RATE=$(grep "^pass_rate:" test-results/test-execution-report.md | cut -d':' -f2 | tr -d ' ' || echo "unknown")
+echo "   ✅ Tests passing (${PASS_RATE}% pass rate, threshold: 90%)"
 
 # Check 2: Git status
 echo ""

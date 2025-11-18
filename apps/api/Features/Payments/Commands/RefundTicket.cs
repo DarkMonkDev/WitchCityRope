@@ -3,7 +3,6 @@ using System.Security.Claims;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Features.Participation.Models;
-using WitchCityRope.Api.Features.Payments.Models;
 using WitchCityRope.Api.Features.Payments.Services;
 using WitchCityRope.Api.Features.Payments.ValueObjects;
 using WitchCityRope.Api.Models;
@@ -85,64 +84,56 @@ public class RefundTicket
                 statusCode: 404);
         }
 
-        // 4. RETRIEVE PAYMENT
-        // Find payment matching this ticket purchase
-        var payment = await dbContext.Payments
-            .Include(p => p.User)
-            .FirstOrDefaultAsync(p => p.UserId == ticketPurchase.UserId
-                && p.AmountValue == ticketPurchase.TotalPrice
-                && p.Status == PaymentStatus.Completed
-                && p.CreatedAt >= ticketPurchase.PurchaseDate.AddMinutes(-5)
-                && p.CreatedAt <= ticketPurchase.PurchaseDate.AddMinutes(5),
-                cancellationToken);
-
-        if (payment == null)
+        // 4. VALIDATE PAYMENT STATUS
+        // ARCHITECTURE FIX: Now validates directly against TicketPurchase (single source of truth)
+        if (!ticketPurchase.IsPaymentCompleted)
         {
             return Results.Problem(
-                title: "Payment Not Found",
-                detail: "This ticket has no associated payment record. Only paid tickets can be refunded.",
+                title: "Payment Not Completed",
+                detail: "Only completed payments can be refunded. This ticket purchase is not completed.",
                 statusCode: 400);
         }
 
         // 5. VALIDATE PAYMENT IS PAYPAL
-        if (payment.PaymentMethodType != PaymentMethodType.PayPal)
+        if (!ticketPurchase.PaymentMethod.Equals("PayPal", StringComparison.OrdinalIgnoreCase))
         {
             return Results.Problem(
                 title: "Invalid Payment Method",
-                detail: $"Only PayPal payments can be refunded through this endpoint. This payment was made via {payment.PaymentMethodType}.",
+                detail: $"Only PayPal payments can be refunded through this endpoint. This payment was made via {ticketPurchase.PaymentMethod}.",
                 statusCode: 400);
         }
 
         // 6. CHECK FOR EXISTING REFUND
         var existingRefund = await dbContext.PaymentRefunds
-            .Where(pr => pr.OriginalPaymentId == payment.Id)
+            .Where(pr => pr.TicketPurchaseId == ticketPurchase.Id)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (existingRefund != null)
         {
             return Results.Problem(
                 title: "Already Refunded",
-                detail: "This payment has already been refunded",
+                detail: "This ticket has already been refunded",
                 statusCode: 400);
         }
 
         // 7. VALIDATE CAPTURE ID EXISTS
-        if (string.IsNullOrEmpty(payment.EncryptedPayPalCaptureId))
+        if (string.IsNullOrEmpty(ticketPurchase.EncryptedPayPalCaptureId))
         {
             logger.LogError(
-                "Payment {PaymentId} missing PayPal Capture ID - cannot process refund",
-                payment.Id);
+                "Ticket {TicketId} missing PayPal Capture ID - cannot process refund",
+                ticketId);
             return Results.Problem(
                 title: "Payment Error",
-                detail: "Payment record is missing PayPal Capture ID. This payment cannot be refunded. Please contact support.",
+                detail: "This ticket is missing PayPal Capture ID. This payment cannot be refunded. Please contact support.",
                 statusCode: 500);
         }
 
         // 8. PREPARE REFUND REQUEST
+        // ARCHITECTURE FIX: Now uses TicketPurchase ID instead of Payment ID
         var refundRequest = new ProcessRefundRequest
         {
-            PaymentId = payment.Id,
-            RefundAmount = Money.Create(payment.AmountValue, payment.Currency),
+            PaymentId = ticketPurchase.Id, // Now references TicketPurchase
+            RefundAmount = Money.Create(ticketPurchase.TotalPrice, "USD"),
             RefundReason = request.RefundReason.Trim(),
             ProcessedByUserId = currentUserId,
             IpAddress = "admin-action",
@@ -157,16 +148,16 @@ public class RefundTicket
 
         // 9. PROCESS REFUND USING REFUNDSERVICE
         logger.LogInformation(
-            "Processing refund for ticket {TicketId}, payment {PaymentId}, user {UserId}, amount {Amount}",
-            ticketId, payment.Id, ticketPurchase.UserId, payment.AmountValue);
+            "Processing refund for ticket {TicketId}, user {UserId}, amount {Amount}",
+            ticketId, ticketPurchase.UserId, ticketPurchase.TotalPrice);
 
         var refundResult = await refundService.ProcessRefundAsync(refundRequest, cancellationToken);
 
         if (!refundResult.IsSuccess)
         {
             logger.LogError(
-                "RefundService failed for payment {PaymentId}: {Error}",
-                payment.Id, refundResult.ErrorMessage);
+                "RefundService failed for ticket {TicketId}: {Error}",
+                ticketId, refundResult.ErrorMessage);
 
             return Results.Problem(
                 title: "Refund Failed",
@@ -177,8 +168,8 @@ public class RefundTicket
         var paymentRefund = refundResult.Value!;
 
         logger.LogInformation(
-            "Refund successful: RefundId {RefundId}, PaymentId {PaymentId}, Status {Status}",
-            paymentRefund.Id, payment.Id, paymentRefund.RefundStatus);
+            "Refund successful: RefundId {RefundId}, TicketId {TicketId}, Status {Status}",
+            paymentRefund.Id, ticketId, paymentRefund.RefundStatus);
 
         // 10. UPDATE TICKET PURCHASE STATUS
         ticketPurchase.PaymentStatus = "Refunded";

@@ -1,17 +1,23 @@
+using System.Net.Sockets;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.EmailTemplates.Entities;
 using WitchCityRope.Api.Features.Payments.Entities;
 using WitchCityRope.Api.Features.Payments.Models;
+using WitchCityRope.Api.Features.Payments.Models.PayPal;
 using WitchCityRope.Api.Features.Payments.ValueObjects;
 using WitchCityRope.Api.Features.Safety.Services;
+using WitchCityRope.Api.Features.Shared.Models;
 using WitchCityRope.Api.Features.Shared.Services;
 using WitchCityRope.Api.Features.Volunteers.Services;
+using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Features.Payments.Services;
 
 /// <summary>
-/// Refund processing service with comprehensive audit trails and business rule validation
+/// Consolidated refund processing service with integrated retry logic and audit trails
+/// ARCHITECTURE FIX (2025-11-18): Now uses TicketPurchase (single source of truth)
+/// CONSOLIDATED: Merged RefundAuditService and RefundRetryService into this class
 /// </summary>
 public class RefundService : IRefundService
 {
@@ -21,6 +27,7 @@ public class RefundService : IRefundService
     private readonly IVolunteerAssignmentService _volunteerAssignmentService;
     private readonly IEmailService _emailService;
     private readonly ILogger<RefundService> _logger;
+    private const int MaxRetries = 5;
 
     public RefundService(
         ApplicationDbContext context,
@@ -45,24 +52,24 @@ public class RefundService : IRefundService
         try
         {
             _logger.LogInformation(
-                "Processing refund for payment {PaymentId}, amount {RefundAmount}, processed by {UserId}",
+                "Processing refund for ticket {TicketId}, amount {RefundAmount}, processed by {UserId}",
                 request.PaymentId, request.RefundAmount.ToDisplayString(), request.ProcessedByUserId);
 
-            // Get the original payment with User for email notification
-            var payment = await _context.Payments
-                .Include(p => p.Refunds)
-                .Include(p => p.User)
-                .FirstOrDefaultAsync(p => p.Id == request.PaymentId, cancellationToken);
+            // Get the ticket purchase with User for email notification
+            // ARCHITECTURE FIX: Now queries TicketPurchases instead of Payments
+            var ticketPurchase = await _context.TicketPurchases
+                .Include(tp => tp.User)
+                .FirstOrDefaultAsync(tp => tp.Id == request.PaymentId, cancellationToken);
 
-            if (payment == null)
+            if (ticketPurchase == null)
             {
-                return Result<PaymentRefund>.Failure("Payment not found.");
+                return Result<PaymentRefund>.Failure("Ticket purchase not found.");
             }
 
-            // Check if payment is eligible for refund
-            if (!payment.IsRefundEligible())
+            // Check if ticket purchase is eligible for refund
+            if (!IsTicketRefundEligible(ticketPurchase))
             {
-                return Result<PaymentRefund>.Failure("Payment is not eligible for refund. Only completed payments can be refunded.");
+                return Result<PaymentRefund>.Failure("This ticket is not eligible for refund. Only completed payments can be refunded.");
             }
 
             // Calculate maximum refund amount available
@@ -91,7 +98,7 @@ public class RefundService : IRefundService
             // Create refund record
             var refund = new PaymentRefund
             {
-                OriginalPaymentId = request.PaymentId,
+                TicketPurchaseId = request.PaymentId, // Now references TicketPurchase
                 ProcessedByUserId = request.ProcessedByUserId,
                 RefundReason = request.RefundReason.Trim(),
                 RefundStatus = RefundStatus.Processing,
@@ -102,93 +109,91 @@ public class RefundService : IRefundService
             refund.SetRefundAmount(request.RefundAmount);
 
             _context.PaymentRefunds.Add(refund);
-
-            // Create audit log for refund initiation
-            var auditLog = PaymentAuditLog.RefundInitiated(
-                request.PaymentId,
-                request.ProcessedByUserId,
-                request.RefundAmount.Amount,
-                request.RefundReason,
-                request.IpAddress);
-
-            _context.PaymentAuditLog.Add(auditLog);
-
             await _context.SaveChangesAsync(cancellationToken);
 
-            // Process refund with PayPal if payment has a PayPal Capture ID
-            if (!string.IsNullOrEmpty(payment.EncryptedPayPalCaptureId))
+            // Audit: Log refund request initiation
+            await LogRefundRequestAsync(refund);
+
+            // Process refund with PayPal if ticket has a PayPal Capture ID
+            if (!string.IsNullOrEmpty(ticketPurchase.EncryptedPayPalCaptureId))
             {
                 try
                 {
                     // Decrypt PayPal Capture ID (required for refunds)
-                    var captureId = await _encryptionService.DecryptAsync(payment.EncryptedPayPalCaptureId);
+                    var captureId = await _encryptionService.DecryptAsync(ticketPurchase.EncryptedPayPalCaptureId);
 
                     _logger.LogInformation(
-                        "Processing PayPal refund for payment {PaymentId} with capture ID (encrypted), idempotency key {IdempotencyKey}",
+                        "Processing PayPal refund for ticket {TicketId} with capture ID (encrypted), idempotency key {IdempotencyKey}",
                         request.PaymentId, idempotencyKey);
 
-                    // Process refund with PayPal using Capture ID and idempotency key
-                    var paypalRefundResult = await _payPalService.RefundCaptureAsync(
+                    // Process refund with PayPal using retry logic
+                    var paypalRefundResult = await RefundWithRetryAsync(
                         captureId,
                         request.RefundAmount,
                         request.RefundReason,
                         idempotencyKey,
-                        $"Refund processed by user {request.ProcessedByUserId}",
+                        async (retryCount, errorMessage) =>
+                        {
+                            // Audit callback: Log each retry attempt
+                            await LogRefundRetryAsync(refund.Id, retryCount, errorMessage);
+                        },
                         cancellationToken);
 
                     if (paypalRefundResult.IsSuccess && paypalRefundResult.Value != null)
                     {
-                        // Encrypt and store PayPal refund ID
-                        refund.EncryptedPayPalRefundId = await _encryptionService.EncryptAsync(paypalRefundResult.Value.RefundId);
+                        // Audit: Log successful refund
+                        await LogRefundSuccessAsync(refund.Id, paypalRefundResult.Value, cancellationToken);
+
                         refund.RefundStatus = RefundStatus.Completed;
 
-                        // Update payment status based on refund amount
-                        var totalRefunded = payment.Refunds.Where(r => r.IsCompleted()).Sum(r => r.RefundAmountValue);
+                        // Update ticket purchase status
+                        ticketPurchase.PaymentStatus = "Refunded";
 
-                        if (totalRefunded >= payment.AmountValue)
-                        {
-                            payment.Status = PaymentStatus.Refunded;
-                        }
-                        else
-                        {
-                            payment.Status = PaymentStatus.PartiallyRefunded;
-                        }
-
-                        payment.SetRefundAmount(Money.Create(totalRefunded, payment.Currency));
-                        payment.RefundedAt = DateTime.UtcNow;
-
-                        // Create completion audit log
-                        var completionLog = PaymentAuditLog.RefundCompleted(
-                            request.PaymentId,
-                            request.RefundAmount.Amount,
-                            paypalRefundResult.Value.RefundId);
-
-                        _context.PaymentAuditLog.Add(completionLog);
+                        _logger.LogInformation(
+                            "PayPal refund completed successfully for ticket {TicketId}, refund ID: {RefundId}",
+                            request.PaymentId, refund.Id);
                     }
                     else
                     {
-                        refund.MarkFailed($"PayPal refund failed: {paypalRefundResult.ErrorMessage}");
+                        // Audit: Log refund failure
+                        var errorMessage = $"PayPal refund failed: {paypalRefundResult.ErrorMessage}";
+                        await LogRefundFailureAsync(refund.Id, errorMessage, cancellationToken);
 
-                        _logger.LogError("PayPal refund failed for payment {PaymentId}: {Error}",
+                        refund.MarkFailed(errorMessage);
+
+                        _logger.LogError("PayPal refund failed for ticket {TicketId}: {Error}",
                             request.PaymentId, paypalRefundResult.ErrorMessage);
                     }
                 }
+                catch (MaxRetriesExceededException ex)
+                {
+                    var errorMessage = $"Max retries exceeded: {ex.Message}";
+                    await LogRefundFailureAsync(refund.Id, errorMessage, cancellationToken);
+
+                    refund.MarkFailed(errorMessage);
+                    _logger.LogError(ex, "Max retries exceeded for PayPal refund, ticket {TicketId}", request.PaymentId);
+                }
                 catch (Exception ex)
                 {
-                    refund.MarkFailed($"Stripe processing error: {ex.Message}");
-                    _logger.LogError(ex, "Error processing PayPal refund for payment {PaymentId}", request.PaymentId);
+                    var errorMessage = $"PayPal processing error: {ex.Message}";
+                    await LogRefundFailureAsync(refund.Id, errorMessage, cancellationToken);
+
+                    refund.MarkFailed(errorMessage);
+                    _logger.LogError(ex, "Error processing PayPal refund for ticket {TicketId}", request.PaymentId);
                 }
             }
-            else if (!string.IsNullOrEmpty(payment.EncryptedPayPalOrderId))
+            else if (!string.IsNullOrEmpty(ticketPurchase.EncryptedPayPalOrderId))
             {
-                // Legacy payment without Capture ID - log warning and fail gracefully
+                // Legacy ticket without Capture ID - log warning and fail gracefully
                 _logger.LogWarning(
-                    "Payment {PaymentId} has PayPal Order ID but no Capture ID. " +
+                    "Ticket {TicketId} has PayPal Order ID but no Capture ID. " +
                     "Cannot process automatic refund. Manual refund required.",
                     request.PaymentId);
 
-                refund.MarkFailed(
-                    "Legacy payment without Capture ID. Manual refund required through PayPal dashboard.");
+                var errorMessage = "Legacy payment without Capture ID. Manual refund required through PayPal dashboard.";
+                await LogRefundFailureAsync(refund.Id, errorMessage, cancellationToken);
+
+                refund.MarkFailed(errorMessage);
 
                 await _context.SaveChangesAsync(cancellationToken);
 
@@ -198,111 +203,30 @@ public class RefundService : IRefundService
             }
             else
             {
-                // Manual refund (no PayPal processing needed - e.g., cash payment)
+                // Manual refund (no PayPal processing needed - e.g., cash/Venmo payment)
                 refund.MarkCompleted();
+                ticketPurchase.PaymentStatus = "Refunded";
 
-                // Update payment status
-                payment.Status = PaymentStatus.Refunded;
-                payment.SetRefundAmount(request.RefundAmount);
-                payment.RefundedAt = DateTime.UtcNow;
+                _logger.LogInformation(
+                    "Manual refund marked complete for ticket {TicketId} (payment method: {PaymentMethod})",
+                    request.PaymentId, ticketPurchase.PaymentMethod);
             }
 
             await _context.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation(
-                "Refund {RefundId} processed successfully for payment {PaymentId}, status: {RefundStatus}",
+                "Refund {RefundId} processed successfully for ticket {TicketId}, status: {RefundStatus}",
                 refund.Id, request.PaymentId, refund.RefundStatus);
 
             // Auto-cancel volunteer signups if refund was completed
             if (refund.RefundStatus == RefundStatus.Completed)
             {
-                try
+                await AutoCancelVolunteerSignupsAsync(ticketPurchase, cancellationToken);
+
+                // Send refund confirmation email
+                if (ticketPurchase.User != null)
                 {
-                    // Get event attendance to find the event ID
-                    var eventAttendance = await _context.EventAttendances
-                        .AsNoTracking()
-                        .FirstOrDefaultAsync(ep => ep.Id == payment.EventRegistrationId, cancellationToken);
-
-                    if (eventAttendance != null)
-                    {
-                        // Cancel all volunteer signups for this user and event
-                        var cancellationResult = await _volunteerAssignmentService.CancelAllVolunteerSignupsForUserEventAsync(
-                            payment.UserId,
-                            eventAttendance.EventId,
-                            "Refunded Ticket, so automatically canceled volunteer spot",
-                            cancellationToken);
-
-                        if (cancellationResult.success && cancellationResult.cancelledCount > 0)
-                        {
-                            _logger.LogInformation(
-                                "Auto-cancelled {Count} volunteer signups for user {UserId} at event {EventId} due to ticket refund",
-                                cancellationResult.cancelledCount, payment.UserId, eventAttendance.EventId);
-                        }
-                        else if (!cancellationResult.success)
-                        {
-                            _logger.LogWarning(
-                                "Failed to auto-cancel volunteer signups for user {UserId} at event {EventId}: {Error}",
-                                payment.UserId, eventAttendance.EventId, cancellationResult.error);
-                        }
-                    }
-                    else
-                    {
-                        _logger.LogWarning(
-                            "EventAttendance {EventRegistrationId} not found, cannot auto-cancel volunteer signups",
-                            payment.EventRegistrationId);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Log but don't fail the refund if volunteer cancellation fails
-                    _logger.LogError(ex,
-                        "Error auto-cancelling volunteer signups for payment {PaymentId} refund", request.PaymentId);
-                }
-            }
-
-            // Send refund confirmation email if refund was completed
-            if (refund.RefundStatus == RefundStatus.Completed && payment.User != null)
-            {
-                try
-                {
-                    var timingMessage = GetRefundTimingMessage(payment.PaymentMethodType);
-                    var variables = new Dictionary<string, string>
-                    {
-                        { "user_name", payment.User.UserName ?? payment.User.Email ?? "Valued Member" },
-                        { "refund_amount", refund.GetRefundAmount().ToDisplayString() },
-                        { "original_amount", payment.GetAmount().ToDisplayString() },
-                        { "payment_method", FormatPaymentMethodType(payment.PaymentMethodType) },
-                        { "timing_message", timingMessage },
-                        { "refund_reason", refund.RefundReason },
-                        { "refund_id", refund.Id.ToString() }
-                    };
-
-                    var emailResult = await _emailService.SendTemplatedEmailAsync(
-                        payment.User.Email!,
-                        payment.User.UserName ?? payment.User.Email ?? "Valued Member",
-                        EmailCategory.Admin,
-                        "RefundConfirmation",
-                        variables,
-                        cancellationToken);
-
-                    if (emailResult.IsSuccess)
-                    {
-                        _logger.LogInformation(
-                            "Refund confirmation email sent successfully for refund {RefundId} to {Email}",
-                            refund.Id, payment.User.Email);
-                    }
-                    else
-                    {
-                        _logger.LogWarning(
-                            "Failed to send refund confirmation email for refund {RefundId}: {Error}",
-                            refund.Id, emailResult.Error);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Log but don't fail the refund if email sending fails
-                    _logger.LogError(ex,
-                        "Error sending refund confirmation email for refund {RefundId}", refund.Id);
+                    await SendRefundConfirmationEmailAsync(ticketPurchase, refund, cancellationToken);
                 }
             }
 
@@ -310,7 +234,7 @@ public class RefundService : IRefundService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing refund for payment {PaymentId}", request.PaymentId);
+            _logger.LogError(ex, "Error processing refund for ticket {TicketId}", request.PaymentId);
             return Result<PaymentRefund>.Failure($"An error occurred while processing the refund: {ex.Message}");
         }
     }
@@ -323,7 +247,7 @@ public class RefundService : IRefundService
         {
             var refund = await _context.PaymentRefunds
                 .AsNoTracking()
-                .Include(r => r.OriginalPayment)
+                .Include(r => r.TicketPurchase) // FIXED: Was OriginalPayment
                 .Include(r => r.ProcessedByUser)
                 .FirstOrDefaultAsync(r => r.Id == refundId, cancellationToken);
 
@@ -344,7 +268,7 @@ public class RefundService : IRefundService
         {
             var refunds = await _context.PaymentRefunds
                 .AsNoTracking()
-                .Where(r => r.OriginalPaymentId == paymentId)
+                .Where(r => r.TicketPurchaseId == paymentId) // FIXED: Was OriginalPaymentId
                 .Include(r => r.ProcessedByUser)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync(cancellationToken);
@@ -367,7 +291,7 @@ public class RefundService : IRefundService
             var refunds = await _context.PaymentRefunds
                 .AsNoTracking()
                 .Where(r => r.ProcessedByUserId == userId)
-                .Include(r => r.OriginalPayment)
+                .Include(r => r.TicketPurchase) // FIXED: Was OriginalPayment
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync(cancellationToken);
 
@@ -386,18 +310,18 @@ public class RefundService : IRefundService
     {
         try
         {
-            var payment = await _context.Payments.FindAsync(new object[] { paymentId }, cancellationToken);
+            var ticketPurchase = await _context.TicketPurchases.FindAsync(new object[] { paymentId }, cancellationToken);
 
-            if (payment == null)
+            if (ticketPurchase == null)
             {
-                return Result<bool>.Failure("Payment not found.");
+                return Result<bool>.Failure("Ticket purchase not found.");
             }
 
-            return Result<bool>.Success(payment.IsRefundEligible());
+            return Result<bool>.Success(IsTicketRefundEligible(ticketPurchase));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error checking refund eligibility for payment {PaymentId}", paymentId);
+            _logger.LogError(ex, "Error checking refund eligibility for ticket {TicketId}", paymentId);
             return Result<bool>.Failure($"Error checking refund eligibility: {ex.Message}");
         }
     }
@@ -408,32 +332,34 @@ public class RefundService : IRefundService
     {
         try
         {
-            var payment = await _context.Payments
+            var ticketPurchase = await _context.TicketPurchases
                 .AsNoTracking()
-                .Include(p => p.Refunds)
-                .FirstOrDefaultAsync(p => p.Id == paymentId, cancellationToken);
+                .FirstOrDefaultAsync(tp => tp.Id == paymentId, cancellationToken);
 
-            if (payment == null)
+            if (ticketPurchase == null)
             {
-                return Result<Money?>.Failure("Payment not found.");
+                return Result<Money?>.Failure("Ticket purchase not found.");
             }
 
-            var totalRefunded = payment.Refunds
-                .Where(r => r.IsCompleted())
-                .Sum(r => r.RefundAmountValue);
+            // Get all completed refunds for this ticket
+            var completedRefunds = await _context.PaymentRefunds
+                .AsNoTracking()
+                .Where(r => r.TicketPurchaseId == paymentId && r.RefundStatus == RefundStatus.Completed)
+                .ToListAsync(cancellationToken);
 
-            var remainingAmount = payment.AmountValue - totalRefunded;
+            var totalRefunded = completedRefunds.Sum(r => r.RefundAmountValue);
+            var remainingAmount = ticketPurchase.TotalPrice - totalRefunded;
 
             if (remainingAmount <= 0)
             {
-                return Result<Money?>.Success(Money.Zero(payment.Currency));
+                return Result<Money?>.Success(Money.Zero("USD"));
             }
 
-            return Result<Money?>.Success(Money.Create(remainingAmount, payment.Currency));
+            return Result<Money?>.Success(Money.Create(remainingAmount, "USD"));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error calculating maximum refund amount for payment {PaymentId}", paymentId);
+            _logger.LogError(ex, "Error calculating maximum refund amount for ticket {TicketId}", paymentId);
             return Result<Money?>.Failure($"Error calculating maximum refund amount: {ex.Message}");
         }
     }
@@ -441,7 +367,7 @@ public class RefundService : IRefundService
     public async Task<Result<PaymentRefund>> UpdateRefundStatusAsync(
         Guid refundId,
         RefundStatus status,
-        string? stripeRefundId = null,
+        string? paypalRefundId = null,
         CancellationToken cancellationToken = default)
     {
         try
@@ -460,10 +386,9 @@ public class RefundService : IRefundService
                 refund.ProcessedAt = DateTime.UtcNow;
             }
 
-            if (!string.IsNullOrEmpty(stripeRefundId))
+            if (!string.IsNullOrEmpty(paypalRefundId))
             {
-                // This would need encryption in a real implementation
-                // refund.EncryptedStripeRefundId = await _encryptionService.EncryptAsync(stripeRefundId);
+                refund.EncryptedPayPalRefundId = await _encryptionService.EncryptAsync(paypalRefundId);
             }
 
             await _context.SaveChangesAsync(cancellationToken);
@@ -481,37 +406,515 @@ public class RefundService : IRefundService
         }
     }
 
+    #region Private Helper Methods - Refund Eligibility
+
     /// <summary>
-    /// Gets the refund timing message based on payment method type
+    /// Checks if a ticket purchase is eligible for refund
+    /// Single Responsibility: Business rule validation
     /// </summary>
-    private static string GetRefundTimingMessage(PaymentMethodType paymentMethodType)
+    private static bool IsTicketRefundEligible(TicketPurchase ticketPurchase)
     {
-        return paymentMethodType switch
+        // Must have a completed payment
+        if (!ticketPurchase.IsPaymentCompleted)
         {
-            PaymentMethodType.SavedCard => "Please allow 1-2 billing cycles (up to 30 days) for the refund to appear on your credit/debit card statement.",
-            PaymentMethodType.NewCard => "Please allow 1-2 billing cycles (up to 30 days) for the refund to appear on your credit/debit card statement.",
-            PaymentMethodType.PayPal => "Your refund will be available immediately in your PayPal account.",
-            PaymentMethodType.Venmo => "Your refund should appear in your Venmo account within a few hours.",
-            PaymentMethodType.BankTransfer => "Please allow 3-5 business days for the refund to appear in your bank account.",
-            PaymentMethodType.Cash => "Please contact us at support@witchcityrope.com to arrange your cash refund.",
+            return false;
+        }
+
+        // Must have a TotalPrice > 0 (can't refund free tickets)
+        if (ticketPurchase.TotalPrice <= 0)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    #endregion
+
+    #region Private Helper Methods - Audit Logging (Consolidated from RefundAuditService)
+
+    /// <summary>
+    /// Logs refund request initiation
+    /// Consolidated from RefundAuditService (SOLID: part of refund processing responsibility)
+    /// </summary>
+    private async Task LogRefundRequestAsync(PaymentRefund refund)
+    {
+        try
+        {
+            _logger.LogInformation(
+                "Refund requested: ID={RefundId}, TicketId={TicketId}, " +
+                "Amount={Amount}, ProcessedBy={ProcessedBy}, IdempotencyKey={IdempotencyKey}, Reason={Reason}",
+                refund.Id,
+                refund.TicketPurchaseId,
+                refund.GetRefundAmount().ToDisplayString(),
+                refund.ProcessedByUserId,
+                refund.IdempotencyKey,
+                refund.RefundReason);
+
+            await Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to log refund request for refund {RefundId}", refund.Id);
+        }
+    }
+
+    /// <summary>
+    /// Logs successful refund completion with PayPal response data
+    /// Consolidated from RefundAuditService
+    /// </summary>
+    private async Task LogRefundSuccessAsync(
+        Guid refundId,
+        PayPalRefundResponse paypalRefund,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var refund = await _context.PaymentRefunds.FindAsync(new object[] { refundId }, cancellationToken);
+            if (refund == null)
+            {
+                _logger.LogWarning("Cannot log refund success - refund {RefundId} not found", refundId);
+                return;
+            }
+
+            // Store encrypted PayPal refund ID
+            refund.EncryptedPayPalRefundId = await _encryptionService.EncryptAsync(paypalRefund.RefundId);
+
+            // Update refund status based on PayPal response
+            refund.RefundStatus = paypalRefund.Status switch
+            {
+                "COMPLETED" => RefundStatus.Completed,
+                "PENDING" => RefundStatus.Processing,
+                "CANCELLED" => RefundStatus.Failed,
+                "FAILED" => RefundStatus.Failed,
+                _ => RefundStatus.Processing
+            };
+
+            // Store full PayPal response in metadata for debugging
+            refund.Metadata["paypal_response"] = System.Text.Json.JsonSerializer.Serialize(paypalRefund);
+
+            if (refund.RefundStatus == RefundStatus.Completed)
+            {
+                refund.ProcessedAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Refund succeeded: ID={RefundId}, PayPalRefundId={PayPalRefundId}, Status={Status}, Amount={Amount}",
+                refundId, paypalRefund.RefundId, paypalRefund.Status, paypalRefund.Amount);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to log refund success for refund {RefundId}", refundId);
+        }
+    }
+
+    /// <summary>
+    /// Logs retry attempt for a refund operation
+    /// Consolidated from RefundAuditService
+    /// </summary>
+    private async Task LogRefundRetryAsync(
+        Guid refundId,
+        int retryCount,
+        string errorMessage)
+    {
+        try
+        {
+            var refund = await _context.PaymentRefunds.FindAsync(new object[] { refundId });
+            if (refund == null)
+            {
+                _logger.LogWarning("Cannot log refund retry - refund {RefundId} not found", refundId);
+                return;
+            }
+
+            refund.RetryCount = retryCount;
+            refund.ErrorMessage = errorMessage;
+
+            // Store retry history in metadata
+            var retryKey = $"retry_{retryCount}";
+            refund.Metadata[retryKey] = new
+            {
+                timestamp = DateTime.UtcNow,
+                error = errorMessage,
+                attempt = retryCount
+            };
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogWarning(
+                "Refund retry {RetryCount}: ID={RefundId}, Error={ErrorMessage}",
+                retryCount, refundId, errorMessage);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to log refund retry for refund {RefundId}", refundId);
+        }
+    }
+
+    /// <summary>
+    /// Logs final refund failure
+    /// Consolidated from RefundAuditService
+    /// </summary>
+    private async Task LogRefundFailureAsync(
+        Guid refundId,
+        string errorMessage,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var refund = await _context.PaymentRefunds.FindAsync(new object[] { refundId }, cancellationToken);
+            if (refund == null)
+            {
+                _logger.LogWarning("Cannot log refund failure - refund {RefundId} not found", refundId);
+                return;
+            }
+
+            refund.RefundStatus = RefundStatus.Failed;
+            refund.ErrorMessage = errorMessage;
+
+            refund.Metadata["failure"] = new
+            {
+                timestamp = DateTime.UtcNow,
+                error = errorMessage,
+                total_retries = refund.RetryCount
+            };
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogError(
+                "Refund failed: ID={RefundId}, Error={ErrorMessage}, Retries={RetryCount}",
+                refundId, errorMessage, refund.RetryCount);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to log refund failure for refund {RefundId}", refundId);
+        }
+    }
+
+    #endregion
+
+    #region Private Helper Methods - Retry Logic (Consolidated from RefundRetryService)
+
+    /// <summary>
+    /// Executes PayPal refund with automatic retry logic for transient failures
+    /// Consolidated from RefundRetryService (SOLID: implementation detail of refund processing)
+    /// </summary>
+    private async Task<Result<PayPalRefundResponse>> RefundWithRetryAsync(
+        string captureId,
+        Money? amount,
+        string? reason,
+        string idempotencyKey,
+        Func<int, string, Task>? onRetry = null,
+        CancellationToken cancellationToken = default)
+    {
+        var retryCount = 0;
+        Exception? lastException = null;
+
+        _logger.LogInformation(
+            "Starting refund with retry for capture {CaptureId}, amount {Amount}, idempotency key {IdempotencyKey}",
+            captureId, amount?.ToDisplayString() ?? "FULL", idempotencyKey);
+
+        while (retryCount <= MaxRetries)
+        {
+            try
+            {
+                // Make API call (idempotency key ensures no duplicates even on retries)
+                var result = await _payPalService.RefundCaptureAsync(
+                    captureId,
+                    amount,
+                    reason ?? "Refund requested",
+                    idempotencyKey,
+                    $"Refund attempt {retryCount + 1}/{MaxRetries + 1}",
+                    cancellationToken);
+
+                // Success - return result
+                if (result.IsSuccess && result.Value != null)
+                {
+                    if (retryCount > 0)
+                    {
+                        _logger.LogInformation(
+                            "Refund succeeded on retry {RetryCount} for capture {CaptureId}",
+                            retryCount, captureId);
+                    }
+
+                    return result;
+                }
+
+                // PayPal service returned failure (business logic error, not retryable)
+                _logger.LogWarning(
+                    "PayPal refund failed with business error: {ErrorMessage}. Not retrying.",
+                    result.ErrorMessage);
+
+                return result;
+            }
+            catch (HttpRequestException ex)
+            {
+                lastException = ex;
+
+                // Check if retryable error (5xx, network)
+                if (IsRetryableError(ex))
+                {
+                    if (retryCount >= MaxRetries)
+                    {
+                        _logger.LogError(
+                            ex,
+                            "Refund failed after {MaxRetries} retries for capture {CaptureId}",
+                            MaxRetries, captureId);
+
+                        throw new MaxRetriesExceededException(
+                            $"Refund failed after {MaxRetries} retries: {ex.Message}",
+                            ex);
+                    }
+
+                    retryCount++;
+
+                    // Exponential backoff: 2^retryCount seconds
+                    var delaySeconds = Math.Pow(2, retryCount);
+
+                    _logger.LogWarning(
+                        ex,
+                        "Retryable error on attempt {Attempt}/{MaxAttempts} for capture {CaptureId}. " +
+                        "Retrying in {DelaySeconds}s. Error: {ErrorMessage}",
+                        retryCount, MaxRetries + 1, captureId, delaySeconds, ex.Message);
+
+                    // Invoke callback if provided (for audit logging)
+                    if (onRetry != null)
+                    {
+                        await onRetry(retryCount, ex.Message);
+                    }
+
+                    // Wait before retry
+                    await Task.Delay(TimeSpan.FromSeconds(delaySeconds), cancellationToken);
+                    continue;
+                }
+
+                // Non-retryable error (4xx client error) - fail immediately
+                _logger.LogError(
+                    ex,
+                    "Non-retryable HTTP error for capture {CaptureId}: {StatusCode} {ErrorMessage}",
+                    captureId, ex.StatusCode, ex.Message);
+
+                return Result<PayPalRefundResponse>.Failure(
+                    $"Refund failed with client error: {ex.Message}");
+            }
+            catch (TaskCanceledException ex)
+            {
+                // Timeout error - retryable
+                lastException = ex;
+
+                if (retryCount >= MaxRetries)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Refund timed out after {MaxRetries} retries for capture {CaptureId}",
+                        MaxRetries, captureId);
+
+                    throw new MaxRetriesExceededException(
+                        $"Refund timed out after {MaxRetries} retries",
+                        ex);
+                }
+
+                retryCount++;
+                var delaySeconds = Math.Pow(2, retryCount);
+
+                _logger.LogWarning(
+                    "Request timeout on attempt {Attempt}/{MaxAttempts} for capture {CaptureId}. " +
+                    "Retrying in {DelaySeconds}s.",
+                    retryCount, MaxRetries + 1, captureId, delaySeconds);
+
+                if (onRetry != null)
+                {
+                    await onRetry(retryCount, "Request timeout");
+                }
+
+                await Task.Delay(TimeSpan.FromSeconds(delaySeconds), cancellationToken);
+                continue;
+            }
+            catch (Exception ex)
+            {
+                // Unexpected error - log and return failure (don't retry unknown errors)
+                _logger.LogError(
+                    ex,
+                    "Unexpected error during refund for capture {CaptureId}: {ErrorType} {ErrorMessage}",
+                    captureId, ex.GetType().Name, ex.Message);
+
+                return Result<PayPalRefundResponse>.Failure(
+                    $"Unexpected error during refund: {ex.Message}");
+            }
+        }
+
+        // Should never reach here (safety fallback)
+        var fallbackMessage = lastException?.Message ?? "Unexpected retry loop exit";
+        _logger.LogError(
+            "Retry loop exited unexpectedly for capture {CaptureId}: {Message}",
+            captureId, fallbackMessage);
+
+        throw lastException ?? new Exception(fallbackMessage);
+    }
+
+    /// <summary>
+    /// Determines if an HTTP error is retryable based on status code
+    /// Consolidated from RefundRetryService
+    /// </summary>
+    private static bool IsRetryableError(HttpRequestException ex)
+    {
+        // Check for HTTP status code
+        if (ex.StatusCode.HasValue)
+        {
+            var statusCode = (int)ex.StatusCode.Value;
+
+            // 5xx server errors are retryable (transient server issues)
+            if (statusCode >= 500 && statusCode < 600)
+            {
+                return true;
+            }
+
+            // 4xx client errors are NOT retryable (permanent request issues)
+            if (statusCode >= 400 && statusCode < 500)
+            {
+                return false;
+            }
+        }
+
+        // Network-level errors (no status code) are retryable
+        if (ex.InnerException is SocketException or TaskCanceledException)
+        {
+            return true;
+        }
+
+        // Unknown errors without status code: retry to be safe
+        if (!ex.StatusCode.HasValue)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    #endregion
+
+    #region Private Helper Methods - Business Logic
+
+    /// <summary>
+    /// Auto-cancels volunteer signups when ticket is refunded
+    /// Single Responsibility: Side effect of refund completion
+    /// </summary>
+    private async Task AutoCancelVolunteerSignupsAsync(
+        TicketPurchase ticketPurchase,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Get event attendance to find the event ID
+            var eventAttendance = await _context.EventAttendances
+                .AsNoTracking()
+                .FirstOrDefaultAsync(ea => ea.TicketPurchaseId == ticketPurchase.Id, cancellationToken);
+
+            if (eventAttendance != null)
+            {
+                // Cancel all volunteer signups for this user and event
+                var cancellationResult = await _volunteerAssignmentService.CancelAllVolunteerSignupsForUserEventAsync(
+                    ticketPurchase.UserId,
+                    eventAttendance.EventId,
+                    "Refunded Ticket, so automatically canceled volunteer spot",
+                    cancellationToken);
+
+                if (cancellationResult.success && cancellationResult.cancelledCount > 0)
+                {
+                    _logger.LogInformation(
+                        "Auto-cancelled {Count} volunteer signups for user {UserId} at event {EventId} due to ticket refund",
+                        cancellationResult.cancelledCount, ticketPurchase.UserId, eventAttendance.EventId);
+                }
+                else if (!cancellationResult.success)
+                {
+                    _logger.LogWarning(
+                        "Failed to auto-cancel volunteer signups for user {UserId} at event {EventId}: {Error}",
+                        ticketPurchase.UserId, eventAttendance.EventId, cancellationResult.error);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error auto-cancelling volunteer signups for ticket {TicketId} refund", ticketPurchase.Id);
+        }
+    }
+
+    /// <summary>
+    /// Sends refund confirmation email to user
+    /// Single Responsibility: Email notification side effect
+    /// </summary>
+    private async Task SendRefundConfirmationEmailAsync(
+        TicketPurchase ticketPurchase,
+        PaymentRefund refund,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var timingMessage = GetRefundTimingMessage(ticketPurchase.PaymentMethod);
+            var variables = new Dictionary<string, string>
+            {
+                { "user_name", ticketPurchase.User!.UserName ?? ticketPurchase.User.Email ?? "Valued Member" },
+                { "refund_amount", refund.GetRefundAmount().ToDisplayString() },
+                { "original_amount", Money.Create(ticketPurchase.TotalPrice, "USD").ToDisplayString() },
+                { "payment_method", ticketPurchase.PaymentMethod },
+                { "timing_message", timingMessage },
+                { "refund_reason", refund.RefundReason },
+                { "refund_id", refund.Id.ToString() }
+            };
+
+            var emailResult = await _emailService.SendTemplatedEmailAsync(
+                ticketPurchase.User.Email!,
+                ticketPurchase.User.UserName ?? ticketPurchase.User.Email ?? "Valued Member",
+                EmailCategory.Admin,
+                "RefundConfirmation",
+                variables,
+                cancellationToken);
+
+            if (emailResult.IsSuccess)
+            {
+                _logger.LogInformation(
+                    "Refund confirmation email sent successfully for refund {RefundId} to {Email}",
+                    refund.Id, ticketPurchase.User.Email);
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "Failed to send refund confirmation email for refund {RefundId}: {Error}",
+                    refund.Id, emailResult.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending refund confirmation email for refund {RefundId}", refund.Id);
+        }
+    }
+
+    /// <summary>
+    /// Gets the refund timing message based on payment method
+    /// </summary>
+    private static string GetRefundTimingMessage(string paymentMethod)
+    {
+        return paymentMethod.ToUpper() switch
+        {
+            "PAYPAL" => "Your refund will be available immediately in your PayPal account.",
+            "VENMO" => "Your refund should appear in your Venmo account within a few hours.",
+            "CASH" => "Please contact us at support@witchcityrope.com to arrange your cash refund.",
             _ => "Please contact us at support@witchcityrope.com for refund timing information."
         };
     }
 
-    /// <summary>
-    /// Formats payment method type for display in emails
-    /// </summary>
-    private static string FormatPaymentMethodType(PaymentMethodType paymentMethodType)
+    #endregion
+}
+
+/// <summary>
+/// Exception thrown when max retries exceeded for a refund operation
+/// Consolidated from RefundRetryService
+/// </summary>
+public class MaxRetriesExceededException : Exception
+{
+    public MaxRetriesExceededException(string message, Exception inner)
+        : base(message, inner)
     {
-        return paymentMethodType switch
-        {
-            PaymentMethodType.SavedCard => "Credit/Debit Card",
-            PaymentMethodType.NewCard => "Credit/Debit Card",
-            PaymentMethodType.PayPal => "PayPal",
-            PaymentMethodType.Venmo => "Venmo",
-            PaymentMethodType.BankTransfer => "Bank Transfer",
-            PaymentMethodType.Cash => "Cash",
-            _ => paymentMethodType.ToString()
-        };
     }
 }

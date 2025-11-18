@@ -95,6 +95,21 @@ services:
       # Safety encryption key for development (DO NOT use in production)
       Safety__EncryptionKey: "NAQntjSAGLxD4SAO59B9VwRm7gUfv31+1F1R2F51zDg="
 
+      # Backup configuration for DigitalOcean Spaces
+      BackupConfiguration__Database__Host: postgres
+      BackupConfiguration__Database__Port: 5432
+      BackupConfiguration__Database__DatabaseName: witchcityrope_dev
+      BackupConfiguration__Database__SchemaName: public
+      BackupConfiguration__Database__Username: postgres
+      BackupConfiguration__Database__Password: devpass123
+      BackupConfiguration__Spaces__Endpoint: https://nyc3.digitaloceanspaces.com
+      BackupConfiguration__Spaces__BucketName: witchcityrope
+      BackupConfiguration__Spaces__AccessKey: DO00XJLUX4ZHQUZCVJXX
+      BackupConfiguration__Spaces__SecretKey: owqAahzw93mHTlILdD6QIoKb3AmeWmStabmF0htqBV8
+      BackupConfiguration__Spaces__FolderPrefix: backups/local
+      BackupConfiguration__BackupOptions__TempDirectory: /tmp
+      BackupConfiguration__BackupOptions__TimeoutSeconds: 300
+
       # Hot reload configuration
       DOTNET_USE_POLLING_FILE_WATCHER: "true"
       DOTNET_WATCH_RESTART_ON_RUDE_EDIT: "true"

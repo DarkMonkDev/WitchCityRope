@@ -3,14 +3,13 @@ import {
   Group,
   TextInput,
   MultiSelect,
-  NumberInput,
   Button,
   Stack,
   Drawer,
   Box
 } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
-import { IconSearch, IconFilter, IconFilterOff } from '@tabler/icons-react';
+import { IconSearch, IconFilter } from '@tabler/icons-react';
 import { useMediaQuery } from '@mantine/hooks';
 
 interface PaymentFilterBarProps {
@@ -23,17 +22,13 @@ interface PaymentFilterBarProps {
   onPaymentMethodsChange: (values: string[]) => void;
   statuses: string[];
   onStatusesChange: (values: string[]) => void;
-  minAmount: number | undefined;
-  onMinAmountChange: (value: number | undefined) => void;
-  maxAmount: number | undefined;
-  onMaxAmountChange: (value: number | undefined) => void;
-  onClearFilters: () => void;
 }
 
 const PAYMENT_METHOD_OPTIONS = [
   { value: 'PayPal', label: 'PayPal' },
   { value: 'Free', label: 'Free' },
-  { value: 'Venmo', label: 'Venmo' }
+  { value: 'Venmo', label: 'Venmo' },
+  { value: 'Cash', label: 'Cash' }
 ];
 
 const STATUS_OPTIONS = [
@@ -52,12 +47,7 @@ export const PaymentFilterBar: React.FC<PaymentFilterBarProps> = ({
   paymentMethods,
   onPaymentMethodsChange,
   statuses,
-  onStatusesChange,
-  minAmount,
-  onMinAmountChange,
-  maxAmount,
-  onMaxAmountChange,
-  onClearFilters
+  onStatusesChange
 }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const isMobile = useMediaQuery('(max-width: 767px)');
@@ -67,9 +57,7 @@ export const PaymentFilterBar: React.FC<PaymentFilterBarProps> = ({
     startDate ||
     endDate ||
     paymentMethods.length > 0 ||
-    statuses.length > 0 ||
-    minAmount !== undefined ||
-    maxAmount !== undefined;
+    statuses.length > 0;
 
   // Mobile Layout - Drawer with filters
   if (isMobile) {
@@ -108,29 +96,8 @@ export const PaymentFilterBar: React.FC<PaymentFilterBarProps> = ({
             }}
           >
             Filters
-            {hasActiveFilters && ` (${paymentMethods.length + statuses.length + (startDate ? 1 : 0) + (minAmount !== undefined || maxAmount !== undefined ? 1 : 0)})`}
+            {hasActiveFilters && ` (${paymentMethods.length + statuses.length + (startDate ? 1 : 0)})`}
           </Button>
-
-          {hasActiveFilters && (
-            <Button
-              variant="light"
-              color="red"
-              onClick={onClearFilters}
-              data-testid="clear-filters-button"
-              styles={{
-                root: {
-                  fontWeight: 600,
-                  height: '44px',
-                  paddingTop: '12px',
-                  paddingBottom: '12px',
-                  fontSize: '14px',
-                  lineHeight: '1.2'
-                }
-              }}
-            >
-              <IconFilterOff size="1rem" />
-            </Button>
-          )}
         </Group>
 
         {/* Drawer with all filter controls */}
@@ -176,54 +143,6 @@ export const PaymentFilterBar: React.FC<PaymentFilterBarProps> = ({
               clearable
               searchable
             />
-
-            {/* Amount Range */}
-            <Group gap="sm">
-              <NumberInput
-                label="Min Amount"
-                placeholder="$0.00"
-                prefix="$"
-                value={minAmount}
-                onChange={(value) => onMinAmountChange(typeof value === 'number' ? value : undefined)}
-                data-testid="payment-min-amount"
-                min={0}
-                decimalScale={2}
-                flex={1}
-              />
-              <NumberInput
-                label="Max Amount"
-                placeholder="$999.99"
-                prefix="$"
-                value={maxAmount}
-                onChange={(value) => onMaxAmountChange(typeof value === 'number' ? value : undefined)}
-                data-testid="payment-max-amount"
-                min={0}
-                decimalScale={2}
-                flex={1}
-              />
-            </Group>
-
-            <Button
-              variant="light"
-              color="wcr.7"
-              onClick={() => {
-                onClearFilters();
-                setDrawerOpen(false);
-              }}
-              fullWidth
-              styles={{
-                root: {
-                  fontWeight: 600,
-                  height: '44px',
-                  paddingTop: '12px',
-                  paddingBottom: '12px',
-                  fontSize: '14px',
-                  lineHeight: '1.2'
-                }
-              }}
-            >
-              Clear All Filters
-            </Button>
           </Stack>
         </Drawer>
       </Stack>
@@ -299,60 +218,6 @@ export const PaymentFilterBar: React.FC<PaymentFilterBarProps> = ({
               }
             }}
           />
-        </Group>
-
-        {/* Right: Amount Range */}
-        <Group align="flex-end" gap="sm">
-          <NumberInput
-            label="Min Amount"
-            placeholder="$0.00"
-            prefix="$"
-            value={minAmount}
-            onChange={(value) => onMinAmountChange(typeof value === 'number' ? value : undefined)}
-            data-testid="payment-min-amount"
-            min={0}
-            decimalScale={2}
-            styles={{
-              root: {
-                width: '120px'
-              }
-            }}
-          />
-          <NumberInput
-            label="Max Amount"
-            placeholder="$999.99"
-            prefix="$"
-            value={maxAmount}
-            onChange={(value) => onMaxAmountChange(typeof value === 'number' ? value : undefined)}
-            data-testid="payment-max-amount"
-            min={0}
-            decimalScale={2}
-            styles={{
-              root: {
-                width: '120px'
-              }
-            }}
-          />
-
-          {hasActiveFilters && (
-            <Button
-              variant="light"
-              color="wcr.7"
-              leftSection={<IconFilterOff size="1rem" />}
-              onClick={onClearFilters}
-              data-testid="clear-filters-button"
-              styles={{
-                root: {
-                  fontWeight: 600,
-                  height: '36px',
-                  fontSize: '14px',
-                  lineHeight: '1.2'
-                }
-              }}
-            >
-              Clear Filters
-            </Button>
-          )}
         </Group>
       </Group>
     </Box>

@@ -9,11 +9,11 @@ using WitchCityRope.Api.Data;
 
 #nullable disable
 
-namespace WitchCityRope.Api.Data.Migrations
+namespace WitchCityRope.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251111071532_MakeLocationNullableActual")]
-    partial class MakeLocationNullableActual
+    [Migration("20251111071416_MakeLocationNullable")]
+    partial class MakeLocationNullable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -12,15 +12,25 @@ import {
   Loader,
   Box,
   Grid,
+  Modal,
 } from '@mantine/core';
 import { IconCheck, IconAlertCircle, IconSettings, IconClock } from '@tabler/icons-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../api/client';
 import { VenueManagementCard } from '../../components/admin/VenueManagementCard';
+import { BackupManagementCard } from '../../features/admin/backup/components/BackupManagementCard';
 
 interface Settings {
   EventTimeZone: string;
   PreStartBufferMinutes: string;
+}
+
+interface Backup {
+  fileName: string;
+  timestamp: string;
+  sizeBytes: number;
+  sizeFormatted: string;
+  displayName?: string;
 }
 
 // US Timezones only - exactly 4 as specified
@@ -43,6 +53,11 @@ export const AdminSettingsPage: React.FC = () => {
     EventTimeZone: 'America/New_York',
     PreStartBufferMinutes: '0',
   });
+
+  // Backup restore modal state
+  const [restoreModalOpen, setRestoreModalOpen] = useState(false);
+  const [backupToRestore, setBackupToRestore] = useState<Backup | null>(null);
+  const [confirmationText, setConfirmationText] = useState('');
 
   // Fetch current settings
   const { data: settings, isLoading, error } = useQuery<Settings>({
@@ -81,6 +96,22 @@ export const AdminSettingsPage: React.FC = () => {
     }
 
     updateMutation.mutate(localSettings);
+  };
+
+  const handleRestoreClick = (backup: Backup) => {
+    setBackupToRestore(backup);
+    setRestoreModalOpen(true);
+    setConfirmationText('');
+  };
+
+  const handleConfirmRestore = () => {
+    if (confirmationText === 'RESTORE' && backupToRestore) {
+      // TODO: Implement restore logic via API
+      console.log('Restore backup:', backupToRestore.fileName);
+      setRestoreModalOpen(false);
+      setBackupToRestore(null);
+      setConfirmationText('');
+    }
   };
 
   const hasChanges =
@@ -438,7 +469,68 @@ export const AdminSettingsPage: React.FC = () => {
         <Grid.Col span={{ base: 12, md: 6 }}>
           <VenueManagementCard />
         </Grid.Col>
+
+        {/* Full Width - Database Backup Management Card */}
+        <Grid.Col span={{ base: 12, md: 12 }}>
+          <BackupManagementCard onRestoreClick={handleRestoreClick} />
+        </Grid.Col>
       </Grid>
+
+      {/* Restore Confirmation Modal */}
+      <Modal
+        opened={restoreModalOpen}
+        onClose={() => setRestoreModalOpen(false)}
+        title="Confirm Database Restore"
+        size="md"
+      >
+        <Stack gap="md">
+          <Alert color="red" icon={<IconAlertCircle />}>
+            This will REPLACE your current database with the selected backup!
+          </Alert>
+
+          {backupToRestore && (
+            <Box>
+              <Text fw={600} mb="xs">Backup to restore:</Text>
+              <Text size="sm" c="dimmed">
+                {backupToRestore.displayName || backupToRestore.fileName}
+              </Text>
+              <Text size="sm" c="dimmed">
+                {new Date(backupToRestore.timestamp).toLocaleString()}
+              </Text>
+              <Text size="sm" c="dimmed">
+                Size: {backupToRestore.sizeFormatted}
+              </Text>
+            </Box>
+          )}
+
+          <Box>
+            <Text mb="xs">
+              Type <strong>RESTORE</strong> to confirm:
+            </Text>
+            <TextInput
+              value={confirmationText}
+              onChange={(e) => setConfirmationText(e.currentTarget.value)}
+              placeholder="RESTORE"
+            />
+          </Box>
+
+          <Group justify="flex-end">
+            <Button
+              variant="default"
+              onClick={() => setRestoreModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              color="red"
+              disabled={confirmationText !== 'RESTORE'}
+              onClick={handleConfirmRestore}
+            >
+              Restore Database
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Container>
   );
 };

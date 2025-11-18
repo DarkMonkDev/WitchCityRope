@@ -66,6 +66,55 @@ public class TicketPurchase
     /// </summary>
     public string Notes { get; set; } = string.Empty;
 
+    // ========================================
+    // PayPal Integration Fields
+    // ========================================
+
+    /// <summary>
+    /// Encrypted PayPal Order ID (from order creation)
+    /// NULL for non-PayPal payments (cash, Venmo, RSVP)
+    /// CRITICAL: Encrypted for PCI compliance
+    /// </summary>
+    public string? EncryptedPayPalOrderId { get; set; }
+
+    /// <summary>
+    /// Encrypted PayPal Payer ID (payer information)
+    /// NULL for non-PayPal payments
+    /// CRITICAL: Encrypted for PCI compliance
+    /// </summary>
+    public string? EncryptedPayPalPayerId { get; set; }
+
+    /// <summary>
+    /// Encrypted PayPal Capture ID from purchase_units[0].payments.captures[0].id
+    /// REQUIRED for processing PayPal refunds (different from Order ID!)
+    /// NULL for non-PayPal payments
+    /// CRITICAL: Encrypted for PCI compliance
+    /// </summary>
+    public string? EncryptedPayPalCaptureId { get; set; }
+
+    /// <summary>
+    /// Sliding scale discount percentage applied (0-75%)
+    /// 0 = full price, 25 = 25% discount, 75 = 75% discount (max)
+    /// Defaults to 0 (no discount) for non-sliding scale tickets
+    /// </summary>
+    public decimal SlidingScalePercentage { get; set; } = 0.00m;
+
+    /// <summary>
+    /// Idempotency key for this transaction
+    /// Prevents duplicate payment processing if request is retried
+    /// Format: "WCR-{guid}" for consistency
+    /// NULL for older purchases created before idempotency support
+    /// </summary>
+    [MaxLength(50)]
+    public string? IdempotencyKey { get; set; }
+
+    /// <summary>
+    /// When the payment was successfully processed (UTC)
+    /// NULL if payment is still pending or failed
+    /// For completed payments, this is when PayPal confirmed the capture
+    /// </summary>
+    public DateTime? ProcessedAt { get; set; }
+
     /// <summary>
     /// Staff member who recorded a door purchase (cash or QR code).
     /// NULL for online purchases.

@@ -15,9 +15,10 @@ public class PaymentRefund
     public Guid Id { get; set; } = Guid.NewGuid();
 
     /// <summary>
-    /// Reference to the original payment being refunded
+    /// Reference to the ticket purchase being refunded
+    /// RENAMED FROM: OriginalPaymentId (migration: ConsolidatePaymentTrackingToTicketPurchases)
     /// </summary>
-    public Guid OriginalPaymentId { get; set; }
+    public Guid TicketPurchaseId { get; set; }
 
     #region Refund Amount (Money Value Object Storage)
 
@@ -105,9 +106,10 @@ public class PaymentRefund
     #region Navigation Properties
 
     /// <summary>
-    /// Navigation property to the original payment
+    /// Navigation property to the ticket purchase being refunded
+    /// RENAMED FROM: OriginalPayment (migration: ConsolidatePaymentTrackingToTicketPurchases)
     /// </summary>
-    public Payment? OriginalPayment { get; set; }
+    public TicketPurchase? TicketPurchase { get; set; }
 
     /// <summary>
     /// Navigation property to the user who processed the refund

@@ -44,7 +44,7 @@ You are the documentation librarian for WitchCityRope, the guardian of file orga
 - **Archive Procedures**: Review _archive/ folder structure
 
 ### For Document Templates:
-- **Templates Directory**: `/docs/functional-areas/ai-workflow-orchstration/templates/`
+- **Functional Area Template**: `/docs/functional-areas/_template/` - Template structure for new functional areas
 - **Documentation Guide**: Templates section
 
 ## When to Read Standards
@@ -232,11 +232,11 @@ Track which agents need which documents:
 
 ## Document Templates
 
-Maintain templates in: `/docs/functional-areas/ai-workflow-orchstration/templates/`
-- business-requirements-template.md
-- functional-spec-template.md
-- technical-design-template.md
-- test-plan-template.md
+**Note**: Document templates are embedded in agent definitions. Agents have comprehensive templates built-in:
+- Business requirements: See `business-requirements` agent definition (lines 142-228)
+- Functional specs: See `functional-spec` agent definition
+- Functional area structure: `/docs/functional-areas/_template/`
+- Test plans: See `test-developer` agent definition
 
 ## Cleanup Responsibilities
 

@@ -7,8 +7,6 @@ export interface PaymentFiltersState {
   endDate: Date | null;
   paymentMethods: string[];
   statuses: string[];
-  minAmount: number | undefined;
-  maxAmount: number | undefined;
   sortBy: string;
   sortDirection: 'Asc' | 'Desc';
   page: number;
@@ -21,8 +19,6 @@ const initialFilterState: PaymentFiltersState = {
   endDate: null,
   paymentMethods: [],
   statuses: [],
-  minAmount: undefined,
-  maxAmount: undefined,
   sortBy: 'paymentDate',
   sortDirection: 'Desc',
   page: 1,
@@ -64,11 +60,6 @@ export const usePaymentFilters = () => {
     if (filterState.startDate && filterState.endDate) {
       filters.push(`Date Range: ${filterState.startDate.toLocaleDateString()} - ${filterState.endDate.toLocaleDateString()}`);
     }
-    if (filterState.minAmount !== undefined || filterState.maxAmount !== undefined) {
-      const min = filterState.minAmount !== undefined ? `$${filterState.minAmount}` : '$0';
-      const max = filterState.maxAmount !== undefined ? `$${filterState.maxAmount}` : '∞';
-      filters.push(`Amount: ${min} - ${max}`);
-    }
 
     return filters;
   }, [filterState]);
@@ -81,8 +72,6 @@ export const usePaymentFilters = () => {
       endDate: filterState.endDate?.toISOString().split('T')[0],
       paymentMethods: filterState.paymentMethods.length > 0 ? filterState.paymentMethods : undefined,
       statuses: filterState.statuses.length > 0 ? filterState.statuses : undefined,
-      minAmount: filterState.minAmount,
-      maxAmount: filterState.maxAmount,
       sortBy: filterState.sortBy,
       sortDirection: filterState.sortDirection,
       page: filterState.page,
@@ -94,8 +83,6 @@ export const usePaymentFilters = () => {
     filterState.endDate,
     filterState.paymentMethods,
     filterState.statuses,
-    filterState.minAmount,
-    filterState.maxAmount,
     filterState.sortBy,
     filterState.sortDirection,
     filterState.page,

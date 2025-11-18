@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Title, Text, Group, Stack } from '@mantine/core';
+import { Container, Title, Text, Group, Stack, Box } from '@mantine/core';
 import { usePaymentFilters } from '../../features/admin/payments/hooks/usePaymentFilters';
 import { usePayments } from '../../features/admin/payments/hooks/usePayments';
 import { PaymentFilterBar } from '../../features/admin/payments/components/PaymentFilterBar';
@@ -23,7 +23,7 @@ export const AdminPaymentsPage: React.FC = () => {
     filterState,
     rawSearchTerm,
     updateFilter,
-    clearFilters,
+    handleSort,
     activeFilters,
     apiFilters
   } = usePaymentFilters();
@@ -38,13 +38,12 @@ export const AdminPaymentsPage: React.FC = () => {
   const totalRevenue = payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
 
   return (
-    <Box p="xl">
+    <Container size="xl" py="xl">
       {/* Page Header */}
       <Title
         order={1}
         mb="xl"
         c="wcr.7"
-        ff="Bodoni Moda, serif"
         size="2.5rem"
       >
         Payment Transactions
@@ -63,11 +62,6 @@ export const AdminPaymentsPage: React.FC = () => {
         onPaymentMethodsChange={(values) => updateFilter({ paymentMethods: values })}
         statuses={filterState.statuses}
         onStatusesChange={(values) => updateFilter({ statuses: values })}
-        minAmount={filterState.minAmount}
-        onMinAmountChange={(value) => updateFilter({ minAmount: value })}
-        maxAmount={filterState.maxAmount}
-        onMaxAmountChange={(value) => updateFilter({ maxAmount: value })}
-        onClearFilters={clearFilters}
       />
 
       {/* Payment Table */}
@@ -75,7 +69,9 @@ export const AdminPaymentsPage: React.FC = () => {
         payments={payments}
         isLoading={isLoading}
         error={error}
-        onClearFilters={clearFilters}
+        sortBy={filterState.sortBy}
+        sortDirection={filterState.sortDirection}
+        onSort={handleSort}
       />
 
       {/* Summary Statistics */}
@@ -181,6 +177,6 @@ export const AdminPaymentsPage: React.FC = () => {
           </Text>
         </Stack>
       )}
-    </Box>
+    </Container>
   );
 };
