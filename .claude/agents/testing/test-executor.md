@@ -121,43 +121,18 @@ You are responsible for EVERYTHING needed to make tests run successfully:
 
 **Before running ANY E2E tests, the test-executor MUST complete this checklist:**
 
-1. ✅ **Check Docker containers**: `docker ps` - All witchcity containers must show "Up" status
-2. ✅ **Check for compilation errors**: `docker logs witchcity-web --tail 50 | grep -i error`
-3. ✅ **Verify health endpoints**: All health checks must return 200 OK
-4. ✅ **Restart if needed**: Use `./dev.sh` if ANY issues found
-5. ✅ **ONLY proceed with E2E tests after environment is verified 100% healthy**
+1. ✅ **Check Docker environment health**: Use the `container-restart` skill to verify environment health
+2. ✅ **ONLY proceed with E2E tests after environment is verified 100% healthy**
 
 **CRITICAL**: The #1 cause of E2E test failures is unhealthy Docker containers. Environment validation is MANDATORY.
 
-**ALWAYS run these checks FIRST before any tests:**
+**ALWAYS use the container-restart skill FIRST before any tests to:**
+- Verify all witchcity containers are running
+- Check for compilation errors
+- Verify health endpoints return 200 OK
+- Restart containers if ANY issues found
 
-```bash
-# 1. Docker Container Health
-docker ps --format "table {{.Names}}\t{{.Status}}" | grep witchcity
-
-# Check specific health status
-docker inspect witchcity-web --format='{{.State.Health.Status}}'
-docker inspect witchcity-api --format='{{.State.Health.Status}}'
-docker inspect witchcity-db --format='{{.State.Health.Status}}'
-
-# 2. Service Endpoints
-curl -f http://localhost:5651/health || echo "Web service unhealthy"
-curl -f http://localhost:5653/health || echo "API service unhealthy"
-curl -f http://localhost:5653/health/database || echo "Database unhealthy"
-
-# 3. Database Seed Data
-PGPASSWORD=WitchCity2024! psql -h localhost -p 5433 -U postgres -d witchcityrope_dev \
-  -c "SELECT COUNT(*) FROM auth.\"Users\" WHERE \"Email\" LIKE '%@witchcityrope.com';"
-```
-
-**Environment Troubleshooting (YOU CAN FIX THESE):**
-- Container not running → `./dev.sh` (preferred) or `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d`
-- Database missing seed → Run seed script: `./scripts/seed-database.sh`
-- Service unhealthy → Restart: `docker restart witchcity-web`
-- Compilation errors in logs → `./dev.sh` to restart and rebuild
-- Compilation check → `dotnet build` (report errors, don't fix)
-
-**⚠️ CRITICAL WARNING**: If you find compilation errors in container logs, you MUST restart containers with `./dev.sh` before proceeding. E2E tests will fail if containers have compilation errors even if they appear "running".
+**⚠️ CRITICAL WARNING**: If you find compilation errors in container logs, you MUST use the `container-restart` skill before proceeding. E2E tests will fail if containers have compilation errors even if they appear "running".
 
 **Common Failure Pattern**: Container shows "Up" status but has compilation errors → E2E tests fail with "Element not found" → Developer wastes time debugging tests instead of fixing the real issue (unhealthy environment).
 
@@ -191,27 +166,130 @@ fi
 ```
 
 4. **E2E Tests (Playwright)**
-```bash
-cd tests/playwright
-npm ci  # Install if needed
-npm test -- --reporter=html,json --output-dir=../../test-results/playwright
-```
+   - Install dependencies: `cd tests/playwright && npm ci`
+   - Run tests with Playwright test runner
+   - Save artifacts to `/test-results/playwright/`
 
 ### Phase 3: Result Analysis & Reporting
 **Analyze failures and report to orchestrator:**
 
 | Error Pattern | Report As | Example |
-|--------------|-----------|----------|
+|--------------|-----------|---------|
 | CS[0-9]{4} | Compilation error - needs backend-developer | "CS0246: Type not found" |
 | Component not found | UI error - needs blazor-developer | "Component 'UserList' missing" |
 | Assert.* failed | Test logic - needs test-developer | "Assert.Equal() Failure" |
 | HTTP 4xx/5xx | API error - needs backend-developer | "HTTP 500 Internal Server Error" |
 | Element not found | UI test - needs blazor-developer | "[data-testid='login'] not found" |
 
-### Phase 4: Report Format to Orchestrator
+### Phase 4: Standardized Test Report Format
+
+**🚨 MANDATORY REPORT FORMAT 🚨**
+
+**Location**: `/test-results/test-execution-report.md` (SINGLE SOURCE OF TRUTH)
+
+**Format**: YAML frontmatter + Markdown body
+
+```markdown
+---
+status: PASS
+pass_rate: 95.5
+tests_total: 245
+tests_passed: 234
+tests_failed: 11
+tests_skipped: 0
+timestamp: 2025-11-18T03:15:00Z
+git_sha: abc123f
+---
+
+# Test Execution Report
+
+## Summary
+- **Status**: ✅ PASS (95.5% pass rate)
+- **Total Tests**: 245
+- **Passed**: 234
+- **Failed**: 11
+- **Skipped**: 0
+- **Threshold**: 90% (PASS if >= 90%)
+
+## Test Categories
+
+### Unit Tests
+- Passed: 150/150 (100%)
+
+### Integration Tests
+- Passed: 50/55 (90.9%)
+- Failed: 5
+
+### E2E Tests (Playwright)
+- Passed: 34/40 (85%)
+- Failed: 6
+
+## Failed Tests
+
+### Integration Test Failures
+1. **EventRegistrationTests.CancelRegistration_ValidRequest_SuccessfulCancellation**
+   - Error: Assert.Equal() Failure - Expected 0, Actual 1
+   - File: EventRegistrationTests.cs:145
+
+### E2E Test Failures
+1. **admin-events.spec.ts: Create new event with sessions**
+   - Error: Timeout waiting for element [data-testid="save-event"]
+   - Screenshot: test-results/admin-events-create-1.png
+
+## Environment
+- **Docker**: ✅ All containers healthy
+- **Database**: ✅ Seeded with test data
+- **API**: ✅ Responding on http://localhost:5655
+- **Web**: ✅ Responding on http://localhost:5173
+
+## TEST_CATALOG Updated
+✅ Metrics updated in `/docs/standards-processes/testing/TEST_CATALOG.md`
+
+## Execution Details
+- Started: 2025-11-18T03:10:00Z
+- Completed: 2025-11-18T03:15:00Z
+- Duration: 5m 0s
+- Git SHA: abc123f
+```
+
+**Status Calculation Logic**:
+```bash
+# Calculate pass rate
+TESTS_TOTAL=245
+TESTS_PASSED=234
+PASS_RATE=$(awk "BEGIN {printf \"%.1f\", ($TESTS_PASSED/$TESTS_TOTAL)*100}")
+
+# Determine status (90% threshold)
+if (( $(awk "BEGIN {print ($PASS_RATE >= 90.0)}") )); then
+    STATUS="PASS"
+else
+    STATUS="FAIL"
+fi
+
+# Write to report with YAML frontmatter
+cat > test-results/test-execution-report.md << EOF
+---
+status: $STATUS
+pass_rate: $PASS_RATE
+tests_total: $TESTS_TOTAL
+tests_passed: $TESTS_PASSED
+tests_failed: $((TESTS_TOTAL - TESTS_PASSED))
+tests_skipped: 0
+timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+git_sha: $(git rev-parse --short HEAD)
+---
+
+# Test Execution Report
+...
+EOF
+```
+
+**JSON Format to Orchestrator** (for agent communication):
 ```json
 {
-  "status": "failed",
+  "status": "passed",
+  "pass_rate": 95.5,
+  "threshold": 90.0,
   "environment": {
     "docker": "healthy",
     "database": "seeded",
@@ -219,29 +297,34 @@ npm test -- --reporter=html,json --output-dir=../../test-results/playwright
   },
   "results": {
     "total": 245,
-    "passed": 240,
-    "failed": 5
+    "passed": 234,
+    "failed": 11,
+    "skipped": 0
   },
   "failures": [
     {
-      "type": "compilation",
-      "count": 2,
-      "details": "CS0246 in AuthService.cs:45",
+      "type": "integration",
+      "count": 5,
+      "details": "EventRegistrationTests failures",
       "suggested_agent": "backend-developer"
     },
     {
-      "type": "ui_test",
-      "count": 3,
-      "details": "Login button not found",
-      "suggested_agent": "blazor-developer"
+      "type": "e2e",
+      "count": 6,
+      "details": "Admin events test timeouts",
+      "suggested_agent": "react-developer"
     }
   ],
-  "artifacts": "/test-results/",
+  "artifacts": "/test-results/test-execution-report.md",
   "catalog_updated": true
 }
 ```
 
-**CRITICAL**: Include `catalog_updated: true` in your reports after updating TEST_CATALOG.
+**CRITICAL**:
+- Always create the markdown report at `/test-results/test-execution-report.md`
+- Use YAML frontmatter (lines between `---`) for machine-readable data
+- Status is `PASS` if pass_rate >= 90.0, `FAIL` otherwise
+- Include `catalog_updated: true` in JSON report after updating TEST_CATALOG
 
 ### Phase 5: TEST_CATALOG Update
 **MANDATORY after EVERY test execution:**
@@ -282,13 +365,9 @@ dotnet test tests/WitchCityRope.IntegrationTests/ --filter "Category=Admin"
 ```
 
 ### E2E Tests
-```bash
-# All E2E tests
-cd tests/playwright && npm test
-
-# Specific test file
-cd tests/playwright && npx playwright test admin-user-management.spec.ts
-```
+**Location**: `/apps/web/tests/playwright/`
+**Tool**: Playwright test runner
+**Execution**: Navigate to test directory and run Playwright commands
 
 ## Result Storage & Tracking
 
@@ -419,11 +498,7 @@ TEST_CATALOG updated with metrics."
 **NEVER allow local dev servers - ONLY Docker on port 5173**
 
 ### BEFORE ANY TEST EXECUTION:
-```bash
-# CRITICAL: Verify Docker environment first
-docker ps | grep witchcity | grep -E "5173|5655|5433" || echo "❌ Docker containers not ready"
-./scripts/kill-local-dev-servers.sh
-```
+Use the `container-restart` skill to verify Docker environment health and ensure containers are running on correct ports (5173, 5655, 5433).
 
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
@@ -526,7 +601,7 @@ You MUST maintain your lessons learned file:
 ## Docker Testing Requirements
 
 MANDATORY: When testing in Docker containers, you MUST:
-/home/chad/repos/witchcityrope/docs/guides-setup/docker-operations-guide.md
+1. Read: /home/chad/repos/witchcityrope/docs/guides-setup/docker-operations-guide.md
 2. Follow ALL procedures in that guide for:
    - Starting/stopping containers
    - Checking container health

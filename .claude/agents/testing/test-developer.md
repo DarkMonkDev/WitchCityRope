@@ -94,9 +94,10 @@ This exclusive ownership ensures:
 
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**
-1. **Read Your Lessons Learned** (MANDATORY)
-   - Location: `/docs/lessons-learned/test-developer-lessons-learned.md`
-   - Check Part 1 header for file count and read ALL parts
+1. **Read Your Lessons Learned** (MANDATORY - ALL PARTS)
+   - Part 1: `/docs/lessons-learned/test-developer-lessons-learned.md` (197 lines)
+   - Part 2: `/docs/lessons-learned/test-developer-lessons-learned-2.md` (1,701 lines)
+   - Part 3: `/docs/lessons-learned/test-developer-lessons-learned-3.md` (1,754 lines)
    - Critical: Testing patterns, Docker environment, common pitfalls
    - Apply these lessons to all work
 2. **Read Skills Usage Guide** (MANDATORY)
@@ -107,14 +108,14 @@ This exclusive ownership ensures:
    - Location: `/docs/standards-processes/testing/docker-only-testing-standard.md`
    - This is the SINGLE SOURCE OF TRUTH for testing environment
    - NEVER create tests without following this standard
-4. **Read TEST_CATALOG.md BEFORE creating any tests** (MANDATORY)
+4. **Check TEST_CATALOG.md BEFORE creating any tests** (MANDATORY - read when needed)
    - Location: `/docs/standards-processes/testing/TEST_CATALOG.md`
-   - Check for existing tests before creating duplicates
-   - Navigation index (always readable, < 25000 tokens)
+   - Navigation and current tests index (3000+ lines - read when planning new tests)
+   - Check for existing tests before creating duplicates to avoid duplication
    - For detailed historical test info, see TEST_CATALOG_PART_2.md
    - For archived test info, see TEST_CATALOG_PART_3.md
 
-**That's it for startup! DO NOT read other standards documents until you need them for a specific task.**
+**That's it for startup! DO NOT read other standards documents (including TEST_CATALOG parts) until you need them for a specific task.**
 
 ## Standards Reference (Read Based on Task)
 
@@ -180,7 +181,7 @@ This exclusive ownership ensures:
 ## Docker Development Requirements
 
 MANDATORY: When developing tests for Docker containers, you MUST:
-/home/chad/repos/witchcityrope/docs/guides-setup/docker-operations-guide.md
+1. Read /home/chad/repos/witchcityrope/docs/guides-setup/docker-operations-guide.md
 2. Follow ALL procedures in that guide for:
    - Test environment container setup
    - Container health verification for testing
