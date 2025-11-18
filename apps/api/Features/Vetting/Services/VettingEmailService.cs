@@ -44,7 +44,6 @@ public class VettingEmailService : IVettingEmailService
                 { "submission_date", application.SubmittedAt.ToString("MMMM dd, yyyy") },
                 { "application_date", application.CreatedAt.ToString("MMMM dd, yyyy") },
                 { "status_change_date", DateTime.UtcNow.ToString("MMMM dd, yyyy") },
-                { "contact_email", _configuration["Vetting:FromEmail"] ?? "info@witchcityrope.com" },
                 { "current_status", application.WorkflowStatus.ToString() }
             };
 
@@ -118,7 +117,6 @@ public class VettingEmailService : IVettingEmailService
                 { "submission_date", application.SubmittedAt.ToString("MMMM dd, yyyy") },
                 { "application_date", application.CreatedAt.ToString("MMMM dd, yyyy") },
                 { "status_change_date", DateTime.UtcNow.ToString("MMMM dd, yyyy") },
-                { "contact_email", _configuration["Vetting:FromEmail"] ?? "info@witchcityrope.com" },
                 { "current_status", newStatus.ToString() },
                 { "approval_date", DateTime.UtcNow.ToString("MMMM dd, yyyy") },
                 { "review_date", DateTime.UtcNow.ToString("MMMM dd, yyyy") },
@@ -179,7 +177,6 @@ public class VettingEmailService : IVettingEmailService
                 { "submission_date", application.SubmittedAt.ToString("MMMM dd, yyyy") },
                 { "application_date", application.CreatedAt.ToString("MMMM dd, yyyy") },
                 { "status_change_date", DateTime.UtcNow.ToString("MMMM dd, yyyy") },
-                { "contact_email", _configuration["Vetting:FromEmail"] ?? "info@witchcityrope.com" },
                 { "current_status", application.WorkflowStatus.ToString() },
                 { "custom_message", customMessage ?? string.Empty }
             };

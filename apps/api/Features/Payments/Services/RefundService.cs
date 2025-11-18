@@ -274,8 +274,7 @@ public class RefundService : IRefundService
                         { "payment_method", FormatPaymentMethodType(payment.PaymentMethodType) },
                         { "timing_message", timingMessage },
                         { "refund_reason", refund.RefundReason },
-                        { "refund_id", refund.Id.ToString() },
-                        { "support_email", "support@witchcityrope.com" }
+                        { "refund_id", refund.Id.ToString() }
                     };
 
                     var emailResult = await _emailService.SendTemplatedEmailAsync(

@@ -255,8 +255,7 @@ public class AuthenticationService : IAuthenticationService
             var emailVariables = new Dictionary<string, string>
             {
                 { "user_name", user.SceneName ?? user.Email },
-                { "verification_url", verificationUrl },
-                { "support_email", "support@witchcityrope.com" }
+                { "verification_url", verificationUrl }
             };
 
             var emailResult = await _emailService.SendTemplatedEmailAsync(
@@ -475,8 +474,7 @@ public class AuthenticationService : IAuthenticationService
             var emailVariables = new Dictionary<string, string>
             {
                 { "user_name", user.SceneName ?? user.Email },
-                { "verification_url", verificationUrl },
-                { "support_email", "support@witchcityrope.com" }
+                { "verification_url", verificationUrl }
             };
 
             var emailResult = await _emailService.SendTemplatedEmailAsync(
@@ -543,8 +541,7 @@ public class AuthenticationService : IAuthenticationService
             var emailVariables = new Dictionary<string, string>
             {
                 { "user_name", user.SceneName ?? user.Email },
-                { "reset_url", resetUrl },
-                { "support_email", "support@witchcityrope.com" }
+                { "reset_url", resetUrl }
             };
 
             var emailResult = await _emailService.SendTemplatedEmailAsync(

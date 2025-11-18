@@ -970,7 +970,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
             Arg.Is<Dictionary<string, string>>(vars =>
                 vars.ContainsKey("user_name") &&
                 vars.ContainsKey("reset_url") &&
-                vars.ContainsKey("support_email") &&
+                !vars.ContainsKey("support_email") && // Static variable removed - now hardcoded in template
                 vars["reset_url"].Contains($"userId={user.Id}") &&
                 vars["reset_url"].Contains("token=")),
             Arg.Any<CancellationToken>());
@@ -1157,7 +1157,7 @@ public class AuthenticationServiceTests : IAsyncLifetime
             "PasswordReset",
             Arg.Is<Dictionary<string, string>>(vars =>
                 vars["user_name"] == sceneName &&
-                vars["support_email"] == "support@witchcityrope.com" &&
+                !vars.ContainsKey("support_email") && // Static variable removed - now hardcoded in template
                 vars.ContainsKey("reset_url")),
             Arg.Any<CancellationToken>());
     }

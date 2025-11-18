@@ -516,8 +516,7 @@ public class RefundServiceEmailTests : IDisposable
             Arg.Any<string>(),
             Arg.Is<Dictionary<string, string>>(vars =>
                 vars.ContainsKey("refund_id") &&
-                vars.ContainsKey("support_email") &&
-                vars["support_email"] == "support@witchcityrope.com"),
+                !vars.ContainsKey("support_email")), // Static variable removed - now hardcoded in template
             Arg.Any<CancellationToken>());
     }
 

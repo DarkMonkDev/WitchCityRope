@@ -263,8 +263,14 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
               <Text size="xs" fw={600} c="burgundy" mb={4}>
                 Available Variables:
               </Text>
-              <Text size="xs" c="dimmed">
-                {selectedTemplate.variables.join(', ')}
+              <Text size="xs" c="dimmed" mb="xs">
+                {selectedTemplate.variables.length > 0
+                  ? selectedTemplate.variables.join(', ')
+                  : 'No dynamic variables for this template'}
+              </Text>
+              <Text size="xs" c="dimmed" style={{ fontStyle: 'italic' }}>
+                Note: Contact emails (support@witchcityrope.com, info@witchcityrope.com,
+                events@witchcityrope.com) and system URL are hardcoded in templates.
               </Text>
             </Box>
 
