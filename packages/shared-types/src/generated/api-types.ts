@@ -224,6 +224,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/verify-email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify user email with token
+         * @description Confirms user email address using verification token sent during registration
+         */
+        post: operations["VerifyEmail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/resend-verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Resend email verification email
+         * @description Sends a new verification email to the user. Returns generic success message to prevent email enumeration.
+         */
+        post: operations["ResendVerification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/forgot-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Initiate password reset process
+         * @description Sends a password reset email to the user. Returns generic success message to prevent email enumeration.
+         */
+        post: operations["ForgotPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reset password with token
+         * @description Resets user password using the token from the password reset email
+         */
+        post: operations["ResetPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/debug-status": {
         parameters: {
             query?: never;
@@ -700,6 +780,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get paginated list of payment transactions (admin/teacher only)
+         * @description Returns a paginated list of payment transactions with filtering by search term, date range, payment methods, statuses, and amount range. Supports sorting and pagination.
+         */
+        get: operations["GetAdminPayments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/venues/{id}": {
         parameters: {
             query?: never;
@@ -1032,6 +1132,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/refunds/{ticketId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Process PayPal refund for a ticket purchase
+         * @description Processes a full refund for a PayPal ticket purchase. Optionally removes RSVP. Requires Admin or Teacher role.
+         */
+        post: operations["RefundTicketById"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/test-helpers/users": {
         parameters: {
             query?: never;
@@ -1084,6 +1204,39 @@ export interface paths {
          * @description Returns 200 if test helper endpoints are enabled (Development/Test only)
          */
         get: operations["TestHelpersHealth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/test-email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         put?: never;
         post?: never;
         delete?: never;
@@ -2644,9 +2797,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["RefundResponse"];
-                        "application/json": components["schemas"]["RefundResponse"];
-                        "text/json": components["schemas"]["RefundResponse"];
+                        "text/plain": components["schemas"]["RefundResponse2"];
+                        "application/json": components["schemas"]["RefundResponse2"];
+                        "text/json": components["schemas"]["RefundResponse2"];
                     };
                 };
                 /** @description Bad Request */
@@ -2917,6 +3070,7 @@ export interface components {
         };
         AdminRefundTicketRequest: {
             alsoRemoveRsvp?: boolean;
+            refundReason?: string;
         };
         AdminRefundTicketResponse: {
             ticketRefunded?: boolean;
@@ -3503,6 +3657,11 @@ export interface components {
             sessionNames?: string;
             /** Format: double */
             amountPaid?: number | null;
+            /** Format: uuid */
+            ticketId?: string | null;
+        };
+        ForgotPasswordRequest: {
+            email: string;
         };
         GenerateTokenRequest: {
             /** Format: uuid */
@@ -3864,6 +4023,15 @@ export interface components {
             canCancel?: boolean;
             metadata?: string | null;
         };
+        PaymentListResponse: {
+            transactions?: components["schemas"]["PaymentTransactionDto"][];
+            /** Format: int32 */
+            totalCount?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            pageSize?: number;
+        };
         /** @enum {unknown} */
         PaymentMethodType: "SavedCard" | "NewCard" | "BankTransfer" | "PayPal" | "Venmo" | "Cash";
         PaymentResponse: {
@@ -3909,6 +4077,28 @@ export interface components {
             currency?: string;
             /** Format: date-time */
             processedAt?: string | null;
+        };
+        PaymentTransactionDto: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            ticketId?: string;
+            /** Format: date-time */
+            paymentDate?: string;
+            userName?: string;
+            userEmail?: string;
+            eventName?: string;
+            sessionName?: string | null;
+            paymentMethod?: string;
+            /** Format: double */
+            amount?: number;
+            currency?: string;
+            status?: string;
+            isRefundable?: boolean;
+            /** Format: uuid */
+            refundId?: string | null;
+            /** Format: date-time */
+            refundDate?: string | null;
         };
         PendingCheckIn: {
             localId: string;
@@ -4030,6 +4220,15 @@ export interface components {
         } | null;
         RefundResponse: {
             /** Format: uuid */
+            refundId?: string;
+            /** Format: double */
+            amount?: number;
+            currency?: string;
+            status?: string;
+            message?: string;
+        };
+        RefundResponse2: {
+            /** Format: uuid */
             id?: string;
             /** Format: uuid */
             originalPaymentId?: string;
@@ -4060,6 +4259,14 @@ export interface components {
         RegistrationStatus: "Confirmed" | "Waitlist" | "CheckedIn" | "NoShow";
         RequestReinstatementRequest: {
             reason: string;
+        };
+        ResendVerificationRequest: {
+            email: string;
+        };
+        ResetPasswordRequest: {
+            userId: string;
+            token: string;
+            newPassword: string;
         };
         ReviewDecisionDto: {
             /** Format: uuid */
@@ -4532,6 +4739,7 @@ export interface components {
             fetLifeName?: string | null;
             phoneNumber?: string | null;
             vettingStatus?: components["schemas"]["VettingStatus"];
+            hasVettingApplication?: boolean;
         };
         /** @enum {unknown} */
         UserRole: "Member" | "Teacher" | "SafetyTeam" | "Administrator" | "EventOrganizer";
@@ -4587,6 +4795,10 @@ export interface components {
             createdAt?: string;
             /** Format: date-time */
             updatedAt?: string;
+        };
+        VerifyEmailRequest: {
+            userId: string;
+            token: string;
         };
         VettingDetailsResponse: {
             hasApplication?: boolean;
@@ -5089,6 +5301,116 @@ export interface operations {
             };
             /** @description Internal Server Error */
             500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    VerifyEmail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyEmailRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ResendVerification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResendVerificationRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    ForgotPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ForgotPasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    ResetPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResetPasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6536,6 +6858,59 @@ export interface operations {
             };
         };
     };
+    GetAdminPayments: {
+        parameters: {
+            query: {
+                searchTerm?: string;
+                startDate?: string;
+                endDate?: string;
+                paymentMethods?: string;
+                statuses?: string;
+                minAmount?: number;
+                maxAmount?: number;
+                sortBy: string;
+                sortDirection: string;
+                page: number;
+                pageSize: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentListResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     GetPublicVenue: {
         parameters: {
             query?: never;
@@ -7568,6 +7943,67 @@ export interface operations {
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
+            };
+        };
+    };
+    RefundTicketById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticketId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminRefundTicketRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RefundResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

@@ -7,12 +7,10 @@ import {
   Group,
   Title,
   Checkbox,
-  Alert,
   List,
   Box,
   Textarea
 } from '@mantine/core';
-import { IconAlertTriangle } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 
 interface RefundConfirmationModalProps {
@@ -58,18 +56,9 @@ export const RefundConfirmationModal: React.FC<RefundConfirmationModalProps> = (
       return;
     }
 
-    if (!refundReason.trim()) {
-      notifications.show({
-        title: 'Refund Reason Required',
-        message: 'Please provide a reason for the refund',
-        color: 'yellow'
-      });
-      return;
-    }
-
     setIsSubmitting(true);
     try {
-      await onConfirm(refundReason);
+      await onConfirm(refundReason.trim() || 'No reason provided');
       notifications.show({
         title: 'Refund Processed',
         message: `Refund of $${payment.amount.toFixed(2)} has been processed successfully. The user will receive an email confirmation.`,
@@ -153,16 +142,15 @@ export const RefundConfirmationModal: React.FC<RefundConfirmationModalProps> = (
           </Text>
         </Box>
 
-        {/* Refund Reason - Required Field */}
+        {/* Refund Reason - Optional Field */}
         <Box>
           <Textarea
-            label="Refund Reason"
-            placeholder="Please explain why this refund is being processed..."
+            label="Refund Reason (Optional)"
+            placeholder="Optional: Explain why this refund is being processed..."
             value={refundReason}
             onChange={(event) => setRefundReason(event.currentTarget.value)}
             maxLength={500}
             minRows={3}
-            required
             data-testid="refund-reason-textarea"
             styles={{
               root: {
@@ -179,31 +167,6 @@ export const RefundConfirmationModal: React.FC<RefundConfirmationModalProps> = (
             {remainingChars} / 500 characters remaining
           </Text>
         </Box>
-
-        {/* Warning Box with Impact Details */}
-        <Alert
-          icon={<IconAlertTriangle size={20} />}
-          title="This action will:"
-          color="yellow"
-          variant="light"
-          styles={{
-            root: {
-              borderLeft: '4px solid #DAA520'
-            }
-          }}
-        >
-          <List size="sm" spacing="xs" withPadding>
-            <List.Item>
-              <Text size="sm">Process a ${payment.amount.toFixed(2)} refund to {payment.userName}</Text>
-            </List.Item>
-            <List.Item>
-              <Text size="sm">Send a refund confirmation email to {payment.userEmail}</Text>
-            </List.Item>
-            <List.Item>
-              <Text size="sm">Create an audit record with the refund reason</Text>
-            </List.Item>
-          </List>
-        </Alert>
 
         {/* Cannot Undo Warning */}
         <Text size="sm" c="dimmed" ta="center" fw={500}>
@@ -248,7 +211,7 @@ export const RefundConfirmationModal: React.FC<RefundConfirmationModalProps> = (
             color="red"
             onClick={handleSubmit}
             loading={isSubmitting}
-            disabled={!confirmed || !refundReason.trim()}
+            disabled={!confirmed}
             data-testid="refund-confirm-button"
             styles={{
               root: {

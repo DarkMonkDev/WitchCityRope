@@ -89,4 +89,17 @@ public class EventParticipationDto
     /// Decimal value for tickets (includes donations on social events)
     /// </summary>
     public decimal? AmountPaid { get; set; }
+
+    /// <summary>
+    /// TicketPurchase ID for refund processing
+    /// Null for free RSVPs (no associated TicketPurchase)
+    /// Required by frontend to call /api/admin/refunds/{ticketId} endpoint
+    /// </summary>
+    public Guid? TicketId { get; set; }
+
+    /// <summary>
+    /// Payment method used for this purchase (PayPal, Venmo, Cash)
+    /// Null for free RSVPs
+    /// </summary>
+    public string? PaymentMethod { get; set; }
 }

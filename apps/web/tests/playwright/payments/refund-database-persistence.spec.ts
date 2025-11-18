@@ -352,10 +352,11 @@ test.describe('Refund Database Persistence Tests', () => {
         pr."ProcessedByUserId" as "processedBy",
         u."Email" as "userEmail",
         u."SceneName" as "sceneName",
-        uer."Name" as "role"
+        r."Name" as "role"
       FROM "PaymentRefunds" pr
       LEFT JOIN "Users" u ON pr."ProcessedByUserId" = u."Id"
-      LEFT JOIN "UserExtendedRoles" uer ON u."Id" = uer."UserId"
+      LEFT JOIN "UserRoles" ur ON u."Id" = ur."UserId"
+      LEFT JOIN "Roles" r ON ur."RoleId" = r."Id"
       ORDER BY pr."CreatedAt" DESC
       LIMIT 5
     `);
@@ -474,7 +475,7 @@ test.describe('Refund Database Persistence Tests', () => {
         pr."RefundCurrency" as "refundCurrency",
         p."AmountValue" as "paymentAmount",
         p."Currency" as "paymentCurrency",
-        p."PaymentStatus" as "paymentStatus"
+        p."Status" as "paymentStatus"
       FROM "PaymentRefunds" pr
       LEFT JOIN "Payments" p ON pr."OriginalPaymentId" = p."Id"
       ORDER BY pr."CreatedAt" DESC
@@ -541,13 +542,11 @@ test.describe('Refund Database Persistence Tests', () => {
       SELECT
         "Id" as "id",
         "PaymentId" as "paymentId",
-        "Action" as "action",
-        "PerformedBy" as "performedBy",
-        "PerformedAt" as "performedAt",
-        "Details" as "details"
+        "ActionType" as "action",
+        "CreatedAt" as "performedAt"
       FROM "PaymentAuditLog"
-      WHERE "Action" ILIKE '%refund%'
-      ORDER BY "PerformedAt" DESC
+      WHERE "ActionType" ILIKE '%refund%'
+      ORDER BY "CreatedAt" DESC
       LIMIT 10
     `);
 

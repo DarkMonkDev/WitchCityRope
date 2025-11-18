@@ -85,6 +85,7 @@ public static class ServiceCollectionExtensions
 
         // Payment feature services
         services.AddScoped<IPaymentService, PaymentService>();
+        services.AddScoped<IPaymentListService, PaymentListService>();
         services.AddSingleton<IPaymentNotificationService, PaymentNotificationService>(); // Singleton for in-memory SSE channel management
 
         // Conditionally register PayPal service based on configuration

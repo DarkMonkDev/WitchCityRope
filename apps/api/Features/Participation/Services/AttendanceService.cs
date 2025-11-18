@@ -6,6 +6,10 @@ using WitchCityRope.Api.Features.Participation.Models;
 using WitchCityRope.Api.Features.Shared.Models;
 using WitchCityRope.Api.Features.Volunteers.Services;
 using WitchCityRope.Api.Features.Events.Interfaces;
+using WitchCityRope.Api.Features.Payments.ValueObjects;
+using PaymentModels = WitchCityRope.Api.Features.Payments.Models;
+using IRefundService = WitchCityRope.Api.Features.Payments.Services.IRefundService;
+using ProcessRefundRequest = WitchCityRope.Api.Features.Payments.Services.ProcessRefundRequest;
 
 namespace WitchCityRope.Api.Features.Participation.Services;
 
@@ -54,17 +58,20 @@ public class AttendanceService : IAttendanceService
     private readonly ApplicationDbContext _context;
     private readonly IVolunteerAssignmentService _volunteerAssignmentService;
     private readonly ITimeZoneService _timeZoneService;
+    private readonly IRefundService _refundService;
     private readonly ILogger<AttendanceService> _logger;
 
     public AttendanceService(
         ApplicationDbContext context,
         IVolunteerAssignmentService volunteerAssignmentService,
         ITimeZoneService timeZoneService,
+        IRefundService refundService,
         ILogger<AttendanceService> logger)
     {
         _context = context;
         _volunteerAssignmentService = volunteerAssignmentService;
         _timeZoneService = timeZoneService;
+        _refundService = refundService;
         _logger = logger;
     }
 
@@ -730,6 +737,20 @@ public class AttendanceService : IAttendanceService
                     _logger.LogInformation("Found associated RSVP {RsvpId} - will also cancel when cancelling ticket {TicketId}",
                         associatedRsvp.Id, attendance.Id);
                 }
+
+                // ============================================================================
+                // AUTOMATIC REFUND PROCESSING: Process refund for paid tickets
+                // ============================================================================
+                //
+                // BUSINESS RULE: When user cancels their own ticket, automatically process refund
+                // if the ticket was paid for via PayPal.
+                //
+                // CRITICAL: Refund failures should NOT block cancellation
+                // - Users should be able to cancel even if refund fails
+                // - Failed refunds are logged for manual admin processing
+                //
+                // INTEGRATION: Uses existing RefundService - no duplicate refund logic
+                await ProcessAutomaticRefundAsync(attendance.Id, userId, reason, cancellationToken);
             }
 
             // Store old values for audit
@@ -1019,7 +1040,13 @@ public class AttendanceService : IAttendanceService
                     // Amount paid from TicketPurchase.TotalPrice (null for free RSVPs without TicketPurchase)
                     AmountPaid = x.Attendance.TicketPurchase != null
                                  ? x.Attendance.TicketPurchase.TotalPrice
-                                 : (decimal?)null
+                                 : (decimal?)null,
+                    // TicketPurchase ID for refund processing (null for free RSVPs without TicketPurchase)
+                    TicketId = x.Attendance.TicketPurchaseId,
+                    // Payment method (generic for paid tickets, null for free RSVPs)
+                    PaymentMethod = x.Attendance.TicketPurchase != null && x.Attendance.TicketPurchase.TotalPrice > 0
+                                    ? "PayPal/Venmo/Cash"
+                                    : null
                 })
                 .ToListAsync(cancellationToken);
 
@@ -1031,6 +1058,113 @@ public class AttendanceService : IAttendanceService
         {
             _logger.LogError(ex, "Error getting attendances for event {EventId}", eventId);
             return Result<List<EventParticipationDto>>.Failure("Failed to get event attendances", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Process automatic refund for user-initiated ticket cancellation
+    /// </summary>
+    /// <remarks>
+    /// BUSINESS RULE: When users cancel their own tickets, automatically process refunds for paid tickets.
+    ///
+    /// CRITICAL REQUIREMENTS:
+    /// - Only refund PayPal payments that are Completed
+    /// - Do NOT block cancellation if refund fails
+    /// - Log all refund attempts for admin review
+    /// - Include user's cancellation reason in refund reason
+    ///
+    /// INTEGRATION: Uses existing RefundService - no duplicate refund logic
+    /// </remarks>
+    private async Task ProcessAutomaticRefundAsync(
+        Guid attendanceId,
+        Guid userId,
+        string? userCancellationReason,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Find associated payment for this ticket
+            var payment = await _context.Payments
+                .FirstOrDefaultAsync(p =>
+                    p.EventRegistrationId == attendanceId &&
+                    p.Status == PaymentModels.PaymentStatus.Completed,
+                    cancellationToken);
+
+            // No payment found or payment not completed - skip refund
+            if (payment == null)
+            {
+                _logger.LogInformation(
+                    "No completed payment found for attendance {AttendanceId} - skipping automatic refund",
+                    attendanceId);
+                return;
+            }
+
+            // Only process refunds for PayPal payments
+            if (payment.PaymentMethodType != PaymentModels.PaymentMethodType.PayPal)
+            {
+                _logger.LogInformation(
+                    "Payment {PaymentId} is not PayPal (type: {PaymentMethodType}) - skipping automatic refund",
+                    payment.Id, payment.PaymentMethodType);
+                return;
+            }
+
+            // Construct refund reason with user's cancellation reason
+            var refundReason = string.IsNullOrWhiteSpace(userCancellationReason)
+                ? "User-initiated ticket cancellation: No reason provided"
+                : $"User-initiated ticket cancellation: {userCancellationReason}";
+
+            _logger.LogInformation(
+                "Processing automatic refund for payment {PaymentId} (user {UserId} cancelling ticket). Amount: {Amount} {Currency}",
+                payment.Id, userId, payment.AmountValue, payment.Currency);
+
+            // Create refund request
+            var refundRequest = new ProcessRefundRequest
+            {
+                PaymentId = payment.Id,
+                RefundAmount = Money.Create(payment.AmountValue, payment.Currency),
+                RefundReason = refundReason,
+                ProcessedByUserId = userId, // User cancelling their own ticket
+                IpAddress = "user-initiated-cancellation", // Placeholder - no IP available in service layer
+                UserAgent = "automatic-refund",
+                Metadata = new Dictionary<string, object>
+                {
+                    ["automatic_refund"] = true,
+                    ["triggered_by"] = "user_ticket_cancellation",
+                    ["attendance_id"] = attendanceId.ToString()
+                }
+            };
+
+            // Process refund via RefundService
+            var refundResult = await _refundService.ProcessRefundAsync(refundRequest, cancellationToken);
+
+            if (refundResult.IsSuccess)
+            {
+                _logger.LogInformation(
+                    "Automatic refund processed successfully for payment {PaymentId}. Refund ID: {RefundId}",
+                    payment.Id, refundResult.Value?.Id);
+            }
+            else
+            {
+                // Log warning but DON'T fail the cancellation
+                _logger.LogWarning(
+                    "Automatic refund failed for payment {PaymentId} during user ticket cancellation. Error: {Error}. " +
+                    "User's ticket will still be cancelled. Admin should manually process refund.",
+                    payment.Id, refundResult.ErrorMessage);
+
+                // TODO: Send notification to admins about failed automatic refund
+                // This would require email service integration - out of scope for this task
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log error but DON'T fail the cancellation
+            _logger.LogError(ex,
+                "Error processing automatic refund for attendance {AttendanceId} during user ticket cancellation. " +
+                "User's ticket will still be cancelled. Admin should manually process refund.",
+                attendanceId);
+
+            // TODO: Send notification to admins about failed automatic refund
+            // This would require email service integration - out of scope for this task
         }
     }
 }

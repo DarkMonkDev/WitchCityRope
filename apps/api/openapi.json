@@ -2114,6 +2114,127 @@
         }
       }
     },
+    "/api/admin/payments": {
+      "get": {
+        "tags": [
+          "Admin",
+          "Payments"
+        ],
+        "summary": "Get paginated list of payment transactions (admin/teacher only)",
+        "description": "Returns a paginated list of payment transactions with filtering by search term, date range, payment methods, statuses, and amount range. Supports sorting and pagination.",
+        "operationId": "GetAdminPayments",
+        "parameters": [
+          {
+            "name": "searchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "paymentMethods",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "statuses",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "minAmount",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "maxAmount",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortDirection",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/api/venues/{id}": {
       "get": {
         "tags": [
@@ -3288,6 +3409,66 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/admin/refunds/{ticketId}": {
+      "post": {
+        "tags": [
+          "Admin",
+          "Payments",
+          "Refunds"
+        ],
+        "summary": "Process PayPal refund for a ticket purchase",
+        "description": "Processes a full refund for a PayPal ticket purchase. Optionally removes RSVP. Requires Admin or Teacher role.",
+        "operationId": "RefundTicketById",
+        "parameters": [
+          {
+            "name": "ticketId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminRefundTicketRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefundResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -8021,17 +8202,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/RefundResponse"
+                  "$ref": "#/components/schemas/RefundResponse2"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RefundResponse"
+                  "$ref": "#/components/schemas/RefundResponse2"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RefundResponse"
+                  "$ref": "#/components/schemas/RefundResponse2"
                 }
               }
             }
@@ -10015,6 +10196,15 @@
             "type": "number",
             "format": "double",
             "nullable": true
+          },
+          "ticketId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "paymentMethod": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -11018,6 +11208,29 @@
           }
         }
       },
+      "PaymentListResponse": {
+        "type": "object",
+        "properties": {
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PaymentTransactionDto"
+            }
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PaymentMethodType": {
         "enum": [
           "SavedCard",
@@ -11134,6 +11347,62 @@
             "type": "string"
           },
           "processedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "PaymentTransactionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ticketId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "paymentDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "userName": {
+            "type": "string"
+          },
+          "userEmail": {
+            "type": "string"
+          },
+          "eventName": {
+            "type": "string"
+          },
+          "sessionName": {
+            "type": "string",
+            "nullable": true
+          },
+          "paymentMethod": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "isRefundable": {
+            "type": "boolean"
+          },
+          "refundId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "refundDate": {
             "type": "string",
             "format": "date-time",
             "nullable": true
@@ -11494,6 +11763,28 @@
         "nullable": true
       },
       "RefundResponse": {
+        "type": "object",
+        "properties": {
+          "refundId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "RefundResponse2": {
         "type": "object",
         "properties": {
           "id": {
@@ -13691,6 +13982,9 @@
       "name": "Venues"
     },
     {
+      "name": "Payments"
+    },
+    {
       "name": "Participation"
     },
     {
@@ -13698,6 +13992,9 @@
     },
     {
       "name": "Volunteer Assignment"
+    },
+    {
+      "name": "Refunds"
     },
     {
       "name": "Testing"

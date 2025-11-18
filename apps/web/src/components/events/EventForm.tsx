@@ -951,25 +951,29 @@ export const EventForm: React.FC<EventFormProps> = ({
     }
   }
 
-  const handleRefundTicketConfirm = async (refundReason: string) => {
-    if (!selectedParticipant || !eventId) return
+  const handleRefundTicketConfirm = async (refundReason: string, alsoRemoveRsvp: boolean = true) => {
+    if (!selectedParticipant || !selectedParticipant.ticketId) {
+      throw new Error('No ticket ID available for refund')
+    }
 
     try {
       const response = await api.post(
-        `/api/admin/events/${eventId}/tickets/${selectedParticipant.userId}/refund`,
+        `/api/admin/refunds/${selectedParticipant.ticketId}`,
         {
           refundReason,
-          alsoRemoveRsvp: true // Default to true for now - can be made configurable later
+          alsoRemoveRsvp
         }
       )
 
       if (response.status !== 200) {
-        throw new Error('Failed to refund ticket')
+        throw new Error('Failed to process refund')
       }
 
       // Success notification is handled by RefundConfirmationModal
       // Refetch participations to update the tables
-      queryClient.invalidateQueries({ queryKey: eventKeys.participations(eventId) })
+      if (eventId) {
+        queryClient.invalidateQueries({ queryKey: eventKeys.participations(eventId) })
+      }
 
       // Close modal and clear selection
       setRefundTicketModalOpen(false)
@@ -2111,7 +2115,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                               </Text>
                             </Table.Td>
                             <Table.Td>
-                              {participation.status === 'Active' && (
+                              {participation.status === 'Active' && participation.ticketId && (
                                 <Text
                                   size="sm"
                                   c="red"
@@ -2119,7 +2123,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                                   onClick={() => handleRefundTicketClick(participation)}
                                   data-testid={`refund-ticket-${participation.id}`}
                                 >
-                                  Refund
+                                  Cancel/Refund
                                 </Text>
                               )}
                             </Table.Td>
@@ -2267,7 +2271,7 @@ export const EventForm: React.FC<EventFormProps> = ({
             userName: selectedParticipant.userSceneName,
             userEmail: selectedParticipant.userEmail,
             amount: Number(selectedParticipant.amountPaid ?? 0),
-            paymentMethod: selectedParticipant.ticketTypeName || 'Ticket Purchase',
+            paymentMethod: selectedParticipant.paymentMethod || 'Paid Ticket',
             paymentDate: selectedParticipant.participationDate,
             description: selectedParticipant.sessionNames !== 'All Sessions'
               ? `Sessions: ${selectedParticipant.sessionNames}`

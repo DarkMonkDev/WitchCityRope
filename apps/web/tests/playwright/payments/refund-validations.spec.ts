@@ -2,8 +2,8 @@
  * Refund Validation E2E Test
  *
  * Tests all validation rules in RefundConfirmationModal:
- * - Cannot submit without refund reason (required field)
- * - Cannot submit without confirmation checkbox
+ * - Refund reason is optional (can submit with empty reason)
+ * - Cannot submit without confirmation checkbox (required)
  * - 500 character limit on refund reason enforced
  * - Character counter updates correctly
  * - Form validation messages display correctly
@@ -54,8 +54,8 @@ test.describe('Refund Confirmation Modal - Validation Rules', () => {
     return true;
   }
 
-  test('Cannot submit without refund reason', async ({ page }) => {
-    console.log('\n🎯 TEST: Validation - Refund reason required');
+  test('Can submit with empty refund reason (refund reason is optional)', async ({ page }) => {
+    console.log('\n🎯 TEST: Validation - Refund reason is optional');
     console.log('─'.repeat(60));
 
     const modalOpened = await openRefundModal(page);
@@ -75,24 +75,17 @@ test.describe('Refund Confirmation Modal - Validation Rules', () => {
     await modal.locator('[data-testid="refund-confirmation-checkbox"]').check();
     console.log('   ✅ Checkbox checked');
 
-    console.log('📝 Step 3: Verify submit button is disabled');
+    console.log('📝 Step 3: Verify submit button is ENABLED (refund reason optional)');
     const confirmButton = modal.locator('[data-testid="refund-confirm-button"]');
-    await expect(confirmButton).toBeDisabled({ timeout: 2000 });
-    console.log('   ✅ Submit button is disabled (refund reason missing)');
+    await expect(confirmButton).toBeEnabled({ timeout: 2000 });
+    console.log('   ✅ Submit button is enabled (refund reason is optional)');
 
-    // Try to click disabled button (should not trigger)
-    console.log('📝 Step 4: Attempt to click disabled button');
-    await confirmButton.click({ force: true }).catch(() => {
-      console.log('   ✅ Click prevented (as expected)');
-    });
+    // Verify label indicates optional
+    const label = modal.locator('text=/Refund Reason.*Optional/i');
+    await expect(label).toBeVisible();
+    console.log('   ✅ Label shows "Optional"');
 
-    // Verify no success notification
-    const successNotification = page.locator('text=/Refund.*processed/i');
-    const notificationVisible = await successNotification.isVisible().catch(() => false);
-    expect(notificationVisible).toBe(false);
-    console.log('   ✅ No success notification (validation working)');
-
-    console.log('✅ TEST PASSED: Cannot submit without refund reason');
+    console.log('✅ TEST PASSED: Refund reason is optional, button enabled with just checkbox');
   });
 
   test('Cannot submit without confirmation checkbox', async ({ page }) => {
@@ -127,8 +120,8 @@ test.describe('Refund Confirmation Modal - Validation Rules', () => {
     console.log('✅ TEST PASSED: Cannot submit without confirmation checkbox');
   });
 
-  test('Both refund reason AND checkbox required', async ({ page }) => {
-    console.log('\n🎯 TEST: Validation - Both fields required');
+  test('Only checkbox required for submission', async ({ page }) => {
+    console.log('\n🎯 TEST: Validation - Only checkbox required');
     console.log('─'.repeat(60));
 
     const modalOpened = await openRefundModal(page);
@@ -139,7 +132,7 @@ test.describe('Refund Confirmation Modal - Validation Rules', () => {
 
     const modal = page.locator('[data-testid="refund-confirmation-modal"]');
 
-    console.log('📝 Step 1: Verify button disabled when both fields empty');
+    console.log('📝 Step 1: Verify button disabled when checkbox unchecked');
     const textarea = modal.locator('[data-testid="refund-reason-textarea"]');
     const checkbox = modal.locator('[data-testid="refund-confirmation-checkbox"]');
     const confirmButton = modal.locator('[data-testid="refund-confirm-button"]');
@@ -147,26 +140,26 @@ test.describe('Refund Confirmation Modal - Validation Rules', () => {
     await textarea.clear();
     await checkbox.uncheck();
     await expect(confirmButton).toBeDisabled({ timeout: 2000 });
-    console.log('   ✅ Button disabled with both fields empty');
+    console.log('   ✅ Button disabled with checkbox unchecked');
 
-    console.log('📝 Step 2: Fill refund reason only');
+    console.log('📝 Step 2: Fill refund reason only (checkbox still unchecked)');
     await textarea.fill('Test refund reason');
     await expect(confirmButton).toBeDisabled({ timeout: 2000 });
-    console.log('   ✅ Button still disabled (checkbox missing)');
+    console.log('   ✅ Button still disabled (checkbox required)');
 
-    console.log('📝 Step 3: Check checkbox only (clear reason)');
+    console.log('📝 Step 3: Check checkbox only (clear refund reason)');
     await textarea.clear();
     await checkbox.check();
-    await expect(confirmButton).toBeDisabled({ timeout: 2000 });
-    console.log('   ✅ Button still disabled (reason missing)');
+    await expect(confirmButton).toBeEnabled({ timeout: 2000 });
+    console.log('   ✅ Button ENABLED with checkbox only (reason optional)');
 
-    console.log('📝 Step 4: Fill both fields');
+    console.log('📝 Step 4: Fill both fields (verify still enabled)');
     await textarea.fill('Test refund reason');
     await checkbox.check();
     await expect(confirmButton).toBeEnabled({ timeout: 2000 });
     console.log('   ✅ Button enabled with both fields filled');
 
-    console.log('✅ TEST PASSED: Both fields required for submission');
+    console.log('✅ TEST PASSED: Only checkbox required, refund reason optional');
   });
 
   test('500 character limit enforced on refund reason', async ({ page }) => {
