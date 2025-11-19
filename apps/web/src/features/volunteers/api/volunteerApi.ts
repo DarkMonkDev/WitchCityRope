@@ -41,3 +41,14 @@ export const getUserVolunteerShifts = async (): Promise<UserVolunteerShiftDto[]>
   );
   return data;
 };
+
+/**
+ * Cancel a volunteer signup
+ */
+export const cancelVolunteerSignup = async (
+  assignmentId: string
+): Promise<void> => {
+  await apiClient.delete(
+    `/api/volunteer-assignments/${assignmentId}`
+  );
+};

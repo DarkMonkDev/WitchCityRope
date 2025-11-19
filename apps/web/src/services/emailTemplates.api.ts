@@ -41,6 +41,24 @@ export type UpdateEventTemplateRequest = components['schemas']['UpdateEventTempl
  */
 export type SendAdHocEmailRequest = components['schemas']['SendAdHocEmailRequest'];
 
+/**
+ * User Segment DTO
+ * Source: C# UserSegmentDto via NSwag generation
+ */
+export type UserSegmentDto = components['schemas']['UserSegmentDto'];
+
+/**
+ * User Preview DTO
+ * Source: C# UserPreviewDto via NSwag generation
+ */
+export type UserPreviewDto = components['schemas']['UserPreviewDto'];
+
+/**
+ * User Segment Enum
+ * Source: C# UserSegment enum via NSwag generation
+ */
+export type UserSegment = components['schemas']['UserSegment'];
+
 // =================================================================
 // EMAIL TEMPLATES API SERVICE
 // =================================================================
@@ -246,14 +264,71 @@ class EmailTemplatesApiService {
   // ===================================================================
 
   /**
+   * Get all user segments with recipient counts
+   */
+  async getUserSegments(): Promise<UserSegmentDto[]> {
+    console.log('EmailTemplatesAPI: Fetching user segments');
+
+    try {
+      const response = await apiClient.get<UserSegmentDto[]>(
+        `/api/email-templates/segments`
+      );
+
+      console.log('EmailTemplatesAPI: User segments response:', {
+        hasData: !!response.data,
+        count: response.data?.length || 0,
+      });
+
+      return response.data;
+    } catch (error: any) {
+      console.error('EmailTemplatesAPI: Error fetching user segments:', {
+        error: error.message || error,
+        status: error.response?.status,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Get preview of first 10 users from a segment
+   */
+  async getSegmentPreview(segmentName: string): Promise<UserPreviewDto[]> {
+    console.log('EmailTemplatesAPI: Fetching segment preview:', segmentName);
+
+    try {
+      const response = await apiClient.get<UserPreviewDto[]>(
+        `/api/email-templates/segments/${segmentName}/preview`
+      );
+
+      console.log('EmailTemplatesAPI: Segment preview response:', {
+        hasData: !!response.data,
+        count: response.data?.length || 0,
+      });
+
+      return response.data;
+    } catch (error: any) {
+      console.error('EmailTemplatesAPI: Error fetching segment preview:', {
+        segmentName,
+        error: error.message || error,
+        status: error.response?.status,
+      });
+      throw error;
+    }
+  }
+
+  /**
    * Send ad-hoc bulk email
    */
-  async sendAdHocEmail(request: SendAdHocEmailRequest): Promise<void> {
+  async sendAdHocEmail(request: SendAdHocEmailRequest): Promise<SentAdHocEmailDto> {
     console.log('EmailTemplatesAPI: Sending ad-hoc email:', request);
 
     try {
-      await apiClient.post(`/api/email-templates/ad-hoc/send`, request);
+      const response = await apiClient.post<SentAdHocEmailDto>(
+        `/api/email-templates/ad-hoc/send`,
+        request
+      );
       console.log('EmailTemplatesAPI: Ad-hoc email sent successfully');
+      return response.data;
     } catch (error: any) {
       console.error('EmailTemplatesAPI: Error sending ad-hoc email:', {
         error: error.message || error,

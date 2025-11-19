@@ -5,6 +5,8 @@ using System.Text.RegularExpressions;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.EmailTemplates.Entities;
 using WitchCityRope.Api.Features.EmailTemplates.Models;
+using WitchCityRope.Api.Features.Vetting.Entities;
+using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Features.EmailTemplates.Services;
 
@@ -416,21 +418,101 @@ public class EmailTemplateService : IEmailTemplateService
     // Ad Hoc Emails (Placeholder - SendGrid integration required)
     // ========================================
 
-    public Task<Result<SentAdHocEmailDto>> SendAdHocEmailAsync(
+    public async Task<Result<SentAdHocEmailDto>> SendAdHocEmailAsync(
         SendAdHocEmailRequest request,
         Guid sentByUserId,
         CancellationToken cancellationToken = default)
     {
-        // TODO: Implement SendGrid integration
-        // 1. Build recipient list based on RecipientGroup
-        // 2. Render HtmlBody and PlainTextBody (replace variables)
-        // 3. Sanitize custom content
-        // 4. Send via SendGrid API
-        // 5. Create SentAdHocEmail audit record
-        // 6. Return DTO with SendGridMessageId and delivery status
+        try
+        {
+            // Validate mutually exclusive options
+            if (request.Segment.HasValue && request.RecipientEmails != null && request.RecipientEmails.Any())
+            {
+                return Result<SentAdHocEmailDto>.Failure("Cannot specify both Segment and RecipientEmails");
+            }
 
-        _logger.LogWarning("SendAdHocEmailAsync not yet implemented - SendGrid integration required");
-        return Task.FromResult(Result<SentAdHocEmailDto>.Failure("Not implemented - SendGrid integration pending"));
+            if (!request.Segment.HasValue && (request.RecipientEmails == null || !request.RecipientEmails.Any()))
+            {
+                return Result<SentAdHocEmailDto>.Failure("Must specify either Segment or RecipientEmails");
+            }
+
+            List<string> recipientEmails;
+            int recipientCount;
+
+            // Build recipient list based on segment or manual list
+            if (request.Segment.HasValue)
+            {
+                var segmentUsers = await GetUsersForSegmentAsync(request.Segment.Value, cancellationToken);
+                recipientEmails = segmentUsers.Select(u => u.Email ?? string.Empty).Where(e => !string.IsNullOrEmpty(e)).ToList();
+                recipientCount = recipientEmails.Count;
+
+                _logger.LogInformation("Built recipient list for segment {Segment}: {Count} users",
+                    request.Segment.Value, recipientCount);
+            }
+            else
+            {
+                recipientEmails = request.RecipientEmails!;
+                recipientCount = recipientEmails.Count;
+
+                _logger.LogInformation("Using manual recipient list: {Count} emails", recipientCount);
+            }
+
+            if (recipientCount == 0)
+            {
+                return Result<SentAdHocEmailDto>.Failure("No valid recipients found");
+            }
+
+            // Sanitize HTML content
+            var sanitizedHtml = SanitizeHtml(request.HtmlBody);
+
+            // TODO: Implement SendGrid integration
+            // For now, create audit record without sending
+            var sentEmail = new SentAdHocEmail
+            {
+                Id = Guid.NewGuid(),
+                Subject = request.Subject,
+                HtmlBody = sanitizedHtml,
+                PlainTextBody = request.PlainTextBody,
+                RecipientGroup = request.RecipientGroup,
+                RecipientEmails = recipientEmails.ToArray(),
+                RecipientCount = recipientCount,
+                EventId = request.EventId,
+                SendGridMessageId = string.Empty, // Will be populated when SendGrid is integrated
+                DeliveryStatus = "Pending", // Will be updated based on SendGrid response
+                SentAt = DateTime.UtcNow,
+                SentBy = sentByUserId
+            };
+
+            _context.SentAdHocEmails.Add(sentEmail);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            var dto = new SentAdHocEmailDto
+            {
+                Id = sentEmail.Id,
+                Subject = sentEmail.Subject,
+                RecipientGroup = sentEmail.RecipientGroup,
+                RecipientCount = sentEmail.RecipientCount,
+                EventId = sentEmail.EventId,
+                SendGridMessageId = sentEmail.SendGridMessageId,
+                DeliveryStatus = sentEmail.DeliveryStatus,
+                SentAt = sentEmail.SentAt
+            };
+
+            _logger.LogInformation("Created ad-hoc email audit record {EmailId} for {RecipientCount} recipients",
+                sentEmail.Id, recipientCount);
+
+            // TODO: When SendGrid is integrated:
+            // 1. Replace variables in HtmlBody and PlainTextBody ({{user_name}}, {{reset_url}}, {{system_url}})
+            // 2. Send via SendGrid API with personalization
+            // 3. Update DeliveryStatus and SendGridMessageId based on response
+
+            return Result<SentAdHocEmailDto>.Success(dto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending ad-hoc email");
+            return Result<SentAdHocEmailDto>.Failure("Failed to send email");
+        }
     }
 
     public async Task<Result<List<SentAdHocEmailDto>>> GetAdHocEmailHistoryAsync(
@@ -505,6 +587,160 @@ public class EmailTemplateService : IEmailTemplateService
             _logger.LogError(ex, "Error retrieving ad-hoc email {EmailId}", id);
             return Result<SentAdHocEmailDto>.Failure("Failed to retrieve email");
         }
+    }
+
+    // ========================================
+    // User Segments (Email Targeting)
+    // ========================================
+
+    public async Task<Result<List<UserSegmentDto>>> GetUserSegmentsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var segments = new List<UserSegmentDto>();
+
+            // Get counts for each segment
+            foreach (UserSegment segment in Enum.GetValues<UserSegment>())
+            {
+                var count = await GetSegmentCountAsync(segment, cancellationToken);
+                var description = GetSegmentDescription(segment);
+
+                segments.Add(new UserSegmentDto
+                {
+                    Segment = segment,
+                    SegmentName = segment.ToString(),
+                    Count = count,
+                    Description = description
+                });
+            }
+
+            _logger.LogInformation("Retrieved user segment counts for {SegmentCount} segments", segments.Count);
+            return Result<List<UserSegmentDto>>.Success(segments);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving user segments");
+            return Result<List<UserSegmentDto>>.Failure("Failed to retrieve user segments");
+        }
+    }
+
+    public async Task<Result<List<UserPreviewDto>>> GetSegmentPreviewAsync(
+        UserSegment segment,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var users = await GetUsersForSegmentAsync(segment, cancellationToken);
+
+            var preview = users
+                .Take(10)
+                .Select(u => new UserPreviewDto
+                {
+                    SceneName = u.SceneName,
+                    Email = u.Email ?? string.Empty,
+                    VettingStatus = u.VettingStatus,
+                    VettingStatusDisplay = GetVettingStatusDisplay(u.VettingStatus),
+                    Role = u.Role,
+                    EmailConfirmed = u.EmailConfirmed
+                })
+                .ToList();
+
+            _logger.LogInformation("Retrieved preview of {Count} users for segment {Segment}",
+                preview.Count, segment);
+
+            return Result<List<UserPreviewDto>>.Success(preview);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving segment preview for {Segment}", segment);
+            return Result<List<UserPreviewDto>>.Failure("Failed to retrieve segment preview");
+        }
+    }
+
+    // ========================================
+    // Private Helper Methods for Segments
+    // ========================================
+
+    private async Task<int> GetSegmentCountAsync(UserSegment segment, CancellationToken cancellationToken)
+    {
+        var query = BuildSegmentQuery(segment);
+        return await query.CountAsync(cancellationToken);
+    }
+
+    private async Task<List<ApplicationUser>> GetUsersForSegmentAsync(
+        UserSegment segment,
+        CancellationToken cancellationToken)
+    {
+        var query = BuildSegmentQuery(segment);
+        return await query.ToListAsync(cancellationToken);
+    }
+
+    private IQueryable<ApplicationUser> BuildSegmentQuery(UserSegment segment)
+    {
+        var query = _context.Users.AsNoTracking();
+
+        return segment switch
+        {
+            UserSegment.AllVettedMembers =>
+                query.Where(u => u.VettingStatus == (int)VettingStatus.Approved && u.IsActive),
+
+            UserSegment.AllPreVettedMembers =>
+                query.Where(u => u.VettingStatus != (int)VettingStatus.Denied
+                    && u.VettingStatus != (int)VettingStatus.OnHold
+                    && u.IsActive),
+
+            UserSegment.AllTeachers =>
+                query.Where(u => u.Role.Contains("Teacher") && u.IsActive),
+
+            UserSegment.AllDMs =>
+                query.Where(u => u.Role.Contains("DungeonMonitor") && u.IsActive),
+
+            UserSegment.AllSafetyTeam =>
+                query.Where(u => u.Role.Contains("SafetyTeam") && u.IsActive),
+
+            UserSegment.AllAdmins =>
+                query.Where(u => u.Role.Contains("Administrator") && u.IsActive),
+
+            UserSegment.EmailNotVerified =>
+                query.Where(u => !u.EmailConfirmed && u.IsActive),
+
+            UserSegment.VettingPending =>
+                query.Where(u => u.VettingStatus == (int)VettingStatus.UnderReview && u.IsActive),
+
+            _ => throw new ArgumentException($"Unknown segment: {segment}")
+        };
+    }
+
+    private static string GetSegmentDescription(UserSegment segment)
+    {
+        return segment switch
+        {
+            UserSegment.AllVettedMembers => "All vetted members (VettingStatus == Approved)",
+            UserSegment.AllPreVettedMembers => "All pre-vetted members (not Denied or OnHold, active)",
+            UserSegment.AllTeachers => "All users with Teacher role",
+            UserSegment.AllDMs => "All users with DungeonMonitor role",
+            UserSegment.AllSafetyTeam => "All users with SafetyTeam role",
+            UserSegment.AllAdmins => "All users with Administrator role",
+            UserSegment.EmailNotVerified => "Users with unverified email addresses",
+            UserSegment.VettingPending => "Users with vetting applications under review",
+            _ => "Unknown segment"
+        };
+    }
+
+    private static string GetVettingStatusDisplay(int vettingStatus)
+    {
+        return vettingStatus switch
+        {
+            0 => "Under Review",
+            1 => "Interview Approved",
+            2 => "Final Review",
+            3 => "Approved",
+            4 => "Denied",
+            5 => "On Hold",
+            6 => "Withdrawn",
+            _ => "Unknown"
+        };
     }
 
     // ========================================

@@ -1,6 +1,6 @@
 # Functional Area Master Index
-<!-- Last Updated: 2025-11-17 - Database Backup/Restore Added -->
-<!-- Version: 3.0 -->
+<!-- Last Updated: 2025-11-18 - Member Import & Email Enhancement Added -->
+<!-- Version: 3.1 -->
 <!-- Owner: Librarian Agent -->
 <!-- Status: Active -->
 
@@ -27,10 +27,12 @@ This master index is maintained by the librarian agent to provide quick lookups 
 | **Email Templates** | `/docs/functional-areas/email-templates/` | `/docs/functional-areas/email-templates/new-work/2025-11-09-admin-management/` | **NEW FEATURE** - Centralized admin UI for managing global email templates across all categories (Vetting, Events, Admin, Incident, Ad Hoc) with event-specific template override capability. Features: Template CRUD operations, variable substitution system, template preview, event-level customization overrides. Similar patterns to CMS admin interface. | **Phase 1 - Requirements (Just Initialized)** | 2025-11-09 |
 | **Enhancements** | `/docs/functional-areas/enhancements/` | N/A | User interface enhancements and feature improvements | Active | 2025-08-22 |
 | **Events Management** | `/docs/functional-areas/events/` | `/docs/functional-areas/events/new-work/2025-08-24-events-management/` | **ACTIVE DEVELOPMENT** - React migration from Blazor implementation - Event creation, RSVP, ticketing, admin management | **Phase 1 - Requirements** | 2025-08-24 |
+| **Events - Granular Timing Controls** | `/docs/functional-areas/events/admin/granular-timing-controls/` | `/docs/functional-areas/events/admin/granular-timing-controls/` | **NEW FEATURE (Phase 1 Complete)** - Per-event timing controls for RSVP, Ticket, and Volunteer registration/cancellation windows. Replaces global PreStartBufferMinutes with 6 granular timing fields (RegistrationOpen/Close, CancellationOpen/Close, VolunteerRegistration/CancellationClose). Features: NULL=no restriction, decimal hours (0.5=30min), -24 max post-event timing, complete implementation plan + 6 handoff documents created. Ready for Phase 2 (Database Design). | **Phase 1 - Requirements & Planning (COMPLETE)** | 2025-11-18 |
 | **Frontend Debugging Research** | `/docs/functional-areas/frontend-debugging-research/` | `/docs/functional-areas/frontend-debugging-research/new-work/2025-11-04-layout-debugging-agent-research/` | **NEW RESEARCH PROJECT** - Research to solve persistent frontend layout/styling debugging issues with Claude Code agents. Focus: MCP tools evaluation (Chrome DevTools), agent knowledge base design, debugging patterns documentation. Deliverables: Problem analysis, MCP tools evaluation, knowledge base architecture, agent improvement recommendations. Research only - no implementation | **Phase 1 - Research (Started)** | 2025-11-04 |
 | **Homepage** | `/docs/functional-areas/homepage/` | N/A | Landing page and main navigation entry point with complete workflow structure and design assets | Enhanced | 2025-08-19 |
 | **HTML Editor Migration** | `/docs/functional-areas/html-editor-migration/` | **IMPLEMENTATION COMPLETE** ✅ | **TinyMCE to @mantine/tiptap migration COMPLETE** - Eliminated API key requirements and testing quota issues. New MantineTiptapEditor component with variable insertion, ~70% bundle size reduction, zero configuration needed. All 5 phases complete: Component Migration, Configuration Cleanup, Test Suite Updates, Code Formatting, Documentation. **PRODUCTION READY** | **COMPLETE** | 2025-10-08 |
 | **Incident Reporting** | `/docs/functional-areas/incident-reporting/` | `/docs/functional-areas/incident-reporting/new-work/2025-10-17-initial-implementation/` | **NEW FEATURE** - Safety incident documentation and tracking system - Admin-focused interface for documenting safety incidents, consent violations, and community concerns. Similar patterns to vetting system (multi-phase workflow, status tracking). | **Phase 1 - Requirements (Not Started)** | 2025-10-17 |
+| **Member Import & Email Enhancement** | `/docs/functional-areas/member-import/` | `/docs/functional-areas/member-import/handoffs/` | **NEW FEATURE (Just Initialized)** - Two parallel features: (1) One-time vetted member import tool - Console application to import 140+ approved members from Google Sheet with VettingStatus=Approved, EmailVerified=false, VettingApplication/VettingAuditLog records, dry-run mode, connection string support for Local/Staging/Production. (2) Email admin enhancement - Backend segmentation system (8 user segments) + Frontend Send Ad-Hoc Email UI with segment selector, recipient preview, and NewWebsiteUser email template. Implementation: 4 phases with parallel/sequential execution (Database Designer, Backend Developer x2, Test Developer, UI Designer, React Developer, Test Executor). Complete orchestrator handoff + 6 agent handoff placeholders created. | **Phase 0 - Handoff Documentation (Complete)** | 2025-11-18 |
 | **Navigation** | `/docs/functional-areas/navigation/` | **IMPLEMENTATION COMPLETE** ✅ | **Complete logged-in user navigation updates** - Dashboard button, Admin link, User greeting, Logout accessibility | **COMPLETE** | 2025-09-11 |
 | **Payment (PayPal/Venmo)** | `/docs/functional-areas/payment-paypal-venmo/` | **INTEGRATION COMPLETE** ✅ | **PayPal webhook integration with Cloudflare tunnel** - Real sandbox webhooks working, strongly-typed event processing, mock services for CI/CD | **COMPLETE** | 2025-09-14 |
 | **Payments (RSVP/Ticketing)** | `/docs/functional-areas/payments/` | `/docs/functional-areas/payments/new-work/2025-01-19-rsvp-ticketing/` | **IMPLEMENTATION COMPLETE** ✅ | **Complete RSVP and ticketing system** - Production-ready RSVP for social events, PayPal ticket purchases for classes, comprehensive participation management, 90% functional with minor API issues | **IMPLEMENTATION COMPLETE** | 2025-09-20 |
@@ -223,6 +225,35 @@ This master index is maintained by the librarian agent to provide quick lookups 
 - **Performance**: Modern API maintains 49ms response times with enhanced feature set
 - **Documentation**: Complete migration documentation created with archive warnings
 - **Completion Date**: 2025-09-13 (1 day - faster than estimated)
+
+### 🆕 ACTIVE: Member Import & Email Enhancement (November 2025)
+- **Current Work**: `/docs/functional-areas/member-import/handoffs/`
+- **Status**: Phase 0 - Handoff Documentation (COMPLETE)
+- **Next Phase**: Phase 1 - Implementation (Ready to Start)
+- **Objective**: Implement two parallel features - (1) One-time vetted member import tool console application, (2) Email admin enhancement for segment-based email sending
+- **Scope**: Import 140+ approved members from Google Sheet + Backend segmentation system (8 user segments) + Frontend Send Ad-Hoc Email UI
+- **Approach**: Multi-agent workflow with parallel/sequential execution across 4 phases
+- **Work Type**: Feature Development (Import Tool) + Feature Enhancement (Email Admin)
+- **Timeline**: 2025-11-18 to TBD (estimated 1-2 weeks)
+- **Session**: 2025-11-18 (Handoff Documentation Complete)
+- **Progress Tracking**: `/docs/functional-areas/member-import/handoffs/orchestrator-2025-11-18-handoff.md`
+- **Quality Gates**: Database Review:100% → Import Tool:85% → Email Backend:85% → Email UI:85% → Testing:100%
+- **Key Deliverables**:
+  - **Phase 1A**: Database schema review and constraints documentation
+  - **Phase 1B**: Console application with Google Sheet integration, dry-run mode, connection strings
+  - **Phase 1C**: Integration tests for import tool
+  - **Phase 2A**: UserSegment enum, segments/preview API endpoints, NewWebsiteUser template
+  - **Phase 3A**: Send Ad-Hoc Email UI design with segment selector
+  - **Phase 3B**: React implementation of email sending UI
+  - **Phase 4**: E2E testing and production readiness verification
+- **Agent Handoffs Created**:
+  - orchestrator-2025-11-18-handoff.md (Master orchestration plan)
+  - database-designer-2025-11-18-handoff.md (Phase 1A placeholder)
+  - backend-developer-import-2025-11-18-handoff.md (Phase 1B placeholder)
+  - backend-developer-email-2025-11-18-handoff.md (Phase 2A placeholder)
+  - test-developer-2025-11-18-handoff.md (Phase 1C placeholder)
+  - ui-designer-2025-11-18-handoff.md (Phase 3A placeholder)
+  - react-developer-2025-11-18-handoff.md (Phase 3B placeholder)
 
 ### 🆕 ACTIVE: Database Backup & Restore Migration (November 2025)
 - **Current Work**: `/docs/functional-areas/database-backup-restore/new-work/2025-11-17-migration-from-account-automation/`

@@ -52,6 +52,13 @@ interface ApiEvent {
   sessions?: ApiEventSession[]
   ticketTypes?: ApiEventTicketType[]
   teacherIds?: string[]
+  // Timing control fields
+  registrationOpenHours?: number | null
+  registrationCloseHours?: number | null
+  cancellationOpenHours?: number | null
+  cancellationCloseHours?: number | null
+  volunteerRegistrationCloseHours?: number | null
+  volunteerCancellationCloseHours?: number | null
 }
 
 // API session structure (matches actual API response)
@@ -141,7 +148,14 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
     ticketTypes: transformedTicketTypes,
     teacherIds: apiEvent.teacherIds || [],
     volunteerPositions: transformedVolunteerPositions,
-    isPublished: apiEvent.isPublished !== undefined ? apiEvent.isPublished : true
+    isPublished: apiEvent.isPublished !== undefined ? apiEvent.isPublished : true,
+    // Timing control fields
+    registrationOpenHours: apiEvent.registrationOpenHours ?? null,
+    registrationCloseHours: apiEvent.registrationCloseHours ?? null,
+    cancellationOpenHours: apiEvent.cancellationOpenHours ?? null,
+    cancellationCloseHours: apiEvent.cancellationCloseHours ?? null,
+    volunteerRegistrationCloseHours: apiEvent.volunteerRegistrationCloseHours ?? null,
+    volunteerCancellationCloseHours: apiEvent.volunteerCancellationCloseHours ?? null
   }
 }
 
@@ -248,6 +262,11 @@ export function useUpdateEvent() {
 
       return { previousEvent }
     },
+    onSuccess: (data, updatedEvent) => {
+      // CRITICAL: Immediately update cache with actual API response
+      // This ensures the UI shows the correct saved values instead of optimistic values
+      queryClient.setQueryData(eventKeys.detail(updatedEvent.id), data)
+    },
     onError: (err, updatedEvent, context) => {
       // Rollback on error
       if (context?.previousEvent) {
@@ -255,8 +274,7 @@ export function useUpdateEvent() {
       }
     },
     onSettled: (_data, _error, updatedEvent) => {
-      // Always refetch after error or success
-      queryClient.invalidateQueries({ queryKey: eventKeys.detail(updatedEvent.id) })
+      // Invalidate related queries (event lists) to trigger refetch
       cacheUtils.invalidateEvents(queryClient, updatedEvent.id)
     },
   })

@@ -189,6 +189,9 @@ services:
       # Source code mounting for hot reload
       - ./apps/web:/app:cached
 
+      # Mount packages directory for monorepo workspace dependencies (fixes broken symlinks)
+      - ./packages:/app/packages:cached
+
       # Preserve node_modules for better performance
       - node_modules_cache:/app/node_modules
 

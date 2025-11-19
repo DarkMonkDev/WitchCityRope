@@ -330,6 +330,8 @@ docker-compose up
 
 ### Infrastructure & Operations
 - **Docker Issues**: Use `container-restart` skill (automation first - don't read docs)
+- **Dev Database Reset**: Use `database-reset-dev` skill (automation first - don't read docs)
+- **Staging Database Reset**: Use `database-reset-staging` skill (automation first - don't read docs)
 - **Deployment**: Use `staging-deploy` skill (automation first - don't read docs)
 - [Docker Patterns](/docs/standards-processes/architecture/docker-patterns.md) - Only if skill fails
 

@@ -83,6 +83,7 @@ public interface IEmailTemplateService
     /// <summary>
     /// Send an ad-hoc bulk email via SendGrid
     /// Creates audit trail in SentAdHocEmails table
+    /// Supports segment-based or manual recipient list sending
     /// </summary>
     Task<Result<SentAdHocEmailDto>> SendAdHocEmailAsync(
         SendAdHocEmailRequest request,
@@ -101,6 +102,23 @@ public interface IEmailTemplateService
     /// </summary>
     Task<Result<SentAdHocEmailDto>> GetAdHocEmailByIdAsync(
         Guid id,
+        CancellationToken cancellationToken = default);
+
+    // ========================================
+    // User Segments (Email Targeting)
+    // ========================================
+
+    /// <summary>
+    /// Get all available user segments with counts
+    /// </summary>
+    Task<Result<List<UserSegmentDto>>> GetUserSegmentsAsync(
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Get preview of users in a specific segment (first 10 users)
+    /// </summary>
+    Task<Result<List<UserPreviewDto>>> GetSegmentPreviewAsync(
+        UserSegment segment,
         CancellationToken cancellationToken = default);
 }
 

@@ -177,6 +177,18 @@ export const AdminEventDetailsPage: React.FC = () => {
       sessions: (event.sessions as any) || [], // Now maps from API response
       ticketTypes, // Now properly mapped with pricingType
       volunteerPositions, // Now properly mapped from API response
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      registrationOpenHours: (event as any)?.registrationOpenHours ?? null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      registrationCloseHours: (event as any)?.registrationCloseHours ?? null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      cancellationOpenHours: (event as any)?.cancellationOpenHours ?? null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      cancellationCloseHours: (event as any)?.cancellationCloseHours ?? null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      volunteerRegistrationCloseHours: (event as any)?.volunteerRegistrationCloseHours ?? null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      volunteerCancellationCloseHours: (event as any)?.volunteerCancellationCloseHours ?? null,
     }
   }, [])
 
@@ -195,7 +207,6 @@ export const AdminEventDetailsPage: React.FC = () => {
 
       // Convert event to form data
       const newFormData = convertEventToFormData(event as EventDtoType)
-
       // Only update if form data has actually changed (prevents unnecessary re-renders)
       if (JSON.stringify(newFormData) !== JSON.stringify(initialFormData)) {
         setInitialFormData(newFormData)

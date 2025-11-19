@@ -5285,7 +5285,7 @@ export interface components {
             eventStartDate?: string;
         };
         VolunteerSignupRequest: {
-            eventWaiverAccepted: boolean;
+            eventWaiverAccepted?: boolean;
         };
         /** @enum {unknown} */
         WhereOccurred: "AtEvent" | "Online" | "PrivatePlay" | "OtherSpace";

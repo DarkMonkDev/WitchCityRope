@@ -2,7 +2,7 @@
 
 **Purpose**: Single source of truth for ALL available Skills and when to use them
 **Audience**: Agents, Orchestrator, Human Developers
-**Status**: 17 Skills Active (as of 2025-11-08)
+**Status**: 18 Skills Active (as of 2025-11-18)
 **Structure**: Each skill is now in `skill-name/SKILL.md` format (Claude Code compatible)
 
 ---
@@ -56,16 +56,18 @@ Automate documentation, tracking, and handoff tasks.
 
 ---
 
-### 🐳 Infrastructure Automation (2 Skills)
+### 🐳 Infrastructure Automation (4 Skills)
 
 Automate development environment and deployment tasks.
 
 | Skill | When to Use | Primary Users | Purpose |
 |-------|-------------|---------------|---------|
 | **container-restart** | BEFORE E2E tests (MANDATORY), after code changes, when containers unhealthy | test-executor, react-developer, backend-developer, orchestrator | Restart Docker dev containers correctly with compilation checks |
+| **database-reset-dev** | Need fresh seed data, database corrupted, testing with clean slate (dev only) | test-developer, test-executor, react-developer, backend-developer | Delete all dev database data and restart API to trigger auto-seeding |
+| **database-reset-staging** | Schema changes requiring clean slate, migration conflicts (staging only) | git-manager, orchestrator | Full schema drop and rebuild for staging database |
 | **staging-deploy** | After Phase 5 validation passes, when deploying features for testing | git-manager, orchestrator | Deploy to DigitalOcean staging environment |
 
-**Integration**: test-executor MUST use container-restart before E2E tests. Orchestrator may auto-deploy after Phase 5.
+**Integration**: test-executor MUST use container-restart before E2E tests. Use database-reset-dev for clean test data. Orchestrator may auto-deploy after Phase 5.
 
 ---
 
@@ -130,21 +132,25 @@ Detect and prevent violations of architecture rules.
 #### react-developer Agent
 - ✅ **phase-3-validator** - Validate implementation
 - ✅ **container-restart** - Restart containers after code changes
+- ✅ **database-reset-dev** - Reset dev database for clean testing
 - ✅ **handoff-document-generator** - Create Implementation→Testing handoff
 - ✅ **lessons-learned-validator** - Validate lesson updates
 
 #### backend-developer Agent
 - ✅ **phase-3-validator** - Validate implementation
 - ✅ **container-restart** - Restart containers after code changes
+- ✅ **database-reset-dev** - Reset dev database for clean testing
 - ✅ **handoff-document-generator** - Create Implementation→Testing handoff
 - ✅ **lessons-learned-validator** - Validate lesson updates
 
 #### test-developer Agent
 - ✅ **phase-4-validator** - Validate test suite completeness
+- ✅ **database-reset-dev** - Reset dev database for clean test data
 - ✅ **lessons-learned-validator** - Validate lesson updates
 
 #### test-executor Agent
 - ✅ **container-restart** - **MANDATORY** before E2E tests
+- ✅ **database-reset-dev** - Reset dev database for clean test data
 - ✅ **test-catalog-updater** - After EVERY test execution
 - ✅ **phase-4-validator** - Validate all tests passing
 - ✅ **lessons-learned-validator** - Validate lesson updates
@@ -277,30 +283,30 @@ Claude: "I'll use the handoff-document-generator skill to create the handoff"
 
 For testing or direct execution:
 
-```bash
+```
 # Phase validation
-bash .claude/skills/phase-1-validator.md /docs/functional-areas/.../business-requirements.md
+Use phase-1-validator skill to validate requirements document
 
 # Container restart
-bash .claude/skills/container-restart.md
+Use container-restart skill to restart Docker containers
 
 # Staging deployment
-bash .claude/skills/staging-deploy.md
+Use staging-deploy skill to deploy to staging
 
 # Generate handoff
-bash .claude/skills/handoff-document-generator.md business-requirements functional-spec user-management
+Use handoff-document-generator skill to create handoff documents
 
 # Update test catalog
-bash .claude/skills/test-catalog-updater.md unit 45 0 45 12.3 85
+Use test-catalog-updater skill to update test metrics
 
 # Validate single source of truth
-bash .claude/skills/single-source-validator.md container-restart CRITICAL
+Use single-source-validator skill to check for violations
 
 # Calculate quality gates
-bash .claude/skills/quality-gate-calculator.md Feature
+Use quality-gate-calculator skill to determine thresholds
 
 # Update master index
-bash .claude/skills/master-index-updater.md add "User Management" user-management
+Use master-index-updater skill to update functional area index
 ```
 
 ---

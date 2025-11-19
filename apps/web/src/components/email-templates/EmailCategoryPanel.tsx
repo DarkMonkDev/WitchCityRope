@@ -16,6 +16,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MantineTiptapEditor } from '../forms/MantineTiptapEditor';
 import { emailTemplatesApi, type GlobalEmailTemplateDto } from '../../services/emailTemplates.api';
 import { notifications } from '@mantine/notifications';
+import { SendAdHocEmail } from './SendAdHocEmail';
 
 interface EmailCategoryPanelProps {
   category: 'Vetting' | 'Events' | 'Admin' | 'Incident' | 'AdHoc';
@@ -330,6 +331,9 @@ export const EmailCategoryPanel: React.FC<EmailCategoryPanelProps> = ({ category
           </Stack>
         </Paper>
       )}
+
+      {/* Send Ad-Hoc Email Section - Only for Ad Hoc category */}
+      {category === 'AdHoc' && <SendAdHocEmail />}
     </Stack>
   );
 };

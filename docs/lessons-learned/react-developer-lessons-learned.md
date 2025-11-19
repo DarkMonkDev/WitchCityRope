@@ -82,21 +82,23 @@
 
 ---
 
-## 🚨 IF THIS FILE EXCEEDS 1700 LINES, CREATE PART 2! BOTH FILES CAN BE UP TO 1700 LINES EACH 🚨
+## 🚨 IF THIS FILE EXCEEDS 1700 LINES, CREATE NEXT PART! ALL FILES CAN BE UP TO 1700 LINES EACH 🚨
 
 ## 📚 MULTI-FILE LESSONS LEARNED
-**Files**: 2 total
+**Files**: 3 total
 **Part 1**: `/home/chad/repos/witchcityrope/docs/lessons-learned/react-developer-lessons-learned.md` (THIS FILE - STARTUP ONLY)
-**Part 2**: `/home/chad/repos/witchcityrope/docs/lessons-learned/react-developer-lessons-learned-2.md` (MAIN LESSONS FILE)
-**Read ALL**: Both Part 1 AND Part 2 are MANDATORY
-**Write to**: Part 2 ONLY - **NEVER ADD NEW LESSONS TO THIS FILE (PART 1)**
-**Maximum file size**: 2,000 lines (to stay under token limits). Both Part 1 and Part 2 files can be up to 2,000 lines each
+**Part 2**: `/home/chad/repos/witchcityrope/docs/lessons-learned/react-developer-lessons-learned-2.md` (CORE LESSONS - FROZEN)
+**Part 3**: `/home/chad/repos/witchcityrope/docs/lessons-learned/react-developer-lessons-learned-3.md` (CURRENT LESSONS FILE)
+**Read ALL**: All three parts are MANDATORY
+**Write to**: Part 3 ONLY - **NEVER ADD NEW LESSONS TO PART 1 OR PART 2**
+**Maximum file size**: 1700 lines (to stay under token limits). All three parts can be up to 1700 lines each
 **IF READ FAILS**: STOP and use lessons-learned-validator skill to fix immediately
 
-## 🚨 ULTRA CRITICAL: NEW LESSONS GO TO PART 2, NOT HERE! 🚨
+## 🚨 ULTRA CRITICAL: NEW LESSONS GO TO PART 3, NOT HERE OR PART 2! 🚨
 **PART 1 PURPOSE**: Startup procedures and critical navigation ONLY
-**ALL NEW LESSONS**: Must go to Part 2 - `/home/chad/repos/witchcityrope/docs/lessons-learned/react-developer-lessons-learned-2.md`
-**IF YOU ADD LESSONS HERE**: You are violating the split pattern!
+**PART 2 PURPOSE**: Core lessons (frozen at 1730 lines)
+**ALL NEW LESSONS**: Must go to Part 3 - `/home/chad/repos/witchcityrope/docs/lessons-learned/react-developer-lessons-learned-3.md`
+**IF YOU ADD LESSONS HERE OR TO PART 2**: You are violating the split pattern!
 
 ## 🚨 CMS Implementation Reference 🚨
 
@@ -1267,13 +1269,18 @@ Don't spend hours checking database, API endpoints, or generated types first.
 
 ---
 
-## 🚨 NAVIGATION TO PART 2 - MORE LESSONS LEARNED 🚨
+## 🚨 NAVIGATION TO PARTS 2 & 3 - MORE LESSONS LEARNED 🚨
 
 **PART 1 COMPLETE** - You have read the startup procedures and critical patterns.
 
-**CONTINUE READING**: `/home/chad/repos/witchcityrope/docs/lessons-learned/react-developer-lessons-learned-2.md`
-**CONTAINS**: Additional lessons learned, more patterns, and detailed solutions
-**MANDATORY**: You MUST read Part 2 for complete React developer knowledge
-**SIZE**: Part 2 contains up to 1700 additional lines of critical lessons
+**CONTINUE READING PART 2**: `/home/chad/repos/witchcityrope/docs/lessons-learned/react-developer-lessons-learned-2.md`
+**CONTAINS**: Core lessons learned, patterns, and detailed solutions
+**SIZE**: Part 2 contains 1730 lines of critical lessons
 
-**REMEMBER**: Make sure this file does not exceed 1500 lines. If it does, then write new lessons to Part 2, not this file!
+**CONTINUE READING PART 3**: `/home/chad/repos/witchcityrope/docs/lessons-learned/react-developer-lessons-learned-3.md`
+**CONTAINS**: Additional lessons learned, more patterns, and current solutions
+**SIZE**: Part 3 contains up to 1700 lines of critical lessons
+
+**MANDATORY**: You MUST read ALL THREE PARTS for complete React developer knowledge
+
+**REMEMBER**: Write new lessons to Part 3 ONLY, not Part 1 or Part 2!

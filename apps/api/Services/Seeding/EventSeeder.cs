@@ -183,11 +183,11 @@ public class EventSeeder
 <p><strong>By attending, you agree to abide by all policies and accept responsibility for your own safety and well-being.</strong></p>",
                 // TIMING: Workshop - Strict (early commitment required)
                 registrationOpenHours: 240m,      // 10 days before
-                registrationCloseHours: 48m,      // 48 hours BEFORE start
+                registrationCloseHours: -12m,     // 12 hours AFTER start
                 cancellationOpenHours: 240m,      // 10 days before
-                cancellationCloseHours: 72m,      // 72 hours BEFORE start
-                volunteerRegistrationCloseHours: 96m,   // 4 days before
-                volunteerCancellationCloseHours: 72m    // 3 days before
+                cancellationCloseHours: -12m,     // 12 hours AFTER start
+                volunteerRegistrationCloseHours: 24m,   // 24 hours before
+                volunteerCancellationCloseHours: 48m    // 48 hours before
             ),
 
             // Upcoming Class Event #2: Very strict timing (advanced class)
@@ -309,11 +309,11 @@ public class EventSeeder
 </ul>",
                 // TIMING: Advanced Suspension - Very Strict (safety critical)
                 registrationOpenHours: 336m,      // 14 days before (2 weeks)
-                registrationCloseHours: 120m,     // 5 days BEFORE start
+                registrationCloseHours: -12m,     // 12 hours AFTER start
                 cancellationOpenHours: 336m,      // 14 days before
-                cancellationCloseHours: 168m,     // 7 days BEFORE start
-                volunteerRegistrationCloseHours: 168m,  // 7 days before
-                volunteerCancellationCloseHours: 120m   // 5 days before
+                cancellationCloseHours: -12m,     // 12 hours AFTER start
+                volunteerRegistrationCloseHours: 24m,   // 24 hours before
+                volunteerCancellationCloseHours: 48m    // 48 hours before
             ),
 
             // Upcoming Class Event #3: Medium timing (balanced approach)
@@ -442,11 +442,11 @@ public class EventSeeder
 </ul>",
                 // TIMING: Advanced Class - Medium timing (balanced)
                 registrationOpenHours: 168m,      // 7 days before
-                registrationCloseHours: 24m,      // 1 day BEFORE start
+                registrationCloseHours: -12m,     // 12 hours AFTER start
                 cancellationOpenHours: 120m,      // 5 days before
-                cancellationCloseHours: 48m,      // 2 days BEFORE start
-                volunteerRegistrationCloseHours: 72m,   // 3 days before
-                volunteerCancellationCloseHours: 48m    // 2 days before
+                cancellationCloseHours: -12m,     // 12 hours AFTER start
+                volunteerRegistrationCloseHours: 24m,   // 24 hours before
+                volunteerCancellationCloseHours: 48m    // 48 hours before
             ),
 
             // Upcoming Social Event #1: Very lenient (allows post-event timing)
@@ -594,11 +594,11 @@ public class EventSeeder
 </ul>",
                 // TIMING: Social Jam - Very Lenient (includes POST-EVENT timing)
                 registrationOpenHours: 168m,      // 7 days before
-                registrationCloseHours: -2m,      // 2 hours AFTER start (demonstrates post-event)
+                registrationCloseHours: -12m,     // 12 hours AFTER start
                 cancellationOpenHours: 48m,       // 2 days before
-                cancellationCloseHours: -1m,      // 1 hour AFTER start (demonstrates post-event)
-                volunteerRegistrationCloseHours: 48m,   // 2 days before
-                volunteerCancellationCloseHours: 24m    // 1 day before
+                cancellationCloseHours: -12m,     // 12 hours AFTER start
+                volunteerRegistrationCloseHours: 24m,   // 24 hours before
+                volunteerCancellationCloseHours: 48m    // 48 hours before
             ),
 
             // Upcoming Social Event #2: Moderate timing
@@ -750,11 +750,11 @@ public class EventSeeder
 </ul>",
                 // TIMING: Social Discussion - Moderate (balanced approach)
                 registrationOpenHours: 120m,      // 5 days before
-                registrationCloseHours: 6m,       // 6 hours BEFORE start
+                registrationCloseHours: -12m,     // 12 hours AFTER start
                 cancellationOpenHours: 72m,       // 3 days before
-                cancellationCloseHours: 12m,      // 12 hours BEFORE start
-                volunteerRegistrationCloseHours: 48m,   // 2 days before
-                volunteerCancellationCloseHours: 24m    // 1 day before
+                cancellationCloseHours: -12m,     // 12 hours AFTER start
+                volunteerRegistrationCloseHours: 24m,   // 24 hours before
+                volunteerCancellationCloseHours: 48m    // 48 hours before
             ),
 
             // Upcoming Social Event #3: Lenient timing (welcoming to new members)
@@ -913,11 +913,11 @@ public class EventSeeder
 </ul>",
                 // TIMING: New Members - Lenient (welcoming, flexible)
                 registrationOpenHours: 336m,      // 14 days before
-                registrationCloseHours: 2m,       // 2 hours BEFORE start
+                registrationCloseHours: -12m,     // 12 hours AFTER start
                 cancellationOpenHours: 48m,       // 2 days before
-                cancellationCloseHours: 6m,       // 6 hours BEFORE start
-                volunteerRegistrationCloseHours: 72m,   // 3 days before
-                volunteerCancellationCloseHours: 24m    // 1 day before
+                cancellationCloseHours: -12m,     // 12 hours AFTER start
+                volunteerRegistrationCloseHours: 24m,   // 24 hours before
+                volunteerCancellationCloseHours: 48m    // 48 hours before
             ),
 
             // Past Social Event: Demonstrates historical data
@@ -952,11 +952,11 @@ public class EventSeeder
 </ul>",
                 // TIMING: Past event - Same as New Members (lenient)
                 registrationOpenHours: 168m,
-                registrationCloseHours: 2m,
+                registrationCloseHours: -12m,     // 12 hours AFTER start
                 cancellationOpenHours: 48m,
-                cancellationCloseHours: 6m,
-                volunteerRegistrationCloseHours: 48m,
-                volunteerCancellationCloseHours: 24m
+                cancellationCloseHours: -12m,     // 12 hours AFTER start
+                volunteerRegistrationCloseHours: 24m,   // 24 hours before
+                volunteerCancellationCloseHours: 48m    // 48 hours before
             ),
 
             // Past Class Event: Demonstrates historical workshop
@@ -994,10 +994,10 @@ public class EventSeeder
 </ul>",
                 // TIMING: Past class - Medium timing (balanced)
                 registrationOpenHours: 240m,
-                registrationCloseHours: 48m,
+                registrationCloseHours: -12m,     // 12 hours AFTER start
                 cancellationOpenHours: 120m,
-                cancellationCloseHours: 72m,
-                volunteerRegistrationCloseHours: 72m,
+                cancellationCloseHours: -12m,     // 12 hours AFTER start
+                volunteerRegistrationCloseHours: 24m,   // 24 hours before
                 volunteerCancellationCloseHours: 48m
             ),
 
@@ -1032,11 +1032,11 @@ public class EventSeeder
 </ul>",
                 // TIMING: Historical event - Very strict (advanced safety)
                 registrationOpenHours: 336m,
-                registrationCloseHours: 168m,
+                registrationCloseHours: -12m,     // 12 hours AFTER start
                 cancellationOpenHours: 336m,
-                cancellationCloseHours: 240m,
-                volunteerRegistrationCloseHours: 168m,
-                volunteerCancellationCloseHours: 120m
+                cancellationCloseHours: -12m,     // 12 hours AFTER start
+                volunteerRegistrationCloseHours: 24m,   // 24 hours before
+                volunteerCancellationCloseHours: 48m    // 48 hours before
             ),
 
             // Historical Event 2: Rope Fundamentals Intensive
@@ -1070,11 +1070,11 @@ public class EventSeeder
 </ul>",
                 // TIMING: Historical intensive - Strict (full-day commitment)
                 registrationOpenHours: 240m,
-                registrationCloseHours: 96m,
+                registrationCloseHours: -12m,     // 12 hours AFTER start
                 cancellationOpenHours: 240m,
-                cancellationCloseHours: 120m,
-                volunteerRegistrationCloseHours: 120m,
-                volunteerCancellationCloseHours: 96m
+                cancellationCloseHours: -12m,     // 12 hours AFTER start
+                volunteerRegistrationCloseHours: 24m,   // 24 hours before
+                volunteerCancellationCloseHours: 48m    // 48 hours before
             ),
 
             // Historical Event 3: Monthly Rope Practice Night
@@ -1108,11 +1108,11 @@ public class EventSeeder
 </ul>",
                 // TIMING: Historical practice night - Very lenient (social)
                 registrationOpenHours: 168m,
-                registrationCloseHours: -1m,     // 1 hour AFTER start
+                registrationCloseHours: -12m,     // 12 hours AFTER start
                 cancellationOpenHours: 72m,
-                cancellationCloseHours: -0.5m,   // 30 minutes AFTER start
-                volunteerRegistrationCloseHours: 48m,
-                volunteerCancellationCloseHours: 24m
+                cancellationCloseHours: -12m,     // 12 hours AFTER start
+                volunteerRegistrationCloseHours: 24m,   // 24 hours before
+                volunteerCancellationCloseHours: 48m    // 48 hours before
             ),
 
             // Historical Event 4: New Member Welcome Mixer
@@ -1146,11 +1146,11 @@ public class EventSeeder
 </ul>",
                 // TIMING: Historical welcome - Lenient (welcoming)
                 registrationOpenHours: 336m,
-                registrationCloseHours: 4m,
+                registrationCloseHours: -12m,     // 12 hours AFTER start
                 cancellationOpenHours: 72m,
-                cancellationCloseHours: 12m,
-                volunteerRegistrationCloseHours: 72m,
-                volunteerCancellationCloseHours: 24m
+                cancellationCloseHours: -12m,     // 12 hours AFTER start
+                volunteerRegistrationCloseHours: 24m,   // 24 hours before
+                volunteerCancellationCloseHours: 48m    // 48 hours before
             )
         };
 

@@ -379,7 +379,7 @@ export const EventDetailPage: React.FC = () => {
         {/* Mobile Volunteer Shifts - FULL WIDTH, mobile only */}
         {hasUserVolunteered && userVolunteerPositions.length > 0 && (
           <Box hiddenFrom="md" mt="sm">
-            <UserVolunteerShifts positions={userVolunteerPositions} />
+            <UserVolunteerShifts positions={userVolunteerPositions} eventId={id!} />
           </Box>
         )}
 
@@ -503,7 +503,7 @@ export const EventDetailPage: React.FC = () => {
             {/* User's Volunteer Shifts (if user has volunteered) - Desktop only */}
             {hasUserVolunteered && userVolunteerPositions.length > 0 && (
               <Box visibleFrom="md">
-                <UserVolunteerShifts positions={userVolunteerPositions} />
+                <UserVolunteerShifts positions={userVolunteerPositions} eventId={id!} />
               </Box>
             )}
               </Stack>

@@ -1,18 +1,69 @@
-import React from 'react';
-import { Paper, Stack, Title, Text, Badge, Group } from '@mantine/core';
-import { IconCheck, IconClock } from '@tabler/icons-react';
+import React, { useState } from 'react';
+import { Paper, Stack, Title, Text, Badge, Group, Button, Modal } from '@mantine/core';
+import { IconCheck, IconClock, IconX } from '@tabler/icons-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { notifications } from '@mantine/notifications';
 import type { VolunteerPosition } from '../../features/volunteers/types/volunteer.types';
+import { cancelVolunteerSignup } from '../../features/volunteers/api/volunteerApi';
 
 interface UserVolunteerShiftsProps {
   positions: VolunteerPosition[];
+  eventId: string;
+  canCancel?: boolean; // Whether user is within cancellation window
 }
 
 /**
  * User Volunteer Shifts Component
  * Displays the shifts the user has signed up for on an event
  * Shows only when user has already volunteered for this event
+ * Allows user to cancel volunteer signup if within timing window
  */
-export const UserVolunteerShifts: React.FC<UserVolunteerShiftsProps> = ({ positions }) => {
+export const UserVolunteerShifts: React.FC<UserVolunteerShiftsProps> = ({
+  positions,
+  eventId,
+  canCancel = true
+}) => {
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [selectedPosition, setSelectedPosition] = useState<VolunteerPosition | null>(null);
+  const queryClient = useQueryClient();
+
+  // Cancel volunteer signup mutation
+  const cancelMutation = useMutation({
+    mutationFn: (assignmentId: string) => cancelVolunteerSignup(assignmentId),
+    onSuccess: () => {
+      notifications.show({
+        title: 'Success',
+        message: 'Your volunteer shift has been cancelled.',
+        color: 'green',
+        icon: <IconCheck size={16} />,
+      });
+      // Refetch event volunteer positions
+      queryClient.invalidateQueries({ queryKey: ['events', eventId, 'volunteer-positions'] });
+      queryClient.invalidateQueries({ queryKey: ['user', 'volunteer-shifts'] });
+      setCancelModalOpen(false);
+      setSelectedPosition(null);
+    },
+    onError: (error: any) => {
+      notifications.show({
+        title: 'Error',
+        message: error.response?.data?.message || 'Failed to cancel volunteer shift. Please try again.',
+        color: 'red',
+        icon: <IconX size={16} />,
+      });
+    },
+  });
+
+  const handleCancelClick = (position: VolunteerPosition) => {
+    setSelectedPosition(position);
+    setCancelModalOpen(true);
+  };
+
+  const handleCancelConfirm = () => {
+    if (selectedPosition?.userSignupId) {
+      cancelMutation.mutate(selectedPosition.userSignupId);
+    }
+  };
+
   const formatTime = (timeString?: string) => {
     if (!timeString) return '';
     try {
@@ -106,6 +157,20 @@ export const UserVolunteerShifts: React.FC<UserVolunteerShiftsProps> = ({ positi
                     </Group>
                   )}
                 </Stack>
+
+                {/* Cancel Button - Only show if user can cancel and has signed up */}
+                {canCancel && position.hasUserSignedUp && position.userSignupId && (
+                  <Button
+                    variant="subtle"
+                    color="red"
+                    size="xs"
+                    onClick={() => handleCancelClick(position)}
+                    disabled={cancelMutation.isPending}
+                    style={{ minWidth: '80px' }}
+                  >
+                    Cancel
+                  </Button>
+                )}
               </Group>
             </div>
           ))}
@@ -121,6 +186,54 @@ export const UserVolunteerShifts: React.FC<UserVolunteerShiftsProps> = ({ positi
           Thank you for helping make this event possible!
         </Text>
       </Stack>
+
+      {/* Cancellation Confirmation Modal */}
+      <Modal
+        opened={cancelModalOpen}
+        onClose={() => {
+          setCancelModalOpen(false);
+          setSelectedPosition(null);
+        }}
+        title={<Title order={3}>Cancel Volunteer Shift?</Title>}
+        centered
+      >
+        <Stack gap="md">
+          <Text>
+            Are you sure you want to cancel your volunteer shift for{' '}
+            <strong>{selectedPosition?.title}</strong>?
+          </Text>
+
+          {selectedPosition?.sessionName && !selectedPosition.sessionName.includes('Main Session') && (
+            <Text size="sm" c="dimmed">
+              Session: {selectedPosition.sessionName}
+            </Text>
+          )}
+
+          <Text size="sm" c="dimmed">
+            This action cannot be undone. The position will become available for other volunteers.
+          </Text>
+
+          <Group justify="flex-end" mt="md">
+            <Button
+              variant="default"
+              onClick={() => {
+                setCancelModalOpen(false);
+                setSelectedPosition(null);
+              }}
+              disabled={cancelMutation.isPending}
+            >
+              Keep My Shift
+            </Button>
+            <Button
+              color="red"
+              onClick={handleCancelConfirm}
+              loading={cancelMutation.isPending}
+            >
+              Cancel Shift
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Paper>
   );
 };

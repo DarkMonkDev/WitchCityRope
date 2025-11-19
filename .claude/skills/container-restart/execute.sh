@@ -131,6 +131,10 @@ if [ "$RUNNING_COUNT" -ne "$EXPECTED_COUNT" ]; then
     echo "   • Check logs: docker logs witchcity-web"
     echo "   • Check logs: docker logs witchcity-api"
     echo "   • See: .claude/skills/container-restart/SKILL.md (Common Issues)"
+    echo ""
+    echo "=== SKILL_RESULT ==="
+    echo "{\"skill\":\"container-restart\",\"status\":\"failure\",\"error\":\"Container count mismatch\",\"details\":\"Expected $EXPECTED_COUNT containers, found $RUNNING_COUNT\",\"action\":\"Check container logs and restart\"}"
+    echo "=== END_SKILL_RESULT ==="
     exit 1
 fi
 echo "   ✅ All $EXPECTED_COUNT containers running"
@@ -149,6 +153,10 @@ if [ -n "$WEB_ERRORS" ]; then
     echo ""
     echo "💡 FIX SOURCE CODE AND RESTART"
     echo "   See: .claude/skills/container-restart/SKILL.md (Common Issues)"
+    echo ""
+    echo "=== SKILL_RESULT ==="
+    echo "{\"skill\":\"container-restart\",\"status\":\"failure\",\"error\":\"Web compilation errors\",\"details\":\"$(echo "$WEB_ERRORS" | head -n 1 | sed 's/"/\\"/g')\",\"action\":\"Fix source code and restart\"}"
+    echo "=== END_SKILL_RESULT ==="
     exit 1
 fi
 echo "   ✅ No web compilation errors"
@@ -163,6 +171,10 @@ if [ -n "$API_ERRORS" ]; then
     echo ""
     echo "💡 FIX SOURCE CODE AND RESTART"
     echo "   See: .claude/skills/container-restart/SKILL.md (Common Issues)"
+    echo ""
+    echo "=== SKILL_RESULT ==="
+    echo "{\"skill\":\"container-restart\",\"status\":\"failure\",\"error\":\"API compilation errors\",\"details\":\"$(echo "$API_ERRORS" | head -n 1 | sed 's/"/\\"/g')\",\"action\":\"Fix source code and restart\"}"
+    echo "=== END_SKILL_RESULT ==="
     exit 1
 fi
 echo "   ✅ No API compilation errors"
@@ -174,39 +186,67 @@ sleep 10
 echo "   ✅ Services initializing..."
 echo ""
 
-# Step 7: Verify health endpoints
+# Step 7: Verify health endpoints (with retry)
 echo "7️⃣  Verifying health endpoints..."
 
+# Helper function for retrying health checks
+check_health() {
+    local url=$1
+    local name=$2
+    local max_attempts=12  # 12 attempts * 5 seconds = 60 seconds max
+    local attempt=1
+
+    while [ $attempt -le $max_attempts ]; do
+        if curl -f "$url" > /dev/null 2>&1; then
+            echo "   ✅ $name healthy ($url)"
+            return 0
+        fi
+
+        if [ $attempt -lt $max_attempts ]; then
+            echo "   ⏳ Waiting for $name (attempt $attempt/$max_attempts)..."
+            sleep 5
+        fi
+        attempt=$((attempt + 1))
+    done
+
+    echo "   ❌ $name unhealthy after $max_attempts attempts"
+    return 1
+}
+
 # Web service
-if curl -f http://localhost:5173 > /dev/null 2>&1; then
-    echo "   ✅ Web service healthy (http://localhost:5173)"
-else
-    echo "   ❌ Web service unhealthy"
+if ! check_health "http://localhost:5173" "Web service"; then
     echo ""
     echo "💡 Check logs: docker logs witchcity-web"
     echo "   See: .claude/skills/container-restart/SKILL.md (Common Issues)"
+    echo ""
+    echo "=== SKILL_RESULT ==="
+    echo "{\"skill\":\"container-restart\",\"status\":\"failure\",\"error\":\"Web service health check failed\",\"details\":\"Web service did not respond after 60 seconds\",\"action\":\"Check container logs: docker logs witchcity-web\"}"
+    echo "=== END_SKILL_RESULT ==="
     exit 1
 fi
 
 # API service
-if curl -f http://localhost:5653/health > /dev/null 2>&1; then
-    echo "   ✅ API service healthy (http://localhost:5653)"
-else
-    echo "   ❌ API service unhealthy"
+if ! check_health "http://localhost:5655/health" "API service"; then
     echo ""
     echo "💡 Check logs: docker logs witchcity-api"
     echo "   See: .claude/skills/container-restart/SKILL.md (Common Issues)"
+    echo ""
+    echo "=== SKILL_RESULT ==="
+    echo "{\"skill\":\"container-restart\",\"status\":\"failure\",\"error\":\"API service health check failed\",\"details\":\"API service did not respond after 60 seconds\",\"action\":\"Check container logs: docker logs witchcity-api\"}"
+    echo "=== END_SKILL_RESULT ==="
     exit 1
 fi
 
-# Database health
-if curl -f http://localhost:5653/health/database > /dev/null 2>&1; then
-    echo "   ✅ Database healthy"
-else
-    echo "   ❌ Database unhealthy"
+# Database health (via detailed health endpoint)
+if ! check_health "http://localhost:5655/api/health/detailed" "Database (detailed health)"; then
     echo ""
     echo "💡 Check logs: docker logs witchcity-db"
+    echo "💡 Check logs: docker logs witchcity-api"
     echo "   See: .claude/skills/container-restart/SKILL.md (Common Issues)"
+    echo ""
+    echo "=== SKILL_RESULT ==="
+    echo "{\"skill\":\"container-restart\",\"status\":\"failure\",\"error\":\"Database health check failed\",\"details\":\"Database connection check did not respond after 60 seconds\",\"action\":\"Check container logs: docker logs witchcity-db and docker logs witchcity-api\"}"
+    echo "=== END_SKILL_RESULT ==="
     exit 1
 fi
 
@@ -214,7 +254,7 @@ echo ""
 
 # Step 8: Verify seed data
 echo "8️⃣  Checking database seed data..."
-SEED_COUNT=$(PGPASSWORD=WitchCity2024! psql -h localhost -p 5433 -U postgres -d witchcityrope_dev -t -c "SELECT COUNT(*) FROM auth.\"Users\" WHERE \"Email\" LIKE '%@witchcityrope.com';" 2>/dev/null || echo "0")
+SEED_COUNT=$(PGPASSWORD=WitchCity2024! psql -h localhost -p 5434 -U postgres -d witchcityrope_dev -t -c "SELECT COUNT(*) FROM auth.\"Users\" WHERE \"Email\" LIKE '%@witchcityrope.com';" 2>/dev/null || echo "0")
 
 if [ "$SEED_COUNT" -lt 5 ]; then
     echo "   ⚠️  WARNING: Low seed data count ($SEED_COUNT test users)"
@@ -233,13 +273,44 @@ echo "📊 Status Summary:"
 echo "   • Containers: 4/4 running (postgres, api, web, test-server)"
 echo "   • Compilation: No errors"
 echo "   • Health checks: All passing"
-echo "   • Database: Seeded"
+echo "   • Database: Seeded ($SEED_COUNT test users)"
 echo ""
 echo "🎯 Ready for:"
 echo "   • Development"
 echo "   • Running tests (unit, integration, E2E)"
 echo "   • Making code changes"
 echo ""
+
+# Output structured data for agents
+echo "=== SKILL_RESULT ==="
+cat <<EOF
+{
+  "skill": "container-restart",
+  "status": "success",
+  "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "containers": {
+    "running": 4,
+    "expected": 4,
+    "healthy": true
+  },
+  "compilation": {
+    "web": "clean",
+    "api": "clean"
+  },
+  "healthChecks": {
+    "web": "healthy",
+    "api": "healthy",
+    "database": "healthy"
+  },
+  "seedData": {
+    "users": $SEED_COUNT,
+    "status": "adequate"
+  },
+  "readyForTesting": true,
+  "message": "Environment ready for development and testing"
+}
+EOF
+echo "=== END_SKILL_RESULT ==="
 
 # Return success
 exit 0

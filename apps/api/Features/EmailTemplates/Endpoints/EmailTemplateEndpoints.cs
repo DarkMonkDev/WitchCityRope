@@ -159,6 +159,35 @@ public static class EmailTemplateEndpoints
             .ProducesProblem(401)
             .ProducesProblem(403)
             .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
+
+        // ========================================
+        // User Segments (Email Targeting)
+        // ========================================
+
+        /// <summary>
+        /// Get all user segments with counts
+        /// </summary>
+        group.MapGet("/segments", GetUserSegments)
+            .WithName("GetUserSegments")
+            .WithSummary("Get all user segments with counts")
+            .WithDescription("Returns all available user segments with current user counts. Admin access required.")
+            .Produces<List<UserSegmentDto>>(200)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
+
+        /// <summary>
+        /// Get preview of users in a specific segment
+        /// </summary>
+        group.MapGet("/segments/{segmentName}/preview", GetSegmentPreview)
+            .WithName("GetSegmentPreview")
+            .WithSummary("Get preview of users in a segment")
+            .WithDescription("Returns first 10 users in the specified segment for preview. Admin access required.")
+            .Produces<List<UserPreviewDto>>(200)
+            .ProducesProblem(400)
+            .ProducesProblem(401)
+            .ProducesProblem(403)
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrator" });
     }
 
     // ========================================
@@ -383,6 +412,49 @@ public static class EmailTemplateEndpoints
                 title: "Ad-Hoc Email Not Found",
                 detail: result.Error,
                 statusCode: 404);
+        }
+
+        return Results.Ok(result.Value);
+    }
+
+    private static async Task<IResult> GetUserSegments(
+        IEmailTemplateService service,
+        CancellationToken cancellationToken)
+    {
+        var result = await service.GetUserSegmentsAsync(cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            return Results.Problem(
+                title: "Failed to Retrieve User Segments",
+                detail: result.Error,
+                statusCode: 400);
+        }
+
+        return Results.Ok(result.Value);
+    }
+
+    private static async Task<IResult> GetSegmentPreview(
+        string segmentName,
+        IEmailTemplateService service,
+        CancellationToken cancellationToken)
+    {
+        if (!Enum.TryParse<Entities.UserSegment>(segmentName, ignoreCase: true, out var segment))
+        {
+            return Results.Problem(
+                title: "Invalid Segment",
+                detail: $"Invalid segment name. Valid values: {string.Join(", ", Enum.GetNames<Entities.UserSegment>())}",
+                statusCode: 400);
+        }
+
+        var result = await service.GetSegmentPreviewAsync(segment, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            return Results.Problem(
+                title: "Failed to Retrieve Segment Preview",
+                detail: result.Error,
+                statusCode: 400);
         }
 
         return Results.Ok(result.Value);

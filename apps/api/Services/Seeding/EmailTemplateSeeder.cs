@@ -303,7 +303,7 @@ public class EmailTemplateSeeder
 
     private async Task SeedAdminTemplatesAsync(Guid adminUserId, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Seeding Admin templates (5)..."); // Updated count
+        _logger.LogInformation("Seeding Admin templates (6)..."); // Updated count to include NewWebsiteUser
 
         var templates = new[]
         {
@@ -453,6 +453,80 @@ WitchCityRope Team
 ---
 This is an automated email. Please do not reply to this message.",
                 Variables = JsonSerializer.Serialize(new[] { "{{user_name}}", "{{refund_amount}}", "{{original_amount}}", "{{payment_method}}", "{{timing_message}}", "{{refund_reason}}", "{{refund_id}}" }),
+                IsActive = true,
+                Version = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                UpdatedBy = adminUserId
+            },
+            new GlobalEmailTemplate
+            {
+                Category = EmailCategory.Admin,
+                TemplateType = "NewWebsiteUser",
+                Subject = "Welcome to WitchCityRope - Set Your Password",
+                HtmlBody = @"<div style=""font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;"">
+    <h1 style=""color: #614B79; margin-top: 0;"">Welcome to WitchCityRope!</h1>
+    <p>Hello {{user_name}},</p>
+    <p>Your WitchCityRope account has been created as part of our member import process. We're excited to have you join our community!</p>
+    <div style=""background-color: #f8f9fa; border-left: 4px solid #614B79; padding: 15px; margin: 20px 0;"">
+        <h2 style=""margin-top: 0; color: #614B79; font-size: 18px;"">Next Step: Set Your Password</h2>
+        <p style=""margin-bottom: 10px;"">To activate your account and log in, you need to set your password:</p>
+        <p style=""text-align: center; margin: 20px 0;"">
+            <a href=""{{reset_url}}"" style=""display: inline-block; padding: 12px 24px; background: #614B79; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;"">Set Your Password</a>
+        </p>
+        <p style=""margin-top: 10px; color: #6c757d; font-size: 14px;""><strong>Important:</strong> This link will expire in 72 hours for security reasons.</p>
+    </div>
+    <div style=""margin: 20px 0;"">
+        <h3 style=""font-size: 16px; color: #2c3e50;"">What's Next?</h3>
+        <ul style=""color: #495057;"">
+            <li>Click the button above to set your password</li>
+            <li>Complete your profile at <a href=""{{system_url}}"" style=""color: #614B79;"">{{system_url}}</a></li>
+            <li>Browse upcoming events and workshops</li>
+            <li>Connect with the WitchCityRope community</li>
+        </ul>
+    </div>
+    <hr style=""border: none; border-top: 1px solid #dee2e6; margin: 30px 0;"">
+    <p style=""font-size: 14px; color: #6c757d;"">
+        If you have any questions or need assistance, please contact us at
+        <a href=""mailto:support@witchcityrope.com"" style=""color: #614B79; text-decoration: none;"">support@witchcityrope.com</a>.
+    </p>
+    <p style=""font-size: 14px; color: #6c757d; margin-top: 20px;"">
+        Welcome to the community!<br>
+        <strong>The WitchCityRope Team</strong>
+    </p>
+    <div style=""text-align: center; font-size: 12px; color: #adb5bd; margin-top: 20px;"">
+        <p>WitchCityRope • Salem, MA • <a href=""{{system_url}}"" style=""color: #adb5bd;"">{{system_url}}</a></p>
+    </div>
+</div>",
+                PlainTextBody = @"Welcome to WitchCityRope!
+
+Hello {{user_name}},
+
+Your WitchCityRope account has been created as part of our member import process. We're excited to have you join our community!
+
+NEXT STEP: SET YOUR PASSWORD
+============================
+To activate your account and log in, you need to set your password using the link below:
+
+{{reset_url}}
+
+IMPORTANT: This link will expire in 72 hours for security reasons.
+
+WHAT'S NEXT?
+============
+• Click the link above to set your password
+• Complete your profile at {{system_url}}
+• Browse upcoming events and workshops
+• Connect with the WitchCityRope community
+
+If you have any questions or need assistance, please contact us at support@witchcityrope.com.
+
+Welcome to the community!
+The WitchCityRope Team
+
+---
+WitchCityRope • Salem, MA • {{system_url}}",
+                Variables = JsonSerializer.Serialize(new[] { "{{user_name}}", "{{reset_url}}", "{{system_url}}" }),
                 IsActive = true,
                 Version = 1,
                 CreatedAt = DateTime.UtcNow,

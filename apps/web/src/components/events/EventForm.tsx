@@ -380,6 +380,23 @@ export const EventForm: React.FC<EventFormProps> = ({
   const [activeEmailTemplate, setActiveEmailTemplate] = useState<string>('confirmation')
   const [rsvpTimingOpen, setRsvpTimingOpen] = useState(false)
   const [volunteerTimingOpen, setVolunteerTimingOpen] = useState(false)
+
+  // Track timing-specific changes separately
+  const [rsvpTimingDirty, setRsvpTimingDirty] = useState(false)
+  const [volunteerTimingDirty, setVolunteerTimingDirty] = useState(false)
+  const [initialTimingValues, setInitialTimingValues] = useState({
+    rsvp: {
+      registrationOpenHours: initialData?.registrationOpenHours ?? null,
+      registrationCloseHours: initialData?.registrationCloseHours ?? null,
+      cancellationOpenHours: initialData?.cancellationOpenHours ?? null,
+      cancellationCloseHours: initialData?.cancellationCloseHours ?? null,
+    },
+    volunteer: {
+      volunteerRegistrationCloseHours: initialData?.volunteerRegistrationCloseHours ?? null,
+      volunteerCancellationCloseHours: initialData?.volunteerCancellationCloseHours ?? null,
+    },
+  })
+
   const queryClient = useQueryClient()
 
   // Fetch teachers from API
@@ -508,11 +525,11 @@ export const EventForm: React.FC<EventFormProps> = ({
       ticketTypes: [],
       volunteerPositions: [],
       registrationOpenHours: null,
-      registrationCloseHours: null,
+      registrationCloseHours: -12,
       cancellationOpenHours: null,
-      cancellationCloseHours: null,
-      volunteerRegistrationCloseHours: null,
-      volunteerCancellationCloseHours: null,
+      cancellationCloseHours: -12,
+      volunteerRegistrationCloseHours: 24,
+      volunteerCancellationCloseHours: 48,
       ...initialData,
     },
     validate: {
@@ -618,6 +635,54 @@ export const EventForm: React.FC<EventFormProps> = ({
       previousValues.current = form.values
     }
   }, [form.values]) // Remove onFormChange from dependency array to prevent loops
+
+  // Update initial timing values when initialData changes (form loaded with event data)
+  useEffect(() => {
+    if (initialData) {
+      setInitialTimingValues({
+        rsvp: {
+          registrationOpenHours: initialData.registrationOpenHours ?? null,
+          registrationCloseHours: initialData.registrationCloseHours ?? null,
+          cancellationOpenHours: initialData.cancellationOpenHours ?? null,
+          cancellationCloseHours: initialData.cancellationCloseHours ?? null,
+        },
+        volunteer: {
+          volunteerRegistrationCloseHours: initialData.volunteerRegistrationCloseHours ?? null,
+          volunteerCancellationCloseHours: initialData.volunteerCancellationCloseHours ?? null,
+        },
+      })
+    }
+  }, [initialData])
+
+  // Track RSVP/Ticket timing changes separately
+  useEffect(() => {
+    const hasRsvpTimingChanged =
+      form.values.registrationOpenHours !== initialTimingValues.rsvp.registrationOpenHours ||
+      form.values.registrationCloseHours !== initialTimingValues.rsvp.registrationCloseHours ||
+      form.values.cancellationOpenHours !== initialTimingValues.rsvp.cancellationOpenHours ||
+      form.values.cancellationCloseHours !== initialTimingValues.rsvp.cancellationCloseHours
+
+    setRsvpTimingDirty(hasRsvpTimingChanged)
+  }, [
+    form.values.registrationOpenHours,
+    form.values.registrationCloseHours,
+    form.values.cancellationOpenHours,
+    form.values.cancellationCloseHours,
+    initialTimingValues.rsvp,
+  ])
+
+  // Track Volunteer timing changes separately
+  useEffect(() => {
+    const hasVolunteerTimingChanged =
+      form.values.volunteerRegistrationCloseHours !== initialTimingValues.volunteer.volunteerRegistrationCloseHours ||
+      form.values.volunteerCancellationCloseHours !== initialTimingValues.volunteer.volunteerCancellationCloseHours
+
+    setVolunteerTimingDirty(hasVolunteerTimingChanged)
+  }, [
+    form.values.volunteerRegistrationCloseHours,
+    form.values.volunteerCancellationCloseHours,
+    initialTimingValues.volunteer,
+  ])
 
   // Fetch event email templates when Emails tab is active
   useEffect(() => {
@@ -1126,6 +1191,88 @@ export const EventForm: React.FC<EventFormProps> = ({
         targetSessions: targetSessions,
       },
     })
+  }
+
+  // Save RSVP/Ticket timing fields only
+  const handleSaveRsvpTiming = async () => {
+    if (!eventId) return
+
+    try {
+      // Create partial update with only RSVP/Ticket timing fields
+      await updateEventMutation.mutateAsync({
+        id: eventId,
+        registrationOpenHours: form.values.registrationOpenHours,
+        registrationCloseHours: form.values.registrationCloseHours,
+        cancellationOpenHours: form.values.cancellationOpenHours,
+        cancellationCloseHours: form.values.cancellationCloseHours,
+      })
+
+      // Update initial values to current values
+      setInitialTimingValues((prev) => ({
+        ...prev,
+        rsvp: {
+          registrationOpenHours: form.values.registrationOpenHours,
+          registrationCloseHours: form.values.registrationCloseHours,
+          cancellationOpenHours: form.values.cancellationOpenHours,
+          cancellationCloseHours: form.values.cancellationCloseHours,
+        },
+      }))
+      setRsvpTimingDirty(false)
+
+      notifications.show({
+        title: 'Timing Saved',
+        message: 'RSVP/Ticket timing settings have been saved successfully.',
+        color: 'green',
+      })
+
+      // Refresh event data
+      queryClient.invalidateQueries({ queryKey: eventKeys.detail(eventId) })
+    } catch (error) {
+      notifications.show({
+        title: 'Save Failed',
+        message: error instanceof Error ? error.message : 'Failed to save timing settings.',
+        color: 'red',
+      })
+    }
+  }
+
+  // Save Volunteer timing fields only
+  const handleSaveVolunteerTiming = async () => {
+    if (!eventId) return
+
+    try {
+      // Create partial update with only Volunteer timing fields
+      await updateEventMutation.mutateAsync({
+        id: eventId,
+        volunteerRegistrationCloseHours: form.values.volunteerRegistrationCloseHours,
+        volunteerCancellationCloseHours: form.values.volunteerCancellationCloseHours,
+      })
+
+      // Update initial values to current values
+      setInitialTimingValues((prev) => ({
+        ...prev,
+        volunteer: {
+          volunteerRegistrationCloseHours: form.values.volunteerRegistrationCloseHours,
+          volunteerCancellationCloseHours: form.values.volunteerCancellationCloseHours,
+        },
+      }))
+      setVolunteerTimingDirty(false)
+
+      notifications.show({
+        title: 'Timing Saved',
+        message: 'Volunteer timing settings have been saved successfully.',
+        color: 'green',
+      })
+
+      // Refresh event data
+      queryClient.invalidateQueries({ queryKey: eventKeys.detail(eventId) })
+    } catch (error) {
+      notifications.show({
+        title: 'Save Failed',
+        message: error instanceof Error ? error.message : 'Failed to save timing settings.',
+        color: 'red',
+      })
+    }
   }
 
   return (
@@ -1751,7 +1898,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                   >
                     <Text size="sm" c="dimmed" mb="md">
                       Control when volunteers can sign up and cancel their shifts. Positive values = hours before event start.
-                      Negative values = hours after event start. Leave blank to use system defaults.
+                      Negative values = hours after event start. Leave blank for no restrictions (always open).
                     </Text>
 
                     <Stack gap="md">
@@ -1759,11 +1906,12 @@ export const EventForm: React.FC<EventFormProps> = ({
                         <NumberInput
                           label="Volunteer Registration Closes"
                           description="Hours before/after event start (e.g., 24 = 1 day before)"
-                          placeholder="System default"
+                          placeholder="Not Set = Never Closes"
                           min={-24}
                           max={8760}
                           step={0.5}
                           decimalScale={1}
+                          allowNegative={true}
                           value={form.values.volunteerRegistrationCloseHours ?? undefined}
                           onChange={(value) => form.setFieldValue('volunteerRegistrationCloseHours', typeof value === 'number' ? value : null)}
                           error={form.errors.volunteerRegistrationCloseHours}
@@ -1772,16 +1920,30 @@ export const EventForm: React.FC<EventFormProps> = ({
                         <NumberInput
                           label="Volunteer Cancellation Closes"
                           description="Hours before/after event start (e.g., 48 = 2 days before)"
-                          placeholder="System default"
+                          placeholder="Not Set = Always can cancel"
                           min={-24}
                           max={8760}
                           step={0.5}
                           decimalScale={1}
+                          allowNegative={true}
                           value={form.values.volunteerCancellationCloseHours ?? undefined}
                           onChange={(value) => form.setFieldValue('volunteerCancellationCloseHours', typeof value === 'number' ? value : null)}
                           error={form.errors.volunteerCancellationCloseHours}
                           aria-describedby="volunteer-cancellation-close-help"
                         />
+                      </Group>
+
+                      {/* Save Timing Button */}
+                      <Group justify="flex-end" mt="md">
+                        <WCRButton
+                          onClick={handleSaveVolunteerTiming}
+                          loading={updateEventMutation.isPending}
+                          variant="secondary"
+                          size="lg"
+                          disabled={!volunteerTimingDirty}
+                        >
+                          {updateEventMutation.isPending ? 'Saving...' : 'Save'}
+                        </WCRButton>
                       </Group>
                     </Stack>
                   </Box>
@@ -1856,30 +2018,32 @@ export const EventForm: React.FC<EventFormProps> = ({
                   >
                     <Text size="sm" c="dimmed" mb="md">
                       Control when users can register and cancel. Positive values = hours before event start.
-                      Negative values = hours after event start. Leave blank to use system defaults.
+                      Negative values = hours after event start. Leave blank for no restrictions (always open).
                     </Text>
 
                     <Stack gap="md">
                       <Group grow align="flex-start">
                         <NumberInput
-                          label="Registration Opens"
+                          label="Registration / Tickets Starts"
                           description="Hours before/after event start (e.g., 168 = 1 week before)"
-                          placeholder="System default"
+                          placeholder="Not Set = Always Open"
                           min={-24}
                           max={8760}
+                          allowNegative={true}
                           value={form.values.registrationOpenHours ?? undefined}
                           onChange={(value) => form.setFieldValue('registrationOpenHours', typeof value === 'number' ? value : null)}
                           error={form.errors.registrationOpenHours}
                           aria-describedby="registration-open-help"
                         />
                         <NumberInput
-                          label="Registration Closes"
+                          label="Registration / Ticket Sales Ends"
                           description="Hours before/after event start (e.g., 0.5 = 30 min before)"
-                          placeholder="System default"
+                          placeholder="Not Set = Never Ends"
                           min={-24}
                           max={8760}
                           step={0.5}
                           decimalScale={1}
+                          allowNegative={true}
                           value={form.values.registrationCloseHours ?? undefined}
                           onChange={(value) => form.setFieldValue('registrationCloseHours', typeof value === 'number' ? value : null)}
                           error={form.errors.registrationCloseHours}
@@ -1891,9 +2055,10 @@ export const EventForm: React.FC<EventFormProps> = ({
                         <NumberInput
                           label="Cancellation Opens"
                           description="Hours before/after event start"
-                          placeholder="System default"
+                          placeholder="Not Set = Always Open"
                           min={-24}
                           max={8760}
+                          allowNegative={true}
                           value={form.values.cancellationOpenHours ?? undefined}
                           onChange={(value) => form.setFieldValue('cancellationOpenHours', typeof value === 'number' ? value : null)}
                           error={form.errors.cancellationOpenHours}
@@ -1902,16 +2067,30 @@ export const EventForm: React.FC<EventFormProps> = ({
                         <NumberInput
                           label="Cancellation Closes"
                           description="Hours before/after event start (e.g., 24 = 1 day before)"
-                          placeholder="System default"
+                          placeholder="Not Set = Never Closes"
                           min={-24}
                           max={8760}
                           step={0.5}
                           decimalScale={1}
+                          allowNegative={true}
                           value={form.values.cancellationCloseHours ?? undefined}
                           onChange={(value) => form.setFieldValue('cancellationCloseHours', typeof value === 'number' ? value : null)}
                           error={form.errors.cancellationCloseHours}
                           aria-describedby="cancellation-close-help"
                         />
+                      </Group>
+
+                      {/* Save Timing Button */}
+                      <Group justify="flex-end" mt="md">
+                        <WCRButton
+                          onClick={handleSaveRsvpTiming}
+                          loading={updateEventMutation.isPending}
+                          variant="secondary"
+                          size="lg"
+                          disabled={!rsvpTimingDirty}
+                        >
+                          {updateEventMutation.isPending ? 'Saving...' : 'Save'}
+                        </WCRButton>
                       </Group>
                     </Stack>
                   </Box>
