@@ -92,6 +92,26 @@ export function convertEventFormDataToUpdateDto(
     updateDto.policies = formData.policies.trim();
   }
 
+  // Include timing control fields (null is valid - means no restriction)
+  if (formData.registrationOpenHours !== undefined) {
+    updateDto.registrationOpenHours = formData.registrationOpenHours;
+  }
+  if (formData.registrationCloseHours !== undefined) {
+    updateDto.registrationCloseHours = formData.registrationCloseHours;
+  }
+  if (formData.cancellationOpenHours !== undefined) {
+    updateDto.cancellationOpenHours = formData.cancellationOpenHours;
+  }
+  if (formData.cancellationCloseHours !== undefined) {
+    updateDto.cancellationCloseHours = formData.cancellationCloseHours;
+  }
+  if (formData.volunteerRegistrationCloseHours !== undefined) {
+    updateDto.volunteerRegistrationCloseHours = formData.volunteerRegistrationCloseHours;
+  }
+  if (formData.volunteerCancellationCloseHours !== undefined) {
+    updateDto.volunteerCancellationCloseHours = formData.volunteerCancellationCloseHours;
+  }
+
   // Handle optional numeric fields
   // Note: EventFormData doesn't have capacity/price fields yet, but we can extend it later
   // Backend UpdateEventRequest supports: Capacity, Price
@@ -249,6 +269,26 @@ export function getChangedEventFields(
       requirements: (position as any).requirements || '',
       sessionId: (position as any).sessionId
     }));
+  }
+
+  // Check timing control fields (null is a valid value - means no restriction)
+  if (current.registrationOpenHours !== initial.registrationOpenHours) {
+    changes.registrationOpenHours = current.registrationOpenHours;
+  }
+  if (current.registrationCloseHours !== initial.registrationCloseHours) {
+    changes.registrationCloseHours = current.registrationCloseHours;
+  }
+  if (current.cancellationOpenHours !== initial.cancellationOpenHours) {
+    changes.cancellationOpenHours = current.cancellationOpenHours;
+  }
+  if (current.cancellationCloseHours !== initial.cancellationCloseHours) {
+    changes.cancellationCloseHours = current.cancellationCloseHours;
+  }
+  if (current.volunteerRegistrationCloseHours !== initial.volunteerRegistrationCloseHours) {
+    changes.volunteerRegistrationCloseHours = current.volunteerRegistrationCloseHours;
+  }
+  if (current.volunteerCancellationCloseHours !== initial.volunteerCancellationCloseHours) {
+    changes.volunteerCancellationCloseHours = current.volunteerCancellationCloseHours;
   }
 
   // Include publish status if provided

@@ -1,7 +1,7 @@
 # Granular Event Timing Controls - Progress Tracker
-<!-- Last Updated: 2025-11-18 -->
-<!-- Version: 1.0 -->
-<!-- Status: Phase 1 - Requirements & Planning -->
+<!-- Last Updated: 2025-11-19 -->
+<!-- Version: 1.1 -->
+<!-- Status: Production - Bug Fix Complete -->
 
 ## Feature Overview
 
@@ -339,11 +339,39 @@ None yet
 - **DTO Changes**: Standard NSwag regeneration
   - **Mitigation**: Type safety validation, compilation checks
 
+## Bug Fixes
+
+### 2025-11-19: Timing Fields Persistence Bug Fix ✅ COMPLETE
+
+**Issue**: Timing fields displayed correctly and could be edited in the Admin Event Details form, but changes weren't persisting to the database when saved.
+
+**Root Cause**: Two-layer issue:
+1. **Frontend Transformation Layer**: `eventDataTransformation.ts` wasn't including timing fields in update payload
+2. **Backend DTO Layer**: `UpdateEventRequest.cs` was missing timing field properties
+3. **Backend Service Layer**: `EventService.cs` wasn't mapping timing fields to entity before saving
+
+**Fix Details**:
+- **Frontend** (`/apps/web/src/utils/eventDataTransformation.ts`):
+  - Added timing fields to `convertEventFormDataToUpdateDto()` (lines 95-113)
+  - Added timing fields to `getChangedEventFields()` (lines 274-292)
+
+- **Backend** (`/apps/api/Features/Events/Models/UpdateEventRequest.cs`):
+  - Added all 6 timing fields as `decimal?` properties
+
+- **Backend** (`/apps/api/Features/Events/Services/EventService.cs`):
+  - Added timing field mapping logic to update entity before saving (lines 375-405)
+
+**Testing**: Manual testing confirmed values now persist correctly across page refreshes and database queries.
+
+**Status**: ✅ COMPLETE - Timing fields now fully functional for create, read, and update operations.
+
 ## Communication Log
 
 | Date | Type | Participants | Summary |
 |------|------|--------------|---------|
 | 2025-11-18 | Planning | Business Requirements Agent | Implementation plan and handoff documents created |
+| 2025-11-18 | Implementation | Backend Developer, React Developer | Full feature implementation completed |
+| 2025-11-19 | Bug Fix | React Developer | Fixed timing fields persistence issue |
 
 ## Files Created/Modified
 

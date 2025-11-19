@@ -372,6 +372,38 @@ public class EventService : IEventService
                 eventEntity.IsPublished = request.IsPublished.Value;
             }
 
+            // CRITICAL: Update timing control fields if provided
+            // These fields control when registration/cancellation windows open/close
+            if (request.RegistrationOpenHours.HasValue)
+            {
+                eventEntity.RegistrationOpenHours = request.RegistrationOpenHours.Value;
+            }
+
+            if (request.RegistrationCloseHours.HasValue)
+            {
+                eventEntity.RegistrationCloseHours = request.RegistrationCloseHours.Value;
+            }
+
+            if (request.CancellationOpenHours.HasValue)
+            {
+                eventEntity.CancellationOpenHours = request.CancellationOpenHours.Value;
+            }
+
+            if (request.CancellationCloseHours.HasValue)
+            {
+                eventEntity.CancellationCloseHours = request.CancellationCloseHours.Value;
+            }
+
+            if (request.VolunteerRegistrationCloseHours.HasValue)
+            {
+                eventEntity.VolunteerRegistrationCloseHours = request.VolunteerRegistrationCloseHours.Value;
+            }
+
+            if (request.VolunteerCancellationCloseHours.HasValue)
+            {
+                eventEntity.VolunteerCancellationCloseHours = request.VolunteerCancellationCloseHours.Value;
+            }
+
             // Handle sessions updates if provided
             if (request.Sessions != null)
             {

@@ -78,4 +78,46 @@ public class UpdateEventRequest
     /// If provided, will replace all existing volunteer positions with these
     /// </summary>
     public List<VolunteerPositionDto>? VolunteerPositions { get; set; }
+
+    /// <summary>
+    /// Hours before/after event start when registration opens (optional)
+    /// Negative = before start, Positive = after start, null = no restriction
+    /// Example: -24 = opens 24 hours before event
+    /// </summary>
+    public decimal? RegistrationOpenHours { get; set; }
+
+    /// <summary>
+    /// Hours before/after event start when registration closes (optional)
+    /// Negative = before start, Positive = after start, null = no restriction
+    /// Example: -12 = closes 12 hours before event
+    /// </summary>
+    public decimal? RegistrationCloseHours { get; set; }
+
+    /// <summary>
+    /// Hours before/after event start when cancellation opens (optional)
+    /// Negative = before start, Positive = after start, null = no restriction
+    /// Example: -48 = can cancel starting 48 hours before event
+    /// </summary>
+    public decimal? CancellationOpenHours { get; set; }
+
+    /// <summary>
+    /// Hours before/after event start when cancellation closes (optional)
+    /// Negative = before start, Positive = after start, null = no restriction
+    /// Example: -24 = cannot cancel within 24 hours of event
+    /// </summary>
+    public decimal? CancellationCloseHours { get; set; }
+
+    /// <summary>
+    /// Hours before/after event start when volunteer registration closes (optional)
+    /// Negative = before start, Positive = after start, null = no restriction
+    /// Example: -12 = volunteer signup closes 12 hours before event
+    /// </summary>
+    public decimal? VolunteerRegistrationCloseHours { get; set; }
+
+    /// <summary>
+    /// Hours before/after event start when volunteer cancellation closes (optional)
+    /// Negative = before start, Positive = after start, null = no restriction
+    /// Example: -24 = volunteers cannot cancel within 24 hours of event
+    /// </summary>
+    public decimal? VolunteerCancellationCloseHours { get; set; }
 }
