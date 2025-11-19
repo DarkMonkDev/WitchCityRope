@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Volunteers.Models;
 using WitchCityRope.Api.Features.Participation.Entities;
+using WitchCityRope.Api.Features.Events;
+using WitchCityRope.Api.Features.Events.Interfaces;
 using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Features.Volunteers.Services;
@@ -13,13 +15,16 @@ public class VolunteerService : IVolunteerService
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<VolunteerService> _logger;
+    private readonly ITimeZoneService _timeZoneService;
 
     public VolunteerService(
         ApplicationDbContext context,
-        ILogger<VolunteerService> logger)
+        ILogger<VolunteerService> logger,
+        ITimeZoneService timeZoneService)
     {
         _context = context;
         _logger = logger;
+        _timeZoneService = timeZoneService;
     }
 
     /// <summary>
@@ -136,13 +141,7 @@ public class VolunteerService : IVolunteerService
                 return (false, null, "Invalid user ID format");
             }
 
-            // Validate event waiver acceptance
-            if (!request.EventWaiverAccepted)
-            {
-                return (false, null, "You must accept the Event Waiver to volunteer");
-            }
-
-            // Get the volunteer position with event details
+            // Get the volunteer position with event details FIRST (need event for timing check)
             var position = await _context.VolunteerPositions
                 .Include(vp => vp.Event)
                 .FirstOrDefaultAsync(vp => vp.Id == positionGuid, cancellationToken);
@@ -156,6 +155,28 @@ public class VolunteerService : IVolunteerService
             if (!position.IsPublicFacing)
             {
                 return (false, null, "This volunteer position is not open for public signups");
+            }
+
+            // TIMING VALIDATION FIRST - Check before all other business rules
+            // This ensures users get timing errors BEFORE other validation errors
+            if (position.Event != null)
+            {
+                var isAllowed = await _timeZoneService.IsActionAllowedAsync(
+                    position.Event,
+                    EventActionType.GetVolunteer,
+                    cancellationToken);
+
+                if (!isAllowed)
+                {
+                    _logger.LogWarning("Volunteer signup attempt for event {EventId} outside allowed timing window", position.EventId);
+                    return (false, null, "Volunteer registration window has closed for this event");
+                }
+            }
+
+            // Validate event waiver acceptance
+            if (!request.EventWaiverAccepted)
+            {
+                return (false, null, "You must accept the Event Waiver to volunteer");
             }
 
             // Check if position is already full
@@ -317,6 +338,99 @@ public class VolunteerService : IVolunteerService
         {
             _logger.LogError(ex, "Error retrieving volunteer shifts for user {UserId}", userId);
             return (false, null, "Failed to retrieve volunteer shifts");
+        }
+    }
+
+    /// <summary>
+    /// Cancel a volunteer signup
+    /// User can only cancel their own signups
+    /// Timing enforcement via VolunteerCancellationCloseHours
+    /// Cannot cancel if already checked in
+    /// </summary>
+    public async Task<(bool success, string? error)> CancelVolunteerSignupAsync(
+        string signupId,
+        string userId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (!Guid.TryParse(signupId, out var signupGuid))
+            {
+                return (false, "Invalid signup ID format");
+            }
+
+            if (!Guid.TryParse(userId, out var userGuid))
+            {
+                return (false, "Invalid user ID format");
+            }
+
+            // Get the signup with position and event details
+            var signup = await _context.VolunteerSignups
+                .Include(vs => vs.VolunteerPosition)
+                    .ThenInclude(vp => vp!.Event)
+                .FirstOrDefaultAsync(vs => vs.Id == signupGuid, cancellationToken);
+
+            if (signup == null)
+            {
+                return (false, "Volunteer signup not found");
+            }
+
+            // Verify ownership - user can only cancel their own signups
+            if (signup.UserId != userGuid)
+            {
+                _logger.LogWarning("User {UserId} attempted to cancel signup {SignupId} belonging to user {OwnerId}",
+                    userId, signupId, signup.UserId);
+                return (false, "You can only cancel your own volunteer signups");
+            }
+
+            // Check if already cancelled
+            if (signup.Status == VolunteerSignupStatus.Cancelled)
+            {
+                return (false, "This volunteer signup is already cancelled");
+            }
+
+            // Cannot cancel if already checked in
+            if (signup.HasCheckedIn)
+            {
+                _logger.LogWarning("User {UserId} attempted to cancel checked-in signup {SignupId}", userId, signupId);
+                return (false, "Cannot cancel volunteer signup after checking in");
+            }
+
+            // Check if cancellation is allowed based on granular timing controls
+            if (signup.VolunteerPosition?.Event != null)
+            {
+                var isAllowed = await _timeZoneService.IsActionAllowedAsync(
+                    signup.VolunteerPosition.Event,
+                    EventActionType.CancelVolunteer,
+                    cancellationToken);
+
+                if (!isAllowed)
+                {
+                    _logger.LogWarning("Volunteer cancellation attempt for signup {SignupId} outside allowed timing window", signupId);
+                    return (false, "Volunteer cancellation window has closed for this event");
+                }
+            }
+
+            // Cancel the signup
+            signup.Status = VolunteerSignupStatus.Cancelled;
+            signup.UpdatedAt = DateTime.UtcNow;
+
+            // Update slots filled count on position
+            if (signup.VolunteerPosition != null)
+            {
+                signup.VolunteerPosition.SlotsFilled = Math.Max(0, signup.VolunteerPosition.SlotsFilled - 1);
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("User {UserId} cancelled volunteer signup {SignupId}", userId, signupId);
+
+            return (true, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error cancelling volunteer signup {SignupId} for user {UserId}", signupId, userId);
+            return (false, "Failed to cancel volunteer signup");
         }
     }
 }

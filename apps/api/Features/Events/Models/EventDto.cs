@@ -76,4 +76,50 @@ public class EventDto
     /// References to ApplicationUser entities who are teaching/organizing this event
     /// </summary>
     public List<string> TeacherIds { get; set; } = new List<string>();
+
+    // ====================================================================
+    // GRANULAR TIMING CONTROLS
+    // ====================================================================
+
+    /// <summary>
+    /// Hours before/after event start when RSVP/Ticket registration opens.
+    /// Positive = before event, Negative = after event (max -24).
+    /// NULL = no restriction (can register any time before event).
+    /// </summary>
+    public decimal? RegistrationOpenHours { get; set; }
+
+    /// <summary>
+    /// Hours before/after event start when RSVP/Ticket registration closes.
+    /// Positive = before event, Negative = after event (max -24).
+    /// NULL = no restriction (can register until event starts).
+    /// </summary>
+    public decimal? RegistrationCloseHours { get; set; }
+
+    /// <summary>
+    /// Hours before/after event start when RSVP/Ticket cancellation opens.
+    /// Positive = before event, Negative = after event (max -24).
+    /// NULL = no restriction (can cancel any time before event).
+    /// </summary>
+    public decimal? CancellationOpenHours { get; set; }
+
+    /// <summary>
+    /// Hours before/after event start when RSVP/Ticket cancellation closes.
+    /// Positive = before event, Negative = after event (max -24).
+    /// NULL = no restriction (can cancel until event starts).
+    /// </summary>
+    public decimal? CancellationCloseHours { get; set; }
+
+    /// <summary>
+    /// Hours before/after event start when volunteer signup closes.
+    /// Positive = before event, Negative = after event (max -24).
+    /// NULL = no restriction (can signup until event starts).
+    /// </summary>
+    public decimal? VolunteerRegistrationCloseHours { get; set; }
+
+    /// <summary>
+    /// Hours before/after event start when volunteer cancellation closes.
+    /// Positive = before event, Negative = after event (max -24).
+    /// NULL = no restriction (can cancel until event starts).
+    /// </summary>
+    public decimal? VolunteerCancellationCloseHours { get; set; }
 }

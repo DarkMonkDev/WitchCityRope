@@ -17,12 +17,15 @@ import {
   Modal,
   Textarea,
   Button,
+  NumberInput,
+  Collapse,
+  Box,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../api/client'
 import { notifications } from '@mantine/notifications'
-import { IconCheck, IconAlertCircle, IconChevronUp, IconChevronDown } from '@tabler/icons-react'
+import { IconCheck, IconAlertCircle, IconChevronUp, IconChevronDown, IconSettings } from '@tabler/icons-react'
 import { MantineTiptapEditor } from '../forms/MantineTiptapEditor'
 import type { components } from '@witchcityrope/shared-types'
 
@@ -342,6 +345,14 @@ export interface EventFormData {
 
   // Volunteer Positions
   volunteerPositions: VolunteerPosition[]
+
+  // Timing Controls (nullable, in hours relative to event start)
+  registrationOpenHours?: number | null
+  registrationCloseHours?: number | null
+  cancellationOpenHours?: number | null
+  cancellationCloseHours?: number | null
+  volunteerRegistrationCloseHours?: number | null
+  volunteerCancellationCloseHours?: number | null
 }
 
 interface EventFormProps {
@@ -367,6 +378,8 @@ export const EventForm: React.FC<EventFormProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<string>('basic-info')
   const [activeEmailTemplate, setActiveEmailTemplate] = useState<string>('confirmation')
+  const [rsvpTimingOpen, setRsvpTimingOpen] = useState(false)
+  const [volunteerTimingOpen, setVolunteerTimingOpen] = useState(false)
   const queryClient = useQueryClient()
 
   // Fetch teachers from API
@@ -494,6 +507,12 @@ export const EventForm: React.FC<EventFormProps> = ({
       sessions: [],
       ticketTypes: [],
       volunteerPositions: [],
+      registrationOpenHours: null,
+      registrationCloseHours: null,
+      cancellationOpenHours: null,
+      cancellationCloseHours: null,
+      volunteerRegistrationCloseHours: null,
+      volunteerCancellationCloseHours: null,
       ...initialData,
     },
     validate: {
@@ -505,6 +524,42 @@ export const EventForm: React.FC<EventFormProps> = ({
       },
       fullDescription: (value) => (!value ? 'Full description is required' : null),
       venueId: (value) => (!value ? 'Venue selection is required' : null),
+      registrationOpenHours: (value) => {
+        if (value !== null && value !== undefined && value < -24) {
+          return 'Cannot be more than 24 hours after event start'
+        }
+        return null
+      },
+      registrationCloseHours: (value) => {
+        if (value !== null && value !== undefined && value < -24) {
+          return 'Cannot be more than 24 hours after event start'
+        }
+        return null
+      },
+      cancellationOpenHours: (value) => {
+        if (value !== null && value !== undefined && value < -24) {
+          return 'Cannot be more than 24 hours after event start'
+        }
+        return null
+      },
+      cancellationCloseHours: (value) => {
+        if (value !== null && value !== undefined && value < -24) {
+          return 'Cannot be more than 24 hours after event start'
+        }
+        return null
+      },
+      volunteerRegistrationCloseHours: (value) => {
+        if (value !== null && value !== undefined && value < -24) {
+          return 'Cannot be more than 24 hours after event start'
+        }
+        return null
+      },
+      volunteerCancellationCloseHours: (value) => {
+        if (value !== null && value !== undefined && value < -24) {
+          return 'Cannot be more than 24 hours after event start'
+        }
+        return null
+      },
     },
   })
 
@@ -532,6 +587,12 @@ export const EventForm: React.FC<EventFormProps> = ({
           sessions: [],
           ticketTypes: [],
           volunteerPositions: [],
+          registrationOpenHours: null,
+          registrationCloseHours: null,
+          cancellationOpenHours: null,
+          cancellationCloseHours: null,
+          volunteerRegistrationCloseHours: null,
+          volunteerCancellationCloseHours: null,
           ...initialData,
         })
       }
@@ -1651,6 +1712,82 @@ export const EventForm: React.FC<EventFormProps> = ({
           {/* Volunteers Tab - Modal-based consistent with other tabs */}
           <Tabs.Panel value="volunteers" pt="xl" data-testid="panel-volunteers">
             <Stack gap="xl">
+              {/* Timing Settings - Collapsible Section */}
+              <Box>
+                <Group justify="space-between" align="center" mb="md">
+                  <Title
+                    order={2}
+                    c="burgundy"
+                    style={{
+                      borderBottom: '2px solid var(--mantine-color-burgundy-3)',
+                      paddingBottom: '8px',
+                      flex: 1,
+                    }}
+                  >
+                    Volunteer Timing Controls
+                  </Title>
+                  <Button
+                    variant="subtle"
+                    size="sm"
+                    onClick={() => setVolunteerTimingOpen(!volunteerTimingOpen)}
+                    rightSection={volunteerTimingOpen ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
+                    aria-expanded={volunteerTimingOpen}
+                    aria-controls="volunteer-timing-settings"
+                  >
+                    <IconSettings size={16} style={{ marginRight: '4px' }} />
+                    Timing Settings
+                  </Button>
+                </Group>
+
+                <Collapse in={volunteerTimingOpen}>
+                  <Box
+                    id="volunteer-timing-settings"
+                    p="md"
+                    style={{
+                      background: 'linear-gradient(135deg, var(--mantine-color-burgundy-0) 0%, var(--mantine-color-plum-0) 100%)',
+                      borderRadius: '8px',
+                      border: '1px solid var(--mantine-color-burgundy-2)',
+                    }}
+                  >
+                    <Text size="sm" c="dimmed" mb="md">
+                      Control when volunteers can sign up and cancel their shifts. Positive values = hours before event start.
+                      Negative values = hours after event start. Leave blank to use system defaults.
+                    </Text>
+
+                    <Stack gap="md">
+                      <Group grow align="flex-start">
+                        <NumberInput
+                          label="Volunteer Registration Closes"
+                          description="Hours before/after event start (e.g., 24 = 1 day before)"
+                          placeholder="System default"
+                          min={-24}
+                          max={8760}
+                          step={0.5}
+                          decimalScale={1}
+                          value={form.values.volunteerRegistrationCloseHours ?? undefined}
+                          onChange={(value) => form.setFieldValue('volunteerRegistrationCloseHours', typeof value === 'number' ? value : null)}
+                          error={form.errors.volunteerRegistrationCloseHours}
+                          aria-describedby="volunteer-registration-close-help"
+                        />
+                        <NumberInput
+                          label="Volunteer Cancellation Closes"
+                          description="Hours before/after event start (e.g., 48 = 2 days before)"
+                          placeholder="System default"
+                          min={-24}
+                          max={8760}
+                          step={0.5}
+                          decimalScale={1}
+                          value={form.values.volunteerCancellationCloseHours ?? undefined}
+                          onChange={(value) => form.setFieldValue('volunteerCancellationCloseHours', typeof value === 'number' ? value : null)}
+                          error={form.errors.volunteerCancellationCloseHours}
+                          aria-describedby="volunteer-cancellation-close-help"
+                        />
+                      </Group>
+                    </Stack>
+                  </Box>
+                </Collapse>
+              </Box>
+
               {/* Volunteer Positions */}
               <div>
                 <Title
@@ -1680,6 +1817,106 @@ export const EventForm: React.FC<EventFormProps> = ({
           {/* RSVP/Tickets Tab - Updated per requirements */}
           <Tabs.Panel value="rsvp-tickets" pt="xl" data-testid="rsvp-tickets-tab">
             <Stack gap="xl">
+              {/* Timing Settings - Collapsible Section */}
+              <Box>
+                <Group justify="space-between" align="center" mb="md">
+                  <Title
+                    order={2}
+                    c="burgundy"
+                    style={{
+                      borderBottom: '2px solid var(--mantine-color-burgundy-3)',
+                      paddingBottom: '8px',
+                      flex: 1,
+                    }}
+                  >
+                    Registration & Cancellation Timing
+                  </Title>
+                  <Button
+                    variant="subtle"
+                    size="sm"
+                    onClick={() => setRsvpTimingOpen(!rsvpTimingOpen)}
+                    rightSection={rsvpTimingOpen ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
+                    aria-expanded={rsvpTimingOpen}
+                    aria-controls="rsvp-timing-settings"
+                  >
+                    <IconSettings size={16} style={{ marginRight: '4px' }} />
+                    Timing Settings
+                  </Button>
+                </Group>
+
+                <Collapse in={rsvpTimingOpen}>
+                  <Box
+                    id="rsvp-timing-settings"
+                    p="md"
+                    style={{
+                      background: 'linear-gradient(135deg, var(--mantine-color-burgundy-0) 0%, var(--mantine-color-plum-0) 100%)',
+                      borderRadius: '8px',
+                      border: '1px solid var(--mantine-color-burgundy-2)',
+                    }}
+                  >
+                    <Text size="sm" c="dimmed" mb="md">
+                      Control when users can register and cancel. Positive values = hours before event start.
+                      Negative values = hours after event start. Leave blank to use system defaults.
+                    </Text>
+
+                    <Stack gap="md">
+                      <Group grow align="flex-start">
+                        <NumberInput
+                          label="Registration Opens"
+                          description="Hours before/after event start (e.g., 168 = 1 week before)"
+                          placeholder="System default"
+                          min={-24}
+                          max={8760}
+                          value={form.values.registrationOpenHours ?? undefined}
+                          onChange={(value) => form.setFieldValue('registrationOpenHours', typeof value === 'number' ? value : null)}
+                          error={form.errors.registrationOpenHours}
+                          aria-describedby="registration-open-help"
+                        />
+                        <NumberInput
+                          label="Registration Closes"
+                          description="Hours before/after event start (e.g., 0.5 = 30 min before)"
+                          placeholder="System default"
+                          min={-24}
+                          max={8760}
+                          step={0.5}
+                          decimalScale={1}
+                          value={form.values.registrationCloseHours ?? undefined}
+                          onChange={(value) => form.setFieldValue('registrationCloseHours', typeof value === 'number' ? value : null)}
+                          error={form.errors.registrationCloseHours}
+                          aria-describedby="registration-close-help"
+                        />
+                      </Group>
+
+                      <Group grow align="flex-start">
+                        <NumberInput
+                          label="Cancellation Opens"
+                          description="Hours before/after event start"
+                          placeholder="System default"
+                          min={-24}
+                          max={8760}
+                          value={form.values.cancellationOpenHours ?? undefined}
+                          onChange={(value) => form.setFieldValue('cancellationOpenHours', typeof value === 'number' ? value : null)}
+                          error={form.errors.cancellationOpenHours}
+                          aria-describedby="cancellation-open-help"
+                        />
+                        <NumberInput
+                          label="Cancellation Closes"
+                          description="Hours before/after event start (e.g., 24 = 1 day before)"
+                          placeholder="System default"
+                          min={-24}
+                          max={8760}
+                          step={0.5}
+                          decimalScale={1}
+                          value={form.values.cancellationCloseHours ?? undefined}
+                          onChange={(value) => form.setFieldValue('cancellationCloseHours', typeof value === 'number' ? value : null)}
+                          error={form.errors.cancellationCloseHours}
+                          aria-describedby="cancellation-close-help"
+                        />
+                      </Group>
+                    </Stack>
+                  </Box>
+                </Collapse>
+              </Box>
               {/* RSVPs Table - Hidden for CLASS events */}
               {form.values.eventType === 'social' && (
                 <div data-testid="rsvps-section">

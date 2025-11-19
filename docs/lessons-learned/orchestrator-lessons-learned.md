@@ -63,6 +63,93 @@ NOTE: The lessons-learned-validator skill is for diagnosing/fixing lessons learn
 The orchestrator MUST focus on keeping its context clean and ALWAYS delegate work to the appropriate sub-agents. This is EXTREMELY important.
 
 
+## 🚨 ULTRA CRITICAL: NEVER Use Backend-Developer for Test Creation (2025-11-18) 🚨
+
+**CRISIS CONTEXT**: Backend-developer agent was used to CREATE tests instead of test-developer agent, causing 130+ compilation errors, missing WebApplicationFactory pattern, wrong property names, wrong enum names, and missing helper methods. User was furious: "why the fuck did you use the backend developer to create tests. That was really stupid and is probably what caused all the problems."
+
+### 🔥 CRITICAL FAILURE PATTERN: Wrong Agent for Test Creation
+
+**Problem**: Orchestrator delegated test creation to backend-developer instead of test-developer
+**Reality**: Backend-developer doesn't know integration test infrastructure patterns
+**Root Cause**: Failing to recognize test creation as test-developer's responsibility
+**Impact**: ALL 67 tests failed compilation, required complete pattern overhaul
+**User Quote**: "That was really stupid and is probably what caused all the problems"
+
+### 🛑 MANDATORY AGENT DELEGATION RULES FOR TESTING
+
+**ZERO TOLERANCE - NO EXCEPTIONS**:
+
+- ❌ **NEVER** delegate test creation to backend-developer
+- ❌ **NEVER** delegate test fixes to backend-developer
+- ❌ **NEVER** let backend-developer write ANY test code
+- ✅ **ALWAYS** delegate test creation to test-developer
+- ✅ **ALWAYS** delegate test fixes to test-developer
+- ✅ **Backend-developer ONLY** fixes production code revealed as broken by tests
+
+### 📋 WHY THIS MATTERS
+
+**test-developer has lessons learned with**:
+- WebApplicationFactory<Program> pattern for HTTP integration tests
+- DatabaseTestFixture and test container patterns
+- Correct property names (StartDate vs StartDateTime)
+- Correct enum names (AttendanceType vs EventAttendanceType)
+- Helper methods (CreateAuthenticatedUserAsync)
+- Established test patterns from 1000+ working tests
+
+**backend-developer does NOT have**:
+- Integration test infrastructure knowledge
+- Test fixture patterns
+- Test-specific helper methods
+- Knowledge of test naming conventions
+
+### 🚨 ENFORCEMENT CHECKLIST
+
+**Phase 4: Testing & Validation**:
+- [ ] Check delegation target: Is this test creation? → test-developer
+- [ ] Check delegation target: Is this test modification? → test-developer
+- [ ] Check delegation target: Is this production code fix? → backend-developer
+- [ ] NEVER delegate test work to backend-developer
+- [ ] NEVER make exceptions to this rule
+
+### 🔍 REAL EXAMPLE FROM 2025-11-18
+
+**What Happened**:
+1. Orchestrator needed 67 tests created (30 unit + 37 integration)
+2. Orchestrator delegated to backend-developer (WRONG)
+3. Backend-developer created tests without WebApplicationFactory
+4. Tests had 130+ compilation errors
+5. Tests had wrong property/enum names
+6. Tests missing helper methods
+7. User extremely frustrated with this obvious mistake
+
+**What Should Have Happened**:
+1. Orchestrator needed 67 tests created
+2. Orchestrator delegated to test-developer (CORRECT)
+3. test-developer uses established patterns from lessons learned
+4. Tests compile on first try
+5. Tests use correct infrastructure patterns
+6. Minimal fixes needed
+
+### 🎯 PREVENTION PATTERN
+
+**When coordinating Testing Phase**:
+```markdown
+IF task involves test files (.cs files in /tests/)
+  IF creating new tests → DELEGATE to test-developer
+  IF modifying existing tests → DELEGATE to test-developer
+  IF fixing test compilation → DELEGATE to test-developer
+  IF production code needs fixes based on test failures → DELEGATE to backend-developer
+ELSE
+  Standard delegation rules apply
+END IF
+```
+
+**NO SHORTCUTS. NO EXCEPTIONS. NO EXCUSES.**
+
+### Tags
+#ultra-critical #testing #delegation #agent-boundaries #prevention-pattern #test-developer-only
+
+
 ## 🚨 ULTRA CRITICAL: Testing and Verification Failure Prevention (2025-09-18) 🚨
 
 **CRISIS CONTEXT**: Major orchestration failures discovered where tests were wrong, implementation status was misunderstood, and infrastructure health masked application dysfunction.

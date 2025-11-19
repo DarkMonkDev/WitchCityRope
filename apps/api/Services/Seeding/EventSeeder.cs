@@ -50,6 +50,7 @@ public class EventSeeder
     /// - Proper UTC DateTime handling
     /// - Appropriate capacity, venue assignment, pricing
     /// - Published status
+    /// - GRANULAR TIMING CONTROLS with realistic values demonstrating system flexibility
     ///
     /// Venue Assignment Strategy:
     /// - Classes/Workshops → Main Studio
@@ -85,8 +86,7 @@ public class EventSeeder
         // Create diverse set of events per functional specification
         var sampleEvents = new[]
         {
-            // Upcoming Events (3 classes and 3 social events)
-            // Updated dates to ensure events are in the future (relative to current date)
+            // Upcoming Class Event #1: Strict timing (early commitment required)
             CreateSeedEvent(
                 title: "Introduction to Rope Safety",
                 daysFromNow: 7,  // Next week
@@ -180,9 +180,17 @@ public class EventSeeder
 <li>Violation of policies may result in permanent ban from all community events</li>
 </ul>
 
-<p><strong>By attending, you agree to abide by all policies and accept responsibility for your own safety and well-being.</strong></p>"
+<p><strong>By attending, you agree to abide by all policies and accept responsibility for your own safety and well-being.</strong></p>",
+                // TIMING: Workshop - Strict (early commitment required)
+                registrationOpenHours: 240m,      // 10 days before
+                registrationCloseHours: 48m,      // 48 hours BEFORE start
+                cancellationOpenHours: 240m,      // 10 days before
+                cancellationCloseHours: 72m,      // 72 hours BEFORE start
+                volunteerRegistrationCloseHours: 96m,   // 4 days before
+                volunteerCancellationCloseHours: 72m    // 3 days before
             ),
 
+            // Upcoming Class Event #2: Very strict timing (advanced class)
             CreateSeedEvent(
                 title: "Suspension Basics",
                 daysFromNow: 14,  // 2 weeks from now
@@ -298,9 +306,17 @@ public class EventSeeder
 <li>Suspension bondage carries inherent risks including nerve damage, circulation issues, rope burns, bruising, and injury from falls</li>
 <li>By attending, you acknowledge these risks and accept responsibility for your participation</li>
 <li>You agree to follow all safety protocols and instructor guidance</li>
-</ul>"
+</ul>",
+                // TIMING: Advanced Suspension - Very Strict (safety critical)
+                registrationOpenHours: 336m,      // 14 days before (2 weeks)
+                registrationCloseHours: 120m,     // 5 days BEFORE start
+                cancellationOpenHours: 336m,      // 14 days before
+                cancellationCloseHours: 168m,     // 7 days BEFORE start
+                volunteerRegistrationCloseHours: 168m,  // 7 days before
+                volunteerCancellationCloseHours: 120m   // 5 days before
             ),
 
+            // Upcoming Class Event #3: Medium timing (balanced approach)
             CreateSeedEvent(
                 title: "Advanced Floor Work",
                 daysFromNow: 21,  // 3 weeks from now
@@ -423,9 +439,17 @@ public class EventSeeder
 <li>By participating, you acknowledge these risks and accept responsibility</li>
 <li>You agree to practice safely and follow all instructor guidance</li>
 <li>Nerve damage, bruising, rope burns, and other injuries are possible</li>
-</ul>"
+</ul>",
+                // TIMING: Advanced Class - Medium timing (balanced)
+                registrationOpenHours: 168m,      // 7 days before
+                registrationCloseHours: 24m,      // 1 day BEFORE start
+                cancellationOpenHours: 120m,      // 5 days before
+                cancellationCloseHours: 48m,      // 2 days BEFORE start
+                volunteerRegistrationCloseHours: 72m,   // 3 days before
+                volunteerCancellationCloseHours: 48m    // 2 days before
             ),
 
+            // Upcoming Social Event #1: Very lenient (allows post-event timing)
             CreateSeedEvent(
                 title: "Community Rope Jam",
                 daysFromNow: 28,  // 4 weeks from now
@@ -567,9 +591,17 @@ public class EventSeeder
 <li>You are responsible for your own safety</li>
 <li>Practice within your abilities and knowledge</li>
 <li>Ask for help when needed</li>
-</ul>"
+</ul>",
+                // TIMING: Social Jam - Very Lenient (includes POST-EVENT timing)
+                registrationOpenHours: 168m,      // 7 days before
+                registrationCloseHours: -2m,      // 2 hours AFTER start (demonstrates post-event)
+                cancellationOpenHours: 48m,       // 2 days before
+                cancellationCloseHours: -1m,      // 1 hour AFTER start (demonstrates post-event)
+                volunteerRegistrationCloseHours: 48m,   // 2 days before
+                volunteerCancellationCloseHours: 24m    // 1 day before
             ),
 
+            // Upcoming Social Event #2: Moderate timing
             CreateSeedEvent(
                 title: "Rope Social & Discussion",
                 daysFromNow: 35,  // 5 weeks from now
@@ -715,9 +747,17 @@ public class EventSeeder
 <li>Look out for each other</li>
 <li>Let organizers know if someone seems in distress</li>
 <li>This is a community space - we all contribute to making it safe and welcoming</li>
-</ul>"
+</ul>",
+                // TIMING: Social Discussion - Moderate (balanced approach)
+                registrationOpenHours: 120m,      // 5 days before
+                registrationCloseHours: 6m,       // 6 hours BEFORE start
+                cancellationOpenHours: 72m,       // 3 days before
+                cancellationCloseHours: 12m,      // 12 hours BEFORE start
+                volunteerRegistrationCloseHours: 48m,   // 2 days before
+                volunteerCancellationCloseHours: 24m    // 1 day before
             ),
 
+            // Upcoming Social Event #3: Lenient timing (welcoming to new members)
             CreateSeedEvent(
                 title: "New Members Meetup",
                 daysFromNow: 42,  // 6 weeks from now
@@ -870,10 +910,17 @@ public class EventSeeder
 <li>Inclusive and welcoming to all backgrounds</li>
 <li>Support for learning and growth</li>
 <li>Building authentic connections and friendships</li>
-</ul>"
+</ul>",
+                // TIMING: New Members - Lenient (welcoming, flexible)
+                registrationOpenHours: 336m,      // 14 days before
+                registrationCloseHours: 2m,       // 2 hours BEFORE start
+                cancellationOpenHours: 48m,       // 2 days before
+                cancellationCloseHours: 6m,       // 6 hours BEFORE start
+                volunteerRegistrationCloseHours: 72m,   // 3 days before
+                volunteerCancellationCloseHours: 24m    // 1 day before
             ),
 
-            // Past Events (2 events) for testing historical data
+            // Past Social Event: Demonstrates historical data
             CreateSeedEvent(
                 title: "Beginner Rope Circle",
                 daysFromNow: -7,
@@ -902,9 +949,17 @@ public class EventSeeder
 <li>No photography without permission</li>
 <li>Respectful conduct expected</li>
 <li>Zero tolerance for harassment</li>
-</ul>"
+</ul>",
+                // TIMING: Past event - Same as New Members (lenient)
+                registrationOpenHours: 168m,
+                registrationCloseHours: 2m,
+                cancellationOpenHours: 48m,
+                cancellationCloseHours: 6m,
+                volunteerRegistrationCloseHours: 48m,
+                volunteerCancellationCloseHours: 24m
             ),
 
+            // Past Class Event: Demonstrates historical workshop
             CreateSeedEvent(
                 title: "Rope Fundamentals Series",
                 daysFromNow: -14,
@@ -936,7 +991,14 @@ public class EventSeeder
 <li>Consent protocols mandatory</li>
 <li>No photography without permission</li>
 <li>Professional conduct required</li>
-</ul>"
+</ul>",
+                // TIMING: Past class - Medium timing (balanced)
+                registrationOpenHours: 240m,
+                registrationCloseHours: 48m,
+                cancellationOpenHours: 120m,
+                cancellationCloseHours: 72m,
+                volunteerRegistrationCloseHours: 72m,
+                volunteerCancellationCloseHours: 48m
             ),
 
             // Historical Event 1: Advanced Suspension Techniques Workshop
@@ -967,7 +1029,14 @@ public class EventSeeder
 <li>Prerequisite: Advanced rope experience required</li>
 <li>Medical waiver mandatory</li>
 <li>Professional conduct expected</li>
-</ul>"
+</ul>",
+                // TIMING: Historical event - Very strict (advanced safety)
+                registrationOpenHours: 336m,
+                registrationCloseHours: 168m,
+                cancellationOpenHours: 336m,
+                cancellationCloseHours: 240m,
+                volunteerRegistrationCloseHours: 168m,
+                volunteerCancellationCloseHours: 120m
             ),
 
             // Historical Event 2: Rope Fundamentals Intensive
@@ -998,7 +1067,14 @@ public class EventSeeder
 <li>Beginner-friendly, no experience required</li>
 <li>Safety protocols mandatory</li>
 <li>Respectful conduct expected</li>
-</ul>"
+</ul>",
+                // TIMING: Historical intensive - Strict (full-day commitment)
+                registrationOpenHours: 240m,
+                registrationCloseHours: 96m,
+                cancellationOpenHours: 240m,
+                cancellationCloseHours: 120m,
+                volunteerRegistrationCloseHours: 120m,
+                volunteerCancellationCloseHours: 96m
             ),
 
             // Historical Event 3: Monthly Rope Practice Night
@@ -1029,7 +1105,14 @@ public class EventSeeder
 <li>All skill levels welcome</li>
 <li>Practice safely within your abilities</li>
 <li>Respect all boundaries and consent</li>
-</ul>"
+</ul>",
+                // TIMING: Historical practice night - Very lenient (social)
+                registrationOpenHours: 168m,
+                registrationCloseHours: -1m,     // 1 hour AFTER start
+                cancellationOpenHours: 72m,
+                cancellationCloseHours: -0.5m,   // 30 minutes AFTER start
+                volunteerRegistrationCloseHours: 48m,
+                volunteerCancellationCloseHours: 24m
             ),
 
             // Historical Event 4: New Member Welcome Mixer
@@ -1060,22 +1143,30 @@ public class EventSeeder
 <li>Welcoming to all backgrounds</li>
 <li>Respectful interaction required</li>
 <li>No experience necessary</li>
-</ul>"
+</ul>",
+                // TIMING: Historical welcome - Lenient (welcoming)
+                registrationOpenHours: 336m,
+                registrationCloseHours: 4m,
+                cancellationOpenHours: 72m,
+                cancellationCloseHours: 12m,
+                volunteerRegistrationCloseHours: 72m,
+                volunteerCancellationCloseHours: 24m
             )
         };
 
         await _context.Events.AddRangeAsync(sampleEvents, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Sample event creation completed. Created: {EventCount} events", sampleEvents.Length);
+        _logger.LogInformation("Sample event creation completed. Created: {EventCount} events with granular timing controls", sampleEvents.Length);
     }
 
     /// <summary>
-    /// Helper method to create sample events with proper UTC DateTime handling.
+    /// Helper method to create sample events with proper UTC DateTime handling and granular timing controls.
     /// Follows ApplicationDbContext patterns for UTC date storage and audit fields.
     ///
     /// Creates realistic event data with proper scheduling, capacity, pricing information,
-    /// and complete descriptive fields (short description, long description, policies).
+    /// complete descriptive fields (short description, long description, policies), and
+    /// REALISTIC TIMING VALUES that demonstrate system flexibility.
     /// </summary>
     private Event CreateSeedEvent(
         string title,
@@ -1087,7 +1178,13 @@ public class EventSeeder
         decimal price,
         string shortDescription,
         string longDescription,
-        string policies)
+        string policies,
+        decimal registrationOpenHours,
+        decimal registrationCloseHours,
+        decimal cancellationOpenHours,
+        decimal cancellationCloseHours,
+        decimal volunteerRegistrationCloseHours,
+        decimal volunteerCancellationCloseHours)
     {
         // Calculate UTC dates following ApplicationDbContext patterns
         var startDate = DateTime.UtcNow.AddDays(daysFromNow).Date.AddHours(startHour);
@@ -1106,6 +1203,13 @@ public class EventSeeder
             EventType = eventType,
             VenueId = venue?.Id ?? 1,                 // Assign venue if available, default to Main Studio (ID 1)
             IsPublished = true,
+            // Granular Timing Controls (NEW)
+            RegistrationOpenHours = registrationOpenHours,
+            RegistrationCloseHours = registrationCloseHours,
+            CancellationOpenHours = cancellationOpenHours,
+            CancellationCloseHours = cancellationCloseHours,
+            VolunteerRegistrationCloseHours = volunteerRegistrationCloseHours,
+            VolunteerCancellationCloseHours = volunteerCancellationCloseHours,
             // CreatedAt/UpdatedAt will be set by ApplicationDbContext.UpdateAuditFields()
         };
     }
@@ -1125,7 +1229,13 @@ public class EventSeeder
         Venue? venue,
         string shortDescription,
         string longDescription,
-        string policies)
+        string policies,
+        decimal registrationOpenHours,
+        decimal registrationCloseHours,
+        decimal cancellationOpenHours,
+        decimal cancellationCloseHours,
+        decimal volunteerRegistrationCloseHours,
+        decimal volunteerCancellationCloseHours)
     {
         id = Guid.NewGuid();
         var startDate = DateTime.UtcNow.AddDays(daysFromNow).Date.AddHours(startHour);
@@ -1144,6 +1254,13 @@ public class EventSeeder
             EventType = eventType,
             VenueId = venue?.Id ?? 1,                 // Assign venue if available, default to Main Studio (ID 1)
             IsPublished = true,
+            // Granular Timing Controls (NEW)
+            RegistrationOpenHours = registrationOpenHours,
+            RegistrationCloseHours = registrationCloseHours,
+            CancellationOpenHours = cancellationOpenHours,
+            CancellationCloseHours = cancellationCloseHours,
+            VolunteerRegistrationCloseHours = volunteerRegistrationCloseHours,
+            VolunteerCancellationCloseHours = volunteerCancellationCloseHours,
             CreatedAt = DateTime.UtcNow.AddDays(daysFromNow - 5),
             UpdatedAt = DateTime.UtcNow.AddDays(daysFromNow)
         };

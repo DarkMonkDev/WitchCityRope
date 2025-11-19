@@ -99,7 +99,14 @@ public class EventService : IEventService
                 Sessions = e.Sessions.Select(s => new SessionDto(s)).ToList(),
                 TicketTypes = e.TicketTypes.Select(tt => new TicketTypeDto(tt, e.EventAttendances)).ToList(),
                 VolunteerPositions = e.VolunteerPositions.Select(vp => new VolunteerPositionDto(vp)).ToList(),
-                TeacherIds = e.Organizers.Select(o => o.Id.ToString()).ToList()
+                TeacherIds = e.Organizers.Select(o => o.Id.ToString()).ToList(),
+                // Granular timing controls
+                RegistrationOpenHours = e.RegistrationOpenHours,
+                RegistrationCloseHours = e.RegistrationCloseHours,
+                CancellationOpenHours = e.CancellationOpenHours,
+                CancellationCloseHours = e.CancellationCloseHours,
+                VolunteerRegistrationCloseHours = e.VolunteerRegistrationCloseHours,
+                VolunteerCancellationCloseHours = e.VolunteerCancellationCloseHours
             }).ToList();
 
             _logger.LogInformation("Retrieved {EventCount} {EventTypeFilter} from database", eventDtos.Count, eventTypeFilter);
@@ -198,7 +205,14 @@ public class EventService : IEventService
                 Sessions = eventEntity.Sessions.Select(s => new SessionDto(s)).ToList(),
                 TicketTypes = eventEntity.TicketTypes.Select(tt => new TicketTypeDto(tt, eventEntity.EventAttendances)).ToList(),
                 VolunteerPositions = eventEntity.VolunteerPositions.Select(vp => new VolunteerPositionDto(vp)).ToList(),
-                TeacherIds = eventEntity.Organizers.Select(o => o.Id.ToString()).ToList()
+                TeacherIds = eventEntity.Organizers.Select(o => o.Id.ToString()).ToList(),
+                // Granular timing controls
+                RegistrationOpenHours = eventEntity.RegistrationOpenHours,
+                RegistrationCloseHours = eventEntity.RegistrationCloseHours,
+                CancellationOpenHours = eventEntity.CancellationOpenHours,
+                CancellationCloseHours = eventEntity.CancellationCloseHours,
+                VolunteerRegistrationCloseHours = eventEntity.VolunteerRegistrationCloseHours,
+                VolunteerCancellationCloseHours = eventEntity.VolunteerCancellationCloseHours
             };
 
             _logger.LogDebug("Event retrieved successfully: {EventId} ({Title})", eventId, eventEntity.Title);
@@ -418,7 +432,14 @@ public class EventService : IEventService
                 Sessions = eventEntity.Sessions.Select(s => new SessionDto(s)).ToList(),
                 TicketTypes = eventEntity.TicketTypes.Select(tt => new TicketTypeDto(tt, eventEntity.EventAttendances)).ToList(),
                 VolunteerPositions = eventEntity.VolunteerPositions.Select(vp => new VolunteerPositionDto(vp)).ToList(),
-                TeacherIds = eventEntity.Organizers.Select(o => o.Id.ToString()).ToList()
+                TeacherIds = eventEntity.Organizers.Select(o => o.Id.ToString()).ToList(),
+                // Granular timing controls
+                RegistrationOpenHours = eventEntity.RegistrationOpenHours,
+                RegistrationCloseHours = eventEntity.RegistrationCloseHours,
+                CancellationOpenHours = eventEntity.CancellationOpenHours,
+                CancellationCloseHours = eventEntity.CancellationCloseHours,
+                VolunteerRegistrationCloseHours = eventEntity.VolunteerRegistrationCloseHours,
+                VolunteerCancellationCloseHours = eventEntity.VolunteerCancellationCloseHours
             };
 
             _logger.LogInformation("Event updated successfully: {EventId} ({Title})",

@@ -21,4 +21,9 @@ public interface IVolunteerService
     Task<(bool success, List<UserVolunteerShiftDto>? shifts, string? error)> GetUserVolunteerShiftsAsync(
         string userId,
         CancellationToken cancellationToken = default);
+
+    Task<(bool success, string? error)> CancelVolunteerSignupAsync(
+        string signupId,
+        string userId,
+        CancellationToken cancellationToken = default);
 }

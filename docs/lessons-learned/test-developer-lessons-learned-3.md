@@ -1752,3 +1752,298 @@ expect(data.length).toBeGreaterThan(0); // ✅ Correct structure
 **Gold Standard Established**: This test file now serves as the reference implementation for all E2E testing patterns in WitchCityRope.
 
 ---
+
+## 🚨 CRITICAL MANDATORY: HTTP Integration Tests MUST Use WebApplicationFactory<Program> (2025-11-18)
+
+**Problem**: Integration tests failing with 404 errors because no test server exists. Tests were created without WebApplicationFactory, causing HTTP requests to fail even though endpoints are correctly implemented.
+
+**Date Discovered**: November 18, 2025
+**Impact**: ALL HTTP integration tests fail with 404 errors when WebApplicationFactory is missing
+**Status**: CRITICAL - Blocking all endpoint integration tests
+
+### Root Cause: No Test Server Created
+
+**Wrong Pattern** - NO WebApplicationFactory:
+```csharp
+// ❌ WRONG - Creates context but no HTTP server
+[Collection("Database")]
+public class EventAttendanceEndpointsTests
+{
+    private readonly ApplicationDbContext _context;
+    private readonly HttpClient _client;  // No server to communicate with!
+
+    public EventAttendanceEndpointsTests(DatabaseTestFixture fixture)
+    {
+        _context = fixture.CreateDbContext();
+        // ERROR: HttpClient has nowhere to send requests - 404 guaranteed!
+    }
+}
+```
+
+### Correct Pattern - MANDATORY WebApplicationFactory
+
+```csharp
+[Collection("Database")]
+public class EventAttendanceEndpointsTests : IDisposable
+{
+    private readonly WebApplicationFactory<Program> _factory;
+    private readonly ApplicationDbContext _context;
+
+    public EventAttendanceEndpointsTests(DatabaseTestFixture fixture)
+    {
+        _factory = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureServices(services =>
+                {
+                    // Remove production DbContext
+                    var descriptor = services.SingleOrDefault(
+                        d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
+                    if (descriptor != null)
+                    {
+                        services.Remove(descriptor);
+                    }
+
+                    // Add test database connection
+                    services.AddDbContext<ApplicationDbContext>(options =>
+                    {
+                        options.UseNpgsql(fixture.ConnectionString);
+                    });
+                });
+            });
+
+        _context = fixture.CreateDbContext();
+    }
+
+    public void Dispose() => _factory?.Dispose();
+
+    [Fact]
+    public async Task GetEventAttendance_WithValidId_ReturnsAttendance()
+    {
+        // ✅ CORRECT - Factory creates actual HTTP server
+        var client = _factory.CreateClient();
+        var token = GenerateJwtToken(userId, email);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        // ✅ NOW this works - server actually exists
+        var response = await client.GetAsync($"/api/event-attendance/{attendanceId}");
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
+    }
+}
+```
+
+### Required Imports
+
+```csharp
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+using WitchCityRope.Api.Data;
+using System.Net.Http.Headers;
+```
+
+### Why WebApplicationFactory is Mandatory
+
+**WebApplicationFactory Responsibilities**:
+1. ✅ Creates actual HTTP server instance
+2. ✅ Configures dependency injection for tests
+3. ✅ Replaces production DbContext with test database
+4. ✅ Handles middleware and authentication
+5. ✅ Properly disposes resources on cleanup
+
+**Without WebApplicationFactory**:
+- ❌ No HTTP server to receive requests
+- ❌ All HTTP calls return 404 (nowhere to send them)
+- ❌ Endpoints not even invoked
+- ❌ Tests appear to test endpoints but actually test nothing
+
+### Complete Working Example
+
+```csharp
+[Collection("Database")]
+public class EventAttendanceEndpointsTests : IDisposable
+{
+    private readonly WebApplicationFactory<Program> _factory;
+    private readonly ApplicationDbContext _context;
+    private readonly DatabaseTestFixture _fixture;
+    private readonly string _testUserId = Guid.NewGuid().ToString();
+    private readonly string _testUserEmail = $"test-{Guid.NewGuid():N}@example.com";
+
+    public EventAttendanceEndpointsTests(DatabaseTestFixture fixture)
+    {
+        _fixture = fixture;
+
+        // ✅ MANDATORY - Create factory with test configuration
+        _factory = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureServices(services =>
+                {
+                    var descriptor = services.SingleOrDefault(
+                        d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
+                    if (descriptor != null)
+                    {
+                        services.Remove(descriptor);
+                    }
+
+                    services.AddDbContext<ApplicationDbContext>(options =>
+                    {
+                        options.UseNpgsql(fixture.ConnectionString);
+                    });
+                });
+            });
+
+        _context = fixture.CreateDbContext();
+    }
+
+    public void Dispose()
+    {
+        _context?.Dispose();
+        _factory?.Dispose();
+    }
+
+    [Fact]
+    public async Task GetEventAttendance_WithValidId_ReturnsData()
+    {
+        // Arrange - Create test data
+        var eventId = Guid.NewGuid();
+        var attendanceId = Guid.NewGuid();
+        var attendance = new EventAttendance
+        {
+            Id = attendanceId,
+            EventId = eventId,
+            UserId = _testUserId,
+            Status = EventAttendanceStatus.Active,
+            AttendanceType = EventAttendanceType.RSVP,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.EventAttendances.Add(attendance);
+        await _context.SaveChangesAsync();
+
+        // Create authenticated client
+        var client = _factory.CreateClient();
+        var token = GenerateJwtToken(_testUserId, _testUserEmail);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        // Act - ✅ NOW this works because factory created HTTP server
+        var response = await client.GetAsync($"/api/event-attendance/{attendanceId}");
+
+        // Assert
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
+        var data = await response.Content.ReadAsAsync<EventAttendanceDto>();
+        data.Id.Should().Be(attendanceId);
+    }
+
+    [Fact]
+    public async Task GetEventAttendance_WithInvalidId_Returns404()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+        var token = GenerateJwtToken(_testUserId, _testUserEmail);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        // Act
+        var response = await client.GetAsync($"/api/event-attendance/{Guid.NewGuid()}");
+
+        // Assert
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.NotFound);
+    }
+
+    private string GenerateJwtToken(string userId, string email)
+    {
+        // Implementation from IntegrationTestBase
+        // Returns valid JWT token for test user
+        return TestJwtTokenBuilder.CreateToken(userId, email, roles: new[] { "User" });
+    }
+}
+```
+
+### Prevention Checklist
+
+**BEFORE creating ANY HTTP integration test**:
+- ✅ Include `WebApplicationFactory<Program>` in test class
+- ✅ Configure services in `WithWebHostBuilder`
+- ✅ Replace production DbContext with test database
+- ✅ Create authenticated HttpClient with token
+- ✅ Implement `IDisposable` to cleanup factory
+
+**REQUIRED Methods/Patterns**:
+- ✅ Constructor: Initialize factory and context
+- ✅ `Dispose()`: Call `_factory?.Dispose()`
+- ✅ Each test: Get fresh client with `_factory.CreateClient()`
+- ✅ Authentication: Add JWT token to Authorization header
+
+### Files Implementing This Pattern
+
+**Reference Implementation**: `/tests/integration/api/Features/Participation/ParticipationEndpointsAccessControlTests.cs`
+- Working example: Complete factory setup, test data, HTTP calls
+
+**Complete Template**:
+```csharp
+// Use as starting point for new HTTP endpoint tests
+[Collection("Database")]
+public class [FeatureName]EndpointsTests : IDisposable
+{
+    private readonly WebApplicationFactory<Program> _factory;
+    private readonly ApplicationDbContext _context;
+    private readonly DatabaseTestFixture _fixture;
+
+    public [FeatureName]EndpointsTests(DatabaseTestFixture fixture)
+    {
+        _fixture = fixture;
+        _factory = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureServices(services =>
+                {
+                    var descriptor = services.SingleOrDefault(
+                        d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
+                    if (descriptor != null) services.Remove(descriptor);
+                    services.AddDbContext<ApplicationDbContext>(options =>
+                        options.UseNpgsql(fixture.ConnectionString));
+                });
+            });
+        _context = fixture.CreateDbContext();
+    }
+
+    public void Dispose() => _factory?.Dispose();
+
+    [Fact]
+    public async Task [TestName]()
+    {
+        var client = _factory.CreateClient();
+        // Test implementation
+    }
+}
+```
+
+### Why This Matters
+
+**Without WebApplicationFactory**:
+- Tests compile but all HTTP endpoints return 404
+- Developers waste hours debugging "broken endpoints" that actually work
+- Integration tests provide ZERO validation
+- Endpoints ship to production untested
+
+**With WebApplicationFactory**:
+- Tests create real HTTP server
+- Endpoints actually invoked and tested
+- Database integration validated
+- Confidence that endpoints work end-to-end
+
+### Key Lesson
+
+**ABSOLUTE RULE**: ALL HTTP integration tests MUST use `WebApplicationFactory<Program>` in constructor.
+
+**If test class doesn't have WebApplicationFactory**:
+- ❌ All HTTP tests will fail with 404
+- ❌ Endpoints never actually tested
+- ❌ False confidence - endpoints appear broken
+- ✅ FIX: Add factory to constructor
+
+**Common Mistake**: Creating HttpClient in test without factory = 404 guaranteed
+
+**Correct Approach**: Factory creates server + HttpClient in one step = endpoints work
+
+---

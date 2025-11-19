@@ -908,6 +908,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/events/{eventId}/purchase-ticket": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Purchase ticket (alias)
+         * @description Alias for /api/events/{id}/tickets endpoint
+         */
+        post: operations["PurchaseTicketAlias"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/attendance/{attendanceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Cancel attendance by ID
+         * @description Cancels an attendance record by its ID (RSVP or ticket)
+         */
+        delete: operations["CancelAttendanceById"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/user/participations": {
         parameters: {
             query?: never;
@@ -1062,6 +1102,26 @@ export interface paths {
         get: operations["GetUserVolunteerShifts"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/volunteer-signups/{signupId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel a volunteer signup
+         * @description Cancel a volunteer signup. User can only cancel their own signups. Cannot cancel if already checked in. Subject to event timing controls.
+         */
+        post: operations["CancelVolunteerSignup"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2315,6 +2375,46 @@ export interface paths {
          * @description Returns details of a specific sent ad-hoc email. Admin access required.
          */
         get: operations["GetAdHocEmailById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/email-templates/segments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all user segments with counts
+         * @description Returns all available user segments with current user counts. Admin access required.
+         */
+        get: operations["GetUserSegments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/email-templates/segments/{segmentName}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get preview of users in a segment
+         * @description Returns first 10 users in the specified segment for preview. Admin access required.
+         */
+        get: operations["GetSegmentPreview"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3784,6 +3884,18 @@ export interface components {
             ticketTypes?: components["schemas"]["TicketTypeDto"][];
             volunteerPositions?: components["schemas"]["VolunteerPositionDto"][];
             teacherIds?: string[];
+            /** Format: double */
+            registrationOpenHours?: number | null;
+            /** Format: double */
+            registrationCloseHours?: number | null;
+            /** Format: double */
+            cancellationOpenHours?: number | null;
+            /** Format: double */
+            cancellationCloseHours?: number | null;
+            /** Format: double */
+            volunteerRegistrationCloseHours?: number | null;
+            /** Format: double */
+            volunteerCancellationCloseHours?: number | null;
         };
         EventEmailTemplateDto: {
             /** Format: uuid */
@@ -4175,6 +4287,8 @@ export interface components {
         };
         /** @enum {unknown|null} */
         NullableOfSpokenToPersonStatus: "Yes" | "No" | "NotApplicable" | null;
+        /** @enum {unknown|null} */
+        NullableOfUserSegment: "AllVettedMembers" | "AllPreVettedMembers" | "AllTeachers" | "AllDMs" | "AllSafetyTeam" | "AllAdmins" | "EmailNotVerified" | "VettingPending" | null;
         PagedResultOfApplicationSummaryDto: {
             items?: components["schemas"]["ApplicationSummaryDto"][];
             /** Format: int32 */
@@ -4553,6 +4667,8 @@ export interface components {
             subject: string;
             htmlBody: string;
             plainTextBody: string;
+            segment?: components["schemas"]["NullableOfUserSegment"];
+            recipientEmails?: string[] | null;
             recipientGroup: string;
             /** Format: uuid */
             eventId?: string | null;
@@ -4944,6 +5060,15 @@ export interface components {
             notes?: string | null;
             canCancel?: boolean;
         };
+        UserPreviewDto: {
+            sceneName?: string;
+            email?: string;
+            /** Format: int32 */
+            vettingStatus?: number;
+            vettingStatusDisplay?: string;
+            role?: string;
+            emailConfirmed?: boolean;
+        };
         UserProfileDto: {
             /** Format: uuid */
             userId?: string;
@@ -4973,6 +5098,15 @@ export interface components {
             email?: string;
             discordName?: string | null;
             realName?: string | null;
+        };
+        /** @enum {unknown} */
+        UserSegment: "AllVettedMembers" | "AllPreVettedMembers" | "AllTeachers" | "AllDMs" | "AllSafetyTeam" | "AllAdmins" | "EmailNotVerified" | "VettingPending";
+        UserSegmentDto: {
+            segment?: components["schemas"]["UserSegment"];
+            /** Format: int32 */
+            count?: number;
+            description?: string;
+            segmentName?: string;
         };
         UserVolunteerShiftDto: {
             /** Format: uuid */
@@ -5047,6 +5181,7 @@ export interface components {
             safetyKnowledge?: string | null;
             consentUnderstanding?: string | null;
             whyJoinCommunity?: string | null;
+            howDidYouHearAboutUs?: string | null;
             skillsInterests?: string | null;
             expectationsGoals?: string | null;
             agreesToGuidelines?: boolean | null;
@@ -7489,6 +7624,131 @@ export interface operations {
             };
         };
     };
+    PurchaseTicketAlias: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTicketPurchaseRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ParticipationStatusDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CancelAttendanceById: {
+        parameters: {
+            query?: {
+                reason?: string;
+            };
+            header?: never;
+            path: {
+                attendanceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     GetUserParticipations: {
         parameters: {
             query?: never;
@@ -7867,6 +8127,80 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    CancelVolunteerSignup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                signupId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -11536,6 +11870,93 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetUserSegments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserSegmentDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetSegmentPreview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                segmentName: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserPreviewDto"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

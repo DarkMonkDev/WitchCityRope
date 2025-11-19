@@ -152,7 +152,7 @@ public static class ParticipationEndpoints
                             detail: result.Error,
                             statusCode: 409);
                     }
-                    if (result.Error.Contains("vetted") || result.Error.Contains("capacity"))
+                    if (result.Error.Contains("vetted") || result.Error.Contains("capacity") || result.Error.Contains("window"))
                     {
                         return Results.Problem(
                             title: "Bad Request",
@@ -204,6 +204,8 @@ public static class ParticipationEndpoints
         // CANCELLATION:
         // - Cancelling ticket also cancels the associated RSVP
         // - User can manually RSVP again after cancelling (creates NEW record)
+        //
+        // ENDPOINTS: Both /tickets and /purchase-ticket routes supported for compatibility
         app.MapPost("/api/events/{eventId:guid}/tickets",
             [Authorize] async (
                 Guid eventId,
@@ -275,7 +277,7 @@ public static class ParticipationEndpoints
                             detail: result.Error,
                             statusCode: 409);
                     }
-                    if (result.Error.Contains("capacity") || result.Error.Contains("only allowed"))
+                    if (result.Error.Contains("capacity") || result.Error.Contains("only allowed") || result.Error.Contains("window"))
                     {
                         return Results.Problem(
                             title: "Bad Request",
@@ -294,6 +296,103 @@ public static class ParticipationEndpoints
             .WithName("PurchaseTicket")
             .WithSummary("Purchase ticket for class event")
             .WithDescription("Purchases a ticket for a class event. Blocked for users with OnHold, Denied, or Withdrawn vetting status.")
+            .WithTags("Participation")
+            .Produces<ParticipationStatusDto>(201)
+            .Produces(400)
+            .Produces(401)
+            .Produces(403)
+            .Produces(404)
+            .Produces(409)
+            .Produces(500);
+
+        // Alias endpoint for compatibility with tests
+        app.MapPost("/api/events/{eventId:guid}/purchase-ticket",
+            [Authorize] async (
+                Guid eventId,
+                CreateTicketPurchaseRequest request,
+                [FromServices] IAttendanceService attendanceService,
+                [FromServices] IVettingAccessControlService vettingAccessControlService,
+                ClaimsPrincipal user,
+                [FromServices] ILogger<IAttendanceService> logger,
+                CancellationToken cancellationToken) =>
+            {
+                if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
+                {
+                    return Results.Problem(
+                        title: "Unauthorized",
+                        detail: "User authentication failed - missing or invalid user identifier",
+                        statusCode: 401);
+                }
+
+                var accessCheckResult = await vettingAccessControlService.CanUserPurchaseTicketAsync(userId, eventId, cancellationToken);
+
+                if (!accessCheckResult.IsSuccess)
+                {
+                    logger.LogError(
+                        "Vetting access check failed for user {UserId} on event {EventId}: {Error}",
+                        userId, eventId, accessCheckResult.Error);
+
+                    return Results.Problem(
+                        title: "Access check failed",
+                        detail: "Unable to verify ticket purchase eligibility at this time",
+                        statusCode: 500);
+                }
+
+                var accessControl = accessCheckResult.Value!;
+
+                if (!accessControl.IsAllowed)
+                {
+                    logger.LogWarning(
+                        "User {UserId} denied ticket purchase access to event {EventId}. Reason: {Reason}, Status: {VettingStatus}",
+                        userId, eventId, accessControl.DenialReason ?? "Unknown", accessControl.VettingStatus);
+
+                    return Results.Json(new
+                    {
+                        error = accessControl.DenialReason,
+                        message = accessControl.UserMessage,
+                        vettingStatus = accessControl.VettingStatus?.ToString()
+                    }, statusCode: 403);
+                }
+
+                request.EventId = eventId;
+
+                var result = await attendanceService.CreateTicketPurchaseAsync(request, userId, cancellationToken);
+
+                if (!result.IsSuccess)
+                {
+                    if (result.Error.Contains("not found"))
+                    {
+                            return Results.Problem(
+                            title: "Resource Not Found",
+                            detail: result.Error,
+                            statusCode: 404);
+                    }
+                    if (result.Error.Contains("already"))
+                    {
+                        return Results.Problem(
+                            title: "Conflict",
+                            detail: result.Error,
+                            statusCode: 409);
+                    }
+                    if (result.Error.Contains("capacity") || result.Error.Contains("only allowed") || result.Error.Contains("window"))
+                    {
+                        return Results.Problem(
+                            title: "Bad Request",
+                            detail: result.Error,
+                            statusCode: 400);
+                    }
+
+                    return Results.Problem(
+                        title: "Failed to purchase ticket",
+                        detail: result.Error,
+                        statusCode: 500);
+                }
+
+                return Results.Created($"/api/events/{eventId}/participation", result.Value);
+            })
+            .WithName("PurchaseTicketAlias")
+            .WithSummary("Purchase ticket (alias)")
+            .WithDescription("Alias for /api/events/{id}/tickets endpoint")
             .WithTags("Participation")
             .Produces<ParticipationStatusDto>(201)
             .Produces(400)
@@ -369,6 +468,79 @@ public static class ParticipationEndpoints
             .Produces(204)
             .Produces(400)
             .Produces(401)
+            .Produces(404)
+            .Produces(500);
+
+        // Cancel attendance by attendance ID (for tests compatibility)
+        app.MapDelete("/api/attendance/{attendanceId:guid}",
+            [Authorize] async (
+                Guid attendanceId,
+                [FromServices] ApplicationDbContext context,
+                [FromServices] IAttendanceService attendanceService,
+                ClaimsPrincipal user,
+                [FromServices] ILogger<IAttendanceService> logger,
+                string? reason = null,
+                CancellationToken cancellationToken = default) =>
+            {
+                if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
+                {
+                    return Results.Problem(
+                        title: "Unauthorized",
+                        detail: "User authentication failed - missing or invalid user identifier",
+                        statusCode: 401);
+                }
+
+                // Get the attendance record to find eventId
+                var attendance = await context.EventAttendances
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(ea => ea.Id == attendanceId, cancellationToken);
+
+                if (attendance == null)
+                {
+                    return Results.NotFound();
+                }
+
+                // Verify user owns this attendance
+                if (attendance.UserId != userId)
+                {
+                    return Results.Problem(
+                        title: "Forbidden",
+                        detail: "You can only cancel your own attendance",
+                        statusCode: 403);
+                }
+
+                // Cancel using the attendance service with type
+                var result = await attendanceService.CancelParticipationAsync(
+                    attendance.EventId,
+                    userId,
+                    attendance.AttendanceType,
+                    reason,
+                    cancellationToken);
+
+                if (!result.IsSuccess)
+                {
+                    if (result.Error.Contains("not found") || result.Error.Contains("No active attendance"))
+                    {
+                        return Results.NotFound();
+                    }
+                    if (result.Error.Contains("cannot be cancelled") || result.Error.Contains("not currently open"))
+                    {
+                        return Results.BadRequest(result.Error);
+                    }
+
+                    return Results.Problem(result.Error);
+                }
+
+                return Results.NoContent();
+            })
+            .WithName("CancelAttendanceById")
+            .WithSummary("Cancel attendance by ID")
+            .WithDescription("Cancels an attendance record by its ID (RSVP or ticket)")
+            .WithTags("Participation")
+            .Produces(204)
+            .Produces(400)
+            .Produces(401)
+            .Produces(403)
             .Produces(404)
             .Produces(500);
 

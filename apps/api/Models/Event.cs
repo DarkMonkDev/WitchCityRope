@@ -93,6 +93,62 @@ public class Event
     [Required]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+    // ====================================================================
+    // GRANULAR TIMING CONTROLS (Phase 1: Database Schema)
+    // ====================================================================
+
+    /// <summary>
+    /// Hours before/after event start when RSVP/Ticket registration opens.
+    /// Positive = before event start (e.g., 168 = 7 days before)
+    /// Negative = after event start (e.g., -2 = 2 hours after start, max -24)
+    /// NULL = no restriction (registration can open any time before event)
+    /// </summary>
+    public decimal? RegistrationOpenHours { get; set; }
+
+    /// <summary>
+    /// Hours before/after event start when RSVP/Ticket registration closes.
+    /// Positive = before event start (e.g., 24 = 1 day before)
+    /// Negative = after event start (e.g., -24 = 24 hours after start, max -24)
+    /// NULL = no restriction (registration open until event starts)
+    /// </summary>
+    public decimal? RegistrationCloseHours { get; set; }
+
+    /// <summary>
+    /// Hours before/after event start when RSVP/Ticket cancellation opens.
+    /// Positive = before event start (e.g., 72 = 3 days before)
+    /// Negative = after event start (e.g., -1 = 1 hour after start, max -24)
+    /// NULL = no restriction (cancellation available any time before event)
+    /// </summary>
+    public decimal? CancellationOpenHours { get; set; }
+
+    /// <summary>
+    /// Hours before/after event start when RSVP/Ticket cancellation closes.
+    /// Positive = before event start (e.g., 48 = 2 days before)
+    /// Negative = after event start (e.g., -24 = 24 hours after start, max -24)
+    /// NULL = no restriction (cancellation available until event starts)
+    /// </summary>
+    public decimal? CancellationCloseHours { get; set; }
+
+    /// <summary>
+    /// Hours before/after event start when volunteer signup closes.
+    /// Positive = before event start (e.g., 72 = 3 days before)
+    /// Negative = after event start (e.g., -24 = 24 hours after start, max -24)
+    /// NULL = no restriction (volunteer signup open until event starts)
+    /// </summary>
+    public decimal? VolunteerRegistrationCloseHours { get; set; }
+
+    /// <summary>
+    /// Hours before/after event start when volunteer cancellation closes.
+    /// Positive = before event start (e.g., 48 = 2 days before)
+    /// Negative = after event start (e.g., -24 = 24 hours after start, max -24)
+    /// NULL = no restriction (volunteer cancellation available until event starts)
+    /// </summary>
+    public decimal? VolunteerCancellationCloseHours { get; set; }
+
+    // ====================================================================
+    // NAVIGATION PROPERTIES
+    // ====================================================================
+
     /// <summary>
     /// Navigation property to sessions
     /// </summary>
@@ -119,6 +175,10 @@ public class Event
     /// One-to-many relationship with EventAttendance
     /// </summary>
     public ICollection<EventAttendance> EventAttendances { get; set; } = new List<EventAttendance>();
+
+    // ====================================================================
+    // COMPUTED PROPERTIES
+    // ====================================================================
 
     /// <summary>
     /// Gets the current number of confirmed attendees based on CORRECT business logic:

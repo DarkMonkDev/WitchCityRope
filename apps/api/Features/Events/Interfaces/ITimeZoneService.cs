@@ -35,4 +35,13 @@ public interface ITimeZoneService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>DateTimeOffset in event timezone</returns>
     Task<DateTimeOffset> ConvertToEventTimeAsync(DateTime utcDateTime, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Determines if a specific action is allowed based on event timing configuration
+    /// </summary>
+    /// <param name="eventEntity">Event to check timing for</param>
+    /// <param name="actionType">Type of action user is attempting</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>True if action is allowed, false if outside timing window</returns>
+    Task<bool> IsActionAllowedAsync(WitchCityRope.Api.Models.Event eventEntity, EventActionType actionType, CancellationToken cancellationToken = default);
 }

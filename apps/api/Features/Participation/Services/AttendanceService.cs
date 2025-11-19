@@ -6,6 +6,7 @@ using WitchCityRope.Api.Features.Participation.Models;
 using WitchCityRope.Api.Features.Shared.Models;
 using WitchCityRope.Api.Features.Volunteers.Services;
 using WitchCityRope.Api.Features.Events.Interfaces;
+using WitchCityRope.Api.Features.Events;
 using WitchCityRope.Api.Features.Payments.ValueObjects;
 using PaymentModels = WitchCityRope.Api.Features.Payments.Models;
 using IRefundService = WitchCityRope.Api.Features.Payments.Services.IRefundService;
@@ -213,6 +214,30 @@ public class AttendanceService : IAttendanceService
         {
             _logger.LogInformation("Creating RSVP for user {UserId} in event {EventId}", userId, request.EventId);
 
+            // Check if event exists and is a social event FIRST (need event for timing check)
+            var eventEntity = await _context.Events
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Id == request.EventId, cancellationToken);
+
+            if (eventEntity == null)
+            {
+                return Result<ParticipationStatusDto>.Failure("Event not found");
+            }
+
+            if (eventEntity.EventType != EventType.Social)
+            {
+                return Result<ParticipationStatusDto>.Failure("RSVPs are only allowed for social events");
+            }
+
+            // TIMING VALIDATION FIRST - Check before all other business rules
+            // This ensures users get timing errors BEFORE other validation errors
+            var isAllowed = await _timeZoneService.IsActionAllowedAsync(eventEntity, EventActionType.GetRsvp, cancellationToken);
+            if (!isAllowed)
+            {
+                _logger.LogWarning("RSVP attempt for event {EventId} outside allowed timing window", request.EventId);
+                return Result<ParticipationStatusDto>.Failure("RSVP registration window is not currently open for this event");
+            }
+
             // CRITICAL: Validate Event Waiver acceptance
             if (!request.EventWaiverAccepted)
             {
@@ -232,29 +257,6 @@ public class AttendanceService : IAttendanceService
             // REMOVED: Vetting requirement - Social events are open to all authenticated users
             // Previous restrictive validation: if (!user.IsVetted) return Failure("Only vetted members...")
             // New business rule: Allow any authenticated user to RSVP for social events
-
-            // Check if event exists and is a social event
-            var eventEntity = await _context.Events
-                .AsNoTracking()
-                .FirstOrDefaultAsync(e => e.Id == request.EventId, cancellationToken);
-
-            if (eventEntity == null)
-            {
-                return Result<ParticipationStatusDto>.Failure("Event not found");
-            }
-
-            if (eventEntity.EventType != EventType.Social)
-            {
-                return Result<ParticipationStatusDto>.Failure("RSVPs are only allowed for social events");
-            }
-
-            // Check if registration is still open based on event start time and buffer
-            var isOpen = await _timeZoneService.IsRegistrationOpenAsync(eventEntity.StartDate, cancellationToken);
-            if (!isOpen)
-            {
-                _logger.LogWarning("RSVP attempt for event {EventId} after registration cutoff", request.EventId);
-                return Result<ParticipationStatusDto>.Failure("RSVP period has closed for this event");
-            }
 
             // Check if user already has an ACTIVE RSVP for this event
             //
@@ -429,6 +431,29 @@ public class AttendanceService : IAttendanceService
         {
             _logger.LogInformation("Creating ticket purchase for user {UserId} in event {EventId}", userId, request.EventId);
 
+            // Check if event exists FIRST (need event for timing check)
+            var eventEntity = await _context.Events
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Id == request.EventId, cancellationToken);
+
+            if (eventEntity == null)
+            {
+                return Result<ParticipationStatusDto>.Failure("Event not found");
+            }
+
+            // Social events support optional ticket purchases in addition to free RSVPs
+            // Class events require ticket purchases
+            // Both event types can have tickets
+
+            // TIMING VALIDATION FIRST - Check before all other business rules
+            // This ensures users get timing errors BEFORE other validation errors
+            var isAllowed = await _timeZoneService.IsActionAllowedAsync(eventEntity, EventActionType.GetTicket, cancellationToken);
+            if (!isAllowed)
+            {
+                _logger.LogWarning("Ticket purchase attempt for event {EventId} outside allowed timing window", request.EventId);
+                return Result<ParticipationStatusDto>.Failure("Ticket purchase window is not currently open for this event");
+            }
+
             // CRITICAL: Validate Event Waiver acceptance
             if (!request.EventWaiverAccepted)
             {
@@ -443,28 +468,6 @@ public class AttendanceService : IAttendanceService
             if (user == null)
             {
                 return Result<ParticipationStatusDto>.Failure("User not found");
-            }
-
-            // Check if event exists and is a class event
-            var eventEntity = await _context.Events
-                .AsNoTracking()
-                .FirstOrDefaultAsync(e => e.Id == request.EventId, cancellationToken);
-
-            if (eventEntity == null)
-            {
-                return Result<ParticipationStatusDto>.Failure("Event not found");
-            }
-
-            // Social events support optional ticket purchases in addition to free RSVPs
-            // Class events require ticket purchases
-            // Both event types can have tickets
-
-            // Check if registration is still open based on event start time and buffer
-            var isOpen = await _timeZoneService.IsRegistrationOpenAsync(eventEntity.StartDate, cancellationToken);
-            if (!isOpen)
-            {
-                _logger.LogWarning("Ticket purchase attempt for event {EventId} after registration cutoff", request.EventId);
-                return Result<ParticipationStatusDto>.Failure("Registration has closed for this event");
             }
 
             // Check if user already has a TICKET for this event
@@ -702,11 +705,16 @@ public class AttendanceService : IAttendanceService
                 return Result.Failure("Event not found");
             }
 
-            var isOpen = await _timeZoneService.IsRegistrationOpenAsync(eventEntity.StartDate, cancellationToken);
-            if (!isOpen)
+            // Determine action type based on attendance type (RSVP or Ticket)
+            var actionType = attendance.AttendanceType == AttendanceType.Ticket
+                ? EventActionType.CancelTicket
+                : EventActionType.CancelRsvp;
+
+            var isAllowed = await _timeZoneService.IsActionAllowedAsync(eventEntity, actionType, cancellationToken);
+            if (!isAllowed)
             {
-                _logger.LogWarning("Cancellation attempt for event {EventId} after cancellation cutoff", eventId);
-                return Result.Failure("Cancellation period has ended for this event");
+                _logger.LogWarning("Cancellation attempt for event {EventId} outside allowed timing window (action: {ActionType})", eventId, actionType);
+                return Result.Failure("Cancellation window is not currently open for this event");
             }
 
             // ============================================================================

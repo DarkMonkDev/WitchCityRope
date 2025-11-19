@@ -95,6 +95,7 @@ public static class VolunteerEndpoints
                 "This volunteer position is already fully staffed" => 409,
                 "This volunteer position is not open for public signups" => 403,
                 "You must accept the Event Waiver to volunteer" => 400,
+                _ when error?.Contains("window") == true => 400,  // Timing validation errors
                 _ => 500
             };
 
@@ -159,6 +160,68 @@ public static class VolunteerEndpoints
         .WithTags("Volunteers")
         .Produces<List<UserVolunteerShiftDto>>(200)
         .ProducesProblem(401)
+        .ProducesProblem(500);
+
+        // Cancel volunteer signup
+        app.MapPost("/api/volunteer-signups/{signupId}/cancel", async (
+            string signupId,
+            [FromServices] IVolunteerService volunteerService,
+            HttpContext context,
+            CancellationToken cancellationToken) =>
+        {
+            // Require authentication
+            if (context.User.Identity?.IsAuthenticated != true)
+            {
+                return Results.Problem(
+                    title: "Authentication Required",
+                    detail: "You must be logged in to cancel volunteer signups",
+                    statusCode: 401);
+            }
+
+            var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Results.Problem(
+                    title: "Invalid User",
+                    detail: "User ID not found in authentication token",
+                    statusCode: 401);
+            }
+
+            var (success, error) = await volunteerService.CancelVolunteerSignupAsync(
+                signupId,
+                userId,
+                cancellationToken);
+
+            if (success)
+            {
+                return Results.NoContent();
+            }
+
+            var statusCode = error switch
+            {
+                "Volunteer signup not found" => 404,
+                "You can only cancel your own volunteer signups" => 403,
+                "This volunteer signup is already cancelled" => 409,
+                "Cannot cancel volunteer signup after checking in" => 409,
+                "Volunteer cancellation window has closed for this event" => 400,
+                _ => 500
+            };
+
+            return Results.Problem(
+                title: "Failed to Cancel Signup",
+                detail: error ?? "Failed to cancel volunteer signup",
+                statusCode: statusCode);
+        })
+        .WithName("CancelVolunteerSignup")
+        .WithSummary("Cancel a volunteer signup")
+        .WithDescription("Cancel a volunteer signup. User can only cancel their own signups. Cannot cancel if already checked in. Subject to event timing controls.")
+        .WithTags("Volunteers")
+        .Produces(204)
+        .ProducesProblem(400)
+        .ProducesProblem(401)
+        .ProducesProblem(403)
+        .ProducesProblem(404)
+        .ProducesProblem(409)
         .ProducesProblem(500);
     }
 }
