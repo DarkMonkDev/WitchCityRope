@@ -36,7 +36,7 @@ public class VettingApplicationConfiguration : IEntityTypeConfiguration<VettingA
             .HasMaxLength(50);
 
         builder.Property(x => x.OtherNames)
-            .HasMaxLength(200);
+            .HasMaxLength(1000); // Increased for import compatibility
 
         // Workflow status enum
         builder.Property(x => x.WorkflowStatus)

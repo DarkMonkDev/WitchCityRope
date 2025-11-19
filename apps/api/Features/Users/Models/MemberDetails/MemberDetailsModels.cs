@@ -57,6 +57,7 @@ public class VettingDetailsResponse
     public string? SafetyKnowledge { get; set; }
     public string? ConsentUnderstanding { get; set; }
     public string? WhyJoinCommunity { get; set; }
+    public string? HowDidYouHearAboutUs { get; set; }
     public string? SkillsInterests { get; set; }
     public string? ExpectationsGoals { get; set; }
     public bool? AgreesToGuidelines { get; set; }

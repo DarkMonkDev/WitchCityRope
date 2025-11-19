@@ -194,6 +194,16 @@ export const MemberVettingTab: React.FC<MemberVettingTabProps> = ({ memberId, us
                 {vettingDetails.experienceWithRope || vettingDetails.experienceDescription || 'No response provided'}
               </Text>
             </Card>
+
+            {/* How Did You Hear About Us - optional field from form */}
+            <Card withBorder p="md" radius="md">
+              <Text fw={600} mb="xs">
+                How did you hear about us?
+              </Text>
+              <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
+                {vettingDetails.howDidYouHearAboutUs || 'No response provided'}
+              </Text>
+            </Card>
           </Stack>
         </div>
       )}

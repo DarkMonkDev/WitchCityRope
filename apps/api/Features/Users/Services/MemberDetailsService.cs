@@ -205,6 +205,7 @@ public class MemberDetailsService : IMemberDetailsService
                 SafetyKnowledge = null, // Field removed from entity
                 ConsentUnderstanding = null, // Field removed from entity
                 WhyJoinCommunity = application.WhyJoinCommunity,
+                HowDidYouHearAboutUs = application.HowDidYouHearAboutUs,
                 SkillsInterests = null, // Field removed from entity
                 ExpectationsGoals = null, // Field removed from entity
                 AgreesToGuidelines = application.AgreesToGuidelines,

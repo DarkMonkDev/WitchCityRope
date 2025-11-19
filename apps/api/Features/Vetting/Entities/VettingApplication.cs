@@ -59,6 +59,7 @@ public class VettingApplication
 
     // Community Understanding (from CreateApplicationRequest)
     public string? WhyJoinCommunity { get; set; }
+    public string? HowDidYouHearAboutUs { get; set; }
     public bool AgreesToGuidelines { get; set; }
 
     // Terms & Consent (from CreateApplicationRequest)
