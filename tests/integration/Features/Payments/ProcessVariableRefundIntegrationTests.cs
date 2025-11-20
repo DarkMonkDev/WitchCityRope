@@ -92,8 +92,7 @@ public class ProcessVariableRefundIntegrationTests : IntegrationTestBase, IDispo
         await using var context = CreateDbContext();
         var updated = await context.TicketPurchases.FindAsync(ticketPurchase.Id);
         updated!.PaymentStatus.Should().Be("PartiallyRefunded");
-        updated.Notes.Should().Contain("FINANCIAL REFUND");
-        updated.Notes.Should().Contain("RSVP/Ticket NOT cancelled");
+        updated.Notes.Should().Contain("[REFUND");
 
         var refunds = await context.PaymentRefunds
             .Where(r => r.TicketPurchaseId == ticketPurchase.Id)
@@ -432,12 +431,14 @@ public class ProcessVariableRefundIntegrationTests : IntegrationTestBase, IDispo
 
         await using var context = CreateDbContext();
 
+        // Use existing seeded event
+        var testEvent = await context.Events.FirstAsync();
+
         // Create RSVP/EventAttendance record
-        var eventId = Guid.NewGuid();
         var attendance = new EventAttendance
         {
             Id = Guid.NewGuid(),
-            EventId = eventId,
+            EventId = testEvent.Id,
             UserId = _memberUserId,
             TicketPurchaseId = ticketPurchase.Id,
             Status = AttendanceStatus.Active,

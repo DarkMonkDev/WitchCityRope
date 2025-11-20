@@ -11,6 +11,7 @@ using WitchCityRope.Api.Features.Payments.Services;
 using WitchCityRope.Api.Features.Payments.Entities;
 using WitchCityRope.Api.Features.Payments.ValueObjects;
 using WitchCityRope.Api.Features.Payments.Models;
+using WitchCityRope.Api.Features.Shared.Models;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Tests.Fixtures;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -502,7 +503,7 @@ public class ProcessVariableRefundTests : IAsyncLifetime
             Id = Guid.NewGuid(),
             Name = "General Admission",
             Price = amount,
-            IsActive = true
+            // Note: IsActive removed - TicketType no longer has this property (uses IsSoldOut calculated property)
         };
 
         var ticketPurchase = new TicketPurchase
@@ -514,7 +515,7 @@ public class ProcessVariableRefundTests : IAsyncLifetime
             TotalPrice = amount,
             PaymentMethod = paymentMethod,
             PaymentStatus = isCompleted ? "Completed" : "Pending",
-            IsPaymentCompleted = isCompleted,
+            // Note: IsPaymentCompleted is read-only calculated property - set PaymentStatus instead
             PurchaseDate = DateTime.UtcNow,
             EncryptedPayPalCaptureId = paymentMethod == "PayPal" ? "encrypted-capture-id" : null,
             TicketType = ticketType
@@ -560,7 +561,7 @@ public class ProcessVariableRefundTests : IAsyncLifetime
         };
 
         _mockRefundService.ProcessRefundAsync(Arg.Any<ProcessRefundRequest>(), Arg.Any<CancellationToken>())
-            .Returns(RefundResult.Success(refund));
+            .Returns(Task.FromResult(WitchCityRope.Api.Features.Shared.Models.Result<PaymentRefund>.Success(refund)));
     }
 
     #endregion

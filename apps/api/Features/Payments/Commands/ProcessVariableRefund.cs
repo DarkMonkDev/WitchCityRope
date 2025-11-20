@@ -204,8 +204,8 @@ public class ProcessVariableRefund
             ticketPurchase.PaymentStatus = "PartiallyRefunded";  // Partial refund
         }
 
-        // Add disclaimer to notes
-        ticketPurchase.Notes += $"\n[FINANCIAL REFUND {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC by {userRole}]: ${request.RefundAmount:F2} refunded. Total refunded: ${newTotalRefunded:F2} of ${ticketPurchase.TotalPrice:F2}. RSVP/Ticket NOT cancelled. Reason: {request.RefundReason}";
+        // Add refund note (details in PaymentRefund table)
+        ticketPurchase.Notes += $"\n[REFUND ${request.RefundAmount:F2}]";
         ticketPurchase.UpdatedAt = DateTime.UtcNow;
 
         await dbContext.SaveChangesAsync(cancellationToken);

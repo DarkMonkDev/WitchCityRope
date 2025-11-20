@@ -1,3 +1,4 @@
+using WitchCityRope.Api.Features.Shared.Models;
 using Xunit;
 using FluentAssertions;
 using Moq;
@@ -133,7 +134,7 @@ public class RefundServiceTests : IAsyncLifetime
         result.Value.Should().NotBeNull();
         result.Value!.RefundStatus.Should().Be(RefundStatus.Completed);
         result.Value.RefundAmountValue.Should().Be(100.00m);
-        result.Value.OriginalPaymentId.Should().Be(payment.Id);
+        result.Value.TicketPurchaseId.Should().Be(payment.Id);
         result.Value.ProcessedByUserId.Should().Be(_testAdminId);
 
         // Verify payment status updated in real database
@@ -294,7 +295,7 @@ public class RefundServiceTests : IAsyncLifetime
         // Add existing partial refund of $60
         var existingRefund = new PaymentRefund
         {
-            OriginalPaymentId = payment.Id,
+            TicketPurchaseId = payment.Id,
             RefundAmountValue = 60.00m,
             RefundCurrency = "USD",
             RefundStatus = RefundStatus.Completed,
@@ -461,7 +462,7 @@ public class RefundServiceTests : IAsyncLifetime
 
         var refund1 = new PaymentRefund
         {
-            OriginalPaymentId = payment.Id,
+            TicketPurchaseId = payment.Id,
             RefundAmountValue = 40.00m,
             RefundCurrency = "USD",
             RefundStatus = RefundStatus.Completed,
@@ -471,7 +472,7 @@ public class RefundServiceTests : IAsyncLifetime
 
         var refund2 = new PaymentRefund
         {
-            OriginalPaymentId = payment.Id,
+            TicketPurchaseId = payment.Id,
             RefundAmountValue = 30.00m,
             RefundCurrency = "USD",
             RefundStatus = RefundStatus.Completed,
@@ -488,7 +489,7 @@ public class RefundServiceTests : IAsyncLifetime
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().HaveCount(2);
-        result.Value.Should().OnlyContain(r => r.OriginalPaymentId == payment.Id);
+        result.Value.Should().OnlyContain(r => r.TicketPurchaseId == payment.Id);
         result.Value.Sum(r => r.RefundAmountValue).Should().Be(70.00m);
     }
 
@@ -505,7 +506,7 @@ public class RefundServiceTests : IAsyncLifetime
         // Add completed refunds totaling $60
         var refund1 = new PaymentRefund
         {
-            OriginalPaymentId = payment.Id,
+            TicketPurchaseId = payment.Id,
             RefundAmountValue = 40.00m,
             RefundCurrency = "USD",
             RefundStatus = RefundStatus.Completed,
@@ -515,7 +516,7 @@ public class RefundServiceTests : IAsyncLifetime
 
         var refund2 = new PaymentRefund
         {
-            OriginalPaymentId = payment.Id,
+            TicketPurchaseId = payment.Id,
             RefundAmountValue = 20.00m,
             RefundCurrency = "USD",
             RefundStatus = RefundStatus.Completed,
@@ -526,7 +527,7 @@ public class RefundServiceTests : IAsyncLifetime
         // Add failed refund (should not count)
         var failedRefund = new PaymentRefund
         {
-            OriginalPaymentId = payment.Id,
+            TicketPurchaseId = payment.Id,
             RefundAmountValue = 10.00m,
             RefundCurrency = "USD",
             RefundStatus = RefundStatus.Failed,

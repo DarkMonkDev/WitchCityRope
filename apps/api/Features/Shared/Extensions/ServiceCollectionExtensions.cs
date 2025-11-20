@@ -18,6 +18,7 @@ using WitchCityRope.Api.Features.TestHelpers.Services;
 using WitchCityRope.Api.Features.Cms;
 using WitchCityRope.Api.Features.Volunteers.Services;
 using WitchCityRope.Api.Features.Venues.Services;
+using WitchCityRope.Api.Features.Shared.Services;
 using WitchCityRope.Api.Features.Admin.Settings.Interfaces;
 using WitchCityRope.Api.Features.Admin.Settings.Services;
 using WitchCityRope.Api.Features.EmailTemplates.Services;
@@ -62,7 +63,18 @@ public static class ServiceCollectionExtensions
         // Safety feature services
         services.AddScoped<ISafetyService, SafetyService>();
         services.AddScoped<ISafetyServiceExtended, SafetyServiceExtended>();
-        services.AddScoped<IEncryptionService, EncryptionService>();
+
+        // Conditionally register Encryption service based on configuration
+        var useMockEncryption = configuration.GetValue<bool>("USE_MOCK_PAYMENT_SERVICE"); // Reuse same flag as PayPal
+        if (useMockEncryption)
+        {
+            services.AddScoped<IEncryptionService, MockEncryptionService>();
+        }
+        else
+        {
+            services.AddScoped<IEncryptionService, EncryptionService>();
+        }
+
         services.AddScoped<IAuditService, AuditService>();
 
         // FluentValidation for Safety feature
