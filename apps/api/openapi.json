@@ -3668,6 +3668,66 @@
         }
       }
     },
+    "/api/payments/transactions/{transactionId}/refund": {
+      "post": {
+        "tags": [
+          "Payments",
+          "Refunds",
+          "Admin"
+        ],
+        "summary": "Process variable amount refund for a payment transaction",
+        "description": "Processes a partial or full refund for a PayPal payment without canceling RSVP/ticket. Requires Admin or Teacher role.",
+        "operationId": "ProcessVariableRefund",
+        "parameters": [
+          {
+            "name": "transactionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VariableRefundRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VariableRefundResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/api/test-helpers/users": {
       "post": {
         "tags": [
@@ -4159,6 +4219,53 @@
           },
           "400": {
             "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/profile-change-history": {
+      "get": {
+        "tags": [
+          "Member Details"
+        ],
+        "summary": "Get profile change history for this member",
+        "operationId": "GetProfileChangeHistory",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProfileChangeHistoryDto"
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized"
@@ -12407,6 +12514,26 @@
           }
         }
       },
+      "ProfileChangeHistoryDto": {
+        "type": "object",
+        "properties": {
+          "changedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fieldName": {
+            "type": "string"
+          },
+          "oldValue": {
+            "type": "string",
+            "nullable": true
+          },
+          "newValue": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
       "ProtectedWelcomeResponse": {
         "type": "object",
         "properties": {
@@ -13686,6 +13813,36 @@
               "$ref": "#/components/schemas/VolunteerPositionDto"
             },
             "nullable": true
+          },
+          "registrationOpenHours": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "registrationCloseHours": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "cancellationOpenHours": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "cancellationCloseHours": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "volunteerRegistrationCloseHours": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "volunteerCancellationCloseHours": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
           }
         }
       },
@@ -13870,6 +14027,12 @@
           },
           "phoneNumber": {
             "maxLength": 20,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "otherNames": {
+            "maxLength": 500,
             "minLength": 0,
             "type": "string",
             "nullable": true
@@ -14292,6 +14455,10 @@
             "type": "string",
             "nullable": true
           },
+          "otherNames": {
+            "type": "string",
+            "nullable": true
+          },
           "vettingStatus": {
             "$ref": "#/components/schemas/VettingStatus"
           },
@@ -14455,6 +14622,53 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "VariableRefundRequest": {
+        "required": [
+          "refundAmount",
+          "refundReason"
+        ],
+        "type": "object",
+        "properties": {
+          "refundAmount": {
+            "minimum": 0.01,
+            "type": "number",
+            "format": "double"
+          },
+          "refundReason": {
+            "minLength": 10,
+            "type": "string"
+          }
+        }
+      },
+      "VariableRefundResponse": {
+        "type": "object",
+        "properties": {
+          "refundId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "remainingRefundableAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "paymentStatus": {
+            "type": "string"
           }
         }
       },

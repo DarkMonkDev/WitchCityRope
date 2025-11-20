@@ -354,13 +354,11 @@ public class WebhookEndpointTests : PayPalIntegrationTestBase
                ?? throw new InvalidOperationException($"Failed to deserialize fixture: {fixtureName}");
     }
 
-    protected override void Dispose(bool disposing)
+    public new void Dispose()
     {
-        if (disposing)
-        {
-            _client?.Dispose();
-            _factory?.Dispose();
-        }
-        base.Dispose(disposing);
+        _client?.Dispose();
+        _factory?.Dispose();
+        base.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

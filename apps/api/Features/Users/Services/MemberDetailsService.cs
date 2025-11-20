@@ -681,4 +681,92 @@ public class MemberDetailsService : IMemberDetailsService
             return (false, "Failed to update member role");
         }
     }
+
+    /// <summary>
+    /// Get profile change history for a member
+    /// Endpoint 9: GET /api/users/{id}/profile-change-history
+    /// </summary>
+    public async Task<(bool Success, List<ProfileChangeHistoryDto>? Response, string Error)> GetProfileChangeHistoryAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Verify user exists
+            var userExists = await _context.Users.AnyAsync(u => u.Id == userId, cancellationToken);
+            if (!userExists)
+            {
+                _logger.LogWarning("Cannot get profile change history - user not found: {UserId}", userId);
+                return (false, null, "User not found");
+            }
+
+            // Query UserNotes for ProfileChange entries
+            var notes = await _context.UserNotes
+                .AsNoTracking()
+                .Where(n => n.UserId == userId && n.NoteType == "ProfileChange")
+                .OrderByDescending(n => n.CreatedAt)
+                .ToListAsync(cancellationToken);
+
+            // Transform in memory (can't use helper methods in EF query)
+            var profileChanges = notes.Select(n => new ProfileChangeHistoryDto
+            {
+                ChangedAt = n.CreatedAt,
+                FieldName = ExtractFieldName(n.Content),
+                OldValue = ExtractOldValue(n.Content),
+                NewValue = ExtractNewValue(n.Content)
+            }).ToList();
+
+            _logger.LogInformation("Retrieved {Count} profile changes for user {UserId}", profileChanges.Count, userId);
+            return (true, profileChanges, string.Empty);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get profile change history for user {UserId}", userId);
+            return (false, null, "Failed to retrieve profile change history");
+        }
+    }
+
+    /// <summary>
+    /// Extract field name from profile change content
+    /// Format: "Field Name changed from \"old\" to \"new\""
+    /// </summary>
+    private string ExtractFieldName(string content)
+    {
+        var changedIndex = content.IndexOf(" changed from", StringComparison.Ordinal);
+        return changedIndex > 0 ? content.Substring(0, changedIndex) : content;
+    }
+
+    /// <summary>
+    /// Extract old value from profile change content
+    /// Format: "Field Name changed from \"old\" to \"new\""
+    /// </summary>
+    private string? ExtractOldValue(string content)
+    {
+        var fromIndex = content.IndexOf("from \"", StringComparison.Ordinal);
+        if (fromIndex < 0) return null;
+
+        var startIndex = fromIndex + 6; // Length of "from \""
+        var endIndex = content.IndexOf("\" to \"", startIndex, StringComparison.Ordinal);
+        if (endIndex < 0) return null;
+
+        var value = content.Substring(startIndex, endIndex - startIndex);
+        return value == "(empty)" ? null : value;
+    }
+
+    /// <summary>
+    /// Extract new value from profile change content
+    /// Format: "Field Name changed from \"old\" to \"new\""
+    /// </summary>
+    private string? ExtractNewValue(string content)
+    {
+        var toIndex = content.IndexOf("\" to \"", StringComparison.Ordinal);
+        if (toIndex < 0) return null;
+
+        var startIndex = toIndex + 6; // Length of "\" to \""
+        var endIndex = content.LastIndexOf("\"", StringComparison.Ordinal);
+        if (endIndex <= startIndex) return null;
+
+        var value = content.Substring(startIndex, endIndex - startIndex);
+        return value == "(empty)" ? null : value;
+    }
 }

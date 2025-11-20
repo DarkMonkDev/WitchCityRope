@@ -72,4 +72,11 @@ public interface IMemberDetailsService
         UpdateMemberRoleRequest request,
         Guid performedByUserId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Get profile change history for a member
+    /// </summary>
+    Task<(bool Success, List<ProfileChangeHistoryDto>? Response, string Error)> GetProfileChangeHistoryAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default);
 }

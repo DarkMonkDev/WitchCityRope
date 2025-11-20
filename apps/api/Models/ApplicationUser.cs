@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WitchCityRope.Api.Models;
@@ -87,6 +88,14 @@ public class ApplicationUser : IdentityUser<Guid>
 
     public string PronouncedName { get; set; } = string.Empty;
     public string Pronouns { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Other names the member goes by (aliases, former scene names, etc.)
+    /// Originated from vetting application, editable in profile
+    /// </summary>
+    [StringLength(500, ErrorMessage = "Other names cannot exceed 500 characters")]
+    public string? OtherNames { get; set; }
+
     public int FailedLoginAttempts { get; set; } = 0;
     public DateTime? LockedOutUntil { get; set; }
     public DateTime? LastPasswordChangeAt { get; set; }

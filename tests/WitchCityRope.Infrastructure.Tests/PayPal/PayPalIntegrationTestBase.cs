@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using WitchCityRope.Infrastructure.Tests.Fixtures;
 using WitchCityRope.Tests.Common.Fixtures;
 
 namespace WitchCityRope.Infrastructure.Tests.PayPal;
@@ -10,7 +11,7 @@ namespace WitchCityRope.Infrastructure.Tests.PayPal;
 /// Supports both mock and real PayPal sandbox environments
 /// </summary>
 [Collection("Database")]
-public abstract class PayPalIntegrationTestBase : IntegrationTestBase
+public abstract class PayPalIntegrationTestBase : IntegrationTestBase, IDisposable
 {
     protected IConfiguration Configuration { get; private set; } = null!;
     protected IServiceCollection Services { get; private set; } = null!;
@@ -91,12 +92,9 @@ public abstract class PayPalIntegrationTestBase : IntegrationTestBase
         logger.LogInformation("  Webhook ID: {WebhookId}", Configuration["PayPal:WebhookId"]);
     }
 
-    protected override void Dispose(bool disposing)
+    public void Dispose()
     {
-        if (disposing)
-        {
-            ServiceProvider?.Dispose();
-        }
-        base.Dispose(disposing);
+        ServiceProvider?.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

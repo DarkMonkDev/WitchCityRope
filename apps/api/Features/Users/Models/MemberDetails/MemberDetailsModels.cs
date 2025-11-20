@@ -207,3 +207,14 @@ public class UpdateMemberRoleRequest
 {
     public string Role { get; set; } = "Member"; // "Admin", "Teacher", "VettedMember", "Member", "Guest", "SafetyTeam"
 }
+
+/// <summary>
+/// Profile change history record for a user
+/// </summary>
+public class ProfileChangeHistoryDto
+{
+    public DateTime ChangedAt { get; set; }
+    public string FieldName { get; set; } = string.Empty;
+    public string? OldValue { get; set; }
+    public string? NewValue { get; set; }
+}

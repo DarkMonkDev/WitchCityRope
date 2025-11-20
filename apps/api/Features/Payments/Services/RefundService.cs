@@ -145,9 +145,15 @@ public class RefundService : IRefundService
                         await LogRefundSuccessAsync(refund.Id, paypalRefundResult.Value, cancellationToken);
 
                         refund.RefundStatus = RefundStatus.Completed;
+                        refund.ProcessedAt = DateTime.UtcNow;
 
-                        // Update ticket purchase status
-                        ticketPurchase.PaymentStatus = "Refunded";
+                        // CRITICAL: Explicitly mark entity as modified to ensure EF Core tracks the change
+                        // Similar to ticket cancellation fix - see backend-developer-lessons-learned-2.md lines 1211-1320
+                        _context.PaymentRefunds.Update(refund);
+
+                        // DO NOT update ticket purchase status here - let the CALLER (ProcessVariableRefund) handle it
+                        // This allows variable refunds to support partial refunds with "PartiallyRefunded" status
+                        // BUG FIX: Previously set to "Refunded" always, breaking second refunds (IsPaymentCompleted check)
 
                         _logger.LogInformation(
                             "PayPal refund completed successfully for ticket {TicketId}, refund ID: {RefundId}",
@@ -205,7 +211,9 @@ public class RefundService : IRefundService
             {
                 // Manual refund (no PayPal processing needed - e.g., cash/Venmo payment)
                 refund.MarkCompleted();
-                ticketPurchase.PaymentStatus = "Refunded";
+
+                // DO NOT update ticket purchase status here - let the CALLER handle it
+                // BUG FIX: Previously set to "Refunded" always, breaking partial refund logic
 
                 _logger.LogInformation(
                     "Manual refund marked complete for ticket {TicketId} (payment method: {PaymentMethod})",
@@ -480,23 +488,12 @@ public class RefundService : IRefundService
             // Store encrypted PayPal refund ID
             refund.EncryptedPayPalRefundId = await _encryptionService.EncryptAsync(paypalRefund.RefundId);
 
-            // Update refund status based on PayPal response
-            refund.RefundStatus = paypalRefund.Status switch
-            {
-                "COMPLETED" => RefundStatus.Completed,
-                "PENDING" => RefundStatus.Processing,
-                "CANCELLED" => RefundStatus.Failed,
-                "FAILED" => RefundStatus.Failed,
-                _ => RefundStatus.Processing
-            };
-
             // Store full PayPal response in metadata for debugging
             refund.Metadata["paypal_response"] = System.Text.Json.JsonSerializer.Serialize(paypalRefund);
 
-            if (refund.RefundStatus == RefundStatus.Completed)
-            {
-                refund.ProcessedAt = DateTime.UtcNow;
-            }
+            // DO NOT modify RefundStatus here - it's already set by the caller (ProcessRefundAsync line 147)
+            // DO NOT modify ProcessedAt here - it's already set by the caller (ProcessRefundAsync line 148)
+            // Audit logging should only store additional metadata, not modify business state
 
             await _context.SaveChangesAsync(cancellationToken);
 

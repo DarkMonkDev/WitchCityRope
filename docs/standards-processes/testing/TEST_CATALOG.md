@@ -1,8 +1,223 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-11-19 00:42:00 UTC -->
-<!-- Version: 11.18 - TIMING TESTS DETAILED DIAGNOSTIC - ALL 9 FAILURES ARE HTTP 500 ERRORS -->
+<!-- Last Updated: 2025-11-20 (Current) -->
+<!-- Version: 11.20.2 - VARIABLE REFUND RETEST - STILL 4/8 PASSING - .Update() CALL DID NOT FIX ISSUE -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
+
+## 🚨 VARIABLE REFUND ENDPOINT - RETEST AFTER .Update() FIX - November 20, 2025
+
+**EXECUTION DATE**: 2025-11-20 (Current - Second Run)
+**STATUS**: ⚠️ **STILL 4/8 PASSING (50%) - .Update() CALL DID NOT FIX REFUND STATUS BUG**
+**DETAILED REPORT**: `/test-results/variable-refund-retest-2025-11-20.md`
+
+### Critical Finding
+
+**THE .Update() CALL DID NOT FIX THE ISSUE**: Despite adding `_dbContext.Refunds.Update(refund)` to RefundService.cs, the refund status is STILL returning "Failed" instead of "Completed".
+
+**Root Cause**: The `.Update()` call correctly tells Entity Framework to track changes, but it's saving "Failed" status because that's what the refund status IS. We need to find WHERE in the code the status is being set to "Failed" and change it to "Completed".
+
+### Test Results - No Change From Previous Run
+
+**Before Fix (Previous Run)**:
+- Pass Rate: 4/8 (50%)
+- Failing Tests: 3 refund status + 1 payment status
+
+**After Fix (Current Run)**:
+- Pass Rate: 4/8 (50%)
+- Failing Tests: Same 3 refund status + 1 payment status
+- **NO IMPROVEMENT**
+
+### Required Investigation (HIGH PRIORITY)
+
+**Backend-Developer must investigate WHERE refund status is set to "Failed":**
+
+1. **Search RefundService.cs for "Failed" string**:
+   ```bash
+   grep -n "Failed" /home/chad/repos/witchcityrope/apps/api/Features/Payments/Services/RefundService.cs
+   ```
+
+2. **Check Refund model for default status**:
+   ```bash
+   grep -n "Status" /home/chad/repos/witchcityrope/apps/api/Models/Refund.cs
+   ```
+
+3. **Check if payment processor mock failing in tests**:
+   - Integration tests may need PayPal mock configured
+   - Mock returning failure = refund status "Failed"
+
+4. **Add logging to trace status changes**:
+   ```csharp
+   _logger.LogInformation("Refund status BEFORE save: {Status}", refund.Status);
+   await _dbContext.SaveChangesAsync(cancellationToken);
+   _logger.LogInformation("Refund status AFTER save: {Status}", refund.Status);
+   ```
+
+### Likely Fix Location
+
+**Expected pattern to find and fix:**
+
+```csharp
+// WRONG - Somewhere this is happening:
+refund.Status = "Failed"; // Or default value in model
+
+// CORRECT - Should be:
+refund.Status = "Completed"; // For successful refunds
+refund.ProcessedAt = DateTime.UtcNow;
+_dbContext.Refunds.Update(refund);
+await _dbContext.SaveChangesAsync(cancellationToken);
+```
+
+### Impact
+
+- **Tests Still Failing**: 3/8 (37.5%)
+- **Business Impact**: High - Refunds appear to fail even when they succeed
+- **User Impact**: Confusion - refund processed but shows "Failed" status
+- **Fix Confidence**: Medium - Once we find status assignment, fix should be simple
+
+### Next Steps
+
+1. ✅ **Test-Executor**: Retest complete, report generated
+2. ⏳ **Backend-Developer**: Investigate where `refund.Status = "Failed"` is set
+3. ⏳ **Backend-Developer**: Change to `refund.Status = "Completed"` for successful refunds
+4. ⏳ **Test-Executor**: Re-run tests after backend fix
+
+---
+
+## 🚨 VARIABLE REFUND ENDPOINT - INITIAL PROGRESS - November 20, 2025
+
+**EXECUTION DATE**: 2025-11-20 (First Run)
+**STATUS**: ⚠️ **4/8 PASSING (50%) - ENDPOINT WORKING, BUSINESS LOGIC BUGS**
+**DETAILED REPORT**: `/test-results/variable-refund-test-results-after-endpoint-fix.md`
+
+### Executive Summary
+
+**MAJOR PROGRESS**: After registering the endpoint in Program.cs, tests are now reaching the endpoint and executing business logic. We went from **0/8 passing (HTTP 404)** to **4/8 passing (50%)**.
+
+**Previous Status**: 0/8 passing - Endpoint not registered (HTTP 404)
+**Current Status**: 4/8 passing - Endpoint working, business logic issues
+
+### Test Execution Results
+
+**Integration Tests - Variable Refund Feature**:
+- Total: 8 tests
+- Passed: 4/8 (50%) ⚠️
+- Failed: 4/8 (50%)
+- Execution Time: 16.2 seconds
+- Test File: `/tests/integration/Features/Payments/ProcessVariableRefundIntegrationTests.cs`
+
+### ✅ PASSING TESTS (4/8)
+
+1. **ProcessVariableRefund_WithZeroAmount_Returns400** ✅
+   - Status: HTTP 400 Bad Request
+   - Verification: ✅ Validation correctly rejects zero amount
+
+2. **ProcessVariableRefund_WithNonPayPalPayment_Returns400** ✅
+   - Status: HTTP 400 Bad Request
+   - Verification: ✅ Only PayPal payments can be refunded
+
+3. **ProcessVariableRefund_WithMemberRole_Returns403** ✅
+   - Status: HTTP 403 Forbidden
+   - Verification: ✅ Admin-only endpoint enforcement working
+
+4. **ProcessVariableRefund_DoesNotCancelRSVP** ✅ (CRITICAL BUSINESS RULE)
+   - Status: HTTP 200 OK
+   - Verification: ✅ **CRITICAL**: Variable refunds do NOT cancel RSVP/attendance
+   - **Why Critical**: This is the key business requirement - financial refunds are separate from ticket cancellation
+
+### ❌ FAILING TESTS (4/8)
+
+**Error Pattern 1: Refund Status "Failed" (3 tests)**
+
+1. **ProcessVariableRefund_WithValidPartialRefund_ReturnsSuccess** ❌
+   - Expected: HTTP 200 OK with status "Completed"
+   - Actual: HTTP 200 OK with status "Failed"
+   - Root Cause: Refund processing logic returning "Failed" status
+
+2. **ProcessVariableRefund_WithValidFullRefund_ReturnsSuccess** ❌
+   - Expected: HTTP 200 OK with status "Completed"
+   - Actual: HTTP 200 OK with status "Failed"
+   - Root Cause: Same as test #1
+
+3. **ProcessVariableRefund_WithMultiplePartials_AccumulatesCorrectly** ❌
+   - Expected: HTTP 200 OK with status "Completed"
+   - Actual: HTTP 200 OK with status "Failed"
+   - Root Cause: Same as test #1
+
+**Error Pattern 2: Payment Status After Refund (1 test)**
+
+4. **ProcessVariableRefund_WithAmountExceedingRemaining_Returns400** ❌
+   - Expected: First refund succeeds, second returns HTTP 400 "exceeds remaining amount"
+   - Actual: HTTP 400 "Only completed payments can be refunded. This transaction is not completed."
+   - Root Cause: After first refund (even with "Failed" status), payment status is no longer "Completed"
+
+### What's Working
+
+- ✅ Endpoint registration and routing
+- ✅ Authorization (admin-only) - 403 for non-admin
+- ✅ Validation (amount > 0) - 400 for zero amount
+- ✅ Validation (PayPal only) - 400 for non-PayPal payments
+- ✅ RSVP preservation (CRITICAL) - Refunds do NOT cancel attendance
+
+### What's Not Working
+
+- ❌ Refund processing returns "Failed" status instead of "Completed"
+- ❌ Payment status management after refunds
+
+### Required Backend Fixes
+
+**Priority 1: Fix Refund Status "Failed" (HIGH PRIORITY)**
+- **Files**: ProcessVariableRefundEndpoint.cs, RefundService.cs
+- **Issue**: Refund processing returns "Failed" status even though HTTP 200 OK
+- **Fix**: Debug why refund status is "Failed" instead of "Completed"
+- **Likely Causes**:
+  - Payment processor mock not configured for tests
+  - RefundService logic bug
+  - Database transaction issue
+- **Impact**: Fixes 3 failing tests
+
+**Priority 2: Fix Payment Status After Refund (MEDIUM PRIORITY)**
+- **Files**: ProcessVariableRefundEndpoint.cs, TicketPurchase.cs
+- **Issue**: Payment status changes incorrectly after refund
+- **Fix**: Ensure payment status remains appropriate after refund
+- **Expected**:
+  - Partial refund: Status = "PartiallyRefunded"
+  - Full refund: Status = "Refunded"
+  - Allow refunds on "PartiallyRefunded" payments
+- **Impact**: Fixes 1 failing test (after Priority 1 fixed)
+
+### Environment Status
+
+- Docker Containers: ✅ All healthy
+- API: ✅ Responding on port 5655
+- Database: ✅ Seeded with test data
+- Test Framework: ✅ Working correctly
+- TestContainers: ✅ Creating test databases successfully
+
+### Next Steps
+
+1. **Backend-Developer** (HIGH PRIORITY):
+   - Debug refund processing logic in ProcessVariableRefundEndpoint
+   - Fix refund status from "Failed" to "Completed"
+   - Verify payment processor mock configured for tests
+   - Fix payment status management after refunds
+
+2. **Test-Executor** (after backend fixes):
+   - Re-run integration tests
+   - Verify all 8 tests pass
+   - Update TEST_CATALOG with final results
+
+---
+
+## 🚨 PREVIOUS STATUS: VARIABLE REFUND ENDPOINT NOT IMPLEMENTED - November 20, 2025
+
+**EXECUTION DATE**: 2025-11-20 09:30 UTC
+**STATUS**: ❌ **ALL 8 TESTS FAILING - ENDPOINT DID NOT EXIST (HTTP 404)** [RESOLVED]
+**DETAILED REPORT**: `/test-results/variable-refund-integration-test-failures.md`
+
+**Root Cause**: Backend endpoint was not registered in Program.cs
+**Resolution**: Endpoint registered, tests now executing business logic
+**Progress**: 0/8 passing → 4/8 passing (50% improvement)
+
 
 ## 🚨 CRITICAL DISCOVERY: ALL 9 FAILING TIMING TESTS RETURN HTTP 500 - November 19, 2025
 
@@ -1072,6 +1287,19 @@ vars["support_email"] == "support@witchcityrope.com"
 - **Mandatory**: Run health check before all integration tests
 - **Command**: Use test-catalog-updater skill for test execution and catalog updates
 
+### Variable Refund Feature
+- **Created**: 2025-11-20
+- **Status**: ⚠️ **4/8 PASSING (50%) - REFUND STATUS BUG NOT FIXED BY .Update() CALL**
+- **Location**: `/tests/integration/Features/Payments/ProcessVariableRefundIntegrationTests.cs`
+- **Framework**: xUnit, FluentAssertions, WebApplicationFactory, TestContainers
+- **Test Count**: 8 integration tests
+- **Pass Rate**: 50% (4 passing, 4 failing)
+- **Test Reports**:
+  - Initial: `/test-results/variable-refund-integration-test-failures.md` (0/8 passing - endpoint not registered)
+  - First Fix: `/test-results/variable-refund-test-results-after-endpoint-fix.md` (4/8 passing - endpoint working)
+  - Retest: `/test-results/variable-refund-retest-2025-11-20.md` (4/8 passing - .Update() call did not fix)
+- **Run Command**: `dotnet test /home/chad/repos/witchcityrope/tests/integration/WitchCityRope.IntegrationTests.csproj --filter "FullyQualifiedName~ProcessVariableRefundIntegrationTests"`
+
 ### Console Tools - Vetted Member Import
 - **Created**: 2025-11-18
 - **Status**: ✅ ALL TESTS PASSING (46/46)
@@ -1092,9 +1320,11 @@ vars["support_email"] == "support@witchcityrope.com"
 ### Overall Status
 - **E2E Tests**: 34+ active tests (ALL PASSING for existing tests)
 - **Unit Tests**: 29 email template tests verified passing
-- **Integration Tests**: ⚠️ 9/36 PASSING (25%) - Granular timing controls tests executing but many failures
+- **Integration Tests**:
+  - ⚠️ Variable Refund: 4/8 PASSING (50%) - Refund status bug
+  - ⚠️ Timing Controls: 9/36 PASSING (25%) - Backend 500 errors
 - **Console Tool Tests**: ✅ 46/46 PASSING (Vetted Member Import)
-- **Pass Rate**: 100% for E2E/Unit, 25% for timing integration tests
+- **Pass Rate**: 100% for E2E/Unit, 50% for variable refund, 25% for timing integration tests
 
 ### Blocked Features
 - **Venue Management**: Feature not implemented (2 test files skipped)

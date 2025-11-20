@@ -63,4 +63,10 @@ public class UpdateProfileDto
     [Phone(ErrorMessage = "Invalid phone number format")]
     [StringLength(20, ErrorMessage = "Phone number cannot exceed 20 characters")]
     public string? PhoneNumber { get; set; }
+
+    /// <summary>
+    /// Other names the member goes by (aliases, former scene names, etc.)
+    /// </summary>
+    [StringLength(500, ErrorMessage = "Other names cannot exceed 500 characters")]
+    public string? OtherNames { get; set; }
 }

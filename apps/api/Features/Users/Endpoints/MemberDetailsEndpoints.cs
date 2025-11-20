@@ -101,6 +101,16 @@ public static class MemberDetailsEndpoints
             .Produces(403)
             .Produces(404)
             .Produces(500);
+
+        // Endpoint 9: Get profile change history
+        group.MapGet("/profile-change-history", GetProfileChangeHistory)
+            .WithName("GetProfileChangeHistory")
+            .WithSummary("Get profile change history for this member")
+            .Produces<List<ProfileChangeHistoryDto>>(200)
+            .Produces(401)
+            .Produces(403)
+            .Produces(404)
+            .Produces(500);
     }
 
     /// <summary>
@@ -397,5 +407,32 @@ public static class MemberDetailsEndpoints
         }
 
         return Results.NoContent();
+    }
+
+    /// <summary>
+    /// Endpoint 9: Get profile change history
+    /// GET /api/users/{userId}/profile-change-history
+    /// </summary>
+    private static async Task<IResult> GetProfileChangeHistory(
+        Guid userId,
+        [FromServices] IMemberDetailsService service,
+        CancellationToken cancellationToken)
+    {
+        var (success, response, error) = await service.GetProfileChangeHistoryAsync(userId, cancellationToken);
+
+        if (!success)
+        {
+            return error.Contains("not found", StringComparison.OrdinalIgnoreCase)
+                ? Results.Problem(
+                    title: "Resource Not Found",
+                    detail: error,
+                    statusCode: 404)
+                : Results.Problem(
+                    title: "Server Error",
+                    detail: error,
+                    statusCode: 500);
+        }
+
+        return Results.Ok(response);
     }
 }

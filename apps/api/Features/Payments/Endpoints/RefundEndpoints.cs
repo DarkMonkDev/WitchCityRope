@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using WitchCityRope.Api.Features.Participation.Models;
 using WitchCityRope.Api.Features.Payments.Commands;
+using WitchCityRope.Api.Features.Payments.Models.Requests;
 
 namespace WitchCityRope.Api.Features.Payments.Endpoints;
 
@@ -15,7 +16,7 @@ public static class RefundEndpoints
     /// </summary>
     public static void MapRefundEndpoints(this IEndpointRouteBuilder app)
     {
-        // Admin endpoint: Refund ticket by ticketId
+        // EXISTING: Admin endpoint for full refund with RSVP cancellation
         app.MapPost("/api/admin/refunds/{ticketId:guid}", RefundTicket.Execute)
             .RequireAuthorization(policy => policy.RequireRole("Administrator", "Teacher"))
             .WithName("RefundTicketById")
@@ -28,5 +29,19 @@ public static class RefundEndpoints
             .Produces(403) // Forbidden (wrong role)
             .Produces(404) // Ticket not found
             .Produces(500); // Internal server error (refund failed)
+
+        // NEW: Variable refund endpoint (partial or full, NO RSVP cancellation)
+        app.MapPost("/api/payments/transactions/{transactionId:guid}/refund", ProcessVariableRefund.Execute)
+            .RequireAuthorization(policy => policy.RequireRole("Administrator", "Teacher"))
+            .WithName("ProcessVariableRefund")
+            .WithSummary("Process variable amount refund for a payment transaction")
+            .WithDescription("Processes a partial or full refund for a PayPal payment without canceling RSVP/ticket. Requires Admin or Teacher role.")
+            .WithTags("Payments", "Refunds", "Admin")
+            .Produces<ProcessVariableRefund.VariableRefundResponse>(200)
+            .Produces(400) // Bad request (validation errors, amount exceeds remaining, etc.)
+            .Produces(401) // Unauthorized
+            .Produces(403) // Forbidden (wrong role)
+            .Produces(404) // Transaction not found
+            .Produces(500); // Internal server error (refund processing failed)
     }
 }

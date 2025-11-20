@@ -203,6 +203,7 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                 DiscordName = user.DiscordName,
                 FetLifeName = user.FetLifeName,
                 PhoneNumber = user.PhoneNumber,
+                OtherNames = user.OtherNames,
                 VettingStatus = vettingStatus,
                 HasVettingApplication = hasApplication
             };
@@ -239,6 +240,55 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                 // Store the original concurrency stamp for logging
                 var originalStamp = user.ConcurrencyStamp;
 
+                // Track changed fields for audit logging
+                var changedFields = new List<(string FieldName, string? OldValue, string? NewValue)>();
+
+                // Helper method for change detection (normalize null and empty string)
+                bool HasChanged(string? oldValue, string? newValue)
+                {
+                    var normalizedOld = string.IsNullOrWhiteSpace(oldValue) ? null : oldValue.Trim();
+                    var normalizedNew = string.IsNullOrWhiteSpace(newValue) ? null : newValue.Trim();
+                    return !string.Equals(normalizedOld, normalizedNew, StringComparison.Ordinal);
+                }
+
+                // Detect changes for each field
+                if (HasChanged(user.SceneName, request.SceneName))
+                    changedFields.Add(("Scene Name", user.SceneName, request.SceneName));
+
+                if (HasChanged(user.FirstName, request.FirstName))
+                    changedFields.Add(("First Name", user.FirstName, request.FirstName));
+
+                if (HasChanged(user.LastName, request.LastName))
+                    changedFields.Add(("Last Name", user.LastName, request.LastName));
+
+                if (HasChanged(user.Email, request.Email))
+                    changedFields.Add(("Email", user.Email, request.Email));
+
+                if (HasChanged(user.Pronouns, request.Pronouns))
+                    changedFields.Add(("Pronouns", user.Pronouns, request.Pronouns));
+
+                if (HasChanged(user.Bio, request.Bio))
+                    changedFields.Add(("Bio", user.Bio, request.Bio));
+
+                if (HasChanged(user.DiscordName, request.DiscordName))
+                    changedFields.Add(("Discord Name", user.DiscordName, request.DiscordName));
+
+                if (HasChanged(user.FetLifeName, request.FetLifeName))
+                    changedFields.Add(("FetLife Name", user.FetLifeName, request.FetLifeName));
+
+                if (HasChanged(user.PhoneNumber, request.PhoneNumber))
+                    changedFields.Add(("Phone Number", user.PhoneNumber, request.PhoneNumber));
+
+                if (HasChanged(user.OtherNames, request.OtherNames))
+                    changedFields.Add(("Other Names", user.OtherNames, request.OtherNames));
+
+                _logger.LogInformation("Change detection complete: {Count} changes found for user {UserId}", changedFields.Count, userId);
+                foreach (var (fieldName, oldValue, newValue) in changedFields)
+                {
+                    _logger.LogInformation("  Change: {FieldName} | Old: {OldValue} | New: {NewValue}",
+                        fieldName, oldValue ?? "(empty)", newValue ?? "(empty)");
+                }
+
                 // Update user properties
                 user.SceneName = request.SceneName;
                 user.FirstName = request.FirstName;
@@ -250,6 +300,7 @@ public class UserDashboardProfileService : IUserDashboardProfileService
                 user.DiscordName = request.DiscordName;
                 user.FetLifeName = request.FetLifeName;
                 user.PhoneNumber = request.PhoneNumber;
+                user.OtherNames = request.OtherNames;
                 user.UpdatedAt = DateTime.UtcNow;
 
                 // UserManager.UpdateAsync handles optimistic concurrency automatically via ConcurrencyStamp
@@ -257,6 +308,33 @@ public class UserDashboardProfileService : IUserDashboardProfileService
 
                 if (updateResult.Succeeded)
                 {
+                    // Create UserNote entries for each changed field
+                    if (changedFields.Count > 0)
+                    {
+                        _logger.LogInformation("Creating {Count} UserNote entries for profile changes (user {UserId})", changedFields.Count, userId);
+
+                        foreach (var (fieldName, oldValue, newValue) in changedFields)
+                        {
+                            var note = new WitchCityRope.Api.Data.Entities.UserNote
+                            {
+                                UserId = userId,
+                                NoteType = "ProfileChange",
+                                Content = $"{fieldName} changed from \"{oldValue ?? "(empty)"}\" to \"{newValue ?? "(empty)"}\"",
+                                AuthorId = userId, // User changed their own profile
+                                CreatedAt = DateTime.UtcNow
+                            };
+                            _context.UserNotes.Add(note);
+                        }
+
+                        // Save UserNote entries to database
+                        var savedCount = await _context.SaveChangesAsync(cancellationToken);
+                        _logger.LogInformation("Successfully saved {Count} UserNote entries to database", savedCount);
+                    }
+                    else
+                    {
+                        _logger.LogInformation("No changes detected - skipping UserNote creation");
+                    }
+
                     // Success - check for vetting application and return updated profile
                     var application = await _context.VettingApplications
                         .AsNoTracking()

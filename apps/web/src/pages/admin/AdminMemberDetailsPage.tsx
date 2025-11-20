@@ -14,6 +14,7 @@ import { MemberVettingTab } from '../../components/members/MemberVettingTab'
 import { MemberEventsTab } from '../../components/members/MemberEventsTab'
 import { MemberVolunteerTab } from '../../components/members/MemberVolunteerTab'
 import { MemberIncidentsTab } from '../../components/members/MemberIncidentsTab'
+import { MemberHistoryTab } from '../../components/members/MemberHistoryTab'
 
 export const AdminMemberDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -116,6 +117,7 @@ export const AdminMemberDetailsPage: React.FC = () => {
             {hasIncidents && (
               <Tabs.Tab value="incidents">Incidents ({incidentsData?.totalCount || 0})</Tabs.Tab>
             )}
+            <Tabs.Tab value="history">History</Tabs.Tab>
           </Tabs.List>
 
           <Tabs.Panel value="overview" pt="xl">
@@ -144,6 +146,10 @@ export const AdminMemberDetailsPage: React.FC = () => {
               <MemberIncidentsTab memberId={id} />
             </Tabs.Panel>
           )}
+
+          <Tabs.Panel value="history" pt="xl">
+            <MemberHistoryTab memberId={id} />
+          </Tabs.Panel>
         </Tabs>
       </Card>
     </Container>

@@ -145,14 +145,29 @@ dotnet build
 # If fails, report compilation errors to orchestrator
 ```
 
-2. **Unit Tests**
+2. **Backend Unit Tests**
 ```bash
-dotnet test --filter "Category=Unit" \
+# API Unit Tests
+dotnet test tests/unit/api/ \
   --logger "console;verbosity=detailed" \
   --logger "trx;LogFileName=/test-results/unit-results.trx"
 ```
 
-3. **Integration Tests (with mandatory health check)**
+3. **Core Tests** (Domain/Entity tests - ~140 tests)
+```bash
+dotnet test tests/WitchCityRope.Core.Tests/WitchCityRope.Core.Tests.csproj \
+  --logger "console;verbosity=detailed" \
+  --logger "trx;LogFileName=/test-results/core-results.trx"
+```
+
+4. **System Tests** (Health checks - ~6 tests)
+```bash
+dotnet test tests/WitchCityRope.SystemTests/WitchCityRope.SystemTests.csproj \
+  --logger "console;verbosity=detailed" \
+  --logger "trx;LogFileName=/test-results/system-results.trx"
+```
+
+5. **Integration Tests (with mandatory health check)**
 ```bash
 # MANDATORY: Health check first
 dotnet test tests/WitchCityRope.IntegrationTests/ \
@@ -165,7 +180,12 @@ if [ $? -eq 0 ]; then
 fi
 ```
 
-4. **E2E Tests (Playwright)**
+6. **Frontend Unit Tests** (React component tests - ~40 tests)
+```bash
+cd apps/web && npm run test
+```
+
+7. **E2E Tests (Playwright)**
    - Install dependencies: `cd tests/playwright && npm ci`
    - Run tests with Playwright test runner
    - Save artifacts to `/test-results/playwright/`

@@ -189,6 +189,13 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
       discordName: profile.discordName || '',
       fetLifeName: profile.fetLifeName || '',
       phoneNumber: profile.phoneNumber || '',
+      otherNames: profile.otherNames || '',
+    },
+    validate: {
+      otherNames: (value) =>
+        value && value.length > 500
+          ? 'Other names cannot exceed 500 characters'
+          : null,
     },
   })
 
@@ -348,8 +355,23 @@ const PersonalInfoForm: React.FC<{ profile: UserProfileDto }> = ({ profile }) =>
               },
             }}
           />
-          {/* Empty third column on desktop */}
-          <Box />
+          <Textarea
+            label="Other Names"
+            placeholder="Aliases, former scene names, etc."
+            {...form.getInputProps('otherNames')}
+            description="Other names you go by in the community"
+            minRows={2}
+            maxRows={4}
+            autosize
+            data-testid="other-names-input"
+            styles={{
+              label: {
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 600,
+                color: 'var(--color-burgundy)',
+              },
+            }}
+          />
         </SimpleGrid>
 
         <Textarea

@@ -1212,6 +1212,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/payments/transactions/{transactionId}/refund": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Process variable amount refund for a payment transaction
+         * @description Processes a partial or full refund for a PayPal payment without canceling RSVP/ticket. Requires Admin or Teacher role.
+         */
+        post: operations["ProcessVariableRefund"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/test-helpers/users": {
         parameters: {
             query?: never;
@@ -1418,6 +1438,23 @@ export interface paths {
         get?: never;
         /** Update member role */
         put: operations["UpdateMemberRole"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/{userId}/profile-change-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get profile change history for this member */
+        get: operations["GetProfileChangeHistory"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -4456,6 +4493,13 @@ export interface components {
             refundReason?: string;
             metadata?: Record<string, never>;
         };
+        ProfileChangeHistoryDto: {
+            /** Format: date-time */
+            changedAt?: string;
+            fieldName?: string;
+            oldValue?: string | null;
+            newValue?: string | null;
+        };
         ProtectedWelcomeResponse: {
             message?: string;
             user?: components["schemas"]["AuthUserResponse"];
@@ -4882,6 +4926,18 @@ export interface components {
             ticketTypes?: components["schemas"]["TicketTypeDto"][] | null;
             teacherIds?: string[] | null;
             volunteerPositions?: components["schemas"]["VolunteerPositionDto"][] | null;
+            /** Format: double */
+            registrationOpenHours?: number | null;
+            /** Format: double */
+            registrationCloseHours?: number | null;
+            /** Format: double */
+            cancellationOpenHours?: number | null;
+            /** Format: double */
+            cancellationCloseHours?: number | null;
+            /** Format: double */
+            volunteerRegistrationCloseHours?: number | null;
+            /** Format: double */
+            volunteerCancellationCloseHours?: number | null;
         };
         UpdateEventTemplateRequest: {
             subject: string;
@@ -4932,6 +4988,7 @@ export interface components {
             discordName?: string | null;
             fetLifeName?: string | null;
             phoneNumber?: string | null;
+            otherNames?: string | null;
         };
         UpdateProfileRequest: {
             sceneName?: string;
@@ -5081,6 +5138,7 @@ export interface components {
             discordName?: string | null;
             fetLifeName?: string | null;
             phoneNumber?: string | null;
+            otherNames?: string | null;
             vettingStatus?: components["schemas"]["VettingStatus"];
             hasVettingApplication?: boolean;
         };
@@ -5135,6 +5193,23 @@ export interface components {
         };
         ValidRolesResponse: {
             roles?: string[];
+        };
+        VariableRefundRequest: {
+            /** Format: double */
+            refundAmount: number;
+            refundReason: string;
+        };
+        VariableRefundResponse: {
+            /** Format: uuid */
+            refundId?: string;
+            /** Format: double */
+            amount?: number;
+            currency?: string;
+            status?: string;
+            message?: string;
+            /** Format: double */
+            remainingRefundableAmount?: number;
+            paymentStatus?: string;
         };
         VenueDto: {
             /** Format: int32 */
@@ -8559,6 +8634,67 @@ export interface operations {
             };
         };
     };
+    ProcessVariableRefund: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transactionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VariableRefundRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VariableRefundResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     CreateTestUser: {
         parameters: {
             query?: never;
@@ -9044,6 +9180,56 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetProfileChangeHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileChangeHistoryDto"][];
+                };
             };
             /** @description Unauthorized */
             401: {

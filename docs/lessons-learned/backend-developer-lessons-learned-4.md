@@ -485,3 +485,186 @@ public class PaymentMethodList
 - NSwag type generation produces correct TypeScript types
 
 ---
+
+## 🚨 CRITICAL: Missing Change Detection for Audit Logging - Profile Updates Not Tracked (2025-11-20)
+
+**Problem**: UserNote entries with NoteType='ProfileChange' were NOT being created when users updated their profiles. Database query showed ZERO ProfileChange entries despite users actively updating their profiles.
+
+**Date Discovered**: November 20, 2025
+**Context**: Profile update functionality existed but lacked change tracking and audit logging
+
+**Root Cause**: UpdateUserProfileAsync method was MISSING:
+- Change detection logic before applying updates
+- UserNote creation for changed fields
+- SaveChangesAsync call for UserNote persistence
+
+**Impact**:
+- No audit trail of profile changes
+- Admins couldn't see what users changed
+- Compliance/safety issues - no record of data modifications
+- Database confirmed: `SELECT COUNT(*) FROM "UserNotes" WHERE "NoteType" = 'ProfileChange';` → 0 rows
+
+**Investigation Process**:
+1. ✅ Verified database schema - UserNotes table exists with correct structure
+2. ✅ Verified DbSet exists - ApplicationDbContext has `DbSet<UserNote> UserNotes`
+3. ❌ Examined service code - NO change detection or UserNote creation logic found
+4. ❌ Code mentioned in original task (lines 243-266, 287-307) did NOT exist in file
+
+**Solution Implemented**:
+
+**1. Change Detection Logic** (lines 242-286):
+```csharp
+// Track changed fields for audit logging
+var changedFields = new List<(string FieldName, string? OldValue, string? NewValue)>();
+
+// Helper method for change detection (normalize null and empty string)
+bool HasChanged(string? oldValue, string? newValue)
+{
+    var normalizedOld = string.IsNullOrWhiteSpace(oldValue) ? null : oldValue.Trim();
+    var normalizedNew = string.IsNullOrWhiteSpace(newValue) ? null : newValue.Trim();
+    return !string.Equals(normalizedOld, normalizedNew, StringComparison.Ordinal);
+}
+
+// Detect changes for each field BEFORE applying updates
+if (HasChanged(user.SceneName, request.SceneName))
+    changedFields.Add(("Scene Name", user.SceneName, request.SceneName));
+
+if (HasChanged(user.FirstName, request.FirstName))
+    changedFields.Add(("First Name", user.FirstName, request.FirstName));
+
+// ... (similar for all profile fields)
+
+_logger.LogInformation("Change detection complete: {Count} changes found for user {UserId}", changedFields.Count, userId);
+```
+
+**2. UserNote Creation After Successful Update** (lines 304-331):
+```csharp
+if (updateResult.Succeeded)
+{
+    // Create UserNote entries for each changed field
+    if (changedFields.Count > 0)
+    {
+        _logger.LogInformation("Creating {Count} UserNote entries for profile changes (user {UserId})", changedFields.Count, userId);
+
+        foreach (var (fieldName, oldValue, newValue) in changedFields)
+        {
+            var note = new WitchCityRope.Api.Data.Entities.UserNote
+            {
+                UserId = userId,
+                NoteType = "ProfileChange",
+                Content = $"{fieldName} changed from \"{oldValue ?? "(empty)"}\" to \"{newValue ?? "(empty)"}\"",
+                AuthorId = userId, // User changed their own profile
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.UserNotes.Add(note);
+        }
+
+        // CRITICAL: Save UserNote entries to database
+        var savedCount = await _context.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation("Successfully saved {Count} UserNote entries to database", savedCount);
+    }
+    else
+    {
+        _logger.LogInformation("No changes detected - skipping UserNote creation");
+    }
+}
+```
+
+**Why This Approach Works**:
+- ✅ **Change detection BEFORE updates**: Captures original values before modification
+- ✅ **Null handling**: Normalizes null and empty string to prevent false positives
+- ✅ **Whitespace trimming**: "test" vs " test" correctly detected as same value
+- ✅ **One note per changed field**: Clear audit trail with old/new values
+- ✅ **Only creates notes for actual changes**: Checks `changedFields.Count > 0`
+- ✅ **Structured logging**: Confirms detection, creation, and persistence
+- ✅ **Calls SaveChangesAsync**: Actually persists UserNotes to database
+
+**Testing Verification**:
+```bash
+# Update profile via API
+curl -X PUT 'http://localhost:5173/api/dashboard/profile' \
+  -H 'Content-Type: application/json' \
+  -b cookies.txt \
+  -d '{"bio": "Updated bio text", "pronouns": "they/them"}'
+
+# Check logs for change detection (use container-restart skill for log viewing)
+# Expected output: "Change detection complete: 2 changes found"
+
+# Verify database has UserNote entries
+docker exec witchcity-postgres psql -U postgres -d witchcityrope_dev \
+  -c "SELECT \"Content\" FROM \"UserNotes\" WHERE \"NoteType\" = 'ProfileChange' ORDER BY \"CreatedAt\" DESC LIMIT 5;"
+
+# Expected results:
+#  Bio changed from "(empty)" to "Updated bio text"
+#  Pronouns changed from "(empty)" to "they/them"
+```
+
+**Prevention Checklist**:
+- [ ] **Change detection BEFORE entity updates**: Always capture original values first
+- [ ] **Normalize null and empty string**: Use helper method for reliable comparison
+- [ ] **Log change detection results**: Confirm code execution and change count
+- [ ] **Only create audit logs after successful save**: Check updateResult.Succeeded first
+- [ ] **Call SaveChangesAsync for audit logs**: UserNotes won't persist without it
+- [ ] **Verify database has entries**: Query database to confirm persistence
+- [ ] **Test with actual profile updates**: Don't assume code runs - verify in logs
+
+**Pattern - Change Detection for Audit Logging**:
+```csharp
+// 1. Detect changes BEFORE updating entity
+var changedFields = new List<(string Field, string? Old, string? New)>();
+
+// 2. Helper method for reliable comparison
+bool HasChanged(string? oldValue, string? newValue)
+{
+    var normalizedOld = string.IsNullOrWhiteSpace(oldValue) ? null : oldValue.Trim();
+    var normalizedNew = string.IsNullOrWhiteSpace(newValue) ? null : newValue.Trim();
+    return !string.Equals(normalizedOld, normalizedNew, StringComparison.Ordinal);
+}
+
+// 3. Compare each field
+if (HasChanged(entity.Field, request.Field))
+    changedFields.Add(("Field Name", entity.Field, request.Field));
+
+// 4. Log detection results
+_logger.LogInformation("Change detection: {Count} changes found", changedFields.Count);
+
+// 5. Apply updates to entity
+entity.Field = request.Field;
+
+// 6. Save entity changes
+var result = await SaveEntityAsync(entity);
+
+// 7. Create audit logs ONLY if save succeeded
+if (result.Succeeded && changedFields.Count > 0)
+{
+    foreach (var (field, oldVal, newVal) in changedFields)
+    {
+        CreateAuditLog(field, oldVal, newVal);
+    }
+    await _context.SaveChangesAsync(); // CRITICAL: Persist audit logs
+}
+```
+
+**Files Modified**:
+- `/home/chad/repos/witchcityrope/apps/api/Features/Dashboard/Services/UserDashboardProfileService.cs`
+  - Lines 242-286: Change detection logic
+  - Lines 304-331: UserNote creation and persistence
+
+**Analysis Document**: `/home/chad/repos/witchcityrope/test-results/profile-change-logging-fix-2025-11-20.md`
+
+**Success Criteria**:
+- ✅ API builds with 0 errors
+- ✅ Change detection logs show detected changes
+- ✅ UserNote creation logs confirm entries added
+- ✅ Database query returns ProfileChange entries
+- ✅ Each changed field has corresponding UserNote entry
+- ✅ Old and new values correctly captured
+
+**Related Patterns**:
+- **Defensive Persistence Verification** (Part 2, lines 115-265): Verify data persisted with fresh query
+- **EF Core Change Tracking** (Part 2, lines 1211-1320): Explicit Update() and SaveChangesAsync
+- Similar to audit logging patterns in VettingService and SafetyService
+
+**Tags**: #critical #change-detection #audit-logging #usernotes #profile-updates #savechanges #missing-implementation #data-integrity
+
+---

@@ -58,6 +58,11 @@ public class UserProfileDto
     public string? PhoneNumber { get; set; }
 
     /// <summary>
+    /// Other names the member goes by (aliases, former scene names, etc.)
+    /// </summary>
+    public string? OtherNames { get; set; }
+
+    /// <summary>
     /// Current vetting status enum value
     /// Only meaningful if HasVettingApplication is true
     /// </summary>
