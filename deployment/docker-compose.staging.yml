@@ -41,6 +41,14 @@ services:
       - CORS__AllowCredentials=true
       - Logging__LogLevel__Default=Debug
       - Logging__LogLevel__Microsoft=Information
+      # Email Configuration (SendGrid) - reads from .env.staging
+      - Vetting__EmailEnabled=${Vetting__EmailEnabled:-true}
+      - Vetting__SendGridApiKey=${Vetting__SendGridApiKey}
+      - Vetting__SendGridSandboxMode=${Vetting__SendGridSandboxMode:-false}
+      - Vetting__FromEmail=${Vetting__FromEmail:-info@witchcityrope.com}
+      - Vetting__FromName=${Vetting__FromName:-WitchCityRope}
+      # Frontend URL for email verification links
+      - Frontend__Url=${Frontend__Url:-https://staging.notfai.com}
     depends_on:
       - redis
     healthcheck:
