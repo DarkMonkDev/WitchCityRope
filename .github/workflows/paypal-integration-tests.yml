@@ -1,21 +1,7 @@
-name: PayPal Integration Tests
+name: PayPal Integration Tests (On-Demand Only)
 
 on:
-  push:
-    branches: [ main, develop ]
-    paths:
-      - 'apps/api/Features/Payments/**'
-      - 'tests/**/*PayPal*'
-      - 'tests/**/payment*'
-      - '.github/workflows/paypal-integration-tests.yml'
-  pull_request:
-    branches: [ main, develop ]
-    paths:
-      - 'apps/api/Features/Payments/**'
-      - 'tests/**/*PayPal*'
-      - 'tests/**/payment*'
-      - '.github/workflows/paypal-integration-tests.yml'
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger only - specific PayPal testing when needed
     inputs:
       test_stage:
         description: 'Test stage to run'

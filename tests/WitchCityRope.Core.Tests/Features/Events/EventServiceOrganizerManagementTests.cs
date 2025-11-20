@@ -582,7 +582,6 @@ public class EventServiceOrganizerManagementTests : IAsyncLifetime
             Description = "Test event description",
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(3),
-            Location = "Test Location",
             EventType = eventType,
             Capacity = 20,
             IsPublished = true,

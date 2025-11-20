@@ -60,7 +60,6 @@ public class EventServiceTests : IAsyncLifetime
             Description = "A published workshop event",
             StartDate = DateTime.UtcNow.AddDays(7), // Future event
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(3),
-            Location = "Salem Community Center",
             EventType = EventType.Class,
             Capacity = 20,
             IsPublished = true, // Published
@@ -75,7 +74,6 @@ public class EventServiceTests : IAsyncLifetime
             Description = "An unpublished workshop event",
             StartDate = DateTime.UtcNow.AddDays(8),
             EndDate = DateTime.UtcNow.AddDays(8).AddHours(3),
-            Location = "Salem Community Center",
             EventType = EventType.Class,
             Capacity = 15,
             IsPublished = false, // Not published
@@ -90,7 +88,6 @@ public class EventServiceTests : IAsyncLifetime
             Description = "A past published workshop event",
             StartDate = DateTime.UtcNow.AddDays(-1), // Past event
             EndDate = DateTime.UtcNow.AddDays(-1).AddHours(3),
-            Location = "Salem Community Center",
             EventType = EventType.Class,
             Capacity = 25,
             IsPublished = true, // Published but past
@@ -145,7 +142,6 @@ public class EventServiceTests : IAsyncLifetime
             Description = "A test event for retrieval",
             StartDate = DateTime.UtcNow.AddDays(5),
             EndDate = DateTime.UtcNow.AddDays(5).AddHours(4),
-            Location = "Test Location",
             EventType = EventType.Class,
             Capacity = 30,
             IsPublished = true,
@@ -248,7 +244,6 @@ public class EventServiceTests : IAsyncLifetime
             Description = "Original description",
             StartDate = DateTime.UtcNow.AddDays(10),
             EndDate = DateTime.UtcNow.AddDays(10).AddHours(3),
-            Location = "Original Location",
             EventType = EventType.Class,
             Capacity = 20,
             IsPublished = false,
@@ -263,7 +258,6 @@ public class EventServiceTests : IAsyncLifetime
         {
             Title = "Updated Title",
             Description = "Updated description",
-            Location = "Updated Location",
             Capacity = 25,
             IsPublished = true
         };
@@ -276,7 +270,6 @@ public class EventServiceTests : IAsyncLifetime
         response.Should().NotBeNull();
         response!.Title.Should().Be("Updated Title");
         response.Description.Should().Be("Updated description");
-        response.Location.Should().Be("Updated Location");
         response.Capacity.Should().Be(25);
         error.Should().BeEmpty();
 
@@ -303,7 +296,6 @@ public class EventServiceTests : IAsyncLifetime
             Description = "Original description",
             StartDate = DateTime.UtcNow.AddDays(15),
             EndDate = DateTime.UtcNow.AddDays(15).AddHours(3),
-            Location = "Original Location",
             EventType = EventType.Class,
             Capacity = 20,
             IsPublished = false,
@@ -317,7 +309,7 @@ public class EventServiceTests : IAsyncLifetime
         var updateRequest = new UpdateEventRequest
         {
             Title = "Updated Title Only",
-            // Description, Location, etc. are null - should not be updated
+            // Description, etc. are null - should not be updated
         };
 
         // Act
@@ -328,7 +320,6 @@ public class EventServiceTests : IAsyncLifetime
         response.Should().NotBeNull();
         response!.Title.Should().Be("Updated Title Only");
         response.Description.Should().Be("Original description"); // Unchanged
-        response.Location.Should().Be("Original Location"); // Unchanged
         response.Capacity.Should().Be(20); // Unchanged
         error.Should().BeEmpty();
     }
@@ -348,7 +339,6 @@ public class EventServiceTests : IAsyncLifetime
             Description = "This event is in the past",
             StartDate = DateTime.UtcNow.AddDays(-1), // Past event
             EndDate = DateTime.UtcNow.AddDays(-1).AddHours(3),
-            Location = "Some Location",
             EventType = EventType.Class,
             Capacity = 20,
             IsPublished = true,
@@ -388,7 +378,6 @@ public class EventServiceTests : IAsyncLifetime
             Description = "This event has attendees",
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(3),
-            Location = "Some Location",
             EventType = EventType.Class,
             Capacity = 20,
             IsPublished = true,
@@ -436,7 +425,6 @@ public class EventServiceTests : IAsyncLifetime
             Description = "Testing date range validation",
             StartDate = DateTime.UtcNow.AddDays(10),
             EndDate = DateTime.UtcNow.AddDays(10).AddHours(3),
-            Location = "Test Location",
             EventType = EventType.Class,
             Capacity = 20,
             IsPublished = false,
@@ -500,7 +488,6 @@ public class EventServiceTests : IAsyncLifetime
             Description = "Test description",
             StartDate = DateTime.UtcNow.AddDays(5),
             EndDate = DateTime.UtcNow.AddDays(5).AddHours(2),
-            Location = "Test Location",
             EventType = EventType.Class,
             Capacity = 20,
             IsPublished = false,

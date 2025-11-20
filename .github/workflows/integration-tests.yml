@@ -1,19 +1,7 @@
-name: Integration Tests (TestContainers)
+name: Integration Tests (DISABLED - Use main-pipeline.yml)
 
 on:
-  push:
-    branches: [ main, develop ]
-    paths:
-      - 'src/**'
-      - 'tests/**'
-      - '.github/workflows/integration-tests.yml'
-  pull_request:
-    branches: [ main, develop ]
-    paths:
-      - 'src/**'
-      - 'tests/**'
-      - '.github/workflows/integration-tests.yml'
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger only - workflow disabled to reduce duplication
     inputs:
       run_performance_tests:
         description: 'Run performance tests'

@@ -707,7 +707,6 @@ public class EventServiceSessionManagementTests : IAsyncLifetime
         {
             Title = "Updated Event Title",
             Description = "Updated description",
-            Location = "Updated Location",
             Capacity = 25,
             IsPublished = true,
             Sessions = new List<SessionDto>
@@ -746,7 +745,6 @@ public class EventServiceSessionManagementTests : IAsyncLifetime
         response.Should().NotBeNull();
         response!.Title.Should().Be("Updated Event Title");
         response.Description.Should().Be("Updated description");
-        response.Location.Should().Be("Updated Location");
         response.Capacity.Should().Be(25);
         response.IsPublished.Should().BeTrue();
         response.Sessions.Should().HaveCount(1);
@@ -768,7 +766,6 @@ public class EventServiceSessionManagementTests : IAsyncLifetime
             Description = "Test event description",
             StartDate = DateTime.UtcNow.AddDays(7),
             EndDate = DateTime.UtcNow.AddDays(7).AddHours(3),
-            Location = "Test Location",
             EventType = eventType,
             Capacity = 20,
             IsPublished = true,

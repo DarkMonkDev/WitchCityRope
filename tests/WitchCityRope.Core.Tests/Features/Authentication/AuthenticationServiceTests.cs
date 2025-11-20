@@ -2,11 +2,13 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Authentication.Models;
 using WitchCityRope.Api.Features.Authentication.Services;
+using WitchCityRope.Api.Features.Shared.Services;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Models.Auth;
 using WitchCityRope.Api.Services;
@@ -36,6 +38,8 @@ public class AuthenticationServiceTests : IAsyncLifetime
     private Mock<SignInManager<ApplicationUser>> _mockSignInManager = null!;
     private Mock<IJwtService> _mockJwtService = null!;
     private Mock<ReturnUrlValidator> _mockReturnUrlValidator = null!;
+    private Mock<IEmailService> _mockEmailService = null!;
+    private Mock<IConfiguration> _mockConfiguration = null!;
     private Mock<ILogger<AuthenticationService>> _mockLogger = null!;
     private AuthenticationService _service = null!;
 
@@ -61,6 +65,8 @@ public class AuthenticationServiceTests : IAsyncLifetime
 
         _mockJwtService = new Mock<IJwtService>();
         _mockReturnUrlValidator = new Mock<ReturnUrlValidator>();
+        _mockEmailService = new Mock<IEmailService>();
+        _mockConfiguration = new Mock<IConfiguration>();
         _mockLogger = new Mock<ILogger<AuthenticationService>>();
 
         _service = new AuthenticationService(
@@ -69,6 +75,8 @@ public class AuthenticationServiceTests : IAsyncLifetime
             _mockSignInManager.Object,
             _mockJwtService.Object,
             _mockReturnUrlValidator.Object,
+            _mockEmailService.Object,
+            _mockConfiguration.Object,
             _mockLogger.Object);
     }
 

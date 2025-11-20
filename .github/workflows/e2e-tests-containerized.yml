@@ -1,21 +1,7 @@
-name: E2E Tests (Containerized)
+name: E2E Tests Containerized (DISABLED - Use main-pipeline.yml)
 
 on:
-  push:
-    branches: [ main, develop ]
-    paths:
-      - 'apps/**'
-      - 'tests/e2e/**'
-      - 'packages/**'
-      - '.github/workflows/e2e-tests-containerized.yml'
-  pull_request:
-    branches: [ main, develop ]
-    paths:
-      - 'apps/**'
-      - 'tests/e2e/**'
-      - 'packages/**'
-      - '.github/workflows/e2e-tests-containerized.yml'
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger only - workflow disabled to reduce duplication
     inputs:
       browser:
         description: 'Browser to test (chromium, firefox, webkit, all)'

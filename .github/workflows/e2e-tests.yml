@@ -1,11 +1,7 @@
-name: E2E Tests
+name: E2E Tests (DISABLED - Use main-pipeline.yml)
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger only - workflow disabled to reduce duplication
 
 jobs:
   e2e-tests:

@@ -74,7 +74,6 @@ public class AdminParticipationRemovalTests : IDisposable
         var mockRefund = new PaymentRefund
         {
             Id = Guid.NewGuid(),
-            OriginalPaymentId = payment.Id,
             RefundAmountValue = 25.00m,
             RefundCurrency = "USD"
         };
@@ -220,7 +219,6 @@ public class AdminParticipationRemovalTests : IDisposable
         var mockRefund = new PaymentRefund
         {
             Id = Guid.NewGuid(),
-            OriginalPaymentId = payment.Id,
             RefundAmountValue = 35.00m,
             RefundCurrency = "USD"
         };
@@ -262,7 +260,6 @@ public class AdminParticipationRemovalTests : IDisposable
         var mockRefund = new PaymentRefund
         {
             Id = Guid.NewGuid(),
-            OriginalPaymentId = payment.Id,
             RefundAmountValue = 35.00m,
             RefundCurrency = "USD"
         };
@@ -302,7 +299,6 @@ public class AdminParticipationRemovalTests : IDisposable
         var mockRefund = new PaymentRefund
         {
             Id = Guid.NewGuid(),
-            OriginalPaymentId = payment.Id,
             RefundAmountValue = 40.00m,
             RefundCurrency = "USD"
         };
@@ -346,7 +342,6 @@ public class AdminParticipationRemovalTests : IDisposable
         var mockRefund = new PaymentRefund
         {
             Id = Guid.NewGuid(),
-            OriginalPaymentId = payment.Id,
             RefundAmountValue = 30.00m,
             RefundCurrency = "USD"
         };

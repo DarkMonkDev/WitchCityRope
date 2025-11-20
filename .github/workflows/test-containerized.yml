@@ -1,11 +1,7 @@
-name: Containerized Test Pipeline
+name: Containerized Test Pipeline (DISABLED - Use main-pipeline.yml)
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger only - workflow disabled to reduce duplication
 
 env:
   DOTNET_VERSION: '9.0.x'

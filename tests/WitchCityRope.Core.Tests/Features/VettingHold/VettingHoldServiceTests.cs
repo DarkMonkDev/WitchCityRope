@@ -629,7 +629,6 @@ public class VettingHoldServiceTests : IAsyncLifetime
             EventType = EventType.Social,
             StartDate = startDate,
             EndDate = startDate.AddHours(2),
-            Location = "Test Location",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -645,7 +644,6 @@ public class VettingHoldServiceTests : IAsyncLifetime
             EventType = EventType.Class,
             StartDate = startDate,
             EndDate = startDate.AddHours(2),
-            Location = "Test Location",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

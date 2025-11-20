@@ -1,15 +1,7 @@
-name: Security Scan
+name: Security Scan (DISABLED - Use security-scan.yml)
 
 on:
-  schedule:
-    # Run at 2 AM UTC every Monday
-    - cron: '0 2 * * 1'
-  workflow_dispatch:
-  push:
-    branches: [ main ]
-    paths:
-      - '**/*.csproj'
-      - '**/packages.config'
+  workflow_dispatch:  # Manual trigger only - workflow disabled to reduce duplication
 
 jobs:
   security-scan:
