@@ -171,8 +171,13 @@ public class TicketPurchase
 
     /// <summary>
     /// Gets whether the payment has been completed
+    /// Includes "PartiallyRefunded" because partially refunded payments are still valid completed payments
+    /// that can receive additional refunds (there's still money to refund!)
     /// </summary>
-    public bool IsPaymentCompleted => PaymentStatus == "Completed" || PaymentStatus == "Confirmed";
+    public bool IsPaymentCompleted =>
+        PaymentStatus == "Completed" ||
+        PaymentStatus == "Confirmed" ||
+        PaymentStatus == "PartiallyRefunded";
 
     /// <summary>
     /// Gets whether this purchase represents an RSVP (free ticket)
