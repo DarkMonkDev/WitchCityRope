@@ -379,7 +379,7 @@ SMOKE_PASS=0
 SMOKE_FAIL=0
 
 echo "   Testing homepage..."
-if curl -f -s https://staging.notfai.com/ | grep -q "WitchCityRope"; then
+if curl -f -s https://staging.notfai.com/ | grep -q "Witch City Rope"; then
     echo "   ✅ Homepage"
     ((SMOKE_PASS++))
 else
