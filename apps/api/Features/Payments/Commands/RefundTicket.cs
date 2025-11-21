@@ -94,13 +94,18 @@ public class RefundTicket
                 statusCode: 400);
         }
 
-        // 5. VALIDATE PAYMENT IS PAYPAL
-        if (!ticketPurchase.PaymentMethod.Equals("PayPal", StringComparison.OrdinalIgnoreCase))
+        // 5. VALIDATE CAPTURE ID FOR PAYPAL PAYMENTS ONLY
+        // For Cash/Venmo payments, RefundService will handle as manual refund (no PayPal processing)
+        if (ticketPurchase.PaymentMethod.Equals("PayPal", StringComparison.OrdinalIgnoreCase)
+            && string.IsNullOrEmpty(ticketPurchase.EncryptedPayPalCaptureId))
         {
+            logger.LogError(
+                "PayPal ticket {TicketId} missing Capture ID - cannot process automated refund",
+                ticketId);
             return Results.Problem(
-                title: "Invalid Payment Method",
-                detail: $"Only PayPal payments can be refunded through this endpoint. This payment was made via {ticketPurchase.PaymentMethod}.",
-                statusCode: 400);
+                title: "Payment Error",
+                detail: "This PayPal payment is missing a Capture ID and cannot be automatically refunded. Please contact support.",
+                statusCode: 500);
         }
 
         // 6. CHECK FOR EXISTING REFUND
@@ -116,19 +121,7 @@ public class RefundTicket
                 statusCode: 400);
         }
 
-        // 7. VALIDATE CAPTURE ID EXISTS
-        if (string.IsNullOrEmpty(ticketPurchase.EncryptedPayPalCaptureId))
-        {
-            logger.LogError(
-                "Ticket {TicketId} missing PayPal Capture ID - cannot process refund",
-                ticketId);
-            return Results.Problem(
-                title: "Payment Error",
-                detail: "This ticket is missing PayPal Capture ID. This payment cannot be refunded. Please contact support.",
-                statusCode: 500);
-        }
-
-        // 8. PREPARE REFUND REQUEST
+        // 7. PREPARE REFUND REQUEST
         // ARCHITECTURE FIX: Now uses TicketPurchase ID instead of Payment ID
         var refundRequest = new ProcessRefundRequest
         {

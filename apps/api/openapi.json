@@ -3806,6 +3806,85 @@
         }
       }
     },
+    "/api/test-helpers/ticket-purchases": {
+      "post": {
+        "tags": [
+          "Testing",
+          "TestHelpers"
+        ],
+        "summary": "Create test ticket purchase for E2E testing",
+        "description": "Programmatically create a ticket purchase with specific properties for testing. Bypasses payment flow. ONLY available in Development/Test.",
+        "operationId": "CreateTestTicketPurchase",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTestTicketPurchaseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/test-helpers/ticket-purchases/{ticketPurchaseId}": {
+      "delete": {
+        "tags": [
+          "Testing",
+          "TestHelpers"
+        ],
+        "summary": "Delete test ticket purchase for cleanup",
+        "description": "Delete a test ticket purchase by ID. Used in afterEach/afterAll hooks. ONLY available in Development/Test.",
+        "operationId": "DeleteTestTicketPurchase",
+        "parameters": [
+          {
+            "name": "ticketPurchaseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/test-helpers/health": {
       "get": {
         "tags": [
@@ -10648,6 +10727,54 @@
           }
         }
       },
+      "CreateTestTicketPurchaseRequest": {
+        "required": [
+          "totalPrice"
+        ],
+        "type": "object",
+        "properties": {
+          "totalPrice": {
+            "maximum": 10000,
+            "minimum": 0.01,
+            "type": "number",
+            "format": "double"
+          },
+          "paymentMethod": {
+            "type": "string"
+          },
+          "paymentStatus": {
+            "type": "string"
+          },
+          "paymentReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "ticketTypeId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "quantity": {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "includePayPalCaptureId": {
+            "type": "boolean",
+            "nullable": true
+          }
+        }
+      },
       "CreateTestUserRequest": {
         "required": [
           "email",
@@ -12382,6 +12509,10 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "remainingRefundableAmount": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -12787,7 +12918,7 @@
             "type": "string",
             "format": "uuid"
           },
-          "originalPaymentId": {
+          "ticketPurchaseId": {
             "type": "string",
             "format": "uuid"
           },

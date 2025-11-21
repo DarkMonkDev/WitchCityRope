@@ -634,6 +634,27 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             entity.Property(p => p.Notes)
                   .HasMaxLength(500);
 
+            // PayPal encrypted fields configuration
+            entity.Property(p => p.EncryptedPayPalOrderId)
+                  .HasMaxLength(500);
+
+            entity.Property(p => p.EncryptedPayPalPayerId)
+                  .HasMaxLength(500);
+
+            entity.Property(p => p.EncryptedPayPalCaptureId)
+                  .HasMaxLength(500);
+
+            // Sliding scale and idempotency fields
+            entity.Property(p => p.SlidingScalePercentage)
+                  .HasColumnType("decimal(5,2)")
+                  .HasDefaultValue(0.00m);
+
+            entity.Property(p => p.IdempotencyKey)
+                  .HasMaxLength(50);
+
+            entity.Property(p => p.ProcessedAt)
+                  .HasColumnType("timestamptz");
+
             // RecordedByStaffId configuration
             entity.Property(p => p.RecordedByStaffId)
                   .IsRequired(false);  // Nullable

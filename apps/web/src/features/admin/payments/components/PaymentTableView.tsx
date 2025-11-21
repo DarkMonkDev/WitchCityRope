@@ -15,7 +15,7 @@ import {
 import { IconReceiptOff, IconAlertCircle, IconChevronUp, IconChevronDown, IconSelector } from '@tabler/icons-react';
 import { useMediaQuery } from '@mantine/hooks';
 import { RefundConfirmationModal } from '../../../../components/payments/RefundConfirmationModal';
-import { useRefundTicket } from '../hooks/useRefundTicket';
+import { useVariableRefund } from '../hooks/useVariableRefund';
 import type { PaymentTransactionDto } from '../hooks/usePayments';
 
 interface PaymentTableViewProps {
@@ -119,22 +119,22 @@ export const PaymentTableView: React.FC<PaymentTableViewProps> = ({
   const isMobile = useMediaQuery('(max-width: 767px)');
   const [refundModalOpened, setRefundModalOpened] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<PaymentTransactionDto | null>(null);
-  const refundMutation = useRefundTicket();
+  const refundMutation = useVariableRefund();
 
   const handleRefundClick = (payment: PaymentTransactionDto) => {
     setSelectedPayment(payment);
     setRefundModalOpened(true);
   };
 
-  const handleRefundConfirm = async (refundReason: string) => {
-    if (!selectedPayment?.ticketId) {
-      throw new Error('No ticket ID available for refund');
+  const handleRefundConfirm = async (refundAmount: number, refundReason: string) => {
+    if (!selectedPayment?.id) {
+      throw new Error('No transaction ID available for refund');
     }
 
     await refundMutation.mutateAsync({
-      ticketId: selectedPayment.ticketId,
-      refundReason,
-      alsoRemoveRsvp: true
+      transactionId: selectedPayment.id,
+      refundAmount,
+      refundReason
     });
   };
 
@@ -296,7 +296,8 @@ export const PaymentTableView: React.FC<PaymentTableViewProps> = ({
               amount: selectedPayment.amount || 0,
               paymentMethod: selectedPayment.paymentMethod || '',
               paymentDate: selectedPayment.paymentDate || '',
-              description: selectedPayment.eventName || ''
+              description: selectedPayment.eventName || '',
+              remainingRefundableAmount: selectedPayment.remainingRefundableAmount || selectedPayment.amount || 0
             }}
             onConfirm={handleRefundConfirm}
           />
@@ -441,7 +442,8 @@ export const PaymentTableView: React.FC<PaymentTableViewProps> = ({
             amount: selectedPayment.amount || 0,
             paymentMethod: selectedPayment.paymentMethod || '',
             paymentDate: selectedPayment.paymentDate || '',
-            description: selectedPayment.eventName || ''
+            description: selectedPayment.eventName || '',
+            remainingRefundableAmount: selectedPayment.remainingRefundableAmount || selectedPayment.amount || 0
           }}
           onConfirm={handleRefundConfirm}
         />

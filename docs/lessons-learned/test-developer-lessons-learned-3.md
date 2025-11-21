@@ -2047,3 +2047,136 @@ public class [FeatureName]EndpointsTests : IDisposable
 **Correct Approach**: Factory creates server + HttpClient in one step = endpoints work
 
 ---
+
+## 🚨 CRITICAL: Reuse Existing Seeded Events in Tests - DO NOT Create New Events (2025-11-20)
+
+**Problem**: Tests creating new events from scratch cause FK constraint violations, test data pollution, and maintenance overhead. User explicitly requested: "USE EXISTING EVENTS, don't create new ones."
+
+**Date Discovered**: November 20, 2025
+**Context**: Variable refund E2E tests and unit test fixes - all tests creating new events causing FK violations
+**Root Cause**: Tests creating TicketTypes without Events, or creating Events when seeded data already exists
+
+### The Rule: ALWAYS Reuse Seeded Events
+
+**ABSOLUTE REQUIREMENT**: Tests MUST use existing seeded events from database, NOT create new events.
+
+**Why This Matters**:
+1. **FK Constraints**: Creating TicketTypes without Events = constraint violations
+2. **Test Pollution**: Each test run adds more duplicate data to database
+3. **Maintenance**: Seeded data changes break tests that create their own data
+4. **Performance**: Creating entities is slower than querying existing ones
+5. **User Request**: User explicitly demanded reusing existing events
+
+### Correct Pattern: Query Seeded Events First
+
+**Unit Tests**:
+```csharp
+// ✅ CORRECT - Query existing seeded event
+var existingEvent = await _context.Events
+    .Include(e => e.TicketTypes)
+    .Where(e => e.StartDate > DateTime.UtcNow)
+    .FirstOrDefaultAsync(cancellationToken);
+
+if (existingEvent == null)
+{
+    // ONLY create minimal FK chain if truly no seeded data exists
+    existingEvent = new Event { /* minimal data */ };
+    _context.Events.Add(existingEvent);
+}
+
+var ticketType = existingEvent.TicketTypes.FirstOrDefault();
+// Use ticketType for test
+```
+
+**E2E Tests**:
+```typescript
+// ✅ CORRECT - Navigate to existing event
+await page.goto('/admin/analytics/payments');
+// Table shows payments from seeded events
+await page.getByRole('button', { name: 'Refund' }).first().click();
+// Test uses existing payment data
+```
+
+**Integration Tests**:
+```csharp
+// ✅ CORRECT - Use seeded test user's existing purchases
+var vettedUser = await _userManager.FindByEmailAsync("vetted@witchcityrope.com");
+var existingPurchase = await _context.TicketPurchases
+    .Include(tp => tp.TicketType)
+    .Where(tp => tp.UserId == vettedUser.Id && tp.PaymentStatus == "Completed")
+    .FirstOrDefaultAsync(cancellationToken);
+// Test uses existing purchase
+```
+
+### WRONG Patterns - DO NOT DO THIS
+
+❌ **Creating Events in Every Test**:
+```csharp
+// WRONG - Creates new event every test run
+var evt = new Event { Title = "Test Event", StartDate = DateTime.UtcNow.AddDays(7) };
+_context.Events.Add(evt);
+await _context.SaveChangesAsync();
+```
+
+❌ **Creating TicketTypes Without Events**:
+```csharp
+// WRONG - FK_TicketTypes_Events_EventId constraint violation
+var ticketType = new TicketType { Name = "Test Ticket", Price = 25m };
+_context.TicketTypes.Add(ticketType); // CRASH - No EventId
+```
+
+❌ **Ignoring Seeded Data**:
+```csharp
+// WRONG - Recreates what already exists in seed data
+var admin = new ApplicationUser { Email = "admin@witchcityrope.com" };
+// Seed data ALREADY has this user!
+```
+
+### Seeded Test Data Available
+
+**Seeded Events** (see EventSeeder.cs):
+- Upcoming workshops (Class events)
+- Upcoming socials (Social events)
+- Past historical events (for time-based tests)
+
+**Seeded Users** (see UserSeeder.cs):
+- admin@witchcityrope.com (Admin role)
+- teacher@witchcityrope.com (Teacher role)
+- vetted@witchcityrope.com (Vetted member with purchases)
+- member@witchcityrope.com (General member)
+- guest@witchcityrope.com (Guest/Attendee)
+
+**Seeded Purchases** (see TicketPurchaseSeeder.cs):
+- Vetted user has 3-5 ticket purchases
+- Mix of PayPal, Venmo, Cash, Free payments
+- Historical purchases (>90 days old for refund testing)
+- Various payment statuses (Completed, Pending, Failed, Refunded)
+
+### When to Create Test Data (Rare Exceptions)
+
+**ONLY create new data when**:
+1. Testing entity creation logic itself (e.g., CreateEventCommand tests)
+2. Testing unique constraint violations (need duplicate data)
+3. Testing specific edge cases not in seed data (e.g., extreme dates)
+
+**Even then**: Query first, create ONLY if truly doesn't exist.
+
+### User Feedback Context
+
+**User quote**: "Fix the damn tests. And don't create an event, use an existing event to test with."
+
+**User repeated**: "USE EXISTING EVENTS, don't create new ones."
+
+This is a **direct user requirement**, not just a best practice.
+
+### Key Lesson
+
+**ABSOLUTE RULE**: Query existing seeded events/users/data FIRST, create ONLY if absolutely necessary for the specific test scenario.
+
+**If your test creates new Events, TicketTypes, or Users**:
+- ❌ You're probably doing it wrong
+- ✅ FIX: Query existing seeded data instead
+
+**Benefit**: Tests run faster, cleaner database, no FK violations, easier maintenance.
+
+---

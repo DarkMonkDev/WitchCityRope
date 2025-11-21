@@ -624,7 +624,7 @@ h3 {
   }
 
   .hero-section {
-    padding: var(--space-xl) 20px !important;
+    padding: 0 20px !important;
   }
 
   .hero-section h1 {
@@ -645,7 +645,7 @@ h3 {
   }
 
   .section {
-    padding: var(--space-xl) 20px !important;
+    padding: 0 20px !important;
   }
 
   .classes-events {
@@ -691,6 +691,11 @@ h3 {
   /* Maintain paragraph spacing (between paragraphs) */
   p {
     margin-bottom: 1rem !important;  /* Keep paragraph spacing intact */
+  }
+
+  /* Remove bottom margin from event card title */
+  .event-card [data-testid="event-title"] {
+    margin-bottom: 0 !important;
   }
 
   /* Tighter line-height for H2 headings when they wrap on mobile */

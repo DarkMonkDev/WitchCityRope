@@ -94,6 +94,15 @@ public class ProcessVariableRefund
                 statusCode: 404);
         }
 
+        // DIAGNOSTIC LOGGING: Check what we retrieved from database
+        logger.LogInformation(
+            "TicketPurchase retrieved: Id={Id}, PaymentMethod={Method}, EncryptedCaptureId={CaptureId}",
+            ticketPurchase.Id,
+            ticketPurchase.PaymentMethod,
+            ticketPurchase.EncryptedPayPalCaptureId == null
+                ? "NULL"
+                : $"LENGTH:{ticketPurchase.EncryptedPayPalCaptureId.Length}");
+
         // 5. VALIDATE PAYMENT STATUS
         if (!ticketPurchase.IsPaymentCompleted)
         {
@@ -103,28 +112,31 @@ public class ProcessVariableRefund
                 statusCode: 400);
         }
 
-        // 6. VALIDATE PAYMENT IS PAYPAL
-        if (!ticketPurchase.PaymentMethod.Equals("PayPal", StringComparison.OrdinalIgnoreCase))
-        {
-            return Results.Problem(
-                title: "Invalid Payment Method",
-                detail: $"Only PayPal payments can be refunded through this endpoint. This payment was made via {ticketPurchase.PaymentMethod}.",
-                statusCode: 400);
-        }
+        // 6. VALIDATE CAPTURE ID FOR PAYPAL PAYMENTS ONLY
+        // For Cash/Venmo payments, RefundService will handle as manual refund (no PayPal processing)
+        // Admin must manually process the actual money transfer outside the system
 
-        // 7. VALIDATE CAPTURE ID EXISTS
-        if (string.IsNullOrEmpty(ticketPurchase.EncryptedPayPalCaptureId))
+        // DIAGNOSTIC LOGGING: Check validation logic for PayPal Capture ID
+        logger.LogInformation(
+            "Validating Capture ID for PayPal payment: transactionId={TransactionId}, PaymentMethod={Method}, IsPayPal={IsPayPal}, CaptureIdIsNullOrEmpty={IsNullOrEmpty}",
+            transactionId,
+            ticketPurchase.PaymentMethod,
+            ticketPurchase.PaymentMethod.Equals("PayPal", StringComparison.OrdinalIgnoreCase),
+            string.IsNullOrEmpty(ticketPurchase.EncryptedPayPalCaptureId));
+
+        if (ticketPurchase.PaymentMethod.Equals("PayPal", StringComparison.OrdinalIgnoreCase)
+            && string.IsNullOrEmpty(ticketPurchase.EncryptedPayPalCaptureId))
         {
             logger.LogError(
-                "Transaction {TransactionId} missing PayPal Capture ID - cannot process refund",
+                "PayPal transaction {TransactionId} missing Capture ID - cannot process automated refund",
                 transactionId);
             return Results.Problem(
                 title: "Payment Error",
-                detail: "This transaction is missing PayPal Capture ID. This payment cannot be refunded. Please contact support.",
+                detail: "This PayPal payment is missing a Capture ID and cannot be automatically refunded. Please contact support.",
                 statusCode: 500);
         }
 
-        // 8. CALCULATE TOTAL REFUNDED AMOUNT
+        // 7. CALCULATE TOTAL REFUNDED AMOUNT
         var existingRefunds = await dbContext.PaymentRefunds
             .Where(pr => pr.TicketPurchaseId == ticketPurchase.Id)
             .ToListAsync(cancellationToken);

@@ -89,5 +89,10 @@ public class PaymentTransactionDto
     /// </summary>
     public DateTime? RefundDate { get; set; }
 
+    /// <summary>
+    /// Amount remaining that can still be refunded (original amount - total refunded)
+    /// </summary>
+    public decimal RemainingRefundableAmount { get; set; }
+
     #endregion
 }

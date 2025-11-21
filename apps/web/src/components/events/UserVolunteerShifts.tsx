@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Paper, Stack, Title, Text, Badge, Group, Button, Modal } from '@mantine/core';
-import { IconCheck, IconClock, IconX } from '@tabler/icons-react';
+import { Paper, Stack, Title, Text, Badge, Group, Button, Modal, Alert } from '@mantine/core';
+import { IconCheck, IconClock, IconX, IconAlertCircle } from '@tabler/icons-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import type { VolunteerPosition } from '../../features/volunteers/types/volunteer.types';
@@ -9,19 +9,17 @@ import { cancelVolunteerSignup } from '../../features/volunteers/api/volunteerAp
 interface UserVolunteerShiftsProps {
   positions: VolunteerPosition[];
   eventId: string;
-  canCancel?: boolean; // Whether user is within cancellation window
 }
 
 /**
  * User Volunteer Shifts Component
  * Displays the shifts the user has signed up for on an event
  * Shows only when user has already volunteered for this event
- * Allows user to cancel volunteer signup if within timing window
+ * Allows user to cancel volunteer signup (backend validates timing)
  */
 export const UserVolunteerShifts: React.FC<UserVolunteerShiftsProps> = ({
   positions,
-  eventId,
-  canCancel = true
+  eventId
 }) => {
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<VolunteerPosition | null>(null);
@@ -158,18 +156,26 @@ export const UserVolunteerShifts: React.FC<UserVolunteerShiftsProps> = ({
                   )}
                 </Stack>
 
-                {/* Cancel Button - Only show if user can cancel and has signed up */}
-                {canCancel && position.hasUserSignedUp && position.userSignupId && (
-                  <Button
-                    variant="subtle"
-                    color="red"
-                    size="xs"
-                    onClick={() => handleCancelClick(position)}
-                    disabled={cancelMutation.isPending}
-                    style={{ minWidth: '80px' }}
-                  >
-                    Cancel
-                  </Button>
+                {/* Cancel Button or Message - Based on timing permissions from backend */}
+                {position.hasUserSignedUp && position.userSignupId && (
+                  <>
+                    {position.canCancel ? (
+                      <Button
+                        variant="subtle"
+                        color="red"
+                        size="xs"
+                        onClick={() => handleCancelClick(position)}
+                        disabled={cancelMutation.isPending}
+                        style={{ minWidth: '80px' }}
+                      >
+                        Cancel
+                      </Button>
+                    ) : (
+                      <Text size="xs" c="dimmed" style={{ fontSize: '11px', textAlign: 'right' }}>
+                        Cancellation window closed
+                      </Text>
+                    )}
+                  </>
                 )}
               </Group>
             </div>

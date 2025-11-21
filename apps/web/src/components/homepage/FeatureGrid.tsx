@@ -44,8 +44,10 @@ export const FeatureGrid: React.FC<FeatureGridProps> = ({
   return (
     <Box
       component="section"
+      pt={{ base: 0, sm: 'var(--space-2xl)' }}
+      pb={{ base: 0, sm: 'var(--space-2xl)' }}
+      px="40px"
       style={{
-        padding: 'var(--space-2xl) 40px',
         maxWidth: '1200px',
         margin: '0 auto',
         position: 'relative',

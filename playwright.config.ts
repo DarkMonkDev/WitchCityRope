@@ -15,7 +15,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : 8, // Increased to 8 workers - system handles load well
+  workers: process.env.CI ? 1 : 8, // Parallel execution - tests now use unique payment indices for isolation
   // globalSetup: './tests/e2e/global-setup.ts', // Verify Docker services before tests
   reporter: [
     ['list'],

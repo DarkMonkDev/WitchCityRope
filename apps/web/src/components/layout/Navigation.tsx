@@ -94,7 +94,6 @@ export const Navigation: React.FC = () => {
       <Box
         component={Link}
         to="/"
-        preventScrollReset={false}
         className="logo logo-underline-animation"
         style={{
           fontFamily: 'var(--font-heading)',
@@ -125,7 +124,7 @@ export const Navigation: React.FC = () => {
           <Box
             component={Link}
             to="/admin"
-            preventScrollReset={false}
+            
             data-testid="link-admin"
             className="btn btn-primary"
           >
@@ -136,7 +135,7 @@ export const Navigation: React.FC = () => {
         <Box
           component={Link}
           to="/events"
-          preventScrollReset={false}
+          
           data-testid="link-events"
           style={{
             color: 'var(--color-charcoal)',
@@ -159,7 +158,7 @@ export const Navigation: React.FC = () => {
           <Box
             component={Link}
             to="/join"
-            preventScrollReset={false}
+            
             style={{
               color: 'var(--color-charcoal)',
               textDecoration: 'none',
@@ -180,7 +179,7 @@ export const Navigation: React.FC = () => {
         <Box
           component={Link}
           to="/resources"
-          preventScrollReset={false}
+          
           style={{
             color: 'var(--color-charcoal)',
             textDecoration: 'none',
@@ -202,14 +201,14 @@ export const Navigation: React.FC = () => {
           <Box
             component={Link}
             to="/dashboard"
-            preventScrollReset={false}
+            
             data-testid="link-dashboard"
             className="btn btn-primary"
           >
             Dashboard
           </Box>
         ) : (
-          <Box component={Link} to="/login" preventScrollReset={false} className="btn btn-primary">
+          <Box component={Link} to="/login"  className="btn btn-primary">
             Login
           </Box>
         )}
@@ -286,7 +285,7 @@ export const Navigation: React.FC = () => {
             <Button
               component={Link}
               to="/dashboard"
-              preventScrollReset={false}
+              
               onClick={closeMobileMenu}
               data-testid="mobile-link-dashboard"
               color="blue"
@@ -313,7 +312,7 @@ export const Navigation: React.FC = () => {
             <Button
               component={Link}
               to="/login"
-              preventScrollReset={false}
+              
               onClick={closeMobileMenu}
               data-testid="mobile-link-login"
               color="blue"
@@ -343,7 +342,7 @@ export const Navigation: React.FC = () => {
             <Box
               component={Link}
               to="/admin"
-              preventScrollReset={false}
+              
               onClick={closeMobileMenu}
               data-testid="mobile-link-admin"
               style={{
@@ -367,7 +366,7 @@ export const Navigation: React.FC = () => {
           <Box
             component={Link}
             to="/events"
-            preventScrollReset={false}
+            
             onClick={closeMobileMenu}
             data-testid="mobile-link-events"
             style={{
@@ -391,7 +390,7 @@ export const Navigation: React.FC = () => {
             <Box
               component={Link}
               to="/join"
-              preventScrollReset={false}
+              
               onClick={closeMobileMenu}
               data-testid="mobile-link-join"
               style={{
@@ -415,7 +414,7 @@ export const Navigation: React.FC = () => {
           <Box
             component={Link}
             to="/private-lessons"
-            preventScrollReset={false}
+            
             onClick={closeMobileMenu}
             data-testid="mobile-link-private-lessons"
             style={{
@@ -438,7 +437,7 @@ export const Navigation: React.FC = () => {
           <Box
             component={Link}
             to="/resources"
-            preventScrollReset={false}
+            
             onClick={closeMobileMenu}
             data-testid="mobile-link-resources"
             style={{
@@ -461,7 +460,7 @@ export const Navigation: React.FC = () => {
           <Box
             component={Link}
             to="/safety/report"
-            preventScrollReset={false}
+            
             onClick={closeMobileMenu}
             data-testid="mobile-link-report-incident"
             style={{

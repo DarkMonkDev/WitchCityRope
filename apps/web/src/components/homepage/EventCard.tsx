@@ -179,6 +179,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         />
 
         <Text
+          mb={0}
           style={{
             fontFamily: 'var(--font-heading)',
             fontSize: '22px',
@@ -259,11 +260,11 @@ export const EventCard: React.FC<EventCardProps> = ({
         </Group>
 
         <Text
+          mb={{ base: 0, sm: 'var(--space-md)' }}
           style={{
             color: 'var(--color-stone)',
             fontSize: '15px',
             lineHeight: 1.6,
-            marginBottom: 'var(--space-md)',
           }}
           data-testid="event-description"
         >

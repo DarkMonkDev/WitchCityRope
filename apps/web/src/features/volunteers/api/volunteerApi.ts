@@ -46,9 +46,9 @@ export const getUserVolunteerShifts = async (): Promise<UserVolunteerShiftDto[]>
  * Cancel a volunteer signup
  */
 export const cancelVolunteerSignup = async (
-  assignmentId: string
+  signupId: string
 ): Promise<void> => {
-  await apiClient.delete(
-    `/api/volunteer-assignments/${assignmentId}`
+  await apiClient.post(
+    `/api/volunteer-signups/${signupId}/cancel`
   );
 };

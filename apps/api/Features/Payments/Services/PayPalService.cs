@@ -1,3 +1,4 @@
+using WitchCityRope.Api.Features.Shared.Models;
 using PayPalCheckoutSdk.Core;
 using PayPalCheckoutSdk.Orders;
 using PayPalCheckoutSdk.Payments;

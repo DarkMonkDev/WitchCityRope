@@ -1077,17 +1077,17 @@ export const EventForm: React.FC<EventFormProps> = ({
     }
   }
 
-  const handleRefundTicketConfirm = async (refundReason: string, alsoRemoveRsvp: boolean = true) => {
-    if (!selectedParticipant || !selectedParticipant.ticketId) {
-      throw new Error('No ticket ID available for refund')
+  const handleRefundTicketConfirm = async (refundAmount: number, refundReason: string) => {
+    if (!selectedParticipant || !selectedParticipant.id) {
+      throw new Error('No transaction ID available for refund')
     }
 
     try {
       const response = await api.post(
-        `/api/admin/refunds/${selectedParticipant.ticketId}`,
+        `/api/payments/transactions/${selectedParticipant.id}/refund`,
         {
-          refundReason,
-          alsoRemoveRsvp
+          refundAmount,
+          refundReason
         }
       )
 
@@ -2691,7 +2691,8 @@ export const EventForm: React.FC<EventFormProps> = ({
             paymentDate: selectedParticipant.participationDate,
             description: selectedParticipant.sessionNames !== 'All Sessions'
               ? `Sessions: ${selectedParticipant.sessionNames}`
-              : undefined
+              : undefined,
+            remainingRefundableAmount: Number(selectedParticipant.amountPaid ?? 0)
           }}
           onConfirm={handleRefundTicketConfirm}
         />

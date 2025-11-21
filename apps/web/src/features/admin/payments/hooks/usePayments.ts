@@ -17,6 +17,7 @@ export interface PaymentTransactionDto {
   isRefundable?: boolean; // Backend will use this field name
   refundId?: string;
   refundDate?: string;
+  remainingRefundableAmount?: number; // Amount still available to refund (for variable refunds)
 }
 
 export interface PaymentListResponse {

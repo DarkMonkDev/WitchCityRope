@@ -26,6 +26,12 @@ public class VolunteerPositionDto
     // User's signup status for this position (if authenticated)
     public bool HasUserSignedUp { get; set; }
     public Guid? UserSignupId { get; set; }
+
+    /// <summary>
+    /// Whether the user can cancel their volunteer signup based on event timing rules
+    /// Determined by event's VolunteerCancellationCloseHours setting
+    /// </summary>
+    public bool CanCancel { get; set; }
 }
 
 /// <summary>

@@ -1,3 +1,4 @@
+using WitchCityRope.Api.Features.Shared.Models;
 using Xunit;
 using FluentAssertions;
 using Moq;

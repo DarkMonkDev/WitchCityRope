@@ -1,3 +1,4 @@
+using WitchCityRope.Api.Features.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Payments.Entities;

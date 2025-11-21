@@ -15,10 +15,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ customActions }) => {
     <Box
       component="section"
       className="hero-section"
+      pt={{ base: 0, sm: 'var(--space-3xl)' }}
+      pb={{ base: 0, sm: 'var(--space-2xl)' }}
+      mb={{ base: 0, sm: '2.25rem' }}
+      px="40px"
       style={{
         background: 'linear-gradient(180deg, var(--color-midnight) 0%, var(--color-burgundy-dark) 100%)',
         color: 'var(--color-ivory)',
-        padding: 'var(--space-3xl) 40px var(--space-2xl)',
         textAlign: 'center',
         position: 'relative',
         overflow: 'hidden',

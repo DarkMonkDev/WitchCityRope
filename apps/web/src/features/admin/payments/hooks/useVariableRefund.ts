@@ -13,6 +13,8 @@ interface VariableRefundResponse {
   currency: string;
   status: string;
   message: string;
+  remainingRefundableAmount: number;
+  paymentStatus: string;
 }
 
 export const useVariableRefund = () => {
@@ -34,13 +36,13 @@ export const useVariableRefund = () => {
 
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['admin-payments'] });
       notifications.show({
         title: 'Refund Processed',
-        message: 'Financial refund processed successfully. RSVP/ticket was NOT cancelled.',
+        message: `Refund of $${data.amount.toFixed(2)} processed successfully. Remaining refundable: $${data.remainingRefundableAmount.toFixed(2)}. Payment status: ${data.paymentStatus}. RSVP/ticket was NOT cancelled.`,
         color: 'green',
-        autoClose: 5000
+        autoClose: 7000
       });
     },
     onError: (error: Error) => {

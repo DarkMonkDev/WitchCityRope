@@ -64,16 +64,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISafetyService, SafetyService>();
         services.AddScoped<ISafetyServiceExtended, SafetyServiceExtended>();
 
-        // Conditionally register Encryption service based on configuration
-        var useMockEncryption = configuration.GetValue<bool>("USE_MOCK_PAYMENT_SERVICE"); // Reuse same flag as PayPal
-        if (useMockEncryption)
-        {
-            services.AddScoped<IEncryptionService, MockEncryptionService>();
-        }
-        else
-        {
-            services.AddScoped<IEncryptionService, EncryptionService>();
-        }
+        // ALWAYS use real encryption (even in development)
+        // Encryption MUST be real for security - mocking PayPal doesn't mean we should mock encryption
+        // Bug fix: USE_MOCK_PAYMENT_SERVICE was causing unencrypted Capture IDs in database
+        services.AddScoped<IEncryptionService, EncryptionService>();
 
         services.AddScoped<IAuditService, AuditService>();
 

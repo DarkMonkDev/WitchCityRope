@@ -48,7 +48,6 @@ import { useConfirmPayPalPayment } from '../../lib/api/hooks/usePayments';
 import { PaymentSummary } from '../../features/payments/components/PaymentSummary';
 import type { components } from '@witchcityrope/shared-types/generated/api-types';
 import { debugLog } from '../../utils/debug';
-import { useEventTimingStatus } from '../../hooks/useEventTimingStatus';
 import { useVettingStatus } from '../../features/vetting/hooks/useVettingStatus';
 
 type TicketTypeDto = components["schemas"]["TicketTypeDto"];
@@ -115,9 +114,6 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
   const { data: user, isLoading: isLoadingUser } = useCurrentUser();
   const navigate = useNavigate();
   const isAuthenticated = !!user;
-
-  // Event timing status for buffer enforcement
-  const timingStatus = useEventTimingStatus(eventStartDateTime);
 
   // Check if user has submitted a vetting application
   const { data: vettingStatus } = useVettingStatus();
@@ -479,8 +475,8 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                   }) : 'Date unavailable'}
               </Text>
 
-              {/* Show cancel button only if timing allows */}
-              {timingStatus?.canCancel && (
+              {/* Cancel button - show only if backend allows */}
+              {validParticipation.canCancelRSVP ? (
                 <Button
                   variant="light"
                   color="red"
@@ -498,12 +494,9 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                 >
                   Cancel RSVP
                 </Button>
-              )}
-
-              {/* Show status message when cancellation not allowed */}
-              {!timingStatus?.canCancel && timingStatus?.statusMessage && (
-                <Alert variant="light" color="gray" icon={<IconAlertCircle size={16} />}>
-                  <Text size="sm">{timingStatus.statusMessage}</Text>
+              ) : (
+                <Alert color="orange" variant="light">
+                  <Text size="sm">Cancellations are not available at this time</Text>
                 </Alert>
               )}
             </Box>
@@ -545,8 +538,8 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                 title="Your Ticket Purchase"
               />
               <Box mt="md">
-                {/* Show cancel button only if timing allows */}
-                {timingStatus?.canCancel && (
+                {/* Cancel button - show only if backend allows */}
+                {validParticipation.canCancelTicket ? (
                   <Button
                     variant="light"
                     color="red"
@@ -564,12 +557,9 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                   >
                     Cancel Ticket
                   </Button>
-                )}
-
-                {/* Show status message when cancellation not allowed */}
-                {!timingStatus?.canCancel && timingStatus?.statusMessage && (
-                  <Alert variant="light" color="gray" icon={<IconAlertCircle size={16} />}>
-                    <Text size="sm">{timingStatus.statusMessage}</Text>
+                ) : (
+                  <Alert color="orange" variant="light">
+                    <Text size="sm">Cancellations are not available at this time</Text>
                   </Alert>
                 )}
               </Box>
@@ -582,87 +572,74 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
               {/* Social Event Pattern: RSVP first, then optional ticket */}
               {eventType === 'social' && (
                 <>
-                  {/* Show RSVP button only if user hasn't RSVP'd yet AND timing allows */}
-                  {!validParticipation?.hasRSVP && timingStatus?.canRegister && (
-                    (() => {
-                      const canRSVPCondition = validParticipation?.canRSVP || validParticipation === null || isLoading;
-
-                      debugLog('🔍 RSVP BUTTON LOGIC DEBUG:');
-                      debugLog('  - validParticipation?.hasRSVP:', validParticipation?.hasRSVP);
-                      debugLog('  - validParticipation?.canRSVP:', validParticipation?.canRSVP);
-                      debugLog('  - validParticipation === null:', validParticipation === null);
-                      debugLog('  - isLoading:', isLoading);
-                      debugLog('  - canRSVPCondition:', canRSVPCondition);
-
-                      return canRSVPCondition ? (
-                        <Box>
-                          {/* Terms of Service Acceptance */}
-                          <Group gap="sm" align="center" justify="center" mb="md">
-                            <Checkbox
-                              id="rsvp-terms-checkbox"
-                              checked={rsvpTermsAccepted}
-                              onChange={(event) => setRsvpTermsAccepted(event.currentTarget.checked)}
-                              size="md"
-                              color="var(--color-burgundy)"
-                              data-testid="rsvp-terms-checkbox"
-                            />
-                            <Text
-                              component="label"
-                              htmlFor="rsvp-terms-checkbox"
-                              size="md"
-                              style={{
-                                cursor: 'pointer',
-                                color: '#000000',
-                                fontWeight: 700,
-                                lineHeight: 1.5
-                              }}
-                            >
-                              I agree to the{' '}
-                              <a
-                                href="/event-waiver"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{
-                                  color: 'var(--color-burgundy)',
-                                  textDecoration: 'underline',
-                                  fontWeight: 700
-                                }}
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                Event Waiver
-                              </a>
-                            </Text>
-                          </Group>
-
-                          {/* RSVP Button */}
-                          <Button
-                            onClick={handleRSVPClick}
-                            fullWidth
-                            variant="filled"
-                            color="green"
-                            disabled={!rsvpTermsAccepted || isLoading || isLoadingUser}
-                            loading={isLoading || isLoadingUser}
-                            mb="md"
-                            data-testid="button-rsvp"
-                            styles={{
-                              root: {
-                                height: '44px',
-                                paddingTop: '12px',
-                                paddingBottom: '12px',
-                                fontSize: '14px',
-                                lineHeight: '1.2'
-                              }
+                  {/* Show RSVP button only if user hasn't RSVP'd yet AND backend allows */}
+                  {!validParticipation?.hasRSVP && validParticipation?.canRSVP && (
+                    <Box>
+                      {/* Terms of Service Acceptance */}
+                      <Group gap="sm" align="center" justify="center" mb="md">
+                        <Checkbox
+                          id="rsvp-terms-checkbox"
+                          checked={rsvpTermsAccepted}
+                          onChange={(event) => setRsvpTermsAccepted(event.currentTarget.checked)}
+                          size="md"
+                          color="var(--color-burgundy)"
+                          data-testid="rsvp-terms-checkbox"
+                        />
+                        <Text
+                          component="label"
+                          htmlFor="rsvp-terms-checkbox"
+                          size="md"
+                          style={{
+                            cursor: 'pointer',
+                            color: '#000000',
+                            fontWeight: 700,
+                            lineHeight: 1.5
+                          }}
+                        >
+                          I agree to the{' '}
+                          <a
+                            href="/event-waiver"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              color: 'var(--color-burgundy)',
+                              textDecoration: 'underline',
+                              fontWeight: 700
                             }}
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            RSVP Now (Free)
-                          </Button>
-                        </Box>
-                      ) : null;
-                    })()
+                            Event Waiver
+                          </a>
+                        </Text>
+                      </Group>
+
+                      {/* RSVP Button */}
+                      <Button
+                        onClick={handleRSVPClick}
+                        fullWidth
+                        variant="filled"
+                        color="green"
+                        disabled={!rsvpTermsAccepted || isLoading || isLoadingUser}
+                        loading={isLoading || isLoadingUser}
+                        mb="md"
+                        data-testid="button-rsvp"
+                        styles={{
+                          root: {
+                            height: '44px',
+                            paddingTop: '12px',
+                            paddingBottom: '12px',
+                            fontSize: '14px',
+                            lineHeight: '1.2'
+                          }
+                        }}
+                      >
+                        RSVP Now (Free)
+                      </Button>
+                    </Box>
                   )}
 
-                  {/* Show ticket purchase option when user hasn't purchased a ticket yet AND timing allows */}
-                  {!validParticipation?.hasTicket && timingStatus?.canRegister && (
+                  {/* Show ticket purchase option when user hasn't purchased a ticket yet AND backend allows */}
+                  {!validParticipation?.hasTicket && validParticipation?.canPurchaseTicket && (
                     <Box>
                       <Text size="sm" c="dimmed" ta="center" mb="sm">
                         {validParticipation?.hasRSVP
@@ -691,68 +668,50 @@ export const ParticipationCard: React.FC<ParticipationCardProps> = ({
                       </Button>
                     </Box>
                   )}
-
-                  {/* Show status message when registration not allowed */}
-                  {(!validParticipation?.hasRSVP && !validParticipation?.hasTicket) && !timingStatus?.canRegister && timingStatus?.statusMessage && (
-                    <Alert variant="light" color="gray" icon={<IconAlertCircle size={16} />}>
-                      <Text size="sm">{timingStatus.statusMessage}</Text>
-                    </Alert>
-                  )}
                 </>
               )}
 
               {/* Class Pattern: Ticket purchase required */}
-              {eventType === 'class' && !validParticipation?.hasTicket && (
+              {eventType === 'class' && !validParticipation?.hasTicket && validParticipation?.canPurchaseTicket && (
                 <Box>
-                  {timingStatus?.canRegister && (
-                    <>
-                      <Box
-                        p={{ base: 'xs', md: 'md' }}
-                        mb={{ base: 'xs', md: 'md' }}
-                        style={{
-                          background: 'var(--color-cream)',
-                          borderRadius: '12px',
-                          textAlign: 'center'
-                        }}
-                      >
-                        <Text fw={700} size="lg" c="var(--color-burgundy)" mb="xs">
-                          Class Fee: {formatPriceDisplay()}
-                        </Text>
-                        {ticketPriceRange && !ticketPriceRange.isSinglePrice && (
-                          <Text size="sm" c="dimmed">
-                            Multiple ticket options available
-                          </Text>
-                        )}
-                      </Box>
+                  <Box
+                    p={{ base: 'xs', md: 'md' }}
+                    mb={{ base: 'xs', md: 'md' }}
+                    style={{
+                      background: 'var(--color-cream)',
+                      borderRadius: '12px',
+                      textAlign: 'center'
+                    }}
+                  >
+                    <Text fw={700} size="lg" c="var(--color-burgundy)" mb="xs">
+                      Class Fee: {formatPriceDisplay()}
+                    </Text>
+                    {ticketPriceRange && !ticketPriceRange.isSinglePrice && (
+                      <Text size="sm" c="dimmed">
+                        Multiple ticket options available
+                      </Text>
+                    )}
+                  </Box>
 
-                      <Button
-                        onClick={handleTicketPurchase}
-                        fullWidth
-                        variant="filled"
-                        color="blue"
-                        leftSection={<IconTicket size={18} />}
-                        data-testid="button-purchase-ticket"
-                        styles={{
-                          root: {
-                            height: '44px',
-                            paddingTop: '12px',
-                            paddingBottom: '12px',
-                            fontSize: '14px',
-                            lineHeight: '1.2'
-                          }
-                        }}
-                      >
-                        Purchase Ticket
-                      </Button>
-                    </>
-                  )}
-
-                  {/* Show status message when registration not allowed */}
-                  {!timingStatus?.canRegister && timingStatus?.statusMessage && (
-                    <Alert variant="light" color="gray" icon={<IconAlertCircle size={16} />}>
-                      <Text size="sm">{timingStatus.statusMessage}</Text>
-                    </Alert>
-                  )}
+                  <Button
+                    onClick={handleTicketPurchase}
+                    fullWidth
+                    variant="filled"
+                    color="blue"
+                    leftSection={<IconTicket size={18} />}
+                    data-testid="button-purchase-ticket"
+                    styles={{
+                      root: {
+                        height: '44px',
+                        paddingTop: '12px',
+                        paddingBottom: '12px',
+                        fontSize: '14px',
+                        lineHeight: '1.2'
+                      }
+                    }}
+                  >
+                    Purchase Ticket
+                  </Button>
                 </Box>
               )}
             </Stack>

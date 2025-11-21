@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
+using WitchCityRope.Api.Features.Payments.Services;
+using WitchCityRope.Api.Features.Safety.Services;
 using WitchCityRope.Api.Features.TestHelpers.Models;
 using WitchCityRope.Api.Models;
 
@@ -14,15 +16,18 @@ public class TestHelperService : ITestHelperService
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IEncryptionService _encryptionService;
     private readonly ILogger<TestHelperService> _logger;
 
     public TestHelperService(
         ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
+        IEncryptionService encryptionService,
         ILogger<TestHelperService> logger)
     {
         _context = context;
         _userManager = userManager;
+        _encryptionService = encryptionService;
         _logger = logger;
     }
 
@@ -144,5 +149,164 @@ public class TestHelperService : ITestHelperService
             _logger.LogError(ex, "Exception deleting test user: {UserId}", userId);
             return (false, $"Internal error: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Create a test ticket purchase with specified properties
+    /// Bypasses normal payment flow for E2E test isolation
+    /// </summary>
+    public async Task<(bool Success, TestTicketPurchaseResponse? Data, string? Error)> CreateTestTicketPurchaseAsync(
+        CreateTestTicketPurchaseRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Creating test ticket purchase: Amount={Amount}, Method={Method}",
+                request.TotalPrice, request.PaymentMethod);
+
+            // Get user ID (default to admin if not specified)
+            var userId = request.UserId ?? await GetAdminUserIdAsync(cancellationToken);
+            if (userId == Guid.Empty)
+            {
+                return (false, null, "Could not find user for ticket purchase");
+            }
+
+            // Get ticket type with event info (use first available if not specified)
+            var ticketType = request.TicketTypeId.HasValue
+                ? await _context.Set<TicketType>()
+                    .Include(tt => tt.Event)
+                    .FirstOrDefaultAsync(tt => tt.Id == request.TicketTypeId.Value, cancellationToken)
+                : await GetFirstTicketTypeWithEventAsync(cancellationToken);
+
+            if (ticketType == null)
+            {
+                return (false, null, "No ticket types available in database");
+            }
+
+            var ticketTypeId = ticketType.Id;
+            var eventName = ticketType.Event?.Title ?? "Unknown Event";
+
+            // Generate unique payment reference if not provided
+            var paymentReference = request.PaymentReference
+                ?? $"E2E-TEST-{DateTime.Now.Ticks}-{Guid.NewGuid().ToString()[..8].ToUpper()}";
+
+            // Create encrypted PayPal Capture ID if needed
+            string? encryptedCaptureId = null;
+            var includeCapture = request.IncludePayPalCaptureId
+                ?? request.PaymentMethod.Equals("PayPal", StringComparison.OrdinalIgnoreCase);
+
+            if (includeCapture)
+            {
+                var mockCaptureId = $"WH-TEST-{DateTime.Now.Ticks}-CAPTURE-{Guid.NewGuid().ToString()[..8].ToUpper()}";
+                encryptedCaptureId = await _encryptionService.EncryptAsync(mockCaptureId);
+                _logger.LogDebug("Generated encrypted PayPal Capture ID for test payment");
+            }
+
+            // Create TicketPurchase record
+            var ticketPurchase = new TicketPurchase
+            {
+                Id = Guid.NewGuid(),
+                TicketTypeId = ticketTypeId,
+                UserId = userId,
+                Quantity = request.Quantity,
+                TotalPrice = request.TotalPrice,
+                PaymentStatus = request.PaymentStatus,
+                PaymentMethod = request.PaymentMethod,
+                PaymentReference = paymentReference,
+                Notes = request.Notes ?? $"E2E Test Payment - {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC",
+                EncryptedPayPalCaptureId = encryptedCaptureId,
+                ProcessedAt = request.PaymentStatus == "Completed" ? DateTime.UtcNow : null,
+                PurchaseDate = DateTime.UtcNow,
+                EventWaiverAccepted = true,
+                EventWaiverAcceptedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _context.Set<TicketPurchase>().Add(ticketPurchase);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("✅ Successfully created test ticket purchase: {Id} - {Reference}",
+                ticketPurchase.Id, paymentReference);
+
+            // Return response for test assertions
+            var response = new TestTicketPurchaseResponse
+            {
+                Id = ticketPurchase.Id,
+                PaymentReference = paymentReference,
+                TotalPrice = request.TotalPrice,
+                PaymentMethod = request.PaymentMethod,
+                PaymentStatus = request.PaymentStatus,
+                UserId = userId,
+                TicketTypeId = ticketTypeId,
+                Quantity = request.Quantity,
+                HasPayPalCaptureId = encryptedCaptureId != null,
+                EventName = eventName
+            };
+
+            return (true, response, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception creating test ticket purchase");
+            return (false, null, $"Internal error: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Delete a test ticket purchase by ID
+    /// Used for test cleanup
+    /// </summary>
+    public async Task<(bool Success, string? Error)> DeleteTestTicketPurchaseAsync(
+        Guid ticketPurchaseId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Deleting test ticket purchase: {Id}", ticketPurchaseId);
+
+            var ticketPurchase = await _context.Set<TicketPurchase>()
+                .FirstOrDefaultAsync(tp => tp.Id == ticketPurchaseId, cancellationToken);
+
+            if (ticketPurchase == null)
+            {
+                _logger.LogWarning("Test ticket purchase not found for deletion: {Id}", ticketPurchaseId);
+                return (false, "Ticket purchase not found");
+            }
+
+            _context.Set<TicketPurchase>().Remove(ticketPurchase);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("🗑️ Successfully deleted test ticket purchase: {Id}", ticketPurchaseId);
+            return (true, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception deleting test ticket purchase: {Id}", ticketPurchaseId);
+            return (false, $"Internal error: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Helper to get admin user ID
+    /// </summary>
+    private async Task<Guid> GetAdminUserIdAsync(CancellationToken cancellationToken)
+    {
+        var adminUser = await _userManager.Users
+            .Where(u => u.Role == "Administrator")
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return adminUser?.Id ?? Guid.Empty;
+    }
+
+    /// <summary>
+    /// Helper to get first available ticket type with event info
+    /// </summary>
+    private async Task<TicketType?> GetFirstTicketTypeWithEventAsync(CancellationToken cancellationToken)
+    {
+        return await _context.Set<TicketType>()
+            .Include(tt => tt.Event)
+            .OrderBy(tt => tt.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 }

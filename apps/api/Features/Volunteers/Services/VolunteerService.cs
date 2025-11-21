@@ -42,11 +42,11 @@ public class VolunteerService : IVolunteerService
                 return (false, null, "Invalid event ID format");
             }
 
-            // Check if event exists
-            var eventExists = await _context.Events
+            // Get the event for timing validation
+            var eventEntity = await _context.Events
                 .AsNoTracking()
-                .AnyAsync(e => e.Id == eventGuid, cancellationToken);
-            if (!eventExists)
+                .FirstOrDefaultAsync(e => e.Id == eventGuid, cancellationToken);
+            if (eventEntity == null)
             {
                 return (false, null, "Event not found");
             }
@@ -78,8 +78,9 @@ public class VolunteerService : IVolunteerService
                     .ToListAsync(cancellationToken);
             }
 
-            // Map to DTOs
-            var positionDtos = positions.Select(vp =>
+            // Map to DTOs with async cancellation permission checks
+            var positionDtos = new List<VolunteerPositionDto>();
+            foreach (var vp in positions)
             {
                 var userSignup = userSignups?.FirstOrDefault(us => us.VolunteerPositionId == vp.Id);
 
@@ -90,7 +91,17 @@ public class VolunteerService : IVolunteerService
                     sessionToUse = eventSessions[0];
                 }
 
-                return new VolunteerPositionDto
+                // Calculate cancellation permission based on event timing rules
+                var canCancel = false;
+                if (userSignup != null)
+                {
+                    canCancel = await _timeZoneService.IsActionAllowedAsync(
+                        eventEntity,
+                        EventActionType.CancelVolunteer,
+                        cancellationToken);
+                }
+
+                positionDtos.Add(new VolunteerPositionDto
                 {
                     Id = vp.Id,
                     EventId = vp.EventId,
@@ -107,9 +118,10 @@ public class VolunteerService : IVolunteerService
                     SessionStartTime = sessionToUse?.StartTime,
                     SessionEndTime = sessionToUse?.EndTime,
                     HasUserSignedUp = userSignup != null,
-                    UserSignupId = userSignup?.Id
-                };
-            }).ToList();
+                    UserSignupId = userSignup?.Id,
+                    CanCancel = canCancel
+                });
+            }
 
             return (true, positionDtos, null);
         }
@@ -310,14 +322,23 @@ public class VolunteerService : IVolunteerService
                 .OrderBy(vs => vs.VolunteerPosition!.Event!.StartDate)
                 .ToListAsync(cancellationToken);
 
-            // Map to DTOs
-            var shiftDtos = shifts.Select(vs =>
+            // Map to DTOs with async cancellation permission checks
+            var shiftDtos = new List<UserVolunteerShiftDto>();
+            foreach (var vs in shifts)
             {
                 var position = vs.VolunteerPosition!;
                 var eventEntity = position.Event!;
                 var session = position.Session;
 
-                return new UserVolunteerShiftDto
+                // Calculate cancellation permission based on event timing rules
+                // User cannot cancel if already checked in (checked in service method CancelVolunteerSignupAsync)
+                // Here we only check if timing allows cancellation
+                var canCancel = await _timeZoneService.IsActionAllowedAsync(
+                    eventEntity,
+                    EventActionType.CancelVolunteer,
+                    cancellationToken);
+
+                shiftDtos.Add(new UserVolunteerShiftDto
                 {
                     SignupId = vs.Id,
                     EventTitle = eventEntity.Title,
@@ -326,9 +347,10 @@ public class VolunteerService : IVolunteerService
                     PositionTitle = position.Title,
                     SessionName = session?.Name,
                     ShiftStartTime = session?.StartTime,
-                    ShiftEndTime = session?.EndTime
-                };
-            }).ToList();
+                    ShiftEndTime = session?.EndTime,
+                    CanCancel = canCancel
+                });
+            }
 
             _logger.LogInformation("Retrieved {Count} upcoming volunteer shifts for user {UserId}", shiftDtos.Count, userId);
 

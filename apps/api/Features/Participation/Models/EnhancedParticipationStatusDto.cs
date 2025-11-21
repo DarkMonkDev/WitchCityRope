@@ -33,6 +33,18 @@ public class EnhancedParticipationStatusDto
     public bool CanPurchaseTicket { get; set; }
 
     /// <summary>
+    /// Whether user can cancel their RSVP based on event timing rules
+    /// Determined by event's CancellationOpenHours and CancellationCloseHours
+    /// </summary>
+    public bool CanCancelRSVP { get; set; }
+
+    /// <summary>
+    /// Whether user can cancel their ticket based on event timing rules
+    /// Determined by event's CancellationOpenHours and CancellationCloseHours
+    /// </summary>
+    public bool CanCancelTicket { get; set; }
+
+    /// <summary>
     /// RSVP details if user has an active RSVP, null otherwise
     /// </summary>
     public RsvpDetailsDto? Rsvp { get; set; }

@@ -141,9 +141,9 @@ public class RefundResponse
     public Guid Id { get; set; }
 
     /// <summary>
-    /// Original payment ID that was refunded
+    /// Ticket purchase ID that was refunded (renamed from OriginalPaymentId)
     /// </summary>
-    public Guid OriginalPaymentId { get; set; }
+    public Guid TicketPurchaseId { get; set; }
 
     /// <summary>
     /// Refund amount

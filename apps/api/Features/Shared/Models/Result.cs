@@ -11,6 +11,11 @@ public class Result<T>
     public string Error { get; private set; } = string.Empty;
     public string Details { get; private set; } = string.Empty;
 
+    /// <summary>
+    /// Backwards compatibility alias for Error property
+    /// </summary>
+    public string ErrorMessage => Error;
+
     private Result(bool isSuccess, T? value, string error, string details)
     {
         IsSuccess = isSuccess;
@@ -52,6 +57,11 @@ public class Result
     public bool IsSuccess { get; private set; }
     public string Error { get; private set; } = string.Empty;
     public string Details { get; private set; } = string.Empty;
+
+    /// <summary>
+    /// Backwards compatibility alias for Error property
+    /// </summary>
+    public string ErrorMessage => Error;
 
     private Result(bool isSuccess, string error, string details)
     {

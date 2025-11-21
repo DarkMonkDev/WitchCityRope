@@ -22,6 +22,7 @@ import { UserVolunteerShifts } from '../../components/events/UserVolunteerShifts
 import { useVenue } from '../../lib/api/hooks/useVenues';
 import { useTeacherProfiles } from '../../lib/api/hooks/useTeacherProfiles';
 import type { components } from '@witchcityrope/shared-types';
+import { useEventTimingStatus } from '../../hooks/useEventTimingStatus';
 import styles from './EventDetailPage.module.css';
 
 type VenueDto = components['schemas']['VenueDto'];
@@ -45,6 +46,9 @@ export const EventDetailPage: React.FC = () => {
   const createRSVPMutation = useCreateRSVP();
   const cancelRSVPMutation = useCancelRSVP();
   const cancelTicketMutation = useCancelTicket();
+
+  // Calculate event timing status for cancel button visibility
+  const timingStatus = useEventTimingStatus((event as any)?.startDate);
 
   // Check if current user is admin (type-safe using auto-generated UserRole)
   type UserRole = components['schemas']['UserRole'];
@@ -219,6 +223,7 @@ export const EventDetailPage: React.FC = () => {
     eventEndDateTime: (event as any)?.endDate,
     eventInstructor: (event as any)?.instructor,
     eventLocation: (event as any)?.location,
+    timingStatus,
   };
 
   return (
@@ -379,7 +384,10 @@ export const EventDetailPage: React.FC = () => {
         {/* Mobile Volunteer Shifts - FULL WIDTH, mobile only */}
         {hasUserVolunteered && userVolunteerPositions.length > 0 && (
           <Box hiddenFrom="md" mt="sm">
-            <UserVolunteerShifts positions={userVolunteerPositions} eventId={id!} />
+            <UserVolunteerShifts
+              positions={userVolunteerPositions}
+              eventId={id!}
+            />
           </Box>
         )}
 
@@ -503,7 +511,10 @@ export const EventDetailPage: React.FC = () => {
             {/* User's Volunteer Shifts (if user has volunteered) - Desktop only */}
             {hasUserVolunteered && userVolunteerPositions.length > 0 && (
               <Box visibleFrom="md">
-                <UserVolunteerShifts positions={userVolunteerPositions} eventId={id!} />
+                <UserVolunteerShifts
+                  positions={userVolunteerPositions}
+                  eventId={id!}
+                />
               </Box>
             )}
               </Stack>

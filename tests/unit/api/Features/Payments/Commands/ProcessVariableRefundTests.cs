@@ -15,6 +15,8 @@ using WitchCityRope.Api.Features.Shared.Models;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Tests.Fixtures;
 using Microsoft.AspNetCore.Http.HttpResults;
+using WitchCityRope.Api.Enums;
+using WitchCityRope.Models;
 
 namespace WitchCityRope.Api.Tests.Features.Payments.Commands;
 
@@ -279,22 +281,24 @@ public class ProcessVariableRefundTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Execute_WithNonPayPalPayment_Returns400()
+    public async Task Execute_WithNonPayPalPayment_ProcessesAsManualRefund()
     {
         // Arrange
-        var ticketPurchase = await CreateTicketPurchase(100.00m, "Cash");
+        var ticketPurchase = await CreateTicketPurchase(100.00m, "Cash", isCompleted: true);
         var request = CreateValidRequest(50.00m);
+
+        SetupSuccessfulRefund(ticketPurchase.Id, 50.00m);
 
         // Act
         var result = await ProcessVariableRefund.Execute(
             ticketPurchase.Id, request, _context, _mockRefundService, _adminUser, _mockLogger);
 
-        // Assert
-        result.Should().BeOfType<ProblemHttpResult>();
-        var problemResult = (ProblemHttpResult)result;
-        problemResult.StatusCode.Should().Be(400);
-        problemResult.ProblemDetails.Title.Should().Be("Invalid Payment Method");
-        problemResult.ProblemDetails.Detail.Should().Contain("Only PayPal payments");
+        // Assert - Should succeed with manual refund
+        result.Should().BeOfType<Ok<ProcessVariableRefund.VariableRefundResponse>>();
+        var okResult = (Ok<ProcessVariableRefund.VariableRefundResponse>)result;
+        okResult.Value.Should().NotBeNull();
+        okResult.Value!.Amount.Should().Be(50.00m);
+        okResult.Value.Message.Should().Contain("NOT cancelled");
     }
 
     [Fact]
@@ -498,13 +502,63 @@ public class ProcessVariableRefundTests : IAsyncLifetime
 
     private async Task<TicketPurchase> CreateTicketPurchase(decimal amount, string paymentMethod, bool isCompleted = true)
     {
-        var ticketType = new TicketType
+        // ✅ USE EXISTING SEEDED EVENTS OR CREATE IF NONE EXIST
+        // Try to find existing event first (for integration tests)
+        var existingEvent = await _context.Events
+            .Include(e => e.TicketTypes)
+            .FirstOrDefaultAsync();
+
+        TicketType ticketType;
+
+        if (existingEvent != null && existingEvent.TicketTypes.Any())
         {
-            Id = Guid.NewGuid(),
-            Name = "General Admission",
-            Price = amount,
-            // Note: IsActive removed - TicketType no longer has this property (uses IsSoldOut calculated property)
-        };
+            // Use existing seeded event's ticket type
+            ticketType = existingEvent.TicketTypes.First();
+        }
+        else
+        {
+            // Create minimal venue (required FK for Event)
+            var testVenue = new Venue
+            {
+                Name = $"Test Venue {Guid.NewGuid():N}"[..30],
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            _context.Venues.Add(testVenue);
+            await _context.SaveChangesAsync();
+
+            // Create minimal event and ticket type (for unit tests with empty database)
+            var testEvent = new Event
+            {
+                Id = Guid.NewGuid(),
+                Title = "Test Event for Refund Tests",
+                Description = "Test event",
+                StartDate = DateTime.UtcNow.AddDays(7),
+                EndDate = DateTime.UtcNow.AddDays(7).AddHours(2),
+                VenueId = testVenue.Id,
+                EventType = EventType.Class,
+                Capacity = 20,
+                IsPublished = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            ticketType = new TicketType
+            {
+                Id = Guid.NewGuid(),
+                EventId = testEvent.Id,
+                Name = "General Admission",
+                Description = "Test ticket",
+                PricingType = PricingType.Fixed,
+                Price = amount,
+                Available = 100
+            };
+
+            _context.Events.Add(testEvent);
+            _context.TicketTypes.Add(ticketType);
+            await _context.SaveChangesAsync();
+        }
 
         var ticketPurchase = new TicketPurchase
         {
@@ -517,11 +571,9 @@ public class ProcessVariableRefundTests : IAsyncLifetime
             PaymentStatus = isCompleted ? "Completed" : "Pending",
             // Note: IsPaymentCompleted is read-only calculated property - set PaymentStatus instead
             PurchaseDate = DateTime.UtcNow,
-            EncryptedPayPalCaptureId = paymentMethod == "PayPal" ? "encrypted-capture-id" : null,
-            TicketType = ticketType
+            EncryptedPayPalCaptureId = paymentMethod == "PayPal" ? "encrypted-capture-id" : null
         };
 
-        _context.TicketTypes.Add(ticketType);
         _context.TicketPurchases.Add(ticketPurchase);
         await _context.SaveChangesAsync();
 

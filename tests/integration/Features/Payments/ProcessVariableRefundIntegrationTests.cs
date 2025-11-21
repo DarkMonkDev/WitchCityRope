@@ -14,6 +14,8 @@ using WitchCityRope.Api.Features.Participation.Entities;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Models;
 using WitchCityRope.Tests.Common.Fixtures;
+using Hangfire;
+using Hangfire.MemoryStorage;
 
 namespace WitchCityRope.IntegrationTests.Features.Payments;
 
@@ -38,6 +40,7 @@ public class ProcessVariableRefundIntegrationTests : IntegrationTestBase, IDispo
             {
                 builder.ConfigureServices(services =>
                 {
+                    // Replace DbContext with TestContainers connection string
                     var descriptor = services.SingleOrDefault(
                         d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
                     if (descriptor != null)
@@ -48,6 +51,13 @@ public class ProcessVariableRefundIntegrationTests : IntegrationTestBase, IDispo
                     services.AddDbContext<ApplicationDbContext>(options =>
                     {
                         options.UseNpgsql(ConnectionString);
+                    });
+
+                    // ✅ FIX HANGFIRE: Use in-memory storage for tests instead of PostgreSQL
+                    // This prevents Hangfire from trying to connect to port 5432
+                    services.AddHangfire(config =>
+                    {
+                        config.UseMemoryStorage();
                     });
                 });
             });
@@ -272,7 +282,7 @@ public class ProcessVariableRefundIntegrationTests : IntegrationTestBase, IDispo
     }
 
     [Fact]
-    public async Task ProcessVariableRefund_WithNonPayPalPayment_Returns400()
+    public async Task ProcessVariableRefund_WithNonPayPalPayment_ProcessesAsManualRefund()
     {
         // Arrange
         await SeedTestUsers();
@@ -282,17 +292,21 @@ public class ProcessVariableRefundIntegrationTests : IntegrationTestBase, IDispo
         var request = new VariableRefundRequest
         {
             RefundAmount = 50.00m,
-            RefundReason = "Trying to refund cash payment through PayPal endpoint"
+            RefundReason = "Manual refund for cash payment (admin must process externally)"
         };
 
         // Act
         var response = await client.PostAsJsonAsync(
             $"/api/payments/transactions/{ticketPurchase.Id}/refund", request);
 
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        var errorContent = await response.Content.ReadAsStringAsync();
-        errorContent.Should().Contain("Only PayPal payments");
+        // Assert - Should succeed with manual refund
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var result = await response.Content.ReadFromJsonAsync<VariableRefundResponse>();
+        result.Should().NotBeNull();
+        result!.Amount.Should().Be(50.00m);
+        result.Status.Should().Be("Completed");
+        result.PaymentStatus.Should().Be("PartiallyRefunded");
+        result.Message.Should().Contain("NOT cancelled");
     }
 
     [Fact]

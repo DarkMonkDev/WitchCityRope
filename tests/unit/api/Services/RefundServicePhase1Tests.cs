@@ -1,3 +1,4 @@
+using WitchCityRope.Api.Features.Shared.Models;
 using Xunit;
 using FluentAssertions;
 using Moq;
@@ -423,7 +424,7 @@ public class RefundServicePhase1Tests : IDisposable
 
         // Verify a failed refund record was created
         var refunds = await _context.PaymentRefunds
-            .Where(r => r.OriginalPaymentId == payment.Id)
+            .Where(r => r.TicketPurchaseId == payment.Id)
             .ToListAsync();
 
         refunds.Should().HaveCount(1, "Failed refund should be recorded");

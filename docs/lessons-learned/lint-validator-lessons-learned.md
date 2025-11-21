@@ -234,3 +234,81 @@ Eliminates manual formatting work and ensures consistent C# code style across th
 ### Tags
 #tooling #csharp #formatting #automation #style
 
+
+## Unused Imports Accumulate During Iterative Component Development
+
+**Date**: 2025-11-20
+**Category**: Code Quality
+**Severity**: Medium
+
+### Context
+During mobile-responsive homepage development, multiple components had unused Mantine imports (Button, Container) that were imported but replaced with alternative patterns during development. ESLint detected 7 unused variable/import violations across 5 components.
+
+### What We Learned
+When iterating on React components, developers often import components they expect to use, then switch to different patterns (e.g., Box with CSS classes instead of Button component). These unused imports accumulate if not cleaned up during development, violating the zero-warning policy.
+
+### Action Items
+- [ ] Run ESLint with --fix regularly during development to catch unused imports early
+- [ ] Use IDE extensions that highlight unused imports in real-time
+- [ ] Include ESLint auto-fix in pre-commit hooks to prevent unused imports from being committed
+- [ ] Educate developers on project's zero-warning policy
+
+### Impact
+Prevents code bloat, reduces bundle size slightly, and maintains strict code quality standards. Unused imports can confuse future developers about component dependencies.
+
+### Tags
+#code-quality #eslint #unused-imports #react #best-practices
+
+---
+
+## Mantine Responsive Props Are Type-Safe and ESLint Compliant
+
+**Date**: 2025-11-20
+**Category**: Validation
+**Severity**: Low
+
+### Context
+Mobile-responsive changes to homepage components used Mantine v7 responsive prop syntax: `p={{ base: 'value', sm: 'value' }}`. TypeScript compilation and ESLint validation both passed without issues related to responsive props.
+
+### What We Learned
+Mantine's responsive prop pattern using object notation for breakpoints is fully type-safe and compliant with TypeScript strict mode. ESLint does not flag these as violations. The pattern is the recommended approach for responsive design in Mantine v7.
+
+### Action Items
+- [ ] Document Mantine responsive prop pattern as standard for mobile-responsive layouts
+- [ ] Use this pattern consistently across all components needing responsive spacing
+- [ ] No linting configuration changes needed - works out of the box
+
+### Impact
+Confirms that Mantine v7 responsive props are production-ready and compliant with project quality standards. Developers can use this pattern confidently without triggering linting violations.
+
+### Tags
+#validation #mantine #responsive-design #typescript #type-safety
+
+---
+
+## Prettier Formatting Violations Occur When Manual Edits Bypass Auto-formatting
+
+**Date**: 2025-11-20
+**Category**: Formatting
+**Severity**: Low
+
+### Context
+All 5 modified homepage components had Prettier formatting violations after manual edits. Issues included semicolon usage, quote style, and line length violations. Project uses Prettier config with `semi: false`, `singleQuote: true`, `printWidth: 100`.
+
+### What We Learned
+Manual code edits often introduce formatting inconsistencies that violate Prettier configuration. Even experienced developers miss these details when editing. Automated formatting on save or pre-commit prevents these violations from reaching validation stage.
+
+### Action Items
+- [ ] Enable Prettier auto-format on save in developer IDE settings
+- [ ] Include Prettier auto-fix in pre-commit hooks (already configured in lint-staged)
+- [ ] Run `npx prettier --write` before manual validation to catch formatting early
+- [ ] Document Prettier configuration in development setup guide
+
+### Impact
+Maintains consistent code formatting across team, reduces validation failures from formatting issues, and saves developer time by automating style compliance.
+
+### Tags
+#formatting #prettier #automation #code-style #pre-commit
+
+---
+

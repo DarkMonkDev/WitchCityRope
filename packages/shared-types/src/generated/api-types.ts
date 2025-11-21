@@ -1272,6 +1272,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/test-helpers/ticket-purchases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create test ticket purchase for E2E testing
+         * @description Programmatically create a ticket purchase with specific properties for testing. Bypasses payment flow. ONLY available in Development/Test.
+         */
+        post: operations["CreateTestTicketPurchase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/test-helpers/ticket-purchases/{ticketPurchaseId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete test ticket purchase for cleanup
+         * @description Delete a test ticket purchase by ID. Used in afterEach/afterAll hooks. ONLY available in Development/Test.
+         */
+        delete: operations["DeleteTestTicketPurchase"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/test-helpers/health": {
         parameters: {
             query?: never;
@@ -3824,6 +3864,22 @@ export interface components {
             notes?: string | null;
             eventWaiverAccepted: boolean;
         };
+        CreateTestTicketPurchaseRequest: {
+            /** Format: double */
+            totalPrice: number;
+            paymentMethod?: string;
+            paymentStatus?: string;
+            paymentReference?: string | null;
+            notes?: string | null;
+            /** Format: uuid */
+            userId?: string | null;
+            /** Format: uuid */
+            ticketTypeId?: string | null;
+            /** Format: int32 */
+            quantity?: number;
+            includePayPalCaptureId?: boolean | null;
+            eventName?: string | null;
+        };
         CreateTestUserRequest: {
             email: string;
             password: string;
@@ -3888,6 +3944,8 @@ export interface components {
             hasTicket?: boolean;
             canRSVP?: boolean;
             canPurchaseTicket?: boolean;
+            canCancelRSVP?: boolean;
+            canCancelTicket?: boolean;
             rsvp?: components["schemas"]["RsvpDetailsDto"];
             ticket?: components["schemas"]["TicketDetailsDto"];
             capacity?: components["schemas"]["CapacityInfoDto"];
@@ -4449,6 +4507,8 @@ export interface components {
             refundId?: string | null;
             /** Format: date-time */
             refundDate?: string | null;
+            /** Format: double */
+            remainingRefundableAmount?: number;
         };
         PendingCheckIn: {
             localId: string;
@@ -4588,7 +4648,7 @@ export interface components {
             /** Format: uuid */
             id?: string;
             /** Format: uuid */
-            originalPaymentId?: string;
+            ticketPurchaseId?: string;
             /** Format: double */
             refundAmount?: number;
             currency?: string;
@@ -5179,6 +5239,7 @@ export interface components {
             shiftStartTime?: string | null;
             /** Format: date-time */
             shiftEndTime?: string | null;
+            canCancel?: boolean;
         };
         ValidationProblemDetails: {
             type?: string | null;
@@ -5337,6 +5398,7 @@ export interface components {
             hasUserSignedUp?: boolean;
             /** Format: uuid */
             userSignupId?: string | null;
+            canCancel?: boolean;
         };
         VolunteerSignupDto: {
             /** Format: uuid */
@@ -8741,6 +8803,70 @@ export interface operations {
         responses: {
             /** @description OK */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    CreateTestTicketPurchase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTestTicketPurchaseRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    DeleteTestTicketPurchase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticketPurchaseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };

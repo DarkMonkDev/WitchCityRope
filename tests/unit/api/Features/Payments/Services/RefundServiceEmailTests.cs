@@ -1,3 +1,4 @@
+using WitchCityRope.Api.Features.Shared.Models;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -598,7 +599,7 @@ public class RefundServiceEmailTests : IDisposable
         var result = await _sut.ProcessRefundAsync(request);
 
         // Assert
-        var savedRefund = await _context.PaymentRefunds.FirstOrDefaultAsync(r => r.OriginalPaymentId == payment.Id);
+        var savedRefund = await _context.PaymentRefunds.FirstOrDefaultAsync(r => r.TicketPurchaseId == payment.Id);
         savedRefund.Should().NotBeNull("refund entity should be created despite email failure");
         savedRefund!.RefundStatus.Should().Be(RefundStatus.Completed);
     }

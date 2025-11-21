@@ -78,6 +78,58 @@ public static class TestHelperEndpoints
             .Produces<object>(200)
             .Produces<object>(400);
 
+        // Create test ticket purchase endpoint
+        app.MapPost("/api/test-helpers/ticket-purchases", async (
+            CreateTestTicketPurchaseRequest request,
+            ITestHelperService testHelperService,
+            CancellationToken cancellationToken) =>
+            {
+                var (success, data, error) = await testHelperService.CreateTestTicketPurchaseAsync(request, cancellationToken);
+
+                if (success && data != null)
+                {
+                    return Results.Created($"/api/test-helpers/ticket-purchases/{data.Id}", data);
+                }
+
+                return Results.Problem(
+                    title: "Failed to create test ticket purchase",
+                    detail: error,
+                    statusCode: 400);
+            })
+            .AllowAnonymous() // No auth required for test data creation
+            .WithName("CreateTestTicketPurchase")
+            .WithSummary("Create test ticket purchase for E2E testing")
+            .WithDescription("Programmatically create a ticket purchase with specific properties for testing. Bypasses payment flow. ONLY available in Development/Test.")
+            .WithTags("Testing", "TestHelpers")
+            .Produces<object>(201)
+            .Produces<object>(400);
+
+        // Delete test ticket purchase endpoint
+        app.MapDelete("/api/test-helpers/ticket-purchases/{ticketPurchaseId:guid}", async (
+            Guid ticketPurchaseId,
+            ITestHelperService testHelperService,
+            CancellationToken cancellationToken) =>
+            {
+                var (success, error) = await testHelperService.DeleteTestTicketPurchaseAsync(ticketPurchaseId, cancellationToken);
+
+                if (success)
+                {
+                    return Results.NoContent();
+                }
+
+                return Results.Problem(
+                    title: "Failed to delete test ticket purchase",
+                    detail: error,
+                    statusCode: 400);
+            })
+            .AllowAnonymous() // No auth required for test cleanup
+            .WithName("DeleteTestTicketPurchase")
+            .WithSummary("Delete test ticket purchase for cleanup")
+            .WithDescription("Delete a test ticket purchase by ID. Used in afterEach/afterAll hooks. ONLY available in Development/Test.")
+            .WithTags("Testing", "TestHelpers")
+            .Produces<object>(204)
+            .Produces<object>(400);
+
         // Health check endpoint to verify test helpers are available
         app.MapGet("/api/test-helpers/health", () =>
             {

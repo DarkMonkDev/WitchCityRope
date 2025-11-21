@@ -1,5 +1,6 @@
 using WitchCityRope.Api.Features.Payments.Entities;
 using WitchCityRope.Api.Features.Payments.ValueObjects;
+using WitchCityRope.Api.Features.Shared.Models;
 
 namespace WitchCityRope.Api.Features.Payments.Services;
 

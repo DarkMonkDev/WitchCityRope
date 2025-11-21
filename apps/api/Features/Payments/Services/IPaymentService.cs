@@ -1,5 +1,6 @@
 using WitchCityRope.Api.Features.Payments.Entities;
 using WitchCityRope.Api.Features.Payments.Models;
+using WitchCityRope.Api.Features.Shared.Models;
 
 namespace WitchCityRope.Api.Features.Payments.Services;
 
@@ -88,41 +89,5 @@ public class ProcessPaymentRequest
     public string UserAgent { get; set; } = string.Empty;
 }
 
-/// <summary>
-/// Result pattern for error handling
-/// </summary>
-public class Result
-{
-    public bool IsSuccess { get; protected set; }
-    public string ErrorMessage { get; protected set; } = string.Empty;
-    public List<string> Errors { get; protected set; } = new();
-
-    protected Result(bool isSuccess, string errorMessage = "", List<string>? errors = null)
-    {
-        IsSuccess = isSuccess;
-        ErrorMessage = errorMessage;
-        Errors = errors ?? new List<string>();
-    }
-
-    public static Result Success() => new(true);
-    public static Result Failure(string error) => new(false, error);
-    public static Result Failure(List<string> errors) => new(false, "", errors);
-}
-
-/// <summary>
-/// Generic result pattern for returning values
-/// </summary>
-public class Result<T> : Result
-{
-    public T? Value { get; private set; }
-
-    private Result(bool isSuccess, T? value = default, string errorMessage = "", List<string>? errors = null)
-        : base(isSuccess, errorMessage, errors)
-    {
-        Value = value;
-    }
-
-    public static Result<T> Success(T value) => new(true, value);
-    public static new Result<T> Failure(string error) => new(false, default, error);
-    public static new Result<T> Failure(List<string> errors) => new(false, default, "", errors);
-}
+// NOTE: Result class now uses WitchCityRope.Api.Features.Shared.Models.Result (shared implementation)
+// Duplicate Result classes removed to prevent namespace conflicts

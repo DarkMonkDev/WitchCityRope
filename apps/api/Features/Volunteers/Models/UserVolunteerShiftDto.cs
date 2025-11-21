@@ -44,4 +44,11 @@ public class UserVolunteerShiftDto
     /// Shift end time (session end time if available)
     /// </summary>
     public DateTime? ShiftEndTime { get; set; }
+
+    /// <summary>
+    /// Whether user can cancel this volunteer shift based on event timing rules.
+    /// Determined by event's VolunteerCancellationCloseHours setting.
+    /// False if cancellation window has closed or volunteer has already checked in.
+    /// </summary>
+    public bool CanCancel { get; set; }
 }

@@ -54,6 +54,21 @@ public class PaymentListService : IPaymentListService
                 .Include(tp => tp.TicketType)
                     .ThenInclude(tt => tt.Session);
 
+            // Get refund data for all ticket purchases (for populating RefundId, RefundDate, RemainingRefundableAmount)
+            // Query PaymentRefunds table to join with TicketPurchases
+            var refundData = await _db.Set<WitchCityRope.Api.Features.Payments.Entities.PaymentRefund>()
+                .AsNoTracking()
+                .Where(r => r.RefundStatus == WitchCityRope.Api.Features.Payments.Models.RefundStatus.Completed)
+                .GroupBy(r => r.TicketPurchaseId)
+                .Select(g => new
+                {
+                    TicketPurchaseId = g.Key,
+                    TotalRefunded = g.Sum(r => r.RefundAmountValue),
+                    LatestRefundId = g.OrderByDescending(r => r.CreatedAt).Select(r => r.Id).FirstOrDefault(),
+                    LatestRefundDate = g.OrderByDescending(r => r.CreatedAt).Select(r => r.CreatedAt).FirstOrDefault()
+                })
+                .ToDictionaryAsync(x => x.TicketPurchaseId, cancellationToken);
+
             // Apply search filter (user name, email, event title)
             if (!string.IsNullOrWhiteSpace(parameters.SearchTerm))
             {
@@ -142,42 +157,63 @@ public class PaymentListService : IPaymentListService
             var skip = (parameters.Page - 1) * parameters.PageSize;
             query = query.Skip(skip).Take(parameters.PageSize);
 
-            // Execute query and map to DTOs
-            var results = await query
-                .Select(tp => new PaymentTransactionDto
+            // Execute query and get ticket purchases
+            var ticketPurchases = await query.ToListAsync(cancellationToken);
+
+            // Map to DTOs with refund information
+            var results = ticketPurchases
+                .Select(tp =>
                 {
-                    Id = tp.Id, // TicketPurchase ID (not separate Payment record)
-                    TicketId = tp.Id, // For refund endpoint consistency
-                    PaymentDate = tp.ProcessedAt ?? tp.PurchaseDate,
+                    // Get refund info for this ticket purchase (if any)
+                    var hasRefundData = refundData.TryGetValue(tp.Id, out var refund);
+                    var totalRefunded = hasRefundData ? refund!.TotalRefunded : 0m;
+                    var remainingRefundable = tp.TotalPrice - totalRefunded;
 
-                    // User info - prefer SceneName over FirstName/LastName over Email
-                    UserName = !string.IsNullOrEmpty(tp.User!.SceneName)
-                        ? tp.User.SceneName
-                        : !string.IsNullOrEmpty(tp.User.FirstName)
-                            ? $"{tp.User.FirstName} {tp.User.LastName}".Trim()
-                            : tp.User.Email ?? "Unknown",
-                    UserEmail = tp.User!.Email ?? string.Empty,
+                    return new PaymentTransactionDto
+                    {
+                        Id = tp.Id, // TicketPurchase ID (not separate Payment record)
+                        TicketId = tp.Id, // For refund endpoint consistency
+                        PaymentDate = tp.ProcessedAt ?? tp.PurchaseDate,
 
-                    // Event info
-                    EventName = tp.TicketType!.Event!.Title,
-                    SessionName = tp.TicketType.Session != null ? tp.TicketType.Session.Name : null,
+                        // User info - prefer SceneName over FirstName/LastName over Email
+                        UserName = !string.IsNullOrEmpty(tp.User!.SceneName)
+                            ? tp.User.SceneName
+                            : !string.IsNullOrEmpty(tp.User.FirstName)
+                                ? $"{tp.User.FirstName} {tp.User.LastName}".Trim()
+                                : tp.User.Email ?? "Unknown",
+                        UserEmail = tp.User!.Email ?? string.Empty,
 
-                    // Payment details from TicketPurchase
-                    PaymentMethod = tp.PaymentMethod,
-                    Amount = tp.TotalPrice,
-                    Currency = "USD", // All prices are USD
-                    Status = tp.PaymentStatus,
+                        // Event info
+                        EventName = tp.TicketType!.Event!.Title,
+                        SessionName = tp.TicketType.Session != null ? tp.TicketType.Session.Name : null,
 
-                    // Refund info - check if ticket has been refunded
-                    // For now, assume refundable if PayPal and completed
-                    // TODO: Join with PaymentRefunds table to check actual refund status
-                    IsRefundable = tp.PaymentMethod.Equals("PayPal", StringComparison.OrdinalIgnoreCase)
-                                   && tp.PaymentStatus.Equals("Completed", StringComparison.OrdinalIgnoreCase)
-                                   && tp.EncryptedPayPalCaptureId != null,
-                    RefundId = null, // TODO: Join with PaymentRefunds to populate
-                    RefundDate = null // TODO: Join with PaymentRefunds to populate
+                        // Payment details from TicketPurchase
+                        PaymentMethod = tp.PaymentMethod,
+                        Amount = tp.TotalPrice,
+                        Currency = "USD", // All prices are USD
+                        Status = tp.PaymentStatus,
+
+                        // Refund info - populated from PaymentRefunds table
+                        // IsRefundable: Payment can be refunded if:
+                        // - Status is Completed or PartiallyRefunded
+                        // - Has money remaining to refund (TotalPrice > TotalRefunded)
+                        // - Payment method supports refunds (all methods now support refunds via variable refund)
+                        IsRefundable = (tp.PaymentStatus.Equals("Completed", StringComparison.OrdinalIgnoreCase)
+                                        || tp.PaymentStatus.Equals("PartiallyRefunded", StringComparison.OrdinalIgnoreCase))
+                                       && tp.TotalPrice > 0
+                                       && remainingRefundable > 0,
+
+                        // Latest refund ID (most recent refund for this ticket purchase)
+                        RefundId = hasRefundData ? refund!.LatestRefundId : null,
+
+                        // Latest refund date (when most recent refund was processed)
+                        RefundDate = hasRefundData ? refund!.LatestRefundDate : null,
+
+                        // Amount remaining that can be refunded (original - total refunded)
+                        RemainingRefundableAmount = remainingRefundable
+                    };
                 })
-                .ToListAsync(cancellationToken);
+                .ToList();
 
             var response = new PaymentListResponse
             {

@@ -7,6 +7,7 @@ using WitchCityRope.Api.Features.Volunteers.Models;
 using WitchCityRope.Api.Features.Volunteers.Services;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Api.Features.Participation.Entities;
+using WitchCityRope.Api.Features.Events.Interfaces;
 using Xunit;
 using FluentAssertions;
 using Testcontainers.PostgreSql;
@@ -25,6 +26,7 @@ public class VolunteerServiceTests : IAsyncLifetime
     private ApplicationDbContext _context = null!;
     private VolunteerService _service = null!;
     private ILogger<VolunteerService> _logger = null!;
+    private ITimeZoneService _timeZoneService = null!;
     private string _connectionString = null!;
 
     public VolunteerServiceTests()
@@ -53,8 +55,11 @@ public class VolunteerServiceTests : IAsyncLifetime
         // Setup logger
         _logger = Substitute.For<ILogger<VolunteerService>>();
 
+        // Setup timezone service mock
+        _timeZoneService = Substitute.For<ITimeZoneService>();
+
         // Create service instance
-        _service = new VolunteerService(_context, _logger);
+        _service = new VolunteerService(_context, _logger, _timeZoneService);
     }
 
     public async Task DisposeAsync()

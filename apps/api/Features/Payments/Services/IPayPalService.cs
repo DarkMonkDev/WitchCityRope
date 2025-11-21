@@ -1,3 +1,4 @@
+using WitchCityRope.Api.Features.Shared.Models;
 using WitchCityRope.Api.Features.Payments.Models.PayPal;
 using WitchCityRope.Api.Features.Payments.ValueObjects;
 

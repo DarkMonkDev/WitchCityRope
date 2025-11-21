@@ -4,6 +4,7 @@ using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Enums;
 using WitchCityRope.Api.Features.CheckIn.Entities;
 using WitchCityRope.Api.Features.Participation.Entities;
+using WitchCityRope.Api.Features.Safety.Services;
 using WitchCityRope.Api.Models;
 using WitchCityRope.Models;
 
@@ -18,15 +19,18 @@ public class TicketPurchaseSeeder
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IEncryptionService _encryptionService;
     private readonly ILogger<TicketPurchaseSeeder> _logger;
 
     public TicketPurchaseSeeder(
         ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
+        IEncryptionService encryptionService,
         ILogger<TicketPurchaseSeeder> logger)
     {
         _context = context;
         _userManager = userManager;
+        _encryptionService = encryptionService;
         _logger = logger;
     }
 
@@ -91,6 +95,8 @@ public class TicketPurchaseSeeder
                     totalPrice = (ticketType.Price ?? 0) * (0.5m + (decimal)Random.Shared.NextDouble() * 0.5m);
                 }
 
+                var paymentMethod = isRSVP ? "Free" : GetRandomPaymentMethod();
+
                 var purchase = new TicketPurchase
                 {
                     TicketTypeId = ticketType.Id,
@@ -99,10 +105,18 @@ public class TicketPurchaseSeeder
                     Quantity = 1,
                     TotalPrice = totalPrice,
                     PaymentStatus = isRSVP ? "Completed" : GetRandomPaymentStatus(),
-                    PaymentMethod = isRSVP ? "Free" : GetRandomPaymentMethod(),
+                    PaymentMethod = paymentMethod,
                     PaymentReference = Guid.NewGuid().ToString("N")[..8],
                     Notes = GetRandomPurchaseNotes()
                 };
+
+                // Add PayPal fields for PayPal payments
+                if (paymentMethod == "PayPal")
+                {
+                    purchase.EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(GeneratePayPalOrderId());
+                    purchase.EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(GeneratePayPalCaptureId());
+                    purchase.EncryptedPayPalPayerId = await _encryptionService.EncryptAsync($"PAYER{Guid.NewGuid().ToString("N")[..10].ToUpper()}");
+                }
 
                 purchasesToAdd.Add(purchase);
             }
@@ -212,7 +226,7 @@ public class TicketPurchaseSeeder
                     purchasePrice = (paidTicket.Price ?? 0) * 0.75m; // Sliding scale discount for fixed price
                 }
 
-                purchasesToAdd.Add(new TicketPurchase
+                var vettedPaidPurchase = new TicketPurchase
                 {
                     Id = Guid.NewGuid(),
                     UserId = vettedUser.Id,
@@ -223,8 +237,13 @@ public class TicketPurchaseSeeder
                     PaymentStatus = "Completed",
                     PaymentMethod = "PayPal",
                     PaymentReference = $"SEED_ORDER_{Guid.NewGuid().ToString()[..8]}",
-                    Notes = "Sliding scale pricing applied"
-                });
+                    Notes = "Sliding scale pricing applied",
+                    EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(GeneratePayPalOrderId()),
+                    EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(GeneratePayPalCaptureId()),
+                    EncryptedPayPalPayerId = await _encryptionService.EncryptAsync($"PAYER{Guid.NewGuid().ToString("N")[..10].ToUpper()}")
+                };
+
+                purchasesToAdd.Add(vettedPaidPurchase);
 
                 _logger.LogInformation("Created paid workshop ticket purchase for event: {EventTitle}", upcomingWorkshop.Title);
             }
@@ -281,7 +300,7 @@ public class TicketPurchaseSeeder
                     isPaid = price > 0;
                 }
 
-                purchasesToAdd.Add(new TicketPurchase
+                var pastPurchase = new TicketPurchase
                 {
                     Id = Guid.NewGuid(),
                     UserId = vettedUser.Id,
@@ -293,7 +312,17 @@ public class TicketPurchaseSeeder
                     PaymentMethod = isPaid ? "PayPal" : "Free",
                     PaymentReference = isPaid ? $"SEED_ORDER_{Guid.NewGuid().ToString()[..8]}" : $"FREE_{Guid.NewGuid().ToString()[..8]}",
                     Notes = "Attended - great event!"
-                });
+                };
+
+                // Add PayPal fields for paid tickets
+                if (isPaid)
+                {
+                    pastPurchase.EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(GeneratePayPalOrderId());
+                    pastPurchase.EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(GeneratePayPalCaptureId());
+                    pastPurchase.EncryptedPayPalPayerId = await _encryptionService.EncryptAsync($"PAYER{Guid.NewGuid().ToString("N")[..10].ToUpper()}");
+                }
+
+                purchasesToAdd.Add(pastPurchase);
 
                 _logger.LogInformation("Created past event attendance for event: {EventTitle}", pastEvent.Title);
             }
@@ -397,7 +426,7 @@ public class TicketPurchaseSeeder
         {
             var purchaseDate = DateTime.UtcNow.AddDays(-daysAgo);
 
-            purchasesToAdd.Add(new TicketPurchase
+            var historicalPurchase = new TicketPurchase
             {
                 Id = Guid.NewGuid(),
                 UserId = adminUser.Id,
@@ -410,8 +439,13 @@ public class TicketPurchaseSeeder
                 PaymentReference = $"HIST_{Guid.NewGuid().ToString()[..8]}",
                 Notes = $"Historical test data - {daysAgo} days old",
                 CreatedAt = purchaseDate,
-                UpdatedAt = purchaseDate
-            });
+                UpdatedAt = purchaseDate,
+                EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(GeneratePayPalOrderId()),
+                EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(GeneratePayPalCaptureId()),
+                EncryptedPayPalPayerId = await _encryptionService.EncryptAsync($"PAYER{Guid.NewGuid().ToString("N")[..10].ToUpper()}")
+            };
+
+            purchasesToAdd.Add(historicalPurchase);
 
             _logger.LogInformation(
                 "Created historical test purchase: {DaysAgo} days old for event {EventTitle}",
@@ -458,6 +492,42 @@ public class TicketPurchaseSeeder
             "Group purchase for partners"
         };
         return notes[Random.Shared.Next(notes.Length)];
+    }
+
+    /// <summary>
+    /// Generates a realistic PayPal Capture ID for seed data.
+    /// Format matches real PayPal capture IDs: 17-character alphanumeric string.
+    /// Example: "2AB12345CD678901E"
+    /// </summary>
+    private string GeneratePayPalCaptureId()
+    {
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        var captureId = new char[17];
+
+        for (int i = 0; i < 17; i++)
+        {
+            captureId[i] = chars[Random.Shared.Next(chars.Length)];
+        }
+
+        return new string(captureId);
+    }
+
+    /// <summary>
+    /// Generates a realistic PayPal Order ID for seed data.
+    /// Format matches real PayPal order IDs: 17-character alphanumeric string.
+    /// Example: "8XY12345AB678901Z"
+    /// </summary>
+    private string GeneratePayPalOrderId()
+    {
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        var orderId = new char[17];
+
+        for (int i = 0; i < 17; i++)
+        {
+            orderId[i] = chars[Random.Shared.Next(chars.Length)];
+        }
+
+        return new string(orderId);
     }
 
     /// <summary>
@@ -562,7 +632,10 @@ public class TicketPurchaseSeeder
                     PaymentReference = $"HIST-{Guid.NewGuid().ToString()[..8].ToUpper()}",
                     PurchaseDate = purchaseDate,
                     CreatedAt = purchaseDate,
-                    UpdatedAt = purchaseDate
+                    UpdatedAt = purchaseDate,
+                    EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(GeneratePayPalOrderId()),
+                    EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(GeneratePayPalCaptureId()),
+                    EncryptedPayPalPayerId = await _encryptionService.EncryptAsync($"PAYER{Guid.NewGuid().ToString("N")[..10].ToUpper()}")
                 };
                 _context.TicketPurchases.Add(ticketPurchase);
 
@@ -655,7 +728,10 @@ public class TicketPurchaseSeeder
                         PaymentReference = $"REFUND-{Guid.NewGuid().ToString()[..8].ToUpper()}",
                         PurchaseDate = canceledPurchaseDate,
                         CreatedAt = canceledPurchaseDate,
-                        UpdatedAt = canceledDate
+                        UpdatedAt = canceledDate,
+                        EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(GeneratePayPalOrderId()),
+                        EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(GeneratePayPalCaptureId()),
+                        EncryptedPayPalPayerId = await _encryptionService.EncryptAsync($"PAYER{Guid.NewGuid().ToString("N")[..10].ToUpper()}")
                     };
                     _context.TicketPurchases.Add(canceledPurchase);
 

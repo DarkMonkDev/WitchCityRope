@@ -124,6 +124,26 @@ public class AttendanceService : IAttendanceService
                             ea.AttendanceType == AttendanceType.Ticket)
                 .FirstOrDefaultAsync(cancellationToken);
 
+            // Calculate cancellation permissions based on event timing rules
+            // Only check timing if user actually has the participation type
+            var canCancelRSVP = false;
+            if (rsvpAttendance != null)
+            {
+                canCancelRSVP = await _timeZoneService.IsActionAllowedAsync(
+                    eventEntity,
+                    EventActionType.CancelRsvp,
+                    cancellationToken);
+            }
+
+            var canCancelTicket = false;
+            if (ticketAttendance != null)
+            {
+                canCancelTicket = await _timeZoneService.IsActionAllowedAsync(
+                    eventEntity,
+                    EventActionType.CancelTicket,
+                    cancellationToken);
+            }
+
             // Build enhanced DTO with nested structure
             var dto = new EnhancedParticipationStatusDto
             {
@@ -131,6 +151,8 @@ public class AttendanceService : IAttendanceService
                 HasTicket = ticketAttendance != null,
                 CanRSVP = rsvpAttendance == null && activeAttendancesCount < eventEntity.Capacity,
                 CanPurchaseTicket = ticketAttendance == null && activeAttendancesCount < eventEntity.Capacity,
+                CanCancelRSVP = canCancelRSVP,
+                CanCancelTicket = canCancelTicket,
                 Capacity = new CapacityInfoDto
                 {
                     Current = activeAttendancesCount,
@@ -189,8 +211,8 @@ public class AttendanceService : IAttendanceService
             }
 
             _logger.LogInformation(
-                "Attendance status for user {UserId} in event {EventId}: HasRSVP={HasRSVP}, HasTicket={HasTicket}, CanRSVP={CanRSVP}, Capacity={Current}/{Total}",
-                userId, eventId, dto.HasRSVP, dto.HasTicket, dto.CanRSVP, dto.Capacity.Current, dto.Capacity.Total);
+                "Attendance status for user {UserId} in event {EventId}: HasRSVP={HasRSVP}, HasTicket={HasTicket}, CanRSVP={CanRSVP}, CanCancelRSVP={CanCancelRSVP}, CanCancelTicket={CanCancelTicket}, Capacity={Current}/{Total}",
+                userId, eventId, dto.HasRSVP, dto.HasTicket, dto.CanRSVP, dto.CanCancelRSVP, dto.CanCancelTicket, dto.Capacity.Current, dto.Capacity.Total);
 
             return Result<EnhancedParticipationStatusDto?>.Success(dto);
         }

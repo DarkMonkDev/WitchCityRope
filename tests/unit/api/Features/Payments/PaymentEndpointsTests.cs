@@ -1,3 +1,4 @@
+using WitchCityRope.Api.Features.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -771,7 +772,7 @@ public class PaymentEndpointsTests
 
         var response = okResult.Value.Should().BeOfType<RefundResponse>().Subject;
         response.Id.Should().Be(refund.Id);
-        response.OriginalPaymentId.Should().Be(paymentId);
+        response.TicketPurchaseId.Should().Be(paymentId);
     }
 
     [Fact]
@@ -1156,7 +1157,7 @@ public class PaymentEndpointsTests
         var refund = new PaymentRefund
         {
             Id = Guid.NewGuid(),
-            OriginalPaymentId = paymentId,
+            TicketPurchaseId = paymentId,
             RefundAmountValue = 100.00m,
             RefundCurrency = "USD",
             RefundReason = "Customer requested refund",

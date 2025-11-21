@@ -76,8 +76,10 @@ export const EventsList: React.FC<EventsListProps> = ({
       <Box
         component="section"
         data-testid="loading-spinner"
+        pt={{ base: 0, sm: 'var(--space-2xl)' }}
+        pb={{ base: 0, sm: 'var(--space-2xl)' }}
+        px="40px"
         style={{
-          padding: 'var(--space-2xl) 40px',
           maxWidth: '1200px',
           margin: '0 auto',
           background: 'var(--color-ivory)',
@@ -103,8 +105,10 @@ export const EventsList: React.FC<EventsListProps> = ({
       <Box
         component="section"
         data-testid="error-message"
+        pt={{ base: 0, sm: 'var(--space-2xl)' }}
+        pb={{ base: 0, sm: 'var(--space-2xl)' }}
+        px="40px"
         style={{
-          padding: 'var(--space-2xl) 40px',
           maxWidth: '1200px',
           margin: '0 auto',
           background: 'var(--color-ivory)',
@@ -130,8 +134,10 @@ export const EventsList: React.FC<EventsListProps> = ({
       <Box
         component="section"
         data-testid="empty-state"
+        pt={{ base: 0, sm: 'var(--space-2xl)' }}
+        pb={{ base: 0, sm: 'var(--space-2xl)' }}
+        px="40px"
         style={{
-          padding: 'var(--space-2xl) 40px',
           maxWidth: '1200px',
           margin: '0 auto',
           background: 'var(--color-ivory)',
@@ -154,13 +160,13 @@ export const EventsList: React.FC<EventsListProps> = ({
   return (
     <Box
       component="section"
+      mt={0}
+      p="var(--space-2xl) 40px"
       style={{
-        padding: 'var(--space-2xl) 40px',
         maxWidth: '1200px',
         margin: '0 auto',
         background: 'var(--color-ivory)',
         borderRadius: '16px',
-        marginTop: 'var(--space-2xl)',
         boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
       }}
     >
