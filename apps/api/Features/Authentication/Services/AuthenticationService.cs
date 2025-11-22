@@ -607,6 +607,15 @@ public class AuthenticationService : IAuthenticationService
             var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
             if (result.Succeeded)
             {
+                // SECURITY: If user can reset password via email, they've proven email ownership
+                // Automatically verify email on successful password reset
+                if (!user.EmailConfirmed)
+                {
+                    user.EmailConfirmed = true;
+                    await _userManager.UpdateAsync(user);
+                    _logger.LogInformation("Email automatically verified for user {UserId} via password reset", userId);
+                }
+
                 _logger.LogInformation("Password reset successfully for user: {UserId}, Email: {Email}", userId, user.Email);
                 return (true, string.Empty);
             }
