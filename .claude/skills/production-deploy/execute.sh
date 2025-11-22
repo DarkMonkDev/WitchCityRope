@@ -86,7 +86,9 @@ if ! grep -q "^status: PASS" test-results/test-execution-report.md; then
 fi
 
 PASS_RATE=$(grep "^pass_rate:" test-results/test-execution-report.md | cut -d':' -f2 | tr -d ' %' || echo "0")
-if [ "$PASS_RATE" != "100" ]; then
+# Convert to integer for comparison (handles both "100" and "100.0")
+PASS_RATE_INT=$(echo "$PASS_RATE" | cut -d'.' -f1)
+if [ "$PASS_RATE_INT" != "100" ]; then
     echo "   ❌ FAIL: Production requires 100% test pass rate (current: ${PASS_RATE}%)"
     exit 1
 fi
