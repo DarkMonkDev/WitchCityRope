@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Stack, Title, Card, Group, Button, Text, Loader, Alert, TextInput, ActionIcon } from '@mantine/core';
 import { IconArrowLeft, IconUserPlus, IconAlertCircle, IconCheck, IconClock, IconX, IconEdit, IconDeviceFloppy } from '@tabler/icons-react';
@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { showNotification } from '@mantine/notifications';
 import { IncidentDetailsCard } from '@/features/safety/components/IncidentDetailsCard';
 import { PeopleInvolvedCard } from '@/features/safety/components/PeopleInvolvedCard';
-import { InvestigationNotes } from '@/features/safety/components/InvestigationNotes';
+import { InvestigationNotes, InvestigationNotesRef } from '@/features/safety/components/InvestigationNotes';
 import { GoogleDriveLinksSection } from '@/features/safety/components/GoogleDriveLinksSection';
 import { CoordinatorAssignmentModal } from '@/features/safety/components/CoordinatorAssignmentModal';
 import { EditPeopleModal } from '@/features/safety/components/EditPeopleModal';
@@ -56,6 +56,7 @@ export const AdminIncidentDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const notesRef = useRef<InvestigationNotesRef>(null);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [editInvolvedPartiesOpen, setEditInvolvedPartiesOpen] = useState(false);
   const [editWitnessesOpen, setEditWitnessesOpen] = useState(false);
@@ -98,6 +99,8 @@ export const AdminIncidentDetailPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['safety', 'incident', id] });
       queryClient.invalidateQueries({ queryKey: ['safety', 'incidents'] });
+      // Refetch notes to show new system-generated note - matches vetting pattern
+      notesRef.current?.refetch();
       showNotification({
         title: 'Success',
         message: 'Status updated successfully',
@@ -442,7 +445,7 @@ export const AdminIncidentDetailPage: React.FC = () => {
         />
 
         {/* Investigation Notes */}
-        <InvestigationNotes incidentId={id!} />
+        <InvestigationNotes ref={notesRef} incidentId={id!} />
       </Stack>
 
       {/* Modals */}

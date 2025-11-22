@@ -139,7 +139,7 @@ export function useUserReports() {
  */
 export function useUpdateIncident() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ incidentId, request }: { incidentId: string; request: UpdateIncidentRequest }) =>
       safetyApi.updateIncident(incidentId, request),
@@ -148,6 +148,7 @@ export function useUpdateIncident() {
       queryClient.invalidateQueries({ queryKey: safetyKeys.incident(incidentId) });
       queryClient.invalidateQueries({ queryKey: safetyKeys.dashboard() });
       queryClient.invalidateQueries({ queryKey: safetyKeys.incidents() });
+      // Notes are refetched directly by parent page using ref pattern (matches vetting)
     },
     onError: (error) => {
       console.error('Failed to update incident:', error);

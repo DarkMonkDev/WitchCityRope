@@ -82,6 +82,22 @@ public class SafetyService : ISafetyService
             _context.SafetyIncidents.Add(incident);
             await _context.SaveChangesAsync(cancellationToken);
 
+            // Create system note for initial status - simplified text
+            var initialStatusNote = "Report submitted";
+            var encryptedInitialNote = await _encryptionService.EncryptAsync(initialStatusNote);
+
+            var systemNote = new IncidentNote
+            {
+                IncidentId = incident.Id,
+                Content = encryptedInitialNote,
+                Type = IncidentNoteType.System,
+                AuthorId = request.IsAnonymous ? null : request.ReporterId, // Set to reporter if not anonymous
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.IncidentNotes.Add(systemNote);
+            await _context.SaveChangesAsync(cancellationToken);
+
             // Log incident creation
             await _auditService.LogActionAsync(
                 incident.Id,

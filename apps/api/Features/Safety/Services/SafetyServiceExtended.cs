@@ -349,11 +349,6 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
                 return Result<IncidentSummaryDto>.Failure("Incident not found");
             }
 
-            var user = await _context.Users
-                .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-
-            var oldCoordinator = incident.Coordinator?.SceneName;
             var oldCoordinatorId = incident.CoordinatorId;
 
             // Update coordinator
@@ -361,7 +356,7 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
             incident.UpdatedAt = DateTime.UtcNow;
             incident.UpdatedBy = userId;
 
-            // Create system note
+            // Create system note with simplified text
             string noteContent;
             if (request.CoordinatorId.HasValue)
             {
@@ -371,16 +366,16 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
 
                 if (oldCoordinatorId.HasValue)
                 {
-                    noteContent = $"Coordinator changed from {oldCoordinator} to {newCoordinator?.SceneName} by {user?.SceneName}";
+                    noteContent = $"Coordinator changed to {newCoordinator?.SceneName}";
                 }
                 else
                 {
-                    noteContent = $"Assigned to {newCoordinator?.SceneName} by {user?.SceneName}";
+                    noteContent = $"Assigned to {newCoordinator?.SceneName}";
                 }
             }
             else
             {
-                noteContent = $"Unassigned from {oldCoordinator} by {user?.SceneName}";
+                noteContent = "Coordinator unassigned";
             }
 
             await CreateSystemNoteAsync(incidentId, noteContent, userId, cancellationToken);
@@ -454,19 +449,19 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
                 return Result<StatusUpdateResponse>.Failure("Access denied - you can only update incidents assigned to you");
             }
 
-            var user = await _context.Users
-                .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-
             var oldStatus = incident.Status;
             incident.Status = request.NewStatus;
             incident.UpdatedAt = DateTime.UtcNow;
             incident.UpdatedBy = userId;
 
-            // Create system note
-            var noteContent = string.IsNullOrWhiteSpace(request.Reason)
-                ? $"Status changed from {oldStatus} to {request.NewStatus} by {user?.SceneName}"
-                : $"Status changed from {oldStatus} to {request.NewStatus} by {user?.SceneName}. Reason: {request.Reason}";
+            // Create system note with simplified description matching vetting pattern
+            var noteContent = GetSimplifiedStatusDescription(request.NewStatus);
+
+            // Append reason if provided
+            if (!string.IsNullOrWhiteSpace(request.Reason))
+            {
+                noteContent = $"{noteContent}. Reason: {request.Reason}";
+            }
 
             await CreateSystemNoteAsync(incidentId, noteContent, userId, cancellationToken);
 
@@ -477,7 +472,7 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
                 incidentId,
                 userId,
                 "StatusChanged",
-                noteContent,
+                $"{oldStatus} -> {request.NewStatus}",
                 cancellationToken: cancellationToken);
 
             _logger.LogInformation("Incident {IncidentId} status updated by user {UserId}: {OldStatus} -> {NewStatus}",
@@ -528,18 +523,14 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
                 return Result<GoogleDriveUpdateResponse>.Failure("Access denied - you can only update incidents assigned to you");
             }
 
-            var user = await _context.Users
-                .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-
             // Update Drive links
             incident.GoogleDriveFolderUrl = request.GoogleDriveFolderUrl;
             incident.GoogleDriveFinalReportUrl = request.GoogleDriveFinalReportUrl;
             incident.UpdatedAt = DateTime.UtcNow;
             incident.UpdatedBy = userId;
 
-            // Create system note
-            var noteContent = $"Google Drive links updated by {user?.SceneName}";
+            // Create system note with simplified text
+            var noteContent = "Google Drive links updated";
             await CreateSystemNoteAsync(incidentId, noteContent, userId, cancellationToken);
 
             await _context.SaveChangesAsync(cancellationToken);
@@ -601,10 +592,6 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
                 return Result<UpdatePeopleResponse>.Failure("Access denied - you can only update incidents assigned to you");
             }
 
-            var user = await _context.Users
-                .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-
             // Track what changed for system note
             var changes = new List<string>();
 
@@ -631,10 +618,10 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
             incident.UpdatedAt = DateTime.UtcNow;
             incident.UpdatedBy = userId;
 
-            // Create system note
+            // Create system note with simplified text
             var noteContent = changes.Count > 0
-                ? $"{string.Join(" and ", changes)} updated by {user?.SceneName}"
-                : $"People involved information updated by {user?.SceneName}";
+                ? $"{string.Join(" and ", changes)} updated"
+                : "People information updated";
 
             await CreateSystemNoteAsync(incidentId, noteContent, userId, cancellationToken);
 
@@ -727,7 +714,7 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
                     Content = content,
                     Type = note.Type,
                     AuthorId = note.AuthorId,
-                    AuthorName = note.Author?.SceneName,
+                    AuthorName = note.Author?.SceneName ?? "Unknown",
                     Tags = note.Tags,
                     CreatedAt = note.CreatedAt,
                     UpdatedAt = note.UpdatedAt
@@ -899,6 +886,12 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
 
             _logger.LogInformation("Note {NoteId} updated by user {UserId}", noteId, userId);
 
+            // Ensure Author is loaded if AuthorId exists
+            if (note.AuthorId.HasValue && note.Author == null)
+            {
+                await _context.Entry(note).Reference(n => n.Author).LoadAsync(cancellationToken);
+            }
+
             var noteDto = new IncidentNoteDto
             {
                 Id = note.Id,
@@ -906,7 +899,7 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
                 Content = request.Content, // Return decrypted
                 Type = note.Type,
                 AuthorId = note.AuthorId,
-                AuthorName = note.Author?.SceneName,
+                AuthorName = note.Author?.SceneName ?? "Unknown",
                 Tags = note.Tags,
                 CreatedAt = note.CreatedAt,
                 UpdatedAt = note.UpdatedAt
@@ -956,6 +949,12 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
             // Decrypt content for audit log before deletion
             var deletedContent = await _encryptionService.DecryptAsync(note.Content);
 
+            // Ensure Author is loaded if AuthorId exists
+            if (note.AuthorId.HasValue && note.Author == null)
+            {
+                await _context.Entry(note).Reference(n => n.Author).LoadAsync(cancellationToken);
+            }
+
             // Create audit log with deleted note details
             var deletedValues = new
             {
@@ -963,7 +962,7 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
                 Content = deletedContent,
                 Tags = note.Tags,
                 AuthorId = note.AuthorId,
-                AuthorName = note.Author?.SceneName,
+                AuthorName = note.Author?.SceneName ?? "Unknown",
                 CreatedAt = note.CreatedAt,
                 UpdatedAt = note.UpdatedAt
             };
@@ -1108,13 +1107,30 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
     #region Helper Methods
 
     /// <summary>
+    /// Get simplified status description matching vetting pattern
+    /// Returns simple past tense descriptions (2-4 words max)
+    /// </summary>
+    private static string GetSimplifiedStatusDescription(IncidentStatus status)
+    {
+        return status switch
+        {
+            IncidentStatus.ReportSubmitted => "Report submitted",
+            IncidentStatus.InformationGathering => "Progressed to information gathering",
+            IncidentStatus.ReviewingFinalReport => "Progressed to final report review",
+            IncidentStatus.OnHold => "Placed on hold",
+            IncidentStatus.Closed => "Incident closed",
+            _ => $"Status changed to {status}"
+        };
+    }
+
+    /// <summary>
     /// Create system-generated note for incident
     /// Used for tracking assignment changes, status updates, etc.
     /// </summary>
     private async Task CreateSystemNoteAsync(
         Guid incidentId,
         string content,
-        Guid? userId,
+        Guid userId,
         CancellationToken cancellationToken)
     {
         // Encrypt note content
@@ -1125,7 +1141,7 @@ public class SafetyServiceExtended : SafetyService, ISafetyServiceExtended
             IncidentId = incidentId,
             Content = encryptedContent,
             Type = IncidentNoteType.System,
-            AuthorId = null, // System notes have no author
+            AuthorId = userId, // System notes now have author
             CreatedAt = DateTime.UtcNow
         };
 

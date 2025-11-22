@@ -668,3 +668,95 @@ if (result.Succeeded && changedFields.Count > 0)
 **Tags**: #critical #change-detection #audit-logging #usernotes #profile-updates #savechanges #missing-implementation #data-integrity
 
 ---
+
+## 🚨 CRITICAL: EF Core Navigation Property Loading - Defensive Explicit Loading (2025-11-22)
+
+**Problem**: `.Include()` on navigation properties sometimes doesn't load the related entity, causing NullReferenceException when accessing navigation property members even with null-conditional operator.
+
+**Date Discovered**: November 22, 2025 during Safety Management delete note endpoint debugging
+**Context**: DELETE `/api/safety/admin/notes/{noteId}` returned 500 Internal Server Error
+
+**Root Cause**:
+- `IncidentNote.Author` navigation property not loading despite `.Include(n => n.Author)` in query
+- When `note.AuthorId` has a value but `note.Author` is null, accessing `note.Author?.SceneName` may still cause issues
+- Anonymous objects for audit logging don't handle completely null navigation properties gracefully
+- EF Core tracking state or lazy loading configuration may prevent Include from working reliably
+
+**Error Manifestation**:
+- 500 Internal Server Error on DELETE endpoint
+- Exception when creating audit log object with `AuthorName = note.Author?.SceneName`
+- Same pattern exists in three methods: GetNotesAsync, UpdateNoteAsync, DeleteNoteAsync
+
+**Wrong Implementation** (Trusting Include):
+```csharp
+// ❌ WRONG - Assumes Include always works
+var note = await _context.IncidentNotes
+    .Include(n => n.Author)
+    .FirstOrDefaultAsync(n => n.Id == noteId, cancellationToken);
+
+// Later in code...
+var deletedValues = new
+{
+    AuthorName = note.Author?.SceneName  // May still fail!
+};
+```
+
+**Correct Implementation** (Defensive Explicit Loading):
+```csharp
+// ✅ CORRECT - Defensive check and explicit loading
+var note = await _context.IncidentNotes
+    .Include(n => n.Author)
+    .FirstOrDefaultAsync(n => n.Id == noteId, cancellationToken);
+
+// Ensure Author is loaded if AuthorId exists but Author is null
+if (note.AuthorId.HasValue && note.Author == null)
+{
+    await _context.Entry(note).Reference(n => n.Author).LoadAsync(cancellationToken);
+}
+
+// Safe access with null coalescing
+var deletedValues = new
+{
+    AuthorName = note.Author?.SceneName ?? "Unknown"
+};
+```
+
+**Prevention Checklist**:
+1. ✅ **Defensive Loading**: When accessing navigation properties, check if loaded even after Include
+2. ✅ **Explicit Loading**: Use `_context.Entry(entity).Reference(e => e.Navigation).LoadAsync()` if null
+3. ✅ **Null Coalescing**: Always use `?? "Unknown"` or `?? "System"` when creating DTOs or audit logs
+4. ✅ **Consistent Pattern**: Apply same defensive pattern across all methods accessing navigation properties
+5. ✅ **AsNoTracking Limitation**: Can't use explicit loading with AsNoTracking() - rely on null coalescing only
+
+**When to Use This Pattern**:
+- Nullable navigation properties (e.g., `AuthorId?` and `Author?`)
+- Creating audit logs or DTOs from entities with navigation properties
+- Any scenario where navigation property access could cause NullReferenceException
+- When Include might not work due to tracking state or lazy loading configuration
+
+**Impact**:
+- DELETE note endpoint: 500 error → 204 No Content success
+- UPDATE note endpoint: Potential 500 error prevented
+- GET notes endpoint: Potential null author display prevented
+- Audit logging reliability improved across all three operations
+
+**Files Modified**:
+- `/home/chad/repos/witchcityrope/apps/api/Features/Safety/Services/SafetyServiceExtended.cs`
+  - Lines 946-956: DeleteNoteAsync defensive loading and null coalescing
+  - Lines 889-902: UpdateNoteAsync defensive loading and null coalescing
+  - Line 717: GetNotesAsync null coalescing only (AsNoTracking prevents explicit loading)
+
+**Success Criteria**:
+- ✅ Delete note endpoint returns 204 No Content (not 500)
+- ✅ No exceptions thrown when accessing note.Author
+- ✅ Audit log created successfully with author information (or "Unknown")
+- ✅ Consistent defensive pattern applied across all note operations
+
+**Related Patterns**:
+- **Entity Framework Patterns** (Part 1, lines 283-295): Navigation property configuration
+- **Defensive Persistence Verification** (Part 2, lines 115-265): Always verify data loaded
+- Similar to Incident.Coordinator explicit loading in UpdateAssignmentAsync (line 397)
+
+**Tags**: #critical #entity-framework #navigation-properties #include #explicit-loading #null-safety #defensive-programming #audit-logging #500-error
+
+---
