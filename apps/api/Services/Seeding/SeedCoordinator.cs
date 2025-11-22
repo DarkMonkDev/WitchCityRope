@@ -240,4 +240,89 @@ public class SeedCoordinator : ISeedDataService
 
         return isRequired;
     }
+
+    /// <summary>
+    /// Seeds only production-essential data: roles, admin user, CMS content, and email templates.
+    /// This is for initial production setup only - does not seed test users or event data.
+    ///
+    /// Production essentials include:
+    /// - Roles (Administrator, Teacher, SafetyTeam, etc.) via UserSeeder
+    /// - Single admin user (ropemaster@witchcityrope.com, password: Test123!) via UserSeeder
+    /// - CMS content (pages, menus) via CmsSeeder
+    /// - Email templates (all 23 templates) via EmailTemplateSeeder
+    ///
+    /// Triggered automatically by DatabaseInitializationService when Production environment
+    /// database is empty (no admin user exists).
+    /// Idempotent - safe to run multiple times (skips if admin user already exists).
+    /// </summary>
+    public async Task<InitializationResult> SeedProductionEssentialsAsync(CancellationToken cancellationToken = default)
+    {
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        var result = new InitializationResult
+        {
+            Environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Unknown"
+        };
+
+        _logger.LogInformation("Starting production essentials seed data population");
+
+        // Check if admin user already exists
+        var adminExists = await _userManager.Users.AnyAsync(u => u.Email == "ropemaster@witchcityrope.com", cancellationToken);
+        if (adminExists)
+        {
+            _logger.LogInformation("Production essentials already seeded (admin user exists), skipping");
+            result.Success = true;
+            result.Duration = stopwatch.Elapsed;
+            result.CompletedAt = DateTime.UtcNow;
+            return result;
+        }
+
+        using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            var initialRecordCount = await _userManager.Users.CountAsync(cancellationToken);
+
+            // Seed only production essentials in dependency order
+            _logger.LogDebug("Seeding roles...");
+            await _userSeeder.SeedRolesAsync(cancellationToken);
+
+            _logger.LogDebug("Seeding admin user (ropemaster)...");
+            await _userSeeder.SeedAdminUserAsync(cancellationToken);
+
+            _logger.LogDebug("Seeding CMS content...");
+            await _cmsSeeder.SeedCmsContentAsync(cancellationToken);
+
+            _logger.LogDebug("Seeding email templates...");
+            await _emailTemplateSeeder.SeedAsync(cancellationToken);
+
+            // Calculate records created
+            var finalRecordCount = await _userManager.Users.CountAsync(cancellationToken);
+            result.SeedRecordsCreated = finalRecordCount - initialRecordCount;
+
+            await transaction.CommitAsync(cancellationToken);
+
+            result.Success = true;
+            stopwatch.Stop();
+            result.Duration = stopwatch.Elapsed;
+            result.CompletedAt = DateTime.UtcNow;
+
+            _logger.LogInformation("Production essentials seed completed successfully in {Duration}ms. " +
+                "Records created: {RecordCount}",
+                result.Duration.TotalMilliseconds, result.SeedRecordsCreated);
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+
+            result.Success = false;
+            result.Errors.Add(ex.Message);
+            result.Duration = stopwatch.Elapsed;
+
+            _logger.LogError(ex, "Production essentials seed failed after {Duration}ms",
+                stopwatch.Elapsed.TotalMilliseconds);
+
+            throw;
+        }
+    }
 }

@@ -412,6 +412,23 @@ The orchestrator tracks and reports:
 - **Master Index**: [Functional Area Master Index](/home/chad/repos/witchcityrope/docs/architecture/functional-area-master-index.md)
 - **File Registry**: [File Registry](/home/chad/repos/witchcityrope/docs/architecture/file-registry.md)
 
+## 🚨 DigitalOcean Server Configuration (Optional - When Needed) 🚨
+
+**Server Access Guide**: When configuring DigitalOcean servers, Nginx, SSL, or deployment infrastructure, consult `/home/chad/repos/witchcityrope/docs/functional-areas/deployment/digitalocean-server-access-guide.md`.
+
+**Consult this guide when:**
+- Setting up or modifying Nginx configuration
+- Installing or renewing SSL certificates with certbot
+- Configuring passwordless sudo for automation
+- Troubleshooting SSH access or deployment issues
+- Managing DigitalOcean infrastructure via doctl
+
+**Key Points**:
+- Use witchcity user with SSH key (not root)
+- Credentials stored in .NET User Secrets (view with `dotnet user-secrets list`)
+- Passwordless sudo configured for specific commands only
+- doctl pre-configured for DigitalOcean API management
+
 ---
 
 *This command documentation works in conjunction with the workflow orchestration process document as the single source of truth for all procedures. Update both documents when workflow changes occur.*

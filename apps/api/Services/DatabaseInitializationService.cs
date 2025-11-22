@@ -122,7 +122,39 @@ public class DatabaseInitializationService : BackgroundService
 
             // Phase 2: Seed data based on environment
             var seedRecordsCreated = 0;
-            if (ShouldPopulateSeedData(hostEnvironment))
+
+            // Check if Production environment needs essentials (empty database)
+            var isProduction = hostEnvironment.EnvironmentName.Equals("Production", StringComparison.OrdinalIgnoreCase);
+            if (isProduction)
+            {
+                // Check if database is empty (no admin user exists)
+                var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+                var hasAdminUser = await userManager.Users.AnyAsync(u => u.Email == "ropemaster@witchcityrope.com", cts.Token);
+
+                if (!hasAdminUser)
+                {
+                    _logger.LogInformation("Phase 2: Production database is empty - populating essentials (roles, admin user, CMS, email templates) [{CorrelationId}]", correlationId);
+                    var seedService = serviceScope.ServiceProvider.GetRequiredService<ISeedDataService>();
+                    var seedResult = await seedService.SeedProductionEssentialsAsync(cts.Token);
+
+                    if (!seedResult.Success)
+                    {
+                        var errorMessage = $"Production essentials seed failed: {string.Join(", ", seedResult.Errors)}";
+                        _logger.LogError("Production essentials seed operation failed [{CorrelationId}]: {Errors}",
+                            correlationId, string.Join(", ", seedResult.Errors));
+                        throw new InvalidOperationException(errorMessage);
+                    }
+                    else
+                    {
+                        seedRecordsCreated = seedResult.SeedRecordsCreated;
+                    }
+                }
+                else
+                {
+                    _logger.LogInformation("Phase 2: Production database already initialized (admin user exists), skipping seed data [{CorrelationId}]", correlationId);
+                }
+            }
+            else if (ShouldPopulateSeedData(hostEnvironment))
             {
                 _logger.LogInformation("Phase 2: Populating seed data [{CorrelationId}]", correlationId);
                 var seedService = serviceScope.ServiceProvider.GetRequiredService<ISeedDataService>();

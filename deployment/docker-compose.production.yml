@@ -1,7 +1,7 @@
 # WitchCityRope Production Docker Compose
 # DigitalOcean Deployment Configuration
 # Uses: Managed PostgreSQL, System Nginx, Container Registry
-# Domain: notfai.com
+# Domain: prod.notfai.com (testing), prod.witchcityrope.com → witchcityrope.com (production)
 
 version: '3.8'
 
@@ -20,6 +20,8 @@ services:
   # API Service - .NET 9 Minimal API
   # ==========================================================================
   api:
+    env_file:
+      - .env.production
     image: registry.digitalocean.com/witchcityrope/witchcityrope-api:${IMAGE_TAG:-latest}
     container_name: witchcity-api-prod
     restart: unless-stopped
@@ -34,13 +36,26 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=${PROD_DB_CONNECTION_STRING}
       - Authentication__JwtSecret=${JWT_SECRET}
-      - Authentication__Issuer=https://notfai.com
-      - Authentication__Audience=https://notfai.com
+      - Authentication__Issuer=https://witchcityrope.com
+      - Authentication__Audience=https://witchcityrope.com
       - Authentication__ExpiryMinutes=60
-      - CORS__AllowedOrigins=https://notfai.com,https://www.notfai.com
+      - CORS__AllowedOrigins=https://prod.notfai.com,https://prod.witchcityrope.com,https://witchcityrope.com,https://www.witchcityrope.com
       - CORS__AllowCredentials=true
       - Logging__LogLevel__Default=Information
       - Logging__LogLevel__Microsoft=Warning
+      # PayPal Configuration (reads from .env.production)
+      - PayPal__ClientId=${PAYPAL_CLIENT_ID}
+      - PayPal__Secret=${PAYPAL_SECRET}
+      - PayPal__Mode=${PAYPAL_MODE:-live}
+      - PayPal__WebhookId=${PAYPAL_WEBHOOK_ID}
+      # Email Configuration (SendGrid) - reads from .env.production
+      - Vetting__EmailEnabled=${Vetting__EmailEnabled:-true}
+      - Vetting__SendGridApiKey=${Vetting__SendGridApiKey}
+      - Vetting__SendGridSandboxMode=${Vetting__SendGridSandboxMode:-false}
+      - Vetting__FromEmail=${Vetting__FromEmail:-info@witchcityrope.com}
+      - Vetting__FromName=${Vetting__FromName:-WitchCityRope}
+      # Frontend URL for email verification links
+      - Frontend__Url=${Frontend__Url:-https://witchcityrope.com}
     depends_on:
       - redis
     healthcheck:

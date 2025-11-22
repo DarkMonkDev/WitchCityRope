@@ -89,6 +89,78 @@ public class UserSeeder
     }
 
     /// <summary>
+    /// Creates single production admin user (ropemaster@witchcityrope.com).
+    /// Used for initial production environment setup only.
+    ///
+    /// Admin user created:
+    /// - ropemaster@witchcityrope.com (Administrator role)
+    ///
+    /// Idempotent - safe to run multiple times (skips if user already exists).
+    /// </summary>
+    public async Task SeedAdminUserAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Seeding production admin user (ropemaster)");
+
+        // Check if user already exists (idempotent operation)
+        var existingUser = await _userManager.FindByEmailAsync("ropemaster@witchcityrope.com");
+        if (existingUser != null)
+        {
+            _logger.LogInformation("Admin user already exists, skipping");
+            return;
+        }
+
+        var adminUser = new ApplicationUser
+        {
+            UserName = "ropemaster@witchcityrope.com",
+            Email = "ropemaster@witchcityrope.com",
+            EmailConfirmed = true,
+            SceneName = "RopeMaster",
+            FirstName = "Rope",
+            LastName = "Master",
+            DiscordName = "ropemaster",
+            FetLifeName = "RopeMaster",
+            PhoneNumber = null,
+            Bio = "WitchCityRope administrator account for production environment.",
+            Role = UserRoleConstants.Administrator,
+            PronouncedName = "Rope Master",
+            Pronouns = "they/them",
+            IsActive = true,
+            VettingStatus = 3,  // Approved
+
+            // Set required fields with production data
+            EncryptedLegalName = "RopeMaster_Production",
+            DateOfBirth = DateTime.UtcNow.AddYears(-30).Date,
+            EmailVerificationToken = Guid.NewGuid().ToString(),
+            EmailVerificationTokenCreatedAt = DateTime.UtcNow,
+        };
+
+        var createResult = await _userManager.CreateAsync(adminUser, "Test123!");
+        if (createResult.Succeeded)
+        {
+            var roleResult = await _userManager.AddToRoleAsync(adminUser, UserRoleConstants.Administrator);
+            if (roleResult.Succeeded)
+            {
+                _logger.LogInformation("Created production admin user: ropemaster@witchcityrope.com with Administrator role");
+            }
+            else
+            {
+                var roleErrors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
+                throw new InvalidOperationException($"Failed to assign Administrator role to ropemaster: {roleErrors}");
+            }
+        }
+        else
+        {
+            var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
+            throw new InvalidOperationException($"Failed to create admin user: {errors}");
+        }
+
+        // CRITICAL: Explicitly save changes to ensure admin user is committed to database
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Production admin user creation completed successfully");
+    }
+
+    /// <summary>
     /// Creates comprehensive test user accounts covering all role scenarios.
     /// Uses ASP.NET Core Identity for proper authentication setup.
     ///
