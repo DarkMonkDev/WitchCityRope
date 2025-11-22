@@ -183,8 +183,8 @@ echo ""
 echo "   Building API image..."
 docker build \
   -f apps/api/Dockerfile \
-  -t $REGISTRY/witchcityrope-api:production \
-  -t $REGISTRY/witchcityrope-api:$GIT_SHA \
+  -t $REGISTRY/witchcityrope-api-production:latest \
+  -t $REGISTRY/witchcityrope-api-production:$GIT_SHA \
   --target production \
   .
 
@@ -199,8 +199,8 @@ echo ""
 echo "   Building Web image..."
 docker build \
   -f apps/web/Dockerfile \
-  -t $REGISTRY/witchcityrope-web:production \
-  -t $REGISTRY/witchcityrope-web:$GIT_SHA \
+  -t $REGISTRY/witchcityrope-web-production:latest \
+  -t $REGISTRY/witchcityrope-web-production:$GIT_SHA \
   --target production \
   --build-arg BUILD_MODE=production \
   --build-arg VITE_API_BASE_URL="" \
@@ -220,14 +220,14 @@ echo "2️⃣  Pushing to DigitalOcean Container Registry..."
 echo ""
 
 echo "   Pushing API image..."
-docker push $REGISTRY/witchcityrope-api:production
-docker push $REGISTRY/witchcityrope-api:$GIT_SHA
+docker push $REGISTRY/witchcityrope-api-production:latest
+docker push $REGISTRY/witchcityrope-api-production:$GIT_SHA
 echo "   ✅ API image pushed"
 
 echo ""
 echo "   Pushing Web image..."
-docker push $REGISTRY/witchcityrope-web:production
-docker push $REGISTRY/witchcityrope-web:$GIT_SHA
+docker push $REGISTRY/witchcityrope-web-production:latest
+docker push $REGISTRY/witchcityrope-web-production:$GIT_SHA
 echo "   ✅ Web image pushed"
 echo ""
 
@@ -377,7 +377,7 @@ echo "📊 Deployment Summary:"
 echo "   • Server: $SERVER"
 echo "   • URLs: https://prod.notfai.com, https://prod.witchcityrope.com"
 echo "   • Git SHA: $GIT_SHA"
-echo "   • Images: $REGISTRY/*:production, :$GIT_SHA"
+echo "   • Images: $REGISTRY/*-production:latest, :$GIT_SHA"
 echo "   • Smoke tests: $SMOKE_PASS/$((SMOKE_PASS + SMOKE_FAIL))"
 echo ""
 echo "🎯 Next Steps:"

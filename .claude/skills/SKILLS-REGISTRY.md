@@ -2,7 +2,7 @@
 
 **Purpose**: Single source of truth for ALL available Skills and when to use them
 **Audience**: Agents, Orchestrator, Human Developers
-**Status**: 18 Skills Active (as of 2025-11-18)
+**Status**: 19 Skills Active (as of 2025-11-22)
 **Structure**: Each skill is now in `skill-name/SKILL.md` format (Claude Code compatible)
 
 ---
@@ -56,7 +56,7 @@ Automate documentation, tracking, and handoff tasks.
 
 ---
 
-### 🐳 Infrastructure Automation (4 Skills)
+### 🐳 Infrastructure Automation (5 Skills)
 
 Automate development environment and deployment tasks.
 
@@ -66,8 +66,9 @@ Automate development environment and deployment tasks.
 | **database-reset-dev** | Need fresh seed data, database corrupted, testing with clean slate (dev only) | test-developer, test-executor, react-developer, backend-developer | Delete all dev database data and restart API to trigger auto-seeding |
 | **database-reset-staging** | Schema changes requiring clean slate, migration conflicts (staging only) | git-manager, orchestrator | Full schema drop and rebuild for staging database |
 | **staging-deploy** | After Phase 5 validation passes, when deploying features for testing | git-manager, orchestrator | Deploy to DigitalOcean staging environment |
+| **registry-cleanup** | Weekly maintenance, high storage usage, after major deployment cycles | git-manager, orchestrator | Clean up old container images from DigitalOcean registries (staging: 10 tags, production: 30 tags) |
 
-**Integration**: test-executor MUST use container-restart before E2E tests. Use database-reset-dev for clean test data. Orchestrator may auto-deploy after Phase 5.
+**Integration**: test-executor MUST use container-restart before E2E tests. Use database-reset-dev for clean test data. Orchestrator may auto-deploy after Phase 5. registry-cleanup recommended weekly.
 
 ---
 
@@ -164,6 +165,7 @@ Detect and prevent violations of architecture rules.
 #### git-manager Agent
 - ✅ **phase-5-validator** - Validate before commits
 - ✅ **staging-deploy** - Deploy to staging after Phase 5
+- ✅ **registry-cleanup** - Weekly image cleanup for cost management
 - ✅ **lessons-learned-validator** - Validate lesson updates
 
 #### code-reviewer Agent
@@ -182,6 +184,7 @@ Detect and prevent violations of architecture rules.
 - ✅ **single-source-validator** - Enforce single source of truth
 - ✅ **container-restart** - Ensure environment healthy before tests
 - ✅ **staging-deploy** - Deploy after successful Phase 5
+- ✅ **registry-cleanup** - Schedule weekly maintenance
 
 ---
 
@@ -263,6 +266,18 @@ Orchestrator:
 7. Agent fixes violations before completing workflow
 ```
 
+### Pattern 6: Weekly Registry Cleanup
+
+```
+git-manager or orchestrator:
+1. Run dry-run first: bash .claude/skills/registry-cleanup/execute.sh
+2. Review output (tags to delete, storage savings)
+3. Confirm deletion: bash .claude/skills/registry-cleanup/execute.sh --confirm
+4. Monitor storage usage in DigitalOcean dashboard
+
+Recommended schedule: Every Sunday at 2 AM
+```
+
 ---
 
 ## 🔧 How to Use Skills
@@ -275,6 +290,7 @@ Skills are automatically invoked based on context:
 Claude: "I'll use the phase-1-validator skill to check if requirements are complete"
 Claude: "Before running E2E tests, I'll use the container-restart skill"
 Claude: "I'll use the handoff-document-generator skill to create the handoff"
+Claude: "I'll use the registry-cleanup skill to manage storage costs"
 ```
 
 **No explicit command needed** - Claude Code decides when to invoke.
@@ -292,6 +308,12 @@ Use container-restart skill to restart Docker containers
 
 # Staging deployment
 Use staging-deploy skill to deploy to staging
+
+# Registry cleanup (dry-run)
+Use registry-cleanup skill to preview old image cleanup
+
+# Registry cleanup (confirm)
+bash .claude/skills/registry-cleanup/execute.sh --confirm
 
 # Generate handoff
 Use handoff-document-generator skill to create handoff documents
@@ -469,6 +491,7 @@ Orchestrator coordinates skill invocation:
 - Phase transition → **handoff-document-generator** → Create handoff
 - Before tests → **container-restart** → Ensure environment healthy
 - After Phase 5 → **staging-deploy** → Deploy to staging
+- Weekly maintenance → **registry-cleanup** → Manage storage costs
 
 ### With Lessons Learned
 
@@ -519,8 +542,8 @@ Skills and lessons complement each other:
 
 ### How to Create a New Skill
 
-1. **Create skill file**: `/.claude/skills/my-new-skill.md`
-2. **Add YAML frontmatter**:
+1. **Create skill directory**: `/.claude/skills/my-new-skill/`
+2. **Add SKILL.md file with YAML frontmatter**:
    ```yaml
    ---
    name: my-new-skill
@@ -529,13 +552,18 @@ Skills and lessons complement each other:
    ```
 3. **Follow structure**:
    - Purpose statement
-   - When to use
-   - Automation script (bash if applicable)
+   - When to use / When NOT to use
+   - Automation script (executable bash in execute.sh if applicable)
    - Integration points
    - Output format (JSON for automation)
-4. **Register in this file**: Add to appropriate category
-5. **Validate**: Use **single-source-validator** to ensure no duplication
-6. **Update agent definitions**: Add to relevant agents' skill lists
+   - Troubleshooting section
+4. **Create execute.sh** (if automation needed):
+   - Make executable: `chmod +x execute.sh`
+   - Add error handling: `set -e`
+   - Include safety checks
+5. **Register in this file**: Add to appropriate category
+6. **Validate**: Use **single-source-validator** to ensure no duplication
+7. **Update agent definitions**: Add to relevant agents' skill lists
 
 ---
 
@@ -570,6 +598,7 @@ This registry is **Tier 1** of the discovery system:
 ### Weekly
 - [ ] Verify all skills executable and passing
 - [ ] Check for new duplication violations (single-source-validator)
+- [ ] Run registry-cleanup skill for cost management
 
 ### Monthly
 - [ ] Review skill usage metrics
@@ -588,11 +617,17 @@ This registry is **Tier 1** of the discovery system:
 - **Skills System Overview**: `/.claude/skills/README.md`
 - **Skills Architecture Plan**: `/docs/functional-areas/ai-workflow-orchstration/new-work/2025-11-04-plugins-marketplace-research/SKILLS-ARCHITECTURE-PLAN.md`
 - **Plugin System**: `/MARKETPLACE-README.md`
-- **Individual Skill Details**: `/.claude/skills/[skill-name].md`
+- **Individual Skill Details**: `/.claude/skills/[skill-name]/SKILL.md`
 
 ---
 
 ## Version History
+
+- **2025-11-22**: Added registry-cleanup skill (19 skills total)
+  - Automates cleanup of old container images from DigitalOcean
+  - Retention policies: staging 10 tags, production 30 tags
+  - Dry-run mode default with --confirm flag
+  - Supports 6 repositories (WitchCityRope + Accounting)
 
 - **2025-11-04**: Created registry with 13 skills (10 original + 3 new)
   - Added: container-restart, staging-deploy, single-source-validator

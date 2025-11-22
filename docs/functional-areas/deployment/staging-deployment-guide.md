@@ -12,6 +12,29 @@ This guide covers deploying WitchCityRope to the staging environment on DigitalO
 - **Database**: DigitalOcean Managed PostgreSQL
 - **SSH Key**: `/home/chad/.ssh/id_ed25519_witchcityrope`
 
+## 🚨 CRITICAL: Container Registry Structure
+
+**NEW ORGANIZATION (2025-11-22):**
+
+WitchCityRope uses environment-specific repository naming in the `witchcityrope` registry:
+
+**Staging repositories:**
+- `registry.digitalocean.com/witchcityrope/witchcityrope-api-staging`
+- `registry.digitalocean.com/witchcityrope/witchcityrope-web-staging`
+
+**Production repositories:**
+- `registry.digitalocean.com/witchcityrope/witchcityrope-api-production`
+- `registry.digitalocean.com/witchcityrope/witchcityrope-web-production`
+
+**Accounting project (separate registry):**
+- `registry.digitalocean.com/accounting/accounting-api`
+- `registry.digitalocean.com/accounting/accounting-web`
+
+This structure ensures:
+- Clear environment separation (staging vs production)
+- No accidental deployment to wrong environment
+- Accounting project completely isolated
+
 ## ⚠️ CRITICAL: Shared Server Warning
 
 **IMPORTANT**: The staging server hosts multiple applications. When deploying:
@@ -44,7 +67,7 @@ The skill is located at `/.claude/skills/staging-deploy.md` and fully automates:
 - After Phase 5 validation passes in workflow orchestration
 
 **The skill will:**
-1. Build API and Web images with `:latest` tag
+1. Build API and Web images with `-staging` suffix and `:latest` tag
 2. Push to DigitalOcean Container Registry
 3. Connect to staging server
 4. Pull latest images
@@ -63,14 +86,17 @@ The skill is located at `/.claude/skills/staging-deploy.md` and fully automates:
 
 ## 🚨 CRITICAL: Docker Image Tagging Convention
 
-**ALWAYS USE `:latest` TAG FOR STAGING DEPLOYMENTS**
+**STAGING USES `-staging` REPOSITORY SUFFIX WITH `:latest` TAG**
 
-The `staging-deploy` skill automatically uses the `:latest` tag for all images.
+The `staging-deploy` skill automatically uses:
+- Repository names: `witchcityrope-api-staging` and `witchcityrope-web-staging`
+- Tag: `:latest` for rollout + `:git-sha` for traceability
 
-**Why :latest (not :staging)**:
-- The `docker-compose.staging.yml` file uses `${IMAGE_TAG:-latest}` which defaults to `latest`
-- Historical convention has always been to use `:latest` for staging
-- If images are tagged with `:staging`, the containers will continue running old `:latest` images
+**Why this structure:**
+- Prevents accidental staging→production or production→staging deployments
+- Repository name enforces environment isolation
+- `:latest` tag maintains consistent deployment pattern
+- Git SHA tags provide rollback capability
 
 **The skill handles this automatically** - no manual tag management needed.
 
@@ -141,6 +167,10 @@ curl https://staging.notfai.com/api/health | jq .
 - **Cause**: Schema conflicts or leftover tables
 - **Solution**: Use `database-reset-staging` skill for clean slate
 
+**Issue: Wrong image repository being used**
+- **Cause**: docker-compose.yml not updated with new `-staging` repositories
+- **Solution**: Update docker-compose.staging.yml to use `-staging` repositories
+
 ## Deployment Workflow
 
 **Standard workflow for new features:**
@@ -194,6 +224,7 @@ The current staging environment uses DigitalOcean infrastructure as described in
 
 ---
 
-**Last Updated**: 2025-11-05
+**Last Updated**: 2025-11-22
 **Deployment Method**: Automated via `staging-deploy` skill
 **Database Resets**: Automated via `database-reset-staging` skill
+**Registry Structure**: Environment-specific repositories (-staging, -production)
