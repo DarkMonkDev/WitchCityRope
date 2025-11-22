@@ -10772,6 +10772,10 @@
           "includePayPalCaptureId": {
             "type": "boolean",
             "nullable": true
+          },
+          "eventName": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -10973,6 +10977,12 @@
             "type": "boolean"
           },
           "canPurchaseTicket": {
+            "type": "boolean"
+          },
+          "canCancelRSVP": {
+            "type": "boolean"
+          },
+          "canCancelTicket": {
             "type": "boolean"
           },
           "rsvp": {
@@ -14707,6 +14717,9 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "canCancel": {
+            "type": "boolean"
           }
         }
       },
@@ -15168,6 +15181,9 @@
             "type": "string",
             "format": "uuid",
             "nullable": true
+          },
+          "canCancel": {
+            "type": "boolean"
           }
         }
       },

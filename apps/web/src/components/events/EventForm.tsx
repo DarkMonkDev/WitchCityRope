@@ -20,6 +20,7 @@ import {
   NumberInput,
   Collapse,
   Box,
+  Flex,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -1859,34 +1860,21 @@ export const EventForm: React.FC<EventFormProps> = ({
           {/* Volunteers Tab - Modal-based consistent with other tabs */}
           <Tabs.Panel value="volunteers" pt="xl" data-testid="panel-volunteers">
             <Stack gap="xl">
-              {/* Timing Settings - Collapsible Section */}
+              {/* Timing Settings - Always Visible */}
               <Box>
-                <Group justify="space-between" align="center" mb="md">
-                  <Title
-                    order={2}
-                    c="burgundy"
-                    style={{
-                      borderBottom: '2px solid var(--mantine-color-burgundy-3)',
-                      paddingBottom: '8px',
-                      flex: 1,
-                    }}
-                  >
-                    Volunteer Timing Controls
-                  </Title>
-                  <Button
-                    variant="subtle"
-                    size="sm"
-                    onClick={() => setVolunteerTimingOpen(!volunteerTimingOpen)}
-                    rightSection={volunteerTimingOpen ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
-                    aria-expanded={volunteerTimingOpen}
-                    aria-controls="volunteer-timing-settings"
-                  >
-                    <IconSettings size={16} style={{ marginRight: '4px' }} />
-                    Timing Settings
-                  </Button>
-                </Group>
+                <Title
+                  order={2}
+                  c="burgundy"
+                  mb="md"
+                  style={{
+                    borderBottom: '2px solid var(--mantine-color-burgundy-3)',
+                    paddingBottom: '8px',
+                  }}
+                >
+                  Volunteer Timing Controls
+                </Title>
 
-                <Collapse in={volunteerTimingOpen}>
+                <Box>
                   <Box
                     id="volunteer-timing-settings"
                     p="md"
@@ -1896,58 +1884,75 @@ export const EventForm: React.FC<EventFormProps> = ({
                       border: '1px solid var(--mantine-color-burgundy-2)',
                     }}
                   >
-                    <Text size="sm" c="dimmed" mb="md">
-                      Control when volunteers can sign up and cancel their shifts. Positive values = hours before event start.
-                      Negative values = hours after event start. Leave blank for no restrictions (always open).
-                    </Text>
-
                     <Stack gap="md">
-                      <Group grow align="flex-start">
-                        <NumberInput
-                          label="Volunteer Registration Closes"
-                          description="Hours before/after event start (e.g., 24 = 1 day before)"
-                          placeholder="Not Set = Never Closes"
-                          min={-24}
-                          max={8760}
-                          step={0.5}
-                          decimalScale={1}
-                          allowNegative={true}
-                          value={form.values.volunteerRegistrationCloseHours ?? undefined}
-                          onChange={(value) => form.setFieldValue('volunteerRegistrationCloseHours', typeof value === 'number' ? value : null)}
-                          error={form.errors.volunteerRegistrationCloseHours}
-                          aria-describedby="volunteer-registration-close-help"
-                        />
-                        <NumberInput
-                          label="Volunteer Cancellation Closes"
-                          description="Hours before/after event start (e.g., 48 = 2 days before)"
-                          placeholder="Not Set = Always can cancel"
-                          min={-24}
-                          max={8760}
-                          step={0.5}
-                          decimalScale={1}
-                          allowNegative={true}
-                          value={form.values.volunteerCancellationCloseHours ?? undefined}
-                          onChange={(value) => form.setFieldValue('volunteerCancellationCloseHours', typeof value === 'number' ? value : null)}
-                          error={form.errors.volunteerCancellationCloseHours}
-                          aria-describedby="volunteer-cancellation-close-help"
-                        />
-                      </Group>
+                      <Text size="sm" c="dimmed" mb="md">
+                        Control when volunteers can sign up and cancel their shifts. Examples: 24 = 1 day before, 48 = 2 days before, 168 = 1 week before. Positive values = hours before event start. Negative values = hours after event start. Leave blank for no restrictions (always open).
+                      </Text>
 
-                      {/* Save Timing Button */}
-                      <Group justify="flex-end" mt="md">
-                        <WCRButton
-                          onClick={handleSaveVolunteerTiming}
-                          loading={updateEventMutation.isPending}
-                          variant="secondary"
-                          size="lg"
-                          disabled={!volunteerTimingDirty}
-                        >
-                          {updateEventMutation.isPending ? 'Saving...' : 'Save'}
-                        </WCRButton>
-                      </Group>
+                      {/* Two-column layout with inline labels within each column */}
+                      <Group grow align="flex-start">
+                      {/* Column 1: Volunteer Registration Closes */}
+                      <Stack gap="xs">
+                        <Group gap="xs" align="center" wrap="nowrap">
+                          <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>
+                            Volunteer Registration Closes:
+                          </Text>
+                          <NumberInput
+                            placeholder="Not Set = Never Closes"
+                            min={-24}
+                            max={8760}
+                            step={0.5}
+                            decimalScale={1}
+                            allowNegative={true}
+                            value={form.values.volunteerRegistrationCloseHours ?? undefined}
+                            onChange={(value) => form.setFieldValue('volunteerRegistrationCloseHours', typeof value === 'number' ? value : null)}
+                            error={form.errors.volunteerRegistrationCloseHours}
+                            aria-label="Volunteer Registration Closes"
+                            aria-describedby="volunteer-registration-close-help"
+                            style={{ flex: 1 }}
+                          />
+                        </Group>
+                      </Stack>
+
+                      {/* Column 2: Volunteer Cancellation Closes */}
+                      <Stack gap="xs">
+                        <Group gap="xs" align="center" wrap="nowrap">
+                          <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>
+                            Volunteer Cancellation Closes:
+                          </Text>
+                          <NumberInput
+                            placeholder="Not Set = Always can cancel"
+                            min={-24}
+                            max={8760}
+                            step={0.5}
+                            decimalScale={1}
+                            allowNegative={true}
+                            value={form.values.volunteerCancellationCloseHours ?? undefined}
+                            onChange={(value) => form.setFieldValue('volunteerCancellationCloseHours', typeof value === 'number' ? value : null)}
+                            error={form.errors.volunteerCancellationCloseHours}
+                            aria-label="Volunteer Cancellation Closes"
+                            aria-describedby="volunteer-cancellation-close-help"
+                            style={{ flex: 1 }}
+                          />
+                        </Group>
+                      </Stack>
+                    </Group>
+
+                    {/* Save Timing Button */}
+                    <Group justify="flex-start" mt="md">
+                      <WCRButton
+                        onClick={handleSaveVolunteerTiming}
+                        loading={updateEventMutation.isPending}
+                        variant="secondary"
+                        size="lg"
+                        disabled={!volunteerTimingDirty}
+                      >
+                        {updateEventMutation.isPending ? 'Saving...' : 'Save'}
+                      </WCRButton>
+                    </Group>
                     </Stack>
                   </Box>
-                </Collapse>
+                </Box>
               </Box>
 
               {/* Volunteer Positions */}
@@ -1979,34 +1984,21 @@ export const EventForm: React.FC<EventFormProps> = ({
           {/* RSVP/Tickets Tab - Updated per requirements */}
           <Tabs.Panel value="rsvp-tickets" pt="xl" data-testid="rsvp-tickets-tab">
             <Stack gap="xl">
-              {/* Timing Settings - Collapsible Section */}
+              {/* Timing Settings - Always Visible */}
               <Box>
-                <Group justify="space-between" align="center" mb="md">
-                  <Title
-                    order={2}
-                    c="burgundy"
-                    style={{
-                      borderBottom: '2px solid var(--mantine-color-burgundy-3)',
-                      paddingBottom: '8px',
-                      flex: 1,
-                    }}
-                  >
-                    Registration & Cancellation Timing
-                  </Title>
-                  <Button
-                    variant="subtle"
-                    size="sm"
-                    onClick={() => setRsvpTimingOpen(!rsvpTimingOpen)}
-                    rightSection={rsvpTimingOpen ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
-                    aria-expanded={rsvpTimingOpen}
-                    aria-controls="rsvp-timing-settings"
-                  >
-                    <IconSettings size={16} style={{ marginRight: '4px' }} />
-                    Timing Settings
-                  </Button>
-                </Group>
+                <Title
+                  order={2}
+                  c="burgundy"
+                  mb="md"
+                  style={{
+                    borderBottom: '2px solid var(--mantine-color-burgundy-3)',
+                    paddingBottom: '8px',
+                  }}
+                >
+                  Registration & Cancellation Timing
+                </Title>
 
-                <Collapse in={rsvpTimingOpen}>
+                <Box>
                   <Box
                     id="rsvp-timing-settings"
                     p="md"
@@ -2016,72 +2008,107 @@ export const EventForm: React.FC<EventFormProps> = ({
                       border: '1px solid var(--mantine-color-burgundy-2)',
                     }}
                   >
-                    <Text size="sm" c="dimmed" mb="md">
-                      Control when users can register and cancel. Positive values = hours before event start.
-                      Negative values = hours after event start. Leave blank for no restrictions (always open).
-                    </Text>
-
                     <Stack gap="md">
+                      <Text size="sm" c="dimmed" mb="md">
+                        Control when users can register and cancel. Examples: 24 = 1 day before, 48 = 2 days before, 168 = 1 week before. Positive values = hours before event start. Negative values = hours after event start. Leave blank for no restrictions (always open).
+                      </Text>
+
+                      {/* Row 1: Two-column layout with inline labels */}
                       <Group grow align="flex-start">
-                        <NumberInput
-                          label="Registration / Tickets Starts"
-                          description="Hours before/after event start (e.g., 168 = 1 week before)"
-                          placeholder="Not Set = Always Open"
-                          min={-24}
-                          max={8760}
-                          allowNegative={true}
-                          value={form.values.registrationOpenHours ?? undefined}
-                          onChange={(value) => form.setFieldValue('registrationOpenHours', typeof value === 'number' ? value : null)}
-                          error={form.errors.registrationOpenHours}
-                          aria-describedby="registration-open-help"
-                        />
-                        <NumberInput
-                          label="Registration / Ticket Sales Ends"
-                          description="Hours before/after event start (e.g., 0.5 = 30 min before)"
-                          placeholder="Not Set = Never Ends"
-                          min={-24}
-                          max={8760}
-                          step={0.5}
-                          decimalScale={1}
-                          allowNegative={true}
-                          value={form.values.registrationCloseHours ?? undefined}
-                          onChange={(value) => form.setFieldValue('registrationCloseHours', typeof value === 'number' ? value : null)}
-                          error={form.errors.registrationCloseHours}
-                          aria-describedby="registration-close-help"
-                        />
+                        {/* Column 1: Registration Starts */}
+                        <Stack gap="xs">
+                          <Group gap="xs" align="center" wrap="nowrap">
+                            <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>
+                              Registration / Tickets Starts:
+                            </Text>
+                            <NumberInput
+                              placeholder="Not Set = Always Open"
+                              min={-24}
+                              max={8760}
+                              allowNegative={true}
+                              value={form.values.registrationOpenHours ?? undefined}
+                              onChange={(value) => form.setFieldValue('registrationOpenHours', typeof value === 'number' ? value : null)}
+                              error={form.errors.registrationOpenHours}
+                              aria-label="Registration / Tickets Starts"
+                              aria-describedby="registration-open-help"
+                              style={{ flex: 1 }}
+                            />
+                          </Group>
+                        </Stack>
+
+                        {/* Column 2: Registration Ends */}
+                        <Stack gap="xs">
+                          <Group gap="xs" align="center" wrap="nowrap">
+                            <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>
+                              Registration / Ticket Sales Ends:
+                            </Text>
+                            <NumberInput
+                              placeholder="Not Set = Never Ends"
+                              min={-24}
+                              max={8760}
+                              step={0.5}
+                              decimalScale={1}
+                              allowNegative={true}
+                              value={form.values.registrationCloseHours ?? undefined}
+                              onChange={(value) => form.setFieldValue('registrationCloseHours', typeof value === 'number' ? value : null)}
+                              error={form.errors.registrationCloseHours}
+                              aria-label="Registration / Ticket Sales Ends"
+                              aria-describedby="registration-close-help"
+                              style={{ flex: 1 }}
+                            />
+                          </Group>
+                        </Stack>
                       </Group>
 
+                      {/* Row 2: Two-column layout with inline labels */}
                       <Group grow align="flex-start">
-                        <NumberInput
-                          label="Cancellation Opens"
-                          description="Hours before/after event start"
-                          placeholder="Not Set = Always Open"
-                          min={-24}
-                          max={8760}
-                          allowNegative={true}
-                          value={form.values.cancellationOpenHours ?? undefined}
-                          onChange={(value) => form.setFieldValue('cancellationOpenHours', typeof value === 'number' ? value : null)}
-                          error={form.errors.cancellationOpenHours}
-                          aria-describedby="cancellation-open-help"
-                        />
-                        <NumberInput
-                          label="Cancellation Closes"
-                          description="Hours before/after event start (e.g., 24 = 1 day before)"
-                          placeholder="Not Set = Never Closes"
-                          min={-24}
-                          max={8760}
-                          step={0.5}
-                          decimalScale={1}
-                          allowNegative={true}
-                          value={form.values.cancellationCloseHours ?? undefined}
-                          onChange={(value) => form.setFieldValue('cancellationCloseHours', typeof value === 'number' ? value : null)}
-                          error={form.errors.cancellationCloseHours}
-                          aria-describedby="cancellation-close-help"
-                        />
+                        {/* Column 1: Cancellation Opens */}
+                        <Stack gap="xs">
+                          <Group gap="xs" align="center" wrap="nowrap">
+                            <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>
+                              Cancellation Opens:
+                            </Text>
+                            <NumberInput
+                              placeholder="Not Set = Always Open"
+                              min={-24}
+                              max={8760}
+                              allowNegative={true}
+                              value={form.values.cancellationOpenHours ?? undefined}
+                              onChange={(value) => form.setFieldValue('cancellationOpenHours', typeof value === 'number' ? value : null)}
+                              error={form.errors.cancellationOpenHours}
+                              aria-label="Cancellation Opens"
+                              aria-describedby="cancellation-open-help"
+                              style={{ flex: 1 }}
+                            />
+                          </Group>
+                        </Stack>
+
+                        {/* Column 2: Cancellation Closes */}
+                        <Stack gap="xs">
+                          <Group gap="xs" align="center" wrap="nowrap">
+                            <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>
+                              Cancellation Closes:
+                            </Text>
+                            <NumberInput
+                              placeholder="Not Set = Never Closes"
+                              min={-24}
+                              max={8760}
+                              step={0.5}
+                              decimalScale={1}
+                              allowNegative={true}
+                              value={form.values.cancellationCloseHours ?? undefined}
+                              onChange={(value) => form.setFieldValue('cancellationCloseHours', typeof value === 'number' ? value : null)}
+                              error={form.errors.cancellationCloseHours}
+                              aria-label="Cancellation Closes"
+                              aria-describedby="cancellation-close-help"
+                              style={{ flex: 1 }}
+                            />
+                          </Group>
+                        </Stack>
                       </Group>
 
                       {/* Save Timing Button */}
-                      <Group justify="flex-end" mt="md">
+                      <Group justify="flex-start" mt="md">
                         <WCRButton
                           onClick={handleSaveRsvpTiming}
                           loading={updateEventMutation.isPending}
@@ -2094,7 +2121,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                       </Group>
                     </Stack>
                   </Box>
-                </Collapse>
+                </Box>
               </Box>
               {/* RSVPs Table - Hidden for CLASS events */}
               {form.values.eventType === 'social' && (
