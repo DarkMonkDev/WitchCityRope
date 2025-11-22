@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react'
 import {
   Paper,
   Stack,
@@ -16,8 +16,8 @@ import {
   Alert,
   ActionIcon,
   Card,
-  Anchor
-} from '@mantine/core';
+  Anchor,
+} from '@mantine/core'
 import {
   IconArrowLeft,
   IconEdit,
@@ -30,70 +30,76 @@ import {
   IconCalendar,
   IconAlertCircle,
   IconNotes,
-  IconCalendarEvent
-} from '@tabler/icons-react';
-import { useVettingApplicationDetail } from '../hooks/useVettingApplicationDetail';
-import { useSubmitReviewDecision } from '../hooks/useSubmitReviewDecision';
-import { useApproveApplication } from '../hooks/useApproveApplication';
-import { vettingAdminApi } from '../services/vettingAdminApi';
-import { VettingStatusBadge } from './VettingStatusBadge';
-import { OnHoldModal } from './OnHoldModal';
-import { SendReminderModal } from './SendReminderModal';
-import { DenyApplicationModal } from './DenyApplicationModal';
-import type { ApplicationDetailResponse, ReviewDecisionRequest } from '../types/vetting.types';
-import { NotesSection } from '@/components/notes/NotesSection';
-import { VettingNoteRenderer } from './VettingNoteRenderer';
+  IconCalendarEvent,
+} from '@tabler/icons-react'
+import { useVettingApplicationDetail } from '../hooks/useVettingApplicationDetail'
+import { useSubmitReviewDecision } from '../hooks/useSubmitReviewDecision'
+import { useApproveApplication } from '../hooks/useApproveApplication'
+import { vettingAdminApi } from '../services/vettingAdminApi'
+import { VettingStatusBadge } from './VettingStatusBadge'
+import { OnHoldModal } from './OnHoldModal'
+import { SendReminderModal } from './SendReminderModal'
+import { DenyApplicationModal } from './DenyApplicationModal'
+import type { ApplicationDetailResponse, ReviewDecisionRequest } from '../types/vetting.types'
+import { NotesSection } from '@/components/notes/NotesSection'
+import { VettingNoteRenderer } from './VettingNoteRenderer'
 
 interface VettingApplicationDetailProps {
-  applicationId: string;
-  onBack: () => void;
+  applicationId: string
+  onBack: () => void
 }
 
 export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> = ({
   applicationId,
-  onBack
+  onBack,
 }) => {
-  const [onHoldModalOpen, setOnHoldModalOpen] = useState(false);
-  const [reminderModalOpen, setReminderModalOpen] = useState(false);
-  const [denyModalOpen, setDenyModalOpen] = useState(false);
-  const [scheduleInterviewModalOpen, setScheduleInterviewModalOpen] = useState(false);
+  const [onHoldModalOpen, setOnHoldModalOpen] = useState(false)
+  const [reminderModalOpen, setReminderModalOpen] = useState(false)
+  const [denyModalOpen, setDenyModalOpen] = useState(false)
+  const [scheduleInterviewModalOpen, setScheduleInterviewModalOpen] = useState(false)
 
-  const { data: application, isLoading, error, refetch } = useVettingApplicationDetail(applicationId);
+  const {
+    data: application,
+    isLoading,
+    error,
+    refetch,
+  } = useVettingApplicationDetail(applicationId)
   const { mutate: submitDecision, isPending: isSubmittingDecision } = useSubmitReviewDecision(
     () => {
-      refetch();
+      refetch()
     }
-  );
+  )
   const { mutate: approveApplication, isPending: isApprovingApplication } = useApproveApplication(
     () => {
-      refetch();
+      refetch()
     }
-  );
+  )
 
   // Calculate days since submission
   const daysSinceSubmission = useMemo(() => {
-    if (!application?.submittedAt) return 0;
-    const submitted = new Date(application.submittedAt);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - submitted.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  }, [application?.submittedAt]);
+    if (!application?.submittedAt) return 0
+    const submitted = new Date(application.submittedAt)
+    const now = new Date()
+    const diffTime = Math.abs(now.getTime() - submitted.getTime())
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays
+  }, [application?.submittedAt])
 
   // Determine available actions based on current status
   const availableActions = useMemo(() => {
-    if (!application) return {
-      canApprove: false,
-      canDeny: false,
-      canHold: false,
-      canSchedule: false,
-      canRemind: false,
-      canAdvanceStage: false,
-      canSkipToApproved: false
-    };
+    if (!application)
+      return {
+        canApprove: false,
+        canDeny: false,
+        canHold: false,
+        canSchedule: false,
+        canRemind: false,
+        canAdvanceStage: false,
+        canSkipToApproved: false,
+      }
 
-    const isTerminal = ['Approved', 'Denied', 'Withdrawn'].includes(application.status);
-    const isOnHold = application.status === 'OnHold';
+    const isTerminal = ['Approved', 'Denied', 'Withdrawn'].includes(application.status)
+    const isOnHold = application.status === 'OnHold'
 
     return {
       canApprove: !isTerminal, // Legacy "Skip to Approved" action
@@ -102,66 +108,68 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
       canSchedule: application.status === 'InterviewApproved',
       canRemind: true, // Can always send reminder
       canAdvanceStage: !isTerminal, // Can advance unless terminal
-      canSkipToApproved: !isTerminal && application.status !== 'FinalReview' // Can skip unless already at final review or terminal
-    };
-  }, [application]);
+      canSkipToApproved: !isTerminal && application.status !== 'FinalReview', // Can skip unless already at final review or terminal
+    }
+  }, [application])
 
   // Get next stage configuration based on current status
   const getNextStageConfig = (currentStatus: string) => {
-    const configs: Record<string, {
-      label: string;
-      nextStatus: string;
-      description: string;
-      icon: typeof IconCheck;
-    }> = {
+    const configs: Record<
+      string,
+      {
+        label: string
+        nextStatus: string
+        description: string
+        icon: typeof IconCheck
+      }
+    > = {
       UnderReview: {
         label: 'Approve for Interview',
         nextStatus: 'InterviewApproved',
         description: 'Move to interview stage',
-        icon: IconCheck
+        icon: IconCheck,
       },
       InterviewApproved: {
         label: 'Mark Interview Complete',
         nextStatus: 'FinalReview',
         description: 'Interview completed, move to final review',
-        icon: IconCalendarEvent
+        icon: IconCalendarEvent,
       },
       FinalReview: {
         label: 'Approve Application',
         nextStatus: 'Approved',
         description: 'Grant full access',
-        icon: IconCheck
-      }
-    };
+        icon: IconCheck,
+      },
+    }
 
-    return configs[currentStatus] || null;
-  };
+    return configs[currentStatus] || null
+  }
 
-  const nextStageConfig = getNextStageConfig(application?.status || '');
+  const nextStageConfig = getNextStageConfig(application?.status || '')
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
-  };
+    return new Date(dateString).toLocaleString()
+  }
 
   const formatDateOnly = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
-  };
-
+    return new Date(dateString).toLocaleDateString()
+  }
 
   const handleAdvanceStage = () => {
-    if (!application || !nextStageConfig) return;
+    if (!application || !nextStageConfig) return
 
     // Don't auto-generate verbose reasoning - let backend create simplified text
     // Only send reasoning when admin manually enters notes
-    const reasoning = undefined;
+    const reasoning = undefined
 
     // Use the appropriate mutation based on the next status
     if (nextStageConfig.nextStatus === 'Approved') {
       // Final approval
       approveApplication({
         applicationId: application.id,
-        reasoning
-      });
+        reasoning,
+      })
     } else {
       // Intermediate stage advancement
       submitDecision({
@@ -169,77 +177,79 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
         decision: {
           decisionType: nextStageConfig.nextStatus,
           reasoning,
-          isFinalDecision: false
-        }
-      });
+          isFinalDecision: false,
+        },
+      })
     }
-  };
+  }
 
   const handleSkipToApproved = () => {
     if (application) {
       // Don't auto-generate verbose reasoning - let backend create simplified text
       // Only send reasoning when admin manually enters notes
-      const reasoning = undefined;
+      const reasoning = undefined
 
       approveApplication({
         applicationId: application.id,
-        reasoning
-      });
+        reasoning,
+      })
     }
-  };
+  }
 
   const handleApproveApplication = () => {
     // This is now the "Skip to Approved" action
-    handleSkipToApproved();
-  };
+    handleSkipToApproved()
+  }
 
   const handlePutOnHold = () => {
-    setOnHoldModalOpen(true);
-  };
+    setOnHoldModalOpen(true)
+  }
 
   const handleSendReminder = () => {
-    setReminderModalOpen(true);
-  };
+    setReminderModalOpen(true)
+  }
 
   const handleDenyApplication = () => {
-    setDenyModalOpen(true);
-  };
+    setDenyModalOpen(true)
+  }
 
   const handleSaveNote = async (content: string) => {
     try {
-      await vettingAdminApi.addApplicationNote(applicationId, content);
-      refetch();
+      await vettingAdminApi.addApplicationNote(applicationId, content)
+      refetch()
       // Note: Success notification will be shown by the API service
     } catch (error: any) {
-      console.error('Failed to save note:', error);
+      console.error('Failed to save note:', error)
       // Error notification will be shown by the API service
-      throw error; // Re-throw to let NotesSection handle loading state
+      throw error // Re-throw to let NotesSection handle loading state
     }
-  };
+  }
 
   if (isLoading) {
     return (
       <Paper p="xl" radius="md">
         <Stack gap="md" align="center">
           <Text ta="center">Loading application details...</Text>
-          <Text size="sm" c="dimmed">Application ID: {applicationId}</Text>
+          <Text size="sm" c="dimmed">
+            Application ID: {applicationId}
+          </Text>
         </Stack>
       </Paper>
-    );
+    )
   }
 
   if (error || !application) {
-    const errorMessage = error?.message || error?.toString() || 'Application not found';
-    const isNetworkError = errorMessage.includes('Network') || errorMessage.includes('fetch');
-    const isAuthError = errorMessage.includes('401') || errorMessage.includes('Unauthorized');
+    const errorMessage = error?.message || error?.toString() || 'Application not found'
+    const isNetworkError = errorMessage.includes('Network') || errorMessage.includes('fetch')
+    const isAuthError = errorMessage.includes('401') || errorMessage.includes('Unauthorized')
 
     return (
       <Paper p="xl" radius="md">
         <Stack gap="md">
           <Alert
             icon={<IconAlertCircle size={16} />}
-            color={isAuthError ? "orange" : "red"}
-            title={isAuthError ? "Authentication Required" : "Error Loading Application"}
+            color={isAuthError ? 'orange' : 'red'}
+            title={isAuthError ? 'Authentication Required' : 'Error Loading Application'}
           >
             <Text>{errorMessage}</Text>
             <Text size="sm" c="dimmed" mt="xs">
@@ -265,17 +275,16 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
                 paddingTop: '12px',
                 paddingBottom: '12px',
                 fontSize: '14px',
-                lineHeight: '1.2'
-              }
+                lineHeight: '1.2',
+              },
             }}
           >
             Back to Applications
           </Button>
         </Stack>
       </Paper>
-    );
+    )
   }
-
 
   return (
     <Stack gap="xs" mt={0}>
@@ -293,8 +302,8 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
               paddingBottom: '12px',
               fontSize: '14px',
               lineHeight: '1.2',
-              color: '#880124'
-            }
+              color: '#880124',
+            },
           }}
         >
           Back to Applications
@@ -304,7 +313,12 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
 
       {/* Header Section - Person's name - SECOND with reduced padding */}
       <Paper p="sm" radius="md" pt={0} style={{ background: '#FFF8F0' }}>
-        <Title order={1} mt={0} style={{ color: '#880124', paddingLeft: '16px' }} data-testid="application-title">
+        <Title
+          order={1}
+          mt={0}
+          style={{ color: '#880124', paddingLeft: '16px' }}
+          data-testid="application-title"
+        >
           {application.sceneName}
         </Title>
       </Paper>
@@ -318,7 +332,9 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
             <button
               className="btn btn-primary"
               onClick={handleAdvanceStage}
-              disabled={!availableActions.canAdvanceStage || isSubmittingDecision || isApprovingApplication}
+              disabled={
+                !availableActions.canAdvanceStage || isSubmittingDecision || isApprovingApplication
+              }
               data-testid="advance-stage-button"
               type="button"
             >
@@ -342,8 +358,8 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
 
         {/* Right Side: Tertiary Actions */}
         <Group gap="md" wrap="nowrap">
-          {/* Tertiary Action: Reminder - Hide when application is approved */}
-          {application.status !== 'Approved' && (
+          {/* Tertiary Action: Reminder - Only show for InterviewApproved stage */}
+          {application.status === 'InterviewApproved' && (
             <button
               className="btn btn-secondary"
               onClick={handleSendReminder}
@@ -405,20 +421,28 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
                 <Grid.Col span={6}>
                   <Stack gap="md">
                     <Group gap="md" wrap="nowrap" data-testid="scene-name-field">
-                      <Text fw={600} style={{ minWidth: '120px' }}>Scene Name:</Text>
+                      <Text fw={600} style={{ minWidth: '120px' }}>
+                        Scene Name:
+                      </Text>
                       <Text>{application.sceneName}</Text>
                     </Group>
                     <Group gap="md" wrap="nowrap" data-testid="real-name-field">
-                      <Text fw={600} style={{ minWidth: '120px' }}>Real Name:</Text>
+                      <Text fw={600} style={{ minWidth: '120px' }}>
+                        Real Name:
+                      </Text>
                       <Text>{application.fullName}</Text>
                     </Group>
                     <Group gap="md" wrap="nowrap" data-testid="email-field">
-                      <Text fw={600} style={{ minWidth: '120px' }}>Email:</Text>
+                      <Text fw={600} style={{ minWidth: '120px' }}>
+                        Email:
+                      </Text>
                       <Text>{application.email}</Text>
                     </Group>
                     {application.pronouns && (
                       <Group gap="md" wrap="nowrap">
-                        <Text fw={600} style={{ minWidth: '120px' }}>Pronouns:</Text>
+                        <Text fw={600} style={{ minWidth: '120px' }}>
+                          Pronouns:
+                        </Text>
                         <Text>{application.pronouns}</Text>
                       </Group>
                     )}
@@ -429,11 +453,15 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
                 <Grid.Col span={6}>
                   <Stack gap="md">
                     <Group gap="md" wrap="nowrap">
-                      <Text fw={600} style={{ minWidth: '140px' }}>Application Date:</Text>
+                      <Text fw={600} style={{ minWidth: '140px' }}>
+                        Application Date:
+                      </Text>
                       <Text>{formatDateOnly(application.submittedAt)}</Text>
                     </Group>
                     <Group gap="md" wrap="nowrap">
-                      <Text fw={600} style={{ minWidth: '140px' }}>FetLife Handle:</Text>
+                      <Text fw={600} style={{ minWidth: '140px' }}>
+                        FetLife Handle:
+                      </Text>
                       {application.fetLifeHandle ? (
                         <Anchor
                           href={`https://fetlife.com/${application.fetLifeHandle.trim()}`}
@@ -448,7 +476,9 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
                       )}
                     </Group>
                     <Group gap="md" wrap="nowrap">
-                      <Text fw={600} style={{ minWidth: '140px' }}>Other Names/Handles:</Text>
+                      <Text fw={600} style={{ minWidth: '140px' }}>
+                        Other Names/Handles:
+                      </Text>
                       <Text>{application.otherNames || 'Not provided'}</Text>
                     </Group>
                   </Stack>
@@ -458,20 +488,21 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
               {/* Long answers - full width at bottom */}
               <Stack gap="xl">
                 <div>
-                  <Text fw={600} mb="xs">Why do you want to join WitchCityRope?</Text>
-                  <Text style={{ whiteSpace: 'pre-wrap' }}>
-                    {application.whyJoinCommunity}
+                  <Text fw={600} mb="xs">
+                    Why do you want to join WitchCityRope?
                   </Text>
+                  <Text style={{ whiteSpace: 'pre-wrap' }}>{application.whyJoinCommunity}</Text>
                 </div>
                 <div>
-                  <Text fw={600} mb="xs">What is your rope experience thus far?</Text>
+                  <Text fw={600} mb="xs">
+                    What is your rope experience thus far?
+                  </Text>
                   <Text style={{ whiteSpace: 'pre-wrap' }}>
                     {application.experienceDescription}
                   </Text>
                 </div>
               </Stack>
             </Card>
-
           </Stack>
         </Grid.Col>
       </Grid>
@@ -521,8 +552,8 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
         <Stack gap="md">
           <Alert color="blue" title="Coming Soon">
             <Text size="sm">
-              Interview scheduling functionality will be implemented in the next phase.
-              For now, please coordinate interview times manually with the applicant.
+              Interview scheduling functionality will be implemented in the next phase. For now,
+              please coordinate interview times manually with the applicant.
             </Text>
           </Alert>
           <Group justify="flex-end">
@@ -534,8 +565,8 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
                   paddingTop: '12px',
                   paddingBottom: '12px',
                   fontSize: '14px',
-                  lineHeight: '1.2'
-                }
+                  lineHeight: '1.2',
+                },
               }}
             >
               Close
@@ -544,5 +575,5 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
         </Stack>
       </Modal>
     </Stack>
-  );
-};
+  )
+}
