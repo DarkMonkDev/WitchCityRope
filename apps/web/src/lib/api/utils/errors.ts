@@ -26,7 +26,7 @@ export class ApiErrorHandler {
         if (this.isProblemDetails(responseData)) {
           const problem = responseData as ProblemDetails
           return {
-            message: problem.title || problem.detail || 'An error occurred',
+            message: problem.detail || problem.title || 'An error occurred',
             status: problem.status || status,
             code: problem.status?.toString() || status?.toString()
           }
@@ -117,8 +117,9 @@ export function extractErrorMessage(error: any): string {
 
     if (ApiErrorHandler.isProblemDetails(data)) {
       const problem = data as ProblemDetails
-      // Priority: title > detail > generic message
-      return problem.title || problem.detail || 'An error occurred'
+      // Priority: detail > title > generic message
+      // detail contains the specific error message, title is the generic category
+      return problem.detail || problem.title || 'An error occurred'
     }
 
     // Fallback for non-ProblemDetails error responses
