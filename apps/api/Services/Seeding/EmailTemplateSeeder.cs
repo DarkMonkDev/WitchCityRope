@@ -27,13 +27,15 @@ public class EmailTemplateSeeder
     /// This includes 6 Vetting templates migrated from VettingEmailTemplates table,
     /// plus 17 templates for Events (7), Admin (5), Incident (4), and Ad Hoc (1).
     /// </summary>
-    public async Task SeedAsync(CancellationToken cancellationToken = default)
+    /// <param name="adminUserEmail">Email of admin user for UpdatedBy field. Defaults to admin@witchcityrope.com for dev/staging. Production uses ropemaster@witchcityrope.com.</param>
+    /// <param name="cancellationToken">Cancellation token for async operation</param>
+    public async Task SeedAsync(string adminUserEmail = "admin@witchcityrope.com", CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Starting email template seeding...");
+        _logger.LogInformation("Starting email template seeding for admin user: {AdminEmail}...", adminUserEmail);
 
-        // Get admin user ID for UpdatedBy field
+        // Get admin user ID for UpdatedBy field (accepts custom email for production)
         var adminUser = await _context.Users
-            .FirstOrDefaultAsync(u => u.Email == "admin@witchcityrope.com", cancellationToken);
+            .FirstOrDefaultAsync(u => u.Email == adminUserEmail, cancellationToken);
 
         if (adminUser == null)
         {

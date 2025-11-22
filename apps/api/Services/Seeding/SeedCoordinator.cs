@@ -170,8 +170,9 @@ public class SeedCoordinator : ISeedDataService
             _logger.LogDebug("Seeding vetting email templates...");
             await _vettingSeeder.SeedVettingEmailTemplatesAsync(cancellationToken);
 
+            // Dev/staging uses admin@witchcityrope.com (default), production uses ropemaster@witchcityrope.com
             _logger.LogDebug("Seeding email templates (Events, Admin, Incident, Ad Hoc)...");
-            await _emailTemplateSeeder.SeedAsync(cancellationToken);
+            await _emailTemplateSeeder.SeedAsync(adminUserEmail: "admin@witchcityrope.com", cancellationToken);
 
             _logger.LogDebug("Seeding safety incidents...");
             await _safetySeeder.SeedSafetyIncidentsAsync(cancellationToken);
@@ -291,8 +292,9 @@ public class SeedCoordinator : ISeedDataService
             _logger.LogDebug("Seeding CMS content...");
             await _cmsSeeder.SeedCmsContentAsync(cancellationToken);
 
+            // Production uses ropemaster@witchcityrope.com admin user, not admin@witchcityrope.com
             _logger.LogDebug("Seeding email templates...");
-            await _emailTemplateSeeder.SeedAsync(cancellationToken);
+            await _emailTemplateSeeder.SeedAsync("ropemaster@witchcityrope.com", cancellationToken);
 
             // Calculate records created
             var finalRecordCount = await _userManager.Users.CountAsync(cancellationToken);

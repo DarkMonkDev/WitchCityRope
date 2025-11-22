@@ -1,5 +1,5 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-11-21 05:37 UTC -->
+<!-- Last Updated: 2025-11-22 12:43:47
 <!-- Version: 11.21.1 - EVENT PARTICIPATION & RSVP E2E TESTS - RSVP PRESERVATION VERIFIED -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
@@ -725,3 +725,12 @@ await _dbContext.SaveChangesAsync(cancellationToken);
 **DIAGNOSTIC REPORT**: `/test-results/timing-test-failures-diagnostic-report.md`
 
 [Rest of catalog continues...]
+
+#### Recent Failures (2025-11-22 12:43:47)
+
+Test Type: integration
+Failures: 1/11 tests
+Pass Rate: 90%
+
+**Action Required**: Investigate and fix failing tests.
+
