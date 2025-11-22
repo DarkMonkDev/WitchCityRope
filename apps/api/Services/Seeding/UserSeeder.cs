@@ -121,7 +121,7 @@ public class UserSeeder
             FetLifeName = "RopeMaster",
             PhoneNumber = null,
             Bio = "WitchCityRope administrator account for production environment.",
-            Role = UserRoleConstants.Administrator,
+            Role = UserRole.Administrator.ToRoleString(),
             PronouncedName = "Rope Master",
             Pronouns = "they/them",
             IsActive = true,
@@ -137,7 +137,7 @@ public class UserSeeder
         var createResult = await _userManager.CreateAsync(adminUser, "Test123!");
         if (createResult.Succeeded)
         {
-            var roleResult = await _userManager.AddToRoleAsync(adminUser, UserRoleConstants.Administrator);
+            var roleResult = await _userManager.AddToRoleAsync(adminUser, UserRole.Administrator.ToRoleString());
             if (roleResult.Succeeded)
             {
                 _logger.LogInformation("Created production admin user: ropemaster@witchcityrope.com with Administrator role");
