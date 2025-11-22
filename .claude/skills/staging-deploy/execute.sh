@@ -195,8 +195,8 @@ echo ""
 echo "   Building API image..."
 docker build \
   -f apps/api/Dockerfile \
-  -t $REGISTRY/witchcityrope-api-staging:latest \
-  -t $REGISTRY/witchcityrope-api-staging:$GIT_SHA \
+  -t $REGISTRY/staging-api-witchcityrope:latest \
+  -t $REGISTRY/staging-api-witchcityrope:$GIT_SHA \
   --target production \
   .
 
@@ -214,8 +214,8 @@ echo ""
 echo "   Building Web image..."
 docker build \
   -f apps/web/Dockerfile \
-  -t $REGISTRY/witchcityrope-web-staging:latest \
-  -t $REGISTRY/witchcityrope-web-staging:$GIT_SHA \
+  -t $REGISTRY/staging-web-witchcityrope:latest \
+  -t $REGISTRY/staging-web-witchcityrope:$GIT_SHA \
   --target production \
   --build-arg BUILD_MODE=staging \
   --build-arg VITE_API_BASE_URL= \
@@ -238,14 +238,14 @@ echo "2️⃣  Pushing to DigitalOcean Container Registry..."
 echo ""
 
 echo "   Pushing API image..."
-docker push $REGISTRY/witchcityrope-api-staging:latest
-docker push $REGISTRY/witchcityrope-api-staging:$GIT_SHA
+docker push $REGISTRY/staging-api-witchcityrope:latest
+docker push $REGISTRY/staging-api-witchcityrope:$GIT_SHA
 echo "   ✅ API image pushed"
 
 echo ""
 echo "   Pushing Web image..."
-docker push $REGISTRY/witchcityrope-web-staging:latest
-docker push $REGISTRY/witchcityrope-web-staging:$GIT_SHA
+docker push $REGISTRY/staging-web-witchcityrope:latest
+docker push $REGISTRY/staging-web-witchcityrope:$GIT_SHA
 echo "   ✅ Web image pushed"
 echo ""
 

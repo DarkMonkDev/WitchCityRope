@@ -34,19 +34,19 @@ ACCOUNTING_REGISTRY="accounting"
 
 # Repository retention policies (number of tags to keep)
 declare -A RETENTION
-RETENTION["witchcityrope-api-staging"]=10
-RETENTION["witchcityrope-web-staging"]=10
-RETENTION["witchcityrope-api-production"]=30
-RETENTION["witchcityrope-web-production"]=30
+RETENTION["staging-api-witchcityrope"]=10
+RETENTION["staging-web-witchcityrope"]=10
+RETENTION["production-api-witchcityrope"]=30
+RETENTION["production-web-witchcityrope"]=30
 RETENTION["accounting-api"]=30
 RETENTION["accounting-web"]=30
 
 # Repository to registry mapping
 declare -A REGISTRY_MAP
-REGISTRY_MAP["witchcityrope-api-staging"]="$WITCHCITYROPE_REGISTRY"
-REGISTRY_MAP["witchcityrope-web-staging"]="$WITCHCITYROPE_REGISTRY"
-REGISTRY_MAP["witchcityrope-api-production"]="$WITCHCITYROPE_REGISTRY"
-REGISTRY_MAP["witchcityrope-web-production"]="$WITCHCITYROPE_REGISTRY"
+REGISTRY_MAP["staging-api-witchcityrope"]="$WITCHCITYROPE_REGISTRY"
+REGISTRY_MAP["staging-web-witchcityrope"]="$WITCHCITYROPE_REGISTRY"
+REGISTRY_MAP["production-api-witchcityrope"]="$WITCHCITYROPE_REGISTRY"
+REGISTRY_MAP["production-web-witchcityrope"]="$WITCHCITYROPE_REGISTRY"
 REGISTRY_MAP["accounting-api"]="$ACCOUNTING_REGISTRY"
 REGISTRY_MAP["accounting-web"]="$ACCOUNTING_REGISTRY"
 
