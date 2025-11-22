@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../../../api/client'
 import { useAuthActions } from '../../../stores/authStore'
+import { extractErrorMessage } from '../../../lib/api/utils/errors'
 import type {
   UserDto,
   LoginRequest,
@@ -19,40 +20,6 @@ interface LoginResponseData {
 
 // Type alias for backwards compatibility
 export type RegisterCredentials = RegisterRequest
-
-/**
- * Helper function to extract user-friendly error messages from API errors
- */
-function getErrorMessage(error: any): string {
-  // Handle Axios errors
-  if (error.response) {
-    const status = error.response.status
-    const message = error.response.data?.message || error.response.data?.error
-
-    // Map status codes to user-friendly messages
-    switch (status) {
-      case 401:
-        return 'The email or password is incorrect. Please try again.'
-      case 429:
-        return 'Too many login attempts. Please wait a few minutes and try again.'
-      case 500:
-      case 502:
-      case 503:
-        return 'An error occurred while processing your request. Please try again later.'
-      default:
-        // Use server message if available, otherwise generic error
-        return message || 'An error occurred. Please try again.'
-    }
-  }
-
-  // Handle network errors
-  if (error.code === 'ECONNABORTED' || error.code === 'ERR_NETWORK' || !error.response) {
-    return 'Unable to connect to the server. Please check your internet connection and try again.'
-  }
-
-  // Generic fallback
-  return error.message || 'An error occurred. Please try again.'
-}
 
 /**
  * Get contextual success message based on return URL path
@@ -92,8 +59,8 @@ export function useLogin() {
         const response = await api.post('/api/auth/login', credentials)
         return response.data
       } catch (error: any) {
-        // Enhance error with user-friendly message
-        const userFriendlyMessage = getErrorMessage(error)
+        // Use existing utility that properly handles RFC 9457 Problem Details
+        const userFriendlyMessage = extractErrorMessage(error)
         const enhancedError = new Error(userFriendlyMessage)
         // Preserve original error for debugging
         console.error('Login error:', error)
@@ -160,8 +127,8 @@ export function useRegister() {
         const response = await api.post('/api/auth/register', credentials)
         return response.data
       } catch (error: any) {
-        // Enhance error with user-friendly message
-        const userFriendlyMessage = getErrorMessage(error)
+        // Use existing utility that properly handles RFC 9457 Problem Details
+        const userFriendlyMessage = extractErrorMessage(error)
         const enhancedError = new Error(userFriendlyMessage)
         // Preserve original error for debugging
         console.error('Registration error:', error)
@@ -230,7 +197,7 @@ export function useVerifyEmail() {
         const response = await api.post('/api/auth/verify-email', { email, token })
         return response.data
       } catch (error: any) {
-        const userFriendlyMessage = getErrorMessage(error)
+        const userFriendlyMessage = extractErrorMessage(error)
         const enhancedError = new Error(userFriendlyMessage)
         console.error('Email verification error:', error)
         throw enhancedError
@@ -251,7 +218,7 @@ export function useResendVerification() {
         const response = await api.post('/api/auth/resend-verification', { email })
         return response.data
       } catch (error: any) {
-        const userFriendlyMessage = getErrorMessage(error)
+        const userFriendlyMessage = extractErrorMessage(error)
         const enhancedError = new Error(userFriendlyMessage)
         console.error('Resend verification error:', error)
         throw enhancedError
@@ -273,7 +240,7 @@ export function useForgotPassword() {
         const response = await api.post('/api/auth/forgot-password', { email })
         return response.data
       } catch (error: any) {
-        const userFriendlyMessage = getErrorMessage(error)
+        const userFriendlyMessage = extractErrorMessage(error)
         const enhancedError = new Error(userFriendlyMessage)
         console.error('Forgot password error:', error)
         throw enhancedError
@@ -294,7 +261,7 @@ export function useResetPassword() {
         const response = await api.post('/api/auth/reset-password', { userId, token, newPassword })
         return response.data
       } catch (error: any) {
-        const userFriendlyMessage = getErrorMessage(error)
+        const userFriendlyMessage = extractErrorMessage(error)
         const enhancedError = new Error(userFriendlyMessage)
         console.error('Reset password error:', error)
         throw enhancedError
