@@ -19,12 +19,12 @@ This guide covers deploying WitchCityRope to the staging environment on DigitalO
 WitchCityRope uses environment-specific repository naming in the `witchcityrope` registry:
 
 **Staging repositories:**
-- `registry.digitalocean.com/witchcityrope/witchcityrope-api-staging`
-- `registry.digitalocean.com/witchcityrope/witchcityrope-web-staging`
+- `registry.digitalocean.com/witchcityrope/staging-api-witchcityrope`
+- `registry.digitalocean.com/witchcityrope/staging-web-witchcityrope`
 
 **Production repositories:**
-- `registry.digitalocean.com/witchcityrope/witchcityrope-api-production`
-- `registry.digitalocean.com/witchcityrope/witchcityrope-web-production`
+- `registry.digitalocean.com/witchcityrope/production-api-witchcityrope`
+- `registry.digitalocean.com/witchcityrope/production-web-witchcityrope`
 
 **Accounting project (separate registry):**
 - `registry.digitalocean.com/accounting/accounting-api`
@@ -89,7 +89,7 @@ The skill is located at `/.claude/skills/staging-deploy.md` and fully automates:
 **STAGING USES `-staging` REPOSITORY SUFFIX WITH `:latest` TAG**
 
 The `staging-deploy` skill automatically uses:
-- Repository names: `witchcityrope-api-staging` and `witchcityrope-web-staging`
+- Repository names: `staging-api-witchcityrope` and `staging-web-witchcityrope`
 - Tag: `:latest` for rollout + `:git-sha` for traceability
 
 **Why this structure:**

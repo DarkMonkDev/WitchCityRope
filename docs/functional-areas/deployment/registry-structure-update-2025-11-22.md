@@ -9,12 +9,12 @@ This document describes the reorganization of DigitalOcean Container Registry st
 ### WitchCityRope Registry (`registry.digitalocean.com/witchcityrope`)
 
 **Staging repositories:**
-- `registry.digitalocean.com/witchcityrope/witchcityrope-api-staging`
-- `registry.digitalocean.com/witchcityrope/witchcityrope-web-staging`
+- `registry.digitalocean.com/witchcityrope/staging-api-witchcityrope`
+- `registry.digitalocean.com/witchcityrope/staging-web-witchcityrope`
 
 **Production repositories:**
-- `registry.digitalocean.com/witchcityrope/witchcityrope-api-production`
-- `registry.digitalocean.com/witchcityrope/witchcityrope-web-production`
+- `registry.digitalocean.com/witchcityrope/production-api-witchcityrope`
+- `registry.digitalocean.com/witchcityrope/production-web-witchcityrope`
 
 ### Accounting Registry (`registry.digitalocean.com/accounting`)
 
@@ -37,9 +37,9 @@ The following deployment automation has been updated to use the new structure:
 **File**: `/.claude/skills/staging-deploy/execute.sh`
 
 **Changes:**
-- API images: `witchcityrope-api:latest` → `witchcityrope-api-staging:latest`
-- Web images: `witchcityrope-web:latest` → `witchcityrope-web-staging:latest`
-- Git SHA tags: `witchcityrope-api:$GIT_SHA` → `witchcityrope-api-staging:$GIT_SHA`
+- API images: `witchcityrope-api:latest` → `staging-api-witchcityrope:latest`
+- Web images: `witchcityrope-web:latest` → `staging-web-witchcityrope:latest`
+- Git SHA tags: `witchcityrope-api:$GIT_SHA` → `staging-api-witchcityrope:$GIT_SHA`
 
 **Deployment**: Use `staging-deploy` skill for automated staging deployment with new repository structure.
 
@@ -47,9 +47,9 @@ The following deployment automation has been updated to use the new structure:
 **File**: `/.claude/skills/production-deploy/execute.sh`
 
 **Changes:**
-- API images: `witchcityrope-api:production` → `witchcityrope-api-production:latest`
-- Web images: `witchcityrope-web:production` → `witchcityrope-web-production:latest`
-- Git SHA tags: `witchcityrope-api:$GIT_SHA` → `witchcityrope-api-production:$GIT_SHA`
+- API images: `witchcityrope-api:production` → `production-api-witchcityrope:latest`
+- Web images: `witchcityrope-web:production` → `production-web-witchcityrope:latest`
+- Git SHA tags: `witchcityrope-api:$GIT_SHA` → `production-api-witchcityrope:$GIT_SHA`
 
 **Deployment**: Use `production-deploy` skill for automated production deployment with new repository structure.
 
@@ -61,10 +61,10 @@ Update image references:
 ```yaml
 services:
   api:
-    image: registry.digitalocean.com/witchcityrope/witchcityrope-api-staging:latest
+    image: registry.digitalocean.com/witchcityrope/staging-api-witchcityrope:latest
 
   web:
-    image: registry.digitalocean.com/witchcityrope/witchcityrope-web-staging:latest
+    image: registry.digitalocean.com/witchcityrope/staging-web-witchcityrope:latest
 ```
 
 ### Production Server (`/opt/witchcityrope/production/docker-compose.production.yml`)
@@ -73,10 +73,10 @@ Update image references:
 ```yaml
 services:
   api:
-    image: registry.digitalocean.com/witchcityrope/witchcityrope-api-production:latest
+    image: registry.digitalocean.com/witchcityrope/production-api-witchcityrope:latest
 
   web:
-    image: registry.digitalocean.com/witchcityrope/witchcityrope-web-production:latest
+    image: registry.digitalocean.com/witchcityrope/production-web-witchcityrope:latest
 ```
 
 ## Documentation Updated
