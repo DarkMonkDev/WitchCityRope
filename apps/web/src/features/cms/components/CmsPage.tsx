@@ -279,15 +279,7 @@ export const CmsPage: React.FC<CmsPageProps> = ({ slug, defaultTitle, defaultCon
       {!isEditing && (
         <Box>
           {/* Display page title as H1 */}
-          <h1
-            style={{
-              fontFamily: 'Montserrat, sans-serif',
-              fontSize: '32px',
-              fontWeight: 700,
-              marginBottom: '24px',
-              color: '#1a1a1a',
-            }}
-          >
+          <h1 className="page-title">
             {pageContent.title}
           </h1>
 
