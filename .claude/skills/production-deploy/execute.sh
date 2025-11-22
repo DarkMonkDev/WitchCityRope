@@ -203,7 +203,7 @@ docker build \
   -t $REGISTRY/witchcityrope-web:$GIT_SHA \
   --target production \
   --build-arg BUILD_MODE=production \
-  --build-arg VITE_API_BASE_URL=/api \
+  --build-arg VITE_API_BASE_URL="" \
   --build-arg VITE_APP_TITLE="WitchCityRope" \
   --build-arg VITE_APP_VERSION="$GIT_SHA" \
   .
