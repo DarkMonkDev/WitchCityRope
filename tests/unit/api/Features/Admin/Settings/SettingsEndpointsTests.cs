@@ -13,6 +13,12 @@ namespace WitchCityRope.UnitTests.Api.Features.Admin.Settings;
 /// <summary>
 /// Unit tests for SettingsEndpoints (Pattern B)
 /// Tests public settings retrieval, admin settings management, and settings update validation
+///
+/// NOTE (2025-11-22): PreStartBufferMinutes setting has been REMOVED from the system.
+/// These tests still reference it for backward compatibility with the settings endpoint,
+/// but the buffer functionality itself has been replaced by per-event timing fields.
+/// The validation tests for buffer minutes remain to ensure the endpoint still handles
+/// the setting correctly if it exists in legacy data.
 /// </summary>
 public class SettingsEndpointsTests
 {

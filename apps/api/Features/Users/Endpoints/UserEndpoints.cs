@@ -224,6 +224,7 @@ public static class UserEndpoints
                         statusCode: error.Contains("not found") ? 404 :
                                   error.Contains("Invalid") ? 400 : 500);
             })
+            .RequireAntiforgery() // CRITICAL SECURITY: Prevent CSRF privilege escalation attacks
             .RequireAuthorization(policy => policy.RequireRole(UserRole.Administrator.ToRoleString())) // Administrator role required
             .WithName("UpdateUserRoles")
             .WithSummary("Update user roles (admin only)")

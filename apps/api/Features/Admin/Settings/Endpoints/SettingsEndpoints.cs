@@ -18,12 +18,10 @@ public static class SettingsEndpoints
             CancellationToken cancellationToken) =>
         {
             var eventTimeZone = await settingsService.GetSettingAsync("EventTimeZone", cancellationToken);
-            var preStartBuffer = await settingsService.GetSettingAsync("PreStartBufferMinutes", cancellationToken);
 
             var settings = new
             {
-                EventTimeZone = eventTimeZone ?? "America/New_York",
-                PreStartBufferMinutes = preStartBuffer ?? "0"
+                EventTimeZone = eventTimeZone ?? "America/New_York"
             };
 
             return Results.Ok(settings);
@@ -70,19 +68,6 @@ public static class SettingsEndpoints
                     return Results.Problem(
                         title: "Invalid Timezone",
                         detail: $"Timezone '{timeZoneId}' is not valid",
-                        statusCode: 400);
-                }
-            }
-
-            // Validate buffer minutes if provided
-            if (request.Settings.ContainsKey("PreStartBufferMinutes"))
-            {
-                var bufferValue = request.Settings["PreStartBufferMinutes"];
-                if (!int.TryParse(bufferValue, out int bufferMinutes) || bufferMinutes < 0)
-                {
-                    return Results.Problem(
-                        title: "Invalid Buffer Minutes",
-                        detail: "PreStartBufferMinutes must be a non-negative integer",
                         statusCode: 400);
                 }
             }

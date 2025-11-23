@@ -26,7 +26,13 @@ import { useForm } from '@mantine/form'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../api/client'
 import { notifications } from '@mantine/notifications'
-import { IconCheck, IconAlertCircle, IconChevronUp, IconChevronDown, IconSettings } from '@tabler/icons-react'
+import {
+  IconCheck,
+  IconAlertCircle,
+  IconChevronUp,
+  IconChevronDown,
+  IconSettings,
+} from '@tabler/icons-react'
 import { MantineTiptapEditor } from '../forms/MantineTiptapEditor'
 import type { components } from '@witchcityrope/shared-types'
 
@@ -46,7 +52,11 @@ import {
 } from '../../lib/api/hooks/useEventParticipations'
 import { useUpdateEvent } from '../../lib/api/hooks/useEvents'
 import { eventKeys } from '../../lib/api/utils/cache'
-import { emailTemplatesApi, type EventEmailTemplateDto, type UpdateEventTemplateRequest } from '../../services/emailTemplates.api'
+import {
+  emailTemplatesApi,
+  type EventEmailTemplateDto,
+  type UpdateEventTemplateRequest,
+} from '../../services/emailTemplates.api'
 
 // Helper function to extract purchase amount from metadata JSON
 const extractAmountFromMetadata = (metadata?: string): number => {
@@ -97,14 +107,14 @@ const AttendeesTabPanel: React.FC<AttendeesTabPanelProps> = ({ eventId }) => {
   const groupedParticipations = React.useMemo(() => {
     const grouped = new Map<string, EventParticipationDto & { ticketAmount?: number }>()
 
-    participations.forEach(p => {
+    participations.forEach((p) => {
       const existing = grouped.get(p.userId)
 
       if (!existing) {
         // First entry for this user
         grouped.set(p.userId, {
           ...p,
-          ticketAmount: p.participationType === 'Ticket' ? (p.amountPaid ?? 0) : undefined
+          ticketAmount: p.participationType === 'Ticket' ? (p.amountPaid ?? 0) : undefined,
         })
       } else {
         // User already exists - merge ticket amount if this is a ticket purchase
@@ -475,7 +485,9 @@ export const EventForm: React.FC<EventFormProps> = ({
   const [rsvpSortDirection, setRsvpSortDirection] = useState<'asc' | 'desc'>('asc')
 
   // Tickets table sorting
-  const [ticketsSortColumn, setTicketsSortColumn] = useState<'name' | 'ticketType' | 'status' | 'sessions' | 'date' | 'amount'>('name')
+  const [ticketsSortColumn, setTicketsSortColumn] = useState<
+    'name' | 'ticketType' | 'status' | 'sessions' | 'date' | 'amount'
+  >('name')
   const [ticketsSortDirection, setTicketsSortDirection] = useState<'asc' | 'desc'>('asc')
 
   // Email templates state
@@ -504,11 +516,17 @@ export const EventForm: React.FC<EventFormProps> = ({
   }
 
   // Helper function to render sort icon
-  const renderSortIcon = (columnName: string, currentColumn: string, currentDirection: 'asc' | 'desc') => {
+  const renderSortIcon = (
+    columnName: string,
+    currentColumn: string,
+    currentDirection: 'asc' | 'desc'
+  ) => {
     if (columnName !== currentColumn) return null
-    return currentDirection === 'asc' ?
-      <IconChevronUp size={14} style={{ marginLeft: 4 }} /> :
+    return currentDirection === 'asc' ? (
+      <IconChevronUp size={14} style={{ marginLeft: 4 }} />
+    ) : (
       <IconChevronDown size={14} style={{ marginLeft: 4 }} />
+    )
   }
 
   // Form state management
@@ -675,8 +693,10 @@ export const EventForm: React.FC<EventFormProps> = ({
   // Track Volunteer timing changes separately
   useEffect(() => {
     const hasVolunteerTimingChanged =
-      form.values.volunteerRegistrationCloseHours !== initialTimingValues.volunteer.volunteerRegistrationCloseHours ||
-      form.values.volunteerCancellationCloseHours !== initialTimingValues.volunteer.volunteerCancellationCloseHours
+      form.values.volunteerRegistrationCloseHours !==
+        initialTimingValues.volunteer.volunteerRegistrationCloseHours ||
+      form.values.volunteerCancellationCloseHours !==
+        initialTimingValues.volunteer.volunteerCancellationCloseHours
 
     setVolunteerTimingDirty(hasVolunteerTimingChanged)
   }, [
@@ -689,7 +709,8 @@ export const EventForm: React.FC<EventFormProps> = ({
   useEffect(() => {
     if (activeTab === 'emails' && eventId) {
       setIsLoadingTemplates(true)
-      emailTemplatesApi.getEventTemplates(eventId)
+      emailTemplatesApi
+        .getEventTemplates(eventId)
         .then((templates) => {
           setEventTemplates(templates)
         })
@@ -1029,13 +1050,13 @@ export const EventForm: React.FC<EventFormProps> = ({
   const handleRemoveRsvpClick = (participation: EventParticipationDto) => {
     // Find ticket purchase amount for this user (if any)
     const userTicket = (participationsData as EventParticipationDto[])?.find(
-      p => p.userId === participation.userId && p.participationType === 'Ticket'
+      (p) => p.userId === participation.userId && p.participationType === 'Ticket'
     )
 
     // Add ticketAmount to the participation object
     const participationWithTicket = {
       ...participation,
-      ticketAmount: userTicket?.amountPaid ?? 0
+      ticketAmount: userTicket?.amountPaid ?? 0,
     }
 
     setSelectedParticipant(participationWithTicket as any)
@@ -1051,7 +1072,9 @@ export const EventForm: React.FC<EventFormProps> = ({
     if (!selectedParticipant || !eventId) return
 
     try {
-      const response = await api.delete(`/api/admin/events/${eventId}/participations/${selectedParticipant.userId}`)
+      const response = await api.delete(
+        `/api/admin/events/${eventId}/participations/${selectedParticipant.userId}`
+      )
 
       if (response.status !== 200 && response.status !== 204) {
         throw new Error('Failed to remove RSVP')
@@ -1060,7 +1083,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       notifications.show({
         message: 'RSVP removed successfully',
         color: 'green',
-        autoClose: 3000
+        autoClose: 3000,
       })
 
       // Refetch participations to update the tables
@@ -1073,7 +1096,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       notifications.show({
         message: 'Failed to remove RSVP',
         color: 'red',
-        autoClose: 5000
+        autoClose: 5000,
       })
     }
   }
@@ -1088,7 +1111,7 @@ export const EventForm: React.FC<EventFormProps> = ({
         `/api/payments/transactions/${selectedParticipant.id}/refund`,
         {
           refundAmount,
-          refundReason
+          refundReason,
         }
       )
 
@@ -1117,7 +1140,7 @@ export const EventForm: React.FC<EventFormProps> = ({
   const [targetSessions, setTargetSessions] = useState<string[]>(['all'])
 
   // Get currently selected template
-  const selectedTemplate = eventTemplates.find(t => t.templateType === activeEmailTemplate)
+  const selectedTemplate = eventTemplates.find((t) => t.templateType === activeEmailTemplate)
 
   // Update editor state when active template changes
   useEffect(() => {
@@ -1151,10 +1174,14 @@ export const EventForm: React.FC<EventFormProps> = ({
 
   // Save template mutation
   const saveTemplateMutation = useMutation({
-    mutationFn: async ({ eventId, templateType, request }: {
-      eventId: string;
-      templateType: string;
-      request: UpdateEventTemplateRequest;
+    mutationFn: async ({
+      eventId,
+      templateType,
+      request,
+    }: {
+      eventId: string
+      templateType: string
+      request: UpdateEventTemplateRequest
     }) => {
       await emailTemplatesApi.updateEventTemplate(eventId, templateType, request)
     },
@@ -1199,13 +1226,17 @@ export const EventForm: React.FC<EventFormProps> = ({
     if (!eventId) return
 
     try {
-      // Create partial update with only RSVP/Ticket timing fields
+      // Create partial update with ALL timing fields to prevent data loss
+      // Backend detects timing-only update and updates all timing fields,
+      // so we must include volunteer timing to preserve those values
       await updateEventMutation.mutateAsync({
         id: eventId,
         registrationOpenHours: form.values.registrationOpenHours,
         registrationCloseHours: form.values.registrationCloseHours,
         cancellationOpenHours: form.values.cancellationOpenHours,
         cancellationCloseHours: form.values.cancellationCloseHours,
+        volunteerRegistrationCloseHours: form.values.volunteerRegistrationCloseHours,
+        volunteerCancellationCloseHours: form.values.volunteerCancellationCloseHours,
       })
 
       // Update initial values to current values
@@ -1242,9 +1273,15 @@ export const EventForm: React.FC<EventFormProps> = ({
     if (!eventId) return
 
     try {
-      // Create partial update with only Volunteer timing fields
+      // Create partial update with ALL timing fields to prevent data loss
+      // Backend detects timing-only update and updates all timing fields,
+      // so we must include RSVP timing to preserve those values
       await updateEventMutation.mutateAsync({
         id: eventId,
+        registrationOpenHours: form.values.registrationOpenHours,
+        registrationCloseHours: form.values.registrationCloseHours,
+        cancellationOpenHours: form.values.cancellationOpenHours,
+        cancellationCloseHours: form.values.cancellationCloseHours,
         volunteerRegistrationCloseHours: form.values.volunteerRegistrationCloseHours,
         volunteerCancellationCloseHours: form.values.volunteerCancellationCloseHours,
       })
@@ -1827,7 +1864,8 @@ export const EventForm: React.FC<EventFormProps> = ({
           >
             <Text mb="md">
               Are you sure you want to reset <strong>{templateToReset?.templateTypeName}</strong> to
-              the global default template? This will delete your customizations and cannot be undone.
+              the global default template? This will delete your customizations and cannot be
+              undone.
             </Text>
 
             <Group justify="flex-end" mt="lg">
@@ -1879,77 +1917,91 @@ export const EventForm: React.FC<EventFormProps> = ({
                     id="volunteer-timing-settings"
                     p="md"
                     style={{
-                      background: 'linear-gradient(135deg, var(--mantine-color-burgundy-0) 0%, var(--mantine-color-plum-0) 100%)',
+                      background:
+                        'linear-gradient(135deg, var(--mantine-color-burgundy-0) 0%, var(--mantine-color-plum-0) 100%)',
                       borderRadius: '8px',
                       border: '1px solid var(--mantine-color-burgundy-2)',
                     }}
                   >
                     <Stack gap="md">
                       <Text size="sm" c="dimmed" mb="md">
-                        Control when volunteers can sign up and cancel their shifts. Examples: 24 = 1 day before, 48 = 2 days before, 168 = 1 week before. Positive values = hours before event start. Negative values = hours after event start. Leave blank for no restrictions (always open).
+                        Control when volunteers can sign up and cancel their shifts. Examples: 24 =
+                        1 day before, 48 = 2 days before, 168 = 1 week before. Positive values =
+                        hours before event start. Negative values = hours after event start. Leave
+                        blank for no restrictions (always open).
                       </Text>
 
                       {/* Two-column layout with inline labels within each column */}
                       <Group grow align="flex-start">
-                      {/* Column 1: Volunteer Registration Closes */}
-                      <Stack gap="xs">
-                        <Group gap="xs" align="center" wrap="nowrap">
-                          <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>
-                            Volunteer Registration Closes:
-                          </Text>
-                          <NumberInput
-                            placeholder="Not Set = Never Closes"
-                            min={-24}
-                            max={8760}
-                            step={0.5}
-                            decimalScale={1}
-                            allowNegative={true}
-                            value={form.values.volunteerRegistrationCloseHours ?? undefined}
-                            onChange={(value) => form.setFieldValue('volunteerRegistrationCloseHours', typeof value === 'number' ? value : null)}
-                            error={form.errors.volunteerRegistrationCloseHours}
-                            aria-label="Volunteer Registration Closes"
-                            aria-describedby="volunteer-registration-close-help"
-                            style={{ flex: 1 }}
-                          />
-                        </Group>
-                      </Stack>
+                        {/* Column 1: Volunteer Registration Closes */}
+                        <Stack gap="xs">
+                          <Group gap="xs" align="center" wrap="nowrap">
+                            <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>
+                              Volunteer Registration Closes:
+                            </Text>
+                            <NumberInput
+                              placeholder="Not Set = Never Closes"
+                              min={-24}
+                              max={8760}
+                              step={0.5}
+                              decimalScale={1}
+                              allowNegative={true}
+                              value={form.values.volunteerRegistrationCloseHours ?? undefined}
+                              onChange={(value) =>
+                                form.setFieldValue(
+                                  'volunteerRegistrationCloseHours',
+                                  typeof value === 'number' ? value : null
+                                )
+                              }
+                              error={form.errors.volunteerRegistrationCloseHours}
+                              aria-label="Volunteer Registration Closes"
+                              aria-describedby="volunteer-registration-close-help"
+                              style={{ flex: 1 }}
+                            />
+                          </Group>
+                        </Stack>
 
-                      {/* Column 2: Volunteer Cancellation Closes */}
-                      <Stack gap="xs">
-                        <Group gap="xs" align="center" wrap="nowrap">
-                          <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>
-                            Volunteer Cancellation Closes:
-                          </Text>
-                          <NumberInput
-                            placeholder="Not Set = Always can cancel"
-                            min={-24}
-                            max={8760}
-                            step={0.5}
-                            decimalScale={1}
-                            allowNegative={true}
-                            value={form.values.volunteerCancellationCloseHours ?? undefined}
-                            onChange={(value) => form.setFieldValue('volunteerCancellationCloseHours', typeof value === 'number' ? value : null)}
-                            error={form.errors.volunteerCancellationCloseHours}
-                            aria-label="Volunteer Cancellation Closes"
-                            aria-describedby="volunteer-cancellation-close-help"
-                            style={{ flex: 1 }}
-                          />
-                        </Group>
-                      </Stack>
-                    </Group>
+                        {/* Column 2: Volunteer Cancellation Closes */}
+                        <Stack gap="xs">
+                          <Group gap="xs" align="center" wrap="nowrap">
+                            <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>
+                              Volunteer Cancellation Closes:
+                            </Text>
+                            <NumberInput
+                              placeholder="Not Set = Always can cancel"
+                              min={-24}
+                              max={8760}
+                              step={0.5}
+                              decimalScale={1}
+                              allowNegative={true}
+                              value={form.values.volunteerCancellationCloseHours ?? undefined}
+                              onChange={(value) =>
+                                form.setFieldValue(
+                                  'volunteerCancellationCloseHours',
+                                  typeof value === 'number' ? value : null
+                                )
+                              }
+                              error={form.errors.volunteerCancellationCloseHours}
+                              aria-label="Volunteer Cancellation Closes"
+                              aria-describedby="volunteer-cancellation-close-help"
+                              style={{ flex: 1 }}
+                            />
+                          </Group>
+                        </Stack>
+                      </Group>
 
-                    {/* Save Timing Button */}
-                    <Group justify="flex-start" mt="md">
-                      <WCRButton
-                        onClick={handleSaveVolunteerTiming}
-                        loading={updateEventMutation.isPending}
-                        variant="secondary"
-                        size="lg"
-                        disabled={!volunteerTimingDirty}
-                      >
-                        {updateEventMutation.isPending ? 'Saving...' : 'Save'}
-                      </WCRButton>
-                    </Group>
+                      {/* Save Timing Button */}
+                      <Group justify="flex-start" mt="md">
+                        <WCRButton
+                          onClick={handleSaveVolunteerTiming}
+                          loading={updateEventMutation.isPending}
+                          variant="secondary"
+                          size="lg"
+                          disabled={!volunteerTimingDirty}
+                        >
+                          {updateEventMutation.isPending ? 'Saving...' : 'Save'}
+                        </WCRButton>
+                      </Group>
                     </Stack>
                   </Box>
                 </Box>
@@ -2003,14 +2055,18 @@ export const EventForm: React.FC<EventFormProps> = ({
                     id="rsvp-timing-settings"
                     p="md"
                     style={{
-                      background: 'linear-gradient(135deg, var(--mantine-color-burgundy-0) 0%, var(--mantine-color-plum-0) 100%)',
+                      background:
+                        'linear-gradient(135deg, var(--mantine-color-burgundy-0) 0%, var(--mantine-color-plum-0) 100%)',
                       borderRadius: '8px',
                       border: '1px solid var(--mantine-color-burgundy-2)',
                     }}
                   >
                     <Stack gap="md">
                       <Text size="sm" c="dimmed" mb="md">
-                        Control when users can register and cancel. Examples: 24 = 1 day before, 48 = 2 days before, 168 = 1 week before. Positive values = hours before event start. Negative values = hours after event start. Leave blank for no restrictions (always open).
+                        Control when users can register and cancel. Examples: 24 = 1 day before, 48
+                        = 2 days before, 168 = 1 week before. Positive values = hours before event
+                        start. Negative values = hours after event start. Leave blank for no
+                        restrictions (always open).
                       </Text>
 
                       {/* Row 1: Two-column layout with inline labels */}
@@ -2027,7 +2083,12 @@ export const EventForm: React.FC<EventFormProps> = ({
                               max={8760}
                               allowNegative={true}
                               value={form.values.registrationOpenHours ?? undefined}
-                              onChange={(value) => form.setFieldValue('registrationOpenHours', typeof value === 'number' ? value : null)}
+                              onChange={(value) =>
+                                form.setFieldValue(
+                                  'registrationOpenHours',
+                                  typeof value === 'number' ? value : null
+                                )
+                              }
                               error={form.errors.registrationOpenHours}
                               aria-label="Registration / Tickets Starts"
                               aria-describedby="registration-open-help"
@@ -2050,7 +2111,12 @@ export const EventForm: React.FC<EventFormProps> = ({
                               decimalScale={1}
                               allowNegative={true}
                               value={form.values.registrationCloseHours ?? undefined}
-                              onChange={(value) => form.setFieldValue('registrationCloseHours', typeof value === 'number' ? value : null)}
+                              onChange={(value) =>
+                                form.setFieldValue(
+                                  'registrationCloseHours',
+                                  typeof value === 'number' ? value : null
+                                )
+                              }
                               error={form.errors.registrationCloseHours}
                               aria-label="Registration / Ticket Sales Ends"
                               aria-describedby="registration-close-help"
@@ -2074,7 +2140,12 @@ export const EventForm: React.FC<EventFormProps> = ({
                               max={8760}
                               allowNegative={true}
                               value={form.values.cancellationOpenHours ?? undefined}
-                              onChange={(value) => form.setFieldValue('cancellationOpenHours', typeof value === 'number' ? value : null)}
+                              onChange={(value) =>
+                                form.setFieldValue(
+                                  'cancellationOpenHours',
+                                  typeof value === 'number' ? value : null
+                                )
+                              }
                               error={form.errors.cancellationOpenHours}
                               aria-label="Cancellation Opens"
                               aria-describedby="cancellation-open-help"
@@ -2097,7 +2168,12 @@ export const EventForm: React.FC<EventFormProps> = ({
                               decimalScale={1}
                               allowNegative={true}
                               value={form.values.cancellationCloseHours ?? undefined}
-                              onChange={(value) => form.setFieldValue('cancellationCloseHours', typeof value === 'number' ? value : null)}
+                              onChange={(value) =>
+                                form.setFieldValue(
+                                  'cancellationCloseHours',
+                                  typeof value === 'number' ? value : null
+                                )
+                              }
                               error={form.errors.cancellationCloseHours}
                               aria-label="Cancellation Closes"
                               aria-describedby="cancellation-close-help"
@@ -2540,7 +2616,10 @@ export const EventForm: React.FC<EventFormProps> = ({
                               <Text size="sm">{participation.ticketTypeName ?? 'RSVP'}</Text>
                             </Table.Td>
                             <Table.Td>
-                              <Text size="sm" c={participation.status === 'Active' ? 'green' : 'red'}>
+                              <Text
+                                size="sm"
+                                c={participation.status === 'Active' ? 'green' : 'red'}
+                              >
                                 {participation.status}
                               </Text>
                             </Table.Td>
@@ -2689,12 +2768,13 @@ export const EventForm: React.FC<EventFormProps> = ({
           participant={{
             userId: selectedParticipant.userId,
             name: selectedParticipant.userSceneName,
-            hasTicket: selectedParticipant.participationType === 'Ticket' ||
-                       (participationsData as EventParticipationDto[])?.some(
-                         p => p.userId === selectedParticipant.userId && p.participationType === 'Ticket'
-                       ),
+            hasTicket:
+              selectedParticipant.participationType === 'Ticket' ||
+              (participationsData as EventParticipationDto[])?.some(
+                (p) => p.userId === selectedParticipant.userId && p.participationType === 'Ticket'
+              ),
             ticketAmount: selectedParticipant.amountPaid ?? 0,
-            volunteerShifts: [] // TODO: Add volunteer shift data when available
+            volunteerShifts: [], // TODO: Add volunteer shift data when available
           }}
           eventName={form.values.title || 'this event'}
           onConfirm={handleRemoveRsvpConfirm}
@@ -2716,10 +2796,11 @@ export const EventForm: React.FC<EventFormProps> = ({
             amount: Number(selectedParticipant.amountPaid ?? 0),
             paymentMethod: selectedParticipant.paymentMethod || 'Paid Ticket',
             paymentDate: selectedParticipant.participationDate,
-            description: selectedParticipant.sessionNames !== 'All Sessions'
-              ? `Sessions: ${selectedParticipant.sessionNames}`
-              : undefined,
-            remainingRefundableAmount: Number(selectedParticipant.amountPaid ?? 0)
+            description:
+              selectedParticipant.sessionNames !== 'All Sessions'
+                ? `Sessions: ${selectedParticipant.sessionNames}`
+                : undefined,
+            remainingRefundableAmount: Number(selectedParticipant.amountPaid ?? 0),
           }}
           onConfirm={handleRefundTicketConfirm}
         />

@@ -413,7 +413,7 @@ export async function getTestableEvents(): Promise<EventRecord[]> {
  * Use for RSVP lifecycle tests that need a free event.
  *
  * IMPORTANT: Adds 2-hour buffer to ensure event is far enough in future
- * for UI cancel buttons to be visible (accounts for preStartBufferMinutes setting).
+ * for UI cancel buttons to be visible (accounts for per-event timing settings).
  */
 export async function getFirstRsvpEvent(): Promise<EventRecord | null> {
   const sql = `
@@ -446,7 +446,7 @@ export async function getFirstRsvpEvent(): Promise<EventRecord | null> {
  * Use for ticket purchase/cancellation tests that need a paid event.
  *
  * IMPORTANT: Adds 2-hour buffer to ensure event is far enough in future
- * for UI cancel buttons to be visible (accounts for preStartBufferMinutes setting).
+ * for UI cancel buttons to be visible (accounts for per-event timing settings).
  */
 export async function getFirstTicketEvent(): Promise<EventRecord | null> {
   const sql = `

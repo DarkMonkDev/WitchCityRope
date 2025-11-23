@@ -2,7 +2,6 @@ import { apiClient } from '../lib/api/client';
 
 export interface PublicSettings {
   eventTimeZone: string;
-  preStartBufferMinutes: string;
 }
 
 export const getPublicSettings = async (): Promise<PublicSettings> => {

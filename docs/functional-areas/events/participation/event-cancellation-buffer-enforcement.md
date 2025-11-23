@@ -1,8 +1,28 @@
 # Event Cancellation Buffer Enforcement - Requirements Document
 
+> **⚠️ DEPRECATED - 2025-11-22**
+>
+> This document is DEPRECATED. The frontend hook implementation described here has been removed.
+>
+> **Current Implementation:**
+> - Event timing is now handled by backend API: `IsActionAllowedAsync()`
+> - Frontend uses simple `isPastEvent` check for display purposes only
+> - Backend enforces all timing rules (registration/cancellation cutoffs)
+> - Per-event timing fields replace global `PreStartBufferMinutes` setting
+>
+> **Files Removed:**
+> - `/apps/web/src/hooks/useEventTimingStatus.ts` - DELETED 2025-11-22
+> - `/apps/web/src/hooks/__tests__/useEventTimingStatus.test.tsx` - DELETED 2025-11-22
+>
+> **See Also:**
+> - Backend timing implementation in EventService.cs
+> - Per-event timing fields: RegistrationOpenHours, RegistrationCloseHours, CancellationOpenHours, CancellationCloseHours
+
+---
+
 **Date**: 2025-11-09
-**Status**: Implementation Required
-**Priority**: Medium
+**Status**: ⚠️ DEPRECATED - Replaced by backend timing API
+**Priority**: N/A - Implementation removed
 
 ## Problem Statement
 

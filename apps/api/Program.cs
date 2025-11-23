@@ -256,6 +256,28 @@ builder.Services.AddCors(options =>
             .AllowCredentials());
 });
 
+// Configure Anti-Forgery (CSRF) Protection
+builder.Services.AddAntiforgery(options =>
+{
+    // Header name that frontend will use to send CSRF token
+    options.HeaderName = "X-CSRF-TOKEN";
+
+    // Cookie name that stores the CSRF token
+    options.Cookie.Name = "X-CSRF-TOKEN-COOKIE";
+
+    // CRITICAL: Cookie must be readable by JavaScript (so frontend can send it in header)
+    options.Cookie.HttpOnly = false; // Must be false for frontend access
+
+    // Use Strict for maximum CSRF protection
+    options.Cookie.SameSite = SameSiteMode.Strict;
+
+    // HTTPS only in production
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+
+    // Make cookie available to all routes
+    options.Cookie.Path = "/";
+});
+
 // Validate environment configuration
 var environment = builder.Environment.EnvironmentName;
 var useMocks = builder.Configuration.GetValue<bool>("USE_MOCK_PAYMENT_SERVICE");
@@ -294,6 +316,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("ReactDevelopmentWithCredentials");
+
+// CRITICAL: Enable Anti-Forgery (CSRF) Protection middleware
+// MUST be placed AFTER UseCors() and BEFORE UseAuthentication()
+app.UseAntiforgery();
 
 // CRITICAL FIX: Simple test middleware
 // Removed simple logout middleware - proper logout endpoint handles this in AuthenticationEndpoints.cs

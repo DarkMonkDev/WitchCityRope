@@ -36,7 +36,7 @@ export const UserVolunteerShifts: React.FC<UserVolunteerShiftsProps> = ({
         icon: <IconCheck size={16} />,
       });
       // Refetch event volunteer positions
-      queryClient.invalidateQueries({ queryKey: ['events', eventId, 'volunteer-positions'] });
+      queryClient.invalidateQueries({ queryKey: ['volunteerPositions', eventId] });
       queryClient.invalidateQueries({ queryKey: ['user', 'volunteer-shifts'] });
       setCancelModalOpen(false);
       setSelectedPosition(null);

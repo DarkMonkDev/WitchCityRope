@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { queryClient } from './queryClient'
+import { getCSRFToken } from '../../hooks/useCSRFToken'
 
 // Use environment variable for API base URL, fallback to development default
 // Note: Vite replaces import.meta.env.VITE_* with literal values at build time
@@ -41,12 +42,25 @@ export const apiClient = axios.create({
   },
 })
 
-// Request interceptor for logging (BFF pattern - auth via httpOnly cookies only)
+// Request interceptor for CSRF token and logging
 apiClient.interceptors.request.use(
   (config) => {
-    // BFF Pattern: Authentication handled via httpOnly cookies automatically
-    // No need to add Authorization header - JWT token is in secure cookie
     console.debug(`API Request: ${config.method?.toUpperCase()} ${config.url}`)
+
+    // Add CSRF token to all state-changing requests
+    const method = config.method?.toLowerCase()
+    if (method && ['post', 'put', 'delete', 'patch'].includes(method)) {
+      const csrfToken = getCSRFToken()
+
+      if (csrfToken) {
+        config.headers['X-CSRF-TOKEN'] = csrfToken
+        console.debug('✅ CSRF token added to request')
+      } else {
+        console.error('❌ No CSRF token available for state-changing request')
+        // Let request proceed - backend will reject if token is required
+      }
+    }
+
     return config
   },
   (error) => {

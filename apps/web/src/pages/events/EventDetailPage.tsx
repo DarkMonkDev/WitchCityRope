@@ -22,7 +22,6 @@ import { UserVolunteerShifts } from '../../components/events/UserVolunteerShifts
 import { useVenue } from '../../lib/api/hooks/useVenues';
 import { useTeacherProfiles } from '../../lib/api/hooks/useTeacherProfiles';
 import type { components } from '@witchcityrope/shared-types';
-import { useEventTimingStatus } from '../../hooks/useEventTimingStatus';
 import styles from './EventDetailPage.module.css';
 
 type VenueDto = components['schemas']['VenueDto'];
@@ -46,9 +45,6 @@ export const EventDetailPage: React.FC = () => {
   const createRSVPMutation = useCreateRSVP();
   const cancelRSVPMutation = useCancelRSVP();
   const cancelTicketMutation = useCancelTicket();
-
-  // Calculate event timing status for cancel button visibility
-  const timingStatus = useEventTimingStatus((event as any)?.startDate);
 
   // Check if current user is admin (type-safe using auto-generated UserRole)
   type UserRole = components['schemas']['UserRole'];
@@ -223,7 +219,6 @@ export const EventDetailPage: React.FC = () => {
     eventEndDateTime: (event as any)?.endDate,
     eventInstructor: (event as any)?.instructor,
     eventLocation: (event as any)?.location,
-    timingStatus,
   };
 
   return (

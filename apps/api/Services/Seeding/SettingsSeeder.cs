@@ -23,12 +23,11 @@ public class SettingsSeeder
     }
 
     /// <summary>
-    /// Seeds application settings including timezone configuration and buffer periods.
+    /// Seeds application settings including timezone configuration.
     /// Idempotent operation - skips if settings already exist.
     ///
     /// Settings created:
     /// - EventTimeZone: IANA timezone ID for event scheduling (America/New_York)
-    /// - PreStartBufferMinutes: Minutes before event start to close ticket sales and RSVP registrations
     /// </summary>
     public async Task SeedSettingsAsync(CancellationToken cancellationToken = default)
     {
@@ -47,15 +46,6 @@ public class SettingsSeeder
                 Key = "EventTimeZone",
                 Value = "America/New_York",
                 Description = "IANA timezone ID for event scheduling (Eastern Time)",
-                CreatedAt = now,
-                UpdatedAt = now
-            },
-            new Setting
-            {
-                Id = Guid.NewGuid(),
-                Key = "PreStartBufferMinutes",
-                Value = "0",
-                Description = "Minutes before event start to close ticket sales and RSVP registrations",
                 CreatedAt = now,
                 UpdatedAt = now
             }

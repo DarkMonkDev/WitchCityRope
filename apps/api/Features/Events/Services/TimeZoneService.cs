@@ -55,39 +55,6 @@ public class TimeZoneService : ITimeZoneService
         }
     }
 
-    public async Task<int> GetPreStartBufferMinutesAsync(CancellationToken cancellationToken = default)
-    {
-        var bufferValue = await _settingsService.GetSettingAsync("PreStartBufferMinutes", cancellationToken);
-
-        if (string.IsNullOrEmpty(bufferValue) || !int.TryParse(bufferValue, out int bufferMinutes))
-        {
-            _logger.LogWarning("PreStartBufferMinutes setting invalid or missing, defaulting to 0");
-            return 0;
-        }
-
-        return bufferMinutes;
-    }
-
-    public async Task<bool> IsRegistrationOpenAsync(
-        DateTime eventStartDateUtc,
-        CancellationToken cancellationToken = default)
-    {
-        var bufferMinutes = await GetPreStartBufferMinutesAsync(cancellationToken);
-        var now = DateTime.UtcNow;
-        var cutoffTime = eventStartDateUtc.AddMinutes(-bufferMinutes);
-
-        var isOpen = now < cutoffTime;
-
-        if (!isOpen)
-        {
-            _logger.LogInformation(
-                "Registration closed: Current time {Now} is past cutoff {Cutoff} (buffer: {Buffer} min)",
-                now, cutoffTime, bufferMinutes);
-        }
-
-        return isOpen;
-    }
-
     public async Task<DateTimeOffset> ConvertToEventTimeAsync(
         DateTime utcDateTime,
         CancellationToken cancellationToken = default)

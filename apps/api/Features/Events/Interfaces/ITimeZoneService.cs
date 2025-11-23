@@ -14,21 +14,6 @@ public interface ITimeZoneService
     Task<TimeZoneInfo> GetEventTimeZoneAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets the pre-start buffer time in minutes from settings
-    /// </summary>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Minutes before event start to close registration</returns>
-    Task<int> GetPreStartBufferMinutesAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Checks if registration is still open for an event based on start time and buffer
-    /// </summary>
-    /// <param name="eventStartDateUtc">Event start time in UTC</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>True if registration is open, false if past cutoff</returns>
-    Task<bool> IsRegistrationOpenAsync(DateTime eventStartDateUtc, CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Converts UTC datetime to event timezone
     /// </summary>
     /// <param name="utcDateTime">UTC datetime to convert</param>

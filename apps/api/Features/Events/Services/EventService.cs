@@ -372,36 +372,86 @@ public class EventService : IEventService
                 eventEntity.IsPublished = request.IsPublished.Value;
             }
 
-            // CRITICAL: Update timing control fields if provided
+            // CRITICAL: Update timing control fields - NULLABLE DECIMAL UPDATE PATTERN
             // These fields control when registration/cancellation windows open/close
-            if (request.RegistrationOpenHours.HasValue)
+            //
+            // IMPORTANT CHANGE (2025-11-22): Fixed null value persistence for timing fields
+            //
+            // PROBLEM: Previous code used `if (request.Field.HasValue) { entity.Field = request.Field.Value; }`
+            // This ONLY updated when HasValue=true, preventing null values from being saved to database.
+            // When users cleared a field, the frontend sent null, but the backend skipped the update,
+            // leaving the old value in the database.
+            //
+            // SOLUTION: Detect timing-only updates by checking if other major fields are null.
+            // Frontend sends timing fields in well-defined groups:
+            // - RSVP timing: All 4 fields together (handleSaveRsvpTiming in EventForm.tsx lines 1203-1209)
+            // - Volunteer timing: Both fields together (handleSaveVolunteerTiming lines 1247-1249)
+            //
+            // We check if this is a timing-only update by verifying that all major event fields are null.
+            // If so, we update ALL timing fields in the group (allowing null values to be persisted).
+            // If ANY field in the group has a value, we also update the group (handles mixed values).
+            //
+            // This allows:
+            // - Clearing all timing fields in a group (all null values persist)
+            // - Setting some fields and clearing others in a group (mixed values persist)
+            // - Partial updates of other fields don't affect timing fields
+
+            // Detect if this is a timing-only update (no other major fields being updated)
+            bool isTimingOnlyUpdate =
+                request.Title == null &&
+                request.Description == null &&
+                request.ShortDescription == null &&
+                request.Policies == null &&
+                request.StartDate == null &&
+                request.EndDate == null &&
+                request.VenueId == null &&
+                request.Capacity == null &&
+                request.IsPublished == null &&
+                request.Sessions == null &&
+                request.TicketTypes == null &&
+                request.TeacherIds == null &&
+                request.VolunteerPositions == null;
+
+            // RSVP/Registration timing fields (frontend sends all 4 together as a group)
+            bool hasRsvpTimingFields =
+                request.RegistrationOpenHours.HasValue ||
+                request.RegistrationCloseHours.HasValue ||
+                request.CancellationOpenHours.HasValue ||
+                request.CancellationCloseHours.HasValue;
+
+            if (hasRsvpTimingFields || isTimingOnlyUpdate)
             {
-                eventEntity.RegistrationOpenHours = request.RegistrationOpenHours.Value;
+                // Update ALL RSVP timing fields (including null ones)
+                // This handles both cases:
+                // 1. At least one field has a value (mixed update)
+                // 2. All fields are null but this is a timing-only update (clear all)
+                eventEntity.RegistrationOpenHours = request.RegistrationOpenHours;
+                eventEntity.RegistrationCloseHours = request.RegistrationCloseHours;
+                eventEntity.CancellationOpenHours = request.CancellationOpenHours;
+                eventEntity.CancellationCloseHours = request.CancellationCloseHours;
+
+                _logger.LogDebug("Updated RSVP timing: RegOpen={RegOpen}, RegClose={RegClose}, " +
+                    "CancelOpen={CancelOpen}, CancelClose={CancelClose}",
+                    request.RegistrationOpenHours, request.RegistrationCloseHours,
+                    request.CancellationOpenHours, request.CancellationCloseHours);
             }
 
-            if (request.RegistrationCloseHours.HasValue)
-            {
-                eventEntity.RegistrationCloseHours = request.RegistrationCloseHours.Value;
-            }
+            // Volunteer timing fields (frontend sends both together as a group)
+            bool hasVolunteerTimingFields =
+                request.VolunteerRegistrationCloseHours.HasValue ||
+                request.VolunteerCancellationCloseHours.HasValue;
 
-            if (request.CancellationOpenHours.HasValue)
+            if (hasVolunteerTimingFields || isTimingOnlyUpdate)
             {
-                eventEntity.CancellationOpenHours = request.CancellationOpenHours.Value;
-            }
+                // Update ALL volunteer timing fields (including null ones)
+                // This handles both cases:
+                // 1. At least one field has a value (mixed update)
+                // 2. All fields are null but this is a timing-only update (clear all)
+                eventEntity.VolunteerRegistrationCloseHours = request.VolunteerRegistrationCloseHours;
+                eventEntity.VolunteerCancellationCloseHours = request.VolunteerCancellationCloseHours;
 
-            if (request.CancellationCloseHours.HasValue)
-            {
-                eventEntity.CancellationCloseHours = request.CancellationCloseHours.Value;
-            }
-
-            if (request.VolunteerRegistrationCloseHours.HasValue)
-            {
-                eventEntity.VolunteerRegistrationCloseHours = request.VolunteerRegistrationCloseHours.Value;
-            }
-
-            if (request.VolunteerCancellationCloseHours.HasValue)
-            {
-                eventEntity.VolunteerCancellationCloseHours = request.VolunteerCancellationCloseHours.Value;
+                _logger.LogDebug("Updated Volunteer timing: RegClose={VolRegClose}, CancelClose={VolCancelClose}",
+                    request.VolunteerRegistrationCloseHours, request.VolunteerCancellationCloseHours);
             }
 
             // Handle sessions updates if provided

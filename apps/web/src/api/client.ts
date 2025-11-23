@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { getCSRFToken } from '../hooks/useCSRFToken'
 
 // API Service handles both authentication and business logic
 // For production/staging: VITE_API_BASE_URL should be empty string (same-origin requests)
@@ -17,10 +18,23 @@ export const api = axios.create({
   },
 })
 
-// Request interceptor for logging (auth handled by httpOnly cookies)
+// Request interceptor for CSRF token and logging
 api.interceptors.request.use(
   (config) => {
-    // No token needed - auth handled by httpOnly cookies
+    // Add CSRF token to all state-changing requests
+    const method = config.method?.toLowerCase()
+    if (method && ['post', 'put', 'delete', 'patch'].includes(method)) {
+      const csrfToken = getCSRFToken()
+
+      if (csrfToken) {
+        config.headers['X-CSRF-TOKEN'] = csrfToken
+        console.debug('✅ CSRF token added to request:', config.url)
+      } else {
+        console.error('❌ No CSRF token available for state-changing request:', config.url)
+        // Let request proceed - backend will reject if token is required
+      }
+    }
+
     return config
   },
   (error) => {

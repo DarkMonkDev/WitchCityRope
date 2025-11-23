@@ -29,9 +29,16 @@
 | **Test Infrastructure** | 71+ | 📚 Support | Helpers, Fixtures, Builders |
 | **TOTAL** | **276** | - | - |
 
-**Latest Additions** (2025-11-09):
+**Latest Changes** (2025-11-22):
+- ❌ REMOVED: Deprecated Event Timing Hook (useEventTimingStatus)
+  - Hook: `/apps/web/src/hooks/useEventTimingStatus.ts` - DELETED
+  - Tests: `/apps/web/src/hooks/__tests__/useEventTimingStatus.test.tsx` - DELETED
+  - Reason: Moved to backend timing API (IsActionAllowedAsync)
+  - Migration: EventDetailPage now uses simple isPastEvent check
+
+**Previous Additions** (2025-11-09):
 - ✨ NEW: Event Cancellation Buffer Tests (2 files)
-  - React Hook Unit: `/apps/web/src/hooks/__tests__/useEventTimingStatus.test.ts` (24 tests)
+  - ~~React Hook Unit: `/apps/web/src/hooks/__tests__/useEventTimingStatus.test.ts` (24 tests)~~ - REMOVED 2025-11-22
   - E2E: `/tests/e2e/event-cancellation-buffer.spec.ts` (7 tests)
   - Coverage: 90%+ for useEventTimingStatus hook
   - Business Rules: Past events, buffer window, zero buffer, graceful degradation
@@ -674,25 +681,14 @@
     - Tests: Admin event operations
     - Location: `/apps/web/src/pages/admin/`
 
-### Event Timing Hook Tests (1 file) ✨ NEW (2025-11-09)
+### Event Timing Hook Tests (1 file) ❌ REMOVED (2025-11-22)
 
-21. **hooks/__tests__/useEventTimingStatus.test.ts**
-    - Purpose: Event cancellation buffer timing enforcement hook testing
-    - Status: ✅ Active (24 tests)
-    - Location: `/apps/web/src/hooks/__tests__/useEventTimingStatus.test.ts`
-    - Framework: Vitest + React Testing Library + React Query
-    - Coverage: 90%+ code coverage for useEventTimingStatus hook
-    - Tests:
-      - Past event detection (3 tests)
-      - Buffer window calculation (5 tests)
-      - Edge cases - exact boundaries (3 tests)
-      - Zero buffer scenarios (3 tests)
-      - Missing/invalid settings graceful degradation (2 tests)
-      - Status messages (3 tests)
-      - Large buffer values - 24 hours, 7 days (2 tests)
-      - Timezone handling - UTC, ISO 8601 (2 tests)
-    - Business Rules: All timing validation logic for event participation
-    - Integration: Used by ParticipationCard component
+21. **~~hooks/__tests__/useEventTimingStatus.test.ts~~** - DELETED
+    - Status: ❌ REMOVED - Hook deprecated and deleted
+    - Reason: Deprecated useEventTimingStatus hook removed in favor of backend timing API
+    - Migration: Event timing now handled by backend IsActionAllowedAsync() API
+    - Date Removed: 2025-11-22
+    - Note: Site not launched yet, safe to remove deprecated code
 
 ---
 

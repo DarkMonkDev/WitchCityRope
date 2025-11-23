@@ -1,6 +1,6 @@
 # Granular Event Timing Controls - Progress Tracker
-<!-- Last Updated: 2025-11-19 -->
-<!-- Version: 1.1 -->
+<!-- Last Updated: 2025-11-22 -->
+<!-- Version: 1.2 -->
 <!-- Status: Production - Bug Fix Complete -->
 
 ## Feature Overview
@@ -365,6 +365,45 @@ None yet
 
 **Status**: ✅ COMPLETE - Timing fields now fully functional for create, read, and update operations.
 
+### 2025-11-22: Timing Fields Data Loss Bug Fix ✅ COMPLETE
+
+**Date**: 2025-11-22
+**Issue**: Admin event timing fields lose data when switching tabs after saving
+**Status**: ✅ **COMPLETE**
+
+**Problem**:
+- User edits RSVP timing field in RSVP/Tickets tab
+- User clicks "Save Timing"
+- User switches to Volunteers tab
+- **BUG**: Volunteer timing fields are now blank/reset (same issue in reverse)
+
+**Root Cause**:
+- Frontend save handlers only sent their respective timing fields (4 for RSVP, 2 for Volunteer)
+- Backend detects timing-only updates and updates ALL 6 timing fields
+- Missing fields in request interpreted as `null` → data loss when switching tabs
+
+**Solution**:
+- Modified `handleSaveRsvpTiming` to send ALL 6 timing fields (added volunteer fields)
+- Modified `handleSaveVolunteerTiming` to send ALL 6 timing fields (added RSVP fields)
+- `form.values` already contains all 6 fields from initial event data
+- Now both save handlers send complete timing data to preserve values in both tabs
+
+**Files Modified**:
+- `/home/chad/repos/witchcityrope/apps/web/src/components/events/EventForm.tsx` (lines 1197-1277)
+
+**Testing**: Manual testing confirmed:
+- ✅ RSVP Save → Volunteer Check: Volunteer timing fields preserved
+- ✅ Volunteer Save → RSVP Check: RSVP timing fields preserved
+- ✅ Both Tabs Edit → Both Save: All values persist through both saves
+- ✅ Database Verification: All 6 timing fields updated correctly
+
+**Impact**:
+- **User Impact**: All timing data now persists correctly → improved UX and data integrity
+- **Code Quality**: Complete data sent → follows best practices for partial updates
+- **Backend Compatibility**: No backend changes required (already handles correctly)
+
+**Status**: ✅ COMPLETE - Fix implemented, tested, and ready for deployment
+
 ## Communication Log
 
 | Date | Type | Participants | Summary |
@@ -372,6 +411,7 @@ None yet
 | 2025-11-18 | Planning | Business Requirements Agent | Implementation plan and handoff documents created |
 | 2025-11-18 | Implementation | Backend Developer, React Developer | Full feature implementation completed |
 | 2025-11-19 | Bug Fix | React Developer | Fixed timing fields persistence issue |
+| 2025-11-22 | Bug Fix | React Developer | Fixed timing fields data loss when switching tabs |
 
 ## Files Created/Modified
 
@@ -382,6 +422,11 @@ See file registry for complete tracking:
 - Implementation plan
 - 6 handoff documents
 - This progress tracker
+
+**Bug Fix Files (2025-11-22)**:
+- `/home/chad/repos/witchcityrope/apps/web/src/components/events/EventForm.tsx` (MODIFIED)
+- `/home/chad/repos/witchcityrope/session-work/2025-11-22/admin-event-timing-data-loss-fix.md` (CREATED)
+- `/home/chad/repos/witchcityrope/test-results/lint-validation-event-form-timing-fix.md` (CREATED)
 
 **Future Files** (to be created in subsequent phases):
 - Migration files

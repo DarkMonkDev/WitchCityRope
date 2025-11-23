@@ -110,7 +110,7 @@ public static class AdminBackupEndpoints
             .Produces(403)
             .Produces<ErrorResponse>(400)
             .Produces<ErrorResponse>(500)
-            .DisableAntiforgery(); // Required for file uploads
+            .RequireAntiforgery(); // CRITICAL SECURITY: Prevent CSRF attacks on database restore (catastrophic risk if exploited)
     }
 
     private static IResult TriggerBackup(

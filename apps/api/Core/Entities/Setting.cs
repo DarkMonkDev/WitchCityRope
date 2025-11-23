@@ -16,7 +16,7 @@ public class Setting
 
     /// <summary>
     /// Setting key (unique identifier)
-    /// Examples: "EventTimeZone", "PreStartBufferMinutes"
+    /// Examples: "EventTimeZone"
     /// </summary>
     [Required]
     [MaxLength(100)]

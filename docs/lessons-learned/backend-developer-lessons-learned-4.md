@@ -18,6 +18,133 @@
 
 ---
 
+## 🚨 CRITICAL: Nullable Field Null Value Persistence - Partial Update Pattern (2025-11-22)
+
+**Problem**: When updating nullable fields in partial update endpoints, checking `HasValue` prevents null values from being persisted to the database.
+
+**Date Discovered**: November 22, 2025 during event timing fields update bug fix
+**Context**: Admin event details page - clearing timing fields did not save null values to database
+
+**Root Cause**:
+- Previous code used `if (request.Field.HasValue) { entity.Field = request.Field.Value; }`
+- This pattern ONLY updates when `HasValue == true`
+- When user clears a field, frontend sends `null`, backend skips update, old value remains in database
+- C# nullable types (`decimal?`) cannot distinguish between "property not in JSON" vs "property in JSON with null value"
+
+**Why This Pattern Was Used**:
+- Partial updates need to distinguish between "don't update this field" and "update this field to null"
+- Simple nullable types in C# don't provide this distinction natively
+- Both scenarios result in `HasValue = false`
+
+**Error Manifestation**:
+```
+User Action: Clear "Registration Opens (hours)" field in admin UI
+Frontend: Sends { registrationOpenHours: null }
+Backend: Checks request.RegistrationOpenHours.HasValue → false → skips update
+Database: Old value remains unchanged
+Result: User sees old value return after page refresh
+```
+
+**Wrong Implementation** (Prevents Null Persistence):
+```csharp
+// ❌ WRONG - Cannot clear fields to null
+if (request.RegistrationOpenHours.HasValue)
+{
+    eventEntity.RegistrationOpenHours = request.RegistrationOpenHours.Value;
+}
+// When user sends null, HasValue=false, update skipped, old value persists
+```
+
+**Partial Fix** (Works for Mixed Values, Not All-Null):
+```csharp
+// ⚠️ PARTIAL - Works when at least one field has a value
+if (request.RegistrationOpenHours.HasValue ||
+    request.RegistrationCloseHours.HasValue ||
+    request.CancellationOpenHours.HasValue ||
+    request.CancellationCloseHours.HasValue)
+{
+    // Update all RSVP timing fields
+    eventEntity.RegistrationOpenHours = request.RegistrationOpenHours;
+    eventEntity.RegistrationCloseHours = request.RegistrationCloseHours;
+    eventEntity.CancellationOpenHours = request.CancellationOpenHours;
+    eventEntity.CancellationCloseHours = request.CancellationCloseHours;
+}
+// Handles: set some, clear others ✅
+// FAILS: clear all fields to null (no HasValue=true, check fails) ❌
+```
+
+**Correct Implementation** (Handles All Cases):
+```csharp
+// ✅ CORRECT - Detect timing-only updates using context clues
+bool isTimingOnlyUpdate =
+    request.Title == null &&
+    request.Description == null &&
+    request.ShortDescription == null &&
+    request.Policies == null &&
+    request.StartDate == null &&
+    request.EndDate == null &&
+    request.VenueId == null &&
+    request.Capacity == null &&
+    request.IsPublished == null &&
+    request.Sessions == null &&
+    request.TicketTypes == null &&
+    request.TeacherIds == null &&
+    request.VolunteerPositions == null;
+
+bool hasRsvpTimingFields =
+    request.RegistrationOpenHours.HasValue ||
+    request.RegistrationCloseHours.HasValue ||
+    request.CancellationOpenHours.HasValue ||
+    request.CancellationCloseHours.HasValue;
+
+if (hasRsvpTimingFields || isTimingOnlyUpdate)
+{
+    // Update ALL RSVP timing fields (including null ones)
+    eventEntity.RegistrationOpenHours = request.RegistrationOpenHours;
+    eventEntity.RegistrationCloseHours = request.RegistrationCloseHours;
+    eventEntity.CancellationOpenHours = request.CancellationOpenHours;
+    eventEntity.CancellationCloseHours = request.CancellationCloseHours;
+}
+```
+
+**How This Works**:
+1. **isTimingOnlyUpdate**: Detects when ONLY timing fields are being sent (all other fields are null)
+2. **hasRsvpTimingFields**: Detects when at least one timing field has a value
+3. **Combined check**: Handles both scenarios:
+   - At least one field has a value → update all fields in group (mixed values)
+   - All fields are null BUT this is a timing-only request → update all to null (clear all)
+   - Other event fields being updated AND timing fields not provided → timing fields NOT touched (partial update safety)
+
+**Why This Pattern Works**:
+- Frontend sends timing fields in well-defined groups (verified in EventForm.tsx)
+- RSVP timing: All 4 fields sent together (handleSaveRsvpTiming)
+- Volunteer timing: Both fields sent together (handleSaveVolunteerTiming)
+- When updating other event properties, timing fields are NOT included
+- By checking if ALL other major fields are null, we can detect timing-only updates
+
+**Edge Cases Handled**:
+✅ Clear all RSVP timing fields → all null, isTimingOnlyUpdate=true → all updated to null
+✅ Set some RSVP fields, clear others → hasRsvpTimingFields=true → all updated (mixed values)
+✅ Update event title → timing fields not sent, isTimingOnlyUpdate=false → timing fields not touched
+✅ Clear all volunteer timing fields → all null, isTimingOnlyUpdate=true → both updated to null
+
+**Better Long-Term Solutions** (Require DTO Changes):
+1. **JSON PATCH**: Use PATCH method with explicit operation arrays (`[{ "op": "replace", "path": "/field", "value": null }]`)
+2. **Wrapper DTOs**: Use `UpdateGroup` objects with explicit flags (`{ rsvpTiming: { shouldUpdate: true, values: {...} } }`)
+3. **Separate Endpoints**: Different endpoints for timing updates (`PUT /api/events/{id}/rsvp-timing`, `PUT /api/events/{id}/volunteer-timing`)
+4. **Custom JSON Converter**: Track which properties were explicitly set during deserialization
+
+**Application to Other Scenarios**:
+Use this pattern when:
+- Partial update endpoints need to support clearing nullable fields to null
+- Frontend sends related fields in well-defined groups
+- You cannot change the DTO to use JSON PATCH or explicit update flags
+- The request has multiple distinct "groups" of fields (timing, metadata, content, etc.)
+
+**File Modified**: `/home/chad/repos/witchcityrope/apps/api/Features/Events/Services/EventService.cs` (lines 375-455)
+
+---
+
 ## 🚨 CRITICAL: Services MUST Have Interfaces for Unit Testing (2025-11-13)
 
 **Problem**: Service classes without interfaces cannot be mocked by NSubstitute, blocking unit test creation entirely.
