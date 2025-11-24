@@ -30,7 +30,7 @@ dotnet test
 ./dev.sh  # Start application in one terminal
 
 # In another terminal:
-cd tests/playwright && npm test
+cd tests/e2e && npm test
 ```
 
 ### Running Specific Test Types
@@ -252,7 +252,7 @@ dotnet test --filter "MethodName" --logger "console;verbosity=detailed"
 
 ### E2E Test Commands
 ```bash
-cd tests/playwright
+cd tests/e2e
 
 # Run all tests
 npm test
@@ -352,7 +352,7 @@ var sceneName = $"TestUser-{DateTime.UtcNow.Ticks}";
   
 - name: Run E2E Tests
   run: |
-    cd tests/playwright
+    cd tests/e2e
     npm ci
     npx playwright install
     npm test

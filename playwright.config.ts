@@ -2,16 +2,16 @@ import { defineConfig, devices } from '@playwright/test';
 
 /**
  * Playwright configuration for E2E testing against existing Docker services
- * 
+ *
  * IMPORTANT: This configuration is designed to work with existing Docker containers:
  * - Web Service: http://localhost:5173 (React + Vite)
  * - API Service: http://localhost:5655 (Minimal API)
  * - Database: PostgreSQL on localhost:5433
- * 
+ *
  * Start services first with: ./dev.sh
  */
 export default defineConfig({
-  testDir: './tests/playwright',
+  testDir: './tests/e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -25,18 +25,18 @@ export default defineConfig({
   use: {
     // DOCKER-ONLY: Must use Docker web service on port 5173
     baseURL: 'http://localhost:5173', // NEVER change this - Docker containers only
-    
+
     // API endpoint for tests that need direct API access
     extraHTTPHeaders: {
       'Accept': 'application/json',
     },
-    
+
     trace: 'on-first-retry',
-    screenshot: 'only-on-failure', 
+    screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     actionTimeout: 30000,
     navigationTimeout: 30000,
-    
+
     // Additional reliability settings for Docker environment
     launchOptions: {
       args: [
@@ -57,8 +57,8 @@ export default defineConfig({
 
   // REMOVED webServer configuration - use existing Docker services
   // Tests expect services to be running at:
-  // - Web: http://localhost:5173 
+  // - Web: http://localhost:5173
   // - API: http://localhost:5655
-  // 
+  //
   // Start with: ./dev.sh before running tests
 });
