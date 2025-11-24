@@ -8327,7 +8327,7 @@
           "Backup"
         ],
         "summary": "List all available backups (admin only)",
-        "description": "Retrieves a list of all database backups from DigitalOcean Spaces with metadata",
+        "description": "Retrieves environment-specific database backups from DigitalOcean Spaces. Each environment (local/staging/production) has isolated backup storage determined by the BackupConfiguration__Spaces__FolderPrefix setting.",
         "operationId": "ListBackups",
         "parameters": [
           {
@@ -11063,6 +11063,10 @@
           "venueId": {
             "type": "integer",
             "format": "int32"
+          },
+          "venueLocation": {
+            "type": "string",
+            "nullable": true
           },
           "eventType": {
             "type": "string"

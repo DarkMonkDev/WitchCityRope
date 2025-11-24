@@ -13,16 +13,11 @@ WitchCityRope uses Docker containers for all development work to ensure consiste
 ```bash
 # Start all services (PostgreSQL, API, React)
 ./dev.sh
-
-# View logs
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml logs -f
-
-# Stop all services
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
-
-# Stop and remove volumes (clean slate)
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v
 ```
+
+**For other Docker operations** (viewing logs, stopping services, clean slate):
+- Use the `container-restart` skill for automated Docker container management
+- The skill handles: restart, rebuild, health checks, and cleanup operations
 
 ## Service Access
 
@@ -64,14 +59,12 @@ WitchCityRope uses Entity Framework Core migrations to manage database schema. A
 
 #### Verify Automatic Migrations
 
-```bash
-# Check API startup logs
-docker logs witchcity-api --tail 100 | grep "Database initialization"
+**Use container-restart skill** to restart containers and verify migrations are applied automatically.
 
-# Expected output:
-# - "Starting database initialization for environment: Development"
-# - "Phase 1: Applying pending migrations"
-# - "Successfully applied {Count} migrations" OR "Database is up to date"
+Expected behavior:
+- API logs show "Starting database initialization for environment: Development"
+- "Phase 1: Applying pending migrations"
+- "Successfully applied {Count} migrations" OR "Database is up to date"
 # - "Phase 2: Populating seed data"
 # - "Database initialization completed successfully"
 ```
@@ -111,12 +104,10 @@ cat Migrations/*_DescriptiveNameForYourChanges.cs
 # Verify Up() method contains your expected schema changes
 
 # 6. Test migration with fresh database
-cd ../..
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+# Use container-restart skill or database-reset-dev skill for clean slate testing
 
 # 7. Verify migration applied
-docker logs witchcity-api --tail 100 | grep "migration"
+# Check API logs via Docker Desktop or use container-restart skill
 docker exec -it witchcity-postgres psql -U postgres -d witchcityrope_dev -c "SELECT * FROM \"__EFMigrationsHistory\";"
 ```
 
@@ -138,18 +129,15 @@ docker exec -it witchcity-postgres psql -U postgres -d witchcityrope_dev -c "SEL
 
 If you need to start with a completely clean database:
 
-```bash
-# Option 1: Remove volumes (destroys all data)
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+**Use database-reset-dev skill** - Automates database reset with proper cleanup and seed data.
 
-# Option 2: Drop and recreate database manually
+Alternative manual approach:
+```bash
+# Drop and recreate database manually
 docker exec -it witchcity-postgres psql -U postgres -c "DROP DATABASE IF EXISTS witchcityrope_dev;"
 docker exec -it witchcity-postgres psql -U postgres -c "CREATE DATABASE witchcityrope_dev;"
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml restart api
 
-# Check logs to verify migrations applied
-docker logs witchcity-api --tail 100
+# Then use container-restart skill to restart API and apply migrations
 ```
 
 ### Troubleshooting Migrations
@@ -217,14 +205,10 @@ dotnet ef migrations add SyncSchemaChanges
 ```bash
 # Fresh start with latest code
 git pull origin main
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
-# Wait for services to be ready (~30 seconds)
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml ps
-
-# Check logs
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml logs -f
+# Use container-restart skill for full restart with volume cleanup
+# Or use ./dev.sh for quick start without cleanup
+./dev.sh
 ```
 
 ### 2. Making Code Changes
@@ -302,10 +286,10 @@ SELECT COUNT(*) FROM "Events";      # Count events
 
 ### 5. Running Tests
 
-```bash
-# E2E tests (Playwright)
-npm run test:e2e:playwright
+**Use test-catalog-updater skill** for automated test execution and reporting.
 
+For manual test runs:
+```bash
 # React unit tests
 npm run test
 
@@ -332,6 +316,28 @@ VITE_API_BASE_URL: http://localhost:5655
 CHOKIDAR_USEPOLLING: "true"  # Required for Docker HMR
 VITE_HMR_PORT: 24678
 ```
+
+### Backup Storage Configuration
+
+Development environment uses isolated backup storage in DigitalOcean Spaces.
+
+**Storage Location**: `backups/local/`
+
+**Configuration** (in `docker-compose.dev.yml`):
+```yaml
+BackupConfiguration__Spaces__FolderPrefix: backups/local
+BackupConfiguration__Spaces__BucketName: witchcityrope
+BackupConfiguration__Spaces__Endpoint: https://nyc3.digitaloceanspaces.com
+```
+
+**Environment Isolation**:
+- Local dev backups: `backups/local/` ✅
+- Staging backups: `backups/staging/` (separate)
+- Production backups: `backups/production/` (separate)
+
+This isolation ensures development backups never appear in staging/production admin interfaces and vice versa.
+
+**Related Documentation**: [Backup Folder Separation Plan](/home/chad/repos/witchcityrope/docs/functional-areas/database-backup-restore/investigation/2025-11-24-backup-folder-separation-plan.md)
 
 ## Docker Commands Reference
 

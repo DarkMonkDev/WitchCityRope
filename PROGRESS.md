@@ -1,7 +1,7 @@
 # Witch City Rope - Development Progress
 
 ## Current Development Status
-**Last Updated**: 2025-11-22
+**Last Updated**: 2025-11-24
 **Current Focus**: Production Bug Fixes & Infrastructure
 **Project Status**: Production-ready, continuous enhancement
 **Deployment**: Staging fully updated, production seeding fix ready for deployment
@@ -15,6 +15,35 @@ For complete development history, see:
 > **Note**: During 2025-08-22 canonical document location consolidation, extensive historical development details were moved from this file to maintain focused current status while preserving complete project history.
 
 ## Current Development Sessions
+
+## 2025-11-24 - Database Backup Environment Isolation ✅
+
+**Status**: COMPLETE
+**Type**: Infrastructure Enhancement
+**Impact**: Low Risk - Configuration Only
+
+### Changes Made
+Implemented environment-specific backup storage folders to eliminate confusion between dev/staging/production environments.
+
+**Configuration Updates**:
+- **Staging**: Now uses `backups/staging/` folder (previously shared `backups/`)
+- **Production**: Now uses `backups/production/` folder (previously shared `backups/`)
+- **Local Dev**: Continues using `backups/local/` (unchanged)
+
+**Files Modified**:
+- `deployment/docker-compose.staging.yml` - Added BackupConfiguration environment variables
+- `deployment/docker-compose.production.yml` - Added BackupConfiguration environment variables
+- Code comments updated in `SpacesStorageService.cs`, `BackupConfiguration.cs`, `AdminBackupEndpoints.cs`
+
+**Benefits**:
+- Complete isolation between environments
+- Prevents accidental cross-environment restoration
+- Clear separation in admin UI (each env sees only its backups)
+- Eliminates confusion about which backups belong to which environment
+
+**Documentation**: [Implementation Plan](/home/chad/repos/witchcityrope/docs/functional-areas/database-backup-restore/investigation/2025-11-24-backup-folder-separation-plan.md) | [Investigation](/home/chad/repos/witchcityrope/docs/functional-areas/database-backup-restore/investigation/2025-11-23-backup-list-source-analysis.md)
+
+---
 
 ### November 22, 2025: Email Template Production Seeding Fix ✅
 **Type**: Bug Fix (Production)
@@ -585,5 +614,5 @@ All "bugs" initially identified are actually **test issues, NOT application bugs
 ---
 
 **End of Progress Document**
-**Last Updated**: 2025-11-22
-**Total Active Sessions**: 4 (Email Template Fix, Test Suite Analysis, Check-In UX, Check-In Integration Fixes)
+**Last Updated**: 2025-11-24
+**Total Active Sessions**: 5 (Backup Folder Separation, Email Template Fix, Test Suite Analysis, Check-In UX, Check-In Integration Fixes)
