@@ -203,18 +203,19 @@ fi
 echo "   ✅ Schemas dropped and recreated"
 echo ""
 
-# Step 4: Start API container (migrations will run)
-echo "4️⃣  Starting API container..."
-ssh -i $SSH_KEY $USER@$SERVER "cd $DEPLOY_PATH && docker-compose -f docker-compose.production.yml start api"
+# Step 4: Pull latest API image and recreate container
+echo "4️⃣  Pulling latest API image and recreating container..."
+echo "   Ensuring container runs latest code for migrations..."
+ssh -i $SSH_KEY $USER@$SERVER "cd $DEPLOY_PATH && IMAGE_TAG=latest docker-compose -f docker-compose.production.yml pull api && IMAGE_TAG=latest docker-compose -f docker-compose.production.yml up -d --force-recreate api"
 
 if [ $? -ne 0 ]; then
-    echo "   ❌ FAIL: Could not start API container"
+    echo "   ❌ FAIL: Could not pull/recreate API container"
     echo ""
-    echo "💡 Manual restart may be required:"
-    echo "   ssh $USER@$SERVER 'cd $DEPLOY_PATH && docker-compose -f docker-compose.production.yml start api'"
+    echo "💡 Manual recovery may be required:"
+    echo "   ssh $USER@$SERVER 'cd $DEPLOY_PATH && IMAGE_TAG=latest docker-compose -f docker-compose.production.yml up -d api'"
     exit 1
 fi
-echo "   ✅ API container starting"
+echo "   ✅ API container recreated with latest image"
 echo ""
 
 # Step 5: Wait for migrations
