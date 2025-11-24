@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { AuthHelper } from './helpers/auth.helper'
 
 test.describe('Logout with CSRF Token Verification', () => {
   test('should logout successfully with proper CSRF token handling', async ({ page }) => {
@@ -19,16 +20,8 @@ test.describe('Logout with CSRF Token Verification', () => {
       }
     })
 
-    // Step 1: Navigate to login page
-    await page.goto('http://localhost:5173/login')
-    await expect(page).toHaveURL(/.*login/)
-
-    // Step 2: Login as admin
-    await page.fill('input[name="email"]', 'admin@witchcityrope.com')
-    await page.fill('input[name="password"]', 'Test123!')
-    await page.click('button[type="submit"]')
-
-    // Step 3: Wait for successful login (redirects to dashboard)
+    // Step 1: Login as admin
+    await AuthHelper.loginAs(page, 'admin')
     await expect(page).toHaveURL(/.*dashboard/, { timeout: 10000 })
     
     // Step 4: Verify user is logged in (check for logout button)
