@@ -305,6 +305,7 @@ export const handlers = [
   }),
 
   // Events list endpoint (both relative and absolute URL support)
+  // Pattern B: API returns Event[] directly, NOT wrapped in {success, data}
   http.get('/api/events', ({ request }) => {
     const url = new URL(request.url)
     const page = parseInt(url.searchParams.get('page') || '1')
@@ -339,27 +340,9 @@ export const handlers = [
       },
     ] as Event[]
 
-    // Return paginated or simple response based on request - ALL wrapped in API response format
-    if (url.searchParams.has('page')) {
-      return HttpResponse.json({
-        success: true,
-        data: {
-          data: events,
-          page,
-          pageSize,
-          totalCount: 25,
-          totalPages: 2,
-          hasNext: page < 2,
-          hasPrevious: page > 1,
-        }
-      })
-    }
-
-    // CRITICAL FIX: Wrap events in API response format so useEvents query works
-    return HttpResponse.json({
-      success: true,
-      data: events
-    })
+    // Pattern B: Return array directly, NO wrapper
+    // EventsList component checks Array.isArray(data) - see line 23
+    return HttpResponse.json(events)
   }),
 
   http.get(`${API_BASE_URL}/api/events`, ({ request }) => {
@@ -396,27 +379,9 @@ export const handlers = [
       },
     ] as Event[]
 
-    // Return paginated or simple response based on request - ALL wrapped in API response format
-    if (url.searchParams.has('page')) {
-      return HttpResponse.json({
-        success: true,
-        data: {
-          data: events,
-          page,
-          pageSize,
-          totalCount: 25,
-          totalPages: 2,
-          hasNext: page < 2,
-          hasPrevious: page > 1,
-        }
-      })
-    }
-
-    // CRITICAL FIX: Wrap events in API response format so useEvents query works
-    return HttpResponse.json({
-      success: true,
-      data: events
-    })
+    // Pattern B: Return array directly, NO wrapper
+    // EventsList component checks Array.isArray(data) - see line 23
+    return HttpResponse.json(events)
   }),
 
   http.post('/api/events', async ({ request }) => {

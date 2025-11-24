@@ -19,7 +19,7 @@ using WitchCityRope.Api.Features.Payments.ValueObjects;
 using WitchCityRope.Api.Features.Volunteers.Services;
 using WitchCityRope.Api.Models;
 using Xunit;
-using Result = WitchCityRope.Api.Features.Shared.Models.Result<WitchCityRope.Api.Features.Payments.Entities.PaymentRefund>;
+using WitchCityRope.Api.Features.Shared.Models;
 
 namespace WitchCityRope.Core.Tests.Features.Participation;
 

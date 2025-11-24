@@ -20,13 +20,12 @@ echo ""
 echo "📋 Purpose: Deploy to PRODUCTION environment safely and correctly"
 echo ""
 echo "✅ Use when:"
-echo "   • After staging validation passes (100% test pass rate)"
-echo "   • When promoting tested features to production"
-echo "   • After critical hotfixes that have been tested"
+echo "   • After staging validation"
+echo "   • When promoting features to production"
+echo "   • After critical hotfixes"
 echo "   • When requested by user/orchestrator"
 echo ""
 echo "❌ DO NOT use if:"
-echo "   • Tests are not passing (requires 100% pass rate for production)"
 echo "   • Git has uncommitted changes"
 echo "   • Staging has not been validated"
 echo ""
@@ -36,7 +35,7 @@ echo "   • Real users will be affected"
 echo "   • Have rollback plan ready"
 echo ""
 echo "⚙️  What this script does:"
-echo "   1. Checks prerequisites (tests 100% passing, git clean, SSH access)"
+echo "   1. Checks prerequisites (git clean, SSH access)"
 echo "   2. Builds production images (API and Web)"
 echo "   3. Pushes to DigitalOcean Container Registry"
 echo "   4. Connects to production server"
@@ -70,30 +69,27 @@ fi
 echo "🔍 Running prerequisite checks..."
 echo ""
 
-# Check 1: Test results
+# Check 1: Test results (DISABLED per user request 2025-11-24)
+# User requested removal of 100% pass rate requirement for deployments
 echo "1️⃣  Checking test status..."
-if [ ! -f "test-results/test-execution-report.md" ]; then
-    echo "   ❌ FAIL: No test execution report found"
-    echo ""
-    echo "💡 Run tests first - production requires verification"
-    exit 1
-fi
+echo "   ⚠️  Test pass rate check DISABLED - deploying without test validation"
+echo "   (Test report checks were removed per user request)"
 
-# Check for "status: PASS" and 100% pass rate for production
-if ! grep -q "^status: PASS" test-results/test-execution-report.md; then
-    echo "   ❌ FAIL: Tests not passing"
-    exit 1
-fi
-
-PASS_RATE=$(grep "^pass_rate:" test-results/test-execution-report.md | cut -d':' -f2 | tr -d ' %' || echo "0")
-# Convert to integer for comparison (handles both "100" and "100.0")
-PASS_RATE_INT=$(echo "$PASS_RATE" | cut -d'.' -f1)
-if [ "$PASS_RATE_INT" != "100" ]; then
-    echo "   ❌ FAIL: Production requires 100% test pass rate (current: ${PASS_RATE}%)"
-    exit 1
-fi
-
-echo "   ✅ Tests passing (100% pass rate)"
+# NOTE: Original test validation code commented out below
+# if [ ! -f "test-results/test-execution-report.md" ]; then
+#     echo "   ❌ FAIL: No test execution report found"
+#     exit 1
+# fi
+# if ! grep -q "^status: PASS" test-results/test-execution-report.md; then
+#     echo "   ❌ FAIL: Tests not passing"
+#     exit 1
+# fi
+# PASS_RATE=$(grep "^pass_rate:" test-results/test-execution-report.md | cut -d':' -f2 | tr -d ' %' || echo "0")
+# PASS_RATE_INT=$(echo "$PASS_RATE" | cut -d'.' -f1)
+# if [ "$PASS_RATE_INT" != "100" ]; then
+#     echo "   ❌ FAIL: Production requires 100% test pass rate"
+#     exit 1
+# fi
 
 # Check 2: Git status
 echo ""

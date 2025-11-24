@@ -166,18 +166,18 @@ echo "   Host: $DB_HOST:$DB_PORT"
 echo "   ✅ Credentials retrieved"
 echo ""
 
-# Step 2: Stop containers
-echo "2️⃣  Stopping production containers..."
-ssh -i $SSH_KEY $USER@$SERVER "cd $DEPLOY_PATH && docker-compose -f docker-compose.production.yml down"
+# Step 2: Stop API container
+echo "2️⃣  Stopping API container..."
+ssh -i $SSH_KEY $USER@$SERVER "cd $DEPLOY_PATH && docker-compose -f docker-compose.production.yml stop api"
 
 if [ $? -ne 0 ]; then
-    echo "   ❌ FAIL: Could not stop containers"
+    echo "   ❌ FAIL: Could not stop API container"
     echo ""
     echo "💡 Check container status on server"
     echo "   See: .claude/skills/database-reset-production/SKILL.md (Common Issues)"
     exit 1
 fi
-echo "   ✅ Containers stopped"
+echo "   ✅ API container stopped"
 echo ""
 
 # Step 3: Drop schemas
@@ -194,8 +194,8 @@ PGPASSWORD="$DB_PASSWORD" psql \
 if [ $? -ne 0 ]; then
     echo "   ❌ FAIL: Schema drop failed"
     echo ""
-    echo "💡 Attempting to restart containers..."
-    ssh -i $SSH_KEY $USER@$SERVER "cd $DEPLOY_PATH && docker-compose -f docker-compose.production.yml up -d"
+    echo "💡 Attempting to restart API container..."
+    ssh -i $SSH_KEY $USER@$SERVER "cd $DEPLOY_PATH && docker-compose -f docker-compose.production.yml start api"
     echo ""
     echo "   See: .claude/skills/database-reset-production/SKILL.md (Common Issues)"
     exit 1
@@ -203,18 +203,18 @@ fi
 echo "   ✅ Schemas dropped and recreated"
 echo ""
 
-# Step 4: Start containers (migrations will run)
-echo "4️⃣  Starting containers..."
-ssh -i $SSH_KEY $USER@$SERVER "cd $DEPLOY_PATH && docker-compose -f docker-compose.production.yml up -d"
+# Step 4: Start API container (migrations will run)
+echo "4️⃣  Starting API container..."
+ssh -i $SSH_KEY $USER@$SERVER "cd $DEPLOY_PATH && docker-compose -f docker-compose.production.yml start api"
 
 if [ $? -ne 0 ]; then
-    echo "   ❌ FAIL: Could not start containers"
+    echo "   ❌ FAIL: Could not start API container"
     echo ""
     echo "💡 Manual restart may be required:"
-    echo "   ssh $USER@$SERVER 'cd $DEPLOY_PATH && docker-compose -f docker-compose.production.yml up -d'"
+    echo "   ssh $USER@$SERVER 'cd $DEPLOY_PATH && docker-compose -f docker-compose.production.yml start api'"
     exit 1
 fi
-echo "   ✅ Containers starting"
+echo "   ✅ API container starting"
 echo ""
 
 # Step 5: Wait for migrations
@@ -266,7 +266,7 @@ echo "📊 Summary:"
 echo "   • Database: $DB_NAME"
 echo "   • Schemas: Dropped and recreated"
 echo "   • Tables: $(echo $RECORD_COUNT | xargs) created by migrations"
-echo "   • Containers: Restarted"
+echo "   • API Container: Restarted"
 echo ""
 echo "🎯 Next Steps:"
 echo "   1. Monitor API logs for migration completion:"

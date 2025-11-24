@@ -26,7 +26,6 @@ echo "   • After hotfixes that need staging verification"
 echo "   • When requested by user/orchestrator"
 echo ""
 echo "❌ DO NOT use if:"
-echo "   • Tests are not passing (requires 100% pass rate)"
 echo "   • Git has uncommitted changes"
 echo "   • You haven't tested locally first"
 echo ""
@@ -36,7 +35,7 @@ echo "   • NEVER use: docker stop \$(docker ps -q)"
 echo "   • ALWAYS use compose files to target specific containers"
 echo ""
 echo "⚙️  What this script does:"
-echo "   1. Checks prerequisites (tests passing, git clean, SSH access)"
+echo "   1. Checks prerequisites (git clean, SSH access)"
 echo "   2. Builds production images (API and Web)"
 echo "   3. Pushes to DigitalOcean Container Registry"
 echo "   4. Connects to staging server"
@@ -70,38 +69,21 @@ fi
 echo "🔍 Running prerequisite checks..."
 echo ""
 
-# Check 1: Test results
+# Check 1: Test results (DISABLED per user request 2025-11-24)
+# User requested removal of 100% pass rate requirement for deployments
 echo "1️⃣  Checking test status..."
-if [ ! -f "test-results/test-execution-report.md" ]; then
-    echo "   ❌ FAIL: No test execution report found"
-    echo ""
-    echo "💡 Run tests first:"
-    echo "   bash .claude/skills/container-restart/execute.sh"
-    echo "   npm test"
-    echo ""
-    echo "   Or create manual verification report:"
-    echo "   See: /docs/functional-areas/deployment/staging-deployment-guide.md"
-    exit 1
-fi
+echo "   ⚠️  Test pass rate check DISABLED - deploying without test validation"
+echo "   (Test report checks were removed per user request)"
 
-# Check for "status: PASS" in YAML frontmatter (standardized format)
-# PASS status means >= 90% pass rate
-if ! grep -q "^status: PASS" test-results/test-execution-report.md; then
-    echo "   ❌ FAIL: Tests not passing or below 90% threshold"
-    echo ""
-    echo "💡 Test execution report must show 'status: PASS' (90%+ pass rate required)"
-    echo "   Current status:"
-    grep "^status:" test-results/test-execution-report.md || echo "   (no status line found)"
-    echo "   Pass rate:"
-    grep "^pass_rate:" test-results/test-execution-report.md || echo "   (no pass rate found)"
-    echo ""
-    echo "📖 Report format: /docs/standards-processes/testing/test-report-format.md"
-    exit 1
-fi
-
-# Extract and display pass rate for transparency
-PASS_RATE=$(grep "^pass_rate:" test-results/test-execution-report.md | cut -d':' -f2 | tr -d ' ' || echo "unknown")
-echo "   ✅ Tests passing (${PASS_RATE}% pass rate, threshold: 90%)"
+# NOTE: Original test validation code commented out below
+# if [ ! -f "test-results/test-execution-report.md" ]; then
+#     echo "   ❌ FAIL: No test execution report found"
+#     exit 1
+# fi
+# if ! grep -q "^status: PASS" test-results/test-execution-report.md; then
+#     echo "   ❌ FAIL: Tests not passing or below 90% threshold"
+#     exit 1
+# fi
 
 # Check 2: Git status
 echo ""

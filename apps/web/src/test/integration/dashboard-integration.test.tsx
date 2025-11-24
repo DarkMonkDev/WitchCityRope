@@ -152,16 +152,12 @@ describe('Dashboard Integration Tests', () => {
 
       server.use(
         http.get('/api/events', () => {
-          return HttpResponse.json({
-            success: true,
-            data: mockEvents,
-          })
+          // Pattern B: Return array directly, NO wrapper
+          return HttpResponse.json(mockEvents)
         }),
         http.get('http://localhost:5655/api/events', () => {
-          return HttpResponse.json({
-            success: true,
-            data: mockEvents,
-          })
+          // Pattern B: Return array directly, NO wrapper
+          return HttpResponse.json(mockEvents)
         })
       )
 
@@ -242,10 +238,8 @@ describe('Dashboard Integration Tests', () => {
 
       server.use(
         http.get('http://localhost:5655/api/events', () => {
-          return HttpResponse.json({
-            success: true,
-            data: mockEvents,
-          })
+          // Pattern B: Return array directly, NO wrapper
+          return HttpResponse.json(mockEvents)
         })
       )
 
@@ -328,20 +322,18 @@ describe('Dashboard Integration Tests', () => {
     it('should handle malformed events response', async () => {
       server.use(
         http.get('http://localhost:5655/api/events', () => {
-          return HttpResponse.json({
-            success: true,
-            data: [
-              {
-                id: '1',
-                title: 'Valid Event',
-                // Missing other required fields
-              },
-              {
-                // Completely malformed event
-                invalid: 'data',
-              },
-            ],
-          })
+          // Pattern B: Return array directly (even if malformed)
+          return HttpResponse.json([
+            {
+              id: '1',
+              title: 'Valid Event',
+              // Missing other required fields
+            },
+            {
+              // Completely malformed event
+              invalid: 'data',
+            },
+          ])
         })
       )
 

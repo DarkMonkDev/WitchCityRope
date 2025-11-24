@@ -47,34 +47,31 @@ describe('EventsList Component - Vertical Slice Home Page Tests', () => {
   })
 
   it('displays events when data loads successfully', async () => {
-    // Arrange - Provide mock events for this unit test
+    // Arrange - Pattern B: Return array directly, NOT wrapped
     server.use(
       http.get('/api/events', () => {
-        return HttpResponse.json({
-          success: true,
-          data: [
-            {
-              id: '1',
-              title: 'Rope Bondage Fundamentals',
-              description: 'Learn the basics of safe rope bondage with experienced instructors',
-              startDate: '2025-08-20T19:00:00Z',
-              endDate: '2025-08-20T21:00:00Z',
-              capacity: 20,
-              registrationCount: 5,
-              eventType: 'class',
-            },
-            {
-              id: '2',
-              title: 'Community Social Night',
-              description: 'Join fellow community members for socializing and light play',
-              startDate: '2025-08-21T19:00:00Z',
-              endDate: '2025-08-21T21:00:00Z',
-              capacity: 15,
-              registrationCount: 10,
-              eventType: 'social',
-            },
-          ],
-        })
+        return HttpResponse.json([
+          {
+            id: '1',
+            title: 'Rope Bondage Fundamentals',
+            description: 'Learn the basics of safe rope bondage with experienced instructors',
+            startDate: '2025-08-20T19:00:00Z',
+            endDate: '2025-08-20T21:00:00Z',
+            capacity: 20,
+            registrationCount: 5,
+            eventType: 'class',
+          },
+          {
+            id: '2',
+            title: 'Community Social Night',
+            description: 'Join fellow community members for socializing and light play',
+            startDate: '2025-08-21T19:00:00Z',
+            endDate: '2025-08-21T21:00:00Z',
+            capacity: 15,
+            registrationCount: 10,
+            eventType: 'social',
+          },
+        ])
       })
     )
 
@@ -141,12 +138,12 @@ describe('EventsList Component - Vertical Slice Home Page Tests', () => {
   })
 
   it('displays empty state when no events are returned', async () => {
-    // Arrange - MSW handler that returns empty data wrapped in API response format
+    // Arrange - Pattern B: Return empty array directly
     // Use relative path because component uses getApiUrl which returns '/api/events' in dev mode
     server.use(
       http.get('/api/events', () => {
-        // Match EventsList component logic: component checks data.data OR data array
-        return HttpResponse.json({ success: true, data: [] })
+        // Pattern B: Return array directly, NO wrapper
+        return HttpResponse.json([])
       })
     )
 
@@ -166,28 +163,25 @@ describe('EventsList Component - Vertical Slice Home Page Tests', () => {
   })
 
   it('calls correct API endpoint for events', async () => {
-    // Arrange - Provide mock events for this unit test
+    // Arrange - Pattern B: Return array directly
     server.use(
       http.get('/api/events', () => {
-        return HttpResponse.json({
-          success: true,
-          data: [
-            {
-              id: '1',
-              title: 'Test Event 1',
-              description: 'Description 1',
-              startDate: '2025-08-20T19:00:00Z',
-              eventType: 'class',
-            },
-            {
-              id: '2',
-              title: 'Test Event 2',
-              description: 'Description 2',
-              startDate: '2025-08-21T19:00:00Z',
-              eventType: 'social',
-            },
-          ],
-        })
+        return HttpResponse.json([
+          {
+            id: '1',
+            title: 'Test Event 1',
+            description: 'Description 1',
+            startDate: '2025-08-20T19:00:00Z',
+            eventType: 'class',
+          },
+          {
+            id: '2',
+            title: 'Test Event 2',
+            description: 'Description 2',
+            startDate: '2025-08-21T19:00:00Z',
+            eventType: 'social',
+          },
+        ])
       })
     )
 
@@ -203,21 +197,18 @@ describe('EventsList Component - Vertical Slice Home Page Tests', () => {
   })
 
   it('proves React + API stack integration works', async () => {
-    // Arrange - Provide mock events for this unit test
+    // Arrange - Pattern B: Return array directly
     server.use(
       http.get('/api/events', () => {
-        return HttpResponse.json({
-          success: true,
-          data: [
-            {
-              id: '1',
-              title: 'Rope Bondage Fundamentals',
-              description: 'Learn the basics of safe rope bondage with experienced instructors',
-              startDate: '2025-08-20T19:00:00Z',
-              eventType: 'class',
-            },
-          ],
-        })
+        return HttpResponse.json([
+          {
+            id: '1',
+            title: 'Rope Bondage Fundamentals',
+            description: 'Learn the basics of safe rope bondage with experienced instructors',
+            startDate: '2025-08-20T19:00:00Z',
+            eventType: 'class',
+          },
+        ])
       })
     )
 

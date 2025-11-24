@@ -42,7 +42,7 @@ public class SystemHealthCheckTests : IDisposable
         _reactUrl = _configuration["ReactUrl"] ?? "http://localhost:5173";
         _apiUrl = _configuration["ApiUrl"] ?? "http://localhost:5655";
         _postgresConnection = _configuration["PostgresConnection"] ??
-            "Host=localhost;Port=5433;Database=witchcityrope_dev;Username=postgres;Password=devpass123";
+            "Host=localhost;Port=5434;Database=witchcityrope_dev;Username=postgres;Password=devpass123";
     }
 
     [Fact]
@@ -123,7 +123,7 @@ public class SystemHealthCheckTests : IDisposable
             var result = await command.ExecuteScalarAsync();
             Assert.Equal(1, result);
 
-            _output.WriteLine($"✅ PostgreSQL is accessible at port 5433");
+            _output.WriteLine($"✅ PostgreSQL is accessible at port 5434");
         }
         catch (NpgsqlException ex)
         {
@@ -133,7 +133,7 @@ public class SystemHealthCheckTests : IDisposable
             _output.WriteLine($"   Fix: Check 'docker logs witchcity-postgres'");
             _output.WriteLine($"   Run: 'docker-compose -f docker-compose.yml -f docker-compose.dev.yml restart postgres'");
             throw new InvalidOperationException(
-                "PostgreSQL not accessible on port 5433. Check Docker containers", ex);
+                "PostgreSQL not accessible on port 5434. Check Docker containers", ex);
         }
         catch (TaskCanceledException)
         {

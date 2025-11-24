@@ -1,8 +1,48 @@
 # WitchCityRope Test Catalog - Navigation Index
 <!-- Last Updated: 2025-11-24 -->
-<!-- Version: 11.24.6 - AUTHENTICATION SERVICE TEST EXECUTION -->
+<!-- Version: 11.24.7 - THREE CRITICAL TEST ISSUES FIXED -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
+
+## ✅ CRITICAL TEST FIXES - November 24, 2025
+
+**EXECUTION DATE**: 2025-11-24T14:00:00Z
+**LAST UPDATED**: 2025-11-24
+**STATUS**: ✅ **ALL THREE CRITICAL ISSUES RESOLVED**
+**SUMMARY REPORT**: `/test-results/test-fixes-summary-2025-11-24.md`
+
+### Issues Fixed
+
+#### Issue #1: PostgreSQL Port Mismatch ✅
+**Location**: `/tests/WitchCityRope.SystemTests/SystemHealthCheckTests.cs`
+**Problem**: Tests expected PostgreSQL on port 5433, Docker runs on 5434
+**Fix**: Updated connection string and messages to use port 5434
+**Result**: ✅ 6/6 health check tests PASSING (100%)
+
+#### Issue #2: Backend Compilation Errors ✅
+**Location**: `/tests/WitchCityRope.Core.Tests/Features/Participation/AdminParticipationRemovalTests.cs`
+**Problem**: CS0307 error - invalid using alias with generic type arguments
+**Fix**: Removed invalid alias, imported namespace directly
+**Result**: ✅ 0 compilation errors (100% success)
+
+#### Issue #3: Frontend API Response Format ✅
+**Locations**:
+- `/apps/web/src/test/mocks/handlers.ts`
+- `/apps/web/src/components/__tests__/EventsList.test.tsx`
+- `/apps/web/src/test/integration/dashboard-integration.test.tsx`
+**Problem**: Tests expected `{success, data}` wrapper, API returns raw arrays (Pattern B)
+**Fix**: Updated MSW mocks and tests to match Pattern B (raw arrays)
+**Result**: ✅ EventsList 8/8 passing, Dashboard 14/14 passing (100%)
+
+### Test Results After Fixes
+
+**System Health Tests**: 6/6 PASSING ✅
+**Backend Compilation**: 0 errors ✅
+**Frontend Tests**: 365/504 passing (72%) - significant improvement ✅
+
+**Key Insight**: Followed user instruction to verify actual API behavior before assuming code was wrong. API correctly uses Pattern B (raw arrays), tests were incorrectly using old wrapper pattern.
+
+---
 
 ## ✅ VETTED MEMBER IMPORT TESTS - November 24, 2025
 
@@ -349,16 +389,7 @@ dotnet test tests/unit/api/WitchCityRope.Api.Tests.csproj --filter "FullyQualifi
 ```
 
 **E2E Tests**:
-```bash
-# All E2E tests
-cd apps/web/tests/playwright && npx playwright test
-
-# Specific test file
-cd apps/web/tests/playwright && npx playwright test admin/events.spec.ts
-
-# With UI mode
-cd apps/web/tests/playwright && npx playwright test --ui
-```
+Use `test-catalog-updater` skill for running E2E tests with automated result tracking and TEST_CATALOG updates.
 
 **Tool Tests**:
 ```bash
@@ -509,16 +540,7 @@ cd tools/VettedMemberImport/VettedMemberImport.Tests && dotnet test
 
 ### Test Execution Commands
 
-```bash
-# Run all CSRF tests
-npx playwright test csrf-token-validation.spec.ts
-
-# Run with UI mode
-npx playwright test csrf-token-validation.spec.ts --ui
-
-# Run specific test
-npx playwright test csrf-token-validation.spec.ts -g "should complete full login"
-```
+Use `test-catalog-updater` skill for running CSRF validation tests with automated result tracking.
 
 ### Test Patterns for Reuse
 
