@@ -354,7 +354,7 @@ http {
 
         location / {
             limit_req zone=api_limit burst=20 nodelay;
-            
+
             proxy_pass http://api_backend;
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
@@ -363,7 +363,7 @@ http {
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
-            
+
             # Timeouts
             proxy_connect_timeout 60s;
             proxy_send_timeout 60s;
@@ -389,7 +389,7 @@ http {
 
         location / {
             limit_req zone=web_limit burst=50 nodelay;
-            
+
             proxy_pass http://web_backend;
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
@@ -628,6 +628,21 @@ chmod +x /opt/witchcityrope/scripts/backup.sh
 crontab -e
 # Add: 0 2 * * * /opt/witchcityrope/scripts/backup.sh >> /opt/witchcityrope/logs/backup.log 2>&1
 ```
+
+### Backup Storage Configuration
+
+Production uses isolated backup storage in DigitalOcean Spaces:
+- **Folder**: `backups/production/`
+- **Bucket**: `witchcityrope`
+- **Endpoint**: `https://nyc3.digitaloceanspaces.com`
+
+Required environment variables in `.env.production`:
+```bash
+DIGITALOCEAN_SPACES_ACCESS_KEY=DO00XJLUX4ZHQUZCVJXX
+DIGITALOCEAN_SPACES_SECRET_KEY=owqAahzw93mHTlILdD6QIoKb3AmeWmStabmF0htqBV8
+```
+
+Production backups are completely isolated from staging and development. See [Backup Folder Separation Plan](/home/chad/repos/witchcityrope/docs/functional-areas/database-backup-restore/investigation/2025-11-24-backup-folder-separation-plan.md) for details.
 
 ### 2. Disaster Recovery Plan
 
@@ -928,7 +943,7 @@ ANALYZE;
 REINDEX DATABASE witchcityrope_prod;
 
 -- Find and fix bloated tables
-SELECT 
+SELECT
     schemaname,
     tablename,
     pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS size,
@@ -944,7 +959,7 @@ VACUUM FULL ANALYZE registrations;
 VACUUM FULL ANALYZE users;
 
 -- Check for unused indexes
-SELECT 
+SELECT
     schemaname,
     tablename,
     indexname,
@@ -976,12 +991,12 @@ SECURITY_UPDATES=$(apt list --upgradable 2>/dev/null | grep -i security | wc -l)
 
 if [ $SECURITY_UPDATES -gt 0 ]; then
     echo "Found $SECURITY_UPDATES security updates"
-    
+
     # Send alert
     curl -X POST https://alerts.witchcityrope.com/webhook \
         -H "Content-Type: application/json" \
         -d "{\"text\": \"Security updates available on production server: $SECURITY_UPDATES packages\"}"
-    
+
     # Log updates
     apt list --upgradable 2>/dev/null | grep -i security >> /opt/witchcityrope/logs/security-updates.log
 fi
@@ -1006,7 +1021,7 @@ cat > /opt/witchcityrope/scripts/performance-tune.sh <<'EOF'
 
 # Monitor slow queries
 docker exec witchcityrope-db psql -U witchcity_prod -d witchcityrope_prod -c "
-SELECT 
+SELECT
     query,
     calls,
     total_time,
@@ -1041,7 +1056,7 @@ EOF
    # Check memory consumers
    docker stats --no-stream
    ps aux --sort=-%mem | head
-   
+
    # Clear caches if needed
    docker exec witchcityrope-redis redis-cli FLUSHDB
    ```
@@ -1050,11 +1065,11 @@ EOF
    ```bash
    # Check connection count
    docker exec witchcityrope-db psql -U witchcity_prod -c "SELECT count(*) FROM pg_stat_activity;"
-   
+
    # Kill idle connections
    docker exec witchcityrope-db psql -U witchcity_prod -c "
-   SELECT pg_terminate_backend(pid) 
-   FROM pg_stat_activity 
+   SELECT pg_terminate_backend(pid)
+   FROM pg_stat_activity
    WHERE state = 'idle' AND state_change < now() - interval '5 minutes';"
    ```
 
@@ -1063,7 +1078,7 @@ EOF
    # Enable detailed logging
    docker exec witchcityrope-api sed -i 's/LogLevel:Information/LogLevel:Debug/' appsettings.json
    docker restart witchcityrope-api
-   
+
    # Check response times
    curl -w "@curl-format.txt" -o /dev/null -s https://api.witchcityrope.com/api/events
    ```

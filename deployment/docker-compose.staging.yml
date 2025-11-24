@@ -49,6 +49,14 @@ services:
       - Vetting__FromName=${Vetting__FromName:-WitchCityRope}
       # Frontend URL for email verification links
       - Frontend__Url=${Frontend__Url:-https://staging.notfai.com}
+      # Backup Configuration - Staging Isolated Storage
+      - BackupConfiguration__Spaces__Endpoint=https://nyc3.digitaloceanspaces.com
+      - BackupConfiguration__Spaces__BucketName=witchcityrope
+      - BackupConfiguration__Spaces__AccessKey=${DIGITALOCEAN_SPACES_ACCESS_KEY}
+      - BackupConfiguration__Spaces__SecretKey=${DIGITALOCEAN_SPACES_SECRET_KEY}
+      - BackupConfiguration__Spaces__FolderPrefix=backups/staging
+      - BackupConfiguration__BackupOptions__TempDirectory=/tmp
+      - BackupConfiguration__BackupOptions__TimeoutSeconds=300
     depends_on:
       - redis
     healthcheck:

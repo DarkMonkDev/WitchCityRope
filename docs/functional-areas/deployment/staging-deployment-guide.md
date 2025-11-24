@@ -50,6 +50,21 @@ This structure ensures:
 - DigitalOcean Container Registry access (credentials in local `~/.docker/config.json`)
 - Access to `.env.staging` file on server at `/opt/witchcityrope/staging/`
 
+## Backup Storage Configuration
+
+Staging uses isolated backup storage in DigitalOcean Spaces:
+- **Folder**: `backups/staging/`
+- **Bucket**: `witchcityrope`
+- **Endpoint**: `https://nyc3.digitaloceanspaces.com`
+
+Required environment variables in `.env.staging`:
+```bash
+DIGITALOCEAN_SPACES_ACCESS_KEY=DO00XJLUX4ZHQUZCVJXX
+DIGITALOCEAN_SPACES_SECRET_KEY=owqAahzw93mHTlILdD6QIoKb3AmeWmStabmF0htqBV8
+```
+
+Staging backups are completely isolated from production. See [Backup Folder Separation Plan](/home/chad/repos/witchcityrope/docs/functional-areas/database-backup-restore/investigation/2025-11-24-backup-folder-separation-plan.md) for details.
+
 ## Standard Deployment
 
 **Use the `staging-deploy` skill for all standard deployments.**
@@ -102,7 +117,7 @@ The `staging-deploy` skill automatically uses:
 
 ## Database Management
 
-**For database operations, see:** `/docs/guides-setup/database-setup.md` (Staging Database Management section)
+**For database operations, see:** `/home/chad/repos/witchcityrope/docs/guides-setup/database-setup.md` (Staging Database Management section)
 
 ### Quick Reference:
 
@@ -214,6 +229,7 @@ curl https://staging.notfai.com/api/health | jq .
 - [Secrets Management Guide](../../guides-setup/secrets-management-guide-2025-10-24.md) - Credential management
 - [Docker Development Guide](../../DOCKER_DEV_GUIDE.md) - Local development environment
 - [Architecture Guide](../../ARCHITECTURE.md) - System architecture
+- [Backup Folder Separation Plan](/home/chad/repos/witchcityrope/docs/functional-areas/database-backup-restore/investigation/2025-11-24-backup-folder-separation-plan.md) - Backup storage configuration
 
 ## Legacy Documentation
 
@@ -224,7 +240,8 @@ The current staging environment uses DigitalOcean infrastructure as described in
 
 ---
 
-**Last Updated**: 2025-11-22
+**Last Updated**: 2025-11-24
 **Deployment Method**: Automated via `staging-deploy` skill
 **Database Resets**: Automated via `database-reset-staging` skill
 **Registry Structure**: Environment-specific repositories (-staging, -production)
+**Backup Storage**: Isolated staging folder (backups/staging/)

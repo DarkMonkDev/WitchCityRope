@@ -34,7 +34,7 @@ public static class AdminBackupEndpoints
             .RequireAuthorization(policy => policy.RequireRole(UserRole.Administrator.ToRoleString()))
             .WithName("ListBackups")
             .WithSummary("List all available backups (admin only)")
-            .WithDescription("Retrieves a list of all database backups from DigitalOcean Spaces with metadata")
+            .WithDescription("Retrieves environment-specific database backups from DigitalOcean Spaces. Each environment (local/staging/production) has isolated backup storage determined by the BackupConfiguration__Spaces__FolderPrefix setting.")
             .Produces<BackupListResponse>(200)
             .Produces(401)
             .Produces(403)

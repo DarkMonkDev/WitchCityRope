@@ -17,6 +17,16 @@ public class DatabaseConfig
     public string Password { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// DigitalOcean Spaces configuration for backup storage.
+///
+/// FolderPrefix determines environment isolation:
+/// - Local: backups/local/ (docker-compose.dev.yml)
+/// - Staging: backups/staging/ (docker-compose.staging.yml)
+/// - Production: backups/production/ (docker-compose.production.yml)
+///
+/// Default: "backups" (shared - not recommended for multi-environment use)
+/// </summary>
 public class SpacesConfig
 {
     public string Endpoint { get; set; } = string.Empty;

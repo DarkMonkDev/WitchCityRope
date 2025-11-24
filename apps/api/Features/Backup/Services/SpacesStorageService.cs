@@ -7,6 +7,20 @@ using Microsoft.Extensions.Options;
 
 namespace WitchCityRope.Api.Features.Backup.Services;
 
+/// <summary>
+/// DigitalOcean Spaces storage service for database backups.
+///
+/// Environment-Specific Storage Structure:
+/// - Local Development: backups/local/
+/// - Staging: backups/staging/
+/// - Production: backups/production/
+///
+/// Each environment uses isolated storage folders to prevent cross-environment contamination.
+/// Folder prefix configured via BackupConfiguration__Spaces__FolderPrefix environment variable.
+///
+/// Bucket: witchcityrope
+/// Endpoint: https://nyc3.digitaloceanspaces.com
+/// </summary>
 public class SpacesStorageService
 {
     private readonly BackupConfiguration _config;

@@ -132,6 +132,33 @@ REDIS_PASSWORD=your-redis-password
 GRAFANA_PASSWORD=your-grafana-admin-password
 ```
 
+### Backup Configuration
+
+The application uses environment-specific backup storage in DigitalOcean Spaces:
+
+```
+witchcityrope (bucket)
+├── backups/
+│   ├── local/              # Development environment
+│   ├── staging/            # Staging environment
+│   └── production/         # Production environment
+```
+
+**Environment Variables Required**:
+```bash
+DIGITALOCEAN_SPACES_ACCESS_KEY=<your-access-key>
+DIGITALOCEAN_SPACES_SECRET_KEY=<your-secret-key>
+```
+
+**Configuration** (set in docker-compose files):
+- Local: `BackupConfiguration__Spaces__FolderPrefix=backups/local`
+- Staging: `BackupConfiguration__Spaces__FolderPrefix=backups/staging`
+- Production: `BackupConfiguration__Spaces__FolderPrefix=backups/production`
+
+Each environment can only access its own backups, preventing accidental cross-environment restoration.
+
+For details, see [Database Backup & Restore Documentation](../docs/functional-areas/database-backup-restore/README.md).
+
 ## 🐳 Docker Deployment
 
 ### Using Docker Compose

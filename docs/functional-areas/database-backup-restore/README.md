@@ -1,13 +1,38 @@
 # Database Backup & Restore - WitchCityRope
 
-<!-- Last Updated: 2025-11-17 -->
-<!-- Version: 1.0 -->
+<!-- Last Updated: 2025-11-24 -->
+<!-- Version: 1.1 -->
 <!-- Owner: DevOps/Backend Team -->
 <!-- Status: Migration Planning -->
 
 ## Overview
 
 Database backup and restore functionality for WitchCityRope PostgreSQL database, migrated from the account-automation repository. This feature provides automated database backups with DigitalOcean Spaces storage integration.
+
+## Storage Structure
+
+All backups are stored in DigitalOcean Spaces bucket `witchcityrope` with environment-specific folder isolation:
+
+```
+witchcityrope (bucket)
+├── backups/
+│   ├── local/              # Local development backups
+│   │   └── backup-YYYY-MM-DD-HHMMSS.dump
+│   ├── staging/            # Staging environment backups
+│   │   └── backup-YYYY-MM-DD-HHMMSS.dump
+│   └── production/         # Production environment backups
+│       └── backup-YYYY-MM-DD-HHMMSS.dump
+```
+
+**Environment Isolation**:
+- Each environment can only see and manage its own backups
+- Prevents accidental cross-environment restoration
+- Maintains clean separation between development, staging, and production
+
+**Configuration**:
+- Local: `BackupConfiguration__Spaces__FolderPrefix=backups/local` (docker-compose.dev.yml)
+- Staging: `BackupConfiguration__Spaces__FolderPrefix=backups/staging` (docker-compose.staging.yml)
+- Production: `BackupConfiguration__Spaces__FolderPrefix=backups/production` (docker-compose.production.yml)
 
 ## Purpose
 
@@ -36,7 +61,7 @@ Provide robust database backup and restore capabilities to ensure data safety, e
 
 **Objective**: Migrate comprehensive database backup/restore feature from account-automation repository to WitchCityRope with DigitalOcean Spaces integration.
 
-**Work Folder**: `/docs/functional-areas/database-backup-restore/new-work/2025-11-17-migration-from-account-automation/`
+**Work Folder**: `/home/chad/repos/witchcityrope/docs/functional-areas/database-backup-restore/new-work/2025-11-17-migration-from-account-automation/`
 
 **Key Documents**:
 - **Analysis**: [Analysis Document](./new-work/2025-11-17-migration-from-account-automation/analysis/ANALYSIS.md) - Feature analysis, migration planning, technical considerations
@@ -117,10 +142,10 @@ Provide robust database backup and restore capabilities to ensure data safety, e
 
 ## Related Documentation
 
-- **Account-Automation Source**: (reference repository documentation here)
-- **DigitalOcean Spaces Setup**: `/docs/guides-setup/digitalocean-spaces-configuration.md` (TBD)
-- **Secrets Management**: `/docs/guides-setup/secrets-management-guide-2025-10-24.md`
-- **Database Standards**: `/docs/standards-processes/backend/database-migrations-guide.md`
+- **Backup Folder Separation Plan**: [2025-11-24-backup-folder-separation-plan.md](./investigation/2025-11-24-backup-folder-separation-plan.md) - Environment-specific storage implementation
+- **Backup List Source Analysis**: [2025-11-23-backup-list-source-analysis.md](./investigation/2025-11-23-backup-list-source-analysis.md) - Investigation of backup list behavior
+- **Secrets Management**: `/home/chad/repos/witchcityrope/docs/guides-setup/secrets-management-guide-2025-10-24.md`
+- **Database Standards**: `/home/chad/repos/witchcityrope/docs/standards-processes/backend/database-migrations-guide.md`
 
 ## Timeline
 
