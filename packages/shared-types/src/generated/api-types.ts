@@ -4,6 +4,26 @@
  */
 
 export interface paths {
+    "/api/antiforgery/token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Generate CSRF token for authenticated session
+         * @description Generates and stores CSRF token in XSRF-TOKEN cookie. React frontend reads this cookie and includes token in X-CSRF-TOKEN header for state-changing requests.
+         */
+        get: operations["GetAntiforgeryToken"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -3909,6 +3929,7 @@ export interface components {
             name?: string;
             directions?: string | null;
             notes?: string | null;
+            location?: string | null;
         };
         DashboardResponse: {
             eventId?: string;
@@ -3991,6 +4012,7 @@ export interface components {
             volunteerRegistrationCloseHours?: number | null;
             /** Format: double */
             volunteerCancellationCloseHours?: number | null;
+            venueLocation?: string | null;
         };
         EventEmailTemplateDto: {
             /** Format: uuid */
@@ -5080,6 +5102,7 @@ export interface components {
             name?: string;
             directions?: string | null;
             notes?: string | null;
+            location?: string | null;
             isActive?: boolean;
         };
         UserCoordinatorDto: {
@@ -5278,6 +5301,7 @@ export interface components {
             name?: string;
             directions?: string | null;
             notes?: string | null;
+            location?: string | null;
             isActive?: boolean;
             /** Format: date-time */
             createdAt?: string;
@@ -5442,6 +5466,33 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    GetAntiforgeryToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     GetHealth: {
         parameters: {
             query?: never;

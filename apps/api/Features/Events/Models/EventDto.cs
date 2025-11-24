@@ -25,6 +25,13 @@ public class EventDto
     /// </summary>
     public int VenueId { get; set; }
 
+    /// <summary>
+    /// Public venue location (city, state) for privacy-aware display
+    /// Shown to all users before RSVP/ticket purchase
+    /// Example: "Salem, MA"
+    /// </summary>
+    public string? VenueLocation { get; set; }
+
     public string EventType { get; set; } = string.Empty;
     public int Capacity { get; set; }
 

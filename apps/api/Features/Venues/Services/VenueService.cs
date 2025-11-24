@@ -34,6 +34,7 @@ public class VenueService : IVenueService
                 Id = v.Id,
                 Name = v.Name,
                 Directions = v.Directions,
+                Location = v.Location,
                 Notes = null, // Don't expose internal notes to public
                 IsActive = v.IsActive,
                 CreatedAt = v.CreatedAt,
@@ -61,6 +62,7 @@ public class VenueService : IVenueService
                 Id = v.Id,
                 Name = v.Name,
                 Directions = v.Directions,
+                Location = v.Location,
                 Notes = null, // Don't expose internal notes to public
                 IsActive = v.IsActive,
                 CreatedAt = v.CreatedAt,

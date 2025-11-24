@@ -365,7 +365,17 @@ export const EventDetailPage: React.FC = () => {
                 fontSize: '20px'
               }}>
                 <IconMapPin size={20} />
-                <Text size="lg">{venue?.name || (event as any)?.location || 'TBD'}</Text>
+                <Text size="lg">
+                  {/* Show venueLocation for non-vetted non-participants, venue.name for others */}
+                  {(() => {
+                    const hasVenueAccess = isVetted || (participation?.hasRSVP || participation?.hasTicket);
+                    if (hasVenueAccess) {
+                      return venue?.name || (event as any)?.venueLocation || 'Location TBD';
+                    } else {
+                      return (event as any)?.venueLocation || 'Location TBD';
+                    }
+                  })()}
+                </Text>
               </Group>
             </Group>
           </Box>
@@ -400,21 +410,109 @@ export const EventDetailPage: React.FC = () => {
             />
           </ContentSection>
 
-          {/* Venue Details - Only shown to users with RSVP or Ticket */}
-          {venue && venue.directions && (participation?.hasRSVP || participation?.hasTicket) && (
-            <ContentSection title={`Directions To ${venue.name}`}>
-              <Text
-                style={{
-                  fontSize: 'clamp(1rem, 0.19vw + 0.94rem, 1.06rem)', // 16px mobile → 17px desktop
-                  lineHeight: 1.8,
-                  color: 'var(--color-charcoal)',
-                  whiteSpace: 'pre-line',
-                }}
-              >
-                {venue.directions}
-              </Text>
-            </ContentSection>
-          )}
+          {/* Venue Details - Conditional based on access */}
+          {venue && (() => {
+            const hasVenueAccess = isVetted || (participation?.hasRSVP || participation?.hasTicket);
+
+            if (hasVenueAccess && venue.directions) {
+              // Full venue details for vetted users or participants
+              return (
+                <ContentSection title="Venue Details">
+                  <Stack gap="md">
+                    <Box>
+                      <Text
+                        fw={600}
+                        size="sm"
+                        style={{
+                          fontFamily: 'var(--font-heading)',
+                          fontSize: '14px',
+                          color: 'var(--color-smoke)',
+                          marginBottom: 'var(--space-xs)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                        }}
+                      >
+                        Venue
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 'clamp(1rem, 0.19vw + 0.94rem, 1.06rem)',
+                          lineHeight: 1.8,
+                          color: 'var(--color-charcoal)',
+                        }}
+                      >
+                        {venue.name}
+                      </Text>
+                    </Box>
+
+                    <Box>
+                      <Text
+                        fw={600}
+                        size="sm"
+                        style={{
+                          fontFamily: 'var(--font-heading)',
+                          fontSize: '14px',
+                          color: 'var(--color-smoke)',
+                          marginBottom: 'var(--space-xs)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                        }}
+                      >
+                        Directions
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 'clamp(1rem, 0.19vw + 0.94rem, 1.06rem)',
+                          lineHeight: 1.8,
+                          color: 'var(--color-charcoal)',
+                          whiteSpace: 'pre-line',
+                        }}
+                      >
+                        {venue.directions}
+                      </Text>
+                    </Box>
+                  </Stack>
+                </ContentSection>
+              );
+            } else if (!hasVenueAccess && (event as any)?.venueLocation) {
+              // Limited location info for non-vetted non-participants
+              return (
+                <ContentSection title="Location">
+                  <Stack gap="md">
+                    <Text
+                      style={{
+                        fontSize: 'clamp(1rem, 0.19vw + 0.94rem, 1.06rem)',
+                        lineHeight: 1.8,
+                        color: 'var(--color-charcoal)',
+                      }}
+                    >
+                      {(event as any)?.venueLocation}
+                    </Text>
+
+                    <Alert
+                      color="blue"
+                      variant="light"
+                      styles={{
+                        root: {
+                          border: '1px solid var(--color-plum)',
+                          background: 'rgba(155, 74, 117, 0.05)',
+                        },
+                        message: {
+                          color: 'var(--color-charcoal)',
+                        },
+                      }}
+                    >
+                      <Text size="sm">
+                        Full venue address and directions will be provided after registration.
+                      </Text>
+                    </Alert>
+                  </Stack>
+                </ContentSection>
+              );
+            }
+
+            return null;
+          })()}
 
           {/* Volunteer Positions */}
           {volunteerPositions && Array.isArray(volunteerPositions) && volunteerPositions.length > 0 && isAuthenticated && canVolunteerBasedOnEventType && (

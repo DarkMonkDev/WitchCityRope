@@ -7,7 +7,6 @@ import {
   Select,
   TextInput,
   Textarea,
-  Checkbox,
   Stack,
   Button,
 } from '@mantine/core';
@@ -24,9 +23,9 @@ type UpdateVenueRequest = components['schemas']['UpdateVenueRequest'];
 
 interface VenueFormValues {
   name: string;
+  location: string;
   directions: string;
   notes: string;
-  isActive: boolean;
 }
 
 /**
@@ -46,20 +45,20 @@ export const VenueManagementCard: React.FC = () => {
   const form = useForm<VenueFormValues>({
     initialValues: {
       name: '',
+      location: '',
       directions: '',
       notes: '',
-      isActive: true,
     },
     validate: {
       name: (value) => (!value?.trim() ? 'Venue name is required' : null),
     },
   });
 
-  // Fetch all venues (including inactive)
+  // Fetch active venues only
   const { data: venues, isLoading } = useQuery<VenueDto[]>({
-    queryKey: ['admin', 'venues'],
+    queryKey: ['admin', 'venues', 'active'],
     queryFn: async () => {
-      const response = await api.get<VenueDto[]>('/api/admin/venues');
+      const response = await api.get<VenueDto[]>('/api/admin/venues/active');
       return response.data || [];
     },
   });
@@ -71,7 +70,7 @@ export const VenueManagementCard: React.FC = () => {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'venues'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'venues', 'active'] });
       notifications.show({
         title: 'Success',
         message: 'Venue created successfully',
@@ -98,7 +97,7 @@ export const VenueManagementCard: React.FC = () => {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'venues'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'venues', 'active'] });
       notifications.show({
         title: 'Success',
         message: 'Venue updated successfully',
@@ -116,19 +115,36 @@ export const VenueManagementCard: React.FC = () => {
     },
   });
 
-  // Build dropdown options
+  // Delete venue mutation (soft delete - sets IsActive = false)
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await api.delete(`/api/admin/venues/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'venues', 'active'] });
+      notifications.show({
+        title: 'Success',
+        message: 'Venue deleted successfully',
+        color: 'green',
+        icon: <IconCheck />,
+      });
+      form.reset();
+      setSelectedVenueId(null);
+    },
+    onError: (error: any) => {
+      notifications.show({
+        title: 'Error',
+        message: error.response?.data?.message || 'Failed to delete venue',
+        color: 'red',
+        icon: <IconAlertCircle />,
+      });
+    },
+  });
+
+  // Build dropdown options (only active venues)
   const dropdownOptions = [
     { value: 'add-new', label: 'Add New' },
-    ...(venues
-      ?.filter((v) => v.isActive)
-      .map((v) => ({ value: v.id!.toString(), label: v.name! })) || []),
-    ...(venues
-      ?.filter((v) => !v.isActive)
-      .map((v) => ({
-        value: v.id!.toString(),
-        label: `${v.name} (Inactive)`,
-        style: { color: 'var(--color-stone)' },
-      })) || []),
+    ...(venues?.map((v) => ({ value: v.id!.toString(), label: v.name! })) || []),
   ];
 
   // Form visibility logic
@@ -143,16 +159,16 @@ export const VenueManagementCard: React.FC = () => {
     if (value === 'add-new') {
       // Blank form for creating new venue
       form.reset();
-      form.setValues({ name: '', directions: '', notes: '', isActive: true });
+      form.setValues({ name: '', location: '', directions: '', notes: '' });
     } else if (value && value !== '') {
       // Load existing venue data
       const venue = venues?.find((v) => v.id!.toString() === value);
       if (venue) {
         form.setValues({
           name: venue.name || '',
+          location: venue.location || '',
           directions: venue.directions || '',
           notes: venue.notes || '',
-          isActive: venue.isActive ?? true,
         });
       }
     } else {
@@ -171,6 +187,7 @@ export const VenueManagementCard: React.FC = () => {
     if (isCreateMode) {
       createMutation.mutate({
         name: form.values.name.trim(),
+        location: form.values.location.trim() || null,
         directions: form.values.directions.trim() || null,
         notes: form.values.notes.trim() || null,
       });
@@ -179,11 +196,21 @@ export const VenueManagementCard: React.FC = () => {
         id: parseInt(selectedVenueId),
         data: {
           name: form.values.name.trim(),
+          location: form.values.location.trim() || null,
           directions: form.values.directions.trim() || null,
           notes: form.values.notes.trim() || null,
-          isActive: form.values.isActive,
+          isActive: true, // Always true when updating
         },
       });
+    }
+  };
+
+  // Handle delete
+  const handleDelete = () => {
+    if (!isEditMode || !selectedVenueId) return;
+
+    if (window.confirm('Are you sure you want to delete this venue? It will no longer appear in the venue list.')) {
+      deleteMutation.mutate(parseInt(selectedVenueId));
     }
   };
 
@@ -320,6 +347,53 @@ export const VenueManagementCard: React.FC = () => {
                     />
                   </Box>
 
+                  {/* Location */}
+                  <Box>
+                    <Text
+                      component="label"
+                      style={{
+                        display: 'block',
+                        fontFamily: 'var(--font-heading)',
+                        fontSize: '14px',
+                        fontWeight: 600,
+                        color: 'var(--color-smoke)',
+                        marginBottom: 'var(--space-xs)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}
+                    >
+                      Location (city, state)
+                    </Text>
+                    <TextInput
+                      data-testid="venue-location-input"
+                      {...form.getInputProps('location')}
+                      placeholder="e.g., Salem, MA"
+                      maxLength={100}
+                      description="Public location shown to non-vetted users before RSVP or ticket purchase. Full venue details are shown after registration."
+                      styles={{
+                        input: {
+                          fontFamily: 'var(--font-body)',
+                          fontSize: '16px',
+                          border: '2px solid var(--color-taupe)',
+                          borderRadius: '8px',
+                          background: 'var(--color-ivory)',
+                          color: 'var(--color-charcoal)',
+                          padding: 'var(--space-sm) var(--space-md)',
+                          '&:focus': {
+                            borderColor: 'var(--color-burgundy)',
+                            boxShadow: '0 0 0 3px rgba(136, 1, 36, 0.1)',
+                          },
+                        },
+                        description: {
+                          fontSize: '13px',
+                          color: 'var(--color-stone)',
+                          marginTop: 'var(--space-xs)',
+                          lineHeight: 1.5,
+                        },
+                      }}
+                    />
+                  </Box>
+
                   {/* Directions */}
                   <Box>
                     <Text
@@ -404,17 +478,30 @@ export const VenueManagementCard: React.FC = () => {
                     />
                   </Box>
 
-                  {/* Active Checkbox - Only shown when editing. Unchecking deactivates the venue (soft delete). */}
-                  {isEditMode && (
-                    <Checkbox
-                      data-testid="venue-active-checkbox"
-                      {...form.getInputProps('isActive', { type: 'checkbox' })}
-                      label="Active Venue"
-                    />
-                  )}
-
                   {/* Action Buttons */}
                   <Group justify="flex-end" mt="md" gap="sm">
+                    {isEditMode && (
+                      <Button
+                        data-testid="venue-delete-button"
+                        variant="outline"
+                        color="red"
+                        onClick={handleDelete}
+                        disabled={deleteMutation.isPending}
+                        loading={deleteMutation.isPending}
+                        styles={{
+                          root: {
+                            fontWeight: 600,
+                            height: '44px',
+                            paddingTop: '12px',
+                            paddingBottom: '12px',
+                            fontSize: '14px',
+                            lineHeight: '1.2',
+                          },
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    )}
                     <Button
                       data-testid="venue-submit-button"
                       variant="filled"

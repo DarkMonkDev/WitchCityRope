@@ -32,6 +32,7 @@ interface ApiEvent {
   policies?: string | null
   startDate: string
   venueId?: number | null // Venue reference (preferred)
+  venueLocation?: string | null // Public location (city, state) for privacy-aware display
   location: string // DEPRECATED: Legacy location string
   eventType?: string
   capacity?: number
@@ -140,6 +141,7 @@ function transformApiEvent(apiEvent: ApiEvent): EventDto {
     startDate: apiEvent.startDate,
     endDate: apiEvent.endDate || null,
     venueId: apiEvent.venueId || null,
+    venueLocation: apiEvent.venueLocation || null,
     eventType: apiEvent.eventType,
     capacity: apiEvent.capacity || apiEvent.maxAttendees || 20, // Use capacity first, then maxAttendees
     registrationCount: apiEvent.registrationCount || apiEvent.currentAttendees || apiEvent.currentRSVPs || apiEvent.currentTickets || 0,
