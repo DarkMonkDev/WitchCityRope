@@ -1,6 +1,6 @@
 # WitchCityRope Testing Guide
-<!-- Last Updated: 2025-11-17 -->
-<!-- Version: 2.1 -->
+<!-- Last Updated: 2025-11-24 -->
+<!-- Version: 3.0 -->
 <!-- Owner: Testing Team -->
 <!-- Status: Active -->
 
@@ -15,7 +15,7 @@ This is the comprehensive testing guide for the WitchCityRope project. It covers
 sudo systemctl start docker
 
 # Navigate to project root
-cd /home/chad/repos/witchcityrope/WitchCityRope
+cd /home/chad/repos/witchcityrope
 
 # Build the solution
 dotnet build
@@ -30,7 +30,7 @@ dotnet test
 ./dev.sh  # Start application in one terminal
 
 # In another terminal:
-cd tests/e2e && npm test
+npx playwright test
 ```
 
 ### Running Specific Test Types
@@ -53,28 +53,79 @@ dotnet test --logger "console;verbosity=detailed"
 ### Project Structure
 ```
 tests/
-├── Unit Tests (No External Dependencies)
-│   ├── WitchCityRope.Core.Tests/        # Domain logic, entities, value objects
-│   ├── WitchCityRope.Api.Tests/         # API services, controllers
-│   └── WitchCityRope.Tests.Common/      # Shared test utilities, builders
+├── e2e/                              # E2E Tests (Playwright)
+│   ├── admin/                       # Admin functionality
+│   ├── auth/                        # Authentication flows
+│   ├── events/                      # Event management
+│   ├── vetting/                     # Vetting system
+│   ├── payments/                    # Payment workflows
+│   └── test-utils/                  # E2E test utilities
 │
-├── Integration Tests (Database/Services Required)
-│   ├── WitchCityRope.IntegrationTests/  # Full stack integration
-│   └── WitchCityRope.Infrastructure.Tests/ # Data access, repositories
+├── unit/
+│   ├── api/                         # .NET API Unit Tests
+│   │   ├── Features/               # Organized by domain
+│   │   └── Services/               # Service layer tests
+│   └── web/                         # React Unit Tests
+│       ├── components/             # Component tests
+│       ├── hooks/                  # Hook tests
+│       ├── pages/                  # Page tests
+│       ├── features/               # Feature tests
+│       └── lib/                    # Library tests
 │
-├── Component Tests (UI Testing)
-│   └── WitchCityRope.Web.Tests/         # Blazor component tests
+├── integration/                      # Full-Stack Integration Tests
+│   ├── api/                        # API integration tests
+│   └── Features/                   # Feature integration tests
 │
-└── E2E Tests (Full Browser Testing)
-    └── playwright/                       # Playwright browser tests
-        ├── tests/
-        │   ├── auth/                    # Authentication flows
-        │   ├── events/                  # Event management
-        │   ├── admin/                   # Admin functionality
-        │   └── user/                    # User features
-        ├── pages/                       # Page Object Models
-        └── helpers/                     # Test utilities
+├── system/                          # System-Level Tests
+│   └── WitchCityRope.SystemTests/  # High-level system tests
+│
+└── shared/                          # Shared Test Infrastructure
+    ├── WitchCityRope.Tests.Common/ # Common test utilities
+    ├── builders/                   # Test data builders
+    ├── fixtures/                   # Test fixtures
+    └── helpers/                    # Test helper functions
 ```
+
+## Test Location Rules (MANDATORY)
+
+**Single Source of Truth**: All tests MUST be located in the `/tests/` directory.
+
+### Rule #1: ALL Tests Go in `/tests/`
+
+**Test Type** | **Location** | **Example**
+-------------|-------------|------------
+E2E Tests | `/tests/e2e/[feature]/` | `/tests/e2e/auth/login.spec.ts`
+React Unit Tests | `/tests/unit/web/[type]/` | `/tests/unit/web/components/Button.test.tsx`
+.NET Unit Tests | `/tests/unit/api/[domain]/` | `/tests/unit/api/Features/Events/EventServiceTests.cs`
+Integration Tests | `/tests/integration/` | `/tests/integration/api/Endpoints/AuthEndpointsTests.cs`
+System Tests | `/tests/system/` | `/tests/system/WitchCityRope.SystemTests/HealthTests.cs`
+
+### Rule #2: NO Tests Anywhere Else
+
+❌ **WRONG Locations**:
+- `/apps/web/src/__tests__/` - NO
+- `/apps/web/src/components/Button.test.tsx` - NO (co-located tests)
+- `/apps/api/Features/__tests__/` - NO
+- Anywhere outside `/tests/` - NO
+
+### Rule #3: When in Doubt
+
+**Question**: "Is this a test file?"
+**Answer**: Put it in `/tests/[appropriate-subdirectory]/`
+
+### Rationale for Centralized Structure
+
+**Benefits**:
+- ✅ **Single location** - Easy to find all tests
+- ✅ **Clear organization** - Tests grouped by type and feature
+- ✅ **Prevents scatter** - Impossible to accidentally create tests elsewhere
+- ✅ **Scales cleanly** - Structure supports growth to 1000+ tests
+- ✅ **Simple rule** - "All tests in /tests/" - no exceptions
+
+**Why not co-located?**
+- Co-location leads to scattered tests across the codebase
+- Requires discipline to maintain (we learned this the hard way)
+- Simplicity and consistency > minor convenience
 
 ## Writing Tests
 
@@ -90,15 +141,15 @@ public class EventTests
         // Arrange
         var title = "Test Event";
         var startTime = DateTime.UtcNow.AddDays(7);
-        
+
         // Act
         var result = Event.Create(title, startTime);
-        
+
         // Assert
         result.Should().BeSuccessful();
         result.Value.Title.Should().Be(title);
     }
-    
+
     [Theory]
     [InlineData("")]
     [InlineData(null)]
@@ -107,10 +158,10 @@ public class EventTests
     {
         // Arrange
         var startTime = DateTime.UtcNow.AddDays(7);
-        
+
         // Act
         var result = Event.Create(invalidTitle, startTime);
-        
+
         // Assert
         result.Should().BeFailure();
         result.Error.Should().Contain("Title");
@@ -148,11 +199,11 @@ public class EventRepositoryTests : IntegrationTestBase
         await using var context = CreateDbContext();
         var repository = new EventRepository(context);
         var event = new EventBuilder().Build();
-        
+
         // Act
         await repository.AddAsync(event);
         await context.SaveChangesAsync();
-        
+
         // Assert
         var saved = await repository.GetByIdAsync(event.Id);
         saved.Should().NotBeNull();
@@ -170,7 +221,7 @@ public class EventRepositoryTests : IntegrationTestBase
 # 1. FIRST: Run health checks
 dotnet test tests/WitchCityRope.IntegrationTests/ --filter "Category=HealthCheck"
 
-# 2. ONLY if health checks pass: Run integration tests  
+# 2. ONLY if health checks pass: Run integration tests
 dotnet test tests/WitchCityRope.IntegrationTests/
 ```
 
@@ -186,10 +237,10 @@ test.describe('Authentication', () => {
         // Arrange
         const loginPage = new LoginPage(page);
         await loginPage.goto();
-        
+
         // Act
         await loginPage.login('member@witchcityrope.com', 'Test123!');
-        
+
         // Assert
         await expect(page).toHaveURL('/dashboard');
         await expect(page.locator('[data-testid="welcome-message"]'))
@@ -202,11 +253,11 @@ test.describe('Authentication', () => {
 ```typescript
 export class EventPage {
     constructor(private page: Page) {}
-    
+
     async goto() {
         await this.page.goto('/events');
     }
-    
+
     async createEvent(title: string, date: string) {
         await this.page.click('[data-testid="create-event-btn"]');
         await this.page.fill('[data-testid="event-title"]', title);
@@ -216,24 +267,27 @@ export class EventPage {
 }
 ```
 
-### Component Test Guidelines (Blazor)
+### React Component Testing
 
-```csharp
-[Fact]
-public void EventCard_DisplaysEventDetails()
-{
-    // Arrange
-    using var ctx = new TestContext();
-    var event = new EventBuilder().Build();
-    
-    // Act
-    var component = ctx.RenderComponent<EventCard>(parameters => parameters
-        .Add(p => p.Event, event));
-    
-    // Assert
-    component.Find(".event-title").TextContent.Should().Be(event.Title);
-    component.Find(".event-date").TextContent.Should().Contain(event.StartTime);
-}
+React components are tested using:
+- **Vitest** for unit tests (component behavior, hooks, utilities)
+- **Playwright** for E2E tests (user workflows, integration)
+
+```typescript
+// Example: Component unit test with Vitest
+import { render, screen } from '@testing-library/react';
+import { EventCard } from './EventCard';
+
+describe('EventCard', () => {
+    it('displays event details', () => {
+        const event = { title: 'Test Event', startTime: '2025-12-01' };
+
+        render(<EventCard event={event} />);
+
+        expect(screen.getByText('Test Event')).toBeInTheDocument();
+        expect(screen.getByText(/2025-12-01/)).toBeInTheDocument();
+    });
+});
 ```
 
 ## Test Execution
@@ -252,25 +306,29 @@ dotnet test --filter "MethodName" --logger "console;verbosity=detailed"
 
 ### E2E Test Commands
 ```bash
-cd tests/e2e
+# All commands run from project root
+cd /home/chad/repos/witchcityrope
 
-# Run all tests
-npm test
+# Run all E2E tests
+npx playwright test
 
 # Run specific file
-npm test auth/login.spec.ts
+npx playwright test tests/e2e/auth/login.spec.ts
 
 # Debug mode with browser
-npm test -- --debug
+npx playwright test --debug
 
 # UI mode (recommended for debugging)
-npm test -- --ui
+npx playwright test --ui
 
 # Update screenshots
-npm test -- --update-snapshots
+npx playwright test --update-snapshots
+
+# List all tests (verify structure)
+npx playwright test --list
 
 # Run specific browser
-npm test -- --project=chromium
+npx playwright test --project=chromium
 ```
 
 ### Test Coverage
@@ -288,9 +346,6 @@ reportgenerator -reports:"**/coverage.opencover.xml" -targetdir:"coverage"
 ```
 
 ## Common Issues and Solutions
-
-### Issue: "Headers are read-only" in Blazor Tests
-**Solution**: Don't use SignInManager directly in Blazor components. Use API endpoints for authentication.
 
 ### Issue: "Database already exists" Errors
 **Solution**: Use unique database names
@@ -328,7 +383,7 @@ public class ProblematicTests { }
 ### Seeded Test Users
 ```
 admin@witchcityrope.com / Test123!     - Administrator, Vetted
-member@witchcityrope.com / Test123!    - Member, Vetted  
+member@witchcityrope.com / Test123!    - Member, Vetted
 user@witchcityrope.com / Test123!      - Member, Not Vetted
 teacher@witchcityrope.com / Test123!   - Teacher, Vetted
 ```
@@ -347,15 +402,13 @@ var sceneName = $"TestUser-{DateTime.UtcNow.Ticks}";
 - name: Run Unit Tests
   run: dotnet test --filter "Category=Unit" --logger "trx"
 
-- name: Run Integration Tests  
+- name: Run Integration Tests
   run: dotnet test --filter "Category=Integration" --logger "trx"
-  
+
 - name: Run E2E Tests
   run: |
-    cd tests/e2e
-    npm ci
     npx playwright install
-    npm test
+    npx playwright test
 ```
 
 ## Best Practices
@@ -517,7 +570,7 @@ public class MyServiceTests : IAsyncLifetime
 
 ### Target Metrics
 - Unit Tests: < 1ms per test
-- Integration Tests: < 100ms per test  
+- Integration Tests: < 100ms per test
 - E2E Tests: < 5s per test
 - Full Suite: < 5 minutes
 
@@ -536,7 +589,7 @@ export ASPNETCORE_ENVIRONMENT=Development
 dotnet test --logger "console;verbosity=detailed"
 
 # Playwright tests
-DEBUG=pw:api npm test
+DEBUG=pw:api npx playwright test
 ```
 
 ### Common Error Messages
@@ -555,8 +608,8 @@ DEBUG=pw:api npm test
 
 - [Test Catalog](TEST_CATALOG.md) - Complete inventory of all tests
 - [Current Test Status](CURRENT_TEST_STATUS.md) - Latest test health metrics
-- [Playwright Migration Guide](playwright-migration/README.md) - Puppeteer to Playwright
-- [Lessons Learned - Test Writers](/docs/lessons-learned/test-writers.md) - Common pitfalls and solutions
+- [Integration Test Patterns](integration-test-patterns.md) - PostgreSQL testing patterns
+- [Test Developer Lessons Learned](/docs/lessons-learned/test-developer-lessons-learned.md) - Common pitfalls and solutions
 
 ---
 
