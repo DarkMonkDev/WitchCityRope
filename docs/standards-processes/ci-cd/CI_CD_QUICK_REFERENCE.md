@@ -123,7 +123,7 @@ export HEADED=true
 ./scripts/run-playwright-categorized.sh --category events --headed
 
 # Run single test file
-npx playwright test tests/playwright/auth/login-basic.spec.ts --debug
+npx playwright test tests/auth/login-basic.spec.ts --debug
 ```
 
 ### 2. CI Artifact Analysis
@@ -166,7 +166,7 @@ curl -v http://localhost:5653/health
 docker compose exec postgres psql -U postgres -d witchcityrope_test -c "SELECT email FROM \"AspNetUsers\";"
 
 # Reset authentication states
-rm -rf tests/playwright/.auth/*
+rm -rf tests/.auth/*
 ```
 
 ### Service Startup Issues

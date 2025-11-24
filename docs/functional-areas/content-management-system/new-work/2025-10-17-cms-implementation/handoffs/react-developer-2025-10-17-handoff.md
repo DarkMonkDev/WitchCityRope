@@ -854,7 +854,7 @@ import type { ContentPageDto, UpdateContentPageRequest, ContentRevisionDto, CmsP
 
 ### E2E Tests (Playwright)
 
-**Test Suite Location**: `/tests/playwright/cms/`
+**Test Suite Location**: `/tests/cms/`
 
 **Priority 1: Happy Path** ✅
 ```typescript
@@ -1126,7 +1126,7 @@ test('Admin can view revision history', async ({ page }) => {
 - ✅ Confirm seed data strategy (migration or separate script?)
 
 ### Test Developer:
-- ✅ Confirm Playwright test location (`/tests/playwright/cms/`?)
+- ✅ Confirm Playwright test location (`/tests/cms/`?)
 - ✅ Confirm test data (use admin@witchcityrope.com test account?)
 - ✅ Confirm mobile testing (emulated or real devices?)
 - ✅ Confirm performance testing (separate suite or integrated?)

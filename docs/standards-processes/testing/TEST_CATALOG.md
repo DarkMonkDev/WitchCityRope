@@ -272,18 +272,18 @@ The duplicate scene name feature is fully functional. The 2 new login tests pass
 
 **CONSOLIDATION DATE**: 2025-11-24
 **STATUS**: ✅ **COMPLETE - ALL 855 TESTS DISCOVERABLE (100%)**
-**LOCATION**: `/apps/web/tests/playwright/` (unified location)
+**LOCATION**: `/apps/web/tests/` (unified location)
 **PURPOSE**: Consolidate E2E tests from two locations into single unified location
 
 ### Consolidation Summary
 
 **Before Consolidation**:
 - **Location 1**: `/tests/e2e/` (46 test files - MOVED)
-- **Location 2**: `/apps/web/tests/playwright/` (122 test files - EXISTING)
+- **Location 2**: `/apps/web/tests/` (122 test files - EXISTING)
 - **Problem**: Two separate test folders causing confusion and import path issues
 
 **After Consolidation**:
-- **Unified Location**: `/apps/web/tests/playwright/`
+- **Unified Location**: `/apps/web/tests/`
 - **Total Test Files**: 168 files ✅
 - **Total Tests Discovered**: 855 tests ✅
 - **Import Errors**: 0 (4 fixed during consolidation)
@@ -293,21 +293,21 @@ The duplicate scene name feature is fully functional. The 2 new login tests pass
 
 Fixed 4 test files with broken helper imports after folder moves:
 
-1. ✅ `/apps/web/tests/playwright/participation/rsvp-event-waiver.spec.ts`
+1. ✅ `/apps/web/tests/participation/rsvp-event-waiver.spec.ts`
    - Changed: `../../e2e/helpers/auth.helper` → `../helpers/auth.helper`
 
-2. ✅ `/apps/web/tests/playwright/participation/ticket-purchase-waiver.spec.ts`
+2. ✅ `/apps/web/tests/participation/ticket-purchase-waiver.spec.ts`
    - Changed: `../../e2e/helpers/auth.helper` → `../helpers/auth.helper`
 
-3. ✅ `/apps/web/tests/playwright/participation/volunteer-event-waiver.spec.ts`
+3. ✅ `/apps/web/tests/participation/volunteer-event-waiver.spec.ts`
    - Changed: `../../e2e/helpers/auth.helper` → `../helpers/auth.helper`
 
-4. ✅ `/apps/web/tests/playwright/vetting-system.spec.ts`
+4. ✅ `/apps/web/tests/vetting-system.spec.ts`
    - Changed: `../e2e/helpers/auth.helper` → `./helpers/auth.helper`
 
 ### File Organization Post-Consolidation
 
-**Unified Structure**: `/apps/web/tests/playwright/`
+**Unified Structure**: `/apps/web/tests/`
 ```
 ├── admin/                  # Admin-only features (42 test files)
 ├── auth/                   # Authentication tests (8 files)
@@ -347,7 +347,7 @@ Fixed 4 test files with broken helper imports after folder moves:
 ### Migration Notes
 
 **Old Location**: `/tests/e2e/` (REMOVED - folder deleted)
-**New Location**: `/apps/web/tests/playwright/` (CANONICAL)
+**New Location**: `/apps/web/tests/` (CANONICAL)
 
 **Import Pattern Changes**:
 - Old: `../../e2e/helpers/` or `../e2e/helpers/`
@@ -358,7 +358,7 @@ Fixed 4 test files with broken helper imports after folder moves:
 ### Next Steps for Test Development
 
 **For New E2E Tests**:
-1. ✅ Create tests ONLY in `/apps/web/tests/playwright/`
+1. ✅ Create tests ONLY in `/apps/web/tests/`
 2. ✅ Use relative imports for helpers: `../helpers/` or `./helpers/`
 3. ✅ Organize by feature area (admin/, events/, safety/, etc.)
 4. ✅ Follow existing naming conventions: `[feature].spec.ts`
@@ -374,7 +374,7 @@ Fixed 4 test files with broken helper imports after folder moves:
 | Test Type | Location | Count | Status |
 |-----------|----------|-------|--------|
 | **Backend Unit Tests** | `/tests/unit/api/` | 47+ | ✅ 95.7% passing |
-| **E2E Tests (Playwright)** | `/apps/web/tests/playwright/` | 855 | ✅ 100% discoverable |
+| **E2E Tests (Playwright)** | `/apps/web/tests/` | 855 | ✅ 100% discoverable |
 | **Tool Tests** | `/tools/VettedMemberImport/` | 52 | ✅ 98.1% passing |
 
 ### Test Execution Commands
@@ -425,7 +425,7 @@ cd tools/VettedMemberImport/VettedMemberImport.Tests && dotnet test
 **EXECUTION DATE**: 2025-11-24
 **LAST UPDATED**: 2025-11-24
 **STATUS**: ✅ **8/8 Tests Passing (100%) - PERFECT**
-**TEST LOCATION**: `/apps/web/tests/playwright/csrf-token-validation.spec.ts`
+**TEST LOCATION**: `/apps/web/tests/csrf-token-validation.spec.ts`
 **PURPOSE**: Validate CSRF token lifecycle, automatic retry logic, and security patterns
 
 ### Test Execution Results
@@ -572,7 +572,7 @@ await page.context().clearCookies({ name: 'XSRF-TOKEN' })
 
 - **CSRF Implementation**: `/apps/web/src/lib/client.ts` (axios interceptor)
 - **Backend CSRF Config**: `/apps/api/Program.cs` (antiforgery configuration)
-- **Auth Helper**: `/apps/web/tests/playwright/helpers/auth.helper.ts`
+- **Auth Helper**: `/apps/web/tests/helpers/auth.helper.ts`
 
 ---
 
@@ -589,15 +589,15 @@ await page.context().clearCookies({ name: 'XSRF-TOKEN' })
 ### Finding Tests
 
 **By Feature Area**:
-- Admin features → `/apps/web/tests/playwright/admin/`
-- Authentication → `/apps/web/tests/playwright/auth/` + `/tests/unit/api/Features/Auth/`
-- Events → `/apps/web/tests/playwright/events/`
-- Safety system → `/apps/web/tests/playwright/safety/`
-- Vetting → `/apps/web/tests/playwright/vetting/`
+- Admin features → `/apps/web/tests/admin/`
+- Authentication → `/apps/web/tests/auth/` + `/tests/unit/api/Features/Auth/`
+- Events → `/apps/web/tests/events/`
+- Safety system → `/apps/web/tests/safety/`
+- Vetting → `/apps/web/tests/vetting/`
 
 **By Test Type**:
 - Backend unit tests → `/tests/unit/api/`
-- E2E tests → `/apps/web/tests/playwright/`
+- E2E tests → `/apps/web/tests/`
 - Tool tests → `/tools/[tool-name]/[tool-name].Tests/`
 
 ### Test Execution Priority

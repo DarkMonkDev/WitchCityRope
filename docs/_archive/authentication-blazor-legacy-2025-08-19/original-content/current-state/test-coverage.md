@@ -84,7 +84,7 @@ This document lists all tests covering the authentication system functionality. 
 
 ## E2E Tests (Playwright)
 
-### Location: `/tests/playwright/tests/`
+### Location: `/tests/tests/`
 
 #### Login Flow Tests
 - `auth/login.spec.ts`

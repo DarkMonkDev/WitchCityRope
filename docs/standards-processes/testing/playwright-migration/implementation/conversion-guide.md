@@ -22,7 +22,7 @@ Before converting a test:
 
 **Playwright Structure:**
 ```
-/tests/playwright/
+/tests/
   ├── category/
   │   └── feature-name.spec.ts
   └── pages/

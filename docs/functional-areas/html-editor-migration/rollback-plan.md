@@ -320,10 +320,10 @@ git push origin --delete feature/migrate-tinymce-to-tiptap
 **Action**:
 ```bash
 # Keep MantineTiptapEditor.tsx but revert test changes
-git checkout main -- apps/web/tests/playwright/
+git checkout main -- apps/web/tests/
 
 # Restore TinyMCE tests
-git checkout main -- apps/web/tests/playwright/tinymce*.spec.ts
+git checkout main -- apps/web/tests/tinymce*.spec.ts
 
 # Keep using old selectors in events-management-e2e.spec.ts
 ```

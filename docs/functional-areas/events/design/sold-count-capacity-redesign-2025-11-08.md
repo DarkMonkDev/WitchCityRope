@@ -1556,7 +1556,7 @@ public class ParticipationServiceIntegrationTests : IClassFixture<PostgreSqlFixt
 
 ### End-to-End Tests
 
-**File**: `/apps/web/tests/playwright/e2e/events/capacity-calculations.spec.ts` (Create)
+**File**: `/apps/web/tests/e2e/events/capacity-calculations.spec.ts` (Create)
 
 ```typescript
 test.describe('Event Capacity Calculations', () => {

@@ -229,7 +229,7 @@ SELECT "Email", "UserName" FROM "Users" WHERE "Email" LIKE '%@witchcityrope.com'
 Based on verification findings, created new E2E test to prevent regression:
 
 ```typescript
-// /tests/playwright/dashboard-verification.spec.ts
+// /tests/dashboard-verification.spec.ts
 test('admin dashboard functionality', async ({ page }) => {
   // Login as admin
   await page.goto('http://localhost:5173/login');

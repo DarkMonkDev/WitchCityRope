@@ -21,7 +21,7 @@ This enhancement project has successfully converted all 180 existing Puppeteer E
 
 All Playwright tests will be centrally stored in:
 ```
-/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/
+/home/chad/repos/witchcityrope/WitchCityRope/tests/
 ```
 
 This provides a single, organized location for all E2E tests, separate from the legacy Puppeteer tests currently in `/tests/e2e/tests/e2e/`.

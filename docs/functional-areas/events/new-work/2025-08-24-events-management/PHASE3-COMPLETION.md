@@ -76,7 +76,7 @@
 3. `/apps/web/src/components/events/EventTicketTypesGrid.tsx` - Already existed
 
 ### Tests Created
-1. `/apps/web/tests/playwright/phase3-sessions-tickets.spec.ts`
+1. `/apps/web/tests/phase3-sessions-tickets.spec.ts`
 
 ## Business Requirements Met
 

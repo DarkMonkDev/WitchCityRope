@@ -16,7 +16,7 @@ As of January 2025, all 180 E2E tests have been successfully migrated from Puppe
 ## Test Structure
 
 ```
-/tests/playwright/
+/tests/
 ├── specs/                    # Test files (.spec.ts)
 
 ## ⛔ CRITICAL: Timeout Policy - NEVER Use 10+ Minute Timeouts
@@ -355,7 +355,7 @@ Key differences from Puppeteer:
 - [Playwright Documentation](https://playwright.dev)
 - [Playwright for .NET](https://playwright.dev/dotnet/)
 - Project-specific docs: `/docs/enhancements/playwright-migration/`
-- Test examples: `/tests/playwright/specs/`
+- Test examples: `/tests/specs/`
 
 ## Deprecated Tools
 

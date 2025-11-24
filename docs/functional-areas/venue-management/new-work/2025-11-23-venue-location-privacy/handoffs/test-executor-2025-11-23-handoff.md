@@ -31,7 +31,7 @@
 
 ### Suite 1: Admin Venue Location Field (7 tests - ALL PASSING)
 
-**Test File**: `/home/chad/repos/witchcityrope/apps/web/tests/playwright/admin/venue-location-field.spec.ts`
+**Test File**: `/home/chad/repos/witchcityrope/apps/web/tests/admin/venue-location-field.spec.ts`
 **Component Tested**: `/apps/web/src/components/admin/VenueManagementCard.tsx`
 **Execution Time**: 17.5 seconds
 **Pass Rate**: 7/7 (100%)
@@ -78,7 +78,7 @@
 
 ### Suite 2: Event Location Privacy - Conditional Display (6 tests - ALL PASSING)
 
-**Test File**: `/home/chad/repos/witchcityrope/apps/web/tests/playwright/events/event-location-privacy.spec.ts`
+**Test File**: `/home/chad/repos/witchcityrope/apps/web/tests/events/event-location-privacy.spec.ts`
 **Component Tested**: `/apps/web/src/pages/events/EventDetailPage.tsx`
 **Execution Time**: 14.4 seconds
 **Pass Rate**: 6/6 (100%)
@@ -131,7 +131,7 @@
 
 ### Suite 3: Dashboard Event Card Location Display (7 tests - ALL PASSING)
 
-**Test File**: `/home/chad/repos/witchcityrope/apps/web/tests/playwright/dashboard/event-card-location.spec.ts`
+**Test File**: `/home/chad/repos/witchcityrope/apps/web/tests/dashboard/event-card-location.spec.ts`
 **Component Tested**: `/apps/web/src/pages/dashboard/components/EventCard.tsx`
 **Execution Time**: 11.8 seconds
 **Pass Rate**: 7/7 (100%)
@@ -212,7 +212,7 @@ Web App Check:
 
 **Playwright Configuration**:
 - Browser: Chromium
-- Test directory: `/apps/web/tests/playwright/`
+- Test directory: `/apps/web/tests/`
 - Reporter: Line reporter
 - Workers: 6 (parallel execution)
 - Retries: 0 (all tests passed first run)
@@ -310,17 +310,17 @@ Web App Check:
 
 ### Test Files (3 files)
 
-1. `/home/chad/repos/witchcityrope/apps/web/tests/playwright/admin/venue-location-field.spec.ts`
+1. `/home/chad/repos/witchcityrope/apps/web/tests/admin/venue-location-field.spec.ts`
    - Lines: ~360
    - Tests: 7
    - Status: Complete, all passing
 
-2. `/home/chad/repos/witchcityrope/apps/web/tests/playwright/events/event-location-privacy.spec.ts`
+2. `/home/chad/repos/witchcityrope/apps/web/tests/events/event-location-privacy.spec.ts`
    - Lines: ~400
    - Tests: 6
    - Status: Complete, all passing
 
-3. `/home/chad/repos/witchcityrope/apps/web/tests/playwright/dashboard/event-card-location.spec.ts`
+3. `/home/chad/repos/witchcityrope/apps/web/tests/dashboard/event-card-location.spec.ts`
    - Lines: ~270
    - Tests: 7
    - Status: Complete, all passing

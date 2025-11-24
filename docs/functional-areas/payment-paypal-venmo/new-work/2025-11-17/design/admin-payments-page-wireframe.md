@@ -1276,7 +1276,7 @@ AdminPaymentsPage
 
 ## Test Scenarios (from E2E Tests)
 
-**Reference**: `/apps/web/tests/playwright/payments/ticket-refund-workflow.spec.ts`
+**Reference**: `/apps/web/tests/payments/ticket-refund-workflow.spec.ts`
 
 ### Happy Path Tests
 1. **Admin navigates to payment management page**
@@ -1517,9 +1517,9 @@ useEffect(() => {
 - `/apps/api/Features/Payments/Services/PayPalRefundService.cs` (if not exists)
 
 **Tests** (already exist):
-- `/apps/web/tests/playwright/payments/ticket-refund-workflow.spec.ts` ✅
-- `/apps/web/tests/playwright/payments/refund-validations.spec.ts` ✅
-- `/apps/web/tests/playwright/payments/refund-database-persistence.spec.ts` ✅
+- `/apps/web/tests/payments/ticket-refund-workflow.spec.ts` ✅
+- `/apps/web/tests/payments/refund-validations.spec.ts` ✅
+- `/apps/web/tests/payments/refund-database-persistence.spec.ts` ✅
 
 ---
 

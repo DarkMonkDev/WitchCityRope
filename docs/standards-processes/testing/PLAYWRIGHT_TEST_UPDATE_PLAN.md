@@ -30,32 +30,32 @@ The current Playwright test suite contains **critical mismatches** between expec
 ## Test Files Requiring Updates
 
 ### Authentication Tests (HIGH PRIORITY)
-1. **`/apps/web/tests/playwright/auth.spec.ts`**
+1. **`/apps/web/tests/auth.spec.ts`**
    - Update "Login" text expectations to "Welcome Back"
    - Update button selectors from "Login" to "Sign In"
    - Fix form selectors to use proper data-testids
 
-2. **`/apps/web/tests/playwright/login-verification-test.spec.ts`**
+2. **`/apps/web/tests/login-verification-test.spec.ts`**
    - Already has good fallback selector patterns
    - Update text expectations
    - Fix button text references
 
-3. **`/apps/web/tests/playwright/auth-flow-improved.spec.ts`**
+3. **`/apps/web/tests/auth-flow-improved.spec.ts`**
    - Update authentication flow expectations
 
-4. **`/apps/web/tests/playwright/working-auth-test.spec.ts`**
+4. **`/apps/web/tests/working-auth-test.spec.ts`**
    - Update to match current UI implementation
 
 ### Form and Component Tests (MEDIUM PRIORITY)
-5. **`/apps/web/tests/playwright/form-components.spec.ts`**
+5. **`/apps/web/tests/form-components.spec.ts`**
    - Verify Mantine component compatibility
    - Test TinyMCE editor integration
 
-6. **`/apps/web/tests/playwright/basic-functionality-check.spec.ts`**
+6. **`/apps/web/tests/basic-functionality-check.spec.ts`**
    - Update basic UI element expectations
 
 ### Events and Dashboard Tests (MEDIUM PRIORITY)
-7. **`/apps/web/tests/playwright/events-page-exploration.spec.ts`**
+7. **`/apps/web/tests/events-page-exploration.spec.ts`**
    - Update events page selectors for Mantine components
    - Fix navigation expectations
 
@@ -192,7 +192,7 @@ test.describe('User Registration', () => {
 
 ### 1. Authentication Helper
 ```typescript
-// File: /apps/web/tests/playwright/helpers/auth.helpers.ts
+// File: /apps/web/tests/helpers/auth.helpers.ts
 export class AuthHelpers {
   static async loginAs(page: Page, role: 'admin' | 'member' | 'guest') {
     const credentials = {
@@ -221,7 +221,7 @@ export class AuthHelpers {
 
 ### 2. Form Interaction Helper
 ```typescript
-// File: /apps/web/tests/playwright/helpers/form.helpers.ts
+// File: /apps/web/tests/helpers/form.helpers.ts
 export class FormHelpers {
   static async fillFormData(page: Page, data: Record<string, string>) {
     for (const [field, value] of Object.entries(data)) {
@@ -238,7 +238,7 @@ export class FormHelpers {
 
 ### 3. Wait Strategy Helpers
 ```typescript
-// File: /apps/web/tests/playwright/helpers/wait.helpers.ts
+// File: /apps/web/tests/helpers/wait.helpers.ts
 export class WaitHelpers {
   static async waitForPageLoad(page: Page, expectedUrl?: string) {
     await page.waitForLoadState('networkidle');

@@ -112,7 +112,7 @@ Based on assessment report, these test files have highest value:
 
 ### Test Files (25+ files)
 - All `.spec.ts` files in `/tests/e2e/` - Selector updates
-- All `.spec.ts` files in `/tests/playwright/` - Selector updates
+- All `.spec.ts` files in `/tests/` - Selector updates
 - `/tests/e2e/home-page.spec.ts` - Complete rewrite with realistic selectors
 
 ### Infrastructure

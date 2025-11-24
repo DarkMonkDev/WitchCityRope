@@ -52,9 +52,9 @@ Remove false negatives from test suite by marking tests for unimplemented featur
 - **False negatives removed**: 13 tests properly marked as feature work, not bugs
 
 #### Files Modified
-- `apps/web/tests/playwright/dashboard-comprehensive.spec.ts`
-- `apps/web/tests/playwright/e2e-events-full-journey.spec.ts`
-- `apps/web/tests/playwright/events-crud-test.spec.ts`
+- `apps/web/tests/dashboard-comprehensive.spec.ts`
+- `apps/web/tests/e2e-events-full-journey.spec.ts`
+- `apps/web/tests/events-crud-test.spec.ts`
 
 ---
 
@@ -425,8 +425,8 @@ Verify authentication fix resolved all launch-critical test failures
 |------|---------|--------|
 | `apps/web/src/components/layout/UtilityBar.tsx` | Added `data-testid="user-menu"` wrapper | Fix E2E test selectors |
 | `apps/web/src/config/api.ts` | Modified `getApiBaseUrl()` for Vite proxy | **CRITICAL**: Fix authentication persistence |
-| `apps/web/tests/playwright/dashboard-comprehensive.spec.ts` | Marked 5 tests as `.skip()` | Remove false negatives |
-| `apps/web/tests/playwright/e2e-events-full-journey.spec.ts` | Marked 6 tests as `.skip()` | Remove false negatives |
+| `apps/web/tests/dashboard-comprehensive.spec.ts` | Marked 5 tests as `.skip()` | Remove false negatives |
+| `apps/web/tests/e2e-events-full-journey.spec.ts` | Marked 6 tests as `.skip()` | Remove false negatives |
 
 **Total Production Changes**: 4 files, ~20 lines of code changed
 
@@ -434,9 +434,9 @@ Verify authentication fix resolved all launch-critical test failures
 
 | File | Changes | Impact |
 |------|---------|--------|
-| `apps/web/tests/playwright/events-crud-test.spec.ts` | Marked 2 tests as `.skip()` | Remove false negatives |
-| `apps/web/tests/playwright/dashboard-comprehensive.spec.ts` | Marked 5 tests as `.skip()` | Remove false negatives |
-| `apps/web/tests/playwright/e2e-events-full-journey.spec.ts` | Marked 6 tests as `.skip()` | Remove false negatives |
+| `apps/web/tests/events-crud-test.spec.ts` | Marked 2 tests as `.skip()` | Remove false negatives |
+| `apps/web/tests/dashboard-comprehensive.spec.ts` | Marked 5 tests as `.skip()` | Remove false negatives |
+| `apps/web/tests/e2e-events-full-journey.spec.ts` | Marked 6 tests as `.skip()` | Remove false negatives |
 
 ---
 

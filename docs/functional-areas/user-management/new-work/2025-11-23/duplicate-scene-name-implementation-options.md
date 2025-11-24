@@ -847,7 +847,7 @@ it('should show error for duplicate scene name', async () => {
 ```
 
 #### 3. **End-to-End Tests (Playwright)**
-**Location**: `/home/chad/repos/witchcityrope/tests/playwright/`
+**Location**: `/home/chad/repos/witchcityrope/tests/`
 
 **New Test Scenarios Required**:
 

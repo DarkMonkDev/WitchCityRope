@@ -45,7 +45,7 @@ This document outlines the comprehensive plan to migrate 180+ Puppeteer E2E test
 
 ### Centralized Test Structure
 All Playwright tests will be stored in a single, well-organized location:
-- **Primary Location**: `/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/`
+- **Primary Location**: `/home/chad/repos/witchcityrope/WitchCityRope/tests/`
 - **Current Puppeteer Location**: `/tests/e2e/tests/e2e/` (to be migrated)
 
 The centralized structure ensures:

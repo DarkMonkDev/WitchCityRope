@@ -7,7 +7,7 @@ This document establishes testing standards and conventions for Playwright E2E t
 
 ### Directory Structure
 ```
-/apps/web/tests/playwright/
+/apps/web/tests/
 ├── helpers/                    # Test helper utilities
 │   ├── auth.helpers.ts        # Authentication utilities
 │   ├── form.helpers.ts        # Form interaction utilities

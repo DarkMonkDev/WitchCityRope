@@ -179,7 +179,7 @@ Before proceeding to finalization, verify:
 **Required**: Follow existing service test patterns
 
 ### Playwright Test Structure
-**Location**: `/tests/playwright/`
+**Location**: `/tests/`
 **Pattern**: Feature-based test organization
 **Impact**: Create new files for timing tests
 **Required**: Follow existing naming conventions
@@ -476,7 +476,7 @@ public class AttendanceTimingTests : IntegrationTestBase
 
 ### E2E Tests - Admin Configuration
 
-**File**: `/tests/playwright/events/admin-timing-settings.spec.ts`
+**File**: `/tests/events/admin-timing-settings.spec.ts`
 
 ```typescript
 import { test, expect } from '@playwright/test';
@@ -572,7 +572,7 @@ test.describe('Admin Event Timing Settings', () => {
 
 ### E2E Tests - User Timing Flows
 
-**File**: `/tests/playwright/events/user-timing-flows.spec.ts`
+**File**: `/tests/events/user-timing-flows.spec.ts`
 
 ```typescript
 import { test, expect } from '@playwright/test';
@@ -745,10 +745,10 @@ npm run test:e2e -- timing
 - `/tests/WitchCityRope.IntegrationTests/Migrations/EventTimingControlsMigrationTests.cs`
 
 **E2E Test Files** (create):
-- `/tests/playwright/events/admin-timing-settings.spec.ts`
-- `/tests/playwright/events/user-rsvp-timing.spec.ts`
-- `/tests/playwright/events/user-cancellation-timing.spec.ts`
-- `/tests/playwright/events/user-volunteer-timing.spec.ts`
+- `/tests/events/admin-timing-settings.spec.ts`
+- `/tests/events/user-rsvp-timing.spec.ts`
+- `/tests/events/user-cancellation-timing.spec.ts`
+- `/tests/events/user-volunteer-timing.spec.ts`
 
 ---
 

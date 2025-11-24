@@ -97,7 +97,7 @@ npm test
 
 ### 4. 🟡 E2E Test Reliability
 - **Problem**: Some E2E tests are flaky, especially admin dashboard tests
-- **Location**: `/tests/playwright/`
+- **Location**: `/tests/`
 - **Fix Needed**: Add better wait conditions and error handling
 
 ## Architecture Reminders

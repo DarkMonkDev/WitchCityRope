@@ -171,7 +171,7 @@ public class UserManagementGridComponentTests : TestContext
 - Modal dialogs and workflows
 
 ### E2E Tests (Playwright)
-**Location**: `/tests/playwright/admin/user-management/`
+**Location**: `/tests/admin/user-management/`
 
 ```typescript
 // user-management.spec.ts

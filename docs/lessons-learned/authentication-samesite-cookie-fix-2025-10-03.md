@@ -126,11 +126,11 @@ While fixing the cookie issue, we discovered tests were using **non-existent cre
 
 ### Test Files Fixed (5 files)
 
-1. `/apps/web/tests/playwright/test-login-direct.spec.ts`
-2. `/apps/web/tests/playwright/real-api-login.spec.ts`
-3. `/apps/web/tests/playwright/login-401-investigation.spec.ts`
-4. `/apps/web/tests/playwright/debug-login-issue.spec.ts`
-5. `/apps/web/tests/playwright/debug-login-comprehensive.spec.ts`
+1. `/apps/web/tests/test-login-direct.spec.ts`
+2. `/apps/web/tests/real-api-login.spec.ts`
+3. `/apps/web/tests/login-401-investigation.spec.ts`
+4. `/apps/web/tests/debug-login-issue.spec.ts`
+5. `/apps/web/tests/debug-login-comprehensive.spec.ts`
 
 **Replacement**:
 ```bash
@@ -249,7 +249,7 @@ Add to `/ARCHITECTURE.md`:
 
 ### 2. Centralize Test Configuration
 
-Create `/apps/web/tests/playwright/config/test-users.ts`:
+Create `/apps/web/tests/config/test-users.ts`:
 ```typescript
 export const TEST_ACCOUNTS = {
   admin: { email: 'admin@witchcityrope.com', password: 'Test123!' },

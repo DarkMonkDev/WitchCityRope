@@ -338,7 +338,7 @@ npm run test:coverage
 
 ## Test File Patterns
 - Unit: *.test.tsx, *.test.ts
-- E2E: *.spec.ts in /tests/playwright/
+- E2E: *.spec.ts in /tests/
 - Integration: *.integration.test.ts
 ```
 

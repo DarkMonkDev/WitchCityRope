@@ -214,7 +214,7 @@ After backend fixes are deployed, re-run the legal compliance tests:
 
 ```bash
 cd /home/chad/repos/witchcityrope
-./tests/playwright/run-legal-compliance-tests.sh
+./tests/run-legal-compliance-tests.sh
 ```
 
 **Expected Results After Fixes**:
@@ -229,10 +229,10 @@ cd /home/chad/repos/witchcityrope
 ## Related Documentation
 
 - **Test Files**:
-  - `/tests/playwright/auth/registration-tos.spec.ts`
-  - `/tests/playwright/participation/rsvp-event-waiver.spec.ts`
-  - `/tests/playwright/participation/volunteer-event-waiver.spec.ts`
-  - `/tests/playwright/participation/ticket-purchase-waiver.spec.ts`
+  - `/tests/auth/registration-tos.spec.ts`
+  - `/tests/participation/rsvp-event-waiver.spec.ts`
+  - `/tests/participation/volunteer-event-waiver.spec.ts`
+  - `/tests/participation/ticket-purchase-waiver.spec.ts`
 
 - **Test Results**:
   - `/test-results/tos-waiver-execution-report-2025-11-12.json`

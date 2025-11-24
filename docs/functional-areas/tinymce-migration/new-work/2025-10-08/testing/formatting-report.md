@@ -35,12 +35,12 @@
    - Format time: 16ms
    - Route configuration updates
 
-5. **apps/web/tests/playwright/tiptap-editor.spec.ts**
+5. **apps/web/tests/tiptap-editor.spec.ts**
    - Changes: Spacing, quotes, line breaks
    - Format time: 87ms
    - New E2E tests for Tiptap editor
 
-6. **apps/web/tests/playwright/events-management-e2e.spec.ts**
+6. **apps/web/tests/events-management-e2e.spec.ts**
    - Changes: Spacing, quotes, line breaks
    - Format time: 68ms
    - Updated E2E tests for new editor
@@ -58,8 +58,8 @@ apps/web/src/components/forms/MantineTiptapEditor.tsx
 apps/web/src/components/events/EventForm.tsx
 apps/web/src/pages/admin/EventSessionMatrixDemoSimple.tsx
 apps/web/src/routes/router.tsx
-apps/web/tests/playwright/tiptap-editor.spec.ts
-apps/web/tests/playwright/events-management-e2e.spec.ts
+apps/web/tests/tiptap-editor.spec.ts
+apps/web/tests/events-management-e2e.spec.ts
 test-current-state.spec.ts
 ```
 
@@ -162,8 +162,8 @@ npx prettier --check apps/web/src/components/forms/MantineTiptapEditor.tsx \
   apps/web/src/components/events/EventForm.tsx \
   apps/web/src/pages/admin/EventSessionMatrixDemoSimple.tsx \
   apps/web/src/routes/router.tsx \
-  apps/web/tests/playwright/tiptap-editor.spec.ts \
-  apps/web/tests/playwright/events-management-e2e.spec.ts \
+  apps/web/tests/tiptap-editor.spec.ts \
+  apps/web/tests/events-management-e2e.spec.ts \
   test-current-state.spec.ts
 
 # Apply formatting
@@ -207,8 +207,8 @@ All files formatted using absolute paths from repository root:
 - `/home/chad/repos/witchcityrope/apps/web/src/components/events/EventForm.tsx`
 - `/home/chad/repos/witchcityrope/apps/web/src/pages/admin/EventSessionMatrixDemoSimple.tsx`
 - `/home/chad/repos/witchcityrope/apps/web/src/routes/router.tsx`
-- `/home/chad/repos/witchcityrope/apps/web/tests/playwright/tiptap-editor.spec.ts`
-- `/home/chad/repos/witchcityrope/apps/web/tests/playwright/events-management-e2e.spec.ts`
+- `/home/chad/repos/witchcityrope/apps/web/tests/tiptap-editor.spec.ts`
+- `/home/chad/repos/witchcityrope/apps/web/tests/events-management-e2e.spec.ts`
 - `/home/chad/repos/witchcityrope/test-current-state.spec.ts`
 
 ## Conclusion

@@ -818,7 +818,7 @@ When staff clicks "Paid at Door" and processes payment (cash or QR code):
 **Target Audience**: Product Manager, UI Designer, Backend Developer, React Developer, Test Developer
 **Related Documents**:
 - `/docs/functional-areas/events/new-work/2025-08-24-events-management/requirements/business-requirements.md`
-- `/apps/web/tests/playwright/checkin-test-plan.md`
+- `/apps/web/tests/checkin-test-plan.md`
 - `/docs/functional-areas/events/new-work/2025-08-24-events-management/wireframes/check-in-interface-wireframe.md` (if exists)
 
 **Approval Required From**:

@@ -722,7 +722,7 @@ describe('MantineTiptapEditor', () => {
 });
 ```
 
-**E2E Test** (create: `/apps/web/tests/playwright/tiptap-editor.spec.ts`):
+**E2E Test** (create: `/apps/web/tests/tiptap-editor.spec.ts`):
 
 See [testing-migration-guide.md](./testing-migration-guide.md) for complete E2E test code.
 

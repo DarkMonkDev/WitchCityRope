@@ -52,8 +52,8 @@ await expect(page).toHaveTitle(/Vite \+ React/)
 
 **Affected Files**:
 - `/tests/e2e/home-page.spec.ts:22`
-- `/tests/playwright/homepage-design-v7.spec.ts:14`
-- `/tests/playwright/event-session-matrix-demo.spec.ts:14`
+- `/tests/homepage-design-v7.spec.ts:14`
+- `/tests/event-session-matrix-demo.spec.ts:14`
 
 ### 3. Test Common Library References (BROKEN)
 **File**: `/tests/WitchCityRope.Tests.Common/WitchCityRope.Tests.Common.csproj`
@@ -105,7 +105,7 @@ error CS0246: The type or namespace name 'EventsController' could not be found
    - **Status**: Builds but individual tests fail
    - **Action**: Fix using statements and test class references
 
-2. **E2E Tests (`/tests/playwright/`, `/tests/e2e/`)**
+2. **E2E Tests (`/tests/`, `/tests/e2e/`)**
    - **Issue**: Wrong title expectations and possibly wrong URLs
    - **Status**: Tests run but fail assertions
    - **Action**: Update test expectations to match React app
@@ -270,8 +270,8 @@ error CS0246: The type or namespace name 'EventsController' could not be found
 
 ### E2E Test Files (HIGH PRIORITY)
 - `/tests/e2e/home-page.spec.ts`
-- `/tests/playwright/homepage-design-v7.spec.ts`
-- `/tests/playwright/event-session-matrix-demo.spec.ts`
+- `/tests/homepage-design-v7.spec.ts`
+- `/tests/event-session-matrix-demo.spec.ts`
 - All Playwright test files expecting "Vite + React" titles
 
 ### Unit Test Files (MEDIUM PRIORITY)

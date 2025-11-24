@@ -21,7 +21,7 @@
 **Details**: Modernized references to reflect Tiptap migration
 
 ### 3. events-management-e2e.spec.ts
-**File**: `/home/chad/repos/witchcityrope/apps/web/tests/playwright/events-management-e2e.spec.ts`
+**File**: `/home/chad/repos/witchcityrope/apps/web/tests/events-management-e2e.spec.ts`
 **Action**: Removed TinyMCE from error filtering (line 172)
 **Details**:
 - Removed `!error.includes('TinyMCE') &&` from critical error filter
@@ -113,7 +113,7 @@ All remaining TinyMCE references are in **documentation files only**:
 ### Files Modified: 4
 1. `apps/web/src/components/events/EventForm.tsx`
 2. `apps/web/src/pages/admin/EventSessionMatrixDemoSimple.tsx`
-3. `apps/web/tests/playwright/events-management-e2e.spec.ts`
+3. `apps/web/tests/events-management-e2e.spec.ts`
 4. `test-current-state.spec.ts`
 
 ### Files Deleted: 1

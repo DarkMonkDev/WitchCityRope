@@ -78,7 +78,7 @@ All critical desktop functionality has been verified:
 ## Files Modified
 
 **Test File**:
-- `/apps/web/tests/playwright/cms.spec.ts` - Mobile test marked as skipped with documentation
+- `/apps/web/tests/cms.spec.ts` - Mobile test marked as skipped with documentation
 
 **Reports**:
 - `/test-results/cms-final-test-report-2025-10-17.md` - Complete test execution report

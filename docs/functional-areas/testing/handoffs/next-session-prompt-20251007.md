@@ -65,7 +65,7 @@ You are continuing the WitchCityRope testing completion track. Phase 2 Task 2 ha
 - Higher user value than unit test numerical targets
 
 **Current E2E Status**:
-- Location: `/apps/web/tests/playwright/specs/`
+- Location: `/apps/web/tests/specs/`
 - Framework: Playwright
 - Last known status: Unknown (needs assessment)
 

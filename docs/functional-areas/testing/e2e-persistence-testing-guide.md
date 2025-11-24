@@ -55,7 +55,7 @@ Both bugs would have been caught by following the persistence testing pattern de
 
 ### Location
 
-All templates are in `/apps/web/tests/playwright/templates/`
+All templates are in `/apps/web/tests/templates/`
 
 ### Templates
 
@@ -202,7 +202,7 @@ const eventId = await testEventCreationPersistence(page, {
 
 ### Location
 
-`/apps/web/tests/playwright/utils/database-helpers.ts`
+`/apps/web/tests/utils/database-helpers.ts`
 
 ### Key Functions
 
@@ -605,9 +605,9 @@ test('should persist ticket cancellation', async ({ page }) => {
 
 ## Additional Resources
 
-- **Base Template**: `/apps/web/tests/playwright/templates/persistence-test-template.ts`
-- **Database Helpers**: `/apps/web/tests/playwright/utils/database-helpers.ts`
-- **Example Tests**: `/apps/web/tests/playwright/*-persistence.spec.ts`
+- **Base Template**: `/apps/web/tests/templates/persistence-test-template.ts`
+- **Database Helpers**: `/apps/web/tests/utils/database-helpers.ts`
+- **Example Tests**: `/apps/web/tests/*-persistence.spec.ts`
 - **Playwright Guide**: `/docs/standards-processes/testing/browser-automation/playwright-guide.md`
 - **Test Catalog**: `/docs/standards-processes/testing/TEST_CATALOG.md`
 

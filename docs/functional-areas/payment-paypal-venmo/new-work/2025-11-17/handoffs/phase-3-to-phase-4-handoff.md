@@ -153,9 +153,9 @@ The PayPal Refund System is a comprehensive feature enhancement that enables Wit
 ### Primary Deliverables
 
 #### E2E Test Suite (COMPLETED)
-- [x] `/apps/web/tests/playwright/payments/ticket-refund-workflow.spec.ts` (7 tests, ~350 lines)
-- [x] `/apps/web/tests/playwright/payments/refund-validations.spec.ts` (9 tests, ~450 lines)
-- [x] `/apps/web/tests/playwright/payments/refund-database-persistence.spec.ts` (7 tests, ~455 lines)
+- [x] `/apps/web/tests/payments/ticket-refund-workflow.spec.ts` (7 tests, ~350 lines)
+- [x] `/apps/web/tests/payments/refund-validations.spec.ts` (9 tests, ~450 lines)
+- [x] `/apps/web/tests/payments/refund-database-persistence.spec.ts` (7 tests, ~455 lines)
 - [x] `/docs/standards-processes/testing/TEST_CATALOG.md` (updated with 23 test scenarios)
 - [x] `/test-results/refund-e2e-tests-summary.md` (execution instructions)
 
@@ -261,9 +261,9 @@ docker restart witchcity-api
 - [x] `/apps/api/Features/Payments/Entities/PaymentRefund.cs` - Database entity
 
 **Test Files** (UNDERSTAND EXPECTED BEHAVIOR):
-- [x] `/apps/web/tests/playwright/payments/ticket-refund-workflow.spec.ts`
-- [x] `/apps/web/tests/playwright/payments/refund-validations.spec.ts`
-- [x] `/apps/web/tests/playwright/payments/refund-database-persistence.spec.ts`
+- [x] `/apps/web/tests/payments/ticket-refund-workflow.spec.ts`
+- [x] `/apps/web/tests/payments/refund-validations.spec.ts`
+- [x] `/apps/web/tests/payments/refund-database-persistence.spec.ts`
 
 **Email Templates** (READY TO USE):
 - [x] Database-stored GlobalEmailTemplate system (from previous phase)
@@ -568,9 +568,9 @@ Error Response (400/500): {
 
 | Date | File | Action | Purpose |
 |------|------|--------|---------|
-| 2025-11-17 | /apps/web/tests/playwright/payments/ticket-refund-workflow.spec.ts | CREATED | Main E2E test for refund workflow (7 tests) |
-| 2025-11-17 | /apps/web/tests/playwright/payments/refund-validations.spec.ts | CREATED | Validation testing for modal (9 tests) |
-| 2025-11-17 | /apps/web/tests/playwright/payments/refund-database-persistence.spec.ts | CREATED | Database persistence verification (7 tests) |
+| 2025-11-17 | /apps/web/tests/payments/ticket-refund-workflow.spec.ts | CREATED | Main E2E test for refund workflow (7 tests) |
+| 2025-11-17 | /apps/web/tests/payments/refund-validations.spec.ts | CREATED | Validation testing for modal (9 tests) |
+| 2025-11-17 | /apps/web/tests/payments/refund-database-persistence.spec.ts | CREATED | Database persistence verification (7 tests) |
 | 2025-11-17 | /docs/standards-processes/testing/TEST_CATALOG.md | MODIFIED | Added refund test documentation (lines 68-234) |
 | 2025-11-17 | /test-results/refund-e2e-tests-summary.md | CREATED | Execution instructions and summary |
 | 2025-11-17 | /docs/functional-areas/payment-paypal-venmo/new-work/2025-11-17/handoffs/phase-3-to-phase-4-handoff.md | CREATED | This handoff document |

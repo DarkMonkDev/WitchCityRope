@@ -37,7 +37,7 @@ cd /home/chad/repos/witchcityrope/WitchCityRope
 
 **What this does**:
 - Captures baseline screenshots for all visual tests
-- Stores them in `/tests/playwright/visual-baselines/`
+- Stores them in `/tests/visual-baselines/`
 - Required before visual regression tests can pass
 
 ### 2. Full Test Suite Validation
@@ -77,7 +77,7 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:5651
 ### Step 2: Run a Sample Test
 ```bash
 # Test basic functionality with a simple test
-npx playwright test tests/playwright/auth/login-basic.spec.ts --headed
+npx playwright test tests/auth/login-basic.spec.ts --headed
 
 # If this works without errors, the site is likely stable
 ```
@@ -104,14 +104,14 @@ Follow the plan in `/docs/enhancements/playwright-migration/planning/puppeteer-d
 ## Key Files and Locations
 
 ### Test Files
-- **Location**: `/tests/playwright/`
+- **Location**: `/tests/`
 - **Organization**: By feature (auth/, events/, admin/, rsvp/, etc.)
 - **Naming**: `*.spec.ts` for test files
 
 ### Configuration
 - **Main Config**: `/playwright.config.ts`
-- **Test Helpers**: `/tests/playwright/helpers/`
-- **Page Objects**: `/tests/playwright/pages/`
+- **Test Helpers**: `/tests/helpers/`
+- **Page Objects**: `/tests/pages/`
 
 ### Scripts
 - **Test Runner**: `/scripts/run-playwright-tests.sh`

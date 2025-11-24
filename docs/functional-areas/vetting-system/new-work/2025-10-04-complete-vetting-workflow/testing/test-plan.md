@@ -1073,7 +1073,7 @@ curl -f http://localhost:5173/ | grep -q "Witch City Rope" && echo "✅ Docker e
 **Playwright Config** (`/apps/web/playwright.config.ts`):
 ```typescript
 export default defineConfig({
-  testDir: './tests/playwright',
+  testDir: './tests',
   use: {
     baseURL: 'http://localhost:5173', // Docker port ONLY
     trace: 'retain-on-failure',

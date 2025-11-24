@@ -200,8 +200,8 @@ npm test -- --reporter=html,json \
 ### Result Storage Locations
 - Unit test results: `/test-results/*.trx`
 - Coverage reports: `/coverage/*.xml`
-- Playwright HTML: `/tests/playwright/playwright-report/`
-- Screenshots: `/tests/playwright/test-results/`
+- Playwright HTML: `/tests/playwright-report/`
+- Screenshots: `/tests/test-results/`
 - Execution logs: `/test-results/execution-*.log`
 
 ### Error Analysis Patterns

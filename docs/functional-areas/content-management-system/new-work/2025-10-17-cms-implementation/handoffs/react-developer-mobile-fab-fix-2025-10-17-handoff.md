@@ -84,7 +84,7 @@ return (
 - `data-testid="cms-edit-button"` - Test selector for desktop button
 - `zIndex: 999999` - Ensures FAB is above all overlays (including DevTools)
 
-#### 2. `/apps/web/tests/playwright/cms.spec.ts`
+#### 2. `/apps/web/tests/cms.spec.ts`
 
 **Changes Made**:
 - Updated mobile responsive test to use reliable `data-testid` selectors
@@ -172,7 +172,7 @@ FAB position: fixed
 1. **Run E2E test**:
    ```bash
    cd /home/chad/repos/witchcityrope-react/apps/web
-   npm run test:e2e -- tests/playwright/cms.spec.ts -g "Mobile Responsive"
+   npm run test:e2e -- tests/cms.spec.ts -g "Mobile Responsive"
    ```
    Expected: ✅ Test passes
 
@@ -245,7 +245,7 @@ FAB position: fixed
 ## Additional Artifacts Created
 
 **Test File Created**:
-- `/apps/web/tests/playwright/cms-mobile-quick-test.spec.ts`
+- `/apps/web/tests/cms-mobile-quick-test.spec.ts`
 - Purpose: Isolated quick test for mobile FAB during development
 - Status: Can be deleted or kept for regression testing
 

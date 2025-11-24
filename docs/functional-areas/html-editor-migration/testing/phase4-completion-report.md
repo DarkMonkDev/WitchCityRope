@@ -25,14 +25,14 @@ Phase 4 (Test Suite Updates) for the TinyMCE → @mantine/tiptap migration is **
 ### Step 1: Delete TinyMCE-Specific E2E Tests ✅
 
 **Files Deleted** (4 total):
-1. `/apps/web/tests/playwright/tinymce-visual-verification.spec.ts` ✅
-2. `/apps/web/tests/playwright/tinymce-editor.spec.ts` ✅
-3. `/apps/web/tests/playwright/tinymce-debug.spec.ts` ✅
-4. `/apps/web/tests/playwright/tinymce-basic-check.spec.ts` ✅
+1. `/apps/web/tests/tinymce-visual-verification.spec.ts` ✅
+2. `/apps/web/tests/tinymce-editor.spec.ts` ✅
+3. `/apps/web/tests/tinymce-debug.spec.ts` ✅
+4. `/apps/web/tests/tinymce-basic-check.spec.ts` ✅
 
 **Verification**:
 ```bash
-$ ls /apps/web/tests/playwright/tinymce*.spec.ts
+$ ls /apps/web/tests/tinymce*.spec.ts
 ls: cannot access 'tinymce*.spec.ts': No such file or directory
 ```
 ✅ All TinyMCE test files successfully deleted
@@ -41,7 +41,7 @@ ls: cannot access 'tinymce*.spec.ts': No such file or directory
 
 ### Step 2: Update events-management-e2e.spec.ts Selectors ✅
 
-**File Updated**: `/apps/web/tests/playwright/events-management-e2e.spec.ts`
+**File Updated**: `/apps/web/tests/events-management-e2e.spec.ts`
 
 **Test Updated**: Line 288
 - **Before**: `should verify TinyMCE editors load`
@@ -62,7 +62,7 @@ ls: cannot access 'tinymce*.spec.ts': No such file or directory
 
 **Verification**:
 ```bash
-$ grep -r "\.tox-" /apps/web/tests/playwright/ --include="*.spec.ts"
+$ grep -r "\.tox-" /apps/web/tests/ --include="*.spec.ts"
 (no results - all TinyMCE selectors removed)
 ```
 ✅ No `.tox-` selectors remain in test suite
@@ -71,7 +71,7 @@ $ grep -r "\.tox-" /apps/web/tests/playwright/ --include="*.spec.ts"
 
 ### Step 3: Create New Tiptap Editor E2E Test Suite ✅
 
-**New File Created**: `/apps/web/tests/playwright/tiptap-editor.spec.ts`
+**New File Created**: `/apps/web/tests/tiptap-editor.spec.ts`
 - **Size**: 7.7K
 - **Test Count**: 10 comprehensive tests
 - **Lines of Code**: ~230 lines
@@ -146,10 +146,10 @@ $ grep -r "\.tox-" /apps/web/tests/playwright/ --include="*.spec.ts"
 
 ### TypeScript Compilation ✅
 
-**Command**: `npx tsc --noEmit tests/playwright/tiptap-editor.spec.ts`
+**Command**: `npx tsc --noEmit tests/tiptap-editor.spec.ts`
 **Result**: No errors
 
-**Command**: `npx tsc --noEmit tests/playwright/events-management-e2e.spec.ts`
+**Command**: `npx tsc --noEmit tests/events-management-e2e.spec.ts`
 **Result**: No errors
 
 ✅ All test files compile without TypeScript errors
@@ -227,8 +227,8 @@ $ grep -r "\.tox-" /apps/web/tests/playwright/ --include="*.spec.ts"
 **Status**: Ready for test-executor agent
 
 **Tests to Execute**:
-1. `/apps/web/tests/playwright/tiptap-editor.spec.ts` (10 tests)
-2. `/apps/web/tests/playwright/events-management-e2e.spec.ts` (1 updated test)
+1. `/apps/web/tests/tiptap-editor.spec.ts` (10 tests)
+2. `/apps/web/tests/events-management-e2e.spec.ts` (1 updated test)
 
 **Expected Results**:
 - Some tests may fail due to incomplete component implementation
@@ -253,17 +253,17 @@ npx playwright test events-management-e2e.spec.ts --grep "Tiptap" --reporter=lis
 ## Files Modified
 
 ### Deleted (4 files):
-1. `/apps/web/tests/playwright/tinymce-visual-verification.spec.ts`
-2. `/apps/web/tests/playwright/tinymce-editor.spec.ts`
-3. `/apps/web/tests/playwright/tinymce-debug.spec.ts`
-4. `/apps/web/tests/playwright/tinymce-basic-check.spec.ts`
+1. `/apps/web/tests/tinymce-visual-verification.spec.ts`
+2. `/apps/web/tests/tinymce-editor.spec.ts`
+3. `/apps/web/tests/tinymce-debug.spec.ts`
+4. `/apps/web/tests/tinymce-basic-check.spec.ts`
 
 ### Updated (2 files):
-1. `/apps/web/tests/playwright/events-management-e2e.spec.ts` - Selector updates
+1. `/apps/web/tests/events-management-e2e.spec.ts` - Selector updates
 2. `/docs/standards-processes/testing/TEST_CATALOG.md` - Migration documentation
 
 ### Created (1 file):
-1. `/apps/web/tests/playwright/tiptap-editor.spec.ts` - New comprehensive test suite
+1. `/apps/web/tests/tiptap-editor.spec.ts` - New comprehensive test suite
 
 ---
 

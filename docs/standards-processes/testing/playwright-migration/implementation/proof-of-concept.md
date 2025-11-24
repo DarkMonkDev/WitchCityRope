@@ -216,7 +216,7 @@ The proof of concept successfully demonstrates that:
 ## Appendix: File Structure
 
 ```
-tests/playwright/
+tests/
 ├── auth/
 │   └── login-basic.spec.ts      # Converted test
 ├── helpers/

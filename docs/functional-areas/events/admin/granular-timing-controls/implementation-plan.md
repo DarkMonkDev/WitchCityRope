@@ -470,7 +470,7 @@ const form = useForm({
 
 ### E2E Tests (Playwright)
 
-**Admin Event Configuration** (`/tests/playwright/events/admin-timing-settings.spec.ts`):
+**Admin Event Configuration** (`/tests/events/admin-timing-settings.spec.ts`):
 - ✅ Admin opens RSVP/Tickets timing settings
 - ✅ Admin sets registration open hours
 - ✅ Admin sets registration close hours
@@ -479,27 +479,27 @@ const form = useForm({
 - ✅ Settings save correctly to database
 - ✅ Settings display correctly on reload
 
-**Admin Volunteer Configuration** (`/tests/playwright/events/admin-volunteer-timing.spec.ts`):
+**Admin Volunteer Configuration** (`/tests/events/admin-volunteer-timing.spec.ts`):
 - ✅ Admin opens Volunteers timing settings
 - ✅ Admin sets volunteer registration close hours
 - ✅ Admin sets volunteer cancellation close hours
 - ✅ Settings save correctly to database
 
-**User Registration Flow** (`/tests/playwright/events/user-registration-timing.spec.ts`):
+**User Registration Flow** (`/tests/events/user-registration-timing.spec.ts`):
 - ✅ User sees RSVP button when within registration window
 - ✅ User sees "Registration Opens Soon" when before window
 - ✅ User sees "Registration Closed" when after window
 - ✅ User can RSVP when window is open
 - ✅ User blocked from RSVP when window is closed
 
-**User Cancellation Flow** (`/tests/playwright/events/user-cancellation-timing.spec.ts`):
+**User Cancellation Flow** (`/tests/events/user-cancellation-timing.spec.ts`):
 - ✅ User sees Cancel button when within cancellation window
 - ✅ User sees "Cancellation Not Available Yet" when before window
 - ✅ User sees "Cancellation Period Ended" when after window
 - ✅ User can cancel when window is open
 - ✅ User blocked from cancel when window is closed
 
-**User Volunteer Flow** (`/tests/playwright/events/user-volunteer-timing.spec.ts`):
+**User Volunteer Flow** (`/tests/events/user-volunteer-timing.spec.ts`):
 - ✅ User can sign up for volunteer spot when within window
 - ✅ User blocked from volunteer signup when after close hours
 - ✅ User can cancel volunteer assignment when within window

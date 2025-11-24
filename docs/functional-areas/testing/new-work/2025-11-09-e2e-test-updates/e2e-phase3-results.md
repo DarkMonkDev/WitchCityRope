@@ -7,12 +7,12 @@
 
 ### Before Phase 3
 - **E2E tests in /tests/e2e/**: 47 files
-- **Playwright tests in /tests/playwright/**: 3 files
+- **Playwright tests in /tests/**: 3 files
 - **Total**: 50 E2E test files
 
 ### After Phase 3
 - **E2E tests in /tests/e2e/**: 24 files
-- **Playwright tests in /tests/playwright/**: 3 files
+- **Playwright tests in /tests/**: 3 files
 - **Total**: 27 E2E test files
 
 **Files Deleted**: 23 duplicate/obsolete test files (-46% reduction!)
@@ -20,7 +20,7 @@
 ## Deletions Performed
 
 ### Round 1: Login Test Duplicates (11 files)
-All replaced by comprehensive Playwright version (`/tests/playwright/auth/login-with-scene-name.spec.ts`):
+All replaced by comprehensive Playwright version (`/tests/auth/login-with-scene-name.spec.ts`):
 
 1. ✅ login-methods-test.spec.ts
 2. ✅ login-diagnostic.spec.ts
@@ -61,9 +61,9 @@ Temporary debugging artifacts:
 ## Remaining Test Files (27 total)
 
 ### Playwright Tests (3 files)
-1. `/tests/playwright/auth/login-with-scene-name.spec.ts` - Comprehensive login tests
-2. `/tests/playwright/specs/dashboard-navigation.spec.ts` - Dashboard navigation tests
-3. `/tests/playwright/specs/admin-events-navigation.spec.ts` - Admin events navigation tests
+1. `/tests/auth/login-with-scene-name.spec.ts` - Comprehensive login tests
+2. `/tests/specs/dashboard-navigation.spec.ts` - Dashboard navigation tests
+3. `/tests/specs/admin-events-navigation.spec.ts` - Admin events navigation tests
 
 ### E2E Tests (24 files)
 1. admin-events-comprehensive.spec.ts

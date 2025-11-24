@@ -55,7 +55,7 @@ This guide describes the comprehensive CI/CD implementation for automated Playwr
 
 ### 3. Test Categorization System
 
-**File**: `tests/playwright/test-categories.json`
+**File**: `tests/test-categories.json`
 
 **Categories**:
 - **Smoke** (Critical): Basic functionality tests that must pass
@@ -103,13 +103,13 @@ This guide describes the comprehensive CI/CD implementation for automated Playwr
 
 The CI/CD setup leverages the working authentication patterns established in the codebase:
 
-**Global Setup** (`tests/playwright/helpers/global-setup.ts`):
+**Global Setup** (`tests/helpers/global-setup.ts`):
 - Pre-authenticates all test user types (admin, member, teacher, vetted, guest)
 - Saves authentication states for reuse across tests
 - Verifies application readiness before test execution
 - Handles Blazor-specific initialization patterns
 
-**Authentication Helpers** (existing `tests/playwright/helpers/auth.helpers.ts`):
+**Authentication Helpers** (existing `tests/helpers/auth.helpers.ts`):
 - Reuses working login selectors and patterns
 - Session state management and validation
 - Role-based access verification

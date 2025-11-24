@@ -68,54 +68,54 @@
 ### New Playwright Test Files (20)
 
 **Authentication (4)**
-1. `/tests/playwright/auth/login-basic.spec.ts`
-2. `/tests/playwright/auth/login-validation.spec.ts`
-3. `/tests/playwright/auth/register-basic.spec.ts`
-4. `/tests/playwright/auth/logout-functionality.spec.ts`
+1. `/tests/auth/login-basic.spec.ts`
+2. `/tests/auth/login-validation.spec.ts`
+3. `/tests/auth/register-basic.spec.ts`
+4. `/tests/auth/logout-functionality.spec.ts`
 
 **Events (3)**
-5. `/tests/playwright/events/event-creation.spec.ts`
-6. `/tests/playwright/events/event-display.spec.ts`
-7. `/tests/playwright/events/event-edit.spec.ts`
+5. `/tests/events/event-creation.spec.ts`
+6. `/tests/events/event-display.spec.ts`
+7. `/tests/events/event-edit.spec.ts`
 
 **Admin (5)**
-8. `/tests/playwright/admin/admin-access.spec.ts`
-9. `/tests/playwright/admin/admin-dashboard.spec.ts`
-10. `/tests/playwright/admin/admin-event-creation.spec.ts`
-11. `/tests/playwright/admin/admin-events-management.spec.ts`
-12. `/tests/playwright/admin/admin-login-success.spec.ts`
+8. `/tests/admin/admin-access.spec.ts`
+9. `/tests/admin/admin-dashboard.spec.ts`
+10. `/tests/admin/admin-event-creation.spec.ts`
+11. `/tests/admin/admin-events-management.spec.ts`
+12. `/tests/admin/admin-login-success.spec.ts`
 
 **RSVP (4)**
-13. `/tests/playwright/rsvp/rsvp-functionality.spec.ts`
-14. `/tests/playwright/rsvp/member-rsvp-flow.spec.ts`
-15. `/tests/playwright/rsvp/ticket-functionality.spec.ts`
-16. `/tests/playwright/rsvp/complete-rsvp-dashboard-flow.spec.ts`
+13. `/tests/rsvp/rsvp-functionality.spec.ts`
+14. `/tests/rsvp/member-rsvp-flow.spec.ts`
+15. `/tests/rsvp/ticket-functionality.spec.ts`
+16. `/tests/rsvp/complete-rsvp-dashboard-flow.spec.ts`
 
 **Validation (3)**
-17. `/tests/playwright/validation/all-migrated-forms.spec.ts`
-18. `/tests/playwright/validation/validation-diagnostics.spec.ts`
-19. `/tests/playwright/validation/validation-components.spec.ts`
+17. `/tests/validation/all-migrated-forms.spec.ts`
+18. `/tests/validation/validation-diagnostics.spec.ts`
+19. `/tests/validation/validation-components.spec.ts`
 
 **Visual (1)**
-20. `/tests/playwright/specs/visual/example.visual.spec.ts`
+20. `/tests/specs/visual/example.visual.spec.ts`
 
 ### Page Objects (8)
-1. `/tests/playwright/pages/login.page.ts`
-2. `/tests/playwright/pages/register.page.ts`
-3. `/tests/playwright/pages/event.page.ts`
-4. `/tests/playwright/pages/admin-dashboard.page.ts`
-5. `/tests/playwright/pages/admin-users.page.ts`
-6. `/tests/playwright/pages/admin-events.page.ts`
-7. `/tests/playwright/pages/rsvp.page.ts`
-8. `/tests/playwright/pages/member-dashboard.page.ts`
+1. `/tests/pages/login.page.ts`
+2. `/tests/pages/register.page.ts`
+3. `/tests/pages/event.page.ts`
+4. `/tests/pages/admin-dashboard.page.ts`
+5. `/tests/pages/admin-users.page.ts`
+6. `/tests/pages/admin-events.page.ts`
+7. `/tests/pages/rsvp.page.ts`
+8. `/tests/pages/member-dashboard.page.ts`
 
 ### Helper Utilities (6)
-1. `/tests/playwright/helpers/blazor.helpers.ts`
-2. `/tests/playwright/helpers/test.config.ts`
-3. `/tests/playwright/helpers/data-generators.ts`
-4. `/tests/playwright/helpers/auth.helpers.ts`
-5. `/tests/playwright/helpers/database.helpers.ts`
-6. `/tests/playwright/helpers/README.md`
+1. `/tests/helpers/blazor.helpers.ts`
+2. `/tests/helpers/test.config.ts`
+3. `/tests/helpers/data-generators.ts`
+4. `/tests/helpers/auth.helpers.ts`
+5. `/tests/helpers/database.helpers.ts`
+6. `/tests/helpers/README.md`
 
 ### Infrastructure Files (6)
 1. `/playwright.config.ts`
@@ -154,7 +154,7 @@
 
 1. **TypeScript**: All tests use TypeScript for type safety
 2. **Page Objects**: Mandatory pattern for maintainability
-3. **Centralized Location**: All tests in `/tests/playwright/`
+3. **Centralized Location**: All tests in `/tests/`
 4. **Cross-Browser**: All tests run on Chrome, Firefox, Safari
 5. **Parallel First**: Designed for parallel execution from start
 

@@ -76,9 +76,9 @@
 > - ❌ NO `const puppeteer = require('puppeteer')` anywhere
 > - ❌ NO new Puppeteer test files in any directory
 > - ❌ DO NOT debug or modify existing Puppeteer tests in `/tests/e2e/` or `/ToBeDeleted/`
-> - ✅ ALL E2E tests are in `/tests/playwright/` directory
+> - ✅ ALL E2E tests are in `/tests/` directory
 > - ✅ USE Playwright TypeScript tests only: `import { test, expect } from '@playwright/test'`
-> - ✅ USE existing Page Object Models in `/tests/playwright/pages/`
+> - ✅ USE existing Page Object Models in `/tests/pages/`
 > - ✅ RUN tests with: `npm run test:e2e:playwright`
 > 
 > **Why this matters:**
@@ -88,7 +88,7 @@
 > - Puppeteer tests are deprecated and will be deleted
 > 
 > **📂 E2E Test Locations:**
-> - ✅ **ACTIVE TESTS**: `/tests/playwright/` (20 test files, 8 Page Objects, 6 helpers)
+> - ✅ **ACTIVE TESTS**: `/tests/` (20 test files, 8 Page Objects, 6 helpers)
 > - ❌ **DEPRECATED**: `/tests/e2e/` (old Puppeteer tests - DO NOT USE)
 > - ❌ **DEPRECATED**: `/ToBeDeleted/` (old Puppeteer tests - DO NOT USE)
 
@@ -824,7 +824,7 @@ All login testing patterns are available in the Playwright Page Object Models:
 
 ```typescript
 // Use existing Playwright Login Page Object Model
-import { LoginPage } from '/tests/playwright/pages/login.page';
+import { LoginPage } from '/tests/pages/login.page';
 import { test, expect } from '@playwright/test';
 
 test('login as admin', async ({ page }) => {
@@ -836,11 +836,11 @@ test('login as admin', async ({ page }) => {
 ```
 
 ### ✅ Playwright Login Patterns Available:
-- **Login Page Object**: `/tests/playwright/pages/login.page.ts`
-- **Register Page Object**: `/tests/playwright/pages/register.page.ts`
-- **Admin Dashboard Page Object**: `/tests/playwright/pages/admin-dashboard.page.ts`
-- **Event Page Object**: `/tests/playwright/pages/event.page.ts`
-- **Auth Helpers**: `/tests/playwright/helpers/auth.helpers.ts`
+- **Login Page Object**: `/tests/pages/login.page.ts`
+- **Register Page Object**: `/tests/pages/register.page.ts`
+- **Admin Dashboard Page Object**: `/tests/pages/admin-dashboard.page.ts`
+- **Event Page Object**: `/tests/pages/event.page.ts`
+- **Auth Helpers**: `/tests/helpers/auth.helpers.ts`
 
 ### Test Accounts Available:
 - **Admin**: admin@witchcityrope.com / Test123!
@@ -871,10 +871,10 @@ npx playwright test --ui
 ```
 
 ### 📁 Playwright Test Reference Files:
-- **Auth Tests**: `/tests/playwright/specs/auth/` (4 test files)
-- **Event Tests**: `/tests/playwright/specs/events/` (3 test files)
-- **Admin Tests**: `/tests/playwright/specs/admin/` (5 test files)
-- **RSVP Tests**: `/tests/playwright/specs/rsvp/` (4 test files)
+- **Auth Tests**: `/tests/specs/auth/` (4 test files)
+- **Event Tests**: `/tests/specs/events/` (3 test files)
+- **Admin Tests**: `/tests/specs/admin/` (5 test files)
+- **RSVP Tests**: `/tests/specs/rsvp/` (4 test files)
 - **Full Documentation**: `/docs/enhancements/playwright-migration/`
 
 ## Environment
@@ -1542,13 +1542,13 @@ value.Should().BeGreaterThanOrEqualTo(0);
 
 ### E2E Testing Location
 
-**🚨 CRITICAL: E2E Tests are in `/tests/playwright/` 🚨**
+**🚨 CRITICAL: E2E Tests are in `/tests/` 🚨**
 
 See `E2E_TESTING_GUIDE.md` for complete testing documentation.
 
 Quick reference:
 - Run all tests: `npx playwright test`
-- Run specific test: `npx playwright test tests/playwright/auth/login-basic.spec.ts`
+- Run specific test: `npx playwright test tests/auth/login-basic.spec.ts`
 - Run in UI mode: `npx playwright test --ui`
 
 ## Key Documentation References
@@ -1600,13 +1600,13 @@ For detailed development history, recent fixes, and session notes, see [PROGRESS
 
 For browser automation and UI testing, use these tools:
 
-1. **Playwright Tests (ONLY CHOICE)** - Use existing converted tests in `/tests/playwright/`
+1. **Playwright Tests (ONLY CHOICE)** - Use existing converted tests in `/tests/`
 2. **Playwright MCP Server** - For quick visual verification during development
 3. **Stagehand MCP Server (Optional)** - For natural language automation when needed
 
 ### E2E Testing with Playwright (REQUIRED)
 
-**All E2E tests are in `/tests/playwright/` directory**
+**All E2E tests are in `/tests/` directory**
 - ✅ **180 tests fully converted** from Puppeteer to Playwright
 - ✅ **TypeScript with Page Object Models** for maintainability
 - ✅ **40% faster execution** than Puppeteer
@@ -1632,7 +1632,7 @@ npx playwright show-report
 
 **Test Structure:**
 ```
-/tests/playwright/
+/tests/
 ├── specs/                    # Test files (.spec.ts)
 │   ├── auth/                # Authentication tests
 │   ├── events/              # Event management tests

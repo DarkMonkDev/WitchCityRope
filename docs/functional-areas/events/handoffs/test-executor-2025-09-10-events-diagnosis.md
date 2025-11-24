@@ -182,7 +182,7 @@ Frontend → http://localhost:5173/api/events → Proxy → API → SUCCESS
 - `/test-results/events-main-content.png` - Content area detail
 
 **Test File Created**:
-- `/tests/playwright/events-diagnostic.spec.ts` - Comprehensive diagnostic test for future validation
+- `/tests/events-diagnostic.spec.ts` - Comprehensive diagnostic test for future validation
 
 ## Development Priority
 
@@ -198,7 +198,7 @@ Frontend → http://localhost:5173/api/events → Proxy → API → SUCCESS
 
 **Next Agent**: react-developer  
 **Task**: Fix frontend API client to use development proxy instead of direct API connection  
-**Validation**: Run `/tests/playwright/events-diagnostic.spec.ts` to confirm events display  
+**Validation**: Run `/tests/events-diagnostic.spec.ts` to confirm events display  
 **Success Criteria**: User can see all 6 events with titles, descriptions, dates, and locations  
 
 ## Lessons Learned

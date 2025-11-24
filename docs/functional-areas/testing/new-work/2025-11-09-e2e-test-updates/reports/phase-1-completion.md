@@ -22,7 +22,7 @@ Phase 1 focused on the highest-priority, lowest-effort fixes that would unblock 
 - Line 181: Value verification
 
 ### 2. Global Selector Update ✅ **HIGH PRIORITY**
-**Scope**: ALL test files in `/tests/e2e/` and `/tests/playwright/`
+**Scope**: ALL test files in `/tests/e2e/` and `/tests/`
 **Change**: Replaced all instances of `[data-testid="email-input"]` with `[data-testid="email-or-scenename-input"]`
 **Files Updated**: 25 test files
 **Impact**: All manual login attempts now use correct selector
@@ -95,7 +95,7 @@ npx playwright test tests/e2e/home-page.spec.ts --reporter=list
 
 **Test Files** (25 files with email-input selector updates):
 - All .spec.ts files in `/tests/e2e/`
-- All .spec.ts files in `/tests/playwright/`
+- All .spec.ts files in `/tests/`
 
 **Verification**:
 - Zero `email-input` selectors remaining ✅

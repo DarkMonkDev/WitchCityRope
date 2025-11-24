@@ -3,7 +3,7 @@
 > **⚠️ DEPRECATED**: This MCP-based approach has been replaced by Playwright visual regression tests.
 > 
 > **Current Visual Testing**: 
-> - Location: `/tests/playwright/visual-regression/`
+> - Location: `/tests/visual-regression/`
 > - Run: `cd tests/playwright && npm test specs/visual/`
 > - Update snapshots: `npm test specs/visual/ -- --update-snapshots`
 

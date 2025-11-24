@@ -379,13 +379,13 @@ await DatabaseHelpers.verifyEventParticipation(userId, eventId, 1); // 1 = Activ
 ```
 
 **Files Requiring Test Updates** (delegated to test-executor):
-1. `/apps/web/tests/playwright/rsvp-lifecycle-persistence.spec.ts` (9 occurrences of 'Registered')
-2. `/apps/web/tests/playwright/templates/rsvp-persistence-template.ts` (2 occurrences)
+1. `/apps/web/tests/rsvp-lifecycle-persistence.spec.ts` (9 occurrences of 'Registered')
+2. `/apps/web/tests/templates/rsvp-persistence-template.ts` (2 occurrences)
 3. Change `'Registered'` → `1` with comment `// 1 = Active`
 
 **Database Helper Signature** (already correct):
 ```typescript
-// /apps/web/tests/playwright/utils/database-helpers.ts:183-229
+// /apps/web/tests/utils/database-helpers.ts:183-229
 export async function verifyEventParticipation(
   userId: string,
   eventId: string,

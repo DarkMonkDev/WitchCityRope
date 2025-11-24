@@ -131,7 +131,7 @@ export function useCancelTicket() {
 
 ### Phase 4: E2E Test Evidence
 
-**Test File**: `/apps/web/tests/playwright/ticket-cancellation-persistence-bug.spec.ts`
+**Test File**: `/apps/web/tests/ticket-cancellation-persistence-bug.spec.ts`
 
 **Test Results:**
 ```

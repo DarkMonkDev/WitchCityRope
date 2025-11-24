@@ -24,33 +24,33 @@ This guide provides complete instructions for updating E2E tests during the Tiny
 
 ### Tests to Delete (4 files)
 
-**File 1**: `/home/chad/repos/witchcityrope/apps/web/tests/playwright/tinymce-visual-verification.spec.ts`
+**File 1**: `/home/chad/repos/witchcityrope/apps/web/tests/tinymce-visual-verification.spec.ts`
 ```bash
-rm /home/chad/repos/witchcityrope/apps/web/tests/playwright/tinymce-visual-verification.spec.ts
+rm /home/chad/repos/witchcityrope/apps/web/tests/tinymce-visual-verification.spec.ts
 ```
 **Reason**: Tests TinyMCE-specific visual rendering
 
 ---
 
-**File 2**: `/home/chad/repos/witchcityrope/apps/web/tests/playwright/tinymce-editor.spec.ts`
+**File 2**: `/home/chad/repos/witchcityrope/apps/web/tests/tinymce-editor.spec.ts`
 ```bash
-rm /home/chad/repos/witchcityrope/apps/web/tests/playwright/tinymce-editor.spec.ts
+rm /home/chad/repos/witchcityrope/apps/web/tests/tinymce-editor.spec.ts
 ```
 **Reason**: Tests TinyMCE-specific editor functionality
 
 ---
 
-**File 3**: `/home/chad/repos/witchcityrope/apps/web/tests/playwright/tinymce-debug.spec.ts`
+**File 3**: `/home/chad/repos/witchcityrope/apps/web/tests/tinymce-debug.spec.ts`
 ```bash
-rm /home/chad/repos/witchcityrope/apps/web/tests/playwright/tinymce-debug.spec.ts
+rm /home/chad/repos/witchcityrope/apps/web/tests/tinymce-debug.spec.ts
 ```
 **Reason**: Debugging test specific to TinyMCE issues
 
 ---
 
-**File 4**: `/home/chad/repos/witchcityrope/apps/web/tests/playwright/tinymce-basic-check.spec.ts`
+**File 4**: `/home/chad/repos/witchcityrope/apps/web/tests/tinymce-basic-check.spec.ts`
 ```bash
-rm /home/chad/repos/witchcityrope/apps/web/tests/playwright/tinymce-basic-check.spec.ts
+rm /home/chad/repos/witchcityrope/apps/web/tests/tinymce-basic-check.spec.ts
 ```
 **Reason**: Basic TinyMCE initialization test
 
@@ -77,7 +77,7 @@ ls tinymce*.spec.ts 2>&1
 
 ```bash
 # Search for any remaining TinyMCE test references
-grep -r "tinymce" /home/chad/repos/witchcityrope/apps/web/tests/playwright/ --include="*.spec.ts"
+grep -r "tinymce" /home/chad/repos/witchcityrope/apps/web/tests/ --include="*.spec.ts"
 
 # Should only find references in events-management-e2e.spec.ts
 # (which we'll update in Phase 2)
@@ -89,7 +89,7 @@ grep -r "tinymce" /home/chad/repos/witchcityrope/apps/web/tests/playwright/ --in
 
 ### File to Update: events-management-e2e.spec.ts
 
-**Location**: `/home/chad/repos/witchcityrope/apps/web/tests/playwright/events-management-e2e.spec.ts`
+**Location**: `/home/chad/repos/witchcityrope/apps/web/tests/events-management-e2e.spec.ts`
 
 ### Selector Mapping Table
 
@@ -235,7 +235,7 @@ npm run test:e2e -- events-management-e2e.spec.ts
 
 ### New Test File: tiptap-editor.spec.ts
 
-**Location**: `/home/chad/repos/witchcityrope/apps/web/tests/playwright/tiptap-editor.spec.ts`
+**Location**: `/home/chad/repos/witchcityrope/apps/web/tests/tiptap-editor.spec.ts`
 
 **COMPLETE TEST CODE** (copy-paste ready):
 

@@ -263,7 +263,7 @@
 **Fixed**: Inconsistent timeout configurations across E2E test files
 **Problem**: Individual `test.setTimeout()` calls and mismatched config values overrode global 90-second timeout
 **Solution**: 
-- Removed `test.setTimeout(60000)` from `/tests/playwright/quick-manual-test.spec.ts`
+- Removed `test.setTimeout(60000)` from `/tests/quick-manual-test.spec.ts`
 - Updated `/apps/web/playwright.config.ts` from 60 seconds to 90 seconds
 - **All E2E tests now consistently use 90-second (1.5 minute) global timeout**
 **Impact**: Eliminates timeout inconsistency issues, ensures predictable test behavior
@@ -400,7 +400,7 @@ await expect(page.locator('[data-testid="alert-session-error"]')).toBeVisible();
 - **Quality Assurance**: Tests validate complete user workflows, not just API endpoints
 
 ### 🚨 NEW: Comprehensive Admin Event Editing E2E Tests - 2025-09-19 🚨
-**Added**: `/tests/playwright/admin-event-editing-comprehensive.spec.ts`
+**Added**: `/tests/admin-event-editing-comprehensive.spec.ts`
 **Purpose**: Comprehensive E2E test suite to identify and verify fixes for critical admin event editing issues
 
 **CRITICAL ISSUES TESTED**:
@@ -722,7 +722,7 @@ npx playwright test tests/e2e/event-update-complete-flow.spec.ts
 ## Recent Additions (September 2025)
 
 ### 🚨 CRITICAL: Dashboard E2E Test JavaScript Error Detection Fix - 2025-09-10 🚨
-**Fixed**: `/tests/playwright/dashboard.spec.ts` - Added mandatory console and JavaScript error monitoring
+**Fixed**: `/tests/dashboard.spec.ts` - Added mandatory console and JavaScript error monitoring
 **Purpose**: Fix critical testing failure where E2E test reported "successful login and navigation to dashboard" but completely missed RangeError that crashes the dashboard
 **Context**: Test was reporting success when the dashboard had "RangeError: Invalid time value" that crashed the page after login
 
@@ -796,7 +796,7 @@ if (consoleErrors.length > 0) {
 - **Prevention**: Will catch similar JavaScript errors in future
 
 **RELATED FILES UPDATED**:
-- `/tests/playwright/dashboard.spec.ts` - Enhanced with comprehensive error monitoring
+- `/tests/dashboard.spec.ts` - Enhanced with comprehensive error monitoring
 - `/docs/standards-processes/testing/TEST_CATALOG.md` - Documented critical fix
 
 **LESSON FOR ALL E2E TESTS**:
@@ -812,7 +812,7 @@ This issue highlights that ALL E2E tests must include console and JavaScript err
 ## Recent Additions (September 2025)
 
 ### 🚨 CRITICAL: Authentication Timeout Configuration Enhancement - 2025-09-08 🚨
-**Updated**: `/apps/web/tests/playwright/helpers/auth.helpers.ts` and `/apps/web/tests/playwright/helpers/wait.helpers.ts`
+**Updated**: `/apps/web/tests/helpers/auth.helpers.ts` and `/apps/web/tests/helpers/wait.helpers.ts`
 **Purpose**: Enhanced timeout configurations to prevent authentication test failures due to timing issues
 **Context**: Test-executor identified authentication tests timing out during dashboard redirects
 
@@ -824,9 +824,9 @@ This issue highlights that ALL E2E tests must include console and JavaScript err
 - **Dashboard Validation**: Enhanced dashboard readiness checks with multiple validation strategies
 
 **FILES ENHANCED**:
-- `/apps/web/tests/playwright/helpers/wait.helpers.ts` - Added TIMEOUTS constants and improved navigation
-- `/apps/web/tests/playwright/helpers/auth.helpers.ts` - Enhanced login flows with better timeout handling
-- `/apps/web/tests/playwright/helpers/form.helpers.ts` - NEW: Form interaction helpers with timeout support
+- `/apps/web/tests/helpers/wait.helpers.ts` - Added TIMEOUTS constants and improved navigation
+- `/apps/web/tests/helpers/auth.helpers.ts` - Enhanced login flows with better timeout handling
+- `/apps/web/tests/helpers/form.helpers.ts` - NEW: Form interaction helpers with timeout support
 - `/apps/web/playwright.config.ts` - Updated global timeout settings for authentication flows
 
 **TIMEOUT VALUES OPTIMIZED**:
@@ -851,7 +851,7 @@ export const TIMEOUTS = {
 - Enhanced error handling for authentication failures
 
 ### 🚨 CRITICAL: Authentication Helper SecurityError Fix - 2025-09-08 🚨
-**Fixed**: `/apps/web/tests/playwright/helpers/auth.helpers.ts` - localStorage SecurityError blocking 80+ tests
+**Fixed**: `/apps/web/tests/helpers/auth.helpers.ts` - localStorage SecurityError blocking 80+ tests
 **Purpose**: Fix critical SecurityError that prevented localStorage/sessionStorage access before page navigation
 **Context**: Test-executor identified that ALL authentication tests were failing due to localStorage being accessed before establishing page context
 
@@ -943,12 +943,12 @@ await AuthHelpers.clearAuthState(page);    // Safe storage clearing
 **MAJOR FIXES IMPLEMENTED**:
 
 #### 1. **Test Helper Utilities Created**
-- ✅ `/apps/web/tests/playwright/helpers/auth.helpers.ts` - Complete authentication helper
-- ✅ `/apps/web/tests/playwright/helpers/form.helpers.ts` - Mantine form interaction helper  
-- ✅ `/apps/web/tests/playwright/helpers/wait.helpers.ts` - React-specific wait strategies
+- ✅ `/apps/web/tests/helpers/auth.helpers.ts` - Complete authentication helper
+- ✅ `/apps/web/tests/helpers/form.helpers.ts` - Mantine form interaction helper  
+- ✅ `/apps/web/tests/helpers/wait.helpers.ts` - React-specific wait strategies
 
 #### 2. **Fixed Authentication Tests** 
-- ✅ `/apps/web/tests/playwright/auth-fixed.spec.ts` - **CORRECTED authentication tests**
+- ✅ `/apps/web/tests/auth-fixed.spec.ts` - **CORRECTED authentication tests**
   - **FIXED**: Updated "Login" expectations to "Welcome Back" (actual React UI)
   - **FIXED**: Updated button text from "Login" to "Sign In" (actual button text)
   - **FIXED**: Uses proper data-testid selectors for reliability
@@ -956,7 +956,7 @@ await AuthHelpers.clearAuthState(page);    // Safe storage clearing
   - **COVERS**: All authentication flows, error handling, security, performance
 
 #### 3. **Comprehensive Events Tests**
-- ✅ `/apps/web/tests/playwright/events-comprehensive.spec.ts` - **NEW comprehensive events E2E**
+- ✅ `/apps/web/tests/events-comprehensive.spec.ts` - **NEW comprehensive events E2E**
   - **Public Events**: Browsing without authentication, event details, filtering
   - **Authenticated Events**: Registration flows, user-specific content, role-based features
   - **Error Handling**: API errors, empty states, network failures
@@ -964,7 +964,7 @@ await AuthHelpers.clearAuthState(page);    // Safe storage clearing
   - **Performance**: Load time validation, large dataset handling
 
 #### 4. **Comprehensive Dashboard Tests**
-- ✅ `/apps/web/tests/playwright/dashboard-comprehensive.spec.ts` - **NEW comprehensive dashboard E2E**
+- ✅ `/apps/web/tests/dashboard-comprehensive.spec.ts` - **NEW comprehensive dashboard E2E**
   - **Navigation**: Complete dashboard navigation, layout verification
   - **Profile Management**: Form validation, update flows, accessibility
   - **Security Settings**: Password changes, 2FA toggles, privacy controls
@@ -1052,10 +1052,10 @@ This overhaul transforms the failing Playwright test suite from **0% passing aut
 - ❌ **No API integration** - ignored backend connectivity issues causing "Connection Problem" errors
 
 **Files Created**:
-- ✅ `/tests/playwright/specs/dashboard-navigation.spec.ts` - Critical dashboard navigation with comprehensive error detection
-- ✅ `/tests/playwright/specs/admin-events-navigation.spec.ts` - Admin events navigation with 404 detection and permission validation
-- ✅ `/tests/playwright/specs/test-analysis-summary.md` - Complete documentation of bug prevention patterns
-- ✅ **IMPROVED**: `/tests/playwright/simple-dashboard-check.spec.ts` - Added API health checks and error monitoring
+- ✅ `/tests/specs/dashboard-navigation.spec.ts` - Critical dashboard navigation with comprehensive error detection
+- ✅ `/tests/specs/admin-events-navigation.spec.ts` - Admin events navigation with 404 detection and permission validation
+- ✅ `/tests/specs/test-analysis-summary.md` - Complete documentation of bug prevention patterns
+- ✅ **IMPROVED**: `/tests/simple-dashboard-check.spec.ts` - Added API health checks and error monitoring
 
 **CRITICAL ERROR DETECTION PATTERNS IMPLEMENTED**:
 
@@ -1168,7 +1168,7 @@ This establishes the foundation for **zero-tolerance navigation bug policy** - a
 **Context**: Created comprehensive Playwright tests for both demo pages following established testing patterns
 
 **Files Created**:
-- ✅ `/apps/web/tests/playwright/events-management-e2e.spec.ts` - Comprehensive E2E tests for Events Management System
+- ✅ `/apps/web/tests/events-management-e2e.spec.ts` - Comprehensive E2E tests for Events Management System
 
 **Test Coverage - Events Management API Demo**:
 - **Page Loading**: Verifies demo page loads without errors and without constant reloading
@@ -1263,7 +1263,7 @@ await page.goto('/admin/events-management-api-demo');
 - ✅ `/apps/web/src/pages/dashboard/__tests__/EventsPage.test.tsx` - Events page unit tests
 - ✅ `/apps/web/src/pages/dashboard/__tests__/ProfilePage.test.tsx` - Profile page unit tests
 - ✅ `/apps/web/src/pages/dashboard/__tests__/MembershipPage.test.tsx` - Membership page unit tests
-- ✅ `/tests/playwright/dashboard.spec.ts` - E2E tests for dashboard navigation and interactions
+- ✅ `/tests/dashboard.spec.ts` - E2E tests for dashboard navigation and interactions
 - ✅ `/apps/web/src/test/integration/dashboard-integration.test.tsx` - Integration tests for API hooks
 
 **Test Coverage - Dashboard Pages**:

@@ -290,4 +290,4 @@ const page2 = await context2.newPage();
 - Run existing tests: `npm run test:e2e`
 - Debug a test: `npx playwright test --debug test-name`
 - View trace: `npx playwright show-trace trace.zip`
-- Check examples: `/tests/playwright/`
+- Check examples: `/tests/`

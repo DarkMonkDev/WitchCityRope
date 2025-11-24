@@ -16,7 +16,7 @@ Identified and marked **5 E2E tests** testing unimplemented features with `test.
 
 ## Tests Marked as Skipped
 
-### File: `/home/chad/repos/witchcityrope/apps/web/tests/playwright/events-comprehensive.spec.ts`
+### File: `/home/chad/repos/witchcityrope/apps/web/tests/events-comprehensive.spec.ts`
 
 #### 1. Event Detail Modal/View (Line 37)
 ```typescript
@@ -157,7 +157,7 @@ describe.skip('EventSessionForm', () => {
 - 5 tests now properly categorized as "skipped due to unimplemented features"
 
 ### Files Modified
-1. `/home/chad/repos/witchcityrope/apps/web/tests/playwright/events-comprehensive.spec.ts`
+1. `/home/chad/repos/witchcityrope/apps/web/tests/events-comprehensive.spec.ts`
    - 5 tests marked with `test.skip()`
    - All tests include TODO comments explaining when to unskip
    - Comments explain what feature is missing
@@ -206,10 +206,10 @@ grep -n "test.skip" events-comprehensive.spec.ts
 When features are implemented, search for TODO comments and unskip tests:
 ```bash
 # Find all skipped tests with TODO
-grep -rn "// TODO: Unskip" apps/web/tests/playwright/
+grep -rn "// TODO: Unskip" apps/web/tests/
 
 # Find specific feature
-grep -rn "TODO: Unskip when event detail" apps/web/tests/playwright/
+grep -rn "TODO: Unskip when event detail" apps/web/tests/
 ```
 
 ---

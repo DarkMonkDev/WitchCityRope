@@ -98,7 +98,7 @@ public class EventTests
 - Error handling
 
 ### 5. WORKING - E2E Tests (Playwright)
-**Location**: `/tests/playwright/`
+**Location**: `/tests/`
 **Status**: ✅ Functional - Tests UI layer
 
 #### Working Test Categories

@@ -83,9 +83,9 @@ Complete inventory of remaining tests:
 ## Files Modified
 
 ### Test Fixes (Phase 2)
-1. `/tests/playwright/auth/login-with-scene-name.spec.ts` - 3 fixes
-2. `/tests/playwright/specs/dashboard-navigation.spec.ts` - 4 fixes
-3. `/tests/playwright/specs/admin-events-navigation.spec.ts` - 3 fixes
+1. `/tests/auth/login-with-scene-name.spec.ts` - 3 fixes
+2. `/tests/specs/dashboard-navigation.spec.ts` - 4 fixes
+3. `/tests/specs/admin-events-navigation.spec.ts` - 3 fixes
 
 ### Consolidation (Phase 3)
 - **Deleted**: 23 duplicate/obsolete test files

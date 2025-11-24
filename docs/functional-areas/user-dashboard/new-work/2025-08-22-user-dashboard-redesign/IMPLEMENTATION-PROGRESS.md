@@ -305,7 +305,7 @@ Implementation will be considered complete when:
 - **Functional Specifications v2.0**: `specifications/functional-specifications-v2.md`
 
 ### Testing
-- **E2E Tests**: `apps/web/tests/playwright/e2e/dashboard/user-dashboard-wireframe-validation.spec.ts`
+- **E2E Tests**: `apps/web/tests/e2e/dashboard/user-dashboard-wireframe-validation.spec.ts`
 
 ### Implementation
 - **Backend**: `apps/api/Features/Dashboard/`

@@ -51,7 +51,7 @@ const emailValue = await page.locator('[data-testid="email-or-scenename-input"]'
 
 ### 2. Global Selector Update
 
-**Scope**: ALL test files in `/tests/e2e/` and `/tests/playwright/`
+**Scope**: ALL test files in `/tests/e2e/` and `/tests/`
 **Find**: `[data-testid="email-input"]`
 **Replace**: `[data-testid="email-or-scenename-input"]`
 **Files Updated**: 25 test files
@@ -178,7 +178,7 @@ curl -s http://localhost:5173/ | grep -o "<title>[^<]*</title>"
 
 #### Test Files (26)
 - `/tests/e2e/*.spec.ts` - Global selector updates (24 files)
-- `/tests/playwright/**/*.spec.ts` - Global selector updates (1 file)
+- `/tests/**/*.spec.ts` - Global selector updates (1 file)
 - `/tests/e2e/home-page.spec.ts` - Complete rewrite (1 file)
 
 #### Infrastructure

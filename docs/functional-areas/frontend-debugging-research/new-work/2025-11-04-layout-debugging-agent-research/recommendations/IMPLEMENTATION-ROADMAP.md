@@ -609,7 +609,7 @@
 
 **Tasks**:
 1. **Create Playwright Responsive Test Template** (90 min)
-   - Location: `/tests/playwright/templates/responsive-layout.spec.ts`
+   - Location: `/tests/templates/responsive-layout.spec.ts`
    - Features: Test component at mobile, tablet, desktop breakpoints
    - Screenshots for visual regression
 
@@ -694,7 +694,7 @@
 - ✅ Visual regression baseline screenshots captured
 
 **Deliverables**:
-- `/tests/playwright/templates/responsive-layout.spec.ts`
+- `/tests/templates/responsive-layout.spec.ts`
 - `.claude/commands/mobile-test.md`
 - Responsive test results for 2-3 components
 

@@ -107,8 +107,8 @@ None - all formatting completed successfully
 - `/home/chad/repos/witchcityrope/apps/web/src/routes/router.tsx`
 
 ### Tests
-- `/home/chad/repos/witchcityrope/apps/web/tests/playwright/tiptap-editor.spec.ts`
-- `/home/chad/repos/witchcityrope/apps/web/tests/playwright/events-management-e2e.spec.ts`
+- `/home/chad/repos/witchcityrope/apps/web/tests/tiptap-editor.spec.ts`
+- `/home/chad/repos/witchcityrope/apps/web/tests/events-management-e2e.spec.ts`
 - `/home/chad/repos/witchcityrope/test-current-state.spec.ts`
 
 ### Documentation

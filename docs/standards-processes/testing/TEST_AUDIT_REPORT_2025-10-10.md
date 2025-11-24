@@ -18,7 +18,7 @@
 
 | Test Type | Count | Documented? | Location |
 |-----------|-------|-------------|----------|
-| **E2E Playwright Tests** | 89 | ✅ YES (TEST_CATALOG.md) | `/apps/web/tests/playwright/` |
+| **E2E Playwright Tests** | 89 | ✅ YES (TEST_CATALOG.md) | `/apps/web/tests/` |
 | **React Unit Tests** | 20 | ❌ NO | `/apps/web/src/**/*.test.tsx` |
 | **C# Backend Tests** | 91 | ❌ NO | `/tests/**/*Tests.cs` |
 | **Other Test Files** | 71 | ❌ NO | Various (helpers, fixtures) |
@@ -30,7 +30,7 @@
 
 ### 1. E2E Playwright Tests (89 files) ✅ DOCUMENTED
 
-**Location**: `/apps/web/tests/playwright/`
+**Location**: `/apps/web/tests/`
 **Status**: FULLY documented in TEST_CATALOG.md (Part 1)
 **Framework**: Playwright (TypeScript)
 **Pass Rate**: 68.1% (243/357 tests passing - Oct 10, 2025)
@@ -496,7 +496,7 @@ OR
 /home/chad/repos/witchcityrope/
 ├── apps/web/
 │   ├── src/**/*.test.tsx          # React unit tests (20 files)
-│   └── tests/playwright/          # E2E Playwright (89 files)
+│   └── tests/          # E2E Playwright (89 files)
 └── tests/
     ├── WitchCityRope.Core.Tests/          # Domain tests (11 files)
     ├── WitchCityRope.Infrastructure.Tests/ # Infrastructure (15 files)

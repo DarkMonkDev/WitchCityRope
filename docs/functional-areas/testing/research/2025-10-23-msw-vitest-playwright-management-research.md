@@ -63,11 +63,11 @@ afterEach(() => server.resetHandlers())
 // vitest.config.ts
 test: {
   setupFiles: ['./src/test/setup.ts'],
-  exclude: ['**/tests/playwright/**', '**/*.e2e.spec.ts']
+  exclude: ['**/tests/**', '**/*.e2e.spec.ts']
 }
 
 // playwright.config.ts
-testDir: './tests/playwright'
+testDir: './tests'
 // No webServer config - expects Docker services running
 ```
 
@@ -125,7 +125,7 @@ E2E Tests (Playwright):
 export default defineConfig({
   test: {
     setupFiles: ['./src/test/setup.ts'],
-    exclude: ['**/tests/playwright/**', '**/*.e2e.spec.ts'],
+    exclude: ['**/tests/**', '**/*.e2e.spec.ts'],
     environment: 'jsdom'
   }
 })
@@ -140,7 +140,7 @@ beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }))
 afterEach(() => server.resetHandlers())
 afterAll(() => server.close())
 
-// tests/playwright/example.spec.ts - E2E test (no MSW)
+// tests/example.spec.ts - E2E test (no MSW)
 import { test, expect } from '@playwright/test'
 
 test('loads events from real API', async ({ page }) => {
@@ -347,7 +347,7 @@ npm run test:e2e
 - **Purpose**: Validate full application flow with real backend
 - **API**: Real endpoints at http://localhost:5655
 - **Run**: `npm run test:e2e` (requires Docker services)
-- **Scope**: tests/playwright/**/*.spec.ts
+- **Scope**: tests/**/*.spec.ts
 ```
 
 **Total Migration Effort**: 45 minutes
@@ -363,7 +363,7 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'], // MSW Node.js setup
     exclude: [
       '**/node_modules/**',
-      '**/tests/playwright/**', // ← CRITICAL: Exclude E2E tests
+      '**/tests/**', // ← CRITICAL: Exclude E2E tests
       '**/*.e2e.spec.ts'
     ],
     environment: 'jsdom'
@@ -374,7 +374,7 @@ export default defineConfig({
 **Playwright Configuration** (`playwright.config.ts`):
 ```typescript
 export default defineConfig({
-  testDir: './tests/playwright', // ← Only E2E tests
+  testDir: './tests', // ← Only E2E tests
   use: {
     baseURL: 'http://localhost:5173' // Real web service
   }
@@ -650,7 +650,7 @@ describe('EventsList', () => {
 
 ### Complete E2E Test with Real API
 ```typescript
-// tests/playwright/events/events-list.spec.ts
+// tests/events/events-list.spec.ts
 import { test, expect } from '@playwright/test'
 
 test.describe('Events List E2E', () => {

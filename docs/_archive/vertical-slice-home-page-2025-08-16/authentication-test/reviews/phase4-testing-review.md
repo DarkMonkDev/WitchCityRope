@@ -24,7 +24,7 @@ Phase 4 Testing & Validation for the authentication vertical slice has been **su
 - CSRF protection verification
 - Performance benchmarking
 
-**File**: `/apps/web/tests/playwright/auth.spec.ts`
+**File**: `/apps/web/tests/auth.spec.ts`
 
 ### 2. Code Quality ✅
 **Status**: COMPLETE  

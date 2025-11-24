@@ -48,7 +48,7 @@ Marked **13 critical user-facing feature tests** as `.skip()` with comprehensive
 
 ### Category 3.1: Event RSVP/Ticketing Workflow (15 tests)
 
-#### File: `/apps/web/tests/playwright/events-comprehensive.spec.ts`
+#### File: `/apps/web/tests/events-comprehensive.spec.ts`
 **Already Skipped** (5 tests - verified correct):
 1. Line 37: "should display event details when clicking event card" ✅ ALREADY MARKED
 2. Line 68: "should filter events by type" ✅ ALREADY MARKED
@@ -58,7 +58,7 @@ Marked **13 critical user-facing feature tests** as `.skip()` with comprehensive
 
 **Status**: These tests are ALREADY correctly marked as `.skip()` from previous work.
 
-#### File: `/apps/web/tests/playwright/e2e-events-full-journey.spec.ts`
+#### File: `/apps/web/tests/e2e-events-full-journey.spec.ts`
 **Tests Skipped** (6 tests):
 1. Line 64: "2. User views event details" ✅ **COMPLETED**
 2. Line 101: "3. User attempts to RSVP/purchase ticket" ✅ **COMPLETED**
@@ -73,7 +73,7 @@ Marked **13 critical user-facing feature tests** as `.skip()` with comprehensive
 
 ### Category 3.2: Events Admin Management Features (12 tests)
 
-#### File: `/apps/web/tests/playwright/events-crud-test.spec.ts`
+#### File: `/apps/web/tests/events-crud-test.spec.ts`
 **Tests Skipped** (2 tests):
 1. Line 13: "Phase 2: Admin Events Page - Create Event button navigates to new event page" ✅ **COMPLETED**
 2. Line 53: "Phase 2: Admin Events Page - Row click navigation to edit event" ✅ **COMPLETED**
@@ -86,7 +86,7 @@ Marked **13 critical user-facing feature tests** as `.skip()` with comprehensive
 
 ### Category 3.3: Dashboard Features (5 tests)
 
-#### File: `/apps/web/tests/playwright/dashboard-comprehensive.spec.ts`
+#### File: `/apps/web/tests/dashboard-comprehensive.spec.ts`
 **Tests Skipped**:
 1. Line 238: "should handle profile update successfully" ✅ **COMPLETED**
 2. Line 337: "should validate password change form" ✅ **COMPLETED**
@@ -103,9 +103,9 @@ Marked **13 critical user-facing feature tests** as `.skip()` with comprehensive
 ### Category 3.4: Admin Vetting Features (7 tests)
 
 #### Files requiring `.skip()` marking:
-- `/apps/web/tests/playwright/e2e/admin/vetting/vetting-admin-dashboard.spec.ts`
-- `/apps/web/tests/playwright/e2e/admin/vetting/vetting-application-detail.spec.ts`
-- `/apps/web/tests/playwright/e2e/admin/vetting/vetting-workflow-integration.spec.ts`
+- `/apps/web/tests/e2e/admin/vetting/vetting-admin-dashboard.spec.ts`
+- `/apps/web/tests/e2e/admin/vetting/vetting-application-detail.spec.ts`
+- `/apps/web/tests/e2e/admin/vetting/vetting-workflow-integration.spec.ts`
 
 **Reason**: Admin vetting review workflows and audit logs not fully implemented.
 
@@ -116,9 +116,9 @@ Marked **13 critical user-facing feature tests** as `.skip()` with comprehensive
 ### Category 3.5: TinyMCE Rich Text Editor (7 tests)
 
 #### Files requiring `.skip()` marking:
-- `/apps/web/tests/playwright/tinymce-basic-check.spec.ts` (2 tests)
-- `/apps/web/tests/playwright/tinymce-editor.spec.ts` (3 tests)
-- `/apps/web/tests/playwright/tinymce-visual-verification.spec.ts` (2 tests)
+- `/apps/web/tests/tinymce-basic-check.spec.ts` (2 tests)
+- `/apps/web/tests/tinymce-editor.spec.ts` (3 tests)
+- `/apps/web/tests/tinymce-visual-verification.spec.ts` (2 tests)
 
 **Reason**: TinyMCE rich text editor not integrated yet - planned future enhancement.
 
@@ -148,7 +148,7 @@ Marked **13 critical user-facing feature tests** as `.skip()` with comprehensive
 
 ### Category 1: Port Configuration (1 test)
 
-#### File: `/apps/web/tests/playwright/diagnostic-test.spec.ts`
+#### File: `/apps/web/tests/diagnostic-test.spec.ts`
 **Issue**: Hardcoded to port 5175 instead of Docker port 5173
 **Lines to Fix**: 27, 71
 **Status**: Will be fixed (change port from 5175 to 5173)

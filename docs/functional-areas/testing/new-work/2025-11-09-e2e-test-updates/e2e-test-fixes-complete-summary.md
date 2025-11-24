@@ -36,7 +36,7 @@ Successfully improved E2E test suite from **50% pass rate** to **80.8% pass rate
 **Fix**: Updated getUserSceneName() helper function (line 61 in login-with-scene-name.spec.ts)
 
 **Files Modified**:
-- `/tests/playwright/auth/login-with-scene-name.spec.ts`
+- `/tests/auth/login-with-scene-name.spec.ts`
 
 #### 2. Error Message Assertions ✅
 **Problem**: Tests expected error text to contain "Invalid" but actual message is "The email or password is incorrect. Please try again."
@@ -44,7 +44,7 @@ Successfully improved E2E test suite from **50% pass rate** to **80.8% pass rate
 **Fix**: Changed from exact string match to regex: `expect(errorText).toMatch(/incorrect|invalid/i)`
 
 **Files Modified**:
-- `/tests/playwright/auth/login-with-scene-name.spec.ts` (2 locations)
+- `/tests/auth/login-with-scene-name.spec.ts` (2 locations)
 
 #### 3. Console 401 Errors Filtered ✅
 **Problem**: Tests failing due to expected 401 errors during initial auth state loading
@@ -59,8 +59,8 @@ const unexpectedErrors = consoleErrors.filter(error =>
 ```
 
 **Files Modified**:
-- `/tests/playwright/specs/dashboard-navigation.spec.ts` (4 locations)
-- `/tests/playwright/specs/admin-events-navigation.spec.ts` (3 locations)
+- `/tests/specs/dashboard-navigation.spec.ts` (4 locations)
+- `/tests/specs/admin-events-navigation.spec.ts` (3 locations)
 
 #### 4. Tests Skipped for Investigation
 **Skipped 2 tests** pending user decision:
@@ -100,7 +100,7 @@ All replaced by comprehensive Playwright version:
 - final-real-api-login-test.spec.ts
 - focused-login-test.spec.ts
 
-**Kept**: `/tests/playwright/auth/login-with-scene-name.spec.ts`
+**Kept**: `/tests/auth/login-with-scene-name.spec.ts`
 
 #### Round 2: Admin Events Dashboard (3 files deleted)
 Incremental development versions:
@@ -127,9 +127,9 @@ Temporary debugging artifacts:
 ### Remaining Files (27 total)
 
 **Playwright Tests (3 files)**:
-1. `/tests/playwright/auth/login-with-scene-name.spec.ts` - Comprehensive login tests
-2. `/tests/playwright/specs/dashboard-navigation.spec.ts` - Dashboard navigation
-3. `/tests/playwright/specs/admin-events-navigation.spec.ts` - Admin navigation
+1. `/tests/auth/login-with-scene-name.spec.ts` - Comprehensive login tests
+2. `/tests/specs/dashboard-navigation.spec.ts` - Dashboard navigation
+3. `/tests/specs/admin-events-navigation.spec.ts` - Admin navigation
 
 **E2E Tests (24 files)** - All unique functionality, no more duplicates
 
@@ -198,9 +198,9 @@ This is **NOT a test issue** - tests were passing before backend DI configuratio
 ## Files Modified Summary
 
 ### Phase 2 (Test Fixes)
-- `/tests/playwright/auth/login-with-scene-name.spec.ts` - 3 fixes
-- `/tests/playwright/specs/dashboard-navigation.spec.ts` - 4 fixes
-- `/tests/playwright/specs/admin-events-navigation.spec.ts` - 3 fixes
+- `/tests/auth/login-with-scene-name.spec.ts` - 3 fixes
+- `/tests/specs/dashboard-navigation.spec.ts` - 4 fixes
+- `/tests/specs/admin-events-navigation.spec.ts` - 3 fixes
 
 ### Phase 3 (Consolidation)
 - **Deleted**: 23 duplicate/obsolete test files

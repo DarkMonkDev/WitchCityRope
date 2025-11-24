@@ -2,16 +2,16 @@
 
 > **⚠️ DEPRECATED**: This MCP-based visual verification approach has been superseded by the official Playwright visual regression tests.
 > 
-> **Current Visual Testing**: See `/tests/playwright/visual-regression/` for the active visual testing implementation.
+> **Current Visual Testing**: See `/tests/visual-regression/` for the active visual testing implementation.
 
 This guide sets up automated visual verification using MCP (Model Context Protocol) servers to enable Claude to visually inspect and verify the WitchCityRope UI during development.
 
 ## Current Visual Testing Approach
 
 The project now uses Playwright's built-in visual regression testing:
-- **Location**: `/tests/playwright/visual-regression/`
-- **Example**: `/tests/playwright/specs/visual/example.visual.spec.ts`
-- **Screenshots**: `/tests/playwright/visual-regression/__screenshots__/`
+- **Location**: `/tests/visual-regression/`
+- **Example**: `/tests/specs/visual/example.visual.spec.ts`
+- **Screenshots**: `/tests/visual-regression/__screenshots__/`
 - **Run tests**: `cd tests/playwright && npm test specs/visual/`
 
 ## Overview (Historical - Deprecated)

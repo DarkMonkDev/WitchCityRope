@@ -143,7 +143,7 @@ Location: `/tests/WitchCityRope.IntegrationTests/`
 **Status**: 37 test specifications created with 100% basic functionality pass rate
 
 ### Test Files
-Location: `/apps/web/tests/playwright/` (updated structure)
+Location: `/apps/web/tests/` (updated structure)
 
 #### ✅ NEW: Comprehensive Test Infrastructure
 - **`helpers/auth.helpers.ts`** - Authentication helper (SecurityError fixed)

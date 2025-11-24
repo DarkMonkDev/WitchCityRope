@@ -84,7 +84,7 @@
 - ✅ Support for both current (5651) and legacy (5655) API ports
 
 ### Improved Authentication E2E Test - 2025-08-19
-**Added**: `/apps/web/tests/playwright/auth-flow-improved.spec.ts`
+**Added**: `/apps/web/tests/auth-flow-improved.spec.ts`
 **Purpose**: Enhanced E2E authentication test following best practices from lessons learned
 **Context**: Created comprehensive, reliable authentication flow test for React architecture validation
 
@@ -437,20 +437,20 @@ cd tests/e2e && npm test                            # E2E tests
 **Solution**: Updated all admin login tests to use ASP.NET Core Identity form selectors  
 
 **Fixed Files**:
-- ✅ `/tests/playwright/admin-user-management.spec.ts`
-- ✅ `/tests/playwright/admin-user-details.spec.ts`  
-- ✅ `/tests/playwright/admin/admin-user-management-focused.spec.ts`
-- ✅ `/tests/playwright/admin/admin-user-management-updated.spec.ts`
+- ✅ `/tests/admin-user-management.spec.ts`
+- ✅ `/tests/admin-user-details.spec.ts`  
+- ✅ `/tests/admin/admin-user-management-focused.spec.ts`
+- ✅ `/tests/admin/admin-user-management-updated.spec.ts`
 
 **Correct Selectors**:
 - Email: `input[name="Input.EmailOrUsername"]` (supports both email and username)
 - Password: `input[name="Input.Password"]`
 - Alternative: `input[placeholder*="email"]` (matches "your@email.com or username")
 
-**Note**: Login page object (`/tests/playwright/pages/login.page.ts`) and auth helpers (`/tests/playwright/helpers/auth.helpers.ts`) already use correct selectors.
+**Note**: Login page object (`/tests/pages/login.page.ts`) and auth helpers (`/tests/helpers/auth.helpers.ts`) already use correct selectors.
 
 ### Simple Admin User Management Test - 2025-08-13
-**Added**: `/tests/playwright/admin/admin-user-management-simple.spec.ts`  
+**Added**: `/tests/admin/admin-user-management-simple.spec.ts`  
 **Purpose**: Simplified admin user management test that avoids Blazor E2E helper timeouts  
 **Features**:
 - Basic admin login with known working selectors
@@ -505,7 +505,7 @@ cd tests/e2e && npm test                            # E2E tests
 - `CompleteUserManagementWorkflow_CreateSearchUpdateDelete_WorksEndToEnd()` - End-to-end workflow
 
 #### E2E Tests
-**File**: `/tests/playwright/admin-user-management-api-integration.spec.ts` (new)
+**File**: `/tests/admin-user-management-api-integration.spec.ts` (new)
 **Purpose**: E2E tests for admin user management with real API integration
 **Test Cases**:
 1. `should login as admin and verify real users load from API` - Core API integration
@@ -527,7 +527,7 @@ cd tests/e2e && npm test                            # E2E tests
 - Comprehensive screenshots for debugging
 
 ### Blazor Server Migration Test - 2025-08-13
-**Added**: `/tests/playwright/admin/admin-users-blazor.spec.ts`  
+**Added**: `/tests/admin/admin-users-blazor.spec.ts`  
 **Purpose**: New E2E test specifically for Blazor Server architecture (migrated from Razor Pages)  
 **Context**: Website converted from Razor Pages to Blazor Server, old tests failing  
 **Features**:
@@ -554,7 +554,7 @@ cd tests/e2e && npm test                            # E2E tests
 - Need new test patterns for Blazor Server components
 
 **Solutions**:
-- ✅ New test: `/tests/playwright/admin/admin-users-blazor.spec.ts` - Works with current Blazor Server architecture
+- ✅ New test: `/tests/admin/admin-users-blazor.spec.ts` - Works with current Blazor Server architecture
 - ✅ Use simple Playwright waits instead of complex Blazor E2E helper
 - ✅ Direct navigation and element verification patterns
 - ✅ Known working login selectors from recent fixes
@@ -637,7 +637,7 @@ Test categories:
 ### 3. E2E Tests (Playwright)
 
 #### Main E2E Test Suite
-**Location**: `/tests/playwright/`  
+**Location**: `/tests/`  
 **Count**: 44 Playwright test spec files (migrated from Puppeteer in January 2025)  
 **Status**: Comprehensive browser automation with Page Object Models
 
@@ -674,18 +674,18 @@ Test categories:
 ```
 
 #### Page Objects
-**Location**: `/tests/playwright/pages/`
+**Location**: `/tests/pages/`
 - Implements Page Object Model pattern
 - Reusable components for test maintainability
 
 #### Test Helpers
-**Location**: `/tests/playwright/helpers/`
+**Location**: `/tests/helpers/`
 - Authentication helpers
 - Data generation utilities
 - Common assertions
 
 #### Utility Scripts
-**Location**: `/tests/playwright/utilities/`
+**Location**: `/tests/utilities/`
 - `analyze-login-logs.js` - Analyzes login test results from monitoring runs
 - `test-homepage.js` - Quick smoke test for homepage functionality
 - Scripts for debugging and analysis (not part of main test suite)
@@ -759,13 +759,13 @@ npm test -- --update-snapshots
 
 ### Utility Scripts
 ```bash
-# Located in tests/playwright/utilities/
+# Located in tests/utilities/
 
 # Analyze login test results
-node tests/playwright/utilities/analyze-login-logs.js
+node tests/utilities/analyze-login-logs.js
 
 # Quick homepage smoke test
-node tests/playwright/utilities/test-homepage.js
+node tests/utilities/test-homepage.js
 ```
 
 ### Performance Tests
@@ -824,7 +824,7 @@ organizer@witchcityrope.com / Test123! - Event Organizer
 ## Maintenance
 
 ### Adding New Tests
-1. **Playwright E2E**: Add to appropriate category folder in `/tests/playwright/`
+1. **Playwright E2E**: Add to appropriate category folder in `/tests/`
 2. **Unit Tests**: Follow patterns in Core.Tests, Api.Tests, Web.Tests projects  
 3. **Integration Tests**: Use PostgreSQL TestContainers pattern
 4. **Update this catalog** when adding new test categories or major changes

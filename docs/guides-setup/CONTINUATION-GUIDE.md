@@ -71,7 +71,7 @@ docker exec witchcityrope-postgres pg_isready -U postgres
 ├── ./dev.sh                           # Start all services script
 ├── apps/web/                          # React application
 │   ├── src/                          # React source code
-│   └── tests/playwright/             # E2E tests
+│   └── tests/             # E2E tests
 ├── src/WitchCityRope.Api/             # .NET API
 └── docs/                              # All documentation
     ├── architecture/functional-area-master-index.md  # FILE FINDER

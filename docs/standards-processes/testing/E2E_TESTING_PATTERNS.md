@@ -21,8 +21,8 @@ The previous content focused on deprecated Puppeteer patterns. Since ALL E2E tes
 # Use Playwright exclusively
 npm run test:e2e:playwright
 
-# Follow Page Object Models in /tests/playwright/pages/
-# Use helpers in /tests/playwright/helpers/
+# Follow Page Object Models in /tests/pages/
+# Use helpers in /tests/helpers/
 ```
 
 ---

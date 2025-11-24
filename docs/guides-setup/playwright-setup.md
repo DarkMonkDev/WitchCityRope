@@ -6,7 +6,7 @@ This guide covers Playwright setup and configuration for end-to-end testing in t
 
 > **ALL E2E TESTS HAVE BEEN MIGRATED TO PLAYWRIGHT - NO PUPPETEER ALLOWED!**
 > 
-> - ✅ All E2E tests are in `/tests/playwright/` directory
+> - ✅ All E2E tests are in `/tests/` directory
 > - ✅ 180 tests successfully migrated from Puppeteer
 > - ✅ 40% faster execution and 86% less flaky than Puppeteer
 > - ❌ NEVER create Puppeteer tests - they are deprecated
@@ -49,7 +49,7 @@ npx playwright test --list
 ## Project Structure
 
 ```
-/tests/playwright/
+/tests/
 ├── specs/                    # Test files (.spec.ts)
 │   ├── auth/                # Authentication tests
 │   ├── events/              # Event management tests
@@ -75,7 +75,7 @@ npx playwright test --list
 npm run test:e2e:playwright
 
 # Run specific test file
-npx playwright test tests/playwright/auth/login-basic.spec.ts
+npx playwright test tests/auth/login-basic.spec.ts
 
 # Run tests by grep pattern
 npx playwright test --grep "authentication"
@@ -152,10 +152,10 @@ test('admin login', async ({ page }) => {
 
 ### Available Page Objects
 
-- **LoginPage** - `/tests/playwright/pages/login.page.ts`
-- **RegisterPage** - `/tests/playwright/pages/register.page.ts`
-- **AdminDashboardPage** - `/tests/playwright/pages/admin-dashboard.page.ts`
-- **EventPage** - `/tests/playwright/pages/event.page.ts`
+- **LoginPage** - `/tests/pages/login.page.ts`
+- **RegisterPage** - `/tests/pages/register.page.ts`
+- **AdminDashboardPage** - `/tests/pages/admin-dashboard.page.ts`
+- **EventPage** - `/tests/pages/event.page.ts`
 
 ## Test Accounts
 
@@ -178,7 +178,7 @@ Key configuration options:
 ```typescript
 export default defineConfig({
   // Test directory
-  testDir: './tests/playwright',
+  testDir: './tests',
   
   // Test timeout
   timeout: 30 * 1000,
@@ -383,7 +383,7 @@ If you find old Puppeteer tests:
 - ❌ Use Puppeteer patterns
 
 ### DO:
-- ✅ Use existing Playwright tests in `/tests/playwright/`
+- ✅ Use existing Playwright tests in `/tests/`
 - ✅ Follow Playwright patterns and Page Object Models
 - ✅ Report any missing test coverage
 

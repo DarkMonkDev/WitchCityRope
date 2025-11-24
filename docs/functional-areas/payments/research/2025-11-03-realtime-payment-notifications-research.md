@@ -404,7 +404,7 @@ apps/web/src/features/checkin/components/KioskAttendeeList.tsx
 tests/integration/api/Features/Payments/PaymentNotificationServiceTests.cs
 
 # 2. E2E test for complete flow
-apps/web/tests/playwright/checkin/payment-notification.spec.ts
+apps/web/tests/checkin/payment-notification.spec.ts
 // Simulate PayPal webhook
 // Verify kiosk UI updates
 ```
@@ -537,7 +537,7 @@ public async Task PaymentStream_SendsEventsWhenPaymentCompletes()
 
 #### E2E Tests (Playwright)
 ```typescript
-// apps/web/tests/playwright/checkin/payment-notification.spec.ts
+// apps/web/tests/checkin/payment-notification.spec.ts
 test('kiosk updates when payment completes', async ({ page }) => {
   // Navigate to kiosk screen
   await page.goto('/admin/checkin/kiosk');

@@ -48,15 +48,15 @@ Migrate all 180 Puppeteer tests to Playwright and establish it as the sole E2E t
 
 ### Mitigation
 - Comprehensive documentation in `/docs/enhancements/playwright-migration/`
-- Page Object Models in `/tests/playwright/pages/`
-- Helper utilities in `/tests/playwright/helpers/`
+- Page Object Models in `/tests/pages/`
+- Helper utilities in `/tests/helpers/`
 - Clear test organization by feature
 
 ## Implementation Structure
 
 ### Test Organization
 ```
-/tests/playwright/
+/tests/
 ├── specs/                    # Test files (.spec.ts)
 │   ├── auth/                # Authentication tests
 │   ├── events/              # Event management tests

@@ -161,7 +161,7 @@ The user interpreted **zero participant displays as broken functionality**, when
 | File | Purpose | Status |
 |------|---------|--------|
 | `/test-results/rsvp-investigation-*/` | Test evidence | CREATED |
-| `/tests/playwright/rsvp-*.spec.ts` | Test suites | CREATED |
+| `/tests/rsvp-*.spec.ts` | Test suites | CREATED |
 | This handoff document | Results documentation | CREATED |
 
 **Investigation Complete**: System working correctly, user reports based on misunderstanding of zero data display.

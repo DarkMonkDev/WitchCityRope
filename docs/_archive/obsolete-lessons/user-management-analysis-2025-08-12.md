@@ -170,7 +170,7 @@ Please review this analysis and respond with:
 - **Components**: `/src/WitchCityRope.Web/Components/Admin/Users/`
 
 ### Test Coverage Files
-- **E2E Tests**: `/tests/playwright/admin/` directory
+- **E2E Tests**: `/tests/admin/` directory
 - **Unit Tests**: Various test projects with user management coverage
 
 ---

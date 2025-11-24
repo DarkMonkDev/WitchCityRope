@@ -12,9 +12,9 @@
 - ❌ NO `const puppeteer = require('puppeteer')` anywhere
 - ❌ NO new Puppeteer test files in any directory
 - ❌ DO NOT debug or modify existing Puppeteer tests in `/tests/e2e/` or `/ToBeDeleted/`
-- ✅ ALL E2E tests are in `/tests/playwright/` directory
+- ✅ ALL E2E tests are in `/tests/` directory
 - ✅ USE Playwright TypeScript tests only: `import { test, expect } from '@playwright/test'`
-- ✅ USE existing Page Object Models in `/tests/playwright/pages/`
+- ✅ USE existing Page Object Models in `/tests/pages/`
 - ✅ RUN tests with: `npm run test:e2e:playwright`
 
 **Why This Matters**:
@@ -24,7 +24,7 @@
 - Puppeteer tests are deprecated and will be deleted
 
 **Test Locations**:
-- ✅ **ACTIVE**: `/tests/playwright/` (20 test files, 8 Page Objects, 6 helpers)
+- ✅ **ACTIVE**: `/tests/` (20 test files, 8 Page Objects, 6 helpers)
 - ❌ **DEPRECATED**: `/tests/e2e/` (old Puppeteer tests - DO NOT USE)
 - ❌ **DEPRECATED**: `/ToBeDeleted/` (old Puppeteer tests - DO NOT USE)
 
@@ -33,7 +33,7 @@
 ### Test Structure for React Application
 
 ```
-/tests/playwright/
+/tests/
 ├── specs/                    # Test files (.spec.ts)
 │   ├── auth/                # Authentication tests
 │   ├── events/              # Event management tests  
@@ -360,8 +360,8 @@ await page.fill('[data-testid="password-input"]', 'Test123!');
 3. Updated test config timeouts for Docker environments with React dev server
 
 **Files Changed**:
-- `/tests/playwright/helpers/global-setup.ts` - Fixed function call
-- `/tests/playwright/helpers/test.config.ts` - Increased timeouts to 60s
+- `/tests/helpers/global-setup.ts` - Fixed function call
+- `/tests/helpers/test.config.ts` - Increased timeouts to 60s
 - Playwright config updated for React dev server startup time
 
 **Result**: Global setup now completes successfully for all test users
@@ -380,7 +380,7 @@ await page.waitForLoadState('networkidle');
 await expect(page.locator('h1, h2, h3').filter({ hasText: /User Management/i })).toBeVisible({ timeout: 15000 });
 ```
 
-**Test Pattern**: `/tests/playwright/admin/admin-user-management-simple.spec.ts`
+**Test Pattern**: `/tests/admin/admin-user-management-simple.spec.ts`
 - Admin login with known working selectors
 - Standard Playwright navigation and waits
 - Element verification without complex React state waiting

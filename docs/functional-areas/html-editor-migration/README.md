@@ -122,13 +122,13 @@ Migrate to @mantine/tiptap, which is:
 
 ### Tests to Update/Delete
 **Delete** (4 TinyMCE-specific E2E tests):
-1. `/apps/web/tests/playwright/tinymce-visual-verification.spec.ts`
-2. `/apps/web/tests/playwright/tinymce-editor.spec.ts`
-3. `/apps/web/tests/playwright/tinymce-debug.spec.ts`
-4. `/apps/web/tests/playwright/tinymce-basic-check.spec.ts`
+1. `/apps/web/tests/tinymce-visual-verification.spec.ts`
+2. `/apps/web/tests/tinymce-editor.spec.ts`
+3. `/apps/web/tests/tinymce-debug.spec.ts`
+4. `/apps/web/tests/tinymce-basic-check.spec.ts`
 
 **Update** (selector changes):
-1. `/apps/web/tests/playwright/events-management-e2e.spec.ts`
+1. `/apps/web/tests/events-management-e2e.spec.ts`
 
 ### Test/Demo Pages to Delete
 1. `/apps/web/src/pages/TestTinyMCE.tsx`

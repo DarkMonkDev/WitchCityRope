@@ -758,7 +758,7 @@ Successfully began implementation of the Puppeteer to Playwright migration, conv
 - Added npm dependencies: @faker-js/faker, pg, @types/pg
 - Created 240 tests total (80 per browser) with full cross-browser support
 - Implemented Blazor-specific helpers for SignalR timing and form handling
-- Set up centralized test location: `/tests/playwright/`
+- Set up centralized test location: `/tests/`
 - Created executable test runner scripts with comprehensive options
 - Implemented parallel test execution capabilities
 

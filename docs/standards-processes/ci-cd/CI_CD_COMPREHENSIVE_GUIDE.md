@@ -164,7 +164,7 @@ export NODE_ENV=development
 #### E2E Tests (10% of test suite)
 - **Technology**: Playwright
 - **Coverage**: Critical user journeys
-- **Location**: `tests/playwright/`
+- **Location**: `tests/`
 - **Execution Time**: 5-20 minutes depending on category
 - **Coverage Target**: Happy path + critical error scenarios
 
@@ -362,7 +362,7 @@ alerts:
 docker compose exec postgres psql -U postgres -d witchcityrope_test -c "SELECT email FROM \"AspNetUsers\";"
 
 # Reset authentication states
-rm -rf tests/playwright/.auth/*
+rm -rf tests/.auth/*
 
 # Regenerate test user data
 npm run test:seed-users

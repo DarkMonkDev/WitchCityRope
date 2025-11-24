@@ -71,7 +71,7 @@ Failed to load resource: net::ERR_CONNECTION_RESET
 ##### 1. Profile Page Navigation (2-3 hours)
 **Current State**: Link exists but page not implemented
 **Tests to Fix**:
-- `apps/web/tests/playwright/dashboard-comprehensive.spec.ts` - "should navigate to profile page"
+- `apps/web/tests/dashboard-comprehensive.spec.ts` - "should navigate to profile page"
 
 **Implementation Tasks**:
 - [ ] Create `/apps/web/src/pages/ProfilePage.tsx`
@@ -91,7 +91,7 @@ Failed to load resource: net::ERR_CONNECTION_RESET
 ##### 2. Profile Editing Functionality (3-4 hours)
 **Current State**: Not implemented
 **Tests to Fix**:
-- `apps/web/tests/playwright/dashboard-comprehensive.spec.ts` - "should allow editing profile information"
+- `apps/web/tests/dashboard-comprehensive.spec.ts` - "should allow editing profile information"
 
 **Implementation Tasks**:
 - [ ] Create profile edit form with Mantine components
@@ -113,7 +113,7 @@ Failed to load resource: net::ERR_CONNECTION_RESET
 ##### 3. Security Settings Page (2-3 hours)
 **Current State**: Link exists but page not implemented
 **Tests to Fix**:
-- `apps/web/tests/playwright/dashboard-comprehensive.spec.ts` - "should access security settings"
+- `apps/web/tests/dashboard-comprehensive.spec.ts` - "should access security settings"
 
 **Implementation Tasks**:
 - [ ] Create `/apps/web/src/pages/SecuritySettingsPage.tsx`
@@ -135,7 +135,7 @@ Failed to load resource: net::ERR_CONNECTION_RESET
 ##### 4. Two-Factor Authentication Setup (Optional - 4-6 hours)
 **Current State**: Not implemented
 **Tests to Fix**:
-- `apps/web/tests/playwright/dashboard-comprehensive.spec.ts` - "should enable two-factor authentication"
+- `apps/web/tests/dashboard-comprehensive.spec.ts` - "should enable two-factor authentication"
 
 **Implementation Tasks**:
 - [ ] Research 2FA library options (TOTP)
@@ -166,7 +166,7 @@ Failed to load resource: net::ERR_CONNECTION_RESET
 ##### 1. Mobile Responsive Navigation (2-3 hours)
 **Current State**: Desktop-only navigation
 **Tests to Fix**:
-- `apps/web/tests/playwright/dashboard-comprehensive.spec.ts` - "should work on mobile viewport"
+- `apps/web/tests/dashboard-comprehensive.spec.ts` - "should work on mobile viewport"
 
 **Implementation Tasks**:
 - [ ] Add responsive breakpoints to navigation
@@ -187,7 +187,7 @@ Failed to load resource: net::ERR_CONNECTION_RESET
 ##### 2. Tablet Responsive Navigation (2-3 hours)
 **Current State**: Desktop-only navigation
 **Tests to Fix**:
-- `apps/web/tests/playwright/dashboard-comprehensive.spec.ts` - "should work on tablet viewport"
+- `apps/web/tests/dashboard-comprehensive.spec.ts` - "should work on tablet viewport"
 
 **Implementation Tasks**:
 - [ ] Test navigation on tablet viewport (768px width)

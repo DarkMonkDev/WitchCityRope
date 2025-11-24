@@ -7,7 +7,7 @@
 
 ## Playwright Tests (3 files)
 
-### Location: `/tests/playwright/`
+### Location: `/tests/`
 
 1. **auth/login-with-scene-name.spec.ts** (14 tests)
    - Comprehensive login tests with email or scene name

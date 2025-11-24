@@ -128,7 +128,7 @@ export const RootLayout: React.FC = () => {
           and scroll to top instead of trying to restore previous scroll position
 
           Bug fixed: Desktop reverse navigation now scrolls to 0px correctly
-          See: /tests/playwright/scroll-restoration.spec.ts (line 225-275)
+          See: /tests/scroll-restoration.spec.ts (line 225-275)
       */}
       <ScrollRestoration
         getKey={(location) => {
@@ -215,7 +215,7 @@ getKey={(location, matches) => {
 ### 📚 FILES AFFECTED:
 
 - `/apps/web/src/components/layout/RootLayout.tsx` - Lines 38-45 (ScrollRestoration with getKey)
-- `/tests/playwright/scroll-restoration.spec.ts` - Lines 225-275 (Desktop reverse navigation test)
+- `/tests/scroll-restoration.spec.ts` - Lines 225-275 (Desktop reverse navigation test)
 
 ### 📖 REACT ROUTER DOCUMENTATION REFERENCE:
 

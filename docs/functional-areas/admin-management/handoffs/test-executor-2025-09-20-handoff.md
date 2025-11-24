@@ -34,7 +34,7 @@ PGPASSWORD=devpass123 psql -h localhost -p 5433 -U postgres -d witchcityrope_dev
 ## 🧪 Test Development and Execution
 
 ### E2E Test Created ✅ COMPLETED
-**File**: `/tests/playwright/admin-rsvp-management.spec.ts`
+**File**: `/tests/admin-rsvp-management.spec.ts`
 
 **Test Coverage**:
 1. **Admin UI Navigation Test**: Login → Admin Events → Event Management → RSVP Access
@@ -122,7 +122,7 @@ Total: 3 passed (19.2s)
 ## 📁 Artifacts Created
 
 ### Test Files
-- `/tests/playwright/admin-rsvp-management.spec.ts` - E2E test suite
+- `/tests/admin-rsvp-management.spec.ts` - E2E test suite
 - `/test-results/admin-rsvp-test-execution-summary.md` - Detailed test report
 
 ### Screenshots (Functional UI Evidence)

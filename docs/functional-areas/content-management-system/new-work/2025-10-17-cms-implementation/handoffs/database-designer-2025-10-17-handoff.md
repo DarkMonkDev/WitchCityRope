@@ -534,7 +534,7 @@ export function useUpdateCmsPage(slug: string) {
 
 ### E2E Tests (React Developer)
 
-**Create**: `/tests/playwright/cms/cms-editing.spec.ts`
+**Create**: `/tests/cms/cms-editing.spec.ts`
 
 **Test Cases**:
 - Edit workflow (view → edit → save → view)

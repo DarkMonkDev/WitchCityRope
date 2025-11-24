@@ -379,4 +379,4 @@ test('debug Blazor interaction', async ({ page }) => {
 
 - Practice with the [Workshop Exercises](./workshop-exercises.md)
 - Review the [Quick Reference](./quick-reference.md) for more patterns
-- Explore our actual test implementations in `/tests/playwright/`
+- Explore our actual test implementations in `/tests/`

@@ -53,7 +53,7 @@
 
 ## 🎭 E2E Playwright Tests (94 files)
 
-**Location**: `/apps/web/tests/playwright/`
+**Location**: `/apps/web/tests/`
 **Framework**: Playwright + TypeScript
 **Status**: 68.1% passing (243/357 tests) - October 10, 2025
 **Recent**: Safety Incident Reporting tests added to catalog (2025-11-11)
@@ -432,7 +432,7 @@
 
 ### E2E Subdirectory Tests (6 files)
 
-**Location**: `/apps/web/tests/playwright/e2e/`
+**Location**: `/apps/web/tests/e2e/`
 
 80. **e2e/admin-vetting-workflow.spec.ts**
     - Purpose: Admin vetting workflow (E2E)
@@ -479,7 +479,7 @@
 
 ### Safety Incident Reporting Tests (3 files)
 
-**Location**: `/apps/web/tests/playwright/incident-reporting/`
+**Location**: `/apps/web/tests/incident-reporting/`
 **Status**: ✅ Hard assertions applied (2025-11-11)
 **Total Tests**: 15 tests (2 anonymous, 2 identified, 11 admin dashboard)
 
@@ -1146,22 +1146,22 @@ dotnet test --filter "FullyQualifiedName!~legacy-obsolete&FullyQualifiedName!~bl
 ### Finding Tests by Feature
 
 **Vetting Tests**:
-- E2E: 10+ files in `/apps/web/tests/playwright/vetting-*.spec.ts`
+- E2E: 10+ files in `/apps/web/tests/vetting-*.spec.ts`
 - React: 6 files in `/apps/web/src/features/vetting/**/*.test.tsx`
 - C#: 6 files in `/tests/unit/api/Features/Vetting/`
 
 **Event Tests**:
-- E2E: 15+ files in `/apps/web/tests/playwright/events-*.spec.ts`
+- E2E: 15+ files in `/apps/web/tests/events-*.spec.ts`
 - React: 2 files in `/apps/web/src/components/events/__tests__/`
 - C#: 3 files in `/tests/WitchCityRope.Core.Tests/Features/Events/`
 
 **Authentication Tests**:
-- E2E: 20+ files in `/apps/web/tests/playwright/login-*.spec.ts`, `auth-*.spec.ts`
+- E2E: 20+ files in `/apps/web/tests/login-*.spec.ts`, `auth-*.spec.ts`
 - React: 2 files in `/apps/web/src/features/auth/` and `/stores/`
 - C#: 1 file in `/tests/WitchCityRope.Core.Tests/Features/Authentication/`
 
 **Dashboard Tests**:
-- E2E: 5+ files in `/apps/web/tests/playwright/dashboard-*.spec.ts`
+- E2E: 5+ files in `/apps/web/tests/dashboard-*.spec.ts`
 - React: 5 files in `/apps/web/src/pages/dashboard/__tests__/`
 - C#: 1 file in `/tests/unit/api/Features/Dashboard/`
 

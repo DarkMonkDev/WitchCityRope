@@ -691,7 +691,7 @@ After completing these exercises, ensure you:
 
 - [Playwright Documentation](https://playwright.dev)
 - [Our Blazor Helpers](../helpers/blazor.helpers.ts)
-- [Example Tests](../tests/playwright/)
+- [Example Tests](../tests/)
 - [Quick Reference Guide](./quick-reference.md)
 
 ## Next Steps

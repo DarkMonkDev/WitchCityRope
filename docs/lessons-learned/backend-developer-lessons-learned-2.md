@@ -1410,7 +1410,7 @@ expect(eventsResponse.data.length).toBeGreaterThan(0);
 **Pattern**: E2E tests must validate ACTUAL API contracts, not assumed formats. API standards are documented in backend lessons learned - tests must comply.
 
 **File Analyzed**: `/apps/api/Features/Events/Endpoints/EventEndpoints.cs:73-78`
-**Test File**: `/apps/web/tests/playwright/events-actual-routes-test.spec.ts:35-65`
+**Test File**: `/apps/web/tests/events-actual-routes-test.spec.ts:35-65`
 **Analysis Document**: `/test-results/api-events-response-format-analysis-20251010.md`
 
 **Tags**: #e2e-testing #api-contract #test-expectations #apiresponse-wrapper #delegation

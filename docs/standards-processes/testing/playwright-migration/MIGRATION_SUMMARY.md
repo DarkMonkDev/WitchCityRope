@@ -21,7 +21,7 @@ I have completed the planning phase and proof-of-concept for the Puppeteer to Pl
 ### 2. Test Storage Strategy
 All Playwright tests will be centrally stored in:
 ```
-/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/
+/home/chad/repos/witchcityrope/WitchCityRope/tests/
 ```
 This provides a single, well-organized location for all E2E tests, separate from legacy Puppeteer tests.
 

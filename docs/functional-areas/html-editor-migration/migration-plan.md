@@ -567,13 +567,13 @@ Delete TinyMCE-specific tests and update selectors for new editor.
 
 ```bash
 # Delete 4 TinyMCE-specific tests
-rm /home/chad/repos/witchcityrope/apps/web/tests/playwright/tinymce-visual-verification.spec.ts
-rm /home/chad/repos/witchcityrope/apps/web/tests/playwright/tinymce-editor.spec.ts
-rm /home/chad/repos/witchcityrope/apps/web/tests/playwright/tinymce-debug.spec.ts
-rm /home/chad/repos/witchcityrope/apps/web/tests/playwright/tinymce-basic-check.spec.ts
+rm /home/chad/repos/witchcityrope/apps/web/tests/tinymce-visual-verification.spec.ts
+rm /home/chad/repos/witchcityrope/apps/web/tests/tinymce-editor.spec.ts
+rm /home/chad/repos/witchcityrope/apps/web/tests/tinymce-debug.spec.ts
+rm /home/chad/repos/witchcityrope/apps/web/tests/tinymce-basic-check.spec.ts
 
 # Verify deletion
-ls /home/chad/repos/witchcityrope/apps/web/tests/playwright/tinymce*.spec.ts
+ls /home/chad/repos/witchcityrope/apps/web/tests/tinymce*.spec.ts
 # Should output: "No such file or directory"
 ```
 
@@ -584,7 +584,7 @@ ls /home/chad/repos/witchcityrope/apps/web/tests/playwright/tinymce*.spec.ts
 
 ### Step 4.2: Update events-management-e2e.spec.ts Selectors (1-2 hours)
 
-**File**: `/apps/web/tests/playwright/events-management-e2e.spec.ts`
+**File**: `/apps/web/tests/events-management-e2e.spec.ts`
 
 **Selector Changes**:
 
@@ -609,7 +609,7 @@ await page.locator('.ProseMirror').fill('Event description');
 **Verification**:
 ```bash
 # Search for old selectors
-grep -r "tox-" /home/chad/repos/witchcityrope/apps/web/tests/playwright/
+grep -r "tox-" /home/chad/repos/witchcityrope/apps/web/tests/
 # Should output: (nothing)
 
 # Test compilation
@@ -628,7 +628,7 @@ npm run test:e2e -- events-management-e2e.spec.ts
 
 **See [testing-migration-guide.md](./testing-migration-guide.md) for complete test code**.
 
-Create: `/apps/web/tests/playwright/tiptap-editor.spec.ts`
+Create: `/apps/web/tests/tiptap-editor.spec.ts`
 
 **Test Coverage Required**:
 1. ✅ Editor renders correctly
@@ -853,11 +853,11 @@ Add registry entries:
 | 2025-10-08 | /apps/web/src/components/forms/SimpleTinyMCE.tsx | DELETED | Test component no longer needed | TinyMCE to Tiptap migration | DELETED | N/A |
 | 2025-10-08 | /apps/web/src/pages/TestTinyMCE.tsx | DELETED | Demo page no longer needed | TinyMCE to Tiptap migration | DELETED | N/A |
 | 2025-10-08 | /apps/web/src/pages/TinyMCETest.tsx | DELETED | Demo page no longer needed | TinyMCE to Tiptap migration | DELETED | N/A |
-| 2025-10-08 | /apps/web/tests/playwright/tinymce-visual-verification.spec.ts | DELETED | TinyMCE-specific test no longer relevant | TinyMCE to Tiptap migration | DELETED | N/A |
-| 2025-10-08 | /apps/web/tests/playwright/tinymce-editor.spec.ts | DELETED | TinyMCE-specific test no longer relevant | TinyMCE to Tiptap migration | DELETED | N/A |
-| 2025-10-08 | /apps/web/tests/playwright/tinymce-debug.spec.ts | DELETED | TinyMCE-specific test no longer relevant | TinyMCE to Tiptap migration | DELETED | N/A |
-| 2025-10-08 | /apps/web/tests/playwright/tinymce-basic-check.spec.ts | DELETED | TinyMCE-specific test no longer relevant | TinyMCE to Tiptap migration | DELETED | N/A |
-| 2025-10-08 | /apps/web/tests/playwright/tiptap-editor.spec.ts | CREATED | Comprehensive Tiptap editor E2E tests | TinyMCE to Tiptap migration | ACTIVE | Never |
+| 2025-10-08 | /apps/web/tests/tinymce-visual-verification.spec.ts | DELETED | TinyMCE-specific test no longer relevant | TinyMCE to Tiptap migration | DELETED | N/A |
+| 2025-10-08 | /apps/web/tests/tinymce-editor.spec.ts | DELETED | TinyMCE-specific test no longer relevant | TinyMCE to Tiptap migration | DELETED | N/A |
+| 2025-10-08 | /apps/web/tests/tinymce-debug.spec.ts | DELETED | TinyMCE-specific test no longer relevant | TinyMCE to Tiptap migration | DELETED | N/A |
+| 2025-10-08 | /apps/web/tests/tinymce-basic-check.spec.ts | DELETED | TinyMCE-specific test no longer relevant | TinyMCE to Tiptap migration | DELETED | N/A |
+| 2025-10-08 | /apps/web/tests/tiptap-editor.spec.ts | CREATED | Comprehensive Tiptap editor E2E tests | TinyMCE to Tiptap migration | ACTIVE | Never |
 | 2025-10-08 | /docs/guides-setup/tinymce-api-key-setup.md | ARCHIVED | Moved to /docs/_archive/tinymce-legacy-2025-10-08/ | TinyMCE to Tiptap migration | ARCHIVED | N/A |
 | 2025-10-08 | /docs/functional-areas/html-editor-migration/README.md | CREATED | Migration documentation hub | TinyMCE to Tiptap migration | ACTIVE | Never |
 | 2025-10-08 | /docs/functional-areas/html-editor-migration/migration-plan.md | CREATED | Master migration plan with 5-phase breakdown | TinyMCE to Tiptap migration | ACTIVE | Never |

@@ -37,7 +37,7 @@ The Puppeteer to Playwright migration is **fully complete**. All 180 tests have 
 ### Key Technical Decisions
 1. **TypeScript**: All tests use TypeScript for better maintainability
 2. **Page Object Model**: Consistent pattern across all tests
-3. **Centralized Location**: `/tests/playwright/`
+3. **Centralized Location**: `/tests/`
 4. **Blazor Helpers**: Special utilities for SignalR timing
 5. **Cross-browser**: All tests configured for 3 browsers
 6. **Parallel Execution**: Tests designed to run concurrently
@@ -77,7 +77,7 @@ The Puppeteer to Playwright migration is **fully complete**. All 180 tests have 
 2. **Run Single Test**:
    ```bash
    # Try a simple test first
-   npx playwright test tests/playwright/auth/login-basic.spec.ts --headed
+   npx playwright test tests/auth/login-basic.spec.ts --headed
    ```
 
 3. **Check for Errors**:
@@ -135,7 +135,7 @@ When website is stable:
 ## File Structure Reference
 
 ```
-/tests/playwright/
+/tests/
 ├── auth/                 # 4 test files
 ├── events/              # 3 test files
 ├── admin/               # 5 test files

@@ -163,8 +163,8 @@ No 'Access-Control-Allow-Origin' header is present on the requested resource.
 ## Files Generated
 
 ### Test Files
-- `/tests/playwright/final-verification-test.spec.ts` - Original verification test
-- `/tests/playwright/corrected-final-verification.spec.ts` - Corrected test with proper selectors
+- `/tests/final-verification-test.spec.ts` - Original verification test
+- `/tests/corrected-final-verification.spec.ts` - Corrected test with proper selectors
 
 ### Evidence Files
 - `/test-results/01-initial-load.png` - React app initial state (825KB)

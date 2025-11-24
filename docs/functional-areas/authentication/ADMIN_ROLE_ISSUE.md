@@ -111,4 +111,4 @@ builder.Services.AddDefaultIdentity<WitchCityRopeUser>(options => {
 - `/tools/DatabaseSeeder/Seeders/20250120_InitialSeed.cs`
 
 ## E2E Test
-The test at `/tests/playwright/ui/user-dropdown.spec.ts` line 165 specifically tests for the admin dashboard link visibility and is currently failing.
+The test at `/tests/ui/user-dropdown.spec.ts` line 165 specifically tests for the admin dashboard link visibility and is currently failing.

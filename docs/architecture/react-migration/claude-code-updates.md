@@ -62,7 +62,7 @@ This document details all changes required to migrate the Claude Code configurat
 
 ```markdown
 ### 4. E2E Testing - Playwright for React
-- ✅ **Location**: `/tests/playwright/`
+- ✅ **Location**: `/tests/`
 - ✅ **Run**: `npm run test:e2e`
 - ✅ **Pattern**: Test React components and user interactions
 - ❌ **NO DOM testing libraries** in E2E tests (use React Testing Library for unit tests)
@@ -149,7 +149,7 @@ src/
 ### Test File Patterns
 - **Unit Tests**: `*.test.tsx`, `*.test.ts`
 - **Integration Tests**: `*.integration.test.ts`
-- **E2E Tests**: `*.spec.ts` in `/tests/playwright/`
+- **E2E Tests**: `*.spec.ts` in `/tests/`
 - **Test Utilities**: `*/__tests__/*`, `/tests/utils/`
 ```
 

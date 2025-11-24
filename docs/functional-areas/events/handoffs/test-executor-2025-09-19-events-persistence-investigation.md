@@ -167,8 +167,8 @@
 ---
 
 **Files Modified/Created**:
-- `/tests/playwright/events-details-persistence-investigation.spec.ts` - CREATED
-- `/tests/playwright/verify-event-editing-actually-works.spec.ts` - CREATED
+- `/tests/events-details-persistence-investigation.spec.ts` - CREATED
+- `/tests/verify-event-editing-actually-works.spec.ts` - CREATED
 - This handoff document - CREATED
 
 **Status**: ✅ COMPLETE - Technical investigation shows full functionality

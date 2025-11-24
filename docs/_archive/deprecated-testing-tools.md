@@ -23,7 +23,7 @@ This document archives information about testing tools that were previously used
 - **Migration Date**: January 2025
 - **Tests Migrated**: 180 tests
 - **Old Location**: `/tests/e2e/` and `/ToBeDeleted/`
-- **New Location**: `/tests/playwright/`
+- **New Location**: `/tests/`
 
 ### Key Differences from Playwright
 - Required manual `waitForSelector` calls
@@ -80,7 +80,7 @@ export OPENAI_API_KEY='your-key'
 
 If you find old Puppeteer tests, DO NOT update them. Instead:
 
-1. **Check if already migrated**: Look in `/tests/playwright/specs/`
+1. **Check if already migrated**: Look in `/tests/specs/`
 2. **Use Playwright**: All new tests must use Playwright
 3. **Reference the guide**: See `/docs/standards-processes/testing/browser-automation/playwright-guide.md`
 
@@ -146,7 +146,7 @@ test('should login', async ({ page }) => {
 For current E2E testing practices:
 - Primary Guide: `/docs/standards-processes/testing/browser-automation/playwright-guide.md`
 - Migration Details: `/docs/enhancements/playwright-migration/`
-- Test Examples: `/tests/playwright/specs/`
+- Test Examples: `/tests/specs/`
 
 ---
 

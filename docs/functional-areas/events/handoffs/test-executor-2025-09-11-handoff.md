@@ -172,8 +172,8 @@ Due to rendering failure, cannot assess:
 ## Files Created/Modified
 
 ### Test Files
-- `/tests/playwright/admin-events-management-workflow-test.spec.ts` - Comprehensive workflow test
-- `/tests/playwright/quick-manual-test.spec.ts` - Diagnostic test
+- `/tests/admin-events-management-workflow-test.spec.ts` - Comprehensive workflow test
+- `/tests/quick-manual-test.spec.ts` - Diagnostic test
 
 ### Reports
 - `/test-results/admin-events-management-test-execution-report-2025-09-11.md` - Detailed findings

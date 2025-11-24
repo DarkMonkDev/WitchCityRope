@@ -241,8 +241,8 @@ The RSVP and ticketing implementation demonstrates **solid architectural foundat
 
 | File | Purpose | Status |
 |------|---------|---------|
-| `/tests/playwright/rsvp-ticketing-test.spec.ts` | Basic RSVP/ticketing tests | ACTIVE |
-| `/tests/playwright/comprehensive-rsvp-ticketing.spec.ts` | Comprehensive test suite | ACTIVE |
+| `/tests/rsvp-ticketing-test.spec.ts` | Basic RSVP/ticketing tests | ACTIVE |
+| `/tests/comprehensive-rsvp-ticketing.spec.ts` | Comprehensive test suite | ACTIVE |
 | `/test-rsvp-api.sh` | API testing script | TEMPORARY |
 | `/apps/web/src/lib/api/services/payments.ts` | Fixed import error | ACTIVE (FIXED) |
 

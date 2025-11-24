@@ -239,7 +239,7 @@ user.UpdatedAt = DateTime.UtcNow;
 
 ### E2E Test Inventory (Playwright)
 
-**Total Tests**: 75 spec files in `/apps/web/tests/playwright/`
+**Total Tests**: 75 spec files in `/apps/web/tests/`
 
 #### Tests Related to Critical Workflows:
 

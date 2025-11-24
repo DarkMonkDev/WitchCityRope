@@ -19,7 +19,7 @@ The project already has a Playwright workflow (`e2e-tests.yml`) running .NET-bas
 All Playwright tests will be stored in a centralized, well-organized folder structure:
 
 ```
-/home/chad/repos/witchcityrope/WitchCityRope/tests/playwright/
+/home/chad/repos/witchcityrope/WitchCityRope/tests/
 ├── auth/                    # Authentication tests
 │   ├── login.spec.ts
 │   ├── register.spec.ts
@@ -57,7 +57,7 @@ All Playwright tests will be stored in a centralized, well-organized folder stru
 
 ### Migration Path from Puppeteer
 - **Current Puppeteer Tests**: `/tests/e2e/tests/e2e/`
-- **New Playwright Tests**: `/tests/playwright/`
+- **New Playwright Tests**: `/tests/`
 - Tests will be migrated category by category to maintain organization
 
 ## Integration Strategy
@@ -144,7 +144,7 @@ jobs:
         if [ "${{ github.event.inputs.test-suite }}" = "all" ] || [ -z "${{ github.event.inputs.test-suite }}" ]; then
           npx playwright test
         else
-          npx playwright test tests/playwright/${{ github.event.inputs.test-suite }}
+          npx playwright test tests/${{ github.event.inputs.test-suite }}
         fi
       env:
         BASE_URL: http://localhost:5651

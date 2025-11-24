@@ -268,7 +268,7 @@
 - `/tests/web/src/components/HomePage.test.tsx`
 - `/tests/web/src/components/EventCard.test.tsx`
 - `/tests/api/Controllers/EventsControllerTests.cs`
-- `/tests/playwright/vertical-slice/home-page.spec.ts`
+- `/tests/vertical-slice/home-page.spec.ts`
 
 **Review & Documentation (8 files)**:
 - `/docs/functional-areas/vertical-slice-home-page/reviews/phase1-requirements-review.md`

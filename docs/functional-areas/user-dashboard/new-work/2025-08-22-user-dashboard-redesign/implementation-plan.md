@@ -203,7 +203,7 @@ interface NavItem {
 
 **E2E Tests:**
 ```typescript
-// /apps/web/tests/playwright/dashboard-layout.spec.ts
+// /apps/web/tests/dashboard-layout.spec.ts
 test('dashboard layout displays navigation', async ({ page }) => {
   await page.goto('/dashboard');
   await expect(page.locator('[data-testid="dashboard-nav"]')).toBeVisible();
@@ -384,7 +384,7 @@ export const useDashboardPreview = () => {
 
 **E2E Tests:**
 ```typescript
-// /apps/web/tests/playwright/dashboard-landing.spec.ts
+// /apps/web/tests/dashboard-landing.spec.ts
 test('dashboard landing shows welcome message', async ({ page }) => {
   await page.goto('/dashboard');
   await expect(page.locator('text=Welcome back,')).toBeVisible();
@@ -575,7 +575,7 @@ export const useUserEvents = () => {
 
 **E2E Tests:**
 ```typescript
-// /apps/web/tests/playwright/events-page.spec.ts
+// /apps/web/tests/events-page.spec.ts
 test('events page displays with upcoming tab active', async ({ page }) => {
   await page.goto('/dashboard/events');
   await expect(page.locator('[data-value="upcoming"][data-active]')).toBeVisible();
@@ -690,7 +690,7 @@ const handleBack = () => {
 
 **E2E Tests:**
 ```typescript
-// /apps/web/tests/playwright/event-detail-integration.spec.ts
+// /apps/web/tests/event-detail-integration.spec.ts
 test('view details from dashboard landing navigates correctly', async ({ page }) => {
   await page.goto('/dashboard');
   const firstEventCard = page.locator('[data-testid="event-card"]').first();
@@ -855,7 +855,7 @@ public class MembershipStatusDto
 
 **E2E Tests:**
 ```typescript
-// /apps/web/tests/playwright/dashboard-settings.spec.ts
+// /apps/web/tests/dashboard-settings.spec.ts
 test('profile page updates user information', async ({ page }) => {
   await page.goto('/dashboard/profile');
   await page.fill('[name="sceneName"]', 'Updated Name');
@@ -969,7 +969,7 @@ test('membership page displays status', async ({ page }) => {
 
 **E2E Tests (Mobile Viewports):**
 ```typescript
-// /apps/web/tests/playwright/dashboard-mobile.spec.ts
+// /apps/web/tests/dashboard-mobile.spec.ts
 test.use({ viewport: { width: 375, height: 667 } }); // iPhone SE
 
 test('mobile menu toggles correctly', async ({ page }) => {
@@ -1134,7 +1134,7 @@ queryClient.setQueryDefaults(['dashboard', 'preview'], {
 
 **Accessibility Tests:**
 ```typescript
-// /apps/web/tests/playwright/accessibility.spec.ts
+// /apps/web/tests/accessibility.spec.ts
 import { injectAxe, checkA11y } from 'axe-playwright';
 
 test('dashboard landing has no accessibility violations', async ({ page }) => {
@@ -1157,7 +1157,7 @@ test('keyboard navigation works', async ({ page }) => {
 
 **Performance Tests:**
 ```typescript
-// /apps/web/tests/playwright/performance.spec.ts
+// /apps/web/tests/performance.spec.ts
 test('dashboard loads within performance budget', async ({ page }) => {
   const startTime = Date.now();
   await page.goto('/dashboard');
@@ -1337,7 +1337,7 @@ describe('EventCard', () => {
 
 **Example:**
 ```typescript
-// /apps/web/tests/playwright/dashboard-flow.spec.ts
+// /apps/web/tests/dashboard-flow.spec.ts
 import { test, expect } from '@playwright/test';
 
 test.describe('Dashboard User Flow', () => {

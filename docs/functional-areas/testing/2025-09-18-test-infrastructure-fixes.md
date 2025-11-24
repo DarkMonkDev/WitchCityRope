@@ -57,7 +57,7 @@ Successfully completed Phase 1 of test infrastructure fixes, discovering a criti
 
 ### 3. E2E Test Validation ✅
 
-**Verified**: Playwright tests in `/tests/playwright/` work correctly with current architecture.
+**Verified**: Playwright tests in `/tests/` work correctly with current architecture.
 
 **Key Findings**:
 - Global setup correctly verifies Docker services before tests
@@ -123,7 +123,7 @@ public class EventService
 | `WitchCityRope.Tests.Common` | ❌ Broken | Builders for archived entities | Rewrite for current architecture |
 | `WitchCityRope.Infrastructure.Tests` | ❌ Broken | Tests infrastructure layer (archived) | Focus on API endpoint testing |
 | `WitchCityRope.SystemTests` | ✅ Working | New project, no dependencies | Continue using |
-| `tests/playwright/` | ✅ Working | Tests UI, not internal architecture | Continue using |
+| `tests/` | ✅ Working | Tests UI, not internal architecture | Continue using |
 
 ## Namespace Updates Required
 

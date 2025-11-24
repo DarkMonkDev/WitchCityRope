@@ -21,7 +21,7 @@
 **Total Tests Created**: **43 tests** across 4 test categories
 
 #### 1. E2E Tests (Playwright) - 9 Tests
-**File**: `/apps/web/tests/playwright/cms.spec.ts`
+**File**: `/apps/web/tests/cms.spec.ts`
 
 **Critical Workflows (5 tests)**:
 - ✅ Happy Path: Admin edits and saves page content (optimistic updates verified)
@@ -37,7 +37,7 @@
 - ✅ Performance: Save response time < 1 second
 
 #### 2. Accessibility Tests (Playwright + axe-core) - 10 Tests
-**File**: `/apps/web/tests/playwright/cms-accessibility.spec.ts`
+**File**: `/apps/web/tests/cms-accessibility.spec.ts`
 
 **WCAG 2.1 AA Compliance Tests**:
 - ✅ View mode: No accessibility violations
@@ -160,16 +160,16 @@ docker ps | grep witchcity
 cd /home/chad/repos/witchcityrope-react/apps/web
 
 # Run all CMS E2E tests
-npm run test:e2e -- tests/playwright/cms.spec.ts
+npm run test:e2e -- tests/cms.spec.ts
 
 # Run accessibility tests
-npm run test:e2e -- tests/playwright/cms-accessibility.spec.ts
+npm run test:e2e -- tests/cms-accessibility.spec.ts
 
 # Run specific test
-npm run test:e2e -- tests/playwright/cms.spec.ts -g "Happy Path"
+npm run test:e2e -- tests/cms.spec.ts -g "Happy Path"
 
 # Run with UI mode (debugging)
-npm run test:e2e -- tests/playwright/cms.spec.ts --ui
+npm run test:e2e -- tests/cms.spec.ts --ui
 ```
 
 **Unit Tests (Vitest)**:
@@ -234,7 +234,7 @@ npm test -- src/features/cms/__tests__/cms-api.integration.test.ts
 ## Test Files Created
 
 ### 1. E2E Test Suite
-**File**: `/apps/web/tests/playwright/cms.spec.ts`
+**File**: `/apps/web/tests/cms.spec.ts`
 **Lines**: 315
 **Tests**: 9
 **Coverage**: Critical user workflows
@@ -247,7 +247,7 @@ npm test -- src/features/cms/__tests__/cms-api.integration.test.ts
 - Mobile responsive FAB button
 
 ### 2. Accessibility Test Suite
-**File**: `/apps/web/tests/playwright/cms-accessibility.spec.ts`
+**File**: `/apps/web/tests/cms-accessibility.spec.ts`
 **Lines**: 240
 **Tests**: 10
 **Coverage**: WCAG 2.1 AA compliance
@@ -531,7 +531,7 @@ jobs:
       - name: Start Docker containers
         run: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
       - name: Run E2E tests
-        run: npm run test:e2e -- tests/playwright/cms.spec.ts
+        run: npm run test:e2e -- tests/cms.spec.ts
       - name: Run unit tests
         run: npm test -- src/features/cms
       - name: Upload test results
@@ -569,8 +569,8 @@ jobs:
 
 ### For Test Executor:
 1. ✅ **Verify Docker environment** (containers healthy on ports 5173, 5655, 5434)
-2. ✅ **Run E2E test suite**: `npm run test:e2e -- tests/playwright/cms.spec.ts`
-3. ✅ **Run accessibility tests**: `npm run test:e2e -- tests/playwright/cms-accessibility.spec.ts`
+2. ✅ **Run E2E test suite**: `npm run test:e2e -- tests/cms.spec.ts`
+3. ✅ **Run accessibility tests**: `npm run test:e2e -- tests/cms-accessibility.spec.ts`
 4. ✅ **Run unit tests**: `npm test -- src/features/cms/components/__tests__`
 5. ✅ **Run integration tests**: `npm test -- src/features/cms/__tests__/cms-api.integration.test.ts`
 6. ✅ **Generate test report**: Document pass/fail counts, any failures
@@ -606,12 +606,12 @@ jobs:
 
 ### Created Files (5 total)
 
-1. `/apps/web/tests/playwright/cms.spec.ts` (315 lines)
+1. `/apps/web/tests/cms.spec.ts` (315 lines)
    - 9 E2E tests covering critical workflows
    - Uses AuthHelpers pattern
    - Flexible selectors with .first()
 
-2. `/apps/web/tests/playwright/cms-accessibility.spec.ts` (240 lines)
+2. `/apps/web/tests/cms-accessibility.spec.ts` (240 lines)
    - 10 accessibility tests (WCAG 2.1 AA)
    - axe-core integration
    - Keyboard navigation verification

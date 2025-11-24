@@ -46,7 +46,7 @@ return Results.NotFound();
 **Status**: ✅ All types now properly aligned with backend DTOs
 
 ### 2. Test Suite Integration - FIXED
-**Problem**: Tests were in `/tests/playwright/` but main config expected `/tests/e2e/`
+**Problem**: Tests were in `/tests/` but main config expected `/tests/e2e/`
 
 **Fixed**:
 - Moved ToS/Waiver tests to `/tests/e2e/auth/` and `/tests/e2e/participation/`

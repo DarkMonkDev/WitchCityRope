@@ -69,7 +69,7 @@ This document serves as the single source of truth for all technologies currentl
 
 ### End-to-End Testing
 - **Framework**: Playwright
-- **Test Location**: `/tests/playwright/`
+- **Test Location**: `/tests/`
 - **Run Command**: `npm run test:e2e:playwright`
 - **Status**: 100% pass rate on launch-critical tests (as of 2025-10-08)
 

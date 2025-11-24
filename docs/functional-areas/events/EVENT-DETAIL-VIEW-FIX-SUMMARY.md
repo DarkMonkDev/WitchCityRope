@@ -25,7 +25,7 @@ The Pre-Launch Punch List identified "Event Detail View/Modal" as incomplete wit
 - ❌ EventCard missing test IDs for date and time elements
 
 ### Skipped Tests Analysis
-**File**: `apps/web/tests/playwright/events-comprehensive.spec.ts`
+**File**: `apps/web/tests/events-comprehensive.spec.ts`
 
 **Tests Identified**:
 1. ✅ Line 38: `should display event details when clicking event card` - NOW PASSING
@@ -95,7 +95,7 @@ The Pre-Launch Punch List identified "Event Detail View/Modal" as incomplete wit
 **Commit**: `28d45772` - "feat(events): add date display to EventCard with E2E test IDs"
 
 ### 3. E2E Tests Unskipped
-**File**: `/apps/web/tests/playwright/events-comprehensive.spec.ts`
+**File**: `/apps/web/tests/events-comprehensive.spec.ts`
 
 **Test 1 - Event Detail Click** (Line 38):
 - Removed: TODO comment and `test.skip()`
@@ -171,7 +171,7 @@ The Pre-Launch Punch List identified "Event Detail View/Modal" as incomplete wit
 ### Production Code (3 files)
 1. `/apps/web/src/pages/events/EventDetailPage.tsx` - Test ID fix
 2. `/apps/web/src/components/events/public/EventCard.tsx` - Date display + test IDs
-3. `/apps/web/tests/playwright/events-comprehensive.spec.ts` - Unskipped tests
+3. `/apps/web/tests/events-comprehensive.spec.ts` - Unskipped tests
 
 ### Documentation (1 file)
 1. `/docs/functional-areas/events/EVENT-DETAIL-VIEW-FIX-SUMMARY.md` (this file)

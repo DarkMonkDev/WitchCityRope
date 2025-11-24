@@ -129,7 +129,7 @@ Successfully created comprehensive test suite for granular event timing controls
 **Note**: E2E tests were specified in the test-developer-handoff.md but not created in this session due to scope. The handoff document provides complete E2E test specifications for:
 
 ### Admin Timing Configuration Tests
-**File**: `/tests/playwright/events/admin-timing-settings.spec.ts` (NOT YET CREATED)
+**File**: `/tests/events/admin-timing-settings.spec.ts` (NOT YET CREATED)
 **Tests**: 6 tests
 - Show/hide RSVP/Tickets timing settings
 - Show/hide Volunteers timing settings
@@ -138,7 +138,7 @@ Successfully created comprehensive test suite for granular event timing controls
 - Accept decimal values
 
 ### User RSVP Timing Flow Tests
-**File**: `/tests/playwright/events/user-rsvp-timing.spec.ts` (NOT YET CREATED)
+**File**: `/tests/events/user-rsvp-timing.spec.ts` (NOT YET CREATED)
 **Tests**: 6+ tests
 - Block RSVP before registration opens
 - Allow RSVP within window
@@ -148,7 +148,7 @@ Successfully created comprehensive test suite for granular event timing controls
 - Block cancellation after window closes
 
 ### User Volunteer Timing Flow Tests
-**File**: `/tests/playwright/events/user-volunteer-timing.spec.ts` (NOT YET CREATED)
+**File**: `/tests/events/user-volunteer-timing.spec.ts` (NOT YET CREATED)
 **Tests**: 6+ tests
 - Allow signup within window
 - Block signup after close

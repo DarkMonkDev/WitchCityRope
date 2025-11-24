@@ -161,7 +161,7 @@ This discovery alone justifies the vertical slice approach - finding this in pro
 - `/apps/api/Services/AuthService.cs` - Authentication logic
 
 ### Testing Artifacts
-- `/tests/playwright/auth.spec.ts` - E2E test suite
+- `/tests/auth.spec.ts` - E2E test suite
 - `/tests/security-validation.html` - Security test page
 - `/tests/performance-test.js` - Performance benchmarks
 - `/test-auth.html` - Standalone test interface

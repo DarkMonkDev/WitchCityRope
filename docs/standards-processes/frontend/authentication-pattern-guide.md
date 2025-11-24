@@ -647,7 +647,7 @@ describe('useLogin', () => {
 
 ### E2E Testing with Playwright
 
-**File**: `/tests/playwright/auth.spec.ts`
+**File**: `/tests/auth.spec.ts`
 
 ```typescript
 import { test, expect } from '@playwright/test'

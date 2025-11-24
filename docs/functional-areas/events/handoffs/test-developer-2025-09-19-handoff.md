@@ -7,9 +7,9 @@
 
 ### 1. **Comprehensive E2E Test Suite Created**
 **Files Created**:
-- `/tests/playwright/admin-event-editing-comprehensive.spec.ts` - Full comprehensive test suite
-- `/tests/playwright/admin-event-editing-focused.spec.ts` - Streamlined critical issues test
-- `/tests/playwright/admin-event-editing-quick-test.spec.ts` - Quick validation test
+- `/tests/admin-event-editing-comprehensive.spec.ts` - Full comprehensive test suite
+- `/tests/admin-event-editing-focused.spec.ts` - Streamlined critical issues test
+- `/tests/admin-event-editing-quick-test.spec.ts` - Quick validation test
 - `/playwright-test.config.ts` - Custom config without global setup restrictions
 
 ### 2. **Critical Issues Test Coverage**
@@ -108,13 +108,13 @@ const setupEventEdit = async (page) => {
 ### **Validation Commands**
 ```bash
 # Run quick validation (should pass completely)
-npx playwright test tests/playwright/admin-event-editing-quick-test.spec.ts --config=playwright-test.config.ts
+npx playwright test tests/admin-event-editing-quick-test.spec.ts --config=playwright-test.config.ts
 
 # Run focused critical issues test
-npx playwright test tests/playwright/admin-event-editing-focused.spec.ts --config=playwright-test.config.ts
+npx playwright test tests/admin-event-editing-focused.spec.ts --config=playwright-test.config.ts
 
 # Run comprehensive test (when modal issues fixed)
-npx playwright test tests/playwright/admin-event-editing-comprehensive.spec.ts --config=playwright-test.config.ts
+npx playwright test tests/admin-event-editing-comprehensive.spec.ts --config=playwright-test.config.ts
 ```
 
 ## 📊 TEST ENVIRONMENT SETUP

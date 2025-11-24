@@ -68,7 +68,7 @@ Error: element(s) not found - [contenteditable="true"]
 **Assigned To**: React Developer
 **File**: `/apps/web/src/components/cms/CmsEditButton.tsx`
 **Estimated Fix Time**: 30 minutes
-**Re-test Command**: `npm run test:e2e -- tests/playwright/cms.spec.ts -g "Mobile Responsive"`
+**Re-test Command**: `npm run test:e2e -- tests/cms.spec.ts -g "Mobile Responsive"`
 
 **Screenshot**: `/test-results/cms-CMS-Feature---Critical-d2bc5--visible-on-mobile-viewport-chromium/test-failed-1.png`
 
@@ -129,7 +129,7 @@ const renderWithProviders = (ui: React.ReactElement) => {
 ```bash
 cd /home/chad/repos/witchcityrope-react/apps/web
 npm install --save-dev axe-playwright @axe-core/playwright
-npm run test:e2e -- tests/playwright/cms-accessibility.spec.ts
+npm run test:e2e -- tests/cms-accessibility.spec.ts
 ```
 
 ---
@@ -138,7 +138,7 @@ npm run test:e2e -- tests/playwright/cms-accessibility.spec.ts
 
 ### ✅ E2E Tests (Playwright) - 8/9 PASSING (88.9%)
 
-**File**: `/apps/web/tests/playwright/cms.spec.ts`
+**File**: `/apps/web/tests/cms.spec.ts`
 **Execution Time**: ~2 minutes
 **Environment**: Docker containers (all healthy)
 
@@ -254,7 +254,7 @@ npm run test:e2e -- tests/playwright/cms-accessibility.spec.ts
 
 ### ⚠️ Accessibility Tests (axe-core) - 0/10 BLOCKED
 
-**File**: `/apps/web/tests/playwright/cms-accessibility.spec.ts`
+**File**: `/apps/web/tests/cms-accessibility.spec.ts`
 **Status**: **CANNOT EXECUTE** due to missing npm package
 
 **Impact**: Cannot automatically verify WCAG 2.1 AA compliance
@@ -384,7 +384,7 @@ npm run test:e2e -- tests/playwright/cms-accessibility.spec.ts
 2. Verify mobile variant uses ActionIcon component
 3. Check `onClick` prop is passed and wired to `onEdit()` handler
 4. Test on real mobile device (iOS Safari or Android Chrome)
-5. Re-run E2E test: `npm run test:e2e -- tests/playwright/cms.spec.ts -g "Mobile Responsive"`
+5. Re-run E2E test: `npm run test:e2e -- tests/cms.spec.ts -g "Mobile Responsive"`
 6. Verify test passes (editor opens after FAB click)
 
 **Expected Outcome**: 9/9 E2E tests passing → **GO FOR PRODUCTION**
@@ -415,7 +415,7 @@ npm run test:e2e -- tests/playwright/cms-accessibility.spec.ts
 
 **Steps**:
 1. Install: `npm install --save-dev axe-playwright @axe-core/playwright`
-2. Re-run: `npm run test:e2e -- tests/playwright/cms-accessibility.spec.ts`
+2. Re-run: `npm run test:e2e -- tests/cms-accessibility.spec.ts`
 3. Fix any a11y violations found
 4. Verify all 10 tests pass
 
@@ -462,8 +462,8 @@ npm run test:e2e -- tests/playwright/cms-accessibility.spec.ts
 ### Test Source Files
 
 **E2E Tests**:
-- `/apps/web/tests/playwright/cms.spec.ts` (315 lines, 9 tests)
-- `/apps/web/tests/playwright/cms-accessibility.spec.ts` (240 lines, 10 tests - blocked)
+- `/apps/web/tests/cms.spec.ts` (315 lines, 9 tests)
+- `/apps/web/tests/cms-accessibility.spec.ts` (240 lines, 10 tests - blocked)
 
 **Unit Tests**:
 - `/apps/web/src/features/cms/components/__tests__/CmsPage.test.tsx` (218 lines, 11 tests - blocked)

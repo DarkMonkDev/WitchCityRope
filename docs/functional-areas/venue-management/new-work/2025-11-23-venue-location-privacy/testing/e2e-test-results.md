@@ -27,7 +27,7 @@ Comprehensive Playwright E2E tests were created and executed to verify the venue
 ## Test Files Created
 
 ### 1. Admin Venue Location Field Tests
-**File**: `/home/chad/repos/witchcityrope/apps/web/tests/playwright/admin/venue-location-field.spec.ts`
+**File**: `/home/chad/repos/witchcityrope/apps/web/tests/admin/venue-location-field.spec.ts`
 **Tests**: 7
 **Pass Rate**: 7/7 (100%)
 **Execution Time**: 17.5 seconds
@@ -42,7 +42,7 @@ Comprehensive Playwright E2E tests were created and executed to verify the venue
 7. ✅ **should display character counter or validation for Location field** - Confirms maxLength=100 attribute exists
 
 ### 2. Event Location Privacy - Conditional Display Tests
-**File**: `/home/chad/repos/witchcityrope/apps/web/tests/playwright/events/event-location-privacy.spec.ts`
+**File**: `/home/chad/repos/witchcityrope/apps/web/tests/events/event-location-privacy.spec.ts`
 **Tests**: 6
 **Pass Rate**: 6/6 (100%)
 **Execution Time**: 14.4 seconds
@@ -56,7 +56,7 @@ Comprehensive Playwright E2E tests were created and executed to verify the venue
 6. ✅ **venue section structure changes based on access level** - Confirms different sections for vetted vs non-vetted
 
 ### 3. Dashboard Event Card Location Display Tests
-**File**: `/home/chad/repos/witchcityrope/apps/web/tests/playwright/dashboard/event-card-location.spec.ts`
+**File**: `/home/chad/repos/witchcityrope/apps/web/tests/dashboard/event-card-location.spec.ts`
 **Tests**: 7
 **Pass Rate**: 7/7 (100%)
 **Execution Time**: 11.8 seconds

@@ -83,7 +83,7 @@ This matches **exactly** the ES6 import error pattern from lessons learned:
 - `/test-results/comprehensive-test-execution-report-2025-09-14.json`
 - `/tmp/react-unit-test-results.log`
 - `/tmp/e2e-test-results.log`  
-- `tests/playwright/test-results/` (screenshots/videos of failures)
+- `tests/test-results/` (screenshots/videos of failures)
 
 ## For Next Agent (react-developer)
 

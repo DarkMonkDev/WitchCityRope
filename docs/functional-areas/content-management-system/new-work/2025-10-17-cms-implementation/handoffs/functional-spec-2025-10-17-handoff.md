@@ -739,7 +739,7 @@ builder.Services.AddSingleton<IHtmlSanitizer>(sp =>
 
 ### Test Developer:
 
-- [ ] Playwright test location: `/tests/playwright/cms/` acceptable?
+- [ ] Playwright test location: `/tests/cms/` acceptable?
 - [ ] Test data: Use existing test accounts (admin@witchcityrope.com)?
 - [ ] Mobile testing: Emulated devices or real devices?
 - [ ] Performance testing: Separate performance test suite or integrated?

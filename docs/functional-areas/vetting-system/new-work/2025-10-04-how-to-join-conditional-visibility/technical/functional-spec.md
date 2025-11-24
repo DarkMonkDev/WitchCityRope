@@ -852,7 +852,7 @@ describe('useMenuVisibility', () => {
 
 ### E2E Tests (Playwright)
 
-**Test File**: `/apps/web/tests/playwright/vetting-menu-visibility.spec.ts`
+**Test File**: `/apps/web/tests/vetting-menu-visibility.spec.ts`
 
 ```typescript
 import { test, expect } from '@playwright/test';
