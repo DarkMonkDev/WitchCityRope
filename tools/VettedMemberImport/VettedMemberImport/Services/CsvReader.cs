@@ -50,7 +50,7 @@ public class CsvRowMap : ClassMap<CsvRow>
         Map(m => m.Notes).Name("Relevant notes", "Notes").Optional();
 
         // Motivation and background
-        Map(m => m.MotivationDescription).Name("Description of the aplicant and motivation to join", "Description of the applicant and motivation to join", "MotivationDescription").Optional();
+        Map(m => m.MotivationDescription).Name("Description of the aplicant and motivation to join", "Description of the applicant and motivation to join", "MotivationDescription", "Description").Optional();
         Map(m => m.InstagramHandle).Name("IG handles (specify if current, alternative or previous)", "IG handles", "InstagramHandle").Optional();
         Map(m => m.OtherHandles).Name("Othert handles (specify platform and if current or previous)", "Other handles (specify platform and if current or previous)", "Other handles", "OtherHandles").Optional();
 

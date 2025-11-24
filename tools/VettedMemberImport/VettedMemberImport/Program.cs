@@ -67,6 +67,11 @@ class Program
             logger.LogInformation("Environment: {Environment}", environment);
             logger.LogInformation("Input File: {InputFile}", config.InputFile);
             logger.LogInformation("Dry Run: {IsDryRun}", config.IsDryRun);
+            logger.LogInformation("Import Status: {ImportStatus}", config.ImportStatus);
+            logger.LogInformation("  VettingStatus: {VettingStatus} ({StatusName})",
+                config.VettingStatus, config.VettingStatus == 3 ? "Approved" : "InterviewApproved");
+            logger.LogInformation("  WorkflowStatus: {WorkflowStatus} ({StatusName})",
+                config.WorkflowStatus, config.WorkflowStatus == 3 ? "Approved" : "InterviewApproved");
             logger.LogInformation("Connection String: {ConnectionString}", MaskConnectionString(connectionString));
 
             // Test database connection
@@ -96,7 +101,7 @@ class Program
             using (var scope = serviceProvider.CreateScope())
             {
                 var importer = scope.ServiceProvider.GetRequiredService<UserImporter>();
-                var summary = await importer.ImportUsersAsync(rows, config.IsDryRun);
+                var summary = await importer.ImportUsersAsync(rows, config.IsDryRun, config.VettingStatus, config.WorkflowStatus);
 
                 // Print summary
                 Console.WriteLine();
@@ -171,6 +176,10 @@ class Program
             {
                 config.Environment = args[++i];
             }
+            else if (arg == "--status" && i + 1 < args.Length)
+            {
+                config.ImportStatus = args[++i].ToLower();
+            }
             else if (arg == "--help" || arg == "-h")
             {
                 return null;
@@ -190,6 +199,24 @@ class Program
             return null;
         }
 
+        // Validate and convert status parameter
+        if (config.ImportStatus == "approved")
+        {
+            config.VettingStatus = 3; // Approved
+            config.WorkflowStatus = 3; // Approved
+        }
+        else if (config.ImportStatus == "interview-approved")
+        {
+            config.VettingStatus = 1; // InterviewApproved
+            config.WorkflowStatus = 1; // InterviewApproved
+        }
+        else
+        {
+            Console.WriteLine($"ERROR: Invalid --status value: {config.ImportStatus}");
+            Console.WriteLine("       Allowed values: 'approved' or 'interview-approved'");
+            return null;
+        }
+
         return config;
     }
 
@@ -204,20 +231,27 @@ class Program
         Console.WriteLine("  --dry-run               Test import without writing to database");
         Console.WriteLine("  --environment <env>     Environment (Development, Staging, Production)");
         Console.WriteLine("                          Default: Development");
+        Console.WriteLine("  --status <status>       Import status: 'approved' or 'interview-approved'");
+        Console.WriteLine("                          Default: approved");
+        Console.WriteLine("                          - approved: Fully vetted members (VettingStatus=3)");
+        Console.WriteLine("                          - interview-approved: Approved for interview (VettingStatus=1)");
         Console.WriteLine("  --help, -h              Show this help message");
         Console.WriteLine();
         Console.WriteLine("Examples:");
         Console.WriteLine("  # Dry run with local database");
-        Console.WriteLine("  dotnet run --input=vetted-members.csv --dry-run");
+        Console.WriteLine("  dotnet run -- --input=vetted-members.csv --dry-run");
         Console.WriteLine();
-        Console.WriteLine("  # Actual import to local database");
-        Console.WriteLine("  dotnet run --input=vetted-members.csv");
+        Console.WriteLine("  # Actual import to local database (fully vetted)");
+        Console.WriteLine("  dotnet run -- --input=vetted-members.csv");
+        Console.WriteLine();
+        Console.WriteLine("  # Import interview-approved members");
+        Console.WriteLine("  dotnet run -- --input=pre-vetted.csv --status=interview-approved");
         Console.WriteLine();
         Console.WriteLine("  # Import to staging");
-        Console.WriteLine("  dotnet run --input=vetted-members.csv --environment=Staging");
+        Console.WriteLine("  dotnet run -- --input=vetted-members.csv --environment=Staging");
         Console.WriteLine();
-        Console.WriteLine("  # Import to production");
-        Console.WriteLine("  dotnet run --input=vetted-members.csv --environment=Production");
+        Console.WriteLine("  # Import interview-approved to production");
+        Console.WriteLine("  dotnet run -- --input=pre-vetted.csv --status=interview-approved --environment=Production");
         Console.WriteLine();
     }
 
@@ -248,4 +282,7 @@ class ImportConfig
     public string InputFile { get; set; } = string.Empty;
     public bool IsDryRun { get; set; } = false;
     public string? Environment { get; set; } = "Development";
+    public string ImportStatus { get; set; } = "approved";
+    public int VettingStatus { get; set; } = 3; // Approved
+    public int WorkflowStatus { get; set; } = 3; // Approved
 }

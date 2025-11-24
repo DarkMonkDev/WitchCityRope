@@ -23,14 +23,28 @@ public class UserImporter
         _dateParser = dateParser;
     }
 
-    public async Task<ImportSummary> ImportUsersAsync(List<CsvRow> rows, bool isDryRun, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Import users from CSV rows with specified vetting status
+    /// </summary>
+    /// <param name="rows">CSV rows to import</param>
+    /// <param name="isDryRun">If true, validate without writing to database</param>
+    /// <param name="vettingStatus">Vetting status to assign (1=InterviewApproved, 3=Approved)</param>
+    /// <param name="workflowStatus">Workflow status to assign (1=InterviewApproved, 3=Approved)</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    public async Task<ImportSummary> ImportUsersAsync(
+        List<CsvRow> rows,
+        bool isDryRun,
+        int vettingStatus = 3,
+        int workflowStatus = 3,
+        CancellationToken cancellationToken = default)
     {
         var summary = new ImportSummary
         {
             TotalRecords = rows.Count
         };
 
-        _logger.LogInformation("Starting import of {Count} records (Dry Run: {IsDryRun})", rows.Count, isDryRun);
+        _logger.LogInformation("Starting import of {Count} records (Dry Run: {IsDryRun}, VettingStatus: {VettingStatus}, WorkflowStatus: {WorkflowStatus})",
+            rows.Count, isDryRun, vettingStatus, workflowStatus);
 
         for (int i = 0; i < rows.Count; i++)
         {
@@ -39,7 +53,7 @@ public class UserImporter
 
             try
             {
-                await ProcessRow(row, rowNum, summary, isDryRun, cancellationToken);
+                await ProcessRow(row, rowNum, summary, isDryRun, vettingStatus, workflowStatus, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -53,7 +67,14 @@ public class UserImporter
         return summary;
     }
 
-    private async Task ProcessRow(CsvRow row, int rowNum, ImportSummary summary, bool isDryRun, CancellationToken cancellationToken)
+    private async Task ProcessRow(
+        CsvRow row,
+        int rowNum,
+        ImportSummary summary,
+        bool isDryRun,
+        int vettingStatus,
+        int workflowStatus,
+        CancellationToken cancellationToken)
     {
         // Validate required fields
         if (string.IsNullOrWhiteSpace(row.Email))
@@ -124,8 +145,8 @@ public class UserImporter
             EmailVerificationToken = GenerateVerificationToken(),
             EmailVerificationTokenCreatedAt = DateTime.UtcNow,
 
-            // Vetting - Already approved (historical import)
-            VettingStatus = 3, // Approved
+            // Vetting status - Set based on import parameter (1=InterviewApproved, 3=Approved)
+            VettingStatus = vettingStatus,
             HasVettingApplication = true,
 
             // Timestamps
@@ -135,7 +156,7 @@ public class UserImporter
             // Other required fields
             IsActive = true,
             TermsOfServiceAccepted = false, // Will accept on first login
-            Role = "",  // Member is default state (not assigned as role)
+            Role = vettingStatus == 3 ? "VettedMember" : "Member",  // VettedMember for approved, Member for interview-approved
 
             // Required but unused fields
             EncryptedLegalName = "",
@@ -180,8 +201,8 @@ public class UserImporter
             ExperienceLevel = 2, // Intermediate (default assumption)
             YearsExperience = 1, // Default
 
-            // Status - Approved (historical)
-            WorkflowStatus = 3, // Approved
+            // Workflow status - Set based on import parameter (1=InterviewApproved, 3=Approved)
+            WorkflowStatus = workflowStatus,
             SubmittedAt = submittedAt,
             DecisionMadeAt = decisionDate,
 
@@ -386,13 +407,15 @@ public class UserImporter
         {
             action = "Vettor Assigned";
         }
-        else if (lowerSegment.Contains("interview") && (lowerSegment.Contains("held") || lowerSegment.Contains("completed")))
-        {
-            action = "Interview Completed";
-        }
+        // Check for approval first (more specific - contains "interview" AND "accepted")
         else if (lowerSegment.Contains("interview") && lowerSegment.Contains("accepted"))
         {
             action = "Interview Completed and Approved";
+        }
+        // Then check for completion (less specific - contains "interview" AND "held" OR "completed")
+        else if (lowerSegment.Contains("interview") && (lowerSegment.Contains("held") || lowerSegment.Contains("completed")))
+        {
+            action = "Interview Completed";
         }
         else if (lowerSegment.Contains("interview") && lowerSegment.Contains("scheduled"))
         {

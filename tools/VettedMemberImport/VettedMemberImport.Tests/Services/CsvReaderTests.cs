@@ -46,17 +46,17 @@ user2@example.com,User2,she/her,fetlife456,Great references,7/15/22,Approved 07/
         result.Should().HaveCount(2);
 
         var firstRow = result[0];
-        firstRow.VetteesEmail.Should().Be("test@example.com");
-        firstRow.VetteesNickname.Should().Be("TestUser");
-        firstRow.VetteesPronouns.Should().Be("they/them");
-        firstRow.FlHandles.Should().Be("fetlife123");
-        firstRow.DescriptionOfTheAplicantAndMotivationToJoin.Should().Be("Very motivated applicant");
-        firstRow.AppSubmitted.Should().Be("7/11/22");
-        firstRow.RelevantNotes.Should().Be("Interview held & accepted 07/21/22");
+        firstRow.Email.Should().Be("test@example.com");
+        firstRow.SceneName.Should().Be("TestUser");
+        firstRow.Pronouns.Should().Be("they/them");
+        firstRow.FetLifeHandle.Should().Be("fetlife123");
+        firstRow.MotivationDescription.Should().Be("Very motivated applicant");
+        firstRow.ApplicationDate.Should().Be("7/11/22");
+        firstRow.Notes.Should().Be("Interview held & accepted 07/21/22");
 
         var secondRow = result[1];
-        secondRow.VetteesEmail.Should().Be("user2@example.com");
-        secondRow.VetteesNickname.Should().Be("User2");
+        secondRow.Email.Should().Be("user2@example.com");
+        secondRow.SceneName.Should().Be("User2");
     }
 
     [Fact]
@@ -74,11 +74,11 @@ test@example.com,TestUser,,,Good applicant,7/11/22,";
         // Assert
         result.Should().NotBeNull();
         result.Should().HaveCount(1);
-        result[0].VetteesEmail.Should().Be("test@example.com");
-        result[0].VetteesNickname.Should().Be("TestUser");
-        result[0].VetteesPronouns.Should().BeEmpty();
-        result[0].FlHandles.Should().BeEmpty();
-        result[0].RelevantNotes.Should().BeEmpty();
+        result[0].Email.Should().Be("test@example.com");
+        result[0].SceneName.Should().Be("TestUser");
+        result[0].Pronouns.Should().BeEmpty();
+        result[0].FetLifeHandle.Should().BeEmpty();
+        result[0].Notes.Should().BeEmpty();
     }
 
     [Fact]
@@ -96,10 +96,10 @@ test@example.com,TestUser,,,Good applicant,7/11/22,";
         // Assert
         result.Should().NotBeNull();
         result.Should().HaveCount(1);
-        result[0].VetteesEmail.Should().Be("test@example.com");
-        result[0].VetteesNickname.Should().Be("TestUser");
-        result[0].VetteesPronouns.Should().Be("they/them");
-        result[0].FlHandles.Should().Be("fetlife123");
+        result[0].Email.Should().Be("test@example.com");
+        result[0].SceneName.Should().Be("TestUser");
+        result[0].Pronouns.Should().Be("they/them");
+        result[0].FetLifeHandle.Should().Be("fetlife123");
     }
 
     [Fact]
@@ -117,9 +117,9 @@ test@example.com,TestUser,they/them,fetlife123,Great applicant,7/11/22,Approved"
         // Assert
         result.Should().NotBeNull();
         result.Should().HaveCount(1);
-        result[0].VetteesEmail.Should().Be("test@example.com");
-        result[0].VetteesNickname.Should().Be("TestUser");
-        result[0].VetteesPronouns.Should().Be("they/them");
+        result[0].Email.Should().Be("test@example.com");
+        result[0].SceneName.Should().Be("TestUser");
+        result[0].Pronouns.Should().Be("they/them");
     }
 
     [Fact]
@@ -153,8 +153,8 @@ test@example.com,TestUser,they/them,fetlife123,""Very motivated, experienced app
         // Assert
         result.Should().NotBeNull();
         result.Should().HaveCount(1);
-        result[0].DescriptionOfTheAplicantAndMotivationToJoin.Should().Be("Very motivated, experienced applicant");
-        result[0].RelevantNotes.Should().Be("Interview held, accepted 07/21/22");
+        result[0].MotivationDescription.Should().Be("Very motivated, experienced applicant");
+        result[0].Notes.Should().Be("Interview held, accepted 07/21/22");
     }
 
     [Fact]
@@ -187,9 +187,9 @@ Line 3""";
         // Assert
         result.Should().NotBeNull();
         result.Should().HaveCount(1);
-        result[0].RelevantNotes.Should().Contain("Line 1");
-        result[0].RelevantNotes.Should().Contain("Line 2");
-        result[0].RelevantNotes.Should().Contain("Line 3");
+        result[0].Notes.Should().Contain("Line 1");
+        result[0].Notes.Should().Contain("Line 2");
+        result[0].Notes.Should().Contain("Line 3");
     }
 
     [Fact]
@@ -207,9 +207,9 @@ test+tag@example.com,Test_User-123,they/them & xe/xir,fetlife_user-123,Applicant
         // Assert
         result.Should().NotBeNull();
         result.Should().HaveCount(1);
-        result[0].VetteesEmail.Should().Be("test+tag@example.com");
-        result[0].VetteesNickname.Should().Be("Test_User-123");
-        result[0].VetteesPronouns.Should().Be("they/them & xe/xir");
+        result[0].Email.Should().Be("test+tag@example.com");
+        result[0].SceneName.Should().Be("Test_User-123");
+        result[0].Pronouns.Should().Be("they/them & xe/xir");
     }
 
     private string CreateTempCsvFile(string content)

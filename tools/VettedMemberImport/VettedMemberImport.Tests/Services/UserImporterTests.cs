@@ -49,13 +49,13 @@ public class UserImporterTests : IDisposable
         {
             new CsvRow
             {
-                VetteesEmail = "test@example.com",
-                VetteesNickname = "TestUser",
-                VetteesPronouns = "they/them",
-                FlHandles = "fetlife123",
-                DescriptionOfTheAplicantAndMotivationToJoin = "Great applicant",
-                AppSubmitted = "7/11/22",
-                RelevantNotes = "Interview held & accepted 07/21/22"
+                Email = "test@example.com",
+                SceneName = "TestUser",
+                Pronouns = "they/them",
+                FetLifeHandle = "fetlife123",
+                MotivationDescription = "Great applicant",
+                ApplicationDate = "7/11/22",
+                Notes = "Interview held & accepted 07/21/22"
             }
         };
 
@@ -90,10 +90,10 @@ public class UserImporterTests : IDisposable
         {
             new CsvRow
             {
-                VetteesEmail = "test@example.com",
-                VetteesNickname = "TestUser",
-                AppSubmitted = "7/11/22",
-                RelevantNotes = "Approved"
+                Email = "test@example.com",
+                SceneName = "TestUser",
+                ApplicationDate = "7/11/22",
+                Notes = "Approved"
             }
         };
 
@@ -120,10 +120,10 @@ public class UserImporterTests : IDisposable
         {
             new CsvRow
             {
-                VetteesEmail = "test@example.com",
-                VetteesNickname = "TestUser",
-                AppSubmitted = "7/11/22",
-                RelevantNotes = "Interview held & accepted 07/21/22"
+                Email = "test@example.com",
+                SceneName = "TestUser",
+                ApplicationDate = "7/11/22",
+                Notes = "Interview held & accepted 07/21/22"
             }
         };
 
@@ -175,9 +175,9 @@ public class UserImporterTests : IDisposable
         {
             new CsvRow
             {
-                VetteesEmail = "TEST@EXAMPLE.COM", // Same email, different case
-                VetteesNickname = "NewUser",
-                AppSubmitted = "7/11/22"
+                Email = "TEST@EXAMPLE.COM", // Same email, different case
+                SceneName = "NewUser",
+                ApplicationDate = "7/11/22"
             }
         };
 
@@ -232,9 +232,9 @@ public class UserImporterTests : IDisposable
         {
             new CsvRow
             {
-                VetteesEmail = "new@example.com",
-                VetteesNickname = "testuser", // Same scene name, different case
-                AppSubmitted = "7/11/22"
+                Email = "new@example.com",
+                SceneName = "testuser", // Same scene name, different case
+                ApplicationDate = "7/11/22"
             }
         };
 
@@ -265,9 +265,9 @@ public class UserImporterTests : IDisposable
         {
             new CsvRow
             {
-                VetteesEmail = "",
-                VetteesNickname = "TestUser",
-                AppSubmitted = "7/11/22"
+                Email = "",
+                SceneName = "TestUser",
+                ApplicationDate = "7/11/22"
             }
         };
 
@@ -290,9 +290,9 @@ public class UserImporterTests : IDisposable
         {
             new CsvRow
             {
-                VetteesEmail = "test@example.com",
-                VetteesNickname = "",
-                AppSubmitted = "7/11/22"
+                Email = "test@example.com",
+                SceneName = "",
+                ApplicationDate = "7/11/22"
             }
         };
 
@@ -315,9 +315,9 @@ public class UserImporterTests : IDisposable
         {
             new CsvRow
             {
-                VetteesEmail = "   ",
-                VetteesNickname = "TestUser",
-                AppSubmitted = "7/11/22"
+                Email = "   ",
+                SceneName = "TestUser",
+                ApplicationDate = "7/11/22"
             }
         };
 
@@ -341,9 +341,9 @@ public class UserImporterTests : IDisposable
         {
             new CsvRow
             {
-                VetteesEmail = "test@example.com",
-                VetteesNickname = "TestUser",
-                AppSubmitted = "7/11/22"
+                Email = "test@example.com",
+                SceneName = "TestUser",
+                ApplicationDate = "7/11/22"
             }
         };
 
@@ -369,9 +369,9 @@ public class UserImporterTests : IDisposable
         {
             new CsvRow
             {
-                VetteesEmail = "test@example.com",
-                VetteesNickname = "TestUser",
-                AppSubmitted = "7/11/22"
+                Email = "test@example.com",
+                SceneName = "TestUser",
+                ApplicationDate = "7/11/22"
             }
         };
 
@@ -397,9 +397,9 @@ public class UserImporterTests : IDisposable
         {
             new CsvRow
             {
-                VetteesEmail = "",
-                VetteesNickname = "TestUser",
-                AppSubmitted = "7/11/22"
+                Email = "",
+                SceneName = "TestUser",
+                ApplicationDate = "7/11/22"
             }
         };
 
@@ -423,21 +423,21 @@ public class UserImporterTests : IDisposable
         {
             new CsvRow
             {
-                VetteesEmail = "user1@example.com",
-                VetteesNickname = "User1",
-                AppSubmitted = "7/11/22"
+                Email = "user1@example.com",
+                SceneName = "User1",
+                ApplicationDate = "7/11/22"
             },
             new CsvRow
             {
-                VetteesEmail = "user2@example.com",
-                VetteesNickname = "User2",
-                AppSubmitted = "7/12/22"
+                Email = "user2@example.com",
+                SceneName = "User2",
+                ApplicationDate = "7/12/22"
             },
             new CsvRow
             {
-                VetteesEmail = "user3@example.com",
-                VetteesNickname = "User3",
-                AppSubmitted = "7/13/22"
+                Email = "user3@example.com",
+                SceneName = "User3",
+                ApplicationDate = "7/13/22"
             }
         };
 
@@ -462,21 +462,21 @@ public class UserImporterTests : IDisposable
         {
             new CsvRow
             {
-                VetteesEmail = "user1@example.com",
-                VetteesNickname = "User1",
-                AppSubmitted = "7/11/22"
+                Email = "user1@example.com",
+                SceneName = "User1",
+                ApplicationDate = "7/11/22"
             },
             new CsvRow
             {
-                VetteesEmail = "",
-                VetteesNickname = "User2",
-                AppSubmitted = "7/12/22"
+                Email = "",
+                SceneName = "User2",
+                ApplicationDate = "7/12/22"
             },
             new CsvRow
             {
-                VetteesEmail = "user3@example.com",
-                VetteesNickname = "User3",
-                AppSubmitted = "7/13/22"
+                Email = "user3@example.com",
+                SceneName = "User3",
+                ApplicationDate = "7/13/22"
             }
         };
 
@@ -504,9 +504,9 @@ public class UserImporterTests : IDisposable
         {
             new CsvRow
             {
-                VetteesEmail = "TeSt@ExAmPlE.cOm",
-                VetteesNickname = "TestUser",
-                AppSubmitted = "7/11/22"
+                Email = "TeSt@ExAmPlE.cOm",
+                SceneName = "TestUser",
+                ApplicationDate = "7/11/22"
             }
         };
 
@@ -528,9 +528,9 @@ public class UserImporterTests : IDisposable
         {
             new CsvRow
             {
-                VetteesEmail = "  test@example.com  ",
-                VetteesNickname = "TestUser",
-                AppSubmitted = "7/11/22"
+                Email = "  test@example.com  ",
+                SceneName = "TestUser",
+                ApplicationDate = "7/11/22"
             }
         };
 
@@ -555,9 +555,9 @@ public class UserImporterTests : IDisposable
         {
             new CsvRow
             {
-                VetteesEmail = "test@example.com",
-                VetteesNickname = "TestUser",
-                AppSubmitted = "7/11/22"
+                Email = "test@example.com",
+                SceneName = "TestUser",
+                ApplicationDate = "7/11/22"
             }
         };
 
@@ -580,9 +580,9 @@ public class UserImporterTests : IDisposable
         {
             new CsvRow
             {
-                VetteesEmail = "test@example.com",
-                VetteesNickname = "TestUser",
-                AppSubmitted = "invalid date"
+                Email = "test@example.com",
+                SceneName = "TestUser",
+                ApplicationDate = "invalid date"
             }
         };
 
@@ -608,15 +608,15 @@ public class UserImporterTests : IDisposable
         {
             new CsvRow
             {
-                VetteesEmail = "user1@example.com",
-                VetteesNickname = "User1",
-                AppSubmitted = "7/11/22"
+                Email = "user1@example.com",
+                SceneName = "User1",
+                ApplicationDate = "7/11/22"
             },
             new CsvRow
             {
-                VetteesEmail = "",
-                VetteesNickname = "User2",
-                AppSubmitted = "7/12/22"
+                Email = "",
+                SceneName = "User2",
+                ApplicationDate = "7/12/22"
             }
         };
 
@@ -625,6 +625,247 @@ public class UserImporterTests : IDisposable
 
         // Assert
         result.Errors[0].Should().Contain("Row 3"); // Row 2 is index 1, +2 = Row 3
+    }
+
+    #endregion
+
+    #region Status Parameter Tests
+
+    [Fact]
+    public async Task ImportUsersAsync_WithDefaultParameters_CreatesApprovedUser()
+    {
+        // Arrange
+        var rows = new List<CsvRow>
+        {
+            new CsvRow
+            {
+                Email = "approved@example.com",
+                SceneName = "ApprovedUser",
+                ApplicationDate = "7/11/22"
+            }
+        };
+
+        // Act - Call without status parameters (should use defaults: vettingStatus=3, workflowStatus=3)
+        var result = await _sut.ImportUsersAsync(rows, isDryRun: false);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.SuccessCount.Should().Be(1);
+
+        // Verify user has approved vetting status
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == "approved@example.com");
+        user.Should().NotBeNull();
+        user!.VettingStatus.Should().Be(3, "default status should be Approved (3)");
+        user.SceneName.Should().Be("ApprovedUser");
+
+        // Verify application has approved workflow status
+        var application = await _context.VettingApplications.FirstOrDefaultAsync(a => a.Email == "approved@example.com");
+        application.Should().NotBeNull();
+        application!.WorkflowStatus.Should().Be(3, "default workflow should be Approved (3)");
+    }
+
+    [Fact]
+    public async Task ImportUsersAsync_WithApprovedStatus_CreatesFullyVettedUser()
+    {
+        // Arrange
+        var rows = new List<CsvRow>
+        {
+            new CsvRow
+            {
+                Email = "vetted@example.com",
+                SceneName = "VettedUser",
+                Pronouns = "they/them",
+                ApplicationDate = "7/11/22"
+            }
+        };
+
+        // Act - Explicitly set approved status
+        var result = await _sut.ImportUsersAsync(rows, isDryRun: false, vettingStatus: 3, workflowStatus: 3);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.SuccessCount.Should().Be(1);
+        result.ErrorCount.Should().Be(0);
+
+        // Verify user has fully vetted status
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == "vetted@example.com");
+        user.Should().NotBeNull();
+        user!.VettingStatus.Should().Be(3, "user should be fully Approved (VettingStatus = 3)");
+        user.SceneName.Should().Be("VettedUser");
+        user.Pronouns.Should().Be("they/them");
+
+        // Verify application has approved workflow status
+        var application = await _context.VettingApplications.FirstOrDefaultAsync(a => a.Email == "vetted@example.com");
+        application.Should().NotBeNull();
+        application!.WorkflowStatus.Should().Be(3, "workflow should be Approved (3)");
+        application.SceneName.Should().Be("VettedUser");
+    }
+
+    [Fact]
+    public async Task ImportUsersAsync_WithInterviewApprovedStatus_CreatesAwaitingInterviewUser()
+    {
+        // Arrange
+        var rows = new List<CsvRow>
+        {
+            new CsvRow
+            {
+                Email = "interview@example.com",
+                SceneName = "InterviewUser",
+                Pronouns = "she/her",
+                FetLifeHandle = "fetlife456",
+                ApplicationDate = "7/11/22"
+            }
+        };
+
+        // Act - Set interview-approved status (vettingStatus=1, workflowStatus=1)
+        var result = await _sut.ImportUsersAsync(rows, isDryRun: false, vettingStatus: 1, workflowStatus: 1);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.SuccessCount.Should().Be(1);
+        result.ErrorCount.Should().Be(0);
+
+        // Verify user has interview-approved status
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == "interview@example.com");
+        user.Should().NotBeNull();
+        user!.VettingStatus.Should().Be(1, "user should be InterviewApproved (VettingStatus = 1)");
+        user.SceneName.Should().Be("InterviewUser");
+        user.Pronouns.Should().Be("she/her");
+        user.FetLifeName.Should().Be("fetlife456");
+
+        // Verify application has interview-approved workflow status
+        var application = await _context.VettingApplications.FirstOrDefaultAsync(a => a.Email == "interview@example.com");
+        application.Should().NotBeNull();
+        application!.WorkflowStatus.Should().Be(1, "workflow should be InterviewApproved (1)");
+        application.SceneName.Should().Be("InterviewUser");
+    }
+
+    [Fact]
+    public async Task ImportUsersAsync_WithInterviewApprovedStatus_MultipleUsers_AllHaveCorrectStatus()
+    {
+        // Arrange - Multiple users to import with interview-approved status
+        var rows = new List<CsvRow>
+        {
+            new CsvRow
+            {
+                Email = "interview1@example.com",
+                SceneName = "InterviewUser1",
+                ApplicationDate = "7/11/22"
+            },
+            new CsvRow
+            {
+                Email = "interview2@example.com",
+                SceneName = "InterviewUser2",
+                ApplicationDate = "7/12/22"
+            },
+            new CsvRow
+            {
+                Email = "interview3@example.com",
+                SceneName = "InterviewUser3",
+                ApplicationDate = "7/13/22"
+            }
+        };
+
+        // Act - Import all with interview-approved status
+        var result = await _sut.ImportUsersAsync(rows, isDryRun: false, vettingStatus: 1, workflowStatus: 1);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.TotalRecords.Should().Be(3);
+        result.SuccessCount.Should().Be(3);
+        result.ErrorCount.Should().Be(0);
+
+        // Verify all users have interview-approved status
+        var users = await _context.Users.Where(u => u.Email.StartsWith("interview")).ToListAsync();
+        users.Should().HaveCount(3);
+        users.Should().OnlyContain(u => u.VettingStatus == 1, "all users should have InterviewApproved status");
+
+        // Verify all applications have interview-approved workflow status
+        var applications = await _context.VettingApplications.Where(a => a.Email.StartsWith("interview")).ToListAsync();
+        applications.Should().HaveCount(3);
+        applications.Should().OnlyContain(a => a.WorkflowStatus == 1, "all applications should have InterviewApproved workflow");
+    }
+
+    [Fact]
+    public async Task ImportUsersAsync_WithInterviewApprovedStatus_DryRun_ValidatesWithoutCreating()
+    {
+        // Arrange
+        var rows = new List<CsvRow>
+        {
+            new CsvRow
+            {
+                Email = "dryrun@example.com",
+                SceneName = "DryRunUser",
+                ApplicationDate = "7/11/22"
+            }
+        };
+
+        // Act - Dry run with interview-approved status
+        var result = await _sut.ImportUsersAsync(rows, isDryRun: true, vettingStatus: 1, workflowStatus: 1);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.SuccessCount.Should().Be(1);
+
+        // Verify no user was created in database
+        var userCount = await _context.Users.CountAsync();
+        userCount.Should().Be(0, "dry run should not create users");
+
+        var applicationCount = await _context.VettingApplications.CountAsync();
+        applicationCount.Should().Be(0, "dry run should not create applications");
+    }
+
+    [Fact]
+    public async Task ImportUsersAsync_WithDifferentStatuses_CreatesUsersWithCorrectStatus()
+    {
+        // Arrange - Test that we can import with different status values
+        var approvedRows = new List<CsvRow>
+        {
+            new CsvRow
+            {
+                Email = "fully-approved@example.com",
+                SceneName = "FullyApproved",
+                ApplicationDate = "7/11/22"
+            }
+        };
+
+        var interviewRows = new List<CsvRow>
+        {
+            new CsvRow
+            {
+                Email = "needs-interview@example.com",
+                SceneName = "NeedsInterview",
+                ApplicationDate = "7/12/22"
+            }
+        };
+
+        // Act - Import with approved status first
+        var approvedResult = await _sut.ImportUsersAsync(approvedRows, isDryRun: false, vettingStatus: 3, workflowStatus: 3);
+
+        // Then import with interview-approved status
+        var interviewResult = await _sut.ImportUsersAsync(interviewRows, isDryRun: false, vettingStatus: 1, workflowStatus: 1);
+
+        // Assert
+        approvedResult.SuccessCount.Should().Be(1);
+        interviewResult.SuccessCount.Should().Be(1);
+
+        // Verify approved user has status 3
+        var approvedUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == "fully-approved@example.com");
+        approvedUser.Should().NotBeNull();
+        approvedUser!.VettingStatus.Should().Be(3);
+
+        var approvedApp = await _context.VettingApplications.FirstOrDefaultAsync(a => a.Email == "fully-approved@example.com");
+        approvedApp.Should().NotBeNull();
+        approvedApp!.WorkflowStatus.Should().Be(3);
+
+        // Verify interview user has status 1
+        var interviewUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == "needs-interview@example.com");
+        interviewUser.Should().NotBeNull();
+        interviewUser!.VettingStatus.Should().Be(1);
+
+        var interviewApp = await _context.VettingApplications.FirstOrDefaultAsync(a => a.Email == "needs-interview@example.com");
+        interviewApp.Should().NotBeNull();
+        interviewApp!.WorkflowStatus.Should().Be(1);
     }
 
     #endregion
