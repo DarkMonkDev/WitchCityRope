@@ -244,7 +244,7 @@ echo ""
 # Step 4: Pull images on server
 echo "4️⃣  Pulling images on server..."
 echo "   Pulling latest images..."
-ssh -i $SSH_KEY $USER@$SERVER "cd $DEPLOY_PATH && docker-compose -f docker-compose.staging.yml pull"
+ssh -i $SSH_KEY $USER@$SERVER "cd $DEPLOY_PATH && IMAGE_TAG=latest docker-compose -f docker-compose.staging.yml pull"
 
 if [ $? -ne 0 ]; then
     echo "   ❌ FAIL: Image pull failed"
@@ -258,8 +258,8 @@ echo ""
 
 # Step 5: Deploy (restart containers)
 echo "5️⃣  Deploying containers..."
-echo "   Restarting containers..."
-ssh -i $SSH_KEY $USER@$SERVER "cd $DEPLOY_PATH && docker-compose -f docker-compose.staging.yml up -d"
+echo "   Forcing container recreation with latest images..."
+ssh -i $SSH_KEY $USER@$SERVER "cd $DEPLOY_PATH && IMAGE_TAG=latest docker-compose -f docker-compose.staging.yml up -d --force-recreate"
 
 if [ $? -ne 0 ]; then
     echo "   ❌ FAIL: Container restart failed"
@@ -268,7 +268,7 @@ if [ $? -ne 0 ]; then
     echo "   ssh $USER@$SERVER 'docker logs witchcity-api-staging'"
     exit 1
 fi
-echo "   ✅ Containers restart command completed"
+echo "   ✅ Containers recreated successfully"
 echo ""
 
 # Step 5b: Verify containers were actually recreated
