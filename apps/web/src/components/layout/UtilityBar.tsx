@@ -1,56 +1,51 @@
 import { Box, Group } from '@mantine/core'
 import { Link } from 'react-router-dom'
 import { useUser, useIsAuthenticated } from '../../stores/authStore'
-import { useAuth } from '../../contexts/AuthContext'
+import { useLogout } from '../../features/auth/api/mutations'
 
 /**
  * UtilityBar Component - Top utility navigation bar
  *
- * ⚠️ DO NOT CHANGE THE AUTHENTICATION PATTERN WITHOUT EXPLICIT DIRECTION ⚠️
- * The logout functionality has been tested and verified to work correctly.
- * TESTED AND VERIFIED ON: 2025-09-19
+ * STANDARD AUTHENTICATION PATTERN - WitchCityRope Project
+ * Last Updated: 2025-11-23
+ * Pattern: TanStack Query Mutations + Zustand Store
  *
  * This component displays the top utility bar with:
  * - User greeting (when authenticated)
  * - Navigation links (Private Lessons, Contact, Report an Incident)
  * - Logout button (when authenticated)
  *
- * CRITICAL Authentication Pattern (DO NOT CHANGE):
+ * Authentication Pattern:
  * - Uses Zustand store for reading auth state (useUser, useIsAuthenticated)
- * - Uses AuthContext for logout action to ensure proper cleanup
+ * - Uses TanStack Query mutation for logout action (useLogout)
  *
- * This dual approach is necessary because:
- * 1. Many components read from Zustand store directly for performance
- * 2. AuthContext provides the complete logout flow that cleans both stores
+ * Why this pattern:
+ * - Zustand provides fast, performant global state reads
+ * - TanStack Query provides automatic loading/error states for mutations
+ * - Consistent pattern across ALL auth operations (login, register, logout)
  *
- * The logout MUST use useAuth() from AuthContext, NOT the Zustand store directly.
+ * See: /docs/standards-processes/frontend/authentication-pattern-guide.md
  */
 export const UtilityBar: React.FC = () => {
   // Get auth state from Zustand store (for reading state)
   const user = useUser()
   const isAuthenticated = useIsAuthenticated()
 
-  // Get logout function from AuthContext (for proper cleanup)
-  // AuthContext logout handles:
-  // 1. Clearing React Context state
+  // Get logout mutation from TanStack Query
+  // Mutation handles:
+  // 1. Calling API with CSRF token
   // 2. Clearing Zustand store state
   // 3. Clearing sessionStorage
-  // 4. Calling API to clear httpOnly cookie
-  // 5. Redirecting to login page
-  const { logout } = useAuth()
+  // 4. Clearing React Query cache
+  // 5. Navigating to home page
+  const logoutMutation = useLogout()
 
   /**
    * Handle logout button click
-   * Uses the AuthContext logout which ensures complete cleanup
+   * Uses TanStack Query mutation for automatic loading states
    */
-  const handleLogout = async () => {
-    try {
-      await logout()
-      // No need for manual redirect - AuthContext logout handles it
-    } catch (error) {
-      console.error('Logout failed:', error)
-      // AuthContext logout already handles error cases
-    }
+  const handleLogout = () => {
+    logoutMutation.mutate()
   }
 
   return (
@@ -154,21 +149,23 @@ export const UtilityBar: React.FC = () => {
               component="button"
               data-testid="button-logout"
               onClick={handleLogout}
+              disabled={logoutMutation.isPending}
               style={{
                 background: 'none',
                 border: 'none',
-                color: 'var(--color-taupe)',
+                color: logoutMutation.isPending ? 'var(--color-taupe-50)' : 'var(--color-taupe)',
                 textDecoration: 'none',
                 transition: 'all 0.3s ease',
                 fontFamily: 'var(--font-heading)',
                 fontSize: '13px',
                 textTransform: 'uppercase',
                 letterSpacing: '1px',
-                cursor: 'pointer',
+                cursor: logoutMutation.isPending ? 'not-allowed' : 'pointer',
+                opacity: logoutMutation.isPending ? 0.6 : 1,
               }}
               className="utility-bar-link"
             >
-              Logout
+              {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
             </Box>
           )}
         </Group>

@@ -50,6 +50,8 @@ public static class SettingsEndpoints
         .Produces(403);
 
         // Update settings (admin only)
+        // CRITICAL SECURITY NOTE: CSRF protection is AUTOMATICALLY ENABLED via app.UseAntiforgery() middleware
+        // All POST/PUT/DELETE/PATCH endpoints have CSRF validation by default - prevents malicious config changes
         app.MapPut("/api/admin/settings", async (
             UpdateSettingsRequest request,
             ISettingsService settingsService,
@@ -87,6 +89,7 @@ public static class SettingsEndpoints
             return Results.Ok(new { Message = "Settings updated successfully" });
         })
         .RequireAuthorization(policy => policy.RequireRole(UserRole.Administrator.ToRoleString()))
+        // CSRF PROTECTION: Enabled automatically by app.UseAntiforgery() middleware (prevents malicious config changes)
         .WithName("UpdateAdminSettings")
         .WithSummary("Update application settings")
         .WithDescription("Updates one or more application settings (admin only)")

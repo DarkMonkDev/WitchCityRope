@@ -1,4 +1,5 @@
 using FluentValidation;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
 using WitchCityRope.Api.Features.CheckIn.Models;
 using WitchCityRope.Api.Features.CheckIn.Services;
@@ -102,12 +103,28 @@ public static class EventEndpoints
             .ProducesProblem(500);
 
         // Update existing event by ID
+        // SECURITY: CSRF protection prevents unauthorized event modifications
         app.MapPut("/api/events/{id}", async (
+            HttpContext context,
+            IAntiforgery antiforgery,
             string id,
             UpdateEventRequest request,
             [FromServices] IEventService eventService,
             CancellationToken cancellationToken) =>
             {
+                // CSRF validation - MUST be first
+                try
+                {
+                    await antiforgery.ValidateRequestAsync(context);
+                }
+                catch (AntiforgeryValidationException)
+                {
+                    return Results.Problem(
+                        title: "CSRF Validation Failed",
+                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                        statusCode: 400);
+                }
+
                 var (success, response, error) = await eventService.UpdateEventAsync(id, request, cancellationToken);
 
                 if (success && response != null)

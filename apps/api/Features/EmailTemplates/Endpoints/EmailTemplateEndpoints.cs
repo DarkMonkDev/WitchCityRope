@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -239,12 +240,27 @@ public static class EmailTemplateEndpoints
     }
 
     private static async Task<IResult> UpdateGlobalTemplate(
+        HttpContext context,
+        IAntiforgery antiforgery,
         Guid id,
         [FromBody] UpdateGlobalTemplateRequest request,
         ClaimsPrincipal user,
         IEmailTemplateService service,
         CancellationToken cancellationToken)
     {
+        // Validate CSRF token
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
         // Extract user ID from claims
         var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier) ?? user.FindFirst("sub");
         if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
@@ -303,6 +319,8 @@ public static class EmailTemplateEndpoints
     }
 
     private static async Task<IResult> UpdateEventTemplate(
+        HttpContext context,
+        IAntiforgery antiforgery,
         Guid eventId,
         string type,
         [FromBody] UpdateEventTemplateRequest request,
@@ -310,6 +328,19 @@ public static class EmailTemplateEndpoints
         IEmailTemplateService service,
         CancellationToken cancellationToken)
     {
+        // Validate CSRF token
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
         // Extract user ID from claims
         var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier) ?? user.FindFirst("sub");
         if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
@@ -334,11 +365,26 @@ public static class EmailTemplateEndpoints
     }
 
     private static async Task<IResult> DeleteEventTemplate(
+        HttpContext context,
+        IAntiforgery antiforgery,
         Guid eventId,
         string type,
         IEmailTemplateService service,
         CancellationToken cancellationToken)
     {
+        // Validate CSRF token
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
         // TODO: Check if user is event organizer or admin
         // For now, authorization attribute handles admin check
 
@@ -356,11 +402,26 @@ public static class EmailTemplateEndpoints
     }
 
     private static async Task<IResult> SendAdHocEmail(
+        HttpContext context,
+        IAntiforgery antiforgery,
         [FromBody] SendAdHocEmailRequest request,
         ClaimsPrincipal user,
         IEmailTemplateService service,
         CancellationToken cancellationToken)
     {
+        // Validate CSRF token
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
         // Extract user ID from claims
         var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier) ?? user.FindFirst("sub");
         if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))

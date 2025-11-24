@@ -37,6 +37,15 @@ public class Venue
     public string? Notes { get; set; }
 
     /// <summary>
+    /// General location information (city, state) for public display
+    /// Safe to display to all users (no PII)
+    /// Max length: 100 characters
+    /// Example: "Salem, MA"
+    /// </summary>
+    [MaxLength(100)]
+    public string? Location { get; set; }
+
+    /// <summary>
     /// Soft delete flag - venues are never hard deleted
     /// Defaults to true (active)
     /// </summary>

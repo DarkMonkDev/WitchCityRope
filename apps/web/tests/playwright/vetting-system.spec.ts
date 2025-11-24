@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { AuthHelper } from '../e2e/helpers/auth.helper';
+import { AuthHelper } from './helpers/auth.helper';
 
 /**
  * COMPREHENSIVE VETTING SYSTEM E2E TEST

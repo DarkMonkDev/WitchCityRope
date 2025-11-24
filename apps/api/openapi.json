@@ -10,6 +10,30 @@
     }
   ],
   "paths": {
+    "/api/antiforgery/token": {
+      "get": {
+        "tags": [
+          "Security",
+          "Authentication"
+        ],
+        "summary": "Generate CSRF token for authenticated session",
+        "description": "Generates and stores CSRF token in XSRF-TOKEN cookie. React frontend reads this cookie and includes token in X-CSRF-TOKEN header for state-changing requests.",
+        "operationId": "GetAntiforgeryToken",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
     "/api/health": {
       "get": {
         "tags": [
@@ -10876,6 +10900,10 @@
           "notes": {
             "type": "string",
             "nullable": true
+          },
+          "location": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -14279,6 +14307,10 @@
             "type": "string",
             "nullable": true
           },
+          "location": {
+            "type": "string",
+            "nullable": true
+          },
           "isActive": {
             "type": "boolean"
           }
@@ -14834,6 +14866,10 @@
             "type": "string",
             "nullable": true
           },
+          "location": {
+            "type": "string",
+            "nullable": true
+          },
           "isActive": {
             "type": "boolean"
           },
@@ -15289,13 +15325,16 @@
   ],
   "tags": [
     {
+      "name": "Security"
+    },
+    {
+      "name": "Authentication"
+    },
+    {
       "name": "Health"
     },
     {
       "name": "Metadata"
-    },
-    {
-      "name": "Authentication"
     },
     {
       "name": "Debug"

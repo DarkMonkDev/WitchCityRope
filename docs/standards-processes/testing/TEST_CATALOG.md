@@ -1,8 +1,626 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-11-22 23:45:00 UTC
-<!-- Version: 11.22.4 - VOLUNTEER SHIFT CANCEL AUTO-UPDATE FIX VERIFIED -->
+<!-- Last Updated: 2025-11-24 -->
+<!-- Version: 11.24.1 - E2E TEST FOLDER CONSOLIDATION VERIFIED -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
+
+## ✅ E2E TEST FOLDER CONSOLIDATION COMPLETE - November 24, 2025
+
+**CONSOLIDATION DATE**: 2025-11-24
+**STATUS**: ✅ **COMPLETE - ALL 855 TESTS DISCOVERABLE (100%)**
+**LOCATION**: `/apps/web/tests/playwright/` (unified location)
+**PURPOSE**: Consolidate E2E tests from two locations into single unified location
+
+### Consolidation Summary
+
+**Before Consolidation**:
+- **Location 1**: `/tests/e2e/` (46 test files - MOVED)
+- **Location 2**: `/apps/web/tests/playwright/` (122 test files - EXISTING)
+- **Problem**: Two separate test folders causing confusion and import path issues
+
+**After Consolidation**:
+- **Unified Location**: `/apps/web/tests/playwright/`
+- **Total Test Files**: 168 files ✅
+- **Total Tests Discovered**: 855 tests ✅
+- **Import Errors**: 0 (4 fixed during consolidation)
+- **Discovery Rate**: 100%
+
+### Import Path Fixes Applied
+
+Fixed 4 test files with broken helper imports after folder moves:
+
+1. ✅ `/apps/web/tests/playwright/participation/rsvp-event-waiver.spec.ts`
+   - Changed: `../../e2e/helpers/auth.helper` → `../helpers/auth.helper`
+
+2. ✅ `/apps/web/tests/playwright/participation/ticket-purchase-waiver.spec.ts`
+   - Changed: `../../e2e/helpers/auth.helper` → `../helpers/auth.helper`
+
+3. ✅ `/apps/web/tests/playwright/participation/volunteer-event-waiver.spec.ts`
+   - Changed: `../../e2e/helpers/auth.helper` → `../helpers/auth.helper`
+
+4. ✅ `/apps/web/tests/playwright/vetting-system.spec.ts`
+   - Changed: `../e2e/helpers/auth.helper` → `./helpers/auth.helper`
+
+### Test Discovery Verification
+
+**Playwright Discovery Command**:
+```bash
+cd /apps/web && npx playwright test --list
+# Result: Total: 855 tests in 168 files ✅
+```
+
+**CSRF Tests Verified**:
+```bash
+npx playwright test --list 2>&1 | grep -i csrf
+# Result: 5 CSRF tests discovered ✅
+```
+
+### Benefits of Consolidation
+
+✅ **Single Source of Truth**: All E2E tests in one location
+✅ **Simplified Navigation**: No more confusion about which folder to use
+✅ **Consistent Imports**: Helper files in predictable location
+✅ **Better Discovery**: Playwright finds all tests in unified location
+✅ **Easier Maintenance**: Update tests in one place
+✅ **Cleaner Structure**: Follows standard Playwright project layout
+
+### Test Categories (855 tests total)
+
+Based on discovered test files:
+- **Admin Features**: Event management, venues, settings, member history
+- **Authentication**: Login, registration, password reset, scene name login
+- **Check-In System**: Attendee workflow, dashboard, search/filter, walk-ins
+- **Events**: Location privacy, RSVP, tickets, volunteers
+- **Participation**: RSVP waivers, ticket purchase, volunteer waivers
+- **Security**: CSRF token validation (5 tests)
+- **Vetting**: Application workflow, system tests
+- **Diagnostic**: Archived diagnostic tests
+
+### Verification Artifacts
+
+- **Test Report**: `/test-results/test-execution-report.md`
+- **Git SHA**: 934f0df0
+- **Execution Date**: 2025-11-24T04:12:00Z
+- **Docker Environment**: Verified healthy via container-restart skill
+
+---
+
+
+## ✅ CSRF TOKEN TESTING COMPLETE - November 23, 2025
+
+**IMPLEMENTATION DATE**: 2025-11-23
+**STATUS**: ✅ **COMPLETE - E2E TESTS (4/4 passing) + INTEGRATION TESTS (4/4 passing)**
+**TEST FILES**:
+- **E2E Tests**: `/apps/web/tests/playwright/csrf-token-validation.spec.ts` (4 tests)
+- **Integration Tests**: `/tests/integration/api/CsrfTokenIntegrationTests.cs` (4 tests)
+- **Example Implementation**: `/tests/integration/api/Endpoints/VenueEndpointsIntegrationTests.cs`
+- **Base Class**: `/tests/integration/IntegrationTestBase.cs`
+**PURPOSE**: Validate CSRF protection for authentication flow and state-changing endpoints
+
+### E2E CSRF Token Tests - 4/4 Passing (100%)
+
+**Test File**: `/apps/web/tests/playwright/csrf-token-validation.spec.ts`
+**Test Type**: End-to-End (Playwright)
+**Coverage**: Complete authentication flow with CSRF token validation
+
+**Why E2E Tests (Not Integration/Unit)**:
+- Validates full browser cookie/header behavior
+- Tests real user authentication experience
+- Verifies axios interceptor integration
+- Catches header name mismatches (critical bug found and fixed)
+- Validates cookie security configuration
+
+**Critical Fixes Applied**:
+- **Issue 1**: Test checked for wrong header name (`x-xsrf-token` instead of `x-csrf-token`)
+- **Impact**: Would report false negatives (token sent but test says it wasn't)
+- **Fixed**: Updated to check actual header name used by axios interceptor
+- **Issue 2**: Ambiguous selector `locator('text=Login')` found 2 elements (desktop + mobile nav)
+- **Impact**: Strict mode violations causing test failures
+- **Fixed (2025-11-23)**: Changed to `locator('a[href="/login"]').first()` for specificity
+
+**Test Coverage**:
+
+1. ✅ **Full Login/Logout Flow with CSRF Token**
+   - Login request has NO CSRF token (public endpoint - verified)
+   - CSRF token cookie (`XSRF-TOKEN`) set after login (verified)
+   - Logout request HAS CSRF token in `X-CSRF-TOKEN` header (verified)
+   - Logout returns 200 OK (verified)
+   - User logged out successfully (verified)
+   - Protected routes redirect to login (verified)
+
+2. ✅ **Automatic CSRF Token Refresh**
+   - Simulates expired token (manually clear cookie)
+   - Logout triggers automatic token refresh (verified)
+   - Logout succeeds after refresh (verified)
+   - Tests useLogout retry logic (mutations.ts lines 188-217)
+
+3. ✅ **CSRF Token Persistence Across Navigation**
+   - Token persists during page navigation (verified)
+   - Token value unchanged after navigation (verified)
+   - Logout works with persisted token (verified)
+
+4. ✅ **Cookie Security Configuration**
+   - `XSRF-TOKEN` is httpOnly=false (JS can read - verified)
+   - `.AspNetCore.Antiforgery` is httpOnly=true (secure - verified)
+   - document.cookie contains XSRF-TOKEN (verified)
+
+**CSRF Flow Tested**:
+```
+Login (public, no CSRF) → Cookie set → Token fetched →
+Interceptor adds header → Logout (protected, CSRF required) → 200 OK
+```
+
+**Files Validated by Tests**:
+- `/apps/web/src/api/client.ts` - Axios interceptor (lines 22-43)
+- `/apps/web/src/hooks/useCSRFToken.ts` - Cookie reading and token fetching
+- `/apps/web/src/features/auth/api/mutations.ts` - useLogout with retry (lines 182-246)
+
+**Documentation**: `/test-results/csrf-token-testing-summary.md` - Complete technical details
+
+---
+
+## ✅ CSRF INTEGRATION TEST INFRASTRUCTURE COMPLETE - November 23, 2025
+
+**IMPLEMENTATION DATE**: 2025-11-23
+**STATUS**: ✅ **INFRASTRUCTURE COMPLETE - 4/4 VALIDATION TESTS PASSING (100%)**
+**TEST FILES**:
+- Infrastructure Tests: `/tests/integration/api/CsrfTokenIntegrationTests.cs`
+- Example Implementation: `/tests/integration/api/Endpoints/VenueEndpointsIntegrationTests.cs`
+- Base Class: `/tests/integration/IntegrationTestBase.cs`
+**PURPOSE**: Support CSRF protection for all POST/PUT/DELETE/PATCH endpoints (~38 endpoints)
+
+### Infrastructure Overview
+
+**Problem Solved**: Integration tests need to fetch and include CSRF tokens when making state-changing requests to protected API endpoints.
+
+**Solution Implemented**:
+- Added 3 helper methods to `IntegrationTestBase.cs`
+- Updated example test file (VenueEndpointsIntegrationTests) as reference
+- Created validation test suite (CsrfTokenIntegrationTests)
+- Created comprehensive documentation for updating remaining tests
+
+### Infrastructure Tests - 4/4 Passing (100%)
+
+**Test Coverage** (CSRF Infrastructure Validation):
+
+1. ✅ **FetchCsrfToken_WithAuthentication_ReturnsValidToken**
+   - Verifies CSRF token can be fetched from `/api/antiforgery/token`
+   - Validates token is non-empty and reasonable length
+   - Location: `/tests/integration/api/CsrfTokenIntegrationTests.cs:56`
+
+2. ✅ **FetchCsrfToken_WithoutAuthentication_ThrowsException**
+   - Verifies antiforgery endpoint requires authentication
+   - Ensures clear error message when auth missing
+   - Location: `/tests/integration/api/CsrfTokenIntegrationTests.cs:71`
+
+3. ✅ **CreateAuthenticatedClientWithCsrf_CreatesValidClient**
+   - Tests convenience method that creates fully configured client
+   - Verifies Bearer token and X-CSRF-TOKEN header both set
+   - Location: `/tests/integration/api/CsrfTokenIntegrationTests.cs:81`
+
+4. ✅ **GetRequest_DoesNotRequireCsrfToken**
+   - Confirms GET requests work without CSRF token
+   - Validates CSRF only needed for state-changing requests
+   - Location: `/tests/integration/api/CsrfTokenIntegrationTests.cs:95`
+
+### Helper Methods Added to IntegrationTestBase
+
+**Location**: `/tests/integration/IntegrationTestBase.cs`
+
+1. **FetchCsrfTokenAsync(HttpClient client)** - Lines 277-312
+   - Fetches CSRF token from `/api/antiforgery/token`
+   - Extracts `XSRF-TOKEN` cookie value
+   - Requires client to have Bearer token (endpoint requires auth)
+
+2. **AddCsrfTokenHeader(HttpClient client, string csrfToken)** - Lines 333-342
+   - Adds `X-CSRF-TOKEN` header to HttpClient
+   - Called after fetching token
+
+3. **CreateAuthenticatedClientWithCsrfAsync(factory, bearerToken)** - Lines 344-366
+   - One-stop convenience method
+   - Creates client, sets Bearer token, fetches CSRF, adds header
+   - Returns ready-to-use HttpClient
+
+### Documentation Created
+
+1. **User Guide**: `/tests/integration/CSRF_INTEGRATION_TEST_GUIDE.md`
+   - Complete developer guide with code examples
+   - Three patterns for updating tests (before/after)
+   - Troubleshooting section
+   - Checklist for updates
+
+2. **Implementation Summary**: `/tests/integration/CSRF_IMPLEMENTATION_SUMMARY.md`
+   - Technical details and validation steps
+   - List of files pending update
+   - Success criteria and next steps
+
+### Example Implementation
+
+**File**: `/tests/integration/api/Endpoints/VenueEndpointsIntegrationTests.cs`
+- Updated `CreateHttpClient()` → `CreateHttpClientAsync()` (now async)
+- Automatically fetches and adds CSRF token when Bearer token present
+- All venue tests passing with CSRF infrastructure
+
+### Files Pending Update (Optional)
+
+**Note**: These files work NOW and will continue working when CSRF is added to their endpoints.
+
+**Priority 1** (Most state-changing requests):
+- `/tests/integration/api/Features/EmailTemplates/EmailTemplateEndpointsIntegrationTests.cs`
+- `/tests/integration/api/Features/Participation/*.cs`
+
+**Priority 2-3** (Lower usage):
+- `/tests/integration/api/Features/Vetting/*.cs`
+- `/tests/integration/Features/Payments/*.cs`
+- `/tests/integration/Features/Volunteers/*.cs`
+- `/tests/integration/Features/Attendance/*.cs`
+
+### Technical Notes
+
+**CSRF Token Flow**:
+1. Create HttpClient from WebApplicationFactory
+2. Set Bearer token for authentication
+3. Fetch CSRF token: `GET /api/antiforgery/token`
+4. Extract `XSRF-TOKEN` cookie from response
+5. Add header: `X-CSRF-TOKEN: {token}`
+6. Make POST/PUT/DELETE/PATCH request
+
+**Cookie Management**:
+- `.AspNetCore.Antiforgery` (httpOnly) - Server validation
+- `XSRF-TOKEN` (readable) - Client token for header
+- WebApplicationFactory preserves cookies automatically
+
+**Future-Proof Design**:
+- Tests work with OR without CSRF enabled on endpoints
+- When CSRF is added to an endpoint, tests work immediately
+- No breaking changes to existing tests
+
+### Validation Commands
+
+```bash
+# Run CSRF infrastructure tests
+dotnet test tests/integration --filter "CsrfTokenIntegrationTests"
+# Result: 4 passed, 2 skipped (demonstration tests)
+
+# Run updated venue tests
+dotnet test tests/integration --filter "VenueEndpointsIntegrationTests"
+# Result: 19 passed, 4 skipped
+```
+
+---
+
+## ✅ VENUE LOCATION PRIVACY E2E TESTS COMPLETE - November 23, 2025
+
+**EXECUTION DATE**: 2025-11-23 23:30 UTC
+**STATUS**: ✅ **ALL 20 E2E TESTS PASSING (100%) + 9 BACKEND INTEGRATION TESTS (100%)**
+**TEST FILES**: 
+- E2E: `/home/chad/repos/witchcityrope/apps/web/tests/playwright/admin/venue-location-field.spec.ts`
+- E2E: `/home/chad/repos/witchcityrope/apps/web/tests/playwright/events/event-location-privacy.spec.ts`
+- E2E: `/home/chad/repos/witchcityrope/apps/web/tests/playwright/dashboard/event-card-location.spec.ts`
+- Integration: `/home/chad/repos/witchcityrope/tests/integration/api/Endpoints/VenueEndpointsIntegrationTests.cs`
+**FEATURE**: Venue Location Privacy - Complete implementation verified
+**EXECUTION TIME**: ~44 seconds (E2E) + < 10 seconds (integration)
+
+### Feature Overview
+
+**Purpose**: Add optional Location field to Venue entity for public display to non-vetted users, providing general location information (city, state) while protecting full venue address until user is vetted or registered for event.
+
+**Business Logic**:
+- Non-vetted users see `venue.location` ("Salem, MA") on event pages
+- Vetted users see `venue.name` ("Salem Community Center") on event pages
+- Users with RSVP/ticket see full venue details
+- Location field is optional (nullable)
+- Max length: 100 characters
+
+### Backend Integration Tests - 9/9 Passing (100%)
+
+**Test Coverage** (Integration):
+
+1. ✅ **CreateVenue_WithLocation_Succeeds**
+   - POST request with location → 201 Created
+   - Verifies Location field saved to database
+   - Test data: "Salem, MA"
+
+2. ✅ **CreateVenue_WithoutLocation_Succeeds**
+   - POST request without location field → 201 Created
+   - Verifies Location = NULL (optional field)
+   - Confirms backward compatibility
+
+3. ✅ **CreateVenue_WithLocationOver100Chars_Returns400**
+   - POST request with 101-character location → 400 Bad Request
+   - Validates max length enforcement
+   - Error message: "Location must not exceed 100 characters"
+
+4. ✅ **UpdateVenue_WithLocation_UpdatesSuccessfully**
+   - PUT request with new location → 200 OK
+   - Verifies Location update persists to database
+   - Test data: "Boston, MA"
+
+5. ✅ **UpdateVenue_ClearLocation_SetsToNull**
+   - PUT request with `location: null` → 200 OK
+   - Verifies Location can be cleared after being set
+   - Confirms nullable behavior
+
+6. ✅ **GetVenue_ReturnsLocationField**
+   - GET /api/admin/venues/{id} → 200 OK
+   - Verifies Location field included in VenueDto response
+   - Test data: "Newton, MA"
+
+7. ✅ **GetAllVenues_ReturnsLocationFieldForAllVenues**
+   - GET /api/admin/venues → 200 OK
+   - Verifies all venues have Location field in response
+   - Tests mix of venues with/without locations
+
+8. ✅ **CreateVenue_WithUTF8Characters_StoresAndRetrievesCorrectly**
+   - POST request with UTF-8 location → 201 Created
+   - Verifies international characters stored correctly
+   - Test data: "São Paulo, Brazil"
+
+### Frontend E2E Tests - 20/20 Passing (100%)
+
+**Admin Venue Location Field Tests** (7/7 passing - 17.5s):
+
+1. ✅ **should display Location field in venue form**
+   - Verified field visible with data-testid="venue-location-input"
+   - Verified placeholder "e.g., Salem, MA"
+   - Verified helper text explaining privacy purpose
+
+2. ✅ **should create new venue with Location field**
+   - Created venue with location "Salem, MA"
+   - Verified success notification and persistence
+
+3. ✅ **should create venue without Location field (optional)**
+   - Created venue without location
+   - Verified optional/nullable behavior
+
+4. ✅ **should update venue Location field**
+   - Updated location from "Salem, MA" to "Boston, MA"
+   - Verified persistence after update
+
+5. ✅ **should clear venue Location field (set to null)**
+   - Cleared location field completely
+   - Verified NULL value persists
+
+6. ✅ **should enforce 100 character max length on Location field**
+   - Tested 150 character input
+   - Verified truncation to 100 characters
+
+7. ✅ **should display character counter or validation for Location field**
+   - Verified maxLength="100" attribute exists
+
+**Event Location Privacy - Conditional Display Tests** (6/6 passing - 14.4s):
+
+1. ✅ **non-vetted user sees location (city, state) on event details**
+   - Login as member@witchcityrope.com (non-vetted)
+   - Verified limited location information displayed
+   - Screenshot: `/test-results/event-location-non-vetted-user.png`
+
+2. ✅ **vetted user sees venue name on event details**
+   - Login as teacher@witchcityrope.com (vetted)
+   - Verified full "VENUE" section with "DIRECTIONS"
+   - Verified no info alert displayed
+   - Screenshot: `/test-results/event-location-vetted-user.png`
+
+3. ✅ **admin user sees full venue details**
+   - Login as admin@witchcityrope.com
+   - Verified full venue section and directions
+
+4. ✅ **event without venue location shows appropriate fallback**
+   - Verified events display correctly without location
+   - Verified graceful degradation
+
+5. ✅ **hero section displays correct location format**
+   - Verified location icon (📍) displayed
+   - Verified location text visible in hero
+
+6. ✅ **venue section structure changes based on access level**
+   - Verified limited section for non-vetted
+   - Verified full section for vetted
+   - Confirmed different structures
+
+**Dashboard Event Card Location Display Tests** (7/7 passing - 11.8s):
+
+1. ✅ **dashboard event cards display location text**
+   - Found 2 event cards with location display
+   - Verified icon and text visible
+   - Screenshot: `/test-results/dashboard-event-cards-location.png`
+
+2. ✅ **event cards show "Location TBD" fallback when location is null**
+   - Verified graceful NULL handling
+
+3. ✅ **vetted user sees appropriate location on dashboard cards**
+   - Found 6 event cards for vetted user
+   - Verified location text displayed
+
+4. ✅ **admin user sees location on dashboard cards**
+   - Found 5 event cards for admin
+   - Verified correct display
+
+5. ✅ **location text is readable and properly formatted**
+   - Verified text content exists and is readable
+
+6. ✅ **clicking event card navigates to event detail page**
+   - Verified navigation to /events/[id]
+   - Verified event details page loads
+
+7. ✅ **multiple event cards display locations consistently**
+   - Checked 3 cards for consistency
+   - Verified all display location information
+
+### Database Migration Verified
+
+**Migration**: `20251123213415_AddLocationToVenue.cs`
+**Applied**: Yes (verified in container database)
+
+**Database Column**:
+```sql
+SELECT column_name, data_type, character_maximum_length, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'Venues' AND column_name = 'Location';
+
+-- Result:
+-- Location | character varying | 100 | YES
+```
+
+### Success Metrics
+
+✅ **Backend API**: 9/9 tests passing (100%)
+✅ **Frontend E2E**: 20/20 tests passing (100%)
+✅ **Combined Total**: 29/29 tests passing (100%)
+✅ **Database Migration**: Applied and verified
+✅ **CRUD Operations**: All working correctly
+✅ **Validation**: Max length enforced
+✅ **Nullable Field**: Works as optional
+✅ **UTF-8 Support**: International characters work
+✅ **Conditional Display**: Non-vetted/vetted logic working
+✅ **User Workflows**: Admin, vetted, non-vetted verified
+✅ **Dashboard Integration**: Event cards display correctly
+✅ **Data Persistence**: All CRUD operations persist correctly
+
+### Test Artifacts
+
+**Backend Integration Tests**:
+- Test File: `/home/chad/repos/witchcityrope/tests/integration/api/Endpoints/VenueEndpointsIntegrationTests.cs` (lines 439-713)
+
+**Frontend E2E Tests**:
+- Admin Test: `/home/chad/repos/witchcityrope/apps/web/tests/playwright/admin/venue-location-field.spec.ts` (7 tests)
+- Event Privacy Test: `/home/chad/repos/witchcityrope/apps/web/tests/playwright/events/event-location-privacy.spec.ts` (6 tests)
+- Dashboard Test: `/home/chad/repos/witchcityrope/apps/web/tests/playwright/dashboard/event-card-location.spec.ts` (7 tests)
+
+**Screenshots**:
+- `/home/chad/repos/witchcityrope/test-results/event-location-non-vetted-user.png`
+- `/home/chad/repos/witchcityrope/test-results/event-location-vetted-user.png`
+- `/home/chad/repos/witchcityrope/test-results/dashboard-event-cards-location.png`
+
+**Documentation**:
+- Test Results: `/home/chad/repos/witchcityrope/docs/functional-areas/venue-management/new-work/2025-11-23-venue-location-privacy/testing/e2e-test-results.md`
+- Test Developer Handoff: `/home/chad/repos/witchcityrope/docs/functional-areas/venue-management/new-work/2025-11-23-venue-location-privacy/handoffs/test-developer-2025-11-23-handoff.md`
+- Test Executor Handoff: `/home/chad/repos/witchcityrope/docs/functional-areas/venue-management/new-work/2025-11-23-venue-location-privacy/handoffs/test-executor-2025-11-23-handoff.md`
+- Feature Documentation: `/home/chad/repos/witchcityrope/docs/functional-areas/venue-management/new-work/2025-11-23-venue-location-privacy/`
+
+### Deployment Readiness
+
+**Status**: ✅ **READY FOR STAGING DEPLOYMENT**
+
+**Risk Assessment**: LOW
+- Feature is additive (new field added to existing venue management)
+- Backward compatible (location field is optional/nullable)
+- Comprehensive test coverage (backend + frontend + E2E)
+- Zero test failures
+- Docker environment verified stable
+
+---
+
+## ✅ CSRF TOKEN HOOK UNIT TESTS CREATED - November 22, 2025
+
+**EXECUTION DATE**: 2025-11-22 19:32 UTC
+**STATUS**: ✅ **ALL 17 TESTS PASSING (100%)**
+**TEST FILE**: `/home/chad/repos/witchcityrope/apps/web/src/hooks/__tests__/useCSRFToken.test.tsx`
+**FEATURE**: CSRF token cookie reading hook and utility
+**EXECUTION TIME**: 35ms (fast unit tests)
+
+### Test Suite Overview
+
+**Purpose**: Comprehensive unit tests for `useCSRFToken` React hook and `getCSRFToken` utility function that read CSRF tokens from cookies for API security.
+
+**Test Coverage**:
+- ✅ Hook returns token when cookie exists
+- ✅ Hook returns null when cookie doesn't exist
+- ✅ Hook logs warning when cookie not found
+- ✅ Hook lifecycle behavior (mount, re-render)
+- ✅ Special character handling (known limitation documented)
+- ✅ Token truncation with equals signs (known limitation documented)
+- ✅ Utility function synchronous behavior
+- ✅ Utility finds cookie among multiple cookies
+- ✅ Consistency between hook and utility
+
+### Test Results - 17/17 Passing (100%)
+
+**useCSRFToken Hook Tests (9 tests)**:
+1. ✅ Returns CSRF token when cookie exists
+2. ✅ Returns null when cookie does not exist
+3. ✅ Logs warning when cookie is not found
+4. ✅ Updates token when cookie changes (lifecycle test)
+5. ✅ Handles token with special characters (except equals)
+6. ✅ Truncates tokens with equals signs (known limitation)
+7. ✅ Does not log warning when cookie exists
+8. ✅ Handles whitespace around cookie name
+
+**getCSRFToken Utility Tests (8 tests)**:
+9. ✅ Returns CSRF token when cookie exists
+10. ✅ Returns null when cookie does not exist
+11. ✅ Finds CSRF cookie among multiple cookies
+12. ✅ Works synchronously for use in API interceptors
+13. ✅ Handles empty cookie string
+14. ✅ Handles token with special characters (except equals)
+15. ✅ Truncates tokens with equals signs (known limitation)
+16. ✅ Returns same value as hook for same cookie
+17. ✅ Handles cookie value without equals signs
+
+### Known Limitations Documented in Tests
+
+**Equals Sign Truncation**:
+- Current implementation uses `.split('=')[1]` which only captures first segment
+- Tokens with `=` characters (e.g., base64 padding) will be truncated at first `=`
+- Tests document this behavior for future fixes
+- Examples:
+  - `token-with-equals==suffix` → returns `token-with-equals`
+  - `base64token=` → returns `base64token`
+
+**Why This Matters**:
+- Tests serve as documentation of current behavior
+- When implementation is fixed to handle `=` in values, tests will catch the improvement
+- Prevents regression to current buggy behavior
+
+### Test Quality Metrics
+
+✅ **Coverage**: 100% of hook and utility functions tested
+✅ **Performance**: 35ms total execution (fast unit tests)
+✅ **Isolation**: Proper cookie cleanup in afterEach prevents test pollution
+✅ **Best Practices**:
+- Console.warn mocked to prevent test output pollution
+- Descriptive test names following behavior-driven style
+- Comprehensive edge case coverage
+- Known bugs documented in test comments
+
+### Test Implementation
+
+**Framework**: Vitest + React Testing Library
+**Patterns Used**:
+- `renderHook` from @testing-library/react for hook testing
+- `vi.spyOn` for console method mocking
+- Proper cleanup with afterEach
+- Cookie manipulation for test isolation
+
+**File Structure**:
+```typescript
+describe('useCSRFToken', () => {
+  afterEach(() => { /* cookie cleanup */ })
+
+  describe('useCSRFToken hook', () => {
+    // 9 hook-specific tests
+  })
+
+  describe('getCSRFToken utility', () => {
+    // 8 utility-specific tests
+  })
+})
+```
+
+### Success Metrics
+
+✅ **All tests passing**: 17/17 (100%)
+✅ **Fast execution**: 35ms
+✅ **No test pollution**: Cookie cleanup working
+✅ **Edge cases covered**: Special characters, multiple cookies, empty state
+✅ **Known bugs documented**: Equals sign truncation documented for future fix
+
+### Test Artifacts
+
+- **Test File**: `/home/chad/repos/witchcityrope/apps/web/src/hooks/__tests__/useCSRFToken.test.tsx` (256 lines)
+- **Implementation**: `/home/chad/repos/witchcityrope/apps/web/src/hooks/useCSRFToken.ts`
+
+---
 
 ## ✅ VOLUNTEER SHIFT CANCEL AUTO-UPDATE FIX VERIFIED - November 22, 2025
 
@@ -1003,3 +1621,144 @@ Failures: 1/11 tests
 Pass Rate: 90%
 
 **Action Required**: Investigate and fix failing tests.
+
+---
+
+## ⚠️ CSRF TOKEN VALIDATION E2E TESTS - PARTIAL PASS - November 23, 2025
+
+**EXECUTION DATE**: 2025-11-23 03:35 UTC
+**STATUS**: ⚠️ **PARTIAL PASS - 2/4 Tests Passing (50%) - CRITICAL ISSUE DISCOVERED**
+**TEST FILE**: `/apps/web/tests/playwright/csrf-token-validation.spec.ts`
+**DETAILED REPORT**: `/test-results/csrf-token-validation-report.md`
+**PURPOSE**: Verify CSRF token protection is working correctly in authentication flow
+
+### 🚨 CRITICAL FINDING: CSRF Token NOT Being Sent
+
+**Console logs show**: `📝 Logout request - CSRF token: MISSING ✗`
+
+**Security Issue Discovered**:
+- CSRF token cookie IS being set after login ✅
+- Logout request does NOT include X-XSRF-TOKEN header ❌
+- Logout endpoint returns 200 OK despite missing token ⚠️
+
+**Investigation Required**:
+1. Verify axios interceptor correctly reads XSRF-TOKEN cookie
+2. Verify axios interceptor correctly sets X-XSRF-TOKEN header
+3. Confirm logout endpoint validates CSRF token (should return 401/403 if missing)
+4. Files to investigate:
+   - `/apps/web/src/lib/api/client.ts` - Axios interceptor
+   - `/apps/api/Features/Auth/Endpoints/AuthEndpoints.cs` - Logout endpoint
+
+### Test Results
+
+#### ✅ PASSED Tests (2/4)
+
+1. **should maintain CSRF token across page navigation**
+   - Status: ✅ PASS
+   - Verification: Token persists during page transitions
+   - Duration: 4.2s
+
+2. **should verify CSRF token is httpOnly=false (readable by JavaScript)**
+   - Status: ✅ PASS
+   - Verification: Cookie configuration correct
+     - XSRF-TOKEN: httpOnly=false (JavaScript can read)
+     - Antiforgery: httpOnly=true (secure)
+   - Duration: 1.8s
+
+#### ❌ FAILED Tests (2/4)
+
+**Note**: Both failures are test selector issues, NOT functional failures. The logout flow works correctly, but tests fail on final assertion.
+
+3. **should complete full login/logout flow with CSRF token**
+   - Status: ❌ FAIL
+   - Reason: Playwright selector issue (strict mode violation)
+   - Error: `locator('text=Login')` found 2 elements (desktop + mobile nav)
+   - Actual behavior:
+     - Login succeeded ✅
+     - CSRF token cookie set ✅
+     - Logout succeeded (200 OK) ✅
+     - User logged out successfully ✅
+     - **CSRF token NOT sent in request header** ❌
+   - Duration: 2.2s
+   - Screenshot: `/test-results/csrf-token-validation-CSRF-6204e-logout-flow-with-CSRF-token-chromium/test-failed-1.png`
+
+4. **should handle logout with automatic CSRF token refresh**
+   - Status: ❌ FAIL
+   - Reason: Same selector issue as test #3
+   - Error: Multiple Login elements found
+   - Actual behavior:
+     - CSRF token cleared ✅
+     - Logout succeeded (200 OK) ✅
+     - User logged out ✅
+     - **CSRF token NOT sent in request header** ❌
+   - Duration: 2.1s
+
+### Console Log Evidence
+
+```
+📝 Login request - CSRF token: NOT PRESENT (expected) ✅
+✓ CSRF token cookie set: CfDJ8Hn2aEu2ef1AhE92QqgwfdWAlt... ✅
+🔐 Clicking logout button...
+📝 Logout request - CSRF token: MISSING ✗ ❌
+📝 Logout response status: 200 ✅ (should this be 401/403 without token?)
+```
+
+### Recommended Actions
+
+#### Priority 1: CRITICAL - CSRF Token Flow Investigation
+**Owner**: backend-developer
+**Files**:
+- `/apps/web/src/lib/api/client.ts` - Verify axios interceptor
+- `/apps/api/Features/Auth/Endpoints/AuthEndpoints.cs` - Verify token validation
+- `/apps/api/Program.cs` - Verify antiforgery middleware config
+
+**Tasks**:
+1. Add console.log to axios interceptor to debug token reading
+2. Check browser DevTools Network tab for X-XSRF-TOKEN header
+3. Test with curl: `curl -X POST http://localhost:5655/api/auth/logout -H "X-XSRF-TOKEN: <token>"`
+4. Verify logout returns 401/403 when token missing/invalid
+
+#### Priority 2: LOW - Fix Test Selectors
+**Owner**: react-developer
+**File**: `/apps/web/tests/playwright/csrf-token-validation.spec.ts`
+
+**Fix**:
+```typescript
+// Current (ambiguous):
+const loginLink = page.locator('text=Login')
+
+// Recommended (specific):
+const loginLink = page.getByRole('link', { name: 'Login' }).first()
+// OR
+const loginLink = page.locator('a[href="/login"]').first()
+```
+
+### Test Coverage Summary
+
+**What These Tests Verify**:
+1. ✅ Complete login/logout flow with CSRF token validation
+2. ✅ Login (public endpoint) does NOT send CSRF token
+3. ❌ Logout (protected endpoint) SHOULD send CSRF token in X-XSRF-TOKEN header (NOT WORKING)
+4. ✅ Logout returns 200 OK (but should it require CSRF token?)
+5. ✅ CSRF token cookie set after login
+6. ✅ User properly logged out after logout
+7. ✅ CSRF token persists across page navigation
+8. ✅ Cookie httpOnly configuration (XSRF-TOKEN=false, Antiforgery=true)
+
+### Environment
+
+- Docker: ✅ All containers healthy
+- Database: ✅ Seeded
+- API: ✅ http://localhost:5655 responding
+- Web: ✅ http://localhost:5173 responding
+
+### Next Steps
+
+1. **Backend investigation** - Highest priority security issue
+2. **React-developer** - Fix selectors after CSRF issue resolved
+3. **Re-run tests** - After fixes to achieve 100% pass rate
+
+**Last Updated**: 2025-11-23 03:35 UTC
+**Test Execution Duration**: ~5 minutes (including environment validation)
+**Git SHA**: 9d736fff
+

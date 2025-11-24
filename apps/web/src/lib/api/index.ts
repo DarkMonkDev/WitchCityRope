@@ -4,7 +4,8 @@ export { queryClient } from './queryClient'
 export { wsManager } from './websocket'
 
 // Export hooks
-export * from './hooks/useAuth'
+// Note: useCurrentUser is in ./hooks/useAuth but should be imported directly from there
+// All other auth operations use TanStack Query mutations from features/auth/api/mutations.ts
 export * from './hooks/useEvents'
 export * from './hooks/useMembers'
 export * from './hooks/useOptimistic'

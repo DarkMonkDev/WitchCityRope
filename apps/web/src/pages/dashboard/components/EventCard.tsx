@@ -233,9 +233,9 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
           </Text>
         </Group>
 
-        {/* Location */}
+        {/* Location - Shows venue location for dashboard (user already has access) */}
         <Text size="sm" c="dimmed">
-          📍 {event.location}
+          📍 {event.location || 'Location TBD'}
         </Text>
 
         {/* Description */}

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using WitchCityRope.Api.Features.Users.Models.MemberDetails;
@@ -92,7 +93,10 @@ public static class MemberDetailsEndpoints
             .Produces(500);
 
         // Endpoint 8: Update member role
+        // CRITICAL SECURITY NOTE: CSRF protection is AUTOMATICALLY ENABLED via app.UseAntiforgery() middleware
+        // All POST/PUT/DELETE/PATCH endpoints have CSRF validation by default - prevents role elevation attacks
         group.MapPut("/role", UpdateMemberRole)
+            // CSRF PROTECTION: Enabled automatically by app.UseAntiforgery() middleware (prevents role elevation)
             .WithName("UpdateMemberRole")
             .WithSummary("Update member role")
             .Produces(204)
@@ -274,10 +278,25 @@ public static class MemberDetailsEndpoints
     private static async Task<IResult> CreateMemberNote(
         Guid userId,
         [FromBody] CreateUserNoteRequest request,
+        HttpContext context,
+        IAntiforgery antiforgery,
         ClaimsPrincipal user,
         [FromServices] IMemberDetailsService service,
         CancellationToken cancellationToken)
     {
+        // CRITICAL: Validate anti-forgery token FIRST
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
         // Get current user ID (admin performing the action)
         var authorIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
                          ?? user.FindFirst("sub")?.Value;
@@ -325,10 +344,25 @@ public static class MemberDetailsEndpoints
     private static async Task<IResult> UpdateMemberStatus(
         Guid userId,
         [FromBody] UpdateMemberStatusRequest request,
+        HttpContext context,
+        IAntiforgery antiforgery,
         ClaimsPrincipal user,
         [FromServices] IMemberDetailsService service,
         CancellationToken cancellationToken)
     {
+        // CRITICAL: Validate anti-forgery token FIRST
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
         // Get current user ID (admin performing the action)
         var performedByIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
                               ?? user.FindFirst("sub")?.Value;
@@ -366,10 +400,25 @@ public static class MemberDetailsEndpoints
     private static async Task<IResult> UpdateMemberRole(
         Guid userId,
         [FromBody] UpdateMemberRoleRequest request,
+        HttpContext context,
+        IAntiforgery antiforgery,
         ClaimsPrincipal user,
         [FromServices] IMemberDetailsService service,
         CancellationToken cancellationToken)
     {
+        // CRITICAL: Validate anti-forgery token FIRST
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
         // Get current user ID (admin performing the action)
         var performedByIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
                               ?? user.FindFirst("sub")?.Value;

@@ -1,15 +1,16 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '../client'
-import { authKeys, cacheUtils } from '../utils/cache'
-import type {
-  LoginRequest,
-  RegisterCredentials,
-  LoginResponse,
-  UserDto
-} from '../types/auth.types'
+import { authKeys } from '../utils/cache'
+import type { UserDto } from '../types/auth.types'
 
-// Current user query - integrates with existing auth context
-// Pattern B: Direct DTO response
+/**
+ * Current user query - integrates with existing auth context
+ *
+ * NOTE: This is the ONLY hook in this file that's actually used.
+ * All other auth operations (login, logout, register, etc.) use either:
+ * - TanStack Query hooks from features/auth/api/mutations.ts
+ * - AuthContext + authService pattern
+ */
 export function useCurrentUser(enabled: boolean = true) {
   return useQuery({
     queryKey: authKeys.me(),
@@ -27,158 +28,5 @@ export function useCurrentUser(enabled: boolean = true) {
     staleTime: 30 * 60 * 1000, // 30 minutes
     retry: false, // Don't retry auth failures
     enabled,
-  })
-}
-
-// Login mutation - integrates with existing auth service
-// Pattern B: Direct DTO response
-export function useLogin() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (credentials: LoginRequest): Promise<LoginResponse> => {
-      const { data } = await apiClient.post<LoginResponse>('/api/auth/login', credentials)
-      return data
-    },
-    onSuccess: (loginResponse) => {
-      // BFF Pattern: No token returned - authentication via httpOnly cookies only
-      // Cache user data from response
-      queryClient.setQueryData(authKeys.me(), loginResponse.user)
-
-      console.log('Login successful:', loginResponse.user?.sceneName)
-    },
-    onError: (error) => {
-      console.error('Login failed:', error)
-      // No localStorage token to remove in BFF pattern
-    },
-  })
-}
-
-// Register mutation
-// Pattern B: Direct DTO response
-export function useRegister() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (credentials: RegisterCredentials): Promise<LoginResponse> => {
-      const { data } = await apiClient.post<LoginResponse>('/api/auth/register', credentials)
-      return data
-    },
-    onSuccess: (registerResponse) => {
-      // BFF Pattern: No token returned - authentication via httpOnly cookies only
-      // Cache user data from response
-      queryClient.setQueryData(authKeys.me(), registerResponse.user)
-
-      console.log('Registration successful:', registerResponse.user?.sceneName)
-    },
-    onError: (error) => {
-      console.error('Registration failed:', error)
-    },
-  })
-}
-
-// Logout mutation
-export function useLogout() {
-  const queryClient = useQueryClient()
-  
-  return useMutation({
-    mutationFn: async (_?: void): Promise<void> => {
-      try {
-        await apiClient.post('/api/auth/logout')
-      } catch (error) {
-        // Don't fail logout for API errors
-        console.error('Logout API call failed:', error)
-      }
-    },
-    onSuccess: () => {
-      // BFF Pattern: Clear cached auth data (no localStorage tokens)
-      cacheUtils.clearAuth(queryClient)
-      console.log('Logout successful')
-    },
-    onError: (error) => {
-      // Still clear cached auth data on error
-      cacheUtils.clearAuth(queryClient)
-      console.error('Logout error, but clearing cached state:', error)
-    },
-  })
-}
-
-// Refresh token mutation (for future use)
-// Pattern B: Direct DTO response
-export function useRefreshToken() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (): Promise<LoginResponse> => {
-      const { data } = await apiClient.post<LoginResponse>('/api/auth/refresh')
-      return data
-    },
-    onSuccess: (refreshResponse) => {
-      // BFF Pattern: No token to store - refresh via httpOnly cookies
-      queryClient.setQueryData(authKeys.me(), refreshResponse.user)
-      console.log('Token refreshed successfully')
-    },
-    onError: (error) => {
-      console.error('Token refresh failed:', error)
-      // Redirect to login on refresh failure
-      cacheUtils.clearAuth(queryClient)
-      window.location.href = '/login'
-    },
-  })
-}
-
-// Update profile mutation
-// Pattern B: Direct DTO response
-export function useUpdateProfile() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (profileData: Partial<UserDto>): Promise<UserDto> => {
-      const { data } = await apiClient.put<UserDto>('/api/auth/profile', profileData)
-      return data
-    },
-    onMutate: async (updatedProfile) => {
-      // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: authKeys.me() })
-      
-      // Snapshot previous value
-      const previousUser = queryClient.getQueryData(authKeys.me()) as UserDto | undefined
-      
-      // Optimistically update profile
-      queryClient.setQueryData(authKeys.me(), (old: UserDto | undefined) => {
-        if (!old) return old
-        return { ...old, ...updatedProfile }
-      })
-      
-      return { previousUser }
-    },
-    onError: (err, _updatedProfile, context) => {
-      // Rollback on error
-      if (context?.previousUser) {
-        queryClient.setQueryData(authKeys.me(), context.previousUser)
-      }
-      console.error('Profile update failed, rolling back:', err)
-    },
-    onSettled: () => {
-      // Always refetch after error or success
-      queryClient.invalidateQueries({ queryKey: authKeys.me() })
-    },
-  })
-}
-
-// Check authentication status
-export function useAuthStatus() {
-  return useQuery({
-    queryKey: [...authKeys.all, 'status'],
-    queryFn: async (): Promise<boolean> => {
-      try {
-        await apiClient.get('/api/auth/status')
-        return true
-      } catch {
-        return false
-      }
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: false,
   })
 }

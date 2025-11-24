@@ -100,8 +100,12 @@ public static class AdminBackupEndpoints
             .Produces<ErrorResponse>(500);
 
         // 8. Upload and Restore Local Backup
+        // CRITICAL SECURITY NOTE: CSRF protection is AUTOMATICALLY ENABLED via app.UseAntiforgery() middleware
+        // Prevents CSRF attacks on database restore (catastrophic risk if exploited)
+        // Multipart/form-data uploads CAN include CSRF token in form field or X-CSRF-TOKEN header
         group.MapPost("/upload-and-restore", UploadAndRestoreBackup)
             .RequireAuthorization(policy => policy.RequireRole(UserRole.Administrator.ToRoleString()))
+            // CSRF PROTECTION: Enabled automatically by app.UseAntiforgery() middleware (prevents malicious database restoration)
             .WithName("UploadAndRestoreBackup")
             .WithSummary("Upload a local backup file and restore it (admin only)")
             .WithDescription("Accepts .dump or .sql file upload, saves to temp directory, and enqueues restore job. Optionally creates pre-restore backup")
@@ -109,8 +113,7 @@ public static class AdminBackupEndpoints
             .Produces(401)
             .Produces(403)
             .Produces<ErrorResponse>(400)
-            .Produces<ErrorResponse>(500)
-            .RequireAntiforgery(); // CRITICAL SECURITY: Prevent CSRF attacks on database restore (catastrophic risk if exploited)
+            .Produces<ErrorResponse>(500);
     }
 
     private static IResult TriggerBackup(

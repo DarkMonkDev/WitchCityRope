@@ -795,3 +795,359 @@ After migration, verify:
 #react-router-v7 #scroll-restoration #navigation #browser-history #ux-improvement #migration #built-in-features
 
 ---
+
+## 🚨 CRITICAL: MULTIPLE AUTHENTICATION PATTERNS CAUSE SYSTEMATIC BUGS 🚨
+
+### ⚠️ PROBLEM: Logout failing after CSRF implementation, architecture confusion causing wasted effort
+**DISCOVERED**: 2025-11-23 - User clicks logout, appears logged out briefly, page refreshes, user still logged in
+**ROOT CAUSE**: Three different authentication patterns active simultaneously causing confusion and bugs
+
+### 🛑 ROOT CAUSE ANALYSIS:
+
+**THE DISASTER**: Found 3 completely different authentication patterns in use:
+
+1. **Pattern A - TanStack Query Mutations** (MODERN, RECOMMENDED):
+   - **Location**: `/apps/web/src/features/auth/api/mutations.ts`
+   - **Used For**: Login and Register forms
+   - **Why**: Industry standard, automatic loading/error states, good developer experience
+   - **Status**: ✅ CORRECT - Should be used everywhere
+
+2. **Pattern B - React Context + authService** (LEGACY, PROBLEMATIC):
+   - **Location**: `/apps/web/src/contexts/AuthContext.tsx` + `/apps/web/src/services/authService.ts`
+   - **Used For**: Logout operation only
+   - **Why**: Historical - left over from earlier implementation
+   - **Status**: ❌ DELETED - Replaced with Pattern A
+
+3. **Pattern C - Duplicate Hooks** (DEAD CODE):
+   - **Location**: `/apps/web/src/lib/api/hooks/useAuth.ts`
+   - **Content**: 6 duplicate auth hooks (useLogin, useLogout, useRegister, etc.)
+   - **Used For**: NOTHING - dead code
+   - **Status**: ❌ DELETED - Unused duplication
+
+### 💥 HOW THIS CAUSED THE BUG:
+
+**The Logout Bug Timeline**:
+
+1. **November 2025**: CSRF protection rolled out to ~38 backend endpoints
+2. **Logout endpoint requires CSRF token** for security
+3. **Frontend logout didn't send CSRF token** - but which file do we update?
+4. **Architecture confusion**:
+   - Login uses Pattern A (TanStack Query mutations)
+   - Logout uses Pattern B (AuthContext + authService)
+   - Pattern C has duplicate useLogout hook (never used)
+5. **Wrong file updated first**: Updated `/features/auth/api/mutations.ts` useLogout() - not actually used!
+6. **Bug persisted**: Logout still failing because real logout uses Pattern B
+7. **Correct file found**: Updated `/services/authService.ts` logout() - actually works!
+8. **Bug fixed BUT** only because we accidentally updated BOTH files
+
+**WASTED EFFORT**: Should have been 1 file update, turned into 2 files + debugging + investigation
+
+### 🔥 CONSEQUENCES OF ARCHITECTURE CONFUSION:
+
+1. ❌ **Bugs during infrastructure changes**: CSRF rollout missed logout
+2. ❌ **Wasted developer time**: Updated wrong file, had to debug and fix again
+3. ❌ **Maintenance nightmare**: Which pattern for new auth features?
+4. ❌ **Onboarding confusion**: New developers don't know which pattern to use
+5. ❌ **Code duplication**: Same functionality implemented 3 different ways
+6. ❌ **Testing complexity**: Need to test 3 different code paths for same feature
+
+### ✅ SOLUTION - STANDARD AUTHENTICATION PATTERN:
+
+**DECISION**: After comprehensive research (November 2025), adopted single standard pattern
+**RESEARCH**: `/docs/functional-areas/authentication/research/2025-11-23-authentication-pattern-research.md`
+**GUIDE**: `/docs/standards-processes/frontend/authentication-pattern-guide.md`
+
+**OFFICIAL PATTERN**: TanStack Query Mutations + Zustand Store
+
+#### Reading Auth State:
+```typescript
+import { useUser, useIsAuthenticated } from '@/stores/authStore'
+
+const user = useUser()                    // Get current user data
+const isAuthenticated = useIsAuthenticated() // Check if logged in
+```
+
+#### Auth Operations (Login, Logout, Register):
+```typescript
+import { useLogin, useLogout, useRegister } from '@/features/auth/api/mutations'
+
+// In component
+const loginMutation = useLogin()
+const logoutMutation = useLogout()
+const registerMutation = useRegister()
+
+// Usage
+loginMutation.mutate({ email, password })
+logoutMutation.mutate()
+registerMutation.mutate({ email, password, sceneName })
+
+// Automatic loading states
+{loginMutation.isPending && <Spinner />}
+
+// Automatic error handling
+{loginMutation.error && <Alert>{loginMutation.error.message}</Alert>}
+```
+
+#### Getting Server-Verified User Data:
+```typescript
+import { useCurrentUser } from '@/lib/api/hooks/useAuth'
+
+const { data: currentUser } = useCurrentUser()
+```
+
+### 🗑️ WHAT WAS DELETED:
+
+**Obsolete Files Removed** (November 23, 2025):
+1. ❌ `/apps/web/src/contexts/AuthContext.tsx` - React Context pattern
+2. ❌ `/apps/web/src/services/authService.ts` - Direct fetch calls
+3. ❌ `/apps/web/src/hooks/useAuth.ts` - Context wrapper hook
+4. ❌ `/apps/web/src/examples/LoginFormExample.tsx` - Old example code
+
+**Components Updated**:
+1. ✅ `/apps/web/src/components/layout/UtilityBar.tsx` - Now uses `useLogout()` mutation
+2. ✅ `/apps/web/src/components/layout/Navigation.tsx` - Now uses `useLogout()` mutation
+3. ✅ `/apps/web/src/main.tsx` - Removed `<AuthProvider>` wrapper
+4. ✅ `/apps/web/src/test/integration/msw-verification.test.ts` - Uses api client directly
+
+### 📋 CORRECT LOGOUT IMPLEMENTATION:
+
+**File**: `/apps/web/src/features/auth/api/mutations.ts`
+
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
+import { api } from '@/api/client'
+import { useAuthActions } from '@/stores/authStore'
+import { getCSRFToken, initializeCSRFProtection } from '@/hooks/useCSRFToken'
+
+export function useLogout() {
+  const queryClient = useQueryClient()
+  const { logout } = useAuthActions()
+  const navigate = useNavigate()
+
+  return useMutation({
+    mutationFn: async () => {
+      // CSRF token handling with automatic retry
+      let csrfToken = getCSRFToken()
+      if (!csrfToken) {
+        await initializeCSRFProtection()
+        csrfToken = getCSRFToken()
+      }
+
+      // Call logout endpoint (CSRF token sent via interceptor)
+      try {
+        await api.post('/api/auth/logout')
+      } catch (error: any) {
+        // If CSRF validation failed, retry with fresh token
+        if (error.response?.status === 400 &&
+            error.response?.data?.title === 'CSRF Validation Failed') {
+          await initializeCSRFProtection()
+          await api.post('/api/auth/logout') // Retry once
+        } else {
+          throw error
+        }
+      }
+    },
+    onSuccess: () => {
+      // 1. Clear Zustand auth store
+      logout()
+
+      // 2. Clear sessionStorage (Zustand persistence)
+      sessionStorage.removeItem('auth-store')
+
+      // 3. CRITICAL: Use clear() NOT invalidateQueries()
+      // clear() prevents refetch after logout (invalidateQueries triggers refetch = bug)
+      queryClient.clear()
+
+      // 4. Navigate to home page
+      navigate('/', { replace: true })
+
+      console.log('✅ Logout successful')
+    },
+    onError: (error) => {
+      console.error('❌ Logout failed:', error)
+      // CRITICAL: Still clear local state even on error
+      // Backend logout may have succeeded despite error response
+      logout()
+      sessionStorage.removeItem('auth-store')
+      queryClient.clear()
+      navigate('/', { replace: true })
+    },
+    retry: false,
+  })
+}
+```
+
+**Usage in Component**:
+```typescript
+import { useLogout } from '@/features/auth/api/mutations'
+
+export const UserMenu = () => {
+  const logoutMutation = useLogout()
+
+  return (
+    <button
+      onClick={() => logoutMutation.mutate()}
+      disabled={logoutMutation.isPending}
+    >
+      {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
+    </button>
+  )
+}
+```
+
+### ⚠️ CRITICAL: queryClient.clear() vs invalidateQueries()
+
+**MUST use `clear()` on logout, NOT `invalidateQueries()`**:
+
+```typescript
+// ✅ CORRECT - Clears cache without triggering refetch
+onSuccess: () => {
+  logout()
+  sessionStorage.removeItem('auth-store')
+  queryClient.clear() // ← CRITICAL
+  navigate('/')
+}
+
+// ❌ WRONG - Triggers refetch while user is logged out (causes errors)
+onSuccess: () => {
+  logout()
+  sessionStorage.removeItem('auth-store')
+  queryClient.invalidateQueries({ queryKey: ['user'] }) // ← BUG
+  navigate('/')
+}
+```
+
+**Why**: `invalidateQueries()` marks queries as stale and triggers refetch. After logout, user is not authenticated, so refetch fails with 401 errors. Use `clear()` to remove queries from cache without triggering refetch.
+
+### 🚫 NEVER CREATE NEW AUTH PATTERNS:
+
+**❌ DON'T DO THIS** (creating new auth patterns):
+```typescript
+// ❌ WRONG - New React Context for auth
+export const MyAuthContext = createContext()
+
+// ❌ WRONG - New service file for auth
+export const myAuthService = {
+  login: async () => { /* ... */ }
+}
+
+// ❌ WRONG - New custom hook wrapping fetch
+export const useMyAuth = () => {
+  const [user, setUser] = useState(null)
+  // Custom auth logic...
+}
+```
+
+**✅ DO THIS** (use standard pattern):
+```typescript
+// ✅ CORRECT - Use existing mutations
+import { useLogin, useLogout } from '@/features/auth/api/mutations'
+import { useUser, useIsAuthenticated } from '@/stores/authStore'
+
+// ✅ CORRECT - Use existing Zustand store
+const user = useUser()
+const isAuthenticated = useIsAuthenticated()
+
+// ✅ CORRECT - Use existing mutations
+const loginMutation = useLogin()
+const logoutMutation = useLogout()
+```
+
+### 📋 PREVENTION CHECKLIST:
+
+**Before implementing ANY authentication feature:**
+- [ ] **Read authentication pattern guide FIRST**: `/docs/standards-processes/frontend/authentication-pattern-guide.md`
+- [ ] **Check if mutation already exists**: Look in `/features/auth/api/mutations.ts`
+- [ ] **Use Zustand for state**: Import from `@/stores/authStore`
+- [ ] **Never create new auth patterns**: Use existing standard pattern
+- [ ] **CSRF tokens handled automatically**: Axios interceptor adds them
+- [ ] **Use `queryClient.clear()` on logout**: NOT `invalidateQueries()`
+- [ ] **Test with Playwright**: Verify complete login/logout flow works
+
+**For Auth State Management:**
+- [ ] **Read state**: Use `useUser()`, `useIsAuthenticated()` from Zustand
+- [ ] **Change state**: Use mutations from `/features/auth/api/mutations.ts`
+- [ ] **Server-verified data**: Use `useCurrentUser()` from `/lib/api/hooks/useAuth.ts`
+- [ ] **NO custom hooks**: Don't create new auth hooks
+- [ ] **NO React Context**: Don't create new auth contexts
+- [ ] **NO service files**: Don't create new auth services
+
+### 💥 CONSEQUENCES OF IGNORING:
+
+1. ❌ **Infrastructure changes miss your code**: CSRF rollout missed Pattern B
+2. ❌ **Bugs in production**: Logout appeared to work but didn't
+3. ❌ **Wasted developer time**: Multiple fixes for same issue
+4. ❌ **Maintenance nightmare**: Multiple patterns to maintain
+5. ❌ **Security risks**: Inconsistent CSRF protection
+6. ❌ **Failed code reviews**: Non-standard patterns rejected
+
+### 🎯 WHY THIS PATTERN WAS CHOSEN:
+
+**Research conducted November 2025** - evaluated 3 options:
+
+**Option 1: TanStack Query + Zustand** (SELECTED - Score: 9.0/10):
+- ✅ Industry standard for React apps in 2025
+- ✅ Recommended by Microsoft for .NET + React
+- ✅ Automatic loading/error states
+- ✅ Optimized caching and performance
+- ✅ Best developer experience
+- ✅ Strong TypeScript support
+- ✅ Active community support
+
+**Option 2: React Query + Context** (Rejected - Score: 7.5/10):
+- ⚠️ Mixing patterns (Query for data, Context for state)
+- ⚠️ Manual state synchronization required
+- ⚠️ Less performant than Zustand
+
+**Option 3: Redux Toolkit + RTK Query** (Rejected - Score: 7.0/10):
+- ⚠️ Heavyweight for auth-only use case
+- ⚠️ Steep learning curve
+- ⚠️ More boilerplate code
+
+**Full Research**: See `/docs/functional-areas/authentication/research/2025-11-23-authentication-pattern-research.md`
+
+### 🚨 FILES AFFECTED:
+
+**DELETED** (Obsolete patterns):
+- `/apps/web/src/contexts/AuthContext.tsx`
+- `/apps/web/src/services/authService.ts`
+- `/apps/web/src/hooks/useAuth.ts`
+- `/apps/web/src/examples/LoginFormExample.tsx`
+
+**UPDATED** (Migrated to standard):
+- `/apps/web/src/features/auth/api/mutations.ts` - Added complete useLogout() (lines 182-246)
+- `/apps/web/src/components/layout/UtilityBar.tsx` - Uses useLogout() mutation
+- `/apps/web/src/components/layout/Navigation.tsx` - Uses useLogout() mutation
+- `/apps/web/src/main.tsx` - Removed AuthProvider
+- `/apps/web/src/lib/api/index.ts` - Removed hooks/useAuth export
+- `/apps/web/src/test/integration/msw-verification.test.ts` - Uses api client
+
+**DOCUMENTATION CREATED**:
+- `/docs/standards-processes/frontend/authentication-pattern-guide.md` - Complete developer guide
+- `/docs/functional-areas/authentication/research/2025-11-23-authentication-pattern-research.md` - Research document
+
+### 🔗 RELATED LESSONS:
+
+- **Backend CSRF Protection** - See backend-developer-lessons-learned-4.md for server-side implementation
+- **React Router Navigation** - See lesson above about scroll restoration
+- **State Management** - Zustand best practices throughout this file
+
+### 🎓 KEY TAKEAWAYS:
+
+1. **ONE authentication pattern** - Never create alternatives
+2. **TanStack Query + Zustand** - Industry standard for 2025
+3. **CSRF tokens automatic** - Axios interceptor handles them
+4. **queryClient.clear() on logout** - NOT invalidateQueries()
+5. **Delete obsolete code** - Don't leave old patterns around
+6. **Read the guide first** - `/docs/standards-processes/frontend/authentication-pattern-guide.md`
+7. **Architecture matters** - Multiple patterns = systematic bugs
+
+**Migration completed**: November 23, 2025
+**Pattern frozen**: No new auth patterns allowed
+**Mandatory reading**: Authentication Pattern Guide for all auth work
+
+### Tags
+#critical #authentication #csrf #tanstack-query #zustand #architecture #technical-debt #security #logout #pattern-standardization #infrastructure #httponly-cookies #owasp
+
+---

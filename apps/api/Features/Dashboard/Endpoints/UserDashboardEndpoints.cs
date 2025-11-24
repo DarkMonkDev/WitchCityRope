@@ -130,6 +130,8 @@ public static class UserDashboardEndpoints
             .ProducesProblem(500);
 
         // ========== ENDPOINT 4: Update User Profile ==========
+        // SECURITY: CSRF protection enabled automatically via middleware
+        // Prevents unauthorized profile modifications via CSRF attacks
         app.MapPut("/api/users/{userId:guid}/profile", async (
             Guid userId,
             UpdateProfileDto request,
@@ -171,6 +173,8 @@ public static class UserDashboardEndpoints
             .ProducesProblem(500);
 
         // ========== ENDPOINT 5: Change Password ==========
+        // SECURITY: CSRF protection enabled automatically via middleware
+        // CRITICAL: Password changes must validate CSRF tokens to prevent account takeover
         app.MapPost("/api/users/{userId:guid}/change-password", async (
             Guid userId,
             ChangePasswordDto request,

@@ -475,6 +475,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             entity.Property(v => v.Notes)
                   .HasMaxLength(1000);
 
+            // Location: optional, max 100
+            entity.Property(v => v.Location)
+                  .HasMaxLength(100);
+
             // IsActive: required, default true
             entity.Property(v => v.IsActive)
                   .IsRequired()

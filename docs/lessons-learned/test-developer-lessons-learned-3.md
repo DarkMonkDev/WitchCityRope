@@ -24,6 +24,108 @@ If you cannot read ANY file:
 
 ---
 
+## 🚨 CRITICAL: E2E Test Location - Single Unified Location (2025-11-23)
+
+**Problem**: E2E tests created in wrong location (`/tests/e2e/`) which no longer exists, causing tests to be lost or duplicated.
+
+**Date Discovered**: November 23, 2025
+**Context**: E2E test consolidation - all tests moved to single location
+
+### Root Cause: Old Dual-Location Structure
+
+**Historical Context**:
+- **OLD**: Two separate E2E test locations existed:
+  - `/tests/e2e/` (root-level, DELETED during consolidation)
+  - `/apps/web/tests/playwright/` (apps-level)
+- **NOW**: Only ONE location exists after consolidation
+
+**Why This Happened**:
+- Dual configs created confusion (playwright.config.ts in multiple locations)
+- Tests created in wrong location during development
+- Outdated documentation referenced old paths
+
+### ✅ CORRECT Pattern: ONLY Use Apps-Level Location
+
+```bash
+# ✅ CORRECT - ONLY valid location for E2E tests
+/apps/web/tests/playwright/
+
+# ❌ WRONG - DELETED, no longer exists
+/tests/e2e/  # OBSOLETE - CONSOLIDATED 2025-11-23
+```
+
+### File Organization (Current Structure)
+
+```
+/apps/web/tests/playwright/
+├── auth/                       # Authentication tests
+├── admin/                      # Admin-specific tests
+├── events/                     # Event management tests
+├── vetting/                    # Vetting system tests
+├── helpers/                    # Shared test helpers
+├── utils/                      # Database helpers, utilities
+├── templates/                  # Reusable test templates
+└── *.spec.ts                   # Other E2E tests
+```
+
+### Import Path Pattern
+
+```typescript
+// ✅ CORRECT - Imports from SAME test suite
+import { AuthHelpers } from './helpers/auth.helpers';
+import { DatabaseHelpers } from './utils/database-helpers';
+
+// ❌ WRONG - Cross-referencing old location (DELETED)
+import { quickLogin } from '../../../tests/e2e/helpers/auth.helper';
+// Path resolves to: /apps/tests/e2e/helpers/ (DOES NOT EXIST)
+```
+
+### Configuration Reference
+
+**Playwright Config**: `/apps/web/playwright.config.ts`
+- Base URL: http://localhost:5173
+- Test directory: `/apps/web/tests/playwright/`
+- Test results: `/test-results/`
+
+### Prevention Rules
+
+1. ✅ **ALWAYS create E2E tests in `/apps/web/tests/playwright/`**
+2. ✅ **NEVER create tests in `/tests/e2e/`** (DELETED location)
+3. ✅ **USE relative imports** from same test suite
+4. ❌ **DON'T cross-reference** between old and new locations
+5. ✅ **CHECK playwright.config.ts** for correct test directory
+
+### When Creating New E2E Tests
+
+**Checklist**:
+- [ ] Create test file in `/apps/web/tests/playwright/` (or subdirectory)
+- [ ] Import helpers from `./helpers/` or `./utils/`
+- [ ] Use AuthHelpers from current location
+- [ ] Update TEST_CATALOG.md with new test
+- [ ] Run test to verify imports work
+
+### Migration Notes
+
+**If you find references to `/tests/e2e/`**:
+- ✅ Update to `/apps/web/tests/playwright/`
+- ✅ Update import paths to use relative imports
+- ✅ Mark old paths as OBSOLETE in documentation
+- ✅ Verify tests still run after path updates
+
+### Key Lesson
+
+**ABSOLUTE RULE**: ALL E2E tests MUST be created in `/apps/web/tests/playwright/` directory.
+
+**If you create tests in `/tests/e2e/`**:
+- ❌ Tests will be lost (directory doesn't exist)
+- ❌ Import paths will break
+- ❌ Tests won't run with Playwright config
+- ✅ FIX: Move test to `/apps/web/tests/playwright/`
+
+**Benefit**: Single unified E2E test location eliminates confusion, prevents duplicate tests, ensures all tests use same helpers and configuration.
+
+---
+
 ## 🚨 CRITICAL: Mantine v7 Checkbox Interaction Pattern for Playwright E2E Tests (2025-11-16)
 
 **Problem**: Mantine v7 completely hides the actual checkbox input with CSS, making it invisible to Playwright's actionability checks. Standard `.check()` and label-based interactions fail.
@@ -1563,8 +1665,8 @@ test('should display field label indicating both email and scene name accepted',
 
 ## 🚨 CRITICAL: E2E Testing Gold Standard Patterns - e2e-events-full-journey (2025-11-17)
 
-**Date**: November 17, 2025  
-**Context**: Fixed 5 remaining test failures in e2e-events-full-journey.spec.ts to achieve 100% pass rate  
+**Date**: November 17, 2025
+**Context**: Fixed 5 remaining test failures in e2e-events-full-journey.spec.ts to achieve 100% pass rate
 **Impact**: Established gold standard patterns for E2E testing in WitchCityRope
 
 ### Problem

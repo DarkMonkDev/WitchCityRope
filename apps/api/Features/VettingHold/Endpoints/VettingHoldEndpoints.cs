@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Antiforgery;
 using WitchCityRope.Api.Features.VettingHold.Models;
 using WitchCityRope.Api.Features.VettingHold.Services;
 using WitchCityRope.Api.Models;
@@ -59,12 +60,27 @@ public static class VettingHoldEndpoints
     /// User must be currently Approved
     /// </summary>
     private static async Task<IResult> PlaceMembershipOnHold(
+        HttpContext context,
+        IAntiforgery antiforgery,
         Guid userId,
         PlaceMembershipOnHoldRequest request,
         ClaimsPrincipal user,
         IVettingHoldService vettingHoldService,
         CancellationToken cancellationToken)
     {
+        // Validate CSRF token
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
         try
         {
             // Get authenticated user ID
@@ -117,12 +133,27 @@ public static class VettingHoldEndpoints
     /// User must be currently OnHold
     /// </summary>
     private static async Task<IResult> RequestReinstatement(
+        HttpContext context,
+        IAntiforgery antiforgery,
         Guid userId,
         RequestReinstatementRequest request,
         ClaimsPrincipal user,
         IVettingHoldService vettingHoldService,
         CancellationToken cancellationToken)
     {
+        // Validate CSRF token
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
         try
         {
             // Get authenticated user ID

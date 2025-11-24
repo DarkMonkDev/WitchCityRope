@@ -1,4 +1,5 @@
 using FluentValidation;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -54,7 +55,8 @@ public static class SafetyEndpoints
         .WithDescription("Submit a new safety incident report (anonymous or identified)")
         .Produces<SubmissionResponse>(200)
         .ProducesProblem(400)
-        .ProducesProblem(422);
+        .ProducesProblem(422)
+        .DisableAntiforgery(); // Public endpoint - no CSRF token available
 
         // Public endpoint for anonymous incident tracking
         group.MapGet("/incidents/{referenceNumber}/status", async (
@@ -222,6 +224,8 @@ public static class SafetyEndpoints
 
         // Assign coordinator to incident
         group.MapPost("/admin/incidents/{incidentId:guid}/assign", async (
+            HttpContext context,
+            IAntiforgery antiforgery,
             Guid incidentId,
             AssignCoordinatorRequest request,
             [FromServices] ISafetyServiceExtended safetyService,
@@ -229,6 +233,19 @@ public static class SafetyEndpoints
             ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
+            // Validate CSRF token
+            try
+            {
+                await antiforgery.ValidateRequestAsync(context);
+            }
+            catch (AntiforgeryValidationException)
+            {
+                return Results.Problem(
+                    title: "CSRF Validation Failed",
+                    detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                    statusCode: 400);
+            }
+
             var validationResult = await validator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
             {
@@ -258,6 +275,8 @@ public static class SafetyEndpoints
 
         // Update incident status
         group.MapPut("/admin/incidents/{incidentId:guid}/status", async (
+            HttpContext context,
+            IAntiforgery antiforgery,
             Guid incidentId,
             UpdateStatusRequest request,
             [FromServices] ISafetyServiceExtended safetyService,
@@ -265,6 +284,19 @@ public static class SafetyEndpoints
             ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
+            // Validate CSRF token
+            try
+            {
+                await antiforgery.ValidateRequestAsync(context);
+            }
+            catch (AntiforgeryValidationException)
+            {
+                return Results.Problem(
+                    title: "CSRF Validation Failed",
+                    detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                    statusCode: 400);
+            }
+
             var validationResult = await validator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
             {
@@ -296,6 +328,8 @@ public static class SafetyEndpoints
 
         // Update Google Drive links
         group.MapPut("/admin/incidents/{incidentId:guid}/google-drive", async (
+            HttpContext context,
+            IAntiforgery antiforgery,
             Guid incidentId,
             UpdateGoogleDriveRequest request,
             [FromServices] ISafetyServiceExtended safetyService,
@@ -303,6 +337,19 @@ public static class SafetyEndpoints
             ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
+            // Validate CSRF token
+            try
+            {
+                await antiforgery.ValidateRequestAsync(context);
+            }
+            catch (AntiforgeryValidationException)
+            {
+                return Results.Problem(
+                    title: "CSRF Validation Failed",
+                    detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                    statusCode: 400);
+            }
+
             var validationResult = await validator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
             {
@@ -336,6 +383,8 @@ public static class SafetyEndpoints
 
         // Update involved parties and witnesses
         group.MapPut("/admin/incidents/{incidentId:guid}/people", async (
+            HttpContext context,
+            IAntiforgery antiforgery,
             Guid incidentId,
             UpdatePeopleRequest request,
             [FromServices] ISafetyServiceExtended safetyService,
@@ -343,6 +392,19 @@ public static class SafetyEndpoints
             ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
+            // Validate CSRF token
+            try
+            {
+                await antiforgery.ValidateRequestAsync(context);
+            }
+            catch (AntiforgeryValidationException)
+            {
+                return Results.Problem(
+                    title: "CSRF Validation Failed",
+                    detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                    statusCode: 400);
+            }
+
             var validationResult = await validator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
             {
@@ -411,6 +473,8 @@ public static class SafetyEndpoints
 
         // Add manual note to incident
         group.MapPost("/admin/incidents/{incidentId:guid}/notes", async (
+            HttpContext context,
+            IAntiforgery antiforgery,
             Guid incidentId,
             AddNoteRequest request,
             [FromServices] ISafetyServiceExtended safetyService,
@@ -418,6 +482,19 @@ public static class SafetyEndpoints
             ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
+            // Validate CSRF token
+            try
+            {
+                await antiforgery.ValidateRequestAsync(context);
+            }
+            catch (AntiforgeryValidationException)
+            {
+                return Results.Problem(
+                    title: "CSRF Validation Failed",
+                    detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                    statusCode: 400);
+            }
+
             var validationResult = await validator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
             {
@@ -451,6 +528,8 @@ public static class SafetyEndpoints
 
         // Update manual note
         group.MapPut("/admin/notes/{noteId:guid}", async (
+            HttpContext context,
+            IAntiforgery antiforgery,
             Guid noteId,
             UpdateNoteRequest request,
             [FromServices] ISafetyServiceExtended safetyService,
@@ -458,6 +537,19 @@ public static class SafetyEndpoints
             ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
+            // Validate CSRF token
+            try
+            {
+                await antiforgery.ValidateRequestAsync(context);
+            }
+            catch (AntiforgeryValidationException)
+            {
+                return Results.Problem(
+                    title: "CSRF Validation Failed",
+                    detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                    statusCode: 400);
+            }
+
             var validationResult = await validator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
             {
@@ -491,11 +583,26 @@ public static class SafetyEndpoints
 
         // Delete manual note
         group.MapDelete("/admin/notes/{noteId:guid}", async (
+            HttpContext context,
+            IAntiforgery antiforgery,
             Guid noteId,
             [FromServices] ISafetyServiceExtended safetyService,
             ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
+            // Validate CSRF token
+            try
+            {
+                await antiforgery.ValidateRequestAsync(context);
+            }
+            catch (AntiforgeryValidationException)
+            {
+                return Results.Problem(
+                    title: "CSRF Validation Failed",
+                    detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                    statusCode: 400);
+            }
+
             var userId = Guid.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException());
             var isAdmin = user.IsInRole("Administrator");
 

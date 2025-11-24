@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Antiforgery;
 using System.Text;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Models;
@@ -257,24 +258,18 @@ builder.Services.AddCors(options =>
 });
 
 // Configure Anti-Forgery (CSRF) Protection
+// Microsoft standard pattern for .NET 9 with JSON APIs
 builder.Services.AddAntiforgery(options =>
 {
-    // Header name that frontend will use to send CSRF token
+    // Header name that React will use to send CSRF token
     options.HeaderName = "X-CSRF-TOKEN";
 
-    // Cookie name that stores the CSRF token
-    options.Cookie.Name = "X-CSRF-TOKEN-COOKIE";
-
-    // CRITICAL: Cookie must be readable by JavaScript (so frontend can send it in header)
-    options.Cookie.HttpOnly = false; // Must be false for frontend access
-
-    // Use Strict for maximum CSRF protection
+    // Internal validation cookie (httpOnly = true, not accessible to JavaScript)
+    // This cookie is used by the server to validate requests
+    options.Cookie.Name = ".AspNetCore.Antiforgery";
+    options.Cookie.HttpOnly = true;  // Server-only validation cookie
     options.Cookie.SameSite = SameSiteMode.Strict;
-
-    // HTTPS only in production
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-
-    // Make cookie available to all routes
     options.Cookie.Path = "/";
 });
 
@@ -320,6 +315,32 @@ app.UseCors("ReactDevelopmentWithCredentials");
 // CRITICAL: Enable Anti-Forgery (CSRF) Protection middleware
 // MUST be placed AFTER UseCors() and BEFORE UseAuthentication()
 app.UseAntiforgery();
+
+// CSRF token generation endpoint for React SPA
+// Microsoft standard pattern for .NET 9 Minimal APIs with JSON
+app.MapGet("/api/antiforgery/token", (IAntiforgery antiforgery, HttpContext context) =>
+{
+    var tokens = antiforgery.GetAndStoreTokens(context);
+
+    // Store request token in non-httpOnly cookie that JavaScript can read
+    context.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!,
+        new CookieOptions
+        {
+            HttpOnly = false,  // CRITICAL: JavaScript must be able to read this
+            SameSite = SameSiteMode.Strict,
+            Secure = true,
+            Path = "/"
+        });
+
+    return Results.Ok(new { tokenGenerated = true });
+})
+.RequireAuthorization() // Only authenticated users get CSRF tokens
+.WithName("GetAntiforgeryToken")
+.WithSummary("Generate CSRF token for authenticated session")
+.WithDescription("Generates and stores CSRF token in XSRF-TOKEN cookie. React frontend reads this cookie and includes token in X-CSRF-TOKEN header for state-changing requests.")
+.WithTags("Security", "Authentication")
+.Produces<object>(200)
+.Produces(401);
 
 // CRITICAL FIX: Simple test middleware
 // Removed simple logout middleware - proper logout endpoint handles this in AuthenticationEndpoints.cs

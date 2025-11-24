@@ -146,20 +146,12 @@ Container Status:
 
 ### Test Execution Commands
 
-```bash
-# Admin venue location field tests
-cd /home/chad/repos/witchcityrope/apps/web
-npx playwright test admin/venue-location-field.spec.ts --reporter=line
-# Result: 7 passed (17.5s)
+To run these tests, use the test-executor agent or test-catalog-updater skill for test execution and reporting.
 
-# Event location privacy tests
-npx playwright test events/event-location-privacy.spec.ts --reporter=line
-# Result: 6 passed (14.4s)
-
-# Dashboard event card tests
-npx playwright test dashboard/event-card-location.spec.ts --reporter=line
-# Result: 7 passed (11.8s)
-```
+Test Results:
+- Admin venue location field tests: 7 passed (17.5s)
+- Event location privacy tests: 6 passed (14.4s)
+- Dashboard event card tests: 7 passed (11.8s)
 
 ### Test Accounts Used
 

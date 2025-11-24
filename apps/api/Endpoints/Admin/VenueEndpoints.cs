@@ -54,6 +54,7 @@ public static class VenueEndpoints
                             Name = v.Name,
                             Directions = v.Directions,
                             Notes = v.Notes,
+                            Location = v.Location,
                             IsActive = v.IsActive,
                             CreatedAt = v.CreatedAt,
                             UpdatedAt = v.UpdatedAt
@@ -115,6 +116,7 @@ public static class VenueEndpoints
                             Name = v.Name,
                             Directions = v.Directions,
                             Notes = v.Notes,
+                            Location = v.Location,
                             IsActive = v.IsActive,
                             CreatedAt = v.CreatedAt,
                             UpdatedAt = v.UpdatedAt
@@ -176,6 +178,7 @@ public static class VenueEndpoints
                             Name = v.Name,
                             Directions = v.Directions,
                             Notes = v.Notes,
+                            Location = v.Location,
                             IsActive = v.IsActive,
                             CreatedAt = v.CreatedAt,
                             UpdatedAt = v.UpdatedAt
@@ -289,6 +292,7 @@ public static class VenueEndpoints
                         Name = request.Name.Trim(),
                         Directions = string.IsNullOrWhiteSpace(request.Directions) ? null : request.Directions.Trim(),
                         Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim(),
+                        Location = string.IsNullOrWhiteSpace(request.Location) ? null : request.Location.Trim(),
                         IsActive = true,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
@@ -303,6 +307,7 @@ public static class VenueEndpoints
                         Name = venue.Name,
                         Directions = venue.Directions,
                         Notes = venue.Notes,
+                        Location = venue.Location,
                         IsActive = venue.IsActive,
                         CreatedAt = venue.CreatedAt,
                         UpdatedAt = venue.UpdatedAt
@@ -416,6 +421,7 @@ public static class VenueEndpoints
                     venue.Name = request.Name.Trim();
                     venue.Directions = string.IsNullOrWhiteSpace(request.Directions) ? null : request.Directions.Trim();
                     venue.Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim();
+                    venue.Location = string.IsNullOrWhiteSpace(request.Location) ? null : request.Location.Trim();
                     venue.IsActive = request.IsActive;
                     venue.UpdatedAt = DateTime.UtcNow;
 
@@ -427,6 +433,7 @@ public static class VenueEndpoints
                         Name = venue.Name,
                         Directions = venue.Directions,
                         Notes = venue.Notes,
+                        Location = venue.Location,
                         IsActive = venue.IsActive,
                         CreatedAt = venue.CreatedAt,
                         UpdatedAt = venue.UpdatedAt

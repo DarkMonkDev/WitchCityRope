@@ -1,5 +1,8 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -269,6 +272,97 @@ namespace WitchCityRope.IntegrationTests
             await context.SaveChangesAsync();
 
             return venue.Id;
+        }
+
+        /// <summary>
+        /// Fetches a CSRF token from the API for the given authenticated HttpClient.
+        /// This must be called after authentication and before making state-changing requests.
+        /// </summary>
+        /// <param name="client">Authenticated HttpClient with Bearer token already set</param>
+        /// <returns>CSRF token string extracted from XSRF-TOKEN cookie</returns>
+        protected async Task<string> FetchCsrfTokenAsync(HttpClient client)
+        {
+            // Request CSRF token from antiforgery endpoint
+            var tokenResponse = await client.GetAsync("/api/antiforgery/token");
+
+            if (!tokenResponse.IsSuccessStatusCode)
+            {
+                var errorContent = await tokenResponse.Content.ReadAsStringAsync();
+                throw new InvalidOperationException(
+                    $"Failed to fetch CSRF token. Status: {tokenResponse.StatusCode}, Content: {errorContent}");
+            }
+
+            // Extract XSRF-TOKEN cookie from response
+            if (!tokenResponse.Headers.TryGetValues("Set-Cookie", out var cookies))
+            {
+                throw new InvalidOperationException("No Set-Cookie headers found in CSRF token response");
+            }
+
+            var xsrfCookie = cookies
+                .Select(ParseXsrfTokenFromCookie)
+                .FirstOrDefault(token => !string.IsNullOrEmpty(token));
+
+            if (string.IsNullOrEmpty(xsrfCookie))
+            {
+                throw new InvalidOperationException(
+                    $"XSRF-TOKEN cookie not found in response. Cookies: {string.Join(", ", cookies)}");
+            }
+
+            return xsrfCookie;
+        }
+
+        /// <summary>
+        /// Parses XSRF-TOKEN value from a Set-Cookie header.
+        /// </summary>
+        private static string? ParseXsrfTokenFromCookie(string setCookieHeader)
+        {
+            // Cookie format: XSRF-TOKEN=value; path=/; samesite=strict
+            if (!setCookieHeader.StartsWith("XSRF-TOKEN=", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            var cookieValue = setCookieHeader["XSRF-TOKEN=".Length..];
+            var semicolonIndex = cookieValue.IndexOf(';');
+
+            return semicolonIndex > 0
+                ? cookieValue[..semicolonIndex]
+                : cookieValue;
+        }
+
+        /// <summary>
+        /// Adds CSRF token to an HttpClient's default request headers.
+        /// Call this after fetching the CSRF token and before making state-changing requests.
+        /// </summary>
+        /// <param name="client">HttpClient to add CSRF token header to</param>
+        /// <param name="csrfToken">CSRF token value from FetchCsrfTokenAsync</param>
+        protected void AddCsrfTokenHeader(HttpClient client, string csrfToken)
+        {
+            client.DefaultRequestHeaders.Add("X-CSRF-TOKEN", csrfToken);
+        }
+
+        /// <summary>
+        /// Creates an authenticated HttpClient with CSRF token automatically configured.
+        /// This is a convenience method that combines client creation, authentication, and CSRF token fetching.
+        /// </summary>
+        /// <param name="factory">WebApplicationFactory to create client from</param>
+        /// <param name="bearerToken">JWT bearer token for authentication</param>
+        /// <returns>Configured HttpClient ready for state-changing requests</returns>
+        protected async Task<HttpClient> CreateAuthenticatedClientWithCsrfAsync(
+            Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program> factory,
+            string bearerToken)
+        {
+            // Create client and set bearer token
+            var client = factory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+
+            // Fetch CSRF token
+            var csrfToken = await FetchCsrfTokenAsync(client);
+
+            // Add CSRF token to default headers
+            AddCsrfTokenHeader(client, csrfToken);
+
+            return client;
         }
     }
 }

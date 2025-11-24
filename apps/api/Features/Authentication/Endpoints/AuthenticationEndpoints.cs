@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using WitchCityRope.Api.Features.Authentication.Models;
@@ -55,6 +56,8 @@ public static class AuthenticationEndpoints
             .Produces(500);
 
         // User login endpoint with httpOnly cookie support and return URL validation
+        // SECURITY: Login is PUBLIC and should NOT require CSRF token (user doesn't have one yet)
+        // CSRF protection will be required AFTER authentication for state-changing operations
         app.MapPost("/api/auth/login", async (
             LoginRequest request,
             IAuthenticationService authService,
@@ -72,7 +75,7 @@ public static class AuthenticationEndpoints
                     {
                         HttpOnly = true,
                         Secure = context.Request.IsHttps, // Use HTTPS in production
-                        SameSite = SameSiteMode.Lax, // Lax allows cross-port requests (5173->5655)
+                        SameSite = SameSiteMode.Strict, // SECURITY: Maximum CSRF protection (changed from Lax)
                         Path = "/",
                         Expires = response.ExpiresAt
                     };
@@ -108,6 +111,7 @@ public static class AuthenticationEndpoints
                     detail: error,
                     statusCode: statusCode);
             })
+            .DisableAntiforgery() // Login is public - no CSRF token available yet
             .WithName("Login")
             .WithSummary("Authenticate user with email and password (with optional return URL)")
             .WithDescription("Validates user credentials, performs OWASP-compliant return URL validation, and returns JWT token with user information. If returnUrl is provided and valid, it will be included in response for post-login redirect.")
@@ -117,6 +121,8 @@ public static class AuthenticationEndpoints
             .Produces(401);
 
         // User registration endpoint
+        // SECURITY: Registration is PUBLIC and should NOT require CSRF token (user doesn't have account yet)
+        // Rate limiting and email verification provide spam protection
         app.MapPost("/api/auth/register", async (
             RegisterRequest request,
             IAuthenticationService authService,
@@ -131,6 +137,7 @@ public static class AuthenticationEndpoints
                         detail: error,
                         statusCode: 400);
             })
+            .DisableAntiforgery() // Registration is public - no CSRF token available yet
             .WithName("Register")
             .WithSummary("Register new user account")
             .WithDescription("Creates a new user account with email, password, and scene name")
@@ -190,13 +197,31 @@ public static class AuthenticationEndpoints
             .Produces(404);
 
         // Logout endpoint with cookie clearing and token blacklisting
-        app.MapPost("/api/auth/logout", (
+        // CRITICAL SECURITY: CSRF protection REQUIRED to prevent logout CSRF attacks
+        // .NET 9 Minimal APIs with JSON do NOT validate CSRF automatically - must inject IAntiforgery and validate manually
+        app.MapPost("/api/auth/logout", async (
             HttpContext context,
+            IAntiforgery antiforgery,
             ILogger<IAuthenticationService> logger,
             IJwtService jwtService,
             ITokenBlacklistService tokenBlacklistService,
             CancellationToken cancellationToken) =>
             {
+                // CRITICAL: Validate anti-forgery token FIRST before any logout logic
+                try
+                {
+                    await antiforgery.ValidateRequestAsync(context);
+                }
+                catch (AntiforgeryValidationException ex)
+                {
+                    logger.LogWarning("CSRF validation failed for logout: {Message}", ex.Message);
+                    return Results.Problem(
+                        title: "CSRF Validation Failed",
+                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                        statusCode: 400);
+                }
+
+
                 logger.LogInformation("🔐 LOGOUT DEBUG: Logout request received from {RemoteIP}", context.Connection.RemoteIpAddress);
 
                 // DEBUG: Log all incoming cookies
@@ -248,7 +273,7 @@ public static class AuthenticationEndpoints
                     {
                         HttpOnly = true,
                         Secure = context.Request.IsHttps, // Use HTTPS in production
-                        SameSite = SameSiteMode.Lax, // Must match login cookie settings
+                        SameSite = SameSiteMode.Strict, // Must match login cookie settings (changed to Strict)
                         Path = "/",
                         Expires = DateTimeOffset.UtcNow.AddDays(-1) // Set to past date for deletion
                     };
@@ -265,7 +290,7 @@ public static class AuthenticationEndpoints
                     {
                         HttpOnly = true,
                         Secure = context.Request.IsHttps,
-                        SameSite = SameSiteMode.Lax, // Must match login cookie settings
+                        SameSite = SameSiteMode.Strict, // Must match login cookie settings (changed to Strict)
                         Path = "/"
                     });
                     logger.LogInformation("🔐 LOGOUT DEBUG: Called Delete method as backup");
@@ -299,7 +324,7 @@ public static class AuthenticationEndpoints
                 }
             })
             .AllowAnonymous() // CRITICAL FIX: Allow logout even with expired/invalid tokens
-            .DisableAntiforgery() // Disable CSRF protection for logout (cookie-based auth already provides protection)
+            // CSRF validation handled via IAntiforgery.ValidateRequestAsync() in endpoint logic above
             .WithName("Logout")
             .WithSummary("Logout current user")
             .WithDescription("Logs out the current user, clears cookies, and blacklists tokens. Works even with expired tokens.")
@@ -334,7 +359,7 @@ public static class AuthenticationEndpoints
                         {
                             HttpOnly = true,
                             Secure = context.Request.IsHttps,
-                            SameSite = SameSiteMode.Lax, // Must match login cookie settings
+                            SameSite = SameSiteMode.Strict, // Must match login cookie settings (changed to Strict)
                             Path = "/",
                             Expires = DateTimeOffset.UtcNow.AddDays(-1) // Set to past date for deletion
                         };
@@ -347,7 +372,7 @@ public static class AuthenticationEndpoints
                         {
                             HttpOnly = true,
                             Secure = context.Request.IsHttps,
-                            SameSite = SameSiteMode.Lax, // Must match login cookie settings
+                            SameSite = SameSiteMode.Strict, // Must match login cookie settings (changed to Strict)
                             Path = "/"
                         });
 
@@ -399,13 +424,30 @@ public static class AuthenticationEndpoints
             .Produces(500);
 
         // Refresh token endpoint for silent token refresh
+        // SECURITY: CSRF protection REQUIRED to prevent session hijacking via CSRF
+        // .NET 9 Minimal APIs with JSON do NOT validate CSRF automatically - must inject IAntiforgery and validate manually
         app.MapPost("/api/auth/refresh", async (
             HttpContext context,
+            IAntiforgery antiforgery,
             IAuthenticationService authService,
             IJwtService jwtService,
             ILogger<IAuthenticationService> logger,
             CancellationToken cancellationToken) =>
             {
+                // CRITICAL: Validate anti-forgery token FIRST before any refresh logic
+                try
+                {
+                    await antiforgery.ValidateRequestAsync(context);
+                }
+                catch (AntiforgeryValidationException ex)
+                {
+                    logger.LogWarning("CSRF validation failed for token refresh: {Message}", ex.Message);
+                    return Results.Problem(
+                        title: "CSRF Validation Failed",
+                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                        statusCode: 400);
+                }
+
                 try
                 {
                     // Get current token from cookie
@@ -488,6 +530,7 @@ public static class AuthenticationEndpoints
                 }
             })
             .AllowAnonymous() // Uses cookie-based authentication
+            // CSRF validation handled via IAntiforgery.ValidateRequestAsync() in endpoint logic above
             .WithName("RefreshToken")
             .WithSummary("Refresh authentication token silently")
             .WithDescription("BFF pattern - refreshes httpOnly cookie with new JWT token")
@@ -517,6 +560,7 @@ public static class AuthenticationEndpoints
                         statusCode: 400);
             })
             .AllowAnonymous()
+            .DisableAntiforgery() // Public endpoint - verification token in URL provides security
             .WithName("VerifyEmail")
             .WithSummary("Verify user email with token")
             .WithDescription("Confirms user email address using verification token sent during registration")
@@ -540,6 +584,7 @@ public static class AuthenticationEndpoints
                 });
             })
             .AllowAnonymous()
+            .DisableAntiforgery() // Public endpoint - rate limiting provides spam protection
             .WithName("ResendVerification")
             .WithSummary("Resend email verification email")
             .WithDescription("Sends a new verification email to the user. Returns generic success message to prevent email enumeration.")
@@ -562,6 +607,7 @@ public static class AuthenticationEndpoints
                 });
             })
             .AllowAnonymous()
+            .DisableAntiforgery() // Public endpoint - rate limiting provides spam protection
             .WithName("ForgotPassword")
             .WithSummary("Initiate password reset process")
             .WithDescription("Sends a password reset email to the user. Returns generic success message to prevent email enumeration.")
@@ -592,6 +638,7 @@ public static class AuthenticationEndpoints
                         statusCode: 400);
             })
             .AllowAnonymous()
+            .DisableAntiforgery() // Public endpoint - reset token in URL provides security
             .WithName("ResetPassword")
             .WithSummary("Reset password with token")
             .WithDescription("Resets user password using the token from the password reset email")

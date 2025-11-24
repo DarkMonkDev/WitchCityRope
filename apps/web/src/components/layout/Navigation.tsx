@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Group, Button, Box, Stack } from '@mantine/core'
 import { useUser, useIsAuthenticated } from '../../stores/authStore'
-import { useAuth } from '../../contexts/AuthContext'
+import { useLogout } from '../../features/auth/api/mutations'
 import { useMenuVisibility } from '../../features/vetting/hooks/useMenuVisibility'
 import { useEffect, useState, useCallback } from 'react'
 import type { components } from '@witchcityrope/shared-types'
@@ -11,11 +11,15 @@ import type { components } from '@witchcityrope/shared-types'
  * Matches the exact wireframe design with logo, nav items, and login button
  * Conditionally shows "How to Join" based on vetting status
  * Includes mobile hamburger menu with slide-in navigation
+ *
+ * STANDARD AUTHENTICATION PATTERN - WitchCityRope Project
+ * Pattern: TanStack Query Mutations + Zustand Store
+ * See: /docs/standards-processes/frontend/authentication-pattern-guide.md
  */
 export const Navigation: React.FC = () => {
   const user = useUser()
   const isAuthenticated = useIsAuthenticated()
-  const { logout } = useAuth()
+  const logoutMutation = useLogout()
   const { shouldShow: showHowToJoin } = useMenuVisibility()
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -44,16 +48,10 @@ export const Navigation: React.FC = () => {
   }, [])
 
   // Handle logout button click
-  const handleLogout = useCallback(async () => {
-    try {
-      closeMobileMenu() // Close mobile menu first
-      await logout()
-      // No need for manual redirect - AuthContext logout handles it
-    } catch (error) {
-      console.error('Logout failed:', error)
-      // AuthContext logout already handles error cases
-    }
-  }, [logout, closeMobileMenu])
+  const handleLogout = useCallback(() => {
+    closeMobileMenu() // Close mobile menu first
+    logoutMutation.mutate()
+  }, [logoutMutation, closeMobileMenu])
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {

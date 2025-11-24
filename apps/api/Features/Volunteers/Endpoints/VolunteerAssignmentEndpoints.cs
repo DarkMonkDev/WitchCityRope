@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
 using WitchCityRope.Api.Features.Volunteers.Models;
 using WitchCityRope.Api.Features.Volunteers.Services;
@@ -67,11 +68,26 @@ public static class VolunteerAssignmentEndpoints
         // Assigns a member to a volunteer position
         app.MapPost("/api/volunteer-positions/{positionId}/signups",
             [Authorize(Roles = "Administrator,SafetyTeam")] async (
+                HttpContext context,
+                IAntiforgery antiforgery,
                 string positionId,
                 AssignVolunteerRequest request,
                 IVolunteerAssignmentService assignmentService,
                 CancellationToken cancellationToken) =>
         {
+            // Validate CSRF token
+            try
+            {
+                await antiforgery.ValidateRequestAsync(context);
+            }
+            catch (AntiforgeryValidationException)
+            {
+                return Results.Problem(
+                    title: "CSRF Validation Failed",
+                    detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                    statusCode: 400);
+            }
+
             if (!Guid.TryParse(positionId, out var positionGuid))
             {
                 return Results.Problem(
@@ -134,10 +150,25 @@ public static class VolunteerAssignmentEndpoints
         // Removes a member assignment from a volunteer position
         app.MapDelete("/api/volunteer-signups/{signupId}",
             [Authorize(Roles = "Administrator,SafetyTeam")] async (
+                HttpContext context,
+                IAntiforgery antiforgery,
                 string signupId,
                 IVolunteerAssignmentService assignmentService,
                 CancellationToken cancellationToken) =>
         {
+            // Validate CSRF token
+            try
+            {
+                await antiforgery.ValidateRequestAsync(context);
+            }
+            catch (AntiforgeryValidationException)
+            {
+                return Results.Problem(
+                    title: "CSRF Validation Failed",
+                    detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                    statusCode: 400);
+            }
+
             if (!Guid.TryParse(signupId, out var signupGuid))
             {
                 return Results.Problem(

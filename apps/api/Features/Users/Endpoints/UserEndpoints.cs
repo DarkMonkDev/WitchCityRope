@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using WitchCityRope.Api.Features.Users.Models;
@@ -92,11 +93,26 @@ public static class UserEndpoints
 
         // Update current user profile (authenticated users)
         app.MapPut("/api/users/profile", async (
+            HttpContext context,
+            IAntiforgery antiforgery,
             UpdateProfileRequest request,
             IUserManagementService userService,
             ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
             {
+                // CSRF validation - MUST be first
+                try
+                {
+                    await antiforgery.ValidateRequestAsync(context);
+                }
+                catch (AntiforgeryValidationException)
+                {
+                    return Results.Problem(
+                        title: "CSRF Validation Failed",
+                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                        statusCode: 400);
+                }
+
                 // Extract user ID from JWT token claims
                 var userId = user.FindFirst("sub")?.Value ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -180,11 +196,26 @@ public static class UserEndpoints
 
         // Update user by ID (admin only)
         app.MapPut("/api/admin/users/{id}", async (
+            HttpContext context,
+            IAntiforgery antiforgery,
             string id,
             UpdateUserRequest request,
             IUserManagementService userService,
             CancellationToken cancellationToken) =>
             {
+                // CSRF validation - MUST be first
+                try
+                {
+                    await antiforgery.ValidateRequestAsync(context);
+                }
+                catch (AntiforgeryValidationException)
+                {
+                    return Results.Problem(
+                        title: "CSRF Validation Failed",
+                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                        statusCode: 400);
+                }
+
                 var (success, response, error) = await userService.UpdateUserAsync(id, request, cancellationToken);
 
                 return success
@@ -208,12 +239,28 @@ public static class UserEndpoints
             .Produces(409);
 
         // Update user roles (admin only)
+        // CRITICAL SECURITY: CSRF protection prevents privilege escalation attacks
         app.MapPut("/api/admin/users/{userId}/roles", async (
+            HttpContext context,
+            IAntiforgery antiforgery,
             string userId,
             UpdateUserRolesRequest request,
             IUserManagementService userService,
             CancellationToken cancellationToken) =>
             {
+                // CSRF validation - MUST be first (prevents privilege escalation)
+                try
+                {
+                    await antiforgery.ValidateRequestAsync(context);
+                }
+                catch (AntiforgeryValidationException)
+                {
+                    return Results.Problem(
+                        title: "CSRF Validation Failed",
+                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                        statusCode: 400);
+                }
+
                 var (success, response, error) = await userService.UpdateUserRolesAsync(userId, request, cancellationToken);
 
                 return success
@@ -224,8 +271,8 @@ public static class UserEndpoints
                         statusCode: error.Contains("not found") ? 404 :
                                   error.Contains("Invalid") ? 400 : 500);
             })
-            .RequireAntiforgery() // CRITICAL SECURITY: Prevent CSRF privilege escalation attacks
             .RequireAuthorization(policy => policy.RequireRole(UserRole.Administrator.ToRoleString())) // Administrator role required
+            // CSRF PROTECTION: Enabled automatically by app.UseAntiforgery() middleware (prevents privilege escalation)
             .WithName("UpdateUserRoles")
             .WithSummary("Update user roles (admin only)")
             .WithDescription(@"Updates user roles in the admin user management system.

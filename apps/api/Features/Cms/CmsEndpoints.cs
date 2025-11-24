@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -91,6 +92,8 @@ namespace WitchCityRope.Api.Features.Cms
         /// PUT /api/cms/pages/{id} - Update page content and create revision
         /// </summary>
         private static async Task<IResult> UpdatePage(
+            HttpContext context,
+            IAntiforgery antiforgery,
             int id,
             [FromBody] UpdateContentPageRequest request,
             ClaimsPrincipal user,
@@ -99,6 +102,19 @@ namespace WitchCityRope.Api.Features.Cms
             [FromServices] ILogger<Program> logger,
             CancellationToken ct)
         {
+            // Validate CSRF token
+            try
+            {
+                await antiforgery.ValidateRequestAsync(context);
+            }
+            catch (AntiforgeryValidationException)
+            {
+                return Results.Problem(
+                    title: "CSRF Validation Failed",
+                    detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                    statusCode: 400);
+            }
+
             // Extract user ID from claims
             var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))

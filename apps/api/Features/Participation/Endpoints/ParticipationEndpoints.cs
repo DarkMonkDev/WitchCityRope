@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -73,8 +74,11 @@ public static class ParticipationEndpoints
         // - If user already has a ticket, they can still RSVP separately
         // - If user later cancels ticket, the RSVP is also cancelled
         // - User can then manually RSVP again (creates NEW record)
+        // SECURITY: CSRF protection prevents unauthorized event registrations
         app.MapPost("/api/events/{eventId:guid}/rsvp",
             [Authorize] async (
+                HttpContext context,
+                IAntiforgery antiforgery,
                 Guid eventId,
                 CreateRSVPRequest request,
                 [FromServices] IAttendanceService attendanceService,
@@ -83,6 +87,19 @@ public static class ParticipationEndpoints
                 [FromServices] ILogger<IAttendanceService> logger,
                 CancellationToken cancellationToken) =>
             {
+                // CSRF validation - MUST be first
+                try
+                {
+                    await antiforgery.ValidateRequestAsync(context);
+                }
+                catch (AntiforgeryValidationException)
+                {
+                    return Results.Problem(
+                        title: "CSRF Validation Failed",
+                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                        statusCode: 400);
+                }
+
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
                     return Results.Problem(
@@ -206,8 +223,11 @@ public static class ParticipationEndpoints
         // - User can manually RSVP again after cancelling (creates NEW record)
         //
         // ENDPOINTS: Both /tickets and /purchase-ticket routes supported for compatibility
+        // SECURITY: CSRF protection for financial transactions (ticket purchases)
         app.MapPost("/api/events/{eventId:guid}/tickets",
             [Authorize] async (
+                HttpContext context,
+                IAntiforgery antiforgery,
                 Guid eventId,
                 CreateTicketPurchaseRequest request,
                 [FromServices] IAttendanceService attendanceService,
@@ -216,6 +236,19 @@ public static class ParticipationEndpoints
                 [FromServices] ILogger<IAttendanceService> logger,
                 CancellationToken cancellationToken) =>
             {
+                // CSRF validation - MUST be first (financial transaction)
+                try
+                {
+                    await antiforgery.ValidateRequestAsync(context);
+                }
+                catch (AntiforgeryValidationException)
+                {
+                    return Results.Problem(
+                        title: "CSRF Validation Failed",
+                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                        statusCode: 400);
+                }
+
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
                     return Results.Problem(
@@ -308,6 +341,8 @@ public static class ParticipationEndpoints
         // Alias endpoint for compatibility with tests
         app.MapPost("/api/events/{eventId:guid}/purchase-ticket",
             [Authorize] async (
+                HttpContext context,
+                IAntiforgery antiforgery,
                 Guid eventId,
                 CreateTicketPurchaseRequest request,
                 [FromServices] IAttendanceService attendanceService,
@@ -316,6 +351,19 @@ public static class ParticipationEndpoints
                 [FromServices] ILogger<IAttendanceService> logger,
                 CancellationToken cancellationToken) =>
             {
+                // CSRF validation - MUST be first (financial transaction)
+                try
+                {
+                    await antiforgery.ValidateRequestAsync(context);
+                }
+                catch (AntiforgeryValidationException)
+                {
+                    return Results.Problem(
+                        title: "CSRF Validation Failed",
+                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                        statusCode: 400);
+                }
+
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
                     return Results.Problem(
@@ -420,6 +468,8 @@ public static class ParticipationEndpoints
         // - Cancelled records remain in database for audit history
         app.MapDelete("/api/events/{eventId:guid}/participation",
             [Authorize] async (
+                HttpContext context,
+                IAntiforgery antiforgery,
                 Guid eventId,
                 [FromServices] IAttendanceService attendanceService,
                 ClaimsPrincipal user,
@@ -427,6 +477,19 @@ public static class ParticipationEndpoints
                 string? reason = null,
                 CancellationToken cancellationToken = default) =>
             {
+                // CSRF validation - MUST be first
+                try
+                {
+                    await antiforgery.ValidateRequestAsync(context);
+                }
+                catch (AntiforgeryValidationException)
+                {
+                    return Results.Problem(
+                        title: "CSRF Validation Failed",
+                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                        statusCode: 400);
+                }
+
                 if (!Guid.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
                 {
                     return Results.Problem(

@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import { AuthHelper } from '../../e2e/helpers/auth.helper';
+import { AuthHelper } from '../helpers/auth.helper';
 
 /**
  * E2E TESTS: Volunteer Signup Event Waiver Compliance

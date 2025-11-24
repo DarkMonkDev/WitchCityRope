@@ -27,6 +27,12 @@ public class VenueDto
     public string? Notes { get; set; }
 
     /// <summary>
+    /// General location information (city, state)
+    /// Safe for public display to all users
+    /// </summary>
+    public string? Location { get; set; }
+
+    /// <summary>
     /// Whether the venue is active (soft delete flag)
     /// </summary>
     public bool IsActive { get; set; }
@@ -61,6 +67,12 @@ public class CreateVenueRequest
     /// Additional notes (optional, max 1000 characters)
     /// </summary>
     public string? Notes { get; set; }
+
+    /// <summary>
+    /// General location (optional, max 100 characters)
+    /// Example: "Salem, MA"
+    /// </summary>
+    public string? Location { get; set; }
 }
 
 /// <summary>
@@ -82,6 +94,12 @@ public class UpdateVenueRequest
     /// Additional notes (optional, max 1000 characters)
     /// </summary>
     public string? Notes { get; set; }
+
+    /// <summary>
+    /// General location (optional, max 100 characters)
+    /// Example: "Salem, MA"
+    /// </summary>
+    public string? Location { get; set; }
 
     /// <summary>
     /// Whether the venue is active

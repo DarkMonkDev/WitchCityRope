@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -35,7 +36,8 @@ public static class VettingEndpoints
             .Produces<ApplicationSubmissionResponse>(201)
             .ProducesProblem(400)
             .ProducesProblem(409)
-            .ProducesProblem(500);
+            .ProducesProblem(500)
+            .DisableAntiforgery(); // Public endpoint - no CSRF token available
 
         // GET: Check application status by token (public)
         publicGroup.MapGet("/applications/status/{token}", GetApplicationStatusByToken)
@@ -86,6 +88,8 @@ public static class VettingEndpoints
 
         // Direct action endpoints that frontend expects
         // POST: Approve application
+        // SECURITY: CSRF protection enabled automatically via middleware
+        // CRITICAL: Vetting approval must validate CSRF tokens to prevent unauthorized member access
         group.MapPost("/applications/{id}/approve", ApproveApplication)
             .WithName("ApproveApplication")
             .WithSummary("Approve an application")
@@ -96,6 +100,8 @@ public static class VettingEndpoints
             .ProducesProblem(500);
 
         // PUT: Change application status
+        // SECURITY: CSRF protection enabled automatically via middleware
+        // Prevents unauthorized vetting status changes via CSRF attacks
         group.MapPut("/applications/{id}/status", ChangeApplicationStatus)
             .WithName("ChangeApplicationStatus")
             .WithSummary("Change application status (for OnHold, etc.)")
@@ -116,6 +122,8 @@ public static class VettingEndpoints
             .ProducesProblem(500);
 
         // POST: Deny application
+        // SECURITY: CSRF protection enabled automatically via middleware
+        // CRITICAL: Vetting denial must validate CSRF tokens to prevent unauthorized rejections
         group.MapPost("/applications/{id}/deny", DenyApplication)
             .WithName("DenyApplication")
             .WithSummary("Deny an application")
@@ -167,11 +175,26 @@ public static class VettingEndpoints
     /// POST /api/vetting/reviewer/applications
     /// </summary>
     private static async Task<IResult> GetApplicationsForReview(
+        HttpContext context,
+        IAntiforgery antiforgery,
         ApplicationFilterRequest request,
         [FromServices] IVettingService vettingService,
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
+        // Validate CSRF token
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
         try
         {
             // Extract user ID from JWT claims with fallback for administrators
@@ -279,12 +302,27 @@ public static class VettingEndpoints
     /// POST /api/vetting/reviewer/applications/{id}/decisions
     /// </summary>
     private static async Task<IResult> SubmitReviewDecision(
+        HttpContext context,
+        IAntiforgery antiforgery,
         Guid id,
         ReviewDecisionRequest request,
         [FromServices] IVettingService vettingService,
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
+        // Validate CSRF token
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
         try
         {
             // Extract user ID from JWT claims with fallback for administrators
@@ -337,12 +375,27 @@ public static class VettingEndpoints
     /// POST /api/vetting/reviewer/applications/{id}/notes
     /// </summary>
     private static async Task<IResult> AddApplicationNote(
+        HttpContext context,
+        IAntiforgery antiforgery,
         Guid id,
         CreateNoteRequest request,
         [FromServices] IVettingService vettingService,
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
+        // Validate CSRF token
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
         try
         {
             // Extract user ID from JWT claims with fallback for administrators
@@ -395,12 +448,27 @@ public static class VettingEndpoints
     /// POST /api/vetting/applications/{id}/approve
     /// </summary>
     private static async Task<IResult> ApproveApplication(
+        HttpContext context,
+        IAntiforgery antiforgery,
         Guid id,
         SimpleReasoningRequest request,
         [FromServices] IVettingService vettingService,
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
+        // Validate CSRF token
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
         try
         {
             // Extract user ID from JWT claims with fallback for administrators
@@ -454,12 +522,27 @@ public static class VettingEndpoints
     /// PUT /api/vetting/applications/{id}/status
     /// </summary>
     private static async Task<IResult> ChangeApplicationStatus(
+        HttpContext context,
+        IAntiforgery antiforgery,
         Guid id,
         StatusChangeRequest request,
         [FromServices] IVettingService vettingService,
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
+        // Validate CSRF token
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
         try
         {
             // Check if user has Administrator role FIRST - before extracting user ID
@@ -537,12 +620,27 @@ public static class VettingEndpoints
     /// POST /api/vetting/applications/{id}/notes
     /// </summary>
     private static async Task<IResult> AddSimpleApplicationNote(
+        HttpContext context,
+        IAntiforgery antiforgery,
         Guid id,
         SimpleNoteRequest request,
         [FromServices] IVettingService vettingService,
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
+        // Validate CSRF token
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
         try
         {
             // Extract user ID from JWT claims with fallback for administrators
@@ -603,12 +701,27 @@ public static class VettingEndpoints
     /// POST /api/vetting/applications/{id}/deny
     /// </summary>
     private static async Task<IResult> DenyApplication(
+        HttpContext context,
+        IAntiforgery antiforgery,
         Guid id,
         SimpleReasoningRequest request,
         [FromServices] IVettingService vettingService,
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
+        // Validate CSRF token
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
         try
         {
             // Extract user ID from JWT claims with fallback for administrators
@@ -833,11 +946,26 @@ public static class VettingEndpoints
     /// POST /api/vetting/applications/simplified
     /// </summary>
     private static async Task<IResult> SubmitSimplifiedApplication(
+        HttpContext context,
+        IAntiforgery antiforgery,
         SimplifiedApplicationRequest request,
         ClaimsPrincipal user,
         [FromServices] IVettingService vettingService,
         CancellationToken cancellationToken)
     {
+        // Validate CSRF token
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return Results.Problem(
+                title: "CSRF Validation Failed",
+                detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                statusCode: 400);
+        }
+
         try
         {
             // Get user email from claims

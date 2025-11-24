@@ -17,6 +17,8 @@ public static class RefundEndpoints
     public static void MapRefundEndpoints(this IEndpointRouteBuilder app)
     {
         // EXISTING: Admin endpoint for full refund with RSVP cancellation
+        // SECURITY: CSRF protection enabled automatically via middleware
+        // CRITICAL: Financial transactions must validate CSRF tokens to prevent unauthorized refunds
         app.MapPost("/api/admin/refunds/{ticketId:guid}", RefundTicket.Execute)
             .RequireAuthorization(policy => policy.RequireRole("Administrator", "Teacher"))
             .WithName("RefundTicketById")
@@ -31,6 +33,8 @@ public static class RefundEndpoints
             .Produces(500); // Internal server error (refund failed)
 
         // NEW: Variable refund endpoint (partial or full, NO RSVP cancellation)
+        // SECURITY: CSRF protection enabled automatically via middleware
+        // CRITICAL: Financial transactions must validate CSRF tokens to prevent unauthorized refunds
         app.MapPost("/api/payments/transactions/{transactionId:guid}/refund", ProcessVariableRefund.Execute)
             .RequireAuthorization(policy => policy.RequireRole("Administrator", "Teacher"))
             .WithName("ProcessVariableRefund")

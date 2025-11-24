@@ -466,7 +466,6 @@ export const EventForm: React.FC<EventFormProps> = ({
   // Modal state management
   const [sessionModalOpen, setSessionModalOpen] = useState(false)
   const [ticketModalOpen, setTicketModalOpen] = useState(false)
-  const [venueModalOpen, setVenueModalOpen] = useState(false)
   const [editingSession, setEditingSession] = useState<EventSession | null>(null)
   const [editingTicketType, setEditingTicketType] = useState<EventTicketType | null>(null)
 
@@ -474,11 +473,6 @@ export const EventForm: React.FC<EventFormProps> = ({
   const [removeRsvpModalOpen, setRemoveRsvpModalOpen] = useState(false)
   const [refundTicketModalOpen, setRefundTicketModalOpen] = useState(false)
   const [selectedParticipant, setSelectedParticipant] = useState<EventParticipationDto | null>(null)
-
-  // Venue form state
-  const [venueName, setVenueName] = useState('')
-  const [venueDirections, setVenueDirections] = useState('')
-  const [venueNotes, setVenueNotes] = useState('')
 
   // RSVP table sorting
   const [rsvpSortColumn, setRsvpSortColumn] = useState<'name' | 'email' | 'status' | 'date'>('name')
@@ -743,65 +737,6 @@ export const EventForm: React.FC<EventFormProps> = ({
     teachersData && Array.isArray(teachersData) ? formatTeachersForMultiSelect(teachersData) : []
 
   // Create venue mutation
-  type CreateVenueRequest = components['schemas']['CreateVenueRequest']
-  const createVenueMutation = useMutation({
-    mutationFn: async (data: CreateVenueRequest) => {
-      const response = await api.post<VenueDto>('/api/admin/venues', data)
-      return response.data
-    },
-    onSuccess: (newVenue) => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'venues', 'active'] })
-      notifications.show({
-        title: 'Success',
-        message: 'Venue created successfully',
-        color: 'green',
-        icon: <IconCheck />,
-      })
-      // Set the newly created venue as selected
-      if (newVenue?.id) {
-        form.setFieldValue('venueId', newVenue.id.toString())
-      }
-      // Reset form and close modal
-      setVenueName('')
-      setVenueDirections('')
-      setVenueNotes('')
-      setVenueModalOpen(false)
-    },
-    onError: (error: any) => {
-      notifications.show({
-        title: 'Error',
-        message: error.response?.data?.message || 'Failed to create venue',
-        color: 'red',
-        icon: <IconAlertCircle />,
-      })
-    },
-  })
-
-  // Venue modal handlers
-  const handleAddVenueClick = () => {
-    setVenueName('')
-    setVenueDirections('')
-    setVenueNotes('')
-    setVenueModalOpen(true)
-  }
-
-  const handleCreateVenue = () => {
-    if (!venueName.trim()) {
-      notifications.show({
-        title: 'Validation Error',
-        message: 'Venue name is required',
-        color: 'red',
-      })
-      return
-    }
-
-    createVenueMutation.mutate({
-      name: venueName.trim(),
-      directions: venueDirections.trim() || null,
-      notes: venueNotes.trim() || null,
-    })
-  }
-
   // Session management handlers
   const handleEditSession = (sessionId: string) => {
     const session = form.values.sessions.find((s) => s.id === sessionId)
@@ -1504,18 +1439,13 @@ export const EventForm: React.FC<EventFormProps> = ({
                   >
                     Venue
                   </Title>
-                  <Stack gap="md">
-                    <Select
-                      label="Venue"
-                      placeholder="Select venue..."
-                      data={venues}
-                      required
-                      {...form.getInputProps('venueId')}
-                    />
-                    <WCRButton variant="outline" size="md" onClick={handleAddVenueClick}>
-                      Create New Venue
-                    </WCRButton>
-                  </Stack>
+                  <Select
+                    label="Venue"
+                    placeholder="Select venue..."
+                    data={venues}
+                    required
+                    {...form.getInputProps('venueId')}
+                  />
                 </div>
 
                 {/* Teachers/Instructors Section */}
@@ -2697,63 +2627,6 @@ export const EventForm: React.FC<EventFormProps> = ({
         ticketType={editingTicketType ? convertTicketTypeForModal(editingTicketType) : null}
         availableSessions={form.values.sessions || []}
       />
-
-      {/* Add Venue Modal */}
-      <Modal
-        opened={venueModalOpen}
-        onClose={() => setVenueModalOpen(false)}
-        title="Add New Venue"
-        centered
-        size="md"
-      >
-        <Stack gap="md">
-          <TextInput
-            label="Venue Name"
-            placeholder="Enter venue name"
-            value={venueName}
-            onChange={(e) => setVenueName(e.currentTarget.value)}
-            required
-            withAsterisk
-          />
-
-          <Textarea
-            label="Directions"
-            placeholder="Enter directions to the venue (optional)"
-            value={venueDirections}
-            onChange={(e) => setVenueDirections(e.currentTarget.value)}
-            minRows={3}
-            maxRows={6}
-            maxLength={500}
-          />
-
-          <Textarea
-            label="Notes"
-            placeholder="Enter any additional notes about the venue (optional)"
-            value={venueNotes}
-            onChange={(e) => setVenueNotes(e.currentTarget.value)}
-            minRows={3}
-            maxRows={6}
-            maxLength={1000}
-          />
-
-          <Group justify="flex-end" mt="md">
-            <WCRButton
-              variant="outline"
-              onClick={() => setVenueModalOpen(false)}
-              disabled={createVenueMutation.isPending}
-            >
-              Cancel
-            </WCRButton>
-            <WCRButton
-              variant="primary"
-              onClick={handleCreateVenue}
-              loading={createVenueMutation.isPending}
-            >
-              Create Venue
-            </WCRButton>
-          </Group>
-        </Stack>
-      </Modal>
 
       {/* Modal removed - now using inline editing in VolunteerPositionsGrid */}
 

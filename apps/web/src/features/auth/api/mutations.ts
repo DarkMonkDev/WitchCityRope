@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '../../../api/client'
 import { useAuthActions } from '../../../stores/authStore'
 import { extractErrorMessage } from '../../../lib/api/utils/errors'
+import { initializeCSRFProtection, getCSRFToken } from '../../../hooks/useCSRFToken'
 import type {
   UserDto,
   LoginRequest,
@@ -67,13 +68,21 @@ export function useLogin() {
         throw enhancedError
       }
     },
-    onSuccess: (data, variables, context) => {
+    onSuccess: async (data, variables, context) => {
       // Handle httpOnly cookie authentication - no tokens in response
       // The API returns { success: true, user: {...}, returnUrl: '...' }
       const userData = data.user
 
       // Update Zustand store with user data (httpOnly cookies handle auth)
       login(userData)
+
+      // Initialize CSRF protection after successful login
+      try {
+        await initializeCSRFProtection()
+      } catch (error) {
+        console.error('CSRF initialization failed:', error)
+        // Don't block login flow, but log for monitoring
+      }
 
       // Invalidate any user-related queries (if they exist)
       queryClient.invalidateQueries({ queryKey: ['user'] })
@@ -154,6 +163,21 @@ export function useRegister() {
 
 /**
  * Logout mutation using TanStack Query v5 + Zustand integration
+ *
+ * STANDARD PATTERN: This is the official authentication pattern for WitchCityRope.
+ * ALL authentication operations use TanStack Query mutations + Zustand for global state.
+ *
+ * Implementation:
+ * - Uses TanStack Query mutation for server operation (logout API call)
+ * - Handles CSRF token validation with automatic retry
+ * - Clears Zustand auth store on success
+ * - Clears React Query cache with queryClient.clear() (NOT invalidateQueries)
+ * - Navigates to home page
+ *
+ * CRITICAL: Uses queryClient.clear() to prevent refetch after logout.
+ * Using invalidateQueries() would trigger queries while user is logged out (bug).
+ *
+ * See: /docs/standards-processes/frontend/authentication-pattern-guide.md
  */
 export function useLogout() {
   const queryClient = useQueryClient()
@@ -162,26 +186,61 @@ export function useLogout() {
 
   return useMutation({
     mutationFn: async (_?: void): Promise<void> => {
-      await api.post('/api/auth/logout')
+      // Check if CSRF token exists before attempting logout
+      let csrfToken = getCSRFToken()
+
+      if (!csrfToken) {
+        console.warn('⚠️ No CSRF token found, fetching fresh token...')
+        try {
+          await initializeCSRFProtection()
+          csrfToken = getCSRFToken()
+        } catch (error) {
+          console.error('❌ Failed to fetch CSRF token for logout:', error)
+          throw new Error('Unable to log out. Please refresh the page and try again.')
+        }
+      }
+
+      // Attempt logout with CSRF token
+      try {
+        await api.post('/api/auth/logout')
+      } catch (error: any) {
+        // If CSRF validation failed, try once more with fresh token
+        if (error.response?.status === 400 &&
+            error.response?.data?.title === 'CSRF Validation Failed') {
+          console.warn('⚠️ CSRF validation failed, retrying with fresh token...')
+          await initializeCSRFProtection()
+          await api.post('/api/auth/logout') // Retry once
+        } else {
+          throw error // Re-throw other errors
+        }
+      }
     },
     onSuccess: () => {
-      // Update Zustand store (clear auth state)
+      // 1. Clear Zustand auth store
       logout()
 
-      // Clear all cached queries on logout
+      // 2. Clear sessionStorage (Zustand persistence)
+      sessionStorage.removeItem('auth-store')
+
+      // 3. Clear React Query cache (CRITICAL: use clear() not invalidateQueries())
+      // This prevents queries from refetching after user is logged out
       queryClient.clear()
 
-      // Navigate to login page
-      navigate('/login', { replace: true })
+      // 4. Navigate to home page
+      navigate('/', { replace: true })
+
+      console.log('✅ Logout successful')
     },
     onError: (error) => {
-      console.error('Logout failed:', error)
-      // Even if logout fails, clear local state and redirect
+      console.error('❌ Logout failed after retry:', error)
+      // CRITICAL: Still clear local state even on error
+      // Backend logout may have succeeded even if we got an error response
       logout()
+      sessionStorage.removeItem('auth-store')
       queryClient.clear()
-      navigate('/login', { replace: true })
+      navigate('/', { replace: true })
     },
-    // Don't retry logout attempts
+    // Don't retry logout attempts (we handle retry manually in mutationFn)
     retry: false,
   })
 }
