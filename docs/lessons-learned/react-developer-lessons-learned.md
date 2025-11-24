@@ -90,6 +90,21 @@
 **Part 2**: `/home/chad/repos/witchcityrope/docs/lessons-learned/react-developer-lessons-learned-2.md` (CORE LESSONS - FROZEN)
 **Part 3**: `/home/chad/repos/witchcityrope/docs/lessons-learned/react-developer-lessons-learned-3.md` (CURRENT LESSONS FILE)
 **Read ALL**: All three parts are MANDATORY
+
+## Testing - MANDATORY READING
+
+**Single Source of Truth**: [TESTING_GUIDE.md](/docs/standards-processes/testing/TESTING_GUIDE.md)
+
+### Critical Rules
+- ALL tests go in `/tests/` directory
+- React tests: `/tests/unit/web/[feature]/`
+- E2E tests: `/tests/e2e/[feature]/`
+- .NET unit tests: `/tests/unit/api/[domain]/`
+- DO NOT create tests co-located with source code
+- **NOTE**: React tests go in `/tests/unit/web/` NOT co-located with source
+
+**See TESTING_GUIDE.md for complete testing standards.**
+
 **Write to**: Part 3 ONLY - **NEVER ADD NEW LESSONS TO PART 1 OR PART 2**
 **Maximum file size**: 1700 lines (to stay under token limits). All three parts can be up to 1700 lines each
 **IF READ FAILS**: STOP and use lessons-learned-validator skill to fix immediately

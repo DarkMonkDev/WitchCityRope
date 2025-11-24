@@ -91,6 +91,21 @@
 
 ---
 
+
+## Testing - OPTIONAL READING
+
+**Single Source of Truth**: [TESTING_GUIDE.md](/docs/standards-processes/testing/TESTING_GUIDE.md)
+
+### Critical Rules
+- ALL tests go in `/tests/` directory
+- React tests: `/tests/unit/web/[feature]/`
+- E2E tests: `/tests/e2e/[feature]/`
+- .NET unit tests: `/tests/unit/api/[domain]/`
+- DO NOT create tests co-located with source code
+- **.NET tests confirmed at `/tests/unit/api/`**
+
+**See TESTING_GUIDE.md for complete testing standards.**
+
 ## 🚨 IF THIS FILE EXCEEDS 1700 LINES, add new lessons learned to PART 2! BOTH FILES CAN BE UP TO 1700 LINES EACH 🚨
 
 ## 📚 MULTI-FILE LESSONS LEARNED

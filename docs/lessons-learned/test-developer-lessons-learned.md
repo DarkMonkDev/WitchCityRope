@@ -5,6 +5,22 @@
 ## 🚨 MANDATORY STARTUP PROCEDURE 🚨
 
 ### 🚨 ULTRA CRITICAL TESTING DOCUMENTS (MUST READ): 🚨
+
+## Testing - MANDATORY READING
+
+**Single Source of Truth**: [TESTING_GUIDE.md](/docs/standards-processes/testing/TESTING_GUIDE.md)
+
+### Critical Rules
+- ALL tests go in `/tests/` directory
+- React tests: `/tests/unit/web/[feature]/`
+- E2E tests: `/tests/e2e/[feature]/`
+- .NET unit tests: `/tests/unit/api/[domain]/`
+- DO NOT create tests co-located with source code
+
+**See TESTING_GUIDE.md for complete testing standards.**
+
+---
+
 1. **Docker-Only Testing Standard** - **ALL TESTS RUN IN DOCKER**
 `/home/chad/repos/witchcityrope/docs/standards-processes/testing/docker-only-testing-standard.md`
 

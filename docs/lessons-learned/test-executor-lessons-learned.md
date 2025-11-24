@@ -46,15 +46,101 @@
 ## 🚨 REQUIRED READING FOR SPECIFIC TASKS 🚨
 
 ### Before Debugging E2E Test Failures
-**MUST READ**: `/apps/web/tests/playwright/TEST_RELIABILITY_ANALYSIS.md`
+**MUST READ**: `/apps/web/tests/TEST_RELIABILITY_ANALYSIS.md`
 - Common test failure patterns (selectors, timing, state)
 - How to diagnose hangs vs actual failures
 - Selector troubleshooting guide
 
 ### Quick Reference for Test Issues
-**MUST READ**: `/apps/web/tests/playwright/TEST_RELIABILITY_SUMMARY.md`
+**MUST READ**: `/apps/web/tests/TEST_RELIABILITY_SUMMARY.md`
 - Executive summary of test reliability
 - Quick fixes for common issues
+
+---
+
+## Testing - OPTIONAL READING
+
+**Single Source of Truth**: [TESTING_GUIDE.md](/docs/standards-processes/testing/TESTING_GUIDE.md)
+
+### Critical Rules
+- ALL tests go in `/tests/` directory
+- React tests: `/tests/unit/web/[feature]/`
+- E2E tests: `/tests/e2e/[feature]/` → **NOTE**: E2E tests now at `/apps/web/tests/` not `/tests/e2e/`
+- .NET unit tests: `/tests/unit/api/[domain]/`
+- DO NOT create tests co-located with source code
+
+**See TESTING_GUIDE.md for complete testing standards.**
+
+**IMPORTANT**: E2E test location has changed - always check TESTING_GUIDE.md for current structure.
+
+---
+
+## 🚨 ULTRA CRITICAL: Playwright Working Directory & Structure (2025-11-24) 🚨
+
+**DISASTER AVERTED**: Running Playwright from wrong directory caused only 8 of 855 tests to execute.
+**STRUCTURE SIMPLIFIED**: Tests moved to flat structure to prevent confusion.
+
+### NEW SIMPLIFIED STRUCTURE (2025-11-24):
+```
+apps/web/
+├── tests/                   # All E2E tests (flat, organized by feature)
+│   ├── admin/
+│   ├── auth/
+│   ├── events/
+│   └── vetting/
+├── test-utils/              # Shared test utilities
+│   ├── pages/              # Page object models
+│   ├── fixtures/           # Test fixtures
+│   ├── helpers/            # Helper functions
+│   └── utils/              # Utility functions
+├── playwright.config.ts     # Config points to ./tests
+└── src/                     # Unit tests stay here
+```
+
+### THE PROBLEM (Now Fixed):
+When `npx playwright test` was run from `/apps/web/tests/playwright` (inside the old nested testDir), Playwright only discovered tests in that immediate directory instead of the full test suite.
+
+### ROOT CAUSE:
+- Old structure: `tests/` (nested, confusing)
+- Running from inside test directory caused Playwright to only scan locally
+- Result: 8 tests ran instead of 855 (99% missed)
+
+### ✅ NEW SOLUTION - Simplified Flat Structure:
+- Tests now in `/tests/` (simple, clear)
+- Support code in `/test-utils/` (organized, shared)
+- Config: `testDir: './tests'`
+- No nested directories to confuse navigation
+
+### MANDATORY RULE:
+**ALWAYS run Playwright commands from `/apps/web` root directory, NEVER from test subdirectories.**
+
+### ✅ CORRECT - Runs all 855 tests:
+```bash
+cd /home/chad/repos/witchcityrope/apps/web
+npx playwright test
+# Result: Discovers and runs entire test suite
+```
+
+### ❌ WRONG - Will miss tests:
+```bash
+cd /home/chad/repos/witchcityrope/apps/web/tests
+npx playwright test
+# Result: May miss tests or use wrong config
+```
+
+### Verification:
+```bash
+# Check test discovery count
+cd /home/chad/repos/witchcityrope/apps/web
+npx playwright test --list | wc -l
+# Should show ~855 tests
+```
+
+### Why This Matters:
+- User requested "full test suite"
+- Old structure caused 847 tests to be silently skipped
+- New flat structure is clearer and follows industry best practices
+- Prevents false sense of test coverage completion
 
 ---
 

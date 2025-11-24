@@ -5,6 +5,21 @@
 ## 🚨 MANDATORY STARTUP PROCEDURE IS IN PART 1 🚨
 **CRITICAL**: Read Part 1 FIRST for ULTRA CRITICAL startup procedure and architecture documents.
 
+## Testing - MANDATORY READING
+
+**Single Source of Truth**: [TESTING_GUIDE.md](/docs/standards-processes/testing/TESTING_GUIDE.md)
+
+### Critical Rules
+- ALL tests go in `/tests/` directory
+- React tests: `/tests/unit/web/[feature]/`
+- E2E tests: `/tests/e2e/[feature]/`
+- .NET unit tests: `/tests/unit/api/[domain]/`
+- DO NOT create tests co-located with source code
+
+**See TESTING_GUIDE.md for complete testing standards.**
+
+---
+
 ## 📚 MULTI-FILE LESSONS LEARNED
 **Files**: 2 total
 **Part 1**: test-developer-lessons-learned.md (MUST READ FIRST)
@@ -388,24 +403,33 @@ public async Task GetPublicVenue_WithValidId_ReturnsVenue()
 
 ## 🚨 CRITICAL: E2E Test Location - Single Unified Location (2025-11-23)
 
-**Problem**: E2E tests created in wrong location (`/tests/e2e/`) which no longer exists, causing tests to be lost or duplicated.
+**Problem**: E2E tests created in wrong location or nested structure causing confusion and tests being missed.
 
-### ✅ CORRECT Pattern: ONLY Use Apps-Level Location
+### ✅ CORRECT Pattern: Simplified Flat Structure (2025-11-24)
 
 ```bash
-# ✅ CORRECT - ONLY valid location for E2E tests
-/apps/web/tests/playwright/
+# ✅ CORRECT - NEW simplified structure (2025-11-24)
+/apps/web/tests/              # All E2E tests (flat, organized by feature)
+/apps/web/test-utils/         # Shared utilities (pages, fixtures, helpers)
 
-# ❌ WRONG - DELETED, no longer exists
-/tests/e2e/  # OBSOLETE - CONSOLIDATED 2025-11-23
+# ❌ WRONG - OLD nested structure
+/apps/web/tests/  # REMOVED 2025-11-24 - caused directory confusion
+/tests/e2e/                  # OBSOLETE - CONSOLIDATED 2025-11-23
 ```
+
+### New Structure Benefits:
+- **Simple**: No nested `/tests/` confusion
+- **Clear**: `/tests/` for tests, `/test-utils/` for utilities
+- **Standard**: Follows Playwright industry best practices
+- **Reliable**: Prevents running from wrong directory (caused 847 tests to be skipped)
 
 ### Prevention Rules
 
-1. ✅ **ALWAYS create E2E tests in `/apps/web/tests/playwright/`**
-2. ✅ **NEVER create tests in `/tests/e2e/`** (DELETED location)
-3. ✅ **USE relative imports** from same test suite
-4. ❌ **DON'T cross-reference** between old and new locations
+1. ✅ **ALWAYS create E2E tests in `/apps/web/tests/[feature]/`**
+2. ✅ **ALWAYS put utilities in `/apps/web/test-utils/`**
+3. ✅ **ALWAYS run Playwright from `/apps/web` root**
+4. ❌ **NEVER nest tests under `/tests/`** (removed structure)
+5. ❌ **NEVER run from inside `/tests/` directory** (will miss tests)
 
 ---
 
