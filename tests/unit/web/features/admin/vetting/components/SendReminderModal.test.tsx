@@ -2,11 +2,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { MantineProvider } from '@mantine/core';
-import { SendReminderModal } from '../../../../../../apps/web/src/features/admin/vetting/components/SendReminderModal';
-import { vettingAdminApi } from '../../../../../../apps/web/src/features/admin/vetting/services/vettingAdminApi';
+import { SendReminderModal } from '@/features/admin/vetting/components/SendReminderModal';
+import { vettingAdminApi } from '@/features/admin/vetting/services/vettingAdminApi';
 
 // Mock the API service
-vi.mock('../../../../../../apps/web/src/features/admin/vetting/services/vettingAdminApi', () => ({
+vi.mock('@/features/admin/vetting/services/vettingAdminApi', () => ({
   vettingAdminApi: {
     sendApplicationReminder: vi.fn(),
   },

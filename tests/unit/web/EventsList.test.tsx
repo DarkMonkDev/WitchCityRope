@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { EventsList } from '../../../apps/web/src/components/EventsList';
+import { EventsList } from '@/components/EventsList';
 
 // Mock the EventCard component since we're testing EventsList in isolation
-vi.mock('../../../apps/web/src/components/EventCard', () => ({
+vi.mock('@/components/EventCard', () => ({
   EventCard: ({ event }: { event: any }) => (
     <div data-testid="event-card">
       <h3>{event.title}</h3>

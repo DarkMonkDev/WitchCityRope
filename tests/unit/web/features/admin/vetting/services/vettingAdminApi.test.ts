@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { vettingAdminApi } from '../../../../../../apps/web/src/features/admin/vetting/services/vettingAdminApi';
-import { apiClient } from '../../../../../../apps/web/src/lib/api/client';
+import { vettingAdminApi } from '@/features/admin/vetting/services/vettingAdminApi';
+import { apiClient } from '@/lib/api/client';
 import type {
   ApplicationFilterRequest,
   ApplicationSummaryDto,
@@ -8,10 +8,10 @@ import type {
   ReviewDecisionRequest,
   ReviewDecisionResponse,
   PagedResult
-} from '../../../../../../apps/web/src/features/admin/vetting/types/vetting.types';
+} from '@/features/admin/vetting/types/vetting.types';
 
 // Mock the API client
-vi.mock('../../../../../../apps/web/src/lib/api/client', () => ({
+vi.mock('@/lib/api/client', () => ({
   apiClient: {
     post: vi.fn(),
     get: vi.fn(),

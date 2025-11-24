@@ -9,6 +9,8 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    // Include tests from centralized location
+    include: ['../../tests/unit/web/**/*.test.{ts,tsx}'],
     // Exclude Playwright E2E tests (they have their own runner)
     exclude: [
       '**/node_modules/**',
