@@ -119,7 +119,7 @@ DEPLOY_PATH="/opt/witchcityrope/staging"
 
 # Step 1: Get database connection info
 echo "1️⃣  Retrieving database credentials..."
-DB_CONNECTION=$(ssh -i $SSH_KEY $USER@$SERVER "cat $DEPLOY_PATH/.env.staging | grep ConnectionStrings__DefaultConnection" | cut -d'=' -f2-)
+DB_CONNECTION=$(ssh -i $SSH_KEY $USER@$SERVER "cat $DEPLOY_PATH/.env.staging | grep STAGING_DB_CONNECTION_STRING" | cut -d'=' -f2-)
 
 if [ -z "$DB_CONNECTION" ]; then
     echo "   ❌ FAIL: Could not retrieve database connection string"
@@ -128,13 +128,13 @@ if [ -z "$DB_CONNECTION" ]; then
     exit 1
 fi
 
-# Parse connection string
-# Format: Host=...;Port=...;Database=...;Username=...;Password=...;
-DB_HOST=$(echo "$DB_CONNECTION" | grep -oP 'Host=\K[^;]+')
-DB_PORT=$(echo "$DB_CONNECTION" | grep -oP 'Port=\K[^;]+')
-DB_NAME=$(echo "$DB_CONNECTION" | grep -oP 'Database=\K[^;]+')
-DB_USER=$(echo "$DB_CONNECTION" | grep -oP 'Username=\K[^;]+')
-DB_PASSWORD=$(echo "$DB_CONNECTION" | grep -oP 'Password=\K[^;]+')
+# Parse PostgreSQL URI connection string
+# Format: postgresql://username:password@host:port/database?sslmode=require
+DB_USER=$(echo "$DB_CONNECTION" | sed -n 's|postgresql://\([^:]*\):.*|\1|p')
+DB_PASSWORD=$(echo "$DB_CONNECTION" | sed -n 's|postgresql://[^:]*:\([^@]*\)@.*|\1|p')
+DB_HOST=$(echo "$DB_CONNECTION" | sed -n 's|.*@\([^:]*\):.*|\1|p')
+DB_PORT=$(echo "$DB_CONNECTION" | sed -n 's|.*:\([0-9]*\)/.*|\1|p')
+DB_NAME=$(echo "$DB_CONNECTION" | sed -n 's|.*/\([^?]*\).*|\1|p')
 
 echo "   Database: $DB_NAME"
 echo "   Host: $DB_HOST:$DB_PORT"
