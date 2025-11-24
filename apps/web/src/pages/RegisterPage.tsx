@@ -382,7 +382,7 @@ export const RegisterPage: React.FC = () => {
                     color: 'var(--color-smoke)',
                   }}
                 >
-                  Your display name in the community (3-50 characters)
+                  Your display name in the community (3-50 characters). Scene names don't need to be unique.
                 </Text>
               </Box>
 

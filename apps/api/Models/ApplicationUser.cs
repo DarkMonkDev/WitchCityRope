@@ -17,7 +17,7 @@ public class ApplicationUser : IdentityUser<Guid>
 
     /// <summary>
     /// Scene name for the rope bondage community
-    /// Required field, must be unique
+    /// Required field, may be duplicated (use email for unique identification)
     /// </summary>
     public string SceneName { get; set; } = string.Empty;
 

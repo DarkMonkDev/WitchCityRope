@@ -109,9 +109,23 @@ public class AuthenticationService : IAuthenticationService
             // If not found by email, try by scene name (case-insensitive)
             if (user == null)
             {
-                user = await _context.Users.FirstOrDefaultAsync(
-                    u => EF.Functions.ILike(u.SceneName, request.EmailOrSceneName),
-                    cancellationToken);
+                // Check if scene name has duplicates
+                var sceneNameCount = await _context.Users
+                    .CountAsync(u => EF.Functions.ILike(u.SceneName, request.EmailOrSceneName), cancellationToken);
+
+                if (sceneNameCount > 1)
+                {
+                    _logger.LogInformation("Login attempt with duplicate scene name: {SceneName}", request.EmailOrSceneName);
+                    return (false, null, "This scene name is used by multiple members. Please log in with your email address instead.");
+                }
+
+                if (sceneNameCount == 1)
+                {
+                    // If unique, proceed with scene name login
+                    user = await _context.Users.FirstOrDefaultAsync(
+                        u => EF.Functions.ILike(u.SceneName, request.EmailOrSceneName),
+                        cancellationToken);
+                }
             }
 
             if (user == null)
@@ -216,15 +230,7 @@ public class AuthenticationService : IAuthenticationService
                 return (false, null, "Email address is already registered");
             }
 
-            // Check if scene name already exists using direct Entity Framework
-            var existingSceneName = await _context.Users
-                .AsNoTracking()
-                .AnyAsync(u => u.SceneName == request.SceneName, cancellationToken);
-
-            if (existingSceneName)
-            {
-                return (false, null, "Scene name is already taken");
-            }
+            // Scene names can now be duplicated - only email must be unique
 
             // Create new user with Terms of Service acceptance
             var user = new ApplicationUser

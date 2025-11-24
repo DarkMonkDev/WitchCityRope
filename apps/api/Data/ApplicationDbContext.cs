@@ -369,8 +369,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
                 .HasColumnType("timestamptz");
 
             // Indexes to match existing schema
+            // Scene names can be duplicated - email is the unique identifier
             entity.HasIndex(e => e.SceneName)
-                .IsUnique()
                 .HasDatabaseName("IX_Users_SceneName");
 
             entity.HasIndex(e => e.IsActive)
