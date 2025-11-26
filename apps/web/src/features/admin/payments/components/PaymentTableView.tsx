@@ -45,11 +45,14 @@ const getPaymentMethodColor = (method: string): string => {
 const getStatusColor = (status: string): string => {
   switch (status) {
     case 'Paid':
+    case 'Completed':
       return 'green';
+    case 'PartiallyRefunded':
+      return 'yellow'; // Between Refunded (orange) and Completed (green)
     case 'Refunded':
       return 'orange';
     case 'Pending':
-      return 'yellow';
+      return 'blue';
     case 'Failed':
       return 'red';
     default:

@@ -146,25 +146,49 @@ public class AttendanceSeeder
                     // Donation ticket is ADDITIONAL attendance on top of RSVP
                     if (shouldBuyDonation)
                     {
-                        // Create RSVP attendance FIRST (required for ALL social event attendees)
-                        var rsvpAttendance = new EventAttendance(eventItem.Id, user.Id, AttendanceType.RSVP)
+                        // Business Rule: Check if user already has ticket for this event
+                        var existingTicket = await _context.TicketPurchases
+                            .Include(tp => tp.TicketType)
+                            .FirstOrDefaultAsync(tp =>
+                                tp.UserId == user.Id &&
+                                tp.TicketType.EventId == eventItem.Id,
+                                cancellationToken);
+
+                        if (existingTicket != null)
                         {
-                            Id = Guid.NewGuid(),
-                            Status = AttendanceStatus.Active,
-                            Notes = notes,
-                            CreatedAt = createdAt,
-                            UpdatedAt = createdAt
-                        };
-                        attendancesToAdd.Add(rsvpAttendance);
+                            _logger.LogDebug("User {UserId} already has donation ticket for event {EventId}, skipping donation", user.Id, eventItem.Id);
+                            // Still create RSVP attendance for this user
+                            var rsvpOnlyAttendance = new EventAttendance(eventItem.Id, user.Id, AttendanceType.RSVP)
+                            {
+                                Id = Guid.NewGuid(),
+                                Status = AttendanceStatus.Active,
+                                Notes = notes,
+                                CreatedAt = createdAt,
+                                UpdatedAt = createdAt
+                            };
+                            attendancesToAdd.Add(rsvpOnlyAttendance);
+                        }
+                        else
+                        {
+                            // Create RSVP attendance FIRST (required for ALL social event attendees)
+                            var rsvpAttendance = new EventAttendance(eventItem.Id, user.Id, AttendanceType.RSVP)
+                            {
+                                Id = Guid.NewGuid(),
+                                Status = AttendanceStatus.Active,
+                                Notes = notes,
+                                CreatedAt = createdAt,
+                                UpdatedAt = createdAt
+                            };
+                            attendancesToAdd.Add(rsvpAttendance);
 
-                        var donationAmount = (decimal)Random.Shared.Next(5, 31); // FIXED: $5-$30 donation (minimum $5)
+                            var donationAmount = (decimal)Random.Shared.Next(5, 31); // FIXED: $5-$30 donation (minimum $5)
 
-                        // Randomly assign payment method for social event donations (33% Cash, 67% PayPal)
-                        // Cash payments can only happen at the door for social events
-                        var paymentMethod = Random.Shared.Next(0, 3) == 0 ? "Cash" : "PayPal";
+                            // Randomly assign payment method for social event donations (33% Cash, 67% PayPal)
+                            // Cash payments can only happen at the door for social events
+                            var paymentMethod = Random.Shared.Next(0, 3) == 0 ? "Cash" : "PayPal";
 
-                        // THEN create donation ticket purchase and attendance (in ADDITION to RSVP)
-                        var ticketPurchase = new TicketPurchase
+                            // THEN create donation ticket purchase and attendance (in ADDITION to RSVP)
+                            var ticketPurchase = new TicketPurchase
                         {
                             Id = Guid.NewGuid(),
                             TicketTypeId = donationTicketType.Id,
@@ -198,10 +222,11 @@ public class AttendanceSeeder
                             CreatedAt = createdAt,
                             UpdatedAt = createdAt
                         };
-                        attendancesToAdd.Add(ticketAttendance);
+                            attendancesToAdd.Add(ticketAttendance);
 
-                        // Update attendee with donation ticket number
-                        attendee.TicketNumber = $"DN-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}";
+                            // Update attendee with donation ticket number
+                            attendee.TicketNumber = $"DN-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}";
+                        }
                     }
                     else
                     {
@@ -232,6 +257,21 @@ public class AttendanceSeeder
                         for (int i = 0; i < 2 && i < users.Count; i++)
                         {
                             var user = users[i];
+
+                            // Business Rule: Check if user already has ticket for this event
+                            var existingTicket = await _context.TicketPurchases
+                                .Include(tp => tp.TicketType)
+                                .FirstOrDefaultAsync(tp =>
+                                    tp.UserId == user.Id &&
+                                    tp.TicketType.EventId == eventItem.Id,
+                                    cancellationToken);
+
+                            if (existingTicket != null)
+                            {
+                                _logger.LogDebug("User {UserId} already has ticket for event {EventId}, skipping", user.Id, eventItem.Id);
+                                continue;
+                            }
+
                             var purchaseAmount = (decimal)Random.Shared.Next(15, 65);
                             var createdAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20));
 
@@ -288,6 +328,21 @@ public class AttendanceSeeder
                         for (int i = 2; i < 6 && i < users.Count; i++) // Start at index 2 to use different users
                         {
                             var user = users[i];
+
+                            // Business Rule: Check if user already has ticket for this event
+                            var existingTicket = await _context.TicketPurchases
+                                .Include(tp => tp.TicketType)
+                                .FirstOrDefaultAsync(tp =>
+                                    tp.UserId == user.Id &&
+                                    tp.TicketType.EventId == eventItem.Id,
+                                    cancellationToken);
+
+                            if (existingTicket != null)
+                            {
+                                _logger.LogDebug("User {UserId} already has ticket for event {EventId}, skipping", user.Id, eventItem.Id);
+                                continue;
+                            }
+
                             var purchaseAmount = (decimal)Random.Shared.Next(15, 65);
                             var createdAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20));
 
@@ -355,6 +410,21 @@ public class AttendanceSeeder
                 for (int i = 0; i < Math.Min(ticketCount, users.Count); i++)
                 {
                     var user = users[i];
+
+                    // Business Rule: Check if user already has ticket for this event
+                    var existingTicket = await _context.TicketPurchases
+                        .Include(tp => tp.TicketType)
+                        .FirstOrDefaultAsync(tp =>
+                            tp.UserId == user.Id &&
+                            tp.TicketType.EventId == eventItem.Id,
+                            cancellationToken);
+
+                    if (existingTicket != null)
+                    {
+                        _logger.LogDebug("User {UserId} already has ticket for event {EventId}, skipping", user.Id, eventItem.Id);
+                        continue;
+                    }
+
                     var purchaseAmount = (decimal)Random.Shared.Next(15, 65);
                     var createdAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20));
 
@@ -558,29 +628,56 @@ public class AttendanceSeeder
             // Donation ticket is ADDITIONAL attendance on top of RSVP
             if (shouldBuyDonation && donationTicketType != null)
             {
-                // Create RSVP attendance FIRST (required for ALL social event attendees)
-                var rsvpAttendance = new EventAttendance
+                // Business Rule: Check if user already has ticket for this event
+                var existingTicket = await _context.TicketPurchases
+                    .Include(tp => tp.TicketType)
+                    .FirstOrDefaultAsync(tp =>
+                        tp.UserId == user.Id &&
+                        tp.TicketType.EventId == eventId,
+                        cancellationToken);
+
+                if (existingTicket != null)
                 {
-                    Id = Guid.NewGuid(),
-                    EventId = eventId,
-                    UserId = user.Id,
-                    AttendanceType = AttendanceType.RSVP,
-                    Status = AttendanceStatus.Active,
-                    Notes = userNotes,
-                    CreatedAt = rsvpCreatedAt,
-                    UpdatedAt = rsvpCreatedAt
-                };
-                _context.EventAttendances.Add(rsvpAttendance);
+                    _logger.LogDebug("User {UserId} already has donation ticket for event {EventId}, skipping donation", user.Id, eventId);
+                    // Still create RSVP attendance for this user
+                    var rsvpOnlyAttendance = new EventAttendance
+                    {
+                        Id = Guid.NewGuid(),
+                        EventId = eventId,
+                        UserId = user.Id,
+                        AttendanceType = AttendanceType.RSVP,
+                        Status = AttendanceStatus.Active,
+                        Notes = userNotes,
+                        CreatedAt = rsvpCreatedAt,
+                        UpdatedAt = rsvpCreatedAt
+                    };
+                    _context.EventAttendances.Add(rsvpOnlyAttendance);
+                }
+                else
+                {
+                    // Create RSVP attendance FIRST (required for ALL social event attendees)
+                    var rsvpAttendance = new EventAttendance
+                    {
+                        Id = Guid.NewGuid(),
+                        EventId = eventId,
+                        UserId = user.Id,
+                        AttendanceType = AttendanceType.RSVP,
+                        Status = AttendanceStatus.Active,
+                        Notes = userNotes,
+                        CreatedAt = rsvpCreatedAt,
+                        UpdatedAt = rsvpCreatedAt
+                    };
+                    _context.EventAttendances.Add(rsvpAttendance);
 
-                // Generate random donation amount ($5-$30 minimum $5)
-                var donationAmount = (decimal)Random.Shared.Next(5, 31);
+                    // Generate random donation amount ($5-$30 minimum $5)
+                    var donationAmount = (decimal)Random.Shared.Next(5, 31);
 
-                // Randomly assign payment method for social event donations (33% Cash, 67% PayPal)
-                // Cash payments can only happen at the door for social events
-                var paymentMethod = Random.Shared.Next(0, 3) == 0 ? "Cash" : "PayPal";
+                    // Randomly assign payment method for social event donations (33% Cash, 67% PayPal)
+                    // Cash payments can only happen at the door for social events
+                    var paymentMethod = Random.Shared.Next(0, 3) == 0 ? "Cash" : "PayPal";
 
-                // THEN create donation ticket purchase and attendance (in ADDITION to RSVP)
-                var donationPurchase = new TicketPurchase
+                    // THEN create donation ticket purchase and attendance (in ADDITION to RSVP)
+                    var donationPurchase = new TicketPurchase
                 {
                     Id = Guid.NewGuid(),
                     TicketTypeId = donationTicketType.Id,
@@ -617,10 +714,11 @@ public class AttendanceSeeder
                     CreatedAt = rsvpCreatedAt,
                     UpdatedAt = rsvpCreatedAt
                 };
-                _context.EventAttendances.Add(ticketAttendance);
+                    _context.EventAttendances.Add(ticketAttendance);
 
-                // Update EventAttendee with donation ticket info
-                attendee.TicketNumber = $"DN-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}";
+                    // Update EventAttendee with donation ticket info
+                    attendee.TicketNumber = $"DN-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}";
+                }
             }
             else
             {

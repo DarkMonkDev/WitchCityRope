@@ -50,7 +50,7 @@ export const Navigation: React.FC = () => {
   // Handle logout button click
   const handleLogout = useCallback(() => {
     closeMobileMenu() // Close mobile menu first
-    logoutMutation.mutate()
+    logoutMutation.mutate(undefined)
   }, [logoutMutation, closeMobileMenu])
 
   // Prevent body scroll when mobile menu is open

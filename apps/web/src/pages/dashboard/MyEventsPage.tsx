@@ -1,14 +1,15 @@
 import React, { useState, useMemo } from 'react';
-import { Container, Title, Button, Group, Box, Text, Center, Stack, Loader, Alert } from '@mantine/core';
-import { Link } from 'react-router-dom';
+import { Container, Title, Button, Group, Box, Text, Center, Stack, Loader, Alert, Badge } from '@mantine/core';
+import { Link, useNavigate } from 'react-router-dom';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { VettingAlertBox } from './components/VettingAlertBox';
 import { FilterBar } from './components/FilterBar';
 import { EventCard } from './components/EventCard';
-import { EventTable } from './components/EventTable';
+import { BaseEventsTable, type TableColumn } from '../../components/events/BaseEventsTable';
 import { useUserEvents, useVettingStatus } from '../../hooks/useDashboard';
 import { useUser } from '../../stores/authStore';
 import { useUserVolunteerShifts } from '../../features/volunteers/hooks/useVolunteerPositions';
+import { formatShortDate, formatEventTime } from '../../utils/eventUtils';
 import type { UserEventDto, VettingStatusDto } from '../../types/dashboard.types';
 import type { VolunteerShiftWithEvent } from '../../components/dashboard/UserVolunteerShifts';
 
@@ -23,9 +24,11 @@ import type { VolunteerShiftWithEvent } from '../../components/dashboard/UserVol
  * - NO pricing/capacity - user dashboard context
  */
 export const MyEventsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [showPast, setShowPast] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<string>('date-oldest');
 
   // Fetch user from auth store
   const user = useUser();
@@ -78,8 +81,106 @@ export const MyEventsPage: React.FC = () => {
       );
     }
 
+    // Sort events by date
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.startDate).getTime();
+      const dateB = new Date(b.startDate).getTime();
+      return sortBy === 'date-oldest' ? dateA - dateB : dateB - dateA;
+    });
+
     return filtered;
-  }, [events, showPast, searchQuery]);
+  }, [events, showPast, searchQuery, sortBy]);
+
+  // Define table columns for dashboard context
+  const dashboardColumns: TableColumn<UserEventDto>[] = useMemo(() => {
+    const statusColors: Record<string, string> = {
+      'RSVP Confirmed': 'blue',
+      'Ticket Purchased': 'green',
+      'Attended': 'grape',
+    };
+
+    return [
+      {
+        key: 'date',
+        label: 'Date',
+        sortable: true,
+        minWidth: '100px',
+        render: (event) => (
+          <Text size="md" fw={600} className="table-cell-text" style={{ color: '#2B2B2B' }}>
+            {formatShortDate(event.startDate)}
+          </Text>
+        ),
+      },
+      {
+        key: 'time',
+        label: 'Time',
+        render: (event) => (
+          <Text size="md" className="table-cell-text" style={{ color: '#2B2B2B' }}>
+            {formatEventTime(event.startDate, event.endDate)}
+          </Text>
+        ),
+      },
+      {
+        key: 'title',
+        label: 'Event Title',
+        render: (event) => (
+          <Text size="md" fw={600} className="table-cell-text" style={{ color: '#2B2B2B' }}>
+            {event.title}
+          </Text>
+        ),
+      },
+      {
+        key: 'status',
+        label: 'Status',
+        align: 'center',
+        render: (event) => (
+          <Badge color={statusColors[event.registrationStatus] || 'gray'} variant="light">
+            {event.registrationStatus}
+          </Badge>
+        ),
+      },
+      {
+        key: 'action',
+        label: 'Action',
+        align: 'center',
+        visibleFrom: 'md',
+        render: (event) => (
+          <Button
+            size="xs"
+            variant="outline"
+            color="burgundy"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/events/${event.id}`);
+            }}
+            styles={{
+              root: {
+                borderRadius: '12px 6px 12px 6px',
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '1.5px',
+                fontSize: '14px',
+                transition: 'all 0.3s ease',
+                height: 'auto',
+                minHeight: '44px',
+                padding: '14px 32px',
+                lineHeight: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '2px solid var(--color-burgundy)',
+                background: 'transparent',
+                color: 'var(--color-burgundy)',
+              },
+            }}
+          >
+            View Details
+          </Button>
+        ),
+      },
+    ];
+  }, [navigate]);
 
   // Show loading state
   if (eventsLoading || vettingLoading) {
@@ -207,7 +308,13 @@ export const MyEventsPage: React.FC = () => {
             ))}
           </Box>
         ) : (
-          <EventTable events={filteredEvents} />
+          <BaseEventsTable
+            events={filteredEvents}
+            columns={dashboardColumns}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+            onRowClick={(event) => navigate(`/events/${event.id}`)}
+          />
         )}
       </Container>
     </Box>

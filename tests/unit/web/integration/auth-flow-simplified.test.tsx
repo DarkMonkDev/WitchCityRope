@@ -210,8 +210,8 @@ describe('Authentication Flow Integration Tests', () => {
       expect(authState.isAuthenticated).toBe(false)
       expect(authState.user).toBe(null)
 
-      // Verify navigation to login
-      expect(mockNavigate).toHaveBeenCalledWith('/login', { replace: true })
+      // Verify navigation to root (home page)
+      expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true })
     })
 
     it('should clear store even if logout API fails', async () => {
@@ -240,8 +240,8 @@ describe('Authentication Flow Integration Tests', () => {
       expect(authState.isAuthenticated).toBe(false)
       expect(authState.user).toBe(null)
 
-      // Should still navigate to login
-      expect(mockNavigate).toHaveBeenCalledWith('/login', { replace: true })
+      // Should still navigate to root (home page)
+      expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true })
     })
   })
 

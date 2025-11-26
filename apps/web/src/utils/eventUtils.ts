@@ -36,13 +36,44 @@ export const formatEventDate = (dateString: string): string => {
   });
 };
 
-export const formatEventTime = (dateString: string): string => {
+/**
+ * Format date in short format for table display
+ * Example: "Sat - Jan, 7"
+ * @param dateString - ISO date string
+ * @returns Formatted date string (e.g., "Sat - Jan, 7")
+ */
+export const formatShortDate = (dateString?: string): string => {
+  if (!dateString) return 'TBD';
   const date = new Date(dateString);
-  return date.toLocaleTimeString('en-US', {
+  const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'short' });
+  const month = date.toLocaleDateString('en-US', { month: 'short' });
+  const day = date.getDate();
+  return `${dayOfWeek} - ${month}, ${day}`;
+};
+
+export const formatEventTime = (startDateString: string, endDateString?: string): string => {
+  const start = new Date(startDateString);
+  const startTime = start.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true
-  });
+  }).toLowerCase();
+
+  // If no end date, just return start time
+  if (!endDateString) {
+    return startTime;
+  }
+
+  // Format end time
+  const end = new Date(endDateString);
+  const endTime = end.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  }).toLowerCase();
+
+  // Return time range format: "1:00pm - 3:00pm"
+  return `${startTime} - ${endTime}`;
 };
 
 /**

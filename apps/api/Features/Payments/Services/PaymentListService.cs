@@ -215,12 +215,18 @@ public class PaymentListService : IPaymentListService
                 })
                 .ToList();
 
+            // Calculate total pages (Math.Ceiling to handle remainder)
+            var totalPages = parameters.PageSize > 0
+                ? (int)Math.Ceiling((double)totalCount / parameters.PageSize)
+                : 0;
+
             var response = new PaymentListResponse
             {
                 Transactions = results,
                 TotalCount = totalCount,
                 Page = parameters.Page,
-                PageSize = parameters.PageSize
+                PageSize = parameters.PageSize,
+                TotalPages = totalPages
             };
 
             _logger.LogInformation(

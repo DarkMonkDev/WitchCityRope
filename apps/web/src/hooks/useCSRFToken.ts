@@ -8,6 +8,8 @@
  * IMPORTANT: Call initializeCSRFProtection() after login
  */
 
+import { api } from '../api/client'
+
 /**
  * Utility function to get CSRF token synchronously from cookie
  * Use this in API interceptors where hooks can't be used
@@ -41,13 +43,8 @@ export function useCSRFToken(): string | null {
 export async function initializeCSRFProtection(): Promise<void> {
   try {
     // Fetch token endpoint - backend will set XSRF-TOKEN cookie
-    const response = await fetch('/api/antiforgery/token', {
-      credentials: 'include' // Send auth cookies
-    })
-
-    if (!response.ok) {
-      throw new Error(`Token fetch failed: ${response.status}`)
-    }
+    // Using axios instead of fetch to ensure baseURL is applied correctly
+    await api.get('/api/antiforgery/token')
 
     console.log('✅ CSRF protection initialized')
   } catch (error) {

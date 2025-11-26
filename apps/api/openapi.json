@@ -12380,6 +12380,10 @@
           "pageSize": {
             "type": "integer",
             "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },

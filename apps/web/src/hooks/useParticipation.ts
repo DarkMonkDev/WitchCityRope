@@ -18,7 +18,8 @@ export const participationKeys = {
 };
 
 // Check user's RSVP status for a specific event
-export function useParticipation(eventId: string, enabled = true) {
+// CRITICAL: Requires authentication - only enabled when user is logged in
+export function useParticipation(eventId: string, isAuthenticated: boolean, enabled = true) {
   return useQuery<EnhancedParticipationStatusDto>({
     queryKey: participationKeys.eventStatus(eventId),
     queryFn: async (): Promise<EnhancedParticipationStatusDto> => {
@@ -33,7 +34,8 @@ export function useParticipation(eventId: string, enabled = true) {
 
       return data;
     },
-    enabled: enabled && !!eventId,
+    // CRITICAL: Only fetch when user is authenticated (API endpoint requires [Authorize])
+    enabled: enabled && !!eventId && isAuthenticated,
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: true
   });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Title, Text, Group, Stack, Box } from '@mantine/core';
+import { Container, Title, Text, Group, Stack, Box, Pagination, Center } from '@mantine/core';
 import { usePaymentFilters } from '../../features/admin/payments/hooks/usePaymentFilters';
 import { usePayments } from '../../features/admin/payments/hooks/usePayments';
 import { PaymentFilterBar } from '../../features/admin/payments/components/PaymentFilterBar';
@@ -32,10 +32,25 @@ export const AdminPaymentsPage: React.FC = () => {
 
   const payments = data?.transactions || [];
   const totalCount = data?.totalCount || 0;
+  // CRITICAL FIX: Use filterState.page (source of truth) instead of data?.currentPage
+  // This ensures pagination control updates immediately when user clicks, not after API responds
+  const currentPage = filterState.page;
+  const pageSize = data?.pageSize || 50;
+  const totalPages = data?.totalPages || 0;
   const filteredCount = payments.length; // Backend doesn't return filteredCount, use array length
 
   // Calculate total revenue from filtered payments
   const totalRevenue = payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+
+  // Calculate "showing" range for pagination info
+  // Use filterState.page for immediate UI feedback (no lag waiting for API response)
+  const startIndex = totalCount > 0 ? (currentPage - 1) * pageSize + 1 : 0;
+  const endIndex = Math.min(currentPage * pageSize, totalCount);
+
+  // Handle page change
+  const handlePageChange = (newPage: number) => {
+    updateFilter({ page: newPage });
+  };
 
   return (
     <Container size="xl" py="xl">
@@ -73,6 +88,25 @@ export const AdminPaymentsPage: React.FC = () => {
         sortDirection={filterState.sortDirection}
         onSort={handleSort}
       />
+
+      {/* Pagination Controls */}
+      {!isLoading && !error && totalPages > 1 && (
+        <Box mt="lg">
+          <Center>
+            <Pagination
+              total={totalPages}
+              value={currentPage}
+              onChange={handlePageChange}
+              size="md"
+              withEdges
+              color="wcr"
+            />
+          </Center>
+          <Text size="sm" c="dimmed" ta="center" mt="sm">
+            Showing {startIndex}-{endIndex} of {totalCount} transactions
+          </Text>
+        </Box>
+      )}
 
       {/* Summary Statistics */}
       {!isLoading && !error && payments.length > 0 && (

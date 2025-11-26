@@ -24,4 +24,9 @@ public class PaymentListResponse
     /// Number of results per page
     /// </summary>
     public int PageSize { get; set; }
+
+    /// <summary>
+    /// Total number of pages (calculated from TotalCount and PageSize)
+    /// </summary>
+    public int TotalPages { get; set; }
 }

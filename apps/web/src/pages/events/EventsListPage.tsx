@@ -14,19 +14,18 @@ import {
   TextInput,
   Select,
   SegmentedControl,
-  Table,
-  ActionIcon,
   Switch,
+  Badge,
 } from '@mantine/core'
-import { IconSearch, IconArrowUp, IconArrowDown } from '@tabler/icons-react'
+import { IconSearch } from '@tabler/icons-react'
 import { useEventFilters } from '../../hooks/useEventFilters'
 import { useEvents } from '../../lib/api/hooks/useEvents'
-import { formatEventDate, formatEventDateTime, formatEventTime, calculateEventPriceRange } from '../../utils/eventUtils'
+import { formatEventDate, formatEventDateTime, formatEventTime, formatShortDate, calculateEventPriceRange } from '../../utils/eventUtils'
 import type { EventDto } from '../../lib/api/types/events.types'
 import { useNavigate } from 'react-router-dom'
 import { useParticipation } from '../../hooks/useParticipation'
 import { useCurrentUser } from '../../lib/api/hooks/useAuth'
-import { Badge } from '@mantine/core'
+import { BaseEventsTable, type TableColumn } from '../../components/events/BaseEventsTable'
 
 // Mock function to get user role - replace with actual auth context
 const useAuth = () => ({
@@ -40,7 +39,7 @@ export const EventsListPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards')
   const [showPastClasses, setShowPastClasses] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [sortBy, setSortBy] = useState('date')
+  const [sortBy, setSortBy] = useState('date-oldest')
   const { filters, clearFilters } = useEventFilters()
 
   // Convert filters to API format
@@ -58,6 +57,31 @@ export const EventsListPage: React.FC = () => {
   // CRITICAL: Use API data directly - DO NOT mask errors with fallback arrays
   // If events is undefined/null, it means there's an error that should be shown to the user
   const eventsArray: EventDto[] = (events as EventDto[]) || []
+
+  // Sort events based on sortBy selection
+  const sortedEvents = useMemo(() => {
+    if (!eventsArray || eventsArray.length === 0) return []
+
+    const sorted = [...eventsArray]
+
+    if (sortBy === 'date-oldest') {
+      // Sort oldest first (ascending order)
+      sorted.sort((a, b) => {
+        const dateA = new Date(a.startDate || 0).getTime()
+        const dateB = new Date(b.startDate || 0).getTime()
+        return dateA - dateB
+      })
+    } else if (sortBy === 'date-newest') {
+      // Sort newest first (descending order)
+      sorted.sort((a, b) => {
+        const dateA = new Date(a.startDate || 0).getTime()
+        const dateB = new Date(b.startDate || 0).getTime()
+        return dateB - dateA
+      })
+    }
+
+    return sorted
+  }, [eventsArray, sortBy])
 
   // Debug logging for E2E test troubleshooting
   console.log('🎯 EventsListPage render state:', {
@@ -77,6 +101,171 @@ export const EventsListPage: React.FC = () => {
     console.log('RSVP for event:', eventId)
     // Will implement with actual RSVP flow
   }
+
+  // Get current user and auth status at top level (before any conditional rendering)
+  const { data: currentUser } = useCurrentUser()
+  const isAuthenticated = !!currentUser
+
+  // Helper component for event table row with participation status
+  const EventTableCell: React.FC<{ eventId: string; isAuthenticated: boolean }> = ({ eventId, isAuthenticated }) => {
+    const { data: participation } = useParticipation(eventId, isAuthenticated)
+    const event = sortedEvents.find(e => e.id === eventId)
+
+    const hasTicket = participation?.hasTicket || false
+    const hasRSVP = participation?.hasRSVP || false
+    const hasPaidTickets = (event as any)?.ticketTypes?.some((tt: any) => (tt.maxPrice || 0) > 0)
+    const shouldShowPurchaseButton = hasRSVP && !hasTicket && hasPaidTickets
+
+    return (
+      <Button
+        size="sm"
+        onClick={(e) => {
+          e.stopPropagation()
+          setTimeout(() => {
+            navigate(`/events/${eventId}`)
+          }, 0)
+        }}
+        styles={{
+          root: {
+            fontWeight: 600,
+            height: '44px',
+            paddingTop: '12px',
+            paddingBottom: '12px',
+            fontSize: '14px',
+            lineHeight: '1.2'
+          }
+        }}
+      >
+        {shouldShowPurchaseButton ? 'Purchase Ticket' : 'Learn More'}
+      </Button>
+    )
+  }
+
+  // Helper component for price cell with participation status
+  const PriceCell: React.FC<{ event: EventDto; isAuthenticated: boolean }> = ({ event, isAuthenticated }) => {
+    const { data: participation } = useParticipation(event.id, isAuthenticated)
+    const hasTicket = participation?.hasTicket || false
+    const hasRSVP = participation?.hasRSVP || false
+
+    if (hasTicket) {
+      return (
+        <Badge
+          color="green"
+          variant="light"
+          size="lg"
+          className="table-badge"
+          styles={{
+            root: {
+              fontFamily: 'var(--font-heading)',
+              fontWeight: 600,
+              fontSize: '14px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }
+          }}
+        >
+          Ticket Purchased
+        </Badge>
+      )
+    }
+
+    return (
+      <Group gap="xs" align="center" justify="center">
+        <Text size="md" fw={600} className="table-cell-text" style={{ color: '#2B2B2B' }}>
+          {calculateEventPriceRange((event as any).ticketTypes || [])}
+        </Text>
+        {hasRSVP && (
+          <Badge
+            color="blue"
+            variant="light"
+            size="md"
+            className="table-badge"
+            styles={{
+              root: {
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 600,
+                fontSize: '14px',
+                textTransform: 'uppercase',
+              }
+            }}
+          >
+            RSVPed
+          </Badge>
+        )}
+      </Group>
+    )
+  }
+
+  // Define table columns for public events page
+  const publicEventsColumns: TableColumn<EventDto>[] = useMemo(() => {
+    return [
+      {
+        key: 'date',
+        label: 'Date',
+        sortable: true,
+        minWidth: '100px',
+        align: 'left',
+        cellStyle: { paddingLeft: '24px' },
+        render: (event) => (
+          <Text size="md" fw={600} className="table-cell-text" style={{ color: '#2B2B2B' }}>
+            {formatShortDate(event.startDate)}
+          </Text>
+        ),
+      },
+      {
+        key: 'time',
+        label: 'Time',
+        align: 'left',
+        render: (event) => (
+          <Text size="md" className="table-cell-text" style={{ color: '#2B2B2B' }}>
+            {formatEventTime(event.startDate, event.endDate)}
+          </Text>
+        ),
+      },
+      {
+        key: 'event',
+        label: 'Event',
+        align: 'left',
+        render: (event) => (
+          <Text size="md" fw={600} className="table-cell-text" style={{ color: '#2B2B2B' }}>
+            {event.title}
+          </Text>
+        ),
+      },
+      {
+        key: 'price',
+        label: 'Price',
+        align: 'center',
+        render: (event) => <PriceCell event={event} isAuthenticated={isAuthenticated} />,
+      },
+      {
+        key: 'spots',
+        label: 'Spots',
+        align: 'center',
+        render: (event) => {
+          const availableSpots = (event.capacity || 20) - (event.registrationCount || 0)
+          const getSpotColor = () => {
+            if (availableSpots > 10) return 'var(--color-success)'
+            if (availableSpots > 3) return 'var(--color-warning)'
+            return 'var(--color-error)'
+          }
+
+          return (
+            <Text size="md" fw={600} className="table-cell-text" style={{ color: getSpotColor() }}>
+              {event.registrationCount || 0}/{event.capacity || 20}
+            </Text>
+          )
+        },
+      },
+      {
+        key: 'action',
+        label: 'Action',
+        align: 'center',
+        visibleFrom: 'md',
+        render: (event) => <EventTableCell eventId={event.id} isAuthenticated={isAuthenticated} />,
+      },
+    ]
+  }, [isAuthenticated, navigate]);
 
   if (error) {
     // Extract error details for diagnostics
@@ -252,13 +441,12 @@ export const EventsListPage: React.FC = () => {
                 <Select
                   data-testid="select-category"
                   value={sortBy}
-                  onChange={(value) => setSortBy(value || 'date')}
+                  onChange={(value) => setSortBy(value || 'date-oldest')}
                   data={[
-                    { value: 'date', label: 'Sort by Date' },
-                    { value: 'price', label: 'Sort by Price' },
-                    { value: 'availability', label: 'Sort by Availability' },
+                    { value: 'date-oldest', label: 'Sort by Date - Oldest' },
+                    { value: 'date-newest', label: 'Sort by Date - Newest' },
                   ]}
-                  w={150}
+                  style={{ width: 'calc(12rem * var(--mantine-scale))' }}
                   styles={{
                     input: {
                       border: '2px solid var(--color-taupe)',
@@ -352,13 +540,12 @@ export const EventsListPage: React.FC = () => {
                 <Select
                   data-testid="select-category"
                   value={sortBy}
-                  onChange={(value) => setSortBy(value || 'date')}
+                  onChange={(value) => setSortBy(value || 'date-oldest')}
                   data={[
-                    { value: 'date', label: 'Sort by Date' },
-                    { value: 'price', label: 'Sort by Price' },
-                    { value: 'availability', label: 'Sort by Availability' },
+                    { value: 'date-oldest', label: 'Sort by Date - Oldest' },
+                    { value: 'date-newest', label: 'Sort by Date - Newest' },
                   ]}
-                  style={{ width: '150px', flexShrink: 0 }}
+                  style={{ width: 'calc(12rem * var(--mantine-scale))', flexShrink: 0 }}
                   styles={{
                     input: {
                       border: '2px solid var(--color-taupe)',
@@ -403,41 +590,27 @@ export const EventsListPage: React.FC = () => {
 
       {/* Main Content */}
       <Container size="xl" py="xl">
-        {/* Section header for E2E test detection */}
-        {!isLoading && eventsArray.length > 0 && (
-          <Title
-            order={2}
-            mb="xl"
-            style={{
-              fontFamily: 'var(--font-heading)',
-              color: 'var(--color-charcoal)',
-              fontSize: 'var(--font-size-h2)',
-              lineHeight: 'var(--line-height-h2)',
-              fontWeight: 700,
-            }}
-          >
-            Upcoming Events
-          </Title>
-        )}
-
-        {isLoading && eventsArray.length === 0 ? (
+        {isLoading && sortedEvents.length === 0 ? (
           <EventsListSkeleton />
-        ) : eventsArray.length === 0 ? (
+        ) : sortedEvents.length === 0 ? (
           <EmptyEventsState data-testid="events-empty-state" onClearFilters={clearFilters} />
         ) : viewMode === 'cards' ? (
           <EventCardGrid
-            events={eventsArray}
+            events={sortedEvents}
             userRole={userRole}
             onRegister={handleRegister}
             onRSVP={handleRSVP}
           />
         ) : (
-          <EventTableView
-            events={eventsArray}
-            onEventClick={(eventId) => {
+          <BaseEventsTable
+            events={sortedEvents}
+            columns={publicEventsColumns}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+            onRowClick={(event) => {
               // Use setTimeout to ensure navigation happens AFTER React finishes current render cycle
               setTimeout(() => {
-                navigate(`/events/${eventId}`)
+                navigate(`/events/${event.id}`)
               }, 0)
             }}
           />
@@ -787,325 +960,6 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({
   )
 }
 
-// Event Table View
-interface EventTableViewProps {
-  events: EventDto[]
-  onEventClick: (eventId: string) => void
-}
-
-const EventTableView: React.FC<EventTableViewProps> = ({ events, onEventClick }) => {
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
-  const { data: currentUser } = useCurrentUser()
-  const isAuthenticated = !!currentUser
-
-  const handleSort = () => {
-    setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'))
-  }
-
-  return (
-    <Paper
-      style={{
-        background: 'white',
-        borderRadius: '12px',
-        overflow: 'hidden',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-      }}
-    >
-      <Table highlightOnHover>
-        <Table.Thead
-          style={{
-            background: 'var(--color-burgundy)',
-          }}
-        >
-          <Table.Tr>
-            <Table.Th
-              style={{
-                color: 'white',
-                padding: 'var(--space-md)',
-                fontFamily: 'var(--font-heading)',
-                fontWeight: 600,
-                fontSize: '1rem',
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-                cursor: 'pointer',
-                userSelect: 'none',
-              }}
-              onClick={handleSort}
-            >
-              <Group gap="xs">
-                Date
-                <ActionIcon size="sm" variant="transparent">
-                  {sortOrder === 'asc' ? (
-                    <IconArrowUp size={16} color="white" />
-                  ) : (
-                    <IconArrowDown size={16} color="white" />
-                  )}
-                </ActionIcon>
-              </Group>
-            </Table.Th>
-            <Table.Th
-              style={{
-                color: 'white',
-                padding: 'var(--space-md)',
-                fontFamily: 'var(--font-heading)',
-                fontWeight: 600,
-                fontSize: '1rem',
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-              }}
-            >
-              Time
-            </Table.Th>
-            <Table.Th
-              style={{
-                color: 'white',
-                padding: 'var(--space-md)',
-                fontFamily: 'var(--font-heading)',
-                fontWeight: 600,
-                fontSize: '1rem',
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-              }}
-            >
-              Event
-            </Table.Th>
-            <Table.Th
-              style={{
-                color: 'white',
-                padding: 'var(--space-md)',
-                fontFamily: 'var(--font-heading)',
-                fontWeight: 600,
-                fontSize: '1rem',
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-              }}
-            >
-              Price
-            </Table.Th>
-            <Table.Th
-              style={{
-                color: 'white',
-                padding: 'var(--space-md)',
-                fontFamily: 'var(--font-heading)',
-                fontWeight: 600,
-                fontSize: '1rem',
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-              }}
-            >
-              Spots
-            </Table.Th>
-            <Table.Th
-              style={{
-                color: 'white',
-                padding: 'var(--space-md)',
-                fontFamily: 'var(--font-heading)',
-                fontWeight: 600,
-                fontSize: '1rem',
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-              }}
-            >
-              Action
-            </Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {events.map((event, index) => {
-            return <EventTableRow key={event.id} event={event} index={index} isAuthenticated={isAuthenticated} onEventClick={onEventClick} />
-          })}
-        </Table.Tbody>
-      </Table>
-    </Paper>
-  )
-}
-
-// Event Table Row Component with Participation Status
-interface EventTableRowProps {
-  event: EventDto
-  index: number
-  isAuthenticated: boolean
-  onEventClick: (eventId: string) => void
-}
-
-const EventTableRow: React.FC<EventTableRowProps> = ({ event, index, isAuthenticated, onEventClick }) => {
-  // Fetch participation status for authenticated users
-  const { data: participation } = useParticipation(event.id, isAuthenticated)
-
-  const availableSpots = (event.capacity || 20) - (event.registrationCount || 0)
-  const getSpotColor = () => {
-    if (availableSpots > 10) return 'var(--color-success)'
-    if (availableSpots > 3) return 'var(--color-warning)'
-    return 'var(--color-error)'
-  }
-
-  // Check if event has paid tickets (maxPrice > 0)
-  const hasPaidTickets = (event as any).ticketTypes?.some((tt: any) => (tt.maxPrice || 0) > 0)
-
-  // Determine participation status
-  const hasTicket = participation?.hasTicket || false
-  const hasRSVP = participation?.hasRSVP || false
-  const shouldShowPurchaseButton = hasRSVP && !hasTicket && hasPaidTickets
-
-  return (
-    <Table.Tr
-      style={{
-        cursor: 'pointer',
-        backgroundColor: index % 2 === 1 ? 'rgba(250, 246, 242, 0.8)' : 'transparent',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = 'rgba(136, 1, 36, 0.08)'
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor =
-          index % 2 === 1 ? 'rgba(250, 246, 242, 0.8)' : 'transparent'
-      }}
-      onClick={() => onEventClick(event.id)}
-    >
-                <Table.Td
-                  style={{
-                    padding: 'var(--space-md)',
-                    fontFamily: 'var(--font-body)',
-                    fontWeight: 600,
-                    color: 'var(--color-charcoal)',
-                  }}
-                >
-                  {formatEventDate(event.startDate).replace(/,.*/, '')}
-                </Table.Td>
-                <Table.Td
-                  style={{
-                    padding: 'var(--space-md)',
-                    fontFamily: 'var(--font-body)',
-                    fontWeight: 500,
-                    color: 'var(--color-charcoal)',
-                  }}
-                >
-                  {formatEventTime(event.startDate)}
-                </Table.Td>
-                <Table.Td
-                  style={{
-                    padding: 'var(--space-md)',
-                    fontFamily: 'var(--font-heading)',
-                    fontWeight: 600,
-                    color: 'var(--color-burgundy)',
-                    fontSize: '1.2rem',
-                  }}
-                >
-                  {event.title}
-                </Table.Td>
-                <Table.Td
-                  style={{
-                    padding: 'var(--space-md)',
-                    fontFamily: 'var(--font-heading)',
-                    fontWeight: 700,
-                    color: 'var(--color-burgundy)',
-                    fontSize: '1.3rem',
-                    textAlign: 'center',
-                  }}
-                >
-                  {hasTicket ? (
-                    <Badge
-                      color="green"
-                      variant="light"
-                      size="lg"
-                      styles={{
-                        root: {
-                          fontFamily: 'var(--font-heading)',
-                          fontWeight: 700,
-                          fontSize: '14px',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                        }
-                      }}
-                    >
-                      Ticket Purchased
-                    </Badge>
-                  ) : (
-                    <Group gap="xs" align="center" justify="center">
-                      <Text
-                        fw={700}
-                        style={{
-                          fontFamily: 'var(--font-heading)',
-                          fontSize: '1.3rem',
-                          color: 'var(--color-burgundy)',
-                        }}
-                      >
-                        {calculateEventPriceRange((event as any).ticketTypes || [])}
-                      </Text>
-                      {hasRSVP && (
-                        <Badge
-                          color="blue"
-                          variant="light"
-                          size="md"
-                          styles={{
-                            root: {
-                              fontFamily: 'var(--font-heading)',
-                              fontWeight: 600,
-                              fontSize: '12px',
-                              textTransform: 'uppercase',
-                            }
-                          }}
-                        >
-                          RSVPed
-                        </Badge>
-                      )}
-                    </Group>
-                  )}
-                </Table.Td>
-                <Table.Td
-                  style={{
-                    padding: 'var(--space-md)',
-                    fontFamily: 'var(--font-heading)',
-                    fontWeight: 600,
-                    fontSize: '1.1rem',
-                    textAlign: 'center',
-                    color: getSpotColor(),
-                  }}
-                >
-                  {event.registrationCount || 0}/{event.capacity || 20}
-                </Table.Td>
-                <Table.Td style={{ padding: 'var(--space-md)', textAlign: 'center' }}>
-                  <Button
-                    size="xs"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onEventClick(event.id)
-                    }}
-                    style={{
-                      background: shouldShowPurchaseButton ? 'var(--color-burgundy)' : 'var(--color-cream)',
-                      border: shouldShowPurchaseButton ? 'none' : '2px solid var(--color-rose-gold)',
-                      color: shouldShowPurchaseButton ? 'white' : 'var(--color-burgundy)',
-                      padding: '6px 12px',
-                      margin: '0 4px',
-                      borderRadius: '8px 4px 8px 4px',
-                      fontFamily: 'var(--font-heading)',
-                      fontWeight: 500,
-                      fontSize: '0.85rem',
-                      transition: 'all 0.3s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderRadius = '4px 8px 4px 8px'
-                      if (!shouldShowPurchaseButton) {
-                        e.currentTarget.style.background = 'var(--color-burgundy)'
-                        e.currentTarget.style.color = 'white'
-                      }
-                      e.currentTarget.style.transform = 'scale(1.05)'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderRadius = '8px 4px 8px 4px'
-                      if (!shouldShowPurchaseButton) {
-                        e.currentTarget.style.background = 'var(--color-cream)'
-                        e.currentTarget.style.color = 'var(--color-burgundy)'
-                      }
-                      e.currentTarget.style.transform = 'scale(1)'
-                    }}
-                  >
-                    {shouldShowPurchaseButton ? 'Purchase Ticket' : 'Learn More'}
-                  </Button>
-                </Table.Td>
-              </Table.Tr>
-  )
-}
 
 // Loading skeleton component
 const EventsListSkeleton: React.FC = () => (

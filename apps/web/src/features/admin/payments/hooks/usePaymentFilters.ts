@@ -32,7 +32,13 @@ export const usePaymentFilters = () => {
   const debouncedSearchTerm = useDebounce(filterState.searchTerm, 500);
 
   const updateFilter = (updates: Partial<PaymentFiltersState>) => {
-    setFilterState(prev => ({ ...prev, ...updates, page: 1 })); // Reset to page 1 on filter change
+    // If only updating page, don't reset to page 1
+    // Otherwise reset page to 1 when filters change
+    if ('page' in updates && Object.keys(updates).length === 1) {
+      setFilterState(prev => ({ ...prev, ...updates }));
+    } else {
+      setFilterState(prev => ({ ...prev, ...updates, page: 1 }));
+    }
   };
 
   const clearFilters = () => {

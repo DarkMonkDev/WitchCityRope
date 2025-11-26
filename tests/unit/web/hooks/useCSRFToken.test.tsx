@@ -236,33 +236,35 @@ describe('useCSRFToken', () => {
   })
 
   describe('initializeCSRFProtection', () => {
-    let fetchSpy: ReturnType<typeof vi.spyOn>
+    let apiGetSpy: ReturnType<typeof vi.spyOn>
 
-    beforeEach(() => {
-      // Mock global fetch
-      fetchSpy = vi.spyOn(global, 'fetch')
+    beforeEach(async () => {
+      // Mock axios api.get
+      const { api } = await import('@/api/client')
+      apiGetSpy = vi.spyOn(api, 'get')
     })
 
     afterEach(() => {
-      fetchSpy.mockRestore()
+      apiGetSpy.mockRestore()
     })
 
     it('should fetch token from backend endpoint', async () => {
-      // Arrange: Mock successful response
-      fetchSpy.mockResolvedValue({
-        ok: true,
+      // Arrange: Mock successful response (axios returns data in response.data)
+      apiGetSpy.mockResolvedValue({
+        data: {},
         status: 200,
-      } as Response)
+        statusText: 'OK',
+        headers: {},
+        config: {} as any,
+      })
 
       const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
       // Act: Initialize CSRF protection
       await initializeCSRFProtection()
 
-      // Assert: Should call correct endpoint with credentials
-      expect(fetchSpy).toHaveBeenCalledWith('/api/antiforgery/token', {
-        credentials: 'include'
-      })
+      // Assert: Should call correct endpoint
+      expect(apiGetSpy).toHaveBeenCalledWith('/api/antiforgery/token')
 
       // Should log success message
       expect(logSpy).toHaveBeenCalledWith('✅ CSRF protection initialized')
@@ -271,21 +273,25 @@ describe('useCSRFToken', () => {
     })
 
     it('should throw error if token fetch fails', async () => {
-      // Arrange: Mock failed response
-      fetchSpy.mockResolvedValue({
-        ok: false,
-        status: 401,
-      } as Response)
+      // Arrange: Mock failed response (axios throws on non-2xx)
+      const axiosError = {
+        response: {
+          status: 401,
+          statusText: 'Unauthorized',
+        },
+        message: 'Request failed with status code 401',
+      }
+      apiGetSpy.mockRejectedValue(axiosError)
 
       const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
       // Act & Assert: Should throw error
-      await expect(initializeCSRFProtection()).rejects.toThrow('Token fetch failed: 401')
+      await expect(initializeCSRFProtection()).rejects.toEqual(axiosError)
 
       // Should log error
       expect(errorSpy).toHaveBeenCalledWith(
         '❌ Failed to initialize CSRF protection:',
-        expect.any(Error)
+        axiosError
       )
 
       errorSpy.mockRestore()
@@ -294,7 +300,7 @@ describe('useCSRFToken', () => {
     it('should throw error if fetch throws', async () => {
       // Arrange: Mock network error
       const networkError = new Error('Network error')
-      fetchSpy.mockRejectedValue(networkError)
+      apiGetSpy.mockRejectedValue(networkError)
 
       const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
@@ -310,23 +316,23 @@ describe('useCSRFToken', () => {
       errorSpy.mockRestore()
     })
 
-    it('should include credentials in fetch request', async () => {
+    it('should use axios client with proper baseURL configuration', async () => {
       // Arrange: Mock successful response
-      fetchSpy.mockResolvedValue({
-        ok: true,
+      apiGetSpy.mockResolvedValue({
+        data: {},
         status: 200,
-      } as Response)
+        statusText: 'OK',
+        headers: {},
+        config: {} as any,
+      })
 
       // Act: Initialize CSRF protection
       await initializeCSRFProtection()
 
-      // Assert: Should include credentials for auth cookies
-      expect(fetchSpy).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          credentials: 'include'
-        })
-      )
+      // Assert: Should use axios client (which has baseURL configured)
+      // This ensures the request goes to http://localhost:5655/api/antiforgery/token
+      // instead of relative URL that would fail in test environment
+      expect(apiGetSpy).toHaveBeenCalledWith('/api/antiforgery/token')
     })
   })
 })

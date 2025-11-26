@@ -349,8 +349,8 @@ describe('useLogout', () => {
     expect(authState.isAuthenticated).toBe(false)
     expect(authState.user).toBe(null)
 
-    // Verify navigation to login
-    expect(mockNavigate).toHaveBeenCalledWith('/login', { replace: true })
+    // Verify navigation to root (home page)
+    expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true })
   })
 
   it('should handle logout API failure gracefully', async () => {
@@ -380,8 +380,8 @@ describe('useLogout', () => {
     expect(authState.isAuthenticated).toBe(false)
     expect(authState.user).toBe(null)
 
-    // Should still navigate to login
-    expect(mockNavigate).toHaveBeenCalledWith('/login', { replace: true })
+    // Should still navigate to root (home page)
+    expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true })
     
     consoleSpy.mockRestore()
   })

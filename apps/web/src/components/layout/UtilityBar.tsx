@@ -45,7 +45,7 @@ export const UtilityBar: React.FC = () => {
    * Uses TanStack Query mutation for automatic loading states
    */
   const handleLogout = () => {
-    logoutMutation.mutate()
+    logoutMutation.mutate(undefined)
   }
 
   return (

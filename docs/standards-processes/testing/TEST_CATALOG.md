@@ -1,8 +1,44 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-11-24 -->
-<!-- Version: 11.24.7 - THREE CRITICAL TEST ISSUES FIXED -->
+<!-- Last Updated: 2025-11-26 -->
+<!-- Version: 11.26.1 - LOGOUT NAVIGATION PATH FIXED -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
+
+## ✅ LOGOUT NAVIGATION PATH FIX - November 26, 2025
+
+**EXECUTION DATE**: 2025-11-26T02:06:00Z
+**LAST UPDATED**: 2025-11-26
+**STATUS**: ✅ **4 of 7 LOGOUT TESTS FIXED (57% improvement)**
+**DETAILED REPORT**: `/test-results/logout-navigation-fix-2025-11-26.md`
+
+### Problem Fixed
+**Issue**: Logout tests expected navigation to `/login`, but production code correctly navigates to `/` (root)
+**Root Cause**: Test expectations didn't match production behavior
+**Authority**: Nov 23 authentication research doc (line 964) specifies `window.location.href = '/'`
+
+### Tests Fixed (4)
+**Files Modified**:
+1. `/tests/unit/web/features/auth/mutations.test.tsx` - 2 navigation expectations updated
+2. `/tests/unit/web/integration/auth-flow-simplified.test.tsx` - 2 navigation expectations updated
+3. `/apps/web/src/test/mocks/handlers.ts` - Added MSW logout handlers
+
+**Tests Now Passing**:
+- ✅ `should complete logout flow from mutation to store to navigation`
+- ✅ `should clear store even if logout API fails`
+- ✅ `should handle logout API failure gracefully`
+- ✅ `should clear query cache on logout` (integration test)
+
+**Tests Still Failing (3)** - Separate mutation execution issue (not navigation):
+- ⚠️ `useLogout > should logout successfully and clear auth store`
+- ⚠️ `useLogout > should clear query cache on logout`
+- ⚠️ `useLogout > should not retry failed logout attempts`
+
+### Impact
+- **Navigation path issue**: 100% FIXED (all 4 tests corrected)
+- **Remaining failures**: Mutation execution issue (separate task needed)
+- **CSRF POC rollout**: ✅ READY TO PROCEED
+
+---
 
 ## ✅ CRITICAL TEST FIXES - November 24, 2025
 

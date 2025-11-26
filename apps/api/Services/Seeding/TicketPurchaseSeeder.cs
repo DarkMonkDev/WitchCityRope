@@ -66,6 +66,10 @@ public class TicketPurchaseSeeder
         var users = await _userManager.Users.ToListAsync(cancellationToken);
         var purchasesToAdd = new List<TicketPurchase>();
 
+        // Track user-event combinations to enforce: ONE user = ONE active ticket per event
+        // Business Rule: A user can only have ONE active ticket per event
+        var userEventTickets = new Dictionary<(Guid userId, Guid eventId), bool>();
+
         // Create realistic purchase data
         foreach (var ticketType in ticketTypes)
         {
@@ -74,6 +78,36 @@ public class TicketPurchaseSeeder
             for (int i = 0; i < purchaseCount; i++)
             {
                 var user = users[i % users.Count];
+                var eventId = ticketType.Event.Id;
+                var userEventKey = (user.Id, eventId);
+
+                // Business Rule Enforcement: ONE user = ONE ticket per event
+                // Step 1: Check in-memory tracking first (for tickets added in this loop but not saved yet)
+                if (userEventTickets.ContainsKey(userEventKey))
+                {
+                    _logger.LogDebug("User {UserId} already assigned ticket for event {EventId} in current batch, skipping", user.Id, eventId);
+                    continue;
+                }
+
+                // Step 2: Check database for existing ticket
+                // Query database to ensure user doesn't already have a ticket for this event
+                // This catches tickets created by other seeding methods or previous runs
+                var existingTicket = await _context.TicketPurchases
+                    .Include(tp => tp.TicketType)
+                    .FirstOrDefaultAsync(tp =>
+                        tp.UserId == user.Id &&
+                        tp.TicketType.EventId == eventId,
+                        cancellationToken);
+
+                if (existingTicket != null)
+                {
+                    _logger.LogDebug("User {UserId} already has ticket for event {EventId} in database, skipping", user.Id, eventId);
+                    continue;
+                }
+
+                // Mark this user as having a ticket for this event (prevent duplicates in this batch)
+                userEventTickets[userEventKey] = true;
+
                 var isRSVP = ticketType.Price == 0;
 
                 // Calculate purchase price based on pricing type
@@ -95,7 +129,15 @@ public class TicketPurchaseSeeder
                     totalPrice = (ticketType.Price ?? 0) * (0.5m + (decimal)Random.Shared.NextDouble() * 0.5m);
                 }
 
-                var paymentMethod = isRSVP ? "Free" : GetRandomPaymentMethod();
+                var paymentMethod = isRSVP ? "Free" : SeedingHelpers.GetRandomPaymentMethod();
+
+                // Payment Status Distribution (PER USER-EVENT, not per ticket):
+                // - 80% Completed (most users complete their payment)
+                // - 10% Failed (payment declined)
+                // - 5% Refunded (user requested refund after successful payment)
+                // - 5% PartiallyRefunded (user got partial refund)
+                // CRITICAL: Status assigned PER USER-EVENT, ensuring one user = one payment state per event
+                var paymentStatus = isRSVP ? "Completed" : GetRandomPaymentStatus();
 
                 var purchase = new TicketPurchase
                 {
@@ -104,18 +146,18 @@ public class TicketPurchaseSeeder
                     PurchaseDate = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 30)),
                     Quantity = 1,
                     TotalPrice = totalPrice,
-                    PaymentStatus = isRSVP ? "Completed" : GetRandomPaymentStatus(),
+                    PaymentStatus = paymentStatus,
                     PaymentMethod = paymentMethod,
                     PaymentReference = Guid.NewGuid().ToString("N")[..8],
-                    Notes = GetRandomPurchaseNotes()
+                    Notes = SeedingHelpers.GetRandomPurchaseNotes()
                 };
 
                 // Add PayPal fields for PayPal payments
                 if (paymentMethod == "PayPal")
                 {
-                    purchase.EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(GeneratePayPalOrderId());
-                    purchase.EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(GeneratePayPalCaptureId());
-                    purchase.EncryptedPayPalPayerId = await _encryptionService.EncryptAsync($"PAYER{Guid.NewGuid().ToString("N")[..10].ToUpper()}");
+                    purchase.EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalOrderId());
+                    purchase.EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalCaptureId());
+                    purchase.EncryptedPayPalPayerId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalPayerId());
                 }
 
                 purchasesToAdd.Add(purchase);
@@ -238,9 +280,9 @@ public class TicketPurchaseSeeder
                     PaymentMethod = "PayPal",
                     PaymentReference = $"SEED_ORDER_{Guid.NewGuid().ToString()[..8]}",
                     Notes = "Sliding scale pricing applied",
-                    EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(GeneratePayPalOrderId()),
-                    EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(GeneratePayPalCaptureId()),
-                    EncryptedPayPalPayerId = await _encryptionService.EncryptAsync($"PAYER{Guid.NewGuid().ToString("N")[..10].ToUpper()}")
+                    EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalOrderId()),
+                    EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalCaptureId()),
+                    EncryptedPayPalPayerId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalPayerId())
                 };
 
                 purchasesToAdd.Add(vettedPaidPurchase);
@@ -317,9 +359,9 @@ public class TicketPurchaseSeeder
                 // Add PayPal fields for paid tickets
                 if (isPaid)
                 {
-                    pastPurchase.EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(GeneratePayPalOrderId());
-                    pastPurchase.EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(GeneratePayPalCaptureId());
-                    pastPurchase.EncryptedPayPalPayerId = await _encryptionService.EncryptAsync($"PAYER{Guid.NewGuid().ToString("N")[..10].ToUpper()}");
+                    pastPurchase.EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalOrderId());
+                    pastPurchase.EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalCaptureId());
+                    pastPurchase.EncryptedPayPalPayerId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalPayerId());
                 }
 
                 purchasesToAdd.Add(pastPurchase);
@@ -458,87 +500,35 @@ public class TicketPurchaseSeeder
 
     /// <summary>
     /// Helper method to get random payment status for realistic purchase data.
-    /// Distribution:
-    /// - Completed: 80% (most purchases)
-    /// - Failed: 10% (payment declined)
-    /// - Refunded: 7% (full refunds)
-    /// - PartiallyRefunded: 3% (partial refunds)
-    /// Total refunded/partially refunded: ~10% (realistic for event tickets)
+    /// Distribution (per user-event, NOT per ticket):
+    /// - Completed: 80% (most users complete their payment)
+    /// - Failed: 10% (payment declined - user has no active ticket)
+    /// - Refunded: 5% (user requested refund after successful payment - no active ticket)
+    /// - PartiallyRefunded: 5% (user got partial refund - still has active ticket)
+    ///
+    /// Business Rule: ONE user = ONE payment state per event
+    /// This ensures no duplicate active tickets for same user-event combination
     /// </summary>
     private string GetRandomPaymentStatus()
     {
         var statuses = new[]
         {
-            "Completed", "Completed", "Completed", "Completed", "Completed", "Completed", "Completed", "Completed", // 80%
-            "Failed", // 10%
-            "Refunded", // 7%
-            "PartiallyRefunded" // 3%
+            // 80% Completed
+            "Completed", "Completed", "Completed", "Completed",
+            "Completed", "Completed", "Completed", "Completed",
+            "Completed", "Completed", "Completed", "Completed",
+            "Completed", "Completed", "Completed", "Completed",
+
+            // 10% Failed
+            "Failed", "Failed",
+
+            // 5% Refunded
+            "Refunded",
+
+            // 5% PartiallyRefunded
+            "PartiallyRefunded"
         };
         return statuses[Random.Shared.Next(statuses.Length)];
-    }
-
-    /// <summary>
-    /// Helper method to get random payment method for realistic purchase data.
-    /// Simulates various payment methods used by members.
-    /// </summary>
-    private string GetRandomPaymentMethod()
-    {
-        var methods = new[] { "PayPal", "Venmo", "Cash" };
-        return methods[Random.Shared.Next(methods.Length)];
-    }
-
-    /// <summary>
-    /// Helper method to get random purchase notes for realistic data.
-    /// Most purchases have no notes (empty strings), occasional member comments.
-    /// </summary>
-    private string GetRandomPurchaseNotes()
-    {
-        var notes = new[]
-        {
-            "", "", "", // Most purchases have no notes
-            "First time attending!",
-            "Vegetarian meal preference",
-            "Mobility assistance needed",
-            "Paid sliding scale minimum",
-            "Group purchase for partners"
-        };
-        return notes[Random.Shared.Next(notes.Length)];
-    }
-
-    /// <summary>
-    /// Generates a realistic PayPal Capture ID for seed data.
-    /// Format matches real PayPal capture IDs: 17-character alphanumeric string.
-    /// Example: "2AB12345CD678901E"
-    /// </summary>
-    private string GeneratePayPalCaptureId()
-    {
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        var captureId = new char[17];
-
-        for (int i = 0; i < 17; i++)
-        {
-            captureId[i] = chars[Random.Shared.Next(chars.Length)];
-        }
-
-        return new string(captureId);
-    }
-
-    /// <summary>
-    /// Generates a realistic PayPal Order ID for seed data.
-    /// Format matches real PayPal order IDs: 17-character alphanumeric string.
-    /// Example: "8XY12345AB678901Z"
-    /// </summary>
-    private string GeneratePayPalOrderId()
-    {
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        var orderId = new char[17];
-
-        for (int i = 0; i < 17; i++)
-        {
-            orderId[i] = chars[Random.Shared.Next(chars.Length)];
-        }
-
-        return new string(orderId);
     }
 
     /// <summary>
@@ -601,6 +591,9 @@ public class TicketPurchaseSeeder
         int userIndex = 0;
         int globalTicketCounter = 1; // Global counter for all tickets in this event
 
+        // Track user-event combinations to enforce business rule: ONE user = ONE ticket per event
+        var userEventTickets = new Dictionary<Guid, string>(); // userId -> payment status
+
         // 3. Create active tickets for each ticket type
         foreach (var (ticketTypeName, purchaseCount) in purchasesByType)
         {
@@ -625,10 +618,40 @@ public class TicketPurchaseSeeder
                 }
 
                 var user = shuffledUsers[userIndex];
-                userIndex++;
+
+                // Business Rule Enforcement: Check database for existing ticket
+                // Query database to ensure user doesn't already have a ticket for this event
+                // This works even if tickets were created by other seeding methods
+                var existingTicket = await _context.TicketPurchases
+                    .Include(tp => tp.TicketType)
+                    .FirstOrDefaultAsync(tp =>
+                        tp.UserId == user.Id &&
+                        tp.TicketType.EventId == evt.Id,
+                        cancellationToken);
+
+                if (existingTicket != null)
+                {
+                    _logger.LogDebug("User {UserId} already has ticket for event {EventId}, skipping", user.Id, evt.Id);
+                    userIndex++;
+                    continue;
+                }
+
+                // Also check in-memory tracking for this method's iterations
+                if (userEventTickets.ContainsKey(user.Id))
+                {
+                    userIndex++;
+                    continue;
+                }
 
                 var shouldCheckIn = i < checkInsNeeded;
                 var purchaseDate = DateTime.UtcNow.AddDays(-(daysAgo + 2 + i));
+
+                // Assign payment status PER USER-EVENT (not per ticket)
+                // This ensures one user has only ONE payment state for this event
+                var paymentStatus = GetRandomPaymentStatus();
+                userEventTickets[user.Id] = paymentStatus;
+
+                userIndex++;
 
                 // Create TicketPurchase FIRST (so we have the ID for linking)
                 var ticketPurchase = new TicketPurchase
@@ -638,15 +661,15 @@ public class TicketPurchaseSeeder
                     UserId = user.Id,
                     Quantity = 1,
                     TotalPrice = ticketType.Price ?? 0m,
-                    PaymentStatus = "Completed",
+                    PaymentStatus = paymentStatus, // Use status assigned for this user-event
                     PaymentMethod = "PayPal",
                     PaymentReference = $"HIST-{Guid.NewGuid().ToString()[..8].ToUpper()}",
                     PurchaseDate = purchaseDate,
                     CreatedAt = purchaseDate,
                     UpdatedAt = purchaseDate,
-                    EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(GeneratePayPalOrderId()),
-                    EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(GeneratePayPalCaptureId()),
-                    EncryptedPayPalPayerId = await _encryptionService.EncryptAsync($"PAYER{Guid.NewGuid().ToString("N")[..10].ToUpper()}")
+                    EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalOrderId()),
+                    EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalCaptureId()),
+                    EncryptedPayPalPayerId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalPayerId())
                 };
                 _context.TicketPurchases.Add(ticketPurchase);
 

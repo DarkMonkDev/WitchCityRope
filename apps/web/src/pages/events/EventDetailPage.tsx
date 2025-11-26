@@ -37,8 +37,9 @@ export const EventDetailPage: React.FC = () => {
   }, [id]);
 
   const { data: event, isLoading, error } = useEvent(id!, !!id);
-  const { data: participation, isLoading: participationLoading } = useParticipation(id!, !!id);
   const { data: currentUser } = useCurrentUser();
+  const isAuthenticated = !!currentUser;
+  const { data: participation, isLoading: participationLoading } = useParticipation(id!, isAuthenticated, !!id);
   const { data: volunteerPositions, isLoading: volunteerLoading } = useVolunteerPositions(id!, !!id);
   const { data: venue, isLoading: venueLoading } = useVenue((event as any)?.venueId, !!event) as { data: VenueDto | null; isLoading: boolean };
   const { data: teachers = [], isLoading: teachersLoading } = useTeacherProfiles((event as any)?.teacherIds) as { data: UserProfileDto[]; isLoading: boolean };
@@ -156,7 +157,6 @@ export const EventDetailPage: React.FC = () => {
   const hasUserVolunteered = userVolunteerPositions.length > 0;
   const isEventFull = availableSpots <= 0;
   const hasParticipation = participation?.hasRSVP || participation?.hasTicket;
-  const isAuthenticated = !!currentUser;
 
   // Check if user is vetted (same logic as ParticipationCard)
   let isVetted = false;

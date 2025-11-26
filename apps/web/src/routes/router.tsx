@@ -323,11 +323,6 @@ export const router = createBrowserRouter([
         loader: adminLoader,
       },
       {
-        path: 'admin/payments',
-        element: <AdminPaymentsPage />,
-        loader: adminLoader,
-      },
-      {
         path: 'admin/analytics/payments',
         element: <AdminPaymentsPage />,
         loader: adminLoader,

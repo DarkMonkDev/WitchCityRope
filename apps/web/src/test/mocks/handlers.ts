@@ -223,6 +223,38 @@ export const handlers = [
     })
   }),
 
+  // CSRF / Antiforgery Token endpoints
+  // Backend: GET /api/antiforgery/token returns 200 OK and sets XSRF-TOKEN cookie
+  // Frontend: Reads cookie and sends as X-CSRF-TOKEN header in state-changing requests
+  http.get('/api/antiforgery/token', () => {
+    // Mock CSRF token initialization
+    // In unit tests, we can't set actual cookies, but we return 200 OK to simulate success
+    return new HttpResponse(null, {
+      status: 200,
+      headers: {
+        'Set-Cookie': 'XSRF-TOKEN=mock-csrf-token-for-unit-tests; Path=/; SameSite=Strict'
+      }
+    })
+  }),
+
+  http.get(`${API_BASE_URL}/api/antiforgery/token`, () => {
+    return new HttpResponse(null, {
+      status: 200,
+      headers: {
+        'Set-Cookie': 'XSRF-TOKEN=mock-csrf-token-for-unit-tests; Path=/; SameSite=Strict'
+      }
+    })
+  }),
+
+  // Logout endpoint (both relative and absolute URL support)
+  http.post('/api/auth/logout', () => {
+    return new HttpResponse(null, { status: 204 })
+  }),
+
+  http.post(`${API_BASE_URL}/api/auth/logout`, () => {
+    return new HttpResponse(null, { status: 204 })
+  }),
+
   // Keep legacy relative paths for backward compatibility
   http.get('/auth/me', () => {
     return HttpResponse.json({
