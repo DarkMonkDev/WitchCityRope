@@ -353,7 +353,7 @@ export interface paths {
         };
         /**
          * Get all events
-         * @description Returns events from the database. Use ?includeUnpublished=true for admin access to draft events. Requires Administrator role for unpublished events.
+         * @description Returns events from the database. Use ?includeUnpublished=true for admin access to draft events (requires Administrator role). Use ?includePastEvents=true to include past events from the last 90 days.
          */
         get: operations["GetEvents"];
         put?: never;
@@ -2629,7 +2629,7 @@ export interface paths {
         };
         /**
          * List all available backups (admin only)
-         * @description Retrieves a list of all database backups from DigitalOcean Spaces with metadata
+         * @description Retrieves environment-specific database backups from DigitalOcean Spaces. Each environment (local/staging/production) has isolated backup storage determined by the BackupConfiguration__Spaces__FolderPrefix setting.
          */
         get: operations["ListBackups"];
         put?: never;
@@ -3986,6 +3986,7 @@ export interface components {
             endDate?: string;
             /** Format: int32 */
             venueId?: number;
+            venueLocation?: string | null;
             eventType?: string;
             /** Format: int32 */
             capacity?: number;
@@ -4012,7 +4013,6 @@ export interface components {
             volunteerRegistrationCloseHours?: number | null;
             /** Format: double */
             volunteerCancellationCloseHours?: number | null;
-            venueLocation?: string | null;
         };
         EventEmailTemplateDto: {
             /** Format: uuid */
@@ -5990,6 +5990,7 @@ export interface operations {
         parameters: {
             query?: {
                 includeUnpublished?: boolean;
+                includePastEvents?: boolean;
             };
             header?: never;
             path?: never;

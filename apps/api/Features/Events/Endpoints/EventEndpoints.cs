@@ -21,15 +21,17 @@ public static class EventEndpoints
     /// </summary>
     public static void MapEventEndpoints(this IEndpointRouteBuilder app)
     {
-        // Get all events with optional admin access
+        // Get all events with optional admin access and past events filter
         app.MapGet("/api/events", async (
             [FromServices] IEventService eventService,
             HttpContext context,
             bool? includeUnpublished,
+            bool? includePastEvents,
             CancellationToken cancellationToken) =>
             {
                 // Check if user is requesting unpublished events
                 var shouldIncludeUnpublished = includeUnpublished.GetValueOrDefault(false);
+                var shouldIncludePastEvents = includePastEvents.GetValueOrDefault(false);
 
                 // If requesting unpublished events, verify admin role
                 if (shouldIncludeUnpublished)
@@ -53,7 +55,7 @@ public static class EventEndpoints
                     }
                 }
 
-                var (success, response, error) = await eventService.GetEventsAsync(shouldIncludeUnpublished, cancellationToken);
+                var (success, response, error) = await eventService.GetEventsAsync(shouldIncludeUnpublished, shouldIncludePastEvents, cancellationToken);
 
                 if (success)
                 {
@@ -68,7 +70,7 @@ public static class EventEndpoints
             })
             .WithName("GetEvents")
             .WithSummary("Get all events")
-            .WithDescription("Returns events from the database. Use ?includeUnpublished=true for admin access to draft events. Requires Administrator role for unpublished events.")
+            .WithDescription("Returns events from the database. Use ?includeUnpublished=true for admin access to draft events (requires Administrator role). Use ?includePastEvents=true to include past events from the last 90 days.")
             .WithTags("Events")
             .Produces<List<EventDto>>(200)
             .ProducesProblem(401)

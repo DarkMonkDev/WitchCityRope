@@ -48,8 +48,9 @@ export const EventsListPage: React.FC = () => {
     () => ({
       // Map UI filters to API filters when backend supports them
       search: filters.eventType !== 'all' ? filters.eventType : undefined,
+      includePastEvents: showPastClasses,
     }),
-    [filters]
+    [filters, showPastClasses]
   )
 
   const { data: events, isLoading, error, refetch } = useEvents(apiFilters)

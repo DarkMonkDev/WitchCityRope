@@ -27,20 +27,22 @@ public class EventService : IEventService
     public async Task<(bool Success, List<EventDto> Response, string Error)> GetPublishedEventsAsync(
         CancellationToken cancellationToken = default)
     {
-        return await GetEventsAsync(includeUnpublished: false, cancellationToken);
+        return await GetEventsAsync(includeUnpublished: false, includePastEvents: false, cancellationToken);
     }
 
     /// <summary>
-    /// Get all events with optional filter for admin access - Simple Entity Framework service - NO MediatR complexity
+    /// Get all events with optional filters for admin access and past events - Simple Entity Framework service - NO MediatR complexity
     /// </summary>
     public async Task<(bool Success, List<EventDto> Response, string Error)> GetEventsAsync(
         bool includeUnpublished = false,
+        bool includePastEvents = false,
         CancellationToken cancellationToken = default)
     {
         try
         {
             var eventTypeFilter = includeUnpublished ? "all events" : "published events";
-            _logger.LogInformation("Querying {EventTypeFilter} from PostgreSQL database", eventTypeFilter);
+            var timeFilter = includePastEvents ? " (including past events)" : "";
+            _logger.LogInformation("Querying {EventTypeFilter}{TimeFilter} from PostgreSQL database", eventTypeFilter, timeFilter);
 
             // OPTIMIZATION: Add Include() for related collections to prevent N+1 queries
             // Before: Lazy loading triggers N+1 queries when accessing Sessions, TicketTypes, etc.
@@ -69,8 +71,17 @@ public class EventService : IEventService
             }
             else
             {
-                // Public access: Only published future events
-                query = query.Where(e => e.IsPublished && e.StartDate > DateTime.UtcNow);
+                // Public access: Only published events
+                if (includePastEvents)
+                {
+                    // Show published events including past ones (last 90 days)
+                    query = query.Where(e => e.IsPublished && e.StartDate > DateTime.UtcNow.AddDays(-90));
+                }
+                else
+                {
+                    // Default: Only published future events
+                    query = query.Where(e => e.IsPublished && e.StartDate > DateTime.UtcNow);
+                }
             }
 
             var events = await query

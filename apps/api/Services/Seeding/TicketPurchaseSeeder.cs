@@ -458,11 +458,22 @@ public class TicketPurchaseSeeder
 
     /// <summary>
     /// Helper method to get random payment status for realistic purchase data.
-    /// Most purchases are Completed (60%), some Pending (20%), few Failed (20%).
+    /// Distribution:
+    /// - Completed: 80% (most purchases)
+    /// - Failed: 10% (payment declined)
+    /// - Refunded: 7% (full refunds)
+    /// - PartiallyRefunded: 3% (partial refunds)
+    /// Total refunded/partially refunded: ~10% (realistic for event tickets)
     /// </summary>
     private string GetRandomPaymentStatus()
     {
-        var statuses = new[] { "Completed", "Completed", "Completed", "Pending", "Failed" };
+        var statuses = new[]
+        {
+            "Completed", "Completed", "Completed", "Completed", "Completed", "Completed", "Completed", "Completed", // 80%
+            "Failed", // 10%
+            "Refunded", // 7%
+            "PartiallyRefunded" // 3%
+        };
         return statuses[Random.Shared.Next(statuses.Length)];
     }
 

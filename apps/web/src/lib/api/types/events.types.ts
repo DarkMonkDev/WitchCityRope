@@ -146,6 +146,7 @@ export interface EventFilters extends PaginationParams {
   location?: string
   search?: string
   hasCapacity?: boolean
+  includePastEvents?: boolean
 }
 
 /**

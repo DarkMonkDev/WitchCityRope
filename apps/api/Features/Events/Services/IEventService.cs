@@ -17,13 +17,15 @@ public interface IEventService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Get all events with optional filter for admin access
+    /// Get all events with optional filters for admin access and past events
     /// </summary>
     /// <param name="includeUnpublished">Include draft/unpublished events (admin only)</param>
+    /// <param name="includePastEvents">Include past events (last 90 days for public access)</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Tuple with success flag, list of events, and error message</returns>
     Task<(bool Success, List<EventDto> Response, string Error)> GetEventsAsync(
         bool includeUnpublished = false,
+        bool includePastEvents = false,
         CancellationToken cancellationToken = default);
 
     /// <summary>
