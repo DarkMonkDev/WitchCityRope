@@ -143,13 +143,21 @@ public class SeedCoordinator : ISeedDataService
             _logger.LogDebug("Seeding sessions and tickets...");
             await _sessionTicketSeeder.SeedSessionsAndTicketsAsync(cancellationToken);
 
-            _logger.LogDebug("Seeding ticket purchases...");
-            await _ticketPurchaseSeeder.SeedTicketPurchasesAsync(cancellationToken);
+            // NOTE: SeedTicketPurchasesAsync is now replaced by specific methods below
+            // All class events are handled by SeedSpecificClassEventTicketsAsync
+            // All social event donations are handled by SeedSocialEventDonationTicketsAsync
+            // Historical workshops are handled by SeedHistoricalWorkshopTicketsAsync
 
             _logger.LogDebug("Seeding historical workshop tickets with check-ins and cancellations...");
             await _ticketPurchaseSeeder.SeedHistoricalWorkshopTicketsAsync(_eventSeeder, cancellationToken);
 
-            _logger.LogDebug("Seeding event attendances...");
+            _logger.LogDebug("Seeding specific class event tickets (Suspension Basics, etc.)...");
+            await _ticketPurchaseSeeder.SeedSpecificClassEventTicketsAsync(cancellationToken);
+
+            _logger.LogDebug("Seeding social event donation tickets...");
+            await _ticketPurchaseSeeder.SeedSocialEventDonationTicketsAsync(cancellationToken);
+
+            _logger.LogDebug("Seeding RSVP attendances for social events...");
             await _attendanceSeeder.SeedEventParticipationsAsync(cancellationToken);
 
             _logger.LogDebug("Seeding historical social event RSVPs with check-ins and cancellations...");

@@ -59,16 +59,23 @@ public class TicketPurchaseSeeder
             return;
         }
 
+        // Get ticket types for class events only (social event donations handled by SeedSocialEventDonationTicketsAsync)
         var ticketTypes = await _context.TicketTypes
             .Include(t => t.Event)
+            .Where(tt => tt.Event.EventType == EventType.Class)
             .ToListAsync(cancellationToken);
 
         var users = await _userManager.Users.ToListAsync(cancellationToken);
         var purchasesToAdd = new List<TicketPurchase>();
+        var attendancesToAdd = new List<EventAttendance>();
+        var attendeesToAdd = new List<EventAttendee>();
 
         // Track user-event combinations to enforce: ONE user = ONE active ticket per event
         // Business Rule: A user can only have ONE active ticket per event
         var userEventTickets = new Dictionary<(Guid userId, Guid eventId), bool>();
+
+        // Track ticket numbers for EventAttendee generation
+        var ticketCountersByEvent = new Dictionary<Guid, int>();
 
         // Create realistic purchase data
         foreach (var ticketType in ticketTypes)
@@ -161,19 +168,38 @@ public class TicketPurchaseSeeder
                 }
 
                 purchasesToAdd.Add(purchase);
+
+                // Create EventAttendance and EventAttendee for this purchase
+                CreateAttendanceAndAttendee(
+                    purchase,
+                    eventId,
+                    user.Id,
+                    ticketType.Name,
+                    paymentStatus,
+                    paymentMethod,
+                    attendancesToAdd,
+                    attendeesToAdd,
+                    ticketCountersByEvent, "HIST");
             }
         }
 
         // Create specific ticket purchases for vetted test user for E2E dashboard testing
-        await CreateVettedUserTicketPurchasesAsync(purchasesToAdd, cancellationToken);
+        await CreateVettedUserTicketPurchasesAsync(purchasesToAdd, attendancesToAdd, attendeesToAdd, ticketCountersByEvent, cancellationToken);
 
         // Create historical test data for refund eligibility testing (transactions >90 days old)
-        await CreateHistoricalTestDataForRefundTestingAsync(purchasesToAdd, cancellationToken);
+        await CreateHistoricalTestDataForRefundTestingAsync(purchasesToAdd, attendancesToAdd, attendeesToAdd, ticketCountersByEvent, cancellationToken);
 
+        // Save all entities together in transaction (atomic operation)
         await _context.TicketPurchases.AddRangeAsync(purchasesToAdd, cancellationToken);
+        await _context.EventAttendances.AddRangeAsync(attendancesToAdd, cancellationToken);
+        await _context.EventAttendees.AddRangeAsync(attendeesToAdd, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Ticket purchases creation completed. Created: {PurchaseCount} purchases", purchasesToAdd.Count);
+        _logger.LogInformation(
+            "Ticket purchases creation completed. Created: {PurchaseCount} purchases, {AttendanceCount} attendances, {AttendeeCount} attendees",
+            purchasesToAdd.Count,
+            attendancesToAdd.Count,
+            attendeesToAdd.Count);
     }
 
     /// <summary>
@@ -189,6 +215,9 @@ public class TicketPurchaseSeeder
     /// </summary>
     private async Task CreateVettedUserTicketPurchasesAsync(
         List<TicketPurchase> purchasesToAdd,
+        List<EventAttendance> attendancesToAdd,
+        List<EventAttendee> attendeesToAdd,
+        Dictionary<Guid, int> ticketCountersByEvent,
         CancellationToken cancellationToken)
     {
         // Get the vetted test user
@@ -287,6 +316,19 @@ public class TicketPurchaseSeeder
 
                 purchasesToAdd.Add(vettedPaidPurchase);
 
+                // Create EventAttendance and EventAttendee for vetted user paid workshop
+                CreateAttendanceAndAttendee(
+                    vettedPaidPurchase,
+                    upcomingWorkshop.Id,
+                    vettedUser.Id,
+                    paidTicket.Name,
+                    "Completed",
+                    "PayPal",
+                    attendancesToAdd,
+                    attendeesToAdd,
+                    ticketCountersByEvent,
+                    "HIST");
+
                 _logger.LogInformation("Created paid workshop ticket purchase for event: {EventTitle}", upcomingWorkshop.Title);
             }
         }
@@ -300,7 +342,7 @@ public class TicketPurchaseSeeder
 
             if (freeTicket != null)
             {
-                purchasesToAdd.Add(new TicketPurchase
+                var freePurchase = new TicketPurchase
                 {
                     Id = Guid.NewGuid(),
                     UserId = vettedUser.Id,
@@ -312,7 +354,21 @@ public class TicketPurchaseSeeder
                     PaymentMethod = "Free",
                     PaymentReference = $"FREE_{Guid.NewGuid().ToString()[..8]}",
                     Notes = "Free RSVP - looking forward to this!"
-                });
+                };
+
+                purchasesToAdd.Add(freePurchase);
+
+                // Create EventAttendance and EventAttendee for free social event
+                CreateAttendanceAndAttendee(
+                    freePurchase,
+                    upcomingSocial.Id,
+                    vettedUser.Id,
+                    freeTicket.Name,
+                    "Completed",
+                    "Free",
+                    attendancesToAdd,
+                    attendeesToAdd,
+                    ticketCountersByEvent, "HIST");
 
                 _logger.LogInformation("Created free social RSVP for event: {EventTitle}", upcomingSocial.Title);
             }
@@ -366,6 +422,18 @@ public class TicketPurchaseSeeder
 
                 purchasesToAdd.Add(pastPurchase);
 
+                // Create EventAttendance and EventAttendee for past event
+                CreateAttendanceAndAttendee(
+                    pastPurchase,
+                    pastEvent.Id,
+                    vettedUser.Id,
+                    pastTicketType.Name,
+                    "Completed",
+                    isPaid ? "PayPal" : "Free",
+                    attendancesToAdd,
+                    attendeesToAdd,
+                    ticketCountersByEvent, "HIST");
+
                 _logger.LogInformation("Created past event attendance for event: {EventTitle}", pastEvent.Title);
             }
         }
@@ -396,7 +464,7 @@ public class TicketPurchaseSeeder
                     price = (ticketType.Price ?? 0) * 0.6m;
                 }
 
-                purchasesToAdd.Add(new TicketPurchase
+                var additionalPurchase = new TicketPurchase
                 {
                     Id = Guid.NewGuid(),
                     UserId = vettedUser.Id,
@@ -408,7 +476,21 @@ public class TicketPurchaseSeeder
                     PaymentMethod = isSocialEvent ? "Free" : "Venmo",
                     PaymentReference = isSocialEvent ? $"FREE_{Guid.NewGuid().ToString()[..8]}" : $"SEED_ORDER_{Guid.NewGuid().ToString()[..8]}",
                     Notes = isSocialEvent ? null! : "Can't wait for this class!"
-                });
+                };
+
+                purchasesToAdd.Add(additionalPurchase);
+
+                // Create EventAttendance and EventAttendee for additional event
+                CreateAttendanceAndAttendee(
+                    additionalPurchase,
+                    additionalEvent.Id,
+                    vettedUser.Id,
+                    ticketType.Name,
+                    "Completed",
+                    isSocialEvent ? "Free" : "Venmo",
+                    attendancesToAdd,
+                    attendeesToAdd,
+                    ticketCountersByEvent, "HIST");
 
                 _logger.LogInformation("Created additional event registration for event: {EventTitle}", additionalEvent.Title);
             }
@@ -428,6 +510,9 @@ public class TicketPurchaseSeeder
     /// </summary>
     private async Task CreateHistoricalTestDataForRefundTestingAsync(
         List<TicketPurchase> purchasesToAdd,
+        List<EventAttendance> attendancesToAdd,
+        List<EventAttendee> attendeesToAdd,
+        Dictionary<Guid, int> ticketCountersByEvent,
         CancellationToken cancellationToken)
     {
         _logger.LogInformation("Creating historical test data (>90 days old) for refund eligibility E2E testing");
@@ -461,41 +546,218 @@ public class TicketPurchaseSeeder
             return;
         }
 
-        // Create 3 historical purchases at different ages (95, 120, 150 days ago)
-        var historicalAges = new[] { 95, 120, 150 };
+        // Get additional users for diverse test data
+        var teacherUser = await _userManager.FindByEmailAsync("teacher@witchcityrope.com");
+        var vettedUser = await _userManager.FindByEmailAsync("vetted@witchcityrope.com");
+        var memberUser = await _userManager.FindByEmailAsync("member@witchcityrope.com");
 
-        foreach (var daysAgo in historicalAges)
+        // Create diverse historical purchases with different statuses and users
+        // Format: (daysAgo, user, paymentStatus, refundAmount, notes)
+        var historicalPurchases = new[]
         {
+            // Old completed purchases (can't be refunded - >90 days)
+            (95, adminUser, "Completed", 0m, "Historical completed - 95 days old"),
+            (120, teacherUser, "Completed", 0m, "Historical completed - 120 days old"),
+
+            // Full refunds (different ages)
+            (30, vettedUser, "Refunded", paidTicket.Price ?? 25m, "Full refund - 30 days old"),
+            (60, memberUser, "Refunded", paidTicket.Price ?? 25m, "Full refund - 60 days old"),
+
+            // Partial refunds (different amounts)
+            (15, adminUser, "PartiallyRefunded", (paidTicket.Price ?? 25m) * 0.5m, "Partial refund (50%) - 15 days old"),
+            (45, teacherUser, "PartiallyRefunded", (paidTicket.Price ?? 25m) * 0.3m, "Partial refund (30%) - 45 days old"),
+        };
+
+        foreach (var (daysAgo, user, status, refundAmount, notes) in historicalPurchases)
+        {
+            if (user == null) continue; // Skip if user not found
+
             var purchaseDate = DateTime.UtcNow.AddDays(-daysAgo);
 
             var historicalPurchase = new TicketPurchase
             {
                 Id = Guid.NewGuid(),
-                UserId = adminUser.Id,
+                UserId = user.Id,
                 TicketTypeId = paidTicket.Id,
                 PurchaseDate = purchaseDate,
                 Quantity = 1,
                 TotalPrice = paidTicket.Price ?? 25m,
-                PaymentStatus = "Completed",
+                PaymentStatus = status,
                 PaymentMethod = "PayPal",
                 PaymentReference = $"HIST_{Guid.NewGuid().ToString()[..8]}",
-                Notes = $"Historical test data - {daysAgo} days old",
+                Notes = notes,
                 CreatedAt = purchaseDate,
                 UpdatedAt = purchaseDate,
-                EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(GeneratePayPalOrderId()),
-                EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(GeneratePayPalCaptureId()),
-                EncryptedPayPalPayerId = await _encryptionService.EncryptAsync($"PAYER{Guid.NewGuid().ToString("N")[..10].ToUpper()}")
+                EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalOrderId()),
+                EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalCaptureId()),
+                EncryptedPayPalPayerId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalPayerId())
             };
 
             purchasesToAdd.Add(historicalPurchase);
 
+            // Check if EventAttendee already exists (user might already have a ticket for this event)
+            // Check both database AND in-memory list (in case we're creating multiple for same user in this batch)
+            var existingAttendeeInDb = await _context.EventAttendees
+                .AnyAsync(ea => ea.EventId == pastEvent.Id && ea.UserId == user.Id, cancellationToken);
+            var existingAttendeeInList = attendeesToAdd.Any(ea => ea.EventId == pastEvent.Id && ea.UserId == user.Id);
+            var existingAttendee = existingAttendeeInDb || existingAttendeeInList;
+
+            // Check if EventAttendance with Ticket type already exists for this user+event
+            // Users can only have ONE Ticket attendance per event (unique constraint: UQ_EventAttendances_User_Event_Type_Active)
+            var existingTicketAttendanceInDb = await _context.EventAttendances
+                .AnyAsync(ea => ea.EventId == pastEvent.Id && ea.UserId == user.Id && ea.AttendanceType == AttendanceType.Ticket, cancellationToken);
+            var existingTicketAttendanceInList = attendancesToAdd
+                .Any(ea => ea.EventId == pastEvent.Id && ea.UserId == user.Id && ea.AttendanceType == AttendanceType.Ticket);
+            var existingTicketAttendance = existingTicketAttendanceInDb || existingTicketAttendanceInList;
+
+            if (existingTicketAttendance)
+            {
+                // User already has a Ticket attendance - just link the purchase without creating another attendance
+                _logger.LogDebug(
+                    "Skipping EventAttendance creation for user {Email} - already has Ticket attendance for this event. Purchase will still be recorded.",
+                    user.Email);
+            }
+            else if (existingAttendee)
+            {
+                // User has EventAttendee but no Ticket attendance yet - create only EventAttendance
+                if (status != "Failed")
+                {
+                    var attendanceStatus = status switch
+                    {
+                        "Completed" => AttendanceStatus.Active,
+                        "PartiallyRefunded" => AttendanceStatus.Active,
+                        "Refunded" => AttendanceStatus.Refunded,
+                        _ => AttendanceStatus.Active
+                    };
+
+                    var attendance = new EventAttendance(pastEvent.Id, user.Id, AttendanceType.Ticket)
+                    {
+                        Id = Guid.NewGuid(),
+                        Status = attendanceStatus,
+                        TicketPurchaseId = historicalPurchase.Id,
+                        CreatedAt = purchaseDate,
+                        UpdatedAt = purchaseDate,
+                        CreatedBy = user.Id,
+                        UpdatedBy = user.Id,
+                        Metadata = $"{{\"ticketType\":\"{paidTicket.Name}\",\"price\":{historicalPurchase.TotalPrice},\"paymentMethod\":\"PayPal\"}}"
+                    };
+
+                    if (status == "Refunded")
+                    {
+                        attendance.CancelledAt = purchaseDate.AddDays(Random.Shared.Next(1, 7));
+                        attendance.CancellationReason = "User requested refund";
+                    }
+
+                    attendancesToAdd.Add(attendance);
+                    _logger.LogDebug("Created EventAttendance for existing attendee: {Email}", user.Email);
+                }
+            }
+            else
+            {
+                // No existing EventAttendee or EventAttendance - create both
+                CreateAttendanceAndAttendee(
+                    historicalPurchase,
+                    pastEvent.Id,
+                    user.Id,
+                    paidTicket.Name,
+                    status,
+                    "PayPal",
+                    attendancesToAdd,
+                    attendeesToAdd,
+                    ticketCountersByEvent,
+                    "HIST");
+            }
+
             _logger.LogInformation(
-                "Created historical test purchase: {DaysAgo} days old for event {EventTitle}",
+                "Created historical test purchase: {Status}, {DaysAgo} days old for user {Email} (EventAttendee existed: {ExistingAttendee})",
+                status,
                 daysAgo,
-                pastEvent.Title);
+                user.Email,
+                existingAttendee);
         }
 
-        _logger.LogInformation("Created {Count} historical test purchases for refund eligibility testing", historicalAges.Length);
+        _logger.LogInformation("Created {Count} historical test purchases for refund eligibility testing (2 Completed, 2 Refunded, 2 PartiallyRefunded)", historicalPurchases.Length);
+    }
+
+    /// <summary>
+    /// Helper method to create EventAttendance and EventAttendee records for a TicketPurchase.
+    /// Centralizes attendance/attendee creation logic to reduce code duplication.
+    /// </summary>
+    /// <param name="ticketPrefix">Unique prefix for ticket numbers (e.g., "HIST", "CLASS", "SOCIAL") to prevent collisions between seeding methods</param>
+    private void CreateAttendanceAndAttendee(
+        TicketPurchase purchase,
+        Guid eventId,
+        Guid userId,
+        string ticketTypeName,
+        string paymentStatus,
+        string paymentMethod,
+        List<EventAttendance> attendancesToAdd,
+        List<EventAttendee> attendeesToAdd,
+        Dictionary<Guid, int> ticketCountersByEvent,
+        string ticketPrefix = "TKT")
+    {
+        // Only create attendance for non-Failed payments
+        if (paymentStatus == "Failed")
+        {
+            return;
+        }
+
+        // Determine attendance status based on payment status
+        var attendanceStatus = paymentStatus switch
+        {
+            "Completed" => AttendanceStatus.Active,
+            "PartiallyRefunded" => AttendanceStatus.Active,
+            "Refunded" => AttendanceStatus.Refunded,
+            _ => AttendanceStatus.Active
+        };
+
+        // Create EventAttendance linked to TicketPurchase
+        var attendance = new EventAttendance(eventId, userId, AttendanceType.Ticket)
+        {
+            Id = Guid.NewGuid(),
+            Status = attendanceStatus,
+            TicketPurchaseId = purchase.Id,
+            CreatedAt = purchase.PurchaseDate,
+            UpdatedAt = purchase.PurchaseDate,
+            CreatedBy = userId,
+            UpdatedBy = userId,
+            Metadata = $"{{\"ticketType\":\"{ticketTypeName}\",\"price\":{purchase.TotalPrice},\"paymentMethod\":\"{paymentMethod}\"}}"
+        };
+
+        // If refunded, set cancellation details
+        if (paymentStatus == "Refunded")
+        {
+            attendance.CancelledAt = purchase.PurchaseDate.AddDays(Random.Shared.Next(1, 7));
+            attendance.CancellationReason = "User requested refund";
+        }
+
+        attendancesToAdd.Add(attendance);
+
+        // Create EventAttendee record (registration details)
+        if (!ticketCountersByEvent.ContainsKey(eventId))
+        {
+            ticketCountersByEvent[eventId] = 1;
+        }
+        else
+        {
+            ticketCountersByEvent[eventId]++;
+        }
+
+        var ticketCounter = ticketCountersByEvent[eventId];
+        var attendeeStatus = paymentStatus == "Refunded" ? "cancelled" : "confirmed";
+
+        var attendee = new EventAttendee(eventId, userId, attendeeStatus)
+        {
+            Id = Guid.NewGuid(),
+            TicketNumber = $"{ticketPrefix}-{eventId.ToString()[..8]}-{ticketCounter:D4}",
+            CreatedAt = purchase.PurchaseDate,
+            UpdatedAt = purchase.PurchaseDate,
+            CreatedBy = userId,
+            UpdatedBy = userId,
+            HasCompletedWaiver = paymentStatus != "Refunded"
+        };
+
+        attendeesToAdd.Add(attendee);
     }
 
     /// <summary>
@@ -763,9 +1025,9 @@ public class TicketPurchaseSeeder
                         PurchaseDate = canceledPurchaseDate,
                         CreatedAt = canceledPurchaseDate,
                         UpdatedAt = canceledDate,
-                        EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(GeneratePayPalOrderId()),
-                        EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(GeneratePayPalCaptureId()),
-                        EncryptedPayPalPayerId = await _encryptionService.EncryptAsync($"PAYER{Guid.NewGuid().ToString("N")[..10].ToUpper()}")
+                        EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalOrderId()),
+                        EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalCaptureId()),
+                        EncryptedPayPalPayerId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalPayerId())
                     };
                     _context.TicketPurchases.Add(canceledPurchase);
 
@@ -805,6 +1067,451 @@ public class TicketPurchaseSeeder
 
         await _context.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Historical workshop tickets created for event {EventId}", eventId);
+    }
+
+    /// <summary>
+    /// Seeds ticket purchases for specific class events that require custom ticket counts.
+    /// This method creates tickets for events like Suspension Basics, Introduction to Rope Safety, etc.
+    /// that have specific seeding requirements beyond the general SeedTicketPurchasesAsync logic.
+    ///
+    /// Idempotent operation - checks database for existing tickets before creating.
+    /// </summary>
+    public async Task SeedSpecificClassEventTicketsAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Starting specific class event ticket purchases creation");
+
+        // Get all users for distribution
+        var users = await _userManager.Users.ToListAsync(cancellationToken);
+        if (users.Count == 0)
+        {
+            _logger.LogWarning("No users available for class event tickets");
+            return;
+        }
+
+        var purchasesToAdd = new List<TicketPurchase>();
+        var attendancesToAdd = new List<EventAttendance>();
+        var attendeesToAdd = new List<EventAttendee>();
+        var ticketCountersByEvent = new Dictionary<Guid, int>();
+
+        // Get class events that need specific ticket counts
+        var classEvents = await _context.Events
+            .Include(e => e.TicketTypes)
+            .Where(e => e.EventType == EventType.Class)
+            .ToListAsync(cancellationToken);
+
+        foreach (var eventItem in classEvents)
+        {
+            // Special handling for Suspension Basics: Multiple ticket types
+            if (eventItem.Title.Contains("Suspension Basics"))
+            {
+                await CreateSuspensionBasicsTicketsAsync(
+                    eventItem,
+                    users,
+                    purchasesToAdd,
+                    attendancesToAdd,
+                    attendeesToAdd,
+                    ticketCountersByEvent,
+                    cancellationToken);
+            }
+            else
+            {
+                // General class event ticket creation with event-specific counts
+                await CreateGeneralClassEventTicketsAsync(
+                    eventItem,
+                    users,
+                    purchasesToAdd,
+                    attendancesToAdd,
+                    attendeesToAdd,
+                    ticketCountersByEvent,
+                    cancellationToken);
+            }
+        }
+
+        if (purchasesToAdd.Count > 0)
+        {
+            // Save all entities together in transaction
+            await _context.TicketPurchases.AddRangeAsync(purchasesToAdd, cancellationToken);
+            await _context.EventAttendances.AddRangeAsync(attendancesToAdd, cancellationToken);
+            await _context.EventAttendees.AddRangeAsync(attendeesToAdd, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Specific class event tickets creation completed. Created: {PurchaseCount} purchases, {AttendanceCount} attendances, {AttendeeCount} attendees",
+                purchasesToAdd.Count,
+                attendancesToAdd.Count,
+                attendeesToAdd.Count);
+        }
+        else
+        {
+            _logger.LogInformation("No new class event tickets needed - all users already have tickets");
+        }
+    }
+
+    /// <summary>
+    /// Creates ticket purchases for Suspension Basics event with multiple ticket types.
+    /// Creates 2 "All 2 Days" tickets and 4 "Day 1 Only" tickets using different users.
+    /// </summary>
+    private async Task CreateSuspensionBasicsTicketsAsync(
+        Event eventItem,
+        List<ApplicationUser> users,
+        List<TicketPurchase> purchasesToAdd,
+        List<EventAttendance> attendancesToAdd,
+        List<EventAttendee> attendeesToAdd,
+        Dictionary<Guid, int> ticketCountersByEvent,
+        CancellationToken cancellationToken)
+    {
+        // Create 2 "All 2 Days" tickets
+        var all2DaysTicket = eventItem.TicketTypes.FirstOrDefault(tt => tt.Name == "All 2 Days");
+        if (all2DaysTicket != null)
+        {
+            for (int i = 0; i < 2 && i < users.Count; i++)
+            {
+                var user = users[i];
+
+                // Check if user already has ticket for this event
+                var existingTicket = await _context.TicketPurchases
+                    .Include(tp => tp.TicketType)
+                    .FirstOrDefaultAsync(tp =>
+                        tp.UserId == user.Id &&
+                        tp.TicketType.EventId == eventItem.Id,
+                        cancellationToken);
+
+                if (existingTicket != null)
+                {
+                    _logger.LogDebug("User {UserId} already has ticket for Suspension Basics, skipping", user.Id);
+                    continue;
+                }
+
+                var purchaseAmount = (decimal)Random.Shared.Next(40, 80);
+                var purchaseDate = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20));
+
+                var ticketPurchase = new TicketPurchase
+                {
+                    Id = Guid.NewGuid(),
+                    TicketTypeId = all2DaysTicket.Id,
+                    UserId = user.Id,
+                    Quantity = 1,
+                    TotalPrice = purchaseAmount,
+                    PaymentStatus = "Completed",
+                    PaymentMethod = "PayPal",
+                    PaymentReference = $"PP-{Guid.NewGuid().ToString()[..8].ToUpper()}",
+                    PurchaseDate = purchaseDate,
+                    CreatedAt = purchaseDate,
+                    UpdatedAt = purchaseDate,
+                    EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalOrderId()),
+                    EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalCaptureId()),
+                    EncryptedPayPalPayerId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalPayerId())
+                };
+
+                purchasesToAdd.Add(ticketPurchase);
+
+                // Create EventAttendance and EventAttendee
+                CreateAttendanceAndAttendee(
+                    ticketPurchase,
+                    eventItem.Id,
+                    user.Id,
+                    all2DaysTicket.Name,
+                    "Completed",
+                    "PayPal",
+                    attendancesToAdd,
+                    attendeesToAdd,
+                    ticketCountersByEvent, "CLASS");
+
+                _logger.LogDebug("Created 'All 2 Days' ticket for user {UserId}", user.Id);
+            }
+        }
+
+        // Create 4 "Day 1 Only" tickets (using different users)
+        var day1OnlyTicket = eventItem.TicketTypes.FirstOrDefault(tt => tt.Name == "Day 1 Only");
+        if (day1OnlyTicket != null)
+        {
+            for (int i = 2; i < 6 && i < users.Count; i++) // Start at index 2 to use different users
+            {
+                var user = users[i];
+
+                // Check if user already has ticket for this event
+                var existingTicket = await _context.TicketPurchases
+                    .Include(tp => tp.TicketType)
+                    .FirstOrDefaultAsync(tp =>
+                        tp.UserId == user.Id &&
+                        tp.TicketType.EventId == eventItem.Id,
+                        cancellationToken);
+
+                if (existingTicket != null)
+                {
+                    _logger.LogDebug("User {UserId} already has ticket for Suspension Basics, skipping", user.Id);
+                    continue;
+                }
+
+                var purchaseAmount = (decimal)Random.Shared.Next(20, 50);
+                var purchaseDate = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20));
+
+                var ticketPurchase = new TicketPurchase
+                {
+                    Id = Guid.NewGuid(),
+                    TicketTypeId = day1OnlyTicket.Id,
+                    UserId = user.Id,
+                    Quantity = 1,
+                    TotalPrice = purchaseAmount,
+                    PaymentStatus = "Completed",
+                    PaymentMethod = SeedingHelpers.GetRandomPaymentMethod(),
+                    PaymentReference = $"PP-{Guid.NewGuid().ToString()[..8].ToUpper()}",
+                    PurchaseDate = purchaseDate,
+                    CreatedAt = purchaseDate,
+                    UpdatedAt = purchaseDate
+                };
+
+                // Add PayPal fields if PayPal payment
+                if (ticketPurchase.PaymentMethod == "PayPal")
+                {
+                    ticketPurchase.EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalOrderId());
+                    ticketPurchase.EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalCaptureId());
+                    ticketPurchase.EncryptedPayPalPayerId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalPayerId());
+                }
+
+                purchasesToAdd.Add(ticketPurchase);
+
+                // Create EventAttendance and EventAttendee
+                CreateAttendanceAndAttendee(
+                    ticketPurchase,
+                    eventItem.Id,
+                    user.Id,
+                    day1OnlyTicket.Name,
+                    "Completed",
+                    ticketPurchase.PaymentMethod,
+                    attendancesToAdd,
+                    attendeesToAdd,
+                    ticketCountersByEvent, "CLASS");
+
+                _logger.LogDebug("Created 'Day 1 Only' ticket for user {UserId}", user.Id);
+            }
+        }
+
+        _logger.LogInformation("Created Suspension Basics tickets");
+    }
+
+    /// <summary>
+    /// Creates ticket purchases for general class events with event-specific ticket counts.
+    /// </summary>
+    private async Task CreateGeneralClassEventTicketsAsync(
+        Event eventItem,
+        List<ApplicationUser> users,
+        List<TicketPurchase> purchasesToAdd,
+        List<EventAttendance> attendancesToAdd,
+        List<EventAttendee> attendeesToAdd,
+        Dictionary<Guid, int> ticketCountersByEvent,
+        CancellationToken cancellationToken)
+    {
+        // Determine ticket count based on event title
+        var ticketCount = eventItem.Title.Contains("Introduction to Rope Safety") ? 5 :
+                         eventItem.Title.Contains("Advanced Floor Work") ? 3 : 2;
+
+        var ticketType = eventItem.TicketTypes.FirstOrDefault();
+        if (ticketType == null)
+        {
+            _logger.LogWarning("No ticket types found for event {EventTitle}, skipping", eventItem.Title);
+            return;
+        }
+
+        for (int i = 0; i < Math.Min(ticketCount, users.Count); i++)
+        {
+            var user = users[i];
+
+            // Check if user already has ticket for this event
+            var existingTicket = await _context.TicketPurchases
+                .Include(tp => tp.TicketType)
+                .FirstOrDefaultAsync(tp =>
+                    tp.UserId == user.Id &&
+                    tp.TicketType.EventId == eventItem.Id,
+                    cancellationToken);
+
+            if (existingTicket != null)
+            {
+                _logger.LogDebug("User {UserId} already has ticket for event {EventId}, skipping", user.Id, eventItem.Id);
+                continue;
+            }
+
+            var purchaseAmount = (decimal)Random.Shared.Next(15, 65);
+            var purchaseDate = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20));
+            var paymentMethod = SeedingHelpers.GetRandomPaymentMethod();
+
+            var ticketPurchase = new TicketPurchase
+            {
+                Id = Guid.NewGuid(),
+                TicketTypeId = ticketType.Id,
+                UserId = user.Id,
+                Quantity = 1,
+                TotalPrice = purchaseAmount,
+                PaymentStatus = "Completed",
+                PaymentMethod = paymentMethod,
+                PaymentReference = $"PP-{Guid.NewGuid().ToString()[..8].ToUpper()}",
+                PurchaseDate = purchaseDate,
+                CreatedAt = purchaseDate,
+                UpdatedAt = purchaseDate,
+                Notes = SeedingHelpers.GetRandomPurchaseNotes()
+            };
+
+            // Add PayPal fields if PayPal payment
+            if (paymentMethod == "PayPal")
+            {
+                ticketPurchase.EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalOrderId());
+                ticketPurchase.EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalCaptureId());
+                ticketPurchase.EncryptedPayPalPayerId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalPayerId());
+            }
+
+            purchasesToAdd.Add(ticketPurchase);
+
+            // Create EventAttendance and EventAttendee
+            CreateAttendanceAndAttendee(
+                ticketPurchase,
+                eventItem.Id,
+                user.Id,
+                ticketType.Name,
+                "Completed",
+                paymentMethod,
+                attendancesToAdd,
+                attendeesToAdd,
+                ticketCountersByEvent, "CLASS");
+        }
+
+        _logger.LogInformation("Created {Count} tickets for event {EventTitle}", ticketCount, eventItem.Title);
+    }
+
+    /// <summary>
+    /// Seeds donation ticket purchases for social events.
+    /// Some attendees of social events make optional donations, creating a TicketPurchase + Ticket attendance
+    /// in ADDITION to their free RSVP attendance (which is created by AttendanceSeeder).
+    ///
+    /// Idempotent operation - checks database for existing tickets before creating.
+    /// </summary>
+    public async Task SeedSocialEventDonationTicketsAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Starting social event donation ticket purchases creation");
+
+        // Get all social events with donation ticket types
+        var socialEvents = await _context.Events
+            .Include(e => e.TicketTypes)
+            .Where(e => e.EventType == EventType.Social &&
+                       e.TicketTypes.Any(tt => tt.Name.Contains("Donation") || tt.Name.Contains("Suggested")))
+            .ToListAsync(cancellationToken);
+
+        if (socialEvents.Count == 0)
+        {
+            _logger.LogInformation("No social events with donation tickets found");
+            return;
+        }
+
+        // Get all users
+        var users = await _userManager.Users.ToListAsync(cancellationToken);
+        if (users.Count == 0)
+        {
+            _logger.LogWarning("No users available for social event donations");
+            return;
+        }
+
+        var purchasesToAdd = new List<TicketPurchase>();
+        var attendancesToAdd = new List<EventAttendance>();
+        var attendeesToAdd = new List<EventAttendee>();
+        var ticketCountersByEvent = new Dictionary<Guid, int>();
+
+        foreach (var eventItem in socialEvents)
+        {
+            var donationTicketType = eventItem.TicketTypes
+                .FirstOrDefault(tt => tt.Name.Contains("Donation") || tt.Name.Contains("Suggested"));
+
+            if (donationTicketType == null)
+            {
+                _logger.LogWarning("No donation ticket type found for social event {EventTitle}", eventItem.Title);
+                continue;
+            }
+
+            // 20% of attendees make donations (matching AttendanceSeeder logic)
+            var donationCount = Math.Max(1, users.Count / 5);
+
+            for (int i = 0; i < Math.Min(donationCount, users.Count); i++)
+            {
+                var user = users[i];
+
+                // Check if user already has donation ticket for this event
+                var existingTicket = await _context.TicketPurchases
+                    .Include(tp => tp.TicketType)
+                    .FirstOrDefaultAsync(tp =>
+                        tp.UserId == user.Id &&
+                        tp.TicketType.EventId == eventItem.Id,
+                        cancellationToken);
+
+                if (existingTicket != null)
+                {
+                    _logger.LogDebug("User {UserId} already has donation ticket for event {EventId}, skipping", user.Id, eventItem.Id);
+                    continue;
+                }
+
+                var donationAmount = (decimal)Random.Shared.Next(5, 31); // $5-$30 donation
+                var purchaseDate = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20));
+                var paymentMethod = SeedingHelpers.GetRandomSocialEventPaymentMethod(); // 67% PayPal, 33% Cash
+
+                var ticketPurchase = new TicketPurchase
+                {
+                    Id = Guid.NewGuid(),
+                    TicketTypeId = donationTicketType.Id,
+                    UserId = user.Id,
+                    Quantity = 1,
+                    TotalPrice = donationAmount,
+                    PaymentStatus = "Completed",
+                    PaymentMethod = paymentMethod,
+                    PaymentReference = $"DN-{Guid.NewGuid().ToString()[..8].ToUpper()}",
+                    PurchaseDate = purchaseDate,
+                    CreatedAt = purchaseDate,
+                    UpdatedAt = purchaseDate
+                };
+
+                // Add PayPal fields if PayPal payment
+                if (paymentMethod == "PayPal")
+                {
+                    ticketPurchase.EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalOrderId());
+                    ticketPurchase.EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalCaptureId());
+                    ticketPurchase.EncryptedPayPalPayerId = await _encryptionService.EncryptAsync(SeedingHelpers.GeneratePayPalPayerId());
+                }
+
+                purchasesToAdd.Add(ticketPurchase);
+
+                // Create EventAttendance and EventAttendee for donation
+                // Note: These users will ALSO have an RSVP attendance created by AttendanceSeeder
+                CreateAttendanceAndAttendee(
+                    ticketPurchase,
+                    eventItem.Id,
+                    user.Id,
+                    donationTicketType.Name,
+                    "Completed",
+                    paymentMethod,
+                    attendancesToAdd,
+                    attendeesToAdd,
+                    ticketCountersByEvent, "SOCIAL");
+
+                _logger.LogDebug("Created donation ticket for user {UserId} at event {EventTitle}", user.Id, eventItem.Title);
+            }
+
+            _logger.LogInformation("Created {Count} donation tickets for social event {EventTitle}", donationCount, eventItem.Title);
+        }
+
+        if (purchasesToAdd.Count > 0)
+        {
+            // Save all entities together in transaction
+            await _context.TicketPurchases.AddRangeAsync(purchasesToAdd, cancellationToken);
+            await _context.EventAttendances.AddRangeAsync(attendancesToAdd, cancellationToken);
+            await _context.EventAttendees.AddRangeAsync(attendeesToAdd, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Social event donation tickets creation completed. Created: {PurchaseCount} purchases, {AttendanceCount} attendances, {AttendeeCount} attendees",
+                purchasesToAdd.Count,
+                attendancesToAdd.Count,
+                attendeesToAdd.Count);
+        }
+        else
+        {
+            _logger.LogInformation("No new social event donation tickets needed - all users already have tickets");
+        }
     }
 
     /// <summary>
@@ -867,6 +1574,28 @@ public class TicketPurchaseSeeder
             "member@witchcityrope.com", // canceled user
             "Full Day Pass", // canceled ticket type
             cancellationToken);
+
+        // Create additional historical test data for refund testing (>90 days old, varied payment statuses)
+        var refundTestPurchases = new List<TicketPurchase>();
+        var refundTestAttendances = new List<EventAttendance>();
+        var refundTestAttendees = new List<EventAttendee>();
+        var refundTestCounters = new Dictionary<Guid, int>();
+
+        await CreateHistoricalTestDataForRefundTestingAsync(
+            refundTestPurchases,
+            refundTestAttendances,
+            refundTestAttendees,
+            refundTestCounters,
+            cancellationToken);
+
+        if (refundTestPurchases.Count > 0)
+        {
+            await _context.TicketPurchases.AddRangeAsync(refundTestPurchases, cancellationToken);
+            await _context.EventAttendances.AddRangeAsync(refundTestAttendances, cancellationToken);
+            await _context.EventAttendees.AddRangeAsync(refundTestAttendees, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation("Saved {Count} refund test purchases", refundTestPurchases.Count);
+        }
 
         _logger.LogInformation("Historical workshop tickets creation completed");
     }

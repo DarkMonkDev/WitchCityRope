@@ -10,484 +10,161 @@ using WitchCityRope.Api.Models;
 namespace WitchCityRope.Api.Services.Seeding;
 
 /// <summary>
-/// Handles seeding of event attendance records (RSVPs and ticket-based attendance).
+/// Handles seeding of RSVP-type event attendance records.
 /// Extracted from SeedDataService.cs for better maintainability.
-/// Responsible for creating EventAttendance records and corresponding TicketPurchase records.
+///
+/// ARCHITECTURE NOTE (Phase 2 Refactor - 2025-11-26):
+/// - This seeder creates ONLY RSVP-type EventAttendance records for social events
+/// - ALL TicketPurchase creation is now handled by TicketPurchaseSeeder
+/// - ALL Ticket-type EventAttendance creation is handled by TicketPurchaseSeeder
+/// - This ensures Single Responsibility Principle and eliminates duplicate ticket creation
 /// </summary>
 public class AttendanceSeeder
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly EventSeeder _eventSeeder;
-    private readonly IEncryptionService _encryptionService;
     private readonly ILogger<AttendanceSeeder> _logger;
 
     public AttendanceSeeder(
         ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
         EventSeeder eventSeeder,
-        IEncryptionService encryptionService,
         ILogger<AttendanceSeeder> logger)
     {
         _context = context;
         _userManager = userManager;
         _eventSeeder = eventSeeder;
-        _encryptionService = encryptionService;
         _logger = logger;
     }
 
     /// <summary>
-    /// Generates a random PayPal Order ID in format like "5O190127TN364715T"
-    /// </summary>
-    private string GeneratePayPalOrderId()
-    {
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        var orderId = new char[17];
-        for (int i = 0; i < 17; i++)
-        {
-            orderId[i] = chars[Random.Shared.Next(chars.Length)];
-        }
-        return new string(orderId);
-    }
-
-    /// <summary>
-    /// Generates a random PayPal Capture ID in format like "3C679366H7890240F"
-    /// </summary>
-    private string GeneratePayPalCaptureId()
-    {
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        var captureId = new char[17];
-        for (int i = 0; i < 17; i++)
-        {
-            captureId[i] = chars[Random.Shared.Next(chars.Length)];
-        }
-        return new string(captureId);
-    }
-
-    /// <summary>
-    /// Seeds event attendance records for both social events (RSVPs) and class events (ticket purchases).
+    /// Seeds RSVP-type event attendance records for social events.
     /// Idempotent operation - skips if attendances already exist.
     ///
-    /// Creates EventAttendance records:
-    /// - Social events: RSVP type attendances (no cost, free attendance)
-    /// - Class events: Ticket type attendances with corresponding TicketPurchase records
+    /// ARCHITECTURE NOTE (Phase 2 Refactor):
+    /// - Creates ONLY RSVP-type EventAttendance records for social events
+    /// - Does NOT create TicketPurchase records (handled by TicketPurchaseSeeder)
+    /// - Does NOT create Ticket-type EventAttendance records (handled by TicketPurchaseSeeder)
+    /// - Does NOT handle class events (all class event tickets + attendances handled by TicketPurchaseSeeder)
     ///
-    /// For class events, also creates TicketPurchase records.
-    ///
-    /// Note: This handles attendances for ALL events (upcoming and historical).
+    /// Social event attendees can have:
+    /// - RSVP attendance (created here - free, no payment)
+    /// - Optional Ticket attendance (created by TicketPurchaseSeeder if they make a donation)
     /// </summary>
     public async Task SeedEventParticipationsAsync(CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Starting event attendances creation");
+        _logger.LogInformation("Starting RSVP attendance creation for social events");
 
-        var events = await _context.Events.Include(e => e.TicketTypes).ToListAsync(cancellationToken);
-        var users = await _userManager.Users.ToListAsync(cancellationToken);
+        // Get only social events (excluding historical ones that are seeded separately)
+        var socialEvents = await _context.Events
+            .Where(e => e.EventType == EventType.Social &&
+                       e.Title != "Monthly Rope Practice Night" &&
+                       e.Title != "New Member Welcome Mixer")
+            .ToListAsync(cancellationToken);
+
+        // Get all vetted users (only vetted members can attend social events)
+        var vettedUsers = await _userManager.Users
+            .Where(u => u.VettingStatus >= 3)
+            .ToListAsync(cancellationToken);
+
+        if (vettedUsers.Count == 0)
+        {
+            _logger.LogWarning("No vetted users found for social event RSVPs");
+            return;
+        }
+
         var attendancesToAdd = new List<EventAttendance>();
-        var ticketPurchasesToAdd = new List<TicketPurchase>();
         var attendeesToAdd = new List<EventAttendee>();
         var eventsProcessed = 0;
 
-        foreach (var eventItem in events)
+        foreach (var eventItem in socialEvents)
         {
-            // Skip historical social events - they're seeded by SeedHistoricalSocialEventRSVPs with check-ins/cancellations
-            if (eventItem.Title == "Monthly Rope Practice Night" || eventItem.Title == "New Member Welcome Mixer")
-            {
-                _logger.LogDebug("Skipping historical social event {EventTitle} - seeded separately", eventItem.Title);
-                continue;
-            }
-
-            // Check if THIS specific event already has attendances (idempotent per-event check)
+            // Check if THIS specific event already has RSVP attendances (idempotent per-event check)
             var hasAttendances = await _context.EventAttendances
-                .AnyAsync(ea => ea.EventId == eventItem.Id, cancellationToken);
+                .AnyAsync(ea => ea.EventId == eventItem.Id && ea.AttendanceType == AttendanceType.RSVP, cancellationToken);
 
             if (hasAttendances)
             {
-                _logger.LogDebug("Event {EventTitle} already has attendances, skipping", eventItem.Title);
+                _logger.LogDebug("Event {EventTitle} already has RSVP attendances, skipping", eventItem.Title);
                 continue; // Skip this event, but continue processing other events
             }
 
             eventsProcessed++;
 
-            if (eventItem.EventType == EventType.Social)
+            // Determine RSVP count based on event title
+            var rsvpCount = eventItem.Title.Contains("Community Rope Jam") ? 5 :
+                           eventItem.Title.Contains("New Members Meetup") ? 8 :
+                           eventItem.Title.Contains("Rope Social & Discussion") ? 6 : 3;
+
+            // Create RSVP attendances for vetted users
+            for (int i = 0; i < Math.Min(rsvpCount, vettedUsers.Count); i++)
             {
-                // Social events: Create RSVPs for multiple VETTED users only
-                // Business rule: Only vetted members (VettingStatus >= 3/Approved) can attend social events
-                var vettedUsers = users.Where(u => u.VettingStatus >= 3).ToList();
+                var user = vettedUsers[i];
+                var createdAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 10));
+                var notes = SeedingHelpers.GetRandomRsvpNotes();
 
-                var rsvpCount = eventItem.Title.Contains("Community Rope Jam") ? 5 :
-                               eventItem.Title.Contains("New Members Meetup") ? 8 :
-                               eventItem.Title.Contains("Rope Social & Discussion") ? 6 : 3;
+                // Check if EventAttendee already exists (user might have a ticket purchase)
+                // Social events allow both RSVP (free) AND ticket purchase (donation)
+                var existingAttendee = await _context.EventAttendees
+                    .AnyAsync(ea => ea.EventId == eventItem.Id && ea.UserId == user.Id, cancellationToken);
 
-                // Find donation ticket type for this social event
-                var donationTicketType = eventItem.TicketTypes.FirstOrDefault(tt => tt.Name.Contains("Donation"));
-                var donationCount = (int)Math.Ceiling(rsvpCount / 2.0); // At least half purchase donations
-
-                for (int i = 0; i < Math.Min(rsvpCount, vettedUsers.Count); i++)
+                // Only create EventAttendee if one doesn't already exist
+                if (!existingAttendee)
                 {
-                    var user = vettedUsers[i];
-                    var createdAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 10));
-                    var notes = i == 0 ? "Looking forward to this event!" : null;
-                    var shouldBuyDonation = i < donationCount && donationTicketType != null;
-
-                    // Create EventAttendee record for all participants
-                    var attendee = new EventAttendee
+                    // Create EventAttendee record for RSVP participant
+                    var attendee = new EventAttendee(eventItem.Id, user.Id, "confirmed")
                     {
                         Id = Guid.NewGuid(),
-                        EventId = eventItem.Id,
-                        UserId = user.Id,
-                        RegistrationStatus = "confirmed",
                         HasCompletedWaiver = true,
                         CreatedAt = createdAt,
-                        UpdatedAt = createdAt
-                    };
-
-                    // CRITICAL FIX: Social event donation buyers get BOTH RSVP + Ticket attendance
-                    // RSVP is the base attendance (required for all social event attendees)
-                    // Donation ticket is ADDITIONAL attendance on top of RSVP
-                    if (shouldBuyDonation)
-                    {
-                        // Business Rule: Check if user already has ticket for this event
-                        var existingTicket = await _context.TicketPurchases
-                            .Include(tp => tp.TicketType)
-                            .FirstOrDefaultAsync(tp =>
-                                tp.UserId == user.Id &&
-                                tp.TicketType.EventId == eventItem.Id,
-                                cancellationToken);
-
-                        if (existingTicket != null)
-                        {
-                            _logger.LogDebug("User {UserId} already has donation ticket for event {EventId}, skipping donation", user.Id, eventItem.Id);
-                            // Still create RSVP attendance for this user
-                            var rsvpOnlyAttendance = new EventAttendance(eventItem.Id, user.Id, AttendanceType.RSVP)
-                            {
-                                Id = Guid.NewGuid(),
-                                Status = AttendanceStatus.Active,
-                                Notes = notes,
-                                CreatedAt = createdAt,
-                                UpdatedAt = createdAt
-                            };
-                            attendancesToAdd.Add(rsvpOnlyAttendance);
-                        }
-                        else
-                        {
-                            // Create RSVP attendance FIRST (required for ALL social event attendees)
-                            var rsvpAttendance = new EventAttendance(eventItem.Id, user.Id, AttendanceType.RSVP)
-                            {
-                                Id = Guid.NewGuid(),
-                                Status = AttendanceStatus.Active,
-                                Notes = notes,
-                                CreatedAt = createdAt,
-                                UpdatedAt = createdAt
-                            };
-                            attendancesToAdd.Add(rsvpAttendance);
-
-                            var donationAmount = (decimal)Random.Shared.Next(5, 31); // FIXED: $5-$30 donation (minimum $5)
-
-                            // Randomly assign payment method for social event donations (33% Cash, 67% PayPal)
-                            // Cash payments can only happen at the door for social events
-                            var paymentMethod = Random.Shared.Next(0, 3) == 0 ? "Cash" : "PayPal";
-
-                            // THEN create donation ticket purchase and attendance (in ADDITION to RSVP)
-                            var ticketPurchase = new TicketPurchase
-                        {
-                            Id = Guid.NewGuid(),
-                            TicketTypeId = donationTicketType.Id,
-                            UserId = user.Id,
-                            Quantity = 1,
-                            TotalPrice = donationAmount,
-                            PaymentStatus = "Completed",
-                            PaymentMethod = paymentMethod,
-                            PaymentReference = $"DN-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
-                            PurchaseDate = createdAt,
-                            CreatedAt = createdAt,
-                            UpdatedAt = createdAt
-                        };
-
-                        // Add encrypted PayPal fields for PayPal payments (PCI compliance)
-                        if (paymentMethod == "PayPal")
-                        {
-                            ticketPurchase.EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(GeneratePayPalOrderId());
-                            ticketPurchase.EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(GeneratePayPalCaptureId());
-                            ticketPurchase.EncryptedPayPalPayerId = await _encryptionService.EncryptAsync($"PAYER{Guid.NewGuid().ToString("N")[..10].ToUpper()}");
-                        }
-
-                        ticketPurchasesToAdd.Add(ticketPurchase);
-
-                        var ticketAttendance = new EventAttendance(eventItem.Id, user.Id, AttendanceType.Ticket)
-                        {
-                            Id = Guid.NewGuid(),
-                            Status = AttendanceStatus.Active,
-                            TicketPurchaseId = ticketPurchase.Id,
-                            Metadata = $"{{\"ticketType\":\"Suggested Donation\",\"price\":{donationAmount},\"paymentMethod\":\"{paymentMethod}\"}}",
-                            CreatedAt = createdAt,
-                            UpdatedAt = createdAt
-                        };
-                            attendancesToAdd.Add(ticketAttendance);
-
-                            // Update attendee with donation ticket number
-                            attendee.TicketNumber = $"DN-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}";
-                        }
-                    }
-                    else
-                    {
-                        // Create RSVP attendance for non-donation users (unchanged)
-                        var rsvpAttendance = new EventAttendance(eventItem.Id, user.Id, AttendanceType.RSVP)
-                        {
-                            Id = Guid.NewGuid(),
-                            Status = AttendanceStatus.Active,
-                            Notes = notes,
-                            CreatedAt = createdAt,
-                            UpdatedAt = createdAt
-                        };
-                        attendancesToAdd.Add(rsvpAttendance);
-                    }
-
-                    attendeesToAdd.Add(attendee);
-                }
-            }
-            else // Class events
-            {
-                // Special handling for Suspension Basics: Multiple ticket types
-                if (eventItem.Title.Contains("Suspension Basics"))
-                {
-                    // Create 2 "All 2 Days" tickets
-                    var all2DaysTicket = eventItem.TicketTypes.FirstOrDefault(tt => tt.Name == "All 2 Days");
-                    if (all2DaysTicket != null)
-                    {
-                        for (int i = 0; i < 2 && i < users.Count; i++)
-                        {
-                            var user = users[i];
-
-                            // Business Rule: Check if user already has ticket for this event
-                            var existingTicket = await _context.TicketPurchases
-                                .Include(tp => tp.TicketType)
-                                .FirstOrDefaultAsync(tp =>
-                                    tp.UserId == user.Id &&
-                                    tp.TicketType.EventId == eventItem.Id,
-                                    cancellationToken);
-
-                            if (existingTicket != null)
-                            {
-                                _logger.LogDebug("User {UserId} already has ticket for event {EventId}, skipping", user.Id, eventItem.Id);
-                                continue;
-                            }
-
-                            var purchaseAmount = (decimal)Random.Shared.Next(15, 65);
-                            var createdAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20));
-
-                            var ticketPurchase = new TicketPurchase
-                            {
-                                Id = Guid.NewGuid(),
-                                TicketTypeId = all2DaysTicket.Id,
-                                UserId = user.Id,
-                                Quantity = 1,
-                                TotalPrice = purchaseAmount,
-                                PaymentStatus = "Completed",
-                                PaymentMethod = "PayPal",
-                                PaymentReference = $"PP-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
-                                PurchaseDate = createdAt,
-                                CreatedAt = createdAt,
-                                UpdatedAt = createdAt,
-                                // Add encrypted PayPal fields (PCI compliance)
-                                EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(GeneratePayPalOrderId()),
-                                EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(GeneratePayPalCaptureId()),
-                                EncryptedPayPalPayerId = await _encryptionService.EncryptAsync($"PAYER{Guid.NewGuid().ToString("N")[..10].ToUpper()}")
-                            };
-                            ticketPurchasesToAdd.Add(ticketPurchase);
-
-                            var attendance = new EventAttendance(eventItem.Id, user.Id, AttendanceType.Ticket)
-                            {
-                                Id = Guid.NewGuid(),
-                                Status = AttendanceStatus.Active,
-                                TicketPurchaseId = ticketPurchase.Id,
-                                CreatedAt = createdAt,
-                                UpdatedAt = createdAt,
-                                Metadata = $"{{\"purchaseAmount\": {purchaseAmount}, \"paymentMethod\": \"PayPal\"}}"
-                            };
-                            attendancesToAdd.Add(attendance);
-
-                            var attendee = new EventAttendee
-                            {
-                                Id = Guid.NewGuid(),
-                                EventId = eventItem.Id,
-                                UserId = user.Id,
-                                TicketNumber = $"TKT-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
-                                RegistrationStatus = "confirmed",
-                                CreatedAt = createdAt,
-                                UpdatedAt = createdAt,
-                                HasCompletedWaiver = true
-                            };
-                            attendeesToAdd.Add(attendee);
-                        }
-                    }
-
-                    // Create 4 "Day 1 Only" tickets (using different users)
-                    var day1OnlyTicket = eventItem.TicketTypes.FirstOrDefault(tt => tt.Name == "Day 1 Only");
-                    if (day1OnlyTicket != null)
-                    {
-                        for (int i = 2; i < 6 && i < users.Count; i++) // Start at index 2 to use different users
-                        {
-                            var user = users[i];
-
-                            // Business Rule: Check if user already has ticket for this event
-                            var existingTicket = await _context.TicketPurchases
-                                .Include(tp => tp.TicketType)
-                                .FirstOrDefaultAsync(tp =>
-                                    tp.UserId == user.Id &&
-                                    tp.TicketType.EventId == eventItem.Id,
-                                    cancellationToken);
-
-                            if (existingTicket != null)
-                            {
-                                _logger.LogDebug("User {UserId} already has ticket for event {EventId}, skipping", user.Id, eventItem.Id);
-                                continue;
-                            }
-
-                            var purchaseAmount = (decimal)Random.Shared.Next(15, 65);
-                            var createdAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20));
-
-                            var ticketPurchase = new TicketPurchase
-                            {
-                                Id = Guid.NewGuid(),
-                                TicketTypeId = day1OnlyTicket.Id,
-                                UserId = user.Id,
-                                Quantity = 1,
-                                TotalPrice = purchaseAmount,
-                                PaymentStatus = "Completed",
-                                PaymentMethod = "PayPal",
-                                PaymentReference = $"PP-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
-                                PurchaseDate = createdAt,
-                                CreatedAt = createdAt,
-                                UpdatedAt = createdAt,
-                                // Add encrypted PayPal fields (PCI compliance)
-                                EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(GeneratePayPalOrderId()),
-                                EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(GeneratePayPalCaptureId()),
-                                EncryptedPayPalPayerId = await _encryptionService.EncryptAsync($"PAYER{Guid.NewGuid().ToString("N")[..10].ToUpper()}")
-                            };
-                            ticketPurchasesToAdd.Add(ticketPurchase);
-
-                            var attendance = new EventAttendance(eventItem.Id, user.Id, AttendanceType.Ticket)
-                            {
-                                Id = Guid.NewGuid(),
-                                Status = AttendanceStatus.Active,
-                                TicketPurchaseId = ticketPurchase.Id,
-                                CreatedAt = createdAt,
-                                UpdatedAt = createdAt,
-                                Metadata = $"{{\"purchaseAmount\": {purchaseAmount}, \"paymentMethod\": \"PayPal\"}}"
-                            };
-                            attendancesToAdd.Add(attendance);
-
-                            var attendee = new EventAttendee
-                            {
-                                Id = Guid.NewGuid(),
-                                EventId = eventItem.Id,
-                                UserId = user.Id,
-                                TicketNumber = $"TKT-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
-                                RegistrationStatus = "confirmed",
-                                CreatedAt = createdAt,
-                                UpdatedAt = createdAt,
-                                HasCompletedWaiver = true
-                            };
-                            attendeesToAdd.Add(attendee);
-                        }
-                    }
-
-                    continue; // Skip the general ticket creation logic below
-                }
-
-                // General ticket creation for other class events
-                var ticketCount = eventItem.Title.Contains("Introduction to Rope Safety") ? 5 :
-                                 eventItem.Title.Contains("Advanced Floor Work") ? 3 : 2;
-
-                var ticketType = eventItem.TicketTypes.FirstOrDefault();
-
-                if (ticketType == null)
-                {
-                    _logger.LogWarning("No ticket types found for event {EventTitle}, skipping ticket purchases", eventItem.Title);
-                    continue;
-                }
-
-                for (int i = 0; i < Math.Min(ticketCount, users.Count); i++)
-                {
-                    var user = users[i];
-
-                    // Business Rule: Check if user already has ticket for this event
-                    var existingTicket = await _context.TicketPurchases
-                        .Include(tp => tp.TicketType)
-                        .FirstOrDefaultAsync(tp =>
-                            tp.UserId == user.Id &&
-                            tp.TicketType.EventId == eventItem.Id,
-                            cancellationToken);
-
-                    if (existingTicket != null)
-                    {
-                        _logger.LogDebug("User {UserId} already has ticket for event {EventId}, skipping", user.Id, eventItem.Id);
-                        continue;
-                    }
-
-                    var purchaseAmount = (decimal)Random.Shared.Next(15, 65);
-                    var createdAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20));
-
-                    // Create TicketPurchase record FIRST (so we have the ID)
-                    var ticketPurchase = new TicketPurchase
-                    {
-                        Id = Guid.NewGuid(),
-                        TicketTypeId = ticketType.Id,
-                        UserId = user.Id,
-                        Quantity = 1,
-                        TotalPrice = purchaseAmount,
-                        PaymentStatus = "Completed",
-                        PaymentMethod = "PayPal",
-                        PaymentReference = $"PP-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
-                        PurchaseDate = createdAt,
-                        CreatedAt = createdAt,
                         UpdatedAt = createdAt,
-                        // Add encrypted PayPal fields (PCI compliance)
-                        EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(GeneratePayPalOrderId()),
-                        EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(GeneratePayPalCaptureId()),
-                        EncryptedPayPalPayerId = await _encryptionService.EncryptAsync($"PAYER{Guid.NewGuid().ToString("N")[..10].ToUpper()}")
-                    };
-                    ticketPurchasesToAdd.Add(ticketPurchase);
-
-                    // Create EventAttendance record LINKED to purchase
-                    var attendance = new EventAttendance(eventItem.Id, user.Id, AttendanceType.Ticket)
-                    {
-                        Id = Guid.NewGuid(),
-                        Status = AttendanceStatus.Active,
-                        TicketPurchaseId = ticketPurchase.Id, // CRITICAL: Link to purchase
-                        CreatedAt = createdAt,
-                        UpdatedAt = createdAt,
-                        Metadata = $"{{\"purchaseAmount\": {purchaseAmount}, \"paymentMethod\": \"PayPal\"}}"
-                    };
-                    attendancesToAdd.Add(attendance);
-
-                    // Create EventAttendee record so attendee appears in check-in system
-                    var attendee = new EventAttendee
-                    {
-                        Id = Guid.NewGuid(),
-                        EventId = eventItem.Id,
-                        UserId = user.Id,
-                        TicketNumber = $"TKT-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
-                        RegistrationStatus = "confirmed",
-                        CreatedAt = createdAt,
-                        UpdatedAt = createdAt,
-                        HasCompletedWaiver = true
+                        CreatedBy = user.Id,
+                        UpdatedBy = user.Id
+                        // Note: TicketNumber is null for RSVP attendees (only set for ticket purchases)
                     };
                     attendeesToAdd.Add(attendee);
                 }
+
+                // Always create RSVP attendance record (user can have both RSVP and Ticket attendance types)
+                var rsvpAttendance = new EventAttendance(eventItem.Id, user.Id, AttendanceType.RSVP)
+                {
+                    Id = Guid.NewGuid(),
+                    Status = AttendanceStatus.Active,
+                    Notes = notes,
+                    CreatedAt = createdAt,
+                    UpdatedAt = createdAt,
+                    CreatedBy = user.Id,
+                    UpdatedBy = user.Id
+                    // Note: TicketPurchaseId is null for RSVP attendances
+                };
+                attendancesToAdd.Add(rsvpAttendance);
+
+                _logger.LogDebug("Created RSVP for user {UserId} at event {EventTitle} (EventAttendee existed: {ExistingAttendee})",
+                    user.Id, eventItem.Title, existingAttendee);
             }
+
+            _logger.LogInformation("Created {RsvpCount} RSVPs for social event {EventTitle}",
+                Math.Min(rsvpCount, vettedUsers.Count), eventItem.Title);
         }
 
-        await _context.EventAttendances.AddRangeAsync(attendancesToAdd, cancellationToken);
-        await _context.TicketPurchases.AddRangeAsync(ticketPurchasesToAdd, cancellationToken);
-        await _context.EventAttendees.AddRangeAsync(attendeesToAdd, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
+        if (attendancesToAdd.Count > 0)
+        {
+            // Save RSVP attendances and attendees
+            await _context.EventAttendances.AddRangeAsync(attendancesToAdd, cancellationToken);
+            await _context.EventAttendees.AddRangeAsync(attendeesToAdd, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
 
-        // DELETE: TicketType.Sold is now a calculated property, no manual updates needed
-        // Previous code manually incremented Sold counts - now it's calculated from EventAttendances
-
-        _logger.LogInformation("Event attendances creation completed. Processed {EventsProcessed} events. Created: {AttendanceCount} attendances, {AttendeeCount} attendees, and {PurchaseCount} ticket purchases",
-            eventsProcessed, attendancesToAdd.Count, attendeesToAdd.Count, ticketPurchasesToAdd.Count);
+            _logger.LogInformation(
+                "RSVP attendance creation completed. Processed {EventsProcessed} social events. Created: {AttendanceCount} RSVP attendances, {AttendeeCount} attendees",
+                eventsProcessed,
+                attendancesToAdd.Count,
+                attendeesToAdd.Count);
+        }
+        else
+        {
+            _logger.LogInformation("No new RSVP attendances needed - all social events already have RSVPs");
+        }
     }
 
     /// <summary>
@@ -510,11 +187,10 @@ public class AttendanceSeeder
                 45, // days ago
                 8, // total RSVPs (limited by available vetted users)
                 6,  // check-ins
-                4,  // donation tickets (at least half)
                 "guest@witchcityrope.com", // canceled user
                 cancellationToken);
 
-            _logger.LogInformation("Created 8 RSVPs for Monthly Rope Practice Night (6 check-ins, 2 no-shows, 1 canceled, 4 donations)");
+            _logger.LogInformation("Created 8 RSVPs for Monthly Rope Practice Night (6 check-ins, 2 no-shows, 1 canceled). Donations handled by TicketPurchaseSeeder.");
         }
 
         var welcomeMixerExists = await _context.EventAttendances
@@ -529,25 +205,23 @@ public class AttendanceSeeder
                 30, // days ago
                 8, // total RSVPs (limited by available vetted users)
                 5, // check-ins
-                4,  // donation tickets (at least half)
                 "vetted@witchcityrope.com", // canceled user
                 cancellationToken);
 
-            _logger.LogInformation("Created 8 RSVPs for New Member Welcome Mixer (5 check-ins, 3 no-shows, 1 canceled, 4 donations)");
+            _logger.LogInformation("Created 8 RSVPs for New Member Welcome Mixer (5 check-ins, 3 no-shows, 1 canceled). Donations handled by TicketPurchaseSeeder.");
         }
     }
 
     /// <summary>
-    /// Helper method to create comprehensive historical social event attendance data.
-    /// Creates RSVPs with varied notes, optional donation tickets, check-ins for attendees, and one cancellation.
-    /// Donation amounts are randomized from $0 to $30 per ticket.
+    /// Helper method to create comprehensive historical social event RSVP attendance data.
+    /// Creates RSVPs with varied notes, check-ins for attendees, and one cancellation.
+    /// Note: Donation tickets are created separately by TicketPurchaseSeeder.SeedSocialEventDonationTicketsAsync
     /// </summary>
     private async Task CreateHistoricalSocialEventParticipationsAsync(
         Guid eventId,
         int daysAgo,
         int totalRsvps,
         int checkInsCount,
-        int donationTickets,
         string canceledUserEmail,
         CancellationToken cancellationToken)
     {
@@ -571,11 +245,7 @@ public class AttendanceSeeder
             return;
         }
 
-        // 3. Get suggested donation ticket type (if exists)
-        var donationTicketType = await _context.TicketTypes
-            .FirstOrDefaultAsync(tt => tt.EventId == eventId && tt.Name.Contains("Donation"), cancellationToken);
-
-        // 4. Get admin user for check-in staff member
+        // 3. Get admin user for check-in staff member
         var adminUser = await _userManager.FindByEmailAsync("admin@witchcityrope.com");
         if (adminUser == null)
         {
@@ -583,161 +253,54 @@ public class AttendanceSeeder
             return;
         }
 
-        // 5. Create active RSVPs
-        var rsvpNotes = new[]
-        {
-            "Looking forward to it!",
-            "Bringing a friend",
-            "First time!",
-            "Excited to join!",
-            "Can't wait!",
-            "New member here",
-            "Looking forward to meeting everyone",
-            "See you there!",
-            "Count me in!",
-            "Thanks for organizing this!",
-            "Will be there!",
-            "Happy to participate",
-            "Looking forward to connecting",
-            "Excited for this event",
-            "Glad to RSVP!"
-        };
-
+        // 4. Create active RSVPs using SeedingHelpers for notes
         for (int i = 0; i < totalRsvps; i++)
         {
             var user = availableUsers[i];
             var shouldCheckIn = i < checkInsCount;
-            var shouldBuyDonation = i < donationTickets && donationTicketType != null;
             var rsvpCreatedAt = DateTime.UtcNow.AddDays(-(daysAgo + 3 + i / 3));
-            var userNotes = rsvpNotes[i % rsvpNotes.Length];
+            var userNotes = SeedingHelpers.GetRandomRsvpNotes();
 
-            // Create EventAttendee for all participants
-            var attendee = new EventAttendee
+            // Check if EventAttendee already exists (user might have a donation ticket)
+            // Historical social events allow both RSVP (free) AND ticket purchase (donation)
+            var existingAttendee = await _context.EventAttendees
+                .FirstOrDefaultAsync(ea => ea.EventId == eventId && ea.UserId == user.Id, cancellationToken);
+
+            EventAttendee attendee;
+            if (existingAttendee != null)
             {
-                Id = Guid.NewGuid(),
-                EventId = eventId,
-                UserId = user.Id,
-                RegistrationStatus = "confirmed",
-                HasCompletedWaiver = true,
-                CreatedAt = rsvpCreatedAt,
-                UpdatedAt = rsvpCreatedAt
-            };
-
-            // CRITICAL FIX: Social event donation buyers get BOTH RSVP + Ticket attendance
-            // RSVP is the base attendance (required for all social event attendees)
-            // Donation ticket is ADDITIONAL attendance on top of RSVP
-            if (shouldBuyDonation && donationTicketType != null)
-            {
-                // Business Rule: Check if user already has ticket for this event
-                var existingTicket = await _context.TicketPurchases
-                    .Include(tp => tp.TicketType)
-                    .FirstOrDefaultAsync(tp =>
-                        tp.UserId == user.Id &&
-                        tp.TicketType.EventId == eventId,
-                        cancellationToken);
-
-                if (existingTicket != null)
-                {
-                    _logger.LogDebug("User {UserId} already has donation ticket for event {EventId}, skipping donation", user.Id, eventId);
-                    // Still create RSVP attendance for this user
-                    var rsvpOnlyAttendance = new EventAttendance
-                    {
-                        Id = Guid.NewGuid(),
-                        EventId = eventId,
-                        UserId = user.Id,
-                        AttendanceType = AttendanceType.RSVP,
-                        Status = AttendanceStatus.Active,
-                        Notes = userNotes,
-                        CreatedAt = rsvpCreatedAt,
-                        UpdatedAt = rsvpCreatedAt
-                    };
-                    _context.EventAttendances.Add(rsvpOnlyAttendance);
-                }
-                else
-                {
-                    // Create RSVP attendance FIRST (required for ALL social event attendees)
-                    var rsvpAttendance = new EventAttendance
-                    {
-                        Id = Guid.NewGuid(),
-                        EventId = eventId,
-                        UserId = user.Id,
-                        AttendanceType = AttendanceType.RSVP,
-                        Status = AttendanceStatus.Active,
-                        Notes = userNotes,
-                        CreatedAt = rsvpCreatedAt,
-                        UpdatedAt = rsvpCreatedAt
-                    };
-                    _context.EventAttendances.Add(rsvpAttendance);
-
-                    // Generate random donation amount ($5-$30 minimum $5)
-                    var donationAmount = (decimal)Random.Shared.Next(5, 31);
-
-                    // Randomly assign payment method for social event donations (33% Cash, 67% PayPal)
-                    // Cash payments can only happen at the door for social events
-                    var paymentMethod = Random.Shared.Next(0, 3) == 0 ? "Cash" : "PayPal";
-
-                    // THEN create donation ticket purchase and attendance (in ADDITION to RSVP)
-                    var donationPurchase = new TicketPurchase
-                {
-                    Id = Guid.NewGuid(),
-                    TicketTypeId = donationTicketType.Id,
-                    UserId = user.Id,
-                    Quantity = 1,
-                    TotalPrice = donationAmount,
-                    PaymentStatus = "Completed",
-                    PaymentMethod = paymentMethod,
-                    PaymentReference = $"DN-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
-                    PurchaseDate = rsvpCreatedAt,
-                    CreatedAt = rsvpCreatedAt,
-                    UpdatedAt = rsvpCreatedAt
-                };
-
-                // Add encrypted PayPal fields for PayPal payments (PCI compliance)
-                if (paymentMethod == "PayPal")
-                {
-                    donationPurchase.EncryptedPayPalOrderId = await _encryptionService.EncryptAsync(GeneratePayPalOrderId());
-                    donationPurchase.EncryptedPayPalCaptureId = await _encryptionService.EncryptAsync(GeneratePayPalCaptureId());
-                    donationPurchase.EncryptedPayPalPayerId = await _encryptionService.EncryptAsync($"PAYER{Guid.NewGuid().ToString("N")[..10].ToUpper()}");
-                }
-
-                _context.TicketPurchases.Add(donationPurchase);
-
-                var ticketAttendance = new EventAttendance
-                {
-                    Id = Guid.NewGuid(),
-                    EventId = eventId,
-                    UserId = user.Id,
-                    AttendanceType = AttendanceType.Ticket,
-                    Status = AttendanceStatus.Active,
-                    TicketPurchaseId = donationPurchase.Id,
-                    Metadata = $"{{\"ticketType\":\"{donationTicketType.Name}\",\"price\":{donationAmount},\"paymentMethod\":\"{paymentMethod}\"}}",
-                    CreatedAt = rsvpCreatedAt,
-                    UpdatedAt = rsvpCreatedAt
-                };
-                    _context.EventAttendances.Add(ticketAttendance);
-
-                    // Update EventAttendee with donation ticket info
-                    attendee.TicketNumber = $"DN-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}";
-                }
+                // Use existing attendee (from donation ticket)
+                attendee = existingAttendee;
             }
             else
             {
-                // Create RSVP attendance for non-donation users (unchanged)
-                var rsvpAttendance = new EventAttendance
+                // Create EventAttendee for RSVP-only participants
+                attendee = new EventAttendee
                 {
                     Id = Guid.NewGuid(),
                     EventId = eventId,
                     UserId = user.Id,
-                    AttendanceType = AttendanceType.RSVP,
-                    Status = AttendanceStatus.Active,
-                    Notes = userNotes,
+                    RegistrationStatus = "confirmed",
+                    HasCompletedWaiver = true,
                     CreatedAt = rsvpCreatedAt,
                     UpdatedAt = rsvpCreatedAt
                 };
-                _context.EventAttendances.Add(rsvpAttendance);
+                _context.EventAttendees.Add(attendee);
             }
 
-            _context.EventAttendees.Add(attendee);
+            // Always create RSVP attendance for all participants
+            // Note: Donation tickets (if any) are created by TicketPurchaseSeeder.SeedSocialEventDonationTicketsAsync
+            var rsvpAttendance = new EventAttendance(eventId, user.Id, AttendanceType.RSVP)
+            {
+                Id = Guid.NewGuid(),
+                Status = AttendanceStatus.Active,
+                Notes = userNotes,
+                CreatedAt = rsvpCreatedAt,
+                UpdatedAt = rsvpCreatedAt,
+                CreatedBy = user.Id,
+                UpdatedBy = user.Id
+            };
+            _context.EventAttendances.Add(rsvpAttendance);
 
             // Create CheckIn if attended
             if (shouldCheckIn)
