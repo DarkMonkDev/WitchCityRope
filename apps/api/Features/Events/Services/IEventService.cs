@@ -49,4 +49,19 @@ public interface IEventService
         string id,
         UpdateEventRequest request,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Creates a copy of an existing event with a new date and title.
+    /// Deep copies all related entities (sessions, ticket types, volunteer positions, organizers, email templates).
+    /// Excludes attendance and transaction data (RSVPs, ticket purchases).
+    /// New event is created as draft (IsPublished = false).
+    /// </summary>
+    /// <param name="eventId">ID of the event to copy (string representation of Guid)</param>
+    /// <param name="request">Copy parameters including new date and title</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Tuple with success flag, copied event DTO if successful, and error message</returns>
+    Task<(bool Success, EventDto? Response, string? Error)> CopyEventAsync(
+        string eventId,
+        CopyEventRequest request,
+        CancellationToken cancellationToken = default);
 }

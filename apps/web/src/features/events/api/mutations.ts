@@ -80,11 +80,21 @@ export function useDeleteEvent() {
 
 export function useCopyEvent() {
   const queryClient = useQueryClient()
-  
-  return useMutation({
-    mutationFn: async (eventId: string): Promise<Event> => {
-      const response = await api.post(`/api/events/${eventId}/copy`)
-      return response.data
+
+  return useMutation<Event, Error, {
+    eventId: string;
+    newStartDate: string;
+    newTitle: string;
+  }>({
+    mutationFn: async ({ eventId, newStartDate, newTitle }) => {
+      const response = await api.post<Event>(
+        `/api/events/${eventId}/copy`,
+        {
+          newStartDate,
+          newTitle,
+        }
+      );
+      return response.data;
     },
     onSuccess: () => {
       // Invalidate events cache to show new event

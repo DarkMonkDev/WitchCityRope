@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using WitchCityRope.Api.Data;
 using WitchCityRope.Api.Features.Events.Models;
+using WitchCityRope.Api.Models;
 
 namespace WitchCityRope.Api.Features.Events.Services;
 
@@ -890,5 +891,282 @@ public class EventService : IEventService
         }
 
         return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Creates a deep copy of an event with all related entities
+    /// Implements atomic transaction for data integrity
+    /// </summary>
+    public async Task<(bool Success, EventDto? Response, string? Error)> CopyEventAsync(
+        string eventId,
+        CopyEventRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // 1. Validation - Parse event ID
+            if (!Guid.TryParse(eventId, out var parsedEventId))
+            {
+                _logger.LogWarning("Invalid event ID format for copy: {EventId}", eventId);
+                return (false, null, "Invalid event ID format");
+            }
+
+            // 2. Load source event with ALL related entities
+            // CRITICAL: Use AsNoTracking to prevent EF tracking issues during copy
+            var sourceEvent = await _context.Events
+                .Include(e => e.Sessions)
+                .Include(e => e.TicketTypes)
+                .Include(e => e.VolunteerPositions)
+                .Include(e => e.Organizers)
+                .Include(e => e.Venue)
+                .Include(e => e.EventAttendances) // Needed for computed properties in DTO
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Id == parsedEventId, cancellationToken);
+
+            if (sourceEvent == null)
+            {
+                _logger.LogWarning("Source event not found for copy: {EventId}", eventId);
+                return (false, null, "Event not found");
+            }
+
+            _logger.LogInformation("Starting copy of event {EventId} ({Title}) with new title '{NewTitle}' and start date {NewStartDate}",
+                eventId, sourceEvent.Title, request.NewTitle, request.NewStartDate);
+
+            // 3. Begin transaction for atomic operation
+            using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+            try
+            {
+                // 4. Calculate date offset for session time adjustments
+                var dateOffset = request.NewStartDate - sourceEvent.StartDate;
+
+                // 5. Create new event with copied properties
+                var copiedEvent = new WitchCityRope.Api.Models.Event
+                {
+                    // NEW values
+                    Id = Guid.NewGuid(),
+                    Title = request.NewTitle,
+                    StartDate = request.NewStartDate.DateTime,
+                    EndDate = sourceEvent.EndDate.Add(dateOffset),
+                    IsPublished = false, // Always create as draft
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+
+                    // COPY AS-IS
+                    ShortDescription = sourceEvent.ShortDescription,
+                    Description = sourceEvent.Description,
+                    Policies = sourceEvent.Policies,
+                    Capacity = sourceEvent.Capacity,
+                    EventType = sourceEvent.EventType,
+                    VenueId = sourceEvent.VenueId,
+
+                    // COPY timing controls (6 fields)
+                    RegistrationOpenHours = sourceEvent.RegistrationOpenHours,
+                    RegistrationCloseHours = sourceEvent.RegistrationCloseHours,
+                    CancellationOpenHours = sourceEvent.CancellationOpenHours,
+                    CancellationCloseHours = sourceEvent.CancellationCloseHours,
+                    VolunteerRegistrationCloseHours = sourceEvent.VolunteerRegistrationCloseHours,
+                    VolunteerCancellationCloseHours = sourceEvent.VolunteerCancellationCloseHours
+                };
+
+                _context.Events.Add(copiedEvent);
+
+                // 6. Deep copy Sessions with date offset
+                // Track old SessionId -> new SessionId mapping for remapping
+                var sessionIdMap = new Dictionary<Guid, Guid>();
+
+                foreach (var sourceSession in sourceEvent.Sessions)
+                {
+                    var newSessionId = Guid.NewGuid();
+                    sessionIdMap[sourceSession.Id] = newSessionId;
+
+                    var copiedSession = new Session
+                    {
+                        Id = newSessionId,
+                        EventId = copiedEvent.Id,
+                        SessionCode = sourceSession.SessionCode,
+                        Name = sourceSession.Name,
+                        StartTime = sourceSession.StartTime.Add(dateOffset),
+                        EndTime = sourceSession.EndTime.Add(dateOffset),
+                        Capacity = sourceSession.Capacity,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+
+                    copiedEvent.Sessions.Add(copiedSession);
+                }
+
+                _logger.LogInformation("Copied {SessionCount} sessions for event {NewEventId}",
+                    sourceEvent.Sessions.Count, copiedEvent.Id);
+
+                // 7. Deep copy TicketTypes with SessionId remapping
+                foreach (var sourceTicket in sourceEvent.TicketTypes)
+                {
+                    var copiedTicket = new TicketType
+                    {
+                        Id = Guid.NewGuid(),
+                        EventId = copiedEvent.Id,
+
+                        // REMAP SessionId to new session (if session-specific)
+                        SessionId = sourceTicket.SessionId.HasValue
+                            ? sessionIdMap[sourceTicket.SessionId.Value]
+                            : null,
+
+                        // COPY properties
+                        Name = sourceTicket.Name,
+                        Description = sourceTicket.Description,
+                        PricingType = sourceTicket.PricingType,
+                        Price = sourceTicket.Price,
+                        MinPrice = sourceTicket.MinPrice,
+                        MaxPrice = sourceTicket.MaxPrice,
+                        DefaultPrice = sourceTicket.DefaultPrice,
+                        Available = sourceTicket.Available
+                        // NOTE: Sold and Purchases are NOT copied (computed/excluded)
+                    };
+
+                    copiedEvent.TicketTypes.Add(copiedTicket);
+                }
+
+                _logger.LogInformation("Copied {TicketTypeCount} ticket types for event {NewEventId}",
+                    sourceEvent.TicketTypes.Count, copiedEvent.Id);
+
+                // 8. Deep copy VolunteerPositions with SessionId remapping, reset SlotsFilled
+                foreach (var sourcePosition in sourceEvent.VolunteerPositions)
+                {
+                    var copiedPosition = new VolunteerPosition
+                    {
+                        Id = Guid.NewGuid(),
+                        EventId = copiedEvent.Id,
+
+                        // REMAP SessionId to new session (if session-specific)
+                        SessionId = sourcePosition.SessionId.HasValue
+                            ? sessionIdMap[sourcePosition.SessionId.Value]
+                            : null,
+
+                        // COPY properties
+                        Title = sourcePosition.Title,
+                        Description = sourcePosition.Description,
+                        SlotsNeeded = sourcePosition.SlotsNeeded,
+                        IsPublicFacing = sourcePosition.IsPublicFacing,
+
+                        // RESET filled count
+                        SlotsFilled = 0,
+
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+
+                    copiedEvent.VolunteerPositions.Add(copiedPosition);
+                }
+
+                _logger.LogInformation("Copied {PositionCount} volunteer positions for event {NewEventId}",
+                    sourceEvent.VolunteerPositions.Count, copiedEvent.Id);
+
+                // 9. Copy Organizers (many-to-many relationship)
+                // Same organizers/teachers for the copied event
+                copiedEvent.Organizers = sourceEvent.Organizers.ToList();
+
+                _logger.LogInformation("Copied {OrganizerCount} organizers for event {NewEventId}",
+                    sourceEvent.Organizers.Count, copiedEvent.Id);
+
+                // 10. Deep copy EventEmailTemplates (custom templates only)
+                // Load custom email templates for source event
+                var sourceTemplates = await _context.Set<WitchCityRope.Api.Features.EmailTemplates.Entities.EventEmailTemplate>()
+                    .Where(t => t.EventId == sourceEvent.Id)
+                    .AsNoTracking()
+                    .ToListAsync(cancellationToken);
+
+                foreach (var sourceTemplate in sourceTemplates)
+                {
+                    var copiedTemplate = new WitchCityRope.Api.Features.EmailTemplates.Entities.EventEmailTemplate
+                    {
+                        Id = Guid.NewGuid(),
+                        EventId = copiedEvent.Id, // Associate with new event
+                        GlobalTemplateId = sourceTemplate.GlobalTemplateId, // Preserve reference
+                        TemplateType = sourceTemplate.TemplateType,
+                        Subject = sourceTemplate.Subject,
+                        HtmlBody = sourceTemplate.HtmlBody,
+                        PlainTextBody = sourceTemplate.PlainTextBody,
+                        TargetSessions = sourceTemplate.TargetSessions,
+                        RecipientGroup = sourceTemplate.RecipientGroup,
+                        IsCustomized = true,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        UpdatedBy = sourceTemplate.UpdatedBy // Keep original creator reference
+                    };
+
+                    _context.Set<WitchCityRope.Api.Features.EmailTemplates.Entities.EventEmailTemplate>().Add(copiedTemplate);
+                }
+
+                _logger.LogInformation("Copied {TemplateCount} custom email templates for event {NewEventId}",
+                    sourceTemplates.Count, copiedEvent.Id);
+
+                // 11. Save all changes in transaction
+                await _context.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+
+                _logger.LogInformation("Successfully copied event {SourceEventId} to {NewEventId} ({NewTitle})",
+                    eventId, copiedEvent.Id, copiedEvent.Title);
+
+                // 12. Map to DTO and return
+                // Need to reload with all navigation properties for DTO mapping
+                var copiedEventWithNav = await _context.Events
+                    .Include(e => e.Sessions)
+                    .Include(e => e.TicketTypes)
+                    .Include(e => e.VolunteerPositions)
+                    .Include(e => e.Organizers)
+                    .Include(e => e.Venue)
+                    .Include(e => e.EventAttendances)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(e => e.Id == copiedEvent.Id, cancellationToken);
+
+                if (copiedEventWithNav == null)
+                {
+                    _logger.LogError("CRITICAL: Copied event {EventId} not found after save", copiedEvent.Id);
+                    return (false, null, "Failed to retrieve copied event");
+                }
+
+                var eventDto = new EventDto
+                {
+                    Id = copiedEventWithNav.Id.ToString(),
+                    Title = copiedEventWithNav.Title,
+                    ShortDescription = copiedEventWithNav.ShortDescription,
+                    Description = copiedEventWithNav.Description,
+                    Policies = copiedEventWithNav.Policies,
+                    StartDate = copiedEventWithNav.StartDate,
+                    EndDate = copiedEventWithNav.EndDate,
+                    VenueId = copiedEventWithNav.VenueId,
+                    VenueLocation = copiedEventWithNav.Venue?.Location,
+                    EventType = copiedEventWithNav.EventType.ToString(),
+                    Capacity = copiedEventWithNav.Capacity,
+                    IsPublished = copiedEventWithNav.IsPublished,
+                    RegistrationCount = copiedEventWithNav.GetCurrentAttendeeCount(),
+                    CurrentRSVPs = copiedEventWithNav.GetCurrentRSVPCount(),
+                    CurrentTickets = copiedEventWithNav.GetCurrentTicketCount(),
+                    Sessions = copiedEventWithNav.Sessions.Select(s => new SessionDto(s)).ToList(),
+                    TicketTypes = copiedEventWithNav.TicketTypes.Select(tt => new TicketTypeDto(tt, copiedEventWithNav.EventAttendances)).ToList(),
+                    VolunteerPositions = copiedEventWithNav.VolunteerPositions.Select(vp => new VolunteerPositionDto(vp)).ToList(),
+                    TeacherIds = copiedEventWithNav.Organizers.Select(o => o.Id.ToString()).ToList(),
+                    RegistrationOpenHours = copiedEventWithNav.RegistrationOpenHours,
+                    RegistrationCloseHours = copiedEventWithNav.RegistrationCloseHours,
+                    CancellationOpenHours = copiedEventWithNav.CancellationOpenHours,
+                    CancellationCloseHours = copiedEventWithNav.CancellationCloseHours,
+                    VolunteerRegistrationCloseHours = copiedEventWithNav.VolunteerRegistrationCloseHours,
+                    VolunteerCancellationCloseHours = copiedEventWithNav.VolunteerCancellationCloseHours
+                };
+
+                return (true, eventDto, null);
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                _logger.LogError(ex, "Transaction failed while copying event {EventId}", eventId);
+                throw; // Re-throw to outer catch
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to copy event {EventId}", eventId);
+            return (false, null, "Failed to copy event. Please try again.");
+        }
     }
 }

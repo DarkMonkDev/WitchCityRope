@@ -388,6 +388,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/events/{id}/copy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Copy an existing event
+         * @description Creates a copy of an event with a new date and title. Deep copies all related entities (sessions, ticket types, volunteer positions, organizers, email templates). Excludes attendance and transaction data. New event created as draft (IsPublished = false).
+         */
+        post: operations["CopyEvent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/events/{id}/ticket-types": {
         parameters: {
             query?: never;
@@ -3848,6 +3868,11 @@ export interface components {
             title?: string;
             fullContent?: string | null;
         };
+        CopyEventRequest: {
+            /** Format: date-time */
+            newStartDate: string;
+            newTitle: string;
+        };
         CreateIncidentRequest: {
             /** Format: uuid */
             reporterId?: string | null;
@@ -4461,6 +4486,8 @@ export interface components {
             page?: number;
             /** Format: int32 */
             pageSize?: number;
+            /** Format: int32 */
+            totalPages?: number;
         };
         /** @enum {unknown} */
         PaymentMethodType: "SavedCard" | "NewCard" | "BankTransfer" | "PayPal" | "Venmo" | "Cash";
@@ -6088,6 +6115,68 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["UpdateEventRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    CopyEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CopyEventRequest"];
             };
         };
         responses: {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Container, Title, Button, Group, Loader, Alert } from '@mantine/core';
 import { IconPlus } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
@@ -8,6 +8,7 @@ import { useCopyEvent } from '../../features/events/api/mutations';
 import { useAdminEventFilters } from '../../hooks/useAdminEventFilters';
 import { EventsFilterBar } from '../../components/events/EventsFilterBar';
 import { EventsTableView } from '../../components/events/EventsTableView';
+import { CopyEventModal } from '../../components/events/CopyEventModal';
 
 /**
  * AdminEventsPage - Table-based administrative interface for managing events
@@ -45,8 +46,11 @@ import { EventsTableView } from '../../components/events/EventsTableView';
 export const AdminEventsPage: React.FC = () => {
   const navigate = useNavigate();
   const { data: events, isLoading, error } = useEvents({ includeUnpublished: true });
-  const copyEventMutation = useCopyEvent();
-  
+
+  // Modal state for event copying
+  const [copyModalOpened, setCopyModalOpened] = useState(false);
+  const [eventToCopy, setEventToCopy] = useState<{ id: string; title: string; startDate: string } | null>(null);
+
   // Filter and sort state management
   const {
     filterState,
@@ -63,25 +67,16 @@ export const AdminEventsPage: React.FC = () => {
     navigate('/admin/events/new');
   };
 
-  const handleCopyEvent = async (eventId: string) => {
-    try {
-      const copiedEvent = await copyEventMutation.mutateAsync(eventId);
-      
-      notifications.show({
-        title: 'Event Copied',
-        message: 'Event copied successfully. Redirecting to edit page.',
-        color: 'green'
+  const handleCopyEvent = (eventId: string) => {
+    // Find the event to copy from the list
+    const event = filteredAndSortedEvents.find((e) => e.id === eventId);
+    if (event) {
+      setEventToCopy({
+        id: event.id,
+        title: event.title,
+        startDate: event.startDate,
       });
-      
-      // Navigate to edit the copied event - ensure copiedEvent has id property
-      const copiedEventId = (copiedEvent as any)?.id || eventId;
-      navigate(`/admin/events/edit/${copiedEventId}`);
-    } catch (error) {
-      notifications.show({
-        title: 'Copy Failed',
-        message: 'Unable to copy event. Please try again.',
-        color: 'red'
-      });
+      setCopyModalOpened(true);
     }
   };
 
@@ -179,6 +174,16 @@ export const AdminEventsPage: React.FC = () => {
           </Group>
         </Box>
       )}
+
+      {/* Copy Event Modal */}
+      <CopyEventModal
+        opened={copyModalOpened}
+        onClose={() => {
+          setCopyModalOpened(false);
+          setEventToCopy(null);
+        }}
+        eventToCopy={eventToCopy}
+      />
     </Container>
   );
 };

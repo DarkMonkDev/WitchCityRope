@@ -702,6 +702,88 @@
         }
       }
     },
+    "/api/events/{id}/copy": {
+      "post": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Copy an existing event",
+        "description": "Creates a copy of an event with a new date and title. Deep copies all related entities (sessions, ticket types, volunteer positions, organizers, email templates). Excludes attendance and transaction data. New event created as draft (IsPublished = false).",
+        "operationId": "CopyEvent",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CopyEventRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/events/{id}/ticket-types": {
       "get": {
         "tags": [
@@ -10632,6 +10714,24 @@
           "fullContent": {
             "type": "string",
             "nullable": true
+          }
+        }
+      },
+      "CopyEventRequest": {
+        "required": [
+          "newStartDate",
+          "newTitle"
+        ],
+        "type": "object",
+        "properties": {
+          "newStartDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "newTitle": {
+            "maxLength": 200,
+            "minLength": 3,
+            "type": "string"
           }
         }
       },

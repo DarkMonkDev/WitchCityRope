@@ -57,6 +57,66 @@
 - [ ] Review Testing Prerequisites before starting
 - [ ] Verify Docker containers are running (use container-restart skill if needed)
 
+## 🚨🚨🚨 ULTRA CRITICAL: E2E TESTS MUST USE LOGIN HELPER - ZERO TOLERANCE 🚨🚨🚨
+
+**THIS IS NON-NEGOTIABLE. VIOLATIONS WILL BE REJECTED IMMEDIATELY.**
+
+### ❌ ABSOLUTELY FORBIDDEN - Manual Login Implementation
+
+```typescript
+// ❌ WRONG - NEVER DO THIS - AUTOMATIC REJECTION
+test.beforeEach(async ({ page }) => {
+  await page.goto('http://localhost:5173/login');
+  await page.fill('input[name="email"]', 'admin@witchcityrope.com');
+  await page.fill('input[name="password"]', 'Test123!');
+  await page.click('button[type="submit"]');
+  await page.waitForURL('http://localhost:5173/');
+});
+```
+
+**Why this is FORBIDDEN**:
+- Duplicates existing helper code
+- Breaks when login UI changes
+- Not battle-tested like helper
+- Violates DRY principle
+- User gets extremely frustrated
+
+### ✅ MANDATORY PATTERN - Use AuthHelpers.loginAs()
+
+```typescript
+// ✅ CORRECT - ALWAYS USE THIS
+import { AuthHelpers } from '../../../../tests/e2e/test-utils/helpers/auth.helpers';
+
+test.beforeEach(async ({ page }) => {
+  await AuthHelpers.loginAs(page, 'admin');
+  await page.goto('http://localhost:5173/admin/events');
+});
+```
+
+**Login Helper Location**: `/tests/e2e/test-utils/helpers/auth.helpers.ts`
+
+**Available Roles**: 'admin', 'teacher', 'member', 'vetted', 'guest'
+
+**Why This is MANDATORY**:
+- ✅ Single source of truth for login logic
+- ✅ Handles Mantine form interactions correctly
+- ✅ Includes error recovery strategies
+- ✅ Monitors console errors
+- ✅ Battle-tested across 100+ tests
+
+### 🛑 PRE-FLIGHT CHECKLIST FOR E2E TESTS
+
+**BEFORE writing ANY E2E test with authentication**:
+- [ ] Import AuthHelpers from correct path
+- [ ] Use `AuthHelpers.loginAs(page, role)` - NOTHING ELSE
+- [ ] NEVER manually implement login flow
+- [ ] NEVER use page.goto to login page in tests
+- [ ] NEVER use page.fill for email/password in tests
+
+**If you find yourself typing "page.goto('/login')" → STOP and use AuthHelpers instead.**
+
+**This lesson learned exists because this mistake happened. Do not repeat it.**
+
 ## 🛠️ AVAILABLE TESTING TOOLS
 
 ### Chrome DevTools MCP (NEW - 2025-10-03)

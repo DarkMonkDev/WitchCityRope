@@ -458,6 +458,25 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 })
   }),
 
+  // Event copy endpoint
+  http.post('/api/events/:id/copy', async ({ params, request }) => {
+    const body = await request.json() as { newStartDate: string; newTitle: string }
+
+    return HttpResponse.json({
+      id: `copied-${params.id}`,
+      title: body.newTitle,
+      description: 'Full copied event description',
+      startDate: body.newStartDate,
+      endDate: new Date(new Date(body.newStartDate).getTime() + 2 * 60 * 60 * 1000).toISOString(),
+      capacity: 20,
+      registrationCount: 0,
+      isRegistrationOpen: false,
+      instructorId: '1',
+      eventType: 'class',
+      status: 'Draft',
+    } as Event)
+  }),
+
   // Event Registration
   http.post('/api/events/:eventId/registration', async ({ params, request }) => {
     const body = await request.json() as any

@@ -163,6 +163,63 @@ public static class EventEndpoints
             .ProducesProblem(404)
             .ProducesProblem(500);
 
+        // Copy an existing event with new date and title
+        // SECURITY: CSRF protection + Admin authorization required
+        app.MapPost("/api/events/{id}/copy", async (
+            HttpContext context,
+            IAntiforgery antiforgery,
+            string id,
+            CopyEventRequest request,
+            [FromServices] IEventService eventService,
+            CancellationToken cancellationToken) =>
+            {
+                // CSRF validation - MUST be first
+                try
+                {
+                    await antiforgery.ValidateRequestAsync(context);
+                }
+                catch (AntiforgeryValidationException)
+                {
+                    return Results.Problem(
+                        title: "CSRF Validation Failed",
+                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                        statusCode: 400);
+                }
+
+                // Call service to perform copy operation
+                var (success, response, error) = await eventService.CopyEventAsync(id, request, cancellationToken);
+
+                if (success && response != null)
+                {
+                    return Results.Ok(response); // Direct DTO - Pattern B
+                }
+
+                // Determine appropriate HTTP status code based on error message
+                var statusCode = error switch
+                {
+                    string msg when msg.Contains("not found") || msg.Contains("not found") => 404,
+                    string msg when msg.Contains("Invalid event ID") => 400,
+                    _ => 500
+                };
+
+                return Results.Problem(
+                    title: statusCode == 404 ? "Event Not Found" : "Failed to copy event",
+                    detail: error ?? "Failed to copy event. Please try again.",
+                    statusCode: statusCode);
+            })
+            .RequireAuthorization() // Requires JWT authentication and Admin role
+            .WithName("CopyEvent")
+            .WithSummary("Copy an existing event")
+            .WithDescription("Creates a copy of an event with a new date and title. " +
+                "Deep copies all related entities (sessions, ticket types, volunteer positions, organizers, email templates). " +
+                "Excludes attendance and transaction data. New event created as draft (IsPublished = false).")
+            .WithTags("Events")
+            .Produces<EventDto>(200)
+            .ProducesProblem(400)
+            .ProducesProblem(401)
+            .ProducesProblem(404)
+            .ProducesProblem(500);
+
         // Get ticket types for an event (used by check-in kiosk for door payments)
         app.MapGet("/api/events/{id}/ticket-types", async (
             string id,

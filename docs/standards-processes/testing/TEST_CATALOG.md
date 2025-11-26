@@ -40,6 +40,288 @@
 
 ---
 
+## ✅ EVENT COPY E2E TESTS - ALL PASSING - November 26, 2025
+
+**CREATION DATE**: 2025-11-26
+**EXECUTION DATE**: 2025-11-26T18:30:00Z
+**LAST UPDATED**: 2025-11-26
+**STATUS**: ✅ **ALL 10 E2E TESTS PASSING (100%)**
+**TEST LOCATION**: `/tests/e2e/events/admin-event-copy.spec.ts`
+**QUALITY GATE**: ✅ PASSED (100% exceeds 90% threshold)
+**DETAILED REPORT**: `/test-results/event-copy-e2e-fix-2025-11-26.md`
+
+### Fix Summary
+
+**Problem**: Mantine DateInput calendar popup blocks submit button
+**Solution**: Press Tab after filling date to close calendar popup
+**Pattern Applied**: 8 date input interactions + 3 test assertion improvements
+
+### Key Fix Pattern
+```typescript
+const dateInput = page.locator('[data-testid="input-event-date"]').last();
+await dateInput.fill(dateString);
+await dateInput.press('Tab'); // Close calendar popup
+```
+
+### All 10 Tests Passing ✅
+
+1. ✅ Admin can copy event with new date and title (6.7s)
+2. ✅ Copy modal validates past dates (6.6s)
+3. ✅ Copy modal validates required title (7.9s)
+4. ✅ Copied event has correct sessions (6.7s)
+5. ✅ Copied event has correct ticket types (5.7s)
+6. ✅ Copied event excludes attendance data (5.5s)
+7. ✅ Copied event preserves custom email templates (6.8s)
+8. ✅ Copied event without custom templates works correctly (6.3s)
+9. ✅ Copy modal can be cancelled (4.2s)
+10. ✅ Copy handles API errors gracefully (5.7s)
+
+**Total Execution Time**: 12.2 seconds
+
+---
+
+## ⚠️ EVENT COPY TEST SUITE - FRONTEND UNIT TESTS (PARTIAL) - November 26, 2025
+
+**CREATION DATE**: 2025-11-26
+**EXECUTION DATE**: 2025-11-26T05:10:00Z - 2025-11-26T05:30:00Z (FIX)
+**LAST UPDATED**: 2025-11-26
+**STATUS**: ⚠️ **FRONTEND UNIT TESTS PARTIAL - 5 of 8 PASSING (62.5%)**
+**OVERALL PASS RATE**: Frontend 62.5% (5/8 passing)
+**QUALITY GATE**: ⚠️ PARTIAL (90% required, 62.5% achieved)
+**DETAILED REPORT**: `/home/chad/repos/witchcityrope/tests/unit/web/components/events/CopyEventModal.test.tsx`
+
+### Execution Summary
+
+**Frontend Unit Tests Created**: 8 tests
+**Total Tests Passing**: 5 tests (62.5%)
+**Total Tests Failing**: 3 tests (37.5%)
+
+**Test File**: `/tests/unit/web/components/events/CopyEventModal.test.tsx`
+
+### Passing Frontend Tests ✅
+
+1. ✅ **renders modal when opened** (115ms)
+   - Validates modal dialog appears with correct elements
+   - Uses `getByRole('dialog')` for proper modal selection
+
+2. ✅ **pre-fills title with original title plus (Copy)** (27ms)
+   - Verifies form auto-populates title with "(Copy)" suffix
+   - Tests form initialization on modal open
+
+3. ✅ **validates title is required** (44ms)
+   - Clears title field
+   - Submits form
+   - Confirms mutation NOT called (validation prevented)
+
+4. ✅ **calls mutation on valid submit** (41ms)
+   - Valid form data triggers mutation
+   - Mutation called with correct parameters
+   - newStartDate correctly formatted as ISO string
+
+5. ✅ **shows loading state during mutation** (21ms)
+   - Mocks `isPending: true`
+   - Validates button has `data-loading="true"` attribute
+
+### Failing Frontend Tests ❌
+
+1. ❌ **validates date is not in past** (825ms timeout)
+   - **Issue**: Mantine DateInput does not properly validate text input "01/01/2020"
+   - **Root Cause**: DateInput requires specific date object interaction
+   - **Impact**: Mutation still called despite invalid date
+   - **Solution Needed**: Mantine DateInput special handling or direct form state manipulation
+
+2. ❌ **closes modal on successful copy** (3036ms timeout)
+   - **Issue**: mockOnClose not being called after successful mutation
+   - **Root Cause**: Component navigation uses `navigate()` after `onClose()`
+   - **Async Timing**: May be waiting for navigation to complete
+   - **Solution Needed**: Longer timeout or mock React Router navigate
+
+3. ❌ **shows error message on mutation failure** (3035ms timeout)
+   - **Issue**: capturedNotifications array not receiving notification calls
+   - **Root Cause**: Notifications mock not properly intercepting calls
+   - **Scope Issue**: Mock created in vi.mock closure, not accessible to test
+   - **Solution Needed**: Access mock function from mocked module correctly
+
+### Lessons Learned - Frontend Unit Testing
+
+#### Selector Issues Fixed
+- ✅ **Multiple "Copy Event" text issue**: Resolved by using `getByRole('dialog')` instead of text selector
+- ✅ **Button selection**: Use `getByRole('button', { name: /Copy Event/i })` for specific button
+
+#### Form Validation Testing
+- ✅ **Title validation**: Works correctly - clearing field and submitting prevents mutation
+- ⚠️ **Date validation**: Mantine DateInput doesn't behave like standard text input
+- **Key Learning**: Mantine components require special handling in tests
+
+#### Mock Setup Issues
+- ✅ **useCopyEvent hook**: Properly mocked with `vi.mock()` hoisting
+- ⚠️ **Notifications mock**: Closure scope issue prevents accessing captured calls
+- **Key Learning**: Be careful with mock variable scope in test files
+
+### Recommendations for Completing Tests
+
+**For Date Validation Test**:
+Option 1: Test the form validation logic directly by calling form methods
+Option 2: Accept that date input is difficult to test in unit tests, use E2E instead
+Option 3: Add `data-testid` to validation error message and check DOM
+
+**For Modal Close Test**:
+Option 1: Mock React Router's navigate function
+Option 2: Increase timeout (currently 3 seconds)
+Option 3: Verify onClose is called regardless of navigate completion
+
+**For Error Notification Test**:
+Option 1: Access mock from actual imported module, not from vi.mock()
+Option 2: Use spyOn instead of vi.mock for notifications
+Option 3: Check if error is rendered in DOM instead of checking notification call
+1. ❌ `renders modal when opened` - Multiple elements with text "Copy Event"
+2. ❌ `validates date is not in past` - Validation error not displayed
+3. ❌ `validates title is required` - Validation error not displayed
+4. ❌ `calls mutation on valid submit` - Mutation not called
+5. ❌ `shows error message on mutation failure` - Notification not shown
+
+**Required Fix**: test-developer must fix test implementation issues
+
+#### Issue #3: E2E Test Timeouts (HIGH)
+**Blocks**: 10 E2E tests
+**Status**: ❌ ALL TIMING OUT
+**Severity**: HIGH
+
+**Timeout Pattern**: Tests wait 30s for copy button `button[data-testid="button-copy-event"]`, then timeout
+
+**Root Cause**: Copy button appears to be missing from admin events table UI
+
+**Required Investigation**:
+- react-developer: Verify copy button exists in admin events table
+- backend-developer: Verify POST /api/events/{id}/copy endpoint exists
+
+### Backend Unit Tests - 11 Tests (BLOCKED)
+**File**: `/tests/unit/api/Features/Events/EventServiceCopyTests.cs`
+**Framework**: xUnit.net + TestContainers + PostgreSQL
+**Status**: ❌ **CANNOT RUN - Compilation Errors**
+**Pass Rate**: N/A
+
+**Compilation Command**:
+```bash
+dotnet test tests/unit/api/ --filter "FullyQualifiedName~EventServiceCopyTests"
+```
+
+**Error**: Namespace references incorrect (see Issue #1)
+
+**Tests Created (cannot execute)**:
+1. `CopyEventAsync_WithValidEvent_CopiesAllProperties`
+2. `CopyEventAsync_WithValidEvent_CreatesDraftEvent`
+3. `CopyEventAsync_WithValidEvent_CopiesSessions`
+4. `CopyEventAsync_WithValidEvent_CopiesTicketTypes`
+5. `CopyEventAsync_WithValidEvent_CopiesVolunteerPositions`
+6. `CopyEventAsync_WithValidEvent_CopiesOrganizers`
+7. `CopyEventAsync_WithValidEvent_ExcludesAttendanceData`
+8. `CopyEventAsync_WithCustomEmailTemplates_CopiesTemplates`
+9. `CopyEventAsync_WithoutCustomEmailTemplates_CopiesSuccessfully`
+10. `CopyEventAsync_WithInvalidEventId_ReturnsError`
+11. `CopyEventAsync_WithDatabaseError_HandlesGracefully`
+
+### Frontend Unit Tests - 8 Tests (PARTIAL PASS)
+**File**: `/tests/unit/web/components/events/CopyEventModal.test.tsx`
+**Framework**: Vitest + React Testing Library + Mantine
+**Status**: ⚠️ **3/8 PASSING (37.5%)**
+**Pass Rate**: 37.5% (BELOW 90% threshold)
+
+**Execution Command**:
+```bash
+cd apps/web && npm test -- tests/unit/web/components/events/CopyEventModal.test.tsx
+```
+
+**Test Results**:
+1. ❌ `renders modal when opened` - FAILING (selector issue)
+2. ✅ `pre-fills title with original title plus (Copy)` - PASSING
+3. ❌ `validates date is not in past` - FAILING (validation not triggered)
+4. ❌ `validates title is required` - FAILING (validation not triggered)
+5. ❌ `calls mutation on valid submit` - FAILING (mutation not called)
+6. ✅ `shows loading state during mutation` - PASSING
+7. ✅ `closes modal on successful copy` - PASSING
+8. ❌ `shows error message on mutation failure` - FAILING (notification not shown)
+
+### Integration Tests - 8 Tests (BLOCKED)
+**File**: `/tests/integration/Events/EventCopyIntegrationTests.cs`
+**Framework**: xUnit.net + WebApplicationFactory + TestContainers
+**Status**: ❌ **CANNOT RUN - Compilation Errors**
+**Pass Rate**: N/A
+
+**Compilation Command**:
+```bash
+dotnet test tests/integration/ --filter "FullyQualifiedName~EventCopyIntegrationTests"
+```
+
+**Error**: Same namespace errors as backend unit tests (see Issue #1)
+
+**Tests Created (cannot execute)**:
+1. `CopyEvent_EndToEnd_CreatesNewEvent`
+2. `CopyEvent_WithSessionRemapping_MapsTicketTypesCorrectly`
+3. `CopyEvent_WithVolunteerPositions_RemapsSessionsAndResetsFilled`
+4. `CopyEvent_WithoutCsrfToken_Returns400`
+5. `CopyEvent_WithoutAuthorization_Returns401`
+6. `CopyEvent_WithInvalidEventId_Returns404`
+7. ⏸️ `CopyEvent_WithDatabaseTransaction_RollsBackOnError` (SKIPPED)
+8. `CopyEvent_WithCustomEmailTemplates_CreatesNewTemplateRecords`
+
+### E2E Tests - 10 Tests (TIMEOUT)
+**File**: `/apps/web/tests/admin/event-copy.spec.ts`
+**Framework**: Playwright
+**Status**: ❌ **ALL TIMING OUT (0/10)**
+**Pass Rate**: 0%
+
+**Execution Command**:
+```bash
+cd apps/web && npx playwright test tests/admin/event-copy.spec.ts
+```
+
+**Timeout Pattern**: All tests wait 30s for copy button, then timeout
+
+**Tests Attempted**:
+1. ❌ `Admin can copy event with new date and title` - 30s timeout
+2. ❌ `Copy modal validates past dates` - 30s timeout
+3. ❌ `Copy modal validates required title` - 30s timeout
+4-10. (Not executed due to earlier timeouts)
+
+**Root Cause**: Copy button `button[data-testid="button-copy-event"]` not found
+
+### Implementation Status Analysis
+
+**Backend Service**: ❓ UNKNOWN (cannot verify - tests won't compile)
+**Frontend Component**: ⚠️ PARTIAL (component exists but integration unclear)
+**API Endpoint**: ❓ UNKNOWN (cannot verify - E2E tests timeout)
+**Admin UI Integration**: ❌ LIKELY MISSING (copy button not found)
+
+### Required Actions
+
+**Priority 1 (CRITICAL)**: backend-developer
+- Fix namespace references in EventServiceCopyTests.cs
+- Fix namespace references in EventCopyIntegrationTests.cs
+- Re-run tests after fixes
+- Estimated time: 30 minutes
+
+**Priority 2 (HIGH)**: test-developer
+- Fix selector specificity in frontend tests
+- Debug validation triggering
+- Fix mutation mocking
+- Estimated time: 1 hour
+
+**Priority 3 (CRITICAL)**: react-developer + backend-developer
+- Investigate missing copy button in admin UI
+- Verify backend endpoint exists
+- Complete UI integration if needed
+- Estimated time: 30min investigation + TBD implementation
+
+### Related Documentation
+
+- **Execution Report**: `/home/chad/repos/witchcityrope/test-results/event-copy-test-execution-2025-11-26.md`
+- **Test Executor Handoff**: `/docs/functional-areas/events/admin/handoffs/test-executor-event-copy-2025-11-26-handoff.md`
+- **Testing Plan**: `/docs/functional-areas/events/admin/event-copy-testing-plan-2025-11-26.md`
+- **Test Developer Handoff**: `/docs/functional-areas/events/admin/handoffs/test-developer-event-copy-2025-11-26-handoff.md`
+- **Backend Handoff**: `/docs/functional-areas/events/admin/handoffs/backend-developer-event-copy-2025-11-26-handoff.md`
+- **Frontend Handoff**: `/docs/functional-areas/events/admin/handoffs/react-developer-event-copy-2025-11-26-handoff.md`
+
 ## ✅ CRITICAL TEST FIXES - November 24, 2025
 
 **EXECUTION DATE**: 2025-11-24T14:00:00Z
