@@ -8,9 +8,9 @@ import {
   Drawer,
   Box
 } from '@mantine/core';
+import { DatePickerInput } from '@mantine/dates';
 import { IconSearch, IconFilter } from '@tabler/icons-react';
 import { useMediaQuery } from '@mantine/hooks';
-import { StyledDatePicker } from '../../../../components/forms/StyledDatePicker';
 
 interface PaymentFilterBarProps {
   searchTerm: string;
@@ -110,7 +110,7 @@ export const PaymentFilterBar: React.FC<PaymentFilterBarProps> = ({
         >
           <Stack gap="md" p="md">
             {/* Date Range */}
-            <StyledDatePicker
+            <DatePickerInput
               type="range"
               label="Date Range"
               placeholder="Select dates"
@@ -118,6 +118,7 @@ export const PaymentFilterBar: React.FC<PaymentFilterBarProps> = ({
               onChange={onDateRangeChange}
               data-testid="payment-date-range"
               clearable
+              firstDayOfWeek={0}
             />
 
             {/* Payment Method Multi-Select */}
@@ -170,7 +171,7 @@ export const PaymentFilterBar: React.FC<PaymentFilterBarProps> = ({
           />
 
           {/* Date Range */}
-          <StyledDatePicker
+          <DatePickerInput
             type="range"
             label="Date Range"
             placeholder="Select dates"
@@ -178,6 +179,7 @@ export const PaymentFilterBar: React.FC<PaymentFilterBarProps> = ({
             onChange={onDateRangeChange}
             data-testid="payment-date-range"
             clearable
+            firstDayOfWeek={0}
             styles={{
               root: {
                 minWidth: '280px'
