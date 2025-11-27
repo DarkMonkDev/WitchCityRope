@@ -98,7 +98,7 @@ apps/web/
 ```
 
 ### THE PROBLEM (Now Fixed):
-When `npx playwright test` was run from `/apps/web/tests/playwright` (inside the old nested testDir), Playwright only discovered tests in that immediate directory instead of the full test suite.
+When Playwright test commands were run from `/apps/web/tests/playwright` (inside the old nested testDir), Playwright only discovered tests in that immediate directory instead of the full test suite.
 
 ### ROOT CAUSE:
 - Old structure: `tests/` (nested, confusing)
@@ -112,27 +112,24 @@ When `npx playwright test` was run from `/apps/web/tests/playwright` (inside the
 - No nested directories to confuse navigation
 
 ### MANDATORY RULE:
-**ALWAYS run Playwright commands from `/apps/web` root directory, NEVER from test subdirectories.**
+**ALWAYS run test commands from project root, NEVER from test subdirectories. Use test-catalog-updater skill after test execution to update test catalog.**
 
 ### ✅ CORRECT - Runs all 855 tests:
 ```bash
-cd /home/chad/repos/witchcityrope/apps/web
-npx playwright test
-# Result: Discovers and runs entire test suite
+# Run from project root /home/chad/repos/witchcityrope/apps/web
+# Use test-catalog-updater skill to run tests and update catalog
 ```
 
 ### ❌ WRONG - Will miss tests:
 ```bash
-cd /home/chad/repos/witchcityrope/apps/web/tests
-npx playwright test
-# Result: May miss tests or use wrong config
+# Running from inside test directory will miss tests
+# Always use project root
 ```
 
 ### Verification:
 ```bash
 # Check test discovery count
-cd /home/chad/repos/witchcityrope/apps/web
-npx playwright test --list | wc -l
+# Use test-catalog-updater skill to verify full test suite is discovered
 # Should show ~855 tests
 ```
 
@@ -717,7 +714,7 @@ server: {
 ### ✅ MANDATORY PRE-TEST CHECKLIST:
 ```bash
 # 1. Verify Docker containers are running (CRITICAL)
-docker ps --format "table {{.Names}}\t{{.Ports}}" | grep witchcity
+# Use container-restart skill to ensure containers are running properly
 # Must show witchcity-web on 0.0.0.0:5173
 
 # 2. Kill any local dev servers (REQUIRED)
