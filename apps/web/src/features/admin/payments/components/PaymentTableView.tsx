@@ -17,6 +17,7 @@ import { useMediaQuery } from '@mantine/hooks';
 import { RefundConfirmationModal } from '../../../../components/payments/RefundConfirmationModal';
 import { useVariableRefund } from '../hooks/useVariableRefund';
 import type { PaymentTransactionDto } from '../hooks/usePayments';
+import { useEventTimeZone } from '../../../../hooks/useEventTimeZone';
 
 interface PaymentTableViewProps {
   payments: PaymentTransactionDto[];
@@ -60,14 +61,15 @@ const getStatusColor = (status: string): string => {
   }
 };
 
-const formatDate = (dateString: string): string => {
+const formatDate = (dateString: string, timeZone: string): string => {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
+    timeZone
   });
 };
 
@@ -120,6 +122,7 @@ export const PaymentTableView: React.FC<PaymentTableViewProps> = ({
   onSort
 }) => {
   const isMobile = useMediaQuery('(max-width: 767px)');
+  const eventTimeZone = useEventTimeZone();
   const [refundModalOpened, setRefundModalOpened] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<PaymentTransactionDto | null>(null);
   const refundMutation = useVariableRefund();
@@ -210,7 +213,7 @@ export const PaymentTableView: React.FC<PaymentTableViewProps> = ({
                 {/* Date and Status */}
                 <Group justify="space-between">
                   <Text size="xs" c="dimmed">
-                    {formatDate(payment.paymentDate || '')}
+                    {formatDate(payment.paymentDate || '', eventTimeZone)}
                   </Text>
                   <Badge color={getStatusColor(payment.status || '')}>
                     {payment.status}
@@ -373,7 +376,7 @@ export const PaymentTableView: React.FC<PaymentTableViewProps> = ({
           {payments.map((payment) => (
             <Table.Tr key={payment.id} data-testid="payment-row">
               <Table.Td>
-                <Text size="sm">{formatDate(payment.paymentDate || '')}</Text>
+                <Text size="sm">{formatDate(payment.paymentDate || '', eventTimeZone)}</Text>
               </Table.Td>
               <Table.Td>
                 <Text fw={500} size="sm">

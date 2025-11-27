@@ -40,7 +40,7 @@ test.describe('Identified Incident Report Submission', () => {
     await AuthHelpers.loginAs(page, 'member');
     console.log('✅ Logged in as member successfully');
 
-    await page.goto('http://localhost:5173/safety/report');
+    await page.goto('/safety/report');
     await page.waitForLoadState('networkidle');
 
     // Find radio buttons (NOT checkboxes!) - HARD ASSERTION
@@ -105,7 +105,7 @@ test.describe('Identified Incident Report Submission', () => {
     console.log('✅ Logged in as vetted user successfully');
 
     // Navigate to potential My Reports page (may not exist)
-    const response = await page.goto('http://localhost:5173/my-reports');
+    const response = await page.goto('/my-reports');
     await page.waitForLoadState('networkidle');
 
     // Check if page exists or redirects

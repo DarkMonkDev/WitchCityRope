@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Payment Flow - Back Button Visibility', () => {
   test.beforeEach(async ({ page }) => {
     // Login as test user
-    await page.goto('http://localhost:5173/login');
+    await page.goto('/login');
     await page.fill('[data-testid="email-or-scenename-input"]', 'member@witchcityrope.com');
     await page.fill('[data-testid="password-input"]', 'Test123!');
     await page.click('[data-testid="login-button"]');
@@ -15,7 +15,7 @@ test.describe('Payment Flow - Back Button Visibility', () => {
 
   test('Back button is visible on Step 1 (Ticket Selection)', async ({ page }) => {
     // Navigate to events page
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Find an event with tickets and click register/purchase
@@ -57,7 +57,7 @@ test.describe('Payment Flow - Back Button Visibility', () => {
 
   test('Back button is visible on Step 2 (Payment Form)', async ({ page }) => {
     // Navigate to events page
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Find an event with tickets
@@ -138,7 +138,7 @@ test.describe('Payment Flow - Back Button Visibility', () => {
     // This test verifies the code change was applied correctly
     // by checking the source code of the EventPaymentPage component
 
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
 
     // Get the page source
     const pageContent = await page.content();

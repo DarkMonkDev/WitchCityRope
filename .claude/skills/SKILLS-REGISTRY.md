@@ -56,19 +56,20 @@ Automate documentation, tracking, and handoff tasks.
 
 ---
 
-### 🐳 Infrastructure Automation (5 Skills)
+### 🐳 Infrastructure Automation (6 Skills)
 
 Automate development environment and deployment tasks.
 
 | Skill | When to Use | Primary Users | Purpose |
 |-------|-------------|---------------|---------|
 | **container-restart** | BEFORE E2E tests (MANDATORY), after code changes, when containers unhealthy | test-executor, react-developer, backend-developer, orchestrator | Restart Docker dev containers correctly with compilation checks |
+| **test-environment** | Running isolated test suite (E2E, unit, integration), prevent test interference with dev work | test-executor, test-developer, orchestrator | Run all tests in isolated containers separate from dev environment with automatic cleanup |
 | **database-reset-dev** | Need fresh seed data, database corrupted, testing with clean slate (dev only) | test-developer, test-executor, react-developer, backend-developer | Delete all dev database data and restart API to trigger auto-seeding |
 | **database-reset-staging** | Schema changes requiring clean slate, migration conflicts (staging only) | git-manager, orchestrator | Full schema drop and rebuild for staging database |
 | **staging-deploy** | After Phase 5 validation passes, when deploying features for testing | git-manager, orchestrator | Deploy to DigitalOcean staging environment |
 | **registry-cleanup** | Weekly maintenance, high storage usage, after major deployment cycles | git-manager, orchestrator | Clean up old container images from DigitalOcean registries (staging: 10 tags, production: 30 tags) |
 
-**Integration**: test-executor MUST use container-restart before E2E tests. Use database-reset-dev for clean test data. Orchestrator may auto-deploy after Phase 5. registry-cleanup recommended weekly.
+**Integration**: test-executor can use either container-restart (dev containers) or test-environment (isolated test containers) before tests. test-environment preferred for complete isolation. Use database-reset-dev for clean test data. Orchestrator may auto-deploy after Phase 5. registry-cleanup recommended weekly.
 
 ---
 
@@ -145,12 +146,14 @@ Detect and prevent violations of architecture rules.
 - ✅ **lessons-learned-validator** - Validate lesson updates
 
 #### test-developer Agent
+- ✅ **test-environment** - Run tests in isolated containers during development
 - ✅ **phase-4-validator** - Validate test suite completeness
 - ✅ **database-reset-dev** - Reset dev database for clean test data
 - ✅ **lessons-learned-validator** - Validate lesson updates
 
 #### test-executor Agent
-- ✅ **container-restart** - **MANDATORY** before E2E tests
+- ✅ **container-restart** - Before E2E tests (dev containers)
+- ✅ **test-environment** - Run tests in isolated containers (preferred for complete isolation)
 - ✅ **database-reset-dev** - Reset dev database for clean test data
 - ✅ **test-catalog-updater** - After EVERY test execution
 - ✅ **phase-4-validator** - Validate all tests passing
@@ -209,9 +212,16 @@ Orchestrator:
 ### Pattern 2: Before Running E2E Tests
 
 ```
-test-executor:
-1. Use container-restart skill (MANDATORY)
-   - Restarts containers with dev overlay
+test-executor (Option A - Isolated Environment):
+1. Use test-environment skill (RECOMMENDED)
+   - Builds fresh test containers
+   - Isolated from dev work
+   - Automatic cleanup
+   - Runs tests and returns results
+
+test-executor (Option B - Dev Containers):
+1. Use container-restart skill
+   - Restarts dev containers with dev overlay
    - Checks compilation errors
    - Verifies health endpoints
 2. Run E2E tests (npm run test:e2e)
@@ -622,6 +632,12 @@ This registry is **Tier 1** of the discovery system:
 ---
 
 ## Version History
+
+- **2025-11-27**: Added test-environment skill (20 skills total)
+  - Runs all tests (E2E, unit, integration) in isolated containers
+  - Complete isolation from dev environment
+  - Automatic cleanup of containers and images
+  - Supports test filtering and debug modes
 
 - **2025-11-22**: Added registry-cleanup skill (19 skills total)
   - Automates cleanup of old container images from DigitalOcean

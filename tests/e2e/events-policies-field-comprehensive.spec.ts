@@ -40,7 +40,7 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       console.log('🧪 Testing policies field display...');
 
       // Navigate to admin events page
-      await page.goto('http://localhost:5173/admin/events');
+      await page.goto('/admin/events');
       await page.waitForLoadState('networkidle');
       console.log('✓ Navigated to admin events page');
 
@@ -88,7 +88,7 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       console.log('🧪 Testing policies field REQUIRED validation...');
 
       // Navigate to create new event page
-      await page.goto('http://localhost:5173/admin/events');
+      await page.goto('/admin/events');
       await page.waitForLoadState('networkidle');
 
       // Click "Create Event" button if it exists
@@ -133,7 +133,7 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       console.log('🧪 Testing policies field save and persistence...');
 
       // Navigate to admin events
-      await page.goto('http://localhost:5173/admin/events');
+      await page.goto('/admin/events');
       await page.waitForLoadState('networkidle');
 
       // Click on first event to edit
@@ -188,7 +188,7 @@ test.describe('Policies Field - Comprehensive Testing', () => {
 
       // Verify API has the saved policies value
       console.log('📡 Verifying API saved the policies value...');
-      const apiResponse = await page.request.get(`http://localhost:5655/api/events/${eventId}`);
+      const apiResponse = await page.request.get(`/api/events/${eventId}`);
       expect(apiResponse.ok()).toBe(true);
 
       const apiData = await apiResponse.json();
@@ -238,7 +238,7 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       console.log('🧪 Testing empty policies field handling...');
 
       // Navigate to events
-      await page.goto('http://localhost:5173/admin/events');
+      await page.goto('/admin/events');
       await page.waitForLoadState('networkidle');
 
       // Click on first event
@@ -310,7 +310,7 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       console.log('🧪 Testing API response structure for policies field...');
 
       // Navigate to events
-      await page.goto('http://localhost:5173/admin/events');
+      await page.goto('/admin/events');
       await page.waitForLoadState('networkidle');
 
       // Get first event
@@ -329,7 +329,7 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       console.log(`✓ Testing event ID: ${eventId}`);
 
       // Make direct API call
-      const apiResponse = await page.request.get(`http://localhost:5655/api/events/${eventId}`);
+      const apiResponse = await page.request.get(`/api/events/${eventId}`);
       expect(apiResponse.ok()).toBe(true);
 
       const apiData = await apiResponse.json();

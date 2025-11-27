@@ -67,7 +67,7 @@ test.describe('Admin Member History Tab', () => {
 
       // STEP 2: Navigate to profile settings
       console.log('📍 Step 2: Navigating to profile settings...')
-      await page.goto('http://localhost:5173/dashboard/profile-settings')
+      await page.goto('/dashboard/profile-settings')
       await page.waitForLoadState('networkidle')
       await expect(
         page.getByRole('heading', { name: /profile settings/i })
@@ -146,7 +146,7 @@ test.describe('Admin Member History Tab', () => {
       // STEP 5: Logout (use clearAuthState to avoid navigation issues)
       console.log('📍 Step 5: Logging out...')
       await AuthHelpers.clearAuthState(page)
-      await page.goto('http://localhost:5173/login')
+      await page.goto('/login')
       await page.waitForLoadState('networkidle')
       console.log('✅ Successfully logged out')
 
@@ -157,14 +157,14 @@ test.describe('Admin Member History Tab', () => {
 
       // STEP 7: Navigate to admin members page
       console.log('📍 Step 7: Navigating to admin members page...')
-      await page.goto('http://localhost:5173/admin/members')
+      await page.goto('/admin/members')
       await page.waitForLoadState('networkidle')
       await expect(page.getByRole('heading', { name: /member management/i })).toBeVisible()
       console.log('✅ Admin members page loaded')
 
       // STEP 8: Navigate to test user's member details page
       console.log('📍 Step 8: Navigating to member details page...')
-      await page.goto(`http://localhost:5173/admin/members/${userId}`)
+      await page.goto(`/admin/members/${userId}`)
       await page.waitForLoadState('networkidle')
       console.log('✅ Member details page loaded')
 
@@ -264,7 +264,7 @@ test.describe('Admin Member History Tab', () => {
 
       // Navigate to test user's member details
       console.log('📍 Navigating to member details page...')
-      await page.goto(`http://localhost:5173/admin/members/${testUser.id}`)
+      await page.goto(`/admin/members/${testUser.id}`)
       await page.waitForLoadState('networkidle')
 
       // Click History tab
@@ -328,7 +328,7 @@ test.describe('Admin Member History Tab', () => {
 
       // Navigate to profile settings
       console.log('📍 Navigating to profile settings...')
-      await page.goto('http://localhost:5173/dashboard/profile-settings')
+      await page.goto('/dashboard/profile-settings')
       await page.waitForLoadState('networkidle')
 
       // Make FIRST profile change (Bio only)
@@ -366,13 +366,13 @@ test.describe('Admin Member History Tab', () => {
       // Logout and login as admin (use clearAuthState to avoid navigation issues)
       console.log('📍 Logging out and switching to admin...')
       await AuthHelpers.clearAuthState(page)
-      await page.goto('http://localhost:5173/login')
+      await page.goto('/login')
       await page.waitForLoadState('networkidle')
       await AuthHelpers.loginAs(page, 'admin')
 
       // Navigate to member details → History tab
       console.log('📍 Navigating to History tab...')
-      await page.goto(`http://localhost:5173/admin/members/${testUser.id}`)
+      await page.goto(`/admin/members/${testUser.id}`)
       await page.waitForLoadState('networkidle')
 
       const historyTab = page.getByRole('tab', { name: 'History' })

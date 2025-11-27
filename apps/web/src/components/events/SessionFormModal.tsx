@@ -24,7 +24,12 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
     initialValues: {
       sessionIdentifier: session?.sessionIdentifier || '',
       name: session?.name || '',
-      date: session?.date ? new Date(session.date) : new Date(),
+      // Parse date from UTC ISO string as local date to prevent timezone shift
+      date: session?.date ? (() => {
+        const datePart = session.date.split('T')[0]; // Extract YYYY-MM-DD
+        const [year, month, day] = datePart.split('-').map(Number);
+        return new Date(year, month - 1, day); // Create local date
+      })() : new Date(),
       startTime: session?.startTime || '18:00',
       endTime: session?.endTime || '21:00',
       capacity: session?.capacity || 50,
@@ -120,16 +125,23 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
     if (opened) {
       if (session) {
         // Populate form with existing session data for editing
-        // Extract time portion from ISO datetime strings for TimeInput component
+        // Extract time portion from UTC ISO datetime strings using UTC methods
         const startDate = new Date(session.startTime);
         const endDate = new Date(session.endTime);
-        const startTimeString = `${startDate.getHours().toString().padStart(2, '0')}:${startDate.getMinutes().toString().padStart(2, '0')}`;
-        const endTimeString = `${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}`;
+        const startTimeString = `${startDate.getUTCHours().toString().padStart(2, '0')}:${startDate.getUTCMinutes().toString().padStart(2, '0')}`;
+        const endTimeString = `${endDate.getUTCHours().toString().padStart(2, '0')}:${endDate.getUTCMinutes().toString().padStart(2, '0')}`;
+
+        // Parse date from UTC ISO string as local date to prevent timezone shift
+        const dateValue = session.date ? (() => {
+          const datePart = session.date.split('T')[0]; // Extract YYYY-MM-DD
+          const [year, month, day] = datePart.split('-').map(Number);
+          return new Date(year, month - 1, day); // Create local date
+        })() : new Date();
 
         form.setValues({
           sessionIdentifier: session.sessionIdentifier,
           name: session.name,
-          date: session.date ? new Date(session.date) : new Date(),
+          date: dateValue,
           startTime: startTimeString,
           endTime: endTimeString,
           capacity: session.capacity,

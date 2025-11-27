@@ -13,8 +13,8 @@ test.describe('Vetting Application Complete Flow', () => {
 
     // Step 1: Register new user
     console.log('Step 1: Registering new user...');
-    await page.goto('http://localhost:5173/register');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/register');
+    await page.waitForLoadState('domcontentloaded');
 
     // Fill registration form (only 3 fields: Email, Scene Name, Password)
     await page.locator('[data-testid="email-or-scenename-input"]').fill(testEmail);
@@ -23,7 +23,7 @@ test.describe('Vetting Application Complete Flow', () => {
 
     // Submit registration
     await page.locator('button:has-text("CREATE ACCOUNT")').click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Wait for registration to complete
     await page.waitForTimeout(2000);
@@ -38,8 +38,8 @@ test.describe('Vetting Application Complete Flow', () => {
 
     // Step 3: Navigate to vetting application
     console.log('Step 3: Navigating to vetting application...');
-    await page.goto('http://localhost:5173/join');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/join');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(2000);
 
     await page.screenshot({ path: `${screenshotDir}/03-vetting-form-page.png`, fullPage: true });
@@ -102,7 +102,7 @@ test.describe('Vetting Application Complete Flow', () => {
 
     // Force click if needed
     await submitButton.click({ force: true });
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(3000);
 
     // Step 6: CRITICAL - Verify success screen
@@ -158,8 +158,8 @@ test.describe('Vetting Application Complete Flow', () => {
 
     // Step 7: Navigate back to dashboard to verify vetting status
     console.log('Step 7: Navigating to dashboard to verify vetting status...');
-    await page.goto('http://localhost:5173/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/dashboard');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(2000);
 
     await page.screenshot({ path: `${screenshotDir}/06-dashboard-vetting-status.png`, fullPage: true });

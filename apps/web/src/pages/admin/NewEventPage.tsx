@@ -4,7 +4,11 @@ import { Container, Title } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { EventForm, EventFormData } from '../../components/events/EventForm';
 import { useCreateEvent } from '../../features/events/api/mutations';
-import type { CreateEventData } from '../../types/api.types';
+import type { components } from '@witchcityrope/shared-types';
+
+// ✅ Use auto-generated CreateEventRequest and SessionDto from backend DTOs
+type CreateEventRequest = components['schemas']['CreateEventRequest'];
+type SessionDto = components['schemas']['SessionDto'];
 
 /**
  * NewEventPage - Create new event page for administrators
@@ -42,17 +46,82 @@ export const NewEventPage: React.FC = () => {
 
   const handleSubmit = async (formData: EventFormData) => {
     try {
-      // Transform EventFormData to CreateEventData format expected by API
-      const createData: CreateEventData = {
+      // ✅ Transform EventFormData to CreateEventRequest format (auto-generated from backend DTO)
+
+      // Auto-create default session if none provided
+      let sessions = formData.sessions || [];
+      if (sessions.length === 0) {
+        // Create default session 60 days in the future (using UTC to avoid timezone bugs)
+        const now = new Date();
+        const year = now.getUTCFullYear();
+        const month = now.getUTCMonth();
+        const day = now.getUTCDate() + 60; // 60 days from today
+
+        // Create datetime objects using Date.UTC() to ensure UTC timezone
+        const startDateTime = new Date(Date.UTC(year, month, day, 19, 0, 0, 0)); // 7:00 PM UTC
+        const endDateTime = new Date(Date.UTC(year, month, day, 21, 0, 0, 0));   // 9:00 PM UTC
+        const dateOnly = new Date(Date.UTC(year, month, day, 0, 0, 0, 0));
+
+        sessions = [{
+          id: '', // Backend will generate
+          sessionIdentifier: 'S1',
+          name: 'Default',
+          date: dateOnly.toISOString(),
+          startTime: startDateTime.toISOString(),
+          endTime: endDateTime.toISOString(),
+          capacity: 20,
+          registrationCount: 0
+        }];
+      }
+
+      // Calculate total capacity from sessions
+      const totalCapacity = sessions.reduce((sum, session) => sum + (session.capacity || 0), 0);
+
+      // Determine if event is published based on status
+      const isPublished = formData.status === 'Published';
+
+      // Use first session date as event start date
+      const firstSessionDate = sessions[0].startTime;
+      // EndDate must be AFTER startDate - use last session's end time, or add 2 hours for single session
+      const lastSessionEndTime = sessions[sessions.length - 1].endTime;
+      const endDate = new Date(new Date(lastSessionEndTime).getTime()).toISOString();
+
+      const createData: CreateEventRequest = {
         title: formData.title,
         description: formData.fullDescription,
-        // For now, using placeholder dates - in a real implementation,
-        // these would come from the sessions data
-        startDate: new Date().toISOString(),
-        endDate: new Date(Date.now() + 86400000).toISOString(), // +1 day
-        capacity: 100,
-        location: formData.venueId,
+        shortDescription: formData.shortDescription || null,
+        policies: formData.policies || null,
+        startDate: firstSessionDate,
+        endDate: endDate, // Must be AFTER startDate (validation requirement)
+        // ✅ CRITICAL: venueId must be number, eventType is required
+        venueId: parseInt(formData.venueId) || 1,
+        // Capitalize first letter: 'class' -> 'Class', 'social' -> 'Social'
+        eventType: (formData.eventType?.charAt(0).toUpperCase() + formData.eventType?.slice(1)) || 'Class',
+        capacity: totalCapacity,
+        isPublished: isPublished,
+        // Send sessions - backend will create them with the event
+        sessions: sessions.map(s => ({
+          sessionIdentifier: s.sessionIdentifier,
+          name: s.name,
+          date: s.date,
+          startTime: s.startTime,
+          endTime: s.endTime,
+          capacity: s.capacity
+        })),
+        // Don't send ticket types or volunteer positions on create - add them after
+        ticketTypes: null,
+        volunteerPositions: null,
+        teacherIds: formData.teacherIds || null,
+        // Timing controls (all optional)
+        registrationOpenHours: formData.registrationOpenHours || null,
+        registrationCloseHours: formData.registrationCloseHours || null,
+        cancellationOpenHours: formData.cancellationOpenHours || null,
+        cancellationCloseHours: formData.cancellationCloseHours || null,
+        volunteerRegistrationCloseHours: formData.volunteerRegistrationCloseHours || null,
+        volunteerCancellationCloseHours: formData.volunteerCancellationCloseHours || null,
       };
+
+      console.log('NewEventPage: Submitting event creation with data:', createData);
 
       const newEvent = await createEventMutation.mutateAsync(createData);
 

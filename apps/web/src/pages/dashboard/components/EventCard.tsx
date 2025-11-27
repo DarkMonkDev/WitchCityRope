@@ -5,6 +5,7 @@ import { IconHeart } from '@tabler/icons-react'
 import type { UserEventDto } from '../../../types/dashboard.types'
 import type { VolunteerShiftWithEvent } from '../../../components/dashboard/UserVolunteerShifts'
 import { useEvent } from '../../../lib/api/hooks/useEvents'
+import { useEventTimeZone } from '../../../hooks/useEventTimeZone'
 
 interface EventCardProps {
   event: UserEventDto
@@ -25,6 +26,7 @@ interface EventCardProps {
  */
 export const EventCard: React.FC<EventCardProps> = ({ event, className, volunteerShifts = [] }) => {
   const navigate = useNavigate()
+  const eventTimeZone = useEventTimeZone();
 
   // Find volunteer shifts for this specific event
   const eventVolunteerShifts = volunteerShifts.filter(shift =>
@@ -61,14 +63,16 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
       weekday: 'long',
       month: 'short',
       day: 'numeric'
-    })
+    ,
+      timeZone: eventTimeZone})
 
     // Format start time
     const startTime = start.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true
-    }).toLowerCase()
+    ,
+      timeZone: eventTimeZone}).toLowerCase()
 
     // If no end date, just return date + start time
     if (!endDate) {
@@ -81,7 +85,8 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
       hour: 'numeric',
       minute: '2-digit',
       hour12: true
-    }).toLowerCase()
+    ,
+      timeZone: eventTimeZone}).toLowerCase()
 
     return `${datePart} - ${startTime} - ${endTime}`
   }
@@ -94,7 +99,8 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
         hour: 'numeric',
         minute: '2-digit',
         hour12: true
-      }).toLowerCase()
+      ,
+      timeZone: eventTimeZone}).toLowerCase()
     } catch {
       return timeString
     }
@@ -197,7 +203,8 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
                 weekday: 'long',
                 month: 'short',
                 day: 'numeric'
-              })
+              ,
+      timeZone: eventTimeZone})
             })()}
           </Text>
           <Text
@@ -217,7 +224,8 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
                 hour: 'numeric',
                 minute: '2-digit',
                 hour12: true
-              }).toLowerCase()
+              ,
+      timeZone: eventTimeZone}).toLowerCase()
 
               if (!event.endDate) return startTime
 
@@ -226,7 +234,8 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
                 hour: 'numeric',
                 minute: '2-digit',
                 hour12: true
-              }).toLowerCase()
+              ,
+      timeZone: eventTimeZone}).toLowerCase()
 
               return `${startTime} - ${endTime}`
             })()}

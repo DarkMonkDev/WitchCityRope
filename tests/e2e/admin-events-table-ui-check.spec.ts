@@ -8,7 +8,7 @@ test.describe('Admin Events Table UI Check', () => {
     console.log('✅ Logged in as admin successfully');
 
     // Navigate to admin events page
-    await page.goto('http://localhost:5173/admin/events');
+    await page.goto('/admin/events');
 
     // Wait for table to load
     await expect(page.locator('[data-testid="events-table"]')).toBeVisible({ timeout: 10000 });

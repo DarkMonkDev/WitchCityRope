@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test';
 
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+
 test('React app renders', async ({ page }) => {
   // Navigate to test page
-  await page.goto('http://localhost:5173/test');
+  await page.goto(`${baseUrl}/test`);
   
   // Wait for any content
   await page.waitForTimeout(2000);

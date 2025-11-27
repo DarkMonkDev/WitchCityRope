@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test'
 
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || `${baseUrl}`;
+
 /**
  * E2E Tests for Scroll Restoration Functionality
  *
@@ -44,7 +46,7 @@ test.describe('Scroll Restoration - Navigation Scroll-to-Top', () => {
     await page.setViewportSize({ width: 1920, height: 1080 })
 
     // Navigate to homepage
-    await page.goto('http://localhost:5173/')
+    await page.goto(`${baseUrl}/`)
     await page.waitForLoadState('networkidle')
 
     // Take screenshot of initial state
@@ -135,7 +137,7 @@ test.describe('Scroll Restoration - Navigation Scroll-to-Top', () => {
     await page.setViewportSize({ width: 390, height: 844 })
 
     // Navigate to homepage
-    await page.goto('http://localhost:5173/')
+    await page.goto(`${baseUrl}/`)
     await page.waitForLoadState('networkidle')
 
     // Take screenshot of initial state
@@ -227,7 +229,7 @@ test.describe('Scroll Restoration - Navigation Scroll-to-Top', () => {
     await page.setViewportSize({ width: 1920, height: 1080 })
 
     // Start on events page
-    await page.goto('http://localhost:5173/events')
+    await page.goto(`${baseUrl}/events`)
     await page.waitForLoadState('networkidle')
 
     // Scroll down
@@ -262,7 +264,7 @@ test.describe('Scroll Restoration - Navigation Scroll-to-Top', () => {
 
     expect(homeLinkClicked).toBe(true)
 
-    await page.waitForURL('http://localhost:5173/', { timeout: 5000 })
+    await page.waitForURL(`${baseUrl}/`, { timeout: 5000 })
     await page.waitForLoadState('networkidle')
 
     // Additional wait for scroll animation to complete (testing if 93px offset is timing issue)
@@ -279,7 +281,7 @@ test.describe('Scroll Restoration - Navigation Scroll-to-Top', () => {
     await page.setViewportSize({ width: 390, height: 844 })
 
     // Start on events page
-    await page.goto('http://localhost:5173/events')
+    await page.goto(`${baseUrl}/events`)
     await page.waitForLoadState('networkidle')
 
     // Scroll down
@@ -326,7 +328,7 @@ test.describe('Scroll Restoration - Navigation Scroll-to-Top', () => {
     await logoLink.click()
     console.log('Mobile (reverse) - Logo clicked to navigate home')
 
-    await page.waitForURL('http://localhost:5173/', { timeout: 5000 })
+    await page.waitForURL(`${baseUrl}/`, { timeout: 5000 })
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(800)
 
@@ -346,7 +348,7 @@ test.describe('Scroll Restoration - Navigation Scroll-to-Top', () => {
     await page.setViewportSize({ width: 1920, height: 1080 })
 
     // Navigate to homepage
-    await page.goto('http://localhost:5173/')
+    await page.goto(`${baseUrl}/`)
     await page.waitForLoadState('networkidle')
 
     // Scroll to middle of page
@@ -391,7 +393,7 @@ test.describe('Scroll Restoration - Navigation Scroll-to-Top', () => {
     await page.setViewportSize({ width: 390, height: 844 })
 
     // Navigate to homepage
-    await page.goto('http://localhost:5173/')
+    await page.goto(`${baseUrl}/`)
     await page.waitForLoadState('networkidle')
 
     // Verify initial body overflow state

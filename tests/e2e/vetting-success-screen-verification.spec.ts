@@ -12,13 +12,13 @@ test.describe('Vetting Application Submission Success Screen', () => {
     console.log(`📧 Test user: ${testEmail}`);
 
     // Step 1: Navigate to home page
-    await page.goto('http://localhost:5173');
+    await page.goto('');
     await page.screenshot({ path: `${screenshotDir}/01-home-page.png`, fullPage: true });
     console.log('✅ Step 1: Home page loaded');
 
     // Step 2: Navigate to join page to see account creation link
     console.log('📝 Step 2: Navigating to join page...');
-    await page.goto('http://localhost:5173/join');
+    await page.goto('/join');
     await page.waitForTimeout(1000);
     await page.screenshot({ path: `${screenshotDir}/02-join-page-login-required.png`, fullPage: true });
 
@@ -45,7 +45,7 @@ test.describe('Vetting Application Submission Success Screen', () => {
 
     // Step 4: Navigate back to vetting application (should be logged in now)
     console.log('📝 Step 4: Navigating to vetting application...');
-    await page.goto('http://localhost:5173/join');
+    await page.goto('/join');
     await page.waitForTimeout(2000);
     await page.screenshot({ path: `${screenshotDir}/06-vetting-form-page.png`, fullPage: true });
     console.log('✅ Step 4: On vetting form page');

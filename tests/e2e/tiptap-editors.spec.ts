@@ -13,13 +13,15 @@ import { AuthHelpers } from './test-utils/helpers/auth.helpers';
  * 3. Email Content editor (Email Templates tab)
  */
 
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+
 test.describe('Tiptap Editor Rendering', () => {
   test.beforeEach(async ({ page }) => {
     // Login as admin using AuthHelpers for consistent login
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to admin events page
-    await page.goto('http://localhost:5173/admin/events');
+    await page.goto(`${baseUrl}/admin/events`);
     await page.waitForLoadState('networkidle');
   });
 

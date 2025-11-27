@@ -160,7 +160,7 @@ public class PaymentWorkflowIntegrationTests : IAsyncLifetime
             .OrderBy(a => a.CreatedAt)
             .ToListAsync();
 
-        auditLogs.Should().HaveCountGreaterOrEqualTo(3); // Init + Status change + Completion
+        auditLogs.Should().HaveCountGreaterThanOrEqualTo(3); // Init + Status change + Completion
         auditLogs.Should().Contain(a => a.ActionType == "PaymentInitiated");
         auditLogs.Should().Contain(a => a.ActionType == "PaymentCompleted");
     }

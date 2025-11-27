@@ -55,7 +55,7 @@ test.describe('Admin Events Dashboard - WORKING VERSION', () => {
     console.log('✅ Admin login successful, navigating to admin events...')
     
     // Navigate to admin events table page
-    await page.goto('http://localhost:5173/admin/events-table')
+    await page.goto('/admin/events-table')
     await page.waitForLoadState('networkidle')
   })
 

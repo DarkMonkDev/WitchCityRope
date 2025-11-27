@@ -37,9 +37,11 @@ import { useQuery } from '@tanstack/react-query';
 import { useMembers } from '../hooks/useMembers';
 import type { UserDto, MemberFilterRequest } from '../types/members.types';
 import type { components } from '@witchcityrope/shared-types';
+import { useEventTimeZone } from '../../../../hooks/useEventTimeZone';
 
 export const MembersList: React.FC = () => {
   const navigate = useNavigate();
+  const eventTimeZone = useEventTimeZone();
   const [filters, setFilters] = useState<MemberFilterRequest>(() => ({
     page: 1,
     pageSize: 25,
@@ -84,8 +86,8 @@ export const MembersList: React.FC = () => {
 
   const formatDate = useCallback((dateString?: string | null) => {
     if (!dateString) return 'Never';
-    return new Date(dateString).toLocaleDateString();
-  }, []);
+    return new Date(dateString).toLocaleDateString('en-US', { timeZone: eventTimeZone });
+  }, [eventTimeZone]);
 
   const getSortIcon = useCallback(
     (field: string) => {

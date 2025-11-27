@@ -24,8 +24,8 @@ test.describe('Demo: Working Login with Mantine UI', () => {
 
   test('Show what happens with WRONG selectors (this should fail)', async ({ page }) => {
     console.log('❌ Demonstrating what DOESN\'T work - wrong selectors')
-    
-    await page.goto('http://localhost:5173/login')
+
+    await page.goto('/login')
     await page.waitForLoadState('networkidle')
     
     // ❌ This approach FAILS because LoginPage.tsx doesn't use name attributes
@@ -78,7 +78,7 @@ test.describe('Demo: Working Login with Mantine UI', () => {
     })
     
     // Perform successful login
-    await page.goto('http://localhost:5173/login')
+    await page.goto('/login')
     await page.waitForLoadState('networkidle')
     
     await page.locator('[data-testid="email-or-scenename-input"]').fill('admin@witchcityrope.com')

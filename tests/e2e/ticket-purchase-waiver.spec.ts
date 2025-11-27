@@ -30,7 +30,7 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
 
   test('Positive: User can purchase ticket when Liability Waiver checkbox is checked', async ({ page }) => {
     // Navigate to events page
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Find an event with paid tickets
@@ -137,7 +137,7 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
     const eventSlug = classEvent.id;
 
     // Navigate directly to event details page
-    await page.goto(`http://localhost:5173/events/${eventSlug}`);
+    await page.goto(`/events/${eventSlug}`);
     await page.waitForLoadState('networkidle');
     console.log('✅ Navigated to event details page');
 
@@ -200,7 +200,7 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
 
   test('Positive: Ticket purchase shows as confirmed in UI', async ({ page }) => {
     // Navigate to events
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Click first event
@@ -268,7 +268,7 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
 
   test('Negative: Purchase button is disabled when Liability Waiver checkbox is unchecked', async ({ page }) => {
     // Navigate to events
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Click first event
@@ -388,7 +388,7 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
 
   test('Negative: Unchecking Liability Waiver after checking re-disables purchase button', async ({ page }) => {
     // Navigate to events
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Click first event

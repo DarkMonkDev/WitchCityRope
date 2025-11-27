@@ -2,9 +2,13 @@ import { ServiceHelper, checkDockerServices } from './helpers/service.helper'
 
 /**
  * Global setup for Playwright E2E tests
- * 
+ *
  * This file runs once before all tests to ensure Docker services are accessible.
  * If services are not running, tests will fail with clear error messages.
+ *
+ * NOTE: This file runs BEFORE Playwright test context, so it uses hardcoded localhost URLs
+ * for health checks. Tests themselves should use relative URLs (e.g., '/events') that work
+ * with baseURL configuration for container environments.
  */
 async function globalSetup() {
   console.log('🚀 Setting up E2E test environment...')
@@ -43,16 +47,16 @@ ${localProcesses.stdout}
   const status = await checkDockerServices()
   
   console.log('📊 Service Status:')
-  console.log(`  - Web Service (http://localhost:5173): ${status.web ? '✅' : '❌'}`)
-  console.log(`  - API Service (http://localhost:5655): ${status.api ? '✅' : '❌'}`)
-  console.log(`  - API Health (http://localhost:5655/health): ${status.apiHealth ? '✅' : '❌'}`)
+  console.log(`  - Web Service: ${status.web ? '✅' : '❌'}`)
+  console.log(`  - API Service: ${status.api ? '✅' : '❌'}`)
+  console.log(`  - API Health: ${status.apiHealth ? '✅' : '❌'}`)
   
   // If critical services are not running, provide helpful error message
   if (!status.web) {
     console.error(`
 ❌ SETUP FAILED: Web service is not accessible
 
-The React web application is not running at http://localhost:5173
+The React web application is not running
 
 🔧 TO FIX:
 1. Start Docker services: ./dev.sh
@@ -61,7 +65,7 @@ The React web application is not running at http://localhost:5173
 
 📊 Current Status:
 - Web: ${status.web ? 'OK' : 'FAILED'}
-- API: ${status.api ? 'OK' : 'FAILED'}  
+- API: ${status.api ? 'OK' : 'FAILED'}
 - API Health: ${status.apiHealth ? 'OK' : 'FAILED'}
 `)
     process.exit(1)
@@ -80,7 +84,7 @@ This might be okay if:
 If tests fail due to API issues:
 1. Check API logs: docker-compose logs api
 2. Restart services: ./dev.sh
-3. Verify API health: curl http://localhost:5655/health
+3. Verify API health: curl to /health endpoint
 
 Continuing with test execution...
 `)

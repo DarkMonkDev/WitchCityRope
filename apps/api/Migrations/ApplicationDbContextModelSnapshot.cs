@@ -2036,9 +2036,6 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<string>("FirstName")
                         .HasColumnType("text");
 
-                    b.Property<string>("FullName")
-                        .HasColumnType("text");
-
                     b.Property<string>("HowDidYouHearAboutUs")
                         .HasColumnType("text");
 
@@ -2527,10 +2524,6 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<string>("FirstName")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
-
-                    b.Property<string>("FullName")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
 
                     b.Property<bool>("HasVettingApplication")
                         .HasColumnType("boolean");

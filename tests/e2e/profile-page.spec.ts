@@ -38,7 +38,7 @@ test.describe('ProfilePage - E2E Tests', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to profile page - this will trigger the error (second request)
-    await page.goto('http://localhost:5173/dashboard/profile');
+    await page.goto('/dashboard/profile');
     await page.waitForLoadState('networkidle');
 
     // Verify error message is displayed
@@ -54,7 +54,7 @@ test.describe('ProfilePage - E2E Tests', () => {
   test('should display user account information correctly', async ({ page }) => {
     // CRITICAL: Fully reset browser state to avoid TanStack Query cached errors from test 1
     await page.context().clearCookies();
-    await page.goto('http://localhost:5173/login'); // Navigate to clear React Query cache
+    await page.goto('/login'); // Navigate to clear React Query cache
     await page.evaluate(() => {
       localStorage.clear();
       sessionStorage.clear();
@@ -77,7 +77,7 @@ test.describe('ProfilePage - E2E Tests', () => {
       }
     });
 
-    await page.goto('http://localhost:5173/dashboard/profile');
+    await page.goto('/dashboard/profile');
     await page.waitForLoadState('networkidle');
 
     // Wait for profile page to load

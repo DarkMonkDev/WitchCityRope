@@ -35,6 +35,7 @@ import {
 } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
 import { useIncidentDetail, useUpdateIncident } from '../hooks/useSafetyIncidents';
+import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 import {
   IncidentStatus,
   UpdateIncidentRequest,
@@ -48,15 +49,16 @@ interface IncidentDetailsProps {
 
 export function IncidentDetails({ incidentId, onClose }: IncidentDetailsProps) {
   const [editMode, setEditMode] = useState(false);
-  
+  const eventTimeZone = useEventTimeZone();
+
   // Fetch incident details
-  const { 
-    data: incident, 
-    isLoading, 
-    error, 
-    refetch 
+  const {
+    data: incident,
+    isLoading,
+    error,
+    refetch
   } = useIncidentDetail(incidentId);
-  
+
   // Update incident mutation
   const updateIncidentMutation = useUpdateIncident();
   
@@ -104,7 +106,8 @@ export function IncidentDetails({ incidentId, onClose }: IncidentDetailsProps) {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
+      timeZone: eventTimeZone
     });
   };
   

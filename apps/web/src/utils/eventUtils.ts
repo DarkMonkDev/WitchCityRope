@@ -26,13 +26,14 @@ export const getCapacityColor = (percentage: number, warningThreshold: number = 
   return 'burgundy';
 };
 
-export const formatEventDate = (dateString: string): string => {
+export const formatEventDate = (dateString: string, timeZone: string = 'America/New_York'): string => {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
+    timeZone
   });
 };
 
@@ -40,23 +41,25 @@ export const formatEventDate = (dateString: string): string => {
  * Format date in short format for table display
  * Example: "Sat - Jan, 7"
  * @param dateString - ISO date string
+ * @param timeZone - IANA timezone (defaults to America/New_York)
  * @returns Formatted date string (e.g., "Sat - Jan, 7")
  */
-export const formatShortDate = (dateString?: string): string => {
+export const formatShortDate = (dateString?: string, timeZone: string = 'America/New_York'): string => {
   if (!dateString) return 'TBD';
   const date = new Date(dateString);
-  const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'short' });
-  const month = date.toLocaleDateString('en-US', { month: 'short' });
-  const day = date.getDate();
+  const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'short', timeZone });
+  const month = date.toLocaleDateString('en-US', { month: 'short', timeZone });
+  const day = date.toLocaleDateString('en-US', { day: 'numeric', timeZone });
   return `${dayOfWeek} - ${month}, ${day}`;
 };
 
-export const formatEventTime = (startDateString: string, endDateString?: string): string => {
+export const formatEventTime = (startDateString: string, endDateString?: string, timeZone: string = 'America/New_York'): string => {
   const start = new Date(startDateString);
   const startTime = start.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
-    hour12: true
+    hour12: true,
+    timeZone
   }).toLowerCase();
 
   // If no end date, just return start time
@@ -69,7 +72,8 @@ export const formatEventTime = (startDateString: string, endDateString?: string)
   const endTime = end.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
-    hour12: true
+    hour12: true,
+    timeZone
   }).toLowerCase();
 
   // Return time range format: "1:00pm - 3:00pm"
@@ -81,23 +85,26 @@ export const formatEventTime = (startDateString: string, endDateString?: string)
  * Example: "Sunday, Nov 2 - 1:00pm - 4:00pm"
  * @param startDate - Event start date ISO string
  * @param endDate - Event end date ISO string (optional)
+ * @param timeZone - IANA timezone (defaults to America/New_York)
  * @returns Formatted date/time string
  */
-export const formatEventDateTime = (startDate: string, endDate?: string): string => {
+export const formatEventDateTime = (startDate: string, endDate?: string, timeZone: string = 'America/New_York'): string => {
   const start = new Date(startDate);
 
   // Format date with abbreviated month, no year
   const datePart = start.toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'short',
-    day: 'numeric'
+    day: 'numeric',
+    timeZone
   });
 
   // Format start time
   const startTime = start.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
-    hour12: true
+    hour12: true,
+    timeZone
   }).toLowerCase();
 
   // If no end date, just return date + start time
@@ -110,7 +117,8 @@ export const formatEventDateTime = (startDate: string, endDate?: string): string
   const endTime = end.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
-    hour12: true
+    hour12: true,
+    timeZone
   }).toLowerCase();
 
   return `${datePart} - ${startTime} - ${endTime}`;

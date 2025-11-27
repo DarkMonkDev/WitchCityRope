@@ -28,6 +28,7 @@ import {
 } from '@tabler/icons-react';
 import { useUserDashboard, useDashboardError } from '../hooks/useDashboard';
 import { DashboardUtils } from '../types/dashboard.types';
+import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 
 /**
  * UserDashboard Component Props
@@ -44,6 +45,7 @@ interface UserDashboardProps {
 export const UserDashboard: React.FC<UserDashboardProps> = ({ className }) => {
   const { data: dashboard, isLoading, error, refetch } = useUserDashboard();
   const dashboardError = useDashboardError(error);
+  const eventTimeZone = useEventTimeZone();
 
   // Loading state
   if (isLoading) {
@@ -96,7 +98,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ className }) => {
   }
 
   const vettingDisplay = DashboardUtils.getVettingStatusDisplay(dashboard.vettingStatus);
-  const memberSince = DashboardUtils.formatDate(dashboard.joinDate);
+  const memberSince = DashboardUtils.formatDate(dashboard.joinDate, eventTimeZone);
 
   return (
     <Card shadow="sm" padding="lg" className={className}>

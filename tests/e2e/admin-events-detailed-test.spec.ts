@@ -10,7 +10,7 @@ test.describe('Admin Events Management Detailed Test', () => {
     console.log('✅ Logged in as admin successfully');
     
     // Step 2: Navigate directly to admin (since we know it works from previous test)
-    await page.goto('http://localhost:5173/admin');
+    await page.goto('/admin');
     await page.waitForLoadState('networkidle');
     await page.screenshot({ path: 'test-results/admin-dashboard-full.png', fullPage: true });
     console.log('✅ Admin dashboard loaded');

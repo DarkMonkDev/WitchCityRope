@@ -19,10 +19,6 @@
 
 import { test, expect, Page } from '@playwright/test';
 
-// Test configuration
-const BASE_URL = 'http://localhost:5173';
-const API_URL = 'http://localhost:5655';
-
 // Test accounts
 const TEST_ACCOUNTS = {
   admin: {
@@ -47,7 +43,7 @@ const TEST_ACCOUNTS = {
  */
 async function getUserSceneName(page: Page, email: string, password: string): Promise<string> {
   // Login to get auth token
-  const loginResponse = await page.request.post(`${API_URL}/api/auth/login`, {
+  const loginResponse = await page.request.post('/api/auth/login', {
     data: {
       emailOrSceneName: email,
       password: password
@@ -82,7 +78,7 @@ async function fillAndSubmitLogin(page: Page, identifier: string, password: stri
 test.describe('Login with Email or Scene Name', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to login page FIRST (localStorage requires a domain context)
-    await page.goto(`${BASE_URL}/login`);
+    await page.goto('/login');
     await page.waitForLoadState('domcontentloaded');
 
     // Clear authentication state AFTER navigation
@@ -98,10 +94,10 @@ test.describe('Login with Email or Scene Name', () => {
       await fillAndSubmitLogin(page, testAccount.email, testAccount.password);
 
       // Wait for navigation to dashboard
-      await page.waitForURL(`${BASE_URL}/dashboard`, { timeout: 10000 });
+      await page.waitForURL('**/dashboard', { timeout: 10000 });
 
       // Assert - Verify redirect to dashboard
-      await expect(page).toHaveURL(`${BASE_URL}/dashboard`);
+      await expect(page).toHaveURL(/\/dashboard/);
 
       // Verify user is logged in (check for logout button or user menu)
       const userMenu = page.locator('[data-testid="user-menu"], nav:has-text("Logout"), nav:has-text("Sign Out")').first();
@@ -128,7 +124,7 @@ test.describe('Login with Email or Scene Name', () => {
       expect(errorText).toMatch(/incorrect|invalid/i);
 
       // Verify still on login page (no redirect)
-      await expect(page).toHaveURL(`${BASE_URL}/login`);
+      await expect(page).toHaveURL(/\/login/);
     });
   });
 
@@ -142,7 +138,7 @@ test.describe('Login with Email or Scene Name', () => {
       expect(sceneName.length).toBeGreaterThan(0);
 
       // Navigate to login page FIRST (localStorage requires a domain context)
-      await page.goto(`${BASE_URL}/login`);
+      await page.goto('/login');
       await page.waitForLoadState('networkidle');
 
       // Clear auth state AFTER navigation
@@ -152,10 +148,10 @@ test.describe('Login with Email or Scene Name', () => {
       await fillAndSubmitLogin(page, sceneName, testAccount.password);
 
       // Wait for navigation to dashboard
-      await page.waitForURL(`${BASE_URL}/dashboard`, { timeout: 10000 });
+      await page.waitForURL('**/dashboard', { timeout: 10000 });
 
       // Assert - Verify redirect to dashboard
-      await expect(page).toHaveURL(`${BASE_URL}/dashboard`);
+      await expect(page).toHaveURL(/\/dashboard/);
 
       // Verify user is logged in
       const userMenu = page.locator('[data-testid="user-menu"], nav:has-text("Logout"), nav:has-text("Sign Out")').first();
@@ -169,7 +165,7 @@ test.describe('Login with Email or Scene Name', () => {
       const wrongPassword = 'WrongPassword123!';
 
       // Navigate to login page FIRST (localStorage requires a domain context)
-      await page.goto(`${BASE_URL}/login`);
+      await page.goto('/login');
       await page.waitForLoadState('networkidle');
 
       // Clear auth state AFTER navigation
@@ -211,7 +207,7 @@ test.describe('Login with Email or Scene Name', () => {
       expect(errorText).toMatch(/incorrect|invalid/i);
 
       // Verify still on login page (no redirect)
-      await expect(page).toHaveURL(`${BASE_URL}/login`);
+      await expect(page).toHaveURL(/\/login/);
     });
 
     test('should show error for non-existent scene name', async ({ page }) => {
@@ -320,7 +316,7 @@ test.describe('Login with Email or Scene Name', () => {
       }
 
       // Navigate to login page FIRST (localStorage requires a domain context)
-      await page.goto(`${BASE_URL}/login`);
+      await page.goto('/login');
       await page.waitForLoadState('networkidle');
 
       // Clear auth state AFTER navigation

@@ -221,19 +221,8 @@ export interface EventFilters {
   category?: string;
 }
 
-/**
- * Create event data for frontend forms
- * Note: This is a frontend-only type, not from backend DTOs
- * Backend may use different request structure
- */
-export interface CreateEventData {
-  title: string;
-  description: string;
-  startDate: string;
-  endDate: string;
-  capacity: number;
-  location?: string;
-}
+// ✅ REMOVED: Manual CreateEventData interface (violates DTO Alignment Strategy)
+// Use CreateEventRequest from @witchcityrope/shared-types instead
 
 /**
  * Update event data for frontend forms

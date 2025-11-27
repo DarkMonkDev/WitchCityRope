@@ -10,8 +10,8 @@ test.describe('Events Basic Tests', () => {
     console.log('🧪 Testing basic events page loading...');
 
     // Navigate to public events page
-    await page.goto('http://localhost:5173/events');
-    
+    await page.goto('/events');
+
     // Wait for page to load
     await page.waitForLoadState('networkidle');
     
@@ -64,7 +64,7 @@ test.describe('Events Basic Tests', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to admin events page
-    const response = await page.goto('http://localhost:5173/admin/events');
+    const response = await page.goto('/admin/events');
 
     // With authentication, should load successfully
     expect(response?.status()).toBe(200);
@@ -78,8 +78,8 @@ test.describe('Events Basic Tests', () => {
     console.log('🧪 Testing event details page...');
 
     // Navigate to a sample event details page (using a test ID)
-    await page.goto('http://localhost:5173/events/test-event-id');
-    
+    await page.goto('/events/test-event-id');
+
     // Wait for page to load
     await page.waitForLoadState('networkidle');
     

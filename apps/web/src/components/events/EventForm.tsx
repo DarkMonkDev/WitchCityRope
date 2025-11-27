@@ -52,6 +52,7 @@ import {
 } from '../../lib/api/hooks/useEventParticipations'
 import { useUpdateEvent } from '../../lib/api/hooks/useEvents'
 import { eventKeys } from '../../lib/api/utils/cache'
+import { useEventTimeZone } from '../../hooks/useEventTimeZone'
 import {
   emailTemplatesApi,
   type EventEmailTemplateDto,
@@ -409,6 +410,7 @@ export const EventForm: React.FC<EventFormProps> = ({
   })
 
   const queryClient = useQueryClient()
+  const eventTimeZone = useEventTimeZone()
 
   // Fetch teachers from API
   const { data: teachersData, isLoading: teachersLoading, error: teachersError } = useTeachers()
@@ -837,7 +839,8 @@ export const EventForm: React.FC<EventFormProps> = ({
       maxPrice: ticketTypeData.maxPrice,
       defaultPrice: ticketTypeData.defaultPrice,
       quantityAvailable: ticketTypeData.quantityAvailable,
-      salesEndDate: ticketTypeData.saleEndDate?.toISOString(),
+      // ✅ REMOVED: salesEndDate field removed from backend DTO
+      // salesEndDate: ticketTypeData.saleEndDate?.toISOString(),
     }
 
     let updatedTicketTypes: EventTicketType[]
@@ -872,7 +875,8 @@ export const EventForm: React.FC<EventFormProps> = ({
             pricingType: ticket.pricingType,
             quantityAvailable: ticket.quantityAvailable,
             sessionIdentifiers: ticket.sessionIdentifiers,
-            salesEndDate: ticket.salesEndDate,
+            // ✅ REMOVED: salesEndDate field removed from backend DTO
+            // salesEndDate: ticket.salesEndDate,
           }
 
           // Only include price fields relevant to the pricing type
@@ -935,7 +939,8 @@ export const EventForm: React.FC<EventFormProps> = ({
       quantityAvailable: ticketType.quantityAvailable || 100,
       quantitySold: 0, // Not tracked in current grid format
       allowMultiplePurchase: false, // Match modal's default for new tickets
-      saleEndDate: ticketType.salesEndDate ? new Date(ticketType.salesEndDate) : undefined,
+      // ✅ REMOVED: salesEndDate field removed from backend DTO
+      // saleEndDate: ticketType.salesEndDate ? new Date(ticketType.salesEndDate) : undefined,
     }
   }
 
@@ -2307,7 +2312,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                               </Table.Td>
                               <Table.Td>
                                 <Text size="sm">
-                                  {new Date(participation.participationDate).toLocaleDateString()}
+                                  {new Date(participation.participationDate).toLocaleDateString('en-US', { timeZone: eventTimeZone })}
                                 </Text>
                               </Table.Td>
                               <Table.Td>

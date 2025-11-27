@@ -146,7 +146,7 @@ public class RefundServiceTests : IAsyncLifetime
         var auditLogs = await _context.PaymentAuditLog
             .Where(a => a.PaymentId == payment.Id)
             .ToListAsync();
-        auditLogs.Should().HaveCountGreaterOrEqualTo(2); // Initiation + completion
+        auditLogs.Should().HaveCountGreaterThanOrEqualTo(2); // Initiation + completion
     }
 
     /// <summary>

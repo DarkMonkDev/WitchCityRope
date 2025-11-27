@@ -19,6 +19,7 @@ import {
   IncidentSummaryDto,
   STATUS_CONFIGS
 } from '../types/safety.types';
+import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 
 interface IncidentListProps {
   incidents: IncidentSummaryDto[];
@@ -39,24 +40,26 @@ export function IncidentList({
   onIncidentSelect,
   loading = false
 }: IncidentListProps) {
-  
+  const eventTimeZone = useEventTimeZone();
   const totalPages = Math.ceil(totalCount / pageSize);
-  
+
   const formatDate = (isoString: string) => {
     const date = new Date(isoString);
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
+      timeZone: eventTimeZone
     });
   };
-  
+
   const formatTime = (isoString: string) => {
     const date = new Date(isoString);
     return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
+      timeZone: eventTimeZone
     });
   };
   

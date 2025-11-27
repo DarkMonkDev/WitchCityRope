@@ -1,0 +1,97 @@
+/* Calendar dropdown container */
+.datePickerDropdown {
+  background-color: #FFF8F0 !important; /* Ivory */
+  border: 2px solid #B8956A !important; /* Rose gold */
+  border-radius: 8px !important;
+  padding: 16px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Day cells - base styling */
+.datePickerDropdown [data-dates-cell-content] {
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+/* Day cells - hover state */
+.datePickerDropdown [data-dates-cell-content]:not([data-disabled]):not([data-outside]):hover {
+  background-color: rgba(184, 149, 106, 0.2) !important; /* Light rose gold */
+  color: #8B1538 !important; /* Burgundy */
+  transform: scale(1.05);
+}
+
+/* Today indicator */
+.datePickerDropdown [data-dates-cell-content][data-today] {
+  border: 2px solid #B8956A !important; /* Rose gold border */
+  font-weight: 600;
+}
+
+/* Selected date */
+.datePickerDropdown [data-dates-cell-content][data-selected] {
+  background: linear-gradient(135deg, #8B1538 0%, #B8956A 100%) !important;
+  color: #FFF8F0 !important; /* Ivory text */
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(139, 21, 56, 0.3);
+}
+
+/* Selected date hover */
+.datePickerDropdown [data-dates-cell-content][data-selected]:hover {
+  background: linear-gradient(135deg, #7A1230 0%, #A68559 100%) !important;
+  transform: scale(1.05);
+}
+
+/* Disabled dates */
+.datePickerDropdown [data-dates-cell-content][data-disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  color: #8B8680; /* Stone gray */
+}
+
+/* Outside current month dates */
+.datePickerDropdown [data-dates-cell-content][data-outside] {
+  opacity: 0.5;
+  color: #8B8680; /* Stone gray */
+}
+
+/* Month/year header */
+.datePickerDropdown [data-dates-header-level] {
+  font-size: 16px;
+  font-weight: 600;
+  color: #8B1538; /* Burgundy */
+  padding: 8px;
+}
+
+/* Navigation buttons */
+.datePickerDropdown [data-dates-header-control] {
+  color: #8B1538 !important; /* Burgundy */
+}
+
+.datePickerDropdown [data-dates-header-control]:hover {
+  background-color: rgba(139, 21, 56, 0.1) !important;
+}
+
+/* Weekday labels */
+.datePickerDropdown [data-weekday] {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #4A4A4A; /* Smoke gray */
+  letter-spacing: 0.5px;
+}
+
+/* Input field focus state */
+.styledDatePickerInput:focus {
+  border-color: #8B1538 !important; /* Burgundy */
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .datePickerDropdown [data-dates-cell-content] {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    font-size: 16px;
+  }
+}

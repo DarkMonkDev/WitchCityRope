@@ -41,7 +41,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     console.log('✅ Logged in as admin successfully');
 
     // Navigate to main admin dashboard
-    await page.goto('http://localhost:5173/admin');
+    await page.goto('/admin');
     await page.waitForLoadState('networkidle');
 
     // Verify admin dashboard loaded
@@ -73,7 +73,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     await AuthHelpers.loginAs(page, 'admin');
     console.log('✅ Logged in as admin successfully');
 
-    await page.goto('http://localhost:5173/admin/safety/incidents');
+    await page.goto('/admin/safety/incidents');
     await page.waitForLoadState('networkidle');
 
     // Wait for incidents table to load
@@ -110,7 +110,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     await AuthHelpers.loginAs(page, 'admin');
     console.log('✅ Logged in as admin successfully');
 
-    await page.goto('http://localhost:5173/admin/safety/incidents');
+    await page.goto('/admin/safety/incidents');
     await page.waitForLoadState('networkidle');
 
     // Find search input (updated to search by title instead of reference number)
@@ -137,7 +137,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     await AuthHelpers.loginAs(page, 'admin');
     console.log('✅ Logged in as admin successfully');
 
-    await page.goto('http://localhost:5173/admin/safety/incidents');
+    await page.goto('/admin/safety/incidents');
     await page.waitForLoadState('networkidle');
 
     // Look for unassigned filter checkbox or toggle (updated for new UI)
@@ -163,7 +163,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     await AuthHelpers.loginAs(page, 'admin');
     console.log('✅ Logged in as admin successfully');
 
-    await page.goto('http://localhost:5173/admin/safety/incidents');
+    await page.goto('/admin/safety/incidents');
     await page.waitForLoadState('networkidle');
 
     // Wait for table to load
@@ -206,7 +206,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     await AuthHelpers.loginAs(page, 'admin');
     console.log('✅ Logged in as admin successfully');
 
-    await page.goto('http://localhost:5173/admin/safety/incidents');
+    await page.goto('/admin/safety/incidents');
     await page.waitForLoadState('networkidle');
 
     // HARD ASSERTION - Incidents table must be visible
@@ -261,7 +261,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     await AuthHelpers.loginAs(page, 'admin');
     console.log('✅ Logged in as admin successfully');
 
-    await page.goto('http://localhost:5173/admin/safety/incidents');
+    await page.goto('/admin/safety/incidents');
     await page.waitForLoadState('networkidle');
 
     // HARD ASSERTION - Incidents table must exist
@@ -314,7 +314,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     await AuthHelpers.loginAs(page, 'admin');
     console.log('✅ Logged in as admin successfully');
 
-    await page.goto('http://localhost:5173/admin/safety/incidents');
+    await page.goto('/admin/safety/incidents');
     await page.waitForLoadState('networkidle');
 
     // Click on any incident
@@ -352,7 +352,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     await AuthHelpers.loginAs(page, 'admin');
     console.log('✅ Logged in as admin successfully');
 
-    await page.goto('http://localhost:5173/admin/safety/incidents');
+    await page.goto('/admin/safety/incidents');
     await page.waitForLoadState('networkidle');
 
     // Click on any incident that has notes
@@ -381,7 +381,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     await AuthHelpers.loginAs(page, 'admin');
     console.log('✅ Logged in as admin successfully');
 
-    await page.goto('http://localhost:5173/admin/safety/incidents');
+    await page.goto('/admin/safety/incidents');
     await page.waitForLoadState('networkidle');
 
     // Click on any incident
@@ -422,7 +422,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     await AuthHelpers.loginAs(page, 'admin');
     console.log('✅ Logged in as admin successfully');
 
-    await page.goto('http://localhost:5173/admin/safety/incidents');
+    await page.goto('/admin/safety/incidents');
     await page.waitForLoadState('networkidle');
 
     // Check if pagination controls exist
@@ -451,7 +451,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     await AuthHelpers.loginAs(page, 'admin');
     console.log('✅ Logged in as admin successfully');
 
-    await page.goto('http://localhost:5173/admin/safety/incidents');
+    await page.goto('/admin/safety/incidents');
     await page.waitForLoadState('networkidle');
 
     // Wait for table to load

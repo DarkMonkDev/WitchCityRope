@@ -51,9 +51,9 @@ test.describe('Focused Real API Login Test', () => {
 
   test('should complete login with test@witchcityrope.com', async ({ page }) => {
     console.log('=== FOCUSED LOGIN TEST STARTING ===');
-    
+
     // Step 1: Navigate to login page
-    await page.goto('http://localhost:5173/login');
+    await page.goto('/login');
     await page.waitForLoadState('networkidle');
     
     console.log('✅ Navigated to login page');
@@ -165,8 +165,8 @@ test.describe('Focused Real API Login Test', () => {
 
   test('should verify page loads without infinite loops', async ({ page }) => {
     console.log('=== INFINITE LOOP PREVENTION TEST ===');
-    
-    await page.goto('http://localhost:5173/login');
+
+    await page.goto('/login');
     await page.waitForLoadState('networkidle');
     
     // Wait and monitor for 5 seconds for any loop errors

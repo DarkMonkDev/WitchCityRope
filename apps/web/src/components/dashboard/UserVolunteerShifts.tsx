@@ -7,6 +7,7 @@ import {
   IconCalendarEvent, IconMapPin, IconClock, IconHeart, IconExternalLink
 } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
+import { useEventTimeZone } from '../../hooks/useEventTimeZone';
 
 // Type for volunteer shift with event details
 export interface VolunteerShiftWithEvent {
@@ -37,13 +38,16 @@ export const UserVolunteerShifts: React.FC<UserVolunteerShiftsProps> = ({
   isLoading = false,
   error = null
 }) => {
+  const eventTimeZone = useEventTimeZone();
+
   const formatEventDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
+      timeZone: eventTimeZone
     });
   };
 
@@ -52,7 +56,8 @@ export const UserVolunteerShifts: React.FC<UserVolunteerShiftsProps> = ({
     return date.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
+      timeZone: eventTimeZone
     });
   };
 
@@ -63,7 +68,8 @@ export const UserVolunteerShifts: React.FC<UserVolunteerShiftsProps> = ({
       const formatted = date.toLocaleTimeString('en-US', {
         hour: 'numeric',
         minute: '2-digit',
-        hour12: true
+        hour12: true,
+        timeZone: eventTimeZone
       });
       return formatted.replace(/AM|PM/g, match => match.toLowerCase());
     } catch {

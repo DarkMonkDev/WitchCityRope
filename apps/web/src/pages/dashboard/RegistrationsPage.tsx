@@ -23,6 +23,7 @@ import {
 } from '@mantine/core';
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
+import { useEventTimeZone } from '../../hooks/useEventTimeZone';
 
 // Mock registration data - replace with real API integration later
 interface EventRegistration {
@@ -121,8 +122,9 @@ export const RegistrationsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = React.useState(1);
   const [selectedRegistration, setSelectedRegistration] = React.useState<EventRegistration | null>(null);
   const [cancelModalOpened, { open: openCancelModal, close: closeCancelModal }] = useDisclosure();
-  
+
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const eventTimeZone = useEventTimeZone();
   const registrationsPerPage = 10;
 
   // Filter registrations based on active tab and filters
@@ -208,6 +210,7 @@ export const RegistrationsPage: React.FC = () => {
       month: 'short',
       day: 'numeric',
       year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
+      timeZone: eventTimeZone
     });
   };
 

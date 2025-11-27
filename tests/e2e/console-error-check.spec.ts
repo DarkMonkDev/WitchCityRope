@@ -9,7 +9,7 @@ test('Check console errors', async ({ page }) => {
   });
 
   // Navigate to the app
-  await page.goto('http://localhost:5173');
+  await page.goto('/');
 
   // Wait a bit for any errors to appear
   await page.waitForTimeout(3000);

@@ -3,6 +3,7 @@ import { Box, Text, Progress, Group, Loader, Alert } from '@mantine/core';
 import { DashboardCard } from './DashboardCard';
 import { useCurrentUser } from '../../features/auth/api/queries';
 import { useNavigate } from 'react-router-dom';
+import { useEventTimeZone } from '../../hooks/useEventTimeZone';
 
 /**
  * Profile Widget for Dashboard
@@ -11,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 export const ProfileWidget: React.FC = () => {
   const { data: user, isLoading, error } = useCurrentUser();
   const navigate = useNavigate();
+  const eventTimeZone = useEventTimeZone();
 
   // Calculate profile completion percentage
   const calculateProfileCompletion = () => {
@@ -159,7 +161,7 @@ export const ProfileWidget: React.FC = () => {
             c="dimmed"
             style={{ color: '#8B8680' }}
           >
-            Member since: {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+            Member since: {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { timeZone: eventTimeZone }) : 'N/A'}
           </Text>
           {user?.emailConfirmed && (
             <Box

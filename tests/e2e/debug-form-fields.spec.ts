@@ -13,7 +13,7 @@ test.describe('Debug Event Form Fields - Field Display Investigation', () => {
     console.log(`📍 Using event from database: ${firstEvent.title} (ID: ${firstEvent.id})`);
 
     // Navigate to event
-    await page.goto(`http://localhost:5173/admin/events/${firstEvent.id}`);
+    await page.goto(`/admin/events/${firstEvent.id}`);
 
     // Wait for form to load
     console.log('⏳ Waiting for form to load...');

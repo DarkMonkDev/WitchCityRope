@@ -14,6 +14,7 @@ import {
   Alert
 } from '@mantine/core';
 import { IconAlertTriangle } from '@tabler/icons-react';
+import { useEventTimeZone } from '../../../../hooks/useEventTimeZone';
 
 interface AnalyticsRefundModalProps {
   opened: boolean;
@@ -41,6 +42,7 @@ export const AnalyticsRefundModal: React.FC<AnalyticsRefundModalProps> = ({
   const [confirmed, setConfirmed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [amountError, setAmountError] = useState<string | null>(null);
+  const eventTimeZone = useEventTimeZone();
 
   // Reset state when modal opens/closes
   useEffect(() => {
@@ -129,7 +131,7 @@ export const AnalyticsRefundModal: React.FC<AnalyticsRefundModalProps> = ({
             Payment Method: <Text component="span" fw={500}>{payment.paymentMethod}</Text>
           </List.Item>
           <List.Item>
-            Payment Date: <Text component="span" fw={500}>{new Date(payment.paymentDate).toLocaleDateString()}</Text>
+            Payment Date: <Text component="span" fw={500}>{new Date(payment.paymentDate).toLocaleDateString('en-US', { timeZone: eventTimeZone })}</Text>
           </List.Item>
           {payment.description && (
             <List.Item>

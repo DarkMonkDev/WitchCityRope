@@ -19,6 +19,8 @@ import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 // Venue Management is implemented in AdminSettingsPage (right column card)
 // Route: /admin/settings (NOT /admin/venues)
 // Component: VenueManagementCard - select venue from dropdown to edit
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+
 test.describe('Admin Venue Editing', () => {
   test.beforeEach(async ({ page }) => {
     // Clear auth state before each test
@@ -30,7 +32,7 @@ test.describe('Admin Venue Editing', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to settings
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     // Scope all selectors to the Venue Management card container
@@ -86,7 +88,7 @@ test.describe('Admin Venue Editing', () => {
     await expect(successNotification).toBeVisible({ timeout: 10000 });
 
     // Verify updated name appears in dropdown
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     // Re-scope to venue card after page reload
@@ -104,7 +106,7 @@ test.describe('Admin Venue Editing', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to settings
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     // Scope all selectors to the Venue Management card container
@@ -144,7 +146,7 @@ test.describe('Admin Venue Editing', () => {
     await expect(page.locator('[role="alert"]:has-text("Venue updated successfully")')).toBeVisible({ timeout: 5000 });
 
     // Verify saved by re-selecting venue
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     // Re-scope to venue card after page reload
@@ -167,7 +169,7 @@ test.describe('Admin Venue Editing', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to settings
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     // Scope all selectors to the Venue Management card container
@@ -225,7 +227,7 @@ test.describe('Admin Venue Editing', () => {
     await expect(page.locator('[role="alert"]:has-text("Venue updated successfully")')).toBeVisible({ timeout: 10000 });
 
     // Verify change persisted by re-selecting venue
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     // Re-scope to venue card after page reload
@@ -253,7 +255,7 @@ test.describe('Admin Venue Editing', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to settings
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     // Scope all selectors to the Venue Management card container
@@ -305,7 +307,7 @@ test.describe('Admin Venue Editing', () => {
     await expect(page.locator('[role="alert"]:has-text("Venue updated successfully")')).toBeVisible({ timeout: 10000 });
 
     // Verify inactive venue still appears in admin dropdown with "(Inactive)" label
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     // Re-scope to venue card after page reload
@@ -323,7 +325,7 @@ test.describe('Admin Venue Editing', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Try to navigate to admin settings (where venue management is)
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForTimeout(1000);
 
     // Should be redirected or see forbidden/unauthorized message
@@ -343,7 +345,7 @@ test.describe('Admin Venue Editing', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to settings
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     // Scope all selectors to the Venue Management card container

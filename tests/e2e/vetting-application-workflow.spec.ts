@@ -39,7 +39,7 @@ test.describe('Vetting Application Workflow', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Act: Navigate to dashboard
-    await page.goto('http://localhost:5173/dashboard');
+    await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
 
     // Assert: Vetting status section exists
@@ -90,7 +90,7 @@ test.describe('Vetting Application Workflow', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Act: Navigate to vetting application form
-    await page.goto('http://localhost:5173/join');
+    await page.goto('/join');
     await page.waitForLoadState('networkidle');
 
     // Wait for form to load
@@ -176,7 +176,7 @@ test.describe('Vetting Application Workflow', () => {
     await AuthHelpers.loginAs(page, 'vetted');
 
     // Act: Navigate to dashboard
-    await page.goto('http://localhost:5173/dashboard');
+    await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
 
     // Assert: Vetting status section exists
@@ -221,7 +221,7 @@ test.describe('Vetting Application Workflow', () => {
     await AuthHelpers.loginAs(page, 'vetted');
 
     // Act: Navigate to vetting application form
-    await page.goto('http://localhost:5173/join');
+    await page.goto('/join');
     await page.waitForLoadState('networkidle');
 
     // Assert: One of these scenarios should be true:
@@ -278,7 +278,7 @@ test.describe('Vetting Application Workflow', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Navigate to vetting application form
-    await page.goto('http://localhost:5173/join');
+    await page.goto('/join');
     await page.waitForLoadState('networkidle');
 
     // Wait for form to load
@@ -327,7 +327,7 @@ test.describe('Vetting Application Workflow', () => {
     const credentials = await AuthHelpers.loginAs(page, 'member');
 
     // Act: Navigate to vetting application form
-    await page.goto('http://localhost:5173/join');
+    await page.goto('/join');
     await page.waitForLoadState('networkidle');
 
     // Wait for form to load

@@ -10,7 +10,7 @@ test('Login and check event type column', async ({ page }) => {
   });
 
   // Go to login page
-  await page.goto('http://localhost:5173/login');
+  await page.goto('/login');
 
   // Fill login form - using more specific selectors
   await page.getByLabel('Email Address').fill('admin@witchcityrope.com');
@@ -23,7 +23,7 @@ test('Login and check event type column', async ({ page }) => {
   await page.waitForURL('**/dashboard', { timeout: 10000 });
 
   // Navigate to admin events
-  await page.goto('http://localhost:5173/admin/events');
+  await page.goto('/admin/events');
 
   // Wait for page to load
   await page.waitForLoadState('networkidle');

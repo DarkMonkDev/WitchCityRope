@@ -31,6 +31,9 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0', // Required for container access
       port: parseInt(process.env.VITE_PORT || '5173'), // Use environment variable
       strictPort: true, // ENFORCE port 5173 - fail if unavailable (prevents confusion)
+
+      // Allow container network access for E2E tests
+      allowedHosts: ['localhost', 'web', '.witchcityrope.com'],
       
       // HMR Configuration - use same port as dev server when in Docker
       hmr: process.env.DOCKER_ENV === 'true'

@@ -64,4 +64,14 @@ public interface IEventService
         string eventId,
         CopyEventRequest request,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Create a new event with optional sessions, ticket types, volunteer positions, and organizers
+    /// </summary>
+    /// <param name="request">Create request with event data</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Tuple with success flag, created event DTO if successful, and error message</returns>
+    Task<(bool Success, EventDto? Response, string Error)> CreateEventAsync(
+        CreateEventRequest request,
+        CancellationToken cancellationToken = default);
 }

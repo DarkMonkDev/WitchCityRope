@@ -8,8 +8,8 @@ test.describe('Enhanced Diagnostic - Based on Lessons Learned', () => {
     // Step 1: Infrastructure vs Application Layer Distinction
     console.log('\n1. TESTING INFRASTRUCTURE LAYER');
     
-    // Check API accessibility first
-    const apiResponse = await fetch('http://localhost:5656/api/events');
+    // Check API accessibility first (use relative URL for container compatibility)
+    const apiResponse = await fetch('/api/events');
     const apiStatus = apiResponse.status;
     const apiEvents = apiStatus === 200 ? await apiResponse.text() : 'Failed';
     
@@ -20,9 +20,9 @@ test.describe('Enhanced Diagnostic - Based on Lessons Learned', () => {
     // Step 2: React Rendering Verification Pattern
     console.log('\n2. TESTING APPLICATION LAYER - React Rendering');
     
-    await page.goto('http://localhost:5173', { 
-      waitUntil: 'networkidle',
-      timeout: 10000 
+    await page.goto('/', {
+      waitUntil: 'domcontentloaded',
+      timeout: 10000
     });
     
     // Critical checks from lessons learned
@@ -59,8 +59,8 @@ test.describe('Enhanced Diagnostic - Based on Lessons Learned', () => {
     // Step 3: Events Page Specific Test
     console.log('\n3. TESTING EVENTS PAGE RENDERING');
     
-    await page.goto('http://localhost:5173/events', {
-      waitUntil: 'networkidle',
+    await page.goto('/events', {
+      waitUntil: 'domcontentloaded',
       timeout: 10000
     });
     
@@ -86,7 +86,7 @@ test.describe('Enhanced Diagnostic - Based on Lessons Learned', () => {
     
     // Take screenshots for evidence
     await page.screenshot({ path: 'enhanced-diagnostic-home.png' });
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.screenshot({ path: 'enhanced-diagnostic-events.png' });
     
     // Final determination based on lessons learned

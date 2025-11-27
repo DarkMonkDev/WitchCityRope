@@ -35,7 +35,7 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
 
   test('Positive: User can volunteer when Event Waiver checkbox is checked', async ({ page }) => {
     // Navigate to events page
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Find an event with volunteer positions
@@ -137,7 +137,7 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
     const eventSlug = event.id;
 
     // Navigate directly to event details page
-    await page.goto(`http://localhost:5173/events/${eventSlug}`);
+    await page.goto(`/events/${eventSlug}`);
     await page.waitForLoadState('networkidle');
     console.log('✅ Navigated to event details page');
 
@@ -195,7 +195,7 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
 
   test('Positive: Volunteer signup shows as confirmed in UI', async ({ page }) => {
     // Navigate to events
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Click first event
@@ -255,7 +255,7 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
 
   test('Negative: Signup button is disabled when Event Waiver checkbox is unchecked', async ({ page }) => {
     // Navigate to events
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Click first event
@@ -378,7 +378,7 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
 
   test('Negative: Unchecking Event Waiver after checking re-disables signup button', async ({ page }) => {
     // Navigate to events
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Click first event
@@ -433,7 +433,7 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
     // - Therefore, waiver checkbox should NOT be shown again
 
     // Navigate to events
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Click first event

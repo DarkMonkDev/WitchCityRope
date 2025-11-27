@@ -34,11 +34,11 @@ test.describe('Comprehensive React App Diagnostic', () => {
       }
     });
 
-    console.log('Navigating to http://localhost:5173/events');
-    
-    await page.goto('http://localhost:5173/events', { 
-      waitUntil: 'networkidle',
-      timeout: 10000 
+    console.log('Navigating to /events');
+
+    await page.goto('/events', {
+      waitUntil: 'domcontentloaded',
+      timeout: 10000
     });
 
     // Wait for any late rendering
@@ -101,7 +101,7 @@ test.describe('Comprehensive React App Diagnostic', () => {
     
     try {
       const apiResponse = await page.evaluate(async () => {
-        const response = await fetch('http://localhost:5656/api/events');
+        const response = await fetch('/api/events');
         return {
           status: response.status,
           ok: response.ok,

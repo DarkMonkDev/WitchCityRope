@@ -1,10 +1,12 @@
 import { test, expect } from '@playwright/test';
 
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+
 test.skip('Verify Form Design A fixes - SKIPPED: Feature not implemented', async ({ page }) => {
   console.log('🔍 Testing updated Floating Label design fixes...');
   
   // Navigate to Design A
-  await page.goto('http://localhost:5173/form-designs/a');
+  await page.goto(`${baseUrl}/form-designs/a`);
   
   // Wait for page to load
   await page.waitForSelector('[data-testid="form-demo"], input, .mantine-TextInput-root', { timeout: 10000 });
@@ -70,17 +72,17 @@ test('Verify routes - C and D should be removed', async ({ page }) => {
   
   // Test Design C route
   console.log('🧪 Testing Design C route (should be removed)...');
-  const responseC = await page.goto('http://localhost:5173/form-designs/c');
+  const responseC = await page.goto(`${baseUrl}/form-designs/c`);
   console.log(`Design C status: ${responseC?.status()}`);
   
   // Test Design D route
   console.log('🧪 Testing Design D route (should be removed)...');
-  const responseD = await page.goto('http://localhost:5173/form-designs/d');
+  const responseD = await page.goto(`${baseUrl}/form-designs/d`);
   console.log(`Design D status: ${responseD?.status()}`);
   
   // Check showcase page only shows 2 designs
   console.log('🧪 Testing showcase page...');
-  await page.goto('http://localhost:5173/form-designs');
+  await page.goto(`${baseUrl}/form-designs`);
   await page.waitForSelector('[href*="/form-designs/"]', { timeout: 5000 });
   
   const designLinks = await page.locator('[href*="/form-designs/"]').count();

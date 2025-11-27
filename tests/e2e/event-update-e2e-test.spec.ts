@@ -10,9 +10,9 @@ test.describe('Event Update Flow E2E Testing', () => {
     // Login as admin using AuthHelper
     const loginSuccess = await AuthHelper.loginAs(page, 'admin');
     expect(loginSuccess).toBeTruthy();
-    
+
     // Get the first event ID from API for testing
-    const eventsResponse = await page.request.get('http://localhost:5655/api/events');
+    const eventsResponse = await page.request.get('http://api:5655/api/events');
     const eventsData = await eventsResponse.json();
     eventId = eventsData.data[0].id;
     console.log(`Using event ID for testing: ${eventId}`);
@@ -20,9 +20,9 @@ test.describe('Event Update Flow E2E Testing', () => {
 
   test('should access AdminEventDetailsPage via admin/events route', async ({ page }) => {
     console.log('Testing admin event details page access...');
-    
+
     // First, navigate to admin events list page
-    await page.goto('http://localhost:5173/admin/events');
+    await page.goto('/admin/events');
     await page.waitForLoadState('networkidle');
     
     // Take screenshot of admin events page
@@ -31,9 +31,9 @@ test.describe('Event Update Flow E2E Testing', () => {
     // Check if we can access admin events page (might show table or other admin UI)
     const currentUrl = page.url();
     expect(currentUrl).toContain('/admin/events');
-    
+
     // Now navigate directly to event details page
-    await page.goto(`http://localhost:5173/admin/events/${eventId}`);
+    await page.goto(`/admin/events/${eventId}`);
     await page.waitForLoadState('networkidle');
     
     // Verify we're on the event details page
@@ -61,9 +61,9 @@ test.describe('Event Update Flow E2E Testing', () => {
 
   test('should show EventForm components and attempt event update', async ({ page }) => {
     console.log('Testing EventForm integration and update attempt...');
-    
+
     // Navigate directly to event details page
-    await page.goto(`http://localhost:5173/admin/events/${eventId}`);
+    await page.goto(`/admin/events/${eventId}`);
     await page.waitForLoadState('networkidle');
     
     // Wait for page to load
@@ -176,7 +176,7 @@ test.describe('Event Update Flow E2E Testing', () => {
     console.log('Testing publish/draft status toggle functionality...');
 
     // Navigate to event details page
-    await page.goto(`http://localhost:5173/admin/events/${eventId}`);
+    await page.goto(`/admin/events/${eventId}`);
     await page.waitForLoadState('networkidle');
 
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({ timeout: 10000 });
@@ -284,8 +284,8 @@ test.describe('Event Update Flow E2E Testing', () => {
 
   test('should test partial update behavior', async ({ page }) => {
     console.log('Testing partial update functionality...');
-    
-    await page.goto(`http://localhost:5173/admin/events/${eventId}`);
+
+    await page.goto(`/admin/events/${eventId}`);
     await page.waitForLoadState('networkidle');
     
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({ timeout: 10000 });
@@ -344,9 +344,9 @@ test.describe('Event Update Flow E2E Testing', () => {
 
   test('should handle authentication and authorization', async ({ page }) => {
     console.log('Testing authentication and authorization for event updates...');
-    
+
     // First test - ensure the page requires authentication
-    await page.goto(`http://localhost:5173/admin/events/${eventId}`);
+    await page.goto(`/admin/events/${eventId}`);
     await page.waitForLoadState('networkidle');
     
     // Should be accessible since we're logged in as admin
@@ -369,9 +369,9 @@ test.describe('Event Update Flow E2E Testing', () => {
 
   test('should validate API endpoint responses', async ({ page }) => {
     console.log('Testing API endpoint responses for event updates...');
-    
+
     // Test GET endpoint first (should work)
-    const getResponse = await page.request.get(`http://localhost:5655/api/events/${eventId}`);
+    const getResponse = await page.request.get(`http://api:5655/api/events/${eventId}`);
     console.log(`GET /api/events/${eventId} - Status: ${getResponse.status()}`);
     
     if (getResponse.ok()) {
@@ -380,9 +380,9 @@ test.describe('Event Update Flow E2E Testing', () => {
     } else {
       console.log('❌ GET endpoint failed');
     }
-    
+
     // Test PUT endpoint (expected to fail with 405 based on earlier testing)
-    const putResponse = await page.request.put(`http://localhost:5655/api/events/${eventId}`, {
+    const putResponse = await page.request.put(`http://api:5655/api/events/${eventId}`, {
       data: {
         id: eventId,
         title: 'API Test Update'
@@ -401,9 +401,9 @@ test.describe('Event Update Flow E2E Testing', () => {
     } else {
       console.log(`❌ PUT endpoint failed with status: ${putResponse.status()}`);
     }
-    
+
     // Test PATCH endpoint as well
-    const patchResponse = await page.request.patch(`http://localhost:5655/api/events/${eventId}`, {
+    const patchResponse = await page.request.patch(`http://api:5655/api/events/${eventId}`, {
       data: {
         title: 'API Patch Test Update'
       },

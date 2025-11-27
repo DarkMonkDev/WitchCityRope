@@ -1,9 +1,6 @@
 import { test, expect, Page } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
-const API_BASE_URL = 'http://localhost:5655';
-const WEB_BASE_URL = 'http://localhost:5173';
-
 test.describe('Real API Login Testing', () => {
   let networkRequests: Array<{
     url: string;
@@ -81,9 +78,9 @@ test.describe('Real API Login Testing', () => {
     console.log('MSW Status Message:', mswStatus);
     
     // Direct API test
-    const apiResponse = await page.evaluate(async (apiUrl) => {
+    const apiResponse = await page.evaluate(async () => {
       try {
-        const response = await fetch(`${apiUrl}/health`);
+        const response = await fetch('/health');
         return {
           status: response.status,
           ok: response.ok,
@@ -94,7 +91,7 @@ test.describe('Real API Login Testing', () => {
           error: error.toString()
         };
       }
-    }, API_BASE_URL);
+    });
     
     console.log('Direct API Health Check:', apiResponse);
     
@@ -109,7 +106,7 @@ test.describe('Real API Login Testing', () => {
 
     // Take screenshot before login
     await page.goto('/login');
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/before-login-click.png' });
+    await page.screenshot({ path: './test-results/before-login-click.png' });
 
     // Use AuthHelpers for login
     await AuthHelpers.loginAs(page, 'admin');
@@ -135,14 +132,14 @@ test.describe('Real API Login Testing', () => {
       console.log('Timeout waiting for login result');
       
       // Take screenshot on timeout
-      await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/login-timeout.png' });
+      await page.screenshot({ path: './test-results/login-timeout.png' });
     }
     
     // Wait a bit more for any network requests to complete
     await page.waitForTimeout(2000);
     
     // Take final screenshot
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/after-login-attempt.png' });
+    await page.screenshot({ path: './test-results/after-login-attempt.png' });
     
     console.log('=== NETWORK REQUESTS ===');
     networkRequests.forEach((req, index) => {

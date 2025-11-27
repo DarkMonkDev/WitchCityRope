@@ -12,6 +12,7 @@ import {
 } from '@mantine/core';
 import { IconNotes, IconLock, IconWorld } from '@tabler/icons-react';
 import type { components } from '@witchcityrope/shared-types';
+import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 
 /**
  * ✅ DTO ALIGNMENT STRATEGY COMPLIANT
@@ -28,7 +29,7 @@ interface IncidentNotesListProps {
   isAddingNote?: boolean;
 }
 
-const formatTime = (dateString: string): string => {
+const formatTime = (dateString: string, timeZone: string): string => {
   const date = new Date(dateString);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -45,7 +46,8 @@ const formatTime = (dateString: string): string => {
   return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
-    year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+    year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
+    timeZone
   });
 };
 
@@ -57,6 +59,7 @@ export const IncidentNotesList: React.FC<IncidentNotesListProps> = ({
   const [newNote, setNewNote] = useState('');
   const [isPrivate, setIsPrivate] = useState(true);
   const [tags, setTags] = useState('');
+  const eventTimeZone = useEventTimeZone();
 
   const handleSaveNote = async () => {
     if (!newNote.trim()) return;
@@ -171,7 +174,7 @@ export const IncidentNotesList: React.FC<IncidentNotesListProps> = ({
                       <Text fw={600} size="sm">{note.authorName}</Text>
                     </Group>
                     <Text size="sm" c="dimmed">
-                      {formatTime(note.createdAt)}
+                      {formatTime(note.createdAt, eventTimeZone)}
                       {note.updatedAt && note.updatedAt !== note.createdAt && <> • Edited</>}
                     </Text>
                   </Group>

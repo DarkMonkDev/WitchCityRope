@@ -29,7 +29,7 @@ test.describe('Dashboard Event Card Location Display', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Navigate to dashboard
-    await page.goto('http://localhost:5173/dashboard');
+    await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
 
@@ -67,7 +67,7 @@ test.describe('Dashboard Event Card Location Display', () => {
 
     // Take screenshot
     await page.screenshot({
-      path: '/home/chad/repos/witchcityrope/test-results/dashboard-event-cards-location.png',
+      path: './test-results/dashboard-event-cards-location.png',
       fullPage: true
     });
 
@@ -79,7 +79,7 @@ test.describe('Dashboard Event Card Location Display', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Navigate to dashboard
-    await page.goto('http://localhost:5173/dashboard');
+    await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
 
@@ -102,7 +102,7 @@ test.describe('Dashboard Event Card Location Display', () => {
     await AuthHelpers.loginAs(page, 'teacher');
 
     // Navigate to dashboard
-    await page.goto('http://localhost:5173/dashboard');
+    await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
 
@@ -138,7 +138,7 @@ test.describe('Dashboard Event Card Location Display', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to dashboard
-    await page.goto('http://localhost:5173/dashboard');
+    await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
 
@@ -173,7 +173,7 @@ test.describe('Dashboard Event Card Location Display', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Navigate to dashboard
-    await page.goto('http://localhost:5173/dashboard');
+    await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
 
@@ -211,7 +211,7 @@ test.describe('Dashboard Event Card Location Display', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Navigate to dashboard
-    await page.goto('http://localhost:5173/dashboard');
+    await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
 
@@ -243,7 +243,7 @@ test.describe('Dashboard Event Card Location Display', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Navigate to dashboard
-    await page.goto('http://localhost:5173/dashboard');
+    await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
 

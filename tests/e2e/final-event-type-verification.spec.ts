@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test('Final verification of Event Type column implementation', async ({ page }) => {
   console.log('Starting final verification test...');
 
-  await page.goto('http://localhost:5173/login');
+  await page.goto('/login');
 
   // Fill login form using specific selectors
   await page.locator('input').first().fill('admin@witchcityrope.com');
@@ -16,7 +16,7 @@ test('Final verification of Event Type column implementation', async ({ page }) 
   await page.waitForTimeout(3000);
 
   // Navigate to admin events page
-  await page.goto('http://localhost:5173/admin/events');
+  await page.goto('/admin/events');
 
   // Wait for page to fully load
   await page.waitForTimeout(5000);

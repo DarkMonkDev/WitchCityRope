@@ -33,14 +33,14 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
     // Ensure we're starting from a clean state by clearing any existing auth
     await AuthHelpers.clearAuthState(page);
-    await page.goto('http://localhost:5173');
+    await page.goto('/');
     await expect(page).toHaveTitle(/Witch City Rope/i);
   });
 
   test('1. User discovers events on public page', async ({ page }) => {
     // Navigate to events page (should be accessible without login)
-    await page.goto('http://localhost:5173/events');
-    
+    await page.goto('/events');
+
     // Wait for page to load
     await page.waitForLoadState('networkidle');
 
@@ -63,7 +63,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
 
   test('2. User views event details', async ({ page }) => {
     // Navigate to events page
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Wait for events to load
@@ -101,7 +101,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
 
   test('3. User attempts to RSVP/purchase ticket (should redirect to login)', async ({ page }) => {
     // Navigate to event details
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     const firstEvent = page.locator('[data-testid="event-card"]').first();
@@ -138,7 +138,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     await AuthHelpers.loginAs(page, 'vetted');
 
     // Navigate to events and select a social event
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     const firstEvent = page.locator('[data-testid="event-card"]').first();
@@ -181,7 +181,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     await AuthHelpers.loginAs(page, 'vetted');
 
     // Navigate to dashboard
-    await page.goto('http://localhost:5173/dashboard');
+    await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
 
     // Should see dashboard title with user's name
@@ -216,7 +216,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     await AuthHelpers.loginAs(page, 'vetted');
 
     // Navigate to events page
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Click first event
@@ -264,7 +264,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     await AuthHelpers.loginAs(page, 'admin');
     
     // Navigate to admin/events management
-    await page.goto('http://localhost:5173/admin/events');
+    await page.goto('/admin/events');
     await page.waitForLoadState('networkidle');
 
     // Should see admin events page (events table)
@@ -289,7 +289,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     console.log('🚀 Starting complete user journey test...');
 
     // Step 1: Discover events (unauthenticated)
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     const eventCards = page.locator('[data-testid="event-card"]');
@@ -315,7 +315,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     console.log('   ✅ Successfully logged in');
 
     // Step 5: Navigate back to event and complete RSVP
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
     await page.locator('[data-testid="event-card"]').first().click();
     await page.waitForURL('**/events/**');
@@ -334,7 +334,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     }
 
     // Step 6: Verify in dashboard
-    await page.goto('http://localhost:5173/dashboard');
+    await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
     const dashboardTitle = page.locator('h1').first();
     await expect(dashboardTitle).toBeVisible();
@@ -351,12 +351,12 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     console.log('🔧 Testing API integration...');
     
     // Test API endpoints directly
-    const healthResponse = await request.get('http://localhost:5655/api/health');
+    const healthResponse = await request.get('http://api:5655/api/health');
     expect(healthResponse.status()).toBe(200);
     console.log('   ✅ API health endpoint working');
-    
+
     // Test events API (returns raw array, not wrapped response)
-    const eventsResponse = await request.get('http://localhost:5655/api/events');
+    const eventsResponse = await request.get('http://api:5655/api/events');
     expect(eventsResponse.status()).toBe(200);
 
     const eventsApiResponse = await eventsResponse.json();
@@ -388,10 +388,10 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
 
   test('12. Performance and Responsiveness', async ({ page }) => {
     console.log('⚡ Testing performance...');
-    
+
     // Measure page load times
     const startTime = Date.now();
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
     const loadTime = Date.now() - startTime;
     
@@ -419,17 +419,17 @@ test.describe('Test Environment Validation', () => {
     console.log('🏥 Running environment health check...');
 
     // Test React app
-    const reactResponse = await request.get('http://localhost:5173');
+    const reactResponse = await request.get('http://web:5173');
     expect(reactResponse.status()).toBe(200);
     console.log('   ✅ React app healthy');
 
     // Test API
-    const apiResponse = await request.get('http://localhost:5655/api/health');
+    const apiResponse = await request.get('http://api:5655/api/health');
     expect(apiResponse.status()).toBe(200);
     console.log('   ✅ API healthy');
 
     // Test database connectivity through API
-    const eventsResponse = await request.get('http://localhost:5655/api/events');
+    const eventsResponse = await request.get('http://api:5655/api/events');
     expect(eventsResponse.status()).toBe(200);
     console.log('   ✅ Database connectivity verified');
 

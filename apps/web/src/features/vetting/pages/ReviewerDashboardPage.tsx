@@ -39,6 +39,7 @@ import { vettingApi } from '../api/vettingApi';
 import type { ApplicationSummaryDto, ApplicationDetailResponse } from '../types/vetting.types';
 import { APPLICATION_STATUS_CONFIGS, EXPERIENCE_LEVEL_CONFIGS } from '../types/vetting.types';
 import type { components } from '@witchcityrope/shared-types';
+import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 
 interface ReviewerDashboardPageProps {
   className?: string;
@@ -52,6 +53,7 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
   const [activeTab, setActiveTab] = useState<string>('details');
 
   const { user } = useAuthStore();
+  const eventTimeZone = useEventTimeZone();
 
   // Get detailed application data when one is selected
   const { 
@@ -187,7 +189,7 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
                       <Group gap="xs">
                         <IconClock size={16} />
                         <Text size="sm" c="dimmed">
-                          Submitted {new Date((applicationDetail as any)?.submittedAt).toLocaleDateString()}
+                          Submitted {new Date((applicationDetail as any)?.submittedAt).toLocaleDateString('en-US', { timeZone: eventTimeZone })}
                         </Text>
                       </Group>
                     </Group>
@@ -201,7 +203,7 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
                     <SimpleGrid cols={{ base: 1, sm: 2 }}>
                       <Box>
                         <Text size="sm" fw={500} c="dimmed">Full Name</Text>
-                        <Text size="sm">{(applicationDetail as any)?.personalInfo?.fullName}</Text>
+                        <Text size="sm">{[(applicationDetail as any)?.personalInfo?.firstName, (applicationDetail as any)?.personalInfo?.lastName].filter(Boolean).join(' ') || 'N/A'}</Text>
                       </Box>
                       <Box>
                         <Text size="sm" fw={500} c="dimmed">Scene Name</Text>
@@ -334,8 +336,8 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
                         <Box>
                           <Text size="sm" fw={500} c="dimmed">Contact Status</Text>
                           <Text size="sm">
-                            {reference?.contactedAt 
-                              ? `Contacted ${new Date(reference.contactedAt).toLocaleDateString()}`
+                            {reference?.contactedAt
+                              ? `Contacted ${new Date(reference.contactedAt).toLocaleDateString('en-US', { timeZone: eventTimeZone })}`
                               : 'Not contacted yet'
                             }
                           </Text>
@@ -375,7 +377,7 @@ export const ReviewerDashboardPage: React.FC<ReviewerDashboardPageProps> = ({
                             <Group justify="apart" mb="xs">
                               <Text size="sm" fw={500}>{note?.reviewerName}</Text>
                               <Text size="xs" c="dimmed">
-                                {new Date(note?.createdAt).toLocaleDateString()}
+                                {new Date(note?.createdAt).toLocaleDateString('en-US', { timeZone: eventTimeZone })}
                               </Text>
                             </Group>
                             <Text size="sm">{note?.content}</Text>

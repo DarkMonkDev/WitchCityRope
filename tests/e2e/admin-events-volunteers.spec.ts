@@ -24,7 +24,7 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
 
   test('should show only current event sessions in dropdown', async ({ page }) => {
     // Navigate to admin event edit page
-    await page.goto(`http://localhost:5173/admin/events/${TEST_EVENT_ID}`);
+    await page.goto(`/admin/events/${TEST_EVENT_ID}`);
 
     // Wait for page to load
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
@@ -71,7 +71,7 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
 
   test('should add volunteer position via inline form', async ({ page }) => {
     // Navigate to admin event edit page
-    await page.goto(`http://localhost:5173/admin/events/${TEST_EVENT_ID}`);
+    await page.goto(`/admin/events/${TEST_EVENT_ID}`);
 
     // Navigate to Volunteers tab
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
@@ -130,7 +130,7 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
 
   test('should edit volunteer position via inline form', async ({ page }) => {
     // Navigate to admin event edit page
-    await page.goto(`http://localhost:5173/admin/events/${TEST_EVENT_ID}`);
+    await page.goto(`/admin/events/${TEST_EVENT_ID}`);
 
     // Navigate to Volunteers tab
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
@@ -177,7 +177,7 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
 
   test('should delete volunteer position with confirmation', async ({ page }) => {
     // Navigate to admin event edit page
-    await page.goto(`http://localhost:5173/admin/events/${TEST_EVENT_ID}`);
+    await page.goto(`/admin/events/${TEST_EVENT_ID}`);
 
     // Navigate to Volunteers tab
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
@@ -221,7 +221,7 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
 
   test('should validate volunteer position form fields', async ({ page }) => {
     // Navigate to admin event edit page and volunteers tab
-    await page.goto(`http://localhost:5173/admin/events/${TEST_EVENT_ID}`);
+    await page.goto(`/admin/events/${TEST_EVENT_ID}`);
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
     await page.locator('[data-testid="tab-volunteers"]').click();
 
@@ -273,7 +273,7 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
 
   test('should display sessions in day format in position assignments', async ({ page }) => {
     // Navigate to admin event edit page and volunteers tab
-    await page.goto(`http://localhost:5173/admin/events/${TEST_EVENT_ID}`);
+    await page.goto(`/admin/events/${TEST_EVENT_ID}`);
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
     await page.locator('[data-testid="tab-volunteers"]').click();
 
@@ -307,7 +307,7 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
 
   test('should show "Add New Position" button below volunteer grid for UI consistency', async ({ page }) => {
     // Navigate to admin event edit page and volunteers tab (fresh navigation to ensure clean state)
-    await page.goto(`http://localhost:5173/admin/events/${TEST_EVENT_ID}`);
+    await page.goto(`/admin/events/${TEST_EVENT_ID}`);
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
     await page.locator('[data-testid="tab-volunteers"]').click();
 

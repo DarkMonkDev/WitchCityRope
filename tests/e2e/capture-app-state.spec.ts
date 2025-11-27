@@ -13,12 +13,12 @@ test.describe('Application State Visual Evidence', () => {
 
   test('capture events page actual state', async ({ page }) => {
     console.log('📸 Capturing events page state for analysis...');
-    
+
     // Navigate to events page
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
 
     // Wait for page to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Capture screenshot
     await page.screenshot({ 
@@ -37,12 +37,12 @@ test.describe('Application State Visual Evidence', () => {
 
   test('capture login page actual state', async ({ page }) => {
     console.log('📸 Capturing login page state for analysis...');
-    
+
     // Navigate to login page
-    await page.goto('http://localhost:5173/login');
+    await page.goto('/login');
 
     // Wait for page to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Capture screenshot
     await page.screenshot({ 
@@ -67,10 +67,10 @@ test.describe('Application State Visual Evidence', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Navigate to dashboard page (may require auth)
-    await page.goto('http://localhost:5173/dashboard');
+    await page.goto('/dashboard');
 
     // Wait for page to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Capture screenshot
     await page.screenshot({ 

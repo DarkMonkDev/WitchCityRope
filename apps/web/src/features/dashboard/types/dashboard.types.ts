@@ -274,20 +274,25 @@ export const DashboardUtils = {
   },
 
   /**
-   * Format date for display in user's timezone
+   * Format date for display in event timezone
+   * @param dateString - ISO date string
+   * @param timeZone - IANA timezone (e.g., 'America/New_York')
    */
-  formatDate(dateString: string): string {
+  formatDate(dateString: string, timeZone: string): string {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+      timeZone
     })
   },
 
   /**
-   * Format date and time for display in user's timezone
+   * Format date and time for display in event timezone
+   * @param dateString - ISO date string
+   * @param timeZone - IANA timezone (e.g., 'America/New_York')
    */
-  formatDateTime(dateString: string): string {
+  formatDateTime(dateString: string, timeZone: string): string {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -295,6 +300,7 @@ export const DashboardUtils = {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
+      timeZone
     })
   },
 

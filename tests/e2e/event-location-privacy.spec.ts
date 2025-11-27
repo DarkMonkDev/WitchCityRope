@@ -32,7 +32,7 @@ test.describe('Event Location Privacy - Conditional Display', () => {
    * Returns the event URL or null if none found
    */
   async function findEventWithVenueLocation(page: Page): Promise<string | null> {
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
 
@@ -120,7 +120,7 @@ test.describe('Event Location Privacy - Conditional Display', () => {
 
     // Take screenshot for evidence
     await page.screenshot({
-      path: '/home/chad/repos/witchcityrope/test-results/event-location-non-vetted-user.png',
+      path: './test-results/event-location-non-vetted-user.png',
       fullPage: true
     });
 
@@ -203,7 +203,7 @@ test.describe('Event Location Privacy - Conditional Display', () => {
 
     // Take screenshot for evidence
     await page.screenshot({
-      path: '/home/chad/repos/witchcityrope/test-results/event-location-vetted-user.png',
+      path: './test-results/event-location-vetted-user.png',
       fullPage: true
     });
 
@@ -262,7 +262,7 @@ test.describe('Event Location Privacy - Conditional Display', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Navigate to events page
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
 
@@ -373,7 +373,7 @@ test.describe('Event Location Privacy - Conditional Display', () => {
     console.log(`Non-vetted structure: Location header: ${hasLocationOnlySection}, Info alert: ${hasInfoAlert}`);
 
     // Now check vetted user (logout and re-login)
-    await page.goto('http://localhost:5173');
+    await page.goto('/');
     await AuthHelpers.clearAuthState(page);
     await AuthHelpers.loginAs(page, 'teacher');
 

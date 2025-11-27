@@ -73,7 +73,7 @@ test.describe('Final Real API Authentication Test', () => {
     const loginSuccess = await AuthHelper.loginAs(page, 'admin');
 
     // Take screenshot of result
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/final-03-after-login.png' });
+    await page.screenshot({ path: './test-results/final-03-after-login.png' });
 
     const urlAfterLogin = page.url();
     console.log(`URL after login attempt: ${urlAfterLogin}`);
@@ -120,8 +120,8 @@ test.describe('Final Real API Authentication Test', () => {
         testCredentials: 'test@witchcityrope.com / Test1234',
         environment: {
           mswDisabled: true,
-          reactUrl: 'http://localhost:5173',
-          apiUrl: 'http://localhost:5655'
+          reactUrl: 'Configured via playwright baseURL',
+          apiUrl: 'Proxied via React dev server'
         }
       },
       criticalChecks: {
@@ -146,7 +146,7 @@ test.describe('Final Real API Authentication Test', () => {
         authenticationRequests: authRequests.length,
         protectedEndpointRequests: protectedRequests.length,
         requestDetails: apiRequests.map(req => ({
-          url: req.url.replace('http://localhost:5655', ''),
+          url: req.url.replace(/https?:\/\/[^/]+/, ''),
           method: req.method,
           status: (req as any).status || 'pending'
         }))
@@ -195,8 +195,8 @@ test.describe('Final Real API Authentication Test', () => {
 
   test('should maintain stable page state without loops', async ({ page }) => {
     console.log('=== PAGE STABILITY TEST ===');
-    
-    await page.goto('http://localhost:5173/login');
+
+    await page.goto('/login');
     await page.waitForLoadState('networkidle');
     
     // Monitor for 10 seconds for any stability issues

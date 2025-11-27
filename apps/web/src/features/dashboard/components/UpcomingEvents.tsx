@@ -30,6 +30,7 @@ import {
 import { useUserEvents, useDashboardError } from '../hooks/useDashboard';
 import { DashboardUtils } from '../types/dashboard.types';
 import type { DashboardEventDto } from '../types/dashboard.types';
+import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 
 /**
  * UpcomingEvents Component Props
@@ -52,21 +53,24 @@ interface EventCardProps {
 }
 
 const EventCard: React.FC<EventCardProps> = ({ event }) => {
+  const eventTimeZone = useEventTimeZone();
   const statusDisplay = DashboardUtils.getRegistrationStatusDisplay(event.registrationStatus);
   const startDate = new Date(event.startDate);
   const endDate = new Date(event.endDate);
-  
+
   // Format date display
-  const eventDate = DashboardUtils.formatDate(event.startDate);
+  const eventDate = DashboardUtils.formatDate(event.startDate, eventTimeZone);
   const startTime = startDate.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
-    hour12: true
+    hour12: true,
+    timeZone: eventTimeZone
   });
   const endTime = endDate.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
-    hour12: true
+    hour12: true,
+    timeZone: eventTimeZone
   });
   
   // Check if event is today or soon

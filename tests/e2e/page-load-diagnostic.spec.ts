@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 
 test('can the fucking page even load', async ({ page }) => {
-  console.log('🔍 Starting diagnostic test for http://localhost:5173');
-  
+  console.log('🔍 Starting diagnostic test for home page');
+
   // Capture all console messages
   const consoleMessages: string[] = [];
   page.on('console', msg => {
@@ -10,7 +10,7 @@ test('can the fucking page even load', async ({ page }) => {
     console.log('Browser Console:', message);
     consoleMessages.push(message);
   });
-  
+
   // Capture page errors
   const pageErrors: string[] = [];
   page.on('pageerror', err => {
@@ -18,7 +18,7 @@ test('can the fucking page even load', async ({ page }) => {
     console.log(error);
     pageErrors.push(error);
   });
-  
+
   // Capture network failures
   const networkErrors: string[] = [];
   page.on('requestfailed', request => {
@@ -26,14 +26,14 @@ test('can the fucking page even load', async ({ page }) => {
     console.log(error);
     networkErrors.push(error);
   });
-  
-  console.log('🌐 Attempting to navigate to http://localhost:5173...');
-  
+
+  console.log('🌐 Attempting to navigate to home page...');
+
   try {
     // Navigate with extended timeout
-    await page.goto('http://localhost:5173', { 
+    await page.goto('/', {
       timeout: 15000,
-      waitUntil: 'networkidle' 
+      waitUntil: 'domcontentloaded'
     });
     
     console.log('✅ Page navigation completed');
@@ -214,12 +214,12 @@ test('can the fucking page even load', async ({ page }) => {
 
 test('network connectivity check', async ({ page }) => {
   console.log('🌐 Testing network connectivity...');
-  
+
   // Test if we can reach the server at all
-  const response = await page.request.get('http://localhost:5173');
+  const response = await page.request.get('/');
   console.log('HTTP Response Status:', response.status());
   console.log('HTTP Response Headers:', response.headers());
-  
+
   const body = await response.text();
   console.log('Response body length:', body.length);
   console.log('Response body preview (first 500 chars):');

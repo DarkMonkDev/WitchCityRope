@@ -1,8 +1,6 @@
 import { test, expect, Page } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
-const API_BASE_URL = 'http://localhost:5655';
-
 test.describe('Comprehensive Login Debugging', () => {
   let networkRequests: Array<{
     url: string;
@@ -254,9 +252,9 @@ test.describe('Comprehensive Login Debugging', () => {
     console.log('=== TESTING DIRECT API CALL ===');
     
     // Test API health first
-    const healthResponse = await page.evaluate(async (apiUrl) => {
+    const healthResponse = await page.evaluate(async () => {
       try {
-        const response = await fetch(`${apiUrl}/health`);
+        const response = await fetch('/health');
         return {
           status: response.status,
           ok: response.ok,
@@ -265,14 +263,14 @@ test.describe('Comprehensive Login Debugging', () => {
       } catch (error) {
         return { error: error.toString() };
       }
-    }, API_BASE_URL);
+    });
     
     console.log('API Health Check:', healthResponse);
     
     // Test login endpoint directly
-    const loginResponse = await page.evaluate(async (apiUrl, credentials) => {
+    const loginResponse = await page.evaluate(async (credentials) => {
       try {
-        const response = await fetch(`${apiUrl}/api/auth/login`, {
+        const response = await fetch('/api/auth/login', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -280,7 +278,7 @@ test.describe('Comprehensive Login Debugging', () => {
           body: JSON.stringify(credentials),
           credentials: 'include' // Important for cookies
         });
-        
+
         const responseText = await response.text();
         let responseJson;
         try {
@@ -288,7 +286,7 @@ test.describe('Comprehensive Login Debugging', () => {
         } catch {
           responseJson = responseText;
         }
-        
+
         return {
           status: response.status,
           ok: response.ok,
@@ -298,7 +296,7 @@ test.describe('Comprehensive Login Debugging', () => {
       } catch (error) {
         return { error: error.toString() };
       }
-    }, API_BASE_URL, AuthHelpers.accounts.admin);
+    }, AuthHelpers.accounts.admin);
     
     console.log('=== DIRECT LOGIN API CALL RESULT ===');
     console.log('Status:', loginResponse.status);

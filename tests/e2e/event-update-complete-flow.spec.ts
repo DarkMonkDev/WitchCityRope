@@ -149,7 +149,7 @@ test.describe('Event Update Authentication Flow - E2E', () => {
       await page.waitForLoadState('networkidle')
     } else {
       // Fallback: Navigate directly to events management page
-      await page.goto('http://localhost:5173/admin/events')
+      await page.goto('/admin/events')
       await page.waitForLoadState('networkidle')
     }
     
@@ -211,7 +211,7 @@ test.describe('Event Update Authentication Flow - E2E', () => {
       // Fallback: Use fallback event ID and navigate directly
       eventId = '550e8400-e29b-41d4-a716-446655440000'
       console.log('⚠️  No edit button found, navigating directly to fallback event')
-      await page.goto(`http://localhost:5173/admin/events/${eventId}/edit`)
+      await page.goto(`/admin/events/${eventId}/edit`)
       await page.waitForLoadState('networkidle')
     } else {
       await editButton.click()
@@ -482,7 +482,7 @@ test.describe('Event Update Authentication Flow - E2E', () => {
     })
     
     // Navigate to event edit and make update
-    await page.goto('http://localhost:5173/admin/events/550e8400-e29b-41d4-a716-446655440000/edit')
+    await page.goto('/admin/events/550e8400-e29b-41d4-a716-446655440000/edit')
     await page.waitForLoadState('networkidle')
     
     // Make a change and save
@@ -533,7 +533,7 @@ test.describe('Event Update Authentication Flow - E2E', () => {
     expect(loginSuccess).toBeTruthy();
     
     // Navigate to event edit
-    await page.goto('http://localhost:5173/admin/events/550e8400-e29b-41d4-a716-446655440000/edit')
+    await page.goto('/admin/events/550e8400-e29b-41d4-a716-446655440000/edit')
     await page.waitForLoadState('networkidle')
     
     // Intercept API calls and simulate errors

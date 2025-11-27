@@ -50,13 +50,14 @@ check_compilation() {
 
     local logs=$(docker logs "$container_name" --tail 100 2>&1)
 
-    if echo "$logs" | grep -iq "error\|failed\|exception"; then
+    # Look for actual compilation/build errors, excluding runtime warnings
+    if echo "$logs" | grep -iE "compilation (error|failed)|build failed|syntax error|fatal error"; then
         if echo "$logs" | grep -iq "Build succeeded\|Compiled successfully"; then
             echo -e "${GREEN}✅ $service_type compiled successfully${NC}"
             return 0
         else
             echo -e "${RED}❌ $service_type has compilation errors:${NC}"
-            echo "$logs" | grep -i "error" | tail -20
+            echo "$logs" | grep -iE "compilation (error|failed)|build failed|syntax error|fatal error" | tail -20
             return 1
         fi
     else
@@ -86,16 +87,16 @@ verify_test_environment() {
     echo -e "${YELLOW}🏥 Verifying test environment health...${NC}"
     echo ""
 
-    # Check PostgreSQL
-    check_container_health "witchcity-postgres" 30 || ((errors++))
+    # Check PostgreSQL (explicit -test suffix to avoid conflicts with dev)
+    check_container_health "witchcity-postgres-test" 30 || ((errors++))
 
     # Check API
-    check_container_health "witchcity-api" 60 || ((errors++))
-    check_compilation "witchcity-api" "API" || ((errors++))
+    check_container_health "witchcity-api-test" 60 || ((errors++))
+    check_compilation "witchcity-api-test" "API" || ((errors++))
 
     # Check Web
-    check_container_health "witchcity-web" 60 || ((errors++))
-    check_compilation "witchcity-web" "Web" || ((errors++))
+    check_container_health "witchcity-web-test" 60 || ((errors++))
+    check_compilation "witchcity-web-test" "Web" || ((errors++))
 
     # Check database seeded
     sleep 5  # Give migrations time to run

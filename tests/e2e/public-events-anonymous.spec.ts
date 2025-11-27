@@ -115,7 +115,7 @@ test.describe('Public Events Anonymous Access', () => {
 
     test('Anonymous user can navigate to events page', async ({ page }) => {
       // Navigate to events page WITHOUT logging in
-      await page.goto('http://localhost:5173/events');
+      await page.goto('/events');
       await page.waitForLoadState('networkidle');
 
       // Should successfully load (200 status)
@@ -129,7 +129,7 @@ test.describe('Public Events Anonymous Access', () => {
 
     test('Events list loads and displays events for anonymous user', async ({ page }) => {
       // Navigate to events page
-      await page.goto('http://localhost:5173/events');
+      await page.goto('/events');
       await page.waitForLoadState('networkidle');
 
       // Wait for events to load (check for event cards or events container)
@@ -161,7 +161,7 @@ test.describe('Public Events Anonymous Access', () => {
       });
 
       // Navigate to events page
-      await page.goto('http://localhost:5173/events');
+      await page.goto('/events');
       await page.waitForLoadState('networkidle');
 
       // Wait for events to potentially load
@@ -179,7 +179,7 @@ test.describe('Public Events Anonymous Access', () => {
 
     test('Event cards display title, date, and description', async ({ page }) => {
       // Navigate to events page
-      await page.goto('http://localhost:5173/events');
+      await page.goto('/events');
       await page.waitForLoadState('networkidle');
 
       // Get first event card
@@ -205,7 +205,7 @@ test.describe('Public Events Anonymous Access', () => {
 
     test('Event cards are clickable', async ({ page }) => {
       // Navigate to events page
-      await page.goto('http://localhost:5173/events');
+      await page.goto('/events');
       await page.waitForLoadState('networkidle');
 
       // Get first event card
@@ -227,7 +227,7 @@ test.describe('Public Events Anonymous Access', () => {
 
     test('No sensitive admin data visible to anonymous users', async ({ page }) => {
       // Navigate to events page
-      await page.goto('http://localhost:5173/events');
+      await page.goto('/events');
       await page.waitForLoadState('networkidle');
 
       // Get page content
@@ -259,7 +259,7 @@ test.describe('Public Events Anonymous Access', () => {
 
     test('Page title is set correctly', async ({ page }) => {
       // Navigate to events page
-      await page.goto('http://localhost:5173/events');
+      await page.goto('/events');
       await page.waitForLoadState('networkidle');
 
       // Check page title
@@ -276,7 +276,7 @@ test.describe('Public Events Anonymous Access', () => {
 
     test('Events page accessible via navigation menu', async ({ page }) => {
       // Navigate to home page
-      await page.goto('http://localhost:5173/');
+      await page.goto('/');
       await page.waitForLoadState('networkidle');
 
       // Look for Events link in navigation
@@ -299,7 +299,7 @@ test.describe('Public Events Anonymous Access', () => {
 
     test('Direct URL access to /events works', async ({ page }) => {
       // Directly navigate to events URL
-      const response = await page.goto('http://localhost:5173/events');
+      const response = await page.goto('/events');
 
       // Should return 200 OK
       expect(response?.status()).toBe(200);
@@ -317,7 +317,7 @@ test.describe('Public Events Anonymous Access', () => {
       // This test assumes there might be scenarios with no published events
       // For now, we just verify the page doesn't crash
 
-      await page.goto('http://localhost:5173/events');
+      await page.goto('/events');
       await page.waitForLoadState('networkidle');
 
       // Page should load without errors
@@ -342,7 +342,7 @@ test.describe('Public Events Anonymous Access', () => {
       });
 
       // Navigate to events page
-      await page.goto('http://localhost:5173/events');
+      await page.goto('/events');
       await page.waitForLoadState('networkidle');
 
       // Wait a bit for any delayed errors

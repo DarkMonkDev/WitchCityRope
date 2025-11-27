@@ -10,7 +10,7 @@ test.describe('Simple Login Test', () => {
     await AuthHelpers.clearAuthState(page);
     
     // Navigate to login page
-    await page.goto('http://localhost:5173/login');
+    await page.goto('/login');
     
     // Wait for page to load
     await page.waitForLoadState('domcontentloaded');

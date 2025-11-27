@@ -55,6 +55,6 @@ test('debug dashboard vetting status for test users', async ({ page, context }) 
 
     // Logout
     await context.clearCookies();
-    await page.goto('http://localhost:5173');
+    await page.goto('');
   }
 });

@@ -47,7 +47,8 @@ const mockTicketTypes: EventTicketType[] = [
     minPrice: 120,
     maxPrice: 150,
     quantityAvailable: 15,
-    salesEndDate: '2025-02-17',
+    // ✅ REMOVED: salesEndDate field removed from backend DTO
+    // salesEndDate: '2025-02-17',
   },
   {
     id: '2',
@@ -58,7 +59,8 @@ const mockTicketTypes: EventTicketType[] = [
     minPrice: 45,
     maxPrice: 60,
     quantityAvailable: 10,
-    salesEndDate: '2025-02-15',
+    // ✅ REMOVED: salesEndDate field removed from backend DTO
+    // salesEndDate: '2025-02-15',
   },
   {
     id: '3',
@@ -69,7 +71,8 @@ const mockTicketTypes: EventTicketType[] = [
     maxPrice: 100,
     defaultPrice: 90,
     quantityAvailable: 8,
-    salesEndDate: '2025-02-16',
+    // ✅ REMOVED: salesEndDate field removed from backend DTO
+    // salesEndDate: '2025-02-16',
   },
 ];
 

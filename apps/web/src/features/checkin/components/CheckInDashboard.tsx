@@ -19,10 +19,10 @@ import {
   Loader,
   Center
 } from '@mantine/core';
-import { 
-  IconUsers, 
-  IconClock, 
-  IconAlertCircle, 
+import {
+  IconUsers,
+  IconClock,
+  IconAlertCircle,
   IconRefresh,
   IconDownload,
   IconWifi,
@@ -31,6 +31,7 @@ import {
 import type { CheckInDashboard, RecentCheckIn, CapacityInfo } from '../types/checkin.types';
 import { EVENT_STATUS_CONFIGS, TOUCH_TARGETS } from '../types/checkin.types';
 import { useOfflineSync } from '../hooks/useOfflineSync';
+import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 
 interface CheckInDashboardProps {
   dashboard: CheckInDashboard | null;
@@ -125,16 +126,17 @@ function StatisticsCard({ capacity }: { capacity: CapacityInfo }) {
 function EventInfoCard({ dashboard }: { dashboard: CheckInDashboard }) {
   const statusConfig = EVENT_STATUS_CONFIGS[dashboard.eventStatus];
   const eventDate = new Date(dashboard.eventDate);
+  const eventTimeZone = useEventTimeZone();
 
   return (
     <Card shadow="sm" padding="lg" radius="md">
       <Stack gap="md">
         <Group justify="space-between" align="flex-start">
           <Stack gap="xs" style={{ flex: 1 }}>
-            <Text 
-              fw={700} 
+            <Text
+              fw={700}
               size="lg"
-              style={{ 
+              style={{
                 fontFamily: 'Bodoni Moda, serif',
                 lineHeight: 1.2
               }}
@@ -142,11 +144,11 @@ function EventInfoCard({ dashboard }: { dashboard: CheckInDashboard }) {
             >
               {dashboard.eventTitle}
             </Text>
-            
+
             <Group align="center" gap="xs">
               <IconClock size={16} />
               <Text size="sm" c="dimmed">
-                {eventDate.toLocaleDateString()} at {eventDate.toLocaleTimeString()}
+                {eventDate.toLocaleDateString('en-US', { timeZone: eventTimeZone })} at {eventDate.toLocaleTimeString('en-US', { timeZone: eventTimeZone })}
               </Text>
             </Group>
           </Stack>
@@ -177,6 +179,8 @@ function EventInfoCard({ dashboard }: { dashboard: CheckInDashboard }) {
  * Recent check-ins activity feed
  */
 function RecentActivity({ recentCheckIns }: { recentCheckIns: RecentCheckIn[] }) {
+  const eventTimeZone = useEventTimeZone();
+
   if (recentCheckIns.length === 0) {
     return (
       <Card shadow="sm" padding="lg" radius="md" h="300px">
@@ -233,9 +237,9 @@ function RecentActivity({ recentCheckIns }: { recentCheckIns: RecentCheckIn[] })
                       by {checkIn.staffMemberName}
                     </Text>
                   </Stack>
-                  
+
                   <Text size="xs" c="dimmed" ta="right">
-                    {checkInTime.toLocaleTimeString()}
+                    {checkInTime.toLocaleTimeString('en-US', { timeZone: eventTimeZone })}
                   </Text>
                 </Group>
               );
@@ -252,6 +256,7 @@ function RecentActivity({ recentCheckIns }: { recentCheckIns: RecentCheckIn[] })
  */
 function SyncStatusCard() {
   const { isOnline, pendingCount, lastSync } = useOfflineSync();
+  const eventTimeZone = useEventTimeZone();
 
   return (
     <Card shadow="sm" padding="md" radius="md">
@@ -276,7 +281,7 @@ function SyncStatusCard() {
 
         {lastSync && (
           <Text size="xs" c="dimmed">
-            Last sync: {new Date(lastSync).toLocaleTimeString()}
+            Last sync: {new Date(lastSync).toLocaleTimeString('en-US', { timeZone: eventTimeZone })}
           </Text>
         )}
       </Group>

@@ -94,7 +94,7 @@ test.describe('Verify Recent Changes Applied', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Make API call to get vetting applications
-    const response = await page.request.get('http://localhost:5655/api/admin/vetting/applications');
+    const response = await page.request.get('/api/admin/vetting/applications');
 
     expect(response.ok()).toBeTruthy();
 

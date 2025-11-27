@@ -20,7 +20,7 @@ export class EventsListPage {
    */
   async goto(): Promise<void> {
     console.log('📍 Navigating to events list page...');
-    await this.page.goto('http://localhost:5173/events');
+    await this.page.goto('/events');
     await this.waitForPageLoad();
   }
 
@@ -144,7 +144,7 @@ export class EventsListPage {
         'No events found on events page.\n' +
         '\n' +
         'Please verify:\n' +
-        '1. Database has seeded events: curl http://localhost:5655/api/events\n' +
+        '1. Database has seeded events: Check API endpoint /api/events\n' +
         '2. User is authenticated and has permission to view events\n' +
         '3. Events page component is rendering correctly\n' +
         '\n' +

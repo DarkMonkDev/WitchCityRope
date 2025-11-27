@@ -156,7 +156,7 @@ test.describe('Refund Database Persistence Tests', () => {
     console.log(`   ✅ Admin user ID: ${adminId}`);
 
     console.log('📝 Step 2: Navigate to payments page');
-    await page.goto('http://localhost:5173/admin/payments');
+    await page.goto('/admin/payments');
     await page.waitForLoadState('networkidle');
 
     // Get a payment to refund

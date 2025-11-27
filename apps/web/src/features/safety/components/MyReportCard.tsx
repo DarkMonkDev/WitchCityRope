@@ -3,6 +3,7 @@ import { Paper, Stack, Group, Text, Button, rem } from '@mantine/core';
 import { IconArrowRight } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import { IncidentStatusBadge } from './IncidentStatusBadge';
+import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 
 interface MyReportCardProps {
   id: string;
@@ -13,12 +14,13 @@ interface MyReportCardProps {
   lastUpdatedAt: string;
 }
 
-const formatDate = (dateString: string): string => {
+const formatDate = (dateString: string, timeZone: string): string => {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
+    timeZone
   });
 };
 
@@ -58,6 +60,7 @@ export const MyReportCard: React.FC<MyReportCardProps> = ({
   lastUpdatedAt
 }) => {
   const navigate = useNavigate();
+  const eventTimeZone = useEventTimeZone();
 
   const handleViewDetails = () => {
     // Use setTimeout to defer navigation (React Router pattern from lessons learned)
@@ -100,7 +103,7 @@ export const MyReportCard: React.FC<MyReportCardProps> = ({
             Incident Date
           </Text>
           <Text size="lg" fw={700} style={{ color: '#880124' }}>
-            {formatDate(incidentDate)}
+            {formatDate(incidentDate, eventTimeZone)}
           </Text>
         </div>
 
@@ -120,7 +123,7 @@ export const MyReportCard: React.FC<MyReportCardProps> = ({
             Reported
           </Text>
           <Text size="sm">
-            {formatDate(reportedAt)}
+            {formatDate(reportedAt, eventTimeZone)}
           </Text>
         </div>
 

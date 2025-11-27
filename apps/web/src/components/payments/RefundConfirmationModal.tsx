@@ -16,6 +16,7 @@ import {
 } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
+import { useEventTimeZone } from '../../hooks/useEventTimeZone';
 
 interface RefundConfirmationModalProps {
   opened: boolean;
@@ -44,6 +45,7 @@ export const RefundConfirmationModal: React.FC<RefundConfirmationModalProps> = (
   const [confirmed, setConfirmed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ amount?: string; reason?: string }>({});
+  const eventTimeZone = useEventTimeZone();
 
   // Reset state when modal closes
   useEffect(() => {
@@ -146,7 +148,7 @@ export const RefundConfirmationModal: React.FC<RefundConfirmationModalProps> = (
             Payment Method: <Text component="span" fw={500}>{payment.paymentMethod}</Text>
           </List.Item>
           <List.Item>
-            Payment Date: <Text component="span" fw={500}>{new Date(payment.paymentDate).toLocaleDateString()}</Text>
+            Payment Date: <Text component="span" fw={500}>{new Date(payment.paymentDate).toLocaleDateString('en-US', { timeZone: eventTimeZone })}</Text>
           </List.Item>
           {payment.description && (
             <List.Item>

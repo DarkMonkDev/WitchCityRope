@@ -22,6 +22,8 @@ import { AuthHelpers } from './test-utils/helpers/auth.helpers';
  * - guest@witchcityrope.com / Test123! (Guest/Attendee)
  */
 
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+
 test.describe('User Dashboard Wireframe Validation', () => {
 
   test.describe('Navigation Structure', () => {
@@ -30,7 +32,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       // Navigate to dashboard
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Look for Edit Profile link in utility bar
@@ -52,7 +54,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('should display dashboard page title format "[User\'s Name] Dashboard"', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Look for page title with pattern "[Name] Dashboard"
@@ -68,7 +70,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('should display Edit Profile button on dashboard page', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Look for Edit Profile button on the page (not in nav)
@@ -81,7 +83,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('should navigate to /dashboard/profile-settings from Edit Profile link', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Click Edit Profile link
@@ -99,7 +101,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       // Navigate to profile settings first
-      await page.goto('http://localhost:5173/dashboard/profile-settings');
+      await page.goto(`${baseUrl}/dashboard/profile-settings`);
       await page.waitForLoadState('networkidle');
 
       // Click Dashboard link in navigation
@@ -124,7 +126,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('should NOT display alert for Vetted users', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Look for vetting alert - should NOT be visible
@@ -144,7 +146,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       // Using member account which may have Pending status
       await AuthHelpers.loginAs(page, 'member');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Look for pending status alert
@@ -172,7 +174,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       // May need to skip if no approved user available
       await AuthHelpers.loginAs(page, 'member');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Look for approved status alert
@@ -205,7 +207,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       // NOTE: This test requires a user with On Hold status
       await AuthHelpers.loginAs(page, 'member');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Look for on hold status alert
@@ -232,7 +234,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       // NOTE: This test requires a user with Denied status
       await AuthHelpers.loginAs(page, 'member');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Look for denied status alert
@@ -267,7 +269,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('should NOT display pricing information on any event', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // CRITICAL: Verify NO pricing information is visible
@@ -287,7 +289,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('should NOT display capacity or spots available', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // CRITICAL: Verify NO capacity information is visible
@@ -306,7 +308,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('should display "View Details" button NOT "Learn More"', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Look for View Details buttons
@@ -330,7 +332,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('should display event cards with status badges', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Look for event cards
@@ -355,7 +357,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('should display grid layout with correct pattern', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Look for event grid container
@@ -388,7 +390,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('should display social event with "Ticket Purchased (Social Event)" badge', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Look for social event badge
@@ -412,7 +414,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('should switch to table view when toggle clicked', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Look for view toggle button
@@ -433,7 +435,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('should display table columns: Date, Time, Title, Status, Action', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Switch to table view if toggle exists
@@ -468,7 +470,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('should display "View Details" button in Action column NOT "Learn More"', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Switch to table view
@@ -495,7 +497,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('should display status badges in Status column', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Switch to table view
@@ -521,7 +523,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('should have sortable Date column', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Switch to table view
@@ -556,7 +558,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('should display "Show Past Events" checkbox unchecked by default', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Look for "Show Past Events" checkbox
@@ -581,7 +583,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('should hide past events when checkbox unchecked', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Look for past event elements
@@ -602,7 +604,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('should show past events when checkbox checked', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Find and check the "Show Past Events" checkbox
@@ -632,7 +634,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('should display Grid/Table view toggle', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Look for view toggle controls
@@ -653,7 +655,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('should display search input for filtering events', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Look for search input
@@ -676,7 +678,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('should display 4 tabs: Personal, Social, Security, Vetting', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard/profile-settings');
+      await page.goto(`${baseUrl}/dashboard/profile-settings`);
       await page.waitForLoadState('networkidle');
 
       // Look for tabs
@@ -703,7 +705,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('should display profile fields in Personal tab', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard/profile-settings');
+      await page.goto(`${baseUrl}/dashboard/profile-settings`);
       await page.waitForLoadState('networkidle');
 
       // Ensure Personal tab is active
@@ -728,7 +730,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('should display Change Password form in Security tab', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard/profile-settings');
+      await page.goto(`${baseUrl}/dashboard/profile-settings`);
       await page.waitForLoadState('networkidle');
 
       // Click Security tab
@@ -762,7 +764,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
 
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Verify page title is visible
@@ -783,7 +785,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
 
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Look for event cards
@@ -812,7 +814,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('CRITICAL: Verify NO pricing anywhere on dashboard', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       const pageContent = await page.locator('body').textContent();
@@ -841,7 +843,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('CRITICAL: Verify NO capacity information anywhere', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       const pageContent = await page.locator('body').textContent();
@@ -870,7 +872,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('CRITICAL: Verify NO "Learn More" buttons anywhere', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // CRITICAL: Search for any "Learn More" buttons
@@ -888,7 +890,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
     test('CRITICAL: Verify ONLY "View Details" buttons for events', async ({ page }) => {
       await AuthHelpers.loginAs(page, 'vetted');
 
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto(`${baseUrl}/dashboard`);
       await page.waitForLoadState('networkidle');
 
       // Look for View Details buttons

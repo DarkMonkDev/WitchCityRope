@@ -51,7 +51,7 @@ test.describe('Login Methods Testing - AuthHelper Solution', () => {
   test('Method 2: Use force option with direct selectors', async () => {
     console.log('🧪 Testing Method 2: force option with data-testid selectors')
 
-    await page.goto('http://localhost:5173/login')
+    await page.goto('/login')
     await page.waitForLoadState('networkidle')
 
     // Use data-testid selectors with force option to bypass any blocking
@@ -74,8 +74,8 @@ test.describe('Login Methods Testing - AuthHelper Solution', () => {
 
   test('Method 3: Use page.evaluate() to directly set values in DOM', async () => {
     console.log('🧪 Testing Method 3: page.evaluate() direct DOM manipulation')
-    
-    await page.goto('http://localhost:5173/login')
+
+    await page.goto('/login')
     await page.waitForLoadState('networkidle')
     
     // Method 3: Direct DOM manipulation to bypass all Mantine handlers
@@ -120,9 +120,9 @@ test.describe('Login Methods Testing - AuthHelper Solution', () => {
 
   test('Method 4: Ignore console errors and use standard interaction', async () => {
     console.log('🧪 Testing Method 4: Ignore console errors completely')
-    
+
     // Method 4: Completely ignore console errors and proceed normally
-    await page.goto('http://localhost:5173/login')
+    await page.goto('/login')
     await page.waitForLoadState('networkidle')
     
     // Standard Playwright interaction - ignore any console issues
@@ -149,7 +149,7 @@ test.describe('Login Methods Testing - AuthHelper Solution', () => {
     
     // Method 5: Create a robust login helper that tries multiple approaches
     const loginWithFallback = async (email: string, password: string): Promise<boolean> => {
-      await page.goto('http://localhost:5173/login')
+      await page.goto('/login')
       await page.waitForLoadState('networkidle')
       
       try {
@@ -233,8 +233,8 @@ test.describe('Login Methods Testing - AuthHelper Solution', () => {
 
   test('Error Analysis: Console errors during login', async () => {
     console.log('🔍 Analyzing console errors during login process')
-    
-    await page.goto('http://localhost:5173/login')
+
+    await page.goto('/login')
     await page.waitForLoadState('networkidle')
     
     // Clear previous errors and start fresh
@@ -275,10 +275,10 @@ test.describe('Login Methods Testing - AuthHelper Solution', () => {
     console.log('⏱️ Testing login performance across methods')
     
     const timingResults: Record<string, number> = {}
-    
+
     // Test Method 1 timing
     const method1Start = Date.now()
-    await page.goto('http://localhost:5173/login')
+    await page.goto('/login')
     await page.waitForLoadState('networkidle')
     await page.locator('[data-testid="email-or-scenename-input"]').fill('admin@witchcityrope.com')
     await page.locator('[data-testid="password-input"]').fill('Test123!')

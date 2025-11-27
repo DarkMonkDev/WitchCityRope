@@ -23,7 +23,7 @@ export class AuthHelpers {
   /**
    * Login with specific user role using data-testid selectors
    * Matches current React LoginPage.tsx implementation
-   * CRITICAL: Uses ABSOLUTE URLs to ensure cookies persist properly
+   * Uses relative URLs that work with baseURL in containers
    */
   static async loginAs(page: Page, role: keyof typeof AuthHelpers.accounts) {
     const credentials = this.accounts[role];
@@ -31,8 +31,8 @@ export class AuthHelpers {
     // Clear auth state safely first
     await this.clearAuthState(page);
 
-    // Navigate to login page using ABSOLUTE URL (required for cookie persistence)
-    await page.goto('http://localhost:5173/login');
+    // Navigate to login page using relative URL (works with baseURL in containers)
+    await page.goto('/login');
     await page.waitForLoadState('networkidle');
 
     // Fill form using data-testid selectors (updated for email-or-scenename field)
@@ -51,11 +51,11 @@ export class AuthHelpers {
 
   /**
    * Login with custom credentials
-   * CRITICAL: Uses ABSOLUTE URLs to ensure cookies persist properly
+   * Uses relative URLs that work with baseURL in containers
    */
   static async loginWith(page: Page, credentials: TestCredentials) {
-    // Navigate to login page using ABSOLUTE URL (required for cookie persistence)
-    await page.goto('http://localhost:5173/login');
+    // Navigate to login page using relative URL (works with baseURL in containers)
+    await page.goto('/login');
     await page.waitForLoadState('networkidle');
 
     // Fill form using data-testid selectors (updated for email-or-scenename field)
@@ -72,11 +72,11 @@ export class AuthHelpers {
 
   /**
    * Attempt login and expect failure
-   * CRITICAL: Uses ABSOLUTE URLs to ensure cookies persist properly
+   * Uses relative URLs that work with baseURL in containers
    */
   static async loginExpectingError(page: Page, credentials: TestCredentials, expectedError?: string) {
-    // Navigate to login page using ABSOLUTE URL (required for cookie persistence)
-    await page.goto('http://localhost:5173/login');
+    // Navigate to login page using relative URL (works with baseURL in containers)
+    await page.goto('/login');
     await page.waitForLoadState('networkidle');
 
     // Fill form using data-testid selectors (updated for email-or-scenename field)
@@ -154,7 +154,7 @@ export class AuthHelpers {
   /**
    * Clear all authentication state safely for test setup
    * Use this in beforeEach hooks to ensure clean state
-   * CRITICAL: Uses ABSOLUTE URL to ensure cookies persist properly
+   * Uses relative URLs that work with baseURL in containers
    */
   static async clearAuthState(page: Page) {
     // Use Playwright's storage state API - most reliable method
@@ -162,8 +162,8 @@ export class AuthHelpers {
     await page.context().clearPermissions();
 
     try {
-      // Navigate to login page using ABSOLUTE URL first to establish context
-      await page.goto('http://localhost:5173/login');
+      // Navigate to login page using relative URL (works with baseURL in containers)
+      await page.goto('/login');
       await page.waitForLoadState('networkidle');
 
       // Clear storage after page is loaded

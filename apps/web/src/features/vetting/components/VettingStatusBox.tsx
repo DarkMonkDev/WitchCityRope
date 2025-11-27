@@ -16,6 +16,7 @@ import {
   Pause
 } from 'lucide-react';
 import type { VettingStatus } from '../types/vettingStatus';
+import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 
 export interface VettingStatusBoxProps {
   status: VettingStatus;
@@ -105,12 +106,14 @@ export const VettingStatusBox: React.FC<VettingStatusBoxProps> = ({
 }) => {
   const config = statusConfig[status];
   const Icon = config.icon;
+  const eventTimeZone = useEventTimeZone();
 
   // Format submitted date as "Submitted - Nov 4, 2025"
-  const formattedSubmittedDate = `Submitted - ${submittedAt.toLocaleDateString(undefined, {
+  const formattedSubmittedDate = `Submitted - ${submittedAt.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
-    day: 'numeric'
+    day: 'numeric',
+    timeZone: eventTimeZone
   })}`;
 
   // Use simplified layout for all statuses

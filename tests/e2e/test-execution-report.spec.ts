@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || `${baseUrl}`;
+
 test.describe('Comprehensive Application State Report', () => {
   test('generate comprehensive application status report', async ({ page }) => {
     const report = {
@@ -21,7 +23,7 @@ test.describe('Comprehensive Application State Report', () => {
 
     // Test 1: Home page functionality
     try {
-      await page.goto('http://localhost:5173/', { waitUntil: 'domcontentloaded', timeout: 10000 });
+      await page.goto(`${baseUrl}/`, { waitUntil: 'domcontentloaded', timeout: 10000 });
       const title = await page.title();
       const h1Text = await page.locator('h1').first().textContent();
       
@@ -42,7 +44,7 @@ test.describe('Comprehensive Application State Report', () => {
 
     // Test 2: Login page functionality  
     try {
-      await page.goto('http://localhost:5173/login', { waitUntil: 'domcontentloaded', timeout: 10000 });
+      await page.goto(`${baseUrl}/login`, { waitUntil: 'domcontentloaded', timeout: 10000 });
       const welcomeText = await page.locator('h1').textContent();
       const emailInput = page.locator('[data-testid="email-or-scenename-input"]');
       const passwordInput = page.locator('[data-testid="password-input"]');
@@ -72,7 +74,7 @@ test.describe('Comprehensive Application State Report', () => {
 
     // Test 3: Events page functionality
     try {
-      await page.goto('http://localhost:5173/events', { waitUntil: 'domcontentloaded', timeout: 10000 });
+      await page.goto(`${baseUrl}/events`, { waitUntil: 'domcontentloaded', timeout: 10000 });
       const pageTitle = await page.locator('h1').textContent();
       const pageContent = await page.textContent('body');
       

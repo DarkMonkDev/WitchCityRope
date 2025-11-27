@@ -13,7 +13,7 @@ test.describe('Debug Save Button Regression - Field Clearing Investigation', () 
     console.log(`📍 Using event from database: ${firstEvent.title} (ID: ${firstEvent.id})`);
 
     // Navigate to event
-    await page.goto(`http://localhost:5173/admin/events/${firstEvent.id}`);
+    await page.goto(`/admin/events/${firstEvent.id}`);
 
     // Wait for form to load
     console.log('⏳ Waiting for form to load...');
@@ -168,7 +168,7 @@ test.describe('Debug Save Button Regression - Field Clearing Investigation', () 
     console.log(`📍 Using event from database: ${firstEvent.title} (ID: ${firstEvent.id})`);
 
     // Navigate to event
-    await page.goto(`http://localhost:5173/admin/events/${firstEvent.id}`);
+    await page.goto(`/admin/events/${firstEvent.id}`);
 
     // Wait for form to load
     await page.waitForSelector('[data-testid="event-form"]', { timeout: 10000 });
@@ -193,12 +193,12 @@ test.describe('Debug Save Button Regression - Field Clearing Investigation', () 
 
     // Navigate away
     console.log('🔄 Navigating away to dashboard...');
-    await page.goto('http://localhost:5173/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/dashboard');
+    await page.waitForLoadState('domcontentloaded');
 
     // Navigate back to the event
     console.log('🔄 Navigating back to event...');
-    await page.goto(`http://localhost:5173/admin/events/${firstEvent.id}`);
+    await page.goto(`/admin/events/${firstEvent.id}`);
     await page.waitForSelector('[data-testid="event-form"]', { timeout: 10000 });
 
     // Check if shortDescription was persisted

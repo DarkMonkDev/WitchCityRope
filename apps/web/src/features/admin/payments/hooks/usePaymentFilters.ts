@@ -54,6 +54,7 @@ export const usePaymentFilters = () => {
   };
 
   // Get active filter labels for display
+  // Note: Date range display uses user's local timezone for UI display
   const activeFilters = useMemo(() => {
     const filters: string[] = [];
 
@@ -64,6 +65,7 @@ export const usePaymentFilters = () => {
       filters.push(...filterState.statuses);
     }
     if (filterState.startDate && filterState.endDate) {
+      // Display uses local timezone for filter labels (this is for UI display only)
       filters.push(`Date Range: ${filterState.startDate.toLocaleDateString()} - ${filterState.endDate.toLocaleDateString()}`);
     }
 

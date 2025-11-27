@@ -26,7 +26,7 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
     const loginSuccess = await AuthHelper.loginAs(page, 'admin');
     expect(loginSuccess).toBeTruthy();
 
-    await page.goto('http://localhost:5173/admin/events');
+    await page.goto('/admin/events');
     await page.waitForLoadState('networkidle');
   });
 

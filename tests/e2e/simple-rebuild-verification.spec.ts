@@ -36,7 +36,7 @@ test.describe('Simple Rebuild Verification', () => {
 
     // Try direct navigation
     console.log('Trying direct navigation to admin dashboard...');
-    await page.goto('http://localhost:5173/admin/dashboard');
+    await page.goto('/admin/dashboard');
     await page.waitForTimeout(2000);
 
     await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/admin-dashboard-direct-nav.png', fullPage: true });
@@ -57,7 +57,8 @@ test.describe('Simple Rebuild Verification', () => {
 
   test('API vetting endpoint check', async ({ request }) => {
     // Login first to get cookies
-    const loginResponse = await request.post('http://localhost:5655/api/auth/login', {
+    // Use pattern matching for API endpoints (container compatibility)
+    const loginResponse = await request.post('/api/auth/login', {
       data: AuthHelpers.accounts.admin
     });
 
@@ -65,7 +66,7 @@ test.describe('Simple Rebuild Verification', () => {
 
     if (loginResponse.ok()) {
       // Try vetting endpoint
-      const vettingResponse = await request.get('http://localhost:5655/api/admin/vetting/applications');
+      const vettingResponse = await request.get('/api/admin/vetting/applications');
       console.log('Vetting API status:', vettingResponse.status());
       console.log('Vetting API status text:', vettingResponse.statusText());
 

@@ -108,8 +108,8 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
   test('1. Public Events Page - Capture Event Card Capacity Display', async ({ page }) => {
     console.log('📸 Testing Public Events Page capacity display...')
 
-    await page.goto('http://localhost:5173/events')
-    await page.waitForLoadState('networkidle')
+    await page.goto('/events')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(2000) // Allow React components to render
 
     // Check for errors FIRST before content validation - CRITICAL per lessons learned
@@ -171,8 +171,8 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
     await quickLogin(page, 'admin')
 
     // Navigate to admin events list
-    await page.goto('http://localhost:5173/admin/events')
-    await page.waitForLoadState('networkidle')
+    await page.goto('/admin/events')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(2000) // Allow React components to render
 
     // Check for errors FIRST - CRITICAL per lessons learned
@@ -246,8 +246,8 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
     console.log(`🎯 Found Rope Social event: ${ropeSocial.id} - ${ropeSocial.title}`)
 
     // Navigate to admin event details page
-    await page.goto(`http://localhost:5173/admin/events/${ropeSocial.id}`)
-    await page.waitForLoadState('networkidle')
+    await page.goto(`/admin/events/${ropeSocial.id}`)
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(3000) // Allow admin page to fully load
 
     // Check for errors FIRST - CRITICAL per lessons learned
@@ -332,8 +332,8 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
     }
 
     // Navigate to public event details
-    await page.goto(`http://localhost:5173/events/${ropeSocial.id}`)
-    await page.waitForLoadState('networkidle')
+    await page.goto(`/events/${ropeSocial.id}`)
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(2000)
 
     // Check for errors FIRST - CRITICAL per lessons learned
@@ -401,8 +401,8 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
     await quickLogin(page, 'admin')
 
     // Navigate to dashboard
-    await page.goto('http://localhost:5173/dashboard')
-    await page.waitForLoadState('networkidle')
+    await page.goto('/dashboard')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(3000) // Allow dashboard to fully load
 
     // Check for errors FIRST - CRITICAL per lessons learned
@@ -520,9 +520,9 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
     console.log('🐛 Testing for console errors across key pages...')
 
     const pagesToTest = [
-      { name: 'Public Events', url: 'http://localhost:5173/events' },
-      { name: 'Dashboard', url: 'http://localhost:5173/dashboard', needsAuth: true },
-      { name: 'Admin Events', url: 'http://localhost:5173/admin/events', needsAuth: true }
+      { name: 'Public Events', url: '/events' },
+      { name: 'Dashboard', url: '/dashboard', needsAuth: true },
+      { name: 'Admin Events', url: '/admin/events', needsAuth: true }
     ]
 
     for (const pageInfo of pagesToTest) {
@@ -533,7 +533,7 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
       }
 
       await page.goto(pageInfo.url)
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
       await page.waitForTimeout(3000) // Allow full page load
 
       // Take screenshot if there are errors

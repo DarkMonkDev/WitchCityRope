@@ -15,10 +15,10 @@ import { AuthHelpers } from './test-utils/helpers/auth.helpers';
  */
 
 const testUrls = {
-  publicEvents: 'http://localhost:5173/events',
-  adminEvents: 'http://localhost:5173/admin/events',
-  login: 'http://localhost:5173/login',
-  home: 'http://localhost:5173/'
+  publicEvents: '/events',
+  adminEvents: '/admin/events',
+  login: '/login',
+  home: '/'
 };
 
 test.describe('Events System Basic Validation', () => {

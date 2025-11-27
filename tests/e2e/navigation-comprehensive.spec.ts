@@ -22,13 +22,15 @@
 import { test, expect, Page } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+
 const testUrls = {
-  login: 'http://localhost:5173/login',
-  home: 'http://localhost:5173/',
-  dashboardEvents: 'http://localhost:5173/dashboard/events',
-  adminEvents: 'http://localhost:5173/admin/events',
-  adminEventsDemo: 'http://localhost:5173/admin/events-management-api-demo',
-  adminSessionDemo: 'http://localhost:5173/admin/event-session-matrix-demo',
+  login: `${baseUrl}/login`,
+  home: `${baseUrl}/`,
+  dashboardEvents: `${baseUrl}/dashboard/events`,
+  adminEvents: `${baseUrl}/admin/events`,
+  adminEventsDemo: `${baseUrl}/admin/events-management-api-demo`,
+  adminSessionDemo: `${baseUrl}/admin/event-session-matrix-demo`,
 };
 
 test.describe('Navigation System - Comprehensive Testing', () => {

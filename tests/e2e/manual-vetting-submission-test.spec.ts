@@ -10,8 +10,8 @@ test.describe('Manual Vetting Application Submission Test', () => {
 
     // Step 3: Navigate to vetting application page
     console.log('Step 3: Navigating to /vetting/apply');
-    await page.goto('http://localhost:5173/vetting/apply');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/vetting/apply');
+    await page.waitForLoadState('domcontentloaded');
 
     // Take screenshot of the form
     await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/vetting-form-initial.png', fullPage: true });

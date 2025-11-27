@@ -27,7 +27,7 @@ export interface EventData {
  * with any seed data.
  */
 export async function getFirstActiveEvent(page: Page): Promise<EventData> {
-  const response = await page.request.get('http://localhost:5655/api/events');
+  const response = await page.request.get('/api/events');
   const apiResponse = await response.json();
 
   // API returns ApiResponse<T> wrapper format
@@ -53,7 +53,7 @@ export async function getFirstActiveEvent(page: Page): Promise<EventData> {
  * Useful when you need a specific type of event but ID may change.
  */
 export async function getEventByTitle(page: Page, titleContains: string): Promise<EventData> {
-  const response = await page.request.get('http://localhost:5655/api/events');
+  const response = await page.request.get('/api/events');
   const apiResponse = await response.json();
 
   if (!apiResponse.success || !apiResponse.data) {
@@ -85,7 +85,7 @@ export async function getEventByTitle(page: Page, titleContains: string): Promis
  * Use for tests that need multiple events.
  */
 export async function getAllActiveEvents(page: Page): Promise<EventData[]> {
-  const response = await page.request.get('http://localhost:5655/api/events');
+  const response = await page.request.get('/api/events');
   const apiResponse = await response.json();
 
   if (!apiResponse.success || !apiResponse.data) {
@@ -109,7 +109,7 @@ export async function getAllActiveEvents(page: Page): Promise<EventData[]> {
  * Use for verifying specific event details.
  */
 export async function getEventById(page: Page, eventId: string): Promise<EventData> {
-  const response = await page.request.get(`http://localhost:5655/api/events/${eventId}`);
+  const response = await page.request.get(`/api/events/${eventId}`);
   const apiResponse = await response.json();
 
   if (!apiResponse.success || !apiResponse.data) {

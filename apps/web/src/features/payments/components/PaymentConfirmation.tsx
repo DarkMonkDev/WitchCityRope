@@ -15,11 +15,11 @@ import {
   Divider,
   ThemeIcon
 } from '@mantine/core';
-import { 
-  IconCheck, 
-  IconCalendar, 
-  IconMapPin, 
-  IconUser, 
+import {
+  IconCheck,
+  IconCalendar,
+  IconMapPin,
+  IconUser,
   IconTicket,
   IconCreditCard,
   IconMail,
@@ -27,6 +27,7 @@ import {
 } from '@tabler/icons-react';
 import type { PaymentResponse, PaymentEventInfo } from '../types/payment.types';
 import { paymentUtils } from '../api/paymentApi';
+import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 
 interface PaymentConfirmationProps {
   /** Payment details */
@@ -51,6 +52,8 @@ export const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
   onRegisterMore,
   onDownloadReceipt
 }) => {
+  const eventTimeZone = useEventTimeZone();
+
   const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       weekday: 'long',
@@ -58,14 +61,16 @@ export const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
       month: 'long',
       day: 'numeric',
       hour: 'numeric',
-      minute: '2-digit'
+      minute: '2-digit',
+      timeZone: eventTimeZone
     });
   };
 
   const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString('en-US', {
       hour: 'numeric',
-      minute: '2-digit'
+      minute: '2-digit',
+      timeZone: eventTimeZone
     });
   };
 

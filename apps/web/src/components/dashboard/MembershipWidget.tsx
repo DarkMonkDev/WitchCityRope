@@ -3,6 +3,7 @@ import { Box, Text, Progress, Group, Loader, Alert, Badge, Stack } from '@mantin
 import { DashboardCard } from './DashboardCard';
 import { useCurrentUser } from '../../features/auth/api/queries';
 import { useNavigate } from 'react-router-dom';
+import { useEventTimeZone } from '../../hooks/useEventTimeZone';
 
 // Mock role data - replace with actual role system integration
 interface MembershipInfo {
@@ -24,6 +25,7 @@ interface MembershipInfo {
 export const MembershipWidget: React.FC = () => {
   const { data: user, isLoading, error } = useCurrentUser();
   const navigate = useNavigate();
+  const eventTimeZone = useEventTimeZone();
 
   // Mock membership data - replace with actual API integration
   const getMembershipInfo = (): MembershipInfo => {
@@ -180,7 +182,8 @@ export const MembershipWidget: React.FC = () => {
             >
               {new Date(membershipInfo.memberSince).toLocaleDateString('en-US', {
                 month: 'short',
-                year: 'numeric'
+                year: 'numeric',
+                timeZone: eventTimeZone
               })}
             </Text>
           </Group>

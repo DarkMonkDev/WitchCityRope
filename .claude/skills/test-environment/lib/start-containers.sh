@@ -17,8 +17,8 @@ start_test_containers() {
 
     cd "$PROJECT_ROOT"
 
-    # Start containers in detached mode
-    docker-compose -p witchcityrope-test -f docker-compose.yml -f docker-compose.test.yml up -d
+    # Start containers in detached mode (--force-recreate to avoid ContainerConfig errors)
+    docker-compose -p witchcityrope-test -f docker-compose.yml -f docker-compose.test.yml up -d --force-recreate
 
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}✅ Test containers started${NC}"

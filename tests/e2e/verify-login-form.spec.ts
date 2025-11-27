@@ -3,7 +3,7 @@ import { AuthHelper } from './test-utils/helpers/auth.helper';
 
 test('Verify login form has both email and password fields', async ({ page }) => {
   // Navigate to login page
-  await page.goto('http://localhost:5173/login');
+  await page.goto('/login');
 
   // Wait for page to load
   await page.waitForLoadState('networkidle');

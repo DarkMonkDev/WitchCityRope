@@ -27,8 +27,8 @@ test.describe('Vetting Email Templates (Unified System)', () => {
     expect(loginSuccess).toBeTruthy();
 
     // Navigate to unified email templates page
-    await page.goto('http://localhost:5173/admin/email-templates');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/admin/email-templates');
+    await page.waitForLoadState('domcontentloaded');
 
     // Click the Vetting tab
     const vettingTab = page.locator('[data-testid="tab-vetting"]').or(
@@ -324,8 +324,8 @@ test.describe('Vetting Email Templates (Unified System)', () => {
 
   test('URL Parameter - Vetting Tab Selected', async () => {
     // Navigate with vetting tab parameter
-    await page.goto('http://localhost:5173/admin/email-templates?tab=vetting');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/admin/email-templates?tab=vetting');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(500);
 
     // Verify Vetting tab is active
@@ -343,8 +343,8 @@ test.describe('Vetting Email Templates (Unified System)', () => {
   test('Performance - Page Load Time', async () => {
     const startTime = Date.now();
 
-    await page.goto('http://localhost:5173/admin/email-templates?tab=vetting');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/admin/email-templates?tab=vetting');
+    await page.waitForLoadState('domcontentloaded');
 
     const loadTime = Date.now() - startTime;
 

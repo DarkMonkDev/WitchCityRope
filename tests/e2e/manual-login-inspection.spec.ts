@@ -7,12 +7,12 @@ import { test, expect } from '@playwright/test';
 
 test('inspect login page DOM structure', async ({ page }) => {
   console.log('=== MANUAL LOGIN PAGE INSPECTION ===');
-  
-  await page.goto('http://localhost:5173/login');
+
+  await page.goto('/login');
   await page.waitForLoadState('networkidle');
-  
+
   // Take screenshot of current state
-  await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/manual-inspection-page.png' });
+  await page.screenshot({ path: './test-results/manual-inspection-page.png' });
   
   // Get page content and log it
   const pageHTML = await page.content();
@@ -70,7 +70,7 @@ test('inspect login page DOM structure', async ({ page }) => {
   console.log(`Buttons: ${loginButtons.length}`);
   
   // Final screenshot
-  await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/manual-inspection-final.png' });
+  await page.screenshot({ path: './test-results/manual-inspection-final.png' });
   
   console.log('=== INSPECTION COMPLETE ===');
 });

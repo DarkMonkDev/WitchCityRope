@@ -7,8 +7,8 @@ test('Verify notes appear after stage advancement', async ({ page }) => {
   await AuthHelpers.loginAs(page, 'admin');
 
   // Navigate to vetting page
-  await page.goto('http://localhost:5173/admin/vetting');
-  await page.waitForLoadState('networkidle');
+  await page.goto('/admin/vetting');
+  await page.waitForLoadState('domcontentloaded');
 
   // Find and click on the first available application
   const applicationRows = page.locator('tbody tr');
@@ -21,7 +21,7 @@ test('Verify notes appear after stage advancement', async ({ page }) => {
 
   const firstApp = applicationRows.first();
   await firstApp.click();
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 
   // Wait for application detail to load
   await page.waitForSelector('[data-testid="application-title"]', { timeout: 10000 });

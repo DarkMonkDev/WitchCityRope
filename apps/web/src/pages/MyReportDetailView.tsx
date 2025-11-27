@@ -20,6 +20,7 @@ import {
 import { IncidentDetailHeader } from '../features/safety/components/IncidentDetailHeader';
 import { IncidentDetailsCard } from '../features/safety/components/IncidentDetailsCard';
 import { PeopleInvolvedCard } from '../features/safety/components/PeopleInvolvedCard';
+import { useEventTimeZone } from '../hooks/useEventTimeZone';
 
 // Mock data interface - will be replaced with actual API types
 interface MyReportDetail {
@@ -51,14 +52,15 @@ const MOCK_REPORT: MyReportDetail = {
   isAnonymous: false
 };
 
-const formatDate = (dateString: string): string => {
+const formatDate = (dateString: string, timeZone: string): string => {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
     hour: 'numeric',
-    minute: '2-digit'
+    minute: '2-digit',
+    timeZone
   });
 };
 
@@ -83,6 +85,7 @@ export const MyReportDetailView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [isLoading] = useState(false);
   const [error] = useState<string | null>(null);
+  const eventTimeZone = useEventTimeZone();
 
   // TODO: Replace with actual API call
   const report = MOCK_REPORT;
@@ -168,11 +171,11 @@ export const MyReportDetailView: React.FC = () => {
           <Group gap="xl" wrap="wrap">
             <div>
               <Text size="xs" c="dimmed" mb={4}>Reported</Text>
-              <Text size="sm" fw={600}>{formatDate(report.reportedAt)}</Text>
+              <Text size="sm" fw={600}>{formatDate(report.reportedAt, eventTimeZone)}</Text>
             </div>
             <div>
               <Text size="xs" c="dimmed" mb={4}>Last Updated</Text>
-              <Text size="sm" fw={600}>{formatDate(report.lastUpdatedAt)}</Text>
+              <Text size="sm" fw={600}>{formatDate(report.lastUpdatedAt, eventTimeZone)}</Text>
             </div>
           </Group>
         </Stack>
@@ -222,7 +225,7 @@ export const MyReportDetailView: React.FC = () => {
               Email: <a href="mailto:safety@witchcityrope.com" style={{ color: '#880124' }}>safety@witchcityrope.com</a>
             </Text>
             <Text size="xs" c="dimmed" mt="xs">
-              Please reference the date of your report ({formatDate(report.reportedAt)}) when contacting us.
+              Please reference the date of your report ({formatDate(report.reportedAt, eventTimeZone)}) when contacting us.
             </Text>
           </Alert>
         </Card>

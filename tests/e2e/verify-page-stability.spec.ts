@@ -16,7 +16,7 @@ import { setupConsoleErrorFiltering } from './test-utils/helpers/console.helpers
  */
 
 test.describe('Events Management Demo Page Stability', () => {
-  const BASE_URL = 'http://localhost:5173';
+  // Use relative URLs for container compatibility (baseURL from playwright.config.ts)
 
   test.beforeEach(async ({ page }) => {
     // Login as admin before accessing admin pages
@@ -38,7 +38,7 @@ test.describe('Events Management Demo Page Stability', () => {
     console.log('🔍 Testing events management API demo page content...');
     
     // Navigate to the demo page
-    await page.goto(`${BASE_URL}/admin/events-management-api-demo`);
+    await page.goto('/admin/events-management-api-demo');
     
     // Wait for page to be fully loaded
     await page.waitForLoadState('networkidle', { timeout: 10000 });
@@ -83,7 +83,7 @@ test.describe('Events Management Demo Page Stability', () => {
     }
     
     // Verify basic page structure
-    expect(page.url()).toBe(`${BASE_URL}/admin/events-management-api-demo`);
+    expect(page.url()).toContain('/admin/events-management-api-demo');
   });
 
   test('should monitor page for unwanted reloading within 10 seconds', async ({ page }) => {
@@ -101,7 +101,7 @@ test.describe('Events Management Demo Page Stability', () => {
     });
     
     // Navigate to the demo page
-    await page.goto(`${BASE_URL}/admin/events-management-api-demo`);
+    await page.goto('/admin/events-management-api-demo');
     initialLoadTime = Date.now();
     
     // Wait for initial load
@@ -132,7 +132,7 @@ test.describe('Events Management Demo Page Stability', () => {
     console.log('🔍 Testing navigation test page render counting...');
     
     // Navigate to the navigation test page
-    await page.goto(`${BASE_URL}/navigation-test`);
+    await page.goto('/navigation-test');
     
     // Wait for page to be fully loaded
     await page.waitForLoadState('networkidle', { timeout: 5000 });
@@ -196,7 +196,7 @@ test.describe('Events Management Demo Page Stability', () => {
     }
     
     // Verify basic page structure
-    expect(page.url()).toBe(`${BASE_URL}/navigation-test`);
+    expect(page.url()).toContain('/navigation-test');
   });
 
   test('should check /test-no-layout page stability and console errors', async ({ page }) => {
@@ -209,7 +209,7 @@ test.describe('Events Management Demo Page Stability', () => {
     });
 
     // Navigate to the test page
-    await page.goto(`${BASE_URL}/test-no-layout`);
+    await page.goto('/test-no-layout');
 
     // Wait for page to be fully loaded
     await page.waitForLoadState('networkidle', { timeout: 5000 });
@@ -227,7 +227,7 @@ test.describe('Events Management Demo Page Stability', () => {
     printSummary();
 
     // Verify basic page structure
-    expect(page.url()).toBe(`${BASE_URL}/test-no-layout`);
+    expect(page.url()).toContain('/test-no-layout');
 
     // Get errors and warnings from helper
     const errors = getErrors();
@@ -269,7 +269,7 @@ test.describe('Events Management Demo Page Stability', () => {
     for (const pageInfo of pages) {
       try {
         console.log(`Testing ${pageInfo.url}...`);
-        await page.goto(`${BASE_URL}${pageInfo.url}`, { timeout: 10000 });
+        await page.goto(pageInfo.url, { timeout: 10000 });
         await page.waitForLoadState('networkidle', { timeout: 5000 });
         
         const result = report.testResults[pageInfo.key as keyof typeof report.testResults];
@@ -295,7 +295,7 @@ test.describe('Events Management Demo Page Stability', () => {
 
     // Check environment health
     try {
-      const reactResponse = await fetch(`${BASE_URL}`);
+      const reactResponse = await fetch('/');
       report.environment.reactHealthy = reactResponse.ok;
     } catch {
       report.environment.reactHealthy = false;

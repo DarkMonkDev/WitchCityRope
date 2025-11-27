@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
 
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+
 test('verify event policies section', async ({ page }) => {
-  await page.goto('http://localhost:5173/events/756edc2a-4c53-4c47-bcfe-04a7435266a2');
+  await page.goto(`${baseUrl}/events/756edc2a-4c53-4c47-bcfe-04a7435266a2`);
 
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(2000);

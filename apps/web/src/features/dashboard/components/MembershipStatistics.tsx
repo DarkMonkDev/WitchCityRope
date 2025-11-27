@@ -33,6 +33,7 @@ import {
 } from '@tabler/icons-react';
 import { useUserStatistics, useDashboardError } from '../hooks/useDashboard';
 import { DashboardUtils } from '../types/dashboard.types';
+import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 
 /**
  * MembershipStatistics Component Props
@@ -98,6 +99,7 @@ const StatCard: React.FC<StatCardProps> = ({
 export const MembershipStatistics: React.FC<MembershipStatisticsProps> = ({ className }) => {
   const { data: statistics, isLoading, error, refetch } = useUserStatistics();
   const dashboardError = useDashboardError(error);
+  const eventTimeZone = useEventTimeZone();
 
   // Loading state
   if (isLoading) {
@@ -166,7 +168,7 @@ export const MembershipStatistics: React.FC<MembershipStatisticsProps> = ({ clas
   if (!statistics) return null;
 
   const membershipDuration = DashboardUtils.formatMembershipDuration(statistics.monthsAsMember);
-  const joinDate = DashboardUtils.formatDate(statistics.joinDate);
+  const joinDate = DashboardUtils.formatDate(statistics.joinDate, eventTimeZone);
   const vettingDisplay = DashboardUtils.getVettingStatusDisplay(statistics.vettingStatus);
   
   // Calculate activity level based on events attended vs months as member
@@ -294,7 +296,7 @@ export const MembershipStatistics: React.FC<MembershipStatisticsProps> = ({ clas
                 <Alert color="teal" variant="light">
                   <Text size="sm">
                     📅 Interview scheduled: <strong>
-                      {DashboardUtils.formatDate(statistics.nextInterviewDate)}
+                      {DashboardUtils.formatDate(statistics.nextInterviewDate, eventTimeZone)}
                     </strong>
                   </Text>
                 </Alert>

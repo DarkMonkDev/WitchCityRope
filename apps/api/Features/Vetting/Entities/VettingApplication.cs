@@ -50,7 +50,6 @@ public class VettingApplication
     public string? LastName { get; set; }
     [Obsolete("Use FirstName and LastName instead")]
     public string RealName { get; set; } = string.Empty; // Kept for backward compatibility
-    public string? FullName { get; set; } // Full legal name (may differ from FirstName/LastName)
     public string Email { get; set; } = string.Empty;
     public string? FetLifeHandle { get; set; }
     public string? Pronouns { get; set; }

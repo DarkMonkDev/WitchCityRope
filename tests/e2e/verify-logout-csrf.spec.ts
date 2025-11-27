@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test'
 import { AuthHelper } from './test-utils/helpers/auth.helper'
 
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || `${baseUrl}`;
+
 test.describe('Logout with CSRF Token Verification', () => {
   test('should logout successfully with proper CSRF token handling', async ({ page }) => {
     // Enable request/response logging to see CSRF tokens
@@ -33,14 +35,14 @@ test.describe('Logout with CSRF Token Verification', () => {
     await logoutButton.click()
 
     // Step 6: Wait for redirect to home page
-    await expect(page).toHaveURL('http://localhost:5173/', { timeout: 10000 })
+    await expect(page).toHaveURL(`${baseUrl}/`, { timeout: 10000 })
 
     // Step 7: Verify user is logged out (login button visible)
     const loginLink = page.locator('text=Login')
     await expect(loginLink).toBeVisible({ timeout: 5000 })
 
     // Step 8: Verify logout was successful by trying to access protected route
-    await page.goto('http://localhost:5173/dashboard')
+    await page.goto(`${baseUrl}/dashboard`)
     
     // Should redirect to login page
     await page.waitForURL(/.*login/, { timeout: 5000 })

@@ -254,7 +254,7 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
     // Navigate to event page
     await AuthHelpers.loginAs(page, 'teacher');
 
-    await page.goto(`http://localhost:5173/events/${RSVP_EVENT_ID}`);
+    await page.goto(`/events/${RSVP_EVENT_ID}`);
     await page.waitForLoadState('networkidle');
 
     // RSVP button should NOT be visible (user already has RSVP)

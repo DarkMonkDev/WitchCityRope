@@ -27,6 +27,7 @@ import {
 } from '../../../components/forms/MantineFormInputs';
 import { useSubmitIncidentForm } from '../hooks/useSubmitIncident';
 import { useAuthStore } from '../../../stores/authStore';
+import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 import {
   IncidentFormData,
   IncidentType,
@@ -46,6 +47,7 @@ export function IncidentReportForm({ onSubmissionComplete }: IncidentReportFormP
   const [agreementChecked, setAgreementChecked] = useState(false);
   const user = useAuthStore(state => state.user);
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
+  const eventTimeZone = useEventTimeZone();
 
   const {
     submitIncident,
@@ -64,7 +66,8 @@ export function IncidentReportForm({ onSubmissionComplete }: IncidentReportFormP
       incidentTime: new Date().toLocaleTimeString('en-US', {
         hour12: false,
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        timeZone: eventTimeZone
       }),
       whereOccurred: WhereOccurred.AtEvent,
       eventName: '',

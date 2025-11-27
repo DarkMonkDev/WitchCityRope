@@ -73,12 +73,12 @@ test.describe('Authentication and RSVP Testing', () => {
     console.log('Testing API endpoints directly...');
 
     // Test health endpoint
-    const healthResponse = await page.request.get('http://localhost:5655/health');
+    const healthResponse = await page.request.get('/api/health');
     expect(healthResponse.status()).toBe(200);
     console.log('✅ API health endpoint responding');
 
     // Test login endpoint directly
-    const loginResponse = await page.request.post('http://localhost:5655/api/auth/login', {
+    const loginResponse = await page.request.post('/api/api/auth/login', {
       data: {
         email: 'admin@witchcityrope.com',
         password: 'Test123!'
@@ -95,15 +95,15 @@ test.describe('Authentication and RSVP Testing', () => {
       console.log('Is admin:', loginData.user?.role === 'Administrator');
 
       // Test protected endpoints with the session cookie
-      const userResponse = await page.request.get('http://localhost:5655/api/auth/user');
+      const userResponse = await page.request.get('/api/api/auth/user');
       console.log('User info endpoint status:', userResponse.status());
 
       // Test dashboard events endpoint
-      const dashboardResponse = await page.request.get('http://localhost:5655/api/dashboard/events?count=3');
+      const dashboardResponse = await page.request.get('/api/api/dashboard/events?count=3');
       console.log('Dashboard events endpoint status:', dashboardResponse.status());
 
       // Test events endpoint
-      const eventsResponse = await page.request.get('http://localhost:5655/api/events');
+      const eventsResponse = await page.request.get('/api/api/events');
       console.log('Events endpoint status:', eventsResponse.status());
 
       if (eventsResponse.ok()) {
@@ -158,7 +158,7 @@ test.describe('Authentication and RSVP Testing', () => {
       console.log('Events page contains "rsvp":', pageContent?.toLowerCase().includes('rsvp'));
     } else {
       // Try direct navigation to events
-      await page.goto('http://localhost:5173/events');
+      await page.goto('/events');
       await page.waitForLoadState('networkidle');
       await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/06-direct-events-page.png', fullPage: true });
 

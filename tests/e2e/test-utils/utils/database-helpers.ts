@@ -600,7 +600,9 @@ export async function createTestUser(options: TestUserOptions): Promise<TestUser
 
   try {
     // Use TestHelpers API to create user (Development/Test environment only)
-    const response = await fetch('http://localhost:5655/api/test-helpers/users', {
+    // Note: This uses global fetch with environment-based URL configuration
+    const apiBaseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5655';
+    const response = await fetch(`${apiBaseUrl}/api/test-helpers/users`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

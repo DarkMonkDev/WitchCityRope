@@ -25,7 +25,7 @@ test.describe('BFF Authentication Flow', () => {
     
     // Step 1: Navigate to login page
     console.log('📍 Step 1: Navigate to login page');
-    await page.goto('http://localhost:5173/login');
+    await page.goto('/login');
     await page.waitForLoadState('networkidle');
     
     // Verify login page loads correctly
@@ -233,7 +233,7 @@ test.describe('BFF Authentication Flow', () => {
     console.log('🧪 Starting logout test...');
     
     // First login
-    await page.goto('http://localhost:5173/login');
+    await page.goto('/login');
     await page.waitForLoadState('networkidle');
     
     const emailInput = page.locator('input[type="email"], input[name="email"]').first();
@@ -284,7 +284,7 @@ test.describe('BFF Authentication Flow', () => {
     console.log('🧪 Testing protected route access...');
     
     // Try to access protected route without authentication
-    await page.goto('http://localhost:5173/dashboard');
+    await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
     
     // Should be redirected to login
@@ -305,7 +305,7 @@ test.describe('BFF Authentication Flow', () => {
     
     // Wait and try to access protected route again
     await page.waitForTimeout(3000);
-    await page.goto('http://localhost:5173/dashboard');
+    await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
     
     if (!page.url().includes('/login')) {

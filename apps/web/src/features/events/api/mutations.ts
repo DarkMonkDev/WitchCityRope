@@ -2,7 +2,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../../api/client'
 import { queryKeys } from '../../../api/queryKeys'
-import type { Event, CreateEventData, UpdateEventData, EventRegistration } from '../../../types/api.types'
+import type { Event, UpdateEventData, EventRegistration } from '../../../types/api.types'
+import type { components } from '@witchcityrope/shared-types'
+
+// ✅ Use auto-generated CreateEventRequest from backend DTOs
+type CreateEventRequest = components['schemas']['CreateEventRequest']
 
 // Ticket purchase data interface
 export interface TicketPurchaseData {
@@ -22,10 +26,12 @@ export interface RSVPData {
 
 export function useCreateEvent() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
-    mutationFn: async (data: CreateEventData): Promise<Event> => {
+    mutationFn: async (data: CreateEventRequest): Promise<Event> => {
+      console.log('useCreateEvent: Sending request with data:', data)
       const response = await api.post('/api/events', data)
+      console.log('useCreateEvent: Response received:', response.data)
       return response.data
     },
     onSuccess: () => {

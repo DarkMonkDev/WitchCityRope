@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('Visual check of admin events page with type column', async ({ page }) => {
-  await page.goto('http://localhost:5173/login');
+  await page.goto('/login');
 
   // Fill the form using more direct selectors
   const emailInput = page.locator('input').first(); // First input field
@@ -15,7 +15,7 @@ test('Visual check of admin events page with type column', async ({ page }) => {
 
   // Wait for navigation and go to admin events
   await page.waitForTimeout(3000); // Give time for login
-  await page.goto('http://localhost:5173/admin/events');
+  await page.goto('/admin/events');
 
   // Wait for page to load
   await page.waitForTimeout(3000);

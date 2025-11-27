@@ -30,7 +30,7 @@ test.describe('Login Fix Verification', () => {
     });
 
     // Navigate to login
-    await page.goto('http://localhost:5173/login');
+    await page.goto('/login');
     await expect(page).toHaveURL(/\/login/);
     
     console.log('✅ Successfully navigated to login page');

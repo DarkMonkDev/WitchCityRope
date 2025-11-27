@@ -24,7 +24,9 @@ export default defineConfig({
   ],
   use: {
     // DOCKER-ONLY: Must use Docker web service on port 5173
-    baseURL: 'http://localhost:5173', // NEVER change this - Docker containers only
+    // In test containers, use internal service name (http://web:5173) via WEB_BASE_URL
+    // On host machine, use localhost (http://localhost:5173)
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || process.env.WEB_BASE_URL || 'http://localhost:5173',
 
     // API endpoint for tests that need direct API access
     extraHTTPHeaders: {

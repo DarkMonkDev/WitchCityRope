@@ -7,8 +7,6 @@
 
 import { test } from '@playwright/test';
 
-const BASE_URL = 'http://localhost:5173';
-
 test('Capture all console messages on page load', async ({ page }) => {
   const consoleMessages: Array<{ type: string; text: string }> = [];
 
@@ -19,8 +17,8 @@ test('Capture all console messages on page load', async ({ page }) => {
     });
   });
 
-  await page.goto(BASE_URL);
-  await page.waitForLoadState('networkidle');
+  await page.goto('/');
+  await page.waitForLoadState('domcontentloaded');
 
   // Print all console messages
   console.log('\n========== CONSOLE MESSAGES ==========\n');

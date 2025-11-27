@@ -6,6 +6,7 @@ import { showNotification } from '@mantine/notifications';
 import { modals } from '@mantine/modals';
 import type { components } from '@witchcityrope/shared-types';
 import { IncidentStatusBadge } from './IncidentStatusBadge';
+import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 
 // Use auto-generated types from API
 type IncidentNoteDto = components['schemas']['IncidentNoteDto'];
@@ -35,12 +36,13 @@ export interface InvestigationNotesRef {
   refetch: () => void;
 }
 
-const formatDate = (date: string): string => {
+const formatDate = (date: string, timeZone: string): string => {
   return new Date(date).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
+    timeZone
   });
 };
 
@@ -48,6 +50,7 @@ export const InvestigationNotes = forwardRef<InvestigationNotesRef, Investigatio
   const [noteContent, setNoteContent] = useState('');
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
+  const eventTimeZone = useEventTimeZone();
   const queryClient = useQueryClient();
 
   // Fetch notes: GET /api/safety/admin/incidents/{id}/notes
@@ -269,7 +272,7 @@ export const InvestigationNotes = forwardRef<InvestigationNotesRef, Investigatio
                     )}
                   </Group>
                   <Group gap="xs">
-                    <Text size="xs" c="dimmed">{formatDate(note.createdAt)}</Text>
+                    <Text size="xs" c="dimmed">{formatDate(note.createdAt, eventTimeZone)}</Text>
                     {!isSystem && (
                       <Button
                         size="xs"

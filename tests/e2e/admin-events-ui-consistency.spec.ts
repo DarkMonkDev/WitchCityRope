@@ -30,7 +30,7 @@ test.describe('Admin Events Edit Screen - UI Consistency', () => {
 
   test('all tabs should use modal dialogs consistently', async ({ page }) => {
     // Navigate to admin event edit page
-    await page.goto('http://localhost:5173/admin/events/1');
+    await page.goto('/admin/events/1');
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
 
     // Test Sessions tab uses modals - HARD ASSERTION
@@ -89,7 +89,7 @@ test.describe('Admin Events Edit Screen - UI Consistency', () => {
 
   test('should follow Edit-first-Delete-last table pattern', async ({ page }) => {
     // Navigate to admin event edit page
-    await page.goto('http://localhost:5173/admin/events/1');
+    await page.goto('/admin/events/1');
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
 
     // Test Sessions table follows pattern - HARD ASSERTION
@@ -169,7 +169,7 @@ test.describe('Admin Events Edit Screen - UI Consistency', () => {
 
   test('should have Add New buttons positioned below grids consistently', async ({ page }) => {
     // Navigate to admin event edit page
-    await page.goto('http://localhost:5173/admin/events/1');
+    await page.goto('/admin/events/1');
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
 
     // Test Sessions tab has Add button below grid - HARD ASSERTION
@@ -225,7 +225,7 @@ test.describe('Admin Events Edit Screen - UI Consistency', () => {
 
   test('should apply consistent modal styling across all tabs', async ({ page }) => {
     // Navigate to admin event edit page
-    await page.goto('http://localhost:5173/admin/events/1');
+    await page.goto('/admin/events/1');
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
 
     // Collect modal styling from different tabs for comparison
@@ -329,7 +329,7 @@ test.describe('Admin Events Edit Screen - UI Consistency', () => {
 
   test('should use Design System v7 button styles consistently', async ({ page }) => {
     // Navigate to admin event edit page
-    await page.goto('http://localhost:5173/admin/events/1');
+    await page.goto('/admin/events/1');
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
 
     // Test button styles across all tabs
@@ -417,7 +417,7 @@ test.describe('Admin Events Edit Screen - UI Consistency', () => {
 
   test('should have consistent tab navigation and layout', async ({ page }) => {
     // Navigate to admin event edit page
-    await page.goto('http://localhost:5173/admin/events/1');
+    await page.goto('/admin/events/1');
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
     
     // Verify all required tabs exist (will fail if tabs not implemented)
@@ -452,7 +452,7 @@ test.describe('Admin Events Edit Screen - UI Consistency', () => {
 
   test('should show loading states consistently across all operations', async ({ page }) => {
     // Navigate to admin event edit page
-    await page.goto('http://localhost:5173/admin/events/1');
+    await page.goto('/admin/events/1');
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
     
     // Mock slow API responses to test loading states

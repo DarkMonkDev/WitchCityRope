@@ -71,7 +71,7 @@ test.describe('Auth Cookie Debugging', () => {
 
     // Step 7: Try making an API call to check if cookies are sent
     console.log('\n[API TEST] Making API call to /api/auth/user...');
-    const response = await page.request.get('http://localhost:5655/api/auth/user');
+    const response = await page.request.get('/api/auth/user');
     console.log('  - Status:', response.status());
     console.log('  - Status Text:', response.statusText());
 

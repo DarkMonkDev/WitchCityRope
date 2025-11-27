@@ -16,6 +16,7 @@ import {
   Center
 } from '@mantine/core';
 import { IconSearch } from '@tabler/icons-react';
+import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 
 // TODO: Import proper types once check-in types are finalized
 interface Attendee {
@@ -53,6 +54,7 @@ export const EventAttendeesTab: React.FC<EventAttendeesTabProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const eventTimeZone = useEventTimeZone();
 
   // TODO: Replace with actual API call to fetch attendees
   // const { data: attendees, isLoading, error } = useEventAttendees(eventId);
@@ -96,7 +98,7 @@ export const EventAttendeesTab: React.FC<EventAttendeesTabProps> = ({
   const getStatusBadge = (status: string, checkInTime?: string) => {
     const config = {
       Registered: { color: 'blue', label: 'Registered' },
-      CheckedIn: { color: 'green', label: checkInTime ? `Checked In at ${new Date(checkInTime).toLocaleTimeString()}` : 'Checked In' },
+      CheckedIn: { color: 'green', label: checkInTime ? `Checked In at ${new Date(checkInTime).toLocaleTimeString('en-US', { timeZone: eventTimeZone })}` : 'Checked In' },
       NoShow: { color: 'gray', label: 'No Show' },
       Waitlist: { color: 'orange', label: 'Waitlist' }
     };
@@ -194,7 +196,7 @@ export const EventAttendeesTab: React.FC<EventAttendeesTabProps> = ({
                   <Table.Td>
                     {attendee.checkInTime ? (
                       <Text size="sm">
-                        {new Date(attendee.checkInTime).toLocaleString()}
+                        {new Date(attendee.checkInTime).toLocaleString('en-US', { timeZone: eventTimeZone })}
                       </Text>
                     ) : finalStatus === 'NoShow' ? (
                       <Text size="sm" c="dimmed">—</Text>

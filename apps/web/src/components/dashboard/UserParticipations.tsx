@@ -11,6 +11,7 @@ import {
 import { Link } from 'react-router-dom';
 import { useUserParticipations } from '../../hooks/useParticipation';
 import { UserParticipationDto, AttendanceType, AttendanceStatus } from '../../types/participation.types';
+import { useEventTimeZone } from '../../hooks/useEventTimeZone';
 
 interface UserParticipationsProps {
   limit?: number;
@@ -22,6 +23,7 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
   showPastEvents = false
 }) => {
   const { data: participations, isLoading, error } = useUserParticipations();
+  const eventTimeZone = useEventTimeZone();
 
 
   const getStatusColor = (status: AttendanceStatus) => {
@@ -49,7 +51,8 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
       weekday: 'short',
       month: 'short',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
+      timeZone: eventTimeZone
     });
   };
 
@@ -58,7 +61,8 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
     return date.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
+      timeZone: eventTimeZone
     });
   };
 

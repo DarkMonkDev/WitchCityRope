@@ -1,12 +1,16 @@
 import React from 'react'
 import { Event } from '../types/Event'
 import { calculateEventPriceRange } from '../utils/eventUtils'
+import { useEventTimeZone } from '../hooks/useEventTimeZone'
 
 interface EventCardProps {
   event: Event
 }
 
 export const EventCard: React.FC<EventCardProps> = ({ event }) => {
+  // Get configured event timezone
+  const eventTimeZone = useEventTimeZone();
+
   // Calculate price from ticket types
   const displayPrice = calculateEventPriceRange((event as any).ticketTypes || []);
   const formatDateTime = (startDate: string, endDate?: string) => {
@@ -16,14 +20,16 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
     const datePart = start.toLocaleDateString('en-US', {
       weekday: 'long',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
+      timeZone: eventTimeZone
     })
 
     // Format start time
     const startTime = start.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
+      timeZone: eventTimeZone
     }).toLowerCase()
 
     // If no end date, just return date + start time
@@ -36,7 +42,8 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
     const endTime = end.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
+      timeZone: eventTimeZone
     }).toLowerCase()
 
     return `${datePart} - ${startTime} - ${endTime}`
@@ -62,7 +69,8 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
               return start.toLocaleDateString('en-US', {
                 weekday: 'long',
                 month: 'short',
-                day: 'numeric'
+                day: 'numeric',
+                timeZone: eventTimeZone
               })
             })()}
           </span>
@@ -72,7 +80,8 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
               const startTime = start.toLocaleTimeString('en-US', {
                 hour: 'numeric',
                 minute: '2-digit',
-                hour12: true
+                hour12: true,
+                timeZone: eventTimeZone
               }).toLowerCase()
 
               const endDate = (event as any).endDate
@@ -82,7 +91,8 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
               const endTime = end.toLocaleTimeString('en-US', {
                 hour: 'numeric',
                 minute: '2-digit',
-                hour12: true
+                hour12: true,
+                timeZone: eventTimeZone
               }).toLowerCase()
 
               return `${startTime} - ${endTime}`

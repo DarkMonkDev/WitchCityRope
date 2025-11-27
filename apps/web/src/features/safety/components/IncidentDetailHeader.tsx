@@ -3,6 +3,7 @@ import { Group, Stack, Text, Badge, rem } from '@mantine/core';
 import { IconArrowLeft, IconLock, IconUser } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 import { IncidentStatusBadge } from './IncidentStatusBadge';
+import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 
 interface IncidentDetailHeaderProps {
   referenceNumber: string;
@@ -15,12 +16,13 @@ interface IncidentDetailHeaderProps {
   viewMode?: 'admin' | 'user'; // Default: 'admin'
 }
 
-const formatDate = (date: string): string => {
+const formatDate = (date: string, timeZone: string): string => {
   const d = new Date(date);
   return d.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
+    timeZone
   });
 };
 
@@ -45,6 +47,7 @@ export const IncidentDetailHeader: React.FC<IncidentDetailHeaderProps> = ({
   viewMode = 'admin'
 }) => {
   const isUserView = viewMode === 'user';
+  const eventTimeZone = useEventTimeZone();
 
   return (
     <Stack gap="md" mb="lg">
@@ -80,7 +83,7 @@ export const IncidentDetailHeader: React.FC<IncidentDetailHeaderProps> = ({
 
         <Stack gap="xs" align="flex-end">
           <Text size="sm" c="dimmed">
-            Reported: {formatDate(reportedDate)} ({getDaysAgo(reportedDate)})
+            Reported: {formatDate(reportedDate, eventTimeZone)} ({getDaysAgo(reportedDate)})
           </Text>
           {/* Coordinator info only shown in admin view */}
           {!isUserView && (
@@ -106,7 +109,7 @@ export const IncidentDetailHeader: React.FC<IncidentDetailHeaderProps> = ({
       <Group gap="xl" wrap="wrap">
         <div>
           <Text size="xs" c="dimmed" mb={4}>Incident Date</Text>
-          <Text size="sm" fw={600}>{formatDate(incidentDate)}</Text>
+          <Text size="sm" fw={600}>{formatDate(incidentDate, eventTimeZone)}</Text>
         </div>
 
         <div>

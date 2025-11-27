@@ -26,8 +26,8 @@ test.describe('Vetting System - Basic Functionality', () => {
 
     // STEP 1: Logged-out user discovers vetting requirement
     console.log('📍 STEP 1: Test logged-out vetting discovery');
-    await page.goto('http://localhost:5173/join');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/join');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify logged-out state shows login requirement
     const loggedOutText = await page.textContent('body');
@@ -62,8 +62,8 @@ test.describe('Vetting System - Basic Functionality', () => {
     // STEP 4: Test authenticated vetting page access
     console.log('📍 STEP 4: Test authenticated vetting page');
 
-    await page.goto('http://localhost:5173/join');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/join');
+    await page.waitForLoadState('domcontentloaded');
 
     const authenticatedText = await page.textContent('body');
     const hasForm = await page.locator('form').count() > 0;
@@ -89,7 +89,7 @@ test.describe('Vetting System - Basic Functionality', () => {
 
       // Test return home functionality
       await returnHomeButton.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       expect(page.url()).toContain('/');
       console.log('✅ Return home navigation works');
 
@@ -147,7 +147,7 @@ test.describe('Vetting System - Basic Functionality', () => {
     const adminLink = page.locator('nav a:has-text("Admin"), header a:has-text("Admin"), a[href*="admin"]').first();
     if (await adminLink.count() > 0) {
       await adminLink.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       console.log('✅ Admin navigation link works');
 
       // Take screenshot of admin area
@@ -184,14 +184,14 @@ test.describe('Vetting System - Basic Functionality', () => {
 
     // Test navigation from different entry points
     const testUrls = [
-      'http://localhost:5173/',
-      'http://localhost:5173/events',
-      'http://localhost:5173/resources'
+      '/',
+      '/events',
+      '/resources'
     ];
 
     for (const url of testUrls) {
       await page.goto(url);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Look for "How to Join" navigation link
       const joinLink = page.locator('nav a:has-text("How to Join"), header a:has-text("How to Join"), a[href*="join"]').first();
@@ -201,7 +201,7 @@ test.describe('Vetting System - Basic Functionality', () => {
 
       if (hasJoinLink) {
         await joinLink.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         const joinPageText = await page.textContent('body');
         const isJoinPage = joinPageText?.includes('Join') ||
@@ -228,8 +228,8 @@ test.describe('Vetting System - Basic Functionality', () => {
 
     for (const viewport of viewports) {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
-      await page.goto('http://localhost:5173/join');
-      await page.waitForLoadState('networkidle');
+      await page.goto('/join');
+      await page.waitForLoadState('domcontentloaded');
 
       // Take screenshot for each viewport
       await page.screenshot({

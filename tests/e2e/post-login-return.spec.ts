@@ -19,10 +19,6 @@
 import { test, expect, Page } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
-// Test configuration
-const BASE_URL = 'http://localhost:5173';
-const API_URL = 'http://localhost:5655';
-
 // Test account for authentication
 const TEST_ACCOUNT = {
   email: 'member@witchcityrope.com',
@@ -33,7 +29,7 @@ const TEST_ACCOUNT = {
  * Helper: Navigate to page and verify login button with returnUrl
  */
 async function verifyLoginButtonWithReturnUrl(page: Page, pageUrl: string, expectedReturnUrl: string) {
-  await page.goto(`${BASE_URL}${pageUrl}`);
+  await page.goto(pageUrl);
   await page.waitForLoadState('networkidle');
 
   // Find login button with returnUrl - use flexible regex matching
@@ -72,7 +68,7 @@ test.describe('Post-Login Return to Intended Page', () => {
   test.describe('P1 CRITICAL: Vetting Workflow', () => {
     test('should return to /vetting/apply after login from vetting page', async ({ page }) => {
       // Step 1: Navigate to vetting application page (not authenticated)
-      await page.goto(`${BASE_URL}/vetting/apply`);
+      await page.goto('/vetting/apply');
       await page.waitForLoadState('networkidle');
 
       // Step 2: Find "LOGIN TO YOUR ACCOUNT" link (styled as button)
@@ -90,7 +86,7 @@ test.describe('Post-Login Return to Intended Page', () => {
       await completeLogin(page);
 
       // Step 6: Verify redirect back to vetting page
-      await expect(page).toHaveURL(`${BASE_URL}/vetting/apply`);
+      await expect(page).toHaveURL(/\/vetting\/apply/);
 
       // Step 7: Verify we're on the vetting page (page loaded successfully)
       await page.waitForLoadState('networkidle');
@@ -105,7 +101,7 @@ test.describe('Post-Login Return to Intended Page', () => {
   test.describe('P1 CRITICAL: Event Page Workflow', () => {
     test('should return to event page after login from event details', async ({ page }) => {
       // Step 1: Get a published event ID from API
-      const eventsResponse = await page.request.get(`${API_URL}/api/events`);
+      const eventsResponse = await page.request.get('/api/events');
       const eventsData = await eventsResponse.json();
 
       // API returns direct array, not wrapped in { success, data }
@@ -117,7 +113,7 @@ test.describe('Post-Login Return to Intended Page', () => {
       const eventUrl = `/events/${eventId}`;
 
       // Step 2: Navigate to event page (not authenticated)
-      await page.goto(`${BASE_URL}${eventUrl}`);
+      await page.goto(eventUrl);
       await page.waitForLoadState('networkidle');
 
       // Step 3: Look for "Log In" button in ParticipationCard - use semantic selector
@@ -147,7 +143,8 @@ test.describe('Post-Login Return to Intended Page', () => {
       await completeLogin(page);
 
       // Step 8: Verify redirect back to same event page
-      await expect(page).toHaveURL(`${BASE_URL}${eventUrl}`);
+      const eventIdMatch = eventUrl.match(/\/events\/(\d+)/);
+      await expect(page).toHaveURL(new RegExp(`/events/${eventIdMatch ? eventIdMatch[1] : '\\d+'}`));
 
       // Step 9: Verify user is on event page (success message may vary or not appear)
       // Just verify we're on the correct page
@@ -177,7 +174,7 @@ test.describe('Post-Login Return to Intended Page', () => {
       await completeLogin(page);
 
       // Wait for return to event page
-      await expect(page).toHaveURL(`${BASE_URL}${eventUrl}`);
+      await expect(page).toHaveURL(new RegExp(eventUrl.replace(/\//g, '\\/')));
 
       // Verify user can now see registration options (RSVP/tickets)
       // Look for participation card or ticket/RSVP buttons
@@ -189,7 +186,7 @@ test.describe('Post-Login Return to Intended Page', () => {
   test.describe('P1: Default Dashboard Behavior', () => {
     test('should redirect to dashboard when no returnUrl provided', async ({ page }) => {
       // Step 1: Navigate directly to login page (no returnUrl parameter)
-      await page.goto(`${BASE_URL}/login`);
+      await page.goto('/login');
       await page.waitForLoadState('networkidle');
 
       // Step 2: Verify no returnUrl in URL
@@ -200,7 +197,7 @@ test.describe('Post-Login Return to Intended Page', () => {
       await completeLogin(page);
 
       // Step 4: Verify redirect to default /dashboard
-      await expect(page).toHaveURL(`${BASE_URL}/dashboard`);
+      await expect(page).toHaveURL(/\/dashboard/);
 
       // Step 5: Verify we landed on dashboard (success message may vary)
       await page.waitForLoadState('networkidle');
@@ -210,7 +207,7 @@ test.describe('Post-Login Return to Intended Page', () => {
 
     test('should redirect to dashboard from nav menu login', async ({ page }) => {
       // Navigate to home page
-      await page.goto(`${BASE_URL}/`);
+      await page.goto('/');
       await page.waitForLoadState('networkidle');
 
       // Find "Login" link in navigation (should not have returnUrl)
@@ -221,19 +218,19 @@ test.describe('Post-Login Return to Intended Page', () => {
         await page.waitForLoadState('networkidle');
 
         // Verify we're on login page without returnUrl
-        expect(page.url()).toBe(`${BASE_URL}/login`);
+        expect(page.url()).toMatch(/\/login$/);
 
         // Complete login
         await completeLogin(page);
 
         // Verify redirect to dashboard (default)
-        await expect(page).toHaveURL(`${BASE_URL}/dashboard`);
+        await expect(page).toHaveURL(/\/dashboard/);
       } else {
         // If no nav login link, just verify direct login behavior
-        await page.goto(`${BASE_URL}/login`);
+        await page.goto('/login');
         await page.waitForLoadState('networkidle');
         await completeLogin(page);
-        await expect(page).toHaveURL(`${BASE_URL}/dashboard`);
+        await expect(page).toHaveURL(/\/dashboard/);
       }
     });
   });

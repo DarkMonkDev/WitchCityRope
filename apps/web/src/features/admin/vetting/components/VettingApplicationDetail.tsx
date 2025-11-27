@@ -430,7 +430,7 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
                       <Text fw={600} style={{ minWidth: '120px' }}>
                         Real Name:
                       </Text>
-                      <Text>{application.fullName}</Text>
+                      <Text>{[(application as any).firstName, (application as any).lastName].filter(Boolean).join(' ') || 'N/A'}</Text>
                     </Group>
                     <Group gap="md" wrap="nowrap" data-testid="email-field">
                       <Text fw={600} style={{ minWidth: '120px' }}>
@@ -521,7 +521,7 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
         opened={onHoldModalOpen}
         onClose={() => setOnHoldModalOpen(false)}
         applicationId={applicationId}
-        applicantName={application?.fullName || 'Unknown'}
+        applicantName={[(application as any)?.firstName, (application as any)?.lastName].filter(Boolean).join(' ') || 'Unknown'}
         onSuccess={() => refetch()}
       />
 
@@ -537,7 +537,7 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
         opened={denyModalOpen}
         onClose={() => setDenyModalOpen(false)}
         applicationId={applicationId}
-        applicantName={application?.fullName || 'Unknown'}
+        applicantName={[(application as any)?.firstName, (application as any)?.lastName].filter(Boolean).join(' ') || 'Unknown'}
         onSuccess={() => refetch()}
       />
 

@@ -9,7 +9,7 @@ import { WaitHelpers } from './test-utils/helpers/wait.helpers';
 test.describe('Events - Public Access', () => {
   // Public events browsing test
   test('should browse events without authentication', async ({ page }) => {
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Verify events page loads with correct title
@@ -195,7 +195,7 @@ test.describe('Events - Authenticated Access', () => {
     // Login using AuthHelpers
     await AuthHelpers.loginAs(page, 'member');
 
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await WaitHelpers.waitForPageLoad(page);
 
     // Wait for events page to load
@@ -237,7 +237,7 @@ test.describe('Events - Authenticated Access', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Test as regular member
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await WaitHelpers.waitForPageLoad(page);
 
     // Wait for events page to load
@@ -249,7 +249,7 @@ test.describe('Events - Authenticated Access', () => {
     await AuthHelpers.clearAuthState(page);
     await AuthHelpers.loginAs(page, 'admin');
 
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await WaitHelpers.waitForPageLoad(page);
 
     // Wait for events page to load
@@ -284,7 +284,7 @@ test.describe('Events - Authenticated Access', () => {
     // Login using vetted member (required for social events)
     await AuthHelpers.loginAs(page, 'vetted');
 
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await WaitHelpers.waitForPageLoad(page);
 
     // Wait for events page to load
@@ -327,7 +327,7 @@ test.describe('Events - Authenticated Access', () => {
     // Login using AuthHelpers
     await AuthHelpers.loginAs(page, 'member');
 
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await WaitHelpers.waitForDataLoad(page, 'events-list');
 
     // Look for a social event (usually has both RSVP and ticket options)

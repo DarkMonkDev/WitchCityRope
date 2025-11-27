@@ -28,7 +28,7 @@ test.describe('Refund Confirmation Modal - Validation Rules', () => {
    * Reused across multiple tests
    */
   async function openRefundModal(page: any): Promise<boolean> {
-    await page.goto('http://localhost:5173/admin/payments');
+    await page.goto('/admin/payments');
     await page.waitForLoadState('networkidle');
 
     const paymentRows = page.locator('table tbody tr, [data-testid="payment-row"]');

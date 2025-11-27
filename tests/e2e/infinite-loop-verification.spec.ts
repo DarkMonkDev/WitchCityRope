@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || `${baseUrl}`;
+
 test.describe('Infinite Loop Verification', () => {
   test('should load page without infinite loop errors', async ({ page }) => {
     // Set up console error tracking
@@ -26,7 +28,7 @@ test.describe('Infinite Loop Verification', () => {
     try {
       // Navigate to the home page
       console.log('📍 Navigating to http://localhost:5173');
-      await page.goto('http://localhost:5173', { 
+      await page.goto(`${baseUrl}`, { 
         waitUntil: 'domcontentloaded',
         timeout: 10000 
       });
@@ -103,7 +105,7 @@ test.describe('Infinite Loop Verification', () => {
     console.log('🧪 Testing navigation stability');
 
     // Navigate to home page
-    await page.goto('http://localhost:5173');
+    await page.goto(`${baseUrl}`);
     await page.waitForTimeout(1000);
 
     // Try clicking any navigation elements if they exist

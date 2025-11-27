@@ -1,8 +1,6 @@
 import { test, expect, Page } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
-const API_BASE_URL = 'http://localhost:5655';
-
 test.describe('Login 401 Investigation', () => {
   let networkRequests: Array<{
     url: string;
@@ -94,9 +92,9 @@ test.describe('Login 401 Investigation', () => {
     console.log(`Testing login for: ${AuthHelpers.accounts.admin.email}`);
     
     // Test API health first
-    const healthResponse = await page.evaluate(async (apiUrl) => {
+    const healthResponse = await page.evaluate(async () => {
       try {
-        const response = await fetch(`${apiUrl}/health`);
+        const response = await fetch('/health');
         return {
           status: response.status,
           ok: response.ok,
@@ -105,15 +103,14 @@ test.describe('Login 401 Investigation', () => {
       } catch (error) {
         return { error: error.toString() };
       }
-    }, API_BASE_URL);
+    });
     
     console.log('API Health Check:', healthResponse);
     
     // Test login endpoint directly
-    const loginResponse = await page.evaluate(async (args) => {
-      const { apiUrl, credentials } = args;
+    const loginResponse = await page.evaluate(async (credentials) => {
       try {
-        const response = await fetch(`${apiUrl}/api/auth/login`, {
+        const response = await fetch('/api/auth/login', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -121,7 +118,7 @@ test.describe('Login 401 Investigation', () => {
           body: JSON.stringify(credentials),
           credentials: 'include'
         });
-        
+
         const responseText = await response.text();
         let responseJson;
         try {
@@ -129,7 +126,7 @@ test.describe('Login 401 Investigation', () => {
         } catch {
           responseJson = responseText;
         }
-        
+
         return {
           status: response.status,
           ok: response.ok,
@@ -139,7 +136,7 @@ test.describe('Login 401 Investigation', () => {
       } catch (error) {
         return { error: error.toString() };
       }
-    }, { apiUrl: API_BASE_URL, credentials: AuthHelpers.accounts.admin });
+    }, AuthHelpers.accounts.admin);
     
     console.log('=== DIRECT LOGIN API CALL RESULT ===');
     console.log('Status:', loginResponse.status);
@@ -170,9 +167,9 @@ test.describe('Login 401 Investigation', () => {
     await page.waitForLoadState('networkidle');
     
     // Take screenshot before filling
-    await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope/test-results/login-before-fill.png', 
-      fullPage: true 
+    await page.screenshot({
+      path: './test-results/login-before-fill.png',
+      fullPage: true
     });
     
     // Use the correct selectors we discovered
@@ -193,9 +190,9 @@ test.describe('Login 401 Investigation', () => {
     console.log(`✅ Login attempt completed`);
     
     // Take screenshot after filling
-    await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope/test-results/login-after-fill.png', 
-      fullPage: true 
+    await page.screenshot({
+      path: './test-results/login-after-fill.png',
+      fullPage: true
     });
     
     // Clear previous network requests
@@ -209,9 +206,9 @@ test.describe('Login 401 Investigation', () => {
     await page.waitForTimeout(3000);
     
     // Take screenshot after click
-    await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope/test-results/login-after-click.png', 
-      fullPage: true 
+    await page.screenshot({
+      path: './test-results/login-after-click.png',
+      fullPage: true
     });
     
     console.log('=== NETWORK REQUESTS AFTER LOGIN CLICK ===');

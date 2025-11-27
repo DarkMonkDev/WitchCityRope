@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Registration Form Validation Fix', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:5173/register');
+    await page.goto('/register');
   });
 
   test('should load registration page without errors', async ({ page }) => {

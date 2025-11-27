@@ -22,13 +22,15 @@ import { UserVolunteerShifts } from '../../components/events/UserVolunteerShifts
 import { useVenue } from '../../lib/api/hooks/useVenues';
 import { useTeacherProfiles } from '../../lib/api/hooks/useTeacherProfiles';
 import type { components } from '@witchcityrope/shared-types';
-import styles from './EventDetailPage.module.css';
+import styles from './EventDetailPage.module.css'
+import { useEventTimeZone } from '../../hooks/useEventTimeZone';
 
 type VenueDto = components['schemas']['VenueDto'];
 type UserProfileDto = components['schemas']['UserProfileDto'];
 
 export const EventDetailPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams<{ id: string}>();
+  const eventTimeZone = useEventTimeZone();
   const [selectedTicket, setSelectedTicket] = useState('single');
 
   // Scroll to top when page loads or event ID changes

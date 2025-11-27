@@ -120,15 +120,15 @@ test.describe('Debug Login Issue', () => {
     const apiTest = await page.evaluate(async () => {
       try {
         // Test health endpoint
-        const healthResponse = await fetch('http://localhost:5655/health');
+        const healthResponse = await fetch('/health');
         const healthStatus = {
           ok: healthResponse.ok,
           status: healthResponse.status,
           text: await healthResponse.text()
         };
-        
+
         // Test login endpoint using test credentials
-        const loginResponse = await fetch('http://localhost:5655/api/auth/login', {
+        const loginResponse = await fetch('/api/auth/login', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -171,7 +171,7 @@ test.describe('Debug Login Issue', () => {
     // Check CORS headers
     const corsTest = await page.evaluate(async () => {
       try {
-        const response = await fetch('http://localhost:5655/health', {
+        const response = await fetch('/health', {
           method: 'OPTIONS'
         });
         

@@ -17,7 +17,7 @@ test.describe('Event Copy - Admin Workflow', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to admin events page
-    await page.goto('http://localhost:5173/admin/events');
+    await page.goto('/admin/events');
     await page.waitForLoadState('domcontentloaded');
   });
 

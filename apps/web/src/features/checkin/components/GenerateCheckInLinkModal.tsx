@@ -29,6 +29,7 @@ import {
   useActiveSessionTokens,
 } from '../hooks/useSessionTokens';
 import type { SessionTokenResponse } from '../api/sessionTokenApi';
+import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 
 interface GenerateCheckInLinkModalProps {
   opened: boolean;
@@ -61,6 +62,7 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
   const generateMutation = useGenerateSessionToken();
   const revokeMutation = useRevokeSessionToken();
   const { data: activeTokens, isLoading: isLoadingTokens } = useActiveSessionTokens(eventId, opened);
+  const eventTimeZone = useEventTimeZone();
 
   // Type-safe active tokens (API returns SessionTokenResponse[] | undefined)
   const tokens = (activeTokens as SessionTokenResponse[] | undefined) || [];
@@ -143,6 +145,7 @@ export const GenerateCheckInLinkModal: React.FC<GenerateCheckInLinkModalProps> =
       year: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
+      timeZone: eventTimeZone,
     });
   };
 

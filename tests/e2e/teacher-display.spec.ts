@@ -27,7 +27,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
 
   test('should display Teachers section when event has teachers', async ({ page }) => {
     // Navigate to events list (no login required - teachers always visible)
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Find and click on an event (preferably a class/workshop)
@@ -39,7 +39,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
       const eventCount = await eventCards.count();
 
       for (let i = 0; i < Math.min(eventCount, 5); i++) {
-        await page.goto('http://localhost:5173/events');
+        await page.goto('/events');
         await page.waitForLoadState('networkidle');
 
         await eventCards.nth(i).click();
@@ -66,7 +66,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
 
   test('should display teacher scene name when available', async ({ page }) => {
     // Navigate to events
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Use getByRole to get visible, accessible links only (avoids aria-hidden duplicates)
@@ -77,7 +77,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
       const eventCount = await eventCards.count();
 
       for (let i = 0; i < Math.min(eventCount, 5); i++) {
-        await page.goto('http://localhost:5173/events');
+        await page.goto('/events');
         await page.waitForLoadState('networkidle');
 
         await eventCards.nth(i).click();
@@ -97,7 +97,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
 
   test('should display teacher bio when available', async ({ page }) => {
     // Navigate to events
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Use getByRole to get visible, accessible links only (avoids aria-hidden duplicates)
@@ -108,7 +108,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
       const eventCount = await eventCards.count();
 
       for (let i = 0; i < Math.min(eventCount, 5); i++) {
-        await page.goto('http://localhost:5173/events');
+        await page.goto('/events');
         await page.waitForLoadState('networkidle');
 
         await eventCards.nth(i).click();
@@ -129,7 +129,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
 
   test('should display multiple teachers when event has multiple', async ({ page }) => {
     // Navigate to events
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Use getByRole to get visible, accessible links only (avoids aria-hidden duplicates)
@@ -140,7 +140,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
       const eventCount = await eventCards.count();
 
       for (let i = 0; i < Math.min(eventCount, 5); i++) {
-        await page.goto('http://localhost:5173/events');
+        await page.goto('/events');
         await page.waitForLoadState('networkidle');
 
         await eventCards.nth(i).click();
@@ -161,7 +161,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
 
   test('should NOT display Teachers section when no teachers assigned', async ({ page }) => {
     // Navigate to events
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Use getByRole to get visible, accessible links only (avoids aria-hidden duplicates)
@@ -172,7 +172,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
       const eventCount = await eventCards.count();
 
       for (let i = 0; i < Math.min(eventCount, 5); i++) {
-        await page.goto('http://localhost:5173/events');
+        await page.goto('/events');
         await page.waitForLoadState('networkidle');
 
         await eventCards.nth(i).click();
@@ -194,7 +194,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
 
   test('should display teachers section to both logged-in and logged-out users', async ({ page }) => {
     // First test as logged-out user
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Use getByRole to get visible, accessible links only (avoids aria-hidden duplicates)
@@ -207,7 +207,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
       const eventCount = await eventCards.count();
 
       for (let i = 0; i < Math.min(eventCount, 5); i++) {
-        await page.goto('http://localhost:5173/events');
+        await page.goto('/events');
         await page.waitForLoadState('networkidle');
 
         await eventCards.nth(i).click();
@@ -242,7 +242,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
 
   test('should prefer scene name over first/last name', async ({ page }) => {
     // Navigate to events
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Use getByRole to get visible, accessible links only (avoids aria-hidden duplicates)
@@ -253,7 +253,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
       const eventCount = await eventCards.count();
 
       for (let i = 0; i < Math.min(eventCount, 5); i++) {
-        await page.goto('http://localhost:5173/events');
+        await page.goto('/events');
         await page.waitForLoadState('networkidle');
 
         await eventCards.nth(i).click();
@@ -274,7 +274,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
 
   test('should handle teacher with no bio gracefully', async ({ page }) => {
     // Navigate to events
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Use getByRole to get visible, accessible links only (avoids aria-hidden duplicates)
@@ -285,7 +285,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
       const eventCount = await eventCards.count();
 
       for (let i = 0; i < Math.min(eventCount, 5); i++) {
-        await page.goto('http://localhost:5173/events');
+        await page.goto('/events');
         await page.waitForLoadState('networkidle');
 
         await eventCards.nth(i).click();

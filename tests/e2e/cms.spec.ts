@@ -17,6 +17,8 @@ import { AuthHelpers } from './test-utils/helpers/auth.helpers';
  * Created: 2025-10-17
  */
 
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+
 test.describe('CMS Feature - Critical Workflows', () => {
   test.beforeEach(async ({ page }) => {
     // Clear auth state for clean test environment
@@ -41,7 +43,7 @@ test.describe('CMS Feature - Critical Workflows', () => {
     console.log('✅ Logged in as admin successfully');
 
     // 2. Navigate to CMS page
-    await page.goto('http://localhost:5173/resources');
+    await page.goto(`${baseUrl}/resources`);
     await page.waitForLoadState('networkidle');
     console.log('✅ Navigated to /resources');
 
@@ -98,7 +100,7 @@ test.describe('CMS Feature - Critical Workflows', () => {
     console.log('✅ Logged in as admin');
 
     // 2. Navigate to CMS page
-    await page.goto('http://localhost:5173/contact-us');
+    await page.goto(`${baseUrl}/contact-us`);
     await page.waitForLoadState('networkidle');
 
     // 3. Click edit button
@@ -152,7 +154,7 @@ test.describe('CMS Feature - Critical Workflows', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // 2. Navigate to CMS page
-    await page.goto('http://localhost:5173/private-lessons');
+    await page.goto(`${baseUrl}/private-lessons`);
     await page.waitForLoadState('networkidle');
 
     // 3. Click edit
@@ -217,7 +219,7 @@ test.describe('CMS Feature - Critical Workflows', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // 2. Navigate to revision history list
-    await page.goto('http://localhost:5173/admin/cms/revisions');
+    await page.goto(`${baseUrl}/admin/cms/revisions`);
     await page.waitForLoadState('networkidle');
     console.log('✅ Navigated to revision list');
 
@@ -283,7 +285,7 @@ test.describe('CMS Feature - Critical Workflows', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // 3. Navigate to CMS page
-    await page.goto('http://localhost:5173/resources');
+    await page.goto(`${baseUrl}/resources`);
     await page.waitForLoadState('networkidle');
 
     // Wait for media queries to apply
@@ -325,7 +327,7 @@ test.describe('CMS Feature - Additional Coverage', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Navigate to CMS page
-    await page.goto('http://localhost:5173/resources');
+    await page.goto(`${baseUrl}/resources`);
     await page.waitForLoadState('networkidle');
 
     // Verify edit button is NOT visible
@@ -339,7 +341,7 @@ test.describe('CMS Feature - Additional Coverage', () => {
     await AuthHelpers.clearAuthState(page);
 
     // Navigate to CMS page without authentication
-    await page.goto('http://localhost:5173/resources');
+    await page.goto(`${baseUrl}/resources`);
     await page.waitForLoadState('networkidle');
 
     // Verify page content loads (should see heading or some content)
@@ -364,7 +366,7 @@ test.describe('CMS Feature - Additional Coverage', () => {
     ];
 
     for (const cmsPage of pages) {
-      await page.goto(`http://localhost:5173${cmsPage.url}`);
+      await page.goto(`${baseUrl}${cmsPage.url}`);
       await page.waitForLoadState('networkidle');
 
       // Verify page loads
@@ -381,7 +383,7 @@ test.describe('CMS Feature - Additional Coverage', () => {
 
   test('Performance: Save response time < 1 second', async ({ page }) => {
     await AuthHelpers.loginAs(page, 'admin');
-    await page.goto('http://localhost:5173/resources');
+    await page.goto(`${baseUrl}/resources`);
     await page.waitForLoadState('networkidle');
 
     // Start editing

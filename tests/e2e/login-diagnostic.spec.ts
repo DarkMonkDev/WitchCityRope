@@ -3,15 +3,15 @@ import { test, expect } from '@playwright/test';
 test.describe('Login Diagnostic', () => {
   test('basic login page navigation and form detection', async ({ page }) => {
     console.log('🔍 Testing basic login access...');
-    
+
     // Navigate to login page
-    await page.goto('http://localhost:5173/login');
+    await page.goto('/login');
     await page.waitForLoadState('networkidle');
-    
+
     console.log(`Current URL: ${page.url()}`);
-    
+
     // Take screenshot
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/login-page-diagnostic.png' });
+    await page.screenshot({ path: './test-results/login-page-diagnostic.png' });
     
     // Check for form elements with various selectors
     const formSelectors = [
@@ -49,8 +49,8 @@ test.describe('Login Diagnostic', () => {
 
   test('manual login attempt with flexible selectors', async ({ page }) => {
     console.log('🔍 Attempting manual login with flexible selectors...');
-    
-    await page.goto('http://localhost:5173/login');
+
+    await page.goto('/login');
     await page.waitForLoadState('networkidle');
     
     // Try multiple email field strategies
@@ -132,7 +132,7 @@ test.describe('Login Diagnostic', () => {
       console.log(`URL after login attempt: ${page.url()}`);
       
       // Take screenshot after login attempt
-      await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/post-login-diagnostic.png' });
+      await page.screenshot({ path: './test-results/post-login-diagnostic.png' });
       
     } else {
       console.log('❌ Could not find all required form elements');
@@ -147,8 +147,8 @@ test.describe('Login Diagnostic', () => {
 
   test('check if React app is actually rendering', async ({ page }) => {
     console.log('🔍 Checking React app rendering...');
-    
-    await page.goto('http://localhost:5173');
+
+    await page.goto('/');
     await page.waitForLoadState('networkidle');
     
     // Check if React is loaded
@@ -176,7 +176,7 @@ test.describe('Login Diagnostic', () => {
     }
     
     // Take screenshot
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/react-app-diagnostic.png' });
+    await page.screenshot({ path: './test-results/react-app-diagnostic.png' });
     
     expect(true).toBeTruthy();
   });

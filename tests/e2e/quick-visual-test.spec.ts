@@ -10,7 +10,7 @@ test.describe('Quick Visual Test', () => {
 
     // Screenshot home page
     try {
-      await page.goto('http://localhost:5173/', { waitUntil: 'domcontentloaded', timeout: 10000 });
+      await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 10000 });
       await page.screenshot({ path: 'test-results/home-page.png', fullPage: true });
       console.log('✅ Home page screenshot captured');
     } catch (error) {
@@ -19,7 +19,7 @@ test.describe('Quick Visual Test', () => {
     
     // Screenshot login page
     try {
-      await page.goto('http://localhost:5173/login', { waitUntil: 'domcontentloaded', timeout: 10000 });
+      await page.goto('/login', { waitUntil: 'domcontentloaded', timeout: 10000 });
       await page.screenshot({ path: 'test-results/login-page.png', fullPage: true });
       console.log('✅ Login page screenshot captured');
       
@@ -32,7 +32,7 @@ test.describe('Quick Visual Test', () => {
     
     // Screenshot events page
     try {
-      await page.goto('http://localhost:5173/events', { waitUntil: 'domcontentloaded', timeout: 10000 });
+      await page.goto('/events', { waitUntil: 'domcontentloaded', timeout: 10000 });
       await page.screenshot({ path: 'test-results/events-page.png', fullPage: true });
       console.log('✅ Events page screenshot captured');
     } catch (error) {
@@ -41,7 +41,7 @@ test.describe('Quick Visual Test', () => {
     
     // Screenshot dashboard page (might redirect)
     try {
-      await page.goto('http://localhost:5173/dashboard', { waitUntil: 'domcontentloaded', timeout: 10000 });
+      await page.goto('/dashboard', { waitUntil: 'domcontentloaded', timeout: 10000 });
       await page.screenshot({ path: 'test-results/dashboard-page.png', fullPage: true });
       console.log('✅ Dashboard page screenshot captured');
     } catch (error) {

@@ -568,6 +568,66 @@
             }
           }
         }
+      },
+      "post": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Create a new event",
+        "description": "Creates a new event with optional sessions, ticket types, volunteer positions, and organizers. New events are created as drafts (IsPublished = false) by default. Supports full event creation with all related entities in a single request.",
+        "operationId": "CreateEvent",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEventRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/events/{id}": {
@@ -10732,6 +10792,118 @@
             "maxLength": 200,
             "minLength": 3,
             "type": "string"
+          }
+        }
+      },
+      "CreateEventRequest": {
+        "required": [
+          "title",
+          "description",
+          "startDate",
+          "endDate",
+          "venueId",
+          "eventType",
+          "capacity"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "maxLength": 150,
+            "type": "string"
+          },
+          "shortDescription": {
+            "maxLength": 200,
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string"
+          },
+          "policies": {
+            "type": "string",
+            "nullable": true
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "venueId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "eventType": {
+            "type": "string"
+          },
+          "capacity": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "isPublished": {
+            "type": "boolean"
+          },
+          "sessions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionDto"
+            },
+            "nullable": true
+          },
+          "ticketTypes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TicketTypeDto"
+            },
+            "nullable": true
+          },
+          "volunteerPositions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VolunteerPositionDto"
+            },
+            "nullable": true
+          },
+          "teacherIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "registrationOpenHours": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "registrationCloseHours": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "cancellationOpenHours": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "cancellationCloseHours": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "volunteerRegistrationCloseHours": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "volunteerCancellationCloseHours": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
           }
         }
       },

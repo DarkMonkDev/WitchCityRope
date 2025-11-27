@@ -21,8 +21,9 @@ build_test_images() {
     export BUILD_TIMESTAMP=$(date +%s)
 
     # Build test images with proper labels
-    echo "  Building images (this may take a few minutes)..."
+    echo "  Building images with --no-cache (this may take a few minutes)..."
     docker-compose -p witchcityrope-test -f docker-compose.yml -f docker-compose.test.yml build \
+        --no-cache \
         --build-arg BUILD_TIMESTAMP="$BUILD_TIMESTAMP" \
         2>&1 | grep -v "^#" | grep -v "^DEPRECATED" || true
 

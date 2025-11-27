@@ -58,7 +58,8 @@ export function convertEventTicketTypeFromDto(dto: TicketTypeDto, sessions: Even
     minPrice: dto.minPrice,
     maxPrice: dto.maxPrice,
     quantityAvailable: dto.quantityAvailable,
-    salesEndDate: dto.salesEndDate
+    // ✅ REMOVED: salesEndDate field removed from backend DTO
+    // salesEndDate: dto.salesEndDate
   }
 }
 
@@ -95,7 +96,8 @@ export function convertEventTicketTypeToCreateDto(
     maxPrice: ticketType.maxPrice,
     defaultPrice: ticketType.defaultPrice,
     quantityAvailable: ticketType.quantityAvailable,
-    salesEndDate: ticketType.salesEndDate,
+    // ✅ REMOVED: salesEndDate field removed from backend DTO
+    // salesEndDate: ticketType.salesEndDate,
     sessionIds
   }
 }

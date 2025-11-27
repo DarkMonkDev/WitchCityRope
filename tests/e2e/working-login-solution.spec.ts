@@ -36,7 +36,7 @@ test.describe('Working Login Solution', () => {
     })
     
     // Navigate to login page
-    await page.goto('http://localhost:5173/login')
+    await page.goto('/login')
     await page.waitForLoadState('networkidle')
     
     // Wait for form to be ready

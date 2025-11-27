@@ -2,14 +2,18 @@ import { Page } from '@playwright/test'
 
 /**
  * SERVICE HEALTH CHECK HELPER FOR DOCKER ENVIRONMENT
- * 
- * This helper verifies that Docker services are running and accessible 
+ *
+ * This helper verifies that Docker services are running and accessible
  * before E2E tests execute. Prevents test failures due to service unavailability.
- * 
+ *
+ * NOTE: This file uses environment-based URLs for health checks in global-setup.ts
+ * which runs BEFORE the Playwright test context is available. Tests themselves should
+ * use relative URLs that work with baseURL configuration.
+ *
  * Expected Services:
- * - Web: http://localhost:5173 (React + Vite)
- * - API: http://localhost:5655 (Minimal API) 
- * - Database: PostgreSQL on localhost:5433
+ * - Web: React + Vite (from PLAYWRIGHT_WEB_URL env or baseURL)
+ * - API: Minimal API (from PLAYWRIGHT_BASE_URL env or baseURL)
+ * - Database: PostgreSQL on localhost:5434
  */
 
 export interface ServiceEndpoints {
@@ -26,10 +30,12 @@ export interface ServiceCheckOptions {
 }
 
 export class ServiceHelper {
+  // These URLs use environment variables or default to localhost for health checks
+  // Tests themselves should use relative URLs (e.g., '/events') to work with baseURL
   private static readonly DEFAULT_ENDPOINTS: ServiceEndpoints = {
-    web: 'http://localhost:5173',
-    api: 'http://localhost:5655',
-    apiHealth: 'http://localhost:5655/health'
+    web: process.env.PLAYWRIGHT_WEB_URL || 'http://localhost:5173',
+    api: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5655',
+    apiHealth: `${process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5655'}/health`
   }
 
   private static readonly DEFAULT_OPTIONS: Required<ServiceCheckOptions> = {
@@ -191,22 +197,22 @@ export class ServiceHelper {
 
     // Check web service by navigating to it
     try {
-      await page.goto(endpoints.web, { 
+      await page.goto('/', {
         waitUntil: 'domcontentloaded',
-        timeout: opts.timeout 
+        timeout: opts.timeout
       })
       if (opts.verbose) {
-        console.log(`✅ Web service accessible at ${endpoints.web}`)
+        console.log(`✅ Web service accessible`)
       }
     } catch (error) {
-      throw new Error(`❌ Web service not accessible at ${endpoints.web}: ${error}`)
+      throw new Error(`❌ Web service not accessible: ${error}`)
     }
 
     // Check API service via page.evaluate to avoid CORS issues
     try {
-      const apiResponse = await page.evaluate(async (apiUrl) => {
+      const apiResponse = await page.evaluate(async () => {
         try {
-          const response = await fetch(apiUrl, {
+          const response = await fetch('/health', {
             method: 'GET',
             headers: { 'Accept': 'application/json' }
           })
@@ -214,14 +220,14 @@ export class ServiceHelper {
         } catch (err) {
           return { ok: false, status: 0, error: err instanceof Error ? err.message : String(err) }
         }
-      }, endpoints.api)
+      })
 
       if (!apiResponse.ok && apiResponse.status === 0) {
         if (opts.verbose) {
           console.log('⚠️  API service may not be fully ready, but connection established')
         }
       } else if (opts.verbose) {
-        console.log(`✅ API service accessible at ${endpoints.api}`)
+        console.log(`✅ API service accessible`)
       }
     } catch (error) {
       if (opts.verbose) {

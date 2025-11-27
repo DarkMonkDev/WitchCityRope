@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || `${baseUrl}`;
+
 /**
  * Basic Functionality Check - What Currently Works
  *
@@ -11,7 +13,7 @@ import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 test.describe('Basic Functionality Check - Current State', () => {
 
   test('React app loads and displays basic content', async ({ page }) => {
-    await page.goto('http://localhost:5173');
+    await page.goto(`${baseUrl}`);
 
     // Should load without errors - verify the actual application title
     await expect(page).toHaveTitle(/Witch City Rope/);
@@ -37,7 +39,7 @@ test.describe('Basic Functionality Check - Current State', () => {
 
     for (const route of routes) {
       try {
-        await page.goto(`http://localhost:5173${route}`);
+        await page.goto(`${baseUrl}${route}`);
         await page.waitForLoadState('networkidle', { timeout: 5000 });
         
         const title = await page.title();
@@ -57,7 +59,7 @@ test.describe('Basic Functionality Check - Current State', () => {
   });
 
   test('Check what components and elements are actually present', async ({ page }) => {
-    await page.goto('http://localhost:5173');
+    await page.goto(`${baseUrl}`);
     await page.waitForLoadState('networkidle');
     
     // Check for common elements that might exist
@@ -139,7 +141,7 @@ test.describe('Basic Functionality Check - Current State', () => {
     
     for (const route of routes) {
       try {
-        await page.goto(`http://localhost:5173${route}`);
+        await page.goto(`${baseUrl}${route}`);
         await page.waitForLoadState('networkidle', { timeout: 5000 });
         
         // Look for forms and inputs

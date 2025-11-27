@@ -52,7 +52,7 @@ test.describe('Admin Events Navigation - Critical Bug Detection', () => {
   // API Health Pre-Check
   test.beforeAll(async ({ request }) => {
     console.log('🔍 Pre-flight API health check...');
-    const response = await request.get('http://localhost:5655/health');
+    const response = await request.get('/health');
     expect(response.ok()).toBeTruthy();
     const health = await response.json();
     expect(health.status).toBe('Healthy');
@@ -63,7 +63,7 @@ test.describe('Admin Events Navigation - Critical Bug Detection', () => {
     console.log('🔍 Testing critical admin events navigation flow...');
 
     // Step 1: Login as admin
-    await page.goto('http://localhost:5173/login');
+    await page.goto('/login');
     console.log('📍 Navigated to login page');
 
     // Verify login form
@@ -104,7 +104,7 @@ test.describe('Admin Events Navigation - Critical Bug Detection', () => {
     if (!adminLinkFound) {
       // Try direct navigation to admin events
       console.log('No admin links found, trying direct navigation...');
-      await page.goto('http://localhost:5173/admin/events');
+      await page.goto('/admin/events');
     }
 
     // Step 4: Wait for admin events page to load
@@ -179,7 +179,7 @@ test.describe('Admin Events Navigation - Critical Bug Detection', () => {
     console.log('🔍 Testing admin event details navigation...');
 
     // Login as admin
-    await page.goto('http://localhost:5173/login');
+    await page.goto('/login');
     await page.locator('[data-testid="email-or-scenename-input"]').fill('admin@witchcityrope.com');
     await page.locator('[data-testid="password-input"]').fill('Test123!');
     await page.locator('[data-testid="login-button"]').click();
@@ -201,11 +201,11 @@ test.describe('Admin Events Navigation - Critical Bug Detection', () => {
         await page.waitForTimeout(1000);
       } else {
         // Direct navigation fallback
-        await page.goto('http://localhost:5173/admin/events');
+        await page.goto('/admin/events');
       }
     } catch (error) {
       console.log('Navigation via buttons failed, using direct URL');
-      await page.goto('http://localhost:5173/admin/events');
+      await page.goto('/admin/events');
     }
 
     await page.waitForLoadState('networkidle');
@@ -282,7 +282,7 @@ test.describe('Admin Events Navigation - Critical Bug Detection', () => {
       } catch (clickError) {
         console.log(`Event click failed: ${clickError}`);
         // Try direct navigation to an event details page
-        await page.goto('http://localhost:5173/admin/events/1');
+        await page.goto('/admin/events/1');
         await page.waitForTimeout(2000);
 
         const notFoundCount = await page.locator('text=/404|Not Found/i').count();
@@ -294,7 +294,7 @@ test.describe('Admin Events Navigation - Critical Bug Detection', () => {
       console.log('No events found in list, testing direct event details access...');
 
       // Test direct event details navigation
-      await page.goto('http://localhost:5173/admin/events/1');
+      await page.goto('/admin/events/1');
       await page.waitForTimeout(2000);
 
       const notFoundCount = await page.locator('text=/404|Not Found/i').count();
@@ -312,14 +312,14 @@ test.describe('Admin Events Navigation - Critical Bug Detection', () => {
     console.log('🔍 Testing admin events page with no events...');
 
     // Login as admin
-    await page.goto('http://localhost:5173/login');
+    await page.goto('/login');
     await page.locator('[data-testid="email-or-scenename-input"]').fill('admin@witchcityrope.com');
     await page.locator('[data-testid="password-input"]').fill('Test123!');
     await page.locator('[data-testid="login-button"]').click();
     await page.waitForURL('**/dashboard', { timeout: 15000 });
 
     // Navigate to admin events
-    await page.goto('http://localhost:5173/admin/events');
+    await page.goto('/admin/events');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
 
@@ -358,14 +358,14 @@ test.describe('Admin Events Navigation - Critical Bug Detection', () => {
     console.log('🔍 Testing admin events authentication persistence...');
 
     // Login as admin
-    await page.goto('http://localhost:5173/login');
+    await page.goto('/login');
     await page.locator('[data-testid="email-or-scenename-input"]').fill('admin@witchcityrope.com');
     await page.locator('[data-testid="password-input"]').fill('Test123!');
     await page.locator('[data-testid="login-button"]').click();
     await page.waitForURL('**/dashboard', { timeout: 15000 });
 
     // Navigate to admin events
-    await page.goto('http://localhost:5173/admin/events');
+    await page.goto('/admin/events');
     await page.waitForLoadState('networkidle');
 
     // Verify admin access
@@ -387,14 +387,14 @@ test.describe('Admin Events Navigation - Critical Bug Detection', () => {
     console.log('🔍 Testing non-admin access restriction...');
 
     // Login as regular member
-    await page.goto('http://localhost:5173/login');
+    await page.goto('/login');
     await page.locator('[data-testid="email-or-scenename-input"]').fill('member@witchcityrope.com');
     await page.locator('[data-testid="password-input"]').fill('Test123!');
     await page.locator('[data-testid="login-button"]').click();
     await page.waitForURL('**/dashboard', { timeout: 15000 });
 
     // Try to access admin events
-    await page.goto('http://localhost:5173/admin/events');
+    await page.goto('/admin/events');
     await page.waitForTimeout(3000);
 
     // Should be redirected or show access denied

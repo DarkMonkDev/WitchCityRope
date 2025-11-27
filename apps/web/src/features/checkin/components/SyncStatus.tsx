@@ -16,10 +16,10 @@ import {
   ScrollArea,
   Divider
 } from '@mantine/core';
-import { 
-  IconWifi, 
-  IconWifiOff, 
-  IconRefresh, 
+import {
+  IconWifi,
+  IconWifiOff,
+  IconRefresh,
   IconClock,
   IconAlertTriangle,
   IconCheck,
@@ -27,6 +27,7 @@ import {
 } from '@tabler/icons-react';
 import { useOfflineSync } from '../hooks/useOfflineSync';
 import { TOUCH_TARGETS } from '../types/checkin.types';
+import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 
 interface SyncStatusProps {
   compact?: boolean;
@@ -44,20 +45,21 @@ interface SyncDetailsModalProps {
 /**
  * Detailed sync information modal
  */
-function SyncDetailsModal({ 
-  isOpen, 
-  onClose, 
-  onSync, 
-  onClearQueue 
+function SyncDetailsModal({
+  isOpen,
+  onClose,
+  onSync,
+  onClearQueue
 }: SyncDetailsModalProps) {
-  const { 
-    isOnline, 
-    pendingCount, 
-    lastSync, 
-    getSyncStatus 
+  const {
+    isOnline,
+    pendingCount,
+    lastSync,
+    getSyncStatus
   } = useOfflineSync();
 
   const [syncStatus, setSyncStatus] = React.useState<any>(null);
+  const eventTimeZone = useEventTimeZone();
 
   React.useEffect(() => {
     if (isOpen) {
@@ -124,7 +126,7 @@ function SyncDetailsModal({
             <Group justify="space-between">
               <Text size="sm">Last Sync:</Text>
               <Text size="sm" c="dimmed">
-                {lastSync ? new Date(lastSync).toLocaleString() : 'Never'}
+                {lastSync ? new Date(lastSync).toLocaleString('en-US', { timeZone: eventTimeZone }) : 'Never'}
               </Text>
             </Group>
 
@@ -221,19 +223,20 @@ export function CompactSyncStatus({ onSync }: { onSync?: () => void }) {
 /**
  * Main sync status component with full details
  */
-export function SyncStatus({ 
-  compact = false, 
+export function SyncStatus({
+  compact = false,
   showDetails = false,
   onSync
 }: SyncStatusProps) {
   const [showModal, setShowModal] = React.useState(false);
-  const { 
-    isOnline, 
-    pendingCount, 
-    lastSync, 
+  const {
+    isOnline,
+    pendingCount,
+    lastSync,
     triggerSync,
     clearPendingActions
   } = useOfflineSync();
+  const eventTimeZone = useEventTimeZone();
 
   const handleSync = React.useCallback(() => {
     triggerSync();
@@ -283,7 +286,7 @@ export function SyncStatus({
 
               {lastSync && (
                 <Text size="xs" c="dimmed">
-                  Last sync: {new Date(lastSync).toLocaleString()}
+                  Last sync: {new Date(lastSync).toLocaleString('en-US', { timeZone: eventTimeZone })}
                 </Text>
               )}
             </Stack>

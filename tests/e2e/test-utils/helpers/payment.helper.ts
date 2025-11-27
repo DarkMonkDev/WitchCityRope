@@ -22,7 +22,7 @@ import { APIRequestContext, Page } from '@playwright/test';
  * Related: Admin Variable Refund E2E tests
  */
 
-const API_URL = 'http://localhost:5655';
+// API base URL removed - use relative paths with Playwright's baseURL
 
 export interface CreateTestPaymentOptions {
   /** Payment amount in USD */
@@ -109,8 +109,8 @@ export class PaymentHelper {
     console.log(`📝 Creating test payment: $${amount} (${paymentMethod}) for event: ${uniqueEventName}`);
 
     try {
-      // Try to create via test helper endpoint
-      const response = await request.post(`${API_URL}/api/test-helpers/ticket-purchases`, {
+      // Try to create via test helper endpoint (using relative URL)
+      const response = await request.post('/api/test-helpers/ticket-purchases', {
         data: payload,
         failOnStatusCode: false
       });
@@ -172,7 +172,7 @@ export class PaymentHelper {
     transactionId: string
   ): Promise<boolean> {
     try {
-      const response = await request.get(`${API_URL}/api/admin/payments?search=${transactionId}`, {
+      const response = await request.get(`/api/admin/payments?search=${transactionId}`, {
         failOnStatusCode: false
       });
 
@@ -211,7 +211,7 @@ export class PaymentHelper {
   ): Promise<void> {
     try {
       const response = await request.delete(
-        `${API_URL}/api/test-helpers/ticket-purchases/${ticketPurchaseId}`,
+        `/api/test-helpers/ticket-purchases/${ticketPurchaseId}`,
         { failOnStatusCode: false }
       );
 
@@ -241,8 +241,8 @@ export class PaymentHelper {
  *     paymentStatus: 'Completed'
  *   });
  *
- *   // 3. Navigate to payments page
- *   await page.goto('http://localhost:5173/admin/analytics/payments');
+ *   // 3. Navigate to payments page (using relative URL)
+ *   await page.goto('/admin/analytics/payments');
  *
  *   // 4. Find the payment by transaction ID
  *   const row = page.locator(`tr:has-text("${payment.transactionId}")`);

@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Phase 4: Public Events Pages Implementation Testing', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to events page
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
   });
 
   test('should load events page successfully', async ({ page }) => {
@@ -15,7 +15,7 @@ test.describe('Phase 4: Public Events Pages Implementation Testing', () => {
     
     // Take screenshot for manual review
     await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope/test-results/events-page-loaded.png',
+      path: './test-results/events-page-loaded.png',
       fullPage: true 
     });
   });
@@ -36,7 +36,7 @@ test.describe('Phase 4: Public Events Pages Implementation Testing', () => {
     
     // Take screenshot of filtered view
     await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope/test-results/events-filters-active.png',
+      path: './test-results/events-filters-active.png',
       fullPage: true 
     });
   });
@@ -61,7 +61,7 @@ test.describe('Phase 4: Public Events Pages Implementation Testing', () => {
       
       // Take screenshot of event card
       await firstCard.screenshot({ 
-        path: '/home/chad/repos/witchcityrope/test-results/event-card-details.png' 
+        path: './test-results/event-card-details.png' 
       });
     }
   });
@@ -79,14 +79,14 @@ test.describe('Phase 4: Public Events Pages Implementation Testing', () => {
     
     // Take mobile screenshot
     await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope/test-results/events-mobile-view.png',
+      path: './test-results/events-mobile-view.png',
       fullPage: true 
     });
   });
 
   test('should handle loading and error states', async ({ page }) => {
     // Navigate to events page and watch for loading states
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
 
     // Look for loading indicators initially
     const loadingIndicator = page.locator('[data-testid="loading"], .spinner, text="Loading"');
@@ -99,7 +99,7 @@ test.describe('Phase 4: Public Events Pages Implementation Testing', () => {
     
     // Take screenshot of loaded state
     await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope/test-results/events-loaded-state.png',
+      path: './test-results/events-loaded-state.png',
       fullPage: true 
     });
   });
@@ -120,7 +120,7 @@ test.describe('Phase 4: Public Events Pages Implementation Testing', () => {
       
       // Take screenshot of detail page
       await page.screenshot({ 
-        path: '/home/chad/repos/witchcityrope/test-results/event-detail-navigation.png',
+        path: './test-results/event-detail-navigation.png',
         fullPage: true 
       });
     }

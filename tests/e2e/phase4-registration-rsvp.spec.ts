@@ -11,7 +11,7 @@ test.describe('Phase 4: Registration/RSVP System', () => {
     });
 
     // Navigate to events page
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
   });
 
   /**
@@ -250,7 +250,7 @@ test.describe('Phase 4: User Dashboard Integration', () => {
     console.log('🧪 Testing My Registrations View...');
 
     // Navigate to dashboard (would require auth)
-    await page.goto('http://localhost:5173/dashboard');
+    await page.goto('/dashboard');
     
     // Look for registrations section
     const myRegistrations = page.locator('text=/my registration/i, text=/my events/i, text=/upcoming/i');

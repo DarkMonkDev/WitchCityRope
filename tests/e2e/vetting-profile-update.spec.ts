@@ -42,8 +42,8 @@ test.describe('Vetting Application Profile Updates', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Navigate to vetting application form
-    await page.goto('http://localhost:5173/join');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/join');
+    await page.waitForLoadState('domcontentloaded');
 
     // Wait for form to load
     const vettingForm = page.locator('form').first();
@@ -109,8 +109,8 @@ test.describe('Vetting Application Profile Updates', () => {
     await page.waitForTimeout(2000);
 
     // Assert: Navigate to user profile/dashboard to verify updates
-    await page.goto('http://localhost:5173/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/dashboard');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify profile displays updated information
     // Note: Actual selectors depend on dashboard implementation
@@ -156,8 +156,8 @@ test.describe('Vetting Application Profile Updates', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Act: Submit vetting application with only required fields
-    await page.goto('http://localhost:5173/join');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/join');
+    await page.waitForLoadState('domcontentloaded');
 
     // Fill minimal fields
     // ... (similar to test above but without pronouns/fetLifeHandle)
@@ -182,8 +182,8 @@ test.describe('Vetting Application Profile Updates', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Navigate to vetting application
-    await page.goto('http://localhost:5173/join');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/join');
+    await page.waitForLoadState('domcontentloaded');
 
     const timestamp = Date.now();
     const testData = {
@@ -236,8 +236,8 @@ test.describe('Vetting Application Profile Updates', () => {
     await page.waitForTimeout(2000);
 
     // Act: Navigate to dashboard
-    await page.goto('http://localhost:5173/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/dashboard');
+    await page.waitForLoadState('domcontentloaded');
 
     // Assert: Verify profile section displays updated data
     const profileSection = page.locator('[data-testid="user-profile"], .profile').first();

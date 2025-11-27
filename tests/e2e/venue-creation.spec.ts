@@ -20,6 +20,8 @@ import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 // Venue Management is implemented in AdminSettingsPage (right column card)
 // Route: /admin/settings (NOT /admin/venues)
 // Component: VenueManagementCard uses Select dropdown with "Add New" option
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+
 test.describe('Admin Venue Creation', () => {
   test.beforeEach(async ({ page }) => {
     // Clear auth state before each test
@@ -31,7 +33,7 @@ test.describe('Admin Venue Creation', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to admin settings (where venue management is located)
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     // Verify page loaded
@@ -47,7 +49,7 @@ test.describe('Admin Venue Creation', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to admin settings where venue management is located
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     // Find the venue dropdown (Mantine Select uses placeholder selector)
@@ -83,7 +85,7 @@ test.describe('Admin Venue Creation', () => {
     await expect(successNotification).toBeVisible({ timeout: 5000 });
 
     // Verify venue appears in dropdown after creation
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     // Open dropdown and verify venue is listed
@@ -99,7 +101,7 @@ test.describe('Admin Venue Creation', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to settings
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     // Open venue dropdown and select "Add New"
@@ -129,7 +131,7 @@ test.describe('Admin Venue Creation', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to settings
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     // Open dropdown and select "Add New"
@@ -156,7 +158,7 @@ test.describe('Admin Venue Creation', () => {
     await expect(successNotification).toBeVisible({ timeout: 5000 });
 
     // Verify venue appears in dropdown
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     await venueDropdown.click();
@@ -172,7 +174,7 @@ test.describe('Admin Venue Creation', () => {
     const duplicateName = `Duplicate Venue ${Date.now()}`;
 
     // Create first venue
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     const venueDropdown = page.getByPlaceholder('Select a venue');
@@ -187,7 +189,7 @@ test.describe('Admin Venue Creation', () => {
     await page.waitForTimeout(1000);
 
     // Try to create second venue with same name
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     await venueDropdown.click();

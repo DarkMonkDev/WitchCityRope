@@ -5,8 +5,8 @@ import { test, expect } from '@playwright/test'
  * Tests the complete React + API + PostgreSQL stack through browser automation
  *
  * Requirements:
- * - React dev server running on http://localhost:5173
- * - API server running on http://localhost:5655
+ * - React app accessible via baseURL (Docker on port 5173 or container networking)
+ * - API server accessible via proxy or container networking
  * - PostgreSQL database available
  *
  * These tests prove the end-to-end stack integration works.
@@ -14,7 +14,7 @@ import { test, expect } from '@playwright/test'
 test.describe('Home Page - Vertical Slice E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to the home page
-    await page.goto('http://localhost:5173')
+    await page.goto('/')
   })
 
   test('page loads successfully', async ({ page }) => {
@@ -22,7 +22,7 @@ test.describe('Home Page - Vertical Slice E2E Tests', () => {
     await expect(page).toHaveTitle(/Witch City Rope/)
 
     // Check that we're on the correct URL
-    await expect(page).toHaveURL('http://localhost:5173/')
+    await expect(page).toHaveURL('/')
   })
 
   test('events display from API', async ({ page }) => {
@@ -84,14 +84,14 @@ test.describe('Home Page - Vertical Slice E2E Tests', () => {
 
   test('loading state displays correctly', async ({ page }) => {
     // Intercept the API call to simulate slow response
-    await page.route('http://localhost:5655/api/events', async (route) => {
+    await page.route('**/api/events', async (route) => {
       // Delay the response to test loading state
       await new Promise((resolve) => setTimeout(resolve, 1000))
       route.continue()
     })
 
     // Navigate to trigger the API call
-    await page.goto('http://localhost:5173')
+    await page.goto('/')
 
     // Verify loading spinner appears initially
     await expect(page.locator('[data-testid="loading-spinner"]')).toBeVisible()
@@ -158,7 +158,7 @@ test.describe('Home Page - Vertical Slice E2E Tests', () => {
     })
 
     // Navigate to page and wait for API call
-    await page.goto('http://localhost:5173')
+    await page.goto('/')
 
     // Wait for content to load
     await page.waitForSelector(
@@ -167,7 +167,8 @@ test.describe('Home Page - Vertical Slice E2E Tests', () => {
 
     // Verify API was called
     expect(apiRequests.length).toBeGreaterThan(0)
-    expect(apiRequests[0]).toBe('http://localhost:5655/api/events')
+    // API requests go through Vite proxy, so URL will be relative
+    expect(apiRequests[0]).toContain('/api/events')
 
     // Take screenshot for debugging if needed
     await page.screenshot({
@@ -186,12 +187,13 @@ test.describe('Home Page - Vertical Slice E2E Tests', () => {
     })
 
     // Block the API endpoint to simulate server unavailable
-    await page.route('http://localhost:5655/api/events', (route) => {
+    // Match any URL containing /api/events (works in both host and container)
+    await page.route('**/api/events', (route) => {
       route.abort('failed')
     })
 
     // Navigate to page
-    await page.goto('http://localhost:5173')
+    await page.goto('/')
 
     // Wait for either error message or empty state to appear
     // (React Query retries may result in empty state instead of error)
@@ -232,7 +234,7 @@ test.describe('Home Page - Vertical Slice E2E Tests', () => {
     })
 
     // Navigate to the home page
-    await page.goto('http://localhost:5173')
+    await page.goto('/')
 
     // Wait for the React app to make the API call and receive response
     await page.waitForSelector(

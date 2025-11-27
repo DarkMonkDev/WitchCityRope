@@ -104,6 +104,61 @@ public static class EventEndpoints
             .ProducesProblem(404)
             .ProducesProblem(500);
 
+        // Create new event
+        // SECURITY: CSRF protection + Authorization required
+        app.MapPost("/api/events", async (
+            HttpContext context,
+            IAntiforgery antiforgery,
+            CreateEventRequest request,
+            [FromServices] IEventService eventService,
+            CancellationToken cancellationToken) =>
+            {
+                // CSRF validation - MUST be first
+                try
+                {
+                    await antiforgery.ValidateRequestAsync(context);
+                }
+                catch (AntiforgeryValidationException)
+                {
+                    return Results.Problem(
+                        title: "CSRF Validation Failed",
+                        detail: "Antiforgery token validation failed. Please refresh the page and try again.",
+                        statusCode: 400);
+                }
+
+                // Call service to create event
+                var (success, response, error) = await eventService.CreateEventAsync(request, cancellationToken);
+
+                if (success && response != null)
+                {
+                    return Results.Ok(response); // Direct DTO - Pattern B
+                }
+
+                // Determine appropriate HTTP status code based on error message
+                var statusCode = error switch
+                {
+                    string msg when msg.Contains("null") => 400,
+                    string msg when msg.Contains("date") => 400,
+                    string msg when msg.Contains("Invalid event type") => 400,
+                    _ => 500
+                };
+
+                return Results.Problem(
+                    title: "Failed to create event",
+                    detail: error ?? "Failed to create event. Please try again.",
+                    statusCode: statusCode);
+            })
+            .RequireAuthorization() // Requires JWT authentication
+            .WithName("CreateEvent")
+            .WithSummary("Create a new event")
+            .WithDescription("Creates a new event with optional sessions, ticket types, volunteer positions, and organizers. " +
+                "New events are created as drafts (IsPublished = false) by default. Supports full event creation with all related entities in a single request.")
+            .WithTags("Events")
+            .Produces<EventDto>(200)
+            .ProducesProblem(400)
+            .ProducesProblem(401)
+            .ProducesProblem(500);
+
         // Update existing event by ID
         // SECURITY: CSRF protection prevents unauthorized event modifications
         app.MapPut("/api/events/{id}", async (

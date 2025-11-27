@@ -51,8 +51,8 @@ export class AuthHelper {
     await this.clearAuthState(page)
 
     try {
-      // Navigate to login page
-      await page.goto('http://localhost:5173/login')
+      // Navigate to login page using relative URL (works with baseURL in containers)
+      await page.goto('/login')
       await page.waitForLoadState('networkidle')
 
       // Setup console error monitoring (unless suppressed)
@@ -206,10 +206,10 @@ export class AuthHelper {
       // Clear cookies and permissions
       await page.context().clearCookies()
       await page.context().clearPermissions()
-      
-      // Navigate to login page first to establish context for storage access
-      await page.goto('http://localhost:5173/login')
-      
+
+      // Navigate to login page first to establish context for storage access (using relative URL)
+      await page.goto('/login')
+
       // Clear storage safely
       await page.evaluate(() => {
         if (typeof localStorage !== 'undefined') {
@@ -236,8 +236,8 @@ export class AuthHelper {
         await logoutButton.click()
         await page.waitForURL('**/login', { timeout: 10000 })
       } else {
-        // Fallback: navigate directly to logout endpoint
-        await page.goto('http://localhost:5173/logout')
+        // Fallback: navigate directly to logout endpoint (using relative URL)
+        await page.goto('/logout')
       }
     } catch (error) {
       console.warn('Logout failed, clearing auth state manually:', error)
@@ -285,7 +285,7 @@ export class AuthHelper {
       // Step 1: Cancel ticket purchase using API (if exists)
       try {
         const ticketResponse = await page.request.delete(
-          `http://localhost:5655/api/events/${eventId}/participation?type=ticket`,
+          `/api/events/${eventId}/participation?type=ticket`,
           { failOnStatusCode: false }
         )
 
@@ -307,7 +307,7 @@ export class AuthHelper {
       if (eventType === 'Social') {
         try {
           const rsvpResponse = await page.request.delete(
-            `http://localhost:5655/api/events/${eventId}/rsvp`,
+            `/api/events/${eventId}/rsvp`,
             { failOnStatusCode: false }
           )
 

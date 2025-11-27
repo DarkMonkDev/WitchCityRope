@@ -10,7 +10,7 @@ test.describe('Admin Events Navigation Test', () => {
     console.log('✅ Logged in as admin successfully');
     
     // Step 2: Navigate directly to admin events page
-    await page.goto('http://localhost:5173/admin/events');
+    await page.goto('/admin/events');
     await page.waitForLoadState('networkidle');
     await page.screenshot({ path: 'test-results/admin-events-page-direct.png', fullPage: true });
     console.log('✅ Navigated to admin events page');

@@ -18,6 +18,7 @@ import {
 } from '@mantine/core';
 import { IconCopy } from '@tabler/icons-react';
 import { useClipboard } from '@mantine/hooks';
+import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 
 interface SubmissionConfirmationProps {
   submissionResult: {
@@ -28,6 +29,7 @@ interface SubmissionConfirmationProps {
 
 export function SubmissionConfirmation({ submissionResult }: SubmissionConfirmationProps) {
   const clipboard = useClipboard({ timeout: 2000 });
+  const eventTimeZone = useEventTimeZone();
 
   const formatSubmissionTime = (isoString: string) => {
     const date = new Date(isoString);
@@ -37,7 +39,8 @@ export function SubmissionConfirmation({ submissionResult }: SubmissionConfirmat
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
+      timeZone: eventTimeZone
     });
   };
 

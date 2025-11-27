@@ -8,7 +8,7 @@ test.describe('Admin Events Dashboard', () => {
     expect(loginSuccess).toBeTruthy();
 
     // Navigate to admin events page
-    await page.goto('http://localhost:5173/admin/events');
+    await page.goto('/admin/events');
     await page.waitForLoadState('networkidle');
   });
 

@@ -53,11 +53,11 @@ test.describe('Vetting Application Form', () => {
     console.log('✅ Testing navigation from homepage to vetting form');
 
     // Start at homepage
-    await page.goto('http://localhost:5173/');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify we're on the homepage
-    await expect(page).toHaveURL('http://localhost:5173/');
+    await expect(page).toHaveURL('/');
 
     // Find and click "How to Join" link in navigation (use .first() for strict mode)
     const joinLink = page.getByRole('link', { name: 'How to Join' }).first();
@@ -65,7 +65,7 @@ test.describe('Vetting Application Form', () => {
     await joinLink.click();
 
     // Verify navigation to /join
-    await expect(page).toHaveURL('http://localhost:5173/join');
+    await expect(page).toHaveURL('/join');
 
     // Wait for page to render
     await page.waitForTimeout(500);
@@ -87,11 +87,11 @@ test.describe('Vetting Application Form', () => {
     console.log('✅ Testing direct navigation to /join and form field display');
 
     // Navigate directly to /join
-    await page.goto('http://localhost:5173/join');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/join');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify we're on the join page
-    await expect(page).toHaveURL('http://localhost:5173/join');
+    await expect(page).toHaveURL('/join');
 
     // Verify form header is visible (actual heading is h2, not h1)
     await expect(page.locator('h2')).toContainText('Apply to Join Witch City Rope');
@@ -146,8 +146,8 @@ test.describe('Vetting Application Form', () => {
     console.log('✅ Testing form validation with empty required fields');
 
     // Navigate to the form
-    await page.goto('http://localhost:5173/join');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/join');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(500);
 
     // Check if login is required
@@ -204,8 +204,8 @@ test.describe('Vetting Application Form', () => {
     expect(loginSuccess).toBe(true);
 
     // Navigate to the join page
-    await page.goto('http://localhost:5173/join');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/join');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(500);
 
     // Check if user already has an application
@@ -249,8 +249,8 @@ test.describe('Vetting Application Form', () => {
     console.log('✅ Testing form access without authentication');
 
     // Visit form without logging in
-    await page.goto('http://localhost:5173/join');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/join');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(500);
 
     // Page should show "Apply to Join" heading
@@ -330,8 +330,8 @@ test.describe('Vetting Application Form', () => {
     expect(loginSuccess).toBe(true);
 
     // Navigate to join page
-    await page.goto('http://localhost:5173/join');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/join');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(500);
 
     // Check if existing application message is shown

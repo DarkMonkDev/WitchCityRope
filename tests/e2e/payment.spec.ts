@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 
 // Detect if running in CI environment
 const IS_CI = process.env.CI === 'true';
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
 const API_URL = process.env.API_URL || 'http://localhost:5655';
 
 test.describe('Payment Flow', () => {

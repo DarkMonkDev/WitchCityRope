@@ -30,7 +30,7 @@ test.describe('Registration Terms of Service Compliance', () => {
     testSceneName = `ToSTest ${timestamp} ${random}`;
 
     // Navigate to registration page
-    await page.goto('http://localhost:5173/register');
+    await page.goto('/register');
     await page.waitForLoadState('networkidle');
 
     // Wait for registration form to be ready
@@ -122,7 +122,7 @@ test.describe('Registration Terms of Service Compliance', () => {
     // Query API to verify ToS acceptance was stored
     // Note: This requires an API endpoint to fetch user data
     // If no such endpoint exists, this test documents the expected behavior
-    const userDataResponse = await request.get('http://localhost:5655/api/users/me', {
+    const userDataResponse = await request.get('/api/users/me', {
       failOnStatusCode: false
     });
 

@@ -1169,4 +1169,285 @@ public class EventService : IEventService
             return (false, null, "Failed to copy event. Please try again.");
         }
     }
+
+    /// <summary>
+    /// Create a new event with all related entities
+    /// Implements atomic transaction for data integrity
+    /// </summary>
+    public async Task<(bool Success, EventDto? Response, string Error)> CreateEventAsync(
+        CreateEventRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // 1. Validation
+            if (request == null)
+            {
+                _logger.LogWarning("Create request is null");
+                return (false, null, "Create request cannot be null");
+            }
+
+            // Validate date range
+            var startDate = request.StartDate.ToUniversalTime();
+            var endDate = request.EndDate.ToUniversalTime();
+
+            if (startDate >= endDate)
+            {
+                _logger.LogWarning("Invalid date range for event creation: StartDate: {StartDate}, EndDate: {EndDate}",
+                    startDate, endDate);
+                return (false, null, "Start date must be before end date");
+            }
+
+            // Parse and validate EventType enum
+            if (!Enum.TryParse<WitchCityRope.Api.Enums.EventType>(request.EventType, out var eventType))
+            {
+                _logger.LogWarning("Invalid event type: {EventType}", request.EventType);
+                return (false, null, $"Invalid event type: {request.EventType}");
+            }
+
+            _logger.LogInformation("Creating new event: {Title}, Type: {EventType}, StartDate: {StartDate}",
+                request.Title, request.EventType, request.StartDate);
+
+            // 2. Begin transaction for atomic operation
+            using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+            try
+            {
+                // 3. Create new event entity
+                // CRITICAL: DO NOT initialize Id in property - let EF Core generate it
+                var newEvent = new WitchCityRope.Api.Models.Event
+                {
+                    // Basic properties
+                    Title = request.Title.Trim(),
+                    ShortDescription = string.IsNullOrWhiteSpace(request.ShortDescription)
+                        ? null
+                        : request.ShortDescription.Trim(),
+                    Description = request.Description.Trim(),
+                    Policies = string.IsNullOrWhiteSpace(request.Policies)
+                        ? null
+                        : request.Policies.Trim(),
+                    StartDate = startDate,
+                    EndDate = endDate,
+                    VenueId = request.VenueId,
+                    EventType = eventType,
+                    Capacity = request.Capacity,
+                    IsPublished = request.IsPublished,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+
+                    // Timing controls (all optional)
+                    RegistrationOpenHours = request.RegistrationOpenHours,
+                    RegistrationCloseHours = request.RegistrationCloseHours,
+                    CancellationOpenHours = request.CancellationOpenHours,
+                    CancellationCloseHours = request.CancellationCloseHours,
+                    VolunteerRegistrationCloseHours = request.VolunteerRegistrationCloseHours,
+                    VolunteerCancellationCloseHours = request.VolunteerCancellationCloseHours
+                };
+
+                _context.Events.Add(newEvent);
+
+                // 4. Add sessions if provided
+                if (request.Sessions != null && request.Sessions.Any())
+                {
+                    foreach (var sessionDto in request.Sessions)
+                    {
+                        var newSession = new WitchCityRope.Api.Models.Session
+                        {
+                            // DO NOT set Id - let EF generate it
+                            EventId = newEvent.Id,
+                            SessionCode = sessionDto.SessionIdentifier,
+                            Name = sessionDto.Name,
+                            StartTime = sessionDto.StartTime.ToUniversalTime(),
+                            EndTime = sessionDto.EndTime.ToUniversalTime(),
+                            Capacity = sessionDto.Capacity,
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        };
+
+                        newEvent.Sessions.Add(newSession);
+                    }
+
+                    _logger.LogInformation("Added {SessionCount} sessions to new event", request.Sessions.Count);
+                }
+
+                // 5. Add ticket types if provided
+                if (request.TicketTypes != null && request.TicketTypes.Any())
+                {
+                    foreach (var ticketTypeDto in request.TicketTypes)
+                    {
+                        var newTicketType = new WitchCityRope.Api.Models.TicketType
+                        {
+                            EventId = newEvent.Id,
+                            Name = ticketTypeDto.Name,
+                            Description = $"{ticketTypeDto.PricingType} ticket",
+                            Available = ticketTypeDto.QuantityAvailable,
+                            PricingType = ticketTypeDto.PricingType
+                        };
+
+                        // Set pricing fields based on pricing type
+                        if (ticketTypeDto.PricingType == WitchCityRope.Models.PricingType.Fixed)
+                        {
+                            newTicketType.Price = ticketTypeDto.Price;
+                            newTicketType.MinPrice = null;
+                            newTicketType.MaxPrice = null;
+                            newTicketType.DefaultPrice = null;
+                        }
+                        else // SlidingScale
+                        {
+                            newTicketType.Price = null;
+                            newTicketType.MinPrice = ticketTypeDto.MinPrice;
+                            newTicketType.MaxPrice = ticketTypeDto.MaxPrice;
+                            newTicketType.DefaultPrice = ticketTypeDto.DefaultPrice;
+                        }
+
+                        // Link to session if specified
+                        if (ticketTypeDto.SessionIdentifiers.Count == 1)
+                        {
+                            var sessionCode = ticketTypeDto.SessionIdentifiers.First();
+                            var linkedSession = newEvent.Sessions.FirstOrDefault(s => s.SessionCode == sessionCode);
+                            if (linkedSession != null)
+                            {
+                                newTicketType.SessionId = linkedSession.Id;
+                            }
+                        }
+
+                        newEvent.TicketTypes.Add(newTicketType);
+                    }
+
+                    _logger.LogInformation("Added {TicketTypeCount} ticket types to new event", request.TicketTypes.Count);
+                }
+
+                // 6. Add volunteer positions if provided
+                if (request.VolunteerPositions != null && request.VolunteerPositions.Any())
+                {
+                    foreach (var positionDto in request.VolunteerPositions)
+                    {
+                        var newPosition = new WitchCityRope.Api.Models.VolunteerPosition
+                        {
+                            EventId = newEvent.Id,
+                            Title = positionDto.Title,
+                            Description = positionDto.Description,
+                            SlotsNeeded = positionDto.SlotsNeeded,
+                            SlotsFilled = 0, // New event starts with no filled slots
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        };
+
+                        // Link to session if specified
+                        if (!string.IsNullOrEmpty(positionDto.SessionId) && Guid.TryParse(positionDto.SessionId, out var sessionId))
+                        {
+                            // For new events, match by session code since IDs aren't persisted yet
+                            var linkedSession = newEvent.Sessions.FirstOrDefault(s => s.Id == sessionId);
+                            if (linkedSession != null)
+                            {
+                                newPosition.SessionId = linkedSession.Id;
+                            }
+                        }
+
+                        newEvent.VolunteerPositions.Add(newPosition);
+                    }
+
+                    _logger.LogInformation("Added {PositionCount} volunteer positions to new event", request.VolunteerPositions.Count);
+                }
+
+                // 7. Add organizers/teachers if provided
+                if (request.TeacherIds != null && request.TeacherIds.Any())
+                {
+                    var teacherGuids = new List<Guid>();
+                    foreach (var teacherIdString in request.TeacherIds)
+                    {
+                        if (Guid.TryParse(teacherIdString, out var teacherId))
+                        {
+                            teacherGuids.Add(teacherId);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Invalid teacher ID format during event creation: {TeacherId}", teacherIdString);
+                        }
+                    }
+
+                    if (teacherGuids.Any())
+                    {
+                        // OPTIMIZATION: Batch load all organizers in single query
+                        var organizers = await _context.Users
+                            .Where(u => teacherGuids.Contains(u.Id))
+                            .ToListAsync(cancellationToken);
+
+                        foreach (var organizer in organizers)
+                        {
+                            newEvent.Organizers.Add(organizer);
+                        }
+
+                        _logger.LogInformation("Added {OrganizerCount} organizers to new event", organizers.Count);
+                    }
+                }
+
+                // 8. Save all changes in transaction
+                await _context.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+
+                _logger.LogInformation("Successfully created event {EventId} ({Title})", newEvent.Id, newEvent.Title);
+
+                // 9. Reload event with navigation properties for DTO mapping
+                var createdEventWithNav = await _context.Events
+                    .Include(e => e.Sessions)
+                    .Include(e => e.TicketTypes)
+                        .ThenInclude(tt => tt.Session)
+                    .Include(e => e.VolunteerPositions)
+                    .Include(e => e.Organizers)
+                    .Include(e => e.Venue)
+                    .Include(e => e.EventAttendances)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(e => e.Id == newEvent.Id, cancellationToken);
+
+                if (createdEventWithNav == null)
+                {
+                    _logger.LogError("CRITICAL: Created event {EventId} not found after save", newEvent.Id);
+                    return (false, null, "Failed to retrieve created event");
+                }
+
+                // 10. Map to DTO and return
+                var eventDto = new EventDto
+                {
+                    Id = createdEventWithNav.Id.ToString(),
+                    Title = createdEventWithNav.Title,
+                    ShortDescription = createdEventWithNav.ShortDescription,
+                    Description = createdEventWithNav.Description,
+                    Policies = createdEventWithNav.Policies,
+                    StartDate = createdEventWithNav.StartDate,
+                    EndDate = createdEventWithNav.EndDate,
+                    VenueId = createdEventWithNav.VenueId,
+                    VenueLocation = createdEventWithNav.Venue?.Location,
+                    EventType = createdEventWithNav.EventType.ToString(),
+                    Capacity = createdEventWithNav.Capacity,
+                    IsPublished = createdEventWithNav.IsPublished,
+                    RegistrationCount = createdEventWithNav.GetCurrentAttendeeCount(),
+                    CurrentRSVPs = createdEventWithNav.GetCurrentRSVPCount(),
+                    CurrentTickets = createdEventWithNav.GetCurrentTicketCount(),
+                    Sessions = createdEventWithNav.Sessions.Select(s => new SessionDto(s)).ToList(),
+                    TicketTypes = createdEventWithNav.TicketTypes.Select(tt => new TicketTypeDto(tt, createdEventWithNav.EventAttendances)).ToList(),
+                    VolunteerPositions = createdEventWithNav.VolunteerPositions.Select(vp => new VolunteerPositionDto(vp)).ToList(),
+                    TeacherIds = createdEventWithNav.Organizers.Select(o => o.Id.ToString()).ToList(),
+                    RegistrationOpenHours = createdEventWithNav.RegistrationOpenHours,
+                    RegistrationCloseHours = createdEventWithNav.RegistrationCloseHours,
+                    CancellationOpenHours = createdEventWithNav.CancellationOpenHours,
+                    CancellationCloseHours = createdEventWithNav.CancellationCloseHours,
+                    VolunteerRegistrationCloseHours = createdEventWithNav.VolunteerRegistrationCloseHours,
+                    VolunteerCancellationCloseHours = createdEventWithNav.VolunteerCancellationCloseHours
+                };
+
+                return (true, eventDto, string.Empty);
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                _logger.LogError(ex, "Transaction failed while creating event");
+                throw; // Re-throw to outer catch
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create event: {Title}", request?.Title ?? "unknown");
+            return (false, null, "Failed to create event. Please try again.");
+        }
+    }
 }

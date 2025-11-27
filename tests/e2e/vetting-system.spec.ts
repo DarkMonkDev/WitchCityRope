@@ -25,7 +25,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
 
     // STEP 1: Start logged out and navigate to "How to Join" page
     console.log('📍 STEP 1: Navigate to How to Join page while logged out');
-    await page.goto('http://localhost:5173/join');
+    await page.goto('/join');
     await page.waitForLoadState('networkidle');
 
     // Verify it shows text saying they need to login or create account
@@ -53,7 +53,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
         console.log('✅ Clicked nav login button');
       } else {
         // Navigate to login page directly if no button found
-        await page.goto('http://localhost:5173/login');
+        await page.goto('/login');
         console.log('✅ Navigated directly to login page');
       }
     }
@@ -85,7 +85,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
       console.log('✅ Clicked How to Join nav link');
     } else {
       // Navigate directly if nav link not found
-      await page.goto('http://localhost:5173/join');
+      await page.goto('/join');
       console.log('✅ Navigated directly to join page');
     }
 
@@ -218,7 +218,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
     // STEP 5: Check dashboard to confirm application status
     console.log('📍 STEP 5: Check dashboard for application confirmation');
 
-    await page.goto('http://localhost:5173/dashboard');
+    await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
 
     // Take screenshot of dashboard
@@ -240,7 +240,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
     if (await joinLinkFromDashboard.count() > 0) {
       await joinLinkFromDashboard.click();
     } else {
-      await page.goto('http://localhost:5173/join');
+      await page.goto('/join');
     }
 
     await page.waitForLoadState('networkidle');
@@ -311,10 +311,10 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
     if (!foundAdminNav) {
       // Try direct navigation to likely admin URLs
       const adminUrls = [
-        'http://localhost:5173/admin',
-        'http://localhost:5173/admin/vetting',
-        'http://localhost:5173/vetting',
-        'http://localhost:5173/dashboard/admin'
+        '/admin',
+        '/admin/vetting',
+        '/vetting',
+        '/dashboard/admin'
       ];
 
       for (const url of adminUrls) {
@@ -335,7 +335,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
 
     if (!foundAdminNav) {
       console.log('⚠️ Could not find vetting admin area - checking dashboard for admin features');
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto('/dashboard');
       await page.waitForLoadState('networkidle');
     }
 
@@ -483,7 +483,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
     // STEP 16: Check dashboard for updated status
     console.log('📍 STEP 16: Check dashboard for updated application status');
 
-    await page.goto('http://localhost:5173/dashboard');
+    await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
 
     const finalDashboardText = await page.textContent('body');
@@ -495,7 +495,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
     await page.screenshot({ path: 'test-results/final-dashboard-status.png', fullPage: true });
 
     // Navigate to join page one more time to see the updated status
-    await page.goto('http://localhost:5173/join');
+    await page.goto('/join');
     await page.waitForLoadState('networkidle');
 
     const finalJoinPageText = await page.textContent('body');
@@ -539,10 +539,10 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
     console.log('🔍 Testing vetting system accessibility and error scenarios...');
 
     // Test form validation and error handling
-    await page.goto('http://localhost:5173/login');
+    await page.goto('/login');
     await AuthHelper.loginAs(page, 'guest');
 
-    await page.goto('http://localhost:5173/join');
+    await page.goto('/join');
     await page.waitForLoadState('networkidle');
 
     // Check for accessibility attributes

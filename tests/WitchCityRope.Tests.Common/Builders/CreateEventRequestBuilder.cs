@@ -13,7 +13,7 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
     private string _description;
     private DateTime _startDate;
     private DateTime _endDate;
-    private string _location;
+    private int _venueId;
     private string _eventType;
     private int _capacity;
 
@@ -24,7 +24,7 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
         _description = "Default event description";
         _startDate = DateTime.UtcNow.AddDays(7); // Event starts in a week
         _endDate = DateTime.UtcNow.AddDays(7).AddHours(2); // 2-hour event
-        _location = "Salem Community Center";
+        _venueId = 1; // Default venue ID
         _eventType = "Workshop";
         _capacity = 20;
     }
@@ -53,9 +53,9 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
         return This;
     }
 
-    public CreateEventRequestBuilder WithLocation(string location)
+    public CreateEventRequestBuilder WithVenueId(int venueId)
     {
-        _location = location;
+        _venueId = venueId;
         return This;
     }
 
@@ -132,7 +132,7 @@ public class CreateEventRequestBuilder : TestDataBuilder<CreateEventRequest, Cre
             Description = _description,
             StartDate = _startDate,
             EndDate = _endDate,
-            Location = _location,
+            VenueId = _venueId,
             EventType = _eventType,
             Capacity = _capacity
         };

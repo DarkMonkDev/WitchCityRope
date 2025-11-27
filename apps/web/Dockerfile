@@ -142,6 +142,9 @@ FROM base AS test
 LABEL witchcity.test=true
 LABEL witchcity.test.timestamp=${BUILD_TIMESTAMP}
 
+# Install curl for healthcheck
+RUN apk add --no-cache curl
+
 # Copy dependencies from deps stage (includes packages/)
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages

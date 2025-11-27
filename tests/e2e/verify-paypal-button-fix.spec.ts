@@ -11,6 +11,8 @@
 import { test, expect } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || `${baseUrl}`;
+
 test.describe('PayPal Button - debugLog Import Fix Verification', () => {
   let consoleErrors: string[] = [];
   let pageErrors: string[] = [];
@@ -46,7 +48,7 @@ test.describe('PayPal Button - debugLog Import Fix Verification', () => {
 
   test('PayPal button loads without debugLog ReferenceError', async ({ page }) => {
     console.log('🔍 Step 1: Navigate to check-in kiosk');
-    await page.goto('http://localhost:5173/checkin');
+    await page.goto(`${baseUrl}/checkin`);
     await page.waitForLoadState('networkidle');
 
     // Find and click on a workshop event (workshops have payment options)
@@ -79,7 +81,7 @@ test.describe('PayPal Button - debugLog Import Fix Verification', () => {
       } else {
         console.log('  ⏭️ No "Pay at Door" button - event may be free or registration closed');
         // Go back to check-in kiosk
-        await page.goto('http://localhost:5173/checkin');
+        await page.goto(`${baseUrl}/checkin`);
         await page.waitForLoadState('networkidle');
       }
     }
@@ -151,7 +153,7 @@ test.describe('PayPal Button - debugLog Import Fix Verification', () => {
     });
 
     // Navigate to check-in kiosk
-    await page.goto('http://localhost:5173/checkin');
+    await page.goto(`${baseUrl}/checkin`);
     await page.waitForLoadState('networkidle');
 
     // Try to trigger PayPal button render
@@ -173,7 +175,7 @@ test.describe('PayPal Button - debugLog Import Fix Verification', () => {
         break;
       } else {
         // Go back
-        await page.goto('http://localhost:5173/checkin');
+        await page.goto(`${baseUrl}/checkin`);
         await page.waitForLoadState('networkidle');
       }
     }

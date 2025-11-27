@@ -52,7 +52,7 @@ test.describe('Dashboard Navigation - Critical Bug Detection', () => {
   // API Health Pre-Check - MANDATORY before all tests
   test.beforeAll(async ({ request }) => {
     console.log('🔍 Pre-flight API health check...');
-    const response = await request.get('http://localhost:5655/health');
+    const response = await request.get('/health');
     expect(response.ok()).toBeTruthy();
     const health = await response.json();
     expect(health.status).toBe('Healthy');
@@ -63,7 +63,7 @@ test.describe('Dashboard Navigation - Critical Bug Detection', () => {
     console.log('🔍 Testing critical dashboard navigation flow...');
 
     // Step 1: Navigate to login page
-    await page.goto('http://localhost:5173/login');
+    await page.goto('/login');
     console.log('📍 Navigated to login page');
 
     // Step 2: Verify login form is available
@@ -148,7 +148,7 @@ test.describe('Dashboard Navigation - Critical Bug Detection', () => {
 
     // Step 11: Take screenshot for verification
     await page.screenshot({
-      path: '/home/chad/repos/witchcityrope./test-results/dashboard-navigation-success.png',
+      path: './test-results/dashboard-navigation-success.png',
       fullPage: true
     });
 
@@ -159,14 +159,14 @@ test.describe('Dashboard Navigation - Critical Bug Detection', () => {
     console.log('🔍 Testing direct dashboard URL navigation...');
 
     // First login to establish session
-    await page.goto('http://localhost:5173/login');
+    await page.goto('/login');
     await page.locator('[data-testid="email-or-scenename-input"]').fill('member@witchcityrope.com');
     await page.locator('[data-testid="password-input"]').fill('Test123!');
     await page.locator('[data-testid="login-button"]').click();
     await page.waitForURL('**/dashboard', { timeout: 15000 });
 
     // Now test direct URL navigation
-    await page.goto('http://localhost:5173/dashboard');
+    await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
 
@@ -188,7 +188,7 @@ test.describe('Dashboard Navigation - Critical Bug Detection', () => {
     console.log('🔍 Testing dashboard persistence through page refresh...');
 
     // Login and navigate to dashboard
-    await page.goto('http://localhost:5173/login');
+    await page.goto('/login');
     await page.locator('[data-testid="email-or-scenename-input"]').fill('member@witchcityrope.com');
     await page.locator('[data-testid="password-input"]').fill('Test123!');
     await page.locator('[data-testid="login-button"]').click();
@@ -221,7 +221,7 @@ test.describe('Dashboard Navigation - Critical Bug Detection', () => {
     console.log('🔍 Testing dashboard content verification...');
 
     // Login as member
-    await page.goto('http://localhost:5173/login');
+    await page.goto('/login');
     await page.locator('[data-testid="email-or-scenename-input"]').fill('member@witchcityrope.com');
     await page.locator('[data-testid="password-input"]').fill('Test123!');
     await page.locator('[data-testid="login-button"]').click();
@@ -266,7 +266,7 @@ test.describe('Dashboard Navigation - Critical Bug Detection', () => {
     await page.context().clearCookies();
 
     // Try to access dashboard without authentication
-    await page.goto('http://localhost:5173/dashboard');
+    await page.goto('/dashboard');
 
     // Should redirect to login or show login prompt
     await page.waitForTimeout(3000);

@@ -4,45 +4,47 @@ import { Link } from 'react-router-dom';
 import { DashboardCard } from './DashboardCard';
 import { useEvents } from '../../features/events/api/queries';
 import type { EventDto } from '@witchcityrope/shared-types';
+import { useEventTimeZone } from '../../hooks/useEventTimeZone';
 
 // Helper function to format event for display
-const formatEventForWidget = (event: EventDto) => {
+const formatEventForWidget = (event: EventDto, timeZone: string) => {
   // Safely handle potentially null/undefined date strings
   const startDateString = event.startDate;
   const endDateString = event.endDate;
-  
+
   // Only create Date objects if we have valid date strings
   const startDate = startDateString ? new Date(startDateString) : null;
   const endDate = endDateString ? new Date(endDateString) : null;
-  
+
   // Validate that dates are actually valid Date objects
   const isStartDateValid = startDate && !isNaN(startDate.getTime());
   const isEndDateValid = endDate && !isNaN(endDate.getTime());
-  
-  const formatTime = (date: Date) => {
+
+  const formatTime = (date: Date, timeZone: string) => {
     try {
       return date.toLocaleTimeString('en-US', {
         hour: 'numeric',
         minute: '2-digit',
-        hour12: true
+        hour12: true,
+        timeZone
       });
     } catch (error) {
       return 'TBD';
     }
   };
-  
+
   // Fallback values for invalid dates
   const fallbackDate = new Date().toISOString().split('T')[0];
   const fallbackTime = 'TBD';
-  
+
   return {
     id: event.id,
     title: event.title || 'Untitled Event',
     date: isStartDateValid ? startDate!.toISOString().split('T')[0] : fallbackDate,
-    time: isStartDateValid && isEndDateValid 
-      ? `${formatTime(startDate!)} - ${formatTime(endDate!)}`
-      : isStartDateValid 
-        ? `${formatTime(startDate!)} - ${fallbackTime}`
+    time: isStartDateValid && isEndDateValid
+      ? `${formatTime(startDate!, timeZone)} - ${formatTime(endDate!, timeZone)}`
+      : isStartDateValid
+        ? `${formatTime(startDate!, timeZone)} - ${fallbackTime}`
         : fallbackTime,
     // Since EventDto doesn't have status, determine from availability and timing
     status: (isStartDateValid && startDate! > new Date()) ? 'Open' : 'Closed',
@@ -61,18 +63,19 @@ interface EventsWidgetProps {
  * Shows upcoming events in a card format
  * Integrates with TanStack Query for real-time data
  */
-export const EventsWidget: React.FC<EventsWidgetProps> = ({ 
-  limit = 3, 
-  showPastEvents = false 
+export const EventsWidget: React.FC<EventsWidgetProps> = ({
+  limit = 3,
+  showPastEvents = false
 }) => {
   const { data: events, isLoading, error } = useEvents();
-  
+  const eventTimeZone = useEventTimeZone();
+
   // Filter and format events
   const displayEvents = React.useMemo(() => {
     if (!events) return [];
-    
+
     const filteredEvents = events
-      .map(formatEventForWidget)
+      .map(event => formatEventForWidget(event, eventTimeZone))
       .filter(event => showPastEvents || event.isUpcoming)
       .sort((a, b) => {
         const dateA = new Date(a.date).getTime();
@@ -80,20 +83,20 @@ export const EventsWidget: React.FC<EventsWidgetProps> = ({
         return dateA - dateB;
       })
       .slice(0, limit);
-      
+
     return filteredEvents;
-  }, [events, limit, showPastEvents]);
+  }, [events, limit, showPastEvents, eventTimeZone]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    
+
     // Handle invalid dates gracefully
     if (isNaN(date.getTime())) {
       return { day: '??', month: 'TBD' };
     }
-    
+
     const day = date.getDate();
-    const month = date.toLocaleDateString('en-US', { month: 'short' });
+    const month = date.toLocaleDateString('en-US', { month: 'short', timeZone: eventTimeZone });
     return { day, month };
   };
 

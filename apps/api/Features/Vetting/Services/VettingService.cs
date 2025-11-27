@@ -246,7 +246,6 @@ public class VettingService : IVettingService
                 Status = application.WorkflowStatus.ToString(),
                 SubmittedAt = application.SubmittedAt,
                 LastActivityAt = application.UpdatedAt,
-                FullName = application.RealName,
                 SceneName = application.SceneName,
                 Pronouns = application.Pronouns,
                 Email = application.Email,

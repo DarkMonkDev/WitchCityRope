@@ -100,7 +100,7 @@ public class EventServiceCopyTests : IAsyncLifetime
         response.Should().NotBeNull();
         response!.Id.Should().NotBe(originalEvent.Id.ToString());
         response.Title.Should().Be(request.NewTitle);
-        response.StartDate.Should().BeCloseTo(request.NewStartDate, TimeSpan.FromSeconds(1));
+        response.StartDate.Should().BeCloseTo(request.NewStartDate.DateTime, TimeSpan.FromSeconds(1));
         response.ShortDescription.Should().Be(originalEvent.ShortDescription);
         response.Description.Should().Be(originalEvent.Description);
         response.Policies.Should().Be(originalEvent.Policies);

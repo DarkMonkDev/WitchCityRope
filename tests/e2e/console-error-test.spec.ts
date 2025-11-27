@@ -19,9 +19,9 @@ test.describe('Console Error Investigation', () => {
             console.log(errorText);
         });
 
-        console.log('🔍 Testing port 5173 (React dev server)...');
-        await page.goto('http://localhost:5173');
-        
+        console.log('🔍 Testing home page...');
+        await page.goto('/');
+
         // Wait for potential loading
         await page.waitForTimeout(3000);
 
@@ -33,7 +33,7 @@ test.describe('Console Error Investigation', () => {
         const rootDiv = page.locator('#root');
         const rootExists = await rootDiv.count() > 0;
         console.log(`Root div exists: ${rootExists}`);
-        
+
         if (rootExists) {
             const rootContent = await rootDiv.innerHTML().catch(() => '');
             console.log(`Root div content length: ${rootContent.length}`);
@@ -42,7 +42,7 @@ test.describe('Console Error Investigation', () => {
 
         // Check for specific routes
         console.log('🔍 Testing /login route...');
-        await page.goto('http://localhost:5173/login');
+        await page.goto('/login');
         await page.waitForTimeout(2000);
         await page.screenshot({ path: 'test-results/port-5173-login.png' });
         
@@ -50,12 +50,12 @@ test.describe('Console Error Investigation', () => {
         console.log(`Login page h1: ${loginHeading}`);
 
         console.log('🔍 Testing /events route...');
-        await page.goto('http://localhost:5173/events');
+        await page.goto('/events');
         await page.waitForTimeout(2000);
         await page.screenshot({ path: 'test-results/port-5173-events.png' });
 
         // Check for API calls in network tab
-        await page.goto('http://localhost:5173/events');
+        await page.goto('/events');
         
         // Wait for potential API calls
         await page.waitForTimeout(5000);

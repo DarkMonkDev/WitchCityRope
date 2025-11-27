@@ -24,6 +24,7 @@ import { IconSearch, IconFilter, IconX, IconRefresh, IconSortAscending, IconSort
 import type { PaginatedResponse } from '../../../lib/api/types/api.types';
 import type { IncidentSummaryDto } from '../../../features/safety/types/safety.types';
 import { safetyApi } from '../../../features/safety/api/safetyApi';
+import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 
 interface IncidentFilterRequest {
   searchQuery?: string;
@@ -48,6 +49,7 @@ interface IncidentFilterRequest {
  */
 export const AdminIncidentDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const eventTimeZone = useEventTimeZone();
 
   // Filter state - defaults to active statuses like vetting page
   const [filters, setFilters] = useState<IncidentFilterRequest>({
@@ -135,9 +137,10 @@ export const AdminIncidentDashboard: React.FC = () => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
+      timeZone: eventTimeZone
     });
-  }, []);
+  }, [eventTimeZone]);
 
   const getSortIcon = useCallback((field: string) => {
     if (filters.sortBy !== field) return null;

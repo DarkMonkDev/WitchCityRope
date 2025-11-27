@@ -130,9 +130,9 @@ test.describe('Admin Events Management Workflow', () => {
       
     } else {
       console.log('⚠️ Admin link not found in navigation after login');
-      
+
       // Try to navigate directly to admin
-      await page.goto('http://localhost:5173/admin');
+      await page.goto('/admin');
       await page.waitForLoadState('networkidle');
       await page.screenshot({ path: 'test-results/05-direct-admin-access.png', fullPage: true });
       console.log('✅ Attempted direct admin access');
@@ -149,18 +149,18 @@ test.describe('Admin Events Management Workflow', () => {
   
   test('Quick admin access verification', async ({ page }) => {
     console.log('🔍 Quick admin access verification...');
-    
+
     // Try direct admin access without login
-    await page.goto('http://localhost:5173/admin');
+    await page.goto('/admin');
     await page.waitForLoadState('networkidle');
     await page.screenshot({ path: 'test-results/admin-direct-access-no-auth.png', fullPage: true });
-    
+
     // Check what happens
     const currentUrl = page.url();
     console.log(`Current URL after admin access attempt: ${currentUrl}`);
-    
+
     // Try admin events direct access
-    await page.goto('http://localhost:5173/admin/events');
+    await page.goto('/admin/events');
     await page.waitForLoadState('networkidle');
     await page.screenshot({ path: 'test-results/admin-events-direct-access.png', fullPage: true });
     

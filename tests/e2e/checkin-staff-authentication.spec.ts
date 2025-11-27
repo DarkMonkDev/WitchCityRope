@@ -92,7 +92,7 @@ test.describe('Check-In Token Validation', () => {
 
     // Navigate with fake/invalid token
     const fakeToken = 'invalid-token-12345';
-    await page.goto(`http://localhost:5173/events/${testEventId}/checkin?token=${fakeToken}&event=${testEventId}`);
+    await page.goto(`/events/${testEventId}/checkin?token=${fakeToken}&event=${testEventId}`);
     await page.waitForLoadState('networkidle');
 
     // Verify error message displayed
@@ -109,7 +109,7 @@ test.describe('Check-In Token Validation', () => {
     await page.context().clearCookies();
 
     // Navigate to check-in URL without token parameter
-    await page.goto(`http://localhost:5173/events/${testEventId}/checkin`);
+    await page.goto(`/events/${testEventId}/checkin`);
     await page.waitForLoadState('networkidle');
 
     // Verify "Invalid Check-In Link" or similar error
@@ -175,7 +175,7 @@ test.describe('Check-In Token Validation', () => {
 
     await kioskPage.context().clearCookies();
 
-    await kioskPage.goto(`http://localhost:5173/events/${testEventId}/checkin?token=${sessionToken}&event=${testEventId}`);
+    await kioskPage.goto(`/events/${testEventId}/checkin?token=${sessionToken}&event=${testEventId}`);
     await kioskPage.waitForLoadState('networkidle');
 
     // Verify error message for revoked token
@@ -259,7 +259,7 @@ test.describe('Check-In Token Validation', () => {
 
     await kioskPage.context().clearCookies();
 
-    await kioskPage.goto(`http://localhost:5173/events/${testEventId}/checkin?token=${sessionToken}&event=${testEventId}`);
+    await kioskPage.goto(`/events/${testEventId}/checkin?token=${sessionToken}&event=${testEventId}`);
     await kioskPage.waitForLoadState('networkidle');
 
     // Verify error message for expired token

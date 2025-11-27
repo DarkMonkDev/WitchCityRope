@@ -20,9 +20,7 @@
 
 import { test, expect, Page } from '@playwright/test';
 
-// Test configuration
-const BASE_URL = 'http://localhost:5173';
-const API_URL = 'http://localhost:5655';
+// Test configuration - Use relative URLs with Playwright baseURL
 
 // Test accounts
 const TEST_ACCOUNTS = {
@@ -45,7 +43,7 @@ async function clearAuthState(page: Page) {
 test.describe('Password Reset Feature', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to page first to establish domain context
-    await page.goto(BASE_URL);
+    await page.goto('/');
     await page.waitForLoadState('networkidle');
 
     // Clear auth state after navigation
@@ -55,7 +53,7 @@ test.describe('Password Reset Feature', () => {
   test.describe('P1 CRITICAL: Forgot Password Flow', () => {
     test('should display forgot password form with correct elements', async ({ page }) => {
       // Act
-      await page.goto(`${BASE_URL}/forgot-password`);
+      await page.goto('/forgot-password');
       await page.waitForLoadState('networkidle');
 
       // Assert - Page elements
@@ -68,7 +66,7 @@ test.describe('Password Reset Feature', () => {
 
     test('should validate email field is required', async ({ page }) => {
       // Arrange
-      await page.goto(`${BASE_URL}/forgot-password`);
+      await page.goto('/forgot-password');
       await page.waitForLoadState('networkidle');
 
       // Act - Try to click submit button (HTML5 required will prevent submission)
@@ -84,7 +82,7 @@ test.describe('Password Reset Feature', () => {
 
     test('should validate email format', async ({ page }) => {
       // Arrange
-      await page.goto(`${BASE_URL}/forgot-password`);
+      await page.goto('/forgot-password');
       await page.waitForLoadState('networkidle');
 
       // Act - Submit invalid email
@@ -98,7 +96,7 @@ test.describe('Password Reset Feature', () => {
 
     test('should show success message for existing account', async ({ page }) => {
       // Arrange
-      await page.goto(`${BASE_URL}/forgot-password`);
+      await page.goto('/forgot-password');
       await page.waitForLoadState('networkidle');
 
       // Act - Submit valid email
@@ -118,7 +116,7 @@ test.describe('Password Reset Feature', () => {
 
     test('should show success message for non-existent account (email enumeration protection)', async ({ page }) => {
       // Arrange
-      await page.goto(`${BASE_URL}/forgot-password`);
+      await page.goto('/forgot-password');
       await page.waitForLoadState('networkidle');
 
       // Act - Submit non-existent email
@@ -135,7 +133,7 @@ test.describe('Password Reset Feature', () => {
 
     test('should navigate back to login from success page', async ({ page }) => {
       // Arrange
-      await page.goto(`${BASE_URL}/forgot-password`);
+      await page.goto('/forgot-password');
       await page.waitForLoadState('networkidle');
 
       // Submit form to reach success page
@@ -147,15 +145,15 @@ test.describe('Password Reset Feature', () => {
       await page.locator('[data-testid="link-back-to-login"]').click();
 
       // Assert - Redirected to login page
-      await page.waitForURL(`${BASE_URL}/login`);
-      expect(page.url()).toBe(`${BASE_URL}/login`);
+      await page.waitForURL('/login');
+      expect(page.url()).toContain('/login');
     });
   });
 
   test.describe('P1 CRITICAL: Reset Password Flow', () => {
     test('should show error for missing userId or token parameters', async ({ page }) => {
       // Act - Navigate without parameters
-      await page.goto(`${BASE_URL}/reset-password`);
+      await page.goto('/reset-password');
       await page.waitForLoadState('networkidle');
 
       // Assert - Error message shown
@@ -166,7 +164,7 @@ test.describe('Password Reset Feature', () => {
 
     test('should show error for missing userId parameter', async ({ page }) => {
       // Act - Navigate with only token
-      await page.goto(`${BASE_URL}/reset-password?token=abc123`);
+      await page.goto('/reset-password?token=abc123');
       await page.waitForLoadState('networkidle');
 
       // Assert - Error message shown
@@ -176,7 +174,7 @@ test.describe('Password Reset Feature', () => {
     test('should show error for missing token parameter', async ({ page }) => {
       // Act - Navigate with only userId
       const mockUserId = '123e4567-e89b-12d3-a456-426614174000';
-      await page.goto(`${BASE_URL}/reset-password?userId=${mockUserId}`);
+      await page.goto(`/reset-password?userId=${mockUserId}`);
       await page.waitForLoadState('networkidle');
 
       // Assert - Error message shown
@@ -189,7 +187,7 @@ test.describe('Password Reset Feature', () => {
       const mockToken = 'CfDJ8MockTokenString123';
 
       // Act
-      await page.goto(`${BASE_URL}/reset-password?userId=${mockUserId}&token=${encodeURIComponent(mockToken)}`);
+      await page.goto(`/reset-password?userId=${mockUserId}&token=${encodeURIComponent(mockToken)}`);
       await page.waitForLoadState('networkidle');
 
       // Assert - Form elements present
@@ -273,7 +271,7 @@ test.describe('Password Reset Feature', () => {
   test.describe('P2: Navigation Flow', () => {
     test('should have reset password link on login page', async ({ page }) => {
       // Act
-      await page.goto(`${BASE_URL}/login`);
+      await page.goto('/login');
       await page.waitForLoadState('networkidle');
 
       // Assert - Reset password link exists
@@ -285,13 +283,13 @@ test.describe('Password Reset Feature', () => {
       await resetLink.click();
 
       // Assert - Redirected to forgot password page
-      await page.waitForURL(`${BASE_URL}/forgot-password`);
-      expect(page.url()).toBe(`${BASE_URL}/forgot-password`);
+      await page.waitForURL('/forgot-password');
+      expect(page.url()).toContain('/forgot-password');
     });
 
     test('should navigate from forgot password back to login', async ({ page }) => {
       // Arrange
-      await page.goto(`${BASE_URL}/forgot-password`);
+      await page.goto('/forgot-password');
       await page.waitForLoadState('networkidle');
 
       // Act - Click back to login

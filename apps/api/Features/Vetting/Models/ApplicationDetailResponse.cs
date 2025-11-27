@@ -13,7 +13,6 @@ public class ApplicationDetailResponse
     public DateTime? LastActivityAt { get; set; }
 
     // Applicant Information (Decrypted)
-    public string FullName { get; set; } = string.Empty;
     public string SceneName { get; set; } = string.Empty;
     public string? Pronouns { get; set; }
     public string Email { get; set; } = string.Empty;

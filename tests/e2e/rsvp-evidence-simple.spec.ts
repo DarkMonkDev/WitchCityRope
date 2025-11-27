@@ -87,8 +87,8 @@ test.describe('RSVP Evidence Collection - Simple', () => {
   test('2. Public Events Page - Capture What Users See', async ({ page }) => {
     console.log('📸 Capturing public events page as users see it...')
 
-    await page.goto('http://localhost:5173/events')
-    await page.waitForLoadState('networkidle')
+    await page.goto('/events')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(3000) // Allow React components to render
 
     // Check for errors FIRST
@@ -155,8 +155,8 @@ test.describe('RSVP Evidence Collection - Simple', () => {
       console.log(`📅 Testing first event: ${firstEvent.title} (ID: ${firstEvent.id})`)
 
       // Navigate to event details
-      await page.goto(`http://localhost:5173/events/${firstEvent.id}`)
-      await page.waitForLoadState('networkidle')
+      await page.goto(`/events/${firstEvent.id}`)
+      await page.waitForLoadState('domcontentloaded')
       await page.waitForTimeout(3000)
 
       // Take screenshot
@@ -189,8 +189,8 @@ test.describe('RSVP Evidence Collection - Simple', () => {
     console.log('📸 Testing dashboard page access...')
 
     // Try to access dashboard directly (should redirect to login if not authenticated)
-    await page.goto('http://localhost:5173/dashboard')
-    await page.waitForLoadState('networkidle')
+    await page.goto('/dashboard')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(2000)
 
     const currentUrl = page.url()
@@ -215,15 +215,15 @@ test.describe('RSVP Evidence Collection - Simple', () => {
     console.log('📸 Testing admin pages access...')
 
     const adminUrls = [
-      'http://localhost:5173/admin',
-      'http://localhost:5173/admin/events'
+      '/admin',
+      '/admin/events'
     ]
 
     for (const url of adminUrls) {
       console.log(`📍 Testing: ${url}`)
 
       await page.goto(url)
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
       await page.waitForTimeout(2000)
 
       const finalUrl = page.url()
@@ -249,9 +249,9 @@ test.describe('RSVP Evidence Collection - Simple', () => {
     console.log('🐛 Testing for console errors across key pages...')
 
     const pagesToTest = [
-      { name: 'home', url: 'http://localhost:5173/' },
-      { name: 'events', url: 'http://localhost:5173/events' },
-      { name: 'login', url: 'http://localhost:5173/login' }
+      { name: 'home', url: '/' },
+      { name: 'events', url: '/events' },
+      { name: 'login', url: '/login' }
     ]
 
     const allErrors: any = {
@@ -281,7 +281,7 @@ test.describe('RSVP Evidence Collection - Simple', () => {
       })
 
       await page.goto(pageInfo.url)
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
       await page.waitForTimeout(2000)
 
       // Record errors for this page

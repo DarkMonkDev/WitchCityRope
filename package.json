@@ -46,6 +46,8 @@
     ]
   },
   "dependencies": {
-    "chrome-remote-interface": "^0.33.3"
+    "axe-playwright": "^2.0.3",
+    "chrome-remote-interface": "^0.33.3",
+    "pg": "^8.13.1"
   }
 }

@@ -60,6 +60,139 @@ If you cannot read ANY file:
 
 ---
 
+## 🚨 ULTRA CRITICAL: Container-Compatible E2E Test Patterns (2025-11-27) 🚨
+
+**CRITICAL DISCOVERY**: E2E tests must work in BOTH local development AND containerized test environments.
+
+### 🔥 THE PROBLEM: Hardcoded URLs Break Container Testing
+
+**Problem**: Tests written with hardcoded `http://localhost:5173` URLs fail when run inside test containers via test-environment skill.
+
+**Root Cause**: Inside a container, `localhost` refers to the container itself, not the host machine. Container networking requires using service names (e.g., `test-web`) or relative URLs.
+
+**Impact**: Tests that work locally fail 100% in containerized CI/CD pipelines.
+
+### ✅ CORRECT PATTERN: Relative URLs for Portability
+
+**In E2E Tests - ALWAYS Use Relative URLs**:
+```typescript
+// ✅ CORRECT - Works in local AND container environments
+await page.goto('/');
+await page.goto('/login');
+await page.goto('/admin/events');
+await page.goto('/events/123/edit');
+
+// ❌ WRONG - Only works locally, breaks in containers
+await page.goto('http://localhost:5173/');
+await page.goto('http://localhost:5173/login');
+await page.goto('http://localhost:5173/admin/events');
+```
+
+**Why Relative URLs Work**:
+- Playwright uses `baseURL` from config (e.g., `http://localhost:5173` locally)
+- test-environment skill sets `PLAYWRIGHT_BASE_URL=http://test-web:5173` for containers
+- Same test code works in both environments without modification
+
+### ✅ CORRECT PATTERN: API Request Patterns
+
+**Use Pattern Matching, NOT Absolute URLs**:
+```typescript
+// ✅ CORRECT - Pattern matching works everywhere
+await page.waitForResponse('**/api/events');
+await page.waitForRequest('**/api/auth/login');
+await page.waitForResponse(response =>
+  response.url().includes('/api/events') && response.status() === 200
+);
+
+// ❌ WRONG - Hardcoded localhost breaks in containers
+await page.waitForResponse('http://localhost:5655/api/events');
+await page.waitForRequest('http://localhost:5655/api/auth/login');
+```
+
+**Why Pattern Matching Works**:
+- Matches regardless of hostname (localhost vs test-api)
+- Matches regardless of port (5655 vs 80)
+- Tests remain portable across environments
+
+### 🔧 REQUIRED CONFIGURATION: Vite allowedHosts
+
+**Problem**: Vite dev server rejects connections from container names by default.
+
+**Solution Required in vite.config.ts**:
+```typescript
+export default defineConfig({
+  server: {
+    host: '0.0.0.0',
+    port: 5173,
+    allowedHosts: ['test-web', 'localhost'], // REQUIRED for container networking
+  },
+});
+```
+
+**Why This Is Critical**:
+- `test-web` allows Playwright container to access Vite dev server
+- Without this, Vite returns 403 Forbidden to container requests
+- Tests fail with network errors even though all containers are running
+
+### 🔧 REQUIRED CONFIGURATION: Playwright baseURL
+
+**Dynamic baseURL in playwright.config.ts**:
+```typescript
+export default defineConfig({
+  use: {
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173',
+  },
+});
+```
+
+**Why This Works**:
+- Locally: Uses `http://localhost:5173` (default)
+- In containers: test-environment skill sets `PLAYWRIGHT_BASE_URL=http://test-web:5173`
+- Tests use relative URLs that combine with baseURL automatically
+
+### 📋 PRE-FLIGHT CHECKLIST FOR E2E TEST CREATION
+
+**Before Writing ANY E2E Test**:
+- [ ] Use relative URLs: `page.goto('/')` NOT `page.goto('http://localhost:5173/')`
+- [ ] Use API patterns: `'**/api/endpoint'` NOT `'http://localhost:5655/api/endpoint'`
+- [ ] Verify vite.config.ts has `allowedHosts: ['test-web', 'localhost']`
+- [ ] Verify playwright.config.ts uses `process.env.PLAYWRIGHT_BASE_URL`
+- [ ] Test locally: `npm run test:e2e`
+- [ ] Test in containers: Use test-environment skill
+
+**During Code Review**:
+- [ ] Search for `http://localhost` in test files → Flag for fix
+- [ ] Search for hardcoded port numbers → Flag for fix
+- [ ] Verify all page.goto() calls use relative URLs
+- [ ] Verify all API waiting patterns use wildcards
+
+### 🎯 PREVENTION PATTERN
+
+**Test Development Workflow**:
+1. Write test using relative URLs from the start
+2. Test locally to verify functionality
+3. Use test-environment skill to verify container compatibility
+4. Fix any hardcoded URLs discovered
+5. Commit test with confidence it works everywhere
+
+**Common Mistakes to Avoid**:
+- ❌ Copy-pasting URLs from browser address bar into tests
+- ❌ Using full API URLs from network tab into waitForResponse
+- ❌ Assuming localhost testing is sufficient
+- ❌ Forgetting to configure allowedHosts in Vite
+
+**Success Criteria**:
+- ✅ Test passes locally with `npm run test:e2e`
+- ✅ Test passes in containers with test-environment skill
+- ✅ Test contains zero references to `localhost`
+- ✅ Test uses pattern matching for all API interactions
+
+### 🔗 RELATED DOCUMENTATION
+
+- **test-environment Skill**: `/.claude/skills/test-environment/README.md`
+- **Playwright Standards**: `/docs/standards-processes/testing/playwright-standards.md`
+- **Docker Architecture**: `/docs/architecture/docker-architecture.md`
+
 ## ⛔ NEVER Use Soft Assertions in E2E Tests (CRITICAL)
 
 **Problem**: Using `if (await element.isVisible())` pattern makes tests pass even when features are broken, creating FALSE CONFIDENCE in test suite.

@@ -498,7 +498,7 @@ public class SafetyServiceTests : IAsyncLifetime
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Statistics.Should().NotBeNull();
-        result.Value.Statistics.TotalCount.Should().BeGreaterOrEqualTo(3);
+        result.Value.Statistics.TotalCount.Should().BeGreaterThanOrEqualTo(3);
         result.Value.RecentIncidents.Should().NotBeNull();
     }
 
@@ -521,7 +521,7 @@ public class SafetyServiceTests : IAsyncLifetime
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value!.Statistics.TotalCount.Should().BeGreaterOrEqualTo(3);
+        result.Value!.Statistics.TotalCount.Should().BeGreaterThanOrEqualTo(3);
     }
 
     /// <summary>
@@ -587,7 +587,7 @@ public class SafetyServiceTests : IAsyncLifetime
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value!.Should().HaveCountGreaterOrEqualTo(2);
+        result.Value!.Should().HaveCountGreaterThanOrEqualTo(2);
 
         // Most recent should be first
         var reports = result.Value.ToList();

@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Text, Stack, Group, Badge, Loader, Alert } from '@mantine/core';
 import { DashboardCard } from './DashboardCard';
 import { useNavigate } from 'react-router-dom';
+import { useEventTimeZone } from '../../hooks/useEventTimeZone';
 
 // Mock data for demonstration - replace with real API integration later
 interface EventRegistration {
@@ -54,22 +55,23 @@ interface RegistrationHistoryProps {
  * Registration History Widget for Dashboard
  * Shows user's event registration history with status indicators
  */
-export const RegistrationHistory: React.FC<RegistrationHistoryProps> = ({ 
+export const RegistrationHistory: React.FC<RegistrationHistoryProps> = ({
   limit = 5,
-  showOnlyUpcoming = false 
+  showOnlyUpcoming = false
 }) => {
   const navigate = useNavigate();
+  const eventTimeZone = useEventTimeZone();
   const [isLoading] = React.useState(false); // Will be replaced with actual loading state
   const [error] = React.useState(null); // Will be replaced with actual error state
 
   // Filter and limit registrations
   const displayRegistrations = React.useMemo(() => {
     let filteredRegs = mockRegistrations;
-    
+
     if (showOnlyUpcoming) {
       filteredRegs = filteredRegs.filter(reg => reg.status === 'upcoming');
     }
-    
+
     return filteredRegs
       .sort((a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime())
       .slice(0, limit);
@@ -81,28 +83,28 @@ export const RegistrationHistory: React.FC<RegistrationHistoryProps> = ({
 
   const getStatusBadge = (registration: EventRegistration) => {
     const { status, paymentStatus, attendanceStatus } = registration;
-    
+
     if (status === 'upcoming') {
       return {
         text: paymentStatus === 'paid' ? 'Registered' : 'Payment Pending',
         color: paymentStatus === 'paid' ? '#228B22' : '#DAA520',
       };
     }
-    
+
     if (status === 'completed') {
       return {
         text: attendanceStatus === 'attended' ? 'Attended' : 'No Show',
         color: attendanceStatus === 'attended' ? '#228B22' : '#DC143C',
       };
     }
-    
+
     if (status === 'cancelled') {
       return {
         text: 'Cancelled',
         color: '#8B8680',
       };
     }
-    
+
     return { text: 'Unknown', color: '#8B8680' };
   };
 
@@ -112,6 +114,7 @@ export const RegistrationHistory: React.FC<RegistrationHistoryProps> = ({
       month: 'short',
       day: 'numeric',
       year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
+      timeZone: eventTimeZone
     });
   };
 

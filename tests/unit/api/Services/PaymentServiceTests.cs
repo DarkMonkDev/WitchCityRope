@@ -479,7 +479,7 @@ public class PaymentServiceTests : IAsyncLifetime
         var auditLogs = await _context.PaymentAuditLog
             .Where(a => a.PaymentId == payment.Id)
             .ToListAsync();
-        auditLogs.Should().HaveCountGreaterOrEqualTo(2); // Status change + completion
+        auditLogs.Should().HaveCountGreaterThanOrEqualTo(2); // Status change + completion
     }
 
     /// <summary>

@@ -30,6 +30,7 @@ import {
 import { useApplicationStatus } from '../../hooks/useApplicationStatus';
 import type { ApplicationStatus } from '../../types/vetting.types';
 import { APPLICATION_STATUS_CONFIGS } from '../../types/vetting.types';
+import { useEventTimeZone } from '../../../../hooks/useEventTimeZone';
 
 interface ApplicationStatusProps {
   trackingToken?: string;
@@ -54,6 +55,7 @@ export const ApplicationStatusComponent: React.FC<ApplicationStatusProps> = ({
     getCurrentPhase,
     refreshStatus
   } = useApplicationStatus(trackingToken);
+  const eventTimeZone = useEventTimeZone();
 
   // Handle token not found
   React.useEffect(() => {
@@ -119,7 +121,7 @@ export const ApplicationStatusComponent: React.FC<ApplicationStatusProps> = ({
     return [
       {
         title: 'Application Submitted',
-        description: `Submitted on ${new Date((statusData as any)?.submittedAt).toLocaleDateString()}`,
+        description: `Submitted on ${new Date((statusData as any)?.submittedAt).toLocaleDateString('en-US', { timeZone: eventTimeZone })}`,
         completed: progress.applicationSubmitted,
         icon: IconCircleCheck,
         color: 'green'
@@ -310,7 +312,7 @@ export const ApplicationStatusComponent: React.FC<ApplicationStatusProps> = ({
                     {update.type.replace(/([A-Z])/g, ' $1').trim()}
                   </Text>
                   <Text size="xs" c="dimmed">
-                    {new Date(update.updatedAt).toLocaleDateString()}
+                    {new Date(update.updatedAt).toLocaleDateString('en-US', { timeZone: eventTimeZone })}
                   </Text>
                 </Group>
                 <Text size="sm" c="dimmed">
@@ -385,9 +387,9 @@ export const ApplicationStatusComponent: React.FC<ApplicationStatusProps> = ({
       {/* Last Updated */}
       <Group justify="center" mt="md">
         <Text size="xs" c="dimmed">
-          Last updated: {(statusData as any)?.lastUpdateAt 
-            ? new Date((statusData as any)?.lastUpdateAt).toLocaleString()
-            : new Date((statusData as any)?.submittedAt).toLocaleString()
+          Last updated: {(statusData as any)?.lastUpdateAt
+            ? new Date((statusData as any)?.lastUpdateAt).toLocaleString('en-US', { timeZone: eventTimeZone })
+            : new Date((statusData as any)?.submittedAt).toLocaleString('en-US', { timeZone: eventTimeZone })
           }
         </Text>
       </Group>

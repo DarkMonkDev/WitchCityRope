@@ -11,9 +11,9 @@ import { AuthHelper } from './test-utils/helpers/auth.helper';
 test.describe('Login Selector Fix - AuthHelper Approach', () => {
   test('BROKEN vs WORKING selectors comparison', async ({ page }) => {
     console.log('🔍 Testing login selector patterns...')
-    
+
     // Navigate to login page
-    await page.goto('http://localhost:5173/login')
+    await page.goto('/login')
     await page.waitForLoadState('networkidle')
     
     console.log('❌ TESTING BROKEN SELECTORS (what failing tests use):')
@@ -71,8 +71,8 @@ test.describe('Login Selector Fix - AuthHelper Approach', () => {
 
   test('Show current login page HTML structure for debugging', async ({ page }) => {
     console.log('🔍 Analyzing current login page HTML structure...')
-    
-    await page.goto('http://localhost:5173/login')
+
+    await page.goto('/login')
     await page.waitForLoadState('networkidle')
     
     // Get the login form HTML

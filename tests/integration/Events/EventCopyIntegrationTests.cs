@@ -92,7 +92,7 @@ public class EventCopyIntegrationTests : IntegrationTestBase, IDisposable
         copiedEvent.Should().NotBeNull();
         copiedEvent!.Id.Should().NotBe(originalEvent.Id.ToString());
         copiedEvent.Title.Should().Be(request.NewTitle);
-        copiedEvent.StartDate.Should().BeCloseTo(request.NewStartDate, TimeSpan.FromSeconds(1));
+        copiedEvent.StartDate.Should().BeCloseTo(request.NewStartDate.DateTime, TimeSpan.FromSeconds(1));
         copiedEvent.IsPublished.Should().BeFalse();
 
         // Verify in database
@@ -348,10 +348,11 @@ public class EventCopyIntegrationTests : IntegrationTestBase, IDisposable
         await using var context = CreateDbContext();
         var venue = new Venue
         {
-            Id = Guid.NewGuid(),
             Name = "Test Venue",
-            Address = "123 Test St",
-            IsActive = true
+            Location = "123 Test St",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
         context.Venues.Add(venue);
         await context.SaveChangesAsync();
@@ -378,7 +379,7 @@ public class EventCopyIntegrationTests : IntegrationTestBase, IDisposable
         return evt;
     }
 
-    private async Task<Event> CreateTestEventWithAllRelations(Guid venueId)
+    private async Task<Event> CreateTestEventWithAllRelations(int venueId)
     {
         await using var context = CreateDbContext();
         var evt = new Event

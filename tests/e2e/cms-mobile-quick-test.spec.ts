@@ -5,6 +5,8 @@ import { AuthHelpers } from './test-utils/helpers/auth.helpers';
  * Quick Mobile FAB Test
  * Isolated test to verify mobile FAB button fix
  */
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+
 test('Quick Test: Mobile FAB button click opens editor', async ({ page }) => {
   // 1. Set viewport to mobile FIRST
   await page.setViewportSize({ width: 375, height: 667 });
@@ -15,7 +17,7 @@ test('Quick Test: Mobile FAB button click opens editor', async ({ page }) => {
   console.log('✅ Logged in as admin');
 
   // 3. Navigate to CMS page
-  await page.goto('http://localhost:5173/resources');
+  await page.goto(`${baseUrl}/resources`);
   await page.waitForLoadState('networkidle');
   console.log('✅ Navigated to /resources');
 

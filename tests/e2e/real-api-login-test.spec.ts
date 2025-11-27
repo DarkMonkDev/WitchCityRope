@@ -69,11 +69,11 @@ test.describe('Real API Authentication Flow', () => {
   test('should complete full login flow with real API', async ({ page }) => {
     // Step 1: Navigate to login page
     console.log('Step 1: Navigating to login page...');
-    await page.goto('http://localhost:5173/login');
+    await page.goto('/login');
     
     // Wait for page to load and take initial screenshot
     await page.waitForLoadState('networkidle');
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/01-login-page-loaded.png' });
+    await page.screenshot({ path: './test-results/01-login-page-loaded.png' });
 
     // Step 2: Verify MSW is disabled by checking for real API availability
     console.log('Step 2: Verifying MSW is disabled and real API is available...');
@@ -98,9 +98,9 @@ test.describe('Real API Authentication Flow', () => {
     console.log('Step 3: Filling in login credentials...');
     await emailInput.fill('test@witchcityrope.com');
     await passwordInput.fill('Test1234');
-    
+
     // Take screenshot before submitting
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/02-credentials-filled.png' });
+    await page.screenshot({ path: './test-results/02-credentials-filled.png' });
 
     // Step 4: Submit login form and monitor API call
     console.log('Step 4: Submitting login form...');
@@ -121,7 +121,7 @@ test.describe('Real API Authentication Flow', () => {
 
     // Wait for any post-login navigation or state changes
     await page.waitForTimeout(2000);
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/03-after-login-attempt.png' });
+    await page.screenshot({ path: './test-results/03-after-login-attempt.png' });
 
     // Step 5: Verify login outcome
     console.log('Step 5: Verifying login outcome...');
@@ -151,8 +151,8 @@ test.describe('Real API Authentication Flow', () => {
 
     // Step 7: Analyze network requests
     console.log('Step 7: Analyzing network requests...');
-    
-    const apiRequests = networkRequests.filter(req => req.url.includes('localhost:5655'));
+
+    const apiRequests = networkRequests.filter(req => req.url.includes('/api/'));
     const authRequests = networkRequests.filter(req => 
       req.url.includes('login') || 
       req.url.includes('auth') ||
@@ -177,8 +177,8 @@ test.describe('Real API Authentication Flow', () => {
       consoleMessages: consoleMessages.slice(-20), // Last 20 messages
       environment: {
         mswDisabled: true, // We know from .env.development
-        apiBaseUrl: 'http://localhost:5655',
-        reactUrl: 'http://localhost:5173'
+        apiBaseUrl: '/api',
+        reactUrl: 'baseURL configured in playwright.config.ts'
       }
     };
 
@@ -189,7 +189,7 @@ test.describe('Real API Authentication Flow', () => {
     }, testReport);
 
     // Final screenshot
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/04-final-state.png' });
+    await page.screenshot({ path: './test-results/04-final-state.png' });
 
     // Step 9: Assertions
     console.log('Step 9: Running test assertions...');
@@ -200,8 +200,8 @@ test.describe('Real API Authentication Flow', () => {
     ).toBe(0);
 
     // API communication assertion: At least one API request should have been made
-    expect(apiRequests.length, 
-      'Expected at least one API request to localhost:5655'
+    expect(apiRequests.length,
+      'Expected at least one API request to /api/ endpoints'
     ).toBeGreaterThan(0);
 
     // Log success metrics
@@ -221,9 +221,9 @@ test.describe('Real API Authentication Flow', () => {
 
   test('should verify authentication state persistence', async ({ page }) => {
     console.log('Testing authentication state persistence...');
-    
+
     // First, attempt login
-    await page.goto('http://localhost:5173/login');
+    await page.goto('/login');
     await page.waitForLoadState('networkidle');
 
     // Look for form elements with multiple selectors
@@ -252,7 +252,7 @@ test.describe('Real API Authentication Flow', () => {
     const urlAfterRefresh = page.url();
     
     // Take screenshot of state after refresh
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/05-after-refresh.png' });
+    await page.screenshot({ path: './test-results/05-after-refresh.png' });
 
     console.log(`URL after login: ${urlAfterLogin}`);
     console.log(`URL after refresh: ${urlAfterRefresh}`);

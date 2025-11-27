@@ -32,7 +32,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
 
   test('Positive: User can RSVP to social event when Event Waiver checkbox is checked', async ({ page }) => {
     // Navigate to public events page
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Find a social event (free RSVP option)
@@ -117,7 +117,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
     const eventSlug = socialEvent.id;
 
     // Navigate directly to event details page
-    await page.goto(`http://localhost:5173/events/${eventSlug}`);
+    await page.goto(`/events/${eventSlug}`);
     await page.waitForLoadState('networkidle');
     console.log('✅ Navigated to event details page');
 
@@ -168,7 +168,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
 
   test('Positive: RSVP shows as confirmed in UI after submission', async ({ page }) => {
     // Navigate to events
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Click first event
@@ -228,7 +228,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
 
   test('Negative: RSVP button is disabled when Event Waiver checkbox is unchecked', async ({ page }) => {
     // Navigate to events
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Click first event
@@ -321,7 +321,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
 
   test('Negative: Unchecking Event Waiver after checking re-disables RSVP button', async ({ page }) => {
     // Navigate to events
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
     // Click first event

@@ -23,7 +23,7 @@ test.describe('Admin Events Edit Screen - Data Dependencies', () => {
 
   test('should only allow ticket creation when sessions exist', async ({ page }) => {
     // Navigate to admin event edit page (assuming a fresh event with no sessions)
-    await page.goto('http://localhost:5173/admin/events/1');
+    await page.goto('/admin/events/1');
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
     
     // Navigate to Tickets tab
@@ -77,7 +77,7 @@ test.describe('Admin Events Edit Screen - Data Dependencies', () => {
 
   test('should show only event-specific sessions in ticket creation', async ({ page }) => {
     // Navigate to admin event edit page
-    await page.goto('http://localhost:5173/admin/events/1');
+    await page.goto('/admin/events/1');
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
     
     // Ensure we have sessions for this event
@@ -126,7 +126,7 @@ test.describe('Admin Events Edit Screen - Data Dependencies', () => {
 
   test('should validate ticket capacity against session capacity', async ({ page }) => {
     // Navigate to admin event edit page
-    await page.goto('http://localhost:5173/admin/events/1');
+    await page.goto('/admin/events/1');
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
     
     // Create a session with limited capacity first
@@ -169,7 +169,7 @@ test.describe('Admin Events Edit Screen - Data Dependencies', () => {
 
   test('should handle cascade operations when deleting sessions with dependent tickets', async ({ page }) => {
     // Navigate to admin event edit page
-    await page.goto('http://localhost:5173/admin/events/1');
+    await page.goto('/admin/events/1');
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
     
     // Create a session
@@ -232,7 +232,7 @@ test.describe('Admin Events Edit Screen - Data Dependencies', () => {
 
   test('should prevent session deletion when tickets have sales/reservations', async ({ page }) => {
     // This test assumes we have seed data with sold tickets
-    await page.goto('http://localhost:5173/admin/events/1');
+    await page.goto('/admin/events/1');
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
     
     // Navigate to sessions tab
@@ -264,7 +264,7 @@ test.describe('Admin Events Edit Screen - Data Dependencies', () => {
 
   test('should validate volunteer position session assignments', async ({ page }) => {
     // Navigate to admin event edit page
-    await page.goto('http://localhost:5173/admin/events/1');
+    await page.goto('/admin/events/1');
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
     
     // Navigate to volunteers tab
@@ -300,7 +300,7 @@ test.describe('Admin Events Edit Screen - Data Dependencies', () => {
 
   test('should maintain data integrity across related entities', async ({ page }) => {
     // Navigate to admin event edit page
-    await page.goto('http://localhost:5173/admin/events/1');
+    await page.goto('/admin/events/1');
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
     
     // Create a session

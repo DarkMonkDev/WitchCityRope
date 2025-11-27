@@ -3,10 +3,12 @@ import { ServiceHelper } from './test-utils/helpers/service.helper';
 
 /**
  * Docker Services Configuration Test
- * 
+ *
  * This test verifies that the E2E configuration properly connects to
  * existing Docker services without trying to start new ones.
  */
+
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
 
 test.describe('Docker Services Configuration', () => {
   

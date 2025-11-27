@@ -62,14 +62,14 @@ test.describe('CSRF Token Validation', () => {
     await logoutButton.click()
 
     // Step 7: Wait for redirect to home page
-    await expect(page).toHaveURL('http://localhost:5173/', { timeout: 10000 })
+    await expect(page).toHaveURL('/', { timeout: 10000 })
 
     // Step 8: Verify user is logged out (login button visible)
     const loginLink = page.locator('a[href="/login"]').first()
     await expect(loginLink).toBeVisible({ timeout: 5000 })
 
     // Step 9: Verify cannot access protected routes
-    await page.goto('http://localhost:5173/dashboard')
+    await page.goto('/dashboard')
     await expect(page).toHaveURL(/.*login/, { timeout: 5000 })
 
     console.log('✓ User successfully logged out and redirected to login')
@@ -103,7 +103,7 @@ test.describe('CSRF Token Validation', () => {
     await logoutButton.click()
 
     // Step 5: Should still successfully logout despite missing token
-    await expect(page).toHaveURL('http://localhost:5173/', { timeout: 10000 })
+    await expect(page).toHaveURL('/', { timeout: 10000 })
 
     const loginLink = page.locator('a[href="/login"]').first()
     await expect(loginLink).toBeVisible({ timeout: 5000 })
@@ -125,10 +125,10 @@ test.describe('CSRF Token Validation', () => {
     console.log('✓ CSRF token exists after login')
 
     // Navigate to different pages
-    await page.goto('http://localhost:5173/events')
+    await page.goto('/events')
     await page.waitForLoadState('domcontentloaded')
 
-    await page.goto('http://localhost:5173/dashboard')
+    await page.goto('/dashboard')
     await page.waitForLoadState('domcontentloaded')
 
     // Get CSRF token after navigation
@@ -140,7 +140,7 @@ test.describe('CSRF Token Validation', () => {
     // Logout should still work
     const logoutButton = page.locator('[data-testid="button-logout"]')
     await logoutButton.click()
-    await expect(page).toHaveURL('http://localhost:5173/', { timeout: 10000 })
+    await expect(page).toHaveURL('/', { timeout: 10000 })
 
     console.log('✅ CSRF token navigation test PASSED')
   })
@@ -199,7 +199,7 @@ test.describe('CSRF Token Validation', () => {
     // Verify logout still works
     const logoutButton = page.locator('[data-testid="button-logout"]')
     await logoutButton.click()
-    await expect(page).toHaveURL('http://localhost:5173/', { timeout: 10000 })
+    await expect(page).toHaveURL('/', { timeout: 10000 })
 
     console.log('✅ CSRF token page refresh test PASSED')
   })
@@ -218,7 +218,7 @@ test.describe('CSRF Token Validation', () => {
     console.log('✓ CSRF token initialized after login')
 
     // Navigate to dashboard (simulates app startup with existing session)
-    await page.goto('http://localhost:5173/dashboard')
+    await page.goto('/dashboard')
     await page.waitForLoadState('domcontentloaded')
 
     // Verify CSRF token still exists after navigation
@@ -265,7 +265,7 @@ test.describe('CSRF Token Validation', () => {
     await logoutButton.click()
 
     // Should still successfully logout
-    await expect(page).toHaveURL('http://localhost:5173/', { timeout: 10000 })
+    await expect(page).toHaveURL('/', { timeout: 10000 })
     console.log('✓ Logout succeeded despite initially missing CSRF token')
 
     // Verify user is logged out (login button visible)
@@ -292,8 +292,8 @@ test.describe('CSRF Token Validation', () => {
     // Make multiple concurrent requests (navigate to different pages)
     // This simulates multiple components loading data simultaneously
     await Promise.all([
-      page.goto('http://localhost:5173/events'),
-      page.waitForTimeout(100).then(() => page.goto('http://localhost:5173/dashboard'))
+      page.goto('/events'),
+      page.waitForTimeout(100).then(() => page.goto('/dashboard'))
     ])
 
     await page.waitForLoadState('domcontentloaded')
@@ -307,7 +307,7 @@ test.describe('CSRF Token Validation', () => {
     // Verify logout still works
     const logoutButton = page.locator('[data-testid="button-logout"]')
     await logoutButton.click()
-    await expect(page).toHaveURL('http://localhost:5173/', { timeout: 10000 })
+    await expect(page).toHaveURL('/', { timeout: 10000 })
 
     console.log('✅ Concurrent requests test PASSED')
   })

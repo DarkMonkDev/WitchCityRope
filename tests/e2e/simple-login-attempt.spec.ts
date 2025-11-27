@@ -69,7 +69,7 @@ test.describe('Simple Login Attempt', () => {
 
   test('should test API directly', async ({ page }) => {
     // Test the login API directly
-    const response = await page.request.post('http://localhost:5655/api/auth/login', {
+    const response = await page.request.post('/api/auth/login', {
       data: {
         email: 'admin@witchcityrope.com',
         password: 'Test123!'

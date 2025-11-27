@@ -29,6 +29,8 @@ services:
   # PostgreSQL - Test Overrides
   # ==========================================================================
   postgres:
+    # Override container name to avoid conflict with dev environment
+    container_name: witchcity-postgres-test
     environment:
       # Separate test database
       POSTGRES_DB: witchcityrope_test
@@ -62,6 +64,8 @@ services:
   # API Service - Test Overrides
   # ==========================================================================
   api:
+    # Override container name to avoid conflict with dev environment
+    container_name: witchcity-api-test
     build:
       context: ./apps/api
       dockerfile: Dockerfile
@@ -84,6 +88,9 @@ services:
 
       # Test CORS - internal container communication only
       CORS__AllowedOrigins: "http://web:5173"
+
+      # Safety encryption key for testing (DO NOT use in production)
+      Safety__EncryptionKey: "NAQntjSAGLxD4SAO59B9VwRm7gUfv31+1F1R2F51zDg="
 
       # Test logging - reduced verbosity
       Logging__LogLevel__Default: Warning
@@ -113,15 +120,21 @@ services:
   # React Web - Test Overrides
   # ==========================================================================
   web:
+    # Override container name to avoid conflict with dev environment
+    container_name: witchcity-web-test
     build:
       # Use default context (.) from base docker-compose.yml (monorepo root)
       # context: . is inherited from base compose file
       dockerfile: apps/web/Dockerfile
       target: test  # Multi-stage test target
-    
+
     # NO EXTERNAL PORTS - Test isolation
     # ports: []
-    
+
+    # Start Vite dev server for E2E testing (bypass npm script that blocks local dev)
+    working_dir: /app/apps/web
+    command: ["npx", "vite", "--host", "0.0.0.0", "--port", "5173"]
+
     environment:
       # Test environment
       NODE_ENV: test
@@ -155,8 +168,11 @@ services:
   # ==========================================================================
   test-runner:
     build:
-      context: ./tests
-      dockerfile: Dockerfile.test
+      # Use monorepo root as context to access all dependencies
+      context: .
+      dockerfile: tests/Dockerfile.test
+      target: test-runner
+    # Explicit container name for consistency
     container_name: witchcity-test-runner
     networks:
       - witchcity-net
@@ -208,23 +224,24 @@ services:
       - playwright_screenshots:/app/screenshots
     
     working_dir: /app
+
+    # Wait for manual test execution (tests run via docker exec from skill)
+    command: ["tail", "-f", "/dev/null"]
     
-    # CI-optimized test command
-    command: ["npm", "run", "test:ci"]
-    
-    # Test health check
+    # Test health check - simplified to just check if container is running
     healthcheck:
-      test: ["CMD-SHELL", "node --version && npm --version"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 5s
+      test: ["CMD-SHELL", "exit 0"]
+      interval: 5s
+      timeout: 3s
+      retries: 2
+      start_period: 2s
 
   # ==========================================================================
   # Database Test Helper - Test Environment Service
   # ==========================================================================
   db-test-helper:
     image: postgres:16-alpine
+    # Explicit container name for consistency
     container_name: witchcity-db-test-helper
     networks:
       - witchcity-net

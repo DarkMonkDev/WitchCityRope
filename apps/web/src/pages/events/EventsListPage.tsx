@@ -26,6 +26,7 @@ import { useNavigate } from 'react-router-dom'
 import { useParticipation } from '../../hooks/useParticipation'
 import { useCurrentUser } from '../../lib/api/hooks/useAuth'
 import { BaseEventsTable, type TableColumn } from '../../components/events/BaseEventsTable'
+import { useEventTimeZone } from '../../hooks/useEventTimeZone'
 
 // Mock function to get user role - replace with actual auth context
 const useAuth = () => ({
@@ -36,6 +37,7 @@ const useAuth = () => ({
 export const EventsListPage: React.FC = () => {
   const navigate = useNavigate()
   const { userRole } = useAuth()
+  const eventTimeZone = useEventTimeZone();
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards')
   const [showPastClasses, setShowPastClasses] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -679,6 +681,7 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({
   'data-testid': testId,
 }) => {
   const navigate = useNavigate()
+  const eventTimeZone = useEventTimeZone();
   const { data: currentUser } = useCurrentUser()
   const isAuthenticated = !!currentUser
 
@@ -800,7 +803,8 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({
               return start.toLocaleDateString('en-US', {
                 weekday: 'long',
                 month: 'short',
-                day: 'numeric'
+                day: 'numeric',
+                timeZone: eventTimeZone
               })
             })()}
           </Text>
@@ -821,7 +825,8 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({
               const startTime = start.toLocaleTimeString('en-US', {
                 hour: 'numeric',
                 minute: '2-digit',
-                hour12: true
+                hour12: true,
+                timeZone: eventTimeZone
               }).toLowerCase()
 
               if (!event.endDate) return startTime
@@ -830,7 +835,8 @@ const WireframeEventCard: React.FC<WireframeEventCardProps> = ({
               const endTime = end.toLocaleTimeString('en-US', {
                 hour: 'numeric',
                 minute: '2-digit',
-                hour12: true
+                hour12: true,
+                timeZone: eventTimeZone
               }).toLowerCase()
 
               return `${startTime} - ${endTime}`

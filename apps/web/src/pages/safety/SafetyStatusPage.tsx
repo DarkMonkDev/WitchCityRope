@@ -19,11 +19,13 @@ import {
 import { IconSearch, IconInfoCircle, IconCheck, IconClock } from '@tabler/icons-react';
 import { useSearchParams } from 'react-router-dom';
 import { useIncidentStatus } from '../../features/safety/hooks/useSafetyIncidents';
+import { useEventTimeZone } from '../../hooks/useEventTimeZone';
 
 export function SafetyStatusPage() {
   const [searchParams] = useSearchParams();
   const [referenceNumber, setReferenceNumber] = useState(searchParams.get('ref') || '');
   const [shouldFetch, setShouldFetch] = useState(false);
+  const eventTimeZone = useEventTimeZone();
   
   // Fetch status when reference number is provided
   const {
@@ -62,7 +64,8 @@ export function SafetyStatusPage() {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
+      timeZone: eventTimeZone
     });
   };
   

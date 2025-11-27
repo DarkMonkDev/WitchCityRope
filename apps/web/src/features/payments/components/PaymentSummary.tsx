@@ -15,6 +15,7 @@ import {
 import { IconCalendar, IconMapPin, IconUser, IconClock } from '@tabler/icons-react';
 import type { PaymentEventInfo, SlidingScaleCalculation } from '../types/payment.types';
 import type { components } from '@witchcityrope/shared-types/generated/api-types';
+import { useEventTimeZone } from '../../../hooks/useEventTimeZone';
 
 type TicketTypeDto = components["schemas"]["TicketTypeDto"];
 
@@ -47,6 +48,8 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
   detailed = true,
   title = "Order Summary"
 }) => {
+  const eventTimeZone = useEventTimeZone();
+
   // Calculate total from individual ticket prices if available, otherwise use legacy calculation
   const ticketsTotal = Object.values(ticketPrices).reduce((sum, price) => sum + price, 0);
   const totalAmount = selectedTickets.length > 0
@@ -59,7 +62,8 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
       month: 'short',
       day: 'numeric',
       hour: 'numeric',
-      minute: '2-digit'
+      minute: '2-digit',
+      timeZone: eventTimeZone
     });
   };
 
@@ -67,7 +71,8 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
     return new Date(dateString).toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
+      timeZone: eventTimeZone
     });
   };
 

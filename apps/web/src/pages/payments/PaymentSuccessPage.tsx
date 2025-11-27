@@ -15,15 +15,16 @@ import {
   Divider,
   LoadingOverlay
 } from '@mantine/core';
-import { 
-  IconCircleCheck, 
-  IconCalendar, 
-  IconMail, 
-  IconArrowRight 
+import {
+  IconCircleCheck,
+  IconCalendar,
+  IconMail,
+  IconArrowRight
 } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import { paymentApi } from '../../features/payments/api/paymentApi';
 import type { PaymentResponse } from '../../features/payments/types/payment.types';
+import { useEventTimeZone } from '../../hooks/useEventTimeZone';
 
 /**
  * Payment success page component
@@ -33,7 +34,8 @@ export const PaymentSuccessPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
-  
+  const eventTimeZone = useEventTimeZone();
+
   // Get parameters from PayPal redirect
   const paymentId = searchParams.get('paymentId');
   const token = searchParams.get('token');
@@ -183,7 +185,7 @@ export const PaymentSuccessPage: React.FC = () => {
               <Group justify="space-between">
                 <Text size="sm" c="dimmed">Processed:</Text>
                 <Text size="sm">
-                  {new Date(paymentData.processedAt).toLocaleString()}
+                  {new Date(paymentData.processedAt).toLocaleString('en-US', { timeZone: eventTimeZone })}
                 </Text>
               </Group>
             )}

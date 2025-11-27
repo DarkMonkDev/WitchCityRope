@@ -24,8 +24,7 @@ import { PaymentHelper } from './test-utils/helpers/payment.helper';
  * Related: Variable Refund feature implementation
  */
 
-const API_URL = 'http://localhost:5655';
-const WEB_URL = 'http://localhost:5173';
+// Using Playwright baseURL - no hardcoded URLs needed
 
 // Helper class for refund modal interactions
 class RefundModal {
@@ -93,7 +92,7 @@ async function getPaymentTransactions(page: Page, authToken?: string): Promise<a
     headers['Authorization'] = `Bearer ${authToken}`;
   }
 
-  const response = await page.request.get(`${API_URL}/api/admin/payments`, { headers });
+  const response = await page.request.get('/api/admin/payments', { headers });
   expect(response.ok()).toBeTruthy();
   return await response.json();
 }
@@ -168,7 +167,7 @@ test.describe('Admin Variable Refund - E2E Tests', () => {
     console.log(`✅ Created test payment: ${payment.transactionId} ($${payment.amount})`);
 
     // Navigate to admin payments page
-    await page.goto(`${WEB_URL}/admin/analytics/payments`);
+    await page.goto('/admin/analytics/payments');
     await page.waitForLoadState('networkidle');
     console.log('📍 Navigated to admin payments page');
 

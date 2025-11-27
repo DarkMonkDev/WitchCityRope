@@ -7,7 +7,7 @@ test.describe('Event System Verification After Fixes', () => {
   test.beforeAll(async ({ request }) => {
     // Fetch real events from database before tests run
     // This ensures tests work with any seed data
-    const response = await request.get('http://localhost:5655/api/events');
+    const response = await request.get('/api/events');
     const apiResponse = await response.json();
 
     if (!apiResponse.success || !apiResponse.data || apiResponse.data.length === 0) {
@@ -42,7 +42,7 @@ test.describe('Event System Verification After Fixes', () => {
     }
 
     // Navigate to events page
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle', { timeout: 15000 });
 
     // Take screenshot for verification
@@ -74,7 +74,7 @@ test.describe('Event System Verification After Fixes', () => {
       throw new Error('No events available for testing');
     }
 
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle', { timeout: 15000 });
 
     // Test first event navigation
@@ -123,13 +123,13 @@ test.describe('Event System Verification After Fixes', () => {
     });
 
     // Test list endpoint
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle', { timeout: 15000 });
 
     // Test detail endpoint using first event from database
     const firstEvent = realEvents[0];
     console.log(`📍 Testing detail endpoint with event ID: ${firstEvent.id}`);
-    await page.goto(`http://localhost:5173/events/${firstEvent.id}`);
+    await page.goto(`/events/${firstEvent.id}`);
     await page.waitForLoadState('networkidle', { timeout: 15000 });
 
     // Verify API calls
@@ -158,7 +158,7 @@ test.describe('Event System Verification After Fixes', () => {
       }
     });
     
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle', { timeout: 15000 });
     
     // Take final screenshot
@@ -208,13 +208,13 @@ test.describe('Event System Verification After Fixes', () => {
       }
     });
 
-    await page.goto('http://localhost:5173/events');
+    await page.goto('/events');
     await page.waitForLoadState('networkidle', { timeout: 15000 });
 
     // Navigate to event detail to test both endpoints using first event from database
     const firstEvent = realEvents[0];
     console.log(`📍 Testing CORS with event ID: ${firstEvent.id}`);
-    await page.goto(`http://localhost:5173/events/${firstEvent.id}`);
+    await page.goto(`/events/${firstEvent.id}`);
     await page.waitForLoadState('networkidle', { timeout: 15000 });
 
     // Check for CORS errors specifically

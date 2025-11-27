@@ -46,7 +46,7 @@ test.describe('Profile Update Persistence', () => {
 
     // Step 2: Navigate to Profile Settings
     console.log('📍 Step 2: Navigating to Profile Settings...');
-    await page.goto('http://localhost:5173/dashboard/profile-settings');
+    await page.goto('/dashboard/profile-settings');
     await page.waitForLoadState('networkidle');
     console.log('✅ Profile Settings page loaded');
 
@@ -234,7 +234,7 @@ test.describe('Profile Update Persistence', () => {
 
     // Step 2: Get current user ID from page context
     console.log('📍 Step 2: Fetching current user profile...');
-    await page.goto('http://localhost:5173/dashboard/profile-settings');
+    await page.goto('/dashboard/profile-settings');
     await page.waitForLoadState('networkidle');
 
     // Step 3: Make direct API call to get profile
@@ -255,7 +255,7 @@ test.describe('Profile Update Persistence', () => {
 
       if (userId) {
         // Make direct API call to verify database state
-        const apiResponse = await request.get(`http://localhost:5655/api/users/${userId}/profile`, {
+        const apiResponse = await request.get(`/api/users/${userId}/profile`, {
           headers: {
             'Cookie': cookies.map(c => `${c.name}=${c.value}`).join('; ')
           }

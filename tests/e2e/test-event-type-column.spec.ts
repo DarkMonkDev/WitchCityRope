@@ -7,7 +7,7 @@ test('Event Type column is displayed in admin events table', async ({ page }) =>
   expect(loginSuccess).toBeTruthy();
 
   // Navigate to admin events
-  await page.goto('http://localhost:5173/admin/events');
+  await page.goto('/admin/events');
 
   // Wait for the events table to load
   await page.waitForSelector('[data-testid="events-table"]', { timeout: 10000 });
@@ -48,7 +48,7 @@ test('Draft events are visible in admin events table', async ({ page }) => {
   const loginSuccess = await AuthHelper.loginAs(page, 'admin');
   expect(loginSuccess).toBeTruthy();
 
-  await page.goto('http://localhost:5173/admin/events');
+  await page.goto('/admin/events');
 
   await page.waitForSelector('[data-testid="events-table"]', { timeout: 10000 });
 

@@ -62,7 +62,8 @@ export interface ReferenceRequest {
  */
 export interface CreateApplicationRequest {
   // Personal Information (Step 1)
-  fullName: string;
+  firstName: string;
+  lastName: string;
   sceneName: string;
   pronouns?: string;
   email: string;
@@ -222,7 +223,8 @@ export interface ApplicationDetailResponse {
   
   // Personal Information (encrypted fields visible to reviewers)
   personalInfo: {
-    fullName: string;
+    firstName: string;
+    lastName: string;
     sceneName: string;
     pronouns?: string;
     email: string;
@@ -353,7 +355,8 @@ export interface PagedResult<T> {
 export interface ApplicationFormData {
   // Step 1: Personal Information
   personalInfo: {
-    fullName: string;
+    firstName: string;
+    lastName: string;
     sceneName: string;
     pronouns: string;
     email: string;

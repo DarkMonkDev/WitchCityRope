@@ -54,7 +54,7 @@ test.describe('Admin Vetting Management Authorization', () => {
         await expect(element).toBeVisible({ timeout: 2000 });
         console.log(`✅ Found vetting navigation: ${selector}`);
         await element.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         vettingAccessible = true;
         vettingResults.push(`Navigation found: ${selector}`);
         break;
@@ -77,8 +77,8 @@ test.describe('Admin Vetting Management Authorization', () => {
 
       for (const url of vettingUrls) {
         try {
-          const response = await page.goto(`http://localhost:5173${url}`);
-          await page.waitForLoadState('networkidle');
+          const response = await page.goto(`${url}`);
+          await page.waitForLoadState('domcontentloaded');
 
           // Hard assertion: Verify navigation response is OK
           expect(response).not.toBeNull();
@@ -110,7 +110,7 @@ test.describe('Admin Vetting Management Authorization', () => {
     }
 
     // Step 5: Check final page state
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const finalUrl = page.url();
 
     // Hard assertion: Verify body is visible before reading content

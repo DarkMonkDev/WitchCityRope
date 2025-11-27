@@ -146,7 +146,46 @@ npx playwright test --list | wc -l
 
 ## 🛠️ AVAILABLE TESTING TOOLS
 
-### Chrome DevTools MCP (NEW - 2025-10-03)
+### test-environment Skill (NEW - 2025-11-27)
+**Purpose**: Run all tests in isolated containers separate from dev environment
+
+**Key Capabilities**:
+- **Complete Isolation**: Separate test database, API, and Web containers
+- **Fresh Environment**: Builds from current codebase with clean state
+- **All Test Types**: Unit tests (.NET), Integration tests (.NET), E2E tests (Playwright)
+- **Automatic Cleanup**: Removes containers and images after tests
+
+**When to Use**:
+- Before running any test suite (E2E, unit, integration)
+- When dev containers are busy with other agents
+- To prevent test interference with development work
+- For complete test isolation
+
+**Basic Usage**:
+```bash
+# Run E2E tests (default)
+Use test-environment skill
+
+# Run all tests
+Use test-environment skill with --mode all
+
+# Run specific E2E test file
+Use test-environment skill with --filter "admin-events-dashboard"
+
+# Keep containers for debugging
+Use test-environment skill with --keep-containers
+```
+
+**Critical Knowledge**:
+- Tests run in isolated containers (`test-api`, `test-web`, `test-db`)
+- Container networking: Services communicate via container names
+- Vite allowedHosts must include container name: `allowedHosts: ['test-web']`
+- Playwright baseURL configured dynamically: `http://test-web:5173`
+- Results saved to `/test-results/` directory
+
+**See**: `/.claude/skills/test-environment/README.md` for complete documentation
+
+### Chrome DevTools MCP (2025-10-03)
 **Purpose**: Debug web pages, performance analysis, and browser control for E2E testing
 
 **Key Capabilities**:
@@ -564,6 +603,97 @@ const loginButton = page.locator('[data-testid="login-button"]');
 
 ---
 
+## 🚨 ULTRA CRITICAL: Container Networking for E2E Tests (2025-11-27) 🚨
+
+**CRITICAL DISCOVERY**: E2E tests running in containers must use container networking, not localhost URLs.
+
+### 🔥 THE PROBLEM: Hardcoded localhost URLs Fail in Containers
+
+**Problem**: Tests written with hardcoded `http://localhost:5173` URLs fail when run inside test containers because localhost inside a container refers to the container itself, not the host machine.
+
+**Root Cause**: Container networking requires using service names (e.g., `test-web`) instead of localhost to communicate between containers.
+
+**Impact**: ALL E2E tests fail with connection refused errors when run via test-environment skill.
+
+### ✅ CORRECT PATTERN: Relative URLs and Dynamic baseURL
+
+**In E2E Tests - Use Relative URLs**:
+```typescript
+// ✅ CORRECT - Uses baseURL from playwright.config.ts
+await page.goto('/');
+await page.goto('/login');
+await page.goto('/admin/events');
+
+// ❌ WRONG - Hardcoded localhost breaks in containers
+await page.goto('http://localhost:5173/');
+await page.goto('http://localhost:5173/login');
+```
+
+**In playwright.config.ts - Dynamic baseURL**:
+```typescript
+// ✅ CORRECT - Uses environment variable for container networking
+use: {
+  baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173',
+}
+```
+
+**In API Request Patterns - Use Relative Paths**:
+```typescript
+// ✅ CORRECT - Relative API paths work in all environments
+await page.waitForResponse('**/api/events');
+await page.waitForRequest('**/api/auth/login');
+
+// ❌ WRONG - Absolute URLs with localhost
+await page.waitForResponse('http://localhost:5655/api/events');
+```
+
+### 🔧 VITE CONFIGURATION: allowedHosts for Container Access
+
+**Problem**: Vite dev server by default only allows localhost connections, rejecting requests from container names.
+
+**Solution**: Configure `allowedHosts` in vite.config.ts:
+```typescript
+// ✅ CORRECT - Allows both localhost and container networking
+server: {
+  host: '0.0.0.0',
+  port: 5173,
+  allowedHosts: ['test-web', 'localhost'],
+}
+```
+
+**Why This Matters**:
+- `test-web` allows Playwright running in test container to access Vite
+- `localhost` allows local development to continue working
+- Without this, Vite returns 403 Forbidden to container requests
+
+### 📋 CONTAINER NETWORKING CHECKLIST
+
+**When Writing E2E Tests**:
+- [ ] Use `page.goto('/')` NOT `page.goto('http://localhost:5173/')`
+- [ ] Use relative API patterns: `'**/api/endpoint'` NOT full URLs
+- [ ] Verify baseURL configured in playwright.config.ts
+- [ ] Check vite.config.ts has allowedHosts with container name
+
+**When Debugging Test Failures**:
+- [ ] Check if test uses hardcoded localhost URLs
+- [ ] Verify PLAYWRIGHT_BASE_URL environment variable set correctly
+- [ ] Confirm Vite allowedHosts includes container name
+- [ ] Review container logs for connection refused errors
+
+### 🎯 PREVENTION PATTERN
+
+**Before Running Tests**:
+1. Use test-environment skill for isolated container testing
+2. Skill automatically sets PLAYWRIGHT_BASE_URL to container name
+3. Tests using relative URLs work in both local and container environments
+4. Vite allowedHosts permits container networking
+
+**During Test Development**:
+1. ALWAYS use relative URLs in page.goto()
+2. ALWAYS use pattern matching for API requests
+3. NEVER hardcode localhost in test files
+4. TEST locally AND in containers to verify portability
+
 ## 🚨 ULTRA CRITICAL: Docker-Only Testing Environment - MANDATORY 🚨
 
 **ALL TESTS MUST RUN AGAINST DOCKER CONTAINERS EXCLUSIVELY**
@@ -576,7 +706,7 @@ const loginButton = page.locator('[data-testid="login-button"]');
 2. **NEVER execute tests if local dev servers detected** on ports 5174, 5175, etc.
 3. **ONLY use port 5173** (Docker) for ALL test execution
 4. **IMMEDIATELY kill rogue processes**: `./scripts/kill-local-dev-servers.sh`
-5. **RESTART Docker if containers down**: `./dev.sh`
+5. **RESTART Docker if containers down**: `./dev.sh` OR use test-environment skill
 
 ### 💥 CONSEQUENCES OF IGNORING THIS:
 - Tests execute against wrong environment and give false results

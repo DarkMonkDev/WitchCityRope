@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test';
 
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || `${baseUrl}`;
+
 test('Verify ticket type dropdown displays correct labels without null', async ({ page }) => {
   // First login
-  await page.goto('http://localhost:5173/login');
+  await page.goto(`${baseUrl}/login`);
   await page.waitForLoadState('networkidle');
   
   // Fill login form
@@ -26,7 +28,7 @@ test('Verify ticket type dropdown displays correct labels without null', async (
   const eventId = '4f65d190-ec4d-4b28-aef0-64fabd3151cd';
   const registrationId = `reg_${Date.now()}_test`;
   
-  await page.goto(`http://localhost:5173/checkout/${eventId}/${registrationId}`);
+  await page.goto(`${baseUrl}/checkout/${eventId}/${registrationId}`);
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(1500);
   

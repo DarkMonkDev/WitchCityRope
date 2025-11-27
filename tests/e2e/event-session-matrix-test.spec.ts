@@ -10,7 +10,7 @@ test.describe('Event Session Matrix System Test', () => {
     console.log('✅ Logged in as admin successfully');
     
     // Step 2: Navigate to admin events page
-    await page.goto('http://localhost:5173/admin/events');
+    await page.goto('/admin/events');
     await page.waitForLoadState('networkidle');
     console.log('✅ On admin events page');
     

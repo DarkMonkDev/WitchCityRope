@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('Inspect login form DOM structure', async ({ page }) => {
-  await page.goto('http://localhost:5173/login');
+  await page.goto('/login');
   
   // Wait for page to load
   await page.waitForTimeout(2000);

@@ -246,7 +246,7 @@ public class UserManagementServiceTests : IAsyncLifetime
         result.Success.Should().BeTrue();
         result.Response.Should().NotBeNull();
         result.Response!.Users.Should().HaveCount(2);
-        result.Response.TotalCount.Should().BeGreaterOrEqualTo(3);
+        result.Response.TotalCount.Should().BeGreaterThanOrEqualTo(3);
         result.Response.Page.Should().Be(1);
         result.Response.PageSize.Should().Be(2);
     }
@@ -303,7 +303,7 @@ public class UserManagementServiceTests : IAsyncLifetime
         result.Success.Should().BeTrue();
         result.Response.Should().NotBeNull();
         result.Response!.Users.Should().OnlyContain(u => u.Role == "Administrator");
-        result.Response.Users.Should().HaveCountGreaterOrEqualTo(2);
+        result.Response.Users.Should().HaveCountGreaterThanOrEqualTo(2);
     }
 
     /// <summary>
@@ -484,7 +484,7 @@ public class UserManagementServiceTests : IAsyncLifetime
         // Assert
         result.Success.Should().BeTrue();
         result.Response.Should().NotBeNull();
-        result.Response!.Should().HaveCountGreaterOrEqualTo(2);
+        result.Response!.Should().HaveCountGreaterThanOrEqualTo(2);
         result.Response.Should().OnlyContain(u => u.Name != null);
     }
 

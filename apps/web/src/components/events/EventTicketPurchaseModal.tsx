@@ -15,7 +15,8 @@ import {
   Alert,
   Box,
 } from '@mantine/core';
-import { IconTicket, IconCreditCard, IconAlertCircle } from '@tabler/icons-react';
+import { IconTicket, IconCreditCard, IconAlertCircle } from '@tabler/icons-react'
+import { useEventTimeZone } from '../../hooks/useEventTimeZone';
 
 export interface TicketPurchaseData {
   eventId: string;
@@ -66,6 +67,7 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
   ticketTypes,
   isPurchasing = false,
 }) => {
+  const eventTimeZone = useEventTimeZone();
   const [selectedTicketTypeId, setSelectedTicketTypeId] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState<'paypal' | 'venmo'>('paypal');
@@ -129,7 +131,8 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
               day: 'numeric',
               hour: 'numeric',
               minute: '2-digit'
-            })}
+            ,
+      timeZone: eventTimeZone})}
           </Text>
         </Card>
 

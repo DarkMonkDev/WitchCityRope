@@ -357,7 +357,11 @@ export interface paths {
          */
         get: operations["GetEvents"];
         put?: never;
-        post?: never;
+        /**
+         * Create a new event
+         * @description Creates a new event with optional sessions, ticket types, volunteer positions, and organizers. New events are created as drafts (IsPublished = false) by default. Supports full event creation with all related entities in a single request.
+         */
+        post: operations["CreateEvent"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3873,6 +3877,38 @@ export interface components {
             newStartDate: string;
             newTitle: string;
         };
+        CreateEventRequest: {
+            title: string;
+            shortDescription?: string | null;
+            description: string;
+            policies?: string | null;
+            /** Format: date-time */
+            startDate: string;
+            /** Format: date-time */
+            endDate: string;
+            /** Format: int32 */
+            venueId: number;
+            eventType: string;
+            /** Format: int32 */
+            capacity: number;
+            isPublished?: boolean;
+            sessions?: components["schemas"]["SessionDto"][] | null;
+            ticketTypes?: components["schemas"]["TicketTypeDto"][] | null;
+            volunteerPositions?: components["schemas"]["VolunteerPositionDto"][] | null;
+            teacherIds?: string[] | null;
+            /** Format: double */
+            registrationOpenHours?: number | null;
+            /** Format: double */
+            registrationCloseHours?: number | null;
+            /** Format: double */
+            cancellationOpenHours?: number | null;
+            /** Format: double */
+            cancellationCloseHours?: number | null;
+            /** Format: double */
+            volunteerRegistrationCloseHours?: number | null;
+            /** Format: double */
+            volunteerCancellationCloseHours?: number | null;
+        };
         CreateIncidentRequest: {
             /** Format: uuid */
             reporterId?: string | null;
@@ -6043,6 +6079,57 @@ export interface operations {
             };
             /** @description Forbidden */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    CreateEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateEventRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };

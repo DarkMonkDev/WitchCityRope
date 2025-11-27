@@ -106,8 +106,8 @@ public class SafetyServiceExtendedTests : IAsyncLifetime
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value!.Items.Should().HaveCountGreaterOrEqualTo(2);
-        result.Value.TotalCount.Should().BeGreaterOrEqualTo(2);
+        result.Value!.Items.Should().HaveCountGreaterThanOrEqualTo(2);
+        result.Value.TotalCount.Should().BeGreaterThanOrEqualTo(2);
     }
 
     [Fact]
@@ -306,8 +306,8 @@ public class SafetyServiceExtendedTests : IAsyncLifetime
         result.Value!.Items.Should().HaveCount(5);
         result.Value.Page.Should().Be(2);
         result.Value.PageSize.Should().Be(5);
-        result.Value.TotalCount.Should().BeGreaterOrEqualTo(15);
-        result.Value.TotalPages.Should().BeGreaterOrEqualTo(3);
+        result.Value.TotalCount.Should().BeGreaterThanOrEqualTo(15);
+        result.Value.TotalPages.Should().BeGreaterThanOrEqualTo(3);
     }
 
     [Fact]
@@ -334,7 +334,7 @@ public class SafetyServiceExtendedTests : IAsyncLifetime
         // Assert
         result.IsSuccess.Should().BeTrue();
         var items = result.Value!.Items.ToList();
-        items.Should().HaveCountGreaterOrEqualTo(3);
+        items.Should().HaveCountGreaterThanOrEqualTo(3);
 
         // Verify descending order
         for (int i = 0; i < items.Count - 1; i++)
@@ -365,7 +365,7 @@ public class SafetyServiceExtendedTests : IAsyncLifetime
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value!.UnassignedCount.Should().BeGreaterOrEqualTo(2);
+        result.Value!.UnassignedCount.Should().BeGreaterThanOrEqualTo(2);
         result.Value.RecentIncidents.Should().NotBeNull();
     }
 
@@ -445,7 +445,7 @@ public class SafetyServiceExtendedTests : IAsyncLifetime
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value!.RecentIncidents.Should().HaveCountLessOrEqualTo(5);
+        result.Value!.RecentIncidents.Should().HaveCountLessThanOrEqualTo(5);
     }
 
     #endregion
@@ -466,7 +466,7 @@ public class SafetyServiceExtendedTests : IAsyncLifetime
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value!.Should().HaveCountGreaterOrEqualTo(3);
+        result.Value!.Should().HaveCountGreaterThanOrEqualTo(3);
     }
 
     [Fact]
@@ -546,7 +546,7 @@ public class SafetyServiceExtendedTests : IAsyncLifetime
             .Where(n => n.IncidentId == incident.Id && n.Type == IncidentNoteType.System)
             .ToListAsync();
 
-        notes.Should().HaveCountGreaterOrEqualTo(1);
+        notes.Should().HaveCountGreaterThanOrEqualTo(1);
     }
 
     [Fact]
@@ -613,7 +613,7 @@ public class SafetyServiceExtendedTests : IAsyncLifetime
             .Where(n => n.IncidentId == incident.Id && n.Type == IncidentNoteType.System)
             .ToListAsync();
 
-        notes.Should().HaveCountGreaterOrEqualTo(1);
+        notes.Should().HaveCountGreaterThanOrEqualTo(1);
     }
 
     #endregion
@@ -668,7 +668,7 @@ public class SafetyServiceExtendedTests : IAsyncLifetime
             .Where(n => n.IncidentId == incident.Id && n.Type == IncidentNoteType.System)
             .ToListAsync();
 
-        notes.Should().HaveCountGreaterOrEqualTo(1);
+        notes.Should().HaveCountGreaterThanOrEqualTo(1);
     }
 
     [Fact]
@@ -790,7 +790,7 @@ public class SafetyServiceExtendedTests : IAsyncLifetime
             .Where(n => n.IncidentId == incident.Id && n.Type == IncidentNoteType.System)
             .ToListAsync();
 
-        notes.Should().HaveCountGreaterOrEqualTo(1);
+        notes.Should().HaveCountGreaterThanOrEqualTo(1);
     }
 
     [Fact]
@@ -1130,7 +1130,7 @@ public class SafetyServiceExtendedTests : IAsyncLifetime
         result.IsSuccess.Should().BeTrue();
         result.Value!.Reports.Should().HaveCount(5);
         result.Value.CurrentPage.Should().Be(2);
-        result.Value.TotalCount.Should().BeGreaterOrEqualTo(15);
+        result.Value.TotalCount.Should().BeGreaterThanOrEqualTo(15);
     }
 
     [Fact]

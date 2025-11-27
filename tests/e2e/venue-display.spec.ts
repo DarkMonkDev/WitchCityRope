@@ -19,6 +19,8 @@
 import { test, expect } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+
 test.describe('Venue Display on Event Page', () => {
   // We'll use an existing event from seed data for testing
   // If no events exist, these tests will need an event created first
@@ -30,7 +32,7 @@ test.describe('Venue Display on Event Page', () => {
 
   test('should NOT display venue to unauthenticated users', async ({ page }) => {
     // Navigate to an event page WITHOUT logging in
-    await page.goto('http://localhost:5173/events');
+    await page.goto(`${baseUrl}/events`);
     await page.waitForLoadState('networkidle');
 
     // Find and click on first event (if any exist)
@@ -65,7 +67,7 @@ test.describe('Venue Display on Event Page', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Navigate to events list
-    await page.goto('http://localhost:5173/events');
+    await page.goto(`${baseUrl}/events`);
     await page.waitForLoadState('networkidle');
 
     // Find an event we haven't RSVP'd to
@@ -101,7 +103,7 @@ test.describe('Venue Display on Event Page', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Navigate to events list
-    await page.goto('http://localhost:5173/events');
+    await page.goto(`${baseUrl}/events`);
     await page.waitForLoadState('networkidle');
 
     // Find a social event (social events use RSVP)
@@ -150,7 +152,7 @@ test.describe('Venue Display on Event Page', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     // Navigate to events list
-    await page.goto('http://localhost:5173/events');
+    await page.goto(`${baseUrl}/events`);
     await page.waitForLoadState('networkidle');
 
     // Look for a class/workshop event (events with tickets)
@@ -161,7 +163,7 @@ test.describe('Venue Display on Event Page', () => {
       const eventCount = await eventCards.count();
 
       for (let i = 0; i < Math.min(eventCount, 3); i++) {
-        await page.goto('http://localhost:5173/events');
+        await page.goto(`${baseUrl}/events`);
         await page.waitForLoadState('networkidle');
 
         await eventCards.nth(i).click();
@@ -202,7 +204,7 @@ test.describe('Venue Display on Event Page', () => {
     // Login and RSVP to an event first
     await AuthHelpers.loginAs(page, 'vetted');
 
-    await page.goto('http://localhost:5173/events');
+    await page.goto(`${baseUrl}/events`);
     await page.waitForLoadState('networkidle');
 
     const eventCards = page.locator('[data-testid="event-card"], .event-card, a[href*="/events/"]');
@@ -244,7 +246,7 @@ test.describe('Venue Display on Event Page', () => {
     // Login as regular member (not admin)
     await AuthHelpers.loginAs(page, 'member');
 
-    await page.goto('http://localhost:5173/events');
+    await page.goto(`${baseUrl}/events`);
     await page.waitForLoadState('networkidle');
 
     const eventCards = page.locator('[data-testid="event-card"], .event-card, a[href*="/events/"]');
@@ -275,7 +277,7 @@ test.describe('Venue Display on Event Page', () => {
     // Login as member
     await AuthHelpers.loginAs(page, 'member');
 
-    await page.goto('http://localhost:5173/events');
+    await page.goto(`${baseUrl}/events`);
     await page.waitForLoadState('networkidle');
 
     const eventCards = page.locator('[data-testid="event-card"], .event-card, a[href*="/events/"]');

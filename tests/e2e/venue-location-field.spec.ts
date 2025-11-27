@@ -20,6 +20,8 @@
 import { test, expect } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+
 test.describe('Admin Venue Location Field', () => {
   test.beforeEach(async ({ page }) => {
     // Clear auth state before each test
@@ -31,7 +33,7 @@ test.describe('Admin Venue Location Field', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to admin settings
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     // Verify page loaded
@@ -68,7 +70,7 @@ test.describe('Admin Venue Location Field', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to admin settings
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     // Open dropdown and select "Add New"
@@ -99,7 +101,7 @@ test.describe('Admin Venue Location Field', () => {
     await expect(successNotification).toBeVisible({ timeout: 5000 });
 
     // Reload page to verify persistence
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     // Select the newly created venue from dropdown
@@ -124,7 +126,7 @@ test.describe('Admin Venue Location Field', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to admin settings
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     // Open dropdown and select "Add New"
@@ -157,7 +159,7 @@ test.describe('Admin Venue Location Field', () => {
     await expect(successNotification).toBeVisible({ timeout: 5000 });
 
     // Verify venue created successfully without location
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     await venueDropdown.click();
@@ -173,7 +175,7 @@ test.describe('Admin Venue Location Field', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // First create a venue
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     const venueDropdown = page.getByPlaceholder('Select a venue');
@@ -195,7 +197,7 @@ test.describe('Admin Venue Location Field', () => {
     await page.waitForTimeout(1000);
 
     // Now update the location
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     // Select the venue
@@ -221,7 +223,7 @@ test.describe('Admin Venue Location Field', () => {
     await expect(successNotification).toBeVisible({ timeout: 5000 });
 
     // Reload and verify updated value persisted
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     await venueDropdown.click();
@@ -239,7 +241,7 @@ test.describe('Admin Venue Location Field', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Create venue with location
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     const venueDropdown = page.getByPlaceholder('Select a venue');
@@ -259,7 +261,7 @@ test.describe('Admin Venue Location Field', () => {
     await page.waitForTimeout(1000);
 
     // Now clear the location
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     await venueDropdown.click();
@@ -283,7 +285,7 @@ test.describe('Admin Venue Location Field', () => {
     await expect(successNotification).toBeVisible({ timeout: 5000 });
 
     // Reload and verify location is still empty
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     await venueDropdown.click();
@@ -301,7 +303,7 @@ test.describe('Admin Venue Location Field', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to admin settings
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     // Open dropdown and select "Add New"
@@ -330,7 +332,7 @@ test.describe('Admin Venue Location Field', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to admin settings
-    await page.goto('http://localhost:5173/admin/settings');
+    await page.goto(`${baseUrl}/admin/settings`);
     await page.waitForLoadState('networkidle');
 
     // Open dropdown and select "Add New"
