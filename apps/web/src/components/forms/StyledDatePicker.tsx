@@ -47,6 +47,7 @@ export function StyledDatePicker({
   return (
     <DatePickerInput
       size={size || 'md'}
+      firstDayOfWeek={0} // 0 = Sunday, 1 = Monday
       leftSection={
         showIcon ? (
           <IconCalendar
