@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace WitchCityRope.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialSchema : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -54,9 +54,9 @@ namespace WitchCityRope.Api.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     SceneName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    FirstName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    LastName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    Bio = table.Column<string>(type: "text", nullable: true),
+                    FirstName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    LastName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    Bio = table.Column<string>(type: "text", maxLength: 1000, nullable: true),
                     DiscordName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     FetLifeName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
@@ -68,22 +68,27 @@ namespace WitchCityRope.Api.Migrations
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     PronouncedName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Pronouns = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    OtherNames = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     FailedLoginAttempts = table.Column<int>(type: "integer", nullable: false),
                     LockedOutUntil = table.Column<DateTime>(type: "timestamptz", nullable: true),
                     LastPasswordChangeAt = table.Column<DateTime>(type: "timestamptz", nullable: true),
-                    EmailVerificationToken = table.Column<string>(type: "text", nullable: false),
+                    EmailVerificationToken = table.Column<string>(type: "text", maxLength: 50, nullable: false),
                     EmailVerificationTokenCreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: true),
                     VettingStatus = table.Column<int>(type: "integer", nullable: false),
                     HasVettingApplication = table.Column<bool>(type: "boolean", nullable: false),
+                    TermsOfServiceAccepted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    TermsOfServiceAcceptedAt = table.Column<DateTime>(type: "timestamptz", nullable: true),
+                    Email = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    PhoneNumber = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
+                    FullName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    RealName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedEmail = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
                     PasswordHash = table.Column<string>(type: "text", nullable: true),
                     SecurityStamp = table.Column<string>(type: "text", nullable: true),
                     ConcurrencyStamp = table.Column<string>(type: "text", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "text", nullable: true),
                     PhoneNumberConfirmed = table.Column<bool>(type: "boolean", nullable: false),
                     TwoFactorEnabled = table.Column<bool>(type: "boolean", nullable: false),
                     LockoutEnd = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
@@ -105,6 +110,7 @@ namespace WitchCityRope.Api.Migrations
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Directions = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     Notes = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
+                    Location = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false)
@@ -176,6 +182,40 @@ namespace WitchCityRope.Api.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "GlobalEmailTemplates",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    Category = table.Column<int>(type: "integer", nullable: false),
+                    TemplateType = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Subject = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    HtmlBody = table.Column<string>(type: "text", nullable: false),
+                    PlainTextBody = table.Column<string>(type: "text", nullable: false),
+                    Variables = table.Column<string>(type: "jsonb", nullable: false, defaultValue: "[]"),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
+                    Version = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
+                    CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false, defaultValueSql: "NOW()"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false, defaultValueSql: "NOW()"),
+                    UpdatedBy = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_GlobalEmailTemplates", x => x.Id);
+                    table.CheckConstraint("CHK_GlobalEmailTemplates_Category", "\"Category\" IN (0, 1, 2, 3, 4)");
+                    table.CheckConstraint("CHK_GlobalEmailTemplates_HtmlBody_NotEmpty", "LENGTH(TRIM(\"HtmlBody\")) > 0");
+                    table.CheckConstraint("CHK_GlobalEmailTemplates_PlainTextBody_NotEmpty", "LENGTH(TRIM(\"PlainTextBody\")) > 0");
+                    table.CheckConstraint("CHK_GlobalEmailTemplates_Subject_NotEmpty", "LENGTH(TRIM(\"Subject\")) > 0");
+                    table.CheckConstraint("CHK_GlobalEmailTemplates_Version", "\"Version\" >= 1");
+                    table.ForeignKey(
+                        name: "FK_GlobalEmailTemplates_Users_UpdatedBy",
+                        column: x => x.UpdatedBy,
+                        principalSchema: "public",
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PaymentMethods",
                 schema: "public",
                 columns: table => new
@@ -223,7 +263,9 @@ namespace WitchCityRope.Api.Migrations
                     PaymentMethodType = table.Column<int>(type: "integer", nullable: false),
                     EncryptedPayPalOrderId = table.Column<string>(type: "text", nullable: true),
                     EncryptedPayPalPayerId = table.Column<string>(type: "text", nullable: true),
-                    VenmoUsername = table.Column<string>(type: "text", nullable: true),
+                    EncryptedPayPalCaptureId = table.Column<string>(type: "text", nullable: true),
+                    IdempotencyKey = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    VenmoUsername = table.Column<string>(type: "text", maxLength: 20, nullable: true),
                     ProcessedAt = table.Column<DateTime>(type: "timestamptz", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false, defaultValueSql: "NOW()"),
                     UpdatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false, defaultValueSql: "NOW()"),
@@ -231,7 +273,7 @@ namespace WitchCityRope.Api.Migrations
                     RefundCurrency = table.Column<string>(type: "character varying(3)", maxLength: 3, nullable: true),
                     RefundedAt = table.Column<DateTime>(type: "timestamptz", nullable: true),
                     EncryptedPayPalRefundId = table.Column<string>(type: "text", nullable: true),
-                    RefundReason = table.Column<string>(type: "text", nullable: true),
+                    RefundReason = table.Column<string>(type: "text", maxLength: 200, nullable: true),
                     RefundedByUserId = table.Column<Guid>(type: "uuid", nullable: true),
                     Metadata = table.Column<string>(type: "jsonb", nullable: false, defaultValueSql: "'{}'")
                 },
@@ -469,8 +511,8 @@ namespace WitchCityRope.Api.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ApplicationNumber = table.Column<string>(type: "text", nullable: false),
-                    StatusToken = table.Column<string>(type: "text", nullable: false),
+                    ApplicationNumber = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false),
+                    StatusToken = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: true),
                     SceneName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     FirstName = table.Column<string>(type: "text", nullable: true),
@@ -480,17 +522,17 @@ namespace WitchCityRope.Api.Migrations
                     Email = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     FetLifeHandle = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     Pronouns = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    OtherNames = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    OtherNames = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
                     ExperienceLevel = table.Column<int>(type: "integer", nullable: false),
                     YearsExperience = table.Column<int>(type: "integer", nullable: false),
                     ExperienceDescription = table.Column<string>(type: "text", nullable: true),
                     WhyJoinCommunity = table.Column<string>(type: "text", nullable: true),
+                    HowDidYouHearAboutUs = table.Column<string>(type: "text", nullable: true),
                     AgreesToGuidelines = table.Column<bool>(type: "boolean", nullable: false),
                     AgreesToTerms = table.Column<bool>(type: "boolean", nullable: false),
                     ConsentToContact = table.Column<bool>(type: "boolean", nullable: false),
                     WorkflowStatus = table.Column<int>(type: "integer", nullable: false),
                     SubmittedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
-                    AdminNotes = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: true),
                     ReviewStartedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     LastReviewedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DecisionMadeAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -542,56 +584,29 @@ namespace WitchCityRope.Api.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "VettingEmailTemplates",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    TemplateType = table.Column<int>(type: "integer", nullable: false),
-                    Subject = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    HtmlBody = table.Column<string>(type: "text", nullable: false),
-                    PlainTextBody = table.Column<string>(type: "text", nullable: false),
-                    Variables = table.Column<string>(type: "jsonb", nullable: false, defaultValue: "{}"),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
-                    Version = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
-                    CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
-                    LastModified = table.Column<DateTime>(type: "timestamptz", nullable: false),
-                    UpdatedBy = table.Column<Guid>(type: "uuid", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_VettingEmailTemplates", x => x.Id);
-                    table.CheckConstraint("CHK_VettingEmailTemplates_HtmlBody_Length", "LENGTH(\"HtmlBody\") >= 10");
-                    table.CheckConstraint("CHK_VettingEmailTemplates_PlainTextBody_Length", "LENGTH(\"PlainTextBody\") >= 10");
-                    table.CheckConstraint("CHK_VettingEmailTemplates_Subject_Length", "LENGTH(\"Subject\") BETWEEN 5 AND 200");
-                    table.ForeignKey(
-                        name: "FK_VettingEmailTemplates_Users_UpdatedBy",
-                        column: x => x.UpdatedBy,
-                        principalSchema: "public",
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Events",
                 schema: "public",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Title = table.Column<string>(type: "text", nullable: false),
-                    ShortDescription = table.Column<string>(type: "text", nullable: true),
+                    Title = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
+                    ShortDescription = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     Description = table.Column<string>(type: "text", nullable: false),
                     Policies = table.Column<string>(type: "text", nullable: true),
                     StartDate = table.Column<DateTime>(type: "timestamptz", nullable: false),
                     EndDate = table.Column<DateTime>(type: "timestamptz", nullable: false),
                     Capacity = table.Column<int>(type: "integer", nullable: false),
                     EventType = table.Column<string>(type: "text", nullable: false),
-                    Location = table.Column<string>(type: "text", nullable: false),
-                    VenueId = table.Column<int>(type: "integer", nullable: true),
+                    VenueId = table.Column<int>(type: "integer", nullable: false),
                     IsPublished = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
+                    RegistrationOpenHours = table.Column<decimal>(type: "numeric", nullable: true),
+                    RegistrationCloseHours = table.Column<decimal>(type: "numeric", nullable: true),
+                    CancellationOpenHours = table.Column<decimal>(type: "numeric", nullable: true),
+                    CancellationCloseHours = table.Column<decimal>(type: "numeric", nullable: true),
+                    VolunteerRegistrationCloseHours = table.Column<decimal>(type: "numeric", nullable: true),
+                    VolunteerCancellationCloseHours = table.Column<decimal>(type: "numeric", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -704,45 +719,6 @@ namespace WitchCityRope.Api.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PaymentRefunds",
-                schema: "public",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    OriginalPaymentId = table.Column<Guid>(type: "uuid", nullable: false),
-                    RefundAmountValue = table.Column<decimal>(type: "numeric(10,2)", nullable: false),
-                    RefundCurrency = table.Column<string>(type: "character varying(3)", maxLength: 3, nullable: false, defaultValue: "USD"),
-                    RefundReason = table.Column<string>(type: "text", nullable: false),
-                    RefundStatus = table.Column<int>(type: "integer", nullable: false),
-                    EncryptedPayPalRefundId = table.Column<string>(type: "text", nullable: true),
-                    ProcessedByUserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ProcessedAt = table.Column<DateTime>(type: "timestamptz", nullable: false, defaultValueSql: "NOW()"),
-                    CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false, defaultValueSql: "NOW()"),
-                    Metadata = table.Column<string>(type: "jsonb", nullable: false, defaultValueSql: "'{}'")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PaymentRefunds", x => x.Id);
-                    table.CheckConstraint("CHK_PaymentRefunds_Currency", "\"RefundCurrency\" IN ('USD', 'EUR', 'GBP', 'CAD')");
-                    table.CheckConstraint("CHK_PaymentRefunds_ReasonRequired", "LENGTH(TRIM(\"RefundReason\")) >= 10");
-                    table.CheckConstraint("CHK_PaymentRefunds_RefundAmountValue_Positive", "\"RefundAmountValue\" > 0");
-                    table.ForeignKey(
-                        name: "FK_PaymentRefunds_Payments_OriginalPaymentId",
-                        column: x => x.OriginalPaymentId,
-                        principalSchema: "public",
-                        principalTable: "Payments",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_PaymentRefunds_Users_ProcessedByUserId",
-                        column: x => x.ProcessedByUserId,
-                        principalSchema: "public",
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "IncidentAuditLog",
                 schema: "public",
                 columns: table => new
@@ -786,7 +762,6 @@ namespace WitchCityRope.Api.Migrations
                     IncidentId = table.Column<Guid>(type: "uuid", nullable: false),
                     Content = table.Column<string>(type: "text", nullable: false),
                     Type = table.Column<int>(type: "integer", nullable: false),
-                    IsPrivate = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     AuthorId = table.Column<Guid>(type: "uuid", nullable: true),
                     Tags = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
@@ -904,6 +879,35 @@ namespace WitchCityRope.Api.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "VettingNotifications",
+                schema: "public",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ApplicationId = table.Column<Guid>(type: "uuid", nullable: false),
+                    TemplateId = table.Column<Guid>(type: "uuid", nullable: true),
+                    RecipientEmail = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    Subject = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Body = table.Column<string>(type: "text", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
+                    SentAt = table.Column<DateTime>(type: "timestamptz", nullable: true),
+                    ErrorMessage = table.Column<string>(type: "text", nullable: true),
+                    RetryCount = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VettingNotifications", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_VettingNotifications_VettingApplications_ApplicationId",
+                        column: x => x.ApplicationId,
+                        principalTable: "VettingApplications",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "VettingBulkOperationItems",
                 schema: "public",
                 columns: table => new
@@ -965,41 +969,6 @@ namespace WitchCityRope.Api.Migrations
                         principalTable: "VettingBulkOperations",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "VettingNotifications",
-                schema: "public",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ApplicationId = table.Column<Guid>(type: "uuid", nullable: false),
-                    TemplateId = table.Column<Guid>(type: "uuid", nullable: true),
-                    RecipientEmail = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    Subject = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    Body = table.Column<string>(type: "text", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
-                    SentAt = table.Column<DateTime>(type: "timestamptz", nullable: true),
-                    ErrorMessage = table.Column<string>(type: "text", nullable: true),
-                    RetryCount = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_VettingNotifications", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_VettingNotifications_VettingApplications_ApplicationId",
-                        column: x => x.ApplicationId,
-                        principalTable: "VettingApplications",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_VettingNotifications_VettingEmailTemplates_TemplateId",
-                        column: x => x.TemplateId,
-                        principalTable: "VettingEmailTemplates",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -1087,6 +1056,46 @@ namespace WitchCityRope.Api.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "EventEmailTemplates",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    EventId = table.Column<Guid>(type: "uuid", nullable: false),
+                    GlobalTemplateId = table.Column<Guid>(type: "uuid", nullable: false),
+                    TemplateType = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Subject = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    HtmlBody = table.Column<string>(type: "text", nullable: false),
+                    PlainTextBody = table.Column<string>(type: "text", nullable: false),
+                    TargetSessions = table.Column<string[]>(type: "text[]", nullable: false, defaultValue: new string[0]),
+                    RecipientGroup = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    IsCustomized = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false, defaultValueSql: "NOW()"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false, defaultValueSql: "NOW()"),
+                    UpdatedBy = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EventEmailTemplates", x => x.Id);
+                    table.CheckConstraint("CHK_EventEmailTemplates_HtmlBody_NotEmpty", "LENGTH(TRIM(\"HtmlBody\")) > 0");
+                    table.CheckConstraint("CHK_EventEmailTemplates_PlainTextBody_NotEmpty", "LENGTH(TRIM(\"PlainTextBody\")) > 0");
+                    table.CheckConstraint("CHK_EventEmailTemplates_Subject_NotEmpty", "LENGTH(TRIM(\"Subject\")) > 0");
+                    table.ForeignKey(
+                        name: "FK_EventEmailTemplates_Events_EventId",
+                        column: x => x.EventId,
+                        principalSchema: "public",
+                        principalTable: "Events",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_EventEmailTemplates_Users_UpdatedBy",
+                        column: x => x.UpdatedBy,
+                        principalSchema: "public",
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "EventOrganizers",
                 schema: "public",
                 columns: table => new
@@ -1106,61 +1115,6 @@ namespace WitchCityRope.Api.Migrations
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_EventOrganizers_Users_UserId",
-                        column: x => x.UserId,
-                        principalSchema: "public",
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "EventParticipations",
-                schema: "public",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    EventId = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ParticipationType = table.Column<int>(type: "integer", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
-                    CancelledAt = table.Column<DateTime>(type: "timestamptz", nullable: true),
-                    CancellationReason = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
-                    Notes = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
-                    Metadata = table.Column<string>(type: "jsonb", nullable: false, defaultValue: "{}"),
-                    CreatedBy = table.Column<Guid>(type: "uuid", nullable: true),
-                    UpdatedBy = table.Column<Guid>(type: "uuid", nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_EventParticipations", x => x.Id);
-                    table.CheckConstraint("CHK_EventParticipations_CancelledAt_Logic", "(\"Status\" IN (2, 3) AND \"CancelledAt\" IS NOT NULL) OR (\"Status\" NOT IN (2, 3) AND \"CancelledAt\" IS NULL)");
-                    table.CheckConstraint("CHK_EventParticipations_ParticipationType", "\"ParticipationType\" IN (1, 2)");
-                    table.CheckConstraint("CHK_EventParticipations_Status", "\"Status\" IN (1, 2, 3, 4)");
-                    table.ForeignKey(
-                        name: "FK_EventParticipations_Events_EventId",
-                        column: x => x.EventId,
-                        principalSchema: "public",
-                        principalTable: "Events",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_EventParticipations_Users_CreatedBy",
-                        column: x => x.CreatedBy,
-                        principalSchema: "public",
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
-                    table.ForeignKey(
-                        name: "FK_EventParticipations_Users_UpdatedBy",
-                        column: x => x.UpdatedBy,
-                        principalSchema: "public",
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
-                    table.ForeignKey(
-                        name: "FK_EventParticipations_Users_UserId",
                         column: x => x.UserId,
                         principalSchema: "public",
                         principalTable: "Users",
@@ -1209,18 +1163,56 @@ namespace WitchCityRope.Api.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "SentAdHocEmails",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    Subject = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    HtmlBody = table.Column<string>(type: "text", nullable: false),
+                    PlainTextBody = table.Column<string>(type: "text", nullable: false),
+                    RecipientGroup = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    RecipientEmails = table.Column<string[]>(type: "text[]", nullable: false, defaultValue: new string[0]),
+                    RecipientCount = table.Column<int>(type: "integer", nullable: false),
+                    EventId = table.Column<Guid>(type: "uuid", nullable: true),
+                    SendGridMessageId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    DeliveryStatus = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false, defaultValue: "Pending"),
+                    SentAt = table.Column<DateTime>(type: "timestamptz", nullable: false, defaultValueSql: "NOW()"),
+                    SentBy = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SentAdHocEmails", x => x.Id);
+                    table.CheckConstraint("CHK_SentAdHocEmails_DeliveryStatus", "\"DeliveryStatus\" IN ('Pending', 'Sent', 'Delivered', 'Failed', 'Bounced')");
+                    table.CheckConstraint("CHK_SentAdHocEmails_RecipientCount", "\"RecipientCount\" >= 0");
+                    table.CheckConstraint("CHK_SentAdHocEmails_Subject_NotEmpty", "LENGTH(TRIM(\"Subject\")) > 0");
+                    table.ForeignKey(
+                        name: "FK_SentAdHocEmails_Events_EventId",
+                        column: x => x.EventId,
+                        principalSchema: "public",
+                        principalTable: "Events",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_SentAdHocEmails_Users_SentBy",
+                        column: x => x.SentBy,
+                        principalSchema: "public",
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Sessions",
                 schema: "public",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     EventId = table.Column<Guid>(type: "uuid", nullable: false),
-                    SessionCode = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    SessionCode = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false),
+                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     StartTime = table.Column<DateTime>(type: "timestamptz", nullable: false),
                     EndTime = table.Column<DateTime>(type: "timestamptz", nullable: false),
                     Capacity = table.Column<int>(type: "integer", nullable: false),
-                    CurrentAttendees = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false)
                 },
@@ -1332,42 +1324,6 @@ namespace WitchCityRope.Api.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ParticipationHistory",
-                schema: "public",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ParticipationId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ActionType = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    OldValues = table.Column<string>(type: "jsonb", nullable: true),
-                    NewValues = table.Column<string>(type: "jsonb", nullable: true),
-                    ChangedBy = table.Column<Guid>(type: "uuid", nullable: true),
-                    ChangeReason = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
-                    IpAddress = table.Column<string>(type: "character varying(45)", maxLength: 45, nullable: true),
-                    UserAgent = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ParticipationHistory", x => x.Id);
-                    table.CheckConstraint("CHK_ParticipationHistory_ActionType", "\"ActionType\" IN ('Created', 'Updated', 'Cancelled', 'Refunded', 'StatusChanged', 'PaymentUpdated')");
-                    table.ForeignKey(
-                        name: "FK_ParticipationHistory_EventParticipations_ParticipationId",
-                        column: x => x.ParticipationId,
-                        principalSchema: "public",
-                        principalTable: "EventParticipations",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ParticipationHistory_Users_ChangedBy",
-                        column: x => x.ChangedBy,
-                        principalSchema: "public",
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "TicketTypes",
                 schema: "public",
                 columns: table => new
@@ -1383,7 +1339,6 @@ namespace WitchCityRope.Api.Migrations
                     MaxPrice = table.Column<decimal>(type: "numeric(10,2)", nullable: true),
                     DefaultPrice = table.Column<decimal>(type: "numeric(10,2)", nullable: true),
                     Available = table.Column<int>(type: "integer", nullable: false),
-                    Sold = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false)
                 },
@@ -1452,11 +1407,19 @@ namespace WitchCityRope.Api.Migrations
                     PurchaseDate = table.Column<DateTime>(type: "timestamptz", nullable: false),
                     Quantity = table.Column<int>(type: "integer", nullable: false),
                     TotalPrice = table.Column<decimal>(type: "numeric(10,2)", nullable: false),
-                    PaymentStatus = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    PaymentMethod = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    PaymentReference = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    PaymentStatus = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    PaymentMethod = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    PaymentReference = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Notes = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    EncryptedPayPalOrderId = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    EncryptedPayPalPayerId = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    EncryptedPayPalCaptureId = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    SlidingScalePercentage = table.Column<decimal>(type: "numeric(5,2)", nullable: false, defaultValue: 0.00m),
+                    IdempotencyKey = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    ProcessedAt = table.Column<DateTime>(type: "timestamptz", nullable: true),
                     RecordedByStaffId = table.Column<Guid>(type: "uuid", nullable: true),
+                    EventWaiverAccepted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    EventWaiverAcceptedAt = table.Column<DateTime>(type: "timestamptz", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false)
                 },
@@ -1521,6 +1484,188 @@ namespace WitchCityRope.Api.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateTable(
+                name: "EventAttendances",
+                schema: "public",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    EventId = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    AttendanceType = table.Column<int>(type: "integer", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    TicketPurchaseId = table.Column<Guid>(type: "uuid", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
+                    CancelledAt = table.Column<DateTime>(type: "timestamptz", nullable: true),
+                    CancellationReason = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
+                    Notes = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
+                    Metadata = table.Column<string>(type: "jsonb", nullable: false, defaultValue: "{}"),
+                    CreatedBy = table.Column<Guid>(type: "uuid", nullable: true),
+                    UpdatedBy = table.Column<Guid>(type: "uuid", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false),
+                    EventWaiverAccepted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    EventWaiverAcceptedAt = table.Column<DateTime>(type: "timestamptz", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EventAttendances", x => x.Id);
+                    table.CheckConstraint("CHK_EventAttendances_AttendanceType", "\"AttendanceType\" IN (1, 2)");
+                    table.CheckConstraint("CHK_EventAttendances_CancelledAt_Logic", "(\"Status\" IN (2, 3) AND \"CancelledAt\" IS NOT NULL) OR (\"Status\" NOT IN (2, 3) AND \"CancelledAt\" IS NULL)");
+                    table.CheckConstraint("CHK_EventAttendances_Status", "\"Status\" IN (1, 2, 3, 4)");
+                    table.ForeignKey(
+                        name: "FK_EventAttendances_Events_EventId",
+                        column: x => x.EventId,
+                        principalSchema: "public",
+                        principalTable: "Events",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_EventAttendances_TicketPurchases_TicketPurchaseId",
+                        column: x => x.TicketPurchaseId,
+                        principalSchema: "public",
+                        principalTable: "TicketPurchases",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_EventAttendances_Users_CreatedBy",
+                        column: x => x.CreatedBy,
+                        principalSchema: "public",
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_EventAttendances_Users_UpdatedBy",
+                        column: x => x.UpdatedBy,
+                        principalSchema: "public",
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_EventAttendances_Users_UserId",
+                        column: x => x.UserId,
+                        principalSchema: "public",
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PaymentRefunds",
+                schema: "public",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    TicketPurchaseId = table.Column<Guid>(type: "uuid", nullable: false),
+                    RefundAmountValue = table.Column<decimal>(type: "numeric(10,2)", nullable: false),
+                    RefundCurrency = table.Column<string>(type: "character varying(3)", maxLength: 3, nullable: false, defaultValue: "USD"),
+                    RefundReason = table.Column<string>(type: "text", nullable: false),
+                    RefundStatus = table.Column<int>(type: "integer", nullable: false),
+                    EncryptedPayPalRefundId = table.Column<string>(type: "text", nullable: true),
+                    IdempotencyKey = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    RetryCount = table.Column<int>(type: "integer", nullable: false),
+                    ErrorMessage = table.Column<string>(type: "text", nullable: true),
+                    ProcessedByUserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ProcessedAt = table.Column<DateTime>(type: "timestamptz", nullable: false, defaultValueSql: "NOW()"),
+                    CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false, defaultValueSql: "NOW()"),
+                    Metadata = table.Column<string>(type: "jsonb", nullable: false, defaultValueSql: "'{}'"),
+                    PaymentId = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PaymentRefunds", x => x.Id);
+                    table.CheckConstraint("CHK_PaymentRefunds_Currency", "\"RefundCurrency\" IN ('USD', 'EUR', 'GBP', 'CAD')");
+                    table.CheckConstraint("CHK_PaymentRefunds_ReasonRequired", "LENGTH(TRIM(\"RefundReason\")) >= 10");
+                    table.CheckConstraint("CHK_PaymentRefunds_RefundAmountValue_Positive", "\"RefundAmountValue\" > 0");
+                    table.ForeignKey(
+                        name: "FK_PaymentRefunds_Payments_PaymentId",
+                        column: x => x.PaymentId,
+                        principalSchema: "public",
+                        principalTable: "Payments",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_PaymentRefunds_TicketPurchases_TicketPurchaseId",
+                        column: x => x.TicketPurchaseId,
+                        principalSchema: "public",
+                        principalTable: "TicketPurchases",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PaymentRefunds_Users_ProcessedByUserId",
+                        column: x => x.ProcessedByUserId,
+                        principalSchema: "public",
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AttendanceHistory",
+                schema: "public",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    AttendanceId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ActionType = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    OldValues = table.Column<string>(type: "jsonb", nullable: true),
+                    NewValues = table.Column<string>(type: "jsonb", nullable: true),
+                    ChangedBy = table.Column<Guid>(type: "uuid", nullable: true),
+                    ChangeReason = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
+                    IpAddress = table.Column<string>(type: "character varying(45)", maxLength: 45, nullable: true),
+                    UserAgent = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamptz", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AttendanceHistory", x => x.Id);
+                    table.CheckConstraint("CHK_AttendanceHistory_ActionType", "\"ActionType\" IN ('Created', 'Updated', 'Cancelled', 'Refunded', 'StatusChanged', 'PaymentUpdated')");
+                    table.ForeignKey(
+                        name: "FK_AttendanceHistory_EventAttendances_AttendanceId",
+                        column: x => x.AttendanceId,
+                        principalSchema: "public",
+                        principalTable: "EventAttendances",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AttendanceHistory_Users_ChangedBy",
+                        column: x => x.ChangedBy,
+                        principalSchema: "public",
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AttendanceHistory_ActionType",
+                schema: "public",
+                table: "AttendanceHistory",
+                column: "ActionType");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AttendanceHistory_AttendanceId_CreatedAt",
+                schema: "public",
+                table: "AttendanceHistory",
+                columns: new[] { "AttendanceId", "CreatedAt" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AttendanceHistory_ChangedBy",
+                schema: "public",
+                table: "AttendanceHistory",
+                column: "ChangedBy");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AttendanceHistory_NewValues_Gin",
+                schema: "public",
+                table: "AttendanceHistory",
+                column: "NewValues")
+                .Annotation("Npgsql:IndexMethod", "gin");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AttendanceHistory_OldValues_Gin",
+                schema: "public",
+                table: "AttendanceHistory",
+                column: "OldValues")
+                .Annotation("Npgsql:IndexMethod", "gin");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CheckInAuditLog_ActionType",
@@ -1725,6 +1870,57 @@ namespace WitchCityRope.Api.Migrations
                 column: "CreatedBy");
 
             migrationBuilder.CreateIndex(
+                name: "IX_EventAttendances_CreatedAt",
+                schema: "public",
+                table: "EventAttendances",
+                column: "CreatedAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EventAttendances_CreatedBy",
+                schema: "public",
+                table: "EventAttendances",
+                column: "CreatedBy");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EventAttendances_EventId_Status",
+                schema: "public",
+                table: "EventAttendances",
+                columns: new[] { "EventId", "Status" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EventAttendances_Metadata_Gin",
+                schema: "public",
+                table: "EventAttendances",
+                column: "Metadata")
+                .Annotation("Npgsql:IndexMethod", "gin");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EventAttendances_TicketPurchaseId",
+                schema: "public",
+                table: "EventAttendances",
+                column: "TicketPurchaseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EventAttendances_UpdatedBy",
+                schema: "public",
+                table: "EventAttendances",
+                column: "UpdatedBy");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EventAttendances_UserId_Status",
+                schema: "public",
+                table: "EventAttendances",
+                columns: new[] { "UserId", "Status" });
+
+            migrationBuilder.CreateIndex(
+                name: "UQ_EventAttendances_User_Event_Type_Active",
+                schema: "public",
+                table: "EventAttendances",
+                columns: new[] { "UserId", "EventId", "AttendanceType" },
+                unique: true,
+                filter: "\"Status\" = 1");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_EventAttendees_CreatedBy",
                 schema: "public",
                 table: "EventAttendees",
@@ -1804,61 +2000,66 @@ namespace WitchCityRope.Api.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_EventEmailTemplates_EventId",
+                table: "EventEmailTemplates",
+                column: "EventId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EventEmailTemplates_UpdatedAt",
+                table: "EventEmailTemplates",
+                column: "UpdatedAt",
+                descending: new bool[0]);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EventEmailTemplates_UpdatedBy",
+                table: "EventEmailTemplates",
+                column: "UpdatedBy");
+
+            migrationBuilder.CreateIndex(
+                name: "UQ_EventEmailTemplates_EventId_Type",
+                table: "EventEmailTemplates",
+                columns: new[] { "EventId", "TemplateType" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_EventOrganizers_UserId",
                 schema: "public",
                 table: "EventOrganizers",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_EventParticipations_CreatedAt",
-                schema: "public",
-                table: "EventParticipations",
-                column: "CreatedAt");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_EventParticipations_CreatedBy",
-                schema: "public",
-                table: "EventParticipations",
-                column: "CreatedBy");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_EventParticipations_EventId_Status",
-                schema: "public",
-                table: "EventParticipations",
-                columns: new[] { "EventId", "Status" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_EventParticipations_Metadata_Gin",
-                schema: "public",
-                table: "EventParticipations",
-                column: "Metadata")
-                .Annotation("Npgsql:IndexMethod", "gin");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_EventParticipations_UpdatedBy",
-                schema: "public",
-                table: "EventParticipations",
-                column: "UpdatedBy");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_EventParticipations_UserId_Status",
-                schema: "public",
-                table: "EventParticipations",
-                columns: new[] { "UserId", "Status" });
-
-            migrationBuilder.CreateIndex(
-                name: "UQ_EventParticipations_User_Event_Type_Active",
-                schema: "public",
-                table: "EventParticipations",
-                columns: new[] { "UserId", "EventId", "ParticipationType" },
-                unique: true,
-                filter: "\"Status\" = 1");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Events_VenueId",
                 schema: "public",
                 table: "Events",
                 column: "VenueId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GlobalEmailTemplates_Category",
+                table: "GlobalEmailTemplates",
+                column: "Category");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GlobalEmailTemplates_UpdatedAt",
+                table: "GlobalEmailTemplates",
+                column: "UpdatedAt",
+                descending: new bool[0]);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GlobalEmailTemplates_UpdatedBy",
+                table: "GlobalEmailTemplates",
+                column: "UpdatedBy");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GlobalEmailTemplates_Variables_Gin",
+                table: "GlobalEmailTemplates",
+                column: "Variables")
+                .Annotation("Npgsql:IndexMethod", "gin");
+
+            migrationBuilder.CreateIndex(
+                name: "UQ_GlobalEmailTemplates_Category_Type",
+                table: "GlobalEmailTemplates",
+                columns: new[] { "Category", "TemplateType" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_IncidentAuditLog_ActionType",
@@ -1989,38 +2190,6 @@ namespace WitchCityRope.Api.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ParticipationHistory_ActionType",
-                schema: "public",
-                table: "ParticipationHistory",
-                column: "ActionType");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ParticipationHistory_ChangedBy",
-                schema: "public",
-                table: "ParticipationHistory",
-                column: "ChangedBy");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ParticipationHistory_NewValues_Gin",
-                schema: "public",
-                table: "ParticipationHistory",
-                column: "NewValues")
-                .Annotation("Npgsql:IndexMethod", "gin");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ParticipationHistory_OldValues_Gin",
-                schema: "public",
-                table: "ParticipationHistory",
-                column: "OldValues")
-                .Annotation("Npgsql:IndexMethod", "gin");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ParticipationHistory_ParticipationId_CreatedAt",
-                schema: "public",
-                table: "ParticipationHistory",
-                columns: new[] { "ParticipationId", "CreatedAt" });
-
-            migrationBuilder.CreateIndex(
                 name: "IX_PaymentAuditLog_ActionType",
                 schema: "public",
                 table: "PaymentAuditLog",
@@ -2114,10 +2283,10 @@ namespace WitchCityRope.Api.Migrations
                 .Annotation("Npgsql:IndexMethod", "gin");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PaymentRefunds_OriginalPaymentId",
+                name: "IX_PaymentRefunds_PaymentId",
                 schema: "public",
                 table: "PaymentRefunds",
-                column: "OriginalPaymentId");
+                column: "PaymentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PaymentRefunds_ProcessedAt",
@@ -2136,6 +2305,12 @@ namespace WitchCityRope.Api.Migrations
                 schema: "public",
                 table: "PaymentRefunds",
                 column: "RefundStatus");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PaymentRefunds_TicketPurchaseId",
+                schema: "public",
+                table: "PaymentRefunds",
+                column: "TicketPurchaseId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payments_FailedStatus",
@@ -2274,6 +2449,29 @@ namespace WitchCityRope.Api.Migrations
                 column: "UpdatedBy");
 
             migrationBuilder.CreateIndex(
+                name: "IX_SentAdHocEmails_DeliveryStatus",
+                table: "SentAdHocEmails",
+                column: "DeliveryStatus",
+                filter: "\"DeliveryStatus\" IN ('Pending', 'Failed')");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SentAdHocEmails_EventId",
+                table: "SentAdHocEmails",
+                column: "EventId",
+                filter: "\"EventId\" IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SentAdHocEmails_SentAt",
+                table: "SentAdHocEmails",
+                column: "SentAt",
+                descending: new bool[0]);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SentAdHocEmails_SentBy",
+                table: "SentAdHocEmails",
+                column: "SentBy");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Sessions_EventId",
                 schema: "public",
                 table: "Sessions",
@@ -2402,8 +2600,7 @@ namespace WitchCityRope.Api.Migrations
                 name: "IX_Users_SceneName",
                 schema: "public",
                 table: "Users",
-                column: "SceneName",
-                unique: true);
+                column: "SceneName");
 
             migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
@@ -2572,34 +2769,6 @@ namespace WitchCityRope.Api.Migrations
                 column: "SentAt");
 
             migrationBuilder.CreateIndex(
-                name: "IX_VettingEmailTemplates_IsActive",
-                table: "VettingEmailTemplates",
-                column: "IsActive",
-                filter: "\"IsActive\" = TRUE");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_VettingEmailTemplates_UpdatedAt",
-                table: "VettingEmailTemplates",
-                column: "UpdatedAt");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_VettingEmailTemplates_UpdatedBy",
-                table: "VettingEmailTemplates",
-                column: "UpdatedBy");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_VettingEmailTemplates_Variables",
-                table: "VettingEmailTemplates",
-                column: "Variables")
-                .Annotation("Npgsql:IndexMethod", "gin");
-
-            migrationBuilder.CreateIndex(
-                name: "UQ_VettingEmailTemplates_TemplateType",
-                table: "VettingEmailTemplates",
-                column: "TemplateType",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_VettingNotifications_ApplicationId",
                 schema: "public",
                 table: "VettingNotifications",
@@ -2622,12 +2791,6 @@ namespace WitchCityRope.Api.Migrations
                 schema: "public",
                 table: "VettingNotifications",
                 columns: new[] { "Status", "CreatedAt" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_VettingNotifications_TemplateId",
-                schema: "public",
-                table: "VettingNotifications",
-                column: "TemplateId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_VolunteerPositions_EventId",
@@ -2656,6 +2819,10 @@ namespace WitchCityRope.Api.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "AttendanceHistory",
+                schema: "public");
+
+            migrationBuilder.DropTable(
                 name: "CheckInAuditLog",
                 schema: "public");
 
@@ -2672,8 +2839,14 @@ namespace WitchCityRope.Api.Migrations
                 schema: "public");
 
             migrationBuilder.DropTable(
+                name: "EventEmailTemplates");
+
+            migrationBuilder.DropTable(
                 name: "EventOrganizers",
                 schema: "public");
+
+            migrationBuilder.DropTable(
+                name: "GlobalEmailTemplates");
 
             migrationBuilder.DropTable(
                 name: "IncidentAuditLog",
@@ -2689,10 +2862,6 @@ namespace WitchCityRope.Api.Migrations
 
             migrationBuilder.DropTable(
                 name: "OfflineSyncQueue",
-                schema: "public");
-
-            migrationBuilder.DropTable(
-                name: "ParticipationHistory",
                 schema: "public");
 
             migrationBuilder.DropTable(
@@ -2716,11 +2885,10 @@ namespace WitchCityRope.Api.Migrations
                 schema: "public");
 
             migrationBuilder.DropTable(
-                name: "Settings",
-                schema: "public");
+                name: "SentAdHocEmails");
 
             migrationBuilder.DropTable(
-                name: "TicketPurchases",
+                name: "Settings",
                 schema: "public");
 
             migrationBuilder.DropTable(
@@ -2765,6 +2933,10 @@ namespace WitchCityRope.Api.Migrations
                 name: "VolunteerSignups");
 
             migrationBuilder.DropTable(
+                name: "EventAttendances",
+                schema: "public");
+
+            migrationBuilder.DropTable(
                 name: "EventAttendees",
                 schema: "public");
 
@@ -2777,15 +2949,7 @@ namespace WitchCityRope.Api.Migrations
                 schema: "public");
 
             migrationBuilder.DropTable(
-                name: "EventParticipations",
-                schema: "public");
-
-            migrationBuilder.DropTable(
                 name: "Payments",
-                schema: "public");
-
-            migrationBuilder.DropTable(
-                name: "TicketTypes",
                 schema: "public");
 
             migrationBuilder.DropTable(
@@ -2799,10 +2963,15 @@ namespace WitchCityRope.Api.Migrations
                 name: "VettingApplications");
 
             migrationBuilder.DropTable(
-                name: "VettingEmailTemplates");
+                name: "VolunteerPositions",
+                schema: "public");
 
             migrationBuilder.DropTable(
-                name: "VolunteerPositions",
+                name: "TicketPurchases",
+                schema: "public");
+
+            migrationBuilder.DropTable(
+                name: "TicketTypes",
                 schema: "public");
 
             migrationBuilder.DropTable(

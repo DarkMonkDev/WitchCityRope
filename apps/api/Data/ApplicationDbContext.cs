@@ -295,16 +295,20 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         // Configure ApplicationUser entity with custom properties
         modelBuilder.Entity<ApplicationUser>(entity =>
         {
+            // Override ASP.NET Identity defaults for Email field size
+            entity.Property(e => e.Email)
+                .HasMaxLength(100);
+
             entity.Property(e => e.SceneName)
                 .IsRequired()
                 .HasMaxLength(50);
 
             // Profile fields - Added for profile management
             entity.Property(e => e.FirstName)
-                .HasMaxLength(100);
+                .HasMaxLength(50);
 
             entity.Property(e => e.LastName)
-                .HasMaxLength(100);
+                .HasMaxLength(50);
 
             entity.Property(e => e.Bio)
                 .HasColumnType("text");
@@ -511,11 +515,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
 
             entity.Property(s => s.SessionCode)
                   .IsRequired()
-                  .HasMaxLength(20);
+                  .HasMaxLength(10);
 
             entity.Property(s => s.Name)
                   .IsRequired()
-                  .HasMaxLength(200);
+                  .HasMaxLength(100);
 
             entity.Property(s => s.StartTime)
                   .IsRequired()
@@ -627,13 +631,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
 
             entity.Property(p => p.PaymentStatus)
                   .IsRequired()
-                  .HasMaxLength(50);
+                  .HasMaxLength(20);
 
             entity.Property(p => p.PaymentMethod)
-                  .HasMaxLength(50);
+                  .HasMaxLength(20);
 
             entity.Property(p => p.PaymentReference)
-                  .HasMaxLength(200);
+                  .HasMaxLength(50);
 
             entity.Property(p => p.Notes)
                   .HasMaxLength(500);

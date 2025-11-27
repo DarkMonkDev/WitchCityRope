@@ -12,8 +12,8 @@ using WitchCityRope.Api.Data;
 namespace WitchCityRope.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251108200319_InitialSchema")]
-    partial class InitialSchema
+    [Migration("20251127064731_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -805,89 +805,267 @@ namespace WitchCityRope.Api.Migrations
                         });
                 });
 
-            modelBuilder.Entity("WitchCityRope.Api.Features.Participation.Entities.EventParticipation", b =>
+            modelBuilder.Entity("WitchCityRope.Api.Features.EmailTemplates.Entities.EventEmailTemplate", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("CancellationReason")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<DateTime?>("CancelledAt")
-                        .HasColumnType("timestamptz");
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamptz");
-
-                    b.Property<Guid?>("CreatedBy")
-                        .HasColumnType("uuid");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasDefaultValueSql("NOW()");
 
                     b.Property<Guid>("EventId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Metadata")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("jsonb")
-                        .HasDefaultValue("{}");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
-                    b.Property<int>("ParticipationType")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamptz");
-
-                    b.Property<Guid?>("UpdatedBy")
+                    b.Property<Guid>("GlobalTemplateId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<string>("HtmlBody")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsCustomized")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("PlainTextBody")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RecipientGroup")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.PrimitiveCollection<string[]>("TargetSessions")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text[]")
+                        .HasDefaultValue(new string[0]);
+
+                    b.Property<string>("TemplateType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid>("UpdatedBy")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatedAt")
-                        .HasDatabaseName("IX_EventParticipations_CreatedAt");
+                    b.HasIndex("EventId")
+                        .HasDatabaseName("IX_EventEmailTemplates_EventId");
 
-                    b.HasIndex("CreatedBy");
+                    b.HasIndex("UpdatedAt")
+                        .IsDescending()
+                        .HasDatabaseName("IX_EventEmailTemplates_UpdatedAt");
 
-                    b.HasIndex("Metadata")
-                        .HasDatabaseName("IX_EventParticipations_Metadata_Gin");
+                    b.HasIndex("UpdatedBy")
+                        .HasDatabaseName("IX_EventEmailTemplates_UpdatedBy");
 
-                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Metadata"), "gin");
-
-                    b.HasIndex("UpdatedBy");
-
-                    b.HasIndex("EventId", "Status")
-                        .HasDatabaseName("IX_EventParticipations_EventId_Status");
-
-                    b.HasIndex("UserId", "Status")
-                        .HasDatabaseName("IX_EventParticipations_UserId_Status");
-
-                    b.HasIndex("UserId", "EventId", "ParticipationType")
+                    b.HasIndex("EventId", "TemplateType")
                         .IsUnique()
-                        .HasDatabaseName("UQ_EventParticipations_User_Event_Type_Active")
-                        .HasFilter("\"Status\" = 1");
+                        .HasDatabaseName("UQ_EventEmailTemplates_EventId_Type");
 
-                    b.ToTable("EventParticipations", "public", t =>
+                    b.ToTable("EventEmailTemplates", null, t =>
                         {
-                            t.HasCheckConstraint("CHK_EventParticipations_CancelledAt_Logic", "(\"Status\" IN (2, 3) AND \"CancelledAt\" IS NOT NULL) OR (\"Status\" NOT IN (2, 3) AND \"CancelledAt\" IS NULL)");
+                            t.HasCheckConstraint("CHK_EventEmailTemplates_HtmlBody_NotEmpty", "LENGTH(TRIM(\"HtmlBody\")) > 0");
 
-                            t.HasCheckConstraint("CHK_EventParticipations_ParticipationType", "\"ParticipationType\" IN (1, 2)");
+                            t.HasCheckConstraint("CHK_EventEmailTemplates_PlainTextBody_NotEmpty", "LENGTH(TRIM(\"PlainTextBody\")) > 0");
 
-                            t.HasCheckConstraint("CHK_EventParticipations_Status", "\"Status\" IN (1, 2, 3, 4)");
+                            t.HasCheckConstraint("CHK_EventEmailTemplates_Subject_NotEmpty", "LENGTH(TRIM(\"Subject\")) > 0");
                         });
                 });
 
-            modelBuilder.Entity("WitchCityRope.Api.Features.Participation.Entities.ParticipationHistory", b =>
+            modelBuilder.Entity("WitchCityRope.Api.Features.EmailTemplates.Entities.GlobalEmailTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("HtmlBody")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("PlainTextBody")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("TemplateType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Variables")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValue("[]");
+
+                    b.Property<int>("Version")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Category")
+                        .HasDatabaseName("IX_GlobalEmailTemplates_Category");
+
+                    b.HasIndex("UpdatedAt")
+                        .IsDescending()
+                        .HasDatabaseName("IX_GlobalEmailTemplates_UpdatedAt");
+
+                    b.HasIndex("UpdatedBy")
+                        .HasDatabaseName("IX_GlobalEmailTemplates_UpdatedBy");
+
+                    b.HasIndex("Variables")
+                        .HasDatabaseName("IX_GlobalEmailTemplates_Variables_Gin");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Variables"), "gin");
+
+                    b.HasIndex("Category", "TemplateType")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_GlobalEmailTemplates_Category_Type");
+
+                    b.ToTable("GlobalEmailTemplates", null, t =>
+                        {
+                            t.HasCheckConstraint("CHK_GlobalEmailTemplates_Category", "\"Category\" IN (0, 1, 2, 3, 4)");
+
+                            t.HasCheckConstraint("CHK_GlobalEmailTemplates_HtmlBody_NotEmpty", "LENGTH(TRIM(\"HtmlBody\")) > 0");
+
+                            t.HasCheckConstraint("CHK_GlobalEmailTemplates_PlainTextBody_NotEmpty", "LENGTH(TRIM(\"PlainTextBody\")) > 0");
+
+                            t.HasCheckConstraint("CHK_GlobalEmailTemplates_Subject_NotEmpty", "LENGTH(TRIM(\"Subject\")) > 0");
+
+                            t.HasCheckConstraint("CHK_GlobalEmailTemplates_Version", "\"Version\" >= 1");
+                        });
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.EmailTemplates.Entities.SentAdHocEmail", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("DeliveryStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Pending");
+
+                    b.Property<Guid?>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("HtmlBody")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PlainTextBody")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("RecipientCount")
+                        .HasColumnType("integer");
+
+                    b.PrimitiveCollection<string[]>("RecipientEmails")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text[]")
+                        .HasDefaultValue(new string[0]);
+
+                    b.Property<string>("RecipientGroup")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("SendGridMessageId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("SentAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid>("SentBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeliveryStatus")
+                        .HasDatabaseName("IX_SentAdHocEmails_DeliveryStatus")
+                        .HasFilter("\"DeliveryStatus\" IN ('Pending', 'Failed')");
+
+                    b.HasIndex("EventId")
+                        .HasDatabaseName("IX_SentAdHocEmails_EventId")
+                        .HasFilter("\"EventId\" IS NOT NULL");
+
+                    b.HasIndex("SentAt")
+                        .IsDescending()
+                        .HasDatabaseName("IX_SentAdHocEmails_SentAt");
+
+                    b.HasIndex("SentBy")
+                        .HasDatabaseName("IX_SentAdHocEmails_SentBy");
+
+                    b.ToTable("SentAdHocEmails", null, t =>
+                        {
+                            t.HasCheckConstraint("CHK_SentAdHocEmails_DeliveryStatus", "\"DeliveryStatus\" IN ('Pending', 'Sent', 'Delivered', 'Failed', 'Bounced')");
+
+                            t.HasCheckConstraint("CHK_SentAdHocEmails_RecipientCount", "\"RecipientCount\" >= 0");
+
+                            t.HasCheckConstraint("CHK_SentAdHocEmails_Subject_NotEmpty", "LENGTH(TRIM(\"Subject\")) > 0");
+                        });
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Participation.Entities.AttendanceHistory", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -897,6 +1075,9 @@ namespace WitchCityRope.Api.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("AttendanceId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("ChangeReason")
                         .HasMaxLength(1000)
@@ -918,9 +1099,6 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<string>("OldValues")
                         .HasColumnType("jsonb");
 
-                    b.Property<Guid>("ParticipationId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("UserAgent")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
@@ -928,26 +1106,122 @@ namespace WitchCityRope.Api.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ActionType")
-                        .HasDatabaseName("IX_ParticipationHistory_ActionType");
+                        .HasDatabaseName("IX_AttendanceHistory_ActionType");
 
                     b.HasIndex("ChangedBy");
 
                     b.HasIndex("NewValues")
-                        .HasDatabaseName("IX_ParticipationHistory_NewValues_Gin");
+                        .HasDatabaseName("IX_AttendanceHistory_NewValues_Gin");
 
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("NewValues"), "gin");
 
                     b.HasIndex("OldValues")
-                        .HasDatabaseName("IX_ParticipationHistory_OldValues_Gin");
+                        .HasDatabaseName("IX_AttendanceHistory_OldValues_Gin");
 
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("OldValues"), "gin");
 
-                    b.HasIndex("ParticipationId", "CreatedAt")
-                        .HasDatabaseName("IX_ParticipationHistory_ParticipationId_CreatedAt");
+                    b.HasIndex("AttendanceId", "CreatedAt")
+                        .HasDatabaseName("IX_AttendanceHistory_AttendanceId_CreatedAt");
 
-                    b.ToTable("ParticipationHistory", "public", t =>
+                    b.ToTable("AttendanceHistory", "public", t =>
                         {
-                            t.HasCheckConstraint("CHK_ParticipationHistory_ActionType", "\"ActionType\" IN ('Created', 'Updated', 'Cancelled', 'Refunded', 'StatusChanged', 'PaymentUpdated')");
+                            t.HasCheckConstraint("CHK_AttendanceHistory_ActionType", "\"ActionType\" IN ('Created', 'Updated', 'Cancelled', 'Refunded', 'StatusChanged', 'PaymentUpdated')");
+                        });
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Participation.Entities.EventAttendance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("AttendanceType")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CancellationReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("EventWaiverAccepted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTime?>("EventWaiverAcceptedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("Metadata")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValue("{}");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("TicketPurchaseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("IX_EventAttendances_CreatedAt");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("Metadata")
+                        .HasDatabaseName("IX_EventAttendances_Metadata_Gin");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Metadata"), "gin");
+
+                    b.HasIndex("TicketPurchaseId")
+                        .HasDatabaseName("IX_EventAttendances_TicketPurchaseId");
+
+                    b.HasIndex("UpdatedBy");
+
+                    b.HasIndex("EventId", "Status")
+                        .HasDatabaseName("IX_EventAttendances_EventId_Status");
+
+                    b.HasIndex("UserId", "Status")
+                        .HasDatabaseName("IX_EventAttendances_UserId_Status");
+
+                    b.HasIndex("UserId", "EventId", "AttendanceType")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_EventAttendances_User_Event_Type_Active")
+                        .HasFilter("\"Status\" = 1");
+
+                    b.ToTable("EventAttendances", "public", t =>
+                        {
+                            t.HasCheckConstraint("CHK_EventAttendances_AttendanceType", "\"AttendanceType\" IN (1, 2)");
+
+                            t.HasCheckConstraint("CHK_EventAttendances_CancelledAt_Logic", "(\"Status\" IN (2, 3) AND \"CancelledAt\" IS NOT NULL) OR (\"Status\" NOT IN (2, 3) AND \"CancelledAt\" IS NULL)");
+
+                            t.HasCheckConstraint("CHK_EventAttendances_Status", "\"Status\" IN (1, 2, 3, 4)");
                         });
                 });
 
@@ -974,6 +1248,9 @@ namespace WitchCityRope.Api.Migrations
                         .HasDefaultValue("USD")
                         .HasColumnName("Currency");
 
+                    b.Property<string>("EncryptedPayPalCaptureId")
+                        .HasColumnType("text");
+
                     b.Property<string>("EncryptedPayPalOrderId")
                         .HasColumnType("text");
 
@@ -985,6 +1262,10 @@ namespace WitchCityRope.Api.Migrations
 
                     b.Property<Guid>("EventRegistrationId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("IdempotencyKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("Metadata")
                         .IsRequired()
@@ -1006,6 +1287,7 @@ namespace WitchCityRope.Api.Migrations
                         .HasColumnType("character varying(3)");
 
                     b.Property<string>("RefundReason")
+                        .HasMaxLength(200)
                         .HasColumnType("text");
 
                     b.Property<DateTime?>("RefundedAt")
@@ -1031,6 +1313,7 @@ namespace WitchCityRope.Api.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("VenmoUsername")
+                        .HasMaxLength(20)
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -1304,13 +1587,20 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<string>("EncryptedPayPalRefundId")
                         .HasColumnType("text");
 
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("text");
+
+                    b.Property<string>("IdempotencyKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<string>("Metadata")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("jsonb")
                         .HasDefaultValueSql("'{}'");
 
-                    b.Property<Guid>("OriginalPaymentId")
+                    b.Property<Guid?>("PaymentId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("ProcessedAt")
@@ -1338,6 +1628,12 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<int>("RefundStatus")
                         .HasColumnType("integer");
 
+                    b.Property<int>("RetryCount")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TicketPurchaseId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Metadata")
@@ -1345,8 +1641,7 @@ namespace WitchCityRope.Api.Migrations
 
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Metadata"), "gin");
 
-                    b.HasIndex("OriginalPaymentId")
-                        .HasDatabaseName("IX_PaymentRefunds_OriginalPaymentId");
+                    b.HasIndex("PaymentId");
 
                     b.HasIndex("ProcessedAt")
                         .HasDatabaseName("IX_PaymentRefunds_ProcessedAt");
@@ -1356,6 +1651,9 @@ namespace WitchCityRope.Api.Migrations
 
                     b.HasIndex("RefundStatus")
                         .HasDatabaseName("IX_PaymentRefunds_RefundStatus");
+
+                    b.HasIndex("TicketPurchaseId")
+                        .HasDatabaseName("IX_PaymentRefunds_TicketPurchaseId");
 
                     b.ToTable("PaymentRefunds", "public", t =>
                         {
@@ -1449,11 +1747,6 @@ namespace WitchCityRope.Api.Migrations
 
                     b.Property<Guid>("IncidentId")
                         .HasColumnType("uuid");
-
-                    b.Property<bool>("IsPrivate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
 
                     b.Property<string>("Tags")
                         .HasMaxLength(200)
@@ -1708,10 +2001,6 @@ namespace WitchCityRope.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("AdminNotes")
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)");
-
                     b.Property<bool>("AgreesToGuidelines")
                         .HasColumnType("boolean");
 
@@ -1720,7 +2009,8 @@ namespace WitchCityRope.Api.Migrations
 
                     b.Property<string>("ApplicationNumber")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
 
                     b.Property<bool>("ConsentToContact")
                         .HasColumnType("boolean");
@@ -1752,6 +2042,9 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<string>("FullName")
                         .HasColumnType("text");
 
+                    b.Property<string>("HowDidYouHearAboutUs")
+                        .HasColumnType("text");
+
                     b.Property<DateTime?>("InterviewScheduledFor")
                         .HasColumnType("timestamp with time zone");
 
@@ -1762,8 +2055,8 @@ namespace WitchCityRope.Api.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("OtherNames")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
 
                     b.Property<string>("Pronouns")
                         .HasMaxLength(50)
@@ -1784,7 +2077,8 @@ namespace WitchCityRope.Api.Migrations
 
                     b.Property<string>("StatusToken")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<DateTime>("SubmittedAt")
                         .HasColumnType("timestamptz");
@@ -2118,86 +2412,6 @@ namespace WitchCityRope.Api.Migrations
                         });
                 });
 
-            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingEmailTemplate", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamptz");
-
-                    b.Property<string>("HtmlBody")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true);
-
-                    b.Property<DateTime>("LastModified")
-                        .HasColumnType("timestamptz");
-
-                    b.Property<string>("PlainTextBody")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Subject")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<int>("TemplateType")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamptz");
-
-                    b.Property<Guid>("UpdatedBy")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Variables")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("jsonb")
-                        .HasDefaultValue("{}");
-
-                    b.Property<int>("Version")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(1);
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IsActive")
-                        .HasDatabaseName("IX_VettingEmailTemplates_IsActive")
-                        .HasFilter("\"IsActive\" = TRUE");
-
-                    b.HasIndex("TemplateType")
-                        .IsUnique()
-                        .HasDatabaseName("UQ_VettingEmailTemplates_TemplateType");
-
-                    b.HasIndex("UpdatedAt")
-                        .HasDatabaseName("IX_VettingEmailTemplates_UpdatedAt");
-
-                    b.HasIndex("UpdatedBy");
-
-                    b.HasIndex("Variables")
-                        .HasDatabaseName("IX_VettingEmailTemplates_Variables");
-
-                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Variables"), "gin");
-
-                    b.ToTable("VettingEmailTemplates", null, t =>
-                        {
-                            t.HasCheckConstraint("CHK_VettingEmailTemplates_HtmlBody_Length", "LENGTH(\"HtmlBody\") >= 10");
-
-                            t.HasCheckConstraint("CHK_VettingEmailTemplates_PlainTextBody_Length", "LENGTH(\"PlainTextBody\") >= 10");
-
-                            t.HasCheckConstraint("CHK_VettingEmailTemplates_Subject_Length", "LENGTH(\"Subject\") BETWEEN 5 AND 200");
-                        });
-                });
-
             modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingNotification", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2253,8 +2467,6 @@ namespace WitchCityRope.Api.Migrations
                     b.HasIndex("Status")
                         .HasDatabaseName("IX_VettingNotifications_Status");
 
-                    b.HasIndex("TemplateId");
-
                     b.HasIndex("Status", "CreatedAt")
                         .HasDatabaseName("IX_VettingNotifications_Status_CreatedAt");
 
@@ -2271,6 +2483,7 @@ namespace WitchCityRope.Api.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Bio")
+                        .HasMaxLength(1000)
                         .HasColumnType("text");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -2288,14 +2501,15 @@ namespace WitchCityRope.Api.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.Property<string>("Email")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
 
                     b.Property<string>("EmailVerificationToken")
                         .IsRequired()
+                        .HasMaxLength(50)
                         .HasColumnType("text");
 
                     b.Property<DateTime?>("EmailVerificationTokenCreatedAt")
@@ -2314,6 +2528,10 @@ namespace WitchCityRope.Api.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.Property<string>("FirstName")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("FullName")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
@@ -2327,8 +2545,8 @@ namespace WitchCityRope.Api.Migrations
                         .HasColumnType("timestamptz");
 
                     b.Property<string>("LastName")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<DateTime?>("LastPasswordChangeAt")
                         .HasColumnType("timestamptz");
@@ -2350,11 +2568,16 @@ namespace WitchCityRope.Api.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<string>("OtherNames")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<string>("PasswordHash")
                         .HasColumnType("text");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("text");
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
@@ -2369,6 +2592,10 @@ namespace WitchCityRope.Api.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<string>("RealName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasColumnType("text");
@@ -2380,6 +2607,14 @@ namespace WitchCityRope.Api.Migrations
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
+
+                    b.Property<bool>("TermsOfServiceAccepted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTime?>("TermsOfServiceAcceptedAt")
+                        .HasColumnType("timestamptz");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean");
@@ -2410,7 +2645,6 @@ namespace WitchCityRope.Api.Migrations
                         .HasDatabaseName("IX_Users_Role");
 
                     b.HasIndex("SceneName")
-                        .IsUnique()
                         .HasDatabaseName("IX_Users_SceneName");
 
                     b.ToTable("Users", "public");
@@ -2421,6 +2655,12 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<decimal?>("CancellationCloseHours")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("CancellationOpenHours")
+                        .HasColumnType("numeric");
 
                     b.Property<int>("Capacity")
                         .HasColumnType("integer");
@@ -2442,28 +2682,38 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<bool>("IsPublished")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("Location")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("Policies")
                         .HasColumnType("text");
 
+                    b.Property<decimal?>("RegistrationCloseHours")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("RegistrationOpenHours")
+                        .HasColumnType("numeric");
+
                     b.Property<string>("ShortDescription")
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamptz");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamptz");
 
-                    b.Property<int?>("VenueId")
+                    b.Property<int>("VenueId")
                         .HasColumnType("integer");
+
+                    b.Property<decimal?>("VolunteerCancellationCloseHours")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("VolunteerRegistrationCloseHours")
+                        .HasColumnType("numeric");
 
                     b.HasKey("Id");
 
@@ -2484,9 +2734,6 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamptz");
 
-                    b.Property<int>("CurrentAttendees")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("timestamptz");
 
@@ -2495,13 +2742,13 @@ namespace WitchCityRope.Api.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("SessionCode")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
 
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("timestamptz");
@@ -2530,6 +2777,30 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamptz");
 
+                    b.Property<string>("EncryptedPayPalCaptureId")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("EncryptedPayPalOrderId")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("EncryptedPayPalPayerId")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("EventWaiverAccepted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTime?>("EventWaiverAcceptedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("IdempotencyKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<string>("Notes")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -2537,18 +2808,21 @@ namespace WitchCityRope.Api.Migrations
 
                     b.Property<string>("PaymentMethod")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<string>("PaymentReference")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("PaymentStatus")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime?>("ProcessedAt")
+                        .HasColumnType("timestamptz");
 
                     b.Property<DateTime>("PurchaseDate")
                         .HasColumnType("timestamptz");
@@ -2558,6 +2832,11 @@ namespace WitchCityRope.Api.Migrations
 
                     b.Property<Guid?>("RecordedByStaffId")
                         .HasColumnType("uuid");
+
+                    b.Property<decimal>("SlidingScalePercentage")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(0.00m);
 
                     b.Property<Guid>("TicketTypeId")
                         .HasColumnType("uuid");
@@ -2636,9 +2915,6 @@ namespace WitchCityRope.Api.Migrations
                     b.Property<Guid?>("SessionId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("Sold")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamptz");
 
@@ -2672,6 +2948,10 @@ namespace WitchCityRope.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(true);
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -3040,7 +3320,73 @@ namespace WitchCityRope.Api.Migrations
                     b.Navigation("CreatedByUser");
                 });
 
-            modelBuilder.Entity("WitchCityRope.Api.Features.Participation.Entities.EventParticipation", b =>
+            modelBuilder.Entity("WitchCityRope.Api.Features.EmailTemplates.Entities.EventEmailTemplate", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Models.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+
+                    b.Navigation("UpdatedByUser");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.EmailTemplates.Entities.GlobalEmailTemplate", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("UpdatedByUser");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.EmailTemplates.Entities.SentAdHocEmail", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Models.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "SentByUser")
+                        .WithMany()
+                        .HasForeignKey("SentBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+
+                    b.Navigation("SentByUser");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Participation.Entities.AttendanceHistory", b =>
+                {
+                    b.HasOne("WitchCityRope.Api.Features.Participation.Entities.EventAttendance", "Attendance")
+                        .WithMany("History")
+                        .HasForeignKey("AttendanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "ChangedByUser")
+                        .WithMany()
+                        .HasForeignKey("ChangedBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Attendance");
+
+                    b.Navigation("ChangedByUser");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Features.Participation.Entities.EventAttendance", b =>
                 {
                     b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "CreatedByUser")
                         .WithMany()
@@ -3048,10 +3394,15 @@ namespace WitchCityRope.Api.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("WitchCityRope.Api.Models.Event", "Event")
-                        .WithMany("EventParticipations")
+                        .WithMany("EventAttendances")
                         .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("WitchCityRope.Api.Models.TicketPurchase", "TicketPurchase")
+                        .WithMany("EventAttendances")
+                        .HasForeignKey("TicketPurchaseId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "UpdatedByUser")
                         .WithMany()
@@ -3068,27 +3419,11 @@ namespace WitchCityRope.Api.Migrations
 
                     b.Navigation("Event");
 
+                    b.Navigation("TicketPurchase");
+
                     b.Navigation("UpdatedByUser");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("WitchCityRope.Api.Features.Participation.Entities.ParticipationHistory", b =>
-                {
-                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "ChangedByUser")
-                        .WithMany()
-                        .HasForeignKey("ChangedBy")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("WitchCityRope.Api.Features.Participation.Entities.EventParticipation", "Participation")
-                        .WithMany("History")
-                        .HasForeignKey("ParticipationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ChangedByUser");
-
-                    b.Navigation("Participation");
                 });
 
             modelBuilder.Entity("WitchCityRope.Api.Features.Payments.Entities.Payment", b =>
@@ -3151,11 +3486,9 @@ namespace WitchCityRope.Api.Migrations
 
             modelBuilder.Entity("WitchCityRope.Api.Features.Payments.Entities.PaymentRefund", b =>
                 {
-                    b.HasOne("WitchCityRope.Api.Features.Payments.Entities.Payment", "OriginalPayment")
+                    b.HasOne("WitchCityRope.Api.Features.Payments.Entities.Payment", null)
                         .WithMany("Refunds")
-                        .HasForeignKey("OriginalPaymentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("PaymentId");
 
                     b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "ProcessedByUser")
                         .WithMany()
@@ -3163,9 +3496,15 @@ namespace WitchCityRope.Api.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("OriginalPayment");
+                    b.HasOne("WitchCityRope.Api.Models.TicketPurchase", "TicketPurchase")
+                        .WithMany()
+                        .HasForeignKey("TicketPurchaseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("ProcessedByUser");
+
+                    b.Navigation("TicketPurchase");
                 });
 
             modelBuilder.Entity("WitchCityRope.Api.Features.Safety.Entities.IncidentAuditLog", b =>
@@ -3343,17 +3682,6 @@ namespace WitchCityRope.Api.Migrations
                     b.Navigation("Application");
                 });
 
-            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingEmailTemplate", b =>
-                {
-                    b.HasOne("WitchCityRope.Api.Models.ApplicationUser", "UpdatedByUser")
-                        .WithMany()
-                        .HasForeignKey("UpdatedBy")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("UpdatedByUser");
-                });
-
             modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingNotification", b =>
                 {
                     b.HasOne("WitchCityRope.Api.Features.Vetting.Entities.VettingApplication", "Application")
@@ -3362,14 +3690,7 @@ namespace WitchCityRope.Api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("WitchCityRope.Api.Features.Vetting.Entities.VettingEmailTemplate", "Template")
-                        .WithMany("Notifications")
-                        .HasForeignKey("TemplateId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("Application");
-
-                    b.Navigation("Template");
                 });
 
             modelBuilder.Entity("WitchCityRope.Api.Models.Event", b =>
@@ -3377,7 +3698,8 @@ namespace WitchCityRope.Api.Migrations
                     b.HasOne("WitchCityRope.Api.Models.Venue", "Venue")
                         .WithMany("Events")
                         .HasForeignKey("VenueId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .IsRequired();
 
                     b.Navigation("Venue");
                 });
@@ -3486,7 +3808,7 @@ namespace WitchCityRope.Api.Migrations
                     b.Navigation("Revisions");
                 });
 
-            modelBuilder.Entity("WitchCityRope.Api.Features.Participation.Entities.EventParticipation", b =>
+            modelBuilder.Entity("WitchCityRope.Api.Features.Participation.Entities.EventAttendance", b =>
                 {
                     b.Navigation("History");
                 });
@@ -3521,14 +3843,9 @@ namespace WitchCityRope.Api.Migrations
                     b.Navigation("Logs");
                 });
 
-            modelBuilder.Entity("WitchCityRope.Api.Features.Vetting.Entities.VettingEmailTemplate", b =>
-                {
-                    b.Navigation("Notifications");
-                });
-
             modelBuilder.Entity("WitchCityRope.Api.Models.Event", b =>
                 {
-                    b.Navigation("EventParticipations");
+                    b.Navigation("EventAttendances");
 
                     b.Navigation("Sessions");
 
@@ -3540,6 +3857,11 @@ namespace WitchCityRope.Api.Migrations
             modelBuilder.Entity("WitchCityRope.Api.Models.Session", b =>
                 {
                     b.Navigation("TicketTypes");
+                });
+
+            modelBuilder.Entity("WitchCityRope.Api.Models.TicketPurchase", b =>
+                {
+                    b.Navigation("EventAttendances");
                 });
 
             modelBuilder.Entity("WitchCityRope.Api.Models.TicketType", b =>
