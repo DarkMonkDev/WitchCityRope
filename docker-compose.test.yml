@@ -310,3 +310,13 @@ services:
 #   - Parallel test execution where possible
 #   - Optimized container resource usage
 #   - Minimal logging for performance
+# ============================================================================
+# TEST NETWORK CONFIGURATION
+# ============================================================================
+# Override network with different subnet to avoid IP conflicts with dev
+networks:
+  witchcity-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16  # Different from dev (172.19.0.0/16)

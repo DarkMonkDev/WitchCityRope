@@ -160,8 +160,9 @@ RUN if [ -f apps/web/tsconfig.container.json ]; then cp apps/web/tsconfig.contai
 # RUN cd apps/web && npx tsc --noEmit
 
 # Install Playwright browsers for E2E testing
+# Note: System deps already installed in base stage, so skip --with-deps
 WORKDIR /app/apps/web
-RUN npx playwright install chromium --with-deps
+RUN npx playwright install chromium
 
 # Set working directory back to root
 WORKDIR /app
