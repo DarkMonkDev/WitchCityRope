@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 import { Modal, Stack, TextInput, Button, Group, Title } from '@mantine/core';
-import { DateInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { useNavigate } from 'react-router-dom';
 import { useCopyEvent } from '../../features/events/api/mutations';
+import { StyledDatePicker } from '../forms/StyledDatePicker';
 
 interface CopyEventModalProps {
   opened: boolean;
@@ -107,7 +107,7 @@ export const CopyEventModal: React.FC<CopyEventModalProps> = ({
     >
       <form onSubmit={handleSubmit}>
         <Stack gap="md">
-          <DateInput
+          <StyledDatePicker
             label="New Event Date"
             placeholder="Select date"
             required

@@ -1,0 +1,95 @@
+/* Mantine v7 DatePicker Brand Styling - WitchCityRope */
+/* Global CSS overrides for DatePickerInput calendar styling */
+
+/* Calendar dropdown/popover */
+.mantine-DatePicker-calendar {
+  background-color: #FFF8F0 !important; /* Ivory */
+  border: 2px solid #B8956A !important; /* Rose gold */
+  border-radius: 8px !important;
+  padding: 16px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Day cells - base styling */
+.mantine-DatePicker-day {
+  border-radius: 6px !important;
+  font-size: 14px !important;
+  transition: all 0.2s ease !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+}
+
+/* Hover state for non-disabled dates */
+.mantine-DatePicker-day:not([data-disabled]):not([data-outside]):hover {
+  background-color: rgba(184, 149, 106, 0.2) !important; /* Light rose gold */
+  color: #8B1538 !important; /* Burgundy text */
+  transform: scale(1.05) !important;
+}
+
+/* Today indicator */
+.mantine-DatePicker-day[data-today] {
+  border: 2px solid #B8956A !important; /* Rose gold border */
+  font-weight: 600 !important;
+}
+
+/* Selected date */
+.mantine-DatePicker-day[data-selected] {
+  background: linear-gradient(135deg, #8B1538 0%, #B8956A 100%) !important; /* Burgundy to rose gold gradient */
+  color: #FFF8F0 !important; /* Ivory text */
+  font-weight: 600 !important;
+  box-shadow: 0 2px 8px rgba(139, 21, 56, 0.3) !important;
+}
+
+/* Selected date hover */
+.mantine-DatePicker-day[data-selected]:hover {
+  background: linear-gradient(135deg, #7A1230 0%, #A68559 100%) !important; /* Darker gradient */
+  transform: scale(1.05) !important;
+}
+
+/* Disabled dates */
+.mantine-DatePicker-day[data-disabled] {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+  color: #8B8680 !important; /* Stone gray */
+}
+
+/* Outside current month dates */
+.mantine-DatePicker-day[data-outside] {
+  opacity: 0.5 !important;
+  color: #8B8680 !important; /* Stone gray */
+}
+
+/* Month/year header */
+.mantine-DatePicker-calendarHeaderLevel {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: #8B1538 !important; /* Burgundy */
+  padding: 8px !important;
+}
+
+/* Navigation buttons */
+.mantine-DatePicker-calendarHeaderControl {
+  color: #8B1538 !important; /* Burgundy */
+}
+
+.mantine-DatePicker-calendarHeaderControl:hover {
+  background-color: rgba(139, 21, 56, 0.1) !important;
+}
+
+/* Weekday labels */
+.mantine-DatePicker-weekday {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  color: #4A4A4A !important; /* Smoke gray */
+  letter-spacing: 0.5px !important;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .mantine-DatePicker-day {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    font-size: 16px !important;
+  }
+}
