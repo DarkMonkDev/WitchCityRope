@@ -16,9 +16,10 @@ import {
   Checkbox,
   List
 } from '@mantine/core';
-import { DatePickerInput, TimeInput } from '@mantine/dates';
+import { TimeInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { IconInfoCircle, IconShieldCheck, IconClock } from '@tabler/icons-react';
+import { StyledDatePicker } from '../../../components/forms/StyledDatePicker';
 import {
   MantineTextInput,
   MantineTextarea,
@@ -267,7 +268,7 @@ export function IncidentReportForm({ onSubmissionComplete }: IncidentReportFormP
                   <Text fw={600} size="md" mb="xs">
                     When did this occur? *
                   </Text>
-                  <DatePickerInput
+                  <StyledDatePicker
                     value={new Date(form.values.incidentDate)}
                     onChange={(date) => {
                       if (date) {

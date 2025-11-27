@@ -1,6 +1,5 @@
 import React from 'react';
 import { Modal, TextInput, NumberInput, Group, Button, Stack, MultiSelect, Textarea, Switch, Alert, Radio, Text } from '@mantine/core';
-import { DateInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { IconAlertCircle } from '@tabler/icons-react';
 import type { components } from '@witchcityrope/shared-types';

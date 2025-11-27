@@ -8,9 +8,9 @@ import {
   Drawer,
   Box
 } from '@mantine/core';
-import { DatePickerInput } from '@mantine/dates';
 import { IconSearch, IconFilter } from '@tabler/icons-react';
 import { useMediaQuery } from '@mantine/hooks';
+import { StyledDatePicker } from '../../../../components/forms/StyledDatePicker';
 
 interface PaymentFilterBarProps {
   searchTerm: string;
@@ -110,7 +110,7 @@ export const PaymentFilterBar: React.FC<PaymentFilterBarProps> = ({
         >
           <Stack gap="md" p="md">
             {/* Date Range */}
-            <DatePickerInput
+            <StyledDatePicker
               type="range"
               label="Date Range"
               placeholder="Select dates"
@@ -170,7 +170,7 @@ export const PaymentFilterBar: React.FC<PaymentFilterBarProps> = ({
           />
 
           {/* Date Range */}
-          <DatePickerInput
+          <StyledDatePicker
             type="range"
             label="Date Range"
             placeholder="Select dates"

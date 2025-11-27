@@ -1,8 +1,9 @@
 import React from 'react';
 import { Modal, TextInput, NumberInput, Group, Button, Stack, Select } from '@mantine/core';
-import { DateInput, TimeInput } from '@mantine/dates';
+import { TimeInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import type { EventSession } from './EventSessionsGrid';
+import { StyledDatePicker } from '../forms/StyledDatePicker';
 
 interface SessionFormModalProps {
   opened: boolean;
@@ -179,7 +180,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
           </Group>
 
           <Group grow>
-            <DateInput
+            <StyledDatePicker
               label="Date"
               placeholder="Select date"
               required

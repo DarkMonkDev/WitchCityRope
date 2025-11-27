@@ -12,8 +12,8 @@ import {
   Checkbox,
   Alert
 } from '@mantine/core';
-import { DatePickerInput } from '@mantine/dates';
 import { IconInfoCircle } from '@tabler/icons-react';
+import { StyledDatePicker } from '../../../components/forms/StyledDatePicker';
 
 type StageGuidanceVariant =
   | 'assignToGathering'
@@ -278,7 +278,7 @@ export const StageGuidanceModal: React.FC<StageGuidanceModalProps> = ({
 
         {/* Expected Resume Date Field */}
         {config.showExpectedResumeDateField && (
-          <DatePickerInput
+          <StyledDatePicker
             label="Expected Resume Date (Optional)"
             placeholder="Select date..."
             value={expectedResumeDate}
