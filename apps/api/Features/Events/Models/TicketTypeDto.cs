@@ -59,11 +59,6 @@ public class TicketTypeDto
     public int QuantitySold { get; set; }
 
     /// <summary>
-    /// When sales for this ticket type end
-    /// </summary>
-    public DateTime? SalesEndDate { get; set; }
-
-    /// <summary>
     /// Constructor to map from TicketType entity
     /// </summary>
     /// <param name="ticketType">The ticket type to map from</param>
@@ -128,8 +123,6 @@ public class TicketTypeDto
                 .Distinct()
                 .Count();
         }
-
-        SalesEndDate = null; // Not currently tracked in the entity
 
         // Determine session identifiers based on the session relationship
         if (ticketType.Session != null)

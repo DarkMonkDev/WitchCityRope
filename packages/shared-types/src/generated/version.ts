@@ -1,6 +1,6 @@
 // Auto-generated version information
 export const SHARED_TYPES_VERSION = '1.0.0';
-export const GENERATED_AT = '2025-11-26T09:41:57.429Z';
+export const GENERATED_AT = '2025-11-27T05:09:39.357Z';
 export const API_VERSION = 'v1';
 
 // Runtime version checking utility

@@ -138,6 +138,10 @@ CMD ["nginx", "-g", "daemon off;"]
 ###########################################
 FROM base AS test
 
+# Add test environment label for cleanup
+LABEL witchcity.test=true
+LABEL witchcity.test.timestamp=${BUILD_TIMESTAMP}
+
 # Copy dependencies from deps stage (includes packages/)
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
@@ -148,11 +152,16 @@ COPY apps/web ./apps/web
 # Use container-specific tsconfig for builds if it exists
 RUN if [ -f apps/web/tsconfig.container.json ]; then cp apps/web/tsconfig.container.json apps/web/tsconfig.json; fi
 
-# Run tests using workspace command from root
-RUN npm run test --workspace=@witchcityrope/web -- --run --coverage
+# NOTE: Tests, linting, and type checking are NOT run during build for test environment
+# They will be run after containers are up via test-environment skill
+# If you need to run tests during build for CI/CD, uncomment these lines:
+# RUN npm run test --workspace=@witchcityrope/web -- --run --coverage
+# RUN npm run lint --workspace=@witchcityrope/web
+# RUN cd apps/web && npx tsc --noEmit
 
-# Run linting using workspace command from root
-RUN npm run lint --workspace=@witchcityrope/web
+# Install Playwright browsers for E2E testing
+WORKDIR /app/apps/web
+RUN npx playwright install chromium --with-deps
 
-# Run type checking from web app directory
-RUN cd apps/web && npx tsc --noEmit
+# Set working directory back to root
+WORKDIR /app

@@ -5004,8 +5004,6 @@ export interface components {
             quantityAvailable?: number;
             /** Format: int32 */
             quantitySold?: number;
-            /** Format: date-time */
-            salesEndDate?: string | null;
         };
         TokenClaims: {
             userId?: string;

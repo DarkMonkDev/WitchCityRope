@@ -25,12 +25,14 @@ public class Session
     /// Session identifier code (e.g., "S1", "S2", "Day1", "Day2")
     /// </summary>
     [Required]
+    [MaxLength(10)]
     public string SessionCode { get; set; } = string.Empty;
 
     /// <summary>
     /// Name of the session (e.g., "Morning Session", "Day 1", "Afternoon Workshop")
     /// </summary>
     [Required]
+    [MaxLength(100)]
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
@@ -40,7 +42,7 @@ public class Session
     public DateTime StartTime { get; set; }
 
     /// <summary>
-    /// Session end time in UTC  
+    /// Session end time in UTC
     /// </summary>
     [Required]
     public DateTime EndTime { get; set; }

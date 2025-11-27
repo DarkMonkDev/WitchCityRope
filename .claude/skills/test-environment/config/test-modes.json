@@ -1,0 +1,24 @@
+{
+  "modes": {
+    "all": {
+      "description": "Run all tests (unit + integration + e2e)",
+      "includes": ["unit", "integration", "e2e"]
+    },
+    "unit": {
+      "description": "Run unit tests only",
+      "command": "dotnet test --filter Category=Unit"
+    },
+    "integration": {
+      "description": "Run integration tests only",
+      "command": "dotnet test --filter Category=Integration"
+    },
+    "e2e": {
+      "description": "Run E2E tests (Playwright)",
+      "command": "npx playwright test"
+    },
+    "failed-only": {
+      "description": "Run only previously failed tests",
+      "requires": ".failed-tests.json"
+    }
+  }
+}

@@ -139,8 +139,7 @@ test.describe('Event Session Matrix System Test', () => {
             description: page.locator('textarea[placeholder*="included"]'),
             price: page.locator('label:has-text("Price") + input').or(page.locator('input[placeholder="0.00"]')),
             quantity: page.locator('label:has-text("Quantity Available") + input'),
-            sessionsIncluded: page.locator('label:has-text("Sessions Included")'),
-            saleEndDate: page.locator('[data-testid="ticket-sale-end-date-input"]')
+            sessionsIncluded: page.locator('label:has-text("Sessions Included")')
           };
 
           console.log('🔍 Checking ticket modal form fields...');

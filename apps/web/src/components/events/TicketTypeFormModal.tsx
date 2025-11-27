@@ -20,7 +20,6 @@ export interface EventTicketType {
   quantityAvailable: number;
   quantitySold: number;
   allowMultiplePurchase: boolean;
-  saleEndDate?: Date;
 }
 
 interface TicketTypeFormModalProps {
@@ -50,8 +49,7 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
       sessionsIncluded: [],
       quantityAvailable: 100,
       quantitySold: 0,
-      allowMultiplePurchase: true,
-      saleEndDate: null,
+      allowMultiplePurchase: false,
     },
     validate: {
       name: (value) => (!value ? 'Ticket name is required' : null),
@@ -110,7 +108,6 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
       quantityAvailable: values.quantityAvailable,
       quantitySold: values.quantitySold,
       allowMultiplePurchase: values.allowMultiplePurchase,
-      saleEndDate: values.saleEndDate || undefined,
     };
     onSubmit(ticketData);
     form.reset();
@@ -139,79 +136,6 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
   // Handle sessions selection
   const handleSessionsChange = (value: string[]) => {
     form.setFieldValue('sessionsIncluded', value || []);
-
-    // Auto-set sale end date based on session selection
-    updateSaleEndDate(value);
-  };
-
-  // Smart sale end date defaults with crash protection
-  const updateSaleEndDate = (selectedSessions: string[]) => {
-    if (selectedSessions.length === 0 || !availableSessions.length) return;
-
-    let targetDate: Date | null = null;
-
-    // Helper function to safely create date from session data
-    const createSafeDate = (session: EventSession): Date | null => {
-      try {
-        if (!session?.date || !session?.startTime) return null;
-        const dateStr = `${session.date}T${session.startTime}`;
-        const date = new Date(dateStr);
-        // Validate the date is actually valid
-        if (isNaN(date.getTime())) return null;
-        return date;
-      } catch (error) {
-        console.warn('Failed to create date from session:', session, error);
-        return null;
-      }
-    };
-
-    if (selectedSessions.includes('ALL')) {
-      // Use the earliest session start date/time
-      // CRITICAL: Only use persisted sessions with complete data
-      const validSessions = availableSessions.filter(session =>
-        session?.id &&
-        session?.date &&
-        session?.startTime &&
-        !session.id.startsWith('temp-')
-      );
-      if (validSessions.length === 0) return;
-
-      const earliestSession = validSessions.reduce((earliest, session) => {
-        const sessionDate = createSafeDate(session);
-        const earliestDate = createSafeDate(earliest);
-        if (!sessionDate || !earliestDate) return earliest;
-        return sessionDate < earliestDate ? session : earliest;
-      });
-      targetDate = createSafeDate(earliestSession);
-    } else {
-      // Find the selected session(s) and use the earliest
-      const selectedSessionsData = availableSessions.filter(s =>
-        s?.sessionIdentifier &&
-        s?.id &&
-        !s.id.startsWith('temp-') &&
-        selectedSessions.includes(s.sessionIdentifier)
-      );
-
-      if (selectedSessionsData.length > 0) {
-        const validSelectedSessions = selectedSessionsData.filter(session =>
-          session?.date && session?.startTime
-        );
-        if (validSelectedSessions.length === 0) return;
-
-        const earliestSelected = validSelectedSessions.reduce((earliest, session) => {
-          const sessionDate = createSafeDate(session);
-          const earliestDate = createSafeDate(earliest);
-          if (!sessionDate || !earliestDate) return earliest;
-          return sessionDate < earliestDate ? session : earliest;
-        });
-        targetDate = createSafeDate(earliestSelected);
-      }
-    }
-
-    // Only auto-set if we have a valid date and no sale end date is currently set
-    if (targetDate && !isNaN(targetDate.getTime()) && !form.values.saleEndDate) {
-      form.setFieldValue('saleEndDate', targetDate);
-    }
   };
 
   // Handle modal opening and data population
@@ -231,7 +155,6 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
           quantityAvailable: ticketType.quantityAvailable,
           quantitySold: ticketType.quantitySold,
           allowMultiplePurchase: ticketType.allowMultiplePurchase,
-          saleEndDate: ticketType.saleEndDate || null,
         });
       } else {
         // Reset form for new ticket type
@@ -380,16 +303,9 @@ export const TicketTypeFormModal: React.FC<TicketTypeFormModalProps> = ({
           )}
 
           <Switch
-            label="Allow multiple purchases per customer"
+            label="Allow multiple purchases per customer (Coming soon)"
             checked={form.values.allowMultiplePurchase}
             {...form.getInputProps('allowMultiplePurchase', { type: 'checkbox' })}
-          />
-
-          <DateInput
-            label="Sale End Date"
-            placeholder="Select when ticket sales should end"
-            data-testid="ticket-sale-end-date-input"
-            {...form.getInputProps('saleEndDate')}
           />
 
           <Group justify="flex-end" mt="md">

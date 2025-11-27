@@ -28,12 +28,14 @@ public class VolunteerPosition
     /// Title of the volunteer position
     /// </summary>
     [Required]
+    [MaxLength(150)]
     public string Title { get; set; } = string.Empty;
 
     /// <summary>
     /// Description of the volunteer role and responsibilities
     /// </summary>
     [Required]
+    [MaxLength(500)]
     public string Description { get; set; } = string.Empty;
 
     /// <summary>

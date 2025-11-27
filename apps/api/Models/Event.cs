@@ -19,11 +19,13 @@ public class Event
     /// Event title
     /// </summary>
     [Required]
+    [MaxLength(150)]
     public string Title { get; set; } = string.Empty;
 
     /// <summary>
     /// Brief summary for event cards and listings (max ~200 characters recommended)
     /// </summary>
+    [MaxLength(200)]
     public string? ShortDescription { get; set; }
 
     /// <summary>

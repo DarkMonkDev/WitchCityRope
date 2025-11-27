@@ -21,6 +21,7 @@ using Hangfire;
 using Hangfire.PostgreSql;
 using Hangfire.Dashboard;
 using SendGrid;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,13 +56,54 @@ builder.Services.AddOpenApi(options =>
     // EnumSchemaTransformer removed - built-in transformer handles enums automatically
 });
 
-// Database configuration for PostgreSQL
+// Database configuration for PostgreSQL with connection pooling and retry policies
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    // Use environment-aware connection string (container-friendly)
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    // Base connection string (environment-aware, container-friendly)
+    var baseConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
         ?? "Host=postgres;Port=5432;Database=witchcityrope_dev;Username=postgres;Password=WitchCity2024!";
-    options.UseNpgsql(connectionString);
+
+    // Environment-specific configuration
+    var environment = builder.Environment;
+    var poolSize = environment.IsDevelopment() ? 20 : 100;
+    var commandTimeout = environment.IsDevelopment() ? 30 : 60;
+
+    // Build optimized connection string with pooling configuration
+    var connectionString = new NpgsqlConnectionStringBuilder(baseConnectionString)
+    {
+        // Connection pooling configuration
+        Pooling = true,
+        MaxPoolSize = poolSize,          // 20 for dev, 100 for prod
+        MinPoolSize = 5,                 // Maintain minimum connections
+        ConnectionLifetime = 300,        // 5 minutes - prevent stale connections
+
+        // Timeout configuration
+        CommandTimeout = commandTimeout,  // 30 seconds dev, 60 seconds prod
+        Timeout = 15,                     // Connection timeout
+
+        // Health monitoring - keepalive for broken connection detection
+        KeepAlive = 30,                   // 30 seconds
+
+        // Performance tuning
+        NoResetOnClose = false,           // Reset connection state on return to pool
+        Enlist = true                     // Support distributed transactions
+    }.ToString();
+
+    options.UseNpgsql(connectionString, npgsqlOptions =>
+    {
+        // Command timeout for migrations (longer for large migrations)
+        npgsqlOptions.CommandTimeout(120);
+
+        // Note: EnableRetryOnFailure removed - conflicts with explicit transactions
+        // in database initialization. Retry logic implemented at application level.
+    });
+
+    // EF Core query behavior (development diagnostics)
+    if (environment.IsDevelopment())
+    {
+        options.EnableSensitiveDataLogging();
+        options.EnableDetailedErrors();
+    }
 });
 
 // Configure Hangfire for background job processing (database backups)

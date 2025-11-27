@@ -1,8 +1,93 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-11-26 -->
-<!-- Version: 11.26.1 - LOGOUT NAVIGATION PATH FIXED -->
+<!-- Last Updated: 2025-11-27 -->
+<!-- Version: 11.27.1 - SESSION TIMEZONE HANDLING TESTS ADDED -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
+
+## ✅ SESSION DATE TIMEZONE HANDLING TESTS - November 27, 2025
+
+**CREATION DATE**: 2025-11-27
+**EXECUTION DATE**: 2025-11-27T00:27:40Z
+**LAST UPDATED**: 2025-11-27
+**STATUS**: ✅ **ALL 20 TESTS PASSING (100%)**
+**TEST LOCATION**: `/tests/unit/web/components/events/SessionFormModal.timezone.test.tsx`
+**QUALITY GATE**: ✅ PASSED (100% exceeds 90% threshold)
+**DETAILED REPORT**: `/test-results/session-timezone-tests-summary-2025-11-27.md`
+
+### Purpose: Timezone Bug Regression Tests
+
+**Bug Fixed**: Users in EST (UTC-5) selecting "December 15, 2025" had it saved as "December 14, 2025"
+**Root Cause**: Mixing local timezone operations (`setHours`) with UTC conversion
+**Fix**: Use `Date.UTC()` and UTC getter methods throughout SessionFormModal.tsx (lines 74-90)
+
+### Test Coverage - 20 Tests All Passing ✅
+
+**Test Categories**:
+1. ✅ Date Selection Without Timezone Shift (4 tests) - EST, PST, UTC, Tokyo timezones
+2. ✅ Edge Case: Midnight Times (2 tests) - 00:00, 23:59
+3. ✅ Edge Case: Month Boundaries (4 tests) - Jan 31, Feb 28/29, Mar 31
+4. ✅ Edge Case: Year Boundaries (2 tests) - Dec 31 → Jan 1
+5. ✅ ISO String Format Verification (2 tests) - ISO 8601, UTC suffix
+6. ✅ Implementation Verification (2 tests) - Date.UTC() usage, UTC getters
+7. ✅ Real-World Bug Scenarios (2 tests) - December 15 EST bug, DST transitions
+8. ✅ Extreme Timezone Offsets (2 tests) - UTC+14, UTC-12
+
+### Key Testing Approach
+
+**Strategy**: Logic-based unit tests instead of complex Mantine component interactions
+
+**Benefits**:
+- Fast execution: 619ms for 20 tests
+- Reliable: No dependency on Mantine DateInput behavior
+- Comprehensive: Tests all timezone scenarios with Date mocking
+- Clear intent: Tests match bug fix implementation exactly
+
+### Test Pattern
+
+```typescript
+// Mock timezone to simulate EST (UTC-5)
+mockTimezone(-300);
+
+// Simulate user's date selection
+const selectedDate = new Date('2025-12-15T00:00:00.000Z');
+
+// Process using component's logic
+const result = processSessionDate(selectedDate, '18:00', '21:00');
+
+// Verify date didn't shift
+expect(result.date).toContain('2025-12-15'); // NOT '2025-12-14'
+```
+
+### Timezones Tested
+
+✅ US Timezones: EST (UTC-5), PST (UTC-8)
+✅ Server Timezone: UTC (UTC+0)
+✅ International: Tokyo (UTC+9)
+✅ Extreme Offsets: Kiribati (UTC+14), Baker Island (UTC-12)
+
+### Edge Cases Covered
+
+✅ Midnight (00:00) - doesn't shift to previous day
+✅ End of day (23:59) - doesn't shift to next day
+✅ Month boundaries - Jan 31, Feb 28/29, Mar 31
+✅ Year boundaries - Dec 31 → Jan 1
+✅ Leap year - Feb 29, 2024
+✅ DST transitions - March 10, 2025
+
+### Regression Prevention
+
+**What would break these tests**:
+- ❌ Reverting to local timezone methods (`setHours`, `getHours`)
+- ❌ Using `new Date(year, month, day)` instead of `Date.UTC()`
+- ❌ Using local getters instead of UTC getters
+- ❌ Incorrect time parsing logic
+- ❌ ISO string format changes
+
+**Execution Time**: 619ms total (< 1 second)
+**Pass Rate**: 100% (20/20)
+**Quality Gate**: ✅ PASS
+
+---
 
 ## ✅ LOGOUT NAVIGATION PATH FIX - November 26, 2025
 

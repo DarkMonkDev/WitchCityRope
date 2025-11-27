@@ -81,7 +81,7 @@ public class AllDtosMappingTests : DtoMappingTestBase
                 (typeof(Session), new[] { "Date", "TeacherNames", "SessionIdentifier", "RegistrationCount" }), // Computed/related fields
 
             [typeof(WitchCityRope.Api.Features.Events.Models.TicketTypeDto)] =
-                (typeof(TicketType), new[] { "EventId", "SessionId", "EventTitle", "SessionName", "Type", "SessionIdentifiers", "MinPrice", "MaxPrice", "QuantityAvailable", "SalesEndDate", "QuantitySold" }), // Foreign keys and computed fields - QuantitySold is computed from EventAttendances
+                (typeof(TicketType), new[] { "EventId", "SessionId", "EventTitle", "SessionName", "Type", "SessionIdentifiers", "MinPrice", "MaxPrice", "QuantityAvailable", "QuantitySold" }), // Foreign keys and computed fields - QuantitySold is computed from EventAttendances
 
             // Participation DTOs
             [typeof(WitchCityRope.Api.Features.Participation.Models.EventParticipationDto)] =

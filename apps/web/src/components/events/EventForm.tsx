@@ -934,7 +934,7 @@ export const EventForm: React.FC<EventFormProps> = ({
       sessionsIncluded: ticketType.sessionIdentifiers,
       quantityAvailable: ticketType.quantityAvailable || 100,
       quantitySold: 0, // Not tracked in current grid format
-      allowMultiplePurchase: true, // Default value
+      allowMultiplePurchase: false, // Match modal's default for new tickets
       saleEndDate: ticketType.salesEndDate ? new Date(ticketType.salesEndDate) : undefined,
     }
   }

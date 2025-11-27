@@ -24,16 +24,19 @@ public class ApplicationUser : IdentityUser<Guid>
     /// <summary>
     /// User's first name (optional)
     /// </summary>
+    [MaxLength(50)]
     public string? FirstName { get; set; }
 
     /// <summary>
     /// User's last name (optional)
     /// </summary>
+    [MaxLength(50)]
     public string? LastName { get; set; }
 
     /// <summary>
     /// User's bio/description (optional, max 2000 characters)
     /// </summary>
+    [MaxLength(1000)]
     public string? Bio { get; set; }
 
     /// <summary>
@@ -99,7 +102,13 @@ public class ApplicationUser : IdentityUser<Guid>
     public int FailedLoginAttempts { get; set; } = 0;
     public DateTime? LockedOutUntil { get; set; }
     public DateTime? LastPasswordChangeAt { get; set; }
+
+    /// <summary>
+    /// Email verification token (GUID-based)
+    /// </summary>
+    [MaxLength(50)]
     public string EmailVerificationToken { get; set; } = string.Empty;
+
     public DateTime? EmailVerificationTokenCreatedAt { get; set; }
 
     /// <summary>
@@ -140,4 +149,29 @@ public class ApplicationUser : IdentityUser<Guid>
     /// CRITICAL: UTC for PostgreSQL timestamptz compatibility
     /// </summary>
     public DateTime? TermsOfServiceAcceptedAt { get; set; }
+
+    /// <summary>
+    /// Override Email property to add explicit MaxLength constraint
+    /// </summary>
+    [MaxLength(100)]
+    public override string? Email { get; set; }
+
+    /// <summary>
+    /// Override PhoneNumber property to add explicit MaxLength constraint
+    /// </summary>
+    [MaxLength(20)]
+    public override string? PhoneNumber { get; set; }
+
+    /// <summary>
+    /// Full name (first + last combined)
+    /// </summary>
+    [MaxLength(100)]
+    public string? FullName { get; set; }
+
+    /// <summary>
+    /// Legacy RealName field (deprecated, use FirstName/LastName instead)
+    /// </summary>
+    [Obsolete("Use FirstName and LastName instead")]
+    [MaxLength(100)]
+    public string? RealName { get; set; }
 }

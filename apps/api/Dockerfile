@@ -95,3 +95,47 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
 
 # Run application
 ENTRYPOINT ["dotnet", "WitchCityRope.Api.dll"]
+
+# Test stage - for isolated test environment
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS test
+
+# Add test environment label for cleanup
+LABEL witchcity.test=true
+LABEL witchcity.test.timestamp=${BUILD_TIMESTAMP}
+
+WORKDIR /app
+
+# Install PostgreSQL client for test database operations
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    gnupg \
+    lsb-release \
+    && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql-keyring.gpg \
+    && echo "deb [signed-by=/usr/share/keyrings/postgresql-keyring.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update \
+    && apt-get install -y postgresql-client-16 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy API project files (context is apps/api, so copy current directory)
+COPY . ./
+
+# Restore dependencies
+RUN dotnet restore
+
+# Build in Release mode for test performance
+RUN dotnet build -c Release --no-restore
+
+# Expose API port
+EXPOSE 8080
+
+# Test environment configuration
+ENV ASPNETCORE_ENVIRONMENT=Test
+ENV ASPNETCORE_URLS=http://+:8080
+
+# Health check
+HEALTHCHECK --interval=10s --timeout=5s --start-period=20s --retries=5 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Run application in test mode
+CMD ["dotnet", "run", "--no-build", "-c", "Release", "--urls", "http://0.0.0.0:8080"]

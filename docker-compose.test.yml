@@ -79,24 +79,24 @@ services:
       
       # Test authentication settings
       Authentication__JwtSecret: test-jwt-secret-for-ci-make-it-predictable-and-long-enough
-      Authentication__RequireHttps: false
+      Authentication__RequireHttps: "false"
       Authentication__ExpiryMinutes: 60
-      
+
       # Test CORS - internal container communication only
       CORS__AllowedOrigins: "http://web:5173"
-      
+
       # Test logging - reduced verbosity
       Logging__LogLevel__Default: Warning
       Logging__LogLevel__Microsoft: Error
       Logging__LogLevel__WitchCityRope: Information
-      
+
       # Test features
-      ASPNETCORE_DETAILEDERRORS: false
-      
+      ASPNETCORE_DETAILEDERRORS: "false"
+
       # CI optimization
-      CI: true
-      DOTNET_CLI_TELEMETRY_OPTOUT: true
-      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+      CI: "true"
+      DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "true"
     
     # NO VOLUME MOUNTS - Use built containers for consistency
     # volumes: []
@@ -114,8 +114,9 @@ services:
   # ==========================================================================
   web:
     build:
-      context: ./apps/web
-      dockerfile: Dockerfile
+      # Use default context (.) from base docker-compose.yml (monorepo root)
+      # context: . is inherited from base compose file
+      dockerfile: apps/web/Dockerfile
       target: test  # Multi-stage test target
     
     # NO EXTERNAL PORTS - Test isolation
@@ -129,12 +130,12 @@ services:
       VITE_API_BASE_URL: http://api:8080
       
       # Test features
-      VITE_ENABLE_DEBUG: false
-      VITE_ENABLE_MOCK_DATA: false
-      VITE_ENABLE_ANALYTICS: false
+      VITE_ENABLE_DEBUG: "false"
+      VITE_ENABLE_MOCK_DATA: "false"
+      VITE_ENABLE_ANALYTICS: "false"
       
       # CI optimization
-      CI: true
+      CI: "true"
       NPM_CONFIG_CACHE: /app/.npm
       NODE_OPTIONS: "--max-old-space-size=2048"
     
@@ -174,7 +175,7 @@ services:
     environment:
       # Test configuration
       NODE_ENV: test
-      CI: true
+      CI: "true"
       
       # Service URLs (internal container communication)
       API_BASE_URL: http://api:8080
@@ -183,7 +184,7 @@ services:
       
       # Playwright configuration
       PLAYWRIGHT_WORKERS: 2
-      PLAYWRIGHT_HEADED: false
+      PLAYWRIGHT_HEADED: "false"
       PLAYWRIGHT_BROWSER: chromium
       PLAYWRIGHT_TIMEOUT: 30000
       

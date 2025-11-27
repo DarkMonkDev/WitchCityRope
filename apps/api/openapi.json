@@ -13982,11 +13982,6 @@
           "quantitySold": {
             "type": "integer",
             "format": "int32"
-          },
-          "salesEndDate": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
           }
         }
       },

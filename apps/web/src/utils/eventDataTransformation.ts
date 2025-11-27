@@ -63,8 +63,7 @@ export function convertEventFormDataToUpdateDto(
       maxPrice: ticket.maxPrice,
       defaultPrice: ticket.defaultPrice,
       quantityAvailable: ticket.quantityAvailable,
-      sessionIdentifiers: ticket.sessionIdentifiers,
-      salesEndDate: ticket.salesEndDate
+      sessionIdentifiers: ticket.sessionIdentifiers
     }));
   }
 
@@ -243,8 +242,7 @@ export function getChangedEventFields(
       maxPrice: ticket.maxPrice,
       defaultPrice: ticket.defaultPrice,
       quantityAvailable: ticket.quantityAvailable,
-      sessionIdentifiers: ticket.sessionIdentifiers,
-      salesEndDate: ticket.salesEndDate
+      sessionIdentifiers: ticket.sessionIdentifiers
     }));
   }
 

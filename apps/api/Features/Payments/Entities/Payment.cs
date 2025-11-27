@@ -34,6 +34,7 @@ public class Payment
     /// <summary>
     /// Payment currency (3-letter ISO code)
     /// </summary>
+    [MaxLength(3)]
     public string Currency { get; set; } = "USD";
 
     #endregion
@@ -86,6 +87,7 @@ public class Payment
     /// <summary>
     /// Venmo username if payment was made via Venmo (nullable)
     /// </summary>
+    [MaxLength(20)]
     public string? VenmoUsername { get; set; }
 
     #endregion
@@ -119,6 +121,7 @@ public class Payment
     /// <summary>
     /// Refund currency (should match original currency)
     /// </summary>
+    [MaxLength(3)]
     public string? RefundCurrency { get; set; }
 
     /// <summary>
@@ -134,6 +137,7 @@ public class Payment
     /// <summary>
     /// Reason for the refund
     /// </summary>
+    [MaxLength(200)]
     public string? RefundReason { get; set; }
 
     /// <summary>

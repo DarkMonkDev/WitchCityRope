@@ -48,16 +48,19 @@ public class TicketPurchase
     /// Payment processing status
     /// </summary>
     [Required]
+    [MaxLength(20)]
     public string PaymentStatus { get; set; } = "Pending";
 
     /// <summary>
     /// Payment method used (e.g., "PayPal", "Stripe", "Cash")
     /// </summary>
+    [MaxLength(20)]
     public string PaymentMethod { get; set; } = string.Empty;
 
     /// <summary>
     /// External payment reference/transaction ID
     /// </summary>
+    [MaxLength(50)]
     public string PaymentReference { get; set; } = string.Empty;
 
     /// <summary>

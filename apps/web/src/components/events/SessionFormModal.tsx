@@ -71,20 +71,23 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
       // Convert date to proper Date object if it's not already
       const sessionDate = values.date instanceof Date ? values.date : new Date(values.date || new Date());
 
-      // Create full DateTime strings by combining date with time
+      // Extract date components using UTC methods to avoid timezone shifts
+      const year = sessionDate.getUTCFullYear();
+      const month = sessionDate.getUTCMonth();
+      const day = sessionDate.getUTCDate();
+
+      // Parse time strings
       const [startHour, startMinute] = values.startTime.split(':').map(Number);
       const [endHour, endMinute] = values.endTime.split(':').map(Number);
 
-      const startDateTime = new Date(sessionDate);
-      startDateTime.setHours(startHour, startMinute, 0, 0);
-
-      const endDateTime = new Date(sessionDate);
-      endDateTime.setHours(endHour, endMinute, 0, 0);
+      // Create datetime objects using Date.UTC() to ensure UTC timezone
+      const startDateTime = new Date(Date.UTC(year, month, day, startHour, startMinute, 0, 0));
+      const endDateTime = new Date(Date.UTC(year, month, day, endHour, endMinute, 0, 0));
 
       const sessionData: Omit<EventSession, 'id'> = {
         sessionIdentifier: values.sessionIdentifier,
         name: values.name,
-        date: sessionDate.toISOString(),
+        date: new Date(Date.UTC(year, month, day, 0, 0, 0, 0)).toISOString(),
         startTime: startDateTime.toISOString(), // Full ISO datetime string
         endTime: endDateTime.toISOString(),     // Full ISO datetime string
         capacity: values.capacity,
