@@ -6,6 +6,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import type { EventDto } from '@witchcityrope/shared-types'
 import { CapacityDisplay } from './CapacityDisplay'
 import type { AdminEventFiltersState } from '../../hooks/useAdminEventFilters'
+import { useEventTimeZone } from '../../hooks/useEventTimeZone'
 
 interface EventsTableViewProps {
   events: EventDto[]
@@ -15,24 +16,41 @@ interface EventsTableViewProps {
   isLoading?: boolean
 }
 
-// Helper function to format event dates with robust field handling
-const formatEventDate = (event: EventDto): string => {
-  // Use the correct field name from generated EventDto type
-  const dateString = event.startDate || ''
-
-  if (!dateString) {
-    console.warn('No startDate field found for event:', {
-      id: event.id,
-      title: event.title,
-    })
-    return 'Date TBD'
+// Helper function to get the next upcoming session or first session
+const getDisplaySession = (event: EventDto) => {
+  if (!event.sessions || event.sessions.length === 0) {
+    return null;
   }
 
-  const date = new Date(dateString)
+  const now = new Date();
+
+  // Find next upcoming session (session with startTime >= now)
+  const upcomingSessions = event.sessions
+    .filter(session => session.startTime && new Date(session.startTime) >= now)
+    .sort((a, b) => {
+      const aTime = new Date(a.startTime || 0).getTime();
+      const bTime = new Date(b.startTime || 0).getTime();
+      return aTime - bTime;
+    });
+
+  // Return next upcoming session, or fall back to first session
+  return upcomingSessions.length > 0 ? upcomingSessions[0] : event.sessions[0];
+}
+
+// Helper function to format event dates with robust field handling
+const formatEventDate = (event: EventDto, timeZone: string): string => {
+  // Use next upcoming session's start date instead of event.startDate
+  const displaySession = getDisplaySession(event);
+
+  if (!displaySession || !displaySession.startTime) {
+    return 'Date TBD';
+  }
+
+  const date = new Date(displaySession.startTime);
 
   // Check if date is valid
   if (isNaN(date.getTime())) {
-    console.error('Invalid date for event:', { eventId: event.id, dateString })
+    console.error('Invalid date for event:', { eventId: event.id, sessionStartTime: displaySession.startTime })
     return 'Invalid Date'
   }
 
@@ -40,22 +58,24 @@ const formatEventDate = (event: EventDto): string => {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
-  })
+    timeZone
+  });
 }
 
 // Helper function to format time range with robust field handling
-const formatTimeRange = (event: EventDto): string => {
-  // Use the correct field names from generated EventDto type
-  const startDateString = event.startDate || ''
-  const endDateString = event.endDate || ''
+const formatTimeRange = (event: EventDto, timeZone: string): string => {
+  // Use next upcoming session's time instead of event.startDate/endDate
+  const displaySession = getDisplaySession(event);
 
-  if (!startDateString) return 'Time TBD'
+  if (!displaySession || !displaySession.startTime) {
+    return 'Time TBD';
+  }
 
-  const start = new Date(startDateString)
+  const start = new Date(displaySession.startTime);
 
-  // Check if start date is valid
+  // Check if start time is valid
   if (isNaN(start.getTime())) {
-    console.error('Invalid start date for event:', { eventId: event.id, startDateString })
+    console.error('Invalid start time for session:', { eventId: event.id, sessionStartTime: displaySession.startTime })
     return 'Invalid Time'
   }
 
@@ -64,24 +84,24 @@ const formatTimeRange = (event: EventDto): string => {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
-    })
+      timeZone
+    });
   }
 
-  // If no end date, assume 2-hour duration or show start time only
-  if (!endDateString) {
-    const end = new Date(start.getTime() + 2 * 60 * 60 * 1000) // Add 2 hours
-    return `${formatTime(start)} - ${formatTime(end)}`
+  // If no end time, show start time only
+  if (!displaySession.endTime) {
+    return formatTime(start);
   }
 
-  const end = new Date(endDateString)
+  const end = new Date(displaySession.endTime);
 
-  // Check if end date is valid
+  // Check if end time is valid
   if (isNaN(end.getTime())) {
-    console.warn('Invalid end date for event, using start time only:', {
+    console.warn('Invalid end time for session, using start time only:', {
       eventId: event.id,
-      endDateString,
+      sessionEndTime: displaySession.endTime,
     })
-    return formatTime(start) // Just show start time if end date is invalid
+    return formatTime(start);
   }
 
   return `${formatTime(start)} - ${formatTime(end)}`
@@ -221,6 +241,7 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
   isLoading = false,
 }) => {
   const navigate = useNavigate()
+  const eventTimeZone = useEventTimeZone();
 
   /**
    * handleRowClick - Primary interaction for viewing/editing events
@@ -351,7 +372,7 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
             {/* Date Column */}
             <Table.Td style={{ width: '160px' }}>
               <Text fw={500} size="md">
-                {formatEventDate(event)}
+                {formatEventDate(event, eventTimeZone)}
               </Text>
             </Table.Td>
 
@@ -399,7 +420,7 @@ export const EventsTableView: React.FC<EventsTableViewProps> = ({
             {/* Time Column */}
             <Table.Td style={{ width: '200px', maxWidth: '200px', textAlign: 'center' }}>
               <Text size="md" c="dimmed">
-                {formatTimeRange(event)}
+                {formatTimeRange(event, eventTimeZone)}
               </Text>
             </Table.Td>
 

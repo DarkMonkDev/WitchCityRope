@@ -2,6 +2,7 @@ import React from 'react';
 import { Table, Text, Group } from '@mantine/core';
 import { WCRButton } from '../ui';
 import type { components } from '@witchcityrope/shared-types';
+import { useEventTimeZone } from '../../hooks/useEventTimeZone';
 
 // Use auto-generated SessionDto from backend instead of manual interface
 export type EventSession = components['schemas']['SessionDto'];
@@ -19,8 +20,15 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
   onDeleteSession,
   onAddSession,
 }) => {
+  // Get the configured event timezone from admin settings
+  const eventTimeZone = useEventTimeZone();
+
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+    // session.date is a date-only field (extracted from StartTime.Date on backend)
+    // Do NOT apply timezone conversion - just extract YYYY-MM-DD
+    const datePart = dateString.split('T')[0]; // Extract YYYY-MM-DD
+    const [year, month, day] = datePart.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -29,14 +37,14 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
   };
 
   const formatTime = (timeString: string) => {
-    // Parse ISO datetime string from backend
+    // Display in configured event timezone (not user's local timezone)
     const date = new Date(timeString);
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    const displayHour = hours % 12 || 12;
-    const displayMinutes = minutes.toString().padStart(2, '0');
-    return `${displayHour}:${displayMinutes} ${ampm}`;
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: eventTimeZone
+    });
   };
 
   const getSoldDisplay = (sold?: number, capacity?: number) => {
