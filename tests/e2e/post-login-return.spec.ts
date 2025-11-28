@@ -19,18 +19,15 @@
 import { test, expect, Page } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
-// Test account for authentication
-const TEST_ACCOUNT = {
-  email: 'member@witchcityrope.com',
-  password: 'Test123!'
-};
+// Test account for authentication - using AuthHelpers accounts
+const TEST_ACCOUNT = AuthHelpers.accounts.member;
 
 /**
  * Helper: Navigate to page and verify login button with returnUrl
  */
 async function verifyLoginButtonWithReturnUrl(page: Page, pageUrl: string, expectedReturnUrl: string) {
   await page.goto(pageUrl);
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 
   // Find login button with returnUrl - use flexible regex matching
   const loginButton = page.getByRole('link', { name: /login/i }).filter({ has: page.locator('[href*="returnUrl"]') }).first();
@@ -45,7 +42,8 @@ async function verifyLoginButtonWithReturnUrl(page: Page, pageUrl: string, expec
 }
 
 /**
- * Helper: Complete login flow from current page
+ * Helper: Complete login flow from current page using fillAndSubmitLogin pattern
+ * For tests specifically testing the returnUrl behavior after manual login
  */
 async function completeLogin(page: Page) {
   // Fill login form
@@ -56,7 +54,7 @@ async function completeLogin(page: Page) {
   await page.locator('[data-testid="login-button"]').click();
 
   // Wait for login to complete (will redirect)
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 }
 
 test.describe('Post-Login Return to Intended Page', () => {
@@ -154,13 +152,13 @@ test.describe('Post-Login Return to Intended Page', () => {
 
     test('should show event registration options after login return', async ({ page }) => {
       // Get published event
-      const eventsResponse = await page.request.get(`${API_URL}/api/events`);
+      const eventsResponse = await page.request.get('/api/events');
       const eventsData = await eventsResponse.json();
       const firstEvent = eventsData[0];
       const eventUrl = `/events/${firstEvent.id}`;
 
       // Navigate to event and login
-      await page.goto(`${BASE_URL}${eventUrl}`);
+      await page.goto(eventUrl);
       await page.waitForLoadState('networkidle');
 
       const loginButton = page.getByRole('link', { name: /log in/i }).filter({ has: page.locator('[href*="returnUrl"]') }).first();
@@ -239,14 +237,14 @@ test.describe('Post-Login Return to Intended Page', () => {
     test('should block external URL redirect - https://evil.com', async ({ page }) => {
       // Step 1: Navigate to login with malicious external URL
       const maliciousUrl = 'https://evil.com/phishing';
-      await page.goto(`${BASE_URL}/login?returnUrl=${encodeURIComponent(maliciousUrl)}`);
+      await page.goto(`/login?returnUrl=${encodeURIComponent(maliciousUrl)}`);
       await page.waitForLoadState('networkidle');
 
       // Step 2: Complete login
       await completeLogin(page);
 
       // Step 3: Verify redirect to safe default (/dashboard), NOT external site
-      await expect(page).toHaveURL(`${BASE_URL}/dashboard`);
+      await expect(page).toHaveURL(/\/dashboard/);
 
       // Step 4: Verify we're NOT on evil.com
       expect(page.url()).not.toContain('evil.com');
@@ -261,14 +259,14 @@ test.describe('Post-Login Return to Intended Page', () => {
     test('should block JavaScript protocol attack - javascript:alert()', async ({ page }) => {
       // Step 1: Navigate to login with JavaScript protocol attack
       const maliciousUrl = "javascript:alert('XSS')";
-      await page.goto(`${BASE_URL}/login?returnUrl=${encodeURIComponent(maliciousUrl)}`);
+      await page.goto(`/login?returnUrl=${encodeURIComponent(maliciousUrl)}`);
       await page.waitForLoadState('networkidle');
 
       // Step 2: Complete login
       await completeLogin(page);
 
       // Step 3: Verify redirect to safe default (/dashboard)
-      await expect(page).toHaveURL(`${BASE_URL}/dashboard`);
+      await expect(page).toHaveURL(/\/dashboard/);
 
       // Step 4: Verify JavaScript code was NOT executed
       // If alert() was executed, Playwright would show a dialog
@@ -281,14 +279,14 @@ test.describe('Post-Login Return to Intended Page', () => {
     test('should block data: protocol attack', async ({ page }) => {
       // Step 1: Navigate to login with data: protocol attack
       const maliciousUrl = "data:text/html,<script>alert('XSS')</script>";
-      await page.goto(`${BASE_URL}/login?returnUrl=${encodeURIComponent(maliciousUrl)}`);
+      await page.goto(`/login?returnUrl=${encodeURIComponent(maliciousUrl)}`);
       await page.waitForLoadState('networkidle');
 
       // Step 2: Complete login
       await completeLogin(page);
 
       // Step 3: Verify redirect to safe default (/dashboard)
-      await expect(page).toHaveURL(`${BASE_URL}/dashboard`);
+      await expect(page).toHaveURL(/\/dashboard/);
 
       // Step 4: Verify data: URL was not navigated to
       expect(page.url()).not.toContain('data:');
@@ -302,14 +300,14 @@ test.describe('Post-Login Return to Intended Page', () => {
     test('should block file: protocol attack', async ({ page }) => {
       // Step 1: Navigate to login with file: protocol attack
       const maliciousUrl = "file:///etc/passwd";
-      await page.goto(`${BASE_URL}/login?returnUrl=${encodeURIComponent(maliciousUrl)}`);
+      await page.goto(`/login?returnUrl=${encodeURIComponent(maliciousUrl)}`);
       await page.waitForLoadState('networkidle');
 
       // Step 2: Complete login
       await completeLogin(page);
 
       // Step 3: Verify redirect to safe default (/dashboard)
-      await expect(page).toHaveURL(`${BASE_URL}/dashboard`);
+      await expect(page).toHaveURL(/\/dashboard/);
 
       // Step 4: Verify file: protocol was not accessed
       expect(page.url()).not.toContain('file:');
@@ -327,7 +325,7 @@ test.describe('Post-Login Return to Intended Page', () => {
       // Step 1: Attempt login with malicious returnUrl via API
       const maliciousUrl = 'https://attacker.com/steal-data';
 
-      const loginResponse = await page.request.post(`${API_URL}/api/auth/login`, {
+      const loginResponse = await page.request.post('/api/auth/login', {
         data: {
           emailOrSceneName: TEST_ACCOUNT.email,
           password: TEST_ACCOUNT.password,
@@ -369,17 +367,17 @@ test.describe('Post-Login Return to Intended Page', () => {
 
       for (const maliciousUrl of attackVectors) {
         // Navigate to login with attack vector
-        await page.goto(`${BASE_URL}/login?returnUrl=${encodeURIComponent(maliciousUrl)}`);
+        await page.goto(`/login?returnUrl=${encodeURIComponent(maliciousUrl)}`);
         await page.waitForLoadState('networkidle');
 
         // Complete login
         await AuthHelpers.clearAuthState(page); // Reset for clean login
-        await page.goto(`${BASE_URL}/login?returnUrl=${encodeURIComponent(maliciousUrl)}`);
+        await page.goto(`/login?returnUrl=${encodeURIComponent(maliciousUrl)}`);
         await page.waitForLoadState('networkidle');
         await completeLogin(page);
 
         // Verify redirect to safe default
-        await expect(page).toHaveURL(`${BASE_URL}/dashboard`);
+        await expect(page).toHaveURL(/\/dashboard/);
 
         // Verify not redirected to evil.com
         expect(page.url()).not.toContain('evil.com');
@@ -392,18 +390,18 @@ test.describe('Post-Login Return to Intended Page', () => {
 
   test.describe('Edge Cases and Error Handling', () => {
     test('should handle empty returnUrl gracefully', async ({ page }) => {
-      await page.goto(`${BASE_URL}/login?returnUrl=`);
+      await page.goto('/login?returnUrl=');
       await page.waitForLoadState('networkidle');
 
       await completeLogin(page);
 
       // Should redirect to default dashboard
-      await expect(page).toHaveURL(`${BASE_URL}/dashboard`);
+      await expect(page).toHaveURL(/\/dashboard/);
     });
 
     test('should handle non-existent internal path', async ({ page }) => {
       // Navigate with valid internal path that doesn't exist
-      await page.goto(`${BASE_URL}/login?returnUrl=${encodeURIComponent('/does-not-exist-12345')}`);
+      await page.goto(`/login?returnUrl=${encodeURIComponent('/does-not-exist-12345')}`);
       await page.waitForLoadState('networkidle');
 
       await completeLogin(page);
@@ -427,7 +425,7 @@ test.describe('Post-Login Return to Intended Page', () => {
       // Test if URL hash fragments are preserved
       const urlWithHash = '/vetting/apply#section-2';
 
-      await page.goto(`${BASE_URL}/login?returnUrl=${encodeURIComponent(urlWithHash)}`);
+      await page.goto(`/login?returnUrl=${encodeURIComponent(urlWithHash)}`);
       await page.waitForLoadState('networkidle');
 
       // Check if we're on login page (hash may not redirect properly)

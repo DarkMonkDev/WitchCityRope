@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { AuthHelper, quickLogin } from './test-utils/helpers/auth.helpers'
+import { AuthHelpers } from './test-utils/helpers/auth.helpers'
 
 /**
  * WORKING LOGIN SOLUTION FOR MANTINE UI
@@ -124,7 +124,7 @@ test.describe('Working Login Solution', () => {
   test('WORKING: Login with different user types', async ({ page }) => {
     console.log('✅ Testing different user account types')
     
-    const userTypes: Array<keyof typeof AuthHelper['TEST_ACCOUNTS']> = ['admin', 'teacher', 'member', 'vetted', 'guest']
+    const userTypes: Array<keyof typeof AuthHelpers.accounts> = ['admin', 'teacher', 'member', 'vetted', 'guest']
     
     for (const userType of userTypes) {
       console.log(`Testing login as ${userType}`)

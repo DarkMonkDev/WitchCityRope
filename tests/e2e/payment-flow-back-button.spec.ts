@@ -2,15 +2,12 @@
 // Verifies Back button is visible on Steps 1 & 2, hidden on Step 3 (confirmation)
 
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 test.describe('Payment Flow - Back Button Visibility', () => {
   test.beforeEach(async ({ page }) => {
-    // Login as test user
-    await page.goto('/login');
-    await page.fill('[data-testid="email-or-scenename-input"]', 'member@witchcityrope.com');
-    await page.fill('[data-testid="password-input"]', 'Test123!');
-    await page.click('[data-testid="login-button"]');
-    await page.waitForURL('**/dashboard', { timeout: 10000 });
+    // Login as test user using AuthHelpers
+    await AuthHelpers.loginAs(page, 'member');
   });
 
   test('Back button is visible on Step 1 (Ticket Selection)', async ({ page }) => {

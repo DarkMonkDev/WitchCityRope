@@ -18,25 +18,10 @@
  */
 
 import { test, expect, Page } from '@playwright/test';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
-// Test accounts
-const TEST_ACCOUNTS = {
-  admin: {
-    email: 'admin@witchcityrope.com',
-    password: 'Test123!',
-    sceneName: '' // Will be fetched from database
-  },
-  teacher: {
-    email: 'teacher@witchcityrope.com',
-    password: 'Test123!',
-    sceneName: '' // Will be fetched from database
-  },
-  member: {
-    email: 'member@witchcityrope.com',
-    password: 'Test123!',
-    sceneName: '' // Will be fetched from database
-  }
-};
+// Test accounts - using AuthHelpers accounts
+const TEST_ACCOUNTS = AuthHelpers.accounts;
 
 /**
  * Helper: Get user's scene name from API
@@ -58,16 +43,7 @@ async function getUserSceneName(page: Page, email: string, password: string): Pr
 }
 
 /**
- * Helper: Clear authentication state
- */
-async function clearAuthState(page: Page) {
-  await page.context().clearCookies();
-  await page.evaluate(() => localStorage.clear());
-  await page.evaluate(() => sessionStorage.clear());
-}
-
-/**
- * Helper: Fill login form and submit
+ * Helper: Fill login form and submit (for specific test scenarios)
  */
 async function fillAndSubmitLogin(page: Page, identifier: string, password: string) {
   await page.locator('[data-testid="email-or-scenename-input"]').fill(identifier);
@@ -77,18 +53,18 @@ async function fillAndSubmitLogin(page: Page, identifier: string, password: stri
 
 test.describe('Login with Email or Scene Name', () => {
   test.beforeEach(async ({ page }) => {
-    // Navigate to login page FIRST (localStorage requires a domain context)
-    await page.goto('/login');
-    await page.waitForLoadState('domcontentloaded');
-
-    // Clear authentication state AFTER navigation
-    await clearAuthState(page);
+    // Clear authentication state using AuthHelpers
+    await AuthHelpers.clearAuthState(page);
   });
 
   test.describe('P1 CRITICAL: Email Login Path', () => {
     test('should login successfully with email address', async ({ page }) => {
       // Arrange
       const testAccount = TEST_ACCOUNTS.admin;
+
+      // Navigate to login page
+      await page.goto('/login');
+      await page.waitForLoadState('domcontentloaded');
 
       // Act
       await fillAndSubmitLogin(page, testAccount.email, testAccount.password);
@@ -108,6 +84,10 @@ test.describe('Login with Email or Scene Name', () => {
       // Arrange
       const testAccount = TEST_ACCOUNTS.admin;
       const wrongPassword = 'WrongPassword123!';
+
+      // Navigate to login page
+      await page.goto('/login');
+      await page.waitForLoadState('domcontentloaded');
 
       // Act
       await fillAndSubmitLogin(page, testAccount.email, wrongPassword);
@@ -137,12 +117,9 @@ test.describe('Login with Email or Scene Name', () => {
       expect(sceneName).toBeTruthy();
       expect(sceneName.length).toBeGreaterThan(0);
 
-      // Navigate to login page FIRST (localStorage requires a domain context)
+      // Navigate to login page
       await page.goto('/login');
-      await page.waitForLoadState('networkidle');
-
-      // Clear auth state AFTER navigation
-      await clearAuthState(page);
+      await page.waitForLoadState('domcontentloaded');
 
       // Act - Login with scene name instead of email
       await fillAndSubmitLogin(page, sceneName, testAccount.password);
@@ -164,12 +141,9 @@ test.describe('Login with Email or Scene Name', () => {
       const sceneName = await getUserSceneName(page, testAccount.email, testAccount.password);
       const wrongPassword = 'WrongPassword123!';
 
-      // Navigate to login page FIRST (localStorage requires a domain context)
+      // Navigate to login page
       await page.goto('/login');
-      await page.waitForLoadState('networkidle');
-
-      // Clear auth state AFTER navigation
-      await clearAuthState(page);
+      await page.waitForLoadState('domcontentloaded');
 
       // Act - Login with scene name and wrong password
       await fillAndSubmitLogin(page, sceneName, wrongPassword);
@@ -182,7 +156,7 @@ test.describe('Login with Email or Scene Name', () => {
       await expect(errorAlert).toBeVisible({ timeout: 5000 });
 
       // Verify still on login page
-      await expect(page).toHaveURL(`${BASE_URL}/login`);
+      await expect(page).toHaveURL(/\/login/);
     });
   });
 
@@ -191,6 +165,10 @@ test.describe('Login with Email or Scene Name', () => {
       // Arrange
       const nonExistentIdentifier = 'nonexistent@example.com';
       const anyPassword = 'AnyPassword123!';
+
+      // Navigate to login page
+      await page.goto('/login');
+      await page.waitForLoadState('domcontentloaded');
 
       // Act
       await fillAndSubmitLogin(page, nonExistentIdentifier, anyPassword);
@@ -215,6 +193,10 @@ test.describe('Login with Email or Scene Name', () => {
       const nonExistentSceneName = 'NonExistentSceneName12345';
       const anyPassword = 'Test123!';
 
+      // Navigate to login page
+      await page.goto('/login');
+      await page.waitForLoadState('domcontentloaded');
+
       // Act
       await fillAndSubmitLogin(page, nonExistentSceneName, anyPassword);
 
@@ -226,12 +208,16 @@ test.describe('Login with Email or Scene Name', () => {
       await expect(errorAlert).toBeVisible({ timeout: 5000 });
 
       // Verify still on login page
-      await expect(page).toHaveURL(`${BASE_URL}/login`);
+      await expect(page).toHaveURL(/\/login/);
     });
   });
 
   test.describe('P1: Validation', () => {
     test('should show validation error for empty email or scene name', async ({ page }) => {
+      // Navigate to login page
+      await page.goto('/login');
+      await page.waitForLoadState('domcontentloaded');
+
       // Arrange - Fill only password, leave email/scene name empty
       await page.locator('[data-testid="password-input"]').fill('Test123!');
 
@@ -246,10 +232,14 @@ test.describe('Login with Email or Scene Name', () => {
       expect(isInvalid).toBe(true);
 
       // Verify still on login page (form didn't submit)
-      await expect(page).toHaveURL(`${BASE_URL}/login`);
+      await expect(page).toHaveURL(/\/login/);
     });
 
     test('should show validation error for empty password', async ({ page }) => {
+      // Navigate to login page
+      await page.goto('/login');
+      await page.waitForLoadState('domcontentloaded');
+
       // Arrange - Fill only email, leave password empty
       await page.locator('[data-testid="email-or-scenename-input"]').fill('test@example.com');
 
@@ -264,10 +254,14 @@ test.describe('Login with Email or Scene Name', () => {
       expect(isInvalid).toBe(true);
 
       // Verify still on login page
-      await expect(page).toHaveURL(`${BASE_URL}/login`);
+      await expect(page).toHaveURL(/\/login/);
     });
 
     test('should show validation error for both empty fields', async ({ page }) => {
+      // Navigate to login page
+      await page.goto('/login');
+      await page.waitForLoadState('domcontentloaded');
+
       // Act - Try to submit empty form
       await page.locator('[data-testid="login-button"]').click();
 
@@ -275,7 +269,7 @@ test.describe('Login with Email or Scene Name', () => {
       await page.waitForTimeout(1000);
 
       // Verify still on login page (form validation prevented submission)
-      await expect(page).toHaveURL(`${BASE_URL}/login`);
+      await expect(page).toHaveURL(/\/login/);
     });
   });
 
@@ -284,6 +278,10 @@ test.describe('Login with Email or Scene Name', () => {
       // Arrange
       const testAccount = TEST_ACCOUNTS.admin;
       const emailWithSpaces = `  ${testAccount.email}  `; // Leading/trailing spaces
+
+      // Navigate to login page
+      await page.goto('/login');
+      await page.waitForLoadState('domcontentloaded');
 
       // Act
       await fillAndSubmitLogin(page, emailWithSpaces, testAccount.password);
@@ -333,13 +331,17 @@ test.describe('Login with Email or Scene Name', () => {
       await expect(errorAlert).toBeVisible({ timeout: 5000 });
 
       // Verify still on login page
-      await expect(page).toHaveURL(`${BASE_URL}/login`);
+      await expect(page).toHaveURL(/\/login/);
     });
 
     test('should be case-insensitive for email address', async ({ page }) => {
       // Arrange
       const testAccount = TEST_ACCOUNTS.admin;
       const upperCaseEmail = testAccount.email.toUpperCase();
+
+      // Navigate to login page
+      await page.goto('/login');
+      await page.waitForLoadState('domcontentloaded');
 
       // Act - Try to login with uppercase email
       await fillAndSubmitLogin(page, upperCaseEmail, testAccount.password);
@@ -357,6 +359,10 @@ test.describe('Login with Email or Scene Name', () => {
     });
 
     test('should display helpful placeholder text', async ({ page }) => {
+      // Navigate to login page
+      await page.goto('/login');
+      await page.waitForLoadState('domcontentloaded');
+
       // Assert - Verify input has helpful placeholder
       const emailInput = page.locator('[data-testid="email-or-scenename-input"]');
       const placeholder = await emailInput.getAttribute('placeholder');
