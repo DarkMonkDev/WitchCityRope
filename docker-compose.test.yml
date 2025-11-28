@@ -77,14 +77,16 @@ services:
     environment:
       # Test environment
       ASPNETCORE_ENVIRONMENT: Test
-      
+
       # Test database connection
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=witchcityrope_test;Username=postgres;Password=testpass123"
-      
-      # Test authentication settings
-      Authentication__JwtSecret: test-jwt-secret-for-ci-make-it-predictable-and-long-enough
+
+      # Test authentication settings (must match Jwt:* paths in JwtService.cs)
+      Jwt__SecretKey: test-jwt-secret-for-ci-make-it-predictable-and-long-enough
+      Jwt__Issuer: WitchCityRope-API
+      Jwt__Audience: WitchCityRope-Services
+      Jwt__ExpirationMinutes: 60
       Authentication__RequireHttps: "false"
-      Authentication__ExpiryMinutes: 60
 
       # Test CORS - internal container communication only
       CORS__AllowedOrigins: "http://web:5173"

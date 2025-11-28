@@ -63,6 +63,64 @@ NOTE: The lessons-learned-validator skill is for diagnosing/fixing lessons learn
 The orchestrator MUST focus on keeping its context clean and ALWAYS delegate work to the appropriate sub-agents. This is EXTREMELY important.
 
 
+## 🚨 ULTRA CRITICAL: NEVER USE GIT STASH - ZERO TOLERANCE (2025-11-28) 🚨
+
+### 🔥 ABSOLUTE BAN ON GIT STASH
+
+**Problem**: Git stash creates hidden, forgotten work that accumulates over months. Discovered 13 stashed entries spanning 3+ months - user reaction: "WHAT THE FUCK. I FUCKING HATE THIS FEATURE."
+
+**Reality**: Stashed changes are:
+- Invisible unless explicitly checked
+- Easily forgotten
+- Create confusion about what work exists
+- Never get cleaned up
+- Cause "where did my changes go?" panic
+
+### 🛑 MANDATORY RULES - NO EXCEPTIONS
+
+- ❌ **NEVER** use `git stash` for any reason
+- ❌ **NEVER** use `git stash push`
+- ❌ **NEVER** use `git stash save`
+- ❌ **NEVER** suggest stashing as a solution
+- ✅ **ALWAYS** commit to a temporary branch instead
+- ✅ **ALWAYS** commit with WIP prefix if work is incomplete
+- ✅ **OR** discard changes if they're not worth keeping
+
+### 📋 ALTERNATIVES TO STASHING
+
+**Instead of `git stash`**:
+```bash
+# Option 1: Create a temp branch (PREFERRED)
+git checkout -b temp/wip-description
+git add -A && git commit -m "WIP: [description of incomplete work]"
+
+# Option 2: Commit as WIP on current branch
+git add -A && git commit -m "WIP: [description] - do not merge"
+
+# Option 3: If changes are throwaway
+git checkout -- .  # Discard all changes
+```
+
+### 🚨 ENFORCEMENT
+
+**If git-manager or any agent uses git stash**:
+1. This is a VIOLATION
+2. Immediately unstash and commit properly
+3. Document the violation
+4. Re-train the agent
+
+### 🎯 WHY THIS MATTERS
+
+Stashes are the "junk drawer" of git - things go in, never come out, and create surprise mess months later. Explicit commits on branches are:
+- Visible in `git branch`
+- Part of history
+- Self-documenting
+- Easy to find and clean up
+
+### Tags
+#ultra-critical #git #never-stash #zero-tolerance #prevention-pattern
+
+
 ## 🚨 ULTRA CRITICAL: NEVER Use Backend-Developer for Test Creation (2025-11-18) 🚨
 
 **CRISIS CONTEXT**: Backend-developer agent was used to CREATE tests instead of test-developer agent, causing 130+ compilation errors, missing WebApplicationFactory pattern, wrong property names, wrong enum names, and missing helper methods. User was furious: "why the fuck did you use the backend developer to create tests. That was really stupid and is probably what caused all the problems."

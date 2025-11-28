@@ -14,8 +14,8 @@ export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : 8, // Parallel execution - tests now use unique payment indices for isolation
+  retries: 0, // No retries - we want to see ALL failures immediately
+  workers: process.env.PW_WORKERS ? parseInt(process.env.PW_WORKERS, 10) : (process.env.CI ? 1 : 6), // Use 6 parallel workers for faster E2E testing
   // globalSetup: './tests/e2e/global-setup.ts', // Verify Docker services before tests
   reporter: [
     ['list'],

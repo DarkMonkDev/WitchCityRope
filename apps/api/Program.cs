@@ -369,16 +369,18 @@ app.MapGet("/api/antiforgery/token", (IAntiforgery antiforgery, HttpContext cont
         new CookieOptions
         {
             HttpOnly = false,  // CRITICAL: JavaScript must be able to read this
-            SameSite = SameSiteMode.Strict,
-            Secure = true,
+            SameSite = SameSiteMode.Lax, // Lax allows cross-origin for dev/test (web:5173 → api:8080)
+            Secure = context.Request.IsHttps, // Use HTTPS in production, HTTP in dev/test
             Path = "/"
         });
 
     return Results.Ok(new { tokenGenerated = true });
 })
-.RequireAuthorization() // Only authenticated users get CSRF tokens
+// CRITICAL: No .RequireAuthorization() - users need CSRF token BEFORE login
+// This prevents chicken-and-egg problem: need token to login, but need login for token
+.AllowAnonymous()
 .WithName("GetAntiforgeryToken")
-.WithSummary("Generate CSRF token for authenticated session")
+.WithSummary("Generate CSRF token for any session (pre-auth and authenticated)")
 .WithDescription("Generates and stores CSRF token in XSRF-TOKEN cookie. React frontend reads this cookie and includes token in X-CSRF-TOKEN header for state-changing requests.")
 .WithTags("Security", "Authentication")
 .Produces<object>(200)

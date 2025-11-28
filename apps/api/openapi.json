@@ -16,7 +16,7 @@
           "Security",
           "Authentication"
         ],
-        "summary": "Generate CSRF token for authenticated session",
+        "summary": "Generate CSRF token for any session (pre-auth and authenticated)",
         "description": "Generates and stores CSRF token in XSRF-TOKEN cookie. React frontend reads this cookie and includes token in X-CSRF-TOKEN header for state-changing requests.",
         "operationId": "GetAntiforgeryToken",
         "responses": {
@@ -9680,9 +9680,6 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
-          },
-          "fullName": {
-            "type": "string"
           },
           "sceneName": {
             "type": "string"

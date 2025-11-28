@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
  * CRITICAL E2E Tests for Dashboard Navigation
@@ -62,41 +63,15 @@ test.describe('Dashboard Navigation - Critical Bug Detection', () => {
   test('User can navigate to dashboard after login and dashboard ACTUALLY loads', async ({ page }) => {
     console.log('🔍 Testing critical dashboard navigation flow...');
 
-    // Step 1: Navigate to login page
-    await page.goto('/login');
-    console.log('📍 Navigated to login page');
+    // Step 1: Login using AuthHelpers
+    await AuthHelpers.loginAs(page, 'member');
+    console.log('✅ Logged in successfully using AuthHelpers');
 
-    // Step 2: Verify login form is available
-    await expect(page.locator('[data-testid="login-form"]')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('[data-testid="email-or-scenename-input"]')).toBeVisible();
-    await expect(page.locator('[data-testid="password-input"]')).toBeVisible();
-    await expect(page.locator('[data-testid="login-button"]')).toBeVisible();
-
-    // Step 3: Login with test credentials
-    await page.locator('[data-testid="email-or-scenename-input"]').fill('member@witchcityrope.com');
-    await page.locator('[data-testid="password-input"]').fill('Test123!');
-
-    console.log('🔐 Filled login credentials');
-
-    // Step 4: Submit login form
-    await page.locator('[data-testid="login-button"]').click();
-    console.log('🎯 Clicked login button');
-
-    // Step 5: Wait for navigation to dashboard with proper timeout
-    try {
-      await page.waitForURL('**/dashboard', { timeout: 15000 });
-      console.log('✅ Navigation to dashboard completed');
-    } catch (error) {
-      console.log('❌ Navigation timeout - checking current URL');
-      console.log(`Current URL: ${page.url()}`);
-      throw new Error(`Failed to navigate to dashboard: ${error}`);
-    }
-
-    // Step 6: Wait for page to fully load and components to render
+    // Step 2: Wait for page to fully load and components to render
     await page.waitForLoadState('networkidle', { timeout: 10000 });
     await page.waitForTimeout(2000); // Allow React components to render
 
-    // Step 7: 🚨 CRITICAL ERROR CHECKS - These catch the bugs previous tests missed
+    // Step 3: 🚨 CRITICAL ERROR CHECKS - These catch the bugs previous tests missed
     if (jsErrors.length > 0) {
       console.log(`💥 FATAL: JavaScript errors detected on dashboard:`);
       jsErrors.forEach(error => console.log(`  💥 ${error}`));
@@ -129,24 +104,24 @@ test.describe('Dashboard Navigation - Critical Bug Detection', () => {
       }
     }
 
-    // Step 8: Verify dashboard content is actually displayed (not just that page loads)
+    // Step 4: Verify dashboard content is actually displayed (not just that page loads)
     // Dashboard shows "Learning's Events" as the main heading
     await expect(page.locator('h1')).toContainText(/Welcome|Dashboard|Events/i, { timeout: 5000 });
     console.log('✅ Dashboard header verified');
 
-    // Step 9: Check for "Connection Problem" error messages
+    // Step 5: Check for "Connection Problem" error messages
     const connectionErrors = await page.locator('text=/Connection Problem|Failed to load|Error loading/i').count();
     if (connectionErrors > 0) {
       const errorText = await page.locator('text=/Connection Problem|Failed to load|Error loading/i').first().textContent();
       throw new Error(`Dashboard shows connection error: ${errorText}`);
     }
 
-    // Step 10: Verify some dashboard content is displayed
+    // Step 6: Verify some dashboard content is displayed
     const dashboardContent = await page.locator('text=/Your Events|Quick Actions|Welcome|Browse All Events/i').count();
     expect(dashboardContent).toBeGreaterThan(0);
     console.log('✅ Dashboard content verified');
 
-    // Step 11: Take screenshot for verification
+    // Step 7: Take screenshot for verification
     await page.screenshot({
       path: './test-results/dashboard-navigation-success.png',
       fullPage: true
@@ -158,12 +133,9 @@ test.describe('Dashboard Navigation - Critical Bug Detection', () => {
   test('User navigation to dashboard via direct URL works correctly', async ({ page }) => {
     console.log('🔍 Testing direct dashboard URL navigation...');
 
-    // First login to establish session
-    await page.goto('/login');
-    await page.locator('[data-testid="email-or-scenename-input"]').fill('member@witchcityrope.com');
-    await page.locator('[data-testid="password-input"]').fill('Test123!');
-    await page.locator('[data-testid="login-button"]').click();
-    await page.waitForURL('**/dashboard', { timeout: 15000 });
+    // First login to establish session using AuthHelpers
+    await AuthHelpers.loginAs(page, 'member');
+    console.log('✅ Logged in successfully using AuthHelpers');
 
     // Now test direct URL navigation
     await page.goto('/dashboard');
@@ -187,12 +159,9 @@ test.describe('Dashboard Navigation - Critical Bug Detection', () => {
   test('Dashboard navigation persists through page refresh', async ({ page }) => {
     console.log('🔍 Testing dashboard persistence through page refresh...');
 
-    // Login and navigate to dashboard
-    await page.goto('/login');
-    await page.locator('[data-testid="email-or-scenename-input"]').fill('member@witchcityrope.com');
-    await page.locator('[data-testid="password-input"]').fill('Test123!');
-    await page.locator('[data-testid="login-button"]').click();
-    await page.waitForURL('**/dashboard', { timeout: 15000 });
+    // Login and navigate to dashboard using AuthHelpers
+    await AuthHelpers.loginAs(page, 'member');
+    console.log('✅ Logged in successfully using AuthHelpers');
 
     // Verify initial load - Dashboard shows "Learning's Events" or similar
     await page.waitForLoadState('networkidle');
@@ -220,12 +189,10 @@ test.describe('Dashboard Navigation - Critical Bug Detection', () => {
   test('Dashboard shows appropriate content for authenticated user', async ({ page }) => {
     console.log('🔍 Testing dashboard content verification...');
 
-    // Login as member
-    await page.goto('/login');
-    await page.locator('[data-testid="email-or-scenename-input"]').fill('member@witchcityrope.com');
-    await page.locator('[data-testid="password-input"]').fill('Test123!');
-    await page.locator('[data-testid="login-button"]').click();
-    await page.waitForURL('**/dashboard', { timeout: 15000 });
+    // Login as member using AuthHelpers
+    await AuthHelpers.loginAs(page, 'member');
+    console.log('✅ Logged in successfully using AuthHelpers');
+
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
 

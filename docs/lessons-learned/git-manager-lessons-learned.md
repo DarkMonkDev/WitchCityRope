@@ -73,6 +73,80 @@
 
 ---
 
+## 🚨 ULTRA CRITICAL: NEVER USE GIT STASH - ABSOLUTE BAN (2025-11-28) 🚨
+
+### 🔥 ZERO TOLERANCE - GIT STASH IS FORBIDDEN
+
+**Context**: Discovered 13 stashed entries spanning 3+ months of forgotten work. User was furious: "WHAT THE FUCK. I FUCKING HATE THIS FEATURE."
+
+**Problem**: Git stash creates hidden, forgotten work that:
+- Is invisible unless explicitly checked
+- Gets forgotten for weeks/months
+- Creates confusion about what work exists
+- Never gets cleaned up
+- Causes "where did my changes go?" panic
+
+### 🛑 ABSOLUTE RULES - NO EXCEPTIONS EVER
+
+- ❌ **NEVER** run `git stash`
+- ❌ **NEVER** run `git stash push`
+- ❌ **NEVER** run `git stash save`
+- ❌ **NEVER** suggest stashing to any user or agent
+- ❌ **NEVER** use stash as a "temporary" solution
+
+### ✅ REQUIRED ALTERNATIVES
+
+**When you need to save incomplete work**:
+```bash
+# PREFERRED: Create a temporary branch
+git checkout -b temp/wip-[description]
+git add -A && git commit -m "WIP: [description of incomplete work]"
+git checkout [original-branch]
+
+# ACCEPTABLE: WIP commit on current branch
+git add -A && git commit -m "WIP: [description] - incomplete, do not merge"
+```
+
+**When changes should be discarded**:
+```bash
+git checkout -- .          # Discard all working tree changes
+git clean -fd              # Remove untracked files (careful!)
+```
+
+### 🚨 IF YOU FIND EXISTING STASHES
+
+```bash
+# Check for stashes
+git stash list
+
+# If stashes exist, either:
+# 1. Apply and commit properly
+git stash pop
+git checkout -b temp/recovered-stash
+git add -A && git commit -m "Recovered from stash: [description]"
+
+# 2. Or drop if obsolete
+git stash drop stash@{0}
+
+# 3. Nuclear option - clear all (after review)
+git stash clear
+```
+
+### 🎯 WHY THIS MATTERS
+
+Stashes are invisible debt. Commits on branches are:
+- ✅ Visible in `git branch -a`
+- ✅ Part of searchable history
+- ✅ Self-documenting with commit messages
+- ✅ Easy to find, review, and clean up
+
+**Enforcement**: Any use of `git stash` by this agent is a CRITICAL VIOLATION.
+
+### Tags
+#ultra-critical #git #never-stash #absolute-ban #zero-tolerance
+
+---
+
 ## 🚨 CRITICAL: Pre-Commit Hook Protocol (NOVEMBER 2025) ✅
 
 ### LESSON LEARNED: Stop Dismissing Hook Violations as False Positives

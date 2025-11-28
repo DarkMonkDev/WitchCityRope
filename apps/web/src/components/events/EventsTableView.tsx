@@ -62,8 +62,22 @@ const formatEventDate = (event: EventDto, timeZone: string): string => {
   });
 }
 
+// Helper function to format time from Date object WITHOUT timezone conversion
+// User-entered times are stored as "naive UTC" - the UTC value IS the local time
+const formatStoredTimeFromDate = (date: Date): string => {
+  const hours = date.getUTCHours();
+  const minutes = date.getUTCMinutes();
+
+  // Format in 12-hour format
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const hour12 = hours % 12 || 12;
+  const minuteStr = minutes.toString().padStart(2, '0');
+
+  return `${hour12}:${minuteStr} ${period}`;
+}
+
 // Helper function to format time range with robust field handling
-const formatTimeRange = (event: EventDto, timeZone: string): string => {
+const formatTimeRange = (event: EventDto, _timeZone: string): string => {
   // Use next upcoming session's time instead of event.startDate/endDate
   const displaySession = getDisplaySession(event);
 
@@ -79,18 +93,9 @@ const formatTimeRange = (event: EventDto, timeZone: string): string => {
     return 'Invalid Time'
   }
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-      timeZone
-    });
-  }
-
   // If no end time, show start time only
   if (!displaySession.endTime) {
-    return formatTime(start);
+    return formatStoredTimeFromDate(start);
   }
 
   const end = new Date(displaySession.endTime);
@@ -101,10 +106,10 @@ const formatTimeRange = (event: EventDto, timeZone: string): string => {
       eventId: event.id,
       sessionEndTime: displaySession.endTime,
     })
-    return formatTime(start);
+    return formatStoredTimeFromDate(start);
   }
 
-  return `${formatTime(start)} - ${formatTime(end)}`
+  return `${formatStoredTimeFromDate(start)} - ${formatStoredTimeFromDate(end)}`
 }
 
 // Helper function to get the correct current count based on event type

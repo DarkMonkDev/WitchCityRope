@@ -8,7 +8,7 @@ test.describe('Authentication and RSVP Testing', () => {
     expect(loginSuccess).toBeTruthy();
 
     // Take screenshot after login
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/03-after-login.png', fullPage: true });
+    await page.screenshot({ path: './test-results/03-after-login.png', fullPage: true });
 
     // Check current URL and page content
     const currentUrl = page.url();
@@ -131,7 +131,7 @@ test.describe('Authentication and RSVP Testing', () => {
     expect(loginSuccess).toBeTruthy();
 
     // Take screenshot of member dashboard
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/04-member-dashboard.png', fullPage: true });
+    await page.screenshot({ path: './test-results/04-member-dashboard.png', fullPage: true });
 
     // Look for events page or navigation
     const currentUrl = page.url();
@@ -145,7 +145,7 @@ test.describe('Authentication and RSVP Testing', () => {
     if (eventsLinkCount > 0) {
       await eventsLink.first().click();
       await page.waitForLoadState('networkidle');
-      await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/05-events-page.png', fullPage: true });
+      await page.screenshot({ path: './test-results/05-events-page.png', fullPage: true });
 
       // Look for RSVP buttons or forms
       const rsvpButtons = await page.locator('button:has-text("RSVP"), button:has-text("Register"), [data-testid*="rsvp"]').count();
@@ -160,7 +160,7 @@ test.describe('Authentication and RSVP Testing', () => {
       // Try direct navigation to events
       await page.goto('/events');
       await page.waitForLoadState('networkidle');
-      await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/06-direct-events-page.png', fullPage: true });
+      await page.screenshot({ path: './test-results/06-direct-events-page.png', fullPage: true });
 
       const pageContent = await page.textContent('body');
       console.log('Direct events page loaded:', !pageContent?.includes('404'));

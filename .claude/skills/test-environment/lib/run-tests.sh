@@ -70,9 +70,16 @@ run_tests() {
 
             # Execute in test-runner container
             # The baseURL will use WEB_BASE_URL env var from docker-compose.test.yml
+            # Pass through PW_WORKERS from host environment for parallel test execution
+            local workers_env=""
+            if [ -n "$PW_WORKERS" ]; then
+                workers_env="export PW_WORKERS=$PW_WORKERS && "
+                echo "  Using $PW_WORKERS parallel workers"
+            fi
+
             docker exec witchcity-test-runner sh -c "
                 export PLAYWRIGHT_BASE_URL=http://web:5173 && \
-                $playwright_cmd
+                ${workers_env}$playwright_cmd
             " || exit_code=$?
             ;;
 

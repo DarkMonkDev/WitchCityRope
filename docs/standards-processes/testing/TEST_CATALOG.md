@@ -654,3 +654,140 @@ Option 3: Check if error is rendered in DOM instead of checking notification cal
 ---
 
 **For detailed test histories, migrations, and archived tests, see Part 2 and Part 3 of this catalog.**
+
+## 🔧 E2E SELECTOR FIXES - ADMIN DASHBOARD & EVENTS - November 28, 2025
+
+**CREATION DATE**: 2025-11-28T14:00:00Z
+**STATUS**: ✅ **FIXED - Selectors Updated to Match Current UI**
+**FILES UPDATED**:
+- `/tests/e2e/admin-dashboard-workflow.spec.ts` - 6 tests fixed
+- `/tests/e2e/admin-events-comprehensive.spec.ts` - 8 tests fixed
+
+**ISSUE**: Tests timing out (32+ seconds) due to selectors not matching React components
+**ROOT CAUSE**: Selectors written before React migration or component refactoring
+**DETAILED REPORT**: `/test-results/e2e-selector-fixes-summary.md`
+
+### Admin Dashboard Workflow - Selector Updates
+
+**Test File**: `/tests/e2e/admin-dashboard-workflow.spec.ts`
+
+1. **should filter incidents by status**
+   - Old: `input[placeholder*="status"]` (WRONG - doesn't exist)
+   - New: `page.getByLabel('Status')` ✅
+   - Component: AdminIncidentDashboard uses Mantine MultiSelect with label
+
+2. **should search incidents by title**
+   - Old: `input[placeholder*="search"]` (WRONG)
+   - New: `page.getByLabel('Search')` ✅
+   - Component: AdminIncidentDashboard uses Mantine TextInput with label
+
+3. **should assign coordinator to incident**
+   - Old: Generic button text selectors (WRONG)
+   - New: `[data-testid="assign-coordinator-button"]` ✅
+   - Component: AdminIncidentDetailPage has data-testid
+
+4. **should update Google Drive links for incident**
+   - Old: Generic label selectors (UNSTABLE)
+   - New: `[data-testid="google-drive-folder-url"]`, `[data-testid="save-links-button"]` ✅
+   - Component: GoogleDriveLinksSection has data-testids
+
+5. **should add investigation note to incident**
+   - Old: Generic textarea selectors (UNSTABLE)
+   - New: `[data-testid="add-note-content"]`, `[data-testid="add-note-submit"]` ✅
+   - Component: InvestigationNotes has data-testids
+
+6. **should sort incidents by clicking table headers**
+   - Status: ✅ No changes needed (already correct)
+
+### Admin Events Comprehensive - Selector Updates
+
+**Test File**: `/tests/e2e/admin-events-comprehensive.spec.ts`
+
+1. **create event navigates to new event page**
+   - Change: Added visibility assertions before click ✅
+   - Reason: Prevent race conditions
+
+2. **event form has required fields**
+   - Old: Used `.first()` on label selectors (UNNECESSARY)
+   - New: Direct label selectors with visibility assertions ✅
+   - Component: EventForm labels are unique
+
+3. **events list displays**
+   - Old: Multiple fallback selectors checking various containers (COMPLEX)
+   - New: Direct `table` selector ✅
+   - Component: AdminEventsPage uses EventsTableView (table)
+
+4. **event management has tabbed interface**
+   - Old: Generic `[data-testid*="tab"]` (UNSTABLE)
+   - New: `[data-testid="tab-basic-info"]`, `[data-testid="setup-tab"]` ✅
+   - Component: EventForm has specific data-testids
+
+5. **session management section exists**
+   - Old: Text-based element search (UNSTABLE)
+   - New: Click Setup tab → `[data-testid="sessions-section"]` ✅
+   - Component: EventForm Setup tab has sessions section data-testid
+
+6. **ticket management section exists**
+   - Old: Text-based element search (UNSTABLE)
+   - New: Click Setup tab → `[data-testid="tickets-section"]` ✅
+   - Component: EventForm Setup tab has tickets section data-testid
+
+7-10. **Critical Event Form Fields tests**
+   - All updated with: Visibility assertions + exact label text + 10s timeouts ✅
+   - Component: EventForm has labels: "Event Title", "Short Description", "Venue", "Select Teachers"
+
+### Key Selector Patterns Applied
+
+**Mantine Component Best Practices**:
+1. **TextInput/Textarea**: Use `page.getByLabel('Label Text')`
+2. **Select/MultiSelect**: Use `page.getByLabel('Label Text')` → `page.getByRole('option')`
+3. **Buttons**: Use `[data-testid="..."]` when available, otherwise `page.getByRole('button', { name: /Text/i })`
+4. **Notifications**: Use `.mantine-Notification-root:has-text("Success message")`
+
+**Data-TestId Attributes Found and Used**:
+- `button-create-event` (AdminEventsPage line 117)
+- `event-form` (EventForm line 1262)
+- `tab-basic-info`, `setup-tab` (EventForm lines 1283, 1286)
+- `sessions-section`, `tickets-section` (EventForm lines 1520, 1541)
+- `google-drive-folder-url`, `save-links-button` (GoogleDriveLinksSection lines 95, 81)
+- `add-note-content`, `add-note-submit` (InvestigationNotes lines 226, 206)
+- `assign-coordinator-button` (AdminIncidentDetailPage line 333)
+
+### Expected Test Execution Improvement
+
+**Before Fixes**:
+- 32+ second timeouts on all UI interaction tests
+- 0 passing tests for dashboard workflow
+- 4 passing tests for events (only auth/navigation tests)
+
+**After Fixes**:
+- Tests complete within normal timeouts (5-10 seconds)
+- All selectors find elements immediately
+- Expected: 14 additional passing tests (6 dashboard + 8 events)
+
+### Component References Verified
+
+All selectors verified against actual React components:
+- ✅ `/apps/web/src/pages/admin/AdminDashboardPage.tsx` - Line 98: data-testid="incident-reports-card"
+- ✅ `/apps/web/src/pages/admin/AdminEventsPage.tsx` - Line 117: data-testid="button-create-event"
+- ✅ `/apps/web/src/pages/admin/safety/AdminIncidentDashboard.tsx` - Labels verified
+- ✅ `/apps/web/src/features/safety/components/GoogleDriveLinksSection.tsx` - Data-testids verified
+- ✅ `/apps/web/src/features/safety/components/InvestigationNotes.tsx` - Data-testids verified
+- ✅ `/apps/web/src/components/events/EventForm.tsx` - All labels and data-testids verified
+
+### Lessons Learned
+
+**Problem**: E2E tests timing out because selectors didn't match current UI implementation
+**Prevention**: 
+1. ✅ Always verify selectors against actual component code before writing tests
+2. ✅ Prefer data-testid attributes over generic selectors when available
+3. ✅ Use Mantine role-based selectors (getByLabel, getByRole) for component library
+4. ✅ Document component file locations in test comments for future reference
+
+### Related Documentation
+
+- **Full Report**: `/test-results/e2e-selector-fixes-summary.md`
+- **Playwright Guide**: `/docs/standards-processes/testing/browser-automation/playwright-guide.md`
+- **Docker Testing Standard**: `/docs/standards-processes/testing/docker-only-testing-standard.md`
+
+---

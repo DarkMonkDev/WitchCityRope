@@ -34,17 +34,59 @@ public class SpacesStorageService
         _config = config.Value;
         _logger = logger;
 
-        // Initialize S3 client for DigitalOcean Spaces
-        var s3Config = new AmazonS3Config
+        // Validate required configuration values
+        if (string.IsNullOrWhiteSpace(_config.Spaces.Endpoint))
         {
-            ServiceURL = _config.Spaces.Endpoint,
-            ForcePathStyle = true
-        };
+            throw new InvalidOperationException(
+                "DigitalOcean Spaces Endpoint is not configured. " +
+                "Set the BackupConfiguration__Spaces__Endpoint environment variable.");
+        }
 
-        _s3Client = new AmazonS3Client(
-            _config.Spaces.AccessKey,
-            _config.Spaces.SecretKey,
-            s3Config);
+        if (string.IsNullOrWhiteSpace(_config.Spaces.BucketName))
+        {
+            throw new InvalidOperationException(
+                "DigitalOcean Spaces BucketName is not configured. " +
+                "Set the BackupConfiguration__Spaces__BucketName environment variable.");
+        }
+
+        if (string.IsNullOrWhiteSpace(_config.Spaces.AccessKey))
+        {
+            throw new InvalidOperationException(
+                "DigitalOcean Spaces AccessKey is not configured. " +
+                "Set the BackupConfiguration__Spaces__AccessKey environment variable.");
+        }
+
+        if (string.IsNullOrWhiteSpace(_config.Spaces.SecretKey))
+        {
+            throw new InvalidOperationException(
+                "DigitalOcean Spaces SecretKey is not configured. " +
+                "Set the BackupConfiguration__Spaces__SecretKey environment variable.");
+        }
+
+        try
+        {
+            // Initialize S3 client for DigitalOcean Spaces
+            var s3Config = new AmazonS3Config
+            {
+                ServiceURL = _config.Spaces.Endpoint,
+                ForcePathStyle = true
+            };
+
+            _s3Client = new AmazonS3Client(
+                _config.Spaces.AccessKey,
+                _config.Spaces.SecretKey,
+                s3Config);
+
+            _logger.LogInformation(
+                "SpacesStorageService initialized successfully. Endpoint: {Endpoint}, Bucket: {Bucket}",
+                _config.Spaces.Endpoint,
+                _config.Spaces.BucketName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to initialize S3 client for DigitalOcean Spaces");
+            throw;
+        }
     }
 
     public async Task<string> UploadBackupAsync(string localFilePath, string fileName, BackupMetadata metadata, CancellationToken cancellationToken = default)

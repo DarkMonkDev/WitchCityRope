@@ -38,7 +38,7 @@ test.describe('ProfilePage - E2E Tests', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to profile page - this will trigger the error (second request)
-    await page.goto('/dashboard/profile');
+    await page.goto('/dashboard/profile-settings');
     await page.waitForLoadState('networkidle');
 
     // Verify error message is displayed
@@ -77,11 +77,11 @@ test.describe('ProfilePage - E2E Tests', () => {
       }
     });
 
-    await page.goto('/dashboard/profile');
+    await page.goto('/dashboard/profile-settings');
     await page.waitForLoadState('networkidle');
 
     // Wait for profile page to load
-    await expect(page.locator('h1:has-text("Profile")')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h1:has-text("Profile Settings")')).toBeVisible({ timeout: 10000 });
 
     // Check if error message is displayed (API might be failing)
     const errorMessage = page.locator('text=Failed to load your profile');

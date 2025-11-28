@@ -57,13 +57,14 @@ export const UserParticipations: React.FC<UserParticipationsProps> = ({
   };
 
   const formatEventTime = (dateString: string) => {
+    // Use getUTCHours/getUTCMinutes for user-entered times stored as naive UTC
     const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-      timeZone: eventTimeZone
-    });
+    const hours = date.getUTCHours();
+    const minutes = date.getUTCMinutes();
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const hour12 = hours % 12 || 12;
+    const minuteStr = minutes.toString().padStart(2, '0');
+    return `${hour12}:${minuteStr} ${period}`;
   };
 
   // Filter participations

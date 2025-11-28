@@ -20,7 +20,7 @@ test.describe('Verify Recent Changes Applied', () => {
     await page.waitForURL('**/admin/dashboard');
 
     // Take screenshot of admin dashboard
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/admin-dashboard-after-rebuild.png', fullPage: true });
+    await page.screenshot({ path: './test-results/admin-dashboard-after-rebuild.png', fullPage: true });
 
     // Verify vetting count section exists
     const vettingSection = page.locator('text=Pending Vetting Applications').first();
@@ -66,7 +66,7 @@ test.describe('Verify Recent Changes Applied', () => {
       await page.waitForLoadState('networkidle');
 
       // Take screenshot of vetting detail
-      await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/vetting-detail-after-rebuild.png', fullPage: true });
+      await page.screenshot({ path: './test-results/vetting-detail-after-rebuild.png', fullPage: true });
 
       // Verify system-generated notes have status badges
       // Look for notes section

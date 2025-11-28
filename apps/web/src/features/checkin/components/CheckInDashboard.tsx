@@ -148,7 +148,15 @@ function EventInfoCard({ dashboard }: { dashboard: CheckInDashboard }) {
             <Group align="center" gap="xs">
               <IconClock size={16} />
               <Text size="sm" c="dimmed">
-                {eventDate.toLocaleDateString('en-US', { timeZone: eventTimeZone })} at {eventDate.toLocaleTimeString('en-US', { timeZone: eventTimeZone })}
+                {eventDate.toLocaleDateString('en-US', { timeZone: eventTimeZone })} at {(() => {
+                  // Format time from stored "naive UTC" - DO NOT use timezone conversion
+                  const hours = eventDate.getUTCHours();
+                  const minutes = eventDate.getUTCMinutes();
+                  const period = hours >= 12 ? 'PM' : 'AM';
+                  const hour12 = hours % 12 || 12;
+                  const minuteStr = minutes.toString().padStart(2, '0');
+                  return `${hour12}:${minuteStr} ${period}`;
+                })()}
               </Text>
             </Group>
           </Stack>

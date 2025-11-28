@@ -60,18 +60,21 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
 
   // Format date display
   const eventDate = DashboardUtils.formatDate(event.startDate, eventTimeZone);
-  const startTime = startDate.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-    timeZone: eventTimeZone
-  });
-  const endTime = endDate.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-    timeZone: eventTimeZone
-  });
+
+  // Use getUTCHours/getUTCMinutes for user-entered times stored as naive UTC
+  const startHours = startDate.getUTCHours();
+  const startMinutes = startDate.getUTCMinutes();
+  const startPeriod = startHours >= 12 ? 'PM' : 'AM';
+  const startHour12 = startHours % 12 || 12;
+  const startMinuteStr = startMinutes.toString().padStart(2, '0');
+  const startTime = `${startHour12}:${startMinuteStr} ${startPeriod}`;
+
+  const endHours = endDate.getUTCHours();
+  const endMinutes = endDate.getUTCMinutes();
+  const endPeriod = endHours >= 12 ? 'PM' : 'AM';
+  const endHour12 = endHours % 12 || 12;
+  const endMinuteStr = endMinutes.toString().padStart(2, '0');
+  const endTime = `${endHour12}:${endMinuteStr} ${endPeriod}`;
   
   // Check if event is today or soon
   const isToday = startDate.toDateString() === new Date().toDateString();

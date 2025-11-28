@@ -7,7 +7,7 @@ test.describe('Simple Rebuild Verification', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Take screenshot of user dashboard
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/user-dashboard-after-rebuild.png', fullPage: true });
+    await page.screenshot({ path: './test-results/user-dashboard-after-rebuild.png', fullPage: true });
 
     console.log('Current URL after login:', page.url());
 
@@ -17,7 +17,7 @@ test.describe('Simple Rebuild Verification', () => {
       console.log('Admin link found, clicking...');
       await adminLink.click();
       await page.waitForTimeout(2000);
-      await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/after-admin-click.png', fullPage: true });
+      await page.screenshot({ path: './test-results/after-admin-click.png', fullPage: true });
       console.log('URL after admin click:', page.url());
     } else {
       console.log('Admin link not found - checking visible links...');
@@ -39,7 +39,7 @@ test.describe('Simple Rebuild Verification', () => {
     await page.goto('/admin');
     await page.waitForTimeout(2000);
 
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/admin-dashboard-direct-nav.png', fullPage: true });
+    await page.screenshot({ path: './test-results/admin-dashboard-direct-nav.png', fullPage: true });
 
     console.log('Current URL:', page.url());
 

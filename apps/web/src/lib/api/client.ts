@@ -17,6 +17,7 @@ export const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
   withCredentials: true, // Include httpOnly cookies for auth
+  withXSRFToken: true, // CRITICAL: Required by axios 1.6.2+ for cross-origin CSRF (CVE-2023-45857 fix)
   // Configure array serialization for ASP.NET Core [AsParameters] binding
   // ASP.NET expects: ?RoleFilters=Teacher&RoleFilters=Admin
   // NOT: ?RoleFilters[]=Teacher&RoleFilters[]=Admin (axios default)

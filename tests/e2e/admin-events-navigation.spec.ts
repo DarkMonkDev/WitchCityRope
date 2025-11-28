@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
  * CRITICAL E2E Tests for Admin Events Navigation
@@ -63,21 +64,7 @@ test.describe('Admin Events Navigation - Critical Bug Detection', () => {
     console.log('🔍 Testing critical admin events navigation flow...');
 
     // Step 1: Login as admin
-    await page.goto('/login');
-    console.log('📍 Navigated to login page');
-
-    // Verify login form
-    await expect(page.locator('[data-testid="login-form"]')).toBeVisible({ timeout: 10000 });
-
-    // Login with admin credentials
-    await page.locator('[data-testid="email-or-scenename-input"]').fill('admin@witchcityrope.com');
-    await page.locator('[data-testid="password-input"]').fill('Test123!');
-    await page.locator('[data-testid="login-button"]').click();
-
-    console.log('🔐 Admin login submitted');
-
-    // Step 2: Wait for successful login
-    await page.waitForURL('**/dashboard', { timeout: 15000 });
+    await AuthHelpers.loginAs(page, 'admin');
     console.log('✅ Admin login successful');
 
     // Step 3: Navigate to Admin Events section
@@ -168,7 +155,7 @@ test.describe('Admin Events Navigation - Critical Bug Detection', () => {
 
     // Step 8: Take screenshot for verification
     await page.screenshot({
-      path: '/home/chad/repos/witchcityrope./test-results/admin-events-navigation-success.png',
+      path: './test-results/admin-events-navigation-success.png',
       fullPage: true
     });
 
@@ -179,11 +166,7 @@ test.describe('Admin Events Navigation - Critical Bug Detection', () => {
     console.log('🔍 Testing admin event details navigation...');
 
     // Login as admin
-    await page.goto('/login');
-    await page.locator('[data-testid="email-or-scenename-input"]').fill('admin@witchcityrope.com');
-    await page.locator('[data-testid="password-input"]').fill('Test123!');
-    await page.locator('[data-testid="login-button"]').click();
-    await page.waitForURL('**/dashboard', { timeout: 15000 });
+    await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to admin events
     try {
@@ -312,11 +295,7 @@ test.describe('Admin Events Navigation - Critical Bug Detection', () => {
     console.log('🔍 Testing admin events page with no events...');
 
     // Login as admin
-    await page.goto('/login');
-    await page.locator('[data-testid="email-or-scenename-input"]').fill('admin@witchcityrope.com');
-    await page.locator('[data-testid="password-input"]').fill('Test123!');
-    await page.locator('[data-testid="login-button"]').click();
-    await page.waitForURL('**/dashboard', { timeout: 15000 });
+    await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to admin events
     await page.goto('/admin/events');
@@ -358,11 +337,7 @@ test.describe('Admin Events Navigation - Critical Bug Detection', () => {
     console.log('🔍 Testing admin events authentication persistence...');
 
     // Login as admin
-    await page.goto('/login');
-    await page.locator('[data-testid="email-or-scenename-input"]').fill('admin@witchcityrope.com');
-    await page.locator('[data-testid="password-input"]').fill('Test123!');
-    await page.locator('[data-testid="login-button"]').click();
-    await page.waitForURL('**/dashboard', { timeout: 15000 });
+    await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to admin events
     await page.goto('/admin/events');
@@ -387,11 +362,7 @@ test.describe('Admin Events Navigation - Critical Bug Detection', () => {
     console.log('🔍 Testing non-admin access restriction...');
 
     // Login as regular member
-    await page.goto('/login');
-    await page.locator('[data-testid="email-or-scenename-input"]').fill('member@witchcityrope.com');
-    await page.locator('[data-testid="password-input"]').fill('Test123!');
-    await page.locator('[data-testid="login-button"]').click();
-    await page.waitForURL('**/dashboard', { timeout: 15000 });
+    await AuthHelpers.loginAs(page, 'member');
 
     // Try to access admin events
     await page.goto('/admin/events');

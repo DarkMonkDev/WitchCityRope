@@ -168,7 +168,7 @@ echo ""
 
 # Step 2: Stop API container
 echo "2️⃣  Stopping API container..."
-ssh -i $SSH_KEY $USER@$SERVER "cd $DEPLOY_PATH && docker-compose -f docker-compose.production.yml stop api"
+ssh -i $SSH_KEY $USER@$SERVER "cd $DEPLOY_PATH && docker compose -f docker-compose.production.yml stop api"
 
 if [ $? -ne 0 ]; then
     echo "   ❌ FAIL: Could not stop API container"
@@ -195,7 +195,7 @@ if [ $? -ne 0 ]; then
     echo "   ❌ FAIL: Schema drop failed"
     echo ""
     echo "💡 Attempting to restart API container..."
-    ssh -i $SSH_KEY $USER@$SERVER "cd $DEPLOY_PATH && docker-compose -f docker-compose.production.yml start api"
+    ssh -i $SSH_KEY $USER@$SERVER "cd $DEPLOY_PATH && docker compose -f docker-compose.production.yml start api"
     echo ""
     echo "   See: .claude/skills/database-reset-production/SKILL.md (Common Issues)"
     exit 1
@@ -203,19 +203,19 @@ fi
 echo "   ✅ Schemas dropped and recreated"
 echo ""
 
-# Step 4: Pull latest API image and recreate container
-echo "4️⃣  Pulling latest API image and recreating container..."
-echo "   Ensuring container runs latest code for migrations..."
-ssh -i $SSH_KEY $USER@$SERVER "cd $DEPLOY_PATH && IMAGE_TAG=latest docker-compose -f docker-compose.production.yml pull api && IMAGE_TAG=latest docker-compose -f docker-compose.production.yml up -d --force-recreate api"
+# Step 4: Recreate API container (uses existing deployed image)
+echo "4️⃣  Recreating API container..."
+echo "   Using currently deployed image - migrations will run on startup..."
+ssh -i $SSH_KEY $USER@$SERVER "cd $DEPLOY_PATH && docker compose -f docker-compose.production.yml up -d --force-recreate api"
 
 if [ $? -ne 0 ]; then
-    echo "   ❌ FAIL: Could not pull/recreate API container"
+    echo "   ❌ FAIL: Could not recreate API container"
     echo ""
     echo "💡 Manual recovery may be required:"
-    echo "   ssh $USER@$SERVER 'cd $DEPLOY_PATH && IMAGE_TAG=latest docker-compose -f docker-compose.production.yml up -d api'"
+    echo "   ssh $USER@$SERVER 'cd $DEPLOY_PATH && docker compose -f docker-compose.production.yml up -d api'"
     exit 1
 fi
-echo "   ✅ API container recreated with latest image"
+echo "   ✅ API container recreated"
 echo ""
 
 # Step 5: Wait for migrations

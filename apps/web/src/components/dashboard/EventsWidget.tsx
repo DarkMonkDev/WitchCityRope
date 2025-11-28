@@ -20,14 +20,15 @@ const formatEventForWidget = (event: EventDto, timeZone: string) => {
   const isStartDateValid = startDate && !isNaN(startDate.getTime());
   const isEndDateValid = endDate && !isNaN(endDate.getTime());
 
-  const formatTime = (date: Date, timeZone: string) => {
+  const formatTime = (date: Date) => {
     try {
-      return date.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-        timeZone
-      });
+      // Use getUTCHours/getUTCMinutes for user-entered times stored as naive UTC
+      const hours = date.getUTCHours();
+      const minutes = date.getUTCMinutes();
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const hour12 = hours % 12 || 12;
+      const minuteStr = minutes.toString().padStart(2, '0');
+      return `${hour12}:${minuteStr} ${period}`;
     } catch (error) {
       return 'TBD';
     }
@@ -42,9 +43,9 @@ const formatEventForWidget = (event: EventDto, timeZone: string) => {
     title: event.title || 'Untitled Event',
     date: isStartDateValid ? startDate!.toISOString().split('T')[0] : fallbackDate,
     time: isStartDateValid && isEndDateValid
-      ? `${formatTime(startDate!, timeZone)} - ${formatTime(endDate!, timeZone)}`
+      ? `${formatTime(startDate!)} - ${formatTime(endDate!)}`
       : isStartDateValid
-        ? `${formatTime(startDate!, timeZone)} - ${fallbackTime}`
+        ? `${formatTime(startDate!)} - ${fallbackTime}`
         : fallbackTime,
     // Since EventDto doesn't have status, determine from availability and timing
     status: (isStartDateValid && startDate! > new Date()) ? 'Open' : 'Closed',

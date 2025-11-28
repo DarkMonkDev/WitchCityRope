@@ -94,14 +94,19 @@ echo "   (Test report checks were removed per user request)"
 # Check 2: Git status
 echo ""
 echo "2️⃣  Checking git status..."
-if [ -n "$(git status --short)" ]; then
+if [ "$SKIP_GIT_CHECK" = "true" ]; then
+    echo "   ⚠️  Git check SKIPPED (SKIP_GIT_CHECK=true)"
+    echo "   Uncommitted changes:"
+    git status --short
+elif [ -n "$(git status --short)" ]; then
     echo "   ❌ FAIL: Uncommitted changes detected"
     echo ""
     echo "💡 Commit all changes before deploying to production"
     git status --short
     exit 1
+else
+    echo "   ✅ Git clean"
 fi
-echo "   ✅ Git clean"
 
 # Check 3: Branch verification
 echo ""

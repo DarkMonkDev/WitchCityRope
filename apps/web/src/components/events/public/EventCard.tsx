@@ -243,20 +243,23 @@ export const EventCard = memo<EventCardProps>(({
             {(() => {
               if (!event.startDate) return ''
               const start = new Date(event.startDate)
-              const startTime = start.toLocaleTimeString('en-US', {
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true
-              }).toLowerCase()
+              // Use getUTCHours/getUTCMinutes for user-entered times stored as naive UTC
+              const startHours = start.getUTCHours();
+              const startMinutes = start.getUTCMinutes();
+              const startPeriod = startHours >= 12 ? 'pm' : 'am';
+              const startHour12 = startHours % 12 || 12;
+              const startMinuteStr = startMinutes.toString().padStart(2, '0');
+              const startTime = `${startHour12}:${startMinuteStr} ${startPeriod}`;
 
               if (!event.endDate) return startTime
 
               const end = new Date(event.endDate)
-              const endTime = end.toLocaleTimeString('en-US', {
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true
-              }).toLowerCase()
+              const endHours = end.getUTCHours();
+              const endMinutes = end.getUTCMinutes();
+              const endPeriod = endHours >= 12 ? 'pm' : 'am';
+              const endHour12 = endHours % 12 || 12;
+              const endMinuteStr = endMinutes.toString().padStart(2, '0');
+              const endTime = `${endHour12}:${endMinuteStr} ${endPeriod}`;
 
               return `${startTime} - ${endTime}`
             })()}

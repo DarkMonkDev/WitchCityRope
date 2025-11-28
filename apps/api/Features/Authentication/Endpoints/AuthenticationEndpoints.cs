@@ -63,6 +63,7 @@ public static class AuthenticationEndpoints
             IAuthenticationService authService,
             HttpContext context,
             IConfiguration configuration,
+            IAntiforgery antiforgery,
             CancellationToken cancellationToken) =>
             {
                 // Pass HttpContext to service for return URL validation
@@ -81,6 +82,18 @@ public static class AuthenticationEndpoints
                     };
 
                     context.Response.Cookies.Append("auth-token", response.Token, cookieOptions);
+
+                    // CRITICAL: Regenerate CSRF token after successful login
+                    // This prevents session fixation attacks and ensures fresh token for authenticated session
+                    var tokens = antiforgery.GetAndStoreTokens(context);
+                    context.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!,
+                        new CookieOptions
+                        {
+                            HttpOnly = false, // JavaScript must read this token
+                            SameSite = SameSiteMode.Lax,
+                            Secure = context.Request.IsHttps,
+                            Path = "/"
+                        });
 
                     // Return user info with validated return URL (BFF pattern)
                     // Frontend should redirect to returnUrl if present, otherwise /dashboard

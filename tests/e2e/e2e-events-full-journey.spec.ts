@@ -56,7 +56,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     expect(eventCount).toBeGreaterThan(0);
     
     // Screenshot for evidence
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/events-public-discovery.png' });
+    await page.screenshot({ path: './test-results/events-public-discovery.png' });
     
     console.log(`✅ Events discovery: Found ${eventCount} events on public page`);
   });
@@ -94,7 +94,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     const contentSection = page.locator('.html-content').first();
     await expect(contentSection).toBeVisible();
 
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/event-details-view.png' });
+    await page.screenshot({ path: './test-results/event-details-view.png' });
 
     console.log('✅ Event details: Successfully viewed event detail page');
   });
@@ -119,7 +119,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     const loginButton = page.locator('[data-testid="event-details"]').locator('a:has-text("Log In")').last();
     await expect(loginButton).toBeVisible();
 
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/login-required-alert.png' });
+    await page.screenshot({ path: './test-results/login-required-alert.png' });
 
     console.log('✅ Login required: Correctly shows login required message when not authenticated');
   });
@@ -128,7 +128,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     // Login using AuthHelpers
     await AuthHelpers.loginAs(page, 'member');
 
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/successful-login.png' });
+    await page.screenshot({ path: './test-results/successful-login.png' });
 
     console.log('✅ Login successful: User member@witchcityrope.com logged in successfully');
   });
@@ -168,7 +168,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
       // Wait for success - should see "RSVP Confirmed" status
       await expect(page.locator('text=/RSVP Confirmed/i')).toBeVisible({ timeout: 10000 });
 
-      await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/rsvp-complete.png' });
+      await page.screenshot({ path: './test-results/rsvp-complete.png' });
 
       console.log(`✅ Event RSVP: Successfully completed for "${eventTitle}"`);
     } else {
@@ -208,7 +208,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
       console.log('ℹ️ Dashboard view: User has no registered events (empty state displayed)');
     }
 
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/dashboard-events.png' });
+    await page.screenshot({ path: './test-results/dashboard-events.png' });
   });
 
   test('7. User cancels an RSVP from event detail page', async ({ page }) => {
@@ -253,7 +253,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
         console.log('ℹ️ RSVP cancellation: Cancellation processed (button state may vary based on timing)');
       }
 
-      await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/rsvp-cancelled.png' });
+      await page.screenshot({ path: './test-results/rsvp-cancelled.png' });
     } else {
       console.log('ℹ️ RSVP cancellation: No active RSVP to cancel for this event');
     }
@@ -280,7 +280,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     // Should see copy event button (admin uses row-click for editing)
     await expect(page.locator('[data-testid="button-copy-event"]').first()).toBeVisible();
     
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/admin-event-management.png' });
+    await page.screenshot({ path: './test-results/admin-event-management.png' });
     
     console.log('✅ Admin management: Successfully accessed event management interface');
   });
@@ -342,7 +342,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     expect(titleText).toMatch(/Events/i);
     console.log('   📊 Verified dashboard view');
 
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/complete-journey-success.png' });
+    await page.screenshot({ path: './test-results/complete-journey-success.png' });
 
     console.log('🎉 Complete user journey test PASSED!');
   });
@@ -405,7 +405,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     // Events should still be visible
     await expect(page.locator('[data-testid="events-list"]')).toBeVisible();
     
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/mobile-events-view.png' });
+    await page.screenshot({ path: './test-results/mobile-events-view.png' });
     
     console.log('✅ Performance and responsiveness test PASSED!');
   });

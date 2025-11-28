@@ -44,9 +44,9 @@ test.describe('Events Management Demo Page Stability', () => {
     await page.waitForLoadState('networkidle', { timeout: 10000 });
     
     // Take screenshot for evidence
-    await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope/apps/web/test-results/events-demo-page-content.png',
-      fullPage: true 
+    await page.screenshot({
+      path: './test-results/events-demo-page-content.png',
+      fullPage: true
     });
     
     // Check for full demo content indicators (vs minimal test page)
@@ -112,9 +112,9 @@ test.describe('Events Management Demo Page Stability', () => {
     await page.waitForTimeout(10000);
     
     // Take screenshot of final state
-    await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope/apps/web/test-results/events-demo-stability-check.png',
-      fullPage: true 
+    await page.screenshot({
+      path: './test-results/events-demo-stability-check.png',
+      fullPage: true
     });
     
     console.log(`📊 Reload Analysis:`);
@@ -155,9 +155,9 @@ test.describe('Events Management Demo Page Stability', () => {
     console.log(`📊 Initial Render Count: ${initialRenderCount}`);
     
     // Take initial screenshot
-    await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope/apps/web/test-results/navigation-test-initial.png',
-      fullPage: true 
+    await page.screenshot({
+      path: './test-results/navigation-test-initial.png',
+      fullPage: true
     });
     
     // Wait 5 seconds and check if render count increases
@@ -176,9 +176,9 @@ test.describe('Events Management Demo Page Stability', () => {
     }
     
     // Take final screenshot
-    await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope/apps/web/test-results/navigation-test-after-5s.png',
-      fullPage: true 
+    await page.screenshot({
+      path: './test-results/navigation-test-after-5s.png',
+      fullPage: true
     });
     
     console.log(`📊 Render Count Analysis:`);
@@ -216,7 +216,7 @@ test.describe('Events Management Demo Page Stability', () => {
 
     // Take screenshot
     await page.screenshot({
-      path: '/home/chad/repos/witchcityrope/apps/web/test-results/test-no-layout-stability.png',
+      path: './test-results/test-no-layout-stability.png',
       fullPage: true
     });
 
@@ -282,8 +282,8 @@ test.describe('Events Management Demo Page Stability', () => {
         }
         
         // Take screenshot
-        await page.screenshot({ 
-          path: `/home/chad/repos/witchcityrope/apps/web/test-results/${pageInfo.key}-report-screenshot.png`
+        await page.screenshot({
+          path: `./test-results/${pageInfo.key}-report-screenshot.png`
         });
         
       } catch (error) {

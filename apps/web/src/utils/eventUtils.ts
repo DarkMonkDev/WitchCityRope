@@ -53,30 +53,49 @@ export const formatShortDate = (dateString?: string, timeZone: string = 'America
   return `${dayOfWeek} - ${month}, ${day}`;
 };
 
-export const formatEventTime = (startDateString: string, endDateString?: string, timeZone: string = 'America/New_York'): string => {
-  const start = new Date(startDateString);
-  const startTime = start.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-    timeZone
-  }).toLowerCase();
+/**
+ * Format a time from an ISO datetime string WITHOUT timezone conversion.
+ * Use this for user-entered times (like event/session start/end times)
+ * that are stored as "naive UTC" - the UTC value represents the local time the user entered.
+ *
+ * @param dateString - ISO datetime string
+ * @returns Formatted time string (e.g., "6:00 PM")
+ */
+export const formatStoredTime = (dateString: string): string => {
+  const date = new Date(dateString);
+  const hours = date.getUTCHours();
+  const minutes = date.getUTCMinutes();
+
+  // Format in 12-hour format
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const hour12 = hours % 12 || 12;
+  const minuteStr = minutes.toString().padStart(2, '0');
+
+  return `${hour12}:${minuteStr} ${period}`;
+};
+
+/**
+ * Format a time range from ISO datetime strings WITHOUT timezone conversion.
+ * Use this for user-entered times (like event/session start/end times).
+ *
+ * @param startDateString - ISO datetime string for start time
+ * @param endDateString - ISO datetime string for end time (optional)
+ * @returns Formatted time range (e.g., "6:00 PM - 9:00 PM")
+ */
+export const formatEventTime = (startDateString: string, endDateString?: string, _timeZone?: string): string => {
+  // Note: timeZone parameter kept for backwards compatibility but is ignored
+  // We use getUTCHours/getUTCMinutes because user-entered times are stored as "naive UTC"
+
+  const startTime = formatStoredTime(startDateString);
 
   // If no end date, just return start time
   if (!endDateString) {
     return startTime;
   }
 
-  // Format end time
-  const end = new Date(endDateString);
-  const endTime = end.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-    timeZone
-  }).toLowerCase();
+  const endTime = formatStoredTime(endDateString);
 
-  // Return time range format: "1:00pm - 3:00pm"
+  // Return time range format: "6:00 PM - 9:00 PM"
   return `${startTime} - ${endTime}`;
 };
 
@@ -85,13 +104,14 @@ export const formatEventTime = (startDateString: string, endDateString?: string,
  * Example: "Sunday, Nov 2 - 1:00pm - 4:00pm"
  * @param startDate - Event start date ISO string
  * @param endDate - Event end date ISO string (optional)
- * @param timeZone - IANA timezone (defaults to America/New_York)
+ * @param timeZone - IANA timezone (defaults to America/New_York) - used for DATE only, not time
  * @returns Formatted date/time string
  */
 export const formatEventDateTime = (startDate: string, endDate?: string, timeZone: string = 'America/New_York'): string => {
   const start = new Date(startDate);
 
   // Format date with abbreviated month, no year
+  // Note: timeZone is used for DATE formatting only (to get correct day of week)
   const datePart = start.toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'short',
@@ -99,27 +119,16 @@ export const formatEventDateTime = (startDate: string, endDate?: string, timeZon
     timeZone
   });
 
-  // Format start time
-  const startTime = start.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-    timeZone
-  }).toLowerCase();
+  // Format start time using stored UTC values (no timezone conversion)
+  const startTime = formatStoredTime(startDate).toLowerCase();
 
   // If no end date, just return date + start time
   if (!endDate) {
     return `${datePart} - ${startTime}`;
   }
 
-  // Format end time
-  const end = new Date(endDate);
-  const endTime = end.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-    timeZone
-  }).toLowerCase();
+  // Format end time using stored UTC values (no timezone conversion)
+  const endTime = formatStoredTime(endDate).toLowerCase();
 
   return `${datePart} - ${startTime} - ${endTime}`;
 };

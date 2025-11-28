@@ -67,13 +67,16 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
     });
   };
 
+  // Format time from stored "naive UTC" - DO NOT use timezone conversion
+  // User-entered event times are stored as UTC values that represent local time
   const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-      timeZone: eventTimeZone
-    });
+    const date = new Date(dateString);
+    const hours = date.getUTCHours();
+    const minutes = date.getUTCMinutes();
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const hour12 = hours % 12 || 12;
+    const minuteStr = minutes.toString().padStart(2, '0');
+    return `${hour12}:${minuteStr} ${period}`;
   };
 
   const formatCurrency = (amount: number) => {

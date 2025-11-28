@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Table, Text, Group } from '@mantine/core';
 import { WCRButton } from '../ui';
 import type { components } from '@witchcityrope/shared-types';
-import { useEventTimeZone } from '../../hooks/useEventTimeZone';
 
 // Use auto-generated SessionDto from backend instead of manual interface
 export type EventSession = components['schemas']['SessionDto'];
@@ -20,8 +19,14 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
   onDeleteSession,
   onAddSession,
 }) => {
-  // Get the configured event timezone from admin settings
-  const eventTimeZone = useEventTimeZone();
+  // Sort sessions by date (oldest first)
+  const sortedSessions = useMemo(() => {
+    return [...sessions].sort((a, b) => {
+      const dateA = a.date ? new Date(a.date).getTime() : 0;
+      const dateB = b.date ? new Date(b.date).getTime() : 0;
+      return dateA - dateB;
+    });
+  }, [sessions]);
 
   const formatDate = (dateString: string) => {
     // session.date is a date-only field (extracted from StartTime.Date on backend)
@@ -37,14 +42,18 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
   };
 
   const formatTime = (timeString: string) => {
-    // Display in configured event timezone (not user's local timezone)
+    // Do NOT apply timezone conversion - display the stored UTC time as-is
+    // This matches what the user entered in the modal (which uses getUTCHours/getUTCMinutes)
     const date = new Date(timeString);
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-      timeZone: eventTimeZone
-    });
+    const hours = date.getUTCHours();
+    const minutes = date.getUTCMinutes();
+
+    // Format in 12-hour format
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const hour12 = hours % 12 || 12;
+    const minuteStr = minutes.toString().padStart(2, '0');
+
+    return `${hour12}:${minuteStr} ${period}`;
   };
 
   const getSoldDisplay = (sold?: number, capacity?: number) => {
@@ -105,7 +114,7 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
-          {sessions.map((session) => (
+          {sortedSessions.map((session) => (
             <Table.Tr
               key={session.id}
               data-testid="session-row"
@@ -143,7 +152,7 @@ export const EventSessionsGrid: React.FC<EventSessionsGridProps> = ({
               </Table.Td>
             </Table.Tr>
           ))}
-          {sessions.length === 0 && (
+          {sortedSessions.length === 0 && (
             <Table.Tr>
               <Table.Td colSpan={7}>
                 <Text ta="center" c="dimmed" py="xl">

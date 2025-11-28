@@ -66,27 +66,27 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
     ,
       timeZone: eventTimeZone})
 
-    // Format start time
-    const startTime = start.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    ,
-      timeZone: eventTimeZone}).toLowerCase()
+    // Format start time using getUTCHours/getUTCMinutes (user-entered times stored as naive UTC)
+    const startHours = start.getUTCHours();
+    const startMinutes = start.getUTCMinutes();
+    const startPeriod = startHours >= 12 ? 'pm' : 'am';
+    const startHour12 = startHours % 12 || 12;
+    const startMinuteStr = startMinutes.toString().padStart(2, '0');
+    const startTime = `${startHour12}:${startMinuteStr} ${startPeriod}`;
 
     // If no end date, just return date + start time
     if (!endDate) {
       return `${datePart} - ${startTime}`
     }
 
-    // Format end time
+    // Format end time using getUTCHours/getUTCMinutes
     const end = new Date(endDate)
-    const endTime = end.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    ,
-      timeZone: eventTimeZone}).toLowerCase()
+    const endHours = end.getUTCHours();
+    const endMinutes = end.getUTCMinutes();
+    const endPeriod = endHours >= 12 ? 'pm' : 'am';
+    const endHour12 = endHours % 12 || 12;
+    const endMinuteStr = endMinutes.toString().padStart(2, '0');
+    const endTime = `${endHour12}:${endMinuteStr} ${endPeriod}`;
 
     return `${datePart} - ${startTime} - ${endTime}`
   }
@@ -94,13 +94,14 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
   const formatShiftTime = (timeString?: string) => {
     if (!timeString) return ''
     try {
+      // Use getUTCHours/getUTCMinutes for user-entered times stored as naive UTC
       const date = new Date(timeString)
-      return date.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      ,
-      timeZone: eventTimeZone}).toLowerCase()
+      const hours = date.getUTCHours();
+      const minutes = date.getUTCMinutes();
+      const period = hours >= 12 ? 'pm' : 'am';
+      const hour12 = hours % 12 || 12;
+      const minuteStr = minutes.toString().padStart(2, '0');
+      return `${hour12}:${minuteStr} ${period}`;
     } catch {
       return timeString
     }
@@ -220,22 +221,23 @@ export const EventCard: React.FC<EventCardProps> = ({ event, className, voluntee
             {(() => {
               if (!event.startDate) return ''
               const start = new Date(event.startDate)
-              const startTime = start.toLocaleTimeString('en-US', {
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true
-              ,
-      timeZone: eventTimeZone}).toLowerCase()
+              // Use getUTCHours/getUTCMinutes for user-entered times stored as naive UTC
+              const startHours = start.getUTCHours();
+              const startMinutes = start.getUTCMinutes();
+              const startPeriod = startHours >= 12 ? 'pm' : 'am';
+              const startHour12 = startHours % 12 || 12;
+              const startMinuteStr = startMinutes.toString().padStart(2, '0');
+              const startTime = `${startHour12}:${startMinuteStr} ${startPeriod}`;
 
               if (!event.endDate) return startTime
 
               const end = new Date(event.endDate)
-              const endTime = end.toLocaleTimeString('en-US', {
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true
-              ,
-      timeZone: eventTimeZone}).toLowerCase()
+              const endHours = end.getUTCHours();
+              const endMinutes = end.getUTCMinutes();
+              const endPeriod = endHours >= 12 ? 'pm' : 'am';
+              const endHour12 = endHours % 12 || 12;
+              const endMinuteStr = endMinutes.toString().padStart(2, '0');
+              const endTime = `${endHour12}:${endMinuteStr} ${endPeriod}`;
 
               return `${startTime} - ${endTime}`
             })()}
