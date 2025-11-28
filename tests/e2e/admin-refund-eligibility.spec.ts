@@ -31,7 +31,7 @@ test.describe('Admin Refund Eligibility - Business Rules', () => {
   test.beforeEach(async ({ page }) => {
     console.log('\n📝 Setup: Login as admin and navigate to payments');
     await AuthHelpers.loginAs(page, 'admin');
-    await page.goto('/admin/payments');
+    await page.goto('/admin/analytics/payments');
     await page.waitForLoadState('networkidle');
 
     // Verify we're on the payments page

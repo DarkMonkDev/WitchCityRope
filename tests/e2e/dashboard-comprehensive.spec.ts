@@ -158,7 +158,7 @@ test.describe('Dashboard - Profile Management', () => {
       await profileLink.click();
     } else {
       // Direct navigation if link not found
-      await page.goto('/dashboard/profile');
+      await page.goto('/dashboard/profile-settings');
     }
     
     await WaitHelpers.waitForPageLoad(page);
@@ -192,7 +192,7 @@ test.describe('Dashboard - Profile Management', () => {
   });
 
   test('should validate profile form fields', async ({ page }) => {
-    await page.goto('/dashboard/profile');
+    await page.goto('/dashboard/profile-settings');
     await WaitHelpers.waitForPageLoad(page);
 
     // Test email validation
@@ -273,7 +273,7 @@ test.describe('Dashboard - Security Settings', () => {
     if (await securityLink.count() > 0) {
       await securityLink.click();
     } else {
-      await page.goto('/dashboard/security');
+      await page.goto('/dashboard/profile-settings');
     }
     
     await WaitHelpers.waitForPageLoad(page);
@@ -357,7 +357,7 @@ test.describe('Dashboard - Security Settings', () => {
   // 2FA Test Removed: Two-factor authentication is not implemented and not planned for this project
 
   test('should handle privacy settings toggles', async ({ page }) => {
-    await page.goto('/dashboard/security');
+    await page.goto('/dashboard/profile-settings');
     await WaitHelpers.waitForPageLoad(page);
 
     const privacyToggles = [

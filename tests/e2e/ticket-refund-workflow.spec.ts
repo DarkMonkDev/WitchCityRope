@@ -70,7 +70,7 @@ test.describe.serial('Ticket Refund Workflow - Happy Path', () => {
 
     // Navigate to admin payments page
     console.log('📝 Step 2: Navigate to admin payments page');
-    await page.goto('/admin/payments');
+    await page.goto('/admin/analytics/payments');
     await page.waitForLoadState('networkidle');
 
     // Verify we're on the payments page
@@ -97,7 +97,7 @@ test.describe.serial('Ticket Refund Workflow - Happy Path', () => {
 
     // Navigate to payments page
     console.log('📝 Step 1: Navigate to admin payments page');
-    await page.goto('/admin/payments');
+    await page.goto('/admin/analytics/payments');
     await page.waitForLoadState('networkidle');
 
     // Find first payment in the list
@@ -164,7 +164,7 @@ test.describe.serial('Ticket Refund Workflow - Happy Path', () => {
 
     // Navigate to payments page
     console.log('📝 Step 1: Navigate to admin payments page');
-    await page.goto('/admin/payments');
+    await page.goto('/admin/analytics/payments');
     await page.waitForLoadState('networkidle');
 
     // Find first eligible payment
@@ -309,7 +309,7 @@ test.describe('Ticket Refund Workflow - Edge Cases', () => {
 
     // Navigate to payments page
     console.log('📝 Step 1: Navigate to admin payments page');
-    await page.goto('/admin/payments');
+    await page.goto('/admin/analytics/payments');
     await page.waitForLoadState('networkidle');
 
     // Find refund button
@@ -366,7 +366,7 @@ test.describe('Ticket Refund Workflow - Edge Cases', () => {
     await AuthHelpers.loginAs(page, 'admin');
 
     // Navigate to payments page
-    await page.goto('/admin/payments');
+    await page.goto('/admin/analytics/payments');
     await page.waitForLoadState('networkidle');
 
     const paymentRows = page.locator('table tbody tr, [data-testid="payment-row"]');

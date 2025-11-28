@@ -36,7 +36,7 @@ test.describe('Simple Rebuild Verification', () => {
 
     // Try direct navigation
     console.log('Trying direct navigation to admin dashboard...');
-    await page.goto('/admin/dashboard');
+    await page.goto('/admin');
     await page.waitForTimeout(2000);
 
     await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/admin-dashboard-direct-nav.png', fullPage: true });
