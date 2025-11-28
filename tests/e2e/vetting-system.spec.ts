@@ -26,7 +26,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
     // STEP 1: Start logged out and navigate to "How to Join" page
     console.log('📍 STEP 1: Navigate to How to Join page while logged out');
     await page.goto('/join');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify it shows text saying they need to login or create account
     const bodyText = await page.textContent('body');
@@ -58,7 +58,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
       }
     }
 
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Login as guest user
     await page.waitForSelector('[data-testid="login-form"], form', { timeout: 10000 });
@@ -89,7 +89,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
       console.log('✅ Navigated directly to join page');
     }
 
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // STEP 4: Fill out and submit vetting application
     console.log('📍 STEP 4: Fill out vetting application form');
@@ -124,7 +124,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
 
       if (await returnHomeButton.count() > 0) {
         await returnHomeButton.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         console.log('✅ Return home navigation works from error page');
       }
 
@@ -211,7 +211,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
       console.log('✅ Submitted vetting application');
 
       // Wait for submission to complete
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(3000); // Allow more time for processing
     }
 
@@ -219,7 +219,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
     console.log('📍 STEP 5: Check dashboard for application confirmation');
 
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Take screenshot of dashboard
     await page.screenshot({ path: 'test-results/dashboard-after-application.png', fullPage: true });
@@ -243,7 +243,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
       await page.goto('/join');
     }
 
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify it shows application submitted status and next steps (if application was actually submitted)
     const joinPageAfterSubmission = await page.textContent('body');
@@ -320,7 +320,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
       for (const url of adminUrls) {
         try {
           await page.goto(url);
-          await page.waitForLoadState('networkidle');
+          await page.waitForLoadState('domcontentloaded');
           const pageContent = await page.textContent('body');
           if (pageContent?.includes('vetting') || pageContent?.includes('application')) {
             console.log(`✅ Found vetting admin area at: ${url}`);
@@ -336,7 +336,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
     if (!foundAdminNav) {
       console.log('⚠️ Could not find vetting admin area - checking dashboard for admin features');
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     }
 
     // Take screenshot of admin area
@@ -375,7 +375,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
       }
 
       if (foundApplicationLink) {
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         // STEP 10: Verify application data looks correct
         console.log('📍 STEP 10: Verify application data');
@@ -403,7 +403,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
 
           if (await saveButton.count() > 0) {
             await saveButton.click();
-            await page.waitForLoadState('networkidle');
+            await page.waitForLoadState('domcontentloaded');
             console.log('✅ Saved admin note');
           }
         } else {
@@ -414,7 +414,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
         console.log('📍 STEP 12: Refresh to confirm note saved');
 
         await page.reload();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         const refreshedPageText = await page.textContent('body');
         const noteSaved = refreshedPageText?.includes('Initial review completed');
@@ -445,13 +445,13 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
           console.log('⚠️ Approve controls not found - may need different selectors');
         }
 
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         // STEP 14: Refresh page to confirm new status
         console.log('📍 STEP 14: Refresh to confirm status change');
 
         await page.reload();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         const finalPageText = await page.textContent('body');
         const statusUpdated = finalPageText?.includes('Approved') || finalPageText?.includes('Interview');
@@ -484,7 +484,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
     console.log('📍 STEP 16: Check dashboard for updated application status');
 
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const finalDashboardText = await page.textContent('body');
     const hasUpdatedStatus = finalDashboardText?.includes('Approved') ||
@@ -496,7 +496,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
 
     // Navigate to join page one more time to see the updated status
     await page.goto('/join');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const finalJoinPageText = await page.textContent('body');
     const showsNewStatus = finalJoinPageText?.includes('Approved') ||
@@ -543,7 +543,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
     await AuthHelpers.loginAs(page, 'guest');
 
     await page.goto('/join');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Check for accessibility attributes
     const formElements = await page.locator('form input, form textarea, form select').count();
