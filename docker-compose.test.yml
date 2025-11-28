@@ -140,15 +140,23 @@ services:
     environment:
       # Test environment
       NODE_ENV: test
-      
+
+      # Container environment detection - CRITICAL for Vite proxy to work
+      # Without this, Vite proxy targets localhost:5655 instead of api:8080
+      DOCKER_ENV: "true"
+
       # API connection (internal container communication)
       VITE_API_BASE_URL: http://api:8080
-      
+
       # Test features
       VITE_ENABLE_DEBUG: "false"
       VITE_ENABLE_MOCK_DATA: "false"
       VITE_ENABLE_ANALYTICS: "false"
-      
+
+      # Authentication cookie settings (REQUIRED for CSRF to work)
+      VITE_AUTH_COOKIE_DOMAIN: ""
+      VITE_AUTH_COOKIE_SECURE: "false"
+
       # CI optimization
       CI: "true"
       NPM_CONFIG_CACHE: /app/.npm

@@ -1,14 +1,166 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-11-27 -->
-<!-- Version: 11.27.3 - EVENT CREATION TEST EXECUTION BLOCKED -->
+<!-- Last Updated: 2025-11-28 -->
+<!-- Version: 11.28.1 - FULL E2E SUITE EXECUTION RESULTS -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
 
 
+## ❌ FULL E2E TEST SUITE EXECUTION - November 28, 2025
+
+**EXECUTION DATE**: 2025-11-28T10:37:48Z
+**LAST UPDATED**: 2025-11-28T10:52:54Z
+**STATUS**: ❌ **FAIL - 61.5% pass rate (below 90% threshold)**
+**QUALITY GATE**: ❌ FAIL - Critical authentication/CSRF issues blocking features
+**CONFIGURATION**: 6 workers, 0 retries, Chromium only
+**DETAILED REPORT**: `/test-results/test-execution-report.md`
+
+### Execution Summary
+
+**Total Tests**: 896 tests
+**Passed**: 560 (62.5%)
+**Failed**: 245 (27.3%)
+**Skipped**: 91 (10.2%)
+**Duration**: 14.4 minutes (865.2 seconds)
+**Pass Rate**: 61.5% (BELOW 90% threshold)
+
+### Environment Status
+
+- ✅ **Docker Web**: Healthy (http://localhost:5173)
+- ✅ **Docker API**: Healthy (http://localhost:5655)
+- ✅ **Docker DB**: Healthy (localhost:5434)
+- ✅ **Test Server**: Healthy (http://localhost:8080)
+
+**All infrastructure healthy - failures are code/implementation issues**
+
+### Critical Error Patterns (BLOCKING)
+
+#### 1. CSRF Token Issues (HIGH PRIORITY - BLOCKS FEATURES)
+**Pattern**: `❌ No CSRF token available for state-changing request`
+**Impact**: Form submissions and state-changing operations fail
+**Frequency**: Multiple tests across vetting, registration, auth workflows
+**Affected Areas**:
+- Vetting application form submissions
+- Registration workflows
+- Login operations requiring CSRF tokens
+**Example**:
+```
+❌ No CSRF token available for state-changing request: /api/auth/login
+Failed to load resource: the server responded with a status of 403 (Forbidden)
+```
+**Assigned To**: backend-developer (URGENT)
+
+#### 2. 401 Unauthorized Errors (HIGH PRIORITY)
+**Pattern**: `Failed to load resource: the server responded with a status of 401 (Unauthorized)`
+**Impact**: Tests fail accessing protected resources
+**Frequency**: Frequent across multiple test suites
+**Affected Areas**:
+- Event registration endpoints
+- User dashboard data
+- Protected API calls
+**Assigned To**: backend-developer (URGENT)
+
+#### 3. Missing UI Features (MEDIUM PRIORITY)
+**Skipped Tests**: 91 tests (10.2%)
+**Reason**: Features not implemented yet
+**Examples**:
+- View toggle for grid/table layout
+- Profile settings tabs
+- Vetting status section on dashboard
+- Email template editing features
+**Assigned To**: react-developer
+
+#### 4. Test Data/State Issues (MEDIUM PRIORITY)
+**Pattern**: Tests fail due to missing or incorrect seed data
+**Examples**:
+- "No past events found for this user"
+- "User already has RSVP for this event"
+- "Not enough templates to test switching"
+- "No approved applications found"
+**Assigned To**: test-developer (improve seeding)
+
+#### 5. Working Login Test Failures (LOW PRIORITY)
+**File**: `working-login-solution.spec.ts`
+**Issue**: Performance benchmark expects boolean `true`, receives credential object
+**Impact**: Low - only affects performance benchmarks
+**Assigned To**: test-developer
+
+### Test Category Breakdown
+
+| Category | Tests | Status | Priority |
+|----------|-------|--------|----------|
+| Authentication & Authorization | ~80 | ❌ CSRF/401 errors | HIGH |
+| Event Management | ~150 | ⚠️ Mostly passing | MEDIUM |
+| Vetting Workflows | ~100 | ❌ Auth issues | HIGH |
+| User Dashboard | ~120 | ✅ Passing with warnings | LOW |
+| Admin Functions | ~90 | ⚠️ Mixed | MEDIUM |
+| Registration/Ticketing | ~80 | ❌ Auth issues | HIGH |
+
+### Comparison to Previous Run
+
+**Previous Run** (Unknown date):
+- 827 tests, 553 passed (66.9%), 274 failed
+
+**Current Run** (2025-11-28):
+- 896 tests, 560 passed (62.5%), 245 failed
+
+**Changes**:
+- +69 tests added to suite
+- +7 more tests passing
+- -29 fewer failures
+- **-4.4% pass rate (regression)**
+
+### Immediate Actions Required
+
+#### CRITICAL (Backend Developer)
+1. ✅ **Fix CSRF Token Generation**
+   - Ensure tokens generated for all state-changing requests
+   - Verify token validation middleware
+   - Update authentication flow
+2. ✅ **Review 401 Authorization Issues**
+   - Check JWT token validation
+   - Verify cookie-based auth implementation
+   - Test authentication middleware
+
+#### HIGH PRIORITY (Test Developer)
+3. ✅ **Improve Test Data Seeding**
+   - Add comprehensive seed data for all scenarios
+   - Ensure consistent state for tests
+   - Create fixtures for edge cases
+
+#### MEDIUM PRIORITY (React Developer)
+4. ✅ **Complete Missing UI Features** (91 skipped tests)
+   - Grid/table view toggle
+   - Profile settings tabs
+   - Vetting status display
+   - Email template editor
+
+#### LOW PRIORITY (Test Developer)
+5. ✅ **Fix Working Login Test Logic**
+   - Update expectations to match return values
+   - Review performance benchmark assertions
+
+### Artifacts & Logs
+
+**Test Results**: `/home/chad/repos/witchcityrope/test-results/`
+**Screenshots**: `/home/chad/repos/witchcityrope/test-results/*/test-failed-*.png`
+**Videos**: `/home/chad/repos/witchcityrope/test-results/*/video.webm`
+**Error Context**: `/home/chad/repos/witchcityrope/test-results/*/error-context.md`
+**Execution Log**: `/tmp/e2e-full-suite-no-retries-2025-11-28.log`
+
+### Next Steps
+
+1. Orchestrator reviews report and prioritizes fixes
+2. Backend developer addresses CSRF and 401 issues (CRITICAL)
+3. Test developer improves data seeding
+4. React developer completes missing UI features
+5. Re-run full suite after fixes applied
+
+---
+
 ## ✅ VETTING APPLICATION WORKFLOW TEST - FULLNAME REMOVAL VERIFICATION - November 27, 2025
 
 **EXECUTION DATE**: 2025-11-27T09:30:00Z
-**LAST UPDATED**: 2025-11-27T09:30:00Z  
+**LAST UPDATED**: 2025-11-27T09:30:00Z
 **STATUS**: ✅ **PASS - FullName field removal successful (13/19 tests, 68.4%)**
 **QUALITY GATE**: ✅ PASS - Migration applied, no regressions from FullName removal
 **PURPOSE**: Verify vetting application workflow still functions after removing FullName field from backend/frontend
@@ -17,7 +169,7 @@
 ### Verification Summary
 
 **Migration Status**: ✅ `20251127085617_RemoveFullNameFields` applied successfully
-**Database**: ✅ FullName column removed from AspNetUsers and VettingApplications  
+**Database**: ✅ FullName column removed from AspNetUsers and VettingApplications
 **API Queries**: ✅ EF Core using FirstName + LastName (verified in logs)
 **Frontend Types**: ✅ TypeScript types regenerated - fullName property removed
 **Name Display**: ✅ UI using computed FirstName + LastName pattern
@@ -35,7 +187,7 @@
 
 **Vetting Application Detail** (5 tests):
 1. ✅ Admin can approve application with reasoning
-2. ✅ Admin can deny application with reasoning  
+2. ✅ Admin can deny application with reasoning
 3. ✅ Admin can add notes to application
 4. ✅ Admin can view audit log history
 5. ✅ Approved application shows vetted member status
@@ -49,7 +201,7 @@
 2. ✅ Display all required form fields
 3. ✅ Show validation messages for empty fields
 4. ✅ Submit form successfully when logged in
-5. ✅ Show form but require login for submission  
+5. ✅ Show form but require login for submission
 6. ✅ Show status when user has existing application
 
 ### Failing Tests (6) - NOT Related to FullName Removal
@@ -81,7 +233,7 @@
 
 **Assigned Issues** (for backend-developer/react-developer):
 - Implement vetting status section on user dashboard
-- Fix form validation to enable submit button  
+- Fix form validation to enable submit button
 - Add action buttons to admin detail page
 - Fix status badge updates after admin actions
 
@@ -778,7 +930,7 @@ All selectors verified against actual React components:
 ### Lessons Learned
 
 **Problem**: E2E tests timing out because selectors didn't match current UI implementation
-**Prevention**: 
+**Prevention**:
 1. ✅ Always verify selectors against actual component code before writing tests
 2. ✅ Prefer data-testid attributes over generic selectors when available
 3. ✅ Use Mantine role-based selectors (getByLabel, getByRole) for component library
