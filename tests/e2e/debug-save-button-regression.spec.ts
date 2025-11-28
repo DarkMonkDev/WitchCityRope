@@ -49,7 +49,7 @@ test.describe('Debug Save Button Regression - Field Clearing Investigation', () 
 
     // ==== TAKE SCREENSHOT BEFORE SAVE ====
     await page.screenshot({
-      path: '/home/chad/repos/witchcityrope/apps/web/test-results/before-save-button.png',
+      path: './test-results/before-save-button.png',
       fullPage: true
     });
     console.log('📸 Screenshot saved: before-save-button.png');
@@ -109,7 +109,7 @@ test.describe('Debug Save Button Regression - Field Clearing Investigation', () 
 
       // ==== TAKE SCREENSHOT AFTER SAVE ====
       await page.screenshot({
-        path: '/home/chad/repos/witchcityrope/apps/web/test-results/after-save-button.png',
+        path: './test-results/after-save-button.png',
         fullPage: true
       });
       console.log('📸 Screenshot saved: after-save-button.png');

@@ -302,7 +302,7 @@ test.describe('Events Management Demo Page Stability', () => {
     }
 
     // Write comprehensive report
-    const reportPath = '/home/chad/repos/witchcityrope/apps/web/test-results/page-stability-report.json';
+    const reportPath = './test-results/page-stability-report.json';
     await page.evaluate((reportData) => {
       // Save report data for later access
       window.testReport = reportData;

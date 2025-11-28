@@ -47,9 +47,9 @@ test.describe('Infinite Loop Verification', () => {
       );
 
       // Take a screenshot for debugging
-      await page.screenshot({ 
-        path: '/home/chad/repos/witchcityrope/apps/web/test-results/infinite-loop-check.png',
-        fullPage: true 
+      await page.screenshot({
+        path: './test-results/infinite-loop-check.png',
+        fullPage: true
       });
 
       console.log('📊 Test Results:');

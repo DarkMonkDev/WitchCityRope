@@ -108,7 +108,7 @@ test.describe('PayPal Button - debugLog Import Fix Verification', () => {
 
     console.log('🔍 Step 5: Take screenshot for visual verification');
     await page.screenshot({
-      path: '/home/chad/repos/witchcityrope/test-results/paypal-button-fix-verification.png',
+      path: './test-results/paypal-button-fix-verification.png',
       fullPage: true
     });
 
