@@ -15,6 +15,40 @@ public class DatabaseBackupService
     {
         _config = config.Value;
         _logger = logger;
+
+        // Validate required database configuration values
+        if (string.IsNullOrWhiteSpace(_config.Database.Host))
+        {
+            throw new InvalidOperationException(
+                "Database Host is not configured for backups. " +
+                "Set the BackupConfiguration__Database__Host environment variable.");
+        }
+
+        if (string.IsNullOrWhiteSpace(_config.Database.DatabaseName))
+        {
+            throw new InvalidOperationException(
+                "Database Name is not configured for backups. " +
+                "Set the BackupConfiguration__Database__DatabaseName environment variable.");
+        }
+
+        if (string.IsNullOrWhiteSpace(_config.Database.Username))
+        {
+            throw new InvalidOperationException(
+                "Database Username is not configured for backups. " +
+                "Set the BackupConfiguration__Database__Username environment variable.");
+        }
+
+        if (string.IsNullOrWhiteSpace(_config.Database.Password))
+        {
+            throw new InvalidOperationException(
+                "Database Password is not configured for backups. " +
+                "Set the BackupConfiguration__Database__Password environment variable.");
+        }
+
+        _logger.LogInformation(
+            "DatabaseBackupService initialized. Host: {Host}, Database: {Database}",
+            _config.Database.Host,
+            _config.Database.DatabaseName);
     }
 
     public async Task<string> ExecuteBackupAsync(string fileName, CancellationToken cancellationToken = default)
