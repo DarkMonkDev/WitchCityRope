@@ -14,7 +14,7 @@ test.describe('Manual Vetting Application Submission Test', () => {
     await page.waitForLoadState('domcontentloaded');
 
     // Take screenshot of the form
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/vetting-form-initial.png', fullPage: true });
+    await page.screenshot({ path: './test-results/vetting-form-initial.png', fullPage: true });
     console.log('Vetting application form loaded');
 
     // Step 4: Fill out the form using placeholder-based selectors
@@ -47,7 +47,7 @@ test.describe('Manual Vetting Application Submission Test', () => {
     console.log('Checked Agree to Community Standards');
 
     // Take screenshot before submission
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/vetting-form-filled.png', fullPage: true });
+    await page.screenshot({ path: './test-results/vetting-form-filled.png', fullPage: true });
 
     // Step 5: Listen for console errors and network requests
     const consoleErrors: string[] = [];
@@ -98,7 +98,7 @@ test.describe('Manual Vetting Application Submission Test', () => {
     await page.waitForTimeout(3000);
 
     // Take screenshot after submission
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/vetting-form-after-submit.png', fullPage: true });
+    await page.screenshot({ path: './test-results/vetting-form-after-submit.png', fullPage: true });
 
     // Step 7: Report results
     console.log('\n=== TEST RESULTS ===');

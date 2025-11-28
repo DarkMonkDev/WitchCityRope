@@ -15,7 +15,7 @@ test.describe('Event Checkout - Pricing Step Verification', () => {
     await page.waitForTimeout(2000);
 
     // Take screenshot
-    await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/checkout-free-rsvp.png', fullPage: true });
+    await page.screenshot({ path: './test-results/checkout-free-rsvp.png', fullPage: true });
     console.log('✓ Screenshot saved: checkout-free-rsvp.png');
 
     // Check stepper shows "Ticket Selection" (not "Pricing")
@@ -57,7 +57,7 @@ test.describe('Event Checkout - Pricing Step Verification', () => {
         await page.waitForTimeout(1000);
 
         // Take screenshot after change
-        await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/checkout-support-donation.png', fullPage: true });
+        await page.screenshot({ path: './test-results/checkout-support-donation.png', fullPage: true });
         console.log('✓ Screenshot saved: checkout-support-donation.png');
 
         // Check for sliding scale selector

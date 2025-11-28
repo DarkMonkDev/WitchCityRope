@@ -73,7 +73,7 @@ test.describe('Policies Field - Comprehensive Testing', () => {
 
       if (!policiesField) {
         await page.screenshot({
-          path: '/home/chad/repos/witchcityrope/test-results/policies-field-not-found.png',
+          path: './test-results/policies-field-not-found.png',
           fullPage: true
         });
         throw new Error('❌ Policies field not found on the page');

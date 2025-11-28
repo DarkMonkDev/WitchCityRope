@@ -283,21 +283,31 @@
 
 #### 1. **Session Management Tests** - `/tests/e2e/admin-events-sessions.spec.ts`
 **Purpose**: Test session CRUD operations, S# ID assignment, and API integration without page refresh
-**Test Cases**:
-- ✅ `should add a new session via modal without page refresh` - Tests modal-based session creation
-- ✅ `should edit existing session via modal` - Tests pre-population of edit modal with existing data
-- ✅ `should assign S# IDs automatically to new sessions` - Tests S1, S2, S3 ID assignment system
-- ✅ `should delete session with confirmation dialog` - Tests cascade operations and confirmation
-- ✅ `should validate session form fields` - Tests form validation (required fields, time ranges, capacity)
-- ✅ `should show loading states and error handling` - Tests API error handling and loading states
+**Status**: ⚠️ PARTIALLY READY - 3 tests active, 3 tests skipped pending UI implementation
+**Last Updated**: 2025-11-28
 
-**Expected Failures** (Red Phase):
-- Sessions tab doesn't exist (will look for `[data-testid="tab-sessions"]`)
-- Add Session button doesn't exist (will look for `[data-testid="button-add-session"]`)
-- Session modal doesn't exist (will look for `[data-testid="modal-add-session"]`)
-- S# ID system not implemented (will look for S1, S2, S3 format)
-- Session grid doesn't update without page refresh
-- Form validation not implemented
+**Test Cases**:
+- ✅ `should add a new session via modal without page refresh` - Tests modal-based session creation (ACTIVE)
+- ✅ `should edit existing session via modal` - Tests pre-population of edit modal with existing data (ACTIVE)
+- ✅ `should assign S# IDs automatically to new sessions` - Tests S1, S2, S3 ID assignment system (ACTIVE)
+- ⏭️ `should delete session with confirmation dialog` - SKIPPED - Delete UI not implemented yet
+- ⏭️ `should validate session form fields` - SKIPPED - Validation messages need verification
+- ⏭️ `should show loading states and error handling` - SKIPPED - Error notification selectors need verification
+
+**Implementation Status**:
+- ✅ Sessions section exists at `[data-testid="sessions-section"]`
+- ✅ Session grid exists at `[data-testid="grid-sessions"]`
+- ✅ Add Session button exists at `[data-testid="button-add-session"]`
+- ✅ Session modal opens with form fields
+- ✅ Session ID displayed at `[data-testid="session-id"]`
+- ❌ Delete button NOT implemented in EventSessionsGrid
+- ⚠️ Validation messages not verified
+- ⚠️ Error notification selectors not verified
+
+**Notes**:
+- Tests use `getByLabel()` for form fields (Mantine TextInput label association)
+- Expected session ID format: /^S\d+$/ (e.g., "S1", "S2", "S3")
+- Delete functionality needs UI implementation before test can be enabled
 
 #### 2. **Volunteer Position Management Tests** - `/tests/e2e/admin-events-volunteers.spec.ts`
 **Purpose**: Test volunteer position CRUD operations, event-scoped session filtering, and UI consistency

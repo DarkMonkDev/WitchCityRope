@@ -19,18 +19,27 @@ test.describe('Event Copy - Admin Workflow', () => {
     // Navigate to admin events page
     await page.goto('/admin/events');
     await page.waitForLoadState('domcontentloaded');
+
+    // Wait for events table to load
+    await page.locator('[data-testid="events-table"]').waitFor({ state: 'visible', timeout: 10000 });
+
+    // Skip if no events exist in database
+    const eventRowCount = await page.locator('[data-testid="event-row"]').count();
+    if (eventRowCount === 0) {
+      test.skip();
+    }
   });
 
   /**
    * Test 1: Complete copy workflow with new date and title
    */
   test('Admin can copy event with new date and title', async ({ page }) => {
-    // Find first event in table
-    const firstEventRow = page.locator('tbody tr').first();
+    // Find first event in table using data-testid
+    const firstEventRow = page.locator('[data-testid="event-row"]').first();
     await firstEventRow.waitFor({ state: 'visible' });
 
-    // Get original event title
-    const originalTitle = await firstEventRow.locator('td').nth(1).textContent();
+    // Get original event title - column index 2 (Date=0, Type=1, Title=2)
+    const originalTitle = await firstEventRow.locator('td').nth(2).textContent();
     expect(originalTitle).toBeTruthy();
 
     // Click Copy button
@@ -81,8 +90,8 @@ test.describe('Event Copy - Admin Workflow', () => {
    * Test 2: Copy modal validates past dates
    */
   test('Copy modal validates past dates', async ({ page }) => {
-    // Click Copy on first event
-    const copyButton = page.locator('tbody tr').first().locator('button[data-testid="button-copy-event"]');
+    // Click Copy on first event using data-testid
+    const copyButton = page.locator('[data-testid="event-row"]').first().locator('button[data-testid="button-copy-event"]');
     await copyButton.waitFor({ state: 'visible' });
     await copyButton.click();
 
@@ -118,8 +127,8 @@ test.describe('Event Copy - Admin Workflow', () => {
    * Test 3: Copy modal validates required title
    */
   test('Copy modal validates required title', async ({ page }) => {
-    // Click Copy on first event
-    const copyButton = page.locator('tbody tr').first().locator('button[data-testid="button-copy-event"]');
+    // Click Copy on first event using data-testid
+    const copyButton = page.locator('[data-testid="event-row"]').first().locator('button[data-testid="button-copy-event"]');
     await copyButton.waitFor({ state: 'visible' });
     await copyButton.click();
 
@@ -165,8 +174,8 @@ test.describe('Event Copy - Admin Workflow', () => {
    * Note: This assumes event details page shows sessions
    */
   test('Copied event has correct sessions', async ({ page }) => {
-    // Use first event (removed workshop filter as it may not exist in seed data)
-    const firstEventRow = page.locator('tbody tr').first();
+    // Use first event using data-testid
+    const firstEventRow = page.locator('[data-testid="event-row"]').first();
     await firstEventRow.waitFor({ state: 'visible', timeout: 10000 });
 
     // Copy event
@@ -212,8 +221,8 @@ test.describe('Event Copy - Admin Workflow', () => {
    * Test 5: Copied event has correct ticket types
    */
   test('Copied event has correct ticket types', async ({ page }) => {
-    // Copy first event
-    const copyButton = page.locator('tbody tr').first().locator('button[data-testid="button-copy-event"]');
+    // Copy first event using data-testid
+    const copyButton = page.locator('[data-testid="event-row"]').first().locator('button[data-testid="button-copy-event"]');
     await copyButton.waitFor({ state: 'visible' });
     await copyButton.click();
 
@@ -249,8 +258,8 @@ test.describe('Event Copy - Admin Workflow', () => {
    * Note: Verification would require checking database or admin panel showing attendee count
    */
   test('Copied event excludes attendance data', async ({ page }) => {
-    // Copy event
-    const copyButton = page.locator('tbody tr').first().locator('button[data-testid="button-copy-event"]');
+    // Copy event using data-testid
+    const copyButton = page.locator('[data-testid="event-row"]').first().locator('button[data-testid="button-copy-event"]');
     await copyButton.waitFor({ state: 'visible' });
     await copyButton.click();
 
@@ -284,8 +293,8 @@ test.describe('Event Copy - Admin Workflow', () => {
    * Note: Requires checking if email templates section exists on event details
    */
   test('Copied event preserves custom email templates', async ({ page }) => {
-    // Copy event
-    const copyButton = page.locator('tbody tr').first().locator('button[data-testid="button-copy-event"]');
+    // Copy event using data-testid
+    const copyButton = page.locator('[data-testid="event-row"]').first().locator('button[data-testid="button-copy-event"]');
     await copyButton.waitFor({ state: 'visible' });
     await copyButton.click();
 
@@ -319,8 +328,8 @@ test.describe('Event Copy - Admin Workflow', () => {
    * Test 8: Copied event without custom templates works correctly
    */
   test('Copied event without custom templates works correctly', async ({ page }) => {
-    // Copy event
-    const copyButton = page.locator('tbody tr').first().locator('button[data-testid="button-copy-event"]');
+    // Copy event using data-testid
+    const copyButton = page.locator('[data-testid="event-row"]').first().locator('button[data-testid="button-copy-event"]');
     await copyButton.waitFor({ state: 'visible' });
     await copyButton.click();
 
@@ -350,8 +359,8 @@ test.describe('Event Copy - Admin Workflow', () => {
    * Test 9: Copy modal can be cancelled
    */
   test('Copy modal can be cancelled', async ({ page }) => {
-    // Click Copy
-    const copyButton = page.locator('tbody tr').first().locator('button[data-testid="button-copy-event"]');
+    // Click Copy using data-testid
+    const copyButton = page.locator('[data-testid="event-row"]').first().locator('button[data-testid="button-copy-event"]');
     await copyButton.waitFor({ state: 'visible' });
     await copyButton.click();
 
@@ -382,8 +391,8 @@ test.describe('Event Copy - Admin Workflow', () => {
       });
     });
 
-    // Click Copy
-    const copyButton = page.locator('tbody tr').first().locator('button[data-testid="button-copy-event"]');
+    // Click Copy using data-testid
+    const copyButton = page.locator('[data-testid="event-row"]').first().locator('button[data-testid="button-copy-event"]');
     await copyButton.waitFor({ state: 'visible' });
     await copyButton.click();
 

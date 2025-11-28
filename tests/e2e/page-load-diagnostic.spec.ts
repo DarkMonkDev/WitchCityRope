@@ -39,9 +39,9 @@ test('can the fucking page even load', async ({ page }) => {
     console.log('✅ Page navigation completed');
     
     // Take screenshot immediately
-    await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope/apps/web/what-the-fuck-is-happening.png',
-      fullPage: true 
+    await page.screenshot({
+      path: './test-results/what-the-fuck-is-happening.png',
+      fullPage: true
     });
     console.log('📸 Screenshot saved: what-the-fuck-is-happening.png');
     
@@ -133,9 +133,9 @@ test('can the fucking page even load', async ({ page }) => {
     await page.waitForTimeout(3000);
     
     // Take another screenshot after waiting
-    await page.screenshot({ 
-      path: '/home/chad/repos/witchcityrope/apps/web/after-wait-screenshot.png',
-      fullPage: true 
+    await page.screenshot({
+      path: './test-results/after-wait-screenshot.png',
+      fullPage: true
     });
     console.log('📸 After-wait screenshot saved: after-wait-screenshot.png');
     
@@ -195,9 +195,9 @@ test('can the fucking page even load', async ({ page }) => {
     
     // Take error screenshot
     try {
-      await page.screenshot({ 
-        path: '/home/chad/repos/witchcityrope/apps/web/error-screenshot.png',
-        fullPage: true 
+      await page.screenshot({
+        path: './test-results/error-screenshot.png',
+        fullPage: true
       });
       console.log('📸 Error screenshot saved: error-screenshot.png');
     } catch (screenshotError) {

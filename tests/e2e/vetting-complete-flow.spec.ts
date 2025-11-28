@@ -9,7 +9,7 @@ test.describe('Vetting Application Complete Flow', () => {
   const testPassword = 'Test123!';
 
   test('Complete vetting application with registration and login', async ({ page }) => {
-    const screenshotDir = `/home/chad/repos/witchcityrope/test-results/vetting-success-final-20251006-014514`;
+    const screenshotDir = `./test-results/vetting-success-final-20251006-014514`;
 
     // Step 1: Register new user
     console.log('Step 1: Registering new user...');

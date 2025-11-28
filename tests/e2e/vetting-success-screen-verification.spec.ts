@@ -5,7 +5,7 @@ test.describe('Vetting Application Submission Success Screen', () => {
   const testEmail = `test-vetting-${timestamp}@example.com`;
   const testSceneName = `TestUser${timestamp}`;
   const testPassword = 'Test123!';
-  const screenshotDir = `/home/chad/repos/witchcityrope/test-results/vetting-success-verification-20251006-013855`;
+  const screenshotDir = `./test-results/vetting-success-verification-20251006-013855`;
 
   test('Complete vetting application flow with success screen verification', async ({ page }) => {
     console.log('🚀 Starting vetting application submission test');

@@ -342,4 +342,23 @@ export class AuthHelpers {
       await expect(loadingElements).not.toBeVisible({ timeout: TIMEOUTS.MEDIUM });
     }
   }
+
+  /**
+   * Clean up event participation (tickets and RSVPs) for the current user
+   *
+   * Note: This is a stub implementation. In production tests, this would
+   * call an API endpoint to cancel existing participation.
+   * For now, tests should handle existing participation via test.skip() checks.
+   *
+   * @param page - Playwright page
+   * @param eventType - Type of event ('Social', 'Class', etc.)
+   */
+  static async cleanupEventParticipation(page: Page, eventType: string): Promise<void> {
+    console.log(`⚠️ cleanupEventParticipation('${eventType}'): Stub method - no cleanup performed`);
+    console.log('   Tests should use test.skip() when user already has participation');
+    // In a future implementation, this could:
+    // 1. Call API to get user's current participation
+    // 2. Cancel any existing RSVPs or refund tickets
+    // 3. Wait for cleanup to complete
+  }
 }

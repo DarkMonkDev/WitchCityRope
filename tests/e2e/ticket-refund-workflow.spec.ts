@@ -4,14 +4,18 @@
  * Tests the complete ticket refund workflow from admin perspective:
  * - Admin navigates to event with paid ticket purchases
  * - Opens refund confirmation modal
- * - Enters refund reason (required for audit trail)
- * - Checks confirmation checkbox
+ * - Enters refund amount (required - variable refund)
+ * - Enters refund reason (required for audit trail, min 10 chars)
+ * - Checks confirmation checkbox (required)
  * - Processes refund successfully
  * - Verifies refund record created in database
  * - Verifies email notification sent
  *
  * Phase 3: PayPal Refund System Implementation
  * Related Unit Tests: RefundServiceEmailTests.cs (21/21 passing)
+ *
+ * UPDATED: 2025-11-28 - Fixed to match actual component behavior
+ * All tests now fill refund amount (required field that was missing in TDD tests)
  */
 
 import { test, expect } from '@playwright/test';
@@ -198,8 +202,13 @@ test.describe.serial('Ticket Refund Workflow - Happy Path', () => {
     const modal = page.locator('[data-testid="refund-confirmation-modal"]');
     await expect(modal).toBeVisible({ timeout: 5000 });
 
+    // Fill refund amount (REQUIRED - variable refund)
+    console.log('📝 Step 4: Enter refund amount');
+    await modal.locator('[data-testid="refund-amount-input"]').fill('10');
+    console.log('   ✅ Entered refund amount: $10.00');
+
     // Fill refund reason (REQUIRED for audit trail)
-    console.log('📝 Step 4: Enter refund reason');
+    console.log('📝 Step 5: Enter refund reason');
     const refundReasonText = 'Test refund - E2E automated test execution';
     await modal.locator('[data-testid="refund-reason-textarea"]').fill(refundReasonText);
     console.log(`   ✅ Entered refund reason: "${refundReasonText}"`);
@@ -209,7 +218,7 @@ test.describe.serial('Ticket Refund Workflow - Happy Path', () => {
     console.log(`   ✅ Character counter: ${remainingCharsText}`);
 
     // Check confirmation checkbox
-    console.log('📝 Step 5: Check confirmation checkbox');
+    console.log('📝 Step 6: Check confirmation checkbox');
     await modal.locator('[data-testid="refund-confirmation-checkbox"]').check();
     console.log('   ✅ Confirmation checkbox checked');
 
@@ -226,11 +235,11 @@ test.describe.serial('Ticket Refund Workflow - Happy Path', () => {
     console.log('   📸 Screenshot saved: refund-workflow-ready-to-submit.png');
 
     // Click confirm button to process refund
-    console.log('📝 Step 6: Process refund');
+    console.log('📝 Step 7: Process refund');
     await confirmButton.click();
 
     // Wait for success notification
-    console.log('📝 Step 7: Verify success notification');
+    console.log('📝 Step 8: Verify success notification');
     const successNotification = page.locator('text=/Refund.*processed/i, text=/Refund.*successful/i').last();
     await expect(successNotification).toBeVisible({ timeout: 10000 });
     console.log('   ✅ Success notification displayed');
@@ -336,7 +345,8 @@ test.describe('Ticket Refund Workflow - Edge Cases', () => {
 
     // Fill some data
     console.log('📝 Step 3: Fill partial data');
-    await modal.locator('[data-testid="refund-reason-textarea"]').fill('Test cancel');
+    await modal.locator('[data-testid="refund-amount-input"]').fill('10');
+    await modal.locator('[data-testid="refund-reason-textarea"]').fill('Test cancel reason for testing');
 
     // Click cancel button
     console.log('📝 Step 4: Click cancel button');
@@ -393,7 +403,8 @@ test.describe('Ticket Refund Workflow - Edge Cases', () => {
 
     // Fill data
     console.log('📝 Step 2: Fill form data');
-    await modal.locator('[data-testid="refund-reason-textarea"]').fill('First attempt');
+    await modal.locator('[data-testid="refund-amount-input"]').fill('25');
+    await modal.locator('[data-testid="refund-reason-textarea"]').fill('First attempt test reason');
     await modal.locator('[data-testid="refund-confirmation-checkbox"]').check();
 
     // Cancel
@@ -409,6 +420,11 @@ test.describe('Ticket Refund Workflow - Edge Cases', () => {
 
     // Verify form is reset
     console.log('📝 Step 5: Verify form is reset');
+    const amountInput = modal.locator('[data-testid="refund-amount-input"]');
+    const amountValue = await amountInput.inputValue();
+    expect(amountValue).toBe('');
+    console.log('   ✅ Refund amount input is empty');
+
     const textarea = modal.locator('[data-testid="refund-reason-textarea"]');
     const textareaValue = await textarea.inputValue();
     expect(textareaValue).toBe('');

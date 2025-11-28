@@ -270,7 +270,7 @@ test.describe('Navigation System - Comprehensive Testing', () => {
 
       console.log('URL:', page.url());
       await page.screenshot({
-        path: '/home/chad/repos/witchcityrope/test-results/direct-navigation-vetting.png',
+        path: './test-results/direct-navigation-vetting.png',
         fullPage: true
       });
 

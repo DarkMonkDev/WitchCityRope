@@ -27,7 +27,7 @@ test('Verify notes appear after stage advancement', async ({ page }) => {
   await page.waitForSelector('[data-testid="application-title"]', { timeout: 10000 });
 
   // Take screenshot of full page
-  await page.screenshot({ path: '/home/chad/repos/witchcityrope/test-results/vetting-notes-debug.png', fullPage: true });
+  await page.screenshot({ path: './test-results/vetting-notes-debug.png', fullPage: true });
 
   // Check if notes section exists
   const notesSection = page.locator('text=Admin Notes');

@@ -186,7 +186,7 @@ test.describe('Debug Event Form Fields - Field Display Investigation', () => {
     // ==== TAKE SCREENSHOT ====
     console.log('\n📸 Taking screenshot for visual debugging...');
     await page.screenshot({
-      path: '/home/chad/repos/witchcityrope/apps/web/test-results/form-fields-debug.png',
+      path: './test-results/form-fields-debug.png',
       fullPage: true
     });
     console.log('✅ Screenshot saved to test-results/form-fields-debug.png');
