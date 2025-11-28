@@ -17,7 +17,7 @@ test.describe('Vetting Menu Visibility Feature', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to homepage
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test.describe('Guest User (Not Authenticated)', () => {
@@ -94,7 +94,7 @@ test.describe('Vetting Menu Visibility Feature', () => {
 
       // Should either redirect or show message that user is already vetted
       // (Implementation may vary - checking page loads without error)
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Page should load (implementation decides what to show)
       const pageContent = await page.textContent('body');
@@ -194,11 +194,11 @@ test.describe('Vetting Menu Visibility Feature', () => {
 
       // Load page as guest
       await page.goto('/');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Login as admin
       await loginAsUser(page, 'admin@witchcityrope.com', 'Test123!');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Check for vetting-related errors
       const vettingErrors = consoleErrors.filter(err =>

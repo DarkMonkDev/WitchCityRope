@@ -15,7 +15,7 @@ test.describe('Vetting Navigation Debug', () => {
 
     // Navigate to vetting page
     await page.goto('/admin/vetting');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Take screenshot of list page
     await page.screenshot({ path: 'test-results/vetting-list-before-click.png', fullPage: true });
@@ -40,7 +40,7 @@ test.describe('Vetting Navigation Debug', () => {
     console.log('URL changed, waiting for page to render...');
 
     // Wait for network to be idle after navigation
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Check the URL after click
     const urlAfter = page.url();

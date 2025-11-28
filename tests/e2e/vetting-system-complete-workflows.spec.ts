@@ -141,7 +141,7 @@ test.describe('Vetting System - Complete Workflows', () => {
     await firstRow.click();
 
     // Wait for navigation
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Assert - Should navigate to detail page
     // Check for "Application" or "Back to Applications" text
@@ -191,7 +191,7 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     const firstRow = page.locator('tbody tr').first();
     await firstRow.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Check if Put on Hold button exists
     const putOnHoldButton = page.locator('button').filter({ hasText: /put on hold/i }).first();
@@ -260,7 +260,7 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     const firstRow = page.locator('tbody tr').first();
     await firstRow.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Check if Send Reminder button exists
     const sendReminderButton = page.locator('button').filter({ hasText: /send reminder/i }).first();
@@ -543,7 +543,7 @@ test.describe('Vetting System - Complete Workflows', () => {
 
     const firstRow = page.locator('tbody tr').first();
     await firstRow.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     console.log('Navigated to detail page');
 
@@ -557,7 +557,7 @@ test.describe('Vetting System - Complete Workflows', () => {
       await backButton.click();
     }
 
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Should return to applications list
     const table = page.locator('table');

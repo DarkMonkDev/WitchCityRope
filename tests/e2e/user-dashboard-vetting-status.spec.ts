@@ -13,7 +13,7 @@ test.describe('User Dashboard - Vetting Status Display', () => {
 
     // Act - Navigate to dashboard
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Assert - Verify vetting status is displayed
     // Admin user should show "Approved" status (VettingStatus = 4)
@@ -45,7 +45,7 @@ test.describe('User Dashboard - Vetting Status Display', () => {
 
     // Act - Navigate to dashboard
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Take screenshot
     await page.screenshot({
@@ -66,7 +66,7 @@ test.describe('User Dashboard - Vetting Status Display', () => {
 
     // Act - Navigate to dashboard
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Take screenshot
     await page.screenshot({
