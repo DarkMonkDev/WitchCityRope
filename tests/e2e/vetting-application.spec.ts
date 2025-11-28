@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { AuthHelper } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
  * VETTING APPLICATION FORM E2E TESTS
@@ -23,7 +23,7 @@ const testData = {
 test.describe('Vetting Application Form', () => {
   test.beforeEach(async ({ page }) => {
     // Clear auth state before each test
-    await AuthHelper.clearAuthState(page);
+    await AuthHelpers.clearAuthState(page);
 
     // Set up console error monitoring (ignore CSS warnings from Mantine)
     page.on('console', msg => {
@@ -200,7 +200,7 @@ test.describe('Vetting Application Form', () => {
     console.log('✅ Testing form submission with authenticated user');
 
     // First login as a member
-    const loginSuccess = await AuthHelper.loginAs(page, 'member', { timeout: 15000 });
+    const loginSuccess = await AuthHelpers.loginAs(page, 'member', { timeout: 15000 });
     expect(loginSuccess).toBe(true);
 
     // Navigate to the join page
@@ -326,7 +326,7 @@ test.describe('Vetting Application Form', () => {
     console.log('✅ Testing existing application status display');
 
     // Login as a user who might have an existing application
-    const loginSuccess = await AuthHelper.loginAs(page, 'vetted', { timeout: 15000 });
+    const loginSuccess = await AuthHelpers.loginAs(page, 'vetted', { timeout: 15000 });
     expect(loginSuccess).toBe(true);
 
     // Navigate to join page

@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test'
-import { AuthHelper } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
  * LOGIN METHODS TESTING - Using AuthHelper
@@ -41,7 +41,7 @@ test.describe('Login Methods Testing - AuthHelper Solution', () => {
   test('AuthHelper: Reliable login method', async () => {
     console.log('🧪 Testing AuthHelper method')
 
-    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
 
     expect(loginSuccess).toBeTruthy();
     expect(page.url()).toContain('/dashboard');

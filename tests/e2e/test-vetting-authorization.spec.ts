@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { AuthHelper } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
  * Test: Admin Vetting Management Authorization Verification
@@ -21,7 +21,7 @@ test.describe('Admin Vetting Management Authorization', () => {
     console.log('🔍 Starting admin vetting access verification...');
 
     // Login as admin using AuthHelper
-    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
     expect(loginSuccess).toBeTruthy();
     console.log('✅ Successfully logged in as admin');
 
@@ -198,7 +198,7 @@ test.describe('Admin Vetting Management Authorization', () => {
     console.log('🔍 Testing vetting API endpoints directly...');
 
     // Login using AuthHelper
-    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
     expect(loginSuccess).toBeTruthy();
     console.log('✅ Logged in for API testing');
 

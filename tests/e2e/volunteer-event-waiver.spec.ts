@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import { AuthHelper } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
  * E2E TESTS: Volunteer Signup Event Waiver Compliance
@@ -25,7 +25,7 @@ import { AuthHelper } from './test-utils/helpers/auth.helper';
 test.describe('Volunteer Signup Event Waiver Compliance', () => {
   test.beforeEach(async ({ page }) => {
     // Login as vetted member to ensure full access
-    const success = await AuthHelper.loginAs(page, 'vetted');
+    const success = await AuthHelpers.loginAs(page, 'vetted');
     if (!success) {
       throw new Error('Failed to login as vetted member');
     }
@@ -45,7 +45,7 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
     await page.waitForLoadState('networkidle');
 
     // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
-    await AuthHelper.cleanupEventParticipation(page, 'Social');
+    await AuthHelpers.cleanupEventParticipation(page, 'Social');
 
     // Look for volunteer section
     const volunteerSection = page.locator('text=Volunteer Opportunities').or(page.locator('text=Help Out'));
@@ -142,7 +142,7 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
     console.log('✅ Navigated to event details page');
 
     // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
-    await AuthHelper.cleanupEventParticipation(page, 'Social');
+    await AuthHelpers.cleanupEventParticipation(page, 'Social');
 
     // Look for volunteer section
     const volunteerButton = page.locator('button:has-text("Sign Up")').first();
@@ -204,7 +204,7 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
     await page.waitForLoadState('networkidle');
 
     // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
-    await AuthHelper.cleanupEventParticipation(page, 'Social');
+    await AuthHelpers.cleanupEventParticipation(page, 'Social');
 
     // Look for volunteer section
     const volunteerButton = page.locator('button:has-text("Sign Up")').first();
@@ -264,7 +264,7 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
     await page.waitForLoadState('networkidle');
 
     // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
-    await AuthHelper.cleanupEventParticipation(page, 'Social');
+    await AuthHelpers.cleanupEventParticipation(page, 'Social');
 
     // Look for volunteer section
     const volunteerButton = page.locator('button:has-text("Sign Up")').first();
@@ -387,7 +387,7 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
     await page.waitForLoadState('networkidle');
 
     // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
-    await AuthHelper.cleanupEventParticipation(page, 'Social');
+    await AuthHelpers.cleanupEventParticipation(page, 'Social');
 
     // Look for volunteer section
     const volunteerButton = page.locator('button:has-text("Sign Up")').first();

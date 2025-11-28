@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test'
-import { AuthHelper } from './test-utils/helpers/auth.helper'
+import { AuthHelpers } from './test-utils/helpers/auth.helpers'
 
 /**
  * CSRF Token Validation Test Suite
@@ -44,7 +44,7 @@ test.describe('CSRF Token Validation', () => {
     })
 
     // Step 1: Login (public endpoint - should NOT have CSRF token)
-    await AuthHelper.loginAs(page, 'admin')
+    await AuthHelpers.loginAs(page, 'admin')
     await expect(page).toHaveURL(/.*dashboard/, { timeout: 10000 })
 
     // Step 4: Verify CSRF token cookie was set after login
@@ -86,7 +86,7 @@ test.describe('CSRF Token Validation', () => {
     // This test verifies the automatic retry logic when CSRF token is missing/expired
 
     // Step 1: Login
-    await AuthHelper.loginAs(page, 'admin')
+    await AuthHelpers.loginAs(page, 'admin')
     await expect(page).toHaveURL(/.*dashboard/, { timeout: 10000 })
 
     // Step 2: Clear CSRF token cookie to simulate expired/missing token
@@ -115,7 +115,7 @@ test.describe('CSRF Token Validation', () => {
     // Verify CSRF token exists after navigation (token rotation is expected security behavior)
 
     // Login
-    await AuthHelper.loginAs(page, 'admin')
+    await AuthHelpers.loginAs(page, 'admin')
     await expect(page).toHaveURL(/.*dashboard/, { timeout: 10000 })
 
     // Get CSRF token after login
@@ -149,7 +149,7 @@ test.describe('CSRF Token Validation', () => {
     // The XSRF-TOKEN cookie must be httpOnly=false so JavaScript can read it
     // The .AspNetCore.Antiforgery cookie should be httpOnly=true for security
 
-    await AuthHelper.loginAs(page, 'admin')
+    await AuthHelpers.loginAs(page, 'admin')
     await expect(page).toHaveURL(/.*dashboard/, { timeout: 10000 })
 
     // Get cookies from context (these include httpOnly cookies)
@@ -178,7 +178,7 @@ test.describe('CSRF Token Validation', () => {
     // Verify CSRF token is present after page refresh
 
     // Login
-    await AuthHelper.loginAs(page, 'admin')
+    await AuthHelpers.loginAs(page, 'admin')
     await expect(page).toHaveURL(/.*dashboard/, { timeout: 10000 })
 
     // Verify CSRF token exists after login
@@ -208,7 +208,7 @@ test.describe('CSRF Token Validation', () => {
     // Verify CSRF token is initialized when user has existing auth session
 
     // Login
-    await AuthHelper.loginAs(page, 'admin')
+    await AuthHelpers.loginAs(page, 'admin')
     await expect(page).toHaveURL(/.*dashboard/, { timeout: 10000 })
 
     // Verify CSRF token exists after login (auth session established)
@@ -240,7 +240,7 @@ test.describe('CSRF Token Validation', () => {
     // The app's axios interceptor automatically handles CSRF token fetching
 
     // Login
-    await AuthHelper.loginAs(page, 'admin')
+    await AuthHelpers.loginAs(page, 'admin')
     await expect(page).toHaveURL(/.*dashboard/, { timeout: 10000 })
 
     // Verify CSRF token exists initially
@@ -280,7 +280,7 @@ test.describe('CSRF Token Validation', () => {
     // Verify multiple concurrent requests can use the same CSRF token
 
     // Login
-    await AuthHelper.loginAs(page, 'admin')
+    await AuthHelpers.loginAs(page, 'admin')
     await expect(page).toHaveURL(/.*dashboard/, { timeout: 10000 })
 
     // Verify CSRF token exists

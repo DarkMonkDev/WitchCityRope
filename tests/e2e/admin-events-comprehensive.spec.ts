@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { AuthHelper } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 test.describe('Admin Events - Comprehensive Bug Testing', () => {
   test.beforeEach(async ({ page }) => {
@@ -11,7 +11,7 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
     });
 
     // Login as admin using the proper auth helper
-    const success = await AuthHelper.loginAs(page, 'admin');
+    const success = await AuthHelpers.loginAs(page, 'admin');
     if (!success) {
       throw new Error('Failed to login as admin');
     }
@@ -32,11 +32,11 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
 
     test('admin login credentials work', async ({ page }) => {
       // Verify admin authentication
-      const isAuth = await AuthHelper.isAuthenticated(page);
+      const isAuth = await AuthHelpers.isAuthenticated(page);
       expect(isAuth).toBeTruthy();
       
       // Check admin role indicators if available  
-      const userInfo = await AuthHelper.getCurrentUserInfo(page);
+      const userInfo = await AuthHelpers.getCurrentUserInfo(page);
       console.log('Current user info:', userInfo);
       
       console.log('✅ Admin authentication validated');
@@ -171,7 +171,7 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
   test.describe('Basic Data Persistence Tests', () => {
     test('page refresh maintains authentication', async ({ page }) => {
       // Verify current auth
-      const authBefore = await AuthHelper.isAuthenticated(page);
+      const authBefore = await AuthHelpers.isAuthenticated(page);
       expect(authBefore).toBeTruthy();
 
       // Refresh page
@@ -179,7 +179,7 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
       await page.waitForLoadState('networkidle');
 
       // Hard assertion - authentication must persist
-      const authAfter = await AuthHelper.isAuthenticated(page);
+      const authAfter = await AuthHelpers.isAuthenticated(page);
       expect(authAfter).toBeTruthy();
       console.log('✅ Authentication persists after page refresh');
     });

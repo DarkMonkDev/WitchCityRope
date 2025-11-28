@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import { AuthHelper } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
  * E2E TESTS: Ticket Purchase Liability Waiver Compliance
@@ -20,7 +20,7 @@ import { AuthHelper } from './test-utils/helpers/auth.helper';
 test.describe('Ticket Purchase Liability Waiver Compliance', () => {
   test.beforeEach(async ({ page }) => {
     // Login as vetted member to ensure full access
-    const success = await AuthHelper.loginAs(page, 'vetted');
+    const success = await AuthHelpers.loginAs(page, 'vetted');
     if (!success) {
       throw new Error('Failed to login as vetted member');
     }
@@ -40,7 +40,7 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
     await page.waitForLoadState('networkidle');
 
     // Clean up any existing participation (tickets only - classes don't have RSVPs)
-    await AuthHelper.cleanupEventParticipation(page, 'Class');
+    await AuthHelpers.cleanupEventParticipation(page, 'Class');
 
     // Look for ticket purchase button
     const ticketButton = page.locator('[data-testid="button-buy-ticket"]').or(page.locator('button:has-text("Buy Ticket")'));
@@ -142,7 +142,7 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
     console.log('✅ Navigated to event details page');
 
     // Clean up any existing participation (tickets only - classes don't have RSVPs)
-    await AuthHelper.cleanupEventParticipation(page, 'Class');
+    await AuthHelpers.cleanupEventParticipation(page, 'Class');
 
     // Look for ticket button
     const ticketButton = page.locator('[data-testid="button-buy-ticket"]').or(page.locator('button:has-text("Buy Ticket")'));
@@ -209,7 +209,7 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
     await page.waitForLoadState('networkidle');
 
     // Clean up any existing participation (tickets only - classes don't have RSVPs)
-    await AuthHelper.cleanupEventParticipation(page, 'Class');
+    await AuthHelpers.cleanupEventParticipation(page, 'Class');
 
     // Check if user already has ticket
     const alreadyPurchased = await page.locator('text=Ticket Purchased').or(page.locator('text=You have a ticket')).count() > 0;
@@ -277,7 +277,7 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
     await page.waitForLoadState('networkidle');
 
     // Clean up any existing participation (tickets only - classes don't have RSVPs)
-    await AuthHelper.cleanupEventParticipation(page, 'Class');
+    await AuthHelpers.cleanupEventParticipation(page, 'Class');
 
     // Look for ticket button
     const ticketButton = page.locator('[data-testid="button-buy-ticket"]').or(page.locator('button:has-text("Buy Ticket")'));
@@ -397,7 +397,7 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
     await page.waitForLoadState('networkidle');
 
     // Clean up any existing participation (tickets only - classes don't have RSVPs)
-    await AuthHelper.cleanupEventParticipation(page, 'Class');
+    await AuthHelpers.cleanupEventParticipation(page, 'Class');
 
     // Look for ticket button
     const ticketButton = page.locator('[data-testid="button-buy-ticket"]').or(page.locator('button:has-text("Buy Ticket")'));

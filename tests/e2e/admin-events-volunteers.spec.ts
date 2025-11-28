@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { quickLogin } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
  * E2E Tests for Admin Events Edit Screen - Volunteer Position Management
@@ -19,7 +19,7 @@ test.describe('Admin Events Edit Screen - Volunteer Position Management', () => 
 
   test.beforeEach(async ({ page }) => {
     // Login as admin user using established pattern from lessons learned
-    await quickLogin(page, 'admin');
+    await AuthHelpers.loginAs(page, 'admin');
   });
 
   test('should show only current event sessions in dropdown', async ({ page }) => {

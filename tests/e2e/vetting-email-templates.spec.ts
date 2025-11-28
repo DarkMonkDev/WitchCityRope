@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import { AuthHelper } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
  * E2E Test Suite for Vetting Email Templates (Unified Email Templates System)
@@ -23,7 +23,7 @@ test.describe('Vetting Email Templates (Unified System)', () => {
     page = await browser.newPage();
 
     // Login as admin
-    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
     expect(loginSuccess).toBeTruthy();
 
     // Navigate to unified email templates page

@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { AuthHelper } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 test.describe('Authentication and RSVP Testing', () => {
   test('should navigate to login page and authenticate admin user', async ({ page }) => {
     // Login using AuthHelper
-    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
     expect(loginSuccess).toBeTruthy();
 
     // Take screenshot after login
@@ -127,7 +127,7 @@ test.describe('Authentication and RSVP Testing', () => {
 
   test('should check RSVP creation functionality', async ({ page }) => {
     // Login as regular member using AuthHelper
-    const loginSuccess = await AuthHelper.loginAs(page, 'member');
+    const loginSuccess = await AuthHelpers.loginAs(page, 'member');
     expect(loginSuccess).toBeTruthy();
 
     // Take screenshot of member dashboard

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { AuthHelper } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
  * SIMPLE DEMONSTRATION OF WORKING MANTINE UI LOGIN
@@ -13,7 +13,7 @@ test.describe('Demo: Working Login with Mantine UI', () => {
     console.log('🎯 Demonstrating working login approach for Mantine UI')
 
     // Use AuthHelper for clean, centralized login
-    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
 
     // Verify we're authenticated and on the correct page
     expect(loginSuccess).toBeTruthy();

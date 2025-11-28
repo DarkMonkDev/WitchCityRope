@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { AuthHelper } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 test.describe('Admin Events - Simplified Comprehensive Testing', () => {
   let consoleErrors: string[] = [];
@@ -23,7 +23,7 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
     });
 
     // Use AuthHelper for consistent login
-    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
     expect(loginSuccess).toBeTruthy();
 
     await page.goto('/admin/events');

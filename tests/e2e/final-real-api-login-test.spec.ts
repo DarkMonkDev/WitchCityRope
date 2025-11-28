@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { AuthHelper } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
  * Final Real API Login Test - Complete End-to-End Authentication Flow
@@ -70,7 +70,7 @@ test.describe('Final Real API Authentication Test', () => {
     apiRequests.length = 0;
 
     // Use AuthHelper for login - this handles all the form interaction
-    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
 
     // Take screenshot of result
     await page.screenshot({ path: './test-results/final-03-after-login.png' });

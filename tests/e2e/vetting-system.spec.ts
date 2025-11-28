@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { AuthHelper } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
  * COMPREHENSIVE VETTING SYSTEM E2E TEST
@@ -17,7 +17,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
 
   test.beforeEach(async ({ page }) => {
     // Clear auth state before each test
-    await AuthHelper.clearAuthState(page);
+    await AuthHelpers.clearAuthState(page);
   });
 
   test('Complete vetting workflow from discovery to approval', async ({ page }) => {
@@ -269,8 +269,8 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
     // STEP 7: Logout and login as admin
     console.log('📍 STEP 7: Logout and login as admin');
 
-    await AuthHelper.logout(page);
-    const adminLoginSuccess = await AuthHelper.loginAs(page, 'admin');
+    await AuthHelpers.logout(page);
+    const adminLoginSuccess = await AuthHelpers.loginAs(page, 'admin');
 
     // Verify admin login by checking for admin indicators on the page
     const currentUrl = page.url();
@@ -282,7 +282,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
     } else {
       console.log('⚠️ Admin login may have failed - attempting to continue anyway');
       // Try one more time if login failed
-      await AuthHelper.loginAs(page, 'admin');
+      await AuthHelpers.loginAs(page, 'admin');
     }
 
     // STEP 8: Navigate to vetting admin area
@@ -475,8 +475,8 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
     // STEP 15: Logout and login as guest again
     console.log('📍 STEP 15: Logout and login as guest to check final status');
 
-    await AuthHelper.logout(page);
-    const finalGuestLogin = await AuthHelper.loginAs(page, 'guest');
+    await AuthHelpers.logout(page);
+    const finalGuestLogin = await AuthHelpers.loginAs(page, 'guest');
     expect(finalGuestLogin).toBe(true);
     console.log('✅ Logged back in as guest');
 
@@ -540,7 +540,7 @@ test.describe('Vetting System - Complete Happy Path Workflow', () => {
 
     // Test form validation and error handling
     await page.goto('/login');
-    await AuthHelper.loginAs(page, 'guest');
+    await AuthHelpers.loginAs(page, 'guest');
 
     await page.goto('/join');
     await page.waitForLoadState('networkidle');

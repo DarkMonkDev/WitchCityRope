@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const baseUrl = process.env.PLAYWRIGHT_BASE_URL || `${baseUrl}`;
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
 
 test('Verify ticket type dropdown displays correct labels without null', async ({ page }) => {
   // First login

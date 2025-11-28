@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { AuthHelper } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
  * BASIC VETTING SYSTEM E2E TEST
@@ -18,7 +18,7 @@ test.describe('Vetting System - Basic Functionality', () => {
 
   test.beforeEach(async ({ page }) => {
     // Clear auth state before each test
-    await AuthHelper.clearAuthState(page);
+    await AuthHelpers.clearAuthState(page);
   });
 
   test('Basic vetting discovery and authentication workflow', async ({ page }) => {
@@ -55,7 +55,7 @@ test.describe('Vetting System - Basic Functionality', () => {
     console.log('📍 STEP 3: Test guest authentication');
 
     // Use AuthHelper for reliable login (handles form selectors properly)
-    const loginSuccess = await AuthHelper.loginAs(page, 'guest', { timeout: 15000 });
+    const loginSuccess = await AuthHelpers.loginAs(page, 'guest', { timeout: 15000 });
     expect(loginSuccess).toBe(true);
     console.log('✅ Successfully logged in as guest user');
 
@@ -131,8 +131,8 @@ test.describe('Vetting System - Basic Functionality', () => {
     // STEP 5: Test admin access and navigation
     console.log('📍 STEP 5: Test admin access');
 
-    await AuthHelper.logout(page);
-    await AuthHelper.loginAs(page, 'admin');
+    await AuthHelpers.logout(page);
+    await AuthHelpers.loginAs(page, 'admin');
 
     // Verify admin login
     const adminPageText = await page.textContent('body');

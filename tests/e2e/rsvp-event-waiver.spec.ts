@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import { AuthHelper } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
  * E2E TESTS: RSVP Event Waiver Compliance
@@ -21,7 +21,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
   test.beforeEach(async ({ page }) => {
     // Login as vetted member (has ToS already accepted)
     // Using 'vetted' account to ensure full access to RSVP functionality
-    const success = await AuthHelper.loginAs(page, 'vetted');
+    const success = await AuthHelpers.loginAs(page, 'vetted');
     if (!success) {
       throw new Error('Failed to login as vetted member');
     }
@@ -48,7 +48,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
     await page.waitForSelector('h1', { timeout: 10000 });
 
     // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
-    await AuthHelper.cleanupEventParticipation(page, 'Social');
+    await AuthHelpers.cleanupEventParticipation(page, 'Social');
 
     // Look for RSVP button (ParticipationCard)
     const rsvpButton = page.locator('[data-testid="button-rsvp"]');
@@ -122,7 +122,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
     console.log('✅ Navigated to event details page');
 
     // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
-    await AuthHelper.cleanupEventParticipation(page, 'Social');
+    await AuthHelpers.cleanupEventParticipation(page, 'Social');
 
     // Check for RSVP button
     const rsvpButton = page.locator('[data-testid="button-rsvp"]');
@@ -177,7 +177,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
     await page.waitForLoadState('networkidle');
 
     // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
-    await AuthHelper.cleanupEventParticipation(page, 'Social');
+    await AuthHelpers.cleanupEventParticipation(page, 'Social');
 
     // Check for RSVP button
     const rsvpButton = page.locator('[data-testid="button-rsvp"]');
@@ -237,7 +237,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
     await page.waitForLoadState('networkidle');
 
     // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
-    await AuthHelper.cleanupEventParticipation(page, 'Social');
+    await AuthHelpers.cleanupEventParticipation(page, 'Social');
 
     // Check for RSVP button
     const rsvpButton = page.locator('[data-testid="button-rsvp"]');
@@ -330,7 +330,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
     await page.waitForLoadState('networkidle');
 
     // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
-    await AuthHelper.cleanupEventParticipation(page, 'Social');
+    await AuthHelpers.cleanupEventParticipation(page, 'Social');
 
     // Check for RSVP button
     const rsvpButton = page.locator('[data-testid="button-rsvp"]');

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const baseUrl = process.env.PLAYWRIGHT_BASE_URL || `${baseUrl}`;
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
 
 test.describe('Infinite Loop Verification', () => {
   test('should load page without infinite loop errors', async ({ page }) => {

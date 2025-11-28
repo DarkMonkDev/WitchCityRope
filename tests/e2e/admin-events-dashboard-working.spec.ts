@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { quickLogin } from './test-utils/helpers/auth.helper'
+import { AuthHelpers } from './test-utils/helpers/auth.helpers'
 
 /**
  * FIXED Admin Events Dashboard Tests
@@ -39,7 +39,7 @@ test.describe('Admin Events Dashboard - WORKING VERSION', () => {
     
     // Use proven working login method from lessons learned
     console.log('🔑 Logging in as admin using proven method...')
-    await quickLogin(page, 'admin')
+    await AuthHelpers.loginAs(page, 'admin')
     
     // Verify login succeeded and no critical errors
     expect(page.url()).toContain('/dashboard')
@@ -278,7 +278,7 @@ test.describe('Admin Events Dashboard - WORKING VERSION', () => {
     console.log('  - These selectors do not exist in the actual LoginPage.tsx')
     
     console.log('✅ WORKING PATTERN - what this test does:')
-    console.log('  - Use quickLogin() helper from lessons learned')
+    console.log('  - Use AuthHelpers.loginAs() helper from lessons learned')
     console.log('  - Helper uses [data-testid="login-button"] selector')
     console.log('  - Helper uses [data-testid="email-input"] selector')
     console.log('  - Helper uses [data-testid="password-input"] selector')

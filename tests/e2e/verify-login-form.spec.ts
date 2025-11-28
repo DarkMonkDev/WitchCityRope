@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { AuthHelper } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 test('Verify login form has both email and password fields', async ({ page }) => {
   // Navigate to login page
@@ -40,7 +40,7 @@ test('Verify login form has both email and password fields', async ({ page }) =>
   }
 
   // Try to interact with the form - Test login functionality
-  const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+  const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
   expect(loginSuccess).toBeTruthy();
 
   console.log('✅ Successfully filled and submitted login form');

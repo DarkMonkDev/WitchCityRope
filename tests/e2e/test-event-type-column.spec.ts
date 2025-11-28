@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { AuthHelper } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 test('Event Type column is displayed in admin events table', async ({ page }) => {
   // Login as admin using AuthHelper
-  const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+  const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
   expect(loginSuccess).toBeTruthy();
 
   // Navigate to admin events
@@ -45,7 +45,7 @@ test('Event Type column is displayed in admin events table', async ({ page }) =>
 
 test('Draft events are visible in admin events table', async ({ page }) => {
   // Login as admin using AuthHelper
-  const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+  const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
   expect(loginSuccess).toBeTruthy();
 
   await page.goto('/admin/events');

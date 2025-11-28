@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { AuthHelper } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 test.describe('Admin Events Dashboard', () => {
   test.beforeEach(async ({ page }) => {
     // Login as admin using AuthHelper
-    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
     expect(loginSuccess).toBeTruthy();
 
     // Navigate to admin events page

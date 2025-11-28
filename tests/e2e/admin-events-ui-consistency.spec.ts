@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { quickLogin } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
  * TDD E2E Tests for Admin Events Edit Screen - UI Consistency
@@ -25,7 +25,7 @@ test.describe('Admin Events Edit Screen - UI Consistency', () => {
     });
 
     // Login as admin user using established pattern from lessons learned
-    await quickLogin(page, 'admin');
+    await AuthHelpers.loginAs(page, 'admin');
   });
 
   test('all tabs should use modal dialogs consistently', async ({ page }) => {

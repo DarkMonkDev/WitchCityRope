@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { AuthHelper } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 test.describe('Event Checkout - Pricing Step Verification', () => {
   // Community Rope Jam event with both fixed and sliding scale tickets
@@ -9,7 +9,7 @@ test.describe('Event Checkout - Pricing Step Verification', () => {
 
   test.beforeEach(async ({ page }) => {
     // Login using AuthHelper
-    const loginSuccess = await AuthHelper.loginAs(page, 'member');
+    const loginSuccess = await AuthHelpers.loginAs(page, 'member');
     expect(loginSuccess).toBeTruthy();
   });
   

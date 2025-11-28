@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
-import { AuthHelper } from './test-utils/helpers/auth.helper'
+import { AuthHelpers } from './test-utils/helpers/auth.helpers'
 
-const baseUrl = process.env.PLAYWRIGHT_BASE_URL || `${baseUrl}`;
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
 
 test.describe('Logout with CSRF Token Verification', () => {
   test('should logout successfully with proper CSRF token handling', async ({ page }) => {
@@ -23,7 +23,7 @@ test.describe('Logout with CSRF Token Verification', () => {
     })
 
     // Step 1: Login as admin
-    await AuthHelper.loginAs(page, 'admin')
+    await AuthHelpers.loginAs(page, 'admin')
     await expect(page).toHaveURL(/.*dashboard/, { timeout: 10000 })
     
     // Step 4: Verify user is logged in (check for logout button)

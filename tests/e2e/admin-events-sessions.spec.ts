@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { quickLogin } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
  * TDD E2E Tests for Admin Events Edit Screen - Session Management
@@ -17,10 +17,10 @@ test.describe('Admin Events Edit Screen - Session Management', () => {
 
   test.beforeEach(async ({ page }) => {
     // Login as admin user using established pattern from lessons learned
-    await quickLogin(page, 'admin');
+    await AuthHelpers.loginAs(page, 'admin');
 
     // Fetch a real event ID from the API
-    const eventsResponse = await page.request.get('http://api:5655/api/events');
+    const eventsResponse = await page.request.get('http://localhost:5655/api/events');
     const events = await eventsResponse.json();
 
     if (!events || events.length === 0) {
@@ -32,7 +32,7 @@ test.describe('Admin Events Edit Screen - Session Management', () => {
 
   test('should add a new session via modal without page refresh', async ({ page }) => {
     // Navigate to admin event edit page
-    await page.goto(`/admin/events/${testEventId}`);
+    await page.goto(`http://localhost:5173/admin/events/${testEventId}`);
     
     // Wait for page to load
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
@@ -85,7 +85,7 @@ test.describe('Admin Events Edit Screen - Session Management', () => {
 
   test('should edit existing session via modal', async ({ page }) => {
     // Navigate to admin event edit page
-    await page.goto(`/admin/events/${testEventId}`);
+    await page.goto(`http://localhost:5173/admin/events/${testEventId}`);
 
     // Wait for page to load and navigate to Setup tab
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
@@ -133,7 +133,7 @@ test.describe('Admin Events Edit Screen - Session Management', () => {
 
   test('should assign S# IDs automatically to new sessions', async ({ page }) => {
     // Navigate to admin event edit page
-    await page.goto(`/admin/events/${testEventId}`);
+    await page.goto(`http://localhost:5173/admin/events/${testEventId}`);
 
     // Navigate to Setup tab
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
@@ -190,7 +190,7 @@ test.describe('Admin Events Edit Screen - Session Management', () => {
 
   test('should delete session with confirmation dialog', async ({ page }) => {
     // Navigate to admin event edit page
-    await page.goto(`/admin/events/${testEventId}`);
+    await page.goto(`http://localhost:5173/admin/events/${testEventId}`);
 
     // Navigate to Setup tab
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
@@ -231,7 +231,7 @@ test.describe('Admin Events Edit Screen - Session Management', () => {
 
   test('should validate session form fields', async ({ page }) => {
     // Navigate to admin event edit page
-    await page.goto(`/admin/events/${testEventId}`);
+    await page.goto(`http://localhost:5173/admin/events/${testEventId}`);
 
     // Navigate to Setup tab and open add modal
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();
@@ -286,7 +286,7 @@ test.describe('Admin Events Edit Screen - Session Management', () => {
 
   test('should show loading states and error handling', async ({ page }) => {
     // Navigate to admin event edit page
-    await page.goto(`/admin/events/${testEventId}`);
+    await page.goto(`http://localhost:5173/admin/events/${testEventId}`);
 
     // Navigate to Setup tab
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible();

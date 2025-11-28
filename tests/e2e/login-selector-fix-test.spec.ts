@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { AuthHelper } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
  * SIMPLE LOGIN SELECTOR FIX TEST
@@ -57,10 +57,10 @@ test.describe('Login Selector Fix - AuthHelper Approach', () => {
   })
 
   test('WORKING: Direct login using AuthHelper', async ({ page }) => {
-    console.log('✅ Demonstrating working login with AuthHelper...')
+    console.log('✅ Demonstrating working login with AuthHelpers...')
 
     // Use AuthHelper for reliable login
-    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
 
     // Verify we're on dashboard
     expect(loginSuccess).toBeTruthy();

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { quickLogin } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
  * TDD E2E Tests for Admin Events Edit Screen - Data Dependencies
@@ -18,7 +18,7 @@ import { quickLogin } from './test-utils/helpers/auth.helper';
 test.describe('Admin Events Edit Screen - Data Dependencies', () => {
   test.beforeEach(async ({ page }) => {
     // Login as admin user using established pattern from lessons learned
-    await quickLogin(page, 'admin');
+    await AuthHelpers.loginAs(page, 'admin');
   });
 
   test('should only allow ticket creation when sessions exist', async ({ page }) => {

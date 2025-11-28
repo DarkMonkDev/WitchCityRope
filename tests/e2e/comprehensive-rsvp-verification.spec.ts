@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test'
-import { AuthHelper, quickLogin } from './test-utils/helpers/auth.helper'
+import { AuthHelper, quickLogin } from './test-utils/helpers/auth.helpers'
 
 /**
  * COMPREHENSIVE RSVP VERIFICATION TEST
@@ -168,7 +168,7 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
     console.log('📸 Testing Admin Events List capacity column...')
 
     // Login as admin first
-    await quickLogin(page, 'admin')
+    await AuthHelpers.loginAs(page, 'admin')
 
     // Navigate to admin events list
     await page.goto('/admin/events')
@@ -228,7 +228,7 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
     console.log('📸 Testing Admin Event Details RSVP Tab...')
 
     // Login as admin first
-    await quickLogin(page, 'admin')
+    await AuthHelpers.loginAs(page, 'admin')
 
     // First get the event ID for Rope Social by calling the API directly
     const eventsResponse = await page.request.get('http://localhost:5655/api/events')
@@ -317,7 +317,7 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
     console.log('📸 Testing Public Event Details RSVP status...')
 
     // Login as admin first (to test authenticated RSVP display)
-    await quickLogin(page, 'admin')
+    await AuthHelpers.loginAs(page, 'admin')
 
     // Get Rope Social event ID
     const eventsResponse = await page.request.get('http://localhost:5655/api/events')
@@ -398,7 +398,7 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
     console.log('📸 Testing User Dashboard RSVP count...')
 
     // Login as admin
-    await quickLogin(page, 'admin')
+    await AuthHelpers.loginAs(page, 'admin')
 
     // Navigate to dashboard
     await page.goto('/dashboard')
@@ -529,7 +529,7 @@ test.describe('RSVP Verification - Visual Evidence Collection', () => {
       console.log(`🔍 Testing ${pageInfo.name} for console errors...`)
 
       if (pageInfo.needsAuth) {
-        await quickLogin(page, 'admin')
+        await AuthHelpers.loginAs(page, 'admin')
       }
 
       await page.goto(pageInfo.url)

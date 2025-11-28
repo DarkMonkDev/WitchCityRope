@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { AuthHelper } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 test('Test complete login functionality with both email and password', async ({ page }) => {
   // Test login with valid credentials using AuthHelper
-  const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+  const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
 
   console.log('✅ Login completed successfully');
 

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
-const baseUrl = process.env.PLAYWRIGHT_BASE_URL || `${baseUrl}`;
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
 
 /**
  * Basic Functionality Check - What Currently Works

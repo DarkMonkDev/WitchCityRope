@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import { AuthHelper } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 import { PaymentHelper } from './test-utils/helpers/payment.helper';
 
 /**
@@ -123,7 +123,7 @@ test.describe('Admin Variable Refund - E2E Tests', () => {
     });
 
     // Clear auth state
-    await AuthHelper.clearAuthState(page);
+    await AuthHelpers.clearAuthState(page);
   });
 
   test.afterEach(async ({ page }) => {
@@ -153,7 +153,7 @@ test.describe('Admin Variable Refund - E2E Tests', () => {
     console.log('🧪 Test 1: Happy Path - Single Partial Refund');
 
     // Arrange: Login as admin
-    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
     expect(loginSuccess).toBe(true);
     console.log('✅ Logged in as admin');
 
@@ -244,7 +244,7 @@ test.describe('Admin Variable Refund - E2E Tests', () => {
     console.log('🧪 Test 2: Multiple Partial Refunds - Accumulation');
 
     // Arrange: Login as admin
-    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
     expect(loginSuccess).toBe(true);
     console.log('✅ Logged in as admin');
 
@@ -344,7 +344,7 @@ test.describe('Admin Variable Refund - E2E Tests', () => {
     console.log('🧪 Test 3: Full Refund via Variable Endpoint');
 
     // Arrange: Login as admin
-    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
     expect(loginSuccess).toBe(true);
     console.log('✅ Logged in as admin');
 
@@ -425,7 +425,7 @@ test.describe('Admin Variable Refund - E2E Tests', () => {
     console.log('🧪 Test 4: Frontend Input Capping - Amount Exceeds Remaining');
 
     // Arrange: Login as admin
-    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
     expect(loginSuccess).toBe(true);
     console.log('✅ Logged in as admin');
 
@@ -534,7 +534,7 @@ test.describe('Admin Variable Refund - E2E Tests', () => {
     console.log('🧪 Test 5: Validation - Zero and Negative Amounts');
 
     // Arrange: Login as admin
-    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
     expect(loginSuccess).toBe(true);
     console.log('✅ Logged in as admin');
 
@@ -617,7 +617,7 @@ test.describe('Admin Variable Refund - E2E Tests', () => {
     console.log('🧪 Test 6: Payment Method - Non-PayPal Acceptance');
 
     // Arrange: Login as admin
-    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
     expect(loginSuccess).toBe(true);
     console.log('✅ Logged in as admin');
 
@@ -688,7 +688,7 @@ test.describe('Admin Variable Refund - E2E Tests', () => {
     console.log('🧪 Test 7: RSVP Preservation - CRITICAL BUSINESS RULE');
 
     // Arrange: Login as admin
-    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
     expect(loginSuccess).toBe(true);
     console.log('✅ Logged in as admin');
 
@@ -777,7 +777,7 @@ test.describe('Admin Variable Refund - E2E Tests', () => {
     console.log('🧪 Test 8: UI State Management - Table Refresh');
 
     // Arrange: Login as admin
-    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
     expect(loginSuccess).toBe(true);
     console.log('✅ Logged in as admin');
 

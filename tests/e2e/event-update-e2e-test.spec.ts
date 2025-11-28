@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { AuthHelper } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 test.describe('Event Update Flow E2E Testing', () => {
   let eventId: string;
@@ -8,7 +8,7 @@ test.describe('Event Update Flow E2E Testing', () => {
     console.log('=== SETTING UP EVENT UPDATE E2E TEST ===');
 
     // Login as admin using AuthHelper
-    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
     expect(loginSuccess).toBeTruthy();
 
     // Get the first event ID from API for testing

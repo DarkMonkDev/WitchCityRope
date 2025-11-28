@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test'
-import { AuthHelper } from './test-utils/helpers/auth.helper';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
  * Comprehensive E2E test for event update authentication issue
@@ -123,7 +123,7 @@ test.describe('Event Update Authentication Flow - E2E', () => {
     // Step 1 & 2: Login as admin using AuthHelper
     console.log('🚀 Step 1 & 2: Login as admin user')
 
-    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
     expect(loginSuccess).toBeTruthy();
 
     console.log('✅ Login successful - navigated to dashboard')
@@ -465,7 +465,7 @@ test.describe('Event Update Authentication Flow - E2E', () => {
     console.log('🚀 Testing cookie persistence during event update')
 
     // Login using AuthHelper
-    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
     expect(loginSuccess).toBeTruthy();
     
     // Capture cookies after login
@@ -529,7 +529,7 @@ test.describe('Event Update Authentication Flow - E2E', () => {
     console.log('🚀 Testing error handling during event update')
 
     // Login using AuthHelper
-    const loginSuccess = await AuthHelper.loginAs(page, 'admin');
+    const loginSuccess = await AuthHelpers.loginAs(page, 'admin');
     expect(loginSuccess).toBeTruthy();
     
     // Navigate to event edit

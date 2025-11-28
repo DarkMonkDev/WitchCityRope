@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { AuthHelper, quickLogin } from './test-utils/helpers/auth.helper'
+import { AuthHelper, quickLogin } from './test-utils/helpers/auth.helpers'
 
 /**
  * WORKING LOGIN SOLUTION FOR MANTINE UI
@@ -16,7 +16,7 @@ import { AuthHelper, quickLogin } from './test-utils/helpers/auth.helper'
 test.describe('Working Login Solution', () => {
   test.beforeEach(async ({ page }) => {
     // Clear auth state before each test
-    await AuthHelper.clearAuthState(page)
+    await AuthHelpers.clearAuthState(page)
   })
 
   test('WORKING: Login with page.fill() and data-testid selectors', async ({ page }) => {
@@ -93,17 +93,17 @@ test.describe('Working Login Solution', () => {
     console.log('✅ Testing AuthHelper login method')
     
     // This uses the helper which implements the working approach
-    const success = await AuthHelper.loginAs(page, 'admin')
+    const success = await AuthHelpers.loginAs(page, 'admin')
     
     expect(success).toBe(true)
     expect(page.url()).toContain('/dashboard')
     
     // Verify we can get user info
-    const userInfo = await AuthHelper.getCurrentUserInfo(page)
+    const userInfo = await AuthHelpers.getCurrentUserInfo(page)
     console.log('User info:', userInfo)
     
     // Verify authentication status
-    const isAuth = await AuthHelper.isAuthenticated(page)
+    const isAuth = await AuthHelpers.isAuthenticated(page)
     expect(isAuth).toBe(true)
     
     console.log('🎉 AuthHelper working correctly!')
@@ -113,7 +113,7 @@ test.describe('Working Login Solution', () => {
     console.log('✅ Testing quickLogin utility')
     
     // Even simpler - just one function call
-    await quickLogin(page, 'admin')
+    await AuthHelpers.loginAs(page, 'admin')
     
     // Should be logged in and on dashboard
     expect(page.url()).toContain('/dashboard')
@@ -130,16 +130,16 @@ test.describe('Working Login Solution', () => {
       console.log(`Testing login as ${userType}`)
       
       // Clear auth state between users
-      await AuthHelper.clearAuthState(page)
+      await AuthHelpers.clearAuthState(page)
       
       // Login as this user type
-      const success = await AuthHelper.loginAs(page, userType)
+      const success = await AuthHelpers.loginAs(page, userType)
       expect(success).toBe(true)
       
       console.log(`✅ ${userType} login successful`)
       
       // Quick logout for next iteration
-      await AuthHelper.logout(page)
+      await AuthHelpers.logout(page)
     }
     
     console.log('🎉 All user types can login successfully!')
@@ -166,7 +166,7 @@ test.describe('Working Login Solution', () => {
     })
     
     // Perform successful login
-    await quickLogin(page, 'admin')
+    await AuthHelpers.loginAs(page, 'admin')
     expect(page.url()).toContain('/dashboard')
     
     // Analyze the messages
@@ -203,10 +203,10 @@ test.describe('Working Login Solution', () => {
     
     // Run login multiple times to get average
     for (let i = 0; i < 3; i++) {
-      await AuthHelper.clearAuthState(page)
+      await AuthHelpers.clearAuthState(page)
       
       const startTime = Date.now()
-      const success = await AuthHelper.loginAs(page, 'admin')
+      const success = await AuthHelpers.loginAs(page, 'admin')
       const endTime = Date.now()
       
       expect(success).toBe(true)
@@ -216,7 +216,7 @@ test.describe('Working Login Solution', () => {
       
       console.log(`Login attempt ${i + 1}: ${duration}ms`)
       
-      await AuthHelper.logout(page)
+      await AuthHelpers.logout(page)
     }
     
     const averageTime = timings.reduce((sum, time) => sum + time, 0) / timings.length
