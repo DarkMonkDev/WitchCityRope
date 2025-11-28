@@ -235,8 +235,19 @@ if ! ssh -i $SSH_KEY -o ConnectTimeout=10 $USER@$SERVER "echo '   ✅ Connected 
 fi
 echo ""
 
-# Step 4: Pull images on server
-echo "4️⃣  Pulling images on server..."
+# Step 4: Update compose file on server
+echo "4️⃣  Updating docker-compose file on server..."
+scp -i $SSH_KEY deployment/docker-compose.production.yml $USER@$SERVER:$DEPLOY_PATH/docker-compose.production.yml
+
+if [ $? -ne 0 ]; then
+    echo "   ❌ FAIL: Could not copy docker-compose file to server"
+    exit 1
+fi
+echo "   ✅ Compose file updated"
+echo ""
+
+# Step 5: Pull images on server
+echo "5️⃣  Pulling images on server..."
 echo "   Pulling latest images..."
 ssh -i $SSH_KEY $USER@$SERVER "cd $DEPLOY_PATH && IMAGE_TAG=latest docker-compose -f docker-compose.production.yml pull"
 
@@ -247,8 +258,8 @@ fi
 echo "   ✅ Images pulled"
 echo ""
 
-# Step 5: Deploy (restart containers)
-echo "5️⃣  Deploying containers..."
+# Step 6: Deploy (restart containers)
+echo "6️⃣  Deploying containers..."
 echo "   Forcing container recreation with latest images..."
 ssh -i $SSH_KEY $USER@$SERVER "cd $DEPLOY_PATH && IMAGE_TAG=latest docker-compose -f docker-compose.production.yml up -d --force-recreate"
 
@@ -259,8 +270,8 @@ fi
 echo "   ✅ Containers recreated successfully"
 echo ""
 
-# Step 5b: Verify containers were actually recreated
-echo "5️⃣b Verifying containers were recreated..."
+# Step 6b: Verify containers were actually recreated
+echo "6️⃣b Verifying containers were recreated..."
 CONTAINER_AGE=$(ssh -i $SSH_KEY $USER@$SERVER "docker inspect witchcity-api-prod --format='{{.State.StartedAt}}'" 2>/dev/null)
 if [ -z "$CONTAINER_AGE" ]; then
     echo "   ❌ FAIL: Could not verify container restart"
@@ -279,14 +290,14 @@ fi
 echo "   ✅ Containers verified as newly created ($AGE_SECONDS seconds old)"
 echo ""
 
-# Step 6: Wait for containers to stabilize
-echo "6️⃣  Waiting for services to stabilize..."
+# Step 7: Wait for containers to stabilize
+echo "7️⃣  Waiting for services to stabilize..."
 sleep 30
 echo "   ✅ Wait complete"
 echo ""
 
-# Step 7: Check container status
-echo "7️⃣  Checking container status..."
+# Step 8: Check container status
+echo "8️⃣  Checking container status..."
 echo "   Container status:"
 ssh -i $SSH_KEY $USER@$SERVER "cd $DEPLOY_PATH && docker-compose -f docker-compose.production.yml ps"
 echo ""
@@ -294,8 +305,8 @@ echo "   Recent API logs:"
 ssh -i $SSH_KEY $USER@$SERVER "docker logs witchcity-api-prod --tail 20"
 echo ""
 
-# Step 8: Health checks
-echo "8️⃣  Running health checks..."
+# Step 9: Health checks
+echo "9️⃣  Running health checks..."
 echo ""
 
 # Web health
@@ -333,8 +344,8 @@ fi
 
 echo ""
 
-# Step 9: Smoke tests
-echo "9️⃣  Running smoke tests..."
+# Step 10: Smoke tests
+echo "🔟  Running smoke tests..."
 echo ""
 
 SMOKE_PASS=0
