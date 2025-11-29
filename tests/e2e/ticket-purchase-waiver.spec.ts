@@ -31,13 +31,13 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
   test('Positive: User can purchase ticket when Liability Waiver checkbox is checked', async ({ page }) => {
     // Navigate to events page
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Find an event with paid tickets
     // Look for events with "Buy Tickets" or ticket pricing
     const eventCard = page.locator('[data-testid="event-card"]').first();
     await eventCard.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Clean up any existing participation (tickets only - classes don't have RSVPs)
     await AuthHelpers.cleanupEventParticipation(page, 'Class');
@@ -55,7 +55,7 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
 
     // Click ticket purchase button to go to checkout
     await ticketButton.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Should navigate to checkout/ticket selection page
     // URL might be /events/:slug/checkout or /events/:slug/tickets
@@ -138,7 +138,7 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
 
     // Navigate directly to event details page
     await page.goto(`/events/${eventSlug}`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     console.log('✅ Navigated to event details page');
 
     // Clean up any existing participation (tickets only - classes don't have RSVPs)
@@ -156,7 +156,7 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
 
     // Click to go to checkout
     await ticketButton.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Look for waiver checkbox
     const waiverCheckbox = page.locator('[data-testid="ticket-waiver-checkbox"]').or(page.locator('[data-testid="liability-waiver-checkbox"]'));
@@ -201,12 +201,12 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
   test('Positive: Ticket purchase shows as confirmed in UI', async ({ page }) => {
     // Navigate to events
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Click first event
     const eventCard = page.locator('[data-testid="event-card"]').first();
     await eventCard.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Clean up any existing participation (tickets only - classes don't have RSVPs)
     await AuthHelpers.cleanupEventParticipation(page, 'Class');
@@ -236,7 +236,7 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
 
     // Go to checkout
     await ticketButton.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Check waiver
     const waiverCheckbox = page.locator('[data-testid="ticket-waiver-checkbox"]').or(page.locator('[data-testid="liability-waiver-checkbox"]'));
@@ -269,12 +269,12 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
   test('Negative: Purchase button is disabled when Liability Waiver checkbox is unchecked', async ({ page }) => {
     // Navigate to events
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Click first event
     const eventCard = page.locator('[data-testid="event-card"]').first();
     await eventCard.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Clean up any existing participation (tickets only - classes don't have RSVPs)
     await AuthHelpers.cleanupEventParticipation(page, 'Class');
@@ -291,7 +291,7 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
 
     // Go to checkout
     await ticketButton.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Look for waiver checkbox
     const waiverCheckbox = page.locator('[data-testid="ticket-waiver-checkbox"]').or(page.locator('[data-testid="liability-waiver-checkbox"]'));
@@ -389,12 +389,12 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
   test('Negative: Unchecking Liability Waiver after checking re-disables purchase button', async ({ page }) => {
     // Navigate to events
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Click first event
     const eventCard = page.locator('[data-testid="event-card"]').first();
     await eventCard.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Clean up any existing participation (tickets only - classes don't have RSVPs)
     await AuthHelpers.cleanupEventParticipation(page, 'Class');
@@ -411,7 +411,7 @@ test.describe('Ticket Purchase Liability Waiver Compliance', () => {
 
     // Go to checkout
     await ticketButton.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Look for waiver checkbox
     const waiverCheckbox = page.locator('[data-testid="ticket-waiver-checkbox"]').or(page.locator('[data-testid="liability-waiver-checkbox"]'));

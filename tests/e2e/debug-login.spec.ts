@@ -39,7 +39,7 @@ test('debug login issue', async ({ page }) => {
   // Navigate to login
   console.log('📍 Navigating to login page...');
   await page.goto('/login');
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   await page.screenshot({ path: './test-results/before-login.png' });
   
   console.log('📍 Current URL after navigation:', page.url());

@@ -14,7 +14,7 @@ test.describe('Login Selector Fix - AuthHelper Approach', () => {
 
     // Navigate to login page
     await page.goto('/login')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     
     console.log('❌ TESTING BROKEN SELECTORS (what failing tests use):')
     
@@ -73,7 +73,7 @@ test.describe('Login Selector Fix - AuthHelper Approach', () => {
     console.log('🔍 Analyzing current login page HTML structure...')
 
     await page.goto('/login')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     
     // Get the login form HTML
     const formHTML = await page.locator('[data-testid="login-form"]').innerHTML()

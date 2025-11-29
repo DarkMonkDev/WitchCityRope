@@ -6,13 +6,13 @@ test('check DOM after navigation', async ({ page }) => {
   
   await AuthHelpers.loginAs(page, 'admin');
   await page.goto('/admin/vetting');
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   
   // Click first row
   const firstRow = page.locator('table tbody tr').first();
   await firstRow.click();
   await page.waitForURL(/\/admin\/vetting\/applications\/[a-f0-9-]+$/);
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   
   // Check ALL h1 elements on the page
   const h1Count = await page.locator('h1').count();

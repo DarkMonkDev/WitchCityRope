@@ -67,7 +67,7 @@ test.describe('Post-Login Return to Intended Page', () => {
     test('should return to /vetting/apply after login from vetting page', async ({ page }) => {
       // Step 1: Navigate to vetting application page (not authenticated)
       await page.goto('/vetting/apply');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Step 2: Find "LOGIN TO YOUR ACCOUNT" link (styled as button)
       const loginButton = page.getByRole('link', { name: /login to your account/i }).first();
@@ -75,7 +75,7 @@ test.describe('Post-Login Return to Intended Page', () => {
 
       // Step 3: Click login button
       await loginButton.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Step 4: Verify we're on login page with returnUrl parameter
       await expect(page).toHaveURL(/\/login\?returnUrl=%2Fvetting%2Fapply/);
@@ -87,7 +87,7 @@ test.describe('Post-Login Return to Intended Page', () => {
       await expect(page).toHaveURL(/\/vetting\/apply/);
 
       // Step 7: Verify we're on the vetting page (page loaded successfully)
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       const pageTitle = page.locator('h1, h2').filter({ hasText: /apply to join/i });
       await expect(pageTitle).toBeVisible({ timeout: 5000 });
     });
@@ -112,7 +112,7 @@ test.describe('Post-Login Return to Intended Page', () => {
 
       // Step 2: Navigate to event page (not authenticated)
       await page.goto(eventUrl);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Step 3: Look for "Log In" button in ParticipationCard - use semantic selector
       const loginButton = page.getByRole('link', { name: /log in/i }).filter({ has: page.locator('[href*="returnUrl"]') }).first();
@@ -132,7 +132,7 @@ test.describe('Post-Login Return to Intended Page', () => {
 
       // Step 5: Click login button
       await loginButton.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Step 6: Verify we're on login page with event returnUrl
       await expect(page).toHaveURL(/\/login\?returnUrl=/);
@@ -146,7 +146,7 @@ test.describe('Post-Login Return to Intended Page', () => {
 
       // Step 9: Verify user is on event page (success message may vary or not appear)
       // Just verify we're on the correct page
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       expect(page.url()).toContain(eventUrl);
     });
 
@@ -159,7 +159,7 @@ test.describe('Post-Login Return to Intended Page', () => {
 
       // Navigate to event and login
       await page.goto(eventUrl);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       const loginButton = page.getByRole('link', { name: /log in/i }).filter({ has: page.locator('[href*="returnUrl"]') }).first();
       if (await loginButton.count() === 0) {
@@ -168,7 +168,7 @@ test.describe('Post-Login Return to Intended Page', () => {
       }
 
       await loginButton.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await completeLogin(page);
 
       // Wait for return to event page
@@ -185,7 +185,7 @@ test.describe('Post-Login Return to Intended Page', () => {
     test('should redirect to dashboard when no returnUrl provided', async ({ page }) => {
       // Step 1: Navigate directly to login page (no returnUrl parameter)
       await page.goto('/login');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Step 2: Verify no returnUrl in URL
       const currentUrl = page.url();
@@ -198,7 +198,7 @@ test.describe('Post-Login Return to Intended Page', () => {
       await expect(page).toHaveURL(/\/dashboard/);
 
       // Step 5: Verify we landed on dashboard (success message may vary)
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       const dashboardContent = page.locator('[data-testid="dashboard-content"], main, nav').first();
       await expect(dashboardContent).toBeVisible({ timeout: 10000 });
     });
@@ -206,14 +206,14 @@ test.describe('Post-Login Return to Intended Page', () => {
     test('should redirect to dashboard from nav menu login', async ({ page }) => {
       // Navigate to home page
       await page.goto('/');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Find "Login" link in navigation (should not have returnUrl)
       const navLoginLink = page.locator('nav a[href="/login"], header a[href="/login"]').first();
 
       if (await navLoginLink.count() > 0) {
         await navLoginLink.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         // Verify we're on login page without returnUrl
         expect(page.url()).toMatch(/\/login$/);
@@ -226,7 +226,7 @@ test.describe('Post-Login Return to Intended Page', () => {
       } else {
         // If no nav login link, just verify direct login behavior
         await page.goto('/login');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         await completeLogin(page);
         await expect(page).toHaveURL(/\/dashboard/);
       }
@@ -238,7 +238,7 @@ test.describe('Post-Login Return to Intended Page', () => {
       // Step 1: Navigate to login with malicious external URL
       const maliciousUrl = 'https://evil.com/phishing';
       await page.goto(`/login?returnUrl=${encodeURIComponent(maliciousUrl)}`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Step 2: Complete login
       await completeLogin(page);
@@ -251,7 +251,7 @@ test.describe('Post-Login Return to Intended Page', () => {
       expect(page.url()).not.toContain('phishing');
 
       // Step 5: Verify user landed safely
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       const dashboardContent = page.locator('[data-testid="dashboard-content"], main, nav').first();
       await expect(dashboardContent).toBeVisible({ timeout: 10000 });
     });
@@ -260,7 +260,7 @@ test.describe('Post-Login Return to Intended Page', () => {
       // Step 1: Navigate to login with JavaScript protocol attack
       const maliciousUrl = "javascript:alert('XSS')";
       await page.goto(`/login?returnUrl=${encodeURIComponent(maliciousUrl)}`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Step 2: Complete login
       await completeLogin(page);
@@ -271,7 +271,7 @@ test.describe('Post-Login Return to Intended Page', () => {
       // Step 4: Verify JavaScript code was NOT executed
       // If alert() was executed, Playwright would show a dialog
       // We verify no dialogs appeared by successfully navigating
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       const dashboardContent = page.locator('main, nav').first();
       await expect(dashboardContent).toBeVisible({ timeout: 10000 });
     });
@@ -280,7 +280,7 @@ test.describe('Post-Login Return to Intended Page', () => {
       // Step 1: Navigate to login with data: protocol attack
       const maliciousUrl = "data:text/html,<script>alert('XSS')</script>";
       await page.goto(`/login?returnUrl=${encodeURIComponent(maliciousUrl)}`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Step 2: Complete login
       await completeLogin(page);
@@ -292,7 +292,7 @@ test.describe('Post-Login Return to Intended Page', () => {
       expect(page.url()).not.toContain('data:');
 
       // Step 5: Verify user is safely on dashboard
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       const dashboardContent = page.locator('main').first();
       await expect(dashboardContent).toBeVisible({ timeout: 10000 });
     });
@@ -301,7 +301,7 @@ test.describe('Post-Login Return to Intended Page', () => {
       // Step 1: Navigate to login with file: protocol attack
       const maliciousUrl = "file:///etc/passwd";
       await page.goto(`/login?returnUrl=${encodeURIComponent(maliciousUrl)}`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Step 2: Complete login
       await completeLogin(page);
@@ -313,7 +313,7 @@ test.describe('Post-Login Return to Intended Page', () => {
       expect(page.url()).not.toContain('file:');
 
       // Step 5: Verify safe landing
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       const dashboardContent = page.locator('main').first();
       await expect(dashboardContent).toBeVisible({ timeout: 10000 });
     });
@@ -368,12 +368,12 @@ test.describe('Post-Login Return to Intended Page', () => {
       for (const maliciousUrl of attackVectors) {
         // Navigate to login with attack vector
         await page.goto(`/login?returnUrl=${encodeURIComponent(maliciousUrl)}`);
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         // Complete login
         await AuthHelpers.clearAuthState(page); // Reset for clean login
         await page.goto(`/login?returnUrl=${encodeURIComponent(maliciousUrl)}`);
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         await completeLogin(page);
 
         // Verify redirect to safe default
@@ -391,7 +391,7 @@ test.describe('Post-Login Return to Intended Page', () => {
   test.describe('Edge Cases and Error Handling', () => {
     test('should handle empty returnUrl gracefully', async ({ page }) => {
       await page.goto('/login?returnUrl=');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       await completeLogin(page);
 
@@ -402,13 +402,13 @@ test.describe('Post-Login Return to Intended Page', () => {
     test('should handle non-existent internal path', async ({ page }) => {
       // Navigate with valid internal path that doesn't exist
       await page.goto(`/login?returnUrl=${encodeURIComponent('/does-not-exist-12345')}`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       await completeLogin(page);
 
       // Backend may validate and allow internal paths even if they don't exist
       // Frontend will attempt navigation, React Router will handle 404
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // We should either be on the attempted path or dashboard (safe default)
       const currentUrl = page.url();
@@ -426,7 +426,7 @@ test.describe('Post-Login Return to Intended Page', () => {
       const urlWithHash = '/vetting/apply#section-2';
 
       await page.goto(`/login?returnUrl=${encodeURIComponent(urlWithHash)}`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Check if we're on login page (hash may not redirect properly)
       const currentUrl = page.url();
@@ -435,7 +435,7 @@ test.describe('Post-Login Return to Intended Page', () => {
         await completeLogin(page);
 
         // Check if hash is preserved (may depend on backend implementation)
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       }
 
       // Either on vetting page with or without hash, or dashboard (hash URLs may be rejected), or still on login

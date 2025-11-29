@@ -27,7 +27,7 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
     expect(loginSuccess).toBeTruthy();
 
     await page.goto('/admin/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test.describe('Environment and Access Validation', () => {
@@ -366,7 +366,7 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
 
       // Refresh page
       await page.reload();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       const urlAfter = page.url();
       console.log(`URL after refresh: ${urlAfter}`);
@@ -446,7 +446,7 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
     test('page performance is acceptable', async ({ page }) => {
       const startTime = Date.now();
       await page.goto('/admin/events');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       const loadTime = Date.now() - startTime;
 
       console.log(`Admin events page load time: ${loadTime}ms`);
@@ -479,7 +479,7 @@ test.describe('Admin Events - Simplified Comprehensive Testing', () => {
 
       // Navigate and interact
       await page.goto('/admin/events');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Try basic interactions
       const createButton = page.locator('[data-testid="button-create-event"], button:has-text("Create")').first();

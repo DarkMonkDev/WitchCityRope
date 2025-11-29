@@ -41,7 +41,7 @@ test.describe('Events Management System E2E Tests', () => {
       await expect(page.locator('h1')).toContainText('Events Management API Integration Demo')
 
       // Verify page loads without constant reloading (wait and check title still there)
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
       await expect(page.locator('h1')).toContainText('Events Management API Integration Demo')
 
       // Take screenshot for verification
@@ -55,7 +55,7 @@ test.describe('Events Management System E2E Tests', () => {
       await expect(page.locator('h1')).toContainText('Events Management API Integration Demo')
 
       // Wait for events to load (either from API or empty state)
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
 
       // Check if events loaded from API
       const eventCards = page.locator('.mantine-Card-root')
@@ -98,7 +98,7 @@ test.describe('Events Management System E2E Tests', () => {
 
       // Switch to Future API tab
       await page.locator('[role="tab"]:has-text("Future Events Management API")').click()
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
 
       // Verify tab switched
       await expect(page.locator('[role="tab"][aria-selected="true"]')).toContainText(
@@ -110,7 +110,7 @@ test.describe('Events Management System E2E Tests', () => {
 
       // Switch back to Current API tab
       await page.locator('[role="tab"]:has-text("Current API (Working)")').click()
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
 
       // Verify tab switched back
       await expect(page.locator('[role="tab"][aria-selected="true"]')).toContainText(
@@ -126,7 +126,7 @@ test.describe('Events Management System E2E Tests', () => {
 
       // Wait for page to load
       await expect(page.locator('h1')).toContainText('Events Management API Integration Demo')
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
 
       // Check if any event cards are present
       const eventCards = page.locator('.mantine-Card-root')
@@ -137,7 +137,7 @@ test.describe('Events Management System E2E Tests', () => {
 
         // Click on first event card
         await eventCards.first().click()
-        await page.waitForLoadState('networkidle')
+        await page.waitForLoadState('domcontentloaded')
 
         // Verify page is still functional after click
         await expect(page.locator('h1')).toContainText('Events Management API Integration Demo')
@@ -156,7 +156,7 @@ test.describe('Events Management System E2E Tests', () => {
 
       // Wait for page to load
       await expect(page.locator('h1')).toContainText('Events Management API Integration Demo')
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
 
       // Look for refresh button
       const refreshButton = page.locator('button:has-text("Refresh Events")')
@@ -167,7 +167,7 @@ test.describe('Events Management System E2E Tests', () => {
 
         // Click refresh button
         await refreshButton.click()
-        await page.waitForLoadState('networkidle')
+        await page.waitForLoadState('domcontentloaded')
 
         // Verify page is still functional after refresh
         await expect(page.locator('h1')).toContainText('Events Management API Integration Demo')
@@ -177,7 +177,7 @@ test.describe('Events Management System E2E Tests', () => {
 
         // Test page reload functionality
         await page.reload()
-        await page.waitForLoadState('networkidle')
+        await page.waitForLoadState('domcontentloaded')
 
         // Verify page loads correctly after reload
         await expect(page.locator('h1')).toContainText('Events Management API Integration Demo')
@@ -201,13 +201,13 @@ test.describe('Events Management System E2E Tests', () => {
 
       // Wait for page to fully load
       await expect(page.locator('h1')).toContainText('Events Management API Integration Demo')
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
 
       // Test tab switching
       await page.locator('[role="tab"]:has-text("Future Events Management API")').click()
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
       await page.locator('[role="tab"]:has-text("Current API (Working)")').click()
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
 
       // Verify no critical console errors occurred
       // Filter out non-critical errors (like Vite dev server WebSocket errors and auth errors)
@@ -252,7 +252,7 @@ test.describe('Events Management System E2E Tests', () => {
       await page.goto('/admin/event-session-matrix-demo')
 
       // Wait for page to fully load
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
 
       // Verify page loads
       await expect(page).toHaveTitle(/Witch City Rope/i)
@@ -261,7 +261,7 @@ test.describe('Events Management System E2E Tests', () => {
       await expect(page.locator('h1')).toContainText('Event Session Matrix Demo', { timeout: 10000 })
 
       // Wait for form to render
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
 
       // Take screenshot of loaded page
       await page.screenshot({ path: 'test-results/matrix-demo-loaded.png' })
@@ -272,7 +272,7 @@ test.describe('Events Management System E2E Tests', () => {
 
       // Wait for page and form to load
       await expect(page.locator('h1')).toContainText('Event Session Matrix Demo')
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
 
       // Check for tab elements in the EventForm component
       const tabs = page.locator('[role="tab"]')
@@ -302,7 +302,7 @@ test.describe('Events Management System E2E Tests', () => {
       await page.goto('/admin/event-session-matrix-demo')
 
       // Wait for page load
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
 
       // Get all clickable elements that might be tabs (exclude mobile menu)
       const clickableElements = page.locator('[role="tab"]:visible:not(.mobile-menu-toggle), .tab:visible, [data-testid*="tab"]:visible')
@@ -325,7 +325,7 @@ test.describe('Events Management System E2E Tests', () => {
           console.log(`Trying to click element ${i}: "${text}"`)
 
           await element.click()
-          await page.waitForLoadState('networkidle')
+          await page.waitForLoadState('domcontentloaded')
 
           // Take screenshot after each click
           await page.screenshot({ path: `test-results/tab-click-${i}.png` })
@@ -339,7 +339,7 @@ test.describe('Events Management System E2E Tests', () => {
       await page.goto('/admin/event-session-matrix-demo')
 
       // Wait for page load
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
 
       // Look for common form elements
       const inputs = await page.locator('input').count()
@@ -360,7 +360,7 @@ test.describe('Events Management System E2E Tests', () => {
       await page.goto('/admin/event-session-matrix-demo')
 
       // Wait for page load
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
 
       // Look for Tiptap/Mantine editor elements
       const mantineEditors = await page.locator('.mantine-RichTextEditor-root').count()
@@ -384,13 +384,13 @@ test.describe('Events Management System E2E Tests', () => {
       await page.goto('/admin/event-session-matrix-demo')
 
       // Wait for content to load
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
 
       // Navigate to Setup tab where session grid lives
       const setupTab = page.locator('[role="tab"]:has-text("Setup")')
       if (await setupTab.count() > 0) {
         await setupTab.click()
-        await page.waitForLoadState('networkidle')
+        await page.waitForLoadState('domcontentloaded')
         console.log('✅ Navigated to Setup tab')
       }
 
@@ -408,7 +408,7 @@ test.describe('Events Management System E2E Tests', () => {
       // Test modal workflow if Add Session button exists
       if (addSessionButton > 0) {
         await page.locator('[data-testid="button-add-session"]').click()
-        await page.waitForLoadState('networkidle')
+        await page.waitForLoadState('domcontentloaded')
 
         // Check if session modal opened
         const sessionModal = await page.locator('[data-testid="modal-add-session"]').count()
@@ -432,7 +432,7 @@ test.describe('Events Management System E2E Tests', () => {
       await page.goto('/admin/event-session-matrix-demo')
 
       // Wait for page load
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
 
       // Look for ticket-related elements
       const ticketElements = await page
@@ -452,7 +452,7 @@ test.describe('Events Management System E2E Tests', () => {
       await page.goto('/admin/event-session-matrix-demo')
 
       // Wait for page load
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
 
       // Look for Save Draft button
       const saveDraftButton = page.locator(
@@ -545,7 +545,7 @@ test.describe('Events Management System E2E Tests', () => {
       await page.goto('/admin/events-management-api-demo')
 
       // Wait for API calls to complete
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
 
       // Verify API call was made (or fallback was used)
       console.log('API calls made:', apiCalls)
@@ -575,7 +575,7 @@ test.describe('Events Management System E2E Tests', () => {
       await page.goto('/admin/events-management-api-demo')
 
       // Wait for page load and error handling
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
 
       // Verify page still loads correctly
       await expect(page.locator('h1')).toContainText('Events Management API Integration Demo')
@@ -614,7 +614,7 @@ test.describe('Events Management System E2E Tests', () => {
       await page.goto('/admin/events-management-api-demo')
 
       // Wait for API response
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
 
       // Verify page functionality regardless of API response
       await expect(page.locator('h1')).toContainText('Events Management API Integration Demo')
@@ -659,7 +659,7 @@ test.describe('Events Management System E2E Tests', () => {
       await page.setViewportSize({ width: 768, height: 1024 })
       await page.goto('/admin/event-session-matrix-demo')
 
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
       await page.screenshot({ path: 'test-results/tablet-viewport-matrix-demo.png' })
 
       // Test desktop viewport

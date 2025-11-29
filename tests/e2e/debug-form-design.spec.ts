@@ -28,7 +28,7 @@ test('DEBUG: Form Design A rendering investigation - SKIPPED: Feature not implem
   // Navigate to homepage first to check if React is working
   console.log('🏠 Testing homepage first...');
   await page.goto('/', { timeout: 30000 });
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   
   const homePageText = await page.locator('body').innerText();
   console.log('Homepage body text:', homePageText.substring(0, 200));
@@ -39,7 +39,7 @@ test('DEBUG: Form Design A rendering investigation - SKIPPED: Feature not implem
   // Now navigate to form design page
   console.log('🎨 Testing form design page...');
   await page.goto('/form-designs/a', { timeout: 30000 });
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   
   // Wait a bit more for potential React hydration
   await page.waitForTimeout(5000);

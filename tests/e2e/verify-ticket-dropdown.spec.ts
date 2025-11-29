@@ -5,7 +5,7 @@ const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
 test('Verify ticket type dropdown displays correct labels without null', async ({ page }) => {
   // First login
   await page.goto(`${baseUrl}/login`);
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   
   // Fill login form
   const emailInput = await page.locator('input[placeholder*="email"], input[placeholder*="Email"]').first();
@@ -19,7 +19,7 @@ test('Verify ticket type dropdown displays correct labels without null', async (
     const loginBtn = await page.locator('button[type="submit"], button:has-text("Login"), button:has-text("Sign In")').first();
     await loginBtn.click();
     
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
     console.log('Logged in');
   }
@@ -29,7 +29,7 @@ test('Verify ticket type dropdown displays correct labels without null', async (
   const registrationId = `reg_${Date.now()}_test`;
   
   await page.goto(`${baseUrl}/checkout/${eventId}/${registrationId}`);
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   await page.waitForTimeout(1500);
   
   await page.screenshot({ path: './test-results/01-checkout-page-logged-in.png' });

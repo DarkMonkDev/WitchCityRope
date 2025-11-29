@@ -197,7 +197,7 @@ test.describe('Final Real API Authentication Test', () => {
     console.log('=== PAGE STABILITY TEST ===');
 
     await page.goto('/login');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Monitor for 10 seconds for any stability issues
     console.log('Monitoring page stability for 10 seconds...');

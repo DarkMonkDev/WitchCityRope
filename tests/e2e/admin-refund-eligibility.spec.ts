@@ -32,7 +32,7 @@ test.describe('Admin Refund Eligibility - Business Rules', () => {
     console.log('\n📝 Setup: Login as admin and navigate to payments');
     await AuthHelpers.loginAs(page, 'admin');
     await page.goto('/admin/analytics/payments');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify we're on the payments page
     await expect(page.locator('h1')).toContainText(/payment/i, { timeout: 10000 });

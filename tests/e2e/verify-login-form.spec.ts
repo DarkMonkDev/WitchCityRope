@@ -6,7 +6,7 @@ test('Verify login form has both email and password fields', async ({ page }) =>
   await page.goto('/login');
 
   // Wait for page to load
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 
   // Take a screenshot for inspection
   await page.screenshot({ path: 'login-form-inspection.png', fullPage: true });

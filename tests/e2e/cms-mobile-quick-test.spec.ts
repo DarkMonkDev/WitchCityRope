@@ -18,7 +18,7 @@ test('Quick Test: Mobile FAB button click opens editor', async ({ page }) => {
 
   // 3. Navigate to CMS page
   await page.goto(`${baseUrl}/resources`);
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   console.log('✅ Navigated to /resources');
 
   // 4. Wait a moment for media queries to apply

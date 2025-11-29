@@ -63,7 +63,7 @@ test.describe('Verify Recent Changes Applied', () => {
       await firstApplication.click();
 
       // Wait for detail page
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Take screenshot of vetting detail
       await page.screenshot({ path: './test-results/vetting-detail-after-rebuild.png', fullPage: true });

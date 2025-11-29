@@ -42,7 +42,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
 
     // Navigate to main admin dashboard
     await page.goto('/admin');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify admin dashboard loaded
     await expect(page.getByRole('heading', { name: /Admin Dashboard/i })).toBeVisible();
@@ -55,7 +55,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
 
     // Click the incident reports card
     await incidentReportsCard.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify navigation to incident reports page
     await expect(page).toHaveURL(/\/admin\/safety\/incidents/);
@@ -74,7 +74,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     console.log('✅ Logged in as admin successfully');
 
     await page.goto('/admin/safety/incidents');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Wait for incidents table to load
     await page.waitForSelector('table', { timeout: 10000 });
@@ -91,7 +91,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
       const statusOption = page.locator('text=/Report Submitted|ReportSubmitted/i').first();
       if (await statusOption.isVisible()) {
         await statusOption.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         // Verify filtered results
         const statusBadges = page.locator('[data-testid="status-badge"]');
@@ -111,7 +111,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     console.log('✅ Logged in as admin successfully');
 
     await page.goto('/admin/safety/incidents');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Find search input (updated to search by title instead of reference number)
     const searchInput = page.locator('input[placeholder*="search" i], input[type="search"], [data-testid="search-input"]').first();
@@ -120,7 +120,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
       // Search by title keyword
       await searchInput.fill('Equipment');
       await page.waitForTimeout(1000); // Allow for debounced search
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Verify results contain "Equipment" in title
       const titleCells = page.locator('td, [data-testid="title-cell"]');
@@ -138,14 +138,14 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     console.log('✅ Logged in as admin successfully');
 
     await page.goto('/admin/safety/incidents');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Look for unassigned filter checkbox or toggle (updated for new UI)
     const unassignedFilter = page.locator('input[type="checkbox"][aria-label*="unassigned" i], [data-testid="unassigned-filter"], label:has-text("Unassigned")').first();
 
     if (await unassignedFilter.isVisible()) {
       await unassignedFilter.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Verify filtered results show unassigned incidents
       const coordinatorCells = page.locator('[data-testid="coordinator-cell"], td:has-text("Coordinator")').locator('..').locator('td');
@@ -164,7 +164,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     console.log('✅ Logged in as admin successfully');
 
     await page.goto('/admin/safety/incidents');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Wait for table to load
     await page.waitForSelector('table tbody tr', { timeout: 10000 });
@@ -172,7 +172,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     // Click on first incident row
     const firstIncidentRow = page.locator('table tbody tr').first();
     await firstIncidentRow.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Look for assign coordinator button or select
     const assignButton = page.locator('button:has-text("Assign Coordinator"), [data-testid="assign-coordinator-button"]').first();
@@ -207,13 +207,13 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     console.log('✅ Logged in as admin successfully');
 
     await page.goto('/admin/safety/incidents');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // HARD ASSERTION - Incidents table must be visible
     const firstIncident = page.locator('table tbody tr').first();
     await expect(firstIncident).toBeVisible({ timeout: 10000 }); // HARD ASSERTION
     await firstIncident.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // HARD ASSERTION - Google Drive section must exist
     const googleDriveSection = page.locator('text=/Google Drive Links/i');
@@ -262,13 +262,13 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     console.log('✅ Logged in as admin successfully');
 
     await page.goto('/admin/safety/incidents');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // HARD ASSERTION - Incidents table must exist
     const firstIncident = page.locator('table tbody tr').first();
     await expect(firstIncident).toBeVisible({ timeout: 10000 }); // HARD ASSERTION
     await firstIncident.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // HARD ASSERTION - Notes section must exist
     const notesSection = page.locator('text=/Investigation Notes/i');
@@ -315,13 +315,13 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     console.log('✅ Logged in as admin successfully');
 
     await page.goto('/admin/safety/incidents');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Click on any incident
     const firstIncident = page.locator('table tbody tr').first();
     if (await firstIncident.isVisible()) {
       await firstIncident.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Click update status button
       const statusButton = page.locator('[data-testid="update-status-button"], button:has-text("Update Status"), button:has-text("Change Status")').first();
@@ -353,13 +353,13 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     console.log('✅ Logged in as admin successfully');
 
     await page.goto('/admin/safety/incidents');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Click on any incident that has notes
     const firstIncident = page.locator('table tbody tr').first();
     if (await firstIncident.isVisible()) {
       await firstIncident.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Look for notes section
       const notesSection = page.locator('[data-testid="notes-section"], section:has-text("Notes"), div:has-text("Notes")').first();
@@ -382,13 +382,13 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     console.log('✅ Logged in as admin successfully');
 
     await page.goto('/admin/safety/incidents');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Click on any incident
     const firstIncident = page.locator('table tbody tr').first();
     if (await firstIncident.isVisible()) {
       await firstIncident.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Add a note first (using correct selectors from "add note" test)
       const noteContent = 'Note to be deleted';
@@ -423,7 +423,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     console.log('✅ Logged in as admin successfully');
 
     await page.goto('/admin/safety/incidents');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Check if pagination controls exist
     const paginationControls = page.locator('[data-testid="pagination"], nav[aria-label*="pagination" i]').first();
@@ -432,7 +432,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
       const nextButton = page.locator('[data-testid="next-page"], button[aria-label*="next" i]').first();
       if (await nextButton.isVisible() && await nextButton.isEnabled()) {
         await nextButton.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         // Verify page changed
         await page.waitForTimeout(1000);
@@ -441,7 +441,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
         const prevButton = page.locator('[data-testid="previous-page"], button[aria-label*="previous" i]').first();
         if (await prevButton.isVisible()) {
           await prevButton.click();
-          await page.waitForLoadState('networkidle');
+          await page.waitForLoadState('domcontentloaded');
         }
       }
     }
@@ -452,7 +452,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
     console.log('✅ Logged in as admin successfully');
 
     await page.goto('/admin/safety/incidents');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Wait for table to load
     await page.waitForSelector('table thead th', { timeout: 10000 });

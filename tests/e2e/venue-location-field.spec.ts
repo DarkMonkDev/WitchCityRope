@@ -34,7 +34,7 @@ test.describe('Admin Venue Location Field', () => {
 
     // Navigate to admin settings
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify page loaded
     await expect(page).toHaveURL(/\/admin\/settings/);
@@ -71,7 +71,7 @@ test.describe('Admin Venue Location Field', () => {
 
     // Navigate to admin settings
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Open dropdown and select "Add New"
     const venueDropdown = page.getByPlaceholder('Select a venue');
@@ -102,7 +102,7 @@ test.describe('Admin Venue Location Field', () => {
 
     // Reload page to verify persistence
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Select the newly created venue from dropdown
     await venueDropdown.click();
@@ -127,7 +127,7 @@ test.describe('Admin Venue Location Field', () => {
 
     // Navigate to admin settings
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Open dropdown and select "Add New"
     const venueDropdown = page.getByPlaceholder('Select a venue');
@@ -160,7 +160,7 @@ test.describe('Admin Venue Location Field', () => {
 
     // Verify venue created successfully without location
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await venueDropdown.click();
     await page.waitForTimeout(500);
@@ -176,7 +176,7 @@ test.describe('Admin Venue Location Field', () => {
 
     // First create a venue
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const venueDropdown = page.getByPlaceholder('Select a venue');
 
@@ -198,7 +198,7 @@ test.describe('Admin Venue Location Field', () => {
 
     // Now update the location
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Select the venue
     await venueDropdown.click();
@@ -224,7 +224,7 @@ test.describe('Admin Venue Location Field', () => {
 
     // Reload and verify updated value persisted
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await venueDropdown.click();
     await page.waitForTimeout(500);
@@ -242,7 +242,7 @@ test.describe('Admin Venue Location Field', () => {
 
     // Create venue with location
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const venueDropdown = page.getByPlaceholder('Select a venue');
 
@@ -262,7 +262,7 @@ test.describe('Admin Venue Location Field', () => {
 
     // Now clear the location
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await venueDropdown.click();
     await page.waitForTimeout(500);
@@ -286,7 +286,7 @@ test.describe('Admin Venue Location Field', () => {
 
     // Reload and verify location is still empty
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await venueDropdown.click();
     await page.waitForTimeout(500);
@@ -304,7 +304,7 @@ test.describe('Admin Venue Location Field', () => {
 
     // Navigate to admin settings
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Open dropdown and select "Add New"
     const venueDropdown = page.getByPlaceholder('Select a venue');
@@ -333,7 +333,7 @@ test.describe('Admin Venue Location Field', () => {
 
     // Navigate to admin settings
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Open dropdown and select "Add New"
     const venueDropdown = page.getByPlaceholder('Select a venue');

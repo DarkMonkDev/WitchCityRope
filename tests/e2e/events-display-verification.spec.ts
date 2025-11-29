@@ -15,7 +15,7 @@ test.describe('Events Display Verification - Safe Test', () => {
     await page.goto('/events');
     
     // Step 2: Wait for page to load and take initial screenshot
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.screenshot({ 
       path: './test-results/events-page-initial-load.png',
       fullPage: true 
@@ -104,7 +104,7 @@ test.describe('Events Display Verification - Safe Test', () => {
     console.log('🎯 Testing event details display...');
     
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(2000);
     
     // Take screenshot of current state

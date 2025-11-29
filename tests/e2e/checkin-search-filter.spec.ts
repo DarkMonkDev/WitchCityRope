@@ -94,7 +94,7 @@ test.describe('Check-In Search and Filter', () => {
 
     // Navigate to check-in interface with token
     await navigateToCheckIn(page, testEventId, sessionToken);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('Search attendees by name (partial match)', async ({ page }) => {

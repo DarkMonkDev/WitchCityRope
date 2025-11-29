@@ -116,7 +116,7 @@ test.describe('Public Events Anonymous Access', () => {
     test('Anonymous user can navigate to events page', async ({ page }) => {
       // Navigate to events page WITHOUT logging in
       await page.goto('/events');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Should successfully load (200 status)
       expect(page.url()).toContain('/events');
@@ -130,7 +130,7 @@ test.describe('Public Events Anonymous Access', () => {
     test('Events list loads and displays events for anonymous user', async ({ page }) => {
       // Navigate to events page
       await page.goto('/events');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Wait for events to load (check for event cards or events container)
       const eventsContainer = page.locator('[data-testid="events-list"], .events-container, .event-card').first();
@@ -162,7 +162,7 @@ test.describe('Public Events Anonymous Access', () => {
 
       // Navigate to events page
       await page.goto('/events');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Wait for events to potentially load
       await page.waitForTimeout(2000);
@@ -180,7 +180,7 @@ test.describe('Public Events Anonymous Access', () => {
     test('Event cards display title, date, and description', async ({ page }) => {
       // Navigate to events page
       await page.goto('/events');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Get first event card
       const firstEventCard = page.locator('.event-card, [data-testid="event-card"]').first();
@@ -206,7 +206,7 @@ test.describe('Public Events Anonymous Access', () => {
     test('Event cards are clickable', async ({ page }) => {
       // Navigate to events page
       await page.goto('/events');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Get first event card
       const firstEventCard = page.locator('.event-card, [data-testid="event-card"], a[href*="/events/"]').first();
@@ -228,7 +228,7 @@ test.describe('Public Events Anonymous Access', () => {
     test('No sensitive admin data visible to anonymous users', async ({ page }) => {
       // Navigate to events page
       await page.goto('/events');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Get page content
       const pageContent = await page.textContent('body');
@@ -260,7 +260,7 @@ test.describe('Public Events Anonymous Access', () => {
     test('Page title is set correctly', async ({ page }) => {
       // Navigate to events page
       await page.goto('/events');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Check page title
       const title = await page.title();
@@ -277,7 +277,7 @@ test.describe('Public Events Anonymous Access', () => {
     test('Events page accessible via navigation menu', async ({ page }) => {
       // Navigate to home page
       await page.goto('/');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Look for Events link in navigation
       const eventsLink = page.locator('nav a[href*="/events"], header a[href*="/events"], a:has-text("Events")').first();
@@ -285,7 +285,7 @@ test.describe('Public Events Anonymous Access', () => {
       // If events link exists in nav, click it
       if (await eventsLink.count() > 0) {
         await eventsLink.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         // Should navigate to events page
         expect(page.url()).toContain('/events');
@@ -318,7 +318,7 @@ test.describe('Public Events Anonymous Access', () => {
       // For now, we just verify the page doesn't crash
 
       await page.goto('/events');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Page should load without errors
       const pageContent = await page.textContent('body');
@@ -343,7 +343,7 @@ test.describe('Public Events Anonymous Access', () => {
 
       // Navigate to events page
       await page.goto('/events');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Wait a bit for any delayed errors
       await page.waitForTimeout(2000);

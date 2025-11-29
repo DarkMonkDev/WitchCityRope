@@ -108,12 +108,12 @@ test.describe('Ticket Lifecycle Persistence Tests', () => {
     } catch {
       // Purchase ticket if needed
       await page.goto(`/events/${TEST_EVENT_ID}`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       const purchaseButton = page.locator('button:has-text("Purchase Ticket"), button:has-text("Register")').first();
       if (await purchaseButton.count() > 0) {
         await purchaseButton.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       }
     }
 
@@ -166,7 +166,7 @@ test.describe('Ticket Lifecycle Persistence Tests', () => {
 
     // Navigate to event page
     await page.goto(`/events/${TEST_EVENT_ID}`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Cancel button should NOT be visible
     const cancelButton = page.locator('button:has-text("Cancel Ticket")');
@@ -207,12 +207,12 @@ test.describe('Ticket Persistence Edge Cases', () => {
       await DatabaseHelpers.verifyEventParticipation(userId, TEST_EVENT_ID, 1); // 1 = Active
     } catch {
       await page.goto(`/events/${TEST_EVENT_ID}`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       const purchaseButton = page.locator('button:has-text("Purchase Ticket")').first();
       if (await purchaseButton.count() > 0) {
         await purchaseButton.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       }
     }
 
@@ -226,7 +226,7 @@ test.describe('Ticket Persistence Edge Cases', () => {
 
     // Navigate and cancel
     await page.goto(`/events/${TEST_EVENT_ID}`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const cancelButton = page.locator('button:has-text("Cancel Ticket")').first();
     if (await cancelButton.count() > 0) {

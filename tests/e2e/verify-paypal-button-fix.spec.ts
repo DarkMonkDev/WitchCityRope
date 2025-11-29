@@ -49,7 +49,7 @@ test.describe('PayPal Button - debugLog Import Fix Verification', () => {
   test('PayPal button loads without debugLog ReferenceError', async ({ page }) => {
     console.log('🔍 Step 1: Navigate to check-in kiosk');
     await page.goto(`${baseUrl}/checkin`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Find and click on a workshop event (workshops have payment options)
     console.log('🔍 Step 2: Look for workshop events with "Pay at Door" option');
@@ -67,7 +67,7 @@ test.describe('PayPal Button - debugLog Import Fix Verification', () => {
       console.log(`  Checking event: ${eventName}`);
 
       await card.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Check if "Pay at Door" button exists
       const payAtDoorButton = page.locator('button').filter({ hasText: /pay.*door/i });
@@ -76,13 +76,13 @@ test.describe('PayPal Button - debugLog Import Fix Verification', () => {
         console.log('  ✅ Found "Pay at Door" button');
         payAtDoorButtonFound = true;
         await payAtDoorButton.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         break;
       } else {
         console.log('  ⏭️ No "Pay at Door" button - event may be free or registration closed');
         // Go back to check-in kiosk
         await page.goto(`${baseUrl}/checkin`);
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       }
     }
 
@@ -98,7 +98,7 @@ test.describe('PayPal Button - debugLog Import Fix Verification', () => {
       console.log('⏭️ No "Digital Payment" button found - PayPal button may already be visible');
     } else {
       await digitalPaymentButton.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     }
 
     console.log('🔍 Step 4: Wait for PayPal button container to load');
@@ -154,7 +154,7 @@ test.describe('PayPal Button - debugLog Import Fix Verification', () => {
 
     // Navigate to check-in kiosk
     await page.goto(`${baseUrl}/checkin`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Try to trigger PayPal button render
     const eventCards = page.locator('[data-testid="event-card"]');
@@ -163,12 +163,12 @@ test.describe('PayPal Button - debugLog Import Fix Verification', () => {
     for (let i = 0; i < eventCount; i++) {
       const card = eventCards.nth(i);
       await card.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       const payAtDoorButton = page.locator('button').filter({ hasText: /pay.*door/i });
       if (await payAtDoorButton.count() > 0) {
         await payAtDoorButton.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         // Wait for PayPal initialization
         await page.waitForTimeout(2000);
@@ -176,7 +176,7 @@ test.describe('PayPal Button - debugLog Import Fix Verification', () => {
       } else {
         // Go back
         await page.goto(`${baseUrl}/checkin`);
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
       }
     }
 

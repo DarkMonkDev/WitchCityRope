@@ -6,7 +6,7 @@ test.describe('Login Diagnostic', () => {
 
     // Navigate to login page
     await page.goto('/login');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     console.log(`Current URL: ${page.url()}`);
 
@@ -51,7 +51,7 @@ test.describe('Login Diagnostic', () => {
     console.log('🔍 Attempting manual login with flexible selectors...');
 
     await page.goto('/login');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Try multiple email field strategies
     const emailSelectors = [
@@ -149,7 +149,7 @@ test.describe('Login Diagnostic', () => {
     console.log('🔍 Checking React app rendering...');
 
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Check if React is loaded
     const reactElements = await page.locator('#root').count();

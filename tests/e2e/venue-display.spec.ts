@@ -33,7 +33,7 @@ test.describe('Venue Display on Event Page', () => {
   test('should NOT display venue to unauthenticated users', async ({ page }) => {
     // Navigate to an event page WITHOUT logging in
     await page.goto(`${baseUrl}/events`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Find and click on first event (if any exist)
     const firstEvent = page.locator('[data-testid="event-card"], .event-card, a[href*="/events/"]').first();
@@ -68,7 +68,7 @@ test.describe('Venue Display on Event Page', () => {
 
     // Navigate to events list
     await page.goto(`${baseUrl}/events`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Find an event we haven't RSVP'd to
     const eventCards = page.locator('[data-testid="event-card"], .event-card, a[href*="/events/"]');
@@ -104,7 +104,7 @@ test.describe('Venue Display on Event Page', () => {
 
     // Navigate to events list
     await page.goto(`${baseUrl}/events`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Find a social event (social events use RSVP)
     const eventCards = page.locator('[data-testid="event-card"], .event-card, a[href*="/events/"]');
@@ -153,7 +153,7 @@ test.describe('Venue Display on Event Page', () => {
 
     // Navigate to events list
     await page.goto(`${baseUrl}/events`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Look for a class/workshop event (events with tickets)
     const eventCards = page.locator('[data-testid="event-card"], .event-card, a[href*="/events/"]');
@@ -164,7 +164,7 @@ test.describe('Venue Display on Event Page', () => {
 
       for (let i = 0; i < Math.min(eventCount, 3); i++) {
         await page.goto(`${baseUrl}/events`);
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         await eventCards.nth(i).click();
         await page.waitForTimeout(1000);
@@ -205,7 +205,7 @@ test.describe('Venue Display on Event Page', () => {
     await AuthHelpers.loginAs(page, 'vetted');
 
     await page.goto(`${baseUrl}/events`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const eventCards = page.locator('[data-testid="event-card"], .event-card, a[href*="/events/"]');
 
@@ -247,7 +247,7 @@ test.describe('Venue Display on Event Page', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     await page.goto(`${baseUrl}/events`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const eventCards = page.locator('[data-testid="event-card"], .event-card, a[href*="/events/"]');
 
@@ -278,7 +278,7 @@ test.describe('Venue Display on Event Page', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     await page.goto(`${baseUrl}/events`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const eventCards = page.locator('[data-testid="event-card"], .event-card, a[href*="/events/"]');
 

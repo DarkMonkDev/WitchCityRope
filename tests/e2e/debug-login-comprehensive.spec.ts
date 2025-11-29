@@ -98,7 +98,7 @@ test.describe('Comprehensive Login Debugging', () => {
     await page.goto('/login');
     
     // Wait for page to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Take screenshot of login page
     await page.screenshot({ path: './test-results/login-page-diagnosis.png', fullPage: true });

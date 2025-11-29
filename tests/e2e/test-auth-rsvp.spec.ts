@@ -144,7 +144,7 @@ test.describe('Authentication and RSVP Testing', () => {
 
     if (eventsLinkCount > 0) {
       await eventsLink.first().click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await page.screenshot({ path: './test-results/05-events-page.png', fullPage: true });
 
       // Look for RSVP buttons or forms
@@ -159,7 +159,7 @@ test.describe('Authentication and RSVP Testing', () => {
     } else {
       // Try direct navigation to events
       await page.goto('/events');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await page.screenshot({ path: './test-results/06-direct-events-page.png', fullPage: true });
 
       const pageContent = await page.textContent('body');

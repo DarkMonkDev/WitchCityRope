@@ -44,7 +44,7 @@ test.describe('Password Reset Feature', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to page first to establish domain context
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Clear auth state after navigation
     await clearAuthState(page);
@@ -54,7 +54,7 @@ test.describe('Password Reset Feature', () => {
     test('should display forgot password form with correct elements', async ({ page }) => {
       // Act
       await page.goto('/forgot-password');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Assert - Page elements
       await expect(page.locator('[data-testid="page-forgot-password"]')).toBeVisible();
@@ -67,7 +67,7 @@ test.describe('Password Reset Feature', () => {
     test('should validate email field is required', async ({ page }) => {
       // Arrange
       await page.goto('/forgot-password');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Act - Try to click submit button (HTML5 required will prevent submission)
       await page.locator('[data-testid="submit-button"]').click();
@@ -83,7 +83,7 @@ test.describe('Password Reset Feature', () => {
     test('should validate email format', async ({ page }) => {
       // Arrange
       await page.goto('/forgot-password');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Act - Submit invalid email
       await page.locator('[data-testid="email-input"]').fill('not-an-email');
@@ -97,7 +97,7 @@ test.describe('Password Reset Feature', () => {
     test('should show success message for existing account', async ({ page }) => {
       // Arrange
       await page.goto('/forgot-password');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Act - Submit valid email
       await page.locator('[data-testid="email-input"]').fill(TEST_ACCOUNTS.member.email);
@@ -117,7 +117,7 @@ test.describe('Password Reset Feature', () => {
     test('should show success message for non-existent account (email enumeration protection)', async ({ page }) => {
       // Arrange
       await page.goto('/forgot-password');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Act - Submit non-existent email
       await page.locator('[data-testid="email-input"]').fill('nonexistent@example.com');
@@ -134,7 +134,7 @@ test.describe('Password Reset Feature', () => {
     test('should navigate back to login from success page', async ({ page }) => {
       // Arrange
       await page.goto('/forgot-password');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Submit form to reach success page
       await page.locator('[data-testid="email-input"]').fill(TEST_ACCOUNTS.member.email);
@@ -154,7 +154,7 @@ test.describe('Password Reset Feature', () => {
     test('should show error for missing userId or token parameters', async ({ page }) => {
       // Act - Navigate without parameters
       await page.goto('/reset-password');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Assert - Error message shown
       await expect(page.locator('text=Invalid Reset Link')).toBeVisible();
@@ -165,7 +165,7 @@ test.describe('Password Reset Feature', () => {
     test('should show error for missing userId parameter', async ({ page }) => {
       // Act - Navigate with only token
       await page.goto('/reset-password?token=abc123');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Assert - Error message shown
       await expect(page.locator('text=Invalid Reset Link')).toBeVisible();
@@ -175,7 +175,7 @@ test.describe('Password Reset Feature', () => {
       // Act - Navigate with only userId
       const mockUserId = '123e4567-e89b-12d3-a456-426614174000';
       await page.goto(`/reset-password?userId=${mockUserId}`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Assert - Error message shown
       await expect(page.locator('text=Invalid Reset Link')).toBeVisible();
@@ -188,7 +188,7 @@ test.describe('Password Reset Feature', () => {
 
       // Act
       await page.goto(`/reset-password?userId=${mockUserId}&token=${encodeURIComponent(mockToken)}`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Assert - Form elements present
       await expect(page.locator('[data-testid="page-reset-password"]')).toBeVisible();
@@ -204,7 +204,7 @@ test.describe('Password Reset Feature', () => {
       const mockUserId = '123e4567-e89b-12d3-a456-426614174000';
       const mockToken = 'CfDJ8MockTokenString123';
       await page.goto(`${BASE_URL}/reset-password?userId=${mockUserId}&token=${encodeURIComponent(mockToken)}`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Act - Enter short password
       await page.locator('[data-testid="new-password-input"]').fill('Test1!');
@@ -221,7 +221,7 @@ test.describe('Password Reset Feature', () => {
       const mockUserId = '123e4567-e89b-12d3-a456-426614174000';
       const mockToken = 'CfDJ8MockTokenString123';
       await page.goto(`${BASE_URL}/reset-password?userId=${mockUserId}&token=${encodeURIComponent(mockToken)}`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Act - Enter non-matching passwords
       await page.locator('[data-testid="new-password-input"]').fill('NewPassword123!');
@@ -238,7 +238,7 @@ test.describe('Password Reset Feature', () => {
       const mockUserId = '123e4567-e89b-12d3-a456-426614174000';
       const invalidToken = 'invalid-token';
       await page.goto(`${BASE_URL}/reset-password?userId=${mockUserId}&token=${encodeURIComponent(invalidToken)}`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Act - Submit form with valid passwords
       await page.locator('[data-testid="new-password-input"]').fill('NewPassword123!');
@@ -257,7 +257,7 @@ test.describe('Password Reset Feature', () => {
       const mockUserId = '123e4567-e89b-12d3-a456-426614174000';
       const mockToken = 'CfDJ8MockTokenString123';
       await page.goto(`${BASE_URL}/reset-password?userId=${mockUserId}&token=${encodeURIComponent(mockToken)}`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Act - Click back to login
       await page.locator('[data-testid="link-back-to-login"]').click();
@@ -272,7 +272,7 @@ test.describe('Password Reset Feature', () => {
     test('should have reset password link on login page', async ({ page }) => {
       // Act
       await page.goto('/login');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Assert - Reset password link exists
       const resetLink = page.locator('[data-testid="link-forgot-password"]');
@@ -290,7 +290,7 @@ test.describe('Password Reset Feature', () => {
     test('should navigate from forgot password back to login', async ({ page }) => {
       // Arrange
       await page.goto('/forgot-password');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Act - Click back to login
       await page.locator('[data-testid="link-back-to-login"]').first().click();
@@ -303,7 +303,7 @@ test.describe('Password Reset Feature', () => {
     test('should navigate from invalid reset link to forgot password', async ({ page }) => {
       // Arrange - Navigate without parameters
       await page.goto(`${BASE_URL}/reset-password`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Act - Click request new link
       await page.locator('[data-testid="link-forgot-password"]').click();

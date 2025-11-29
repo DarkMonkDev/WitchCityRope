@@ -45,7 +45,7 @@ test.describe('Auth Cookie Debugging', () => {
     // Step 4: Navigate to events page
     console.log('\n[NAVIGATION] Navigating to /events...');
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Step 5: Check cookies after navigation
     cookies = await page.context().cookies();

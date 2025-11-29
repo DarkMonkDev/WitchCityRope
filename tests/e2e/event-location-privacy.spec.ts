@@ -33,7 +33,7 @@ test.describe('Event Location Privacy - Conditional Display', () => {
    */
   async function findEventWithVenueLocation(page: Page): Promise<string | null> {
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
 
     // Get all event cards
@@ -66,7 +66,7 @@ test.describe('Event Location Privacy - Conditional Display', () => {
 
     // Navigate to event detail page
     await page.goto(eventUrl);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
 
     // Verify hero section shows location icon
@@ -142,7 +142,7 @@ test.describe('Event Location Privacy - Conditional Display', () => {
 
     // Navigate to event detail page
     await page.goto(eventUrl);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
 
     // Verify hero section is visible
@@ -225,7 +225,7 @@ test.describe('Event Location Privacy - Conditional Display', () => {
 
     // Navigate to event detail page
     await page.goto(eventUrl);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
 
     // Verify FULL venue section is displayed
@@ -263,7 +263,7 @@ test.describe('Event Location Privacy - Conditional Display', () => {
 
     // Navigate to events page
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
 
     // Get all event cards
@@ -278,7 +278,7 @@ test.describe('Event Location Privacy - Conditional Display', () => {
     // Click first event
     await eventCards.first().click();
     await page.waitForURL('**/events/**', { timeout: 10000 });
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
 
     // Check for fallback text if no location is available
@@ -314,7 +314,7 @@ test.describe('Event Location Privacy - Conditional Display', () => {
 
     // Navigate to event detail page
     await page.goto(eventUrl);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
 
     // Verify hero section exists
@@ -358,7 +358,7 @@ test.describe('Event Location Privacy - Conditional Display', () => {
     }
 
     await page.goto(eventUrl);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
 
     // Check for limited section structure
@@ -378,7 +378,7 @@ test.describe('Event Location Privacy - Conditional Display', () => {
     await AuthHelpers.loginAs(page, 'teacher');
 
     await page.goto(eventUrl);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
 
     // Check for full section structure

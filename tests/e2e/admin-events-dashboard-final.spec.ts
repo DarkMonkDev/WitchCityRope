@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { AuthHelpers } from './test-utils/helpers/auth.helpers';
+import { WaitHelpers } from './test-utils/helpers/wait.helpers';
 
 test.describe('Admin Events Dashboard', () => {
   test.beforeEach(async ({ page }) => {
@@ -9,7 +10,7 @@ test.describe('Admin Events Dashboard', () => {
 
     // Navigate to admin events page
     await page.goto('/admin/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('should show both filter chips checked by default', async ({ page }) => {
@@ -20,8 +21,8 @@ test.describe('Admin Events Dashboard', () => {
     const socialChipInput = page.getByTestId('filter-social');
     const classChipInput = page.getByTestId('filter-class');
 
-    // Wait for page to be fully loaded
-    await page.waitForLoadState('networkidle');
+    // Wait for filter chips to be visible
+    await socialChipInput.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
 
     // Take screenshot for debugging
     await page.screenshot({ path: './test-results/filter-chips-test.png' });
@@ -46,6 +47,9 @@ test.describe('Admin Events Dashboard', () => {
 
   test('should show events when both filters are checked', async ({ page }) => {
     console.log('Testing events display with filters...');
+
+    // Wait for loading spinner to disappear (API data loaded)
+    await WaitHelpers.waitForLoadingComplete(page);
 
     // Take screenshot for debugging
     await page.screenshot({ path: './test-results/events-table-test.png' });
@@ -116,7 +120,11 @@ test.describe('Admin Events Dashboard', () => {
 
       // Uncheck Social filter by clicking its label
       await socialLabel.click();
-      await page.waitForTimeout(500); // Wait for filter to apply
+      // Wait for table to update after filter change
+      await page.waitForFunction(() => {
+        const tbody = document.querySelector('tbody');
+        return tbody && tbody.textContent !== '';
+      }, { timeout: 5000 }).catch(() => {});
 
       // Check row count after unchecking Social
       const afterSocialUncheck = await tableRows.count();
@@ -124,10 +132,16 @@ test.describe('Admin Events Dashboard', () => {
 
       // Re-check Social and uncheck Class
       await socialLabel.click();
-      await page.waitForTimeout(500);
+      await page.waitForFunction(() => {
+        const tbody = document.querySelector('tbody');
+        return tbody && tbody.textContent !== '';
+      }, { timeout: 5000 }).catch(() => {});
 
       await classLabel.click();
-      await page.waitForTimeout(500);
+      await page.waitForFunction(() => {
+        const tbody = document.querySelector('tbody');
+        return tbody && tbody.textContent !== '';
+      }, { timeout: 5000 }).catch(() => {});
 
       // Check row count after unchecking Class
       const afterClassUncheck = await tableRows.count();
@@ -135,7 +149,10 @@ test.describe('Admin Events Dashboard', () => {
 
       // Uncheck both - click Social again
       await socialLabel.click();
-      await page.waitForTimeout(500);
+      await page.waitForFunction(() => {
+        const tbody = document.querySelector('tbody');
+        return tbody && tbody.textContent !== '';
+      }, { timeout: 5000 }).catch(() => {});
 
       const bothUnchecked = await tableRows.count();
       console.log(`Events with both unchecked: ${bothUnchecked}`);
@@ -197,14 +214,20 @@ test.describe('Admin Events Dashboard', () => {
       // Only click if it's not the "No events found" row
       if (!text?.includes('No events found')) {
         await firstRow.click();
-        
-        // Should either navigate or show a notification
-        await page.waitForTimeout(1000);
-        
+
+        // Wait for navigation or modal to appear
+        await Promise.race([
+          page.waitForURL(/\/admin\/events\//, { timeout: 5000 }),
+          page.locator('[role="dialog"]').waitFor({ state: 'visible', timeout: 5000 })
+        ]).catch(() => {
+          // Neither navigation nor modal appeared - that's OK for this test
+          console.log('No navigation or modal detected after click');
+        });
+
         // Check if we navigated away from the table page
         const currentUrl = page.url();
         console.log('Current URL after click:', currentUrl);
-        
+
         console.log('✅ Row click navigation test completed');
       } else {
         console.log('⚠️ Skipping click test - only "No events found" message present');

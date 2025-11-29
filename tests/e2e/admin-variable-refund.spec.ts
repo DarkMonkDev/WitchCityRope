@@ -168,7 +168,7 @@ test.describe('Admin Variable Refund - E2E Tests', () => {
 
     // Navigate to admin payments page
     await page.goto('/admin/analytics/payments');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     console.log('📍 Navigated to admin payments page');
 
     // Find payment by VISIBLE attributes (amount, status, payment method)
@@ -258,7 +258,7 @@ test.describe('Admin Variable Refund - E2E Tests', () => {
     console.log(`✅ Created test payment: ${payment.transactionId} ($${payment.amount})`);
 
     await page.goto(`${WEB_URL}/admin/analytics/payments`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     console.log('📍 Navigated to admin payments page');
 
     // Find payment by VISIBLE attributes
@@ -358,7 +358,7 @@ test.describe('Admin Variable Refund - E2E Tests', () => {
     console.log(`✅ Created test payment: ${payment.transactionId} ($${payment.amount})`);
 
     await page.goto(`${WEB_URL}/admin/analytics/payments`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     console.log('📍 Navigated to admin payments page');
 
     // Find payment by VISIBLE attributes
@@ -439,7 +439,7 @@ test.describe('Admin Variable Refund - E2E Tests', () => {
     console.log(`✅ Created test payment: ${payment.transactionId} ($${payment.amount})`);
 
     await page.goto(`${WEB_URL}/admin/analytics/payments`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     console.log('📍 Navigated to admin payments page');
 
     // Find payment by VISIBLE attributes
@@ -505,7 +505,7 @@ test.describe('Admin Variable Refund - E2E Tests', () => {
 
     // Verify payment status updated to "Refunded"
     await page.reload();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const updatedRow = page.locator('tr')
       .filter({ hasText: `$${payment.amount.toFixed(2)}` })
@@ -548,7 +548,7 @@ test.describe('Admin Variable Refund - E2E Tests', () => {
     console.log(`✅ Created test payment: ${payment.transactionId} ($${payment.amount})`);
 
     await page.goto(`${WEB_URL}/admin/analytics/payments`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     console.log('📍 Navigated to admin payments page');
 
     // Find payment by VISIBLE attributes
@@ -631,7 +631,7 @@ test.describe('Admin Variable Refund - E2E Tests', () => {
     console.log(`✅ Created test payment: ${payment.transactionId} ($${payment.amount}) - Cash`);
 
     await page.goto(`${WEB_URL}/admin/analytics/payments`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     console.log('📍 Navigated to admin payments page');
 
     // Find payment by VISIBLE attributes (Cash payment method)
@@ -702,7 +702,7 @@ test.describe('Admin Variable Refund - E2E Tests', () => {
     console.log(`✅ Created test payment: ${payment.transactionId} ($${payment.amount})`);
 
     await page.goto(`${WEB_URL}/admin/analytics/payments`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     console.log('📍 Navigated to admin payments page');
 
     // Find payment by VISIBLE attributes
@@ -791,7 +791,7 @@ test.describe('Admin Variable Refund - E2E Tests', () => {
     console.log(`✅ Created test payment: ${payment.transactionId} ($${payment.amount})`);
 
     await page.goto(`${WEB_URL}/admin/analytics/payments`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     console.log('📍 Navigated to admin payments page');
 
     // Find payment by VISIBLE attributes

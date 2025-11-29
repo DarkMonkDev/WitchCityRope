@@ -11,7 +11,7 @@ test.describe('Admin Events Navigation Test', () => {
     
     // Step 2: Navigate directly to admin events page
     await page.goto('/admin/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.screenshot({ path: 'test-results/admin-events-page-direct.png', fullPage: true });
     console.log('✅ Navigated to admin events page');
     

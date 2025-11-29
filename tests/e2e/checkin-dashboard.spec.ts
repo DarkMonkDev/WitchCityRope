@@ -59,7 +59,7 @@ test.describe('Check-In Dashboard', () => {
   test('Dashboard displays correct statistics', async ({ page }) => {
     // Navigate to check-in dashboard with token
     await navigateToCheckInDashboard(page, testEventId, sessionToken);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify dashboard elements are visible
     // CheckInDashboard.tsx StatisticsCard shows "Capacity" heading (line 58)
@@ -89,7 +89,7 @@ test.describe('Check-In Dashboard', () => {
   test('Dashboard shows event information', async ({ page }) => {
     // Navigate to dashboard with token
     await navigateToCheckInDashboard(page, testEventId, sessionToken);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Event info card shows event title (line 143) and status badge (line 154-160)
     const eventTitle = page.locator('text=/test|event/i').first();
@@ -107,7 +107,7 @@ test.describe('Check-In Dashboard', () => {
   test('Recent check-ins feed updates', async ({ page }) => {
     // Navigate to check-in interface first with token
     await navigateToCheckIn(page, testEventId, sessionToken);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Create a walk-in to generate a recent check-in
     const timestamp = Date.now();
@@ -138,7 +138,7 @@ test.describe('Check-In Dashboard', () => {
 
     // Navigate to dashboard with token
     await navigateToCheckInDashboard(page, testEventId, sessionToken);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Look for "Recent Check-Ins" heading (CheckInDashboard.tsx line 199-201)
     const recentHeading = page.getByText('Recent Check-Ins', { exact: false });
@@ -158,7 +158,7 @@ test.describe('Check-In Dashboard', () => {
   test('Sync status displays', async ({ page }) => {
     // Navigate to dashboard with token
     await navigateToCheckInDashboard(page, testEventId, sessionToken);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // SyncStatusCard displays "Online" or "Offline" text (line 267)
     // There may be multiple "Online" indicators (check-in page + dashboard), so use first()
@@ -176,7 +176,7 @@ test.describe('Check-In Dashboard', () => {
   test('Dashboard navigation from check-in interface', async ({ page }) => {
     // Navigate to check-in interface with token
     await navigateToCheckIn(page, testEventId, sessionToken);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Look for dashboard navigation button/link
     const dashboardButton = page.locator('button, a').filter({ hasText: /dashboard|view.*dashboard/i }).first();
@@ -187,7 +187,7 @@ test.describe('Check-In Dashboard', () => {
 
       // Verify navigation to dashboard
       await page.waitForURL(`**/events/${testEventId}/checkin/dashboard`, { timeout: 10000 });
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Verify dashboard loaded - CheckInDashboard shows "Event Dashboard" text (line 343)
       const dashboardHeading = page.getByText('Event Dashboard', { exact: false });
@@ -195,7 +195,7 @@ test.describe('Check-In Dashboard', () => {
     } else {
       // Dashboard button not found - may need direct URL navigation with token
       await navigateToCheckInDashboard(page, testEventId, sessionToken);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       const dashboardHeading = page.getByText('Event Dashboard', { exact: false });
       await expect(dashboardHeading).toBeVisible({ timeout: 5000 });

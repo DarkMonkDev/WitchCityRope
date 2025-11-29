@@ -164,7 +164,7 @@ test.describe('Login 401 Investigation', () => {
     
     // Navigate to login page
     await page.goto('/login');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Take screenshot before filling
     await page.screenshot({

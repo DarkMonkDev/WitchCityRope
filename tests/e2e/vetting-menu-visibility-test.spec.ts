@@ -229,5 +229,5 @@ async function loginAsUser(page: Page, email: string, password: string) {
 
   // Navigate back to homepage to check navigation
   await page.goto('/');
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 }

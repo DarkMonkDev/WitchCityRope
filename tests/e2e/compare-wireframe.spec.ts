@@ -10,7 +10,7 @@ test.describe('Wireframe Comparison', () => {
     await page.goto(`${wireframeUrl}/docs/functional-areas/events/admin-events-management/event-creation.html`);
     
     // Wait for the page to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Take a screenshot
     await page.screenshot({ 
@@ -27,7 +27,7 @@ test.describe('Wireframe Comparison', () => {
     await page.goto(`${baseUrl}/admin/event-session-matrix-demo`);
     
     // Wait for the page to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Take a screenshot
     await page.screenshot({ 

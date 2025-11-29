@@ -20,7 +20,7 @@ const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
 test.describe('CMS Accessibility Tests', () => {
   test('CMS page has no accessibility violations in view mode', async ({ page }) => {
     await page.goto(`${baseUrl}/resources`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Inject axe-core for accessibility testing
     await injectAxe(page);
@@ -35,7 +35,7 @@ test.describe('CMS Accessibility Tests', () => {
   test('CMS edit mode has no accessibility violations', async ({ page }) => {
     await AuthHelpers.loginAs(page, 'admin');
     await page.goto(`${baseUrl}/resources`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Enter edit mode
     const editButton = page.locator('button:has-text("Edit")').first();
@@ -55,7 +55,7 @@ test.describe('CMS Accessibility Tests', () => {
   test('Keyboard navigation: Can tab to edit button and activate with Enter', async ({ page }) => {
     await AuthHelpers.loginAs(page, 'admin');
     await page.goto(`${baseUrl}/resources`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Tab to edit button (may require multiple tabs depending on page structure)
     await page.keyboard.press('Tab');
@@ -84,7 +84,7 @@ test.describe('CMS Accessibility Tests', () => {
   test('Keyboard navigation: Can navigate TipTap toolbar with Tab', async ({ page }) => {
     await AuthHelpers.loginAs(page, 'admin');
     await page.goto(`${baseUrl}/resources`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Enter edit mode
     const editButton = page.locator('button:has-text("Edit")').first();
@@ -106,7 +106,7 @@ test.describe('CMS Accessibility Tests', () => {
   test('Keyboard navigation: Escape key cancels edit mode', async ({ page }) => {
     await AuthHelpers.loginAs(page, 'admin');
     await page.goto(`${baseUrl}/resources`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Enter edit mode
     const editButton = page.locator('button:has-text("Edit")').first();
@@ -131,7 +131,7 @@ test.describe('CMS Accessibility Tests', () => {
   test('ARIA labels: Edit button has accessible label', async ({ page }) => {
     await AuthHelpers.loginAs(page, 'admin');
     await page.goto(`${baseUrl}/resources`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const editButton = page.locator('button:has-text("Edit")').first();
 
@@ -144,7 +144,7 @@ test.describe('CMS Accessibility Tests', () => {
   test('ARIA labels: Modal has proper aria-labelledby', async ({ page }) => {
     await AuthHelpers.loginAs(page, 'admin');
     await page.goto(`${baseUrl}/resources`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Enter edit mode
     const editButton = page.locator('button:has-text("Edit")').first();
@@ -174,7 +174,7 @@ test.describe('CMS Accessibility Tests', () => {
   test('Focus management: Focus returns to edit button after cancel', async ({ page }) => {
     await AuthHelpers.loginAs(page, 'admin');
     await page.goto(`${baseUrl}/resources`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const editButton = page.locator('button:has-text("Edit")').first();
     await editButton.click();
@@ -198,7 +198,7 @@ test.describe('CMS Accessibility Tests', () => {
   test('Screen reader: Success notification is announced', async ({ page }) => {
     await AuthHelpers.loginAs(page, 'admin');
     await page.goto(`${baseUrl}/resources`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Enter edit mode
     const editButton = page.locator('button:has-text("Edit")').first();
@@ -231,7 +231,7 @@ test.describe('CMS Accessibility Tests', () => {
   test('Color contrast: Buttons meet WCAG AA standards (4.5:1)', async ({ page }) => {
     await AuthHelpers.loginAs(page, 'admin');
     await page.goto(`${baseUrl}/resources`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Inject axe-core
     await injectAxe(page);

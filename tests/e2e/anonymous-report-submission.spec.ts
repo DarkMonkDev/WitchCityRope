@@ -39,7 +39,7 @@ test.describe('Anonymous Incident Report Submission', () => {
   test('should submit anonymous incident report and receive reference number', async ({ page }) => {
     // Navigate to incident reporting page (CORRECT URL)
     await page.goto('/safety/report');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify page title
     await expect(page).toHaveTitle(/Witch City Rope/i);
@@ -141,7 +141,7 @@ test.describe('Anonymous Incident Report Submission', () => {
   test('should validate required fields before submission', async ({ page }) => {
     // Navigate to incident reporting page (CORRECT URL)
     await page.goto('/safety/report');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Try to submit without filling required fields (Mantine form validation)
     const submitButton = page.locator('button:has-text("SUBMIT SAFETY REPORT"), button[type="submit"]').first();

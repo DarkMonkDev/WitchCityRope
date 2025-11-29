@@ -44,7 +44,7 @@ test.describe('CMS Feature - Critical Workflows', () => {
 
     // 2. Navigate to CMS page
     await page.goto(`${baseUrl}/resources`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     console.log('✅ Navigated to /resources');
 
     // 3. Verify edit button is visible (admin-only)
@@ -78,7 +78,7 @@ test.describe('CMS Feature - Critical Workflows', () => {
 
     // 9. Verify content persisted after page reload
     await page.reload();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await expect(page.locator('text=This is updated content from E2E test')).toBeVisible({ timeout: 5000 });
     console.log('✅ Content persisted after reload');
   });
@@ -101,7 +101,7 @@ test.describe('CMS Feature - Critical Workflows', () => {
 
     // 2. Navigate to CMS page
     await page.goto(`${baseUrl}/contact-us`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // 3. Click edit button
     const editButton = page.locator('button:has-text("Edit")').first();
@@ -155,7 +155,7 @@ test.describe('CMS Feature - Critical Workflows', () => {
 
     // 2. Navigate to CMS page
     await page.goto(`${baseUrl}/private-lessons`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // 3. Click edit
     const editButton = page.locator('button:has-text("Edit")').first();
@@ -190,7 +190,7 @@ test.describe('CMS Feature - Critical Workflows', () => {
 
     // 6. Reload page to get server-sanitized version
     await page.reload();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // 7. Verify script tag removed
     const pageContent = await page.content();
@@ -220,7 +220,7 @@ test.describe('CMS Feature - Critical Workflows', () => {
 
     // 2. Navigate to revision history list
     await page.goto(`${baseUrl}/admin/cms/revisions`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     console.log('✅ Navigated to revision list');
 
     // 3. Verify page list table exists
@@ -235,7 +235,7 @@ test.describe('CMS Feature - Critical Workflows', () => {
 
     // 5. Click first page to view its revisions
     await pageRows.first().click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     console.log('✅ Clicked page row');
 
     // 6. Verify navigated to revision detail page (URL pattern: /admin/cms/revisions/[id])
@@ -286,7 +286,7 @@ test.describe('CMS Feature - Critical Workflows', () => {
 
     // 3. Navigate to CMS page
     await page.goto(`${baseUrl}/resources`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Wait for media queries to apply
     await page.waitForTimeout(1000);
@@ -328,7 +328,7 @@ test.describe('CMS Feature - Additional Coverage', () => {
 
     // Navigate to CMS page
     await page.goto(`${baseUrl}/resources`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify edit button is NOT visible
     const editButton = page.locator('button:has-text("Edit")');
@@ -342,7 +342,7 @@ test.describe('CMS Feature - Additional Coverage', () => {
 
     // Navigate to CMS page without authentication
     await page.goto(`${baseUrl}/resources`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify page content loads (should see heading or some content)
     const heading = page.locator('h1, h2').first();
@@ -367,7 +367,7 @@ test.describe('CMS Feature - Additional Coverage', () => {
 
     for (const cmsPage of pages) {
       await page.goto(`${baseUrl}${cmsPage.url}`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Verify page loads
       const content = page.locator('h1, h2, p').first();
@@ -384,7 +384,7 @@ test.describe('CMS Feature - Additional Coverage', () => {
   test('Performance: Save response time < 1 second', async ({ page }) => {
     await AuthHelpers.loginAs(page, 'admin');
     await page.goto(`${baseUrl}/resources`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Start editing
     const editButton = page.locator('button:has-text("Edit")').first();

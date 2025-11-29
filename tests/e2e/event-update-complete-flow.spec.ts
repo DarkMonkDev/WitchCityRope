@@ -146,11 +146,11 @@ test.describe('Event Update Authentication Flow - E2E', () => {
     
     if (await eventManagementLink.count() > 0) {
       await eventManagementLink.click()
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
     } else {
       // Fallback: Navigate directly to events management page
       await page.goto('/admin/events')
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
     }
     
     console.log('✅ Navigated to event management')
@@ -212,10 +212,10 @@ test.describe('Event Update Authentication Flow - E2E', () => {
       eventId = '550e8400-e29b-41d4-a716-446655440000'
       console.log('⚠️  No edit button found, navigating directly to fallback event')
       await page.goto(`/admin/events/${eventId}/edit`)
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
     } else {
       await editButton.click()
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
       console.log(`✅ Clicked edit button for event: ${eventId || 'unknown'}`)
     }
 
@@ -483,7 +483,7 @@ test.describe('Event Update Authentication Flow - E2E', () => {
     
     // Navigate to event edit and make update
     await page.goto('/admin/events/550e8400-e29b-41d4-a716-446655440000/edit')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     
     // Make a change and save
     const titleInput = page.locator('input[name="title"], [data-testid="event-title-input"]').first()
@@ -534,7 +534,7 @@ test.describe('Event Update Authentication Flow - E2E', () => {
     
     // Navigate to event edit
     await page.goto('/admin/events/550e8400-e29b-41d4-a716-446655440000/edit')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     
     // Intercept API calls and simulate errors
     await page.route('**/api/events/**', route => {

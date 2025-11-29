@@ -21,7 +21,7 @@ test.describe('Admin Events Management Workflow', () => {
       
       // Step 5: Navigate to admin dashboard
       await adminLink.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await page.screenshot({ path: 'test-results/05-admin-dashboard.png', fullPage: true });
       console.log('✅ Admin dashboard loaded');
       
@@ -37,7 +37,7 @@ test.describe('Admin Events Management Workflow', () => {
       if (eventsLinkExists) {
         // Step 7: Navigate to Events Management
         await eventsManagementLink.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         await page.screenshot({ path: 'test-results/06-admin-events-page.png', fullPage: true });
         console.log('✅ Admin Events Management page loaded');
         
@@ -133,7 +133,7 @@ test.describe('Admin Events Management Workflow', () => {
 
       // Try to navigate directly to admin
       await page.goto('/admin');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await page.screenshot({ path: 'test-results/05-direct-admin-access.png', fullPage: true });
       console.log('✅ Attempted direct admin access');
     }
@@ -152,7 +152,7 @@ test.describe('Admin Events Management Workflow', () => {
 
     // Try direct admin access without login
     await page.goto('/admin');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.screenshot({ path: 'test-results/admin-direct-access-no-auth.png', fullPage: true });
 
     // Check what happens
@@ -161,7 +161,7 @@ test.describe('Admin Events Management Workflow', () => {
 
     // Try admin events direct access
     await page.goto('/admin/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.screenshot({ path: 'test-results/admin-events-direct-access.png', fullPage: true });
     
     console.log('✅ Admin access verification complete');

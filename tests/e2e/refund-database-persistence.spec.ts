@@ -157,7 +157,7 @@ test.describe('Refund Database Persistence Tests', () => {
 
     console.log('📝 Step 2: Navigate to payments page');
     await page.goto('/admin/analytics/payments');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Get a payment to refund
     console.log('📝 Step 3: Find eligible payment');

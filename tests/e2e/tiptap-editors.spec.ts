@@ -22,7 +22,7 @@ test.describe('Tiptap Editor Rendering', () => {
 
     // Navigate to admin events page
     await page.goto(`${baseUrl}/admin/events`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('should render Full Description Tiptap editor on Event Details tab', async ({ page }) => {

@@ -114,7 +114,7 @@ test.describe('Navigation System - Comprehensive Testing', () => {
 
     test.beforeEach(async ({ page }) => {
       await page.goto(testUrls.home);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     });
 
     test('should show Login button (not Dashboard) for guest users', async ({ page }) => {
@@ -155,7 +155,7 @@ test.describe('Navigation System - Comprehensive Testing', () => {
       // Login as regular member
       await AuthHelpers.loginAs(page, 'member');
       await page.goto(testUrls.home);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     });
 
     test('should show Dashboard button (not Login) for logged-in members', async ({ page }) => {
@@ -211,7 +211,7 @@ test.describe('Navigation System - Comprehensive Testing', () => {
       // Login as administrator
       await AuthHelpers.loginAs(page, 'admin');
       await page.goto(testUrls.home);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     });
 
     test('should show Dashboard button for admins', async ({ page }) => {
@@ -266,7 +266,7 @@ test.describe('Navigation System - Comprehensive Testing', () => {
 
       // Navigate DIRECTLY to a detail page URL
       await page.goto('/admin/vetting/test-id-12345');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       console.log('URL:', page.url());
       await page.screenshot({
@@ -299,13 +299,13 @@ test.describe('Navigation System - Comprehensive Testing', () => {
 
       // Get first event ID from events list
       await page.goto(testUrls.adminEvents);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       const firstRow = page.locator('[data-testid="event-row"]').first();
       if (await firstRow.isVisible()) {
         // Click to get event ID from URL
         await firstRow.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         const urlAfter = page.url();
         console.log('Event detail URL:', urlAfter);
@@ -316,7 +316,7 @@ test.describe('Navigation System - Comprehensive Testing', () => {
         // Now test direct navigation to this URL
         await page.goto(testUrls.adminEvents); // Go back to list
         await page.goto(urlAfter); // Direct navigate to detail
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         // Verify page loaded successfully
         const bodyText = await page.locator('body').textContent();
@@ -342,7 +342,7 @@ test.describe('Navigation System - Comprehensive Testing', () => {
 
       // Navigate to events list
       await page.goto(testUrls.adminEvents);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       const urlBefore = page.url();
       console.log('Events list URL:', urlBefore);
@@ -352,7 +352,7 @@ test.describe('Navigation System - Comprehensive Testing', () => {
       if (await firstRow.isVisible()) {
         console.log('Clicking first event...');
         await firstRow.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         const urlAfter = page.url();
         console.log('Detail URL:', urlAfter);
@@ -374,7 +374,7 @@ test.describe('Navigation System - Comprehensive Testing', () => {
 
       // Navigate to vetting list
       await page.goto('/admin/vetting');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       const urlBefore = page.url();
       console.log('Vetting list URL:', urlBefore);
@@ -384,7 +384,7 @@ test.describe('Navigation System - Comprehensive Testing', () => {
       if (await firstRow.isVisible()) {
         console.log('Clicking first vetting application...');
         await firstRow.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         const urlAfter = page.url();
         console.log('Detail URL:', urlAfter);
@@ -420,7 +420,7 @@ test.describe('Navigation System - Comprehensive Testing', () => {
       // Login as admin to see all navigation items
       await AuthHelpers.loginAs(page, 'admin');
       await page.goto(testUrls.home);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       const navItems = page.locator('[data-testid="nav-main"] .nav a, [data-testid="nav-main"] .nav .btn');
 

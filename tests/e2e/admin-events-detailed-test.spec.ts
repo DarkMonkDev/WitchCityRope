@@ -11,7 +11,7 @@ test.describe('Admin Events Management Detailed Test', () => {
     
     // Step 2: Navigate directly to admin (since we know it works from previous test)
     await page.goto('/admin');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.screenshot({ path: 'test-results/admin-dashboard-full.png', fullPage: true });
     console.log('✅ Admin dashboard loaded');
     
@@ -24,7 +24,7 @@ test.describe('Admin Events Management Detailed Test', () => {
     
     if (cardExists) {
       await eventsManagementCard.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await page.screenshot({ path: 'test-results/admin-events-management-page.png', fullPage: true });
       console.log('✅ Clicked Events Management card');
       

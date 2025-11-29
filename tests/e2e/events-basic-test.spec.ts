@@ -13,7 +13,7 @@ test.describe('Events Basic Tests', () => {
     await page.goto('/events');
 
     // Wait for page to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Take a screenshot for debugging
     await page.screenshot({ path: 'test-results/events-basic-load.png' });
@@ -81,7 +81,7 @@ test.describe('Events Basic Tests', () => {
     await page.goto('/events/test-event-id');
 
     // Wait for page to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     await page.screenshot({ path: 'test-results/event-details-structure.png' });
     

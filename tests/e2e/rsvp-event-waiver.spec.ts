@@ -33,7 +33,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
   test('Positive: User can RSVP to social event when Event Waiver checkbox is checked', async ({ page }) => {
     // Navigate to public events page
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Find a social event (free RSVP option)
     // Look for events with RSVP button (not ticket-only events)
@@ -42,7 +42,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
 
     // Click on event to view details
     await eventCard.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Wait for event details to load
     await page.waitForSelector('h1', { timeout: 10000 });
@@ -118,7 +118,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
 
     // Navigate directly to event details page
     await page.goto(`/events/${eventSlug}`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     console.log('✅ Navigated to event details page');
 
     // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
@@ -169,12 +169,12 @@ test.describe('RSVP Event Waiver Compliance', () => {
   test('Positive: RSVP shows as confirmed in UI after submission', async ({ page }) => {
     // Navigate to events
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Click first event
     const eventCard = page.locator('[data-testid="event-card"]').first();
     await eventCard.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
     await AuthHelpers.cleanupEventParticipation(page, 'Social');
@@ -229,12 +229,12 @@ test.describe('RSVP Event Waiver Compliance', () => {
   test('Negative: RSVP button is disabled when Event Waiver checkbox is unchecked', async ({ page }) => {
     // Navigate to events
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Click first event
     const eventCard = page.locator('[data-testid="event-card"]').first();
     await eventCard.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
     await AuthHelpers.cleanupEventParticipation(page, 'Social');
@@ -322,12 +322,12 @@ test.describe('RSVP Event Waiver Compliance', () => {
   test('Negative: Unchecking Event Waiver after checking re-disables RSVP button', async ({ page }) => {
     // Navigate to events
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Click first event
     const eventCard = page.locator('[data-testid="event-card"]').first();
     await eventCard.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
     await AuthHelpers.cleanupEventParticipation(page, 'Social');

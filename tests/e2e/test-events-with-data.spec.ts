@@ -6,7 +6,7 @@ test.describe('Public Events Page with Mock Data', () => {
     await page.goto('/events');
     
     // Wait for content to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Take screenshot
     await page.screenshot({ 

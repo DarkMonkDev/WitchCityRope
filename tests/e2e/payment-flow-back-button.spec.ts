@@ -13,7 +13,7 @@ test.describe('Payment Flow - Back Button Visibility', () => {
   test('Back button is visible on Step 1 (Ticket Selection)', async ({ page }) => {
     // Navigate to events page
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Find an event with tickets and click register/purchase
     const eventCards = page.locator('[data-testid^="event-card-"]');
@@ -27,7 +27,7 @@ test.describe('Payment Flow - Back Button Visibility', () => {
     // Click on the first event's register button
     const firstEvent = eventCards.first();
     await firstEvent.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Look for a "Register" or "Purchase" button
     const registerButton = page.locator('button:has-text("Register"), button:has-text("Purchase"), button:has-text("Buy Tickets")').first();
@@ -39,7 +39,7 @@ test.describe('Payment Flow - Back Button Visibility', () => {
     }
 
     await registerButton.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify we're on Step 1 (Ticket Selection or Pricing)
     const stepper = page.locator('.mantine-Stepper-root');
@@ -55,7 +55,7 @@ test.describe('Payment Flow - Back Button Visibility', () => {
   test('Back button is visible on Step 2 (Payment Form)', async ({ page }) => {
     // Navigate to events page
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Find an event with tickets
     const eventCards = page.locator('[data-testid^="event-card-"]');
@@ -69,7 +69,7 @@ test.describe('Payment Flow - Back Button Visibility', () => {
     // Navigate to payment page
     const firstEvent = eventCards.first();
     await firstEvent.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const registerButton = page.locator('button:has-text("Register"), button:has-text("Purchase"), button:has-text("Buy Tickets")').first();
     const hasRegisterButton = await registerButton.count() > 0;
@@ -80,7 +80,7 @@ test.describe('Payment Flow - Back Button Visibility', () => {
     }
 
     await registerButton.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Proceed to Step 2 (Payment Form)
     const continueButton = page.locator('button:has-text("Continue to Payment"), button:has-text("Next"), button:has-text("Proceed")').first();
@@ -92,7 +92,7 @@ test.describe('Payment Flow - Back Button Visibility', () => {
     }
 
     await continueButton.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify we're on Step 2 (Payment Form)
     const stepper = page.locator('.mantine-Stepper-root');
@@ -106,7 +106,7 @@ test.describe('Payment Flow - Back Button Visibility', () => {
 
     // Test Back button functionality
     await backButton.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Should return to Step 1
     console.log('✅ Step 2: Back button returns to Step 1');

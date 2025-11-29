@@ -10,7 +10,7 @@ test.describe('Events - Public Access', () => {
   // Public events browsing test
   test('should browse events without authentication', async ({ page }) => {
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify events page loads with correct title
     const title = page.locator('h1');

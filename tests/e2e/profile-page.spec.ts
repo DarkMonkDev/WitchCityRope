@@ -39,7 +39,7 @@ test.describe('ProfilePage - E2E Tests', () => {
 
     // Navigate to profile page - this will trigger the error (second request)
     await page.goto('/dashboard/profile-settings');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify error message is displayed
     await expect(page.locator('text=Failed to load your profile. Please try refreshing the page.'))
@@ -78,7 +78,7 @@ test.describe('ProfilePage - E2E Tests', () => {
     });
 
     await page.goto('/dashboard/profile-settings');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Wait for profile page to load
     await expect(page.locator('h1:has-text("Profile Settings")')).toBeVisible({ timeout: 10000 });

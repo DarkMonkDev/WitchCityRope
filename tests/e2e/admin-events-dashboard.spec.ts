@@ -9,7 +9,7 @@ test.describe('Admin Events Dashboard', () => {
 
     // Navigate to admin events page
     await page.goto('/admin/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('should show both filter chips checked by default', async ({ page }) => {

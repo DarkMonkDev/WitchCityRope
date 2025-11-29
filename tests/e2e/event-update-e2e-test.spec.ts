@@ -23,7 +23,7 @@ test.describe('Event Update Flow E2E Testing', () => {
 
     // First, navigate to admin events list page
     await page.goto('/admin/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Take screenshot of admin events page
     await page.screenshot({ path: './test-results/admin-events-page.png', fullPage: true });
@@ -34,7 +34,7 @@ test.describe('Event Update Flow E2E Testing', () => {
 
     // Now navigate directly to event details page
     await page.goto(`/admin/events/${eventId}`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Verify we're on the event details page
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({ timeout: 10000 });
@@ -64,7 +64,7 @@ test.describe('Event Update Flow E2E Testing', () => {
 
     // Navigate directly to event details page
     await page.goto(`/admin/events/${eventId}`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Wait for page to load
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({ timeout: 10000 });
@@ -177,7 +177,7 @@ test.describe('Event Update Flow E2E Testing', () => {
 
     // Navigate to event details page
     await page.goto(`/admin/events/${eventId}`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({ timeout: 10000 });
 
@@ -286,7 +286,7 @@ test.describe('Event Update Flow E2E Testing', () => {
     console.log('Testing partial update functionality...');
 
     await page.goto(`/admin/events/${eventId}`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     await expect(page.locator('[data-testid="page-admin-event-details"]')).toBeVisible({ timeout: 10000 });
     
@@ -347,7 +347,7 @@ test.describe('Event Update Flow E2E Testing', () => {
 
     // First test - ensure the page requires authentication
     await page.goto(`/admin/events/${eventId}`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Should be accessible since we're logged in as admin
     const eventDetailsPage = page.locator('[data-testid="page-admin-event-details"]');

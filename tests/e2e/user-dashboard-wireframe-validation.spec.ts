@@ -33,7 +33,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
 
       // Navigate to dashboard
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Look for Edit Profile link in utility bar
       const utilityBar = page.locator('nav, header, [data-testid="utility-bar"]');
@@ -55,7 +55,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Look for page title with pattern "[Name] Dashboard"
       const pageTitle = page.locator('h1, [data-testid="page-title"]').filter({ hasText: /dashboard/i });
@@ -71,7 +71,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Look for Edit Profile button on the page (not in nav)
       const editProfileButton = page.locator('button, a').filter({ hasText: /edit profile/i });
@@ -84,7 +84,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Click Edit Profile link
       const editProfileLink = page.locator('a, button').filter({ hasText: /edit profile/i }).first();
@@ -102,7 +102,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
 
       // Navigate to profile settings first
       await page.goto(`${baseUrl}/dashboard/profile-settings`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Click Dashboard link in navigation
       const dashboardLink = page.locator('nav a, nav button').filter({ hasText: /dashboard|my events/i });
@@ -127,7 +127,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Look for vetting alert - should NOT be visible
       const vettingAlert = page.locator('[role="alert"], .alert, [data-testid*="vetting-alert"]')
@@ -147,7 +147,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'member');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Look for pending status alert
       const pendingAlert = page.locator('[role="alert"], .alert, [data-testid*="vetting-alert"]')
@@ -175,7 +175,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'member');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Look for approved status alert
       const approvedAlert = page.locator('[role="alert"], .alert, [data-testid*="vetting-alert"]')
@@ -208,7 +208,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'member');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Look for on hold status alert
       const onHoldAlert = page.locator('[role="alert"], .alert, [data-testid*="vetting-alert"]')
@@ -235,7 +235,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'member');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Look for denied status alert
       const deniedAlert = page.locator('[role="alert"], .alert, [data-testid*="vetting-alert"]')
@@ -270,7 +270,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // CRITICAL: Verify NO pricing information is visible
       const pageContent = await page.locator('body').textContent();
@@ -290,7 +290,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // CRITICAL: Verify NO capacity information is visible
       const pageContent = await page.locator('body').textContent();
@@ -309,7 +309,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Look for View Details buttons
       const viewDetailsButtons = page.locator('button, a').filter({ hasText: /view details/i });
@@ -333,7 +333,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Look for event cards
       const eventCards = page.locator('[data-testid="event-card"], .event-card, [class*="EventCard"]');
@@ -358,7 +358,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Look for event grid container
       const eventGrid = page.locator('[data-testid="events-grid"], .events-grid, [class*="EventGrid"]');
@@ -391,7 +391,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Look for social event badge
       const socialEventBadge = page.locator('[data-testid="status-badge"], .badge')
@@ -415,7 +415,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Look for view toggle button
       const tableViewToggle = page.locator('button, [role="tab"]').filter({ hasText: /list view|table view/i });
@@ -436,7 +436,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Switch to table view if toggle exists
       const tableViewToggle = page.locator('button, [role="tab"]').filter({ hasText: /list view|table view/i });
@@ -471,7 +471,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Switch to table view
       const tableViewToggle = page.locator('button, [role="tab"]').filter({ hasText: /list view|table view/i });
@@ -498,7 +498,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Switch to table view
       const tableViewToggle = page.locator('button, [role="tab"]').filter({ hasText: /list view|table view/i });
@@ -524,7 +524,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Switch to table view
       const tableViewToggle = page.locator('button, [role="tab"]').filter({ hasText: /list view|table view/i });
@@ -559,7 +559,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Look for "Show Past Events" checkbox
       const showPastCheckbox = page.locator('input[type="checkbox"]').filter({ hasText: /show past|past events/i });
@@ -584,7 +584,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Look for past event elements
       const pastEvents = page.locator('.past-event, [data-testid="past-event"]');
@@ -605,7 +605,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Find and check the "Show Past Events" checkbox
       const showPastLabel = page.locator('label').filter({ hasText: /show past|past events/i });
@@ -635,7 +635,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Look for view toggle controls
       const gridViewToggle = page.locator('button, [role="tab"]').filter({ hasText: /card view|grid view/i });
@@ -656,7 +656,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Look for search input
       const searchInput = page.locator('input[type="search"], input[placeholder*="search" i], [data-testid="search-input"]');
@@ -679,7 +679,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard/profile-settings`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Look for tabs
       const tabs = page.locator('[role="tab"], .tab, button').filter({
@@ -706,7 +706,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard/profile-settings`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Ensure Personal tab is active
       const personalTab = page.locator('[role="tab"], button').filter({ hasText: /personal/i });
@@ -731,7 +731,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard/profile-settings`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Click Security tab
       const securityTab = page.locator('[role="tab"], button').filter({ hasText: /security/i });
@@ -765,7 +765,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Verify page title is visible
       const pageTitle = page.locator('h1').filter({ hasText: /dashboard/i });
@@ -786,7 +786,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Look for event cards
       const eventCards = page.locator('[data-testid="event-card"], .event-card');
@@ -815,7 +815,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       const pageContent = await page.locator('body').textContent();
 
@@ -844,7 +844,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       const pageContent = await page.locator('body').textContent();
 
@@ -873,7 +873,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // CRITICAL: Search for any "Learn More" buttons
       const learnMoreButtons = page.locator('button, a').filter({ hasText: /learn more/i });
@@ -891,7 +891,7 @@ test.describe('User Dashboard Wireframe Validation', () => {
       await AuthHelpers.loginAs(page, 'vetted');
 
       await page.goto(`${baseUrl}/dashboard`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Look for View Details buttons
       const viewDetailsButtons = page.locator('button, a').filter({ hasText: /view details/i });

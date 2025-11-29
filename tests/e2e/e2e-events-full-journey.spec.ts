@@ -42,7 +42,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     await page.goto('/events');
 
     // Wait for page to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Should see events page container
     await expect(page.locator('[data-testid="page-events"]')).toBeVisible({ timeout: 10000 });
@@ -64,7 +64,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
   test('2. User views event details', async ({ page }) => {
     // Navigate to events page
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Wait for events to load
     await page.waitForTimeout(2000);
@@ -102,13 +102,13 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
   test('3. User attempts to RSVP/purchase ticket (should redirect to login)', async ({ page }) => {
     // Navigate to event details
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const firstEvent = page.locator('[data-testid="event-card"]').first();
     await expect(firstEvent).toBeVisible({ timeout: 10000 });
     await firstEvent.click();
     await page.waitForURL('**/events/**');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Wait for alert to be visible and stable (React strict mode handling)
     const loginAlert = page.locator('[data-testid="event-details"]').locator('text=/login required/i').last();
@@ -139,14 +139,14 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
 
     // Navigate to events and select a social event
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const firstEvent = page.locator('[data-testid="event-card"]').first();
     const eventTitle = await firstEvent.locator('[data-testid="event-title"]').textContent();
 
     await firstEvent.click();
     await page.waitForURL('**/events/**');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Should see RSVP button with waiver checkbox (using .last() for React strict mode)
     const waiverCheckbox = page.locator('[data-testid="rsvp-terms-checkbox"]')
@@ -182,7 +182,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
 
     // Navigate to dashboard
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Should see dashboard title with user's name
     const dashboardTitle = page.locator('h1').first();
@@ -217,13 +217,13 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
 
     // Navigate to events page
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Click first event
     const firstEvent = page.locator('[data-testid="event-card"]').first();
     await firstEvent.click();
     await page.waitForURL('**/events/**');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Look for Cancel RSVP button (only appears if user has RSVP)
     const cancelButton = page.locator('button:has-text("Cancel RSVP")').last();
@@ -265,7 +265,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     
     // Navigate to admin/events management
     await page.goto('/admin/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Should see admin events page (events table)
     await expect(page.locator('[data-testid="events-table"]')).toBeVisible({ timeout: 10000 });
@@ -290,7 +290,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
 
     // Step 1: Discover events (unauthenticated)
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const eventCards = page.locator('[data-testid="event-card"]');
     await expect(eventCards.first()).toBeVisible({ timeout: 10000 });
@@ -301,7 +301,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     const eventTitle = await eventCards.first().locator('[data-testid="event-title"]').textContent();
     await eventCards.first().click();
     await page.waitForURL('**/events/**');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     console.log(`   🔍 Viewing details for: ${eventTitle}`);
 
     // Step 3: Verify login required alert (using .last() for React strict mode)
@@ -316,10 +316,10 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
 
     // Step 5: Navigate back to event and complete RSVP
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.locator('[data-testid="event-card"]').first().click();
     await page.waitForURL('**/events/**');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const waiverCheckbox = page.locator('[data-testid="rsvp-terms-checkbox"]').locator('..').last();
     const rsvpButton = page.locator('[data-testid="button-rsvp"]').last();
@@ -335,7 +335,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
 
     // Step 6: Verify in dashboard
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const dashboardTitle = page.locator('h1').first();
     await expect(dashboardTitle).toBeVisible();
     const titleText = await dashboardTitle.textContent();
@@ -392,7 +392,7 @@ test.describe('Events System - Complete User Journey E2E Tests', () => {
     // Measure page load times
     const startTime = Date.now();
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const loadTime = Date.now() - startTime;
     
     console.log(`   📊 Events page load time: ${loadTime}ms`);

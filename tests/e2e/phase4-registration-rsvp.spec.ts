@@ -34,7 +34,7 @@ test.describe('Phase 4: Registration/RSVP System', () => {
       }
       
       // Wait for event details page
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       // Look for registration options
       const registerButton = page.locator('button:has-text("Register"), button:has-text("RSVP"), button:has-text("Buy Tickets")');
@@ -92,7 +92,7 @@ test.describe('Phase 4: Registration/RSVP System', () => {
         await rsvpButton.first().click();
 
         // Wait for confirmation or status change
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         // Look for cancel RSVP option
         const cancelButton = page.locator('button:has-text("Cancel"), button:has-text("Not Going")');
@@ -117,7 +117,7 @@ test.describe('Phase 4: Registration/RSVP System', () => {
     const eventWithTickets = page.locator('text=/\\$\\d+/, text=/ticket/i').first();
     if (await eventWithTickets.isVisible()) {
       await eventWithTickets.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       // Look for ticket options
       const ticketOptions = page.locator('[data-testid="ticket-option"], .ticket-type, [role="radio"]');

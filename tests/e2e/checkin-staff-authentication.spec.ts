@@ -93,7 +93,7 @@ test.describe('Check-In Token Validation', () => {
     // Navigate with fake/invalid token
     const fakeToken = 'invalid-token-12345';
     await page.goto(`/events/${testEventId}/checkin?token=${fakeToken}&event=${testEventId}`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify error message displayed
     const errorMessage = page.locator('[role="alert"], .error, .notification').filter({ hasText: /invalid.*token|token.*invalid|access denied/i });
@@ -110,7 +110,7 @@ test.describe('Check-In Token Validation', () => {
 
     // Navigate to check-in URL without token parameter
     await page.goto(`/events/${testEventId}/checkin`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify "Invalid Check-In Link" or similar error
     const errorMessage = page.locator('[role="alert"], .error, .notification').filter({ hasText: /invalid.*link|missing.*token|access denied/i });
@@ -176,7 +176,7 @@ test.describe('Check-In Token Validation', () => {
     await kioskPage.context().clearCookies();
 
     await kioskPage.goto(`/events/${testEventId}/checkin?token=${sessionToken}&event=${testEventId}`);
-    await kioskPage.waitForLoadState('networkidle');
+    await kioskPage.waitForLoadState('domcontentloaded');
 
     // Verify error message for revoked token
     const errorMessage = kioskPage.locator('[role="alert"], .error').filter({ hasText: /revoked|invalid.*token|access denied/i });
@@ -260,7 +260,7 @@ test.describe('Check-In Token Validation', () => {
     await kioskPage.context().clearCookies();
 
     await kioskPage.goto(`/events/${testEventId}/checkin?token=${sessionToken}&event=${testEventId}`);
-    await kioskPage.waitForLoadState('networkidle');
+    await kioskPage.waitForLoadState('domcontentloaded');
 
     // Verify error message for expired token
     const errorMessage = kioskPage.locator('[role="alert"], .error').filter({ hasText: /expired|invalid.*token|access denied/i });

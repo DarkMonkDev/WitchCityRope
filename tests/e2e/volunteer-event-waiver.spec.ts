@@ -36,13 +36,13 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
   test('Positive: User can volunteer when Event Waiver checkbox is checked', async ({ page }) => {
     // Navigate to events page
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Find an event with volunteer positions
     // Look for event cards that might have volunteer opportunities
     const eventCard = page.locator('[data-testid="event-card"]').first();
     await eventCard.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
     await AuthHelpers.cleanupEventParticipation(page, 'Social');
@@ -138,7 +138,7 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
 
     // Navigate directly to event details page
     await page.goto(`/events/${eventSlug}`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     console.log('✅ Navigated to event details page');
 
     // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
@@ -196,12 +196,12 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
   test('Positive: Volunteer signup shows as confirmed in UI', async ({ page }) => {
     // Navigate to events
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Click first event
     const eventCard = page.locator('[data-testid="event-card"]').first();
     await eventCard.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
     await AuthHelpers.cleanupEventParticipation(page, 'Social');
@@ -256,12 +256,12 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
   test('Negative: Signup button is disabled when Event Waiver checkbox is unchecked', async ({ page }) => {
     // Navigate to events
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Click first event
     const eventCard = page.locator('[data-testid="event-card"]').first();
     await eventCard.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
     await AuthHelpers.cleanupEventParticipation(page, 'Social');
@@ -379,12 +379,12 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
   test('Negative: Unchecking Event Waiver after checking re-disables signup button', async ({ page }) => {
     // Navigate to events
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Click first event
     const eventCard = page.locator('[data-testid="event-card"]').first();
     await eventCard.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Clean up any existing participation (tickets and RSVPs) to ensure clean test state
     await AuthHelpers.cleanupEventParticipation(page, 'Social');
@@ -434,12 +434,12 @@ test.describe('Volunteer Signup Event Waiver Compliance', () => {
 
     // Navigate to events
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Click first event
     const eventCard = page.locator('[data-testid="event-card"]').first();
     await eventCard.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Check if user already has RSVP or ticket
     const alreadyParticipated = await page.locator('text=RSVP Confirmed').or(page.locator('text=Ticket Purchased')).count() > 0;

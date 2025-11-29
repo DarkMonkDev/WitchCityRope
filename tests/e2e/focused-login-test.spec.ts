@@ -54,7 +54,7 @@ test.describe('Focused Real API Login Test', () => {
 
     // Step 1: Navigate to login page
     await page.goto('/login');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     console.log('✅ Navigated to login page');
 
@@ -167,7 +167,7 @@ test.describe('Focused Real API Login Test', () => {
     console.log('=== INFINITE LOOP PREVENTION TEST ===');
 
     await page.goto('/login');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Wait and monitor for 5 seconds for any loop errors
     await page.waitForTimeout(5000);

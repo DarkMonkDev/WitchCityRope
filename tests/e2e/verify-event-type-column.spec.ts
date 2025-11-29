@@ -26,7 +26,7 @@ test('Login and check event type column', async ({ page }) => {
   await page.goto('/admin/events');
 
   // Wait for page to load
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 
   // Take screenshot to verify the table structure
   await page.screenshot({ path: 'test-results/admin-events-with-type-column.png', fullPage: true });

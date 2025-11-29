@@ -41,7 +41,7 @@ test.describe('Identified Incident Report Submission', () => {
     console.log('✅ Logged in as member successfully');
 
     await page.goto('/safety/report');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Find radio buttons (NOT checkboxes!) - HARD ASSERTION
     const anonymousRadio = page.locator('input[type="radio"]', { hasText: /Anonymous/i }).first();
@@ -106,7 +106,7 @@ test.describe('Identified Incident Report Submission', () => {
 
     // Navigate to potential My Reports page (may not exist)
     const response = await page.goto('/my-reports');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Check if page exists or redirects
     const currentUrl = page.url();

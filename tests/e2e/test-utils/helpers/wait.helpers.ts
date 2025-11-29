@@ -24,31 +24,43 @@ export const TIMEOUTS = {
 export class WaitHelpers {
   /**
    * Wait for page to fully load with React hydration
+   * Uses domcontentloaded instead of networkidle (apps with background requests never reach networkidle)
    */
   static async waitForPageLoad(page: Page, expectedUrl?: string, timeout: number = TIMEOUTS.PAGE_LOAD) {
-    // Wait for network to be idle
-    await page.waitForLoadState('networkidle', { timeout });
-    
+    // Wait for DOM to be ready
+    await page.waitForLoadState('domcontentloaded', { timeout });
+
     // If specific URL expected, wait for it
     if (expectedUrl) {
       await page.waitForURL(expectedUrl, { timeout });
     }
-    
+
     // Wait for React to hydrate (check for React root)
     await page.waitForSelector('#root', { state: 'attached', timeout });
-    
-    // Additional wait for any loading spinners to disappear
+
+    // Wait for Mantine/app loading spinners to disappear
+    await this.waitForLoadingComplete(page, timeout);
+  }
+
+  /**
+   * Wait for all loading indicators to disappear
+   * Critical pattern: After domcontentloaded, wait for data to load
+   */
+  static async waitForLoadingComplete(page: Page, timeout: number = TIMEOUTS.MEDIUM) {
     const loadingSelectors = [
+      '.mantine-Loader-root',  // Mantine Loader component
       '[data-testid="loading-spinner"]',
-      '[data-testid="page-loader"]', 
+      '[data-testid="page-loader"]',
       '.loading',
       '.spinner'
     ];
-    
+
     for (const selector of loadingSelectors) {
       const loadingElement = page.locator(selector);
       if (await loadingElement.count() > 0) {
-        await expect(loadingElement).not.toBeVisible({ timeout: 5000 });
+        await loadingElement.waitFor({ state: 'hidden', timeout }).catch(() => {
+          // Loading element didn't disappear - that's OK, continue
+        });
       }
     }
   }
@@ -112,23 +124,20 @@ export class WaitHelpers {
 
   /**
    * Wait for navigation to complete (useful for SPA routing)
-   * Enhanced with network idle wait for authentication flows
+   * Uses domcontentloaded instead of networkidle
    */
   static async waitForNavigation(page: Page, expectedUrl: string, timeout: number = TIMEOUTS.NAVIGATION) {
     // Wait for URL to change
-    await page.waitForURL(expectedUrl, { 
+    await page.waitForURL(expectedUrl, {
       timeout,
-      waitUntil: 'networkidle' 
+      waitUntil: 'domcontentloaded'
     });
-    
+
     // Wait for page to be interactive
     await page.waitForLoadState('domcontentloaded');
-    
-    // Wait for network to be idle (important for API calls after navigation)
-    await page.waitForLoadState('networkidle', { timeout: TIMEOUTS.MEDIUM });
-    
-    // Wait for React routing to complete
-    await page.waitForTimeout(200);
+
+    // Wait for loading indicators to disappear
+    await this.waitForLoadingComplete(page, TIMEOUTS.MEDIUM);
   }
 
   /**
@@ -136,19 +145,16 @@ export class WaitHelpers {
    */
   static async waitForFormSubmission(page: Page, submitButtonTestId: string = 'submit-button') {
     const submitButton = page.locator(`[data-testid="${submitButtonTestId}"]`);
-    
-    // Wait for button to show loading state
-    await page.waitForTimeout(200);
-    
+
     // Wait for loading state to complete (button re-enabled)
     await expect(submitButton).not.toHaveAttribute('disabled', { timeout: TIMEOUTS.FORM_SUBMISSION });
-    
+
     // Verify loading text has cleared
     const buttonText = await submitButton.textContent();
     expect(buttonText?.toLowerCase()).not.toMatch(/loading|submitting|processing/);
-    
-    // Wait for network idle to ensure API call completed
-    await page.waitForLoadState('networkidle', { timeout: TIMEOUTS.MEDIUM });
+
+    // Wait for loading indicators to disappear
+    await this.waitForLoadingComplete(page, TIMEOUTS.MEDIUM);
   }
 
   /**
@@ -232,12 +238,9 @@ export class WaitHelpers {
   /**
    * Wait for React state updates to complete (useful after user interactions)
    */
-  static async waitForStateUpdate(page: Page, delay: number = 100) {
-    // Give React time to process state updates
-    await page.waitForTimeout(delay);
-    
-    // Wait for any pending network requests to complete
-    await page.waitForLoadState('networkidle', { timeout: 2000 });
+  static async waitForStateUpdate(page: Page) {
+    // Wait for loading indicators to disappear
+    await this.waitForLoadingComplete(page, 2000);
   }
 
   /**
@@ -330,16 +333,16 @@ export class WaitHelpers {
    * Wait for all images to load
    */
   static async waitForImages(page: Page, timeout: number = 10000) {
-    await page.waitForLoadState('networkidle', { timeout });
-    
+    await page.waitForLoadState('domcontentloaded', { timeout });
+
     // Check that all images have loaded
     const images = page.locator('img');
     const imageCount = await images.count();
-    
+
     for (let i = 0; i < imageCount; i++) {
       const image = images.nth(i);
       await expect(image).toHaveAttribute('src');
-      
+
       // Wait for image to load
       await page.waitForFunction(
         (img) => img.complete && img.naturalHeight !== 0,

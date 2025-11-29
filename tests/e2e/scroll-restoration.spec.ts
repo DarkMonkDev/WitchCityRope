@@ -47,7 +47,7 @@ test.describe('Scroll Restoration - Navigation Scroll-to-Top', () => {
 
     // Navigate to homepage
     await page.goto(`${baseUrl}/`)
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Take screenshot of initial state
     await page.screenshot({
@@ -103,7 +103,7 @@ test.describe('Scroll Restoration - Navigation Scroll-to-Top', () => {
 
     // Wait for navigation to complete
     await page.waitForURL('**/events', { timeout: 5000 })
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Wait for any scroll animations to complete
     await page.waitForTimeout(500)
@@ -138,7 +138,7 @@ test.describe('Scroll Restoration - Navigation Scroll-to-Top', () => {
 
     // Navigate to homepage
     await page.goto(`${baseUrl}/`)
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Take screenshot of initial state
     await page.screenshot({
@@ -190,7 +190,7 @@ test.describe('Scroll Restoration - Navigation Scroll-to-Top', () => {
 
     // Wait for navigation to complete
     await page.waitForURL('**/events', { timeout: 5000 })
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Wait for any scroll animations to complete (mobile may have slower animations)
     await page.waitForTimeout(800)
@@ -230,7 +230,7 @@ test.describe('Scroll Restoration - Navigation Scroll-to-Top', () => {
 
     // Start on events page
     await page.goto(`${baseUrl}/events`)
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Scroll down
     await page.evaluate(() => {
@@ -265,7 +265,7 @@ test.describe('Scroll Restoration - Navigation Scroll-to-Top', () => {
     expect(homeLinkClicked).toBe(true)
 
     await page.waitForURL(`${baseUrl}/`, { timeout: 5000 })
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Additional wait for scroll animation to complete (testing if 93px offset is timing issue)
     await page.waitForTimeout(300)
@@ -282,7 +282,7 @@ test.describe('Scroll Restoration - Navigation Scroll-to-Top', () => {
 
     // Start on events page
     await page.goto(`${baseUrl}/events`)
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Scroll down
     await page.evaluate(() => {
@@ -329,7 +329,7 @@ test.describe('Scroll Restoration - Navigation Scroll-to-Top', () => {
     console.log('Mobile (reverse) - Logo clicked to navigate home')
 
     await page.waitForURL(`${baseUrl}/`, { timeout: 5000 })
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(800)
 
     // Verify body overflow is reset
@@ -349,7 +349,7 @@ test.describe('Scroll Restoration - Navigation Scroll-to-Top', () => {
 
     // Navigate to homepage
     await page.goto(`${baseUrl}/`)
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Scroll to middle of page
     const scrollToPosition = 500
@@ -365,7 +365,7 @@ test.describe('Scroll Restoration - Navigation Scroll-to-Top', () => {
     const eventsLink = page.locator('a[href*="/events"]').first()
     await eventsLink.click()
     await page.waitForURL('**/events', { timeout: 5000 })
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(500)
 
     // Verify scroll to top on new page
@@ -375,7 +375,7 @@ test.describe('Scroll Restoration - Navigation Scroll-to-Top', () => {
 
     // Use browser back button
     await page.goBack()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(500)
 
     // NOTE: ScrollRestoration should restore previous scroll position on back/forward
@@ -394,7 +394,7 @@ test.describe('Scroll Restoration - Navigation Scroll-to-Top', () => {
 
     // Navigate to homepage
     await page.goto(`${baseUrl}/`)
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Verify initial body overflow state
     const initialOverflow = await page.evaluate(() => document.body.style.overflow)
@@ -433,7 +433,7 @@ test.describe('Scroll Restoration - Navigation Scroll-to-Top', () => {
 
     // Wait for navigation
     await page.waitForURL('**/events', { timeout: 5000 })
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(500)
 
     // CRITICAL: Verify body overflow is reset (Navigation.tsx line 110)

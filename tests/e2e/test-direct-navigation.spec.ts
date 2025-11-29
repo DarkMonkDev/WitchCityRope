@@ -8,7 +8,7 @@ test('direct navigation to detail page', async ({ page }) => {
 
   // Navigate DIRECTLY to a detail page URL
   await page.goto('/admin/vetting/test-id-12345');
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 
   console.log('URL:', page.url());
   await page.screenshot({ path: 'test-results/direct-navigation.png', fullPage: true });

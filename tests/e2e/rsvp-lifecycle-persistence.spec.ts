@@ -255,7 +255,7 @@ test.describe.serial('RSVP Lifecycle Persistence Tests', () => {
     await AuthHelpers.loginAs(page, 'teacher');
 
     await page.goto(`/events/${RSVP_EVENT_ID}`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // RSVP button should NOT be visible (user already has RSVP)
     const rsvpButton = page.locator('button:has-text("RSVP")').first();

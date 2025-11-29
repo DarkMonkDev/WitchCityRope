@@ -33,7 +33,7 @@ test.describe('Refund Confirmation Modal - Validation Rules', () => {
    */
   async function openRefundModal(page: any): Promise<boolean> {
     await page.goto('/admin/analytics/payments');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const paymentRows = page.locator('table tbody tr, [data-testid="payment-row"]');
 

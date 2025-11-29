@@ -31,7 +31,7 @@ test.describe('Registration Terms of Service Compliance', () => {
 
     // Navigate to registration page
     await page.goto('/register');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Wait for registration form to be ready
     await page.waitForSelector('[data-testid="register-form"]', { timeout: 10000 });

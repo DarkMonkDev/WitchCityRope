@@ -123,7 +123,7 @@ test.describe('Home Page - Vertical Slice E2E Tests', () => {
 
     // Test tablet layout (medium screen)
     await page.setViewportSize({ width: 768, height: 1024 })
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Hard assertion: If events grid exists, it must have responsive tablet classes
     const tabletGridVisible = await eventsGrid.isVisible()
@@ -134,7 +134,7 @@ test.describe('Home Page - Vertical Slice E2E Tests', () => {
 
     // Test mobile layout (small screen)
     await page.setViewportSize({ width: 375, height: 667 })
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Hard assertion: If events grid exists, it must have single column mobile layout
     const mobileGridVisible = await eventsGrid.isVisible()

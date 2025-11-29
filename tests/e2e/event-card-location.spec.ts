@@ -30,7 +30,7 @@ test.describe('Dashboard Event Card Location Display', () => {
 
     // Navigate to dashboard
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
 
     // Look for event cards on dashboard
@@ -80,7 +80,7 @@ test.describe('Dashboard Event Card Location Display', () => {
 
     // Navigate to dashboard
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
 
     // Check if any event cards show the fallback text
@@ -103,7 +103,7 @@ test.describe('Dashboard Event Card Location Display', () => {
 
     // Navigate to dashboard
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
 
     // Look for event cards
@@ -139,7 +139,7 @@ test.describe('Dashboard Event Card Location Display', () => {
 
     // Navigate to dashboard
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
 
     // Look for event cards
@@ -174,7 +174,7 @@ test.describe('Dashboard Event Card Location Display', () => {
 
     // Navigate to dashboard
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
 
     // Look for event cards
@@ -212,7 +212,7 @@ test.describe('Dashboard Event Card Location Display', () => {
 
     // Navigate to dashboard
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
 
     // Look for event cards
@@ -244,7 +244,7 @@ test.describe('Dashboard Event Card Location Display', () => {
 
     // Navigate to dashboard
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
 
     // Look for event cards

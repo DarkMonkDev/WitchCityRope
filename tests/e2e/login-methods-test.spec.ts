@@ -52,7 +52,7 @@ test.describe('Login Methods Testing - AuthHelper Solution', () => {
     console.log('🧪 Testing Method 2: force option with data-testid selectors')
 
     await page.goto('/login')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Use data-testid selectors with force option to bypass any blocking
     await page.locator('[data-testid="email-or-scenename-input"]').fill('admin@witchcityrope.com', { force: true })
@@ -76,7 +76,7 @@ test.describe('Login Methods Testing - AuthHelper Solution', () => {
     console.log('🧪 Testing Method 3: page.evaluate() direct DOM manipulation')
 
     await page.goto('/login')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     
     // Method 3: Direct DOM manipulation to bypass all Mantine handlers
     await page.evaluate(() => {
@@ -123,7 +123,7 @@ test.describe('Login Methods Testing - AuthHelper Solution', () => {
 
     // Method 4: Completely ignore console errors and proceed normally
     await page.goto('/login')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     
     // Standard Playwright interaction - ignore any console issues
     await page.locator('[data-testid="email-or-scenename-input"]').type('admin@witchcityrope.com')
@@ -150,7 +150,7 @@ test.describe('Login Methods Testing - AuthHelper Solution', () => {
     // Method 5: Create a robust login helper that tries multiple approaches
     const loginWithFallback = async (email: string, password: string): Promise<boolean> => {
       await page.goto('/login')
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
       
       try {
         // Approach 5a: Try data-testid with fill()
@@ -235,7 +235,7 @@ test.describe('Login Methods Testing - AuthHelper Solution', () => {
     console.log('🔍 Analyzing console errors during login process')
 
     await page.goto('/login')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     
     // Clear previous errors and start fresh
     consoleErrors = []
@@ -279,7 +279,7 @@ test.describe('Login Methods Testing - AuthHelper Solution', () => {
     // Test Method 1 timing
     const method1Start = Date.now()
     await page.goto('/login')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await page.locator('[data-testid="email-or-scenename-input"]').fill('admin@witchcityrope.com')
     await page.locator('[data-testid="password-input"]').fill('Test123!')
     await page.locator('[data-testid="login-button"]').click()

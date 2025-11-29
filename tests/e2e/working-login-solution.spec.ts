@@ -37,7 +37,7 @@ test.describe('Working Login Solution', () => {
     
     // Navigate to login page
     await page.goto('/login')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     
     // Wait for form to be ready
     await page.waitForSelector('[data-testid="login-form"]', { timeout: 10000 })

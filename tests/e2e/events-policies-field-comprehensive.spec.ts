@@ -41,14 +41,14 @@ test.describe('Policies Field - Comprehensive Testing', () => {
 
       // Navigate to admin events page
       await page.goto('/admin/events');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       console.log('✓ Navigated to admin events page');
 
       // Click on first event to open edit form
       const eventRow = page.locator('[data-testid="event-row"], tr').first();
       await expect(eventRow).toBeVisible({ timeout: 5000 });
       await eventRow.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       console.log('✓ Opened event for editing');
 
       // Verify policies field exists and is visible
@@ -89,7 +89,7 @@ test.describe('Policies Field - Comprehensive Testing', () => {
 
       // Navigate to create new event page
       await page.goto('/admin/events');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Click "Create Event" button if it exists
       const createButton = page.locator('button:has-text("Create Event")');
@@ -134,13 +134,13 @@ test.describe('Policies Field - Comprehensive Testing', () => {
 
       // Navigate to admin events
       await page.goto('/admin/events');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Click on first event to edit
       const eventRow = page.locator('[data-testid="event-row"], tr').first();
       await expect(eventRow).toBeVisible({ timeout: 5000 });
       await eventRow.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Extract event ID from URL for API verification
       const currentUrl = page.url();
@@ -184,7 +184,7 @@ test.describe('Policies Field - Comprehensive Testing', () => {
 
       // Wait for save operation
       await page.waitForTimeout(2000);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Verify API has the saved policies value
       console.log('📡 Verifying API saved the policies value...');
@@ -207,7 +207,7 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       // Refresh page to verify persistence in UI
       console.log('🔄 Refreshing page to verify UI persistence...');
       await page.reload();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(1000);
 
       // Find policies field again after refresh
@@ -239,13 +239,13 @@ test.describe('Policies Field - Comprehensive Testing', () => {
 
       // Navigate to events
       await page.goto('/admin/events');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Click on first event
       const eventRow = page.locator('[data-testid="event-row"], tr').first();
       await expect(eventRow).toBeVisible({ timeout: 5000 });
       await eventRow.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Find policies field
       const policiesSelectors = [
@@ -279,11 +279,11 @@ test.describe('Policies Field - Comprehensive Testing', () => {
       const saveButton = page.locator('button:has-text("Save"), button[type="submit"]').first();
       await saveButton.click();
       await page.waitForTimeout(2000);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Refresh
       await page.reload();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(1000);
 
       // Find field again after refresh
@@ -311,7 +311,7 @@ test.describe('Policies Field - Comprehensive Testing', () => {
 
       // Navigate to events
       await page.goto('/admin/events');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Get first event
       const eventRow = page.locator('[data-testid="event-row"], tr').first();

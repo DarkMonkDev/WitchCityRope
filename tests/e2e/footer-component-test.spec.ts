@@ -263,7 +263,7 @@ test.describe('Footer Component - Mobile Tests (<768px)', () => {
     const legalControl = footer.locator('button').filter({ hasText: /legal/i }).first();
 
     // Wait for accordion to be fully initialized
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(500);
 
     // Initially, links should not be visible (collapsed)
@@ -531,7 +531,7 @@ test.describe('Footer Component - Console Errors', () => {
     await page.goto(BASE_URL);
 
     // Wait for page to fully load
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Check for console errors
     expect(consoleErrors.length).toBe(0);
@@ -547,7 +547,7 @@ test.describe('Footer Component - Console Errors', () => {
     });
 
     await page.goto(BASE_URL);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Filter for React warnings
     const reactWarnings = consoleWarnings.filter(w =>

@@ -9,7 +9,7 @@ test('inspect login page DOM structure', async ({ page }) => {
   console.log('=== MANUAL LOGIN PAGE INSPECTION ===');
 
   await page.goto('/login');
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 
   // Take screenshot of current state
   await page.screenshot({ path: './test-results/manual-inspection-page.png' });

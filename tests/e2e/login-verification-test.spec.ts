@@ -32,7 +32,7 @@ test.describe('Login Page Verification', () => {
     await page.goto('/login');
     
     // Wait for page to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Take screenshot of initial page state
     await page.screenshot({ path: './test-results/login-page-loaded.png' });

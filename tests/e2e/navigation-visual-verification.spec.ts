@@ -10,7 +10,7 @@ test.describe('Navigation Visual Verification', () => {
   
   test('capture guest user navigation state', async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Capture full page showing guest navigation
     await page.screenshot({ 
@@ -29,7 +29,7 @@ test.describe('Navigation Visual Verification', () => {
     
     // Navigate to homepage to see full navigation
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Capture full page showing member navigation
     await page.screenshot({ 
@@ -49,7 +49,7 @@ test.describe('Navigation Visual Verification', () => {
   
   test('capture navigation component close-up', async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Capture just the navigation header
     const navHeader = page.locator('[data-testid="nav-main"]');
@@ -63,7 +63,7 @@ test.describe('Navigation Visual Verification', () => {
     await AuthHelpers.loginAs(page, 'member');
 
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Capture just the utility bar to show user greeting and logout
     await page.screenshot({ 

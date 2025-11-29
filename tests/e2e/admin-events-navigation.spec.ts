@@ -90,7 +90,7 @@ test.describe('Admin Events Navigation - Critical Bug Detection', () => {
 
     // Step 4: Wait for admin events page to load
     await page.waitForTimeout(3000);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const currentUrl = page.url();
     console.log(`Current URL: ${currentUrl}`);
@@ -185,7 +185,7 @@ test.describe('Admin Events Navigation - Critical Bug Detection', () => {
       await page.goto('/admin/events');
     }
 
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(2000);
 
     // Check for events list
@@ -217,7 +217,7 @@ test.describe('Admin Events Navigation - Critical Bug Detection', () => {
       try {
         await eventElement.click();
         await page.waitForTimeout(2000);
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         // Check for event details page
         const currentUrl = page.url();
@@ -293,7 +293,7 @@ test.describe('Admin Events Navigation - Critical Bug Detection', () => {
 
     // Navigate to admin events
     await page.goto('/admin/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(2000);
 
     // Verify no critical errors (filter out expected 401 errors)
@@ -335,7 +335,7 @@ test.describe('Admin Events Navigation - Critical Bug Detection', () => {
 
     // Navigate to admin events
     await page.goto('/admin/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify admin access
     const unauthorizedCount = await page.locator('text=/Unauthorized|Access Denied|Login Required/i').count();
@@ -343,7 +343,7 @@ test.describe('Admin Events Navigation - Critical Bug Detection', () => {
 
     // Refresh page and verify authentication persists
     await page.reload();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(2000);
 
     const unauthorizedAfterRefresh = await page.locator('text=/Unauthorized|Access Denied|Login Required/i').count();

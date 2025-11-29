@@ -14,7 +14,7 @@ test('vetting navigation with hard reload', async ({ page }) => {
   const firstRow = page.locator('table tbody tr').first();
   await firstRow.click();
   await page.waitForURL(/\/admin\/vetting\/applications\/[a-f0-9-]+$/);
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   
   // Verify we navigated to the detail page
   const currentUrl = page.url();

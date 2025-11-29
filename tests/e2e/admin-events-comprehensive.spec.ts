@@ -176,7 +176,7 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
 
       // Refresh page
       await page.reload();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Hard assertion - authentication must persist
       const authAfter = await AuthHelpers.isAuthenticated(page);
@@ -187,7 +187,7 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
     test('admin events page remains accessible after refresh', async ({ page }) => {
       // Refresh and verify access
       await page.reload();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Hard assertion - must remain on admin events page
       await expect(page).toHaveURL(/.*\/admin\/events/);
@@ -250,7 +250,7 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
     test('page loads within reasonable time', async ({ page }) => {
       const startTime = Date.now();
       await page.goto('/admin/events');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       const loadTime = Date.now() - startTime;
 
       console.log(`Page load time: ${loadTime}ms`);
@@ -281,7 +281,7 @@ test.describe('Admin Events - Comprehensive Bug Testing', () => {
 
       // Navigate through basic admin flow
       await page.goto('/admin/events');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       const createBtn = page.locator('[data-testid="button-create-event"]');
 

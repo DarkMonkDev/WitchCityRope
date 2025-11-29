@@ -75,7 +75,7 @@ test.describe.serial('Ticket Refund Workflow - Happy Path', () => {
     // Navigate to admin payments page
     console.log('📝 Step 2: Navigate to admin payments page');
     await page.goto('/admin/analytics/payments');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify we're on the payments page
     console.log('📝 Step 3: Verify payments page loaded');
@@ -102,7 +102,7 @@ test.describe.serial('Ticket Refund Workflow - Happy Path', () => {
     // Navigate to payments page
     console.log('📝 Step 1: Navigate to admin payments page');
     await page.goto('/admin/analytics/payments');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Find first payment in the list
     console.log('📝 Step 2: Find first payment entry');
@@ -169,7 +169,7 @@ test.describe.serial('Ticket Refund Workflow - Happy Path', () => {
     // Navigate to payments page
     console.log('📝 Step 1: Navigate to admin payments page');
     await page.goto('/admin/analytics/payments');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Find first eligible payment
     console.log('📝 Step 2: Find payment eligible for refund');
@@ -319,7 +319,7 @@ test.describe('Ticket Refund Workflow - Edge Cases', () => {
     // Navigate to payments page
     console.log('📝 Step 1: Navigate to admin payments page');
     await page.goto('/admin/analytics/payments');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Find refund button
     console.log('📝 Step 2: Open refund modal');
@@ -377,7 +377,7 @@ test.describe('Ticket Refund Workflow - Edge Cases', () => {
 
     // Navigate to payments page
     await page.goto('/admin/analytics/payments');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const paymentRows = page.locator('table tbody tr, [data-testid="payment-row"]');
 

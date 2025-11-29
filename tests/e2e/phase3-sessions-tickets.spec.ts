@@ -25,7 +25,7 @@ test.describe('Phase 3: Sessions & Tickets Management', () => {
     
     // Navigate to admin events (would need auth in real scenario)
     await page.goto('/admin/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Look for create event button or any event card
     const createButton = page.locator('button:has-text("Create Event")');
@@ -108,7 +108,7 @@ test.describe('Phase 3: Sessions & Tickets Management', () => {
     
     // Navigate to admin events
     await page.goto('/admin/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Look for create event button or any event card
     const createButton = page.locator('button:has-text("Create Event")');
@@ -193,7 +193,7 @@ test.describe('Phase 3: Sessions & Tickets Management', () => {
     // In the Event Session Matrix architecture
 
     await page.goto('/admin/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const hasContent = await page.locator('button:has-text("Create Event"), [data-testid="admin-event"]').count() > 0;
     

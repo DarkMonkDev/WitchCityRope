@@ -68,7 +68,7 @@ test.describe('Admin Member History Tab', () => {
       // STEP 2: Navigate to profile settings
       console.log('📍 Step 2: Navigating to profile settings...')
       await page.goto('/dashboard/profile-settings')
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
       await expect(
         page.getByRole('heading', { name: /profile settings/i })
       ).toBeVisible()
@@ -147,7 +147,7 @@ test.describe('Admin Member History Tab', () => {
       console.log('📍 Step 5: Logging out...')
       await AuthHelpers.clearAuthState(page)
       await page.goto('/login')
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
       console.log('✅ Successfully logged out')
 
       // STEP 6: Login as admin
@@ -158,14 +158,14 @@ test.describe('Admin Member History Tab', () => {
       // STEP 7: Navigate to admin members page
       console.log('📍 Step 7: Navigating to admin members page...')
       await page.goto('/admin/members')
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
       await expect(page.getByRole('heading', { name: /member management/i })).toBeVisible()
       console.log('✅ Admin members page loaded')
 
       // STEP 8: Navigate to test user's member details page
       console.log('📍 Step 8: Navigating to member details page...')
       await page.goto(`/admin/members/${userId}`)
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
       console.log('✅ Member details page loaded')
 
       // STEP 9: Click on History tab
@@ -265,7 +265,7 @@ test.describe('Admin Member History Tab', () => {
       // Navigate to test user's member details
       console.log('📍 Navigating to member details page...')
       await page.goto(`/admin/members/${testUser.id}`)
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
 
       // Click History tab
       console.log('📍 Clicking on History tab...')
@@ -329,7 +329,7 @@ test.describe('Admin Member History Tab', () => {
       // Navigate to profile settings
       console.log('📍 Navigating to profile settings...')
       await page.goto('/dashboard/profile-settings')
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
 
       // Make FIRST profile change (Bio only)
       console.log('📍 Making first profile change (Bio)...')
@@ -367,13 +367,13 @@ test.describe('Admin Member History Tab', () => {
       console.log('📍 Logging out and switching to admin...')
       await AuthHelpers.clearAuthState(page)
       await page.goto('/login')
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
       await AuthHelpers.loginAs(page, 'admin')
 
       // Navigate to member details → History tab
       console.log('📍 Navigating to History tab...')
       await page.goto(`/admin/members/${testUser.id}`)
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
 
       const historyTab = page.getByRole('tab', { name: 'History' })
       await historyTab.click()

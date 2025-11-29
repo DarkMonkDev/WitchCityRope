@@ -72,7 +72,7 @@ test.describe('Real API Authentication Flow', () => {
     await page.goto('/login');
     
     // Wait for page to load and take initial screenshot
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.screenshot({ path: './test-results/01-login-page-loaded.png' });
 
     // Step 2: Verify MSW is disabled by checking for real API availability
@@ -224,7 +224,7 @@ test.describe('Real API Authentication Flow', () => {
 
     // First, attempt login
     await page.goto('/login');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Look for form elements with multiple selectors
     const emailInput = page.locator('input[type="email"], input[name="email"], [data-testid="email"]').first();
@@ -247,7 +247,7 @@ test.describe('Real API Authentication Flow', () => {
     
     // Now refresh the page to test persistence
     await page.reload();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const urlAfterRefresh = page.url();
     

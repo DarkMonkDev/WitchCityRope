@@ -28,7 +28,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
   test('should display Teachers section when event has teachers', async ({ page }) => {
     // Navigate to events list (no login required - teachers always visible)
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Find and click on an event (preferably a class/workshop)
     // Use getByRole to get visible, accessible links only (avoids aria-hidden duplicates)
@@ -40,7 +40,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
 
       for (let i = 0; i < Math.min(eventCount, 5); i++) {
         await page.goto('/events');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         await eventCards.nth(i).click();
         await page.waitForTimeout(1000);
@@ -67,7 +67,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
   test('should display teacher scene name when available', async ({ page }) => {
     // Navigate to events
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Use getByRole to get visible, accessible links only (avoids aria-hidden duplicates)
     const eventCards = page.getByRole('link').filter({ has: page.locator('[href*="/events/"]') });
@@ -78,7 +78,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
 
       for (let i = 0; i < Math.min(eventCount, 5); i++) {
         await page.goto('/events');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         await eventCards.nth(i).click();
         await page.waitForTimeout(1000);
@@ -98,7 +98,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
   test('should display teacher bio when available', async ({ page }) => {
     // Navigate to events
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Use getByRole to get visible, accessible links only (avoids aria-hidden duplicates)
     const eventCards = page.getByRole('link').filter({ has: page.locator('[href*="/events/"]') });
@@ -109,7 +109,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
 
       for (let i = 0; i < Math.min(eventCount, 5); i++) {
         await page.goto('/events');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         await eventCards.nth(i).click();
         await page.waitForTimeout(1000);
@@ -130,7 +130,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
   test('should display multiple teachers when event has multiple', async ({ page }) => {
     // Navigate to events
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Use getByRole to get visible, accessible links only (avoids aria-hidden duplicates)
     const eventCards = page.getByRole('link').filter({ has: page.locator('[href*="/events/"]') });
@@ -141,7 +141,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
 
       for (let i = 0; i < Math.min(eventCount, 5); i++) {
         await page.goto('/events');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         await eventCards.nth(i).click();
         await page.waitForTimeout(1000);
@@ -162,7 +162,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
   test('should NOT display Teachers section when no teachers assigned', async ({ page }) => {
     // Navigate to events
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Use getByRole to get visible, accessible links only (avoids aria-hidden duplicates)
     const eventCards = page.getByRole('link').filter({ has: page.locator('[href*="/events/"]') });
@@ -173,7 +173,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
 
       for (let i = 0; i < Math.min(eventCount, 5); i++) {
         await page.goto('/events');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         await eventCards.nth(i).click();
         await page.waitForTimeout(1000);
@@ -195,7 +195,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
   test('should display teachers section to both logged-in and logged-out users', async ({ page }) => {
     // First test as logged-out user
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Use getByRole to get visible, accessible links only (avoids aria-hidden duplicates)
     const eventCards = page.getByRole('link').filter({ has: page.locator('[href*="/events/"]') });
@@ -208,7 +208,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
 
       for (let i = 0; i < Math.min(eventCount, 5); i++) {
         await page.goto('/events');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         await eventCards.nth(i).click();
         await page.waitForTimeout(1000);
@@ -231,7 +231,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
       await AuthHelpers.loginAs(page, 'member');
 
       await page.goto(eventUrl);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       const teachersSection = page.locator('text="Teachers"').filter({ hasText: /^Teachers$/i });
       await expect(teachersSection.first()).toBeVisible({ timeout: 5000 });
@@ -243,7 +243,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
   test('should prefer scene name over first/last name', async ({ page }) => {
     // Navigate to events
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Use getByRole to get visible, accessible links only (avoids aria-hidden duplicates)
     const eventCards = page.getByRole('link').filter({ has: page.locator('[href*="/events/"]') });
@@ -254,7 +254,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
 
       for (let i = 0; i < Math.min(eventCount, 5); i++) {
         await page.goto('/events');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         await eventCards.nth(i).click();
         await page.waitForTimeout(1000);
@@ -275,7 +275,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
   test('should handle teacher with no bio gracefully', async ({ page }) => {
     // Navigate to events
     await page.goto('/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Use getByRole to get visible, accessible links only (avoids aria-hidden duplicates)
     const eventCards = page.getByRole('link').filter({ has: page.locator('[href*="/events/"]') });
@@ -286,7 +286,7 @@ test.describe('Teacher Bio Display on Event Page', () => {
 
       for (let i = 0; i < Math.min(eventCount, 5); i++) {
         await page.goto('/events');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         await eventCards.nth(i).click();
         await page.waitForTimeout(1000);

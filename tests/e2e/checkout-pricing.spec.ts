@@ -18,7 +18,7 @@ test.describe('Event Checkout - Pricing Step Verification', () => {
 
     const checkoutUrl = `/checkout/${eventId}/reg_test_001?ticketTypeId=${freeRsvpTicketId}`;
     await page.goto(checkoutUrl);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Take screenshot
     await page.screenshot({ path: './test-results/checkout-free-rsvp.png', fullPage: true });
@@ -80,7 +80,7 @@ test.describe('Event Checkout - Pricing Step Verification', () => {
 
     const checkoutUrl = `/checkout/${eventId}/reg_test_001?ticketTypeId=${freeRsvpTicketId}`;
     await page.goto(checkoutUrl);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Feature detection: Check if checkout flow exists
     const errorNotification = page.locator('[class*="notification"]').filter({ hasText: 'Event not found' });

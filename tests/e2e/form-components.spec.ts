@@ -27,7 +27,7 @@ test.describe('Form Components Test Page', () => {
     await page.goto('/form-test', { timeout: 30000 });
 
     // Wait for page to be fully loaded
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Take initial screenshot for debugging
     await page.screenshot({ path: 'test-results/form-test-page-loaded.png', fullPage: true });
@@ -57,7 +57,7 @@ test.describe('Form Components Test Page', () => {
     await page.goto('/form-test');
 
     // Wait for page to be fully loaded
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Wait for test controls section to load (use .first() for Mantine v7 strict mode)
     await expect(page.locator('text=Test Controls').first()).toBeVisible();
@@ -87,7 +87,7 @@ test.describe('Form Components Test Page', () => {
     await page.goto('/form-test');
 
     // Wait for form to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Check basic form components (use correct testids from FormComponentsTest.tsx)
     await expect(page.locator('[data-testid="basic-input"]')).toBeVisible();
@@ -116,7 +116,7 @@ test.describe('Form Components Test Page', () => {
     await page.goto('/form-test');
 
     // Wait for page to be fully loaded
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Click Fill Test Data button
     await page.locator('[data-testid="fill-test-data"]').click();
@@ -143,7 +143,7 @@ test.describe('Form Components Test Page', () => {
 
   test('should show validation errors when Toggle Errors button is clicked', async ({ page }) => {
     await page.goto('/form-test');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // First clear any existing data to ensure validation errors will show
     await page.locator('[data-testid="basic-input"]').clear();
@@ -177,7 +177,7 @@ test.describe('Form Components Test Page', () => {
 
   test('should disable all fields when Disable All button is clicked', async ({ page }) => {
     await page.goto('/form-test');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Click Disable All button
     await page.locator('[data-testid="toggle-disabled"]').click();
@@ -202,7 +202,7 @@ test.describe('Form Components Test Page', () => {
 
   test('should test conflict data and validation responses', async ({ page }) => {
     await page.goto('/form-test');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Click Fill Conflict Data button
     await page.locator('[data-testid="fill-conflict-data"]').click();
@@ -230,7 +230,7 @@ test.describe('Form Components Test Page', () => {
 
   test('should display form state information', async ({ page }) => {
     await page.goto('/form-test');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Check that Form State section exists
     const formStateHeading = page.locator('text=Form State').first();
@@ -270,7 +270,7 @@ test.describe('Form Components Test Page', () => {
 
   test('should handle form submission', async ({ page }) => {
     await page.goto('/form-test');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Fill test data first
     await page.locator('[data-testid="fill-test-data"]').click();
@@ -298,7 +298,7 @@ test.describe('Form Components Test Page', () => {
     await page.setViewportSize({ width: 375, height: 667 });
 
     await page.goto('/form-test');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify page still loads properly on mobile (page uses styled text, not h1)
     await expect(page.locator('text=Form Components Test').first()).toBeVisible();
@@ -326,7 +326,7 @@ test.describe('Form Components Test Page', () => {
     });
 
     await page.goto('/form-test');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Try some interactions that might make API calls
     await page.locator('[data-testid="fill-test-data"]').click();
@@ -348,7 +348,7 @@ test.describe('Form Components Test Page', () => {
 
   test('should verify all component sections are present', async ({ page }) => {
     await page.goto('/form-test');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify all major sections are present (use .first() for Mantine v7 strict mode)
     await expect(page.locator('text=Test Controls').first()).toBeVisible();

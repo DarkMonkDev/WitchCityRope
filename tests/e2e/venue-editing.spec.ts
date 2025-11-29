@@ -33,7 +33,7 @@ test.describe('Admin Venue Editing', () => {
 
     // Navigate to settings
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Scope all selectors to the Venue Management card container
     // Find the card by filtering for the one that contains both "Venue Management" heading AND "Select a venue" placeholder
@@ -89,7 +89,7 @@ test.describe('Admin Venue Editing', () => {
 
     // Verify updated name appears in dropdown
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Re-scope to venue card after page reload
     const venueCard2 = page.getByRole('main').locator('[style*="background"]').filter({ hasText: 'Venue Management' });
@@ -107,7 +107,7 @@ test.describe('Admin Venue Editing', () => {
 
     // Navigate to settings
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Scope all selectors to the Venue Management card container
     // Find the card by filtering for the one that contains both "Venue Management" heading AND "Select a venue" placeholder
@@ -147,7 +147,7 @@ test.describe('Admin Venue Editing', () => {
 
     // Verify saved by re-selecting venue
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Re-scope to venue card after page reload
     const venueCard2 = page.getByRole('main').locator('[style*="background"]').filter({ hasText: 'Venue Management' });
@@ -170,7 +170,7 @@ test.describe('Admin Venue Editing', () => {
 
     // Navigate to settings
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Scope all selectors to the Venue Management card container
     // Find the card by filtering for the one that contains both "Venue Management" heading AND "Select a venue" placeholder
@@ -228,7 +228,7 @@ test.describe('Admin Venue Editing', () => {
 
     // Verify change persisted by re-selecting venue
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Re-scope to venue card after page reload
     const venueCard2 = page.getByRole('main').locator('[style*="background"]').filter({ hasText: 'Venue Management' });
@@ -256,7 +256,7 @@ test.describe('Admin Venue Editing', () => {
 
     // Navigate to settings
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Scope all selectors to the Venue Management card container
     // Find the card by filtering for the one that contains both "Venue Management" heading AND "Select a venue" placeholder
@@ -308,7 +308,7 @@ test.describe('Admin Venue Editing', () => {
 
     // Verify inactive venue still appears in admin dropdown with "(Inactive)" label
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Re-scope to venue card after page reload
     const venueCard2 = page.getByRole('main').locator('[style*="background"]').filter({ hasText: 'Venue Management' });
@@ -346,7 +346,7 @@ test.describe('Admin Venue Editing', () => {
 
     // Navigate to settings
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Scope all selectors to the Venue Management card container
     // Find the card by filtering for the one that contains both "Venue Management" heading AND "Select a venue" placeholder

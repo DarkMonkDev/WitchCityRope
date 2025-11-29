@@ -60,7 +60,7 @@ test.describe('Basic Functionality Check - Current State', () => {
 
   test('Check what components and elements are actually present', async ({ page }) => {
     await page.goto(`${baseUrl}`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Check for common elements that might exist
     const elementsToCheck = [

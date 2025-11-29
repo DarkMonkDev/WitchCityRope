@@ -26,7 +26,7 @@ test.describe('BFF Authentication Flow', () => {
     // Step 1: Navigate to login page
     console.log('📍 Step 1: Navigate to login page');
     await page.goto('/login');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Verify login page loads correctly
     await expect(page).toHaveTitle(/WitchCityRope/);
@@ -204,7 +204,7 @@ test.describe('BFF Authentication Flow', () => {
     // Step 10: Test authentication persistence (page refresh)
     console.log('📍 Step 10: Test authentication persistence');
     await page.reload();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Check if still authenticated after refresh
     const stillAuthenticated = !page.url().includes('/login');
@@ -234,7 +234,7 @@ test.describe('BFF Authentication Flow', () => {
     
     // First login
     await page.goto('/login');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     const emailInput = page.locator('input[type="email"], input[name="email"]').first();
     const passwordInput = page.locator('input[type="password"], input[name="password"]').first();
@@ -285,7 +285,7 @@ test.describe('BFF Authentication Flow', () => {
     
     // Try to access protected route without authentication
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Should be redirected to login
     if (page.url().includes('/login')) {
@@ -306,7 +306,7 @@ test.describe('BFF Authentication Flow', () => {
     // Wait and try to access protected route again
     await page.waitForTimeout(3000);
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     if (!page.url().includes('/login')) {
       console.log('✅ Authenticated user can access protected route');

@@ -139,7 +139,7 @@ test.describe('Dashboard Navigation - Critical Bug Detection', () => {
 
     // Now test direct URL navigation
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(2000);
 
     // Verify no errors (filter out expected 401 errors during auth state loading)
@@ -164,12 +164,12 @@ test.describe('Dashboard Navigation - Critical Bug Detection', () => {
     console.log('✅ Logged in successfully using AuthHelpers');
 
     // Verify initial load - Dashboard shows "Learning's Events" or similar
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await expect(page.locator('h1')).toContainText(/Welcome|Dashboard|Events/i);
 
     // Refresh the page
     await page.reload();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(2000);
 
     // Verify no errors after refresh (filter out expected 401 errors)
@@ -193,7 +193,7 @@ test.describe('Dashboard Navigation - Critical Bug Detection', () => {
     await AuthHelpers.loginAs(page, 'member');
     console.log('✅ Logged in successfully using AuthHelpers');
 
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(2000);
 
     // Verify no critical errors (filter out expected 401 errors)

@@ -34,7 +34,7 @@ test.describe('Admin Venue Creation', () => {
 
     // Navigate to admin settings (where venue management is located)
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify page loaded
     await expect(page).toHaveURL(/\/admin\/settings/);
@@ -50,7 +50,7 @@ test.describe('Admin Venue Creation', () => {
 
     // Navigate to admin settings where venue management is located
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Find the venue dropdown (Mantine Select uses placeholder selector)
     const venueDropdown = page.getByPlaceholder('Select a venue');
@@ -86,7 +86,7 @@ test.describe('Admin Venue Creation', () => {
 
     // Verify venue appears in dropdown after creation
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Open dropdown and verify venue is listed
     await venueDropdown.click();
@@ -102,7 +102,7 @@ test.describe('Admin Venue Creation', () => {
 
     // Navigate to settings
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Open venue dropdown and select "Add New"
     const venueDropdown = page.getByPlaceholder('Select a venue');
@@ -132,7 +132,7 @@ test.describe('Admin Venue Creation', () => {
 
     // Navigate to settings
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Open dropdown and select "Add New"
     const venueDropdown = page.getByPlaceholder('Select a venue');
@@ -159,7 +159,7 @@ test.describe('Admin Venue Creation', () => {
 
     // Verify venue appears in dropdown
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await venueDropdown.click();
     await page.waitForTimeout(500);
@@ -175,7 +175,7 @@ test.describe('Admin Venue Creation', () => {
 
     // Create first venue
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const venueDropdown = page.getByPlaceholder('Select a venue');
 
@@ -190,7 +190,7 @@ test.describe('Admin Venue Creation', () => {
 
     // Try to create second venue with same name
     await page.goto(`${baseUrl}/admin/settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await venueDropdown.click();
     await page.waitForTimeout(500);

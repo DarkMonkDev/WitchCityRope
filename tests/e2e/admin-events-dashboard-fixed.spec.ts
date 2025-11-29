@@ -9,7 +9,7 @@ test.describe('Admin Events Dashboard', () => {
 
     // Navigate to admin events page
     await page.goto('/admin/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('should show both filter chips checked by default', async ({ page }) => {
@@ -19,7 +19,7 @@ test.describe('Admin Events Dashboard', () => {
     const classChipInput = page.getByTestId('filter-class');
 
     // Wait for page to be fully loaded
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Chips should be checked by default
     await expect(socialChipInput).toBeChecked();

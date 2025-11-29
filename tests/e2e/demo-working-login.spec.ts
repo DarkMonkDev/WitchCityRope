@@ -26,7 +26,7 @@ test.describe('Demo: Working Login with Mantine UI', () => {
     console.log('❌ Demonstrating what DOESN\'T work - wrong selectors')
 
     await page.goto('/login')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     
     // ❌ This approach FAILS because LoginPage.tsx doesn't use name attributes
     const emailInput = page.locator('input[name="email"]')
@@ -79,7 +79,7 @@ test.describe('Demo: Working Login with Mantine UI', () => {
     
     // Perform successful login
     await page.goto('/login')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     
     await page.locator('[data-testid="email-or-scenename-input"]').fill('admin@witchcityrope.com')
     await page.locator('[data-testid="password-input"]').fill('Test123!')

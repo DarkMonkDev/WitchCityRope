@@ -315,7 +315,7 @@ test.describe('Login with Email or Scene Name', () => {
 
       // Navigate to login page FIRST (localStorage requires a domain context)
       await page.goto('/login');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Clear auth state AFTER navigation
       await clearAuthState(page);

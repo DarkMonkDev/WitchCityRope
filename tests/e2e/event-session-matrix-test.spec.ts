@@ -11,7 +11,7 @@ test.describe('Event Session Matrix System Test', () => {
     
     // Step 2: Navigate to admin events page
     await page.goto('/admin/events');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     console.log('✅ On admin events page');
     
     // Step 3: Click Create Event

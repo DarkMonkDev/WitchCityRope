@@ -56,7 +56,7 @@ test.describe('Admin Events Dashboard - WORKING VERSION', () => {
     
     // Navigate to admin events table page
     await page.goto('/admin/events-table')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
   })
 
   test('should successfully access admin events page without login issues', async ({ page }) => {
@@ -255,7 +255,7 @@ test.describe('Admin Events Dashboard - WORKING VERSION', () => {
     
     // Try refreshing the page to test auth persistence
     await page.reload()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     
     // Should still be in admin area (not redirected to login)
     const urlAfterRefresh = page.url()

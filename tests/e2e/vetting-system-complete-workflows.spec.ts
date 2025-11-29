@@ -4,7 +4,7 @@ import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 // Helper to navigate to vetting page
 async function navigateToVettingPage(page: Page): Promise<boolean> {
   await page.goto('/admin/vetting/applications');
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 
   // Check if we got a 404 error (route not implemented)
   const pageText = await page.textContent('body');
