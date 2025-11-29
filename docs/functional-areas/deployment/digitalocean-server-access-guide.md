@@ -98,35 +98,57 @@ dotnet user-secrets list | grep DigitalOcean
 
 ---
 
-## PostgreSQL Connection String Format
+## PostgreSQL Connection (via PgBouncer)
 
-**CRITICAL**: PostgreSQL connection strings in `.env` files MUST use keyword-value format for Npgsql/Hangfire compatibility.
+**CRITICAL**: All database connections go through PgBouncer connection pooler to prevent connection exhaustion.
 
-**✅ CORRECT Format** (used in `.env` and `.env.production`/`.env.staging`):
+### PgBouncer Configuration (Implemented 2025-11-29)
+
+| Pool | Port | Size | Mode | Database | User |
+|------|------|------|------|----------|------|
+| pgbouncer-staging | 25061 | 10 | transaction | witchcityrope_staging | doadmin |
+| pgbouncer-production | 25061 | 12 | transaction | witchcityrope_production | witchcity_production |
+
+**Port Reference**:
+- **25061** = PgBouncer (recommended - all app connections)
+- **25060** = Direct database (only for admin tasks if needed)
+
+### Connection String Format
+
+**CRITICAL**: Connection strings MUST use keyword-value format for Npgsql/Hangfire compatibility.
+
+**✅ CORRECT Format** (PgBouncer via port 25061):
 ```
-Host=server.com;Port=25060;Database=db_name;Username=user;Password=pass;SSL Mode=Require;Trust Server Certificate=true
+Host=server.com;Port=25061;Database=pgbouncer-staging;Username=user;Password=pass;SSL Mode=Require;Trust Server Certificate=true
 ```
 
-**❌ WRONG Format** (causes container startup failures):
+**❌ WRONG Format** (URI format - causes Hangfire failures):
 ```
-postgresql://user:password@server.com:25060/db_name?sslmode=require
+postgresql://user:password@server.com:25061/pgbouncer-staging?sslmode=require
 ```
 
-**Why This Matters**:
-- Hangfire.PostgreSql's `UseNpgsqlConnection()` method requires Npgsql keyword-value format
-- URI format causes `System.ArgumentException: Connection string is not valid` during container startup
-- Error manifests as container continuously restarting with Hangfire configuration failures
-- Error logs show lowercase password and truncated connection string (parsing failure indicator)
+**Why PgBouncer**:
+- DigitalOcean basic tier only allows ~25 connections
+- Hangfire alone consumes ~13 connections per worker
+- PgBouncer multiplexes many app connections through few DB connections
+- Transaction mode releases connections back to pool after each transaction
 
-**Discovery**: 2025-11-22 during initial production deployment troubleshooting.
+**Research Document**: `/docs/architecture/postgresql-connection-pool-exhaustion-research.md`
 
-**How to Fix**:
-1. SSH to server
-2. Check `.env` file: `cat /opt/witchcityrope/production/.env | grep DB_CONNECTION`
-3. If using URI format, convert to keyword-value format
-4. Restart containers: `docker-compose -f docker-compose.production.yml restart`
+### Managing PgBouncer Pools
 
-**Verification**: Both staging and production `.env` files should use keyword-value format.
+```bash
+# List pools
+doctl databases pool list <cluster-id>
+
+# Create new pool
+doctl databases pool create <cluster-id> <pool-name> --db <database> --size <N> --mode transaction --user <user>
+
+# Delete pool
+doctl databases pool delete <cluster-id> <pool-name> --force
+```
+
+**Verification**: Both staging and production `.env` files should use port 25061 and pgbouncer-* database names.
 
 ---
 
