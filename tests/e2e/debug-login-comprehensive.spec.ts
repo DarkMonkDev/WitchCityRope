@@ -296,7 +296,7 @@ test.describe('Comprehensive Login Debugging', () => {
       } catch (error) {
         return { error: error.toString() };
       }
-    }, AuthHelpers.accounts.admin);
+    }, { email: AuthHelpers.accounts.admin.email, password: AuthHelpers.accounts.admin.password });
     
     console.log('=== DIRECT LOGIN API CALL RESULT ===');
     console.log('Status:', loginResponse.status);

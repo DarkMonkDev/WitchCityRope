@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
  * Comprehensive BFF Authentication Testing
@@ -22,37 +23,37 @@ test.describe('BFF Authentication Flow', () => {
 
   test('Login with admin credentials and verify httpOnly cookie authentication', async ({ page }) => {
     console.log('🧪 Starting BFF authentication test...');
-    
+
     // Step 1: Navigate to login page
     console.log('📍 Step 1: Navigate to login page');
     await page.goto('/login');
     await page.waitForLoadState('domcontentloaded');
-    
+
     // Verify login page loads correctly
     await expect(page).toHaveTitle(/WitchCityRope/);
     console.log('✅ Login page loaded successfully');
-    
+
     // Step 2: Wait for login form to be visible
     console.log('📍 Step 2: Wait for login form');
     await page.waitForSelector('form', { timeout: 10000 });
-    
-    // Look for email and password fields
-    const emailInput = page.locator('input[type="email"], input[name="email"]').first();
-    const passwordInput = page.locator('input[type="password"], input[name="password"]').first();
-    const submitButton = page.locator('button[type="submit"], button:has-text("Login"), button:has-text("Sign In")').first();
-    
+
+    // Look for email and password fields using data-testid selectors
+    const emailInput = page.locator('[data-testid="email-or-scenename-input"]');
+    const passwordInput = page.locator('[data-testid="password-input"]');
+    const submitButton = page.locator('[data-testid="login-button"]');
+
     // Wait for all inputs to be visible
     await expect(emailInput).toBeVisible({ timeout: 10000 });
     await expect(passwordInput).toBeVisible({ timeout: 10000 });
     await expect(submitButton).toBeVisible({ timeout: 10000 });
     console.log('✅ Login form elements found');
-    
+
     // Step 3: Fill in credentials
     console.log('📍 Step 3: Fill in admin credentials');
     await emailInput.fill('admin@witchcityrope.com');
     await passwordInput.fill('Test123!');
     console.log('✅ Credentials entered');
-    
+
     // Step 4: Capture network requests to monitor authentication
     const authRequests: any[] = [];
     page.on('request', (request) => {
@@ -64,7 +65,7 @@ test.describe('BFF Authentication Flow', () => {
         });
       }
     });
-    
+
     const authResponses: any[] = [];
     page.on('response', async (response) => {
       if (response.url().includes('/auth/login') || response.url().includes('/login')) {
@@ -75,11 +76,11 @@ test.describe('BFF Authentication Flow', () => {
         });
       }
     });
-    
+
     // Step 5: Submit login form
     console.log('📍 Step 5: Submit login form');
     await submitButton.click();
-    
+
     // Wait for authentication to complete (redirect or success indicator)
     try {
       // Wait for either dashboard redirect or success state
@@ -231,18 +232,9 @@ test.describe('BFF Authentication Flow', () => {
 
   test('Test logout and cookie cleanup', async ({ page }) => {
     console.log('🧪 Starting logout test...');
-    
-    // First login
-    await page.goto('/login');
-    await page.waitForLoadState('domcontentloaded');
-    
-    const emailInput = page.locator('input[type="email"], input[name="email"]').first();
-    const passwordInput = page.locator('input[type="password"], input[name="password"]').first();
-    const submitButton = page.locator('button[type="submit"], button:has-text("Login"), button:has-text("Sign In")').first();
-    
-    await emailInput.fill('admin@witchcityrope.com');
-    await passwordInput.fill('Test123!');
-    await submitButton.click();
+
+    // First login using AuthHelpers
+    await AuthHelpers.loginAs(page, 'admin');
     
     // Wait for login to complete
     await page.waitForTimeout(3000);
@@ -282,26 +274,20 @@ test.describe('BFF Authentication Flow', () => {
 
   test('Test protected route access', async ({ page }) => {
     console.log('🧪 Testing protected route access...');
-    
+
     // Try to access protected route without authentication
     await page.goto('/dashboard');
     await page.waitForLoadState('domcontentloaded');
-    
+
     // Should be redirected to login
     if (page.url().includes('/login')) {
       console.log('✅ Unauthenticated user redirected to login for protected route');
     } else {
       console.log('⚠️ Protected route accessible without authentication');
     }
-    
-    // Now login and test access
-    const emailInput = page.locator('input[type="email"], input[name="email"]').first();
-    const passwordInput = page.locator('input[type="password"], input[name="password"]').first();
-    const submitButton = page.locator('button[type="submit"], button:has-text("Login"), button:has-text("Sign In")').first();
-    
-    await emailInput.fill('admin@witchcityrope.com');
-    await passwordInput.fill('Test123!');
-    await submitButton.click();
+
+    // Now login and test access using AuthHelpers
+    await AuthHelpers.loginAs(page, 'admin');
     
     // Wait and try to access protected route again
     await page.waitForTimeout(3000);

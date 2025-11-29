@@ -1,13 +1,14 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
  * Comprehensive End-to-End Login Test with Real API
- * 
+ *
  * This test verifies the complete authentication flow after the infinite loop fix:
  * 1. Confirms MSW is disabled (VITE_MSW_ENABLED=false)
  * 2. Tests real API communication on port 5655
- * 3. Verifies login with test@witchcityrope.com / Test1234
+ * 3. Verifies login with admin@witchcityrope.com / Test123!
  * 4. Monitors network requests to real API
  * 5. Captures console logs and screenshots
  * 6. Verifies authentication state persistence
@@ -82,10 +83,10 @@ test.describe('Real API Authentication Flow', () => {
     const title = await page.title();
     console.log(`Page title: ${title}`);
     
-    // Look for login form elements
-    const emailInput = page.locator('input[type="email"], input[name="email"], [data-testid="email"]');
-    const passwordInput = page.locator('input[type="password"], input[name="password"], [data-testid="password"]');
-    const loginButton = page.locator('button[type="submit"], button:has-text("Login"), button:has-text("Sign In"), [data-testid="login-button"]');
+    // Use correct data-testid selectors for login form elements
+    const emailInput = page.locator('[data-testid="email-or-scenename-input"]');
+    const passwordInput = page.locator('[data-testid="password-input"]');
+    const loginButton = page.locator('[data-testid="login-button"]');
 
     // Wait for form elements to be visible
     await emailInput.waitFor({ state: 'visible', timeout: 10000 });
@@ -94,25 +95,25 @@ test.describe('Real API Authentication Flow', () => {
 
     console.log('Login form elements are visible');
 
-    // Step 3: Fill in credentials
+    // Step 3: Fill in credentials using correct test account
     console.log('Step 3: Filling in login credentials...');
-    await emailInput.fill('test@witchcityrope.com');
-    await passwordInput.fill('Test1234');
+    await emailInput.fill('admin@witchcityrope.com');
+    await passwordInput.fill('Test123!');
 
     // Take screenshot before submitting
     await page.screenshot({ path: './test-results/02-credentials-filled.png' });
 
     // Step 4: Submit login form and monitor API call
     console.log('Step 4: Submitting login form...');
-    
+
     // Clear network requests before login
     networkRequests.length = 0;
-    
+
     // Click login and wait for network activity
     await Promise.all([
       // Wait for navigation or API response
-      page.waitForResponse(response => 
-        response.url().includes('login') || 
+      page.waitForResponse(response =>
+        response.url().includes('login') ||
         response.url().includes('auth') ||
         response.url().includes('localhost:5655')
       ).catch(() => console.log('No specific API response intercepted')),
@@ -226,10 +227,10 @@ test.describe('Real API Authentication Flow', () => {
     await page.goto('/login');
     await page.waitForLoadState('domcontentloaded');
 
-    // Look for form elements with multiple selectors
-    const emailInput = page.locator('input[type="email"], input[name="email"], [data-testid="email"]').first();
-    const passwordInput = page.locator('input[type="password"], input[name="password"], [data-testid="password"]').first();
-    const loginButton = page.locator('button[type="submit"], button:has-text("Login"), button:has-text("Sign In"), [data-testid="login-button"]').first();
+    // Use correct data-testid selectors
+    const emailInput = page.locator('[data-testid="email-or-scenename-input"]');
+    const passwordInput = page.locator('[data-testid="password-input"]');
+    const loginButton = page.locator('[data-testid="login-button"]');
 
     // Hard assertions: Verify form elements are visible before interacting
     await expect(emailInput).toBeVisible({ timeout: 5000 });

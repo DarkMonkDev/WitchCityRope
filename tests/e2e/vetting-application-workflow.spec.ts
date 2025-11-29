@@ -383,7 +383,7 @@ test.describe('Vetting Application Workflow', () => {
     await expect(vettingForm).toBeVisible({ timeout: 10000 });
 
     // Assert: Email field exists and has value
-    const emailInput = page.locator('input[name="email"], [data-testid="email-or-scenename-input"], input[type="email"]').first();
+    const emailInput = page.locator('[data-testid="email-or-scenename-input"]').first();
     if (await emailInput.count() > 0) {
       // Email should be pre-filled with logged-in user's email
       const emailValue = await emailInput.inputValue();

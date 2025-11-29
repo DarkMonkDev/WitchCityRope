@@ -1,16 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 test('Final verification of Event Type column implementation', async ({ page }) => {
   console.log('Starting final verification test...');
 
-  await page.goto('/login');
-
-  // Fill login form using specific selectors
-  await page.locator('input').first().fill('admin@witchcityrope.com');
-  await page.locator('input').nth(1).fill('Test123!');
-
-  // Click the login button using test ID
-  await page.getByTestId('login-button').click();
+  // Use AuthHelpers for login
+  await AuthHelpers.loginAs(page, 'admin');
 
   // Wait for login and navigation
   await page.waitForTimeout(3000);

@@ -1,20 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 test('Visual check of admin events page with type column', async ({ page }) => {
-  await page.goto('/login');
+  // Use AuthHelpers for login
+  await AuthHelpers.loginAs(page, 'admin');
 
-  // Fill the form using more direct selectors
-  const emailInput = page.locator('input').first(); // First input field
-  const passwordInput = page.locator('input').nth(1); // Second input field
-
-  await emailInput.fill('admin@witchcityrope.com');
-  await passwordInput.fill('Test123!');
-
-  // Click the login button (likely the only button visible)
-  await page.getByRole('button').click();
-
-  // Wait for navigation and go to admin events
-  await page.waitForTimeout(3000); // Give time for login
+  // Navigate to admin events
   await page.goto('/admin/events');
 
   // Wait for page to load

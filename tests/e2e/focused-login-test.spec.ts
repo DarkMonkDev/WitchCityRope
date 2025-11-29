@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 /**
  * Focused Real API Login Test
- * 
+ *
  * Based on the login form screenshot, this test uses the correct selectors
  * and test credentials to verify the complete login flow.
  */
@@ -58,22 +59,22 @@ test.describe('Focused Real API Login Test', () => {
     
     console.log('✅ Navigated to login page');
 
-    // Step 2: Verify form elements are visible (using generic selectors based on screenshot)
-    const emailField = page.locator('input[type="email"]').first();
-    const passwordField = page.locator('input[type="password"]').first();
-    const loginButton = page.locator('button:has-text("Login")').first();
+    // Step 2: Verify form elements are visible using correct data-testid selectors
+    const emailField = page.locator('[data-testid="email-or-scenename-input"]');
+    const passwordField = page.locator('[data-testid="password-input"]');
+    const loginButton = page.locator('[data-testid="login-button"]');
 
     await expect(emailField).toBeVisible();
-    await expect(passwordField).toBeVisible(); 
+    await expect(passwordField).toBeVisible();
     await expect(loginButton).toBeVisible();
-    
+
     console.log('✅ All form elements are visible');
 
     // Step 3: Fill credentials - using the test account from CLAUDE.md
-    await emailField.fill('test@witchcityrope.com');
-    await passwordField.fill('Test1234');
-    
-    console.log('✅ Filled credentials: test@witchcityrope.com');
+    await emailField.fill('admin@witchcityrope.com');
+    await passwordField.fill('Test123!');
+
+    console.log('✅ Filled credentials: admin@witchcityrope.com');
 
     // Clear API requests before login attempt
     apiRequests.length = 0;

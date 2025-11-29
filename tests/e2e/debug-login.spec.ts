@@ -60,48 +60,16 @@ test('debug login issue', async ({ page }) => {
     console.log(`Input ${i}: type="${type}", name="${name}", id="${id}", placeholder="${placeholder}", data-testid="${testId}"`);
   }
 
-  // Try different selectors for email and password fields
-  let emailInput;
-  let passwordInput;
-  
-  console.log('🔍 Looking for email field...');
-  // Try different selectors
-  const emailSelectors = [
-    'input[type="email"]',
-    'input[name="email"]',
-    'input[placeholder*="email" i]',
-    '[data-testid="email"]',
-    '[data-testid="email-or-scenename-input"]',
-    'input:nth-of-type(1)'  // First input field
-  ];
-  
-  for (const selector of emailSelectors) {
-    const element = page.locator(selector);
-    if (await element.count() > 0) {
-      console.log(`✅ Found email field with selector: ${selector}`);
-      emailInput = element.first();
-      break;
-    }
-  }
-  
-  console.log('🔍 Looking for password field...');
-  const passwordSelectors = [
-    'input[type="password"]',
-    'input[name="password"]',
-    'input[placeholder*="password" i]',
-    '[data-testid="password"]',
-    '[data-testid="password-input"]',
-    'input:nth-of-type(2)'  // Second input field
-  ];
-  
-  for (const selector of passwordSelectors) {
-    const element = page.locator(selector);
-    if (await element.count() > 0) {
-      console.log(`✅ Found password field with selector: ${selector}`);
-      passwordInput = element.first();
-      break;
-    }
-  }
+  // Use correct data-testid selectors (proven to work)
+  console.log('🔍 Using correct data-testid selectors...');
+  const emailInput = page.locator('[data-testid="email-or-scenename-input"]');
+  const passwordInput = page.locator('[data-testid="password-input"]');
+
+  const emailFound = await emailInput.count() > 0;
+  const passwordFound = await passwordInput.count() > 0;
+
+  console.log(`✅ Email field found: ${emailFound}`);
+  console.log(`✅ Password field found: ${passwordFound}`);
 
   // Use AuthHelpers for login
   console.log('📝 Using AuthHelpers to login...');

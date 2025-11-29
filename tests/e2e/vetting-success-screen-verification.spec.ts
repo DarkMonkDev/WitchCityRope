@@ -31,10 +31,10 @@ test.describe('Vetting Application Submission Success Screen', () => {
     // Step 3: Register new user
     console.log('📝 Step 3: Registering new user...');
 
-    // Fill registration form (NO confirm password field)
-    await page.fill('[data-testid="email-or-scenename-input"], input[type="email"]', testEmail);
-    await page.fill('[data-testid="scene-name-input"], input[name="sceneName"]', testSceneName);
-    await page.fill('[data-testid="password-input"], input[type="password"]', testPassword);
+    // Fill registration form (NO confirm password field) using correct data-testid selectors
+    await page.fill('[data-testid="email-or-scenename-input"]', testEmail);
+    await page.fill('[data-testid="scene-name-input"]', testSceneName);
+    await page.fill('[data-testid="password-input"]', testPassword);
     await page.screenshot({ path: `${screenshotDir}/04-registration-filled.png`, fullPage: true });
 
     // Submit registration

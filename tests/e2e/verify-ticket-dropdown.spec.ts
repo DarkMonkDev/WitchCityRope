@@ -1,28 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { AuthHelpers } from './test-utils/helpers/auth.helpers';
 
 const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
 
 test('Verify ticket type dropdown displays correct labels without null', async ({ page }) => {
-  // First login
-  await page.goto(`${baseUrl}/login`);
-  await page.waitForLoadState('domcontentloaded');
-  
-  // Fill login form
-  const emailInput = await page.locator('input[placeholder*="email"], input[placeholder*="Email"]').first();
-  const passwordInput = await page.locator('input[type="password"]').first();
-  
-  if (await emailInput.isVisible({ timeout: 2000 }).catch(() => false)) {
-    console.log('Found login form, filling credentials');
-    await emailInput.fill('member@witchcityrope.com');
-    await passwordInput.fill('Test123!');
-    
-    const loginBtn = await page.locator('button[type="submit"], button:has-text("Login"), button:has-text("Sign In")').first();
-    await loginBtn.click();
-    
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(1000);
-    console.log('Logged in');
-  }
+  // Login using AuthHelpers
+  await AuthHelpers.loginAs(page, 'member');
+  console.log('Logged in as member');
   
   // Navigate to checkout
   const eventId = '4f65d190-ec4d-4b28-aef0-64fabd3151cd';

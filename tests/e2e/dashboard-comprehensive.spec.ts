@@ -196,7 +196,7 @@ test.describe('Dashboard - Profile Management', () => {
     await WaitHelpers.waitForPageLoad(page);
 
     // Test email validation
-    const emailField = page.locator('[data-testid="email-or-scenename-input"], input[name="email"]');
+    const emailField = page.locator('[data-testid="email-or-scenename-input"]');
     if (await emailField.count() > 0) {
       await emailField.clear();
       await emailField.fill('invalid-email');
@@ -319,8 +319,9 @@ test.describe('Dashboard - Security Settings', () => {
     await page.waitForTimeout(1000);
 
     // Verify password change form is visible
-    const newPasswordField = page.locator('input[type="password"]').nth(1); // New Password field
-    const confirmPasswordField = page.locator('input[type="password"]').nth(2); // Confirm Password field
+    // Use data-testid selectors if available, otherwise use type selectors
+    const newPasswordField = page.locator('[data-testid="new-password-input"]').or(page.locator('input[type="password"]').nth(1));
+    const confirmPasswordField = page.locator('[data-testid="confirm-password-input"]').or(page.locator('input[type="password"]').nth(2));
     await expect(newPasswordField).toBeVisible({ timeout: 5000 });
     await expect(confirmPasswordField).toBeVisible();
 

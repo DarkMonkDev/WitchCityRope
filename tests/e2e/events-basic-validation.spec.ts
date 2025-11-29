@@ -114,10 +114,10 @@ test.describe('Events System Basic Validation', () => {
       console.log('⚠️ No form elements found within timeout');
     }
 
-    // Check for login form elements
-    const emailInputs = await page.locator('input[type="email"], input[name="email"], #email').count();
-    const passwordInputs = await page.locator('input[type="password"], input[name="password"], #password').count();
-    const submitButtons = await page.locator('button[type="submit"], button:has-text("Login"), button:has-text("Sign In")').count();
+    // Check for login form elements using correct data-testid selectors
+    const emailInputs = await page.locator('[data-testid="email-or-scenename-input"]').count();
+    const passwordInputs = await page.locator('[data-testid="password-input"]').count();
+    const submitButtons = await page.locator('[data-testid="login-button"]').count();
     
     console.log(`📧 Email inputs found: ${emailInputs}`);
     console.log(`🔒 Password inputs found: ${passwordInputs}`);
@@ -239,10 +239,12 @@ test.describe('Events System Basic Validation', () => {
       systemStatus.eventsPageLoads = eventsResponse?.status() === 200;
       await page.waitForTimeout(2000);
 
-      // 2. Login form exists and works
+      // 2. Login form exists and works using correct data-testid selectors
       await page.goto(testUrls.login);
-      const loginElements = await page.locator('input[type="email"], input[type="password"], button[type="submit"]').count();
-      systemStatus.loginFormExists = loginElements >= 3;
+      const emailInput = await page.locator('[data-testid="email-or-scenename-input"]').count();
+      const passwordInput = await page.locator('[data-testid="password-input"]').count();
+      const submitButton = await page.locator('[data-testid="login-button"]').count();
+      systemStatus.loginFormExists = emailInput > 0 && passwordInput > 0 && submitButton > 0;
 
       // 3. API responds
       try {

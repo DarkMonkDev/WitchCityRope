@@ -63,16 +63,16 @@ test.describe('Debug Login Issue', () => {
       console.log('✅ Navigated to login page');
 
       await page.screenshot({ path: './test-results/debug-login-page.png' });
-      
+
       // Check if login form exists
       const hasForm = await page.locator('form').count() > 0;
       console.log('Has login form:', hasForm);
-      
+
       if (hasForm) {
-        // Check for input fields
-        const emailInput = await page.locator('input[type="email"], input[name="email"]').count();
-        const passwordInput = await page.locator('input[type="password"], input[name="password"]').count();
-        const submitButton = await page.locator('button[type="submit"], button:has-text("Login")').count();
+        // Check for input fields using correct data-testid selectors
+        const emailInput = await page.locator('[data-testid="email-or-scenename-input"]').count();
+        const passwordInput = await page.locator('[data-testid="password-input"]').count();
+        const submitButton = await page.locator('[data-testid="login-button"]').count();
         
         console.log('Email inputs found:', emailInput);
         console.log('Password inputs found:', passwordInput);

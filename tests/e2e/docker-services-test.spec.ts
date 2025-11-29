@@ -110,13 +110,13 @@ test.describe('Configuration Validation', () => {
   test('should support authentication with existing services', async ({ page }) => {
     // Try to navigate to login page to verify the auth flow works
     // with existing Docker services
-    
+
     await page.goto('/login');
-    
-    // Verify login page loads from Docker services
-    await expect(page.locator('input[type="email"], [data-testid="email-input"]')).toBeVisible();
-    await expect(page.locator('input[type="password"], [data-testid="password-input"]')).toBeVisible();
-    
+
+    // Verify login page loads from Docker services using correct data-testid selectors
+    await expect(page.locator('[data-testid="email-or-scenename-input"]')).toBeVisible();
+    await expect(page.locator('[data-testid="password-input"]')).toBeVisible();
+
     console.log('✅ Authentication pages load correctly from Docker services');
   });
 

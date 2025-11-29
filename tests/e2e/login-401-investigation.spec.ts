@@ -136,14 +136,14 @@ test.describe('Login 401 Investigation', () => {
       } catch (error) {
         return { error: error.toString() };
       }
-    }, AuthHelpers.accounts.admin);
-    
+    }, { email: AuthHelpers.accounts.admin.email, password: AuthHelpers.accounts.admin.password });
+
     console.log('=== DIRECT LOGIN API CALL RESULT ===');
     console.log('Status:', loginResponse.status);
     console.log('OK:', loginResponse.ok);
     console.log('Headers:', JSON.stringify(loginResponse.headers, null, 2));
     console.log('Response:', JSON.stringify(loginResponse.response, null, 2));
-    
+
     if (loginResponse.error) {
       console.log('❌ API Call Error:', loginResponse.error);
     } else if (loginResponse.status === 401) {
@@ -155,27 +155,27 @@ test.describe('Login 401 Investigation', () => {
     } else {
       console.log(`⚠️ Unexpected status: ${loginResponse.status}`);
     }
-    
+
     expect(healthResponse.ok).toBe(true);
   });
 
   test('should test login flow through the UI with correct selectors', async ({ page }) => {
     console.log('=== TESTING LOGIN THROUGH UI ===');
-    
+
     // Navigate to login page
     await page.goto('/login');
     await page.waitForLoadState('domcontentloaded');
-    
+
     // Take screenshot before filling
     await page.screenshot({
       path: './test-results/login-before-fill.png',
       fullPage: true
     });
-    
-    // Use the correct selectors we discovered
-    const emailInput = page.locator('input[placeholder="your@email.com"]');
-    const passwordInput = page.locator('input[type="password"]');
-    const loginButton = page.locator('button[type="submit"]:has-text("Login")');
+
+    // Use the CORRECT data-testid selectors
+    const emailInput = page.locator('[data-testid="email-or-scenename-input"]');
+    const passwordInput = page.locator('[data-testid="password-input"]');
+    const loginButton = page.locator('[data-testid="login-button"]');
     
     // Verify elements are visible
     await expect(emailInput).toBeVisible();
@@ -251,8 +251,7 @@ test.describe('Login 401 Investigation', () => {
     // Save all data for analysis
     const finalReport = {
       timestamp: new Date().toISOString(),
-      testUser: AuthHelpers.accounts.admin,
-      apiBaseUrl: API_BASE_URL,
+      testUser: { email: AuthHelpers.accounts.admin.email },
       networkRequests: networkRequests,
       consoleMessages: consoleMessages,
       summary: {
