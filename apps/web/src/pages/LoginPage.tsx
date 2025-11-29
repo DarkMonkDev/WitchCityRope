@@ -13,9 +13,11 @@ import {
   Box,
   Flex,
   Button,
+  Loader,
 } from '@mantine/core'
-import { IconAlertCircle, IconMail, IconCircleCheck } from '@tabler/icons-react'
+import { IconAlertCircle, IconMail, IconCircleCheck, IconShieldCheck } from '@tabler/icons-react'
 import { useLogin, useResendVerification } from '../features/auth/api/mutations'
+import { useCSRFStore } from '../stores/csrfStore'
 
 type LoginFormData = {
   emailOrSceneName: string // Changed from 'email' - accepts either email or scene name
@@ -27,6 +29,7 @@ type LoginFormData = {
 export const LoginPage: React.FC = () => {
   const loginMutation = useLogin()
   const resendMutation = useResendVerification()
+  const csrfStore = useCSRFStore()
   const [searchParams] = useSearchParams()
   const [showResendForm, setShowResendForm] = useState(false)
   const [resendEmail, setResendEmail] = useState('')
@@ -139,6 +142,43 @@ export const LoginPage: React.FC = () => {
         <Box style={{ padding: 'var(--space-xl)' }}>
           <form onSubmit={form.onSubmit(handleSubmit)} data-testid="login-form">
             <Stack gap="md">
+              {/* CSRF initialization loading state */}
+              {csrfStore.isLoading && !csrfStore.isReady && (
+                <Alert icon={<Loader size="sm" />} color="blue" data-testid="csrf-loading">
+                  <Group gap="xs">
+                    <Text size="sm">Initializing security...</Text>
+                  </Group>
+                </Alert>
+              )}
+
+              {/* CSRF error state with retry option */}
+              {csrfStore.error && !csrfStore.isReady && (
+                <Alert icon={<IconAlertCircle />} color="orange" data-testid="csrf-error">
+                  <Stack gap="xs">
+                    <Text size="sm">{csrfStore.error}</Text>
+                    <Button
+                      size="xs"
+                      variant="light"
+                      color="orange"
+                      onClick={() => csrfStore.initialize()}
+                      loading={csrfStore.isLoading}
+                      styles={{
+                        root: {
+                          fontWeight: 600,
+                          height: '32px',
+                          paddingTop: '8px',
+                          paddingBottom: '8px',
+                          fontSize: '12px',
+                          lineHeight: '1.2',
+                        },
+                      }}
+                    >
+                      Retry Security Initialization
+                    </Button>
+                  </Stack>
+                </Alert>
+              )}
+
               {loginMutation.error && (
                 <Alert icon={<IconAlertCircle />} color={isEmailVerificationError ? 'orange' : 'red'} data-testid="login-error">
                   {loginMutation.error.message || 'Login failed. Please try again.'}
@@ -367,15 +407,20 @@ export const LoginPage: React.FC = () => {
               <Box
                 component="button"
                 type="submit"
-                disabled={loginMutation.isPending}
+                disabled={loginMutation.isPending || !csrfStore.isReady}
                 data-testid="login-button"
                 className="btn btn-primary"
                 style={{
                   marginTop: 'var(--space-sm)',
                   width: '100%',
+                  opacity: !csrfStore.isReady ? 0.6 : 1,
                 }}
               >
-                {loginMutation.isPending ? 'Signing In...' : 'Sign In'}
+                {csrfStore.isLoading && !csrfStore.isReady
+                  ? 'Initializing Security...'
+                  : loginMutation.isPending
+                  ? 'Signing In...'
+                  : 'Sign In'}
               </Box>
             </Stack>
           </form>

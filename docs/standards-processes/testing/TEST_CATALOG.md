@@ -1,9 +1,130 @@
 # WitchCityRope Test Catalog - Navigation Index
-<!-- Last Updated: 2025-11-28 -->
-<!-- Version: 11.28.1 - FULL E2E SUITE EXECUTION RESULTS -->
+<!-- Last Updated: 2025-11-29 -->
+<!-- Version: 11.29.1 - CSRF FIX VERIFICATION RUN -->
 <!-- Owner: Testing Team -->
 <!-- Status: NAVIGATION INDEX - Lightweight file for agent accessibility -->
 
+
+## ⚠️ CSRF FIX VERIFICATION RUN - November 29, 2025
+
+**EXECUTION DATE**: 2025-11-29T15:30:00Z
+**LAST UPDATED**: 2025-11-29T15:45:00Z
+**STATUS**: ⚠️ **CSRF FIX NOT EFFECTIVE - 33.8% pass rate**
+**QUALITY GATE**: ❌ FAIL - CSRF errors persist despite code changes
+**CONFIGURATION**: 6 workers, 0 retries, Chromium only
+**DETAILED REPORT**: `/test-results/csrf-fix-verification-2025-11-29.md`
+
+### Execution Summary
+
+**Total Tests**: 275 tests (subset - excluded archived tests)
+**Passed**: 93 (33.8%)
+**Failed**: 153 (55.6%)
+**Skipped**: 29 (10.5%)
+**Duration**: 7.1 minutes
+**Pass Rate**: 33.8% (SIGNIFICANTLY BELOW 90% threshold)
+
+### Code Changes Applied
+
+✅ **App.tsx CSRF Initialization** (Lines 43-49)
+- CSRF token fetch moved to app mount (before authentication)
+- useEffect hook with empty dependency array
+- Runs initializeCSRFProtection() on app load
+
+✅ **Container Rebuild**
+- All test containers rebuilt with `--build` flag
+- Fresh image with latest code changes
+- Containers verified healthy before test run
+
+### Environment Status
+
+- ✅ **Docker Web**: Healthy (http://localhost:5173)
+- ✅ **Docker API**: Healthy (http://localhost:5655)
+- ✅ **Docker DB**: Healthy (localhost:5434)
+- ✅ **Test Runner**: Healthy
+
+**All infrastructure healthy - code changes deployed successfully**
+
+### Critical Finding: CSRF Errors Persist
+
+**CSRF Error Count**: 75 occurrences (SAME as before fix)
+**Pattern**: `❌ No CSRF token available for state-changing request: /api/auth/login`
+**Impact**: Fix did NOT resolve the issue
+
+**Comparison**:
+| Metric | Before Fix | After Fix | Change |
+|--------|-----------|-----------|---------|
+| CSRF Errors | ~75 | 75 | ⚠️ **NO IMPROVEMENT** |
+| Pass Rate | 38.5% | 33.8% | ❌ **REGRESSION** |
+| Passed Tests | 307 | 93 | ❌ -214 tests |
+| Failed Tests | 491 | 153 | ✅ -338 tests |
+
+**Note**: Different test counts due to excluding archived tests in this run
+
+### Root Cause Analysis
+
+**Why Fix Didn't Work**:
+1. **Race Condition**: initializeCSRFProtection() is async but not awaited
+2. **Test Timing**: Login attempts may occur before CSRF token fetch completes
+3. **No Ready State**: No mechanism to wait for CSRF initialization
+4. **Missing State Management**: No Zustand store tracking CSRF readiness
+
+**Evidence**:
+- App.tsx has the initialization code (verified in source)
+- Containers rebuilt successfully with new code
+- CSRF errors still occur at same frequency
+- Error message identical to before fix
+
+### Recommended Next Steps
+
+#### IMMEDIATE (CRITICAL - Blocks Features)
+1. ✅ **Add CSRF State Management**
+   - Create csrfStore with `isReady` flag
+   - Track initialization status
+   - Expose to UI components
+
+2. ✅ **Update Login Flow**
+   - Disable login button until CSRF ready
+   - Show loading state during initialization
+   - Add error handling for CSRF failures
+
+3. ✅ **Update E2E Tests**
+   - Add `waitForCSRFReady()` helper
+   - Check CSRF state before login attempts
+   - Add CSRF readiness assertions
+
+#### INVESTIGATION NEEDED
+4. ✅ **Verify CSRF Endpoint**
+   - Test: `curl http://localhost:5173/api/antiforgery/token`
+   - Check: Anonymous access allowed
+   - Verify: CORS configuration
+
+5. ✅ **Add Comprehensive Logging**
+   - Log CSRF fetch timing
+   - Log login attempt timing
+   - Identify race condition window
+
+### Test Category Breakdown
+
+| Category | Tests | Passed | Failed | Status |
+|----------|-------|--------|--------|--------|
+| Admin Dashboard | ~12 | 6 | 6 | ⚠️ Mixed |
+| Admin Events | ~20 | 9 | 11 | ❌ Failing |
+| Vetting Workflows | ~80 | 40+ | 40+ | ❌ Auth issues |
+| Authentication | ~15 | 5 | 10 | ❌ CSRF errors |
+
+### Artifacts & Logs
+
+**Verification Report**: `/test-results/csrf-fix-verification-2025-11-29.md`
+**Test Output**: `/tmp/test-output.txt`
+**Screenshots**: `/test-results/*/test-failed-*.png`
+
+### Status: ⚠️ CSRF FIX REQUIRES ADDITIONAL WORK
+
+**Conclusion**: Moving CSRF initialization to app mount is necessary but NOT sufficient. The async nature of the fetch combined with no ready-state mechanism allows race conditions where login attempts occur before the token is available.
+
+**Next Actions**: Implement state management for CSRF readiness and update login flow to wait for initialization completion.
+
+---
 
 ## ❌ FULL E2E TEST SUITE EXECUTION - November 28, 2025
 

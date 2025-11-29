@@ -3,7 +3,7 @@ import { RouterProvider } from 'react-router-dom'
 import { router } from './routes/router'
 import { useAuthActions, useAuthStore } from './stores/authStore'
 import { useAuthRefresh } from './hooks/useAuthRefresh'
-import { initializeCSRFProtection } from './hooks/useCSRFToken'
+import { useCSRFStore } from './stores/csrfStore'
 import { debugLog, debugError } from './utils/debug'
 import './App.css'
 
@@ -20,6 +20,7 @@ import './App.css'
 function App() {
   const { checkAuth } = useAuthActions();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const csrfStore = useCSRFStore();
   const hasCheckedAuth = useRef(false);
 
   // Enable automatic token refresh
@@ -37,15 +38,23 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array - auth check should only run once on mount
 
-  // Initialize CSRF protection when user is authenticated
+  // Initialize CSRF protection on app load (before login)
+  // CRITICAL: Must run BEFORE user attempts login, not AFTER authentication
+  // Backend /api/antiforgery/token endpoint allows anonymous access for this reason
+  // Using CSRF store to track initialization state
+  useEffect(() => {
+    debugLog('🔍 App.tsx: Initializing CSRF protection via store...');
+    csrfStore.initialize();
+    // Don't add catch here - store handles errors internally
+  }, [csrfStore]); // Empty dependency array - initialize once on mount
+
+  // Refresh CSRF token when authentication status changes
   useEffect(() => {
     if (isAuthenticated) {
-      debugLog('🔍 App.tsx: User authenticated, initializing CSRF protection...');
-      initializeCSRFProtection().catch((error) => {
-        debugError('🔍 App.tsx: CSRF initialization failed:', error);
-      });
+      debugLog('🔍 App.tsx: User authenticated, refreshing CSRF protection...');
+      csrfStore.initialize();
     }
-  }, [isAuthenticated]); // Run when authentication status changes
+  }, [isAuthenticated, csrfStore]); // Run when authentication status changes
 
   return <RouterProvider router={router} />
 }

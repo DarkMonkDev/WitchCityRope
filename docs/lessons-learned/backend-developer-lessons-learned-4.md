@@ -1645,3 +1645,123 @@ curl http://localhost:5655/api/protected/welcome \
 **Tags**: #critical #authentication #csrf #antiforgery #logout #architecture #technical-debt #tanstack-query #zustand #httponly-cookies #security #owasp
 
 ---
+
+## 🚨 CRITICAL: Vite HMR WebSocket Fails in Test Containers - Must Disable HMR (2025-11-29)
+
+**Problem**: E2E tests in TEST containers had 381 WebSocket errors (`ws://localhost:5173`) causing 1,849 ERR_CONNECTION_REFUSED errors, while DEV containers (559 tests) had zero errors.
+
+**Date Discovered**: November 29, 2025 during test container networking investigation
+**Context**: Same tests, same code - only container configuration differed between dev and test environments
+
+**Root Cause**:
+- **DEV containers**: Playwright runs on HOST machine → browser's `localhost:5173` connects to port-forwarded web container
+- **TEST containers**: Playwright runs INSIDE `test-runner` container → browser's `localhost:5173` = test-runner container itself (NOT web container)
+- Vite HMR WebSocket configured to use `ws://localhost:5173` which is correct for host-based testing
+- In test containers, web service is at `web:5173` (container DNS), not `localhost:5173`
+- HMR WebSocket tries to connect to `localhost:5173` inside test-runner container → nothing listening → ERR_CONNECTION_REFUSED
+
+**Why This is Critical**:
+- 381 WebSocket connection failures flood browser console with errors
+- 1,849 ERR_CONNECTION_REFUSED errors create noise masking real test failures
+- HMR is completely unnecessary for E2E tests (no live development during test runs)
+- Test reliability severely impacted by spurious network errors
+
+**Error Manifestation**:
+```bash
+# TEST containers (BEFORE fix)
+- 381 ws://localhost:5173 WebSocket errors (HMR trying to connect)
+- 1,849 ERR_CONNECTION_REFUSED errors
+- 717 401 Unauthorized errors vs ~200 in dev
+- 305 tests passing (out of 559 total)
+
+# DEV containers (working correctly)
+- 0 WebSocket errors
+- 0 ERR_CONNECTION_REFUSED errors
+- ~200 401 Unauthorized errors (expected for unauthenticated tests)
+- 559 tests passing
+```
+
+**Architecture Difference**:
+```
+DEV Environment:
+  Host Machine → Playwright → Browser
+  Browser localhost:5173 → Docker port forwarding → web:5173 container
+  ✅ HMR WebSocket works: ws://localhost:5173 reaches web container
+
+TEST Environment:
+  test-runner container → Playwright → Browser (inside same container)
+  Browser localhost:5173 → test-runner container (NOT web container!)
+  ❌ HMR WebSocket fails: ws://localhost:5173 has nothing listening
+  ✅ App works: http://web:5173 uses container DNS correctly
+```
+
+**Wrong Solution** (Fix HMR to use container DNS):
+```yaml
+# ❌ WRONG - Trying to make HMR work in test containers
+environment:
+  VITE_HMR_HOST: "web"  # Browser still uses localhost, not web
+```
+**Problem**: Browser executes JavaScript that tries `ws://localhost:5173`, not `ws://web:5173`
+
+**Correct Solution** (Disable HMR entirely in test containers):
+
+**File: `/home/chad/repos/witchcityrope/docker-compose.test.yml`**
+```yaml
+services:
+  web:
+    environment:
+      # Disable HMR for test containers (browser runs inside test-runner, cannot reach web:5173)
+      # HMR WebSocket tries ws://localhost:5173 which fails in containers
+      VITE_HMR_ENABLED: "false"
+```
+
+**File: `/home/chad/repos/witchcityrope/apps/web/vite.config.ts`**
+```typescript
+export default defineConfig(({ mode }) => {
+  return {
+    server: {
+      // HMR Configuration - disable in test containers, configure for dev containers
+      hmr: process.env.VITE_HMR_ENABLED === 'false'
+        ? false // Disable HMR entirely (for test containers)
+        : process.env.DOCKER_ENV === 'true'
+        ? {
+            host: 'localhost',
+            port: parseInt(process.env.VITE_PORT || '5173'),
+            protocol: 'ws',
+          }
+        : true, // Use default HMR for local dev
+    }
+  }
+})
+```
+
+**Prevention Checklist**:
+1. **Test containers don't need HMR** - it's a development feature, not needed for E2E testing
+2. **Browser context matters** - `localhost` in browser means different things in different container contexts
+3. **Container DNS vs localhost** - Services use container names (`web`, `api`), browsers in containers use `localhost`
+4. **Disable unnecessary features** in test environments to reduce noise and improve reliability
+5. **Environment-specific configuration** - Use environment variables to control behavior (`VITE_HMR_ENABLED`)
+6. **Verify test vs dev parity** - If dev works but test fails with same code, investigate container networking
+
+**Verification**:
+```bash
+# After fix, test containers should have:
+# - 0 WebSocket errors (HMR disabled)
+# - 0 ERR_CONNECTION_REFUSED errors
+# - Same test pass rate as dev containers
+SKIP_CONFIRMATION=true bash .claude/skills/test-environment/execute.sh --mode e2e --filter "home-page"
+```
+
+**Related Issues**:
+- **CORS configuration** already correct (`AllowAnyOrigin()` for development)
+- **API connectivity** works fine (uses `http://api:8080` via container DNS)
+- **Vite proxy** works correctly (`DOCKER_ENV=true` enables container-aware proxy)
+
+**Impact**:
+- ✅ **DEV containers**: Unaffected - no `VITE_HMR_ENABLED` set, HMR works as before
+- ✅ **TEST containers**: HMR disabled - eliminates 381 WebSocket errors and 1,849 connection errors
+- ✅ **Production builds**: Unaffected - HMR only runs in dev mode
+
+**Tags**: #critical #testing #docker #containers #vite #hmr #websocket #networking #e2e #playwright #test-containers
+
+---

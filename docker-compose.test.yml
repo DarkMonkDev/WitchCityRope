@@ -145,6 +145,10 @@ services:
       # Without this, Vite proxy targets localhost:5655 instead of api:8080
       DOCKER_ENV: "true"
 
+      # Disable HMR for test containers (browser runs inside test-runner, cannot reach web:5173)
+      # HMR WebSocket tries ws://localhost:5173 which fails in containers
+      VITE_HMR_ENABLED: "false"
+
       # API connection (internal container communication)
       VITE_API_BASE_URL: http://api:8080
 
@@ -209,7 +213,7 @@ services:
       DB_CONNECTION_STRING: "Host=postgres;Port=5432;Database=witchcityrope_test;Username=postgres;Password=testpass123"
       
       # Playwright configuration
-      PLAYWRIGHT_WORKERS: 2
+      PLAYWRIGHT_WORKERS: 6
       PLAYWRIGHT_HEADED: "false"
       PLAYWRIGHT_BROWSER: chromium
       PLAYWRIGHT_TIMEOUT: 30000
