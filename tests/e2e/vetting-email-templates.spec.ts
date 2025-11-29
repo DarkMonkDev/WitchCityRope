@@ -34,7 +34,7 @@ test.describe('Vetting Email Templates (Unified System)', () => {
     const currentUrl = page.url();
     if (!currentUrl.includes('/admin/email-templates')) {
       console.log('⚠️ Email templates page not found - feature may not be implemented yet. Skipping test.');
-      test.skip();
+      test();
       return;
     }
 
@@ -46,7 +46,7 @@ test.describe('Vetting Email Templates (Unified System)', () => {
     // Skip if no vetting tab found
     if (await vettingTab.count() === 0) {
       console.log('⚠️ Vetting tab not found - feature may not be implemented yet. Skipping test.');
-      test.skip();
+      test();
       return;
     }
 

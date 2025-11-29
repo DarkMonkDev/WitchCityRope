@@ -20,6 +20,8 @@ services:
   # API Service - .NET 9 Minimal API (Staging)
   # ==========================================================================
   api:
+    env_file:
+      - .env
     image: registry.digitalocean.com/witchcityrope/witchcityrope-api:${IMAGE_TAG:-staging}
     container_name: witchcity-api-staging
     restart: unless-stopped
@@ -41,7 +43,7 @@ services:
       - CORS__AllowCredentials=true
       - Logging__LogLevel__Default=Debug
       - Logging__LogLevel__Microsoft=Information
-      # Email Configuration (SendGrid) - reads from .env.staging
+      # Email Configuration (SendGrid) - reads from .env
       - Vetting__EmailEnabled=${Vetting__EmailEnabled:-true}
       - Vetting__SendGridApiKey=${Vetting__SendGridApiKey}
       - Vetting__SendGridSandboxMode=${Vetting__SendGridSandboxMode:-false}
@@ -50,7 +52,6 @@ services:
       # Frontend URL for email verification links
       - Frontend__Url=${Frontend__Url:-https://staging.notfai.com}
       # Backup Configuration - Staging Isolated Storage
-      # Database connection for pg_dump (must match managed PostgreSQL)
       - BackupConfiguration__Database__Host=${BACKUP_DB_HOST}
       - BackupConfiguration__Database__Port=${BACKUP_DB_PORT:-25060}
       - BackupConfiguration__Database__DatabaseName=${BACKUP_DB_NAME:-witchcityrope_staging}

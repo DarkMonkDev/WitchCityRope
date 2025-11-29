@@ -16,7 +16,7 @@ import { test, expect } from '@playwright/test';
  * - Test with extended timeouts to account for potential loading delays
  */
 
-test.describe.skip('Form Design Showcase Pages Content Verification - SKIPPED: Features Not Implemented', () => {
+test.describe('Form Design Showcase Pages Content Verification - SKIPPED: Features Not Implemented', () => {
   let consoleErrors: string[] = [];
   let networkErrors: string[] = [];
 

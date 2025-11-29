@@ -217,7 +217,7 @@ test.describe('Check-In Walk-In (Manual Entry) Workflow', () => {
 
     // Skip test if we can't determine capacity
     if (!dashboardData) {
-      test.skip(true, 'Cannot determine event capacity - test skipped');
+      test(true, 'Cannot determine event capacity - test skipped');
       return;
     }
 
@@ -226,7 +226,7 @@ test.describe('Check-In Walk-In (Manual Entry) Workflow', () => {
 
     // If event has available capacity, we can't test the limit
     if (availableSpots > 0) {
-      test.skip(true, `Event has ${availableSpots} available spots - cannot test capacity limit`);
+      test(true, `Event has ${availableSpots} available spots - cannot test capacity limit`);
       return;
     }
 

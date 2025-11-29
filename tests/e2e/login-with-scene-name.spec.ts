@@ -298,7 +298,7 @@ test.describe('Login with Email or Scene Name', () => {
       expect(onDashboard || onLogin).toBe(true);
     });
 
-    test.skip('should be case-sensitive for scene name', async ({ page }) => {
+    test('should be case-sensitive for scene name', async ({ page }) => {
       // TODO: Scene names appear to be case-insensitive in the backend
       // This test expects case sensitivity but the login succeeds with uppercase scene names
       // Need to verify if this is intended behavior
@@ -309,7 +309,7 @@ test.describe('Login with Email or Scene Name', () => {
 
       // Skip test if scene name is already all uppercase
       if (sceneName === upperCaseSceneName) {
-        test.skip();
+        test();
         return;
       }
 
@@ -372,7 +372,7 @@ test.describe('Login with Email or Scene Name', () => {
       expect(placeholder?.toLowerCase()).toContain('scene');
     });
 
-    test.skip('should display helper text explaining both login options', async ({ page }) => {
+    test('should display helper text explaining both login options', async ({ page }) => {
       // TODO: Helper text selector needs to be updated to match actual UI text
       // Current selector doesn't match any visible element
       // Need to inspect login page to find correct selector

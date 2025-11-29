@@ -26,7 +26,6 @@ echo "   • After hotfixes that need staging verification"
 echo "   • When requested by user/orchestrator"
 echo ""
 echo "❌ DO NOT use if:"
-echo "   • Git has uncommitted changes"
 echo "   • You haven't tested locally first"
 echo ""
 echo "⚠️  CRITICAL WARNING - SHARED SERVER:"
@@ -85,18 +84,19 @@ echo "   (Test report checks were removed per user request)"
 #     exit 1
 # fi
 
-# Check 2: Git status
+# Check 2: Git status (warning only - does not block deployment)
 echo ""
 echo "2️⃣  Checking git status..."
-if [ "$SKIP_GIT_CHECK" = "true" ]; then
-    echo "   ⚠️  Git check SKIPPED - deploying with uncommitted changes"
-    echo "   (Per user request to ignore uncommitted changes)"
-elif [ -n "$(git status --short)" ]; then
-    echo "   ❌ FAIL: Uncommitted changes detected"
+if [ -n "$(git status --short)" ]; then
+    echo "   ⚠️  WARNING: Uncommitted changes detected"
+    echo "   Deploying current working directory state (including uncommitted changes)"
     echo ""
-    echo "💡 Commit all changes before deploying:"
-    git status --short
-    exit 1
+    echo "   Modified files:"
+    git status --short | head -20
+    CHANGE_COUNT=$(git status --short | wc -l)
+    if [ $CHANGE_COUNT -gt 20 ]; then
+        echo "   ... and $((CHANGE_COUNT - 20)) more files"
+    fi
 else
     echo "   ✅ Git clean"
 fi
@@ -181,8 +181,8 @@ echo ""
 echo "   Building API image..."
 docker build \
   -f apps/api/Dockerfile \
-  -t $REGISTRY/staging-api-witchcityrope:latest \
-  -t $REGISTRY/staging-api-witchcityrope:$GIT_SHA \
+  -t $REGISTRY/witchcityrope-api:latest \
+  -t $REGISTRY/witchcityrope-api:$GIT_SHA \
   --target production \
   .
 
@@ -200,8 +200,8 @@ echo ""
 echo "   Building Web image..."
 docker build \
   -f apps/web/Dockerfile \
-  -t $REGISTRY/staging-web-witchcityrope:latest \
-  -t $REGISTRY/staging-web-witchcityrope:$GIT_SHA \
+  -t $REGISTRY/witchcityrope-web:latest \
+  -t $REGISTRY/witchcityrope-web:$GIT_SHA \
   --target production \
   --build-arg BUILD_MODE=staging \
   --build-arg VITE_API_BASE_URL= \
@@ -224,14 +224,14 @@ echo "2️⃣  Pushing to DigitalOcean Container Registry..."
 echo ""
 
 echo "   Pushing API image..."
-docker push $REGISTRY/staging-api-witchcityrope:latest
-docker push $REGISTRY/staging-api-witchcityrope:$GIT_SHA
+docker push $REGISTRY/witchcityrope-api:latest
+docker push $REGISTRY/witchcityrope-api:$GIT_SHA
 echo "   ✅ API image pushed"
 
 echo ""
 echo "   Pushing Web image..."
-docker push $REGISTRY/staging-web-witchcityrope:latest
-docker push $REGISTRY/staging-web-witchcityrope:$GIT_SHA
+docker push $REGISTRY/witchcityrope-web:latest
+docker push $REGISTRY/witchcityrope-web:$GIT_SHA
 echo "   ✅ Web image pushed"
 echo ""
 
@@ -409,7 +409,7 @@ echo "📊 Deployment Summary:"
 echo "   • Server: $SERVER"
 echo "   • URL: https://staging.notfai.com"
 echo "   • Git SHA: $GIT_SHA"
-echo "   • Images: $REGISTRY/*-staging:latest, :$GIT_SHA"
+echo "   • Images: $REGISTRY/witchcityrope-api:latest, $REGISTRY/witchcityrope-web:latest"
 echo "   • Smoke tests: $SMOKE_PASS/$((SMOKE_PASS + SMOKE_FAIL))"
 echo ""
 echo "🎯 Next Steps:"

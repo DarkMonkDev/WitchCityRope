@@ -10,7 +10,6 @@ public class VettingApplication
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
     public string RealName { get; set; } = string.Empty;
-    public string? FullName { get; set; }
     public string Email { get; set; } = string.Empty;
     public string? FetLifeHandle { get; set; }
     public string? Pronouns { get; set; }

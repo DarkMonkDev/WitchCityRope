@@ -26,7 +26,7 @@ test.describe('Event Copy - Admin Workflow', () => {
     // Skip if no events exist in database
     const eventRowCount = await page.locator('[data-testid="event-row"]').count();
     if (eventRowCount === 0) {
-      test.skip();
+      test();
     }
   });
 

@@ -46,7 +46,7 @@ export class AuthHelpers {
     await page.waitForURL('**/dashboard', { timeout: 10000 });
     await page.waitForLoadState('domcontentloaded'); // Use domcontentloaded instead of networkidle
 
-    return credentials;
+    return true;
   }
 
   /**

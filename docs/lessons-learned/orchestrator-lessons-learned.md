@@ -17,6 +17,12 @@
 4. **Project Progress** - **CURRENT STATE**
 `/PROGRESS.md`
 
+5. **SKILLS-REGISTRY.md** - **WHAT AUTOMATION EXISTS** (CRITICAL)
+`/home/chad/repos/witchcityrope/.claude/skills/SKILLS-REGISTRY.md`
+   - MUST READ before any work involving automation, tests, or deployment
+   - Contains all skills, when to use them, usage patterns
+   - Skipping this causes wrong skill usage → wasted time/money
+
 ### 📚 DOCUMENT DISCOVERY RESOURCES:
 - **File Registry** - `/home/chad/repos/witchcityrope/docs/architecture/file-registry.md` - Find any document
 - **Functional Areas Index** - `/home/chad/repos/witchcityrope/docs/architecture/functional-area-master-index.md` - Navigate features
@@ -804,6 +810,43 @@ Testing after each implementation prevents accumulation of technical debt, ensur
 
 ### Tags
 #critical #testing #quality-gates #incremental-development
+
+---
+
+## 🚨 ULTRA CRITICAL: Test Environment Skill Confusion (2025-11-29) 🚨
+
+**CRISIS CONTEXT**: Orchestrator used `container-restart` skill (dev containers) instead of `test-environment` skill (test containers), wasting hours trying to run tests against non-existent `witchcity-test-runner` container.
+
+### 🔥 CRITICAL FAILURE PATTERN: Wrong Skill for Test Execution
+
+**Problem**: Used `container-restart` skill then tried to `docker exec witchcity-test-runner`
+**Reality**: `witchcity-test-runner` container ONLY exists when `test-environment` skill creates it
+**Root Cause**: Failed to read SKILLS-REGISTRY.md before taking action
+**Impact**: 3+ days of frustration, wasted time/money, user fury
+
+### 🛑 MANDATORY: SKILLS ARE DIFFERENT ENVIRONMENTS
+
+| Skill | Containers Created | Purpose |
+|-------|-------------------|---------|
+| `container-restart` | `witchcity-web`, `witchcity-api`, `witchcity-postgres` | DEV environment |
+| `test-environment` | `witchcity-web-test`, `witchcity-api-test`, `witchcity-postgres-test`, `witchcity-test-runner` | TEST environment |
+
+### 🔥 THE FIX: Read SKILLS-REGISTRY.md Pattern 2
+
+**BEFORE ANY TEST WORK:**
+1. Read SKILLS-REGISTRY.md (lines 212-229)
+2. Use `test-environment` skill (RECOMMENDED for isolation)
+3. NEVER run tests directly from host
+4. NEVER use `container-restart` then expect test-runner to exist
+
+### Checklist
+- [ ] READ SKILLS-REGISTRY.md before any automation work
+- [ ] USE test-environment skill for E2E tests (RECOMMENDED)
+- [ ] VERIFY container names match expected skill output
+- [ ] NEVER run tests directly from host machine
+
+### Tags
+#ultra-critical #testing #skills #container-confusion #prevention-pattern
 
 ---
 

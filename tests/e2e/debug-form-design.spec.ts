@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
  * DEBUG test to understand why FormDesignA component isn't rendering
  */
 
-test.skip('DEBUG: Form Design A rendering investigation - SKIPPED: Feature not implemented', async ({ page }) => {
+test('DEBUG: Form Design A rendering investigation - SKIPPED: Feature not implemented', async ({ page }) => {
   console.log('🔍 DEBUG: Starting investigation...');
 
   // Enable console logging

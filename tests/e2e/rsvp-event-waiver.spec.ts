@@ -56,7 +56,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
 
     if (!rsvpButtonExists) {
       console.log('⚠️  No RSVP available for this event');
-      test.skip();
+      test();
       return;
     }
 
@@ -109,7 +109,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
     const socialEvent = events.find((e: any) => e.eventType === 'Social');
     if (!socialEvent) {
       console.log('⚠️  No social events available for testing');
-      test.skip();
+      test();
       return;
     }
 
@@ -130,7 +130,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
 
     if (!rsvpButtonExists) {
       console.log('⚠️  User already RSVP\'d, skipping test');
-      test.skip();
+      test();
       return;
     }
 
@@ -196,7 +196,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
         });
       }
 
-      test.skip();
+      test();
       return;
     }
 
@@ -245,7 +245,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
 
     if (!rsvpButtonExists) {
       console.log('⚠️  User already RSVP\'d, skipping test');
-      test.skip();
+      test();
       return;
     }
 
@@ -276,7 +276,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
 
     if (!eventsResponse.ok()) {
       console.log('⚠️  Could not fetch events list, skipping API validation test');
-      test.skip();
+      test();
       return;
     }
 
@@ -285,7 +285,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
 
     if (!socialEvent) {
       console.log('⚠️  No social events available for testing');
-      test.skip();
+      test();
       return;
     }
 
@@ -338,7 +338,7 @@ test.describe('RSVP Event Waiver Compliance', () => {
 
     if (!rsvpButtonExists) {
       console.log('⚠️  User already RSVP\'d, skipping test');
-      test.skip();
+      test();
       return;
     }
 

@@ -58,7 +58,7 @@ test.describe('Refund Confirmation Modal - Validation Rules', () => {
     return true;
   }
 
-  test.skip('Can submit with empty refund reason (refund reason is optional)', async ({ page }) => {
+  test('Can submit with empty refund reason (refund reason is optional)', async ({ page }) => {
     // SKIPPED: Component requires minimum 10-char reason - not optional
     // The actual component validates: refundReason.trim().length >= 10 (line 71-73)
     // Button disabled condition includes: !refundReason || refundReason.trim().length < 10 (line 299)
@@ -128,7 +128,7 @@ test.describe('Refund Confirmation Modal - Validation Rules', () => {
     console.log('✅ TEST PASSED: Cannot submit without confirmation checkbox');
   });
 
-  test.skip('Only checkbox required for submission', async ({ page }) => {
+  test('Only checkbox required for submission', async ({ page }) => {
     // SKIPPED: Component requires amount + reason + checkbox, not just checkbox
     // Button disabled condition: !confirmed || !refundAmount || refundAmount <= 0 || !refundReason || refundReason.trim().length < 10
     // All three fields are required for submission

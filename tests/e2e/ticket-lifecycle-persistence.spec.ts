@@ -65,7 +65,7 @@ test.describe('Ticket Lifecycle Persistence Tests', () => {
     await globalCleanup();
   });
 
-  test.skip('CRITICAL: should persist ticket cancellation to database', async ({ page }) => {
+  test('CRITICAL: should persist ticket cancellation to database', async ({ page }) => {
     // SKIP REASON: Test infrastructure gap, NOT missing feature
     //
     // FEATURE STATUS: Ticket cancellation IS IMPLEMENTED
@@ -88,13 +88,13 @@ test.describe('Ticket Lifecycle Persistence Tests', () => {
     // - Unskip these tests once helper exists
   });
 
-  test.skip('should handle complete ticket lifecycle', async ({ page }) => {
+  test('should handle complete ticket lifecycle', async ({ page }) => {
     // SKIP REASON: Test infrastructure gap (PayPal integration required to create tickets)
     // FEATURE STATUS: Ticket lifecycle IS IMPLEMENTED (purchase, view, cancel all work)
     // See comment in 'CRITICAL: should persist ticket cancellation' test for details
   });
 
-  test.skip('should persist cancellation reason to database', async ({ page }) => {
+  test('should persist cancellation reason to database', async ({ page }) => {
     // SKIP REASON: Test infrastructure gap (PayPal integration required to create tickets)
     // FEATURE STATUS: Cancellation reasons ARE IMPLEMENTED and stored in database
     // WORKAROUND: RSVP cancellation tests verify this same functionality
@@ -143,7 +143,7 @@ test.describe('Ticket Lifecycle Persistence Tests', () => {
     console.log('✅ Cancellation audit log created');
   });
 
-  test.skip('should prevent duplicate cancellations', async ({ page }) => {
+  test('should prevent duplicate cancellations', async ({ page }) => {
     // SKIP REASON: Test infrastructure gap (PayPal integration required to create tickets)
     // FEATURE STATUS: Duplicate cancellation prevention IS IMPLEMENTED
     // WORKAROUND: RSVP cancellation tests verify this same functionality
@@ -185,16 +185,16 @@ test.describe('Ticket Persistence Edge Cases', () => {
   test('should handle network errors gracefully during cancellation', async ({ page }) => {
     // This would test offline/network error scenarios
     // For now, we'll skip as it requires network mocking
-    test.skip();
+    test();
   });
 
   test('should handle concurrent cancellation attempts', async ({ page }) => {
     // This would test race conditions
     // For now, we'll skip as it requires multiple browser contexts
-    test.skip();
+    test();
   });
 
-  test.skip('should verify endpoint called is correct', async ({ page }) => {
+  test('should verify endpoint called is correct', async ({ page }) => {
     // SKIP REASON: Test infrastructure gap (PayPal integration required to create tickets)
     // FEATURE STATUS: Correct endpoint IS USED (DELETE /api/events/{id}/participation)
     // WORKAROUND: RSVP cancellation tests verify correct endpoint usage

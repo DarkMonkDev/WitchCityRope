@@ -7,6 +7,42 @@
 
 The `/orchestrate` command implements the complete AI workflow orchestration system for WitchCityRope development. This command manages the entire development lifecycle through phases with quality gates, specialized sub-agent coordination, and comprehensive documentation.
 
+## 🚨 MANDATORY: DECISION PROTOCOL - ASK BEFORE IMPLEMENTING 🚨
+
+**STOP. Before implementing ANY solution, you MUST follow this protocol.**
+
+**THE PROBLEM**: You have a pattern of seeing a problem, immediately implementing YOUR solution without asking, and getting it wrong. This wastes time and money.
+
+**THE PROTOCOL** (for ANY non-trivial decision):
+1. **STATE** the problem you identified
+2. **LIST** 2-3 possible solutions with tradeoffs
+3. **ASK** the user: "Which approach would you like?" or "Does this look right?"
+4. **WAIT** for their response
+5. **THEN** implement what they chose
+
+**WHEN TO USE THIS PROTOCOL:**
+- Fixing bugs where the solution isn't obvious
+- Changing agent definitions or processes
+- Deciding between multiple approaches
+- Anything that changes how things work
+- When you're uncertain about the right path
+
+**WHEN YOU CAN SKIP IT:**
+- Simple, mechanical tasks (formatting, typo fixes)
+- User explicitly said "just do it"
+- Following an already-approved plan
+
+**TEST FAILURE PROTOCOL** (Special Case):
+When a test fails, DO NOT assume the app is broken:
+1. **ASK**: "Is this a TEST bug or an APP bug?"
+2. **VERIFY**: Ask user to manually test the feature, OR clearly state what you're assuming
+3. **IF APP WORKS**: Fix the test (wrong selector, wrong wait, wrong assertion)
+4. **IF APP BROKEN**: Fix the app
+5. **IF FEATURE NOT IMPLEMENTED**: Skip test with clear documentation why
+6. **NEVER** mark working features as "not implemented" to hide test bugs
+
+**ACCOUNTABILITY**: If you implement something without asking when you should have asked, you will be corrected. This correction wastes time. ASK FIRST.
+
 ## CRITICAL: MANDATORY STARTUP PROCEDURE
 **BEFORE orchestrating ANY work, the orchestrator MUST:**
 
@@ -20,10 +56,39 @@ The `/orchestrate` command implements the complete AI workflow orchestration sys
    - THE authoritative source for all workflow procedures
    - Contains 5-phase workflow definition, quality gates, human review points
 
-3. **Clickable File Links** (REQUIRED)
+3. **Read SKILLS-REGISTRY.md** (MANDATORY for all work involving automation)
+   - Location: `/home/chad/repos/witchcityrope/.claude/skills/SKILLS-REGISTRY.md`
+   - Know what skills exist BEFORE taking any action
+   - Contains all available skills, when to use them, and usage patterns
+   - **CRITICAL**: Skipping this causes wrong skill usage and wasted time/money
+
+4. **Clickable File Links** (REQUIRED)
    - ALL file links in documentation must use full absolute paths
    - Format: `/home/chad/repos/witchcityrope/...`
    - Enables clickable navigation for stakeholders
+
+## 🚨 TEST EXECUTION PROTOCOL - MANDATORY 🚨
+
+**BEFORE ANY TEST-RELATED WORK:**
+
+1. **Read SKILLS-REGISTRY.md Pattern 2** (Before Running E2E Tests)
+   - Location: `/home/chad/repos/witchcityrope/.claude/skills/SKILLS-REGISTRY.md` (lines 212-229)
+   - Two options documented: test-environment (RECOMMENDED) vs container-restart (dev only)
+
+2. **Use test-environment skill** (RECOMMENDED for test isolation)
+   - Builds fresh test containers separate from dev environment
+   - Creates `witchcity-test-runner` container for test execution
+   - Automatic cleanup after tests complete
+
+3. **NEVER run tests directly from host**
+   - Direct host commands run against dev containers or nothing
+   - Use `container-restart` for dev only, NOT for tests
+
+**WHY THIS MATTERS:**
+- `container-restart` skill = DEV containers (witchcity-web, witchcity-api)
+- `test-environment` skill = TEST containers (witchcity-web-test, witchcity-api-test, witchcity-test-runner)
+- The `witchcity-test-runner` container ONLY exists when test-environment skill creates it
+- Running tests against dev containers interferes with development work
 
 ## Usage
 

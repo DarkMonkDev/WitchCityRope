@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
 
-test.skip('Verify Form Design A fixes - SKIPPED: Feature not implemented', async ({ page }) => {
+test('Verify Form Design A fixes - SKIPPED: Feature not implemented', async ({ page }) => {
   console.log('🔍 Testing updated Floating Label design fixes...');
   
   // Navigate to Design A

@@ -58,7 +58,7 @@ test.describe('Venue Display on Event Page', () => {
       expect(await venueDirections.count()).toBe(0);
     } else {
       console.log('⚠️ No events found for testing. Skipping venue visibility test.');
-      test.skip();
+      test();
     }
   });
 
@@ -94,7 +94,7 @@ test.describe('Venue Display on Event Page', () => {
       }
     } else {
       console.log('⚠️ No events found for testing');
-      test.skip();
+      test();
     }
   });
 
@@ -143,7 +143,7 @@ test.describe('Venue Display on Event Page', () => {
       }
     } else {
       console.log('⚠️ No events found for testing');
-      test.skip();
+      test();
     }
   });
 
@@ -196,7 +196,7 @@ test.describe('Venue Display on Event Page', () => {
       }
     } else {
       console.log('⚠️ No events found for testing');
-      test.skip();
+      test();
     }
   });
 

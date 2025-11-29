@@ -517,8 +517,28 @@ TEST_CATALOG updated with metrics."
 
 **NEVER allow local dev servers - ONLY Docker on port 5173**
 
+### 🚨🚨🚨 E2E TEST EXECUTION - MANDATORY PROCEDURE 🚨🚨🚨
+
+**FOR ALL E2E/PLAYWRIGHT TESTS:**
+Use the `test-environment` skill which handles:
+- Building fresh test containers separate from dev environment
+- Creating `witchcity-test-runner` container for test execution
+- Automatic cleanup after tests complete
+
+**❌ ABSOLUTELY FORBIDDEN:**
+- NEVER run tests directly from host
+- NEVER use `container-restart` then expect test-runner to exist
+- Direct host commands run against DEV containers, not TEST containers
+
+**WHY THIS MATTERS:**
+- `container-restart` skill = DEV containers (witchcity-web, witchcity-api)
+- `test-environment` skill = TEST containers (witchcity-web-test, witchcity-api-test, witchcity-test-runner)
+- Test containers have isolated database, predictable seed data, and won't interfere with dev work
+- Running tests directly gives WRONG results and wastes everyone's time
+
 ### BEFORE ANY TEST EXECUTION:
-Use the `container-restart` skill to verify Docker environment health and ensure containers are running on correct ports (5173, 5655, 5433).
+1. Use the `test-environment` skill (RECOMMENDED for test isolation)
+2. The skill creates and manages all test containers automatically
 
 ## MANDATORY STARTUP PROCEDURE
 **BEFORE starting ANY work, you MUST:**

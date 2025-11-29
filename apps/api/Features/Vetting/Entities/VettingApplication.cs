@@ -37,8 +37,8 @@ public class VettingApplication
     public Guid Id { get; set; }
 
     // Public application tracking (for anonymous submissions)
-    [MaxLength(10)]
-    public string ApplicationNumber { get; set; } = string.Empty; // VET-YYYYMMDD-XXXXX
+    [MaxLength(25)]
+    public string ApplicationNumber { get; set; } = string.Empty; // VET-YYYYMMDD-XXXXXXXX (21 chars)
 
     [MaxLength(50)]
     public string StatusToken { get; set; } = string.Empty; // For public status lookup

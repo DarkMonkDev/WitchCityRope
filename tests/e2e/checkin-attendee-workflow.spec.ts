@@ -70,7 +70,7 @@ test.describe('Check-In Attendee Workflow', () => {
 
     // Skip test if no attendees or all are checked in
     if (!attendeesData || !attendeesData.attendees || attendeesData.attendees.length === 0) {
-      test.skip(true, 'No registered attendees found for this event');
+      test(true, 'No registered attendees found for this event');
       return;
     }
 
@@ -81,7 +81,7 @@ test.describe('Check-In Attendee Workflow', () => {
 
     if (!uncheckedAttendee) {
       // All attendees are already checked in - create a test registration first
-      test.skip(true, 'All attendees are already checked in - need to create test registration');
+      test(true, 'All attendees are already checked in - need to create test registration');
       return;
     }
 
@@ -131,7 +131,7 @@ test.describe('Check-In Attendee Workflow', () => {
 
     // Skip test if no checked-in attendees exist
     if (!attendeesData || !attendeesData.attendees || attendeesData.attendees.length === 0) {
-      test.skip(true, 'No attendees found for this event');
+      test(true, 'No attendees found for this event');
       return;
     }
 
@@ -141,7 +141,7 @@ test.describe('Check-In Attendee Workflow', () => {
     );
 
     if (!checkedInAttendee) {
-      test.skip(true, 'No checked-in attendees found - cannot test duplicate check-in prevention');
+      test(true, 'No checked-in attendees found - cannot test duplicate check-in prevention');
       return;
     }
 
@@ -165,7 +165,7 @@ test.describe('Check-In Attendee Workflow', () => {
 
     // Skip if no unchecked attendees
     if (!attendeesData || !attendeesData.attendees || attendeesData.attendees.length === 0) {
-      test.skip(true, 'No attendees found for this event');
+      test(true, 'No attendees found for this event');
       return;
     }
 
@@ -174,7 +174,7 @@ test.describe('Check-In Attendee Workflow', () => {
     );
 
     if (!uncheckedAttendee) {
-      test.skip(true, 'All attendees are already checked in');
+      test(true, 'All attendees are already checked in');
       return;
     }
 

@@ -58,7 +58,7 @@ test.describe('Payment Flow', () => {
     });
   }
 
-  test.skip('should complete payment flow', async ({ page }) => {
+  test('should complete payment flow', async ({ page }) => {
     // Navigate to event payment page
     await page.goto('/events/test-event/payment');
     
@@ -107,7 +107,7 @@ test.describe('Payment Flow', () => {
     }
   });
 
-  test.skip('should handle payment failure gracefully', async ({ page }) => {
+  test('should handle payment failure gracefully', async ({ page }) => {
     if (IS_CI) {
       // Mock a failed payment
       await page.route('**/api/payments/capture/*', route => {
@@ -139,7 +139,7 @@ test.describe('Payment Flow', () => {
     await expect(page.getByTestId('payment-error')).toContainText('Payment failed');
   });
 
-  test.skip('should validate sliding scale selection', async ({ page }) => {
+  test('should validate sliding scale selection', async ({ page }) => {
     await page.goto('/events/test-event/payment');
     
     // Try to proceed without selecting sliding scale
@@ -160,9 +160,9 @@ test.describe('Payment Flow', () => {
     await expect(page.getByTestId('payment-form')).toBeVisible();
   });
 
-  test.skip('should handle webhook processing', async ({ page }) => {
+  test('should handle webhook processing', async ({ page }) => {
     if (!IS_CI) {
-      test.skip(); // Skip in real environments as webhooks are async
+      test(); // Skip in real environments as webhooks are async
     }
     
     // Mock webhook processing
@@ -212,9 +212,9 @@ async function loadWebhookFixture(fixtureName: string) {
 test.describe('Webhook Processing (CI Only)', () => {
   // TODO: Payment UI and webhook processing not implemented yet
   // Skipping all webhook tests until payment system is built
-  test.skip(() => !IS_CI, 'Webhook tests only run in CI');
+  test(() => !IS_CI, 'Webhook tests only run in CI');
 
-  test.skip('should process payment completed webhook', async ({ request }) => {
+  test('should process payment completed webhook', async ({ request }) => {
     const webhook = await loadWebhookFixture('payment-completed');
     
     const response = await request.post(`${API_URL}/api/webhooks/paypal`, {
@@ -236,7 +236,7 @@ test.describe('Webhook Processing (CI Only)', () => {
     });
   });
   
-  test.skip('should process refund webhook', async ({ request }) => {
+  test('should process refund webhook', async ({ request }) => {
     const webhook = await loadWebhookFixture('payment-refunded');
     
     const response = await request.post(`${API_URL}/api/webhooks/paypal`, {

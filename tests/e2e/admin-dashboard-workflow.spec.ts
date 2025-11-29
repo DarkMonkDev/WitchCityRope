@@ -67,7 +67,7 @@ test.describe('Admin Incident Dashboard Workflow', () => {
   });
 
   // REMOVED: Dashboard statistics test - feature not implemented
-  // test.skip('should view dashboard with statistics and incident display'...)
+  // test('should view dashboard with statistics and incident display'...)
 
   test('should filter incidents by status', async ({ page }) => {
     await AuthHelpers.loginAs(page, 'admin');

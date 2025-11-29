@@ -462,6 +462,48 @@ public class VettingService : IVettingService
 
             await _context.SaveChangesAsync(cancellationToken);
 
+            // Send email notification for status changes (failures should not prevent status change)
+            // Only send emails for these statuses: InterviewApproved, FinalReview, Approved, OnHold, Denied
+            var emailSent = false;
+            if (oldStatus != newStatus && (
+                newStatus == VettingStatus.InterviewApproved ||
+                newStatus == VettingStatus.FinalReview ||
+                newStatus == VettingStatus.Approved ||
+                newStatus == VettingStatus.OnHold ||
+                newStatus == VettingStatus.Denied))
+            {
+                try
+                {
+                    var emailResult = await _emailService.SendStatusUpdateAsync(
+                        application,
+                        application.Email,
+                        application.SceneName ?? application.FirstName ?? "Applicant",
+                        newStatus,
+                        cancellationToken);
+
+                    if (emailResult.IsSuccess)
+                    {
+                        emailSent = true;
+                        _logger.LogInformation(
+                            "Status update email sent for application {ApplicationId} to {Email}, new status: {Status}",
+                            applicationId, application.Email, newStatus);
+                    }
+                    else
+                    {
+                        _logger.LogWarning(
+                            "Failed to send status update email for application {ApplicationId}: {Error}",
+                            applicationId, emailResult.Error);
+                    }
+                }
+                catch (Exception emailEx)
+                {
+                    _logger.LogError(emailEx,
+                        "Exception sending status update email for application {ApplicationId}",
+                        applicationId);
+                    // Continue - email failure should not prevent status change
+                }
+            }
+
             var response = new ReviewDecisionResponse
             {
                 DecisionId = Guid.NewGuid(), // Simplified - not storing separate decision records
@@ -469,7 +511,7 @@ public class VettingService : IVettingService
                 SubmittedAt = DateTime.UtcNow,
                 NewApplicationStatus = newStatus.ToString(),
                 ConfirmationMessage = $"Review decision submitted successfully. Application status: {newStatus}",
-                ActionsTriggered = new List<string>()
+                ActionsTriggered = emailSent ? new List<string> { "Status update email sent" } : new List<string>()
             };
 
             _logger.LogInformation("Review decision submitted for application {ApplicationId} by user {UserId}. New status: {Status}",

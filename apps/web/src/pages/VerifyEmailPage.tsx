@@ -11,6 +11,8 @@ import {
   Flex,
   Box,
   LoadingOverlay,
+  TextInput,
+  Group,
 } from '@mantine/core'
 import { IconCircleCheck, IconAlertCircle, IconMail } from '@tabler/icons-react'
 import { useVerifyEmail, useResendVerification } from '../features/auth/api/mutations'
@@ -26,6 +28,8 @@ export const VerifyEmailPage: React.FC = () => {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const [verificationAttempted, setVerificationAttempted] = useState(false)
+  const [showResendForm, setShowResendForm] = useState(false)
+  const [resendEmail, setResendEmail] = useState('')
 
   // Extract verification parameters from URL
   const userId = searchParams.get('userId')
@@ -39,15 +43,14 @@ export const VerifyEmailPage: React.FC = () => {
   useEffect(() => {
     if (userId && token && !verificationAttempted) {
       setVerificationAttempted(true)
-      verifyEmailMutation.mutate({ email: '', token })
+      verifyEmailMutation.mutate({ userId, token })
     }
   }, [userId, token, verificationAttempted])
 
   // Handle resend verification email
-  const handleResend = () => {
-    const email = prompt('Please enter your email address to resend the verification link:')
-    if (email) {
-      resendMutation.mutate({ email })
+  const handleResendVerification = () => {
+    if (resendEmail) {
+      resendMutation.mutate({ email: resendEmail })
     }
   }
 
@@ -290,27 +293,64 @@ export const VerifyEmailPage: React.FC = () => {
                   Verification email sent! Please check your inbox.
                 </Alert>
               ) : (
-                <Button
-                  onClick={handleResend}
-                  variant="outline"
-                  color="blue"
-                  size="lg"
-                  fullWidth
-                  loading={resendMutation.isPending}
-                  leftSection={<IconMail />}
-                  styles={{
-                    root: {
-                      fontWeight: 600,
-                      height: '44px',
-                      paddingTop: '12px',
-                      paddingBottom: '12px',
-                      fontSize: '14px',
-                      lineHeight: '1.2',
-                    },
-                  }}
-                >
-                  Resend Verification Email
-                </Button>
+                <Box>
+                  <Text size="sm" mb="xs" fw={600}>
+                    Didn't receive the verification email?
+                  </Text>
+                  {!showResendForm ? (
+                    <Button
+                      onClick={() => setShowResendForm(true)}
+                      variant="outline"
+                      color="blue"
+                      size="lg"
+                      fullWidth
+                      leftSection={<IconMail />}
+                      styles={{
+                        root: {
+                          fontWeight: 600,
+                          height: '44px',
+                          paddingTop: '12px',
+                          paddingBottom: '12px',
+                          fontSize: '14px',
+                          lineHeight: '1.2',
+                        },
+                      }}
+                    >
+                      Resend Verification Email
+                    </Button>
+                  ) : (
+                    <Stack gap="xs">
+                      <TextInput
+                        placeholder="Enter your email address"
+                        value={resendEmail}
+                        onChange={(e) => setResendEmail(e.currentTarget.value)}
+                        size="md"
+                      />
+                      <Group gap="xs">
+                        <Button
+                          onClick={handleResendVerification}
+                          variant="filled"
+                          color="blue"
+                          loading={resendMutation.isPending}
+                          disabled={!resendEmail}
+                          fullWidth
+                          styles={{
+                            root: {
+                              fontWeight: 600,
+                              height: '44px',
+                              paddingTop: '12px',
+                              paddingBottom: '12px',
+                              fontSize: '14px',
+                              lineHeight: '1.2',
+                            },
+                          }}
+                        >
+                          Send Verification Email
+                        </Button>
+                      </Group>
+                    </Stack>
+                  )}
+                </Box>
               )}
 
               <Button

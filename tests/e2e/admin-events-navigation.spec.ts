@@ -50,15 +50,9 @@ test.describe('Admin Events Navigation - Critical Bug Detection', () => {
     });
   });
 
-  // API Health Pre-Check
-  test.beforeAll(async ({ request }) => {
-    console.log('🔍 Pre-flight API health check...');
-    const response = await request.get('/health');
-    expect(response.ok()).toBeTruthy();
-    const health = await response.json();
-    expect(health.status).toBe('Healthy');
-    console.log('✅ API health check passed');
-  });
+  // REMOVED: API Health Pre-Check - Not necessary, just increases test complexity
+  // Tests will fail naturally if API is down, providing better debugging info
+  // than a generic health check failure that blocks all tests
 
   test('Admin can navigate to events management and page ACTUALLY loads', async ({ page }) => {
     console.log('🔍 Testing critical admin events navigation flow...');

@@ -518,7 +518,7 @@ test.describe('Footer Component - Accessibility', () => {
 // NOTE: Console error tests commented out - pre-existing errors unrelated to footer link fixes
 // These errors exist in the application and are not caused by footer component changes
 // To be addressed in a separate cleanup task
-test.describe.skip('Footer Component - Console Errors', () => {
+test.describe('Footer Component - Console Errors', () => {
   test('No JavaScript errors in browser console', async ({ page }) => {
     const consoleErrors: string[] = [];
 

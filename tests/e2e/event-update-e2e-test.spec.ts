@@ -190,7 +190,7 @@ test.describe('Event Update Flow E2E Testing', () => {
     if (!toggleExists) {
       // TODO: Review with team - publish/draft toggle may not be implemented yet
       console.log('⚠️ Publish/Draft toggle not found - skipping test');
-      test.skip();
+      test();
       return;
     }
 
@@ -201,7 +201,7 @@ test.describe('Event Update Flow E2E Testing', () => {
 
       if (currentStateCount === 0) {
         console.log('⚠️ No selected radio button found - toggle may not be rendering correctly');
-        test.skip();
+        test();
         return;
       }
 

@@ -52,7 +52,7 @@ test.describe('Vetting Application Workflow', () => {
     const count = await vettingStatusSection.count();
     if (count === 0) {
       console.log('⚠️ Vetting status section not found on dashboard - feature may not be implemented yet. Skipping test.');
-      test.skip();
+      test();
       return;
     }
 
@@ -111,7 +111,7 @@ test.describe('Vetting Application Workflow', () => {
     // Skip if form not found
     if (await vettingForm.count() === 0) {
       console.log('⚠️ Vetting application form not found at /join - feature may not be implemented yet. Skipping test.');
-      test.skip();
+      test();
       return;
     }
 
@@ -209,7 +209,7 @@ test.describe('Vetting Application Workflow', () => {
     const count = await vettingStatusSection.count();
     if (count === 0) {
       console.log('⚠️ Vetting status section not found on dashboard - feature may not be implemented yet. Skipping test.');
-      test.skip();
+      test();
       return;
     }
 
@@ -319,7 +319,7 @@ test.describe('Vetting Application Workflow', () => {
     // Skip if form not found
     if (await vettingForm.count() === 0) {
       console.log('⚠️ Vetting application form not found at /join - feature may not be implemented yet. Skipping test.');
-      test.skip();
+      test();
       return;
     }
 
@@ -376,7 +376,7 @@ test.describe('Vetting Application Workflow', () => {
     // Skip if form not found
     if (await vettingForm.count() === 0) {
       console.log('⚠️ Vetting application form not found at /join - feature may not be implemented yet. Skipping test.');
-      test.skip();
+      test();
       return;
     }
 

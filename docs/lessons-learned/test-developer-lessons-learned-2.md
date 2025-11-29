@@ -1329,3 +1329,61 @@ test('user can submit vetting application', async ({ page }) => {
 **This pattern prevents test failures and provides clear feature completion status.**
 
 ---
+
+## Prevention Pattern: Ambiguous Label Selectors in Playwright Tests (2025-11-29)
+
+**Problem**: Playwright tests failed with "strict mode violation" when using `getByLabel()` for form fields with duplicate labels on the same page.
+
+**Root Cause**: Multiple forms on same page (e.g., "Event Position" form and "Session" modal) with identical labels like "Start Time", causing Playwright to find 2+ matching elements.
+
+**Solution**: Use `getByTestId()` instead of `getByLabel()` when multiple fields share the same label.
+
+### ❌ WRONG - Ambiguous Label Selector:
+```typescript
+// WRONG - Fails with strict mode violation if multiple "Start Time" labels exist
+await page.getByLabel('Start Time').fill('09:00');
+await page.getByLabel('End Time').fill('12:00');
+await page.getByLabel('Capacity').fill('20');
+```
+
+**Error**: `strict mode violation: getByLabel('Start Time') resolved to 2 elements`
+
+### ✅ CORRECT - Use TestID for Specificity:
+```typescript
+// CORRECT - Targets specific field using data-testid
+await page.getByTestId('input-session-start-time').fill('09:00');
+await page.getByTestId('input-session-end-time').fill('12:00');
+await page.getByTestId('input-session-capacity').fill('20');
+```
+
+### When This Happens
+- Multiple forms on same page (modal + background form)
+- Shared field names across different contexts (Position vs Session)
+- Tabs with similar fields visible simultaneously
+
+### Detection
+Playwright error message shows:
+```
+strict mode violation: getByLabel('X') resolved to 2 elements:
+    1) <input data-testid="input-position-start-time"/>
+    2) <input data-testid="input-session-start-time"/>
+```
+
+### Prevention Strategy
+1. **Check for ambiguity**: Before using `getByLabel()`, verify only ONE element with that label exists on the page
+2. **Use data-testid when uncertain**: If multiple forms/modals present, use `getByTestId()` for specificity
+3. **Prefer specific selectors**: `getByTestId()` > `getByLabel()` when dealing with modals/overlays
+4. **Fix early**: Run test once to catch strict mode violations before writing all assertions
+
+### Example Fix: admin-events-sessions.spec.ts (2025-11-29)
+**Fixed**: Changed all `getByLabel('Start Time')` → `getByTestId('input-session-start-time')`
+**Result**: 3 tests started passing (previously failed immediately)
+**Impact**: Tests now properly target session form fields instead of conflicting with position form fields
+
+**Prevention Checklist**:
+- [ ] Check if multiple forms/modals visible on page
+- [ ] Use `getByTestId()` for modal form fields
+- [ ] Use `getByLabel()` only when labels are unique on page
+- [ ] Run test once to catch strict mode violations early
+
+---

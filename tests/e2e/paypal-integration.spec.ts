@@ -80,7 +80,7 @@ test.describe('PayPal Integration Tests', () => {
   });
 
   // TODO: Implement /api/payments/create-order endpoint - currently returns 405 Method Not Allowed
-  test.skip('should create PayPal order successfully', async ({ request }) => {
+  test('should create PayPal order successfully', async ({ request }) => {
     // Test the order creation API directly
     const response = await request.post(`${API_URL}/api/payments/create-order`, {
       data: {
@@ -118,7 +118,7 @@ test.describe('PayPal Integration Tests', () => {
   });
 
   // TODO: Implement /api/payments/create-order and capture endpoints - currently returns 405 Method Not Allowed
-  test.skip('should capture PayPal order successfully', async ({ request }) => {
+  test('should capture PayPal order successfully', async ({ request }) => {
     // First create an order
     const createResponse = await request.post(`${API_URL}/api/payments/create-order`, {
       data: {
@@ -205,7 +205,7 @@ test.describe('PayPal Integration Tests', () => {
   });
 
   // TODO: Implement /api/payments/create-order endpoint before testing error handling
-  test.skip('should handle payment errors gracefully', async ({ request }) => {
+  test('should handle payment errors gracefully', async ({ request }) => {
     // Test order creation with invalid data
     const response = await request.post(`${API_URL}/api/payments/create-order`, {
       data: {
@@ -247,7 +247,7 @@ test.describe('PayPal Integration Tests', () => {
   });
 
   // TODO: Implement /api/payments/create-order endpoint before testing concurrent requests
-  test.skip('should handle concurrent payment requests', async ({ request }) => {
+  test('should handle concurrent payment requests', async ({ request }) => {
     const concurrentRequests = 5;
     const promises = Array.from({ length: concurrentRequests }, (_, i) =>
       request.post(`${API_URL}/api/payments/create-order`, {
@@ -273,7 +273,7 @@ test.describe('PayPal Integration Tests', () => {
   });
 
   // TODO: Implement /api/payments/create-order endpoint before testing performance under load
-  test.skip('should maintain performance under load', async ({ request }) => {
+  test('should maintain performance under load', async ({ request }) => {
     const startTime = Date.now();
     const requestCount = USE_MOCK_SERVICE ? 20 : 5; // Fewer requests for real PayPal
     
@@ -303,7 +303,7 @@ test.describe('PayPal Integration Tests', () => {
   });
 
   // TODO: Implement /api/payments/create-order endpoint before testing sliding scale percentages
-  test.skip('should handle different sliding scale percentages', async ({ request }) => {
+  test('should handle different sliding scale percentages', async ({ request }) => {
     const slidingScales = [0, 25, 50, 75, 100];
     const baseAmount = 100.00;
 
@@ -403,7 +403,7 @@ test.describe('PayPal Integration Tests', () => {
 
 test.describe('PayPal Error Scenarios', () => {
   // TODO: Implement /api/payments/create-order endpoint before testing error scenarios
-  test.skip('should handle service unavailable gracefully', async ({ request }) => {
+  test('should handle service unavailable gracefully', async ({ request }) => {
     // This test would be more relevant with real PayPal, but we can simulate it
     const response = await request.post(`${API_URL}/api/payments/create-order`, {
       data: {
@@ -425,7 +425,7 @@ test.describe('PayPal Error Scenarios', () => {
   });
 
   // TODO: Implement /api/payments/create-order endpoint before testing request validation
-  test.skip('should validate request data properly', async ({ request }) => {
+  test('should validate request data properly', async ({ request }) => {
     const invalidRequests = [
       {
         description: 'negative amount',

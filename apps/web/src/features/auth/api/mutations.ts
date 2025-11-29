@@ -251,9 +251,9 @@ export function useLogout() {
  */
 export function useVerifyEmail() {
   return useMutation({
-    mutationFn: async ({ email, token }: { email: string; token: string }): Promise<void> => {
+    mutationFn: async ({ userId, token }: { userId: string; token: string }): Promise<void> => {
       try {
-        const response = await api.post('/api/auth/verify-email', { email, token })
+        const response = await api.post('/api/auth/verify-email', { userId, token })
         return response.data
       } catch (error: any) {
         const userFriendlyMessage = extractErrorMessage(error)
