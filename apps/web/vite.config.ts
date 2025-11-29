@@ -35,8 +35,10 @@ export default defineConfig(({ mode }) => {
       // Allow container network access for E2E tests
       allowedHosts: ['localhost', 'web', '.witchcityrope.com'],
       
-      // HMR Configuration - use same port as dev server when in Docker
-      hmr: process.env.DOCKER_ENV === 'true'
+      // HMR Configuration - disable in test containers, configure for dev containers
+      hmr: process.env.VITE_HMR_ENABLED === 'false'
+        ? false // Disable HMR entirely (for test containers)
+        : process.env.DOCKER_ENV === 'true'
         ? {
             host: 'localhost',
             port: parseInt(process.env.VITE_PORT || '5173'),

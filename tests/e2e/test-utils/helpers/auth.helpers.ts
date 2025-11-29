@@ -33,7 +33,7 @@ export class AuthHelpers {
 
     // Navigate to login page using relative URL (works with baseURL in containers)
     await page.goto('/login');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded'); // Use domcontentloaded instead of networkidle
 
     // Fill form using data-testid selectors (updated for email-or-scenename field)
     await page.locator('[data-testid="email-or-scenename-input"]').fill(credentials.email);
@@ -42,9 +42,9 @@ export class AuthHelpers {
     // Click login button using data-testid (line 270 in LoginPage.tsx)
     await page.locator('[data-testid="login-button"]').click();
 
-    // Wait for successful authentication redirect with networkidle
+    // Wait for successful authentication redirect with domcontentloaded
     await page.waitForURL('**/dashboard', { timeout: 10000 });
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded'); // Use domcontentloaded instead of networkidle
 
     return credentials;
   }
@@ -56,7 +56,7 @@ export class AuthHelpers {
   static async loginWith(page: Page, credentials: TestCredentials) {
     // Navigate to login page using relative URL (works with baseURL in containers)
     await page.goto('/login');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded'); // Use domcontentloaded instead of networkidle
 
     // Fill form using data-testid selectors (updated for email-or-scenename field)
     await page.locator('[data-testid="email-or-scenename-input"]').fill(credentials.email);
@@ -65,9 +65,9 @@ export class AuthHelpers {
     // Click login button
     await page.locator('[data-testid="login-button"]').click();
 
-    // Wait for successful authentication redirect with networkidle
+    // Wait for successful authentication redirect with domcontentloaded
     await page.waitForURL('**/dashboard', { timeout: 10000 });
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded'); // Use domcontentloaded instead of networkidle
   }
 
   /**
@@ -77,7 +77,7 @@ export class AuthHelpers {
   static async loginExpectingError(page: Page, credentials: TestCredentials, expectedError?: string) {
     // Navigate to login page using relative URL (works with baseURL in containers)
     await page.goto('/login');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded'); // Use domcontentloaded instead of networkidle
 
     // Fill form using data-testid selectors (updated for email-or-scenename field)
     await page.locator('[data-testid="email-or-scenename-input"]').fill(credentials.email);
@@ -163,17 +163,18 @@ export class AuthHelpers {
 
     try {
       // Navigate to login page using relative URL (works with baseURL in containers)
-      await page.goto('/login');
-      await page.waitForLoadState('networkidle');
+      await page.goto('/login', { waitUntil: 'domcontentloaded' });
 
-      // Clear storage after page is loaded
+      // Clear storage after page is loaded - with timeout to prevent hanging
       await page.evaluate(() => {
         if (typeof localStorage !== 'undefined') localStorage.clear();
         if (typeof sessionStorage !== 'undefined') sessionStorage.clear();
+      }).catch((err) => {
+        console.warn('Storage clearing failed (non-critical):', err.message);
       });
     } catch (error) {
-      // If storage clearing fails, at least cookies are cleared
-      console.warn('Storage clearing failed, but cookies cleared:', error);
+      // If navigation or storage clearing fails, at least cookies are cleared
+      console.warn('Auth state clearing partial failure, but cookies cleared');
     }
   }
 
@@ -301,9 +302,9 @@ export class AuthHelpers {
    */
   static async waitForDashboardReady(page: Page) {
     // Wait for URL to be dashboard
-    await page.waitForURL('/dashboard', { 
+    await page.waitForURL('/dashboard', {
       timeout: TIMEOUTS.AUTHENTICATION,
-      waitUntil: 'networkidle' 
+      waitUntil: 'domcontentloaded' // Use domcontentloaded instead of networkidle
     });
 
     // Wait for dashboard page to load completely
