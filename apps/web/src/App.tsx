@@ -46,7 +46,8 @@ function App() {
     debugLog('🔍 App.tsx: Initializing CSRF protection via store...');
     csrfStore.initialize();
     // Don't add catch here - store handles errors internally
-  }, [csrfStore]); // Empty dependency array - initialize once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array - initialize once on mount
 
   // Refresh CSRF token when authentication status changes
   useEffect(() => {
@@ -54,7 +55,8 @@ function App() {
       debugLog('🔍 App.tsx: User authenticated, refreshing CSRF protection...');
       csrfStore.initialize();
     }
-  }, [isAuthenticated, csrfStore]); // Run when authentication status changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]); // Run when authentication status changes - csrfStore excluded to prevent infinite loop
 
   return <RouterProvider router={router} />
 }
