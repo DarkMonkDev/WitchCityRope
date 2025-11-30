@@ -255,6 +255,7 @@ public class VettingService : IVettingService
                 YearsExperience = 0,
                 ExperienceDescription = application.ExperienceDescription ?? string.Empty,
                 WhyJoinCommunity = application.WhyJoinCommunity ?? string.Empty,
+                HowDidYouHearAboutUs = application.HowDidYouHearAboutUs,
                 AgreesToGuidelines = true, // Default
                 AssignedReviewerName = null,
                 ReviewStartedAt = application.ReviewStartedAt,
@@ -705,7 +706,9 @@ public class VettingService : IVettingService
                 SubmittedAt = application.SubmittedAt,
                 UpdatedAt = application.UpdatedAt,
                 ExperienceLevel = "Beginner", // Default for simplified entity
+                ExperienceDescription = application.ExperienceDescription ?? string.Empty,
                 WhyJoinCommunity = application.WhyJoinCommunity ?? "Not provided",
+                HowDidYouHearAboutUs = application.HowDidYouHearAboutUs,
                 Pronouns = application.Pronouns ?? "Not provided",
                 Tags = new List<string>(), // Simplified implementation
                 Attachments = new List<string>(), // Simplified implementation

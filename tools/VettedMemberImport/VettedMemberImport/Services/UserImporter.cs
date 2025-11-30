@@ -195,9 +195,12 @@ public class UserImporter
             OtherNames = combinedOtherNames,
 
             // Experience/motivation (using correct columns)
-            ExperienceDescription = row.MotivationDescription?.Trim(),
-            WhyJoinCommunity = row.RelationshipWithSponsor?.Trim(),
-            HowDidYouHearAboutUs = row.FitForDarkAlchemy?.Trim(),
+            // "Description of the applicant and motivation to join" → WhyJoinCommunity
+            // "Relationship with Sponsor or how did they learn about Dark Alchemy" → HowDidYouHearAboutUs
+            // "Fit for Dark Alchemy" → ExperienceDescription (reviewer notes about applicant fit)
+            WhyJoinCommunity = row.MotivationDescription?.Trim(),
+            HowDidYouHearAboutUs = row.RelationshipWithSponsor?.Trim(),
+            ExperienceDescription = row.FitForDarkAlchemy?.Trim(),
             ExperienceLevel = 2, // Intermediate (default assumption)
             YearsExperience = 1, // Default
 

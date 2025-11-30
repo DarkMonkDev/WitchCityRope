@@ -12,7 +12,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Generate CSRF token for authenticated session
+         * Generate CSRF token for any session (pre-auth and authenticated)
          * @description Generates and stores CSRF token in XSRF-TOKEN cookie. React frontend reads this cookie and includes token in X-CSRF-TOKEN header for state-changing requests.
          */
         get: operations["GetAntiforgeryToken"];
@@ -3478,7 +3478,6 @@ export interface components {
             submittedAt?: string;
             /** Format: date-time */
             lastActivityAt?: string | null;
-            fullName?: string;
             sceneName?: string;
             pronouns?: string | null;
             email?: string;
@@ -3489,6 +3488,7 @@ export interface components {
             yearsExperience?: number;
             experienceDescription?: string;
             whyJoinCommunity?: string;
+            howDidYouHearAboutUs?: string | null;
             agreesToGuidelines?: boolean;
             assignedReviewerName?: string | null;
             /** Format: date-time */

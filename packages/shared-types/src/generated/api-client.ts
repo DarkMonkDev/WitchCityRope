@@ -2,17 +2,17 @@
 /* tslint:disable */
 /**
  * API Client wrapper for type-safe API calls
- * Generated on: 2025-11-27T08:44:59.857Z
+ * Generated on: 2025-11-29T23:43:59.090Z
  */
 
 import type {
   UserDto,
-  EventDto,
   LoginRequest,
   LoginResponse,
   RegisterRequest,
   AuthUserResponse,
   UpdateEventRequest,
+  EventDto,
   AdminDashboardResponse,
   CreateIncidentRequest,
   SubmissionResponse,

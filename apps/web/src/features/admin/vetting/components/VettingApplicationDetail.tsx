@@ -501,6 +501,14 @@ export const VettingApplicationDetail: React.FC<VettingApplicationDetailProps> =
                     {application.experienceDescription}
                   </Text>
                 </div>
+                <div>
+                  <Text fw={600} mb="xs">
+                    How did you learn about WitchCityRope?
+                  </Text>
+                  <Text style={{ whiteSpace: 'pre-wrap' }}>
+                    {application.howDidYouHearAboutUs || 'Not provided'}
+                  </Text>
+                </div>
               </Stack>
             </Card>
           </Stack>

@@ -28,6 +28,7 @@ public class ApplicationDetailResponse
 
     // Community Information
     public string WhyJoinCommunity { get; set; } = string.Empty;
+    public string? HowDidYouHearAboutUs { get; set; }
     public bool AgreesToGuidelines { get; set; }
 
     // Review Information
